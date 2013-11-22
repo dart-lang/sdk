@@ -118,7 +118,7 @@ abstract class Enqueuer {
       elements.registerDependency(cls);
       cls.ensureResolved(compiler);
       universe.instantiatedTypes.add(type);
-      if (!cls.isAbstract(compiler)
+      if (!cls.isAbstract
           // We can't use the closed-world assumption with native abstract
           // classes; a native abstract class may have non-abstract subclasses
           // not declared to the program.  Instances of these classes are
@@ -729,15 +729,20 @@ class CodegenEnqueuer extends Enqueuer {
         queue = new Queue<CodegenWorkItem>();
 
   bool isProcessed(Element member) =>
-      member.isAbstract(compiler) || generatedCode.containsKey(member);
+      member.isAbstract || generatedCode.containsKey(member);
 
   void internalAddToWorkList(Element element) {
     // Don't generate code for foreign elements.
     if (element.isForeign(compiler)) return;
 
-    // Codegen inlines field initializers, so it does not need to add
-    // individual fields in the work list.
-    if (element.isField() && element.isInstanceMember()) return;
+    // Codegen inlines field initializers. It only needs to generate
+    // code for checked setters.
+    if (element.isField() && element.isInstanceMember()) {
+      if (!compiler.enableTypeAssertions
+          || element.enclosingElement.isClosure()) {
+        return;
+      }
+    }
 
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,

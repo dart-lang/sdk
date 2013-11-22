@@ -275,8 +275,13 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    * This operation does not increase the length of `this`.
    *
-   * An error occurs if the [index] is less than 0 or greater than length.
-   * An error occurs if the [iterable] is longer than [length] - [index].
+   * The [index] must be non-negative and no greater than [length].
+   *
+   * The [iterable] must not have more elements than what can fit from [index]
+   * to [length].
+   *
+   * If `iterable` is based on this list, its values may change /during/ the
+   * `setAll` operation.
    */
   void setAll(int index, Iterable<E> iterable);
 
@@ -307,10 +312,10 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    * Returns the removed object.
    *
-   * * Throws an [ArgumentError] if [index] is not an [int].
-   * * Throws a [RangeError] if the [index] is out of range for this list.
-   * * Throws an [UnsupportedError], and doesn't remove the object,
-   * if this is a fixed-length list.
+   * The [index] must be in the range `0 ≤ index < length`.
+   *
+   * Throws an [UnsupportedError] if this is a fixed-length list. In that case
+   * the list is not modified.
    */
   E removeAt(int index);
 
@@ -384,7 +389,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
 
   /**
    * Copies the objects of [iterable], skipping [skipCount] objects first,
-   * into the range [start] inclusive to [end] exclusive of `this`.
+   * into the range [start], inclusive, to [end], exclusive, of the list.
    *
    *     List<int> list1 = [1, 2, 3, 4];
    *     List<int> list2 = [5, 6, 7, 8, 9];
@@ -393,21 +398,29 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *     list1.setRange(1, 3, list2, 3);
    *     list1.join(', '); // '1, 8, 9, 4'
    *
-   * If [start] equals [end] and [start]..[end] represents a legal range, this
-   * method has no effect.
+   * The [start] and [end] indices must satisfy `0 ≤ start ≤ end ≤ length`.
+   * If [start] equals [end], this method has no effect.
    *
-   * An error occurs if [start]..[end] is not a valid range for `this`.
-   * An error occurs if the [iterable] does not have enough objects after
-   * skipping [skipCount] objects.
+   * The [iterable] must have enough objects to fill the range from `start`
+   * to `end` after skipping [skipCount] objects.
    *
+   * If `iterable` is this list, the operation will copy the elements originally
+   * in the range from `skipCount` to `skipCount + (end - start)` to the
+   * range `start` to `end`, even if the two ranges overlap.
+   *
+   * If `iterable` depends on this list in some other way, no guarantees are
+   * made.
    */
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]);
 
   /**
    * Removes the objects in the range [start] inclusive to [end] exclusive.
    *
-   * An error occurs if [start]..[end] is not a valid range for `this`.
-   * Throws an [UnsupportedError] if this is a fixed-length list.
+   * The [start] and [end] indices must be in the range
+   * `0 ≤ index ≤ length`, and `start ≤ end`.
+   *
+   * Throws an [UnsupportedError] if this is a fixed-length list. In that case
+   * the list is not modified.
    */
   void removeRange(int start, int end);
 
@@ -421,15 +434,15 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
 
   /**
    * Removes the objects in the range [start] inclusive to [end] exclusive
-   * and replaces them with the contents of the [iterable].
+   * and inserts the contents of [replacement] in its place.
    *
-   *     List<int> list = [1, 2, 3, 4];
-   *     list.replaceRange(1, 3, [6, 7]);
-   *     list.join(', '); // '1, 6, 7, 4'
+   *     List<int> list = [1, 2, 3, 4, 5];
+   *     list.replaceRange(1, 4, [6, 7]);
+   *     list.join(', '); // '1, 6, 7, 5'
    *
    * An error occurs if [start]..[end] is not a valid range for `this`.
    */
-  void replaceRange(int start, int end, Iterable<E> iterable);
+  void replaceRange(int start, int end, Iterable<E> replacement);
 
   /**
    * Returns an unmodifiable [Map] view of `this`.

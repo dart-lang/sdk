@@ -15,6 +15,7 @@ import 'dart:mirrors';
 import "package:analyzer/analyzer.dart";
 import "package:crypto/crypto.dart";
 import 'package:path/path.dart' as path;
+import "package:stack_trace/stack_trace.dart";
 
 import 'dart.dart';
 
@@ -63,11 +64,11 @@ class FutureGroup<T> {
         completed = true;
         _completer.complete(_values);
       }
-    }).catchError((e) {
+    }).catchError((e, stackTrace) {
       if (completed) return;
 
       completed = true;
-      _completer.completeError(e);
+      _completer.completeError(e, stackTrace);
     }));
 
     return task;
@@ -110,6 +111,19 @@ String pluralize(String name, int number, {String plural}) {
   if (number == 1) return name;
   if (plural != null) return plural;
   return '${name}s';
+}
+
+/// Creates a URL string for [address]:[port].
+///
+/// Handles properly formatting IPv6 addresses.
+String baseUrlForAddress(InternetAddress address, int port) {
+  // IPv6 addresses in URLs need to be enclosed in square brackets to avoid
+  // URL ambiguity with the ":" in the address.
+  if (address.type == InternetAddressType.IP_V6) {
+    return "http://[${address.address}]:$port";
+  }
+
+  return "http://${address.address}:$port";
 }
 
 /// Flattens nested lists inside an iterable into a single list containing only
@@ -278,8 +292,7 @@ String sha1(String source) {
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
-  future.then((value) => completer.complete(value),
-      onError: (e) => completer.completeError(e));
+  future.then(completer.complete, onError: completer.completeError);
 }
 
 /// Ensures that [stream] can emit at least one value successfully (or close
@@ -576,12 +589,18 @@ String libraryPath(String libraryName) {
   return path.fromUri(lib.uri);
 }
 
-/// Gets a "special" string (ANSI escape or Unicode). On Windows, returns
-/// something else since those aren't supported.
+/// Gets a "special" string (ANSI escape or Unicode).
+///
+/// On Windows or when not printing to a terminal, returns something else since
+/// those aren't supported.
 String getSpecial(String color, [String onWindows = '']) {
   // No ANSI escapes on windows or when running tests.
-  if (runningAsTest || Platform.operatingSystem == 'windows') return onWindows;
-  return color;
+  if (runningAsTest || Platform.operatingSystem == 'windows' ||
+      stdioType(stdout) != StdioType.TERMINAL) {
+    return onWindows;
+  } else {
+    return color;
+  }
 }
 
 /// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
@@ -621,8 +640,8 @@ Future resetStack(fn()) {
   // first and second cases described above.
   newFuture(fn).then((val) {
     scheduleMicrotask(() => completer.complete(val));
-  }).catchError((err) {
-    scheduleMicrotask(() => completer.completeError(err));
+  }).catchError((err, stackTrace) {
+    scheduleMicrotask(() => completer.completeError(err, stackTrace));
   });
   return completer.future;
 }
@@ -712,14 +731,21 @@ String getErrorMessage(error) {
 class ApplicationException implements Exception {
   final String message;
 
-  ApplicationException(this.message);
+  /// The underlying exception that [this] is wrapping, if any.
+  final innerError;
+
+  /// The stack trace for [innerError] if it exists.
+  final Trace innerTrace;
+
+  ApplicationException(this.message, [this.innerError, StackTrace innerTrace])
+      : innerTrace = innerTrace == null ? null : new Trace.from(innerTrace);
 
   String toString() => message;
 }
 
 /// Throw a [ApplicationException] with [message].
-void fail(String message) {
-  throw new ApplicationException(message);
+void fail(String message, [innerError, StackTrace innerTrace]) {
+  throw new ApplicationException(message, innerError, innerTrace);
 }
 
 /// All the names of user-facing exceptions.

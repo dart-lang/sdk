@@ -68,7 +68,7 @@ class Message {
   }
 }
 
-typedef void PrintHandler(Object obj);
+typedef void PrintHandler(Message obj);
 
 /**
  * This class tracks and prints information, warnings, and errors emitted by the

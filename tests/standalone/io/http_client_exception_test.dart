@@ -11,7 +11,26 @@ import "package:expect/expect.dart";
 void testInvalidUrl() {
   HttpClient client = new HttpClient();
   Expect.throws(
-      () => client.getUrl(Uri.parse('ftp://www.google.com')));
+      () => client.getUrl(Uri.parse('ftp://www.google.com')),
+      (e) => e.toString().contains("Unsupported scheme"));
+  Expect.throws(
+      () => client.getUrl(Uri.parse('httpx://www.google.com')),
+      (e) => e.toString().contains("Unsupported scheme"));
+  Expect.throws(
+      () => client.getUrl(Uri.parse('http://::1')),
+      (e) => e.toString().contains("No host specified"));
+  Expect.throws(
+      () => client.getUrl(Uri.parse('http:///')),
+      (e) => e.toString().contains("No host specified"));
+  Expect.throws(
+      () => client.getUrl(Uri.parse('http:///index.html')),
+      (e) => e.toString().contains("No host specified"));
+  Expect.throws(
+      () => client.getUrl(Uri.parse('///')),
+      (e) => e.toString().contains("No host specified"));
+  Expect.throws(
+      () => client.getUrl(Uri.parse('///index.html')),
+      (e) => e.toString().contains("No host specified"));
 }
 
 void testBadHostName() {

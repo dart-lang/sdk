@@ -4,18 +4,19 @@
 # BSD-style license that can be found in the LICENSE file.
 
 function follow_links() {
-  while [ -h "$1" ]; do
+  file="$1"
+  while [ -h "$file" ]; do
     # On Mac OS, readlink -f doesn't work.
-    1="$(readlink "$1")"
+    file="$(readlink "$file")"
   done
-  echo "$1"
+  echo "$file"
 }
 
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
 PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
 # Handle the case where dart-sdk/bin has been symlinked to.
-BIN_DIR="$(follow_links "$(cd "${PROG_NAME%/*}" ; pwd -P)")"
+BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
 SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
 

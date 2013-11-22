@@ -11,6 +11,11 @@ part of dart.convert;
  * Instead of limiting the interface to one non-chunked String it accepts
  * partial strings or can be transformed into a byte sink that
  * accepts UTF-8 code units.
+ *
+ * This abstract class will likely get more methods over time. Implementers are
+ * urged to extend [StringConversionSinkBase] or to mix in
+ * [StringConversionSinkMixin], to ensure that their class covers the newly
+ * added methods.
  */
 abstract class StringConversionSink
     extends ChunkedConversionSink<String> {

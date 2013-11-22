@@ -8,6 +8,8 @@ import 'dart:_foreign_helper' show JS, JS_GET_NAME;
 
 import 'dart:_js_helper' show JsCache;
 
+import 'dart:_interceptors' show JSArray;
+
 /// No-op method that is called to inform the compiler that unmangled named
 /// must be preserved.
 preserveNames() {}
@@ -64,7 +66,7 @@ Map<String, String> computeReflectiveNames(Map<String, String> map) {
 }
 
 List extractKeys(victim) {
-  return JS('List', '''
+  var result = JS('', '''
 (function(victim, hasOwnProperty) {
   var result = [];
   for (var key in victim) {
@@ -72,6 +74,7 @@ List extractKeys(victim) {
   }
   return result;
 })(#, Object.prototype.hasOwnProperty)''', victim);
+  return new JSArray.markFixed(result);
 }
 
 /**

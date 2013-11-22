@@ -214,7 +214,8 @@ Future deploy({List<String> entryPoints, CommandLineOptions options,
   var transformOptions = new TransformOptions(
       entryPoints: entryPoints,
       directlyIncludeJS: options.directlyIncludeJS,
-      contentSecurityPolicy: options.contentSecurityPolicy);
+      contentSecurityPolicy: options.contentSecurityPolicy,
+      releaseMode: options.releaseMode);
 
   var barbackOptions = new BarbackOptions(
       new PolymerTransformerGroup(transformOptions).phases,
@@ -260,9 +261,16 @@ class CommandLineOptions {
    */
   final bool directlyIncludeJS;
 
+  /**
+   * Run transformers in release mode. For instance, uses the minified versions
+   * of shadow_dom and custom-elements polyfills.
+   */
+  final bool releaseMode;
+
   CommandLineOptions(this.changedFiles, this.removedFiles, this.clean,
       this.full, this.machineFormat, this.forceDeploy, this.outDir,
-      this.directlyIncludeJS, this.contentSecurityPolicy);
+      this.directlyIncludeJS, this.contentSecurityPolicy,
+      this.releaseMode);
 }
 
 /**
@@ -318,6 +326,11 @@ CommandLineOptions parseOptions([List<String> args]) {
     ..addFlag('csp', help:
         'replaces *.dart with *.dart.precompiled.js to comply with \n'
         'Content Security Policy restrictions.')
+    ..addFlag('debug', help:
+        'run in debug mode. For example, use the debug versions of the \n'
+        'polyfills (shadow_dom.debug.js and custom-elements.debug.js) \n'
+        'instead of the minified versions.',
+        defaultsTo: false)
     ..addFlag('help', abbr: 'h',
         negatable: false, help: 'Displays this help and exit.');
 
@@ -342,5 +355,5 @@ CommandLineOptions parseOptions([List<String> args]) {
   }
   return new CommandLineOptions(res['changed'], res['removed'], res['clean'],
       res['full'], res['machine'], res['deploy'], res['out'], res['js'],
-      res['csp']);
+      res['csp'], !res['debug']);
 }

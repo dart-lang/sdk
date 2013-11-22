@@ -38,7 +38,7 @@ class PseudoKWTest {
     // attempt at complete coverage.
     {
       void factory(set) {
-        return 0;  /// 01: ok
+        return;  /// 01: ok
       }
     }
 

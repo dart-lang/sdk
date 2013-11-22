@@ -5,7 +5,7 @@ description: Provides APIs for debugging and error logging. This library introdu
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/logging
 dependencies:
-  unmodifiable_collection: ">=0.9.0 <0.10.0"
+  collection_helpers: ">=0.9.0 <0.10.0"
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"
 environment:

@@ -69,58 +69,6 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
 }
 
 
-// TODO(zerny): Remove the ChildrenVisitor and SourceLabelResetter once we have
-// moved the label/join map for control flow out of the AST and into the flow
-// graph builder.
-
-// Default visitor to traverse child nodes.
-class ChildrenVisitor : public AstNodeVisitor {
- public:
-  ChildrenVisitor() { }
-#define DEFINE_VISIT(BaseName)                                                 \
-  virtual void Visit##BaseName##Node(BaseName##Node* node) {                   \
-    node->VisitChildren(this);                                                 \
-  }
-
-  FOR_EACH_NODE(DEFINE_VISIT);
-#undef DEFINE_VISIT
-};
-
-
-// Visitor to clear each AST node containing source labels.
-class SourceLabelResetter : public ChildrenVisitor {
- public:
-  SourceLabelResetter() { }
-  virtual void VisitSequenceNode(SequenceNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitCaseNode(CaseNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitSwitchNode(SwitchNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitWhileNode(WhileNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitDoWhileNode(DoWhileNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitForNode(ForNode* node) {
-    Reset(node, node->label());
-  }
-  virtual void VisitJumpNode(JumpNode* node) {
-    Reset(node, node->label());
-  }
-  void Reset(AstNode* node, SourceLabel* lbl) {
-    node->VisitChildren(this);
-    if (lbl == NULL) return;
-    lbl->join_for_break_ = NULL;
-    lbl->join_for_continue_ = NULL;
-  }
-};
-
-
 // Helper to create a parameter stub from an actual argument.
 static Definition* CreateParameterStub(intptr_t i,
                                        Value* argument,
@@ -171,10 +119,22 @@ class GraphInfoCollector : public ValueObject {
         ++instruction_count_;
         Instruction* current = it.Current();
         if (current->IsStaticCall() ||
-            current->IsClosureCall() ||
-            (current->IsPolymorphicInstanceCall() &&
-             !current->AsPolymorphicInstanceCall()->HasRecognizedTarget())) {
+            current->IsClosureCall()) {
           ++call_site_count_;
+          continue;
+        }
+        if (current->IsPolymorphicInstanceCall()) {
+          PolymorphicInstanceCallInstr* call =
+              current->AsPolymorphicInstanceCall();
+          // These checks make sure that the number of call-sites counted does
+          // not change relative to the time when the current set of inlining
+          // parameters was fixed.
+          // TODO(fschneider): Determine new heuristic parameters that avoid
+          // these checks entirely.
+          if (!call->HasRecognizedTarget() &&
+              (call->instance_call()->token_kind() != Token::kEQ)) {
+            ++call_site_count_;
+          }
         }
       }
     }
@@ -608,6 +568,11 @@ class CallSiteInliner : public ValueObject {
         FlowGraphOptimizer optimizer(callee_graph);
         optimizer.ApplyICData();
         DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+        // Optimize (a << b) & c patterns, merge instructions. Must occur before
+        // 'SelectRepresentations' which inserts conversion nodes.
+        optimizer.TryOptimizePatterns();
+        DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
 
       if (FLAG_trace_inlining &&
@@ -775,8 +740,6 @@ class CallSiteInliner : public ValueObject {
       ParsedFunction* parsed_function = function_cache_[i];
       if (parsed_function->function().raw() == function.raw()) {
         *in_cache = true;
-        SourceLabelResetter reset;
-        parsed_function->node_sequence()->Visit(&reset);
         return parsed_function;
       }
     }

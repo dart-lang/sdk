@@ -21,7 +21,6 @@ class BlockEntryInstr;
 class BufferFormatter;
 class CatchBlockEntryInstr;
 class ComparisonInstr;
-class ControlInstruction;
 class Definition;
 class Environment;
 class FlowGraph;
@@ -39,11 +38,12 @@ class Range;
 // See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
   V(::, identical, ObjectIdentical, 496869842)                                 \
-  V(Object, Object., ObjectConstructor, 1058585294)                            \
-  V(Object, get:_cid, ObjectCid, 1498721510)                                   \
-  V(_List, get:length, ObjectArrayLength, 215153395)                           \
-  V(_ImmutableList, get:length, ImmutableArrayLength, 578733070)               \
-  V(_TypedList, get:length, TypedDataLength, 26616328)                         \
+  V(Object, ==, ObjectEquals, 1068471689)                                      \
+  V(Object, Object., ObjectConstructor, 1058615085)                            \
+  V(Object, get:_cid, ObjectCid, 1498751301)                                   \
+  V(_List, get:length, ObjectArrayLength, 215183186)                           \
+  V(_ImmutableList, get:length, ImmutableArrayLength, 578762861)               \
+  V(_TypedList, get:length, TypedDataLength, 26646119)                         \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 272598802)                     \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 831354841)                   \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 1832126257)                  \
@@ -54,27 +54,27 @@ class Range;
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
   V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 163795162)               \
-  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 1443265945)                    \
-  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 1864204733)                  \
-  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 1807419109)                  \
-  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 1246454605)                \
-  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 517505240)                   \
-  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1425812717)                \
-  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1457395244)              \
-  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 49127618)                \
-  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1261559935)          \
-  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 1871750680)              \
-  V(_GrowableList, get:length, GrowableArrayLength, 1654225242)                \
-  V(_GrowableList, get:_capacity, GrowableArrayCapacity, 817090003)            \
-  V(_GrowableList, _setData, GrowableArraySetData, 1375509957)                 \
-  V(_GrowableList, _setLength, GrowableArraySetLength, 1227678442)             \
-  V(_StringBase, get:length, StringBaseLength, 1483520063)                     \
-  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 879849436)                    \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 1793798234)                    \
+  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 67253374)                    \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 10467750)                    \
+  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 1596986894)                \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 868037529)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1776345006)                \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1807927533)              \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 399659907)               \
+  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1612092224)          \
+  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 74799321)                \
+  V(_GrowableList, get:length, GrowableArrayLength, 1654255033)                \
+  V(_GrowableList, get:_capacity, GrowableArrayCapacity, 817119794)            \
+  V(_GrowableList, _setData, GrowableArraySetData, 970836644)                  \
+  V(_GrowableList, _setLength, GrowableArraySetLength, 823005129)              \
+  V(_StringBase, get:length, StringBaseLength, 1483549854)                     \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 1599468763)                   \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 1958436584)                 \
-  V(_StringBase, [], StringBaseCharAt, 990046076)                              \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 1824308855)              \
-  V(_OneByteString, _setAt, OneByteStringSetAt, 308408714)                     \
-  V(_IntegerImplementation, toDouble, IntegerToDouble, 2011998508)             \
+  V(_StringBase, [], StringBaseCharAt, 585372763)                              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 2013078843)              \
+  V(_OneByteString, _setAt, OneByteStringSetAt, 658941003)                     \
+  V(_IntegerImplementation, toDouble, IntegerToDouble, 1947355341)             \
   V(_IntegerImplementation, _leftShiftWithMask32, IntegerLeftShiftWithMask32,  \
       2095943661)                                                              \
   V(_Double, toInt, DoubleToInteger, 1328149975)                               \
@@ -86,21 +86,21 @@ class Range;
   V(::, sqrt, MathSqrt, 465520247)                                             \
   V(::, sin, MathSin, 730107143)                                               \
   V(::, cos, MathCos, 1282146521)                                              \
-  V(::, min, MathMin, 1830216388)                                              \
-  V(::, max, MathMax, 234565686)                                               \
-  V(::, _doublePow, MathDoublePow, 1728171041)                                 \
-  V(Float32x4, Float32x4., Float32x4Constructor, 786169160)                    \
-  V(Float32x4, Float32x4.zero, Float32x4Zero, 1589383280)                      \
-  V(Float32x4, Float32x4.splat, Float32x4Splat, 62513275)                      \
+  V(::, min, MathMin, 1022567780)                                              \
+  V(::, max, MathMax, 612058870)                                               \
+  V(::, _doublePow, MathDoublePow, 1591032382)                                 \
+  V(Float32x4, Float32x4., Float32x4Constructor, 1314950569)                   \
+  V(Float32x4, Float32x4.zero, Float32x4Zero, 1432281809)                      \
+  V(Float32x4, Float32x4.splat, Float32x4Splat, 1148280442)                    \
   V(Float32x4, Float32x4.fromInt32x4Bits, Float32x4FromInt32x4Bits,            \
-      1933861675)                                                              \
+      872145194)                                                               \
   V(_Float32x4, shuffle, Float32x4Shuffle, 1178727105)                         \
   V(_Float32x4, shuffleMix, Float32x4ShuffleMix, 927956119)                    \
-  V(_Float32x4, get:x, Float32x4ShuffleX, 1351717838)                          \
-  V(_Float32x4, get:y, Float32x4ShuffleY, 217386410)                           \
-  V(_Float32x4, get:z, Float32x4ShuffleZ, 2144923721)                          \
-  V(_Float32x4, get:w, Float32x4ShuffleW, 1447699119)                          \
-  V(_Float32x4, get:signMask, Float32x4GetSignMask, 1198849347)                \
+  V(_Float32x4, get:x, Float32x4ShuffleX, 1351747629)                          \
+  V(_Float32x4, get:y, Float32x4ShuffleY, 217416201)                           \
+  V(_Float32x4, get:z, Float32x4ShuffleZ, 2144953512)                          \
+  V(_Float32x4, get:w, Float32x4ShuffleW, 1447728910)                          \
+  V(_Float32x4, get:signMask, Float32x4GetSignMask, 1198879138)                \
   V(_Float32x4, _cmpequal, Float32x4Equal, 1944929844)                         \
   V(_Float32x4, _cmpgt, Float32x4GreaterThan, 499965951)                       \
   V(_Float32x4, _cmpgte, Float32x4GreaterThanOrEqual, 1003006845)              \
@@ -120,66 +120,66 @@ class Range;
   V(_Float32x4, withY, Float32x4WithY, 1806065938)                             \
   V(_Float32x4, withZ, Float32x4WithZ, 320659034)                              \
   V(_Float32x4, withW, Float32x4WithW, 1108437255)                             \
-  V(Int32x4, Int32x4.bool, Int32x4BoolConstructor, 1477593884)                 \
+  V(Int32x4, Int32x4.bool, Int32x4BoolConstructor, 295910141)                  \
   V(Int32x4, Int32x4.fromFloat32x4Bits, Int32x4FromFloat32x4Bits,              \
-      1955567428)                                                              \
-  V(_Int32x4, get:flagX, Int32x4GetFlagX, 729235803)                           \
-  V(_Int32x4, get:flagY, Int32x4GetFlagY, 430840849)                           \
-  V(_Int32x4, get:flagZ, Int32x4GetFlagZ, 1981076496)                          \
-  V(_Int32x4, get:flagW, Int32x4GetFlagW, 629356099)                           \
-  V(_Int32x4, get:signMask, Int32x4GetSignMask, 1598787746)                    \
+      893850947)                                                               \
+  V(_Int32x4, get:flagX, Int32x4GetFlagX, 729265594)                           \
+  V(_Int32x4, get:flagY, Int32x4GetFlagY, 430870640)                           \
+  V(_Int32x4, get:flagZ, Int32x4GetFlagZ, 1981106287)                          \
+  V(_Int32x4, get:flagW, Int32x4GetFlagW, 629385890)                           \
+  V(_Int32x4, get:signMask, Int32x4GetSignMask, 1598817537)                    \
   V(_Int32x4, shuffle, Int32x4Shuffle, 599391160)                              \
   V(_Int32x4, shuffleMix, Int32x4ShuffleMix, 1491641197)                       \
-  V(_Int32x4, select, Int32x4Select, 598942806)                                \
+  V(_Int32x4, select, Int32x4Select, 194269493)                                \
   V(_Int32x4, withFlagX, Int32x4WithFlagX, 63248661)                           \
   V(_Int32x4, withFlagY, Int32x4WithFlagY, 1498755850)                         \
   V(_Int32x4, withFlagZ, Int32x4WithFlagZ, 457856832)                          \
   V(_Int32x4, withFlagW, Int32x4WithFlagW, 690638779)                          \
-  V(_List, [], ObjectArrayGetIndexed, 1079829188)                              \
-  V(_List, []=, ObjectArraySetIndexed, 748954698)                              \
-  V(_ImmutableList, [], ImmutableArrayGetIndexed, 25983597)                    \
-  V(_GrowableList, [], GrowableArrayGetIndexed, 1686777561)                    \
-  V(_GrowableList, []=, GrowableArraySetIndexed, 327404102)                    \
-  V(_Float32Array, [], Float32ArrayGetIndexed, 1225286513)                     \
-  V(_Float32Array, []=, Float32ArraySetIndexed, 1155155195)                    \
-  V(_Float64Array, [], Float64ArrayGetIndexed, 871118335)                      \
-  V(_Float64Array, []=, Float64ArraySetIndexed, 214271306)                     \
-  V(_Int8Array, [], Int8ArrayGetIndexed, 199925538)                            \
-  V(_Int8Array, []=, Int8ArraySetIndexed, 25452746)                            \
-  V(_Uint8Array, [], Uint8ArrayGetIndexed, 502448555)                          \
-  V(_Uint8Array, []=, Uint8ArraySetIndexed, 182237960)                         \
-  V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 1292893603)           \
-  V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 670971404)           \
-  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1831383216)         \
-  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 1660673499)        \
+  V(_List, [], ObjectArrayGetIndexed, 675155875)                               \
+  V(_List, []=, ObjectArraySetIndexed, 1228569706)                             \
+  V(_ImmutableList, [], ImmutableArrayGetIndexed, 1768793932)                  \
+  V(_GrowableList, [], GrowableArrayGetIndexed, 1282104248)                    \
+  V(_GrowableList, []=, GrowableArraySetIndexed, 807019110)                    \
+  V(_Float32Array, [], Float32ArrayGetIndexed, 1461569776)                     \
+  V(_Float32Array, []=, Float32ArraySetIndexed, 1318757370)                    \
+  V(_Float64Array, [], Float64ArrayGetIndexed, 1107401598)                     \
+  V(_Float64Array, []=, Float64ArraySetIndexed, 377873481)                     \
+  V(_Int8Array, [], Int8ArrayGetIndexed, 436208801)                            \
+  V(_Int8Array, []=, Int8ArraySetIndexed, 1257450859)                          \
+  V(_Uint8Array, [], Uint8ArrayGetIndexed, 738731818)                          \
+  V(_Uint8Array, []=, Uint8ArraySetIndexed, 1414236073)                        \
+  V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 1529176866)           \
+  V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 1902969517)          \
+  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 2067666479)         \
+  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 745187964)         \
   V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
-    1831906095)                                                                \
+    2068189358)                                                                \
   V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
-    19235519)                                                                  \
-  V(_Int16Array, [], Int16ArrayGetIndexed, 1191799443)                         \
-  V(_Int16Array, []=, Int16ArraySetIndexed, 1182335435)                        \
-  V(_Uint16Array, [], Uint16ArrayGetIndexed, 814177144)                        \
-  V(_Uint16Array, []=, Uint16ArraySetIndexed, 663508528)                       \
-  V(_Int32Array, [], Int32ArrayGetIndexed, 787321640)                          \
-  V(_Int32Array, []=, Int32ArraySetIndexed, 1515238594)                        \
-  V(_Uint32Array, [], Uint32ArrayGetIndexed, 1421922726)                       \
-  V(_Uint32Array, []=, Uint32ArraySetIndexed, 1980947178)                      \
-  V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 1901126825)                 \
-  V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 1419416331)                \
-  V(_Int32x4Array, [], Int32x4ArrayGetIndexed, 1675579883)                     \
-  V(_Int32x4Array, []=, Int32x4ArraySetIndexed, 809970636)                     \
+    1251233632)                                                                \
+  V(_Int16Array, [], Int16ArrayGetIndexed, 1428082706)                         \
+  V(_Int16Array, []=, Int16ArraySetIndexed, 266849900)                         \
+  V(_Uint16Array, [], Uint16ArrayGetIndexed, 1050460407)                       \
+  V(_Uint16Array, []=, Uint16ArraySetIndexed, 1895506641)                      \
+  V(_Int32Array, [], Int32ArrayGetIndexed, 1023604903)                         \
+  V(_Int32Array, []=, Int32ArraySetIndexed, 599753059)                         \
+  V(_Uint32Array, [], Uint32ArrayGetIndexed, 1658205989)                       \
+  V(_Uint32Array, []=, Uint32ArraySetIndexed, 1065461643)                      \
+  V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 2137410088)                 \
+  V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 1583018506)                \
+  V(_Int32x4Array, [], Int32x4ArrayGetIndexed, 1911863146)                     \
+  V(_Int32x4Array, []=, Int32x4ArraySetIndexed, 973572811)                     \
 
 
 // A list of core function that should always be inlined.
 #define INLINE_WHITE_LIST(V)                                                   \
-  V(_List, get:length, ObjectArrayLength, 215153395)                           \
-  V(_ImmutableList, get:length, ImmutableArrayLength, 578733070)               \
-  V(_TypedList, get:length, TypedDataLength, 26616328)                         \
-  V(_GrowableList, get:length, GrowableArrayLength, 1654225242)                \
-  V(_StringBase, get:length, StringBaseLength, 1483520063)                     \
-  V(ListIterator, moveNext, ListIteratorMoveNext, 90930587)                    \
-  V(_GrowableList, get:iterator, GrowableArrayIterator, 1305127405)            \
-  V(_GrowableList, forEach, GrowableArrayForEach, 1675430533)                  \
+  V(_List, get:length, ObjectArrayLength, 215183186)                           \
+  V(_ImmutableList, get:length, ImmutableArrayLength, 578762861)               \
+  V(_TypedList, get:length, TypedDataLength, 26646119)                         \
+  V(_GrowableList, get:length, GrowableArrayLength, 1654255033)                \
+  V(_StringBase, get:length, StringBaseLength, 1483549854)                     \
+  V(ListIterator, moveNext, ListIteratorMoveNext, 881367324)                   \
+  V(_GrowableList, get:iterator, GrowableArrayIterator, 1155241039)            \
+  V(_GrowableList, forEach, GrowableArrayForEach, 195359970)                   \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
@@ -660,8 +660,8 @@ class EmbeddedArray<T, 0> {
   M(BoxDouble)                                                                 \
   M(BoxFloat32x4)                                                              \
   M(UnboxFloat32x4)                                                            \
-  M(BoxInt32x4)                                                               \
-  M(UnboxInt32x4)                                                             \
+  M(BoxInt32x4)                                                                \
+  M(UnboxInt32x4)                                                              \
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
   M(BinaryMintOp)                                                              \
@@ -672,6 +672,7 @@ class EmbeddedArray<T, 0> {
   M(StringFromCharCode)                                                        \
   M(StringInterpolate)                                                         \
   M(InvokeMathCFunction)                                                       \
+  M(MergedMath)                                                                \
   M(GuardField)                                                                \
   M(IfThenElse)                                                                \
   M(BinaryFloat32x4Op)                                                         \
@@ -688,14 +689,15 @@ class EmbeddedArray<T, 0> {
   M(Float32x4ZeroArg)                                                          \
   M(Float32x4Clamp)                                                            \
   M(Float32x4With)                                                             \
-  M(Float32x4ToInt32x4)                                                       \
+  M(Float32x4ToInt32x4)                                                        \
   M(MaterializeObject)                                                         \
-  M(Int32x4BoolConstructor)                                                   \
-  M(Int32x4GetFlag)                                                           \
-  M(Int32x4Select)                                                            \
-  M(Int32x4SetFlag)                                                           \
-  M(Int32x4ToFloat32x4)                                                       \
-  M(BinaryInt32x4Op)                                                          \
+  M(Int32x4BoolConstructor)                                                    \
+  M(Int32x4GetFlag)                                                            \
+  M(Int32x4Select)                                                             \
+  M(Int32x4SetFlag)                                                            \
+  M(Int32x4ToFloat32x4)                                                        \
+  M(BinaryInt32x4Op)                                                           \
+  M(TestSmi)                                                                   \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -744,9 +746,6 @@ class Instruction : public ZoneAllocated {
   bool IsDefinition() { return (AsDefinition() != NULL); }
   virtual Definition* AsDefinition() { return NULL; }
 
-  bool IsControl() { return (AsControl() != NULL); }
-  virtual ControlInstruction* AsControl() { return NULL; }
-
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
   void SetInputAt(intptr_t i, Value* value) {
@@ -785,7 +784,7 @@ class Instruction : public ZoneAllocated {
   void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
     ASSERT(!IsReturn());
-    ASSERT(!IsControl() || (instr == NULL));
+    ASSERT(!IsBranch() || (instr == NULL));
     ASSERT(!IsPhi());
     ASSERT(instr == NULL || !instr->IsBlockEntry());
     // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
@@ -1000,11 +999,11 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class DoubleToSmiInstr;
   friend class DoubleToDoubleInstr;
   friend class InvokeMathCFunctionInstr;
+  friend class MergedMathInstr;
   friend class FlowGraphOptimizer;
   friend class LoadIndexedInstr;
   friend class StoreIndexedInstr;
   friend class StoreInstanceFieldInstr;
-  friend class ControlInstruction;
   friend class ComparisonInstr;
   friend class TargetEntryInstr;
   friend class JoinEntryInstr;
@@ -1015,6 +1014,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class BranchSimplifier;
   friend class BlockEntryInstr;
   friend class RelationalOpInstr;
+  friend class EqualityCompareInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -2130,64 +2130,131 @@ class GotoInstr : public TemplateInstruction<0> {
 };
 
 
-class ControlInstruction : public Instruction {
+template<intptr_t N>
+class TemplateDefinition : public Definition {
  public:
-  ControlInstruction() : true_successor_(NULL), false_successor_(NULL) { }
+  TemplateDefinition<N>() : locs_(NULL) { }
 
-  virtual ControlInstruction* AsControl() { return this; }
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
 
-  TargetEntryInstr* true_successor() const { return true_successor_; }
-  TargetEntryInstr* false_successor() const { return false_successor_; }
+  // Returns a structure describing the location constraints required
+  // to emit native code for this definition.
+  LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
 
-  TargetEntryInstr** true_successor_address() { return &true_successor_; }
-  TargetEntryInstr** false_successor_address() { return &false_successor_; }
-
-  virtual intptr_t SuccessorCount() const;
-  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
-
-  void EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                             Condition true_condition);
-
-  void EmitBranchOnValue(FlowGraphCompiler* compiler, bool result);
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
 
  private:
-  TargetEntryInstr* true_successor_;
-  TargetEntryInstr* false_successor_;
+  friend class BranchInstr;
 
-  DISALLOW_COPY_AND_ASSIGN(ControlInstruction);
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    inputs_[i] = value;
+  }
+
+  LocationSummary* locs_;
 };
 
 
-class BranchInstr : public ControlInstruction {
+class ComparisonInstr : public TemplateDefinition<2> {
+ public:
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  virtual ComparisonInstr* AsComparison() { return this; }
+
+  intptr_t token_pos() const { return token_pos_; }
+  Token::Kind kind() const { return kind_; }
+
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch) = 0;
+
+  void SetDeoptId(intptr_t deopt_id) {
+    deopt_id_ = deopt_id;
+  }
+
+  // Operation class id is computed from collected ICData.
+  void set_operation_cid(intptr_t value) { operation_cid_ = value; }
+  intptr_t operation_cid() const { return operation_cid_; }
+
+  void NegateComparison() {
+    kind_ = Token::NegateComparison(kind_);
+  }
+
+ protected:
+  ComparisonInstr(intptr_t token_pos,
+                  Token::Kind kind,
+                  Value* left,
+                  Value* right)
+      : token_pos_(token_pos), kind_(kind), operation_cid_(kIllegalCid) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+  }
+
+ private:
+  const intptr_t token_pos_;
+  Token::Kind kind_;
+  intptr_t operation_cid_;  // Set by optimizer.
+
+  DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
+};
+
+
+class BranchInstr : public Instruction {
  public:
   explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false);
 
   DECLARE_INSTRUCTION(Branch)
 
-  virtual intptr_t ArgumentCount() const;
-  intptr_t InputCount() const;
-  Value* InputAt(intptr_t i) const;
-  virtual bool CanDeoptimize() const;
-  virtual bool CanBecomeDeoptimizationTarget() const;
+  virtual intptr_t ArgumentCount() const {
+    return comparison()->ArgumentCount();
+  }
 
-  virtual EffectSet Effects() const;
+  intptr_t InputCount() const { return comparison()->InputCount(); }
+
+  Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
+
+  virtual bool CanDeoptimize() const {
+    // Branches need a deoptimization info in checked mode if they
+    // can throw a type check error.
+    return comparison()->CanDeoptimize() || is_checked();
+  }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    return comparison()->CanBecomeDeoptimizationTarget();
+  }
+
+  virtual EffectSet Effects() const {
+    return comparison()->Effects();
+  }
 
   ComparisonInstr* comparison() const { return comparison_; }
   void SetComparison(ComparisonInstr* comp);
 
   bool is_checked() const { return is_checked_; }
 
-  virtual LocationSummary* locs();
-  virtual intptr_t DeoptimizationTarget() const;
-  virtual Representation RequiredInputRepresentation(intptr_t i) const;
+  virtual LocationSummary* locs() {
+    if (comparison()->locs_ == NULL) {
+      LocationSummary* summary = comparison()->MakeLocationSummary();
+      // Branches don't produce a result.
+      summary->set_out(Location::NoLocation());
+      comparison()->locs_ = summary;
+    }
+    return comparison()->locs_;
+  }
 
-  // A misleadingly named function for use in template functions that also
-  // replace definitions.  In this case, leave the branch intact and replace
-  // its comparison with another comparison that has been removed from the
-  // graph but still has uses properly linked into their definition's use
-  // list.
-  void ReplaceWith(ComparisonInstr* other,
-                   ForwardInstructionIterator* ignored);
+  virtual intptr_t DeoptimizationTarget() const {
+    return comparison()->DeoptimizationTarget();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t i) const {
+    return comparison()->RequiredInputRepresentation(i);
+  }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -2215,16 +2282,27 @@ class BranchInstr : public ControlInstruction {
 
   virtual void InheritDeoptTarget(Instruction* other);
 
-  virtual bool MayThrow() const;
+  virtual bool MayThrow() const {
+    return comparison()->MayThrow();
+  }
+
+  TargetEntryInstr* true_successor() const { return true_successor_; }
+  TargetEntryInstr* false_successor() const { return false_successor_; }
+
+  TargetEntryInstr** true_successor_address() { return &true_successor_; }
+  TargetEntryInstr** false_successor_address() { return &false_successor_; }
+
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value);
 
+  TargetEntryInstr* true_successor_;
+  TargetEntryInstr* false_successor_;
   ComparisonInstr* comparison_;
   const bool is_checked_;
-
   ConstrainedCompileType* constrained_type_;
-
   TargetEntryInstr* constant_target_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
@@ -2255,37 +2333,6 @@ class StoreContextInstr : public TemplateInstruction<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
-};
-
-
-template<intptr_t N>
-class TemplateDefinition : public Definition {
- public:
-  TemplateDefinition<N>() : locs_(NULL) { }
-
-  virtual intptr_t InputCount() const { return N; }
-  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  // Returns a structure describing the location constraints required
-  // to emit native code for this definition.
-  LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
-
- protected:
-  EmbeddedArray<Value*, N> inputs_;
-
- private:
-  friend class BranchInstr;
-
-  virtual void RawSetInputAt(intptr_t i, Value* value) {
-    inputs_[i] = value;
-  }
-
-  LocationSummary* locs_;
 };
 
 
@@ -2733,6 +2780,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
     ASSERT(!arguments->is_empty());
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
     ASSERT(Token::IsBinaryOperator(token_kind) ||
+           Token::IsEqualityOperator(token_kind) ||
            Token::IsRelationalOperator(token_kind) ||
            Token::IsPrefixOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
@@ -2835,110 +2883,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
 };
 
 
-class ComparisonInstr : public TemplateDefinition<2> {
- public:
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  virtual ComparisonInstr* AsComparison() { return this; }
-
-  intptr_t token_pos() const { return token_pos_; }
-  Token::Kind kind() const { return kind_; }
-
-  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
-                              BranchInstr* branch) = 0;
-
-  void SetDeoptId(intptr_t deopt_id) {
-    deopt_id_ = deopt_id;
-  }
-
-  // Operation class id is computed from collected ICData.
-  void set_operation_cid(intptr_t value) { operation_cid_ = value; }
-  intptr_t operation_cid() const { return operation_cid_; }
-
-  void NegateComparison() {
-    kind_ = Token::NegateComparison(kind_);
-  }
-
- protected:
-  ComparisonInstr(intptr_t token_pos,
-                  Token::Kind kind,
-                  Value* left,
-                  Value* right)
-      : token_pos_(token_pos), kind_(kind), operation_cid_(kIllegalCid) {
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-  }
-
- private:
-  const intptr_t token_pos_;
-  Token::Kind kind_;
-  intptr_t operation_cid_;  // Set by optimizer.
-
-  DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
-};
-
-
-// Inlined functions from class BranchInstr that forward to their comparison.
-inline intptr_t BranchInstr::ArgumentCount() const {
-  return comparison()->ArgumentCount();
-}
-
-
-inline intptr_t BranchInstr::InputCount() const {
-  return comparison()->InputCount();
-}
-
-
-inline Value* BranchInstr::InputAt(intptr_t i) const {
-  return comparison()->InputAt(i);
-}
-
-
-inline bool BranchInstr::CanDeoptimize() const {
-  // Branches need a deoptimization info in checked mode if they
-  // can throw a type check error.
-  return comparison()->CanDeoptimize() || is_checked();
-}
-
-
-inline bool BranchInstr::CanBecomeDeoptimizationTarget() const {
-  return comparison()->CanBecomeDeoptimizationTarget();
-}
-
-
-inline EffectSet BranchInstr::Effects() const {
-  return comparison()->Effects();
-}
-
-
-inline LocationSummary* BranchInstr::locs() {
-  if (comparison()->locs_ == NULL) {
-    LocationSummary* summary = comparison()->MakeLocationSummary();
-    // Branches don't produce a result.
-    summary->set_out(Location::NoLocation());
-    comparison()->locs_ = summary;
-  }
-  return comparison()->locs_;
-}
-
-
-inline intptr_t BranchInstr::DeoptimizationTarget() const {
-  return comparison()->DeoptimizationTarget();
-}
-
-
-inline Representation BranchInstr::RequiredInputRepresentation(
-    intptr_t i) const {
-  return comparison()->RequiredInputRepresentation(i);
-}
-
-
-inline bool BranchInstr::MayThrow() const {
-  return comparison()->MayThrow();
-}
-
-
 class StrictCompareInstr : public ComparisonInstr {
  public:
   StrictCompareInstr(intptr_t token_pos,
@@ -2982,49 +2926,69 @@ class StrictCompareInstr : public ComparisonInstr {
 };
 
 
+// Comparison instruction that is equivalent to the (left & right) == 0
+// comparison pattern.
+class TestSmiInstr : public ComparisonInstr {
+ public:
+  TestSmiInstr(intptr_t token_pos, Token::Kind kind, Value* left, Value* right)
+      : ComparisonInstr(token_pos, kind, left, right) {
+    ASSERT(kind == Token::kEQ || kind == Token::kNE);
+  }
+
+  DECLARE_INSTRUCTION(TestSmi);
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // TestSmi can be merged into Branch and thus needs an environment.
+    return true;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return GetDeoptId();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kTagged;
+  }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
+
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
+};
+
+
 class EqualityCompareInstr : public ComparisonInstr {
  public:
   EqualityCompareInstr(intptr_t token_pos,
                        Token::Kind kind,
                        Value* left,
                        Value* right,
-                       const Array& ic_data_array)
-      : ComparisonInstr(token_pos, kind, left, right),
-        ic_data_(GetICData(ic_data_array)),
-        unary_ic_data_(NULL) {
-    ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-    if (HasICData()) {
-      unary_ic_data_ = &ICData::ZoneHandle(ic_data_->AsUnaryClassChecks());
-    }
+                       intptr_t cid,
+                       intptr_t deopt_id)
+      : ComparisonInstr(token_pos, kind, left, right) {
+    ASSERT(Token::IsEqualityOperator(kind));
+    set_operation_cid(cid);
+    deopt_id_ = deopt_id;  // Override generated deopt-id.
   }
 
   DECLARE_INSTRUCTION(EqualityCompare)
   virtual CompileType ComputeType() const;
-  virtual bool RecomputeType();
-
-  const ICData* ic_data() const { return ic_data_; }
-  bool HasICData() const {
-    return (ic_data() != NULL) && !ic_data()->IsNull();
-  }
-  void set_ic_data(const ICData* value) {
-    ic_data_ = value;
-    if (HasICData()) {
-      unary_ic_data_ = &ICData::ZoneHandle(ic_data_->AsUnaryClassChecks());
-    }
-  }
-
-  bool IsInlinedNumericComparison() const {
-    return (operation_cid() == kDoubleCid)
-        || (operation_cid() == kMintCid)
-        || (operation_cid() == kSmiCid);
-  }
-
-  bool IsCheckedStrictEqual() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const {
-    return !IsInlinedNumericComparison();
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // EqualityCompare can be merged into Branch and thus needs an environment.
+    return true;
   }
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
@@ -3041,20 +3005,11 @@ class EqualityCompareInstr : public ComparisonInstr {
     return kTagged;
   }
 
-  bool IsPolymorphic() const;
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  virtual EffectSet Effects() const {
-    return IsInlinedNumericComparison() ? EffectSet::None() : EffectSet::All();
-  }
-
-  virtual bool MayThrow() const {
-    return !IsInlinedNumericComparison() && !IsCheckedStrictEqual();
-  }
+  virtual bool MayThrow() const { return false; }
 
  private:
-  const ICData* ic_data_;
-  ICData* unary_ic_data_;
-
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
 };
 
@@ -3075,7 +3030,6 @@ class RelationalOpInstr : public ComparisonInstr {
 
   DECLARE_INSTRUCTION(RelationalOp)
   virtual CompileType ComputeType() const;
-  virtual bool RecomputeType();
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3128,9 +3082,6 @@ class IfThenElseInstr : public TemplateDefinition<2> {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
-
-  // Returns true if this instruction is supported on the current platform.
-  static bool IsSupported();
 
   // Returns true if this combination of comparison and values flowing on
   // the true and false paths is supported on the current platform.
@@ -3781,7 +3732,7 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
 };
 
 
-// Note overrideable, built-in: value? false : true.
+// Note overrideable, built-in: value ? false : true.
 class BooleanNegateInstr : public TemplateDefinition<1> {
  public:
   explicit BooleanNegateInstr(Value* value) {
@@ -4797,6 +4748,8 @@ class MathUnaryInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
   MethodRecognizer::Kind kind() const { return kind_; }
   const RuntimeEntry& TargetFunction() const;
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -6612,6 +6565,108 @@ class InvokeMathCFunctionInstr : public Definition {
   const MethodRecognizer::Kind recognized_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(InvokeMathCFunctionInstr);
+};
+
+
+class MergedMathInstr : public Definition {
+ public:
+  enum Kind {
+    kTruncDivMod,
+    kTruncDivRem,
+    kSinCos,
+  };
+
+  MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
+                  intptr_t original_deopt_id,
+                  MergedMathInstr::Kind kind);
+
+  static intptr_t InputCountFor(MergedMathInstr::Kind kind) {
+    if (kind == kTruncDivMod) {
+      return 2;
+    } else {
+      UNIMPLEMENTED();
+      return -1;
+    }
+  }
+
+  MergedMathInstr::Kind kind() const { return kind_; }
+
+  virtual intptr_t InputCount() const { return inputs_->length(); }
+
+  virtual Value* InputAt(intptr_t i) const {
+    return (*inputs_)[i];
+  }
+
+  virtual CompileType ComputeType() const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const {
+    if (kind_ == kTruncDivMod) {
+      return true;
+    } else {
+      UNIMPLEMENTED();
+      return false;
+    }
+  }
+
+  virtual Representation representation() const {
+    if (kind_ == kTruncDivMod) {
+      return kTagged;
+    } else {
+      UNIMPLEMENTED();
+      return kTagged;
+    }
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    if (kind_ == kTruncDivMod) {
+      ASSERT((0 <= idx) && (idx < InputCount()));
+      return kTagged;
+    } else {
+      UNIMPLEMENTED();
+      return kTagged;
+    }
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  DECLARE_INSTRUCTION(MergedMath)
+
+  // Returns a structure describing the location constraints required
+  // to emit native code for this definition.
+  LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    MergedMathInstr* other_invoke = other->AsMergedMath();
+    return other_invoke->kind() == kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+  static const char* KindToCString(MergedMathInstr::Kind kind) {
+    if (kind == kTruncDivMod) return "TruncDivMod";
+    UNIMPLEMENTED();
+    return "";
+  }
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    (*inputs_)[i] = value;
+  }
+
+  ZoneGrowableArray<Value*>* inputs_;
+  LocationSummary* locs_;
+  MergedMathInstr::Kind kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(MergedMathInstr);
 };
 
 

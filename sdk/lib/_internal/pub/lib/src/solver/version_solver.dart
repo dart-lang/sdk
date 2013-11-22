@@ -43,6 +43,9 @@ class SolveResult {
   /// reachable from the root, or `null` if the solver failed.
   final List<PackageId> packages;
 
+  /// The dependency overrides that were used in the solution.
+  final List<PackageDep> overrides;
+
   /// The error that prevented the solver from finding a solution or `null` if
   /// it was successful.
   final SolveFailure error;
@@ -53,7 +56,8 @@ class SolveResult {
   /// solution.
   final int attemptedSolutions;
 
-  SolveResult(this.packages, this.error, this.attemptedSolutions);
+  SolveResult(this.packages, this.overrides, this.error,
+      this.attemptedSolutions);
 
   String toString() {
     if (!succeeded) {
@@ -121,7 +125,12 @@ class PubspecCache {
   /// or returns `null` if not in the cache.
   Pubspec getCachedPubspec(PackageId id) => _pubspecs[id];
 
-  /// Gets the list of versions for [package] in descending order.
+  /// Gets the list of versions for [package].
+  ///
+  /// Packages are sorted in descending version order with all "stable"
+  /// versions (i.e. ones without a prerelease suffix) before pre-release
+  /// versions. This ensures that the solver prefers stable packages over
+  /// unstable ones.
   Future<List<PackageId>> getVersions(PackageRef package) {
     if (package.isRoot) {
       throw new StateError("Cannot get versions for root package $package.");
@@ -140,7 +149,14 @@ class PubspecCache {
     return source.getVersions(package.name, package.description)
         .then((versions) {
       // Sort by descending version so we try newer versions first.
-      versions.sort((a, b) => b.compareTo(a));
+      versions.sort((a, b) {
+        // Sort all prerelease versions after all normal versions. This way
+        // the solver will prefer stable packages over unstable ones.
+        if (a.isPreRelease && !b.isPreRelease) return 1;
+        if (!a.isPreRelease && b.isPreRelease) return -1;
+
+        return b.compareTo(a);
+      });
 
       var ids = versions.map((version) => package.atVersion(version)).toList();
       _versions[package] = ids;
@@ -171,6 +187,9 @@ abstract class SolveFailure implements ApplicationException {
   /// The known dependencies on [package] at the time of the failure. Will be
   /// an empty collection if the failure is not specific to one package.
   final Iterable<Dependency> dependencies;
+
+  final innerError = null;
+  final innerTrace = null;
 
   SolveFailure(this.package, Iterable<Dependency> dependencies)
       : dependencies = dependencies != null ? dependencies : <Dependency>[];

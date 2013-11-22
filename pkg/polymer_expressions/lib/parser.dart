@@ -16,7 +16,7 @@ class Parser {
   final Tokenizer _tokenizer;
   List<Token> _tokens;
   Iterator _iterator;
-  Token _token;
+  Token get _token => _iterator.current;
 
   Parser(String input, {AstFactory astFactory})
       : _tokenizer = new Tokenizer(input),
@@ -34,7 +34,7 @@ class Parser {
         || (value != null && _token.value != value)) {
       throw new ParseException("Expected $value: $_token");
     }
-    _token = _iterator.moveNext() ? _iterator.current : null;
+    _iterator.moveNext();
   }
 
   Expression _parseExpression() {
@@ -52,18 +52,18 @@ class Parser {
       if (_token.kind == GROUPER_TOKEN) {
         if (_token.value == '(') {
           var args = _parseArguments();
+          assert(args != null);
           left = _astFactory.invoke(left, null, args);
         } else if (_token.value == '[') {
           var indexExpr = _parseIndex();
-          var args = indexExpr == null ? [] : [indexExpr];
-          left = _astFactory.invoke(left, '[]', args);
+          left = _astFactory.index(left, indexExpr);
         } else {
           break;
         }
       } else if (_token.kind == DOT_TOKEN) {
         _advance();
         var right = _parseUnary();
-        left = _makeInvoke(left, right);
+        left = _makeInvokeOrGetter(left, right);
       } else if (_token.kind == KEYWORD_TOKEN && _token.value == 'in') {
         left = _parseComprehension(left);
       } else if (_token.kind == OPERATOR_TOKEN
@@ -76,9 +76,10 @@ class Parser {
     return left;
   }
 
-  Invoke _makeInvoke(left, right) {
+  // invoke or getter
+  Expression _makeInvokeOrGetter(left, right) {
     if (right is Identifier) {
-      return _astFactory.invoke(left, right.value);
+      return _astFactory.getter(left, right.value);
     } else if (right is Invoke && right.receiver is Identifier) {
       Identifier method = right.receiver;
       return _astFactory.invoke(left, method.value, right.arguments);
@@ -207,12 +208,6 @@ class Parser {
     } else {
       return _astFactory.invoke(identifier, null, args);
     }
-  }
-
-  Invoke _parseInvoke() {
-    var identifier = _parseIdentifier();
-    var args = _parseArguments();
-    return _astFactory.invoke(null, identifier, args);
   }
 
   Identifier _parseIdentifier() {

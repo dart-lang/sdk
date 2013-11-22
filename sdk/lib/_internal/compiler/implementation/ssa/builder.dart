@@ -45,8 +45,12 @@ class SsaBuilderTask extends CompilerTask {
                    kind == ElementKind.SETTER) {
           graph = builder.buildMethod(element);
         } else if (kind == ElementKind.FIELD) {
-          assert(!element.isInstanceMember());
-          graph = builder.buildLazyInitializer(element);
+          if (element.isInstanceMember()) {
+            assert(compiler.enableTypeAssertions);
+            graph = builder.buildCheckedSetter(element);
+          } else {
+            graph = builder.buildLazyInitializer(element);
+          }
         } else {
           compiler.internalErrorOnElement(element,
                                           'unexpected element kind $kind');
@@ -945,6 +949,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  /**
+   * Returns whether this builder is building code for [element].
+   */
+  bool isBuildingFor(Element element) {
+    return work.element == element;
+  }
+
   /// A stack of [DartType]s the have been seen during inlining of factory
   /// constructors.  These types are preserved in [HInvokeStatic]s and
   /// [HForeignNews] inside the inline code and registered during code
@@ -1070,6 +1081,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
     function.body.accept(this);
+    return closeFunction();
+  }
+
+  HGraph buildCheckedSetter(VariableElement field) {
+    openFunction(field, field.parseNode(compiler));
+    HInstruction thisInstruction = localsHandler.readThis();
+    // Use dynamic type because the type computed by the inferrer is
+    // narrowed to the type annotation.
+    HInstruction parameter = new HParameterValue(field, backend.dynamicType);
+    // Add the parameter as the last instruction of the entry block.
+    // If the method is intercepted, we want the actual receiver
+    // to be the first parameter.
+    graph.entry.addBefore(graph.entry.last, parameter);
+    HInstruction value =
+        potentiallyCheckType(parameter, field.computeType(compiler));
+    add(new HFieldSet(field, thisInstruction, value));
     return closeFunction();
   }
 
@@ -1337,6 +1364,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       int numParameters = function.functionSignature.parameterCount;
       int maxInliningNodes;
+      bool useMaxInliningNodes = true;
       if (insideLoop) {
         maxInliningNodes = InlineWeeder.INLINING_NODES_INSIDE_LOOP +
             InlineWeeder.INLINING_NODES_INSIDE_LOOP_ARG_FACTOR * numParameters;
@@ -1344,8 +1372,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         maxInliningNodes = InlineWeeder.INLINING_NODES_OUTSIDE_LOOP +
             InlineWeeder.INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR * numParameters;
       }
+
+      // If a method is called only once, and all the methods in the
+      // inlining stack are called only once as well, we know we will
+      // save on output size by inlining this method.
+      TypesInferrer inferrer = compiler.typesTask.typesInferrer;
+      if (inferrer.isCalledOnce(element)
+          && (inliningStack.every(
+                  (entry) => inferrer.isCalledOnce(entry.function)))) {
+        useMaxInliningNodes = false;
+      }
       bool canBeInlined = InlineWeeder.canBeInlined(
-          functionExpression, maxInliningNodes);
+          functionExpression, maxInliningNodes, useMaxInliningNodes);
       if (canBeInlined) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
@@ -1746,11 +1784,72 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     removeInlinedInstantiation(type);
     // Create the runtime type information, if needed.
     if (backend.classNeedsRti(classElement)) {
-      List<HInstruction> rtiInputs = <HInstruction>[];
+      // Read the values of the type arguments and create a list to set on the
+      // newly create object.  We can identify the case where the new list
+      // would be of the form:
+      //  [getTypeArgumentByIndex(this, 0), .., getTypeArgumentByIndex(this, k)]
+      // and k is the number of type arguments of this.  If this is the case,
+      // we can simply copy the list from this.
+
+      // These locals are modified by [isIndexedTypeArgumentGet].
+      HInstruction source;  // The source of the type arguments.
+      bool allIndexed = true;
+      int expectedIndex = 0;
+      ClassElement contextClass;  // The class of `this`.
+      Link typeVariables;  // The list of 'remaining type variables' of `this`.
+
+      /// Helper to identify instructions that read a type variable without
+      /// substitution (that is, directly use the index). These instructions
+      /// are of the form:
+      ///   HInvokeStatic(getTypeArgumentByIndex, this, index)
+      ///
+      /// Return `true` if [instruction] is of that form and the index is the
+      /// next index in the sequence (held in [expectedIndex]).
+      bool isIndexedTypeArgumentGet(HInstruction instruction) {
+        if (instruction is! HInvokeStatic) return false;
+        HInvokeStatic invoke = instruction;
+        if (invoke.element != backend.getGetTypeArgumentByIndex()) {
+          return false;
+        }
+        HConstant index = invoke.inputs[1];
+        HInstruction newSource = invoke.inputs[0];
+        if (newSource is! HThis) {
+          return false;
+        }
+        if (source == null) {
+          // This is the first match. Extract the context class for the type
+          // variables and get the list of type variables to keep track of how
+          // many arguments we need to process.
+          source = newSource;
+          contextClass = source.sourceElement.getEnclosingClass();
+          typeVariables = contextClass.typeVariables;
+        } else {
+          assert(source == newSource);
+        }
+        // If there are no more type variables, then there are more type
+        // arguments for the new object than the source has, and it can't be
+        // a copy.  Otherwise remove one argument.
+        if (typeVariables.isEmpty) return false;
+        typeVariables = typeVariables.tail;
+        // Check that the index is the one we expect.
+        IntConstant constant = index.constant;
+        return constant.value == expectedIndex++;
+      }
+
+      List<HInstruction> typeArguments = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-        rtiInputs.add(localsHandler.readLocal(typeVariable.element));
+        HInstruction argument = localsHandler.readLocal(typeVariable.element);
+        if (allIndexed && !isIndexedTypeArgumentGet(argument)) {
+          allIndexed = false;
+        }
+        typeArguments.add(argument);
       });
-      callSetRuntimeTypeInfo(classElement, rtiInputs, newObject);
+
+      if (source != null && allIndexed && typeVariables.isEmpty) {
+        copyRuntimeTypeInfo(source, newObject);
+      } else {
+        callSetRuntimeTypeInfo(classElement, typeArguments, newObject);
+      }
     }
 
     // Generate calls to the constructor bodies.
@@ -3533,6 +3632,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
+    if (compiler.world.isUsedAsMixin(cls)) return true;
+
+    Set<ClassElement> subclasses = compiler.world.subclassesOf(cls);
+    return subclasses != null && subclasses.any((ClassElement subclass) {
+      return !backend.rti.isTrivialSubstitution(subclass, cls);
+    });
+  }
+
   /**
    * Generate code to extract the type arguments from the object, substitute
    * them as an instance of the type we are testing against (if necessary), and
@@ -3542,20 +3650,28 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction readTypeVariable(ClassElement cls,
                                 TypeVariableElement variable) {
     assert(currentElement.isInstanceMember());
-    int index = RuntimeTypes.getTypeVariableIndex(variable);
-    // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
-    // string concatenation in the implementation), and may prevent
-    // segmentation of '$'.
-    String substitutionNameString = backend.namer.getNameForRti(cls);
-    HInstruction substitutionName = graph.addConstantString(
-        new LiteralDartString(substitutionNameString), null, compiler);
+
     HInstruction target = localsHandler.readThis();
-    pushInvokeStatic(null,
-                     backend.getGetRuntimeTypeArgument(),
-                     [target,
-                      substitutionName,
-                      graph.addConstantInt(index, compiler)],
-                      backend.dynamicType);
+    HConstant index = graph.addConstantInt(
+        RuntimeTypes.getTypeVariableIndex(variable),
+        compiler);
+
+    if (needsSubstitutionForTypeVariableAccess(cls)) {
+      // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
+      // string concatenation in the implementation), and may prevent
+      // segmentation of '$'.
+      String substitutionNameString = backend.namer.getNameForRti(cls);
+      HInstruction substitutionName = graph.addConstantString(
+          new LiteralDartString(substitutionNameString), null, compiler);
+      pushInvokeStatic(null,
+                       backend.getGetRuntimeTypeArgument(),
+                       [target, substitutionName, index],
+                        backend.dynamicType);
+    } else {
+      pushInvokeStatic(null, backend.getGetTypeArgumentByIndex(),
+          [target, index],
+          backend.dynamicType);
+    }
     return pop();
   }
 
@@ -3599,7 +3715,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // The type variable is stored in a parameter of the method.
         return localsHandler.readLocal(type.element);
       }
-    } else if (isInConstructorContext || member.isField()) {
+    } else if (isInConstructorContext ||
+               // When [member] is a field, we can be either
+               // generating a checked setter or inlining its
+               // initializer in a constructor. An initializer is
+               // never built standalone, so [isBuildingFor] will
+               // always return true when seeing one.
+               (member.isField() && !isBuildingFor(member))) {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(type.element);
     } else if (member.isInstanceMember()) {
@@ -3618,6 +3740,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
       return graph.addConstantNull(compiler);
+    }
+
+    if (argument.kind == TypeKind.TYPE_VARIABLE) {
+      return addTypeVariableReference(argument);
     }
 
     List<HInstruction> inputs = <HInstruction>[];
@@ -3645,6 +3771,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  void copyRuntimeTypeInfo(HInstruction source, HInstruction target) {
+    Element copyHelper = backend.getCopyTypeArguments();
+    pushInvokeStatic(null, copyHelper, [source, target]);
+    pop();
+  }
+
   void callSetRuntimeTypeInfo(ClassElement element,
                               List<HInstruction> rtiInputs,
                               HInstruction newObject) {
@@ -3667,7 +3799,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   handleNewSend(NewExpression node) {
     Send send = node.send;
-    bool isListConstructor = false;
     bool isFixedList = false;
 
     TypeMask computeType(element) {
@@ -3675,7 +3806,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (Elements.isFixedListConstructorCall(originalElement, send, compiler)
           || Elements.isFilledListConstructorCall(
                   originalElement, send, compiler)) {
-        isListConstructor = true;
         isFixedList = true;
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(currentElement, send, compiler);
@@ -3684,7 +3814,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             : inferred;
       } else if (Elements.isGrowableListConstructorCall(
                     originalElement, send, compiler)) {
-        isListConstructor = true;
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(currentElement, send, compiler);
         return inferred.containsAll(compiler)
@@ -3715,6 +3844,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     final bool isSymbolConstructor =
         functionElement == compiler.symbolConstructor;
+    final bool isJSArrayTypedConstructor =
+        functionElement == backend.jsArrayTypedConstructor;
 
     if (isSymbolConstructor) {
       constructor = compiler.symbolValidatedConstructor;
@@ -3727,10 +3858,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     bool isRedirected = functionElement.isRedirectingFactory;
     InterfaceType type = elements.getType(node);
-    DartType expectedType = type;
-    if (isRedirected) {
-      type = functionElement.computeTargetType(compiler, type);
-    }
+    InterfaceType expectedType = functionElement.computeTargetType(type);
 
     if (checkTypeVariableBounds(node, type)) return;
 
@@ -3751,20 +3879,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     ClassElement cls = constructor.getEnclosingClass();
-    if (cls.isAbstract(compiler) && constructor.isGenerativeConstructor()) {
+    if (cls.isAbstract && constructor.isGenerativeConstructor()) {
       generateAbstractClassInstantiationError(send, cls.name);
       return;
     }
     if (backend.classNeedsRti(cls)) {
       Link<DartType> typeVariable = cls.typeVariables;
-      type.typeArguments.forEach((DartType argument) {
+      expectedType.typeArguments.forEach((DartType argument) {
         inputs.add(analyzeTypeArgument(argument));
         typeVariable = typeVariable.tail;
       });
       assert(typeVariable.isEmpty);
     }
 
-    if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
+    if (constructor.isFactoryConstructor() &&
+        !expectedType.typeArguments.isEmpty) {
       compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
     }
     TypeMask elementType = computeType(constructor);
@@ -3782,13 +3911,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (isListConstructor && backend.classNeedsRti(compiler.listClass)) {
+    if (isJSArrayTypedConstructor &&
+        backend.classNeedsRti(compiler.listClass)) {
       handleListConstructor(type, send, newInstance);
     }
 
     // Finally, if we called a redirecting factory constructor, check the type.
     if (isRedirected) {
-      HInstruction checked = potentiallyCheckType(newInstance, expectedType);
+      HInstruction checked = potentiallyCheckType(newInstance, type);
       if (checked != newInstance) {
         pop();
         stack.add(checked);
@@ -4129,14 +4259,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     inputs.addAll(arguments);
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
     if (selector.isGetter()) {
-      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
       pushWithPosition(
-          new HInvokeDynamicGetter(selector, null, inputs, type, !hasGetter),
+          new HInvokeDynamicGetter(selector, null, inputs, type),
           location);
     } else if (selector.isSetter()) {
-      bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
       pushWithPosition(
-          new HInvokeDynamicSetter(selector, null, inputs, type, !hasSetter),
+          new HInvokeDynamicSetter(selector, null, inputs, type),
           location);
     } else {
       pushWithPosition(
@@ -4148,7 +4276,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void pushInvokeStatic(Node location,
                         Element element,
                         List<HInstruction> arguments,
-                        [TypeMask type = null]) {
+                        [TypeMask type]) {
     if (tryInlineMethod(element, null, arguments, location)) {
       return;
     }
@@ -4156,10 +4284,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (type == null) {
       type = TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
     }
+    bool targetCanThrow = !compiler.world.getCannotThrow(element);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HInvokeStatic].
-    HInvokeStatic instruction =
-        new HInvokeStatic(element.declaration, arguments, type);
+    HInvokeStatic instruction = new HInvokeStatic(
+        element.declaration, arguments, type, targetCanThrow: targetCanThrow);
     if (!currentInlinedInstantiations.isEmpty) {
       instruction.instantiatedTypes = new List<DartType>.from(
           currentInlinedInstantiations);
@@ -4200,7 +4329,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         inputs,
         type,
         isSetter: selector.isSetter() || selector.isIndexSet());
-    instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
+    instruction.sideEffects = compiler.world.getSideEffectsOfSelector(selector);
     return instruction;
   }
 
@@ -5430,18 +5559,22 @@ class InlineWeeder extends Visitor {
   bool tooDifficult = false;
   int nodeCount = 0;
   final int maxInliningNodes;
+  final bool useMaxInliningNodes;
 
-  InlineWeeder(this.maxInliningNodes);
+  InlineWeeder(this.maxInliningNodes, this.useMaxInliningNodes);
 
   static bool canBeInlined(FunctionExpression functionExpression,
-                           int maxInliningNodes) {
-    InlineWeeder weeder = new InlineWeeder(maxInliningNodes);
+                           int maxInliningNodes,
+                           bool useMaxInliningNodes) {
+    InlineWeeder weeder =
+        new InlineWeeder(maxInliningNodes, useMaxInliningNodes);
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     return !weeder.tooDifficult;
   }
 
   bool registerNode() {
+    if (!useMaxInliningNodes) return true;
     if (nodeCount++ > maxInliningNodes) {
       tooDifficult = true;
       return false;

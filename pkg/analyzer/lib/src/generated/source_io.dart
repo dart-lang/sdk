@@ -1,18 +1,20 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
+
 library engine.source.io;
+
 import 'source.dart';
 import 'java_core.dart';
 import 'java_io.dart';
 import 'engine.dart' show AnalysisContext, AnalysisEngine;
 export 'source.dart';
+
 /**
  * Instances of the class `FileBasedSource` implement a source that represents a file.
  *
  * @coverage dart.engine.source
  */
 class FileBasedSource implements Source {
-
   /**
    * The content cache used to access the contents of this source if they have been overridden from
    * what is on disk or cached.
@@ -54,17 +56,12 @@ class FileBasedSource implements Source {
     this._contentCache = contentCache;
     this.file = file;
     this._uriKind = uriKind;
-    if (file.getPath().indexOf(':') > 2) {
-      try {
-        throw new IllegalArgumentException("Invalid source path: ${file}");
-      } on IllegalArgumentException catch (e) {
-        AnalysisEngine.instance.logger.logError3(e);
-        throw e;
-      }
-    }
   }
-  bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && file == ((object as FileBasedSource)).file;
+
+  bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && file == (object as FileBasedSource).file;
+
   bool exists() => _contentCache.getContents(this) != null || (file.exists() && !file.isDirectory());
+
   void getContents(Source_ContentReceiver receiver) {
     String contents = _contentCache.getContents(this);
     if (contents != null) {
@@ -73,13 +70,16 @@ class FileBasedSource implements Source {
     }
     getContentsFromFile(receiver);
   }
+
   String get encoding {
     if (_encoding == null) {
       _encoding = "${_uriKind.encoding}${file.toURI().toString()}";
     }
     return _encoding;
   }
+
   String get fullName => file.getAbsolutePath();
+
   int get modificationStamp {
     int stamp = _contentCache.getModificationStamp(this);
     if (stamp != null) {
@@ -87,10 +87,15 @@ class FileBasedSource implements Source {
     }
     return file.lastModified();
   }
+
   String get shortName => file.getName();
+
   UriKind get uriKind => _uriKind;
+
   int get hashCode => file.hashCode;
+
   bool get isInSystemLibrary => identical(_uriKind, UriKind.DART_URI);
+
   Source resolveRelative(Uri containedUri) {
     try {
       Uri resolvedUri = file.toURI().resolveUri(containedUri);
@@ -99,6 +104,7 @@ class FileBasedSource implements Source {
     }
     return null;
   }
+
   String toString() {
     if (file == null) {
       return "<unknown source>";
@@ -122,6 +128,7 @@ class FileBasedSource implements Source {
     receiver.accept2(file.readAsStringSync(), file.lastModified());
   }
 }
+
 /**
  * Instances of the class `PackageUriResolver` resolve `package` URI's in the context of
  * an application.
@@ -133,7 +140,6 @@ class FileBasedSource implements Source {
  * @coverage dart.engine.source
  */
 class PackageUriResolver extends UriResolver {
-
   /**
    * The package directories that `package` URI's are assumed to be relative to.
    */
@@ -170,12 +176,14 @@ class PackageUriResolver extends UriResolver {
     }
     this._packagesDirectories = packagesDirectories;
   }
+
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
     if (identical(kind, UriKind.PACKAGE_SELF_URI) || identical(kind, UriKind.PACKAGE_URI)) {
       return new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
     }
     return null;
   }
+
   Source resolveAbsolute(ContentCache contentCache, Uri uri) {
     if (!isPackageUri(uri)) {
       return null;
@@ -209,9 +217,10 @@ class PackageUriResolver extends UriResolver {
     }
     return new FileBasedSource.con2(contentCache, getCanonicalFile(_packagesDirectories[0], pkgName, relPath), UriKind.PACKAGE_URI);
   }
+
   Uri restoreAbsolute(Source source) {
     if (source is FileBasedSource) {
-      String sourcePath = ((source as FileBasedSource)).file.getPath();
+      String sourcePath = (source as FileBasedSource).file.getPath();
       for (JavaFile packagesDirectory in _packagesDirectories) {
         List<JavaFile> pkgFolders = packagesDirectory.listFiles();
         if (pkgFolders != null) {
@@ -269,6 +278,7 @@ class PackageUriResolver extends UriResolver {
     return filePath.startsWith("${rootPath}/lib");
   }
 }
+
 /**
  * Instances of the class [DirectoryBasedSourceContainer] represent a source container that
  * contains all sources within a given directory.
@@ -276,7 +286,6 @@ class PackageUriResolver extends UriResolver {
  * @coverage dart.engine.source
  */
 class DirectoryBasedSourceContainer implements SourceContainer {
-
   /**
    * Append the system file separator to the given path unless the path already ends with a
    * separator.
@@ -315,18 +324,22 @@ class DirectoryBasedSourceContainer implements SourceContainer {
   DirectoryBasedSourceContainer.con2(String path) {
     this.path = appendFileSeparator(path);
   }
+
   bool contains(Source source) => source.fullName.startsWith(path);
-  bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && ((obj as DirectoryBasedSourceContainer)).path == path;
+
+  bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && (obj as DirectoryBasedSourceContainer).path == path;
+
   int get hashCode => path.hashCode;
+
   String toString() => "SourceContainer[${path}]";
 }
+
 /**
  * Instances of the class `FileUriResolver` resolve `file` URI's.
  *
  * @coverage dart.engine.source
  */
 class FileUriResolver extends UriResolver {
-
   /**
    * The name of the `file` scheme.
    */
@@ -339,12 +352,14 @@ class FileUriResolver extends UriResolver {
    * @return `true` if the given URI is a `file` URI
    */
   static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
+
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
     if (identical(kind, UriKind.FILE_URI)) {
       return new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
     }
     return null;
   }
+
   Source resolveAbsolute(ContentCache contentCache, Uri uri) {
     if (!isFileUri(uri)) {
       return null;

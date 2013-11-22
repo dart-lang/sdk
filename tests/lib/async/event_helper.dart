@@ -158,8 +158,8 @@ class CaptureEvents extends Events {
                                  cancelOnError: cancelOnError);
   }
 
-  void addError(error) {
-    super.addError(error);
+  void addError(error, [stackTrace]) {
+    super.addError(error, stackTrace);
     if (cancelOnError) {
       onDoneSignal.complete();
     }

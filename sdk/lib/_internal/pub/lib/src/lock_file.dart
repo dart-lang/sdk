@@ -83,14 +83,20 @@ class LockFile {
   }
 
   /// Returns the serialized YAML text of the lock file.
-  String serialize() {
+  ///
+  /// [packageDir] is the containing directory of the root package, used to
+  /// properly serialize package descriptions.
+  String serialize(String packageDir, SourceRegistry sources) {
     // Convert the dependencies to a simple object.
     var data = {};
     packages.forEach((name, package) {
+      var description = sources[package.source].serializeDescription(packageDir,
+          package.description);
+
       data[name] = {
-        'version': packages[name].version.toString(),
-        'source': packages[name].source,
-        'description': packages[name].description
+        'version': package.version.toString(),
+        'source': package.source,
+        'description': description
       };
     });
 

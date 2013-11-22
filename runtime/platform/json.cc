@@ -255,12 +255,21 @@ void JSONReader::CheckValue() {
   }
 }
 
+
+#if defined (DEBUG)
 #define CHECK_TOKEN(token)                                                     \
   if (scanner_.CurrentToken() != token) {                                      \
     OS::Print("Malformed JSON: expected %s but got '%s'\n",                    \
               #token, scanner_.TokenChars());                                  \
-  }                                                                            \
-  ASSERT(scanner_.CurrentToken() == token);
+    intptr_t offset = scanner_.TokenChars() - this->json_object_;              \
+    OS::Print("Malformed JSON: expected %s at offset %" Pd "of buffer:\n%s\n", \
+              #token, offset, this->json_object_);                             \
+    ASSERT(scanner_.CurrentToken() == token);                                  \
+  }
+#else
+#define CHECK_TOKEN(token)
+#endif
+
 
 void JSONReader::CheckArray() {
   CHECK_TOKEN(JSONScanner::TokenLBrack);

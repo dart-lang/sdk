@@ -10,6 +10,7 @@
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
+#include <sys/types.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #include <libgen.h>  // NOLINT
 
@@ -73,19 +74,19 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
 }
 
 
-off_t File::Position() {
+off64_t File::Position() {
   ASSERT(handle_->fd() >= 0);
-  return TEMP_FAILURE_RETRY(lseek(handle_->fd(), 0, SEEK_CUR));
+  return lseek64(handle_->fd(), 0, SEEK_CUR);
 }
 
 
-bool File::SetPosition(int64_t position) {
+bool File::SetPosition(off64_t position) {
   ASSERT(handle_->fd() >= 0);
-  return TEMP_FAILURE_RETRY(lseek(handle_->fd(), position, SEEK_SET) != -1);
+  return lseek64(handle_->fd(), position, SEEK_SET) >= 0;
 }
 
 
-bool File::Truncate(int64_t length) {
+bool File::Truncate(off64_t length) {
   ASSERT(handle_->fd() >= 0);
   return TEMP_FAILURE_RETRY(ftruncate(handle_->fd(), length) != -1);
 }
@@ -97,7 +98,7 @@ bool File::Flush() {
 }
 
 
-off_t File::Length() {
+off64_t File::Length() {
   ASSERT(handle_->fd() >= 0);
   struct stat st;
   if (TEMP_FAILURE_RETRY(fstat(handle_->fd(), &st)) == 0) {
@@ -129,7 +130,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
     return NULL;
   }
   if (((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) {
-    int position = TEMP_FAILURE_RETRY(lseek(fd, 0, SEEK_END));
+    off64_t position = lseek64(fd, 0, SEEK_END);
     if (position < 0) {
       return NULL;
     }
@@ -218,7 +219,7 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
 }
 
 
-off_t File::LengthFromPath(const char* name) {
+off64_t File::LengthFromPath(const char* name) {
   struct stat st;
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
     return st.st_size;

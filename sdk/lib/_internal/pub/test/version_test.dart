@@ -80,6 +80,16 @@ main() {
           }
         }
       });
+
+      test('equality', () {
+        expect(new Version.parse('01.2.3'), equals(new Version.parse('1.2.3')));
+        expect(new Version.parse('1.02.3'), equals(new Version.parse('1.2.3')));
+        expect(new Version.parse('1.2.03'), equals(new Version.parse('1.2.3')));
+        expect(new Version.parse('1.2.3-01'),
+            equals(new Version.parse('1.2.3-1')));
+        expect(new Version.parse('1.2.3+01'),
+            equals(new Version.parse('1.2.3+1')));
+      });
     });
 
     test('allows()', () {

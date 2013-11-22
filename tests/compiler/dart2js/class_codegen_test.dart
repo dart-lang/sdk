@@ -67,15 +67,15 @@ main() {
 
 twoClasses() {
   asyncTest(() => compileAll(TEST_ONE).then((generated) {
-    Expect.isTrue(generated.contains('A: {"": "Object;"'));
-    Expect.isTrue(generated.contains('B: {"": "Object;"'));
+    Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"": "Object;"')));
+    Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"": "Object;"')));
   }));
 }
 
 subClass() {
   checkOutput(String generated) {
-    Expect.isTrue(generated.contains('A: {"": "Object;"'));
-    Expect.isTrue(generated.contains('B: {"": "A;"'));
+    Expect.isTrue(generated.contains(new RegExp('A: {[ \n]*"": "Object;"')));
+    Expect.isTrue(generated.contains(new RegExp('B: {[ \n]*"": "A;"')));
   }
 
   asyncTest(() => compileAll(TEST_TWO).then(checkOutput));
@@ -84,7 +84,8 @@ subClass() {
 
 fieldTest() {
   asyncTest(() => compileAll(TEST_FOUR).then((generated) {
-    Expect.isTrue(generated.contains(r"""B: {"": "A;y,z,x", static:"""));
+    Expect.isTrue(generated.contains(
+        new RegExp('B: {[ \n]*"": "A;y,z,x",[ \n]*static:')));
   }));
 }
 

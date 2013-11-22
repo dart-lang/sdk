@@ -74,6 +74,10 @@ void Platform::PrintBlocking(FILE* file, const char* format, ...) {
   va_end(args);
 }
 
+
+void Platform::Cleanup() {
+}
+
 }  // namespace bin
 }  // namespace dart
 

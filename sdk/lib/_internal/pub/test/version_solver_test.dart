@@ -40,6 +40,8 @@ main() {
   group('bad source', badSource);
   group('backtracking', backtracking);
   group('SDK constraint', sdkConstraint);
+  group('pre-release', prerelease);
+  group('override', override);
 }
 
 void basicGraph() {
@@ -800,27 +802,212 @@ sdkConstraint() {
   }, useBleedingEdgeSdkVersion: true);
 }
 
-testResolve(description, packages, {
-             lockfile, result, FailMatcherBuilder error, int maxTries,
-             bool useBleedingEdgeSdkVersion}) {
-  _testResolve(test, description, packages, lockfile: lockfile, result: result,
-      error: error, maxTries: maxTries,
+void prerelease() {
+  testResolve('prefer stable versions over unstable', {
+    'myapp 0.0.0': {
+      'a': 'any'
+    },
+    'a 1.0.0': {},
+    'a 1.1.0-dev': {},
+    'a 2.0.0-dev': {},
+    'a 3.0.0-dev': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.0.0'
+  });
+
+  testResolve('use latest allowed prerelease if no stable versions match', {
+    'myapp 0.0.0': {
+      'a': '<2.0.0'
+    },
+    'a 1.0.0-dev': {},
+    'a 1.1.0-dev': {},
+    'a 2.0.0-dev': {},
+    'a 3.0.0': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0-dev'
+  });
+
+  testResolve('use an earlier stable version on a < constraint', {
+    'myapp 0.0.0': {
+      'a': '<2.0.0'
+    },
+    'a 1.0.0': {},
+    'a 1.1.0': {},
+    'a 2.0.0-dev': {},
+    'a 2.0.0': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.1.0'
+  });
+
+  testResolve('prefer a stable version even if constraint mentions unstable', {
+    'myapp 0.0.0': {
+      'a': '<=2.0.0-dev'
+    },
+    'a 1.0.0': {},
+    'a 1.1.0': {},
+    'a 2.0.0-dev': {},
+    'a 2.0.0': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.1.0'
+  });
+}
+
+void override() {
+  testResolve('chooses best version matching override constraint', {
+    'myapp 0.0.0': {
+      'a': 'any'
+    },
+    'a 1.0.0': {},
+    'a 2.0.0': {},
+    'a 3.0.0': {}
+  }, overrides: {
+    'a': '<3.0.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0'
+  });
+
+  testResolve('uses override as dependency', {
+    'myapp 0.0.0': {},
+    'a 1.0.0': {},
+    'a 2.0.0': {},
+    'a 3.0.0': {}
+  }, overrides: {
+    'a': '<3.0.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0'
+  });
+
+  testResolve('ignores other constraints on overridden package', {
+    'myapp 0.0.0': {
+      'b': 'any',
+      'c': 'any'
+    },
+    'a 1.0.0': {},
+    'a 2.0.0': {},
+    'a 3.0.0': {},
+    'b 1.0.0': {
+      'a': '1.0.0'
+    },
+    'c 1.0.0': {
+      'a': '3.0.0'
+    }
+  }, overrides: {
+    'a': '2.0.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0',
+    'b': '1.0.0',
+    'c': '1.0.0'
+  });
+
+  testResolve('backtracks on overidden package for its constraints', {
+    'myapp 0.0.0': {
+      'shared': '2.0.0'
+    },
+    'a 1.0.0': {
+      'shared': 'any'
+    },
+    'a 2.0.0': {
+      'shared': '1.0.0'
+    },
+    'shared 1.0.0': {},
+    'shared 2.0.0': {}
+  }, overrides: {
+    'a': '<3.0.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.0.0',
+    'shared': '2.0.0'
+  }, maxTries: 2);
+
+  testResolve('override compatible with locked dependency', {
+    'myapp 0.0.0': {
+      'foo': 'any'
+    },
+    'foo 1.0.0': { 'bar': '1.0.0' },
+    'foo 1.0.1': { 'bar': '1.0.1' },
+    'foo 1.0.2': { 'bar': '1.0.2' },
+    'bar 1.0.0': {},
+    'bar 1.0.1': {},
+    'bar 1.0.2': {}
+  }, lockfile: {
+    'foo': '1.0.1'
+  }, overrides: {
+    'foo': '<1.0.2'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '1.0.1',
+    'bar': '1.0.1'
+  });
+
+  testResolve('override incompatible with locked dependency', {
+    'myapp 0.0.0': {
+      'foo': 'any'
+    },
+    'foo 1.0.0': { 'bar': '1.0.0' },
+    'foo 1.0.1': { 'bar': '1.0.1' },
+    'foo 1.0.2': { 'bar': '1.0.2' },
+    'bar 1.0.0': {},
+    'bar 1.0.1': {},
+    'bar 1.0.2': {}
+  }, lockfile: {
+    'foo': '1.0.1'
+  }, overrides: {
+    'foo': '>1.0.1'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '1.0.2',
+    'bar': '1.0.2'
+  });
+
+  testResolve('no version that matches override', {
+    'myapp 0.0.0': {},
+    'foo 2.0.0': {},
+    'foo 2.1.3': {}
+  }, overrides: {
+    'foo': '>=1.0.0 <2.0.0'
+  }, error: noVersion(['myapp']));
+
+  testResolve('override a bad source without error', {
+    'myapp 0.0.0': {
+      'foo from bad': 'any'
+    },
+    'foo 0.0.0': {}
+  }, overrides: {
+    'foo': 'any'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '0.0.0'
+  });
+}
+
+testResolve(String description, Map packages, {
+    Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
+    int maxTries, bool useBleedingEdgeSdkVersion}) {
+  _testResolve(test, description, packages, lockfile: lockfile,
+      overrides: overrides, result: result, error: error, maxTries: maxTries,
       useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
 }
 
-solo_testResolve(description, packages, {
-             lockfile, result, FailMatcherBuilder error, int maxTries,
-             bool useBleedingEdgeSdkVersion}) {
+solo_testResolve(String description, Map packages, {
+    Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
+    int maxTries, bool useBleedingEdgeSdkVersion}) {
   log.showSolver();
   _testResolve(solo_test, description, packages, lockfile: lockfile,
-      result: result, error: error, maxTries: maxTries,
+      overrides: overrides, result: result, error: error, maxTries: maxTries,
       useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
 }
 
 _testResolve(void testFn(String description, Function body),
-             description, packages, {
-             lockfile, result, FailMatcherBuilder error, int maxTries,
-             bool useBleedingEdgeSdkVersion}) {
+    String description, Map packages, {
+    Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
+    int maxTries, bool useBleedingEdgeSdkVersion}) {
   if (maxTries == null) maxTries = 1;
   if (useBleedingEdgeSdkVersion == null) useBleedingEdgeSdkVersion = false;
 
@@ -834,36 +1021,32 @@ _testResolve(void testFn(String description, Function body),
 
     // Build the test package graph.
     var root;
-    packages.forEach((nameVersion, dependencies) {
-      var parsed = parseSource(nameVersion, (isDev, nameVersion, source) {
-        var parts = nameVersion.split(' ');
-        var name = parts[0];
-        var version = parts[1];
-
-        var package = mockPackage(name, version, dependencies);
-        if (name == 'myapp') {
-          // Don't add the root package to the server, so we can verify that Pub
-          // doesn't try to look up information about the local package on the
-          // remote server.
-          root = package;
-        } else {
-          (cache.sources[source] as MockSource).addPackage(name, package);
-        }
-      });
+    packages.forEach((description, dependencies) {
+      var id = parseSpec(description);
+      var package = mockPackage(id, dependencies,
+          id.name == 'myapp' ? overrides : null);
+      if (id.name == 'myapp') {
+        // Don't add the root package to the server, so we can verify that Pub
+        // doesn't try to look up information about the local package on the
+        // remote server.
+        root = package;
+      } else {
+        (cache.sources[id.source] as MockSource).addPackage(
+            id.description, package);
+      }
     });
 
     // Clean up the expectation.
     if (result != null) {
       var newResult = {};
-      result.forEach((name, version) {
-        parseSource(name, (isDev, name, source) {
-          version = new Version.parse(version);
-          newResult[name] = new PackageId(name, source, version, name);
-        });
+      result.forEach((description, version) {
+        var id = parseSpec(description, version);
+        newResult[id.name] = id;
       });
       result = newResult;
     }
 
+    // Parse the lockfile.
     var realLockFile = new LockFile.empty();
     if (lockfile != null) {
       lockfile.forEach((name, version) {
@@ -880,8 +1063,7 @@ _testResolve(void testFn(String description, Function body),
     }
 
     // Resolve the versions.
-    var future = resolveVersions(cache.sources, root,
-        lockFile: realLockFile);
+    var future = resolveVersions(cache.sources, root, lockFile: realLockFile);
 
     var matcher;
     if (result != null) {
@@ -1140,58 +1322,94 @@ class MockSource extends Source {
   }
 }
 
-Package mockPackage(String description, String version,
-                    Map dependencyStrings) {
+Package mockPackage(PackageId id, Map dependencyStrings, Map overrides) {
   var sdkConstraint = null;
 
   // Build the pubspec dependencies.
   var dependencies = <PackageDep>[];
   var devDependencies = <PackageDep>[];
 
-  dependencyStrings.forEach((name, constraint) {
-    parseSource(name, (isDev, name, source) {
-      var packageName = name.replaceFirst(new RegExp(r"-[^-]+$"), "");
-      constraint = new VersionConstraint.parse(constraint);
+  dependencyStrings.forEach((spec, constraint) {
+    var isDev = spec.startsWith("(dev) ");
+    if (isDev) {
+      spec = spec.substring("(dev) ".length);
+    }
 
-      if (name == 'sdk') {
-        sdkConstraint = constraint;
-        return;
-      }
+    var dep = parseSpec(spec).withConstraint(
+        new VersionConstraint.parse(constraint));
 
-      var dep = new PackageDep(packageName, source, constraint, name);
+    if (dep.name == 'sdk') {
+      sdkConstraint = dep.constraint;
+      return;
+    }
 
-      if (isDev) {
-        devDependencies.add(dep);
-      } else {
-        dependencies.add(dep);
-      }
-    });
+    if (isDev) {
+      devDependencies.add(dep);
+    } else {
+      dependencies.add(dep);
+    }
   });
 
-  var name = description.replaceFirst(new RegExp(r"-[^-]+$"), "");
-  var pubspec = new Pubspec(
-      name, new Version.parse(version), dependencies, devDependencies,
+  var dependencyOverrides = <PackageDep>[];
+  if (overrides != null) {
+    overrides.forEach((spec, constraint) {
+      dependencyOverrides.add(parseSpec(spec).withConstraint(
+          new VersionConstraint.parse(constraint)));
+    });
+  }
+
+  var pubspec = new Pubspec(id.name, id.version, dependencies,
+      devDependencies, dependencyOverrides,
       new PubspecEnvironment(sdkConstraint), []);
   return new Package.inMemory(pubspec);
 }
 
-void parseSource(String description,
-    callback(bool isDev, String name, String source)) {
-  var isDev = false;
-
-  if (description.startsWith("(dev) ")) {
-    description = description.substring("(dev) ".length);
-    isDev = true;
+/// Creates a new [PackageId] parsed from [text], which looks something like
+/// this:
+///
+///   foo-xyz 1.0.0 from mock
+///
+/// The package name is "foo". A hyphenated suffix like "-xyz" here is part
+/// of the package description, but not its name, so the description here is
+/// "foo-xyz".
+///
+/// This is followed by an optional [Version]. If [version] is provided, then
+/// it is parsed to a [Version], and [text] should *not* also contain a
+/// version string.
+///
+/// The "from mock" optional suffix is the name of a source for the package.
+/// If omitted, it defaults to "mock1".
+PackageId parseSpec(String text, [String version]) {
+  var pattern = new RegExp(r"(([a-z]*)(-[a-z]+)?)( ([^ ]+))?( from (.*))?$");
+  var match = pattern.firstMatch(text);
+  if (match == null) {
+    throw new FormatException("Could not parse spec '$text'.");
   }
 
-  var name = description;
+  var description = match[1];
+  var name = match[2];
+
+  var parsedVersion;
+  if (version != null) {
+    // Spec string shouldn't also contain a version.
+    if (match[5] != null) {
+      throw new ArgumentError("Spec '$text' should not contain a version "
+          "since '$version' was passed in explicitly.");
+    }
+    parsedVersion = new Version.parse(version);
+  } else {
+    if (match[5] != null) {
+      parsedVersion = new Version.parse(match[5]);
+    } else {
+      parsedVersion = Version.none;
+    }
+  }
+
   var source = "mock1";
-  var match = new RegExp(r"(.*) from (.*)").firstMatch(description);
-  if (match != null) {
-    name = match[1];
-    source = match[2];
+  if (match[7] != null) {
+    source = match[7];
     if (source == "root") source = null;
   }
 
-  callback(isDev, name, source);
+  return new PackageId(name, source, parsedVersion, description);
 }

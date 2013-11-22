@@ -8,15 +8,25 @@ part of dart.io;
  * FileMode describes the modes in which a file can be opened.
  */
 class FileMode {
+  /// The [FileMode] for opening a file only for reading.
   static const READ = const FileMode._internal(0);
+  /// The [FileMode] for opening a file for reading and writing. The file will
+  /// be overwritten. If the file does not exist, it will be created.
   static const WRITE = const FileMode._internal(1);
+  /// The [FileMode] for opening a file for reading a file and writing to the
+  /// end of it. If the file does not exist, it will be created.
   static const APPEND = const FileMode._internal(2);
   const FileMode._internal(int this._mode);
   final int _mode;
 }
 
+/// The [FileMode] for opening a file only for reading.
 const READ = FileMode.READ;
+/// The [FileMode] for opening a file for reading and writing. The file will be
+/// overwritten. If the file does not exist, it will be created.
 const WRITE = FileMode.WRITE;
+/// The [FileMode] for opening a file for reading a file and writing to the end
+/// of it. If the file does not exist, it will be created.
 const APPEND = FileMode.APPEND;
 
 /**
@@ -39,6 +49,13 @@ abstract class File implements FileSystemEntity {
    * Create a File object.
    */
   factory File(String path) => new _File(path);
+
+  /**
+   * Create a File object from a URI.
+   *
+   * If [uri] cannot reference a file this throws [UnsupportedError].
+   */
+  factory File.fromUri(Uri uri) => new File(uri.toFilePath());
 
   /**
    * Create the file. Returns a [:Future<File>:] that completes with
@@ -249,8 +266,13 @@ abstract class File implements FileSystemEntity {
    * By default [writeAsBytes] creates the file for writing and truncates the
    * file if it already exists. In order to append the bytes to an existing
    * file, pass [FileMode.APPEND] as the optional mode parameter.
+   *
+   * If the argument [flush] is set to `true`, the data written will be
+   * flushed to the file system before the returned future completes.
    */
-  Future<File> writeAsBytes(List<int> bytes, {FileMode mode: FileMode.WRITE});
+  Future<File> writeAsBytes(List<int> bytes,
+                            {FileMode mode: FileMode.WRITE,
+                             bool flush: false});
 
   /**
    * Synchronously write a list of bytes to a file.
@@ -261,9 +283,14 @@ abstract class File implements FileSystemEntity {
    * the file if it already exists. In order to append the bytes to an existing
    * file, pass [FileMode.APPEND] as the optional mode parameter.
    *
+   * If the [flush] argument is set to `true` data written will be
+   * flushed to the file system before returning.
+   *
    * Throws a [FileSystemException] if the operation fails.
    */
-  void writeAsBytesSync(List<int> bytes, {FileMode mode: FileMode.WRITE});
+  void writeAsBytesSync(List<int> bytes,
+                        {FileMode mode: FileMode.WRITE,
+                         bool flush: false});
 
   /**
    * Write a string to a file.
@@ -275,10 +302,15 @@ abstract class File implements FileSystemEntity {
    * By default [writeAsString] creates the file for writing and truncates the
    * file if it already exists. In order to append the bytes to an existing
    * file, pass [FileMode.APPEND] as the optional mode parameter.
+   *
+   * If the argument [flush] is set to `true`, the data written will be
+   * flushed to the file system before the returned future completes.
+   *
    */
   Future<File> writeAsString(String contents,
                              {FileMode mode: FileMode.WRITE,
-                              Encoding encoding: UTF8});
+                              Encoding encoding: UTF8,
+                              bool flush: false});
 
   /**
    * Synchronously write a string to a file.
@@ -291,11 +323,15 @@ abstract class File implements FileSystemEntity {
    * to an existing file, pass [FileMode.APPEND] as the optional mode
    * parameter.
    *
+   * If the [flush] argument is set to `true` data written will be
+   * flushed to the file system before returning.
+   *
    * Throws a [FileSystemException] if the operation fails.
    */
   void writeAsStringSync(String contents,
                          {FileMode mode: FileMode.WRITE,
-                          Encoding encoding: UTF8});
+                          Encoding encoding: UTF8,
+                          bool flush: false});
 
   /**
    * Get the path of the file.

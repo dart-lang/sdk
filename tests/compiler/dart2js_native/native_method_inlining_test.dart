@@ -6,6 +6,7 @@
 // number of arguments in the call site AND the call site is inlined.
 
 import "package:expect/expect.dart";
+import 'dart:_js_helper' show NoInline;
 
 typedef int Int2Int(int x);
 
@@ -18,6 +19,7 @@ class A native "A" {
 
 class B {
   static var g;
+  @NoInline()
   method1(a) {
     g = '(Method1Tag)';  // Tag to identify compiled JavaScript method.
     A x = makeA();
@@ -27,6 +29,7 @@ class B {
     x.foo(2, 10);
     return x.foo(3, 10, 30);
   }
+  @NoInline()
   method2() {
     g = '(Method2Tag)';
     A x = makeA();
@@ -34,10 +37,11 @@ class B {
     var r2 = x.callFun();
     return r1 + r2;
   }
+  @NoInline()
   method3() {
     g = '(Method3Tag)';
     A x = makeA();
-    var r1 = x.callFun((x) => x * 2);   // Can't ne inlined due to conversion.
+    var r1 = x.callFun((x) => x * 2);   // Can't be inlined due to conversion.
     var r2 = x.callFun((x) => x * 0);
     return r1 + r2;
   }

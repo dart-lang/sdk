@@ -5,4 +5,4 @@
 
 import 'package:csslib/css.dart' as css;
 
-void main() => css.main();
+void main(List<String> args) => css.main(args);

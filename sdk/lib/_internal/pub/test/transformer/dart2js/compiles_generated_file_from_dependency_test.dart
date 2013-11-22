@@ -46,7 +46,7 @@ main() => print(foo());
 
     createLockFile("myapp", sandbox: ["foo"], pkg: ["barback"]);
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("main.dart.js", contains("(before, munge)"));
     endPubServe();
   });

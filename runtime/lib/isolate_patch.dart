@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:collection" show HashMap;
+
 patch class ReceivePort {
   /* patch */ factory ReceivePort() = _ReceivePortImpl;
 
@@ -111,7 +113,7 @@ class _RawReceivePortImpl implements RawReceivePort {
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
   void send(var message) {
-    _sendInternal(_id, 0, message);
+    _sendInternal(_id, message);
   }
 
   bool operator==(var other) {
@@ -140,8 +142,7 @@ class _SendPortImpl implements SendPort {
 
   // Forward the implementation of sending messages to the VM. Only port ids
   // are being handed to the VM.
-  // TODO(14731): Remove replyId argument.
-  static _sendInternal(int sendId, int replyId, var message)
+  static _sendInternal(int sendId, var message)
       native "SendPortImpl_sendInternal_";
 
   final int _id;
@@ -214,7 +215,7 @@ patch class Isolate {
         completer.complete(new Isolate._fromControlPort(controlPort));
       };
     } catch(e, st) {
-      // TODO(floitsch): we want errors to go into the returned future.
+      // TODO(14718): we want errors to go into the returned future.
       rethrow;
     };
     return completer.future;
@@ -234,7 +235,7 @@ patch class Isolate {
         completer.complete(new Isolate._fromControlPort(controlPort));
       };
     } catch(e, st) {
-      // TODO(floitsch): we want errors to go into the returned future.
+      // TODO(14718): we want errors to go into the returned future.
       rethrow;
     };
     return completer.future;

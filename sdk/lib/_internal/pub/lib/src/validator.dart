@@ -11,6 +11,7 @@ import 'log.dart' as log;
 import 'utils.dart';
 import 'validator/compiled_dartdoc.dart';
 import 'validator/dependency.dart';
+import 'validator/dependency_override.dart';
 import 'validator/directory.dart';
 import 'validator/lib.dart';
 import 'validator/license.dart';
@@ -55,6 +56,7 @@ abstract class Validator {
       new NameValidator(entrypoint),
       new PubspecFieldValidator(entrypoint),
       new DependencyValidator(entrypoint),
+      new DependencyOverrideValidator(entrypoint),
       new DirectoryValidator(entrypoint),
       new CompiledDartdocValidator(entrypoint),
       new Utf8ReadmeValidator(entrypoint)

@@ -47,7 +47,7 @@ if (navigator.webkitStartDart && !window.HTMLImports) {
 }
 
 // testRunner is provided by content shell.
-// It is not available in selenium tests.
+// It is not available in browser tests.
 var testRunner = window.testRunner || window.layoutTestController;
 
 var waitForDone = false;
@@ -135,8 +135,8 @@ function showErrorAndExit(message) {
   if (message) {
     printMessage('Error: ' + String(message));
   }
-  // dart/tools/testing/run_selenium.py is looking for either PASS or
-  // FAIL and will continue polling until one of these words show up.
+  // dart/tools/testing/test_runner.dart is looking for either PASS or
+  // FAIL in a browser test's output.
   printMessage('FAIL');
   notifyDone();
 }

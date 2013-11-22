@@ -4,6 +4,9 @@
 
 patch class Object {
 
+  // The VM has it's own implemention of equals.
+  bool operator ==(other) native "Object_equals";
+
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
   // in a weak table in the VM. A new hashCode value is calculated using a
   // number generator.

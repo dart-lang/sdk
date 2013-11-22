@@ -46,7 +46,7 @@ main() {
 
     createLockFile('myapp', sandbox: ['foo', 'bar'], pkg: ['barback']);
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("main.dart",
         'const TOKEN = "(main.dart, (bar, foo))";');
     endPubServe();

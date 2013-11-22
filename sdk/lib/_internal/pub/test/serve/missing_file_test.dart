@@ -30,7 +30,7 @@ main() {
 
     // Start the server with the files present so that it creates barback
     // assets for them.
-    startPubServe();
+    pubServe();
 
     // TODO(rnystrom): When pub serve supports file watching, we'll have to do
     // something here to specifically disable that so that we can get barback

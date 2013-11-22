@@ -583,8 +583,14 @@ class Assembler : public ValueObject {
   void AddImmediateWithCarry(Register rd, Register rn, int32_t value,
                              Condition cond = AL);
 
+  void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
+
+  // Test rn and immediate. May clobber IP.
+  void TestImmediate(Register rn, int32_t imm, Condition cond = AL);
+
   // Compare rn with signed immediate value. May clobber IP.
   void CompareImmediate(Register rn, int32_t value, Condition cond = AL);
+
 
   // Signed integer division of left by right. Checks to see if integer
   // division is supported. If not, uses the FPU for division with
@@ -715,8 +721,8 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool uses_pp = false);
-  void LeaveStubFrame(bool uses_pp = false);
+  void EnterStubFrame(bool load_pp = false);
+  void LeaveStubFrame();
 
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the

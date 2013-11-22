@@ -859,6 +859,13 @@ class LiteralNull extends Literal {
 class LiteralString extends Literal {
   final String value;
 
+  /**
+   * Constructs a LiteralString from a string value.
+   *
+   * The constructor does not add the required quotes.  If [value] is
+   * not surrounded by quotes, the resulting object is invalid as a JS
+   * value.
+   */
   LiteralString(this.value);
 
   accept(NodeVisitor visitor) => visitor.visitLiteralString(this);
@@ -918,8 +925,16 @@ class ArrayElement extends Node {
 
 class ObjectInitializer extends Expression {
   List<Property> properties;
+  bool isOneLiner;
 
-  ObjectInitializer(this.properties);
+  /**
+   * Constructs a new object-initializer containing the given [properties].
+   *
+   * [isOneLiner] describes the behaviour when pretty-printing (non-minified).
+   * If true print all properties on the same line.
+   * If false print each property on a seperate line.
+   */
+  ObjectInitializer(this.properties, {this.isOneLiner: true});
 
   accept(NodeVisitor visitor) => visitor.visitObjectInitializer(this);
 

@@ -10,6 +10,8 @@ abstract class Visitor {
   visit(Expression s) => s.accept(this);
   visitEmptyExpression(EmptyExpression e);
   visitParenthesizedExpression(ParenthesizedExpression e);
+  visitGetter(Getter i);
+  visitIndex(Index i);
   visitInvoke(Invoke i);
   visitLiteral(Literal l);
   visitMapLiteral(MapLiteral l);
@@ -26,8 +28,19 @@ abstract class RecursiveVisitor extends Visitor {
   visitEmptyExpression(EmptyExpression e) => visitExpression(e);
 
   visitParenthesizedExpression(ParenthesizedExpression e) {
-    visit(e);
+    visit(e.child);
     visitExpression(e);
+  }
+
+  visitGetter(Getter i) {
+    visit(i.receiver);
+    visitExpression(i);
+  }
+
+  visitIndex(Index i) {
+    visit(i.receiver);
+    visit(i.argument);
+    visitExpression(i);
   }
 
   visitInvoke(Invoke i) {

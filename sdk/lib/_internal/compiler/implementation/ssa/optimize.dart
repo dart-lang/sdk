@@ -57,6 +57,9 @@ class SsaOptimizerTask extends CompilerTask {
           // updated because they now have different inputs.
           new SsaTypePropagator(compiler),
           new SsaCodeMotion(),
+          new SsaLoadElimination(compiler),
+          new SsaDeadPhiEliminator(),
+          new SsaTypePropagator(compiler),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           // Previous optimizations may have generated new
           // opportunities for instruction simplification.
@@ -77,6 +80,19 @@ class SsaOptimizerTask extends CompilerTask {
       runPhases(graph, phases);
     });
   }
+}
+
+bool isFixedLength(mask, Compiler compiler) {
+  JavaScriptBackend backend = compiler.backend;
+  if (mask.isContainer && mask.length != null) {
+    // A container on which we have inferred the length.
+    return true;
+  } else if (mask.containsOnly(backend.jsFixedArrayClass)
+             || mask.containsOnlyString(compiler)
+             || backend.isTypedArray(mask)) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -196,19 +212,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return graph.addConstantInt(constant.length, compiler);
       }
       Element element = backend.jsIndexableLength;
-      var mask = actualReceiver.instructionType;
-      bool isFixedLength = false;
-      if (mask.isContainer && mask.length != null) {
-        // A container on which we have inferred the length.
-        isFixedLength = true;
-      } else if (mask.containsOnly(backend.jsFixedArrayClass)
-                 || mask.containsOnlyString(compiler)
-                 || backend.isTypedArray(mask)) {
-        isFixedLength = true;
-      }
+      bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       HFieldGet result = new HFieldGet(
           element, actualReceiver, backend.intType,
-          isAssignable: !isFixedLength);
+          isAssignable: !isFixed);
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
@@ -688,19 +695,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
     Modifiers modifiers = field.modifiers;
-    bool isAssignable = !(modifiers.isFinal() || modifiers.isConst());
-    if (!compiler.resolverWorld.hasInvokedSetter(field, compiler)) {
-      // If no setter is ever used for this field it is only initialized in the
-      // initializer list.
-      isAssignable = false;
-    }
-    if (field.isNative()) {
-      // Some native fields are views of data that may be changed by operations.
-      // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
-      // TODO(sra): Refine the effect classification so that native effects are
-      // distinct from ordinary Dart effects.
-      isAssignable = true;
-    }
+    bool isAssignable = !compiler.world.fieldNeverChanges(field);
 
     TypeMask type;
     if (field.getEnclosingClass().isNative()) {
@@ -835,11 +830,9 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction array,
                                  HInstruction indexArgument) {
     Compiler compiler = backend.compiler;
-    bool isAssignable =
-        !array.isFixedArray(compiler) && !array.isString(compiler);
     HFieldGet length = new HFieldGet(
         backend.jsIndexableLength, array, backend.intType,
-        isAssignable: isAssignable);
+        isAssignable: !isFixedLength(array.instructionType, compiler));
     indexNode.block.addBefore(indexNode, length);
 
     HBoundsCheck check = new HBoundsCheck(
@@ -1522,5 +1515,418 @@ class SsaTypeConversionInserter extends HBaseVisitor
       // TODO(ngeoffray): Also change uses for the then block on a type
       // that knows it is not of a specific type.
     }
+  }
+}
+
+/**
+ * Optimization phase that tries to eliminate memory loads (for
+ * example [HFieldGet]), when it knows the value stored in that memory
+ * location.
+ */
+class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
+  final Compiler compiler;
+  final String name = "SsaLoadElimination";
+  MemorySet memorySet;
+  List<MemorySet> memories;
+
+  SsaLoadElimination(this.compiler);
+
+  visitGraph(HGraph graph) {
+    memories = new List<MemorySet>(graph.blocks.length);
+    visitDominatorTree(graph);
+  }
+
+  visitBasicBlock(HBasicBlock block) {
+    if (block.predecessors.length == 0) {
+      // Entry block.
+      memorySet = new MemorySet(compiler);
+    } else if (block.predecessors.length == 1
+               && block.predecessors[0].successors.length == 1) {
+      // No need to clone, there is no other successor for
+      // `block.predecessors[0]`, and this block has only one
+      // predecessor. Since we are not going to visit
+      // `block.predecessors[0]` again, we can just re-use its
+      // [memorySet].
+      memorySet = memories[block.predecessors[0].id];
+    } else if (block.isLoopHeader()) {
+      // We currently do not handle loops.
+      memorySet = new MemorySet(compiler);
+    } else if (block.predecessors.length == 1) {
+      // Clone the memorySet of the predecessor, because it is also used
+      // by other successors of it.
+      memorySet = memories[block.predecessors[0].id].clone();
+    } else {
+      // Compute the intersection of all predecessors.
+      memorySet = memories[block.predecessors[0].id];
+      for (int i = 1; i < block.predecessors.length; i++) {
+        memorySet = memorySet.intersectionFor(
+          memories[block.predecessors[i].id], block, i);
+      }
+    }
+    memories[block.id] = memorySet;
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      instruction.accept(this);
+      instruction = next;
+    }
+  }
+
+  void visitFieldGet(HFieldGet instruction) {
+    if (instruction.isNullCheck) return;
+    Element element = instruction.element;
+    HInstruction receiver =
+        instruction.getDartReceiver(compiler).nonCheck();
+    HInstruction existing = memorySet.lookupFieldValue(element, receiver);
+    if (existing != null) {
+      instruction.block.rewriteWithBetterUser(instruction, existing);
+      instruction.block.remove(instruction);
+    } else {
+      memorySet.registerFieldValue(element, receiver, instruction);
+    }
+  }
+
+  void visitFieldSet(HFieldSet instruction) {
+    HInstruction receiver =
+        instruction.getDartReceiver(compiler).nonCheck();
+    memorySet.registerFieldValueUpdate(
+        instruction.element, receiver, instruction.inputs.last);
+  }
+
+  void visitForeignNew(HForeignNew instruction) {
+    memorySet.registerAllocation(instruction);
+    int argumentIndex = 0;
+    instruction.element.forEachInstanceField((_, Element member) {
+      memorySet.registerFieldValue(
+          member, instruction, instruction.inputs[argumentIndex++]);
+    }, includeSuperAndInjectedMembers: true);
+    // In case this instruction has as input non-escaping objects, we
+    // need to mark these objects as escaping.
+    memorySet.killAffectedBy(instruction);
+  }
+
+  void visitInstruction(HInstruction instruction) {
+    memorySet.killAffectedBy(instruction);
+  }
+
+  void visitLazyStatic(HLazyStatic instruction) {
+    handleStaticLoad(instruction.element, instruction);
+  }
+
+  void handleStaticLoad(Element element, HInstruction instruction) {
+    HInstruction existing = memorySet.lookupFieldValue(element, null);
+    if (existing != null) {
+      instruction.block.rewriteWithBetterUser(instruction, existing);
+      instruction.block.remove(instruction);
+    } else {
+      memorySet.registerFieldValue(element, null, instruction);
+    }
+  }
+
+  void visitStatic(HStatic instruction) {
+    handleStaticLoad(instruction.element, instruction);
+  }
+
+  void visitStaticStore(HStaticStore instruction) {
+    memorySet.registerFieldValueUpdate(
+        instruction.element, null, instruction.inputs.last);
+  }
+
+  void visitLiteralList(HLiteralList instruction) {
+    memorySet.registerAllocation(instruction);
+    memorySet.killAffectedBy(instruction);
+  }
+
+  void visitIndex(HIndex instruction) {
+    HInstruction receiver = instruction.receiver.nonCheck();
+    HInstruction existing =
+        memorySet.lookupKeyedValue(receiver, instruction.index);
+    if (existing != null) {
+      instruction.block.rewriteWithBetterUser(instruction, existing);
+      instruction.block.remove(instruction);
+    } else {
+      memorySet.registerKeyedValue(receiver, instruction.index, instruction);
+    }
+  }
+
+  void visitIndexAssign(HIndexAssign instruction) {
+    HInstruction receiver = instruction.receiver.nonCheck();
+    memorySet.registerKeyedValueUpdate(
+        receiver, instruction.index, instruction.value);
+  }
+}
+
+/**
+ * Holds values of memory places.
+ */
+class MemorySet {
+  final Compiler compiler;
+
+  /**
+   * Maps a field to a map of receiver to value.
+   */
+  final Map<Element, Map<HInstruction, HInstruction>> fieldValues =
+      <Element, Map<HInstruction, HInstruction>> {};
+
+  /**
+   * Maps a receiver to a map of keys to value.
+   */
+  final Map<HInstruction, Map<HInstruction, HInstruction>> keyedValues =
+      <HInstruction, Map<HInstruction, HInstruction>> {};
+
+  /**
+   * Set of objects that we know don't escape the current function.
+   */
+  final Setlet<HInstruction> nonEscapingReceivers = new Setlet<HInstruction>();
+
+  MemorySet(this.compiler);
+
+  /**
+   * Returns whether [first] and [second] may alias to the same
+   * object.
+   */
+  bool mayAlias(HInstruction first, HInstruction second) {
+    if (first == second) return true;
+    if (isConcrete(first) && isConcrete(second)) return false;
+    if (nonEscapingReceivers.contains(first)) return false;
+    if (nonEscapingReceivers.contains(second)) return false;
+    TypeMask intersection = first.instructionType.intersection(
+        second.instructionType, compiler);
+    if (intersection.isEmpty) return false;
+    return true;
+  }
+
+  bool isFinal(Element element) {
+    return compiler.world.fieldNeverChanges(element);
+  }
+
+  bool isConcrete(HInstruction instruction) {
+    return instruction is HForeignNew
+        || instruction is HConstant
+        || instruction is HLiteralList;
+  }
+
+  /**
+   * Returns whether [receiver] escapes the current function.
+   */
+  bool escapes(HInstruction receiver) {
+    return !nonEscapingReceivers.contains(receiver);
+  }
+
+  void registerAllocation(HInstruction instruction) {
+    nonEscapingReceivers.add(instruction);
+  }
+
+  /**
+   * Sets `receiver.element` to contain [value]. Kills all potential
+   * places that may be affected by this update.
+   */
+  void registerFieldValueUpdate(Element element,
+                                HInstruction receiver,
+                                HInstruction value) {
+    if (element.isNative()) return; // TODO(14955): Remove this restriction?
+    // [value] is being set in some place in memory, we remove it from
+    // the non-escaping set.
+    nonEscapingReceivers.remove(value);
+    Map<HInstruction, HInstruction> map = fieldValues.putIfAbsent(
+        element, () => <HInstruction, HInstruction> {});
+    map.forEach((key, value) {
+      if (mayAlias(receiver, key)) map[key] = null;
+    });
+    map[receiver] = value;
+  }
+
+  /**
+   * Registers that `receiver.element` is now [value].
+   */
+  void registerFieldValue(Element element,
+                          HInstruction receiver,
+                          HInstruction value) {
+    if (element.isNative()) return; // TODO(14955): Remove this restriction?
+    Map<HInstruction, HInstruction> map = fieldValues.putIfAbsent(
+        element, () => <HInstruction, HInstruction> {});
+    map[receiver] = value;
+  }
+
+  /**
+   * Returns the value stored in `receiver.element`. Returns null if
+   * we don't know.
+   */
+  HInstruction lookupFieldValue(Element element, HInstruction receiver) {
+    Map<HInstruction, HInstruction> map = fieldValues[element];
+    return (map == null) ? null : map[receiver];
+  }
+
+  /**
+   * Kill all places that may be affected by this [instruction]. Also
+   * update the set of non-escaping objects in case [instruction] has
+   * non-escaping objects in its inputs.
+   */
+  void killAffectedBy(HInstruction instruction) {
+    // Even if [instruction] does not have side effects, it may use
+    // non-escaping objects and store them in a new object, which
+    // make these objects escaping.
+    // TODO(ngeoffray): We need a new side effect flag to know whether
+    // an instruction allocates an object.
+    instruction.inputs.forEach((input) {
+      nonEscapingReceivers.remove(input);
+    });
+
+    if (instruction.sideEffects.changesInstanceProperty()
+        || instruction.sideEffects.changesStaticProperty()) {
+      fieldValues.forEach((element, map) {
+        if (isFinal(element)) return;
+        map.forEach((receiver, value) {
+          if (escapes(receiver)) {
+            map[receiver] = null;
+          }
+        });
+      });
+    }
+
+    if (instruction.sideEffects.changesIndex()) {
+      keyedValues.forEach((receiver, map) {
+        if (escapes(receiver)) {
+          map.forEach((index, value) {
+            map[index] = null;
+          });
+        }
+      });
+    }
+  }
+
+  /**
+   * Returns the value stored in `receiver[index]`. Returns null if
+   * we don't know.
+   */
+  HInstruction lookupKeyedValue(HInstruction receiver, HInstruction index) {
+    Map<HInstruction, HInstruction> map = keyedValues[receiver];
+    return (map == null) ? null : map[index];
+  }
+
+  /**
+   * Registers that `receiver[index]` is now [value].
+   */
+  void registerKeyedValue(HInstruction receiver,
+                          HInstruction index,
+                          HInstruction value) {
+    Map<HInstruction, HInstruction> map = keyedValues.putIfAbsent(
+        receiver, () => <HInstruction, HInstruction> {});
+    map[index] = value;
+  }
+
+  /**
+   * Sets `receiver[index]` to contain [value]. Kills all potential
+   * places that may be affected by this update.
+   */
+  void registerKeyedValueUpdate(HInstruction receiver,
+                                HInstruction index,
+                                HInstruction value) {
+    nonEscapingReceivers.remove(value);
+    keyedValues.forEach((key, values) {
+      if (mayAlias(receiver, key)) {
+        values.forEach((otherIndex, otherValue) {
+          if (mayAlias(index, otherIndex)) values[otherIndex] = null;
+        });
+      }
+    });
+
+    JavaScriptBackend backend = compiler.backend;
+    // Typed arrays may narrow incoming values.
+    if (backend.couldBeTypedArray(receiver.instructionType)) return;
+
+    Map<HInstruction, HInstruction> map = keyedValues.putIfAbsent(
+        receiver, () => <HInstruction, HInstruction> {});
+    map[index] = value;
+  }
+
+  /**
+   * Returns null if either [first] or [second] is null. Otherwise
+   * returns [first] if [first] and [second] are equal. Otherwise
+   * creates or re-uses a phi in [block] that holds [first] and [second].
+   */
+  HInstruction findCommonInstruction(HInstruction first,
+                                     HInstruction second,
+                                     HBasicBlock block,
+                                     int predecessorIndex) {
+    if (first == null || second == null) return null;
+    if (first == second) return first;
+    TypeMask phiType = second.instructionType.union(
+          first.instructionType, compiler);
+    if (first is HPhi && first.block == block) {
+      HPhi phi = first;
+      phi.addInput(second);
+      phi.instructionType = phiType;
+      return phi;
+    } else {
+      HPhi phi = new HPhi.noInputs(null, phiType);
+      block.addPhi(phi);
+      // Previous predecessors had the same input. A phi must have
+      // the same number of inputs as its block has predecessors.
+      for (int i = 0; i < predecessorIndex; i++) {
+        phi.addInput(first);
+      }
+      phi.addInput(second);
+      return phi;
+    }
+  }
+
+  /**
+   * Returns the intersection between [this] and [other].
+   */
+  MemorySet intersectionFor(MemorySet other,
+                            HBasicBlock block,
+                            int predecessorIndex) {
+    MemorySet result = new MemorySet(compiler);
+    fieldValues.forEach((element, values) {
+      var otherValues = other.fieldValues[element];
+      if (otherValues == null) return;
+      values.forEach((receiver, value) {
+        HInstruction instruction = findCommonInstruction(
+            value, otherValues[receiver], block, predecessorIndex);
+        if (instruction != null) {
+          result.registerFieldValue(element, receiver, instruction);
+        }
+      });
+    });
+
+    keyedValues.forEach((receiver, values) {
+      var otherValues = other.keyedValues[receiver];
+      if (otherValues == null) return;
+      values.forEach((index, value) {
+        HInstruction instruction = findCommonInstruction(
+            value, otherValues[index], block, predecessorIndex);
+        if (instruction != null) {
+          result.registerKeyedValue(receiver, index, instruction);
+        }
+      });
+    });
+
+    nonEscapingReceivers.forEach((receiver) {
+      if (other.nonEscapingReceivers.contains(receiver)) {
+        result.nonEscapingReceivers.add(receiver);
+      }
+    });
+    return result;
+  }
+
+  /**
+   * Returns a copy of [this].
+   */
+  MemorySet clone() {
+    MemorySet result = new MemorySet(compiler);
+
+    fieldValues.forEach((element, values) {
+      result.fieldValues[element] =
+          new Map<HInstruction, HInstruction>.from(values);
+    });
+
+    keyedValues.forEach((receiver, values) {
+      result.keyedValues[receiver] =
+          new Map<HInstruction, HInstruction>.from(values);
+    });
+
+    result.nonEscapingReceivers.addAll(nonEscapingReceivers);
+    return result;
   }
 }

@@ -168,8 +168,8 @@ void Socket::GetError(intptr_t fd, OSError* os_error) {
 
 
 int Socket::GetType(intptr_t fd) {
-  struct stat buf;
-  int result = fstat(fd, &buf);
+  struct stat64 buf;
+  int result = fstat64(fd, &buf);
   if (result == -1) return -1;
   if (S_ISCHR(buf.st_mode)) return File::kTerminal;
   if (S_ISFIFO(buf.st_mode)) return File::kPipe;
@@ -241,6 +241,18 @@ bool Socket::ReverseLookup(RawAddr addr,
     return false;
   }
   return true;
+}
+
+
+bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
+  int result;
+  if (type == SocketAddress::TYPE_IPV4) {
+    result = inet_pton(AF_INET, address, &addr->in.sin_addr);
+  } else {
+    ASSERT(type == SocketAddress::TYPE_IPV6);
+    result = inet_pton(AF_INET6, address, &addr->in6.sin6_addr);
+  }
+  return result == 1;
 }
 
 

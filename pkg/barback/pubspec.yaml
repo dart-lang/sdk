@@ -19,5 +19,14 @@ dependencies:
 dev_dependencies:
   scheduled_test: ">=0.9.0 <0.10.0"
   unittest: ">=0.9.0 <0.10.0"
+
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  # Barback is tightly coupled to the SDK because pub contains code that is run
+  # against the user's version of barback. We need to ensure that that version
+  # of barback is compatible with the user's version of pub.
+  #
+  # Since the SDK itself can't place constraints on barback, we do a reverse
+  # constraint and have barback itself only allow specific SDK versions.
+  # This ensures that for each SDK version, there is a single known good version
+  # of barback that will be used with it.
+  sdk: "$SDK_CONSTRAINT$"

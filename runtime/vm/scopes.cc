@@ -4,10 +4,7 @@
 
 #include "vm/scopes.h"
 
-#include "vm/ast.h"
-#include "vm/bit_vector.h"
 #include "vm/object.h"
-#include "vm/parser.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
@@ -433,21 +430,6 @@ SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
           (label->kind() == SourceLabel::kDoWhile) ||
           ((jump_kind == Token::kBREAK) &&
               (label->kind() == SourceLabel::kSwitch))) {
-        return label;
-      }
-    }
-    current_scope = current_scope->parent();
-  }
-  return NULL;
-}
-
-
-SourceLabel* LocalScope::LookupInnermostCatchLabel() {
-  LocalScope* current_scope = this;
-  while (current_scope != NULL) {
-    for (intptr_t i = 0; i < current_scope->labels_.length(); i++) {
-      SourceLabel* label = current_scope->labels_[i];
-      if (label->kind() == SourceLabel::kCatch) {
         return label;
       }
     }

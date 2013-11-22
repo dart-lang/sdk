@@ -104,7 +104,7 @@ class CssPrinter extends Visitor {
     emit(' ');
 
     var declsMargin = node._declsMargin;
-    int declsMarginLength = declsMargin.length;
+    var declsMarginLength = declsMargin.length;
     for (var i = 0; i < declsMarginLength; i++) {
       if (i > 0) emit(_newLine);
       emit('{$_newLine');
@@ -137,7 +137,7 @@ class CssPrinter extends Visitor {
 
   void visitKeyFrameDirective(KeyFrameDirective node) {
     emit('$_newLine${node.keyFrameName} ');
-    node._name.visit(this);
+    node.name.visit(this);
     emit('$_sp{$_newLine');
     for (final block in node._blocks) {
       block.visit(this);
@@ -161,7 +161,7 @@ class CssPrinter extends Visitor {
   }
 
   void visitStyletDirective(StyletDirective node) {
-    emit('/* @stylet export as ${node._dartClassName} */\n');
+    emit('/* @stylet export as ${node.dartClassName} */\n');
   }
 
   void visitNamespaceDirective(NamespaceDirective node) {
@@ -224,7 +224,7 @@ class CssPrinter extends Visitor {
   }
 
   void visitDeclarationGroup(DeclarationGroup node) {
-    var declarations = node._declarations;
+    var declarations = node.declarations;
     var declarationsLength = declarations.length;
     for (var i = 0; i < declarationsLength; i++) {
       if (i > 0) emit(_newLine);
@@ -274,7 +274,7 @@ class CssPrinter extends Visitor {
 
 
   void visitSelectorGroup(SelectorGroup node) {
-    var selectors = node._selectors;
+    var selectors = node.selectors;
     var selectorsLength = selectors.length;
     for (var i = 0; i < selectorsLength; i++) {
       if (i > 0) emit(',$_sp');
@@ -284,7 +284,7 @@ class CssPrinter extends Visitor {
 
   void visitSimpleSelectorSequence(SimpleSelectorSequence node) {
     emit('${node._combinatorToString}');
-    node._selector.visit(this);
+    node.simpleSelector.visit(this);
   }
 
   void visitSimpleSelector(SimpleSelector node) {
@@ -338,7 +338,7 @@ class CssPrinter extends Visitor {
   }
 
   void visitSelectorExpression(SelectorExpression node) {
-    var expressions = node._expressions;
+    var expressions = node.expressions;
     var expressionsLength = expressions.length;
     for (var i = 0; i < expressionsLength; i++) {
       // Add space seperator between terms without an operator.

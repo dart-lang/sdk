@@ -96,7 +96,17 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
 }
 
 void TimerUtils::Sleep(int64_t millis) {
-  usleep(millis * 1000);
+  // We must loop here because SIGPROF will interrupt usleep.
+  int64_t micros = millis * 1000;
+  int64_t start = GetCurrentTimeMicros();
+  while (micros > 0) {
+    usleep(micros);
+    int64_t now = GetCurrentTimeMicros();
+    int64_t delta = now - start;
+    ASSERT(delta >= 0);
+    start = now;
+    micros -= delta;
+  }
 }
 
 }  // namespace bin

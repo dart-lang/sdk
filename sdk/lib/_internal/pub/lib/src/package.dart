@@ -37,6 +37,9 @@ class Package {
   /// The immediate dev dependencies this package specifies in its pubspec.
   List<PackageDep> get devDependencies => pubspec.devDependencies;
 
+  /// The dependency overrides this package specifies in its pubspec.
+  List<PackageDep> get dependencyOverrides => pubspec.dependencyOverrides;
+
   /// Returns the path to the README file at the root of the entrypoint, or null
   /// if no README file is found. If multiple READMEs are found, this uses the
   /// same conventions as pub.dartlang.org for choosing the primary one: the
@@ -111,6 +114,10 @@ class _PackageName {
   /// Returns a [PackageId] for this package with the given concrete version.
   PackageId atVersion(Version version) =>
     new PackageId(name, source, version, description);
+
+  /// Returns a [PackageDep] for this package with the given version constraint.
+  PackageDep withConstraint(VersionConstraint constraint) =>
+    new PackageDep(name, source, constraint, description);
 }
 
 /// A reference to a [Package], but not any particular version(s) of it.

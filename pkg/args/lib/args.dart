@@ -240,7 +240,7 @@
  * To display the help, use the ArgParser getUsage() method:
  *
  *     print(parser.getUsage());
- * 
+ *
  * The resulting string looks something like this:
  *
  *     --mode            The compiler configuration
@@ -261,7 +261,7 @@
  */
 library args;
 
-import 'package:unmodifiable_collection/unmodifiable_collection.dart';
+import 'package:collection_helpers/wrappers.dart';
 
 import 'src/parser.dart';
 import 'src/usage.dart';

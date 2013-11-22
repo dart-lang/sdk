@@ -175,13 +175,16 @@ class Assembler : public ValueObject {
     return FLAG_use_far_branches || use_far_branches_;
   }
 
+  void EnterFrame();
+  void LeaveFrameAndReturn();
+
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool uses_pp = false);
-  void LeaveStubFrame(bool uses_pp = false);
+  void EnterStubFrame(bool load_pp = false);
+  void LeaveStubFrame();
   // A separate macro for when a Ret immediately follows, so that we can use
   // the branch delay slot.
-  void LeaveStubFrameAndReturn(Register ra = RA, bool uses_pp = false);
+  void LeaveStubFrameAndReturn(Register ra = RA);
 
   // Instruction pattern from entrypoint is used in dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
@@ -738,7 +741,7 @@ class Assembler : public ValueObject {
 
   // Addition of rs and rt with the result placed in rd.
   // After, ro < 0 if there was signed overflow, ro >= 0 otherwise.
-  // rd and ro must not be TMP1.
+  // rd and ro must not be TMP.
   // ro must be different from all the other registers.
   // If rd, rs, and rt are the same register, then a scratch register different
   // from the other registers is needed.
@@ -746,7 +749,7 @@ class Assembler : public ValueObject {
                           Register scratch = kNoRegister);
 
   // ro must be different from rd and rs.
-  // rd and ro must not be TMP1.
+  // rd and ro must not be TMP.
   // If rd and rs are the same, a scratch register different from the other
   // registers is needed.
   void AddImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
@@ -757,12 +760,12 @@ class Assembler : public ValueObject {
 
   // Subtraction of rt from rs (rs - rt) with the result placed in rd.
   // After, ro < 0 if there was signed overflow, ro >= 0 otherwise.
-  // None of rd, rs, rt, or ro may be TMP1.
+  // None of rd, rs, rt, or ro may be TMP.
   // ro must be different from the other registers.
   void SubuDetectOverflow(Register rd, Register rs, Register rt, Register ro);
 
   // ro must be different from rd and rs.
-  // None of rd, rs, rt, or ro may be TMP1.
+  // None of rd, rs, rt, or ro may be TMP.
   void SubImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
                                   Register ro) {
     LoadImmediate(rd, imm);
@@ -770,29 +773,29 @@ class Assembler : public ValueObject {
   }
 
   void Branch(const ExternalLabel* label) {
-    LoadImmediate(TMP1, label->address());
-    jr(TMP1);
+    LoadImmediate(TMP, label->address());
+    jr(TMP);
   }
 
   void BranchPatchable(const ExternalLabel* label) {
     const uint16_t low = Utils::Low16Bits(label->address());
     const uint16_t high = Utils::High16Bits(label->address());
-    lui(TMP1, Immediate(high));
-    ori(TMP1, TMP1, Immediate(low));
-    jr(TMP1);
+    lui(TMP, Immediate(high));
+    ori(TMP, TMP, Immediate(low));
+    jr(TMP);
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
   void BranchLink(const ExternalLabel* label) {
-    LoadImmediate(TMP1, label->address());
-    jalr(TMP1);
+    LoadImmediate(TMP, label->address());
+    jalr(TMP);
   }
 
   void BranchLinkPatchable(const ExternalLabel* label) {
     const int32_t offset =
         Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
-    LoadWordFromPoolOffset(TMP1, offset);
-    jalr(TMP1);
+    LoadWordFromPoolOffset(TMP, offset);
+    jalr(TMP);
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
@@ -801,6 +804,14 @@ class Assembler : public ValueObject {
     if (stack_elements > 0) {
       addiu(SP, SP, Immediate(stack_elements * kWordSize));
     }
+  }
+
+  void LoadPoolPointer() {
+    GetNextPC(TMP);  // TMP gets the address of the next instruction.
+    const intptr_t object_pool_pc_dist =
+        Instructions::HeaderSize() - Instructions::object_pool_offset() +
+        CodeSize();
+    lw(PP, Address(TMP, -object_pool_pc_dist));
   }
 
   void LoadImmediate(Register rd, int32_t value) {
@@ -820,15 +831,15 @@ class Assembler : public ValueObject {
     const int32_t low = Utils::Low32Bits(ival);
     const int32_t high = Utils::High32Bits(ival);
     if (low != 0) {
-      LoadImmediate(TMP1, low);
-      mtc1(TMP1, frd);
+      LoadImmediate(TMP, low);
+      mtc1(TMP, frd);
     } else {
       mtc1(ZR, frd);
     }
 
     if (high != 0) {
-      LoadImmediate(TMP1, high);
-      mtc1(TMP1, static_cast<FRegister>(frd + 1));
+      LoadImmediate(TMP, high);
+      mtc1(TMP, static_cast<FRegister>(frd + 1));
     } else {
       mtc1(ZR, static_cast<FRegister>(frd + 1));
     }
@@ -839,8 +850,8 @@ class Assembler : public ValueObject {
     if (ival == 0) {
       mtc1(ZR, rd);
     } else {
-      LoadImmediate(TMP1, ival);
-      mtc1(TMP1, rd);
+      LoadImmediate(TMP, ival);
+      mtc1(TMP, rd);
     }
   }
 
@@ -850,13 +861,27 @@ class Assembler : public ValueObject {
     if (Utils::IsInt(kImmBits, value)) {
       addiu(rd, rs, Immediate(value));
     } else {
-      LoadImmediate(TMP1, value);
-      addu(rd, rs, TMP1);
+      LoadImmediate(TMP, value);
+      addu(rd, rs, TMP);
     }
   }
 
   void AddImmediate(Register rd, int32_t value) {
     AddImmediate(rd, rd, value);
+  }
+
+  void AndImmediate(Register rd, Register rs, int32_t imm) {
+    if (imm == 0) {
+      mov(rd, ZR);
+      return;
+    }
+
+    if (Utils::IsUint(kImmBits, imm)) {
+      andi(rd, rs, Immediate(imm));
+    } else {
+      LoadImmediate(TMP, imm);
+      and_(rd, rs, TMP);
+    }
   }
 
   void BranchEqual(Register rd, int32_t value, Label* l) {

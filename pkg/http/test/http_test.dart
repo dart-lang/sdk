@@ -50,8 +50,82 @@ main() {
         expect(http.post(serverUrl, headers: {
           'X-Random-Header': 'Value',
           'X-Other-Header': 'Other Value',
+          'Content-Type': 'text/plain',
           'User-Agent': 'Dart'
-        }, fields: {
+        }).then((response) {
+          expect(response.statusCode, equals(200));
+          expect(response.body, parse(equals({
+            'method': 'POST',
+            'path': '/',
+            'headers': {
+              'accept-encoding': ['gzip'],
+              'content-length': ['0'],
+              'content-type': ['text/plain'],
+              'user-agent': ['Dart'],
+              'x-random-header': ['Value'],
+              'x-other-header': ['Other Value']
+            }
+          })));
+        }), completes);
+      }), completes);
+    });
+
+    test('post with string', () {
+      expect(startServer().then((_) {
+        expect(http.post(serverUrl, headers: {
+          'X-Random-Header': 'Value',
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
+        }, body: 'request body').then((response) {
+          expect(response.statusCode, equals(200));
+          expect(response.body, parse(equals({
+            'method': 'POST',
+            'path': '/',
+            'headers': {
+              'content-type': ['text/plain; charset=utf-8'],
+              'content-length': ['12'],
+              'accept-encoding': ['gzip'],
+              'user-agent': ['Dart'],
+              'x-random-header': ['Value'],
+              'x-other-header': ['Other Value']
+            },
+            'body': 'request body'
+          })));
+        }), completes);
+      }), completes);
+    });
+
+    test('post with bytes', () {
+      expect(startServer().then((_) {
+        expect(http.post(serverUrl, headers: {
+          'X-Random-Header': 'Value',
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
+        }, body: [104, 101, 108, 108, 111]).then((response) {
+          expect(response.statusCode, equals(200));
+          expect(response.body, parse(equals({
+            'method': 'POST',
+            'path': '/',
+            'headers': {
+              'content-length': ['5'],
+              'accept-encoding': ['gzip'],
+              'user-agent': ['Dart'],
+              'x-random-header': ['Value'],
+              'x-other-header': ['Other Value']
+            },
+            'body': [104, 101, 108, 108, 111]
+          })));
+        }), completes);
+      }), completes);
+    });
+
+    test('post with fields', () {
+      expect(startServer().then((_) {
+        expect(http.post(serverUrl, headers: {
+          'X-Random-Header': 'Value',
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
+        }, body: {
           'some-field': 'value',
           'other-field': 'other value'
         }).then((response) {
@@ -70,31 +144,6 @@ main() {
               'x-other-header': ['Other Value']
             },
             'body': 'some-field=value&other-field=other+value'
-          })));
-        }), completes);
-      }), completes);
-    });
-
-    test('post without fields', () {
-      expect(startServer().then((_) {
-        expect(http.post(serverUrl, headers: {
-          'X-Random-Header': 'Value',
-          'X-Other-Header': 'Other Value',
-          'Content-Type': 'text/plain',
-          'User-Agent': 'Dart'
-        }).then((response) {
-          expect(response.statusCode, equals(200));
-          expect(response.body, parse(equals({
-            'method': 'POST',
-            'path': '/',
-            'headers': {
-              'accept-encoding': ['gzip'],
-              'content-length': ['0'],
-              'content-type': ['text/plain'],
-              'user-agent': ['Dart'],
-              'x-random-header': ['Value'],
-              'x-other-header': ['Other Value']
-            }
           })));
         }), completes);
       }), completes);
@@ -105,8 +154,82 @@ main() {
         expect(http.put(serverUrl, headers: {
           'X-Random-Header': 'Value',
           'X-Other-Header': 'Other Value',
+          'Content-Type': 'text/plain',
           'User-Agent': 'Dart'
-        }, fields: {
+        }).then((response) {
+          expect(response.statusCode, equals(200));
+          expect(response.body, parse(equals({
+            'method': 'PUT',
+            'path': '/',
+            'headers': {
+              'accept-encoding': ['gzip'],
+              'content-length': ['0'],
+              'content-type': ['text/plain'],
+              'user-agent': ['Dart'],
+              'x-random-header': ['Value'],
+              'x-other-header': ['Other Value']
+            }
+          })));
+        }), completes);
+      }), completes);
+    });
+
+    test('put with string', () {
+      expect(startServer().then((_) {
+        expect(http.put(serverUrl, headers: {
+          'X-Random-Header': 'Value',
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
+        }, body: 'request body').then((response) {
+          expect(response.statusCode, equals(200));
+          expect(response.body, parse(equals({
+            'method': 'PUT',
+            'path': '/',
+            'headers': {
+              'content-type': ['text/plain; charset=utf-8'],
+              'content-length': ['12'],
+              'accept-encoding': ['gzip'],
+              'user-agent': ['Dart'],
+              'x-random-header': ['Value'],
+              'x-other-header': ['Other Value']
+            },
+            'body': 'request body'
+          })));
+        }), completes);
+      }), completes);
+    });
+
+    test('put with bytes', () {
+      expect(startServer().then((_) {
+        expect(http.put(serverUrl, headers: {
+          'X-Random-Header': 'Value',
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
+        }, body: [104, 101, 108, 108, 111]).then((response) {
+          expect(response.statusCode, equals(200));
+          expect(response.body, parse(equals({
+            'method': 'PUT',
+            'path': '/',
+            'headers': {
+              'content-length': ['5'],
+              'accept-encoding': ['gzip'],
+              'user-agent': ['Dart'],
+              'x-random-header': ['Value'],
+              'x-other-header': ['Other Value']
+            },
+            'body': [104, 101, 108, 108, 111]
+          })));
+        }), completes);
+      }), completes);
+    });
+
+    test('put with fields', () {
+      expect(startServer().then((_) {
+        expect(http.put(serverUrl, headers: {
+          'X-Random-Header': 'Value',
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
+        }, body: {
           'some-field': 'value',
           'other-field': 'other value'
         }).then((response) {
@@ -118,38 +241,13 @@ main() {
               'content-type': [
                 'application/x-www-form-urlencoded; charset=utf-8'
               ],
-              'accept-encoding': ['gzip'],
               'content-length': ['40'],
+              'accept-encoding': ['gzip'],
               'user-agent': ['Dart'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             },
             'body': 'some-field=value&other-field=other+value'
-          })));
-        }), completes);
-      }), completes);
-    });
-
-    test('put without fields', () {
-      expect(startServer().then((_) {
-        expect(http.put(serverUrl, headers: {
-          'X-Random-Header': 'Value',
-          'X-Other-Header': 'Other Value',
-          'Content-Type': 'text/plain',
-          'User-Agent': 'Dart'
-        }).then((response) {
-          expect(response.statusCode, equals(200));
-          expect(response.body, parse(equals({
-            'method': 'PUT',
-            'path': '/',
-            'headers': {
-              'content-length': ['0'],
-              'accept-encoding': ['gzip'],
-              'content-type': ['text/plain'],
-              'user-agent': ['Dart'],
-              'x-random-header': ['Value'],
-              'x-other-header': ['Other Value']
-            }
           })));
         }), completes);
       }), completes);

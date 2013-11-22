@@ -26,36 +26,36 @@ class FilePool {
   /// substantial additional throughput.
   final Pool _pool = new Pool(32, timeout: new Duration(seconds: 60));
 
-  /// Opens [file] for reading.
+  /// Opens the file at [path] for reading.
   ///
   /// When the returned stream is listened to, if there are too many files
   /// open, this will wait for a previously opened file to be closed and then
   /// try again.
-  Stream<List<int>> openRead(File file) {
+  Stream<List<int>> openRead(String path) {
     return futureStream(_pool.request().then((resource) {
-      return file.openRead().transform(new StreamTransformer.fromHandlers(
-          handleDone: (sink) {
+      return new File(path).openRead().transform(
+          new StreamTransformer.fromHandlers(handleDone: (sink) {
         sink.close();
         resource.release();
       }));
     }));
   }
 
-  /// Reads [file] as a string using [encoding].
+  /// Reads [path] as a string using [encoding].
   ///
   /// If there are too many files open and the read fails, this will wait for
   /// a previously opened file to be closed and then try again.
-  Future<String> readAsString(File file, Encoding encoding) {
-    return _readAsBytes(file).then(encoding.decode);
+  Future<String> readAsString(String path, Encoding encoding) {
+    return _readAsBytes(path).then(encoding.decode);
   }
 
-  /// Reads [file] as a list of bytes, using [openRead] to retry if there are
+  /// Reads [path] as a list of bytes, using [openRead] to retry if there are
   /// failures.
-  Future<List<int>> _readAsBytes(File file) {
+  Future<List<int>> _readAsBytes(String path) {
     var completer = new Completer<List<int>>();
     var builder = new BytesBuilder();
 
-    openRead(file).listen(builder.add, onDone: () {
+    openRead(path).listen(builder.add, onDone: () {
       completer.complete(builder.takeBytes());
     }, onError: completer.completeError, cancelOnError: true);
 

@@ -27,7 +27,7 @@ main() {
       })
     ]).create();
 
-    startPubServe(shouldGetFirst: true);
+    pubServe(shouldGetFirst: true);
     requestShouldSucceed("assets/foo/foo.txt", "foo");
     requestShouldSucceed("assets/foo/sub/bar.txt", "bar");
 

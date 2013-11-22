@@ -16,7 +16,7 @@ class B extends A with M1, M2 native "B" {
 }
 
 class M1 {
-  var baz;
+  var baz;  // This field is not a native field, even when mixed in.
 }
 
 class M2 {
@@ -45,7 +45,8 @@ main() {
   B b = makeB();
   Expect.equals("A-foo", b.foo);
   Expect.equals("B-bar", b.bar);
-  Expect.equals("M1-baz", b.baz);
+  // Expect.equals("M1-baz", b.baz);  // not true, see M1.
+  Expect.isNull(b.baz);  // native b.baz is not the same as dart b.baz.
   Expect.isNull(b.buz);
 
   M1 m1 = new M1();

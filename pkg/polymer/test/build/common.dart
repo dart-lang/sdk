@@ -102,7 +102,7 @@ testPhases(String testName, List<List<Transformer>> phases,
   });
 }
 
-// TODO(jmesserly): this is .debug to workaround issue 13046.
+// TODO(jmesserly): this is .debug to workaround issue 14720.
 const SHADOW_DOM_TAG =
     '<script src="packages/shadow_dom/shadow_dom.debug.js"></script>\n';
 

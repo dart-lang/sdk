@@ -36,6 +36,10 @@ patch class InternetAddress {
     return _InternetAddress.ANY_IP_V6;
   }
 
+  /* patch */ factory InternetAddress(String address) {
+    return new _InternetAddress.parse(address);
+  }
+
   /* patch */ static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     return _NativeSocket.lookup(host, type: type);
@@ -73,8 +77,10 @@ class _InternetAddress implements InternetAddress {
 
   final InternetAddressType type;
   final String address;
-  final String host;
+  final String _host;
   final Uint8List _sockaddr_storage;
+
+  String get host => _host != null ? _host : address;
 
   bool get isLoopback {
     switch (type) {
@@ -104,22 +110,46 @@ class _InternetAddress implements InternetAddress {
     }
   }
 
+  bool get isMulticast {
+    switch (type) {
+      case InternetAddressType.IP_V4:
+        // Checking for 224.0.0.0 through 239.255.255.255.
+        return _sockaddr_storage[_IPV4_ADDR_OFFSET] >= 224 &&
+            _sockaddr_storage[_IPV4_ADDR_OFFSET] < 240;
+
+      case InternetAddressType.IP_V6:
+        // Checking for ff00::/8.
+        return _sockaddr_storage[_IPV6_ADDR_OFFSET] == 0xFF;
+    }
+  }
+
   Future<InternetAddress> reverse() => _NativeSocket.reverseLookup(this);
 
   _InternetAddress(InternetAddressType this.type,
                    String this.address,
-                   String this.host,
+                   String this._host,
                    List<int> this._sockaddr_storage);
+
+  factory _InternetAddress.parse(String address) {
+    var type = address.indexOf(':') == -1
+        ? InternetAddressType.IP_V4
+        : InternetAddressType.IP_V6;
+    var raw = _parse(type._value, address);
+    if (raw == null) {
+      throw new ArgumentError("Invalid internet address $address");
+    }
+    return new _InternetAddress(type, address, null, raw);
+  }
 
   factory _InternetAddress.fixed(int id) {
     var sockaddr = _fixed(id);
     switch (id) {
       case _ADDRESS_LOOPBACK_IP_V4:
         return new _InternetAddress(
-            InternetAddressType.IP_V4, "127.0.0.1", "localhost", sockaddr);
+            InternetAddressType.IP_V4, "127.0.0.1", null, sockaddr);
       case _ADDRESS_LOOPBACK_IP_V6:
         return new _InternetAddress(
-            InternetAddressType.IP_V6, "::1", "ip6-localhost", sockaddr);
+            InternetAddressType.IP_V6, "::1", null, sockaddr);
       case _ADDRESS_ANY_IP_V4:
         return new _InternetAddress(
             InternetAddressType.IP_V4, "0.0.0.0", "0.0.0.0", sockaddr);
@@ -138,11 +168,31 @@ class _InternetAddress implements InternetAddress {
         type, address, host, new Uint8List.fromList(_sockaddr_storage));
   }
 
+  bool operator ==(other) {
+    if (!(other is _InternetAddress)) return false;
+    if (other.type != type) return false;
+    bool equals = true;
+    for (int i = 0; i < _sockaddr_storage.length && equals; i++) {
+      equals = other._sockaddr_storage[i] == _sockaddr_storage[i];
+    }
+    return equals;
+  }
+
+  int get hashCode {
+    int result = 1;
+    for (int i = 0; i < _sockaddr_storage.length; i++) {
+      result = (result * 31 + _sockaddr_storage[i]) & 0x3FFFFFFF;
+    }
+    return result;
+  }
+
   String toString() {
     return "InternetAddress('$address', ${type.name})";
   }
 
   static Uint8List _fixed(int id) native "InternetAddress_Fixed";
+  static Uint8List _parse(int type, String address)
+      native "InternetAddress_Parse";
 }
 
 class _NetworkInterface implements NetworkInterface {
@@ -443,7 +493,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   InternetAddress get remoteAddress {
     var result = nativeGetRemotePeer()[0];
     var type = new InternetAddressType._from(result[0]);
-    return new _InternetAddress(type, result[1], "", result[2]);
+    return new _InternetAddress(type, result[1], null, result[2]);
   }
 
   // Multiplexes socket events to the socket handlers.

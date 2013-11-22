@@ -121,30 +121,6 @@ def TestStepName(name, flags):
   flags = [x for x in flags if not '=' in x]
   return ('%s tests %s' % (name, ' '.join(flags))).strip()
 
-# TODO(ricow): remove this once we have browser controller drivers for all
-# supported platforms.
-def UseBrowserController(runtime, system):
-  supported_platforms = {
-    'linux': ['ff', 'chromeOnAndroid', 'chrome', 'dartium'],
-    'mac': ['safari', 'chrome', 'dartium'],
-    'windows': ['ie9', 'ie10', 'ff', 'chrome', 'dartium']
-  }
-  # Platforms that we run on the fyi waterfall only.
-  fyi_supported_platforms = {
-    'linux': [],
-    'mac': [],
-    'windows': []
-  }
-
-  if (runtime in supported_platforms[system]):
-    return True
-
-  if (os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and
-      runtime in fyi_supported_platforms[system]):
-    return True
-
-  return False
-
 
 IsFirstTestStepCall = True
 def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
@@ -175,8 +151,6 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
     else:
       cmd.extend(['--progress=buildbot', '-v'])
 
-    if UseBrowserController(runtime, system):
-      cmd.append('--use_browser_controller')
     if runtime == 'safari':
       cmd.append('--clear_safari_cache')
 

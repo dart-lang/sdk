@@ -1093,34 +1093,7 @@ class StandardTestSuite extends TestSuite {
 
         List<String> args = <String>[];
 
-        if (configuration['use_browser_controller']) {
-          // This command is not actually run, it is used for reproducing
-          // the failure.
-          args = ['tools/testing/dart/launch_browser.dart',
-                  runtime,
-                  fullHtmlPath];
-          commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-              runtime, fullHtmlPath, TestUtils.dartTestExecutable.toString(),
-              args, configurationDir, checkedMode: configuration['checked']));
-        } else if (TestUtils.usesWebDriver(runtime)) {
-          args = [
-              dartDir.append('tools/testing/run_selenium.py').toNativePath(),
-              '--browser=$runtime',
-              // NOTE: This value will be overridden by the test runner
-              '--timeout=${configuration['timeout']}',
-              '--out=$fullHtmlPath'];
-          if (runtime == 'dartium') {
-            var dartiumLocation = Locations.getDartiumLocation(configuration);
-            args.add('--executable=$dartiumLocation');
-          }
-          if (subtestIndex != 0) {
-            args.add('--force-refresh');
-          }
-          commandSet.add(CommandBuilder.instance.getSeleniumTestCommand(
-                  runtime, fullHtmlPath, 'python', args, configurationDir));
-        } else {
-          assert(runtime == "drt");
-
+        if (runtime == "drt") {
           var dartFlags = [];
           var contentShellOptions = [];
 
@@ -1139,6 +1112,15 @@ class StandardTestSuite extends TestSuite {
           commandSet.add(CommandBuilder.instance.getContentShellCommand(
               contentShellFilename, fullHtmlPath, contentShellOptions,
               dartFlags, configurationDir));
+        } else {
+          // This command is not actually run, it is used for reproducing
+          // the failure.
+          args = ['tools/testing/dart/launch_browser.dart',
+                  runtime,
+                  fullHtmlPath];
+          commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
+              runtime, fullHtmlPath, TestUtils.dartTestExecutable.toString(),
+              args, configurationDir, checkedMode: configuration['checked']));
         }
 
         // Create BrowserTestCase and queue it.
@@ -1648,14 +1630,9 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
 
   AnalysisCommand makeAnalysisCommand(TestInformation info,
                                       List<String> arguments) {
-    bool fileFilter(String filepath) {
-      return filepath == "${info.originTestPath}";
-    }
-
     return CommandBuilder.instance.getAnalysisCommand(
         configuration['compiler'], dartShellFileName, arguments,
-        configurationDir, flavor: configuration['compiler'],
-        fileFilter: fileFilter);
+        configurationDir, flavor: configuration['compiler']);
   }
 
   bool get listRecursively => true;
@@ -1917,8 +1894,9 @@ class TestUtils {
     return args;
   }
 
-  static bool usesWebDriver(String runtime) {
+  static bool isBrowserRuntime(String runtime) {
     const BROWSERS = const [
+      'drt',
       'dartium',
       'ie9',
       'ie10',
@@ -1932,9 +1910,6 @@ class TestUtils {
     ];
     return BROWSERS.contains(runtime);
   }
-
-  static bool isBrowserRuntime(String runtime) =>
-      runtime == 'drt' || TestUtils.usesWebDriver(runtime);
 
   static bool isJsCommandLineRuntime(String runtime) =>
       const ['d8', 'jsshell'].contains(runtime);
@@ -2015,6 +1990,8 @@ class SummaryReport {
   static int compileErrorSkip = 0;
 
   static void add(Set<Expectation> expectations) {
+    bool containsFail = expectations.any(
+        (expectation) => expectation.canBeOutcomeOf(Expectation.FAIL));
     ++total;
     if (expectations.contains(Expectation.SKIP)) {
       ++skipped;
@@ -2022,8 +1999,9 @@ class SummaryReport {
       ++skipped;
       ++skippedByDesign;
     } else {
+      // Counts the number of flaky tests.
       if (expectations.contains(Expectation.PASS) &&
-          expectations.contains(Expectation.FAIL) &&
+          containsFail &&
           !expectations.contains(Expectation.CRASH) &&
           !expectations.contains(Expectation.OK)) {
         ++noCrash;
@@ -2035,7 +2013,7 @@ class SummaryReport {
           expectations.length == 2) {
         ++failOk;
       }
-      if (expectations.contains(Expectation.FAIL) && expectations.length == 1) {
+      if (containsFail && expectations.length == 1) {
         ++fail;
       }
       if (expectations.contains(Expectation.CRASH) &&

@@ -224,6 +224,18 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     }
   }
 
+  // Returns the non-HCheck instruction, or the last [HCheck] in the
+  // check chain that is not generate at use site.
+  HInstruction checkedInstructionOrNonGenerateAtUseSite(HCheck check) {
+    var checked = check.checkedInput;
+    while (checked is HCheck) {
+      HInstruction next = checked.checkedInput;
+      if (generateAtUseSite.contains(next)) break;
+      checked = next;
+    }
+    return checked;
+  }
+
   void markAsLiveInEnvironment(HInstruction instruction,
                                LiveEnvironment environment) {
     if (generateAtUseSite.contains(instruction)) {
@@ -235,7 +247,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
       // [HCheck] will share the same live ranges.
       if (instruction is HCheck) {
         HCheck check = instruction;
-        HInstruction checked = check.nonCheck();
+        HInstruction checked = checkedInstructionOrNonGenerateAtUseSite(check);
         if (!generateAtUseSite.contains(checked)) {
           environment.add(checked, instructionId);
         }
@@ -250,7 +262,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     // interval as the instruction it is checking.
     if (instruction is HCheck) {
       HCheck check = instruction;
-      HInstruction checked = check.nonCheck();
+      HInstruction checked = checkedInstructionOrNonGenerateAtUseSite(check);
       if (!generateAtUseSite.contains(checked)) {
         liveIntervals.putIfAbsent(checked, () => new LiveInterval());
         // Unconditionally force the live ranges of the HCheck to

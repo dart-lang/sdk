@@ -2418,6 +2418,18 @@ void Assembler::AddImmediateWithCarry(Register rd, Register rn, int32_t value,
 }
 
 
+void Assembler::AndImmediate(Register rd, Register rs, int32_t imm,
+                             Condition cond) {
+  ShifterOperand op;
+  if (ShifterOperand::CanHold(imm, &op)) {
+    and_(rd, rs, ShifterOperand(op), cond);
+  } else {
+    LoadImmediate(TMP, imm, cond);
+    and_(rd, rs, ShifterOperand(TMP), cond);
+  }
+}
+
+
 void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
   ShifterOperand shifter_op;
   if (ShifterOperand::CanHold(value, &shifter_op)) {
@@ -2429,6 +2441,16 @@ void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
   }
 }
 
+
+void Assembler::TestImmediate(Register rn, int32_t imm, Condition cond) {
+  ShifterOperand shifter_op;
+  if (ShifterOperand::CanHold(imm, &shifter_op)) {
+    tst(rn, shifter_op, cond);
+  } else {
+    LoadImmediate(IP, imm);
+    tst(rn, ShifterOperand(IP), cond);
+  }
+}
 
 void Assembler::IntegerDivide(Register result, Register left, Register right,
                               DRegister tmpl, DRegister tmpr) {
@@ -2599,28 +2621,21 @@ void Assembler::LeaveDartFrame() {
 }
 
 
-void Assembler::EnterStubFrame(bool uses_pp) {
+void Assembler::EnterStubFrame(bool load_pp) {
   // Push 0 as saved PC for stub frames.
   mov(IP, ShifterOperand(LR));
   mov(LR, ShifterOperand(0));
-  RegList regs = (1 << FP) | (1 << IP) | (1 << LR);
-  if (uses_pp) {
-    regs |= (1 << PP);
-  }
+  RegList regs = (1 << PP) | (1 << FP) | (1 << IP) | (1 << LR);
   EnterFrame(regs, 0);
-  if (uses_pp) {
+  if (load_pp) {
     // Setup pool pointer for this stub.
     LoadPoolPointer();
   }
 }
 
 
-void Assembler::LeaveStubFrame(bool uses_pp) {
-  RegList regs = (1 << FP) | (1 << LR);
-  if (uses_pp) {
-    regs |= (1 << PP);
-  }
-  LeaveFrame(regs);
+void Assembler::LeaveStubFrame() {
+  LeaveFrame((1 << PP) | (1 << FP) | (1 << LR));
   // Adjust SP for null PC pushed in EnterStubFrame.
   AddImmediate(SP, kWordSize);
 }
@@ -2746,4 +2761,3 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM
-

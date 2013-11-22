@@ -1458,6 +1458,17 @@ void Assembler::testq(Register reg, const Immediate& imm) {
 }
 
 
+void Assembler::TestImmediate(Register dst, const Immediate& imm, Register pp) {
+  if (CanLoadImmediateFromPool(imm, pp)) {
+    ASSERT(dst != TMP);
+    LoadImmediate(TMP, imm, pp);
+    testq(dst, TMP);
+  } else {
+    testq(dst, imm);
+  }
+}
+
+
 void Assembler::andl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -2656,17 +2667,11 @@ void Assembler::LeaveFrame() {
 }
 
 
-void Assembler::LeaveFrameWithPP() {
-  movq(PP, Address(RBP, -2 * kWordSize));
-  LeaveFrame();
-}
-
-
 void Assembler::ReturnPatchable() {
   // This sequence must have a fixed size so that it can be patched by the
   // debugger.
   intptr_t start = buffer_.GetPosition();
-  LeaveFrameWithPP();
+  LeaveDartFrame();
   ret();
   nop(4);
   ASSERT((buffer_.GetPosition() - start) == 13);
@@ -2814,6 +2819,13 @@ void Assembler::EnterDartFrameWithInfo(intptr_t frame_size,
 }
 
 
+void Assembler::LeaveDartFrame() {
+  // Restore caller's PP register that was pushed in EnterDartFrame.
+  movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
+  LeaveFrame();
+}
+
+
 // On entry to a function compiled for OSR, the caller's frame pointer, the
 // stack locals, and any copied parameters are already in place.  The frame
 // pointer is already set up.  The PC marker is not correct for the
@@ -2851,17 +2863,20 @@ void Assembler::EnterOsrFrame(intptr_t extra_size,
 }
 
 
-void Assembler::EnterStubFrame() {
-  EnterFrame(0);
-  pushq(Immediate(0));  // Push 0 in the saved PC area for stub frames.
-}
-
-
-void Assembler::EnterStubFrameWithPP() {
+void Assembler::EnterStubFrame(bool load_pp) {
   EnterFrame(0);
   pushq(Immediate(0));  // Push 0 in the saved PC area for stub frames.
   pushq(PP);  // Save caller's pool pointer
-  LoadPoolPointer(PP);
+  if (load_pp) {
+    LoadPoolPointer(PP);
+  }
+}
+
+
+void Assembler::LeaveStubFrame() {
+  // Restore caller's PP register that was pushed in EnterStubFrame.
+  movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
+  LeaveFrame();
 }
 
 

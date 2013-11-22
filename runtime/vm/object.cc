@@ -62,7 +62,6 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, error_on_bad_override);
-DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -166,6 +165,10 @@ const double MegamorphicCache::kLoadFactor = 0.75;
   V(CoreLibrary, int, _parse)                                                  \
   V(CoreLibrary, StackTrace, _setupFullStackTrace)                             \
   V(CoreLibrary, _OneByteString, _setAt)                                       \
+  V(CoreLibrary, _StringBase, _substringUncheckedNative)                       \
+  V(CoreLibrary, _OneByteString, _substringUncheckedNative)                    \
+  V(CoreLibrary, _GrowableList, _setData)                                      \
+  V(CoreLibrary, _GrowableList, _setLength)                                    \
   V(TypedDataLibrary, _TypedList, _getInt8)                                    \
   V(TypedDataLibrary, _TypedList, _setInt8)                                    \
   V(TypedDataLibrary, _TypedList, _getUint8)                                   \
@@ -1506,6 +1509,8 @@ RawObject* Object::Clone(const Object& src, Heap::Space space) {
 
 
 RawString* Class::Name() const {
+  // TODO(turnidge): This assert fails for the fake kFreeListElement class.
+  // Fix this.
   ASSERT(raw_ptr()->name_ != String::null());
   return raw_ptr()->name_;
 }
@@ -2609,8 +2614,8 @@ void Class::set_is_const() const {
 }
 
 
-void Class::set_is_mixin_typedef() const {
-  set_state_bits(MixinTypedefBit::update(true, raw_ptr()->state_bits_));
+void Class::set_is_mixin_app_alias() const {
+  set_state_bits(MixinAppAliasBit::update(true, raw_ptr()->state_bits_));
 }
 
 
@@ -2661,7 +2666,7 @@ bool Class::IsMixinApplication() const {
 }
 
 bool Class::IsAnonymousMixinApplication() const {
-  return IsMixinApplication() && !is_mixin_typedef();
+  return IsMixinApplication() && !is_mixin_app_alias();
 }
 
 void Class::set_patch_class(const Class& cls) const {
@@ -2773,17 +2778,21 @@ bool Class::TypeTestNonRecursive(
     }
     // Check for reflexivity.
     if (thsi.raw() == other.raw()) {
-      const intptr_t len = thsi.NumTypeArguments();
-      if (len == 0) {
+      const intptr_t num_type_args = thsi.NumTypeArguments();
+      if (num_type_args == 0) {
         return true;
       }
+      const intptr_t num_type_params = thsi.NumTypeParameters();
+      const intptr_t from_index = num_type_args - num_type_params;
       // Since we do not truncate the type argument vector of a subclass (see
-      // below), we only check a prefix of the proper length.
+      // below), we only check a subvector of the proper length.
       // Check for covariance.
-      if (other_type_arguments.IsNull() || other_type_arguments.IsRaw(len)) {
+      if (other_type_arguments.IsNull() ||
+          other_type_arguments.IsRaw(from_index, num_type_params)) {
         return true;
       }
-      if (type_arguments.IsNull() || type_arguments.IsRaw(len)) {
+      if (type_arguments.IsNull() ||
+          type_arguments.IsRaw(from_index, num_type_params)) {
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
@@ -2791,7 +2800,8 @@ bool Class::TypeTestNonRecursive(
       }
       return type_arguments.TypeTest(test_kind,
                                      other_type_arguments,
-                                     len,
+                                     from_index,
+                                     num_type_params,
                                      bound_error);
     }
     const bool other_is_function_class = other.IsFunctionClass();
@@ -2847,12 +2857,10 @@ bool Class::TypeTestNonRecursive(
             thsi, interface, ClassFinalizer::kCanonicalize);
         interfaces.SetAt(i, interface);
       }
-      error = Error::null();
-      if (interface.IsMalboundedWithError(&error)) {
+      if (interface.IsMalbounded()) {
         // Return the first bound error to the caller if it requests it.
         if ((bound_error != NULL) && bound_error->IsNull()) {
-          ASSERT(!error.IsNull());
-          *bound_error = error.raw();
+          *bound_error = interface.error();
         }
         continue;  // Another interface may work better.
       }
@@ -3228,6 +3236,10 @@ void Class::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("name", internal_class_name);
   jsobj.AddProperty("user_name", user_visible_class_name);
   if (!ref) {
+    const Error& err = Error::Handle(EnsureIsFinalized(Isolate::Current()));
+    if (!err.IsNull()) {
+      jsobj.AddProperty("error", err);
+    }
     jsobj.AddProperty("implemented", is_implemented());
     jsobj.AddProperty("abstract", is_abstract());
     jsobj.AddProperty("patch", is_patch());
@@ -3452,11 +3464,10 @@ RawString* AbstractTypeArguments::SubvectorName(
 
 
 bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
-  ASSERT(!IsNull());  // Use AbstractTypeArguments::AreEqual().
   if (this->raw() == other.raw()) {
     return true;
   }
-  if (other.IsNull()) {
+  if (IsNull() || other.IsNull()) {
     return false;
   }
   const intptr_t num_types = Length();
@@ -3476,22 +3487,6 @@ bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
 }
 
 
-bool AbstractTypeArguments::AreEqual(
-    const AbstractTypeArguments& arguments,
-    const AbstractTypeArguments& other_arguments) {
-  if (arguments.raw() == other_arguments.raw()) {
-    return true;
-  }
-  if (arguments.IsNull()) {
-    return other_arguments.IsDynamicTypes(false, other_arguments.Length());
-  }
-  if (other_arguments.IsNull()) {
-    return arguments.IsDynamicTypes(false, arguments.Length());
-  }
-  return arguments.Equals(other_arguments);
-}
-
-
 RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
     Error* bound_error) const {
@@ -3502,12 +3497,13 @@ RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
 
 
 bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
+                                           intptr_t from_index,
                                            intptr_t len) const {
-  ASSERT(Length() >= len);
+  ASSERT(Length() >= (from_index + len));
   AbstractType& type = AbstractType::Handle();
   Class& type_class = Class::Handle();
   for (intptr_t i = 0; i < len; i++) {
-    type = TypeAt(i);
+    type = TypeAt(from_index + i);
     ASSERT(!type.IsNull());
     if (!type.HasResolvedTypeClass()) {
       if (raw_instantiated && type.IsTypeParameter()) {
@@ -3531,17 +3527,18 @@ bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
 
 bool AbstractTypeArguments::TypeTest(TypeTestKind test_kind,
                                      const AbstractTypeArguments& other,
+                                     intptr_t from_index,
                                      intptr_t len,
                                      Error* bound_error) const {
-  ASSERT(Length() >= len);
+  ASSERT(Length() >= (from_index + len));
   ASSERT(!other.IsNull());
-  ASSERT(other.Length() >= len);
+  ASSERT(other.Length() >= (from_index + len));
   AbstractType& type = AbstractType::Handle();
   AbstractType& other_type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
-    type = TypeAt(i);
+    type = TypeAt(from_index + i);
     ASSERT(!type.IsNull());
-    other_type = other.TypeAt(i);
+    other_type = other.TypeAt(from_index + i);
     ASSERT(!other_type.IsNull());
     if (!type.TypeTest(test_kind, other_type, bound_error)) {
       return false;
@@ -4289,7 +4286,8 @@ void Function::set_parent_function(const Function& value) const {
 RawFunction* Function::implicit_closure_function() const {
   if (IsClosureFunction() ||
       IsSignatureFunction() ||
-      IsStaticInitializerFunction()) {
+      IsStaticInitializerFunction() ||
+      IsFactory()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -4840,6 +4838,7 @@ const char* Function::ToFullyQualifiedCString() const {
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
   ASSERT(FLAG_error_on_bad_override);
+  ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
   if (!TypeTest(kIsSubtypeOf, Object::null_abstract_type_arguments(),
@@ -5442,6 +5441,13 @@ RawString* Function::QualifiedUserVisibleName() const {
   tmp = String::Concat(tmp, Symbols::Dot());
   const String& suffix = String::Handle(UserVisibleName());
   return String::Concat(tmp, suffix);
+}
+
+
+RawString* Function::GetSource() {
+  const Script& func_script = Script::Handle(script());
+  // Without the + 1 the final "}" is not included.
+  return func_script.GetSnippet(token_pos(), end_token_pos() + 1);
 }
 
 
@@ -6767,13 +6773,7 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
         Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
     ASSERT(kind < Token::kNumTokens);
     if (Token::IsPseudoKeyword(kind) || Token::IsKeyword(kind)) {
-      Isolate* isolate = Isolate::Current();
-      ObjectStore* object_store = isolate->object_store();
-      const Array& symbols = Array::Handle(isolate,
-                                           object_store->keyword_symbols());
-      ASSERT(!symbols.IsNull());
-      ASSERT(symbols.At(kind - Token::kFirstKeyword) != Object::null());
-      return String::RawCast(symbols.At(kind - Token::kFirstKeyword));
+      return Symbols::Keyword(kind).raw();
     }
     return Symbols::New(Token::Str(kind));
   } else {
@@ -6963,6 +6963,16 @@ RawString* Script::GetLine(intptr_t line_number) const {
   } else {
     return Symbols::Empty().raw();
   }
+}
+
+
+RawString* Script::GetSnippet(intptr_t from_token_pos,
+                              intptr_t to_token_pos) const {
+  intptr_t from_line, from_column;
+  intptr_t to_line, to_column;
+  GetTokenLocation(from_token_pos, &from_line, &from_column);
+  GetTokenLocation(to_token_pos, &to_line, &to_column);
+  return GetSnippet(from_line, from_column, to_line, to_column);
 }
 
 
@@ -7295,7 +7305,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Field& field = Field::Handle(GetMetadataField(metaname));
   if (field.IsNull()) {
     // There is no metadata for this object.
-    return Object::empty_array().raw();;
+    return Object::empty_array().raw();
   }
   Object& metadata = Object::Handle();
   metadata = field.value();
@@ -9581,6 +9591,9 @@ RawCode* Code::LookupCode(uword pc) {
   NoGCScope no_gc;
   FindRawCodeVisitor visitor(pc);
   RawInstructions* instr;
+  if (isolate->heap() == NULL) {
+    return Code::null();
+  }
   instr = isolate->heap()->FindObjectInCodeSpace(&visitor);
   if (instr != Instructions::null()) {
     return instr->ptr()->code_;
@@ -10607,6 +10620,8 @@ const char* Error::ToCString() const {
 
 void Error::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 
@@ -10652,6 +10667,8 @@ const char* ApiError::ToCString() const {
 
 void ApiError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 
@@ -10836,6 +10853,8 @@ const char* LanguageError::ToCString() const {
 
 void LanguageError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 
@@ -10910,6 +10929,8 @@ const char* UnhandledException::ToCString() const {
 void UnhandledException::PrintToJSONStream(JSONStream* stream,
                                            bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 
@@ -10946,6 +10967,8 @@ const char* UnwindError::ToCString() const {
 
 void UnwindError::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(false));
+  jsobj.AddProperty("error_msg", ToErrorCString());
 }
 
 
@@ -11393,21 +11416,28 @@ bool AbstractType::IsMalformed() const {
 }
 
 
-bool AbstractType::IsMalboundedWithError(Error* bound_error) const {
+bool AbstractType::IsMalbounded() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
 }
 
 
-RawError* AbstractType::malformed_error() const {
+bool AbstractType::IsMalformedOrMalbounded() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
-  return Error::null();
+  return false;
 }
 
 
-void AbstractType::set_malformed_error(const Error& value) const {
+RawLanguageError* AbstractType::error() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return LanguageError::null();
+}
+
+
+void AbstractType::set_error(const LanguageError& value) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
 }
@@ -11445,11 +11475,30 @@ RawAbstractType* AbstractType::Canonicalize() const {
 
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   if (IsBoundedType()) {
-    // TODO(regis): Should the bound be visible in the name for debug purposes
-    // if name_visibility is kInternalName?
     const AbstractType& type = AbstractType::Handle(
         BoundedType::Cast(*this).type());
-    return type.BuildName(name_visibility);
+    if (name_visibility == kUserVisibleName) {
+      return type.BuildName(kUserVisibleName);
+    }
+    String& type_name = String::Handle(type.BuildName(kInternalName));
+    type_name = String::Concat(type_name, Symbols::SpaceExtendsSpace());
+    // Building the bound name may lead into cycles.
+    const AbstractType& bound = AbstractType::Handle(
+        BoundedType::Cast(*this).bound());
+    String& bound_name = String::Handle();
+    if (bound.IsTypeParameter()) {
+      bound_name = TypeParameter::Cast(bound).name();
+    } else if (bound.IsType()) {
+      const Class& cls = Class::Handle(Type::Cast(bound).type_class());
+      bound_name = cls.Name();
+      if (Type::Cast(bound).arguments() != AbstractTypeArguments::null()) {
+        bound_name = String::Concat(bound_name, Symbols::OptimizedOut());
+      }
+    } else {
+      bound_name = String::New(Symbols::OptimizedOut());
+    }
+    type_name = String::Concat(type_name, bound_name);
+    return Symbols::New(type_name);
   }
   if (IsTypeParameter()) {
     return TypeParameter::Cast(*this).name();
@@ -11617,16 +11666,14 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   if (IsMalbounded()) {
     ASSERT(FLAG_enable_type_checks);
     if ((bound_error != NULL) && bound_error->IsNull()) {
-      const bool is_malbounded = IsMalboundedWithError(bound_error);
-      ASSERT(is_malbounded);
+      *bound_error = error();
     }
     return false;
   }
   if (other.IsMalbounded()) {
     ASSERT(FLAG_enable_type_checks);
     if ((bound_error != NULL) && bound_error->IsNull()) {
-      const bool other_is_malbounded = other.IsMalboundedWithError(bound_error);
-      ASSERT(other_is_malbounded);
+      *bound_error = other.error();
     }
     return false;
   }
@@ -11805,42 +11852,41 @@ void Type::set_is_being_finalized() const {
 
 
 bool Type::IsMalformed() const {
-  return raw_ptr()->malformed_error_ != Error::null();
-}
-
-
-bool Type::IsMalboundedWithError(Error* bound_error) const {
-  if (!FLAG_enable_type_checks && !FLAG_error_on_bad_type) {
+  if (raw_ptr()->error_ == LanguageError::null()) {
     return false;
   }
-  ASSERT(IsResolved());
-  ASSERT(!IsMalformed());  // Must be checked first.
-  if (arguments() == AbstractTypeArguments::null()) {
+  const LanguageError& type_error = LanguageError::Handle(error());
+  return type_error.kind() == LanguageError::kMalformedType;
+}
+
+
+bool Type::IsMalbounded() const {
+  if (!FLAG_enable_type_checks) {
     return false;
   }
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(arguments());
-  const intptr_t num_type_args = type_arguments.Length();
-  AbstractType& type_arg = AbstractType::Handle();
-  for (intptr_t i = 0; i < num_type_args; i++) {
-    type_arg = type_arguments.TypeAt(i);
-    ASSERT(!type_arg.IsNull());
-    if (type_arg.IsMalboundedWithError(bound_error)) {
-      return true;
-    }
+  if (raw_ptr()->error_ == LanguageError::null()) {
+    return false;
   }
-  return false;
+  const LanguageError& type_error = LanguageError::Handle(error());
+  return type_error.kind() == LanguageError::kMalboundedType;
 }
 
 
-void Type::set_malformed_error(const Error& value) const {
-  StorePointer(&raw_ptr()->malformed_error_, value.raw());
+bool Type::IsMalformedOrMalbounded() const {
+  if (raw_ptr()->error_ == LanguageError::null()) {
+    return false;
+  }
+  const LanguageError& type_error = LanguageError::Handle(error());
+  if (type_error.kind() == LanguageError::kMalformedType) {
+    return true;
+  }
+  ASSERT(type_error.kind() == LanguageError::kMalboundedType);
+  return FLAG_enable_type_checks;
 }
 
 
-RawError* Type::malformed_error() const {
-  ASSERT(IsMalformed());
-  return raw_ptr()->malformed_error_;
+void Type::set_error(const LanguageError& value) const {
+  StorePointer(&raw_ptr()->error_, value.raw());
 }
 
 
@@ -11947,6 +11993,7 @@ RawAbstractType* Type::InstantiateFrom(
 
 
 bool Type::Equals(const Instance& other) const {
+  ASSERT(!IsNull());
   if (raw() == other.raw()) {
     return true;
   }
@@ -11964,9 +12011,35 @@ bool Type::Equals(const Instance& other) const {
   if (!IsFinalized() || !other_type.IsFinalized()) {
     return false;
   }
-  return AbstractTypeArguments::AreEqual(
-      AbstractTypeArguments::Handle(arguments()),
-      AbstractTypeArguments::Handle(other_type.arguments()));
+  if (arguments() == other_type.arguments()) {
+    return true;
+  }
+  const Class& cls = Class::Handle(type_class());
+  const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
+      arguments());
+  const AbstractTypeArguments& other_type_args = AbstractTypeArguments::Handle(
+      other_type.arguments());
+  const intptr_t num_type_args = cls.NumTypeArguments();
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  const intptr_t from_index = num_type_args - num_type_params;
+  if (type_args.IsNull()) {
+    return other_type_args.IsRaw(from_index, num_type_params);
+  }
+  if (other_type_args.IsNull()) {
+    return type_args.IsRaw(from_index, num_type_params);
+  }
+  ASSERT(type_args.Length() >= (from_index + num_type_params));
+  ASSERT(other_type_args.Length() >= (from_index + num_type_params));
+  AbstractType& type_arg = AbstractType::Handle();
+  AbstractType& other_type_arg = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_type_params; i++) {
+    type_arg = type_args.TypeAt(from_index + i);
+    other_type_arg = other_type_args.TypeAt(from_index + i);
+    if (!type_arg.Equals(other_type_arg)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -12016,6 +12089,7 @@ RawAbstractType* Type::Canonicalize() const {
   }
   // Canonicalize the type arguments.
   AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(arguments());
+  ASSERT(type_args.IsNull() || (type_args.Length() == cls.NumTypeArguments()));
   type_args = type_args.Canonicalize();
   set_arguments(type_args);
   // The type needs to be added to the list. Grow the list if it is full.
@@ -12208,64 +12282,51 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
-  // Bound checks may appear in the instantiator type arguments, as is the case
-  // with a pair of type parameters of the same class referring to each other
-  // via their bounds.
-  AbstractType& type_arg = AbstractType::Handle(
-      instantiator_type_arguments.TypeAt(index()));
-  if (type_arg.IsBoundedType()) {
-    const BoundedType& bounded_type = BoundedType::Cast(type_arg);
-    // Bounds checking of a type is postponed to run time if the type is still
-    // uninstantiated at compile time, or if the bound and the type are mutually
-    // recursive. In the latter case, the type may already be instantiated.
-    if (!bounded_type.IsInstantiated()) {
-      ASSERT(AbstractType::Handle(bounded_type.bound()).IsInstantiated());
-      type_arg = bounded_type.InstantiateFrom(AbstractTypeArguments::Handle(),
-                                              bound_error);
-    }
-  }
-  return type_arg.raw();
+  return instantiator_type_arguments.TypeAt(index());
 }
 
 
 bool TypeParameter::CheckBound(const AbstractType& bounded_type,
                                const AbstractType& upper_bound,
                                Error* bound_error) const {
-  ASSERT((bound_error == NULL) || bound_error->IsNull());
+  ASSERT((bound_error != NULL) && bound_error->IsNull());
   ASSERT(bounded_type.IsFinalized());
   ASSERT(upper_bound.IsFinalized());
   ASSERT(!bounded_type.IsMalformed());
   if (bounded_type.IsSubtypeOf(upper_bound, bound_error)) {
     return true;
   }
-  if ((bound_error != NULL) && bound_error->IsNull()) {
-    // Report the bound error.
-    const String& bounded_type_name = String::Handle(
-        bounded_type.UserVisibleName());
-    const String& upper_bound_name = String::Handle(
-        upper_bound.UserVisibleName());
-    const AbstractType& declared_bound = AbstractType::Handle(bound());
-    const String& declared_bound_name = String::Handle(
-        declared_bound.UserVisibleName());
-    const String& type_param_name = String::Handle(UserVisibleName());
-    const Class& cls = Class::Handle(parameterized_class());
-    const String& class_name = String::Handle(cls.Name());
-    const Script& script = Script::Handle(cls.script());
-    // Since the bound may have been canonicalized, its token index is
-    // meaningless, therefore use the token index of this type parameter.
-    *bound_error = LanguageError::NewFormatted(
-        *bound_error,
-        script,
-        token_pos(),
-        LanguageError::kMalboundedType,
-        Heap::kNew,
-        "type parameter '%s' of class '%s' must extend bound '%s', "
-        "but type argument '%s' is not a subtype of '%s'\n",
-        type_param_name.ToCString(),
-        class_name.ToCString(),
-        declared_bound_name.ToCString(),
-        bounded_type_name.ToCString(),
-        upper_bound_name.ToCString());
+  if (bound_error->IsNull()) {
+    // Report the bound error only if both the bounded type and the upper bound
+    // are instantiated. Otherwise, we cannot tell yet it is a bound error.
+    if (bounded_type.IsInstantiated() && upper_bound.IsInstantiated()) {
+      const String& bounded_type_name = String::Handle(
+          bounded_type.UserVisibleName());
+      const String& upper_bound_name = String::Handle(
+          upper_bound.UserVisibleName());
+      const AbstractType& declared_bound = AbstractType::Handle(bound());
+      const String& declared_bound_name = String::Handle(
+          declared_bound.UserVisibleName());
+      const String& type_param_name = String::Handle(UserVisibleName());
+      const Class& cls = Class::Handle(parameterized_class());
+      const String& class_name = String::Handle(cls.Name());
+      const Script& script = Script::Handle(cls.script());
+      // Since the bound may have been canonicalized, its token index is
+      // meaningless, therefore use the token index of this type parameter.
+      *bound_error = LanguageError::NewFormatted(
+          *bound_error,
+          script,
+          token_pos(),
+          LanguageError::kMalboundedType,
+          Heap::kNew,
+          "type parameter '%s' of class '%s' must extend bound '%s', "
+          "but type argument '%s' is not a subtype of '%s'\n",
+          type_param_name.ToCString(),
+          class_name.ToCString(),
+          declared_bound_name.ToCString(),
+          bounded_type_name.ToCString(),
+          upper_bound_name.ToCString());
+    }
   }
   return false;
 }
@@ -12357,24 +12418,18 @@ bool BoundedType::IsMalformed() const {
 }
 
 
-bool BoundedType::IsMalboundedWithError(Error* bound_error) const {
-  if (!FLAG_enable_type_checks && !FLAG_error_on_bad_type) {
-    return false;
-  }
-  const AbstractType& upper_bound = AbstractType::Handle(bound());
-  if (upper_bound.IsMalformed()) {
-    if (bound_error != NULL) {
-      *bound_error = upper_bound.malformed_error();
-      ASSERT(!bound_error->IsNull());
-    }
-    return true;
-  }
-  return false;
+bool BoundedType::IsMalbounded() const {
+  return AbstractType::Handle(type()).IsMalbounded();
 }
 
 
-RawError* BoundedType::malformed_error() const {
-  return AbstractType::Handle(type()).malformed_error();
+bool BoundedType::IsMalformedOrMalbounded() const {
+  return AbstractType::Handle(type()).IsMalformedOrMalbounded();
+}
+
+
+RawLanguageError* BoundedType::error() const {
+  return AbstractType::Handle(type()).error();
 }
 
 
@@ -12455,7 +12510,15 @@ RawAbstractType* BoundedType::InstantiateFrom(
                                                 bound_error);
     }
     if (bound_error->IsNull()) {
-      type_param.CheckBound(bounded_type, upper_bound, bound_error);
+      if (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&
+          bound_error->IsNull()) {
+        // We cannot determine yet whether the bounded_type is below the
+        // upper_bound, because one or both of them is still uninstantiated.
+        ASSERT(!bounded_type.IsInstantiated() || !upper_bound.IsInstantiated());
+        // Postpone bound check by returning a new BoundedType with partially
+        // instantiated bounded_type and upper_bound, but keeping type_param.
+        bounded_type = BoundedType::New(bounded_type, upper_bound, type_param);
+      }
     }
     set_is_being_checked(false);
   }
@@ -12513,28 +12576,20 @@ RawBoundedType* BoundedType::New(const AbstractType& type,
 
 
 const char* BoundedType::ToCString() const {
-  const char* format = "BoundedType: type %s; bound: %s; type param: %s%s%s";
+  const char* format = "BoundedType: type %s; bound: %s; type param: %s of %s";
   const char* type_cstr = String::Handle(AbstractType::Handle(
       type()).Name()).ToCString();
   const char* bound_cstr = String::Handle(AbstractType::Handle(
       bound()).Name()).ToCString();
   const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
-  const char* type_param_cstr = "null";
-  const char* of_cstr = "";
-  const char* cls_cstr = "";
-  if (!type_param.IsNull()) {
-    type_param_cstr = String::Handle(type_param.name()).ToCString();
-    const Class& cls = Class::Handle(type_param.parameterized_class());
-    if (!cls.IsNull()) {
-      of_cstr = " of ";
-      cls_cstr = String::Handle(cls.Name()).ToCString();
-    }
-  }
-  intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr, bound_cstr,
-                             type_param_cstr, of_cstr, cls_cstr) + 1;
+  const char* type_param_cstr = String::Handle(type_param.name()).ToCString();
+  const Class& cls = Class::Handle(type_param.parameterized_class());
+  const char* cls_cstr = String::Handle(cls.Name()).ToCString();
+  intptr_t len = OS::SNPrint(
+      NULL, 0, format, type_cstr, bound_cstr, type_param_cstr, cls_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, type_cstr, bound_cstr, type_param_cstr,
-              of_cstr, cls_cstr);
+  OS::SNPrint(
+      chars, len, format, type_cstr, bound_cstr, type_param_cstr, cls_cstr);
   return chars;
 }
 
@@ -14839,14 +14894,17 @@ bool Array::Equals(const Instance& other) const {
     return true;
   }
 
+  // An Array may be compared to an ImmutableArray.
   if (!other.IsArray() || other.IsNull()) {
     return false;
   }
 
-  // Must have the same type arguments.
-  if (!AbstractTypeArguments::AreEqual(
-      AbstractTypeArguments::Handle(GetTypeArguments()),
-      AbstractTypeArguments::Handle(other.GetTypeArguments()))) {
+  // Both arrays must have the same type arguments.
+  const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
+      GetTypeArguments());
+  const AbstractTypeArguments& other_type_args = AbstractTypeArguments::Handle(
+      other.GetTypeArguments());
+  if (!type_args.Equals(other_type_args)) {
     return false;
   }
 
@@ -15065,10 +15123,12 @@ bool GrowableObjectArray::Equals(const Instance& other) const {
     return false;
   }
 
-  // Both must have the same type arguments.
-  if (!AbstractTypeArguments::AreEqual(
-      AbstractTypeArguments::Handle(GetTypeArguments()),
-      AbstractTypeArguments::Handle(other.GetTypeArguments()))) {
+  // Both arrays must have the same type arguments.
+  const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
+      GetTypeArguments());
+  const AbstractTypeArguments& other_type_args = AbstractTypeArguments::Handle(
+      other.GetTypeArguments());
+  if (!type_args.Equals(other_type_args)) {
     return false;
   }
 

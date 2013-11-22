@@ -1,6 +1,8 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
+
 library engine.sdk.io;
+
 import 'java_core.dart';
 import 'java_io.dart';
 import 'java_engine_io.dart';
@@ -11,6 +13,7 @@ import 'ast.dart';
 import 'parser.dart';
 import 'sdk.dart';
 import 'engine.dart';
+
 /**
  * Instances of the class `DirectoryBasedDartSdk` represent a Dart SDK installed in a
  * specified directory.
@@ -18,7 +21,6 @@ import 'engine.dart';
  * @coverage dart.engine.sdk
  */
 class DirectoryBasedDartSdk implements DartSdk {
-
   /**
    * The [AnalysisContext] which is used for all of the sources in this [DartSdk].
    */
@@ -229,7 +231,9 @@ class DirectoryBasedDartSdk implements DartSdk {
     }
     _analysisContext.applyChanges(changeSet);
   }
+
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) => new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
+
   AnalysisContext get context => _analysisContext;
 
   /**
@@ -302,7 +306,9 @@ class DirectoryBasedDartSdk implements DartSdk {
     JavaFile file = new JavaFile.relative(new JavaFile.relative(directory, _BIN_DIRECTORY_NAME), pubBinaryName);
     return file.exists() ? file : null;
   }
+
   List<SdkLibrary> get sdkLibraries => _libraryMap.sdkLibraries;
+
   SdkLibrary getSdkLibrary(String dartUri) => _libraryMap.getLibrary(dartUri);
 
   /**
@@ -365,6 +371,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    * @return `true` if the Dartium binary is available
    */
   bool get isDartiumInstalled => dartiumExecutable != null;
+
   Source mapDartUri(String dartUri) {
     SdkLibrary library = getSdkLibrary(dartUri);
     if (library == null) {
@@ -431,6 +438,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     }
   }
 }
+
 /**
  * Instances of the class `SdkLibrariesReader` read and parse the libraries file
  * (dart-sdk/lib/_internal/libraries.dart) for information about the libraries in an SDK. The
@@ -457,7 +465,6 @@ class DirectoryBasedDartSdk implements DartSdk {
  * @coverage dart.engine.sdk
  */
 class SdkLibrariesReader {
-
   /**
    * Return the library map read from the given source.
    *
@@ -465,7 +472,7 @@ class SdkLibrariesReader {
    */
   LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
     List<bool> foundError = [false];
-    AnalysisErrorListener errorListener = new AnalysisErrorListener_10(foundError);
+    AnalysisErrorListener errorListener = new AnalysisErrorListener_11(foundError);
     Source source = new FileBasedSource.con2(null, librariesFile, UriKind.FILE_URI);
     Scanner scanner = new Scanner(source, new CharSequenceReader(new CharSequence(libraryFileContents)), errorListener);
     Parser parser = new Parser(source, errorListener);
@@ -477,8 +484,8 @@ class SdkLibrariesReader {
     return libraryBuilder.librariesMap;
   }
 }
-class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
 
+class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
   /**
    * The prefix added to the name of a library to form the URI used in code to reference the
    * library.
@@ -518,31 +525,32 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
    * the libraries file.
    */
   final LibraryMap librariesMap = new LibraryMap();
+
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
     Expression key = node.key;
     if (key is SimpleStringLiteral) {
-      libraryName = "${_LIBRARY_PREFIX}${((key as SimpleStringLiteral)).value}";
+      libraryName = "${_LIBRARY_PREFIX}${(key as SimpleStringLiteral).value}";
     }
     Expression value = node.value;
     if (value is InstanceCreationExpression) {
       SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
-      List<Expression> arguments = ((value as InstanceCreationExpression)).argumentList.arguments;
+      List<Expression> arguments = (value as InstanceCreationExpression).argumentList.arguments;
       for (Expression argument in arguments) {
         if (argument is SimpleStringLiteral) {
-          library.path = ((argument as SimpleStringLiteral)).value;
+          library.path = (argument as SimpleStringLiteral).value;
         } else if (argument is NamedExpression) {
-          String name = ((argument as NamedExpression)).name.label.name;
-          Expression expression = ((argument as NamedExpression)).expression;
+          String name = (argument as NamedExpression).name.label.name;
+          Expression expression = (argument as NamedExpression).expression;
           if (name == _CATEGORY) {
-            library.category = ((expression as SimpleStringLiteral)).value;
+            library.category = (expression as SimpleStringLiteral).value;
           } else if (name == _IMPLEMENTATION) {
-            library.implementation = ((expression as BooleanLiteral)).value;
+            library.implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {
-            library.documented = ((expression as BooleanLiteral)).value;
+            library.documented = (expression as BooleanLiteral).value;
           } else if (name == _PLATFORMS) {
             if (expression is SimpleIdentifier) {
-              String identifier = ((expression as SimpleIdentifier)).name;
+              String identifier = (expression as SimpleIdentifier).name;
               if (identifier == _VM_PLATFORM) {
                 library.setVmLibrary();
               } else {
@@ -557,10 +565,15 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
     return null;
   }
 }
-class AnalysisErrorListener_10 implements AnalysisErrorListener {
+
+class AnalysisErrorListener_11 implements AnalysisErrorListener {
   List<bool> foundError;
-  AnalysisErrorListener_10(this.foundError);
+
+  AnalysisErrorListener_11(this.foundError);
+
   void onError(AnalysisError error) {
-    foundError[0] = true;
+    if (error != null && error.errorCode.type != ErrorType.TODO) {
+      foundError[0] = true;
+    }
   }
 }

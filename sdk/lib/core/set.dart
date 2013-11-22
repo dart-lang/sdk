@@ -117,7 +117,7 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
    * Returns a new set which is the intersection between this set and [other].
    *
    * That is, the returned set contains all the elements of this `Set` that
-   * are also elements of [other].
+   * are also elements of `other` according to `other.contains`.
    */
   Set<E> intersection(Set<Object> other);
 
@@ -133,7 +133,7 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
    * Returns a new set with the the elements of this that are not in [other].
    *
    * That is, the returned set contains all the elements of this `Set` that
-   * are not elements of [other].
+   * are not elements of [other] according to `other.contains`.
    */
   Set<E> difference(Set<E> other);
 

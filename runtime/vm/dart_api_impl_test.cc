@@ -62,6 +62,336 @@ TEST_CASE(ErrorHandleBasics) {
 }
 
 
+TEST_CASE(StacktraceInfo) {
+  const char* kScriptChars =
+      "bar() => throw new Error();\n"
+      "foo() => bar();\n"
+      "testMain() => foo();\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+
+  EXPECT(Dart_IsError(error));
+
+  Dart_StackTrace stacktrace;
+  Dart_Handle result = Dart_GetStackTraceFromError(error, &stacktrace);
+  EXPECT_VALID(result);
+
+  intptr_t frame_count = 0;
+  result = Dart_StackTraceLength(stacktrace, &frame_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(3, frame_count);
+
+  Dart_Handle function_name;
+  Dart_Handle script_url;
+  intptr_t line_number = 0;
+  intptr_t column_number = 0;
+  const char* cstr = "";
+
+  Dart_ActivationFrame frame;
+  result = Dart_GetActivationFrame(stacktrace, 0, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(
+      frame, &function_name, &script_url, &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("bar", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_EQ(1, line_number);
+  EXPECT_EQ(10, column_number);
+
+  result = Dart_GetActivationFrame(stacktrace, 1, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(
+      frame, &function_name, &script_url, &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("foo", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_EQ(2, line_number);
+  EXPECT_EQ(13, column_number);
+
+  result = Dart_GetActivationFrame(stacktrace, 2, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(
+      frame, &function_name, &script_url, &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("testMain", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_EQ(3, line_number);
+  EXPECT_EQ(18, column_number);
+
+  // Out-of-bounds frames.
+  result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
+  EXPECT(Dart_IsError(result));
+  result = Dart_GetActivationFrame(stacktrace, -1, &frame);
+  EXPECT(Dart_IsError(result));
+}
+
+
+TEST_CASE(DeepStacktraceInfo) {
+  const char* kScriptChars =
+      "foo(n) => n == 1 ? throw new Error() : foo(n-1);\n"
+      "testMain() => foo(50);\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+
+  EXPECT(Dart_IsError(error));
+
+  Dart_StackTrace stacktrace;
+  Dart_Handle result = Dart_GetStackTraceFromError(error, &stacktrace);
+  EXPECT_VALID(result);
+
+  intptr_t frame_count = 0;
+  result = Dart_StackTraceLength(stacktrace, &frame_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(51, frame_count);
+  // Test something bigger than the preallocated size to verify nothing was
+  // truncated.
+  EXPECT(51 > Stacktrace::kPreallocatedStackdepth);
+
+  Dart_Handle function_name;
+  Dart_Handle script_url;
+  intptr_t line_number = 0;
+  intptr_t column_number = 0;
+  const char* cstr = "";
+
+  // Top frame at positioned at throw.
+  Dart_ActivationFrame frame;
+  result = Dart_GetActivationFrame(stacktrace, 0, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(
+      frame, &function_name, &script_url, &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("foo", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_EQ(1, line_number);
+  EXPECT_EQ(20, column_number);
+
+  // Middle frames positioned at the recursive call.
+  for (intptr_t frame_index = 1;
+       frame_index < (frame_count - 1);
+       frame_index++) {
+    result = Dart_GetActivationFrame(stacktrace, frame_index, &frame);
+    EXPECT_VALID(result);
+    result = Dart_ActivationFrameInfo(
+        frame, &function_name, &script_url, &line_number, &column_number);
+    EXPECT_VALID(result);
+    Dart_StringToCString(function_name, &cstr);
+    EXPECT_STREQ("foo", cstr);
+    Dart_StringToCString(script_url, &cstr);
+    EXPECT_STREQ("dart:test-lib", cstr);
+    EXPECT_EQ(1, line_number);
+    EXPECT_EQ(43, column_number);
+  }
+
+  // Bottom frame positioned at testMain().
+  result = Dart_GetActivationFrame(stacktrace, frame_count - 1, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(
+      frame, &function_name, &script_url, &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("testMain", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_EQ(2, line_number);
+  EXPECT_EQ(18, column_number);
+
+  // Out-of-bounds frames.
+  result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
+  EXPECT(Dart_IsError(result));
+  result = Dart_GetActivationFrame(stacktrace, -1, &frame);
+  EXPECT(Dart_IsError(result));
+}
+
+
+TEST_CASE(StackOverflowStacktraceInfo) {
+  const char* kScriptChars =
+      "class C {\n"
+      "  static foo() => foo();\n"
+      "}\n"
+      "testMain() => C.foo();\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+
+  EXPECT(Dart_IsError(error));
+
+  Dart_StackTrace stacktrace;
+  Dart_Handle result = Dart_GetStackTraceFromError(error, &stacktrace);
+  EXPECT_VALID(result);
+
+  intptr_t frame_count = 0;
+  result = Dart_StackTraceLength(stacktrace, &frame_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(Stacktrace::kPreallocatedStackdepth - 1, frame_count);
+
+  Dart_Handle function_name;
+  Dart_Handle script_url;
+  intptr_t line_number = 0;
+  intptr_t column_number = 0;
+  const char* cstr = "";
+
+  // Top frame at recursive call.
+  Dart_ActivationFrame frame;
+  result = Dart_GetActivationFrame(stacktrace, 0, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(
+      frame, &function_name, &script_url, &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("C.foo", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_EQ(2, line_number);
+  EXPECT_EQ(3, column_number);
+
+  // Out-of-bounds frames.
+  result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
+  EXPECT(Dart_IsError(result));
+  result = Dart_GetActivationFrame(stacktrace, -1, &frame);
+  EXPECT(Dart_IsError(result));
+}
+
+
+TEST_CASE(OutOfMemoryStacktraceInfo) {
+  const char* kScriptChars =
+      "var number_of_ints = 134000000;\n"
+      "testMain() {\n"
+      "  new List<int>(number_of_ints)\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle error = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+
+  EXPECT(Dart_IsError(error));
+
+  Dart_StackTrace stacktrace;
+  Dart_Handle result = Dart_GetStackTraceFromError(error, &stacktrace);
+  EXPECT(Dart_IsError(result));  // No Stacktrace for OutOfMemory.
+}
+
+
+void CurrentStackTraceNative(Dart_NativeArguments args) {
+  Dart_EnterScope();
+
+  Dart_StackTrace stacktrace;
+  Dart_Handle result = Dart_GetStackTrace(&stacktrace);
+  EXPECT_VALID(result);
+
+  intptr_t frame_count = 0;
+  result = Dart_StackTraceLength(stacktrace, &frame_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(52, frame_count);
+  // Test something bigger than the preallocated size to verify nothing was
+  // truncated.
+  EXPECT(52 > Stacktrace::kPreallocatedStackdepth);
+
+  Dart_Handle function_name;
+  Dart_Handle script_url;
+  intptr_t line_number = 0;
+  intptr_t column_number = 0;
+  const char* cstr = "";
+
+  // Top frame is inspectStack().
+  Dart_ActivationFrame frame;
+  result = Dart_GetActivationFrame(stacktrace, 0, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(
+      frame, &function_name, &script_url, &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("inspectStack", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_EQ(1, line_number);
+  EXPECT_EQ(47, column_number);
+
+  // Second frame is foo() positioned at call to inspectStack().
+  result = Dart_GetActivationFrame(stacktrace, 1, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(
+      frame, &function_name, &script_url, &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("foo", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_EQ(2, line_number);
+  EXPECT_EQ(32, column_number);
+
+  // Middle frames positioned at the recursive call.
+  for (intptr_t frame_index = 2;
+       frame_index < (frame_count - 1);
+       frame_index++) {
+    result = Dart_GetActivationFrame(stacktrace, frame_index, &frame);
+    EXPECT_VALID(result);
+    result = Dart_ActivationFrameInfo(
+        frame, &function_name, &script_url, &line_number, &column_number);
+    EXPECT_VALID(result);
+    Dart_StringToCString(function_name, &cstr);
+    EXPECT_STREQ("foo", cstr);
+    Dart_StringToCString(script_url, &cstr);
+    EXPECT_STREQ("dart:test-lib", cstr);
+    EXPECT_EQ(2, line_number);
+    EXPECT_EQ(40, column_number);
+  }
+
+  // Bottom frame positioned at testMain().
+  result = Dart_GetActivationFrame(stacktrace, frame_count - 1, &frame);
+  EXPECT_VALID(result);
+  result = Dart_ActivationFrameInfo(
+      frame, &function_name, &script_url, &line_number, &column_number);
+  EXPECT_VALID(result);
+  Dart_StringToCString(function_name, &cstr);
+  EXPECT_STREQ("testMain", cstr);
+  Dart_StringToCString(script_url, &cstr);
+  EXPECT_STREQ("dart:test-lib", cstr);
+  EXPECT_EQ(3, line_number);
+  EXPECT_EQ(18, column_number);
+
+  // Out-of-bounds frames.
+  result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);
+  EXPECT(Dart_IsError(result));
+  result = Dart_GetActivationFrame(stacktrace, -1, &frame);
+  EXPECT(Dart_IsError(result));
+
+  Dart_SetReturnValue(args, Dart_NewInteger(42));
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction CurrentStackTraceNativeLookup(
+    Dart_Handle name, int argument_count) {
+  return reinterpret_cast<Dart_NativeFunction>(&CurrentStackTraceNative);
+}
+
+
+TEST_CASE(CurrentStacktraceInfo) {
+  const char* kScriptChars =
+      "inspectStack() native 'CurrentStackTraceNatve';\n"
+      "foo(n) => n == 1 ? inspectStack() : foo(n-1);\n"
+      "testMain() => foo(50);\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars,
+                                             &CurrentStackTraceNativeLookup);
+  Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(42, value);
+}
+
+
 TEST_CASE(ErrorHandleTypes) {
   Isolate* isolate = Isolate::Current();
   const String& compile_message = String::Handle(String::New("CompileError"));

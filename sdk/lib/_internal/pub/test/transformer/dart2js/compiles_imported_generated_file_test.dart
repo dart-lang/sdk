@@ -36,7 +36,7 @@ const TOKEN = "before";
 
     createLockFile('myapp', pkg: ['barback']);
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("main.dart.js", contains("(before, munge)"));
     endPubServe();
   });

@@ -13,7 +13,10 @@ class StacktraceTest extends VmServiceRequestHelper {
 
   onRequestCompleted(Map reply) {
     Expect.equals('StackTrace', reply['type'], 'Not a StackTrace message.');
-    Expect.equals(4, reply['members'].length, 'Stacktrace is wrong length.');
+    Expect.isTrue(4 <= reply['members'].length, 'Stacktrace is wrong length.');
+    // The number of frames involved in isolate message dispatch is an
+    // implementation detail. Only check that we got all the frames for user
+    // code.
     Expect.equals('a', reply['members'][0]['name']);
     Expect.equals('b', reply['members'][1]['name']);
     Expect.equals('c', reply['members'][2]['name']);

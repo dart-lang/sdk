@@ -222,8 +222,10 @@ class PolymerDeclaration extends HtmlElement {
     var cls = reflectClass(type);
     // TODO(jmesserly): this feels unnatrual in Dart. Since we have convenient
     // lazy static initialization, can we get by without it?
-    var registered = cls.methods[#registerCallback];
-    if (registered != null && registered.isStatic &&
+    var registered = cls.declarations[#registerCallback];
+    if (registered != null &&
+        registered is MethodMirror &&
+        registered.isStatic &&
         registered.isRegularMethod) {
       cls.invoke(#registerCallback, [this]);
     }
@@ -265,12 +267,7 @@ class PolymerDeclaration extends HtmlElement {
         }
 
         var property = new Symbol(attr);
-        var mirror = cls.declarations[property];
-        if (mirror is MethodMirror) {
-          if (!mirror.isGetter || !_hasSetter(cls, mirror)) mirror = null;
-        } else if (mirror is! VariableMirror) {
-          mirror = null;
-        }
+        var mirror = _getProperty(cls, property);
         if (mirror == null) {
           window.console.warn('property for attribute $attr of polymer-element '
               'name=$name not found.');
@@ -363,7 +360,7 @@ class PolymerDeclaration extends HtmlElement {
   void installLocalSheets() {
     var sheets = this.sheets.where(
         (s) => !s.attributes.containsKey(_SCOPE_ATTR));
-    var content = this.templateContent;
+    var content = templateContent;
     if (content != null) {
       var cssText = new StringBuffer();
       for (var sheet in sheets) {
@@ -378,8 +375,8 @@ class PolymerDeclaration extends HtmlElement {
   }
 
   List<Element> findNodes(String selector, [bool matcher(Element e)]) {
-    var nodes = this.queryAll(selector).toList();
-    var content = this.templateContent;
+    var nodes = this.querySelectorAll(selector).toList();
+    var content = templateContent;
     if (content != null) {
       nodes = nodes..addAll(content.queryAll(selector));
     }
@@ -437,6 +434,8 @@ class PolymerDeclaration extends HtmlElement {
   // If an element may take 6us to create, getCustomPropertyNames might
   // cost 1.6us more.
   void inferObservers(ClassMirror cls) {
+    if (cls == _objectType) return;
+    inferObservers(cls.superclass);
     for (var method in cls.declarations.values) {
       if (method is! MethodMirror || method.isStatic
           || !method.isRegularMethod) continue;
@@ -497,38 +496,43 @@ PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 
 final _objectType = reflectClass(Object);
 
+
 Map _getPublishedProperties(ClassMirror cls, Map props) {
   if (cls == _objectType) return props;
   props = _getPublishedProperties(cls.superclass, props);
-  for (var field in cls.declarations.values) {
-    if (field is! VariableMirror ||
-        field.isFinal || field.isStatic || field.isPrivate) continue;
+  for (var member in cls.declarations.values) {
+    if (member.isStatic || member.isPrivate) continue;
 
-    for (var meta in field.metadata) {
-      if (meta.reflectee is PublishedProperty) {
-        if (props == null) props = {};
-        props[field.simpleName] = field;
-        break;
-      }
-    }
-  }
+    if (member is VariableMirror && !member.isFinal
+        || member is MethodMirror && member.isGetter) {
 
-  for (var getter in cls.declarations.values) {
-    if (getter is! MethodMirror || !getter.isGetter ||
-        getter.isStatic || getter.isPrivate) continue;
-
-    for (var meta in getter.metadata) {
-      if (meta.reflectee is PublishedProperty) {
-        if (_hasSetter(cls, getter)) {
-          if (props == null) props = {};
-          props[getter.simpleName] = getter;
+      for (var meta in member.metadata) {
+        if (meta.reflectee is PublishedProperty) {
+          // Note: we delay the setter check until we find @published because
+          // it's a tad expensive.
+          if (member is! MethodMirror || _hasSetter(cls, member)) {
+            if (props == null) props = {};
+            props[member.simpleName] = member;
+          }
+          break;
         }
-        break;
       }
     }
   }
 
   return props;
+}
+
+DeclarationMirror _getProperty(ClassMirror cls, Symbol property) {
+  do {
+    var mirror = cls.declarations[property];
+    if (mirror is MethodMirror && mirror.isGetter && _hasSetter(cls, mirror)
+        || mirror is VariableMirror) {
+      return mirror;
+    }
+    cls = cls.superclass;
+  } while (cls != null);
+  return null;
 }
 
 bool _hasSetter(ClassMirror cls, MethodMirror getter) {
@@ -552,7 +556,7 @@ String _removeEventPrefix(String name) => name.substring(_EVENT_PREFIX.length);
 void _shimShadowDomStyling(DocumentFragment template, String name,
     String extendee) {
   if (js.context == null || template == null) return;
-  if (js.context.hasProperty('ShadowDOMPolyfill')) return;
+  if (!js.context.hasProperty('ShadowDOMPolyfill')) return;
 
   var platform = js.context['Platform'];
   if (platform == null) return;
@@ -568,11 +572,38 @@ const _SCOPE_ATTR = 'polymer-scope';
 const _STYLE_SCOPE_ATTRIBUTE = 'element';
 const _STYLE_CONTROLLER_SCOPE = 'controller';
 
-String _cssTextFromSheet(Element sheet) {
-  if (sheet == null || js.context == null) return '';
-  var resource = new js.JsObject.fromBrowserObject(sheet)['__resource'];
-  return resource != null ? resource : '';
+String _cssTextFromSheet(LinkElement sheet) {
+  if (sheet == null) return '';
+
+  // TODO(jmesserly): sometimes the href property is wrong after deployment.
+  var href = sheet.href;
+  if (href == '') href = sheet.attributes["href"];
+
+  if (js.context != null && js.context.hasProperty('HTMLImports')) {
+    var jsSheet = new js.JsObject.fromBrowserObject(sheet);
+    var resource = jsSheet['__resource'];
+    if (resource != null) return resource;
+    _sheetLog.fine('failed to get stylesheet text href="$href"');
+    return '';
+  }
+  // TODO(jmesserly): it seems like polymer-js is always polyfilling
+  // HTMLImports, because their code depends on "__resource" to work.
+  // We work around this by using a sync XHR to get the stylesheet text.
+  // Right now this code is only used in Dartium, but if it's going to stick
+  // around we will need to find a different approach.
+  try {
+    return (new HttpRequest()
+        ..open('GET', href, async: false)
+        ..send())
+        .responseText;
+  } on DomException catch (e, t) {
+    _sheetLog.fine('failed to get stylesheet text href="$href" error: '
+        '$e, trace: $t');
+    return '';
+  }
 }
+
+final Logger _sheetLog = new Logger('polymer.stylesheet');
 
 const _OBSERVE_SUFFIX = 'Changed';
 

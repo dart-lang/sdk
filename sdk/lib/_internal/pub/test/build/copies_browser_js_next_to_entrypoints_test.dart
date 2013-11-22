@@ -62,7 +62,7 @@ main() {
     pubGet();
 
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built 4 files!"),
+        output: new RegExp(r"Built 8 files!"),
         exitCode: 0);
 
     d.dir(appPath, [

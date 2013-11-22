@@ -140,6 +140,7 @@ ActivationFrame::ActivationFrame(
       token_pos_(-1),
       pc_desc_index_(-1),
       line_number_(-1),
+      column_number_(-1),
       context_level_(-1),
       deopt_frame_(Array::ZoneHandle(deopt_frame.raw())),
       deopt_frame_offset_(deopt_frame_offset),
@@ -295,6 +296,20 @@ intptr_t ActivationFrame::LineNumber() {
 }
 
 
+intptr_t ActivationFrame::ColumnNumber() {
+  // Compute column number lazily since it causes scanning of the script.
+  if ((column_number_ < 0) && (TokenPos() >= 0)) {
+    const Script& script = Script::Handle(SourceScript());
+    if (script.HasSource()) {
+      script.GetTokenLocation(TokenPos(), &line_number_, &column_number_);
+    } else {
+      column_number_ = -1;
+    }
+  }
+  return column_number_;
+}
+
+
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
     var_descriptors_ = code().var_descriptors();
@@ -414,9 +429,9 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
   AbstractType& type = Type::Handle();
   const TypeArguments& no_instantiator = TypeArguments::Handle();
   for (intptr_t frame_index = 0;
-       frame_index < UnfilteredLength();
+       frame_index < Length();
        frame_index++) {
-    ActivationFrame* frame = UnfilteredFrameAt(frame_index);
+    ActivationFrame* frame = FrameAt(frame_index);
     intptr_t try_index = frame->TryIndex();
     if (try_index < 0) continue;
     handlers = frame->code().exception_handlers();
@@ -662,9 +677,8 @@ const char* ActivationFrame::ToCString() {
 
 
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
-  trace_.Add(frame);
-  if (frame->IsDebuggable()) {
-    user_trace_.Add(frame);
+  if (frame->function().is_visible()) {
+    trace_.Add(frame);
   }
 }
 
@@ -949,18 +963,43 @@ void Debugger::DeoptimizeWorld() {
   const ClassTable& class_table = *isolate_->class_table();
   Class& cls = Class::Handle();
   Array& functions = Array::Handle();
+  GrowableObjectArray& closures = GrowableObjectArray::Handle();
   Function& function = Function::Handle();
   intptr_t num_classes = class_table.NumCids();
   for (intptr_t i = 1; i < num_classes; i++) {
     if (class_table.HasValidClassAt(i)) {
       cls = class_table.At(i);
+
+      // Disable optimized functions.
       functions = cls.functions();
-      intptr_t num_functions = functions.IsNull() ? 0 : functions.Length();
-      for (intptr_t f = 0; f < num_functions; f++) {
-        function ^= functions.At(f);
-        ASSERT(!function.IsNull());
-        if (function.HasOptimizedCode()) {
-          function.SwitchToUnoptimizedCode();
+      if (!functions.IsNull()) {
+        intptr_t num_functions = functions.Length();
+        for (intptr_t pos = 0; pos < num_functions; pos++) {
+          function ^= functions.At(pos);
+          ASSERT(!function.IsNull());
+          if (function.HasOptimizedCode()) {
+            function.SwitchToUnoptimizedCode();
+          }
+          // Also disable any optimized implicit closure functions.
+          if (function.HasImplicitClosureFunction()) {
+            function = function.ImplicitClosureFunction();
+            if (function.HasOptimizedCode()) {
+              function.SwitchToUnoptimizedCode();
+            }
+          }
+        }
+      }
+
+      // Disable other optimized closure functions.
+      closures = cls.closures();
+      if (!closures.IsNull()) {
+        intptr_t num_closures = closures.Length();
+        for (intptr_t pos = 0; pos < num_closures; pos++) {
+          function ^= closures.At(pos);
+          ASSERT(!function.IsNull());
+          if (function.HasOptimizedCode()) {
+            function.SwitchToUnoptimizedCode();
+          }
         }
       }
     }
@@ -1243,6 +1282,56 @@ ActivationFrame* Debugger::TopDartFrame() const {
 
 DebuggerStackTrace* Debugger::StackTrace() {
   return (stack_trace_ != NULL) ? stack_trace_ : CollectStackTrace();
+}
+
+DebuggerStackTrace* Debugger::CurrentStackTrace() {
+  return CollectStackTraceNew();
+}
+
+DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
+  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
+  Function& function = Function::Handle();
+  Code& code = Code::Handle();
+
+  const uword fp = 0;
+  const uword sp = 0;
+  const Array& deopt_frame = Array::Handle();
+  const intptr_t deopt_frame_offset = -1;
+
+  for (intptr_t i = 0; i < ex_trace.Length(); i++) {
+    function = ex_trace.FunctionAtFrame(i);
+    // Pre-allocated Stacktraces may include empty slots, either (a) to indicate
+    // where frames were omitted in the case a stack has more frames than the
+    // pre-allocated trace (such as a stack overflow) or (b) because a stack has
+    // fewer frames that the pre-allocated trace (such as memory exhaustion with
+    // a shallow stack).
+    if (!function.IsNull() && function.is_visible()) {
+      code = ex_trace.CodeAtFrame(i);
+      ASSERT(function.raw() == code.function());
+      uword pc = code.EntryPoint() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
+      if (code.is_optimized() && ex_trace.expand_inlined()) {
+        // Traverse inlined frames.
+        for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
+          function = it.function();
+          code = it.code();
+          ASSERT(function.raw() == code.function());
+          uword pc = it.pc();
+          ASSERT(pc != 0);
+          ASSERT(code.EntryPoint() <= pc);
+          ASSERT(pc < (code.EntryPoint() + code.Size()));
+
+          ActivationFrame* activation = new ActivationFrame(
+            pc, fp, sp, code, deopt_frame, deopt_frame_offset);
+          stack_trace->AddActivation(activation);
+        }
+      } else {
+        ActivationFrame* activation = new ActivationFrame(
+          pc, fp, sp, code, deopt_frame, deopt_frame_offset);
+        stack_trace->AddActivation(activation);
+      }
+    }
+  }
+  return stack_trace;
 }
 
 
@@ -1863,8 +1952,8 @@ void Debugger::SignalBpReached() {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
-  ASSERT(stack_trace->UnfilteredLength() > 0);
-  ActivationFrame* top_frame = stack_trace->UnfilteredFrameAt(0);
+  ASSERT(stack_trace->Length() > 0);
+  ActivationFrame* top_frame = stack_trace->FrameAt(0);
   ASSERT(top_frame != NULL);
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
@@ -1936,6 +2025,29 @@ void Debugger::Initialize(Isolate* isolate) {
 }
 
 
+static RawFunction* GetOriginalFunction(const Function& func) {
+  const Class& origin_class = Class::Handle(func.origin());
+  if (origin_class.is_patch()) {
+    // Patched functions from patch classes are removed from the
+    // function array of the patch class, so we will not find an
+    // original function object.
+    return func.raw();
+  }
+  const Array& functions = Array::Handle(origin_class.functions());
+  Object& orig_func = Object::Handle();
+  for (intptr_t i = 0; i < functions.Length(); i++) {
+    orig_func = functions.At(i);
+    // Function names are symbols, so we can compare the raw pointers.
+    if (func.name() == Function::Cast(orig_func).name()) {
+      return Function::Cast(orig_func).raw();
+    }
+  }
+  // Uncommon case: not a mixin function.
+  ASSERT(!Class::Handle(func.Owner()).IsMixinApplication());
+  return func.raw();
+}
+
+
 void Debugger::NotifyCompilation(const Function& func) {
   if (src_breakpoints_ == NULL) {
     // Return with minimal overhead if there are no breakpoints.
@@ -1950,6 +2062,12 @@ void Debugger::NotifyCompilation(const Function& func) {
     // which the user sets breakpoints.
     lookup_function = func.parent_function();
     ASSERT(!lookup_function.IsNull());
+  }
+  if (lookup_function.Owner() != lookup_function.origin()) {
+    // This is a cloned function from a mixin class. If a breakpoint
+    // was set in this function, it is registered using the function
+    // of the origin class.
+    lookup_function = GetOriginalFunction(lookup_function);
   }
   SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {

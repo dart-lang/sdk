@@ -116,9 +116,20 @@ getRuntimeTypeArguments(target, substitutionName) {
  * Returns the [index]th type argument of [target] as an instance of
  * [substitutionName].
  */
+@NoThrows() @NoSideEffects() @NoInline()
 getRuntimeTypeArgument(Object target, String substitutionName, int index) {
   var arguments = getRuntimeTypeArguments(target, substitutionName);
   return isNull(arguments) ? null : getIndex(arguments, index);
+}
+
+@NoThrows() @NoSideEffects() @NoInline()
+getTypeArgumentByIndex(Object target, int index) {
+  var rti = getRuntimeTypeInfo(target);
+  return isNull(rti) ? null : getIndex(rti, index);
+}
+
+void copyTypeArguments(Object source, Object target) {
+  JS('var', r'#.$builtinTypeInfo = #.$builtinTypeInfo', target, source);
 }
 
 /**

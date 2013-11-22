@@ -28,7 +28,8 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               lookupAndCacheInterceptor,
                               lookupDispatchRecord,
                               StringMatch,
-                              firstMatchAfter;
+                              firstMatchAfter,
+                              NoInline;
 import 'dart:_foreign_helper' show JS, JS_EFFECT, JS_INTERCEPTOR_CONSTANT;
 import 'dart:math' show Random;
 

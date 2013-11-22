@@ -13,8 +13,8 @@ import 'stringify.dart' show stringify, expect;
 checkClassMirror(ClassMirror cls, String name) {
   expect('s($name)', cls.simpleName);
   var variables = new Map();
-  cls.variables.forEach((Symbol key, VariableMirror value) {
-    if (!value.isStatic && !value.isPrivate) {
+  cls.declarations.forEach((Symbol key, DeclarationMirror value) {
+    if (value is VariableMirror && !value.isStatic && !value.isPrivate) {
       variables[key] = value;
     }
   });

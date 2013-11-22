@@ -74,6 +74,9 @@ static void UpdateEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
   event.events = sd->GetPollEvents();
   event.data.ptr = sd;
   if (sd->port() != 0 && event.events != 0) {
+    // Only report events once and wait for them to be re-enabled after the
+    // event has been handled by the Dart code.
+    event.events |= EPOLLONESHOT;
     int status = 0;
     if (sd->tracked_by_epoll()) {
       status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
@@ -175,47 +178,30 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 }
 
 
-bool EventHandlerImplementation::GetInterruptMessage(InterruptMessage* msg) {
-  char* dst = reinterpret_cast<char*>(msg);
-  int total_read = 0;
-  int bytes_read =
-      TEMP_FAILURE_RETRY(read(interrupt_fds_[0], dst, kInterruptMessageSize));
-  if (bytes_read < 0) {
-    return false;
-  }
-  total_read = bytes_read;
-  while (total_read < kInterruptMessageSize) {
-    bytes_read = TEMP_FAILURE_RETRY(read(interrupt_fds_[0],
-                                         dst + total_read,
-                                         kInterruptMessageSize - total_read));
-    if (bytes_read > 0) {
-      total_read = total_read + bytes_read;
-    }
-  }
-  return (total_read == kInterruptMessageSize) ? true : false;
-}
-
 void EventHandlerImplementation::HandleInterruptFd() {
-  InterruptMessage msg;
-  while (GetInterruptMessage(&msg)) {
-    if (msg.id == kTimerId) {
-      timeout_queue_.UpdateTimeout(msg.dart_port, msg.data);
-    } else if (msg.id == kShutdownId) {
+  const intptr_t MAX_MESSAGES = kInterruptMessageSize;
+  InterruptMessage msg[MAX_MESSAGES];
+  ssize_t bytes = TEMP_FAILURE_RETRY(
+      read(interrupt_fds_[0], msg, MAX_MESSAGES * kInterruptMessageSize));
+  for (ssize_t i = 0; i < bytes / kInterruptMessageSize; i++) {
+    if (msg[i].id == kTimerId) {
+      timeout_queue_.UpdateTimeout(msg[i].dart_port, msg[i].data);
+    } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
-      SocketData* sd = GetSocketData(msg.id);
-      if ((msg.data & (1 << kShutdownReadCommand)) != 0) {
-        ASSERT(msg.data == (1 << kShutdownReadCommand));
+      SocketData* sd = GetSocketData(msg[i].id);
+      if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
+        ASSERT(msg[i].data == (1 << kShutdownReadCommand));
         // Close the socket for reading.
         sd->ShutdownRead();
         UpdateEpollInstance(epoll_fd_, sd);
-      } else if ((msg.data & (1 << kShutdownWriteCommand)) != 0) {
-        ASSERT(msg.data == (1 << kShutdownWriteCommand));
+      } else if ((msg[i].data & (1 << kShutdownWriteCommand)) != 0) {
+        ASSERT(msg[i].data == (1 << kShutdownWriteCommand));
         // Close the socket for writing.
         sd->ShutdownWrite();
         UpdateEpollInstance(epoll_fd_, sd);
-      } else if ((msg.data & (1 << kCloseCommand)) != 0) {
-        ASSERT(msg.data == (1 << kCloseCommand));
+      } else if ((msg[i].data & (1 << kCloseCommand)) != 0) {
+        ASSERT(msg[i].data == (1 << kCloseCommand));
         // Close the socket and free system resources and move on to
         // next message.
         RemoveFromEpollInstance(epoll_fd_, sd);
@@ -231,10 +217,10 @@ void EventHandlerImplementation::HandleInterruptFd() {
         }
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
-        DartUtils::PostInt32(msg.dart_port, 1 << kDestroyedEvent);
+        DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
       } else {
         // Setup events to wait for.
-        sd->SetPortAndMask(msg.dart_port, msg.data);
+        sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
         UpdateEpollInstance(epoll_fd_, sd);
       }
     }
@@ -348,22 +334,28 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
 
 void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
                                               int size) {
+  bool interrupt_seen = false;
   for (int i = 0; i < size; i++) {
-    if (events[i].data.ptr != NULL) {
+    if (events[i].data.ptr == NULL) {
+      interrupt_seen = true;
+    } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
       intptr_t event_mask = GetPollEvents(events[i].events, sd);
-      if (event_mask != 0) {
-        // Unregister events for the file descriptor. Events will be
-        // registered again when the current event has been handled in
-        // Dart code.
-        RemoveFromEpollInstance(epoll_fd_, sd);
+      if (event_mask == 0) {
+        // Event not handled, re-add to epoll.
+        UpdateEpollInstance(epoll_fd_, sd);
+      } else {
         Dart_Port port = sd->port();
         ASSERT(port != 0);
         DartUtils::PostInt32(port, event_mask);
       }
     }
   }
-  HandleInterruptFd();
+  if (interrupt_seen) {
+    // Handle after socket events, so we avoid closing a socket before we handle
+    // the current events.
+    HandleInterruptFd();
+  }
 }
 
 
@@ -408,8 +400,9 @@ void EventHandlerImplementation::Poll(uword args) {
       if (errno != EWOULDBLOCK) {
         perror("Poll failed");
       }
-    } else {
+    } else if (result == 0) {
       handler->HandleTimeout();
+    } else {
       handler->HandleEvents(events, result);
     }
   }

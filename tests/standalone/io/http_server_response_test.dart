@@ -274,6 +274,20 @@ void testIgnoreRequestData() {
 }
 
 
+void testBadHeaders() {
+  testServerRequest((server, request) {
+    var value = "a";
+    for (int i = 0; i < 8 * 1024; i++) {
+      value += 'a';
+    }
+    request.response.headers.set('name', value);
+    request.response.close().catchError((error) {
+      server.close();
+    }, test: (e) => e is HttpException);
+  });
+}
+
+
 void main() {
   testResponseDone();
   testResponseAddStream();
@@ -282,4 +296,5 @@ void main() {
   testBadResponseAdd();
   testBadResponseClose();
   testIgnoreRequestData();
+  testBadHeaders();
 }

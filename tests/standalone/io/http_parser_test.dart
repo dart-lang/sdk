@@ -12,6 +12,7 @@ import 'dart:collection';
 part '../../../sdk/lib/io/common.dart';
 part '../../../sdk/lib/io/io_sink.dart';
 part '../../../sdk/lib/io/http.dart';
+part '../../../sdk/lib/io/http_date.dart';
 part '../../../sdk/lib/io/http_impl.dart';
 part '../../../sdk/lib/io/http_headers.dart';
 part '../../../sdk/lib/io/http_parser.dart';
@@ -45,7 +46,7 @@ class HttpParserTest {
 
       String method;
       Uri uri;
-      HttpHeaders headers;
+      _HttpHeaders headers;
       int contentLength;
       int bytesReceived;
       int unparsedBytesReceived;
@@ -124,7 +125,7 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> requestData = request.codeUnits;
+    List<int> requestData = new Uint8List.fromList(request.codeUnits);
     testWrite(requestData);
     testWrite(requestData, 10);
     testWrite(requestData, 1);
@@ -167,7 +168,7 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> requestData = request.codeUnits;
+    List<int> requestData = new Uint8List.fromList(request.codeUnits);
     testWrite(requestData);
     testWrite(requestData, 10);
     testWrite(requestData, 1);
@@ -196,7 +197,7 @@ class HttpParserTest {
       bool dataEndClose;
       int statusCode;
       String reasonPhrase;
-      HttpHeaders headers;
+      _HttpHeaders headers;
       int contentLength;
       int bytesReceived;
       httpParser = new _HttpParser.responseParser();
@@ -273,7 +274,7 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> responseData = response.codeUnits;
+    List<int> responseData = new Uint8List.fromList(response.codeUnits);
     testWrite(responseData);
     testWrite(responseData, 10);
     testWrite(responseData, 1);
@@ -318,7 +319,7 @@ class HttpParserTest {
 
     // Test parsing the request three times delivering the data in
     // different chunks.
-    List<int> responseData = response.codeUnits;
+    List<int> responseData = new Uint8List.fromList(response.codeUnits);
     testWrite(responseData);
     testWrite(responseData, 10);
     testWrite(responseData, 1);

@@ -92,6 +92,14 @@ class SocketAddress {
     }
   }
 
+  static Dart_Handle ToTypedData(RawAddr* addr) {
+    int len = GetAddrLength(addr);
+    Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
+    if (Dart_IsError(result)) Dart_PropagateError(result);
+    Dart_ListSetAsBytes(result, 0, reinterpret_cast<uint8_t *>(addr), len);
+    return result;
+  }
+
  private:
   char as_string_[INET6_ADDRSTRLEN];
   RawAddr addr_;
@@ -181,6 +189,8 @@ class Socket {
                             intptr_t host_len,
                             OSError** os_error);
 
+  static bool ParseAddress(int type, const char* address, RawAddr* addr);
+
   // List interfaces. Returns a AddressList of InterfaceSocketAddress's.
   static AddressList<InterfaceSocketAddress>* ListInterfaces(
       int type,
@@ -192,8 +202,8 @@ class Socket {
 
   static Dart_Port GetServicePort();
 
-  static Dart_Handle SetSocketIdNativeField(Dart_Handle socket, intptr_t id);
-  static Dart_Handle GetSocketIdNativeField(Dart_Handle socket, intptr_t* id);
+  static void SetSocketIdNativeField(Dart_Handle socket, intptr_t id);
+  static intptr_t GetSocketIdNativeField(Dart_Handle socket);
 
  private:
   static dart::Mutex* mutex_;

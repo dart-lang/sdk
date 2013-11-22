@@ -90,7 +90,7 @@ void main(_, message) {
 
   expectTestsPass("nested scheduled blocks whose return values are passed to "
       "wrapFuture should report exceptions once", () {
-    var error = new Object();
+    var error = 'oh no!';
     var errors;
     test('test 1', () {
       currentSchedule.onException.schedule(() {

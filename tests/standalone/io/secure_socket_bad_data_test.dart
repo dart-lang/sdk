@@ -150,8 +150,6 @@ Future test(bool hostnameInConnect) {
         },
         onError: (e) {
           Expect.isTrue(e is HandshakeException);
-          Expect.isTrue(e.toString().contains(
-              'received a record with an incorrect Message Authentication'));
         })
         .whenComplete(server.close);
     });

@@ -16,23 +16,31 @@
 namespace dart {
 namespace bin {
 
-Dart_Handle Extensions::LoadExtension(const char* extension_url,
+Dart_Handle Extensions::LoadExtension(const char* extension_path,
                                       Dart_Handle parent_library) {
-  char* library_path = strdup(extension_url);
+  char* library_path = strdup(extension_path);
 
   if (library_path == NULL) {
     return Dart_NewApiError("Out of memory in LoadExtension");
   }
 
-  // Extract the path and the extension name from the url.
+  // Extract the directory and the extension name from the path.
   char* last_path_separator = strrchr(library_path, '/');
+  if (last_path_separator == NULL) {
+    last_path_separator = strrchr(library_path, '\\');
+  }
+  if (last_path_separator == NULL) {
+    free(library_path);
+    return Dart_NewApiError("Cannot find extension library directory");
+  }
   char* extension_name = last_path_separator + 1;
+
   *last_path_separator = '\0';  // Terminate library_path at last separator.
 
   void* library_handle = LoadExtensionLibrary(library_path, extension_name);
   if (library_handle == NULL) {
     free(library_path);
-    return Dart_NewApiError("cannot find extension library");
+    return Dart_NewApiError("Cannot find extension library");
   }
 
   const char* strings[] = { extension_name, "_Init", NULL };
@@ -44,7 +52,7 @@ Dart_Handle Extensions::LoadExtension(const char* extension_url,
   free(library_path);
 
   if (fn == NULL) {
-    return Dart_NewApiError("cannot find initialization function in extension");
+    return Dart_NewApiError("Cannot find initialization function in extension");
   }
   return (*fn)(parent_library);
 }

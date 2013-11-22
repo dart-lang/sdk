@@ -155,8 +155,18 @@ RawError* Compiler::CompileClass(const Class& cls) {
   if (cls.is_marked_for_parsing()) {
     return Error::null();
   }
-  // Parse the class and all the interfaces it implements and super classes.
+
   Isolate* isolate = Isolate::Current();
+  // We remember all the classes that are being compiled in these lists. This
+  // also allows us to reset the marked_for_parsing state in case we see an
+  // error.
+  Class& parse_class = Class::Handle();
+  const GrowableObjectArray& parse_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(4));
+  const GrowableObjectArray& patch_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(4));
+
+  // Parse the class and all the interfaces it implements and super classes.
   StackZone zone(isolate);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
@@ -165,12 +175,6 @@ RawError* Compiler::CompileClass(const Class& cls) {
     if (FLAG_trace_compiler) {
       OS::Print("Compiling Class %s '%s'\n", "", cls.ToCString());
     }
-
-    Class& parse_class = Class::Handle();
-    const GrowableObjectArray& parse_list =
-        GrowableObjectArray::Handle(GrowableObjectArray::New(4));
-    const GrowableObjectArray& patch_list =
-        GrowableObjectArray::Handle(GrowableObjectArray::New(4));
 
     // Add the primary class which needs to be parsed to the parse list.
     // Mark the class as parsed so that we don't recursively add the same
@@ -214,6 +218,20 @@ RawError* Compiler::CompileClass(const Class& cls) {
     isolate->set_long_jump_base(base);
     return Error::null();
   } else {
+    // Reset the marked for parsing flags.
+    for (intptr_t i = 0; i < parse_list.Length(); i++) {
+      parse_class ^= parse_list.At(i);
+      if (parse_class.is_marked_for_parsing()) {
+        parse_class.reset_is_marked_for_parsing();
+      }
+    }
+    for (intptr_t i = 0; i < patch_list.Length(); i++) {
+      parse_class ^= patch_list.At(i);
+      if (parse_class.is_marked_for_parsing()) {
+        parse_class.reset_is_marked_for_parsing();
+      }
+    }
+
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
@@ -336,11 +354,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         optimizer.ApplyICData();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        // Optimize (a << b) & c patterns. Must occur before
+        // Optimize (a << b) & c patterns, merge operations. Must occur before
         // 'SelectRepresentations' which inserts conversion nodes.
         // TODO(srdjan): Moved before inlining until environment use list can
         // be used to detect when shift-left is outside the scope of bit-and.
-        optimizer.TryOptimizeLeftShiftWithBitAndPattern();
+        optimizer.TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Inlining (mutates the flow graph)

@@ -23,30 +23,30 @@ main() {
     });
   });
 
-  group('new Builder()', () {
-    test('uses the given root directory', () {
-      var builder = new path.Builder(root: '/a/b/c');
-      expect(builder.root, '/a/b/c');
+  group('new Context()', () {
+    test('uses the given current directory', () {
+      var context = new path.Context(current: '/a/b/c');
+      expect(context.current, '/a/b/c');
     });
 
     test('uses the given style', () {
-      var builder = new path.Builder(style: path.Style.windows);
-      expect(builder.style, path.Style.windows);
+      var context = new path.Context(style: path.Style.windows);
+      expect(context.style, path.Style.windows);
     });
   });
 
-  test('posix is a default Builder for the POSIX style', () {
+  test('posix is a default Context for the POSIX style', () {
     expect(path.posix.style, path.Style.posix);
-    expect(path.posix.root, ".");
+    expect(path.posix.current, ".");
   });
 
-  test('windows is a default Builder for the Windows style', () {
+  test('windows is a default Context for the Windows style', () {
     expect(path.windows.style, path.Style.windows);
-    expect(path.windows.root, ".");
+    expect(path.windows.current, ".");
   });
 
-  test('url is a default Builder for the URL style', () {
+  test('url is a default Context for the URL style', () {
     expect(path.url.style, path.Style.url);
-    expect(path.url.root, ".");
+    expect(path.url.current, ".");
   });
 }

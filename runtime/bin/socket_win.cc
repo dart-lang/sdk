@@ -268,6 +268,20 @@ bool Socket::ReverseLookup(RawAddr addr,
 }
 
 
+bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
+  int result;
+  const wchar_t* system_address = StringUtils::Utf8ToWide(address);
+  if (type == SocketAddress::TYPE_IPV4) {
+    result = InetPton(AF_INET, system_address, &addr->in.sin_addr);
+  } else {
+    ASSERT(type == SocketAddress::TYPE_IPV6);
+    result = InetPton(AF_INET6, system_address, &addr->in6.sin6_addr);
+  }
+  free(const_cast<wchar_t*>(system_address));
+  return result == 1;
+}
+
+
 AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
     int type,
     OSError** os_error) {

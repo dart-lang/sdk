@@ -1,6 +1,8 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
+
 library engine.ast;
+
 import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
@@ -10,6 +12,7 @@ import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart';
 import 'utilities_collection.dart' show TokenMap;
 import 'element.dart';
+
 /**
  * The abstract class `ASTNode` defines the behavior common to all nodes in the AST structure
  * for a Dart program.
@@ -17,7 +20,6 @@ import 'element.dart';
  * @coverage dart.engine.ast
  */
 abstract class ASTNode {
-
   /**
    * An empty array of ast nodes.
    */
@@ -62,7 +64,6 @@ abstract class ASTNode {
     while (node != null && !isInstanceOf(node, enclosingClass)) {
       node = node.parent;
     }
-    ;
     return node as ASTNode;
   }
 
@@ -201,6 +202,7 @@ abstract class ASTNode {
     accept(new ToSourceVisitor(writer));
     return writer.toString();
   }
+
   String toString() => toSource();
 
   /**
@@ -245,9 +247,12 @@ abstract class ASTNode {
   void set parent(ASTNode newParent) {
     _parent = newParent;
   }
+
   static int _hashCodeGenerator = 0;
+
   final int hashCode = ++_hashCodeGenerator;
 }
+
 /**
  * The interface `ASTVisitor` defines the behavior of objects that can be used to visit an AST
  * structure.
@@ -256,109 +261,212 @@ abstract class ASTNode {
  */
 abstract class ASTVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node);
+
   R visitAnnotation(Annotation node);
+
   R visitArgumentDefinitionTest(ArgumentDefinitionTest node);
+
   R visitArgumentList(ArgumentList node);
+
   R visitAsExpression(AsExpression node);
+
   R visitAssertStatement(AssertStatement assertStatement);
+
   R visitAssignmentExpression(AssignmentExpression node);
+
   R visitBinaryExpression(BinaryExpression node);
+
   R visitBlock(Block node);
+
   R visitBlockFunctionBody(BlockFunctionBody node);
+
   R visitBooleanLiteral(BooleanLiteral node);
+
   R visitBreakStatement(BreakStatement node);
+
   R visitCascadeExpression(CascadeExpression node);
+
   R visitCatchClause(CatchClause node);
+
   R visitClassDeclaration(ClassDeclaration node);
+
   R visitClassTypeAlias(ClassTypeAlias node);
+
   R visitComment(Comment node);
+
   R visitCommentReference(CommentReference node);
+
   R visitCompilationUnit(CompilationUnit node);
+
   R visitConditionalExpression(ConditionalExpression node);
+
   R visitConstructorDeclaration(ConstructorDeclaration node);
+
   R visitConstructorFieldInitializer(ConstructorFieldInitializer node);
+
   R visitConstructorName(ConstructorName node);
+
   R visitContinueStatement(ContinueStatement node);
+
   R visitDeclaredIdentifier(DeclaredIdentifier node);
+
   R visitDefaultFormalParameter(DefaultFormalParameter node);
+
   R visitDoStatement(DoStatement node);
+
   R visitDoubleLiteral(DoubleLiteral node);
+
   R visitEmptyFunctionBody(EmptyFunctionBody node);
+
   R visitEmptyStatement(EmptyStatement node);
+
   R visitExportDirective(ExportDirective node);
+
   R visitExpressionFunctionBody(ExpressionFunctionBody node);
+
   R visitExpressionStatement(ExpressionStatement node);
+
   R visitExtendsClause(ExtendsClause node);
+
   R visitFieldDeclaration(FieldDeclaration node);
+
   R visitFieldFormalParameter(FieldFormalParameter node);
+
   R visitForEachStatement(ForEachStatement node);
+
   R visitFormalParameterList(FormalParameterList node);
+
   R visitForStatement(ForStatement node);
+
   R visitFunctionDeclaration(FunctionDeclaration node);
+
   R visitFunctionDeclarationStatement(FunctionDeclarationStatement node);
+
   R visitFunctionExpression(FunctionExpression node);
+
   R visitFunctionExpressionInvocation(FunctionExpressionInvocation node);
+
   R visitFunctionTypeAlias(FunctionTypeAlias functionTypeAlias);
+
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node);
+
   R visitHideCombinator(HideCombinator node);
+
   R visitIfStatement(IfStatement node);
+
   R visitImplementsClause(ImplementsClause node);
+
   R visitImportDirective(ImportDirective node);
+
   R visitIndexExpression(IndexExpression node);
+
   R visitInstanceCreationExpression(InstanceCreationExpression node);
+
   R visitIntegerLiteral(IntegerLiteral node);
+
   R visitInterpolationExpression(InterpolationExpression node);
+
   R visitInterpolationString(InterpolationString node);
+
   R visitIsExpression(IsExpression node);
+
   R visitLabel(Label node);
+
   R visitLabeledStatement(LabeledStatement node);
+
   R visitLibraryDirective(LibraryDirective node);
+
   R visitLibraryIdentifier(LibraryIdentifier node);
+
   R visitListLiteral(ListLiteral node);
+
   R visitMapLiteral(MapLiteral node);
+
   R visitMapLiteralEntry(MapLiteralEntry node);
+
   R visitMethodDeclaration(MethodDeclaration node);
+
   R visitMethodInvocation(MethodInvocation node);
+
   R visitNamedExpression(NamedExpression node);
+
   R visitNativeClause(NativeClause node);
+
   R visitNativeFunctionBody(NativeFunctionBody node);
+
   R visitNullLiteral(NullLiteral node);
+
   R visitParenthesizedExpression(ParenthesizedExpression node);
+
   R visitPartDirective(PartDirective node);
+
   R visitPartOfDirective(PartOfDirective node);
+
   R visitPostfixExpression(PostfixExpression node);
+
   R visitPrefixedIdentifier(PrefixedIdentifier node);
+
   R visitPrefixExpression(PrefixExpression node);
+
   R visitPropertyAccess(PropertyAccess node);
+
   R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node);
+
   R visitRethrowExpression(RethrowExpression node);
+
   R visitReturnStatement(ReturnStatement node);
+
   R visitScriptTag(ScriptTag node);
+
   R visitShowCombinator(ShowCombinator node);
+
   R visitSimpleFormalParameter(SimpleFormalParameter node);
+
   R visitSimpleIdentifier(SimpleIdentifier node);
+
   R visitSimpleStringLiteral(SimpleStringLiteral node);
+
   R visitStringInterpolation(StringInterpolation node);
+
   R visitSuperConstructorInvocation(SuperConstructorInvocation node);
+
   R visitSuperExpression(SuperExpression node);
+
   R visitSwitchCase(SwitchCase node);
+
   R visitSwitchDefault(SwitchDefault node);
+
   R visitSwitchStatement(SwitchStatement node);
+
   R visitSymbolLiteral(SymbolLiteral node);
+
   R visitThisExpression(ThisExpression node);
+
   R visitThrowExpression(ThrowExpression node);
+
   R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node);
+
   R visitTryStatement(TryStatement node);
+
   R visitTypeArgumentList(TypeArgumentList node);
+
   R visitTypeName(TypeName node);
+
   R visitTypeParameter(TypeParameter node);
+
   R visitTypeParameterList(TypeParameterList node);
+
   R visitVariableDeclaration(VariableDeclaration node);
+
   R visitVariableDeclarationList(VariableDeclarationList node);
+
   R visitVariableDeclarationStatement(VariableDeclarationStatement node);
+
   R visitWhileStatement(WhileStatement node);
+
   R visitWithClause(WithClause node);
 }
+
 /**
  * Instances of the class `AdjacentStrings` represents two or more string literals that are
  * implicitly concatenated because of being adjacent (separated only by whitespace).
@@ -374,7 +482,6 @@ abstract class ASTVisitor<R> {
  * @coverage dart.engine.ast
  */
 class AdjacentStrings extends StringLiteral {
-
   /**
    * The strings that are implicitly concatenated.
    */
@@ -396,18 +503,24 @@ class AdjacentStrings extends StringLiteral {
    * @param strings the strings that are implicitly concatenated
    */
   AdjacentStrings({List<StringLiteral> strings}) : this.full(strings);
+
   accept(ASTVisitor visitor) => visitor.visitAdjacentStrings(this);
+
   Token get beginToken => strings.beginToken;
+
   Token get endToken => strings.endToken;
+
   void visitChildren(ASTVisitor visitor) {
     strings.accept(visitor);
   }
+
   void appendStringValue(JavaStringBuilder builder) {
     for (StringLiteral stringLiteral in strings) {
       stringLiteral.appendStringValue(builder);
     }
   }
 }
+
 /**
  * The abstract class `AnnotatedNode` defines the behavior of nodes that can be annotated with
  * both a comment and metadata.
@@ -415,7 +528,6 @@ class AdjacentStrings extends StringLiteral {
  * @coverage dart.engine.ast
  */
 abstract class AnnotatedNode extends ASTNode {
-
   /**
    * The documentation comment associated with this node, or `null` if this node does not have
    * a documentation comment associated with it.
@@ -446,6 +558,7 @@ abstract class AnnotatedNode extends ASTNode {
    * @param metadata the annotations associated with this node
    */
   AnnotatedNode({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
+
   Token get beginToken {
     if (_comment == null) {
       if (_metadata.isEmpty) {
@@ -497,6 +610,7 @@ abstract class AnnotatedNode extends ASTNode {
     this._metadata.clear();
     this._metadata.addAll(metadata);
   }
+
   void visitChildren(ASTVisitor visitor) {
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(_comment, visitor);
@@ -544,6 +658,7 @@ abstract class AnnotatedNode extends ASTNode {
     return children;
   }
 }
+
 /**
  * Instances of the class `Annotation` represent an annotation that can be associated with an
  * AST node.
@@ -559,7 +674,6 @@ abstract class AnnotatedNode extends ASTNode {
  * @coverage dart.engine.ast
  */
 class Annotation extends ASTNode {
-
   /**
    * The at sign that introduced the annotation.
    */
@@ -630,6 +744,7 @@ class Annotation extends ASTNode {
    *          annotation is not the invocation of a constructor
    */
   Annotation({Token atSign, Identifier name, Token period, SimpleIdentifier constructorName, ArgumentList arguments}) : this.full(atSign, name, period, constructorName, arguments);
+
   accept(ASTVisitor visitor) => visitor.visitAnnotation(this);
 
   /**
@@ -639,6 +754,7 @@ class Annotation extends ASTNode {
    * @return the arguments to the constructor being invoked
    */
   ArgumentList get arguments => _arguments;
+
   Token get beginToken => atSign;
 
   /**
@@ -664,6 +780,7 @@ class Annotation extends ASTNode {
     }
     return null;
   }
+
   Token get endToken {
     if (_arguments != null) {
       return _arguments.endToken;
@@ -717,12 +834,14 @@ class Annotation extends ASTNode {
   void set name(Identifier name) {
     this._name = becomeParentOf(name);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_arguments, visitor);
   }
 }
+
 /**
  * Instances of the class `ArgumentDefinitionTest` represent an argument definition test.
  *
@@ -734,7 +853,6 @@ class Annotation extends ASTNode {
  * @coverage dart.engine.ast
  */
 class ArgumentDefinitionTest extends Expression {
-
   /**
    * The token representing the question mark.
    */
@@ -763,8 +881,11 @@ class ArgumentDefinitionTest extends Expression {
    * @param identifier the identifier representing the argument being tested
    */
   ArgumentDefinitionTest({Token question, SimpleIdentifier identifier}) : this.full(question, identifier);
+
   accept(ASTVisitor visitor) => visitor.visitArgumentDefinitionTest(this);
+
   Token get beginToken => question;
+
   Token get endToken => _identifier.endToken;
 
   /**
@@ -782,10 +903,12 @@ class ArgumentDefinitionTest extends Expression {
   void set identifier(SimpleIdentifier identifier) {
     this._identifier = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_identifier, visitor);
   }
 }
+
 /**
  * Instances of the class `ArgumentList` represent a list of arguments in the invocation of a
  * executable element: a function, method, or constructor.
@@ -802,7 +925,6 @@ class ArgumentDefinitionTest extends Expression {
  * @coverage dart.engine.ast
  */
 class ArgumentList extends ASTNode {
-
   /**
    * The left parenthesis.
    */
@@ -858,8 +980,11 @@ class ArgumentList extends ASTNode {
    * @param rightParenthesis the right parenthesis
    */
   ArgumentList({Token leftParenthesis, List<Expression> arguments, Token rightParenthesis}) : this.full(leftParenthesis, arguments, rightParenthesis);
+
   accept(ASTVisitor visitor) => visitor.visitArgumentList(this);
+
   Token get beginToken => _leftParenthesis;
+
   Token get endToken => _rightParenthesis;
 
   /**
@@ -923,6 +1048,7 @@ class ArgumentList extends ASTNode {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
+
   void visitChildren(ASTVisitor visitor) {
     arguments.accept(visitor);
   }
@@ -975,6 +1101,7 @@ class ArgumentList extends ASTNode {
     return _correspondingStaticParameters[index];
   }
 }
+
 /**
  * Instances of the class `AsExpression` represent an 'as' expression.
  *
@@ -986,7 +1113,6 @@ class ArgumentList extends ASTNode {
  * @coverage dart.engine.ast
  */
 class AsExpression extends Expression {
-
   /**
    * The expression used to compute the value being cast.
    */
@@ -1023,8 +1149,11 @@ class AsExpression extends Expression {
    * @param type the name of the type being cast to
    */
   AsExpression({Expression expression, Token isOperator, TypeName type}) : this.full(expression, isOperator, type);
+
   accept(ASTVisitor visitor) => visitor.visitAsExpression(this);
+
   Token get beginToken => _expression.beginToken;
+
   Token get endToken => _type.endToken;
 
   /**
@@ -1058,11 +1187,13 @@ class AsExpression extends Expression {
   void set type(TypeName name) {
     this._type = becomeParentOf(name);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     safelyVisitChild(_type, visitor);
   }
 }
+
 /**
  * Instances of the class `AssertStatement` represent an assert statement.
  *
@@ -1074,7 +1205,6 @@ class AsExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class AssertStatement extends Statement {
-
   /**
    * The token representing the 'assert' keyword.
    */
@@ -1127,7 +1257,9 @@ class AssertStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   AssertStatement({Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon}) : this.full(keyword, leftParenthesis, condition, rightParenthesis, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitAssertStatement(this);
+
   Token get beginToken => keyword;
 
   /**
@@ -1136,6 +1268,7 @@ class AssertStatement extends Statement {
    * @return the condition that is being asserted to be `true`
    */
   Expression get condition => _condition;
+
   Token get endToken => semicolon;
 
   /**
@@ -1146,10 +1279,12 @@ class AssertStatement extends Statement {
   void set condition(Expression condition) {
     this._condition = becomeParentOf(condition);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
   }
 }
+
 /**
  * Instances of the class `AssignmentExpression` represent an assignment expression.
  *
@@ -1161,7 +1296,6 @@ class AssertStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class AssignmentExpression extends Expression {
-
   /**
    * The expression used to compute the left hand side.
    */
@@ -1212,7 +1346,9 @@ class AssignmentExpression extends Expression {
    * @param rightHandSide the expression used to compute the right hand side
    */
   AssignmentExpression({Expression leftHandSide, Token operator, Expression rightHandSide}) : this.full(leftHandSide, operator, rightHandSide);
+
   accept(ASTVisitor visitor) => visitor.visitAssignmentExpression(this);
+
   Token get beginToken => _leftHandSide.beginToken;
 
   /**
@@ -1230,6 +1366,7 @@ class AssignmentExpression extends Expression {
     }
     return element;
   }
+
   Token get endToken => _rightHandSide.endToken;
 
   /**
@@ -1303,6 +1440,7 @@ class AssignmentExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_leftHandSide, visitor);
     safelyVisitChild(_rightHandSide, visitor);
@@ -1350,6 +1488,7 @@ class AssignmentExpression extends Expression {
     return parameters[0];
   }
 }
+
 /**
  * Instances of the class `BinaryExpression` represent a binary (infix) expression.
  *
@@ -1361,7 +1500,6 @@ class AssignmentExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class BinaryExpression extends Expression {
-
   /**
    * The expression used to compute the left operand.
    */
@@ -1412,7 +1550,9 @@ class BinaryExpression extends Expression {
    * @param rightOperand the expression used to compute the right operand
    */
   BinaryExpression({Expression leftOperand, Token operator, Expression rightOperand}) : this.full(leftOperand, operator, rightOperand);
+
   accept(ASTVisitor visitor) => visitor.visitBinaryExpression(this);
+
   Token get beginToken => _leftOperand.beginToken;
 
   /**
@@ -1430,6 +1570,7 @@ class BinaryExpression extends Expression {
     }
     return element;
   }
+
   Token get endToken => _rightOperand.endToken;
 
   /**
@@ -1503,6 +1644,7 @@ class BinaryExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_leftOperand, visitor);
     safelyVisitChild(_rightOperand, visitor);
@@ -1550,6 +1692,7 @@ class BinaryExpression extends Expression {
     return parameters[0];
   }
 }
+
 /**
  * Instances of the class `Block` represent a sequence of statements.
  *
@@ -1561,7 +1704,6 @@ class BinaryExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class Block extends Statement {
-
   /**
    * The left curly bracket.
    */
@@ -1599,13 +1741,18 @@ class Block extends Statement {
    * @param rightBracket the right curly bracket
    */
   Block({Token leftBracket, List<Statement> statements, Token rightBracket}) : this.full(leftBracket, statements, rightBracket);
+
   accept(ASTVisitor visitor) => visitor.visitBlock(this);
+
   Token get beginToken => leftBracket;
+
   Token get endToken => rightBracket;
+
   void visitChildren(ASTVisitor visitor) {
     statements.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `BlockFunctionBody` represent a function body that consists of a
  * block of statements.
@@ -1618,7 +1765,6 @@ class Block extends Statement {
  * @coverage dart.engine.ast
  */
 class BlockFunctionBody extends FunctionBody {
-
   /**
    * The block representing the body of the function.
    */
@@ -1639,7 +1785,9 @@ class BlockFunctionBody extends FunctionBody {
    * @param block the block representing the body of the function
    */
   BlockFunctionBody({Block block}) : this.full(block);
+
   accept(ASTVisitor visitor) => visitor.visitBlockFunctionBody(this);
+
   Token get beginToken => _block.beginToken;
 
   /**
@@ -1648,6 +1796,7 @@ class BlockFunctionBody extends FunctionBody {
    * @return the block representing the body of the function
    */
   Block get block => _block;
+
   Token get endToken => _block.endToken;
 
   /**
@@ -1658,10 +1807,12 @@ class BlockFunctionBody extends FunctionBody {
   void set block(Block block) {
     this._block = becomeParentOf(block);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_block, visitor);
   }
 }
+
 /**
  * Instances of the class `BooleanLiteral` represent a boolean literal expression.
  *
@@ -1673,7 +1824,6 @@ class BlockFunctionBody extends FunctionBody {
  * @coverage dart.engine.ast
  */
 class BooleanLiteral extends Literal {
-
   /**
    * The token representing the literal.
    */
@@ -1702,13 +1852,19 @@ class BooleanLiteral extends Literal {
    * @param value the value of the literal
    */
   BooleanLiteral({Token literal, bool value}) : this.full(literal, value);
+
   accept(ASTVisitor visitor) => visitor.visitBooleanLiteral(this);
+
   Token get beginToken => literal;
+
   Token get endToken => literal;
+
   bool get isSynthetic => literal.isSynthetic;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `BreakStatement` represent a break statement.
  *
@@ -1720,7 +1876,6 @@ class BooleanLiteral extends Literal {
  * @coverage dart.engine.ast
  */
 class BreakStatement extends Statement {
-
   /**
    * The token representing the 'break' keyword.
    */
@@ -1757,8 +1912,11 @@ class BreakStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   BreakStatement({Token keyword, SimpleIdentifier label, Token semicolon}) : this.full(keyword, label, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitBreakStatement(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => semicolon;
 
   /**
@@ -1776,10 +1934,12 @@ class BreakStatement extends Statement {
   void set label(SimpleIdentifier identifier) {
     _label = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
+
 /**
  * Instances of the class `CascadeExpression` represent a sequence of cascaded expressions:
  * expressions that share a common target. There are three kinds of expressions that can be used in
@@ -1801,7 +1961,6 @@ class BreakStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class CascadeExpression extends Expression {
-
   /**
    * The target of the cascade sections.
    */
@@ -1831,8 +1990,11 @@ class CascadeExpression extends Expression {
    * @param cascadeSections the cascade sections sharing the common target
    */
   CascadeExpression({Expression target, List<Expression> cascadeSections}) : this.full(target, cascadeSections);
+
   accept(ASTVisitor visitor) => visitor.visitCascadeExpression(this);
+
   Token get beginToken => _target.beginToken;
+
   Token get endToken => cascadeSections.endToken;
 
   /**
@@ -1850,11 +2012,13 @@ class CascadeExpression extends Expression {
   void set target(Expression target) {
     this._target = becomeParentOf(target);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     cascadeSections.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `CatchClause` represent a catch clause within a try statement.
  *
@@ -1870,7 +2034,6 @@ class CascadeExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class CatchClause extends ASTNode {
-
   /**
    * The token representing the 'on' keyword, or `null` if there is no 'on' keyword.
    */
@@ -1958,7 +2121,9 @@ class CatchClause extends ASTNode {
    * @param body the body of the catch block
    */
   CatchClause({Token onKeyword, TypeName exceptionType, Token catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, Token comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body}) : this.full(onKeyword, exceptionType, catchKeyword, leftParenthesis, exceptionParameter, comma, stackTraceParameter, rightParenthesis, body);
+
   accept(ASTVisitor visitor) => visitor.visitCatchClause(this);
+
   Token get beginToken {
     if (onKeyword != null) {
       return onKeyword;
@@ -1972,6 +2137,7 @@ class CatchClause extends ASTNode {
    * @return the body of the catch block
    */
   Block get body => _body;
+
   Token get endToken => _body.endToken;
 
   /**
@@ -2049,6 +2215,7 @@ class CatchClause extends ASTNode {
   void set stackTraceParameter(SimpleIdentifier parameter) {
     _stackTraceParameter = becomeParentOf(parameter);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(exceptionType, visitor);
     safelyVisitChild(_exceptionParameter, visitor);
@@ -2056,6 +2223,7 @@ class CatchClause extends ASTNode {
     safelyVisitChild(_body, visitor);
   }
 }
+
 /**
  * Instances of the class `ClassDeclaration` represent the declaration of a class.
  *
@@ -2070,7 +2238,6 @@ class CatchClause extends ASTNode {
  * @coverage dart.engine.ast
  */
 class ClassDeclaration extends CompilationUnitMember {
-
   /**
    * The 'abstract' keyword, or `null` if the keyword was absent.
    */
@@ -2175,8 +2342,11 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param rightBracket the right curly bracket
    */
   ClassDeclaration({Comment comment, List<Annotation> metadata, Token abstractKeyword, Token classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, Token leftBracket, List<ClassMember> members, Token rightBracket}) : this.full(comment, metadata, abstractKeyword, classKeyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
+
   accept(ASTVisitor visitor) => visitor.visitClassDeclaration(this);
+
   ClassElement get element => _name != null ? (_name.staticElement as ClassElement) : null;
+
   Token get endToken => rightBracket;
 
   /**
@@ -2244,6 +2414,7 @@ class ClassDeclaration extends CompilationUnitMember {
   void set withClause(WithClause withClause) {
     this._withClause = becomeParentOf(withClause);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
@@ -2254,6 +2425,7 @@ class ClassDeclaration extends CompilationUnitMember {
     safelyVisitChild(nativeClause, visitor);
     members.accept(visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata {
     if (abstractKeyword != null) {
       return abstractKeyword;
@@ -2261,6 +2433,7 @@ class ClassDeclaration extends CompilationUnitMember {
     return classKeyword;
   }
 }
+
 /**
  * The abstract class `ClassMember` defines the behavior common to nodes that declare a name
  * within the scope of a class.
@@ -2268,7 +2441,6 @@ class ClassDeclaration extends CompilationUnitMember {
  * @coverage dart.engine.ast
  */
 abstract class ClassMember extends Declaration {
-
   /**
    * Initialize a newly created member of a class.
    *
@@ -2285,6 +2457,7 @@ abstract class ClassMember extends Declaration {
    */
   ClassMember({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
 }
+
 /**
  * Instances of the class `ClassTypeAlias` represent a class type alias.
  *
@@ -2299,7 +2472,6 @@ abstract class ClassMember extends Declaration {
  * @coverage dart.engine.ast
  */
 class ClassTypeAlias extends TypeAlias {
-
   /**
    * The name of the class being declared.
    */
@@ -2378,7 +2550,9 @@ class ClassTypeAlias extends TypeAlias {
    * @param semicolon the semicolon terminating the declaration
    */
   ClassTypeAlias({Comment comment, List<Annotation> metadata, Token keyword, SimpleIdentifier name, TypeParameterList typeParameters, Token equals, Token abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon}) : this.full(comment, metadata, keyword, name, typeParameters, equals, abstractKeyword, superclass, withClause, implementsClause, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitClassTypeAlias(this);
+
   ClassElement get element => _name != null ? (_name.staticElement as ClassElement) : null;
 
   /**
@@ -2461,6 +2635,7 @@ class ClassTypeAlias extends TypeAlias {
   void set withClause(WithClause withClause) {
     this._withClause = becomeParentOf(withClause);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
@@ -2470,6 +2645,7 @@ class ClassTypeAlias extends TypeAlias {
     safelyVisitChild(_implementsClause, visitor);
   }
 }
+
 /**
  * Instances of the class `Combinator` represent the combinator associated with an import
  * directive.
@@ -2483,7 +2659,6 @@ class ClassTypeAlias extends TypeAlias {
  * @coverage dart.engine.ast
  */
 abstract class Combinator extends ASTNode {
-
   /**
    * The keyword specifying what kind of processing is to be done on the imported names.
    */
@@ -2506,8 +2681,10 @@ abstract class Combinator extends ASTNode {
    *          names
    */
   Combinator({Token keyword}) : this.full(keyword);
+
   Token get beginToken => keyword;
 }
+
 /**
  * Instances of the class `Comment` represent a comment within the source code.
  *
@@ -2531,7 +2708,6 @@ abstract class Combinator extends ASTNode {
  * @coverage dart.engine.ast
  */
 class Comment extends ASTNode {
-
   /**
    * Create a block comment.
    *
@@ -2603,8 +2779,11 @@ class Comment extends ASTNode {
    * @param references the references embedded within the documentation comment
    */
   Comment({List<Token> tokens, CommentType type, List<CommentReference> references}) : this.full(tokens, type, references);
+
   accept(ASTVisitor visitor) => visitor.visitComment(this);
+
   Token get beginToken => tokens[0];
+
   Token get endToken => tokens[tokens.length - 1];
 
   /**
@@ -2627,16 +2806,17 @@ class Comment extends ASTNode {
    * @return `true` if this is an end-of-line comment
    */
   bool get isEndOfLine => identical(_type, CommentType.END_OF_LINE);
+
   void visitChildren(ASTVisitor visitor) {
     references.accept(visitor);
   }
 }
+
 /**
  * The enumeration `CommentType` encodes all the different types of comments that are
  * recognized by the parser.
  */
 class CommentType extends Enum<CommentType> {
-
   /**
    * An end-of-line comment.
    */
@@ -2651,9 +2831,12 @@ class CommentType extends Enum<CommentType> {
    * A documentation comment.
    */
   static final CommentType DOCUMENTATION = new CommentType('DOCUMENTATION', 2);
+
   static final List<CommentType> values = [END_OF_LINE, BLOCK, DOCUMENTATION];
+
   CommentType(String name, int ordinal) : super(name, ordinal);
 }
+
 /**
  * Instances of the class `CommentReference` represent a reference to a Dart element that is
  * found within a documentation comment.
@@ -2666,7 +2849,6 @@ class CommentType extends Enum<CommentType> {
  * @coverage dart.engine.ast
  */
 class CommentReference extends ASTNode {
-
   /**
    * The token representing the 'new' keyword, or `null` if there was no 'new' keyword.
    */
@@ -2695,8 +2877,11 @@ class CommentReference extends ASTNode {
    * @param identifier the identifier being referenced
    */
   CommentReference({Token newKeyword, Identifier identifier}) : this.full(newKeyword, identifier);
+
   accept(ASTVisitor visitor) => visitor.visitCommentReference(this);
+
   Token get beginToken => _identifier.beginToken;
+
   Token get endToken => _identifier.endToken;
 
   /**
@@ -2714,10 +2899,12 @@ class CommentReference extends ASTNode {
   void set identifier(Identifier identifier) {
     identifier = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_identifier, visitor);
   }
 }
+
 /**
  * Instances of the class `CompilationUnit` represent a compilation unit.
  *
@@ -2745,7 +2932,6 @@ class CommentReference extends ASTNode {
  * @coverage dart.engine.ast
  */
 class CompilationUnit extends ASTNode {
-
   /**
    * The first token in the token stream that was parsed to form this compilation unit.
    */
@@ -2813,9 +2999,13 @@ class CompilationUnit extends ASTNode {
    * @param endToken the last token in the token stream
    */
   CompilationUnit({Token beginToken, ScriptTag scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations, Token endToken}) : this.full(beginToken, scriptTag, directives, declarations, endToken);
+
   accept(ASTVisitor visitor) => visitor.visitCompilationUnit(this);
+
   Token get beginToken => _beginToken;
+
   Token get endToken => _endToken;
+
   int get length {
     Token endToken = this.endToken;
     if (endToken == null) {
@@ -2823,6 +3013,7 @@ class CompilationUnit extends ASTNode {
     }
     return endToken.offset + endToken.length;
   }
+
   int get offset => 0;
 
   /**
@@ -2841,6 +3032,7 @@ class CompilationUnit extends ASTNode {
   void set scriptTag(ScriptTag scriptTag) {
     this._scriptTag = becomeParentOf(scriptTag);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_scriptTag, visitor);
     if (directivesAreBeforeDeclarations()) {
@@ -2883,6 +3075,7 @@ class CompilationUnit extends ASTNode {
     return children;
   }
 }
+
 /**
  * Instances of the class `CompilationUnitMember` defines the behavior common to nodes that
  * declare a name within the scope of a compilation unit.
@@ -2900,7 +3093,6 @@ class CompilationUnit extends ASTNode {
  * @coverage dart.engine.ast
  */
 abstract class CompilationUnitMember extends Declaration {
-
   /**
    * Initialize a newly created generic compilation unit member.
    *
@@ -2917,6 +3109,7 @@ abstract class CompilationUnitMember extends Declaration {
    */
   CompilationUnitMember({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
 }
+
 /**
  * Instances of the class `ConditionalExpression` represent a conditional expression.
  *
@@ -2928,7 +3121,6 @@ abstract class CompilationUnitMember extends Declaration {
  * @coverage dart.engine.ast
  */
 class ConditionalExpression extends Expression {
-
   /**
    * The condition used to determine which of the expressions is executed next.
    */
@@ -2985,7 +3177,9 @@ class ConditionalExpression extends Expression {
    *          `false`
    */
   ConditionalExpression({Expression condition, Token question, Expression thenExpression, Token colon, Expression elseExpression}) : this.full(condition, question, thenExpression, colon, elseExpression);
+
   accept(ASTVisitor visitor) => visitor.visitConditionalExpression(this);
+
   Token get beginToken => _condition.beginToken;
 
   /**
@@ -3001,6 +3195,7 @@ class ConditionalExpression extends Expression {
    * @return the expression that is executed if the condition evaluates to `false`
    */
   Expression get elseExpression => _elseExpression;
+
   Token get endToken => _elseExpression.endToken;
 
   /**
@@ -3039,12 +3234,14 @@ class ConditionalExpression extends Expression {
   void set thenExpression(Expression expression) {
     _thenExpression = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_thenExpression, visitor);
     safelyVisitChild(_elseExpression, visitor);
   }
 }
+
 /**
  * Instances of the class `ConstructorDeclaration` represent a constructor declaration.
  *
@@ -3071,7 +3268,6 @@ class ConditionalExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class ConstructorDeclaration extends ClassMember {
-
   /**
    * The token for the 'external' keyword, or `null` if the constructor is not external.
    */
@@ -3191,6 +3387,7 @@ class ConstructorDeclaration extends ClassMember {
    * @param body the body of the constructor
    */
   ConstructorDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, Token constKeyword, Token factoryKeyword, Identifier returnType, Token period, SimpleIdentifier name, FormalParameterList parameters, Token separator, List<ConstructorInitializer> initializers, ConstructorName redirectedConstructor, FunctionBody body}) : this.full(comment, metadata, externalKeyword, constKeyword, factoryKeyword, returnType, period, name, parameters, separator, initializers, redirectedConstructor, body);
+
   accept(ASTVisitor visitor) => visitor.visitConstructorDeclaration(this);
 
   /**
@@ -3199,7 +3396,9 @@ class ConstructorDeclaration extends ClassMember {
    * @return the body of the constructor
    */
   FunctionBody get body => _body;
+
   ConstructorElement get element => _element;
+
   Token get endToken {
     if (_body != null) {
       return _body.endToken;
@@ -3296,6 +3495,7 @@ class ConstructorDeclaration extends ClassMember {
   void set returnType(Identifier typeName) {
     _returnType = becomeParentOf(typeName);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
@@ -3305,6 +3505,7 @@ class ConstructorDeclaration extends ClassMember {
     safelyVisitChild(_redirectedConstructor, visitor);
     safelyVisitChild(_body, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata {
     Token leftMost = this.leftMost([externalKeyword, constKeyword, factoryKeyword]);
     if (leftMost != null) {
@@ -3331,6 +3532,7 @@ class ConstructorDeclaration extends ClassMember {
     return leftMost;
   }
 }
+
 /**
  * Instances of the class `ConstructorFieldInitializer` represent the initialization of a
  * field within a constructor's initialization list.
@@ -3343,7 +3545,6 @@ class ConstructorDeclaration extends ClassMember {
  * @coverage dart.engine.ast
  */
 class ConstructorFieldInitializer extends ConstructorInitializer {
-
   /**
    * The token for the 'this' keyword, or `null` if there is no 'this' keyword.
    */
@@ -3399,13 +3600,16 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
    * @param expression the expression computing the value to which the field will be initialized
    */
   ConstructorFieldInitializer({Token keyword, Token period, SimpleIdentifier fieldName, Token equals, Expression expression}) : this.full(keyword, period, fieldName, equals, expression);
+
   accept(ASTVisitor visitor) => visitor.visitConstructorFieldInitializer(this);
+
   Token get beginToken {
     if (keyword != null) {
       return keyword;
     }
     return _fieldName.beginToken;
   }
+
   Token get endToken => _expression.endToken;
 
   /**
@@ -3440,11 +3644,13 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
   void set fieldName(SimpleIdentifier identifier) {
     _fieldName = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_fieldName, visitor);
     safelyVisitChild(_expression, visitor);
   }
 }
+
 /**
  * Instances of the class `ConstructorInitializer` defines the behavior of nodes that can
  * occur in the initializer list of a constructor declaration.
@@ -3459,6 +3665,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
  */
 abstract class ConstructorInitializer extends ASTNode {
 }
+
 /**
  * Instances of the class `ConstructorName` represent the name of the constructor.
  *
@@ -3470,7 +3677,6 @@ abstract class ConstructorInitializer extends ASTNode {
  * @coverage dart.engine.ast
  */
 class ConstructorName extends ASTNode {
-
   /**
    * The name of the type defining the constructor.
    */
@@ -3516,8 +3722,11 @@ class ConstructorName extends ASTNode {
    * @param name the name of the constructor
    */
   ConstructorName({TypeName type, Token period, SimpleIdentifier name}) : this.full(type, period, name);
+
   accept(ASTVisitor visitor) => visitor.visitConstructorName(this);
+
   Token get beginToken => _type.beginToken;
+
   Token get endToken {
     if (_name != null) {
       return _name.endToken;
@@ -3576,11 +3785,13 @@ class ConstructorName extends ASTNode {
   void set type(TypeName type) {
     this._type = becomeParentOf(type);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_type, visitor);
     safelyVisitChild(_name, visitor);
   }
 }
+
 /**
  * Instances of the class `ContinueStatement` represent a continue statement.
  *
@@ -3592,7 +3803,6 @@ class ConstructorName extends ASTNode {
  * @coverage dart.engine.ast
  */
 class ContinueStatement extends Statement {
-
   /**
    * The token representing the 'continue' keyword.
    */
@@ -3629,8 +3839,11 @@ class ContinueStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   ContinueStatement({Token keyword, SimpleIdentifier label, Token semicolon}) : this.full(keyword, label, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitContinueStatement(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => semicolon;
 
   /**
@@ -3648,10 +3861,12 @@ class ContinueStatement extends Statement {
   void set label(SimpleIdentifier identifier) {
     _label = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
+
 /**
  * The abstract class `Declaration` defines the behavior common to nodes that represent the
  * declaration of a name. Each declared name is visible within a name scope.
@@ -3659,7 +3874,6 @@ class ContinueStatement extends Statement {
  * @coverage dart.engine.ast
  */
 abstract class Declaration extends AnnotatedNode {
-
   /**
    * Initialize a newly created declaration.
    *
@@ -3684,6 +3898,7 @@ abstract class Declaration extends AnnotatedNode {
    */
   Element get element;
 }
+
 /**
  * Instances of the class `DeclaredIdentifier` represent the declaration of a single
  * identifier.
@@ -3696,7 +3911,6 @@ abstract class Declaration extends AnnotatedNode {
  * @coverage dart.engine.ast
  */
 class DeclaredIdentifier extends Declaration {
-
   /**
    * The token representing either the 'final', 'const' or 'var' keyword, or `null` if no
    * keyword was used.
@@ -3739,7 +3953,9 @@ class DeclaredIdentifier extends Declaration {
    * @param identifier the name of the parameter being declared
    */
   DeclaredIdentifier({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier}) : this.full(comment, metadata, keyword, type, identifier);
+
   accept(ASTVisitor visitor) => visitor.visitDeclaredIdentifier(this);
+
   LocalVariableElement get element {
     SimpleIdentifier identifier = this.identifier;
     if (identifier == null) {
@@ -3747,6 +3963,7 @@ class DeclaredIdentifier extends Declaration {
     }
     return identifier.staticElement as LocalVariableElement;
   }
+
   Token get endToken => identifier.endToken;
 
   /**
@@ -3762,7 +3979,7 @@ class DeclaredIdentifier extends Declaration {
    *
    * @return `true` if this variable was declared with the 'const' modifier
    */
-  bool get isConst => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isConst => (keyword is KeywordToken) && identical((keyword as KeywordToken).keyword, Keyword.CONST);
 
   /**
    * Return `true` if this variable was declared with the 'final' modifier. Variables that are
@@ -3771,7 +3988,7 @@ class DeclaredIdentifier extends Declaration {
    *
    * @return `true` if this variable was declared with the 'final' modifier
    */
-  bool get isFinal => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.FINAL);
+  bool get isFinal => (keyword is KeywordToken) && identical((keyword as KeywordToken).keyword, Keyword.FINAL);
 
   /**
    * Set the name of the declared type of the parameter to the given type name.
@@ -3781,11 +3998,13 @@ class DeclaredIdentifier extends Declaration {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(identifier, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata {
     if (keyword != null) {
       return keyword;
@@ -3795,6 +4014,7 @@ class DeclaredIdentifier extends Declaration {
     return identifier.beginToken;
   }
 }
+
 /**
  * Instances of the class `DefaultFormalParameter` represent a formal parameter with a default
  * value. There are two kinds of parameters that are both represented by this class: named formal
@@ -3811,7 +4031,6 @@ class DeclaredIdentifier extends Declaration {
  * @coverage dart.engine.ast
  */
 class DefaultFormalParameter extends FormalParameter {
-
   /**
    * The formal parameter with which the default value is associated.
    */
@@ -3858,7 +4077,9 @@ class DefaultFormalParameter extends FormalParameter {
    * @param defaultValue the expression computing the default value for the parameter
    */
   DefaultFormalParameter({NormalFormalParameter parameter, ParameterKind kind, Token separator, Expression defaultValue}) : this.full(parameter, kind, separator, defaultValue);
+
   accept(ASTVisitor visitor) => visitor.visitDefaultFormalParameter(this);
+
   Token get beginToken => _parameter.beginToken;
 
   /**
@@ -3868,13 +4089,16 @@ class DefaultFormalParameter extends FormalParameter {
    * @return the expression computing the default value for the parameter
    */
   Expression get defaultValue => _defaultValue;
+
   Token get endToken {
     if (_defaultValue != null) {
       return _defaultValue.endToken;
     }
     return _parameter.endToken;
   }
+
   SimpleIdentifier get identifier => _parameter.identifier;
+
   ParameterKind get kind => _kind;
 
   /**
@@ -3883,7 +4107,9 @@ class DefaultFormalParameter extends FormalParameter {
    * @return the formal parameter with which the default value is associated
    */
   NormalFormalParameter get parameter => _parameter;
+
   bool get isConst => _parameter != null && _parameter.isConst;
+
   bool get isFinal => _parameter != null && _parameter.isFinal;
 
   /**
@@ -3912,11 +4138,13 @@ class DefaultFormalParameter extends FormalParameter {
   void set parameter(NormalFormalParameter formalParameter) {
     _parameter = becomeParentOf(formalParameter);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_parameter, visitor);
     safelyVisitChild(_defaultValue, visitor);
   }
 }
+
 /**
  * The abstract class `Directive` defines the behavior common to nodes that represent a
  * directive.
@@ -3933,7 +4161,6 @@ class DefaultFormalParameter extends FormalParameter {
  * @coverage dart.engine.ast
  */
 abstract class Directive extends AnnotatedNode {
-
   /**
    * The element associated with this directive, or `null` if the AST structure has not been
    * resolved or if this directive could not be resolved.
@@ -3982,6 +4209,7 @@ abstract class Directive extends AnnotatedNode {
     this._element = element;
   }
 }
+
 /**
  * Instances of the class `DoStatement` represent a do statement.
  *
@@ -3993,7 +4221,6 @@ abstract class Directive extends AnnotatedNode {
  * @coverage dart.engine.ast
  */
 class DoStatement extends Statement {
-
   /**
    * The token representing the 'do' keyword.
    */
@@ -4062,7 +4289,9 @@ class DoStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   DoStatement({Token doKeyword, Statement body, Token whileKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon}) : this.full(doKeyword, body, whileKeyword, leftParenthesis, condition, rightParenthesis, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitDoStatement(this);
+
   Token get beginToken => doKeyword;
 
   /**
@@ -4078,6 +4307,7 @@ class DoStatement extends Statement {
    * @return the condition that determines when the loop will terminate
    */
   Expression get condition => _condition;
+
   Token get endToken => semicolon;
 
   /**
@@ -4129,11 +4359,13 @@ class DoStatement extends Statement {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_body, visitor);
     safelyVisitChild(_condition, visitor);
   }
 }
+
 /**
  * Instances of the class `DoubleLiteral` represent a floating point literal expression.
  *
@@ -4149,7 +4381,6 @@ class DoStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class DoubleLiteral extends Literal {
-
   /**
    * The token representing the literal.
    */
@@ -4178,12 +4409,17 @@ class DoubleLiteral extends Literal {
    * @param value the value of the literal
    */
   DoubleLiteral({Token literal, double value}) : this.full(literal, value);
+
   accept(ASTVisitor visitor) => visitor.visitDoubleLiteral(this);
+
   Token get beginToken => literal;
+
   Token get endToken => literal;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `EmptyFunctionBody` represent an empty function body, which can only
  * appear in constructors or abstract methods.
@@ -4196,7 +4432,6 @@ class DoubleLiteral extends Literal {
  * @coverage dart.engine.ast
  */
 class EmptyFunctionBody extends FunctionBody {
-
   /**
    * The token representing the semicolon that marks the end of the function body.
    */
@@ -4217,12 +4452,17 @@ class EmptyFunctionBody extends FunctionBody {
    * @param semicolon the token representing the semicolon that marks the end of the function body
    */
   EmptyFunctionBody({Token semicolon}) : this.full(semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitEmptyFunctionBody(this);
+
   Token get beginToken => semicolon;
+
   Token get endToken => semicolon;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `EmptyStatement` represent an empty statement.
  *
@@ -4234,7 +4474,6 @@ class EmptyFunctionBody extends FunctionBody {
  * @coverage dart.engine.ast
  */
 class EmptyStatement extends Statement {
-
   /**
    * The semicolon terminating the statement.
    */
@@ -4255,12 +4494,17 @@ class EmptyStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   EmptyStatement({Token semicolon}) : this.full(semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitEmptyStatement(this);
+
   Token get beginToken => semicolon;
+
   Token get endToken => semicolon;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Ephemeral identifiers are created as needed to mimic the presence of an empty identifier.
  *
@@ -4270,8 +4514,10 @@ class EphemeralIdentifier extends SimpleIdentifier {
   EphemeralIdentifier.full(ASTNode parent, int location) : super.full(new Token(TokenType.IDENTIFIER, location)) {
     parent.becomeParentOf(this);
   }
+
   EphemeralIdentifier({ASTNode parent, int location}) : this.full(parent, location);
 }
+
 /**
  * Instances of the class `ExportDirective` represent an export directive.
  *
@@ -4283,7 +4529,6 @@ class EphemeralIdentifier extends SimpleIdentifier {
  * @coverage dart.engine.ast
  */
 class ExportDirective extends NamespaceDirective {
-
   /**
    * Initialize a newly created export directive.
    *
@@ -4307,19 +4552,23 @@ class ExportDirective extends NamespaceDirective {
    * @param semicolon the semicolon terminating the directive
    */
   ExportDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, combinators, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitExportDirective(this);
+
   LibraryElement get uriElement {
     Element element = this.element;
     if (element is ExportElement) {
-      return ((element as ExportElement)).exportedLibrary;
+      return (element as ExportElement).exportedLibrary;
     }
     return null;
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     combinators.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `Expression` defines the behavior common to nodes that represent an
  * expression.
@@ -4334,7 +4583,6 @@ class ExportDirective extends NamespaceDirective {
  * @coverage dart.engine.ast
  */
 abstract class Expression extends ASTNode {
-
   /**
    * The static type of this expression, or `null` if the AST structure has not been resolved.
    */
@@ -4392,7 +4640,7 @@ abstract class Expression extends ASTNode {
   ParameterElement get propagatedParameterElement {
     ASTNode parent = this.parent;
     if (parent is ArgumentList) {
-      return ((parent as ArgumentList)).getPropagatedParameterElementFor(this);
+      return (parent as ArgumentList).getPropagatedParameterElementFor(this);
     } else if (parent is IndexExpression) {
       IndexExpression indexExpression = parent as IndexExpression;
       if (identical(indexExpression.index, this)) {
@@ -4409,9 +4657,9 @@ abstract class Expression extends ASTNode {
         return assignmentExpression.propagatedParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpression) {
-      return ((parent as PrefixExpression)).propagatedParameterElementForOperand;
+      return (parent as PrefixExpression).propagatedParameterElementForOperand;
     } else if (parent is PostfixExpression) {
-      return ((parent as PostfixExpression)).propagatedParameterElementForOperand;
+      return (parent as PostfixExpression).propagatedParameterElementForOperand;
     }
     return null;
   }
@@ -4429,7 +4677,7 @@ abstract class Expression extends ASTNode {
   ParameterElement get staticParameterElement {
     ASTNode parent = this.parent;
     if (parent is ArgumentList) {
-      return ((parent as ArgumentList)).getStaticParameterElementFor(this);
+      return (parent as ArgumentList).getStaticParameterElementFor(this);
     } else if (parent is IndexExpression) {
       IndexExpression indexExpression = parent as IndexExpression;
       if (identical(indexExpression.index, this)) {
@@ -4446,9 +4694,9 @@ abstract class Expression extends ASTNode {
         return assignmentExpression.staticParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpression) {
-      return ((parent as PrefixExpression)).staticParameterElementForOperand;
+      return (parent as PrefixExpression).staticParameterElementForOperand;
     } else if (parent is PostfixExpression) {
-      return ((parent as PostfixExpression)).staticParameterElementForOperand;
+      return (parent as PostfixExpression).staticParameterElementForOperand;
     }
     return null;
   }
@@ -4461,6 +4709,7 @@ abstract class Expression extends ASTNode {
    */
   bool get isAssignable => false;
 }
+
 /**
  * Instances of the class `ExpressionFunctionBody` represent a function body consisting of a
  * single expression.
@@ -4473,7 +4722,6 @@ abstract class Expression extends ASTNode {
  * @coverage dart.engine.ast
  */
 class ExpressionFunctionBody extends FunctionBody {
-
   /**
    * The token introducing the expression that represents the body of the function.
    */
@@ -4512,8 +4760,11 @@ class ExpressionFunctionBody extends FunctionBody {
    * @param semicolon the semicolon terminating the statement
    */
   ExpressionFunctionBody({Token functionDefinition, Expression expression, Token semicolon}) : this.full(functionDefinition, expression, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitExpressionFunctionBody(this);
+
   Token get beginToken => functionDefinition;
+
   Token get endToken {
     if (semicolon != null) {
       return semicolon;
@@ -4536,10 +4787,12 @@ class ExpressionFunctionBody extends FunctionBody {
   void set expression(Expression expression) {
     this._expression = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
+
 /**
  * Instances of the class `ExpressionStatement` wrap an expression as a statement.
  *
@@ -4551,7 +4804,6 @@ class ExpressionFunctionBody extends FunctionBody {
  * @coverage dart.engine.ast
  */
 class ExpressionStatement extends Statement {
-
   /**
    * The expression that comprises the statement.
    */
@@ -4581,8 +4833,11 @@ class ExpressionStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   ExpressionStatement({Expression expression, Token semicolon}) : this.full(expression, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitExpressionStatement(this);
+
   Token get beginToken => _expression.beginToken;
+
   Token get endToken {
     if (semicolon != null) {
       return semicolon;
@@ -4596,6 +4851,7 @@ class ExpressionStatement extends Statement {
    * @return the expression that comprises the statement
    */
   Expression get expression => _expression;
+
   bool get isSynthetic => _expression.isSynthetic && semicolon.isSynthetic;
 
   /**
@@ -4606,10 +4862,12 @@ class ExpressionStatement extends Statement {
   void set expression(Expression expression) {
     this._expression = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
+
 /**
  * Instances of the class `ExtendsClause` represent the "extends" clause in a class
  * declaration.
@@ -4622,7 +4880,6 @@ class ExpressionStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class ExtendsClause extends ASTNode {
-
   /**
    * The token representing the 'extends' keyword.
    */
@@ -4651,8 +4908,11 @@ class ExtendsClause extends ASTNode {
    * @param superclass the name of the class that is being extended
    */
   ExtendsClause({Token keyword, TypeName superclass}) : this.full(keyword, superclass);
+
   accept(ASTVisitor visitor) => visitor.visitExtendsClause(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => _superclass.endToken;
 
   /**
@@ -4670,10 +4930,12 @@ class ExtendsClause extends ASTNode {
   void set superclass(TypeName name) {
     _superclass = becomeParentOf(name);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_superclass, visitor);
   }
 }
+
 /**
  * Instances of the class `FieldDeclaration` represent the declaration of one or more fields
  * of the same type.
@@ -4686,7 +4948,6 @@ class ExtendsClause extends ASTNode {
  * @coverage dart.engine.ast
  */
 class FieldDeclaration extends ClassMember {
-
   /**
    * The token representing the 'static' keyword, or `null` if the fields are not static.
    */
@@ -4727,8 +4988,11 @@ class FieldDeclaration extends ClassMember {
    * @param semicolon the semicolon terminating the declaration
    */
   FieldDeclaration({Comment comment, List<Annotation> metadata, Token staticKeyword, VariableDeclarationList fieldList, Token semicolon}) : this.full(comment, metadata, staticKeyword, fieldList, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitFieldDeclaration(this);
+
   Element get element => null;
+
   Token get endToken => semicolon;
 
   /**
@@ -4753,10 +5017,12 @@ class FieldDeclaration extends ClassMember {
   void set fields(VariableDeclarationList fieldList) {
     fieldList = becomeParentOf(fieldList);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_fieldList, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata {
     if (staticKeyword != null) {
       return staticKeyword;
@@ -4764,6 +5030,7 @@ class FieldDeclaration extends ClassMember {
     return _fieldList.beginToken;
   }
 }
+
 /**
  * Instances of the class `FieldFormalParameter` represent a field formal parameter.
  *
@@ -4775,7 +5042,6 @@ class FieldDeclaration extends ClassMember {
  * @coverage dart.engine.ast
  */
 class FieldFormalParameter extends NormalFormalParameter {
-
   /**
    * The token representing either the 'final', 'const' or 'var' keyword, or `null` if no
    * keyword was used.
@@ -4839,7 +5105,9 @@ class FieldFormalParameter extends NormalFormalParameter {
    *          not a function-typed field formal parameter
    */
   FieldFormalParameter({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier, FormalParameterList parameters}) : this.full(comment, metadata, keyword, type, thisToken, period, identifier, parameters);
+
   accept(ASTVisitor visitor) => visitor.visitFieldFormalParameter(this);
+
   Token get beginToken {
     if (keyword != null) {
       return keyword;
@@ -4848,6 +5116,7 @@ class FieldFormalParameter extends NormalFormalParameter {
     }
     return thisToken;
   }
+
   Token get endToken => identifier.endToken;
 
   /**
@@ -4866,8 +5135,10 @@ class FieldFormalParameter extends NormalFormalParameter {
    * @return the name of the declared type of the parameter
    */
   TypeName get type => _type;
-  bool get isConst => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
-  bool get isFinal => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.FINAL);
+
+  bool get isConst => (keyword is KeywordToken) && identical((keyword as KeywordToken).keyword, Keyword.CONST);
+
+  bool get isFinal => (keyword is KeywordToken) && identical((keyword as KeywordToken).keyword, Keyword.FINAL);
 
   /**
    * Set the parameters of the function-typed parameter to the given parameters.
@@ -4886,6 +5157,7 @@ class FieldFormalParameter extends NormalFormalParameter {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
@@ -4893,6 +5165,7 @@ class FieldFormalParameter extends NormalFormalParameter {
     safelyVisitChild(_parameters, visitor);
   }
 }
+
 /**
  * Instances of the class `ForEachStatement` represent a for-each statement.
  *
@@ -4905,7 +5178,6 @@ class FieldFormalParameter extends NormalFormalParameter {
  * @coverage dart.engine.ast
  */
 class ForEachStatement extends Statement {
-
   /**
    * The token representing the 'for' keyword.
    */
@@ -5010,7 +5282,9 @@ class ForEachStatement extends Statement {
    * @param body the body of the loop
    */
   ForEachStatement.con2({Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.con2_full(forKeyword, leftParenthesis, identifier, inKeyword, iterator, rightParenthesis, body);
+
   accept(ASTVisitor visitor) => visitor.visitForEachStatement(this);
+
   Token get beginToken => forKeyword;
 
   /**
@@ -5019,6 +5293,7 @@ class ForEachStatement extends Statement {
    * @return the body of the loop
    */
   Statement get body => _body;
+
   Token get endToken => _body.endToken;
 
   /**
@@ -5078,6 +5353,7 @@ class ForEachStatement extends Statement {
   void set loopVariable(DeclaredIdentifier variable) {
     _loopVariable = becomeParentOf(variable);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_loopVariable, visitor);
     safelyVisitChild(_identifier, visitor);
@@ -5085,6 +5361,7 @@ class ForEachStatement extends Statement {
     safelyVisitChild(_body, visitor);
   }
 }
+
 /**
  * Instances of the class `ForStatement` represent a for statement.
  *
@@ -5103,7 +5380,6 @@ class ForEachStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class ForStatement extends Statement {
-
   /**
    * The token representing the 'for' keyword.
    */
@@ -5202,7 +5478,9 @@ class ForStatement extends Statement {
    * @param body the body of the loop
    */
   ForStatement({Token forKeyword, Token leftParenthesis, VariableDeclarationList variableList, Expression initialization, Token leftSeparator, Expression condition, Token rightSeparator, List<Expression> updaters, Token rightParenthesis, Statement body}) : this.full(forKeyword, leftParenthesis, variableList, initialization, leftSeparator, condition, rightSeparator, updaters, rightParenthesis, body);
+
   accept(ASTVisitor visitor) => visitor.visitForStatement(this);
+
   Token get beginToken => forKeyword;
 
   /**
@@ -5219,6 +5497,7 @@ class ForStatement extends Statement {
    * @return the condition used to determine when to terminate the loop
    */
   Expression get condition => _condition;
+
   Token get endToken => _body.endToken;
 
   /**
@@ -5270,6 +5549,7 @@ class ForStatement extends Statement {
   void set variables(VariableDeclarationList variableList) {
     variableList = becomeParentOf(variableList);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_variableList, visitor);
     safelyVisitChild(_initialization, visitor);
@@ -5278,6 +5558,7 @@ class ForStatement extends Statement {
     safelyVisitChild(_body, visitor);
   }
 }
+
 /**
  * The abstract class `FormalParameter` defines the behavior of objects representing a
  * parameter to a function.
@@ -5292,7 +5573,6 @@ class ForStatement extends Statement {
  * @coverage dart.engine.ast
  */
 abstract class FormalParameter extends ASTNode {
-
   /**
    * Return the element representing this parameter, or `null` if this parameter has not been
    * resolved.
@@ -5337,6 +5617,7 @@ abstract class FormalParameter extends ASTNode {
    */
   bool get isFinal;
 }
+
 /**
  * Instances of the class `FormalParameterList` represent the formal parameter list of a
  * method declaration, function declaration, or function type alias.
@@ -5369,7 +5650,6 @@ abstract class FormalParameter extends ASTNode {
  * @coverage dart.engine.ast
  */
 class FormalParameterList extends ASTNode {
-
   /**
    * The left parenthesis.
    */
@@ -5425,8 +5705,11 @@ class FormalParameterList extends ASTNode {
    * @param rightParenthesis the right parenthesis
    */
   FormalParameterList({Token leftParenthesis, List<FormalParameter> parameters, Token leftDelimiter, Token rightDelimiter, Token rightParenthesis}) : this.full(leftParenthesis, parameters, leftDelimiter, rightDelimiter, rightParenthesis);
+
   accept(ASTVisitor visitor) => visitor.visitFormalParameterList(this);
+
   Token get beginToken => _leftParenthesis;
+
   Token get endToken => _rightParenthesis;
 
   /**
@@ -5513,10 +5796,12 @@ class FormalParameterList extends ASTNode {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
+
   void visitChildren(ASTVisitor visitor) {
     parameters.accept(visitor);
   }
 }
+
 /**
  * The abstract class `FunctionBody` defines the behavior common to objects representing the
  * body of a function or method.
@@ -5532,6 +5817,7 @@ class FormalParameterList extends ASTNode {
  */
 abstract class FunctionBody extends ASTNode {
 }
+
 /**
  * Instances of the class `FunctionDeclaration` wrap a [FunctionExpression] as a top-level declaration.
  *
@@ -5547,7 +5833,6 @@ abstract class FunctionBody extends ASTNode {
  * @coverage dart.engine.ast
  */
 class FunctionDeclaration extends CompilationUnitMember {
-
   /**
    * The token representing the 'external' keyword, or `null` if this is not an external
    * function.
@@ -5606,8 +5891,11 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param functionExpression the function expression being wrapped
    */
   FunctionDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, TypeName returnType, Token propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression}) : this.full(comment, metadata, externalKeyword, returnType, propertyKeyword, name, functionExpression);
+
   accept(ASTVisitor visitor) => visitor.visitFunctionDeclaration(this);
+
   ExecutableElement get element => _name != null ? (_name.staticElement as ExecutableElement) : null;
+
   Token get endToken => _functionExpression.endToken;
 
   /**
@@ -5636,14 +5924,14 @@ class FunctionDeclaration extends CompilationUnitMember {
    *
    * @return `true` if this function declares a getter
    */
-  bool get isGetter => propertyKeyword != null && identical(((propertyKeyword as KeywordToken)).keyword, Keyword.GET);
+  bool get isGetter => propertyKeyword != null && identical((propertyKeyword as KeywordToken).keyword, Keyword.GET);
 
   /**
    * Return `true` if this function declares a setter.
    *
    * @return `true` if this function declares a setter
    */
-  bool get isSetter => propertyKeyword != null && identical(((propertyKeyword as KeywordToken)).keyword, Keyword.SET);
+  bool get isSetter => propertyKeyword != null && identical((propertyKeyword as KeywordToken).keyword, Keyword.SET);
 
   /**
    * Set the function expression being wrapped to the given function expression.
@@ -5671,12 +5959,14 @@ class FunctionDeclaration extends CompilationUnitMember {
   void set returnType(TypeName name) {
     _returnType = becomeParentOf(name);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_functionExpression, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata {
     if (externalKeyword != null) {
       return externalKeyword;
@@ -5691,6 +5981,7 @@ class FunctionDeclaration extends CompilationUnitMember {
     return _functionExpression.beginToken;
   }
 }
+
 /**
  * Instances of the class `FunctionDeclarationStatement` wrap a [FunctionDeclaration
  ] as a statement.
@@ -5698,7 +5989,6 @@ class FunctionDeclaration extends CompilationUnitMember {
  * @coverage dart.engine.ast
  */
 class FunctionDeclarationStatement extends Statement {
-
   /**
    * The function declaration being wrapped.
    */
@@ -5719,8 +6009,11 @@ class FunctionDeclarationStatement extends Statement {
    * @param functionDeclaration the the function declaration being wrapped
    */
   FunctionDeclarationStatement({FunctionDeclaration functionDeclaration}) : this.full(functionDeclaration);
+
   accept(ASTVisitor visitor) => visitor.visitFunctionDeclarationStatement(this);
+
   Token get beginToken => functionDeclaration.beginToken;
+
   Token get endToken => functionDeclaration.endToken;
 
   /**
@@ -5731,10 +6024,12 @@ class FunctionDeclarationStatement extends Statement {
   void set functionExpression(FunctionDeclaration functionDeclaration) {
     this.functionDeclaration = becomeParentOf(functionDeclaration);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(functionDeclaration, visitor);
   }
 }
+
 /**
  * Instances of the class `FunctionExpression` represent a function expression.
  *
@@ -5746,7 +6041,6 @@ class FunctionDeclarationStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class FunctionExpression extends Expression {
-
   /**
    * The parameters associated with the function.
    */
@@ -5781,7 +6075,9 @@ class FunctionExpression extends Expression {
    * @param body the body of the function
    */
   FunctionExpression({FormalParameterList parameters, FunctionBody body}) : this.full(parameters, body);
+
   accept(ASTVisitor visitor) => visitor.visitFunctionExpression(this);
+
   Token get beginToken {
     if (_parameters != null) {
       return _parameters.beginToken;
@@ -5797,6 +6093,7 @@ class FunctionExpression extends Expression {
    * @return the body of the function
    */
   FunctionBody get body => _body;
+
   Token get endToken {
     if (_body != null) {
       return _body.endToken;
@@ -5830,11 +6127,13 @@ class FunctionExpression extends Expression {
   void set parameters(FormalParameterList parameters) {
     this._parameters = becomeParentOf(parameters);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_parameters, visitor);
     safelyVisitChild(_body, visitor);
   }
 }
+
 /**
  * Instances of the class `FunctionExpressionInvocation` represent the invocation of a
  * function resulting from evaluating an expression. Invocations of methods and other forms of
@@ -5850,7 +6149,6 @@ class FunctionExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class FunctionExpressionInvocation extends Expression {
-
   /**
    * The expression producing the function being invoked.
    */
@@ -5891,6 +6189,7 @@ class FunctionExpressionInvocation extends Expression {
    * @param argumentList the list of arguments to the method
    */
   FunctionExpressionInvocation({Expression function, ArgumentList argumentList}) : this.full(function, argumentList);
+
   accept(ASTVisitor visitor) => visitor.visitFunctionExpressionInvocation(this);
 
   /**
@@ -5899,6 +6198,7 @@ class FunctionExpressionInvocation extends Expression {
    * @return the list of arguments to the method
    */
   ArgumentList get argumentList => _argumentList;
+
   Token get beginToken => _function.beginToken;
 
   /**
@@ -5916,6 +6216,7 @@ class FunctionExpressionInvocation extends Expression {
     }
     return element;
   }
+
   Token get endToken => _argumentList.endToken;
 
   /**
@@ -5962,11 +6263,13 @@ class FunctionExpressionInvocation extends Expression {
   void set propagatedElement(ExecutableElement element) {
     _propagatedElement = element;
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_function, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
 }
+
 /**
  * Instances of the class `FunctionTypeAlias` represent a function type alias.
  *
@@ -5981,7 +6284,6 @@ class FunctionExpressionInvocation extends Expression {
  * @coverage dart.engine.ast
  */
 class FunctionTypeAlias extends TypeAlias {
-
   /**
    * The name of the return type of the function type being defined, or `null` if no return
    * type was given.
@@ -6036,7 +6338,9 @@ class FunctionTypeAlias extends TypeAlias {
    * @param semicolon the semicolon terminating the declaration
    */
   FunctionTypeAlias({Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType, SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon}) : this.full(comment, metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitFunctionTypeAlias(this);
+
   FunctionTypeAliasElement get element => _name != null ? (_name.staticElement as FunctionTypeAliasElement) : null;
 
   /**
@@ -6104,6 +6408,7 @@ class FunctionTypeAlias extends TypeAlias {
   void set typeParameters(TypeParameterList typeParameters) {
     this._typeParameters = becomeParentOf(typeParameters);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
@@ -6112,6 +6417,7 @@ class FunctionTypeAlias extends TypeAlias {
     safelyVisitChild(_parameters, visitor);
   }
 }
+
 /**
  * Instances of the class `FunctionTypedFormalParameter` represent a function-typed formal
  * parameter.
@@ -6124,7 +6430,6 @@ class FunctionTypeAlias extends TypeAlias {
  * @coverage dart.engine.ast
  */
 class FunctionTypedFormalParameter extends NormalFormalParameter {
-
   /**
    * The return type of the function, or `null` if the function does not have a return type.
    */
@@ -6161,13 +6466,16 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * @param parameters the parameters of the function-typed parameter
    */
   FunctionTypedFormalParameter({Comment comment, List<Annotation> metadata, TypeName returnType, SimpleIdentifier identifier, FormalParameterList parameters}) : this.full(comment, metadata, returnType, identifier, parameters);
+
   accept(ASTVisitor visitor) => visitor.visitFunctionTypedFormalParameter(this);
+
   Token get beginToken {
     if (_returnType != null) {
       return _returnType.beginToken;
     }
     return identifier.beginToken;
   }
+
   Token get endToken => _parameters.endToken;
 
   /**
@@ -6184,7 +6492,9 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * @return the return type of the function
    */
   TypeName get returnType => _returnType;
+
   bool get isConst => false;
+
   bool get isFinal => false;
 
   /**
@@ -6204,6 +6514,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
   void set returnType(TypeName returnType) {
     this._returnType = becomeParentOf(returnType);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
@@ -6211,6 +6522,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
     safelyVisitChild(_parameters, visitor);
   }
 }
+
 /**
  * Instances of the class `HideCombinator` represent a combinator that restricts the names
  * being imported to those that are not in a given list.
@@ -6223,7 +6535,6 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
  * @coverage dart.engine.ast
  */
 class HideCombinator extends Combinator {
-
   /**
    * The list of names from the library that are hidden by this combinator.
    */
@@ -6247,12 +6558,16 @@ class HideCombinator extends Combinator {
    * @param hiddenNames the list of names from the library that are hidden by this combinator
    */
   HideCombinator({Token keyword, List<SimpleIdentifier> hiddenNames}) : this.full(keyword, hiddenNames);
+
   accept(ASTVisitor visitor) => visitor.visitHideCombinator(this);
+
   Token get endToken => hiddenNames.endToken;
+
   void visitChildren(ASTVisitor visitor) {
     hiddenNames.accept(visitor);
   }
 }
+
 /**
  * The abstract class `Identifier` defines the behavior common to nodes that represent an
  * identifier.
@@ -6266,7 +6581,6 @@ class HideCombinator extends Combinator {
  * @coverage dart.engine.ast
  */
 abstract class Identifier extends Expression {
-
   /**
    * Return `true` if the given name is visible only within the library in which it is
    * declared.
@@ -6312,8 +6626,10 @@ abstract class Identifier extends Expression {
    * @return the element associated with the operator
    */
   Element get staticElement;
+
   bool get isAssignable => true;
 }
+
 /**
  * Instances of the class `IfStatement` represent an if statement.
  *
@@ -6325,7 +6641,6 @@ abstract class Identifier extends Expression {
  * @coverage dart.engine.ast
  */
 class IfStatement extends Statement {
-
   /**
    * The token representing the 'if' keyword.
    */
@@ -6395,7 +6710,9 @@ class IfStatement extends Statement {
    * @param elseStatement the statement that is executed if the condition evaluates to `false`
    */
   IfStatement({Token ifKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement thenStatement, Token elseKeyword, Statement elseStatement}) : this.full(ifKeyword, leftParenthesis, condition, rightParenthesis, thenStatement, elseKeyword, elseStatement);
+
   accept(ASTVisitor visitor) => visitor.visitIfStatement(this);
+
   Token get beginToken => ifKeyword;
 
   /**
@@ -6412,6 +6729,7 @@ class IfStatement extends Statement {
    * @return the statement that is executed if the condition evaluates to `false`
    */
   Statement get elseStatement => _elseStatement;
+
   Token get endToken {
     if (_elseStatement != null) {
       return _elseStatement.endToken;
@@ -6455,12 +6773,14 @@ class IfStatement extends Statement {
   void set thenStatement(Statement statement) {
     _thenStatement = becomeParentOf(statement);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_thenStatement, visitor);
     safelyVisitChild(_elseStatement, visitor);
   }
 }
+
 /**
  * Instances of the class `ImplementsClause` represent the "implements" clause in an class
  * declaration.
@@ -6473,7 +6793,6 @@ class IfStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class ImplementsClause extends ASTNode {
-
   /**
    * The token representing the 'implements' keyword.
    */
@@ -6503,13 +6822,18 @@ class ImplementsClause extends ASTNode {
    * @param interfaces the interfaces that are being implemented
    */
   ImplementsClause({Token keyword, List<TypeName> interfaces}) : this.full(keyword, interfaces);
+
   accept(ASTVisitor visitor) => visitor.visitImplementsClause(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => interfaces.endToken;
+
   void visitChildren(ASTVisitor visitor) {
     interfaces.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `ImportDirective` represent an import directive.
  *
@@ -6559,12 +6883,12 @@ class ImportDirective extends NamespaceDirective {
     List<String> allShows1 = new List<String>();
     for (Combinator combinator in combinators1) {
       if (combinator is HideCombinator) {
-        NodeList<SimpleIdentifier> hides = ((combinator as HideCombinator)).hiddenNames;
+        NodeList<SimpleIdentifier> hides = (combinator as HideCombinator).hiddenNames;
         for (SimpleIdentifier simpleIdentifier in hides) {
           allHides1.add(simpleIdentifier.name);
         }
       } else {
-        NodeList<SimpleIdentifier> shows = ((combinator as ShowCombinator)).shownNames;
+        NodeList<SimpleIdentifier> shows = (combinator as ShowCombinator).shownNames;
         for (SimpleIdentifier simpleIdentifier in shows) {
           allShows1.add(simpleIdentifier.name);
         }
@@ -6575,12 +6899,12 @@ class ImportDirective extends NamespaceDirective {
     List<String> allShows2 = new List<String>();
     for (Combinator combinator in combinators2) {
       if (combinator is HideCombinator) {
-        NodeList<SimpleIdentifier> hides = ((combinator as HideCombinator)).hiddenNames;
+        NodeList<SimpleIdentifier> hides = (combinator as HideCombinator).hiddenNames;
         for (SimpleIdentifier simpleIdentifier in hides) {
           allHides2.add(simpleIdentifier.name);
         }
       } else {
-        NodeList<SimpleIdentifier> shows = ((combinator as ShowCombinator)).shownNames;
+        NodeList<SimpleIdentifier> shows = (combinator as ShowCombinator).shownNames;
         for (SimpleIdentifier simpleIdentifier in shows) {
           allShows2.add(simpleIdentifier.name);
         }
@@ -6642,7 +6966,9 @@ class ImportDirective extends NamespaceDirective {
    * @param semicolon the semicolon terminating the directive
    */
   ImportDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, Token asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, asToken, prefix, combinators, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitImportDirective(this);
+
   ImportElement get element => super.element as ImportElement;
 
   /**
@@ -6652,6 +6978,7 @@ class ImportDirective extends NamespaceDirective {
    * @return the prefix to be used with the imported names
    */
   SimpleIdentifier get prefix => _prefix;
+
   LibraryElement get uriElement {
     ImportElement element = this.element;
     if (element == null) {
@@ -6668,12 +6995,14 @@ class ImportDirective extends NamespaceDirective {
   void set prefix(SimpleIdentifier prefix) {
     this._prefix = becomeParentOf(prefix);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_prefix, visitor);
     combinators.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `IndexExpression` represent an index expression.
  *
@@ -6685,7 +7014,6 @@ class ImportDirective extends NamespaceDirective {
  * @coverage dart.engine.ast
  */
 class IndexExpression extends Expression {
-
   /**
    * The expression used to compute the object being indexed, or `null` if this index
    * expression is part of a cascade expression.
@@ -6783,7 +7111,9 @@ class IndexExpression extends Expression {
    * @param rightBracket the right square bracket
    */
   IndexExpression.forCascade({Token period, Token leftBracket, Expression index, Token rightBracket}) : this.forCascade_full(period, leftBracket, index, rightBracket);
+
   accept(ASTVisitor visitor) => visitor.visitIndexExpression(this);
+
   Token get beginToken {
     if (_target != null) {
       return _target.beginToken;
@@ -6806,6 +7136,7 @@ class IndexExpression extends Expression {
     }
     return element;
   }
+
   Token get endToken => _rightBracket;
 
   /**
@@ -6850,7 +7181,7 @@ class IndexExpression extends Expression {
         }
         ancestor = ancestor.parent;
       }
-      return ((ancestor as CascadeExpression)).target;
+      return (ancestor as CascadeExpression).target;
     }
     return _target;
   }
@@ -6914,14 +7245,15 @@ class IndexExpression extends Expression {
   bool inSetterContext() {
     ASTNode parent = this.parent;
     if (parent is PrefixExpression) {
-      return ((parent as PrefixExpression)).operator.type.isIncrementOperator;
+      return (parent as PrefixExpression).operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
       return true;
     } else if (parent is AssignmentExpression) {
-      return identical(((parent as AssignmentExpression)).leftHandSide, this);
+      return identical((parent as AssignmentExpression).leftHandSide, this);
     }
     return false;
   }
+
   bool get isAssignable => true;
 
   /**
@@ -6988,6 +7320,7 @@ class IndexExpression extends Expression {
   void set target(Expression expression) {
     _target = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_index, visitor);
@@ -7035,6 +7368,7 @@ class IndexExpression extends Expression {
     return parameters[0];
   }
 }
+
 /**
  * Instances of the class `InstanceCreationExpression` represent an instance creation
  * expression.
@@ -7047,7 +7381,6 @@ class IndexExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class InstanceCreationExpression extends Expression {
-
   /**
    * The keyword used to indicate how an object should be created.
    */
@@ -7090,6 +7423,7 @@ class InstanceCreationExpression extends Expression {
    * @param argumentList the list of arguments to the constructor
    */
   InstanceCreationExpression({Token keyword, ConstructorName constructorName, ArgumentList argumentList}) : this.full(keyword, constructorName, argumentList);
+
   accept(ASTVisitor visitor) => visitor.visitInstanceCreationExpression(this);
 
   /**
@@ -7098,7 +7432,9 @@ class InstanceCreationExpression extends Expression {
    * @return the list of arguments to the constructor
    */
   ArgumentList get argumentList => _argumentList;
+
   Token get beginToken => keyword;
+
   Token get endToken => _argumentList.endToken;
 
   /**
@@ -7106,7 +7442,7 @@ class InstanceCreationExpression extends Expression {
    *
    * @return `true` if this creation expression is used to invoke a constant constructor
    */
-  bool get isConst => keyword is KeywordToken && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isConst => keyword is KeywordToken && identical((keyword as KeywordToken).keyword, Keyword.CONST);
 
   /**
    * Set the list of arguments to the constructor to the given list.
@@ -7116,11 +7452,13 @@ class InstanceCreationExpression extends Expression {
   void set argumentList(ArgumentList argumentList) {
     this._argumentList = becomeParentOf(argumentList);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
 }
+
 /**
  * Instances of the class `IntegerLiteral` represent an integer literal expression.
  *
@@ -7140,7 +7478,6 @@ class InstanceCreationExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class IntegerLiteral extends Literal {
-
   /**
    * The token representing the literal.
    */
@@ -7169,12 +7506,17 @@ class IntegerLiteral extends Literal {
    * @param value the value of the literal
    */
   IntegerLiteral({Token literal, int value}) : this.full(literal, value);
+
   accept(ASTVisitor visitor) => visitor.visitIntegerLiteral(this);
+
   Token get beginToken => literal;
+
   Token get endToken => literal;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * The abstract class `InterpolationElement` defines the behavior common to elements within a
  * [StringInterpolation].
@@ -7189,6 +7531,7 @@ class IntegerLiteral extends Literal {
  */
 abstract class InterpolationElement extends ASTNode {
 }
+
 /**
  * Instances of the class `InterpolationExpression` represent an expression embedded in a
  * string interpolation.
@@ -7202,7 +7545,6 @@ abstract class InterpolationElement extends ASTNode {
  * @coverage dart.engine.ast
  */
 class InterpolationExpression extends InterpolationElement {
-
   /**
    * The token used to introduce the interpolation expression; either '$' if the expression is a
    * simple identifier or '${' if the expression is a full expression.
@@ -7240,8 +7582,11 @@ class InterpolationExpression extends InterpolationElement {
    * @param rightBracket the right curly bracket
    */
   InterpolationExpression({Token leftBracket, Expression expression, Token rightBracket}) : this.full(leftBracket, expression, rightBracket);
+
   accept(ASTVisitor visitor) => visitor.visitInterpolationExpression(this);
+
   Token get beginToken => leftBracket;
+
   Token get endToken {
     if (rightBracket != null) {
       return rightBracket;
@@ -7265,10 +7610,12 @@ class InterpolationExpression extends InterpolationElement {
   void set expression(Expression expression) {
     this._expression = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
+
 /**
  * Instances of the class `InterpolationString` represent a non-empty substring of an
  * interpolated string.
@@ -7281,7 +7628,6 @@ class InterpolationExpression extends InterpolationElement {
  * @coverage dart.engine.ast
  */
 class InterpolationString extends InterpolationElement {
-
   /**
    * The characters that will be added to the string.
    */
@@ -7310,7 +7656,9 @@ class InterpolationString extends InterpolationElement {
    * @param value the value of the literal
    */
   InterpolationString({Token contents, String value}) : this.full(contents, value);
+
   accept(ASTVisitor visitor) => visitor.visitInterpolationString(this);
+
   Token get beginToken => _contents;
 
   /**
@@ -7319,6 +7667,7 @@ class InterpolationString extends InterpolationElement {
    * @return the characters that will be added to the string
    */
   Token get contents => _contents;
+
   Token get endToken => _contents;
 
   /**
@@ -7345,9 +7694,11 @@ class InterpolationString extends InterpolationElement {
   void set value(String string) {
     _value = string;
   }
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `IsExpression` represent an is expression.
  *
@@ -7359,7 +7710,6 @@ class InterpolationString extends InterpolationElement {
  * @coverage dart.engine.ast
  */
 class IsExpression extends Expression {
-
   /**
    * The expression used to compute the value whose type is being tested.
    */
@@ -7404,8 +7754,11 @@ class IsExpression extends Expression {
    * @param type the name of the type being tested for
    */
   IsExpression({Expression expression, Token isOperator, Token notOperator, TypeName type}) : this.full(expression, isOperator, notOperator, type);
+
   accept(ASTVisitor visitor) => visitor.visitIsExpression(this);
+
   Token get beginToken => _expression.beginToken;
+
   Token get endToken => _type.endToken;
 
   /**
@@ -7440,11 +7793,13 @@ class IsExpression extends Expression {
   void set type(TypeName name) {
     this._type = becomeParentOf(name);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     safelyVisitChild(_type, visitor);
   }
 }
+
 /**
  * Instances of the class `Label` represent a label.
  *
@@ -7456,7 +7811,6 @@ class IsExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class Label extends ASTNode {
-
   /**
    * The label being associated with the statement.
    */
@@ -7485,8 +7839,11 @@ class Label extends ASTNode {
    * @param colon the colon that separates the label from whatever follows
    */
   Label({SimpleIdentifier label, Token colon}) : this.full(label, colon);
+
   accept(ASTVisitor visitor) => visitor.visitLabel(this);
+
   Token get beginToken => _label.beginToken;
+
   Token get endToken => colon;
 
   /**
@@ -7504,10 +7861,12 @@ class Label extends ASTNode {
   void set label(SimpleIdentifier label) {
     this._label = becomeParentOf(label);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_label, visitor);
   }
 }
+
 /**
  * Instances of the class `LabeledStatement` represent a statement that has a label associated
  * with them.
@@ -7520,7 +7879,6 @@ class Label extends ASTNode {
  * @coverage dart.engine.ast
  */
 class LabeledStatement extends Statement {
-
   /**
    * The labels being associated with the statement.
    */
@@ -7550,13 +7908,16 @@ class LabeledStatement extends Statement {
    * @param statement the statement with which the labels are being associated
    */
   LabeledStatement({List<Label> labels, Statement statement}) : this.full(labels, statement);
+
   accept(ASTVisitor visitor) => visitor.visitLabeledStatement(this);
+
   Token get beginToken {
     if (!labels.isEmpty) {
       return labels.beginToken;
     }
     return _statement.beginToken;
   }
+
   Token get endToken => _statement.endToken;
 
   /**
@@ -7574,11 +7935,13 @@ class LabeledStatement extends Statement {
   void set statement(Statement statement) {
     this._statement = becomeParentOf(statement);
   }
+
   void visitChildren(ASTVisitor visitor) {
     labels.accept(visitor);
     safelyVisitChild(_statement, visitor);
   }
 }
+
 /**
  * Instances of the class `LibraryDirective` represent a library directive.
  *
@@ -7590,7 +7953,6 @@ class LabeledStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class LibraryDirective extends Directive {
-
   /**
    * The token representing the 'library' token.
    */
@@ -7631,8 +7993,11 @@ class LibraryDirective extends Directive {
    * @param semicolon the semicolon terminating the directive
    */
   LibraryDirective({Comment comment, List<Annotation> metadata, Token libraryToken, LibraryIdentifier name, Token semicolon}) : this.full(comment, metadata, libraryToken, name, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitLibraryDirective(this);
+
   Token get endToken => semicolon;
+
   Token get keyword => libraryToken;
 
   /**
@@ -7650,12 +8015,15 @@ class LibraryDirective extends Directive {
   void set name(LibraryIdentifier name) {
     this._name = becomeParentOf(name);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata => libraryToken;
 }
+
 /**
  * Instances of the class `LibraryIdentifier` represent the identifier for a library.
  *
@@ -7667,7 +8035,6 @@ class LibraryDirective extends Directive {
  * @coverage dart.engine.ast
  */
 class LibraryIdentifier extends Identifier {
-
   /**
    * The components of the identifier.
    */
@@ -7689,10 +8056,15 @@ class LibraryIdentifier extends Identifier {
    * @param components the components of the identifier
    */
   LibraryIdentifier({List<SimpleIdentifier> components}) : this.full(components);
+
   accept(ASTVisitor visitor) => visitor.visitLibraryIdentifier(this);
+
   Token get beginToken => components.beginToken;
+
   Element get bestElement => staticElement;
+
   Token get endToken => components.endToken;
+
   String get name {
     JavaStringBuilder builder = new JavaStringBuilder();
     bool needsPeriod = false;
@@ -7706,12 +8078,16 @@ class LibraryIdentifier extends Identifier {
     }
     return builder.toString();
   }
+
   Element get propagatedElement => null;
+
   Element get staticElement => null;
+
   void visitChildren(ASTVisitor visitor) {
     components.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `ListLiteral` represent a list literal.
  *
@@ -7723,7 +8099,6 @@ class LibraryIdentifier extends Identifier {
  * @coverage dart.engine.ast
  */
 class ListLiteral extends TypedLiteral {
-
   /**
    * The left square bracket.
    */
@@ -7767,7 +8142,9 @@ class ListLiteral extends TypedLiteral {
    * @param rightBracket the right square bracket
    */
   ListLiteral({Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<Expression> elements, Token rightBracket}) : this.full(constKeyword, typeArguments, leftBracket, elements, rightBracket);
+
   accept(ASTVisitor visitor) => visitor.visitListLiteral(this);
+
   Token get beginToken {
     Token token = constKeyword;
     if (token != null) {
@@ -7779,6 +8156,7 @@ class ListLiteral extends TypedLiteral {
     }
     return _leftBracket;
   }
+
   Token get endToken => _rightBracket;
 
   /**
@@ -7812,11 +8190,13 @@ class ListLiteral extends TypedLiteral {
   void set rightBracket(Token bracket) {
     _rightBracket = bracket;
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     elements.accept(visitor);
   }
 }
+
 /**
  * The abstract class `Literal` defines the behavior common to nodes that represent a literal
  * expression.
@@ -7836,6 +8216,7 @@ class ListLiteral extends TypedLiteral {
  */
 abstract class Literal extends Expression {
 }
+
 /**
  * Instances of the class `MapLiteral` represent a literal map.
  *
@@ -7847,7 +8228,6 @@ abstract class Literal extends Expression {
  * @coverage dart.engine.ast
  */
 class MapLiteral extends TypedLiteral {
-
   /**
    * The left curly bracket.
    */
@@ -7891,7 +8271,9 @@ class MapLiteral extends TypedLiteral {
    * @param rightBracket the right curly bracket
    */
   MapLiteral({Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket}) : this.full(constKeyword, typeArguments, leftBracket, entries, rightBracket);
+
   accept(ASTVisitor visitor) => visitor.visitMapLiteral(this);
+
   Token get beginToken {
     Token token = constKeyword;
     if (token != null) {
@@ -7903,6 +8285,7 @@ class MapLiteral extends TypedLiteral {
     }
     return _leftBracket;
   }
+
   Token get endToken => _rightBracket;
 
   /**
@@ -7936,11 +8319,13 @@ class MapLiteral extends TypedLiteral {
   void set rightBracket(Token bracket) {
     _rightBracket = bracket;
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     entries.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `MapLiteralEntry` represent a single key/value pair in a map
  * literal.
@@ -7953,7 +8338,6 @@ class MapLiteral extends TypedLiteral {
  * @coverage dart.engine.ast
  */
 class MapLiteralEntry extends ASTNode {
-
   /**
    * The expression computing the key with which the value will be associated.
    */
@@ -7990,8 +8374,11 @@ class MapLiteralEntry extends ASTNode {
    * @param value the expression computing the value that will be associated with the key
    */
   MapLiteralEntry({Expression key, Token separator, Expression value}) : this.full(key, separator, value);
+
   accept(ASTVisitor visitor) => visitor.visitMapLiteralEntry(this);
+
   Token get beginToken => _key.beginToken;
+
   Token get endToken => _value.endToken;
 
   /**
@@ -8027,11 +8414,13 @@ class MapLiteralEntry extends ASTNode {
   void set value(Expression expression) {
     _value = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_key, visitor);
     safelyVisitChild(_value, visitor);
   }
 }
+
 /**
  * Instances of the class `MethodDeclaration` represent a method declaration.
  *
@@ -8051,7 +8440,6 @@ class MapLiteralEntry extends ASTNode {
  * @coverage dart.engine.ast
  */
 class MethodDeclaration extends ClassMember {
-
   /**
    * The token for the 'external' keyword, or `null` if the constructor is not external.
    */
@@ -8137,6 +8525,7 @@ class MethodDeclaration extends ClassMember {
    * @param body the body of the method
    */
   MethodDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body}) : this.full(comment, metadata, externalKeyword, modifierKeyword, returnType, propertyKeyword, operatorKeyword, name, parameters, body);
+
   accept(ASTVisitor visitor) => visitor.visitMethodDeclaration(this);
 
   /**
@@ -8155,6 +8544,7 @@ class MethodDeclaration extends ClassMember {
    * @return the element associated with this method
    */
   ExecutableElement get element => _name != null ? (_name.staticElement as ExecutableElement) : null;
+
   Token get endToken => _body.endToken;
 
   /**
@@ -8191,7 +8581,7 @@ class MethodDeclaration extends ClassMember {
    *
    * @return `true` if this method declares a getter
    */
-  bool get isGetter => propertyKeyword != null && identical(((propertyKeyword as KeywordToken)).keyword, Keyword.GET);
+  bool get isGetter => propertyKeyword != null && identical((propertyKeyword as KeywordToken).keyword, Keyword.GET);
 
   /**
    * Return `true` if this method declares an operator.
@@ -8205,14 +8595,14 @@ class MethodDeclaration extends ClassMember {
    *
    * @return `true` if this method declares a setter
    */
-  bool get isSetter => propertyKeyword != null && identical(((propertyKeyword as KeywordToken)).keyword, Keyword.SET);
+  bool get isSetter => propertyKeyword != null && identical((propertyKeyword as KeywordToken).keyword, Keyword.SET);
 
   /**
    * Return `true` if this method is declared to be a static method.
    *
    * @return `true` if this method is declared to be a static method
    */
-  bool get isStatic => modifierKeyword != null && identical(((modifierKeyword as KeywordToken)).keyword, Keyword.STATIC);
+  bool get isStatic => modifierKeyword != null && identical((modifierKeyword as KeywordToken).keyword, Keyword.STATIC);
 
   /**
    * Set the body of the method to the given function body.
@@ -8249,6 +8639,7 @@ class MethodDeclaration extends ClassMember {
   void set returnType(TypeName typeName) {
     _returnType = becomeParentOf(typeName);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_returnType, visitor);
@@ -8256,6 +8647,7 @@ class MethodDeclaration extends ClassMember {
     safelyVisitChild(_parameters, visitor);
     safelyVisitChild(_body, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata {
     if (modifierKeyword != null) {
       return modifierKeyword;
@@ -8269,6 +8661,7 @@ class MethodDeclaration extends ClassMember {
     return _name.beginToken;
   }
 }
+
 /**
  * Instances of the class `MethodInvocation` represent the invocation of either a function or
  * a method. Invocations of functions resulting from evaluating an expression are represented by
@@ -8284,7 +8677,6 @@ class MethodDeclaration extends ClassMember {
  * @coverage dart.engine.ast
  */
 class MethodInvocation extends Expression {
-
   /**
    * The expression producing the object on which the method is defined, or `null` if there is
    * no target (that is, the target is implicitly `this`).
@@ -8331,6 +8723,7 @@ class MethodInvocation extends Expression {
    * @param argumentList the list of arguments to the method
    */
   MethodInvocation({Expression target, Token period, SimpleIdentifier methodName, ArgumentList argumentList}) : this.full(target, period, methodName, argumentList);
+
   accept(ASTVisitor visitor) => visitor.visitMethodInvocation(this);
 
   /**
@@ -8339,6 +8732,7 @@ class MethodInvocation extends Expression {
    * @return the list of arguments to the method
    */
   ArgumentList get argumentList => _argumentList;
+
   Token get beginToken {
     if (_target != null) {
       return _target.beginToken;
@@ -8347,6 +8741,7 @@ class MethodInvocation extends Expression {
     }
     return _methodName.beginToken;
   }
+
   Token get endToken => _argumentList.endToken;
 
   /**
@@ -8374,7 +8769,7 @@ class MethodInvocation extends Expression {
         }
         ancestor = ancestor.parent;
       }
-      return ((ancestor as CascadeExpression)).target;
+      return (ancestor as CascadeExpression).target;
     }
     return _target;
   }
@@ -8424,12 +8819,14 @@ class MethodInvocation extends Expression {
   void set target(Expression expression) {
     _target = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_methodName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
 }
+
 /**
  * Instances of the class `NamedExpression` represent an expression that has a name associated
  * with it. They are used in method invocations when there are named parameters.
@@ -8442,7 +8839,6 @@ class MethodInvocation extends Expression {
  * @coverage dart.engine.ast
  */
 class NamedExpression extends Expression {
-
   /**
    * The name associated with the expression.
    */
@@ -8471,7 +8867,9 @@ class NamedExpression extends Expression {
    * @param expression the expression with which the name is associated
    */
   NamedExpression({Label name, Expression expression}) : this.full(name, expression);
+
   accept(ASTVisitor visitor) => visitor.visitNamedExpression(this);
+
   Token get beginToken => _name.beginToken;
 
   /**
@@ -8488,6 +8886,7 @@ class NamedExpression extends Expression {
     }
     return null;
   }
+
   Token get endToken => _expression.endToken;
 
   /**
@@ -8521,11 +8920,13 @@ class NamedExpression extends Expression {
   void set name(Label identifier) {
     _name = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_expression, visitor);
   }
 }
+
 /**
  * The abstract class `NamespaceDirective` defines the behavior common to nodes that represent
  * a directive that impacts the namespace of a library.
@@ -8539,7 +8940,6 @@ class NamedExpression extends Expression {
  * @coverage dart.engine.ast
  */
 abstract class NamespaceDirective extends UriBasedDirective {
-
   /**
    * The token representing the 'import' or 'export' keyword.
    */
@@ -8583,8 +8983,11 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * @param semicolon the semicolon terminating the directive
    */
   NamespaceDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, combinators, semicolon);
+
   Token get endToken => semicolon;
+
   Token get keyword => _keyword;
+
   LibraryElement get uriElement;
 
   /**
@@ -8595,8 +8998,10 @@ abstract class NamespaceDirective extends UriBasedDirective {
   void set keyword(Token exportToken) {
     this._keyword = exportToken;
   }
+
   Token get firstTokenAfterCommentAndMetadata => _keyword;
 }
+
 /**
  * Instances of the class `NativeClause` represent the "native" clause in an class
  * declaration.
@@ -8609,7 +9014,6 @@ abstract class NamespaceDirective extends UriBasedDirective {
  * @coverage dart.engine.ast
  */
 class NativeClause extends ASTNode {
-
   /**
    * The token representing the 'native' keyword.
    */
@@ -8638,13 +9042,18 @@ class NativeClause extends ASTNode {
    * @param name the name of the native object that implements the class.
    */
   NativeClause({Token keyword, StringLiteral name}) : this.full(keyword, name);
+
   accept(ASTVisitor visitor) => visitor.visitNativeClause(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => name.endToken;
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(name, visitor);
   }
 }
+
 /**
  * Instances of the class `NativeFunctionBody` represent a function body that consists of a
  * native keyword followed by a string literal.
@@ -8657,7 +9066,6 @@ class NativeClause extends ASTNode {
  * @coverage dart.engine.ast
  */
 class NativeFunctionBody extends FunctionBody {
-
   /**
    * The token representing 'native' that marks the start of the function body.
    */
@@ -8696,13 +9104,18 @@ class NativeFunctionBody extends FunctionBody {
    * @param semicolon the token representing the semicolon that marks the end of the function body
    */
   NativeFunctionBody({Token nativeToken, StringLiteral stringLiteral, Token semicolon}) : this.full(nativeToken, stringLiteral, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitNativeFunctionBody(this);
+
   Token get beginToken => nativeToken;
+
   Token get endToken => semicolon;
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(stringLiteral, visitor);
   }
 }
+
 /**
  * The abstract class `NormalFormalParameter` defines the behavior common to formal parameters
  * that are required (are not optional).
@@ -8717,7 +9130,6 @@ class NativeFunctionBody extends FunctionBody {
  * @coverage dart.engine.ast
  */
 abstract class NormalFormalParameter extends FormalParameter {
-
   /**
    * The documentation comment associated with this parameter, or `null` if this parameter
    * does not have a documentation comment associated with it.
@@ -8764,11 +9176,13 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @return the documentation comment associated with this parameter
    */
   Comment get documentationComment => _comment;
+
   SimpleIdentifier get identifier => _identifier;
+
   ParameterKind get kind {
     ASTNode parent = this.parent;
     if (parent is DefaultFormalParameter) {
-      return ((parent as DefaultFormalParameter)).kind;
+      return (parent as DefaultFormalParameter).kind;
     }
     return ParameterKind.REQUIRED;
   }
@@ -8790,6 +9204,7 @@ abstract class NormalFormalParameter extends FormalParameter {
   void set identifier(SimpleIdentifier identifier) {
     this._identifier = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(_comment, visitor);
@@ -8830,6 +9245,7 @@ abstract class NormalFormalParameter extends FormalParameter {
     return children;
   }
 }
+
 /**
  * Instances of the class `NullLiteral` represent a null literal expression.
  *
@@ -8841,7 +9257,6 @@ abstract class NormalFormalParameter extends FormalParameter {
  * @coverage dart.engine.ast
  */
 class NullLiteral extends Literal {
-
   /**
    * The token representing the literal.
    */
@@ -8862,12 +9277,17 @@ class NullLiteral extends Literal {
    * @param token the token representing the literal
    */
   NullLiteral({Token token}) : this.full(token);
+
   accept(ASTVisitor visitor) => visitor.visitNullLiteral(this);
+
   Token get beginToken => literal;
+
   Token get endToken => literal;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `ParenthesizedExpression` represent a parenthesized expression.
  *
@@ -8879,7 +9299,6 @@ class NullLiteral extends Literal {
  * @coverage dart.engine.ast
  */
 class ParenthesizedExpression extends Expression {
-
   /**
    * The left parenthesis.
    */
@@ -8916,8 +9335,11 @@ class ParenthesizedExpression extends Expression {
    * @param rightParenthesis the right parenthesis
    */
   ParenthesizedExpression({Token leftParenthesis, Expression expression, Token rightParenthesis}) : this.full(leftParenthesis, expression, rightParenthesis);
+
   accept(ASTVisitor visitor) => visitor.visitParenthesizedExpression(this);
+
   Token get beginToken => _leftParenthesis;
+
   Token get endToken => _rightParenthesis;
 
   /**
@@ -8967,10 +9389,12 @@ class ParenthesizedExpression extends Expression {
   void set rightParenthesis(Token parenthesis) {
     _rightParenthesis = parenthesis;
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
+
 /**
  * Instances of the class `PartDirective` represent a part directive.
  *
@@ -8982,7 +9406,6 @@ class ParenthesizedExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class PartDirective extends UriBasedDirective {
-
   /**
    * The token representing the 'part' token.
    */
@@ -9017,12 +9440,18 @@ class PartDirective extends UriBasedDirective {
    * @param semicolon the semicolon terminating the directive
    */
   PartDirective({Comment comment, List<Annotation> metadata, Token partToken, StringLiteral partUri, Token semicolon}) : this.full(comment, metadata, partToken, partUri, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitPartDirective(this);
+
   Token get endToken => semicolon;
+
   Token get keyword => partToken;
+
   CompilationUnitElement get uriElement => element as CompilationUnitElement;
+
   Token get firstTokenAfterCommentAndMetadata => partToken;
 }
+
 /**
  * Instances of the class `PartOfDirective` represent a part-of directive.
  *
@@ -9034,7 +9463,6 @@ class PartDirective extends UriBasedDirective {
  * @coverage dart.engine.ast
  */
 class PartOfDirective extends Directive {
-
   /**
    * The token representing the 'part' token.
    */
@@ -9083,8 +9511,11 @@ class PartOfDirective extends Directive {
    * @param semicolon the semicolon terminating the directive
    */
   PartOfDirective({Comment comment, List<Annotation> metadata, Token partToken, Token ofToken, LibraryIdentifier libraryName, Token semicolon}) : this.full(comment, metadata, partToken, ofToken, libraryName, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitPartOfDirective(this);
+
   Token get endToken => semicolon;
+
   Token get keyword => partToken;
 
   /**
@@ -9102,12 +9533,15 @@ class PartOfDirective extends Directive {
   void set libraryName(LibraryIdentifier libraryName) {
     this._libraryName = becomeParentOf(libraryName);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_libraryName, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata => partToken;
 }
+
 /**
  * Instances of the class `PostfixExpression` represent a postfix unary expression.
  *
@@ -9119,7 +9553,6 @@ class PartOfDirective extends Directive {
  * @coverage dart.engine.ast
  */
 class PostfixExpression extends Expression {
-
   /**
    * The expression computing the operand for the operator.
    */
@@ -9162,7 +9595,9 @@ class PostfixExpression extends Expression {
    * @param operator the postfix operator being applied to the operand
    */
   PostfixExpression({Expression operand, Token operator}) : this.full(operand, operator);
+
   accept(ASTVisitor visitor) => visitor.visitPostfixExpression(this);
+
   Token get beginToken => _operand.beginToken;
 
   /**
@@ -9180,6 +9615,7 @@ class PostfixExpression extends Expression {
     }
     return element;
   }
+
   Token get endToken => operator;
 
   /**
@@ -9237,6 +9673,7 @@ class PostfixExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_operand, visitor);
   }
@@ -9283,6 +9720,7 @@ class PostfixExpression extends Expression {
     return parameters[0];
   }
 }
+
 /**
  * Instances of the class `PrefixExpression` represent a prefix unary expression.
  *
@@ -9294,7 +9732,6 @@ class PostfixExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class PrefixExpression extends Expression {
-
   /**
    * The prefix operator being applied to the operand.
    */
@@ -9337,7 +9774,9 @@ class PrefixExpression extends Expression {
    * @param operand the expression computing the operand for the operator
    */
   PrefixExpression({Token operator, Expression operand}) : this.full(operator, operand);
+
   accept(ASTVisitor visitor) => visitor.visitPrefixExpression(this);
+
   Token get beginToken => operator;
 
   /**
@@ -9355,6 +9794,7 @@ class PrefixExpression extends Expression {
     }
     return element;
   }
+
   Token get endToken => _operand.endToken;
 
   /**
@@ -9412,6 +9852,7 @@ class PrefixExpression extends Expression {
   void set staticElement(MethodElement element) {
     _staticElement = element;
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_operand, visitor);
   }
@@ -9458,6 +9899,7 @@ class PrefixExpression extends Expression {
     return parameters[0];
   }
 }
+
 /**
  * Instances of the class `PrefixedIdentifier` represent either an identifier that is prefixed
  * or an access to an object property where the target of the property access is a simple
@@ -9471,7 +9913,6 @@ class PrefixExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class PrefixedIdentifier extends Identifier {
-
   /**
    * The prefix associated with the library in which the identifier is defined.
    */
@@ -9508,14 +9949,18 @@ class PrefixedIdentifier extends Identifier {
    * @param identifier the prefix associated with the library in which the identifier is defined
    */
   PrefixedIdentifier({SimpleIdentifier prefix, Token period, SimpleIdentifier identifier}) : this.full(prefix, period, identifier);
+
   accept(ASTVisitor visitor) => visitor.visitPrefixedIdentifier(this);
+
   Token get beginToken => _prefix.beginToken;
+
   Element get bestElement {
     if (_identifier == null) {
       return null;
     }
     return _identifier.bestElement;
   }
+
   Token get endToken => _identifier.endToken;
 
   /**
@@ -9524,6 +9969,7 @@ class PrefixedIdentifier extends Identifier {
    * @return the identifier being prefixed
    */
   SimpleIdentifier get identifier => _identifier;
+
   String get name => "${_prefix.name}.${_identifier.name}";
 
   /**
@@ -9532,12 +9978,14 @@ class PrefixedIdentifier extends Identifier {
    * @return the prefix associated with the library in which the identifier is defined
    */
   SimpleIdentifier get prefix => _prefix;
+
   Element get propagatedElement {
     if (_identifier == null) {
       return null;
     }
     return _identifier.propagatedElement;
   }
+
   Element get staticElement {
     if (_identifier == null) {
       return null;
@@ -9563,11 +10011,13 @@ class PrefixedIdentifier extends Identifier {
   void set prefix(SimpleIdentifier identifier) {
     _prefix = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_prefix, visitor);
     safelyVisitChild(_identifier, visitor);
   }
 }
+
 /**
  * Instances of the class `PropertyAccess` represent the access of a property of an object.
  *
@@ -9583,7 +10033,6 @@ class PrefixedIdentifier extends Identifier {
  * @coverage dart.engine.ast
  */
 class PropertyAccess extends Expression {
-
   /**
    * The expression computing the object defining the property being accessed.
    */
@@ -9620,13 +10069,16 @@ class PropertyAccess extends Expression {
    * @param propertyName the name of the property being accessed
    */
   PropertyAccess({Expression target, Token operator, SimpleIdentifier propertyName}) : this.full(target, operator, propertyName);
+
   accept(ASTVisitor visitor) => visitor.visitPropertyAccess(this);
+
   Token get beginToken {
     if (_target != null) {
       return _target.beginToken;
     }
     return operator;
   }
+
   Token get endToken => _propertyName.endToken;
 
   /**
@@ -9654,7 +10106,7 @@ class PropertyAccess extends Expression {
         }
         ancestor = ancestor.parent;
       }
-      return ((ancestor as CascadeExpression)).target;
+      return (ancestor as CascadeExpression).target;
     }
     return _target;
   }
@@ -9667,6 +10119,7 @@ class PropertyAccess extends Expression {
    * @see #getRealTarget()
    */
   Expression get target => _target;
+
   bool get isAssignable => true;
 
   /**
@@ -9696,11 +10149,13 @@ class PropertyAccess extends Expression {
   void set target(Expression expression) {
     _target = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
     safelyVisitChild(_propertyName, visitor);
   }
 }
+
 /**
  * Instances of the class `RedirectingConstructorInvocation` represent the invocation of a
  * another constructor in the same class from within a constructor's initialization list.
@@ -9713,7 +10168,6 @@ class PropertyAccess extends Expression {
  * @coverage dart.engine.ast
  */
 class RedirectingConstructorInvocation extends ConstructorInitializer {
-
   /**
    * The token for the 'this' keyword.
    */
@@ -9768,6 +10222,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @param argumentList the list of arguments to the constructor
    */
   RedirectingConstructorInvocation({Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList}) : this.full(keyword, period, constructorName, argumentList);
+
   accept(ASTVisitor visitor) => visitor.visitRedirectingConstructorInvocation(this);
 
   /**
@@ -9776,6 +10231,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @return the list of arguments to the constructor
    */
   ArgumentList get argumentList => _argumentList;
+
   Token get beginToken => keyword;
 
   /**
@@ -9785,6 +10241,7 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @return the name of the constructor that is being invoked
    */
   SimpleIdentifier get constructorName => _constructorName;
+
   Token get endToken => _argumentList.endToken;
 
   /**
@@ -9804,11 +10261,13 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
   void set constructorName(SimpleIdentifier identifier) {
     _constructorName = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
 }
+
 /**
  * Instances of the class `RethrowExpression` represent a rethrow expression.
  *
@@ -9820,7 +10279,6 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
  * @coverage dart.engine.ast
  */
 class RethrowExpression extends Expression {
-
   /**
    * The token representing the 'rethrow' keyword.
    */
@@ -9841,12 +10299,17 @@ class RethrowExpression extends Expression {
    * @param keyword the token representing the 'rethrow' keyword
    */
   RethrowExpression({Token keyword}) : this.full(keyword);
+
   accept(ASTVisitor visitor) => visitor.visitRethrowExpression(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => keyword;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `ReturnStatement` represent a return statement.
  *
@@ -9858,7 +10321,6 @@ class RethrowExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class ReturnStatement extends Statement {
-
   /**
    * The token representing the 'return' keyword.
    */
@@ -9896,8 +10358,11 @@ class ReturnStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   ReturnStatement({Token keyword, Expression expression, Token semicolon}) : this.full(keyword, expression, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitReturnStatement(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => semicolon;
 
   /**
@@ -9916,10 +10381,12 @@ class ReturnStatement extends Statement {
   void set expression(Expression expression) {
     this._expression = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
+
 /**
  * Instances of the class `ScriptTag` represent the script tag that can optionally occur at
  * the beginning of a compilation unit.
@@ -9932,7 +10399,6 @@ class ReturnStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class ScriptTag extends ASTNode {
-
   /**
    * The token representing this script tag.
    */
@@ -9953,12 +10419,17 @@ class ScriptTag extends ASTNode {
    * @param scriptTag the token representing this script tag
    */
   ScriptTag({Token scriptTag}) : this.full(scriptTag);
+
   accept(ASTVisitor visitor) => visitor.visitScriptTag(this);
+
   Token get beginToken => scriptTag;
+
   Token get endToken => scriptTag;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `ShowCombinator` represent a combinator that restricts the names
  * being imported to those in a given list.
@@ -9971,7 +10442,6 @@ class ScriptTag extends ASTNode {
  * @coverage dart.engine.ast
  */
 class ShowCombinator extends Combinator {
-
   /**
    * The list of names from the library that are made visible by this combinator.
    */
@@ -9995,12 +10465,16 @@ class ShowCombinator extends Combinator {
    * @param shownNames the list of names from the library that are made visible by this combinator
    */
   ShowCombinator({Token keyword, List<SimpleIdentifier> shownNames}) : this.full(keyword, shownNames);
+
   accept(ASTVisitor visitor) => visitor.visitShowCombinator(this);
+
   Token get endToken => shownNames.endToken;
+
   void visitChildren(ASTVisitor visitor) {
     shownNames.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `SimpleFormalParameter` represent a simple formal parameter.
  *
@@ -10012,7 +10486,6 @@ class ShowCombinator extends Combinator {
  * @coverage dart.engine.ast
  */
 class SimpleFormalParameter extends NormalFormalParameter {
-
   /**
    * The token representing either the 'final', 'const' or 'var' keyword, or `null` if no
    * keyword was used.
@@ -10049,7 +10522,9 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * @param identifier the name of the parameter being declared
    */
   SimpleFormalParameter({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier}) : this.full(comment, metadata, keyword, type, identifier);
+
   accept(ASTVisitor visitor) => visitor.visitSimpleFormalParameter(this);
+
   Token get beginToken {
     if (keyword != null) {
       return keyword;
@@ -10058,6 +10533,7 @@ class SimpleFormalParameter extends NormalFormalParameter {
     }
     return identifier.beginToken;
   }
+
   Token get endToken => identifier.endToken;
 
   /**
@@ -10067,8 +10543,10 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * @return the name of the declared type of the parameter
    */
   TypeName get type => _type;
-  bool get isConst => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
-  bool get isFinal => (keyword is KeywordToken) && identical(((keyword as KeywordToken)).keyword, Keyword.FINAL);
+
+  bool get isConst => (keyword is KeywordToken) && identical((keyword as KeywordToken).keyword, Keyword.CONST);
+
+  bool get isFinal => (keyword is KeywordToken) && identical((keyword as KeywordToken).keyword, Keyword.FINAL);
 
   /**
    * Set the name of the declared type of the parameter to the given type name.
@@ -10078,12 +10556,14 @@ class SimpleFormalParameter extends NormalFormalParameter {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
     safelyVisitChild(identifier, visitor);
   }
 }
+
 /**
  * Instances of the class `SimpleIdentifier` represent a simple identifier.
  *
@@ -10099,7 +10579,6 @@ class SimpleFormalParameter extends NormalFormalParameter {
  * @coverage dart.engine.ast
  */
 class SimpleIdentifier extends Identifier {
-
   /**
    * The token representing the identifier.
    */
@@ -10140,17 +10619,24 @@ class SimpleIdentifier extends Identifier {
    * @param token the token representing the identifier
    */
   SimpleIdentifier({Token token}) : this.full(token);
+
   accept(ASTVisitor visitor) => visitor.visitSimpleIdentifier(this);
+
   Token get beginToken => token;
+
   Element get bestElement {
     if (_propagatedElement == null) {
       return _staticElement;
     }
     return _propagatedElement;
   }
+
   Token get endToken => token;
+
   String get name => token.lexeme;
+
   Element get propagatedElement => _propagatedElement;
+
   Element get staticElement => _staticElement;
 
   /**
@@ -10164,27 +10650,27 @@ class SimpleIdentifier extends Identifier {
       CatchClause clause = parent as CatchClause;
       return identical(this, clause.exceptionParameter) || identical(this, clause.stackTraceParameter);
     } else if (parent is ClassDeclaration) {
-      return identical(this, ((parent as ClassDeclaration)).name);
+      return identical(this, (parent as ClassDeclaration).name);
     } else if (parent is ClassTypeAlias) {
-      return identical(this, ((parent as ClassTypeAlias)).name);
+      return identical(this, (parent as ClassTypeAlias).name);
     } else if (parent is ConstructorDeclaration) {
-      return identical(this, ((parent as ConstructorDeclaration)).name);
+      return identical(this, (parent as ConstructorDeclaration).name);
     } else if (parent is DeclaredIdentifier) {
-      return identical(this, ((parent as DeclaredIdentifier)).identifier);
+      return identical(this, (parent as DeclaredIdentifier).identifier);
     } else if (parent is FunctionDeclaration) {
-      return identical(this, ((parent as FunctionDeclaration)).name);
+      return identical(this, (parent as FunctionDeclaration).name);
     } else if (parent is FunctionTypeAlias) {
-      return identical(this, ((parent as FunctionTypeAlias)).name);
+      return identical(this, (parent as FunctionTypeAlias).name);
     } else if (parent is Label) {
-      return identical(this, ((parent as Label)).label) && (parent.parent is LabeledStatement);
+      return identical(this, (parent as Label).label) && (parent.parent is LabeledStatement);
     } else if (parent is MethodDeclaration) {
-      return identical(this, ((parent as MethodDeclaration)).name);
+      return identical(this, (parent as MethodDeclaration).name);
     } else if (parent is FunctionTypedFormalParameter || parent is SimpleFormalParameter) {
-      return identical(this, ((parent as NormalFormalParameter)).identifier);
+      return identical(this, (parent as NormalFormalParameter).identifier);
     } else if (parent is TypeParameter) {
-      return identical(this, ((parent as TypeParameter)).name);
+      return identical(this, (parent as TypeParameter).name);
     } else if (parent is VariableDeclaration) {
-      return identical(this, ((parent as VariableDeclaration)).name);
+      return identical(this, (parent as VariableDeclaration).name);
     }
     return false;
   }
@@ -10256,14 +10742,15 @@ class SimpleIdentifier extends Identifier {
       target = access;
     }
     if (parent is PrefixExpression) {
-      return ((parent as PrefixExpression)).operator.type.isIncrementOperator;
+      return (parent as PrefixExpression).operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
       return true;
     } else if (parent is AssignmentExpression) {
-      return identical(((parent as AssignmentExpression)).leftHandSide, target);
+      return identical((parent as AssignmentExpression).leftHandSide, target);
     }
     return false;
   }
+
   bool get isSynthetic => token.isSynthetic;
 
   /**
@@ -10285,6 +10772,7 @@ class SimpleIdentifier extends Identifier {
   void set staticElement(Element element) {
     _staticElement = validateElement2(element);
   }
+
   void visitChildren(ASTVisitor visitor) {
   }
 
@@ -10315,28 +10803,29 @@ class SimpleIdentifier extends Identifier {
       return null;
     }
     ASTNode parent = this.parent;
-    if (parent is ClassDeclaration && identical(((parent as ClassDeclaration)).name, this)) {
+    if (parent is ClassDeclaration && identical((parent as ClassDeclaration).name, this)) {
       return validateElement(parent, ClassElement, element);
-    } else if (parent is ClassTypeAlias && identical(((parent as ClassTypeAlias)).name, this)) {
+    } else if (parent is ClassTypeAlias && identical((parent as ClassTypeAlias).name, this)) {
       return validateElement(parent, ClassElement, element);
-    } else if (parent is DeclaredIdentifier && identical(((parent as DeclaredIdentifier)).identifier, this)) {
+    } else if (parent is DeclaredIdentifier && identical((parent as DeclaredIdentifier).identifier, this)) {
       return validateElement(parent, LocalVariableElement, element);
-    } else if (parent is FormalParameter && identical(((parent as FormalParameter)).identifier, this)) {
+    } else if (parent is FormalParameter && identical((parent as FormalParameter).identifier, this)) {
       return validateElement(parent, ParameterElement, element);
-    } else if (parent is FunctionDeclaration && identical(((parent as FunctionDeclaration)).name, this)) {
+    } else if (parent is FunctionDeclaration && identical((parent as FunctionDeclaration).name, this)) {
       return validateElement(parent, ExecutableElement, element);
-    } else if (parent is FunctionTypeAlias && identical(((parent as FunctionTypeAlias)).name, this)) {
+    } else if (parent is FunctionTypeAlias && identical((parent as FunctionTypeAlias).name, this)) {
       return validateElement(parent, FunctionTypeAliasElement, element);
-    } else if (parent is MethodDeclaration && identical(((parent as MethodDeclaration)).name, this)) {
+    } else if (parent is MethodDeclaration && identical((parent as MethodDeclaration).name, this)) {
       return validateElement(parent, ExecutableElement, element);
-    } else if (parent is TypeParameter && identical(((parent as TypeParameter)).name, this)) {
+    } else if (parent is TypeParameter && identical((parent as TypeParameter).name, this)) {
       return validateElement(parent, TypeParameterElement, element);
-    } else if (parent is VariableDeclaration && identical(((parent as VariableDeclaration)).name, this)) {
+    } else if (parent is VariableDeclaration && identical((parent as VariableDeclaration).name, this)) {
       return validateElement(parent, VariableElement, element);
     }
     return element;
   }
 }
+
 /**
  * Instances of the class `SimpleStringLiteral` represent a string literal expression that
  * does not contain any interpolations.
@@ -10365,7 +10854,6 @@ class SimpleIdentifier extends Identifier {
  * @coverage dart.engine.ast
  */
 class SimpleStringLiteral extends StringLiteral {
-
   /**
    * The token representing the literal.
    */
@@ -10394,8 +10882,11 @@ class SimpleStringLiteral extends StringLiteral {
    * @param value the value of the literal
    */
   SimpleStringLiteral({Token literal, String value}) : this.full(literal, value);
+
   accept(ASTVisitor visitor) => visitor.visitSimpleStringLiteral(this);
+
   Token get beginToken => literal;
+
   Token get endToken => literal;
 
   /**
@@ -10423,6 +10914,7 @@ class SimpleStringLiteral extends StringLiteral {
    * @return `true` if this string literal is a raw string
    */
   bool get isRaw => _value.codeUnitAt(0) == 0x40;
+
   bool get isSynthetic => literal.isSynthetic;
 
   /**
@@ -10433,12 +10925,15 @@ class SimpleStringLiteral extends StringLiteral {
   void set value(String string) {
     _value = StringUtilities.intern(_value);
   }
+
   void visitChildren(ASTVisitor visitor) {
   }
+
   void appendStringValue(JavaStringBuilder builder) {
     builder.append(value);
   }
 }
+
 /**
  * Instances of the class `Statement` defines the behavior common to nodes that represent a
  * statement.
@@ -10465,6 +10960,7 @@ class SimpleStringLiteral extends StringLiteral {
  */
 abstract class Statement extends ASTNode {
 }
+
 /**
  * Instances of the class `StringInterpolation` represent a string interpolation literal.
  *
@@ -10477,7 +10973,6 @@ abstract class Statement extends ASTNode {
  * @coverage dart.engine.ast
  */
 class StringInterpolation extends StringLiteral {
-
   /**
    * The elements that will be composed to produce the resulting string.
    */
@@ -10499,16 +10994,22 @@ class StringInterpolation extends StringLiteral {
    * @param elements the elements that will be composed to produce the resulting string
    */
   StringInterpolation({List<InterpolationElement> elements}) : this.full(elements);
+
   accept(ASTVisitor visitor) => visitor.visitStringInterpolation(this);
+
   Token get beginToken => elements.beginToken;
+
   Token get endToken => elements.endToken;
+
   void visitChildren(ASTVisitor visitor) {
     elements.accept(visitor);
   }
+
   void appendStringValue(JavaStringBuilder builder) {
     throw new IllegalArgumentException();
   }
 }
+
 /**
  * Instances of the class `StringLiteral` represent a string literal expression.
  *
@@ -10522,7 +11023,6 @@ class StringInterpolation extends StringLiteral {
  * @coverage dart.engine.ast
  */
 abstract class StringLiteral extends Literal {
-
   /**
    * Return the value of the string literal, or `null` if the string is not a constant string
    * without any string interpolation.
@@ -10548,6 +11048,7 @@ abstract class StringLiteral extends Literal {
    */
   void appendStringValue(JavaStringBuilder builder);
 }
+
 /**
  * Instances of the class `SuperConstructorInvocation` represent the invocation of a
  * superclass' constructor from within a constructor's initialization list.
@@ -10560,7 +11061,6 @@ abstract class StringLiteral extends Literal {
  * @coverage dart.engine.ast
  */
 class SuperConstructorInvocation extends ConstructorInitializer {
-
   /**
    * The token for the 'super' keyword.
    */
@@ -10615,6 +11115,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @param argumentList the list of arguments to the constructor
    */
   SuperConstructorInvocation({Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList}) : this.full(keyword, period, constructorName, argumentList);
+
   accept(ASTVisitor visitor) => visitor.visitSuperConstructorInvocation(this);
 
   /**
@@ -10623,6 +11124,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @return the list of arguments to the constructor
    */
   ArgumentList get argumentList => _argumentList;
+
   Token get beginToken => keyword;
 
   /**
@@ -10632,6 +11134,7 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @return the name of the constructor that is being invoked
    */
   SimpleIdentifier get constructorName => _constructorName;
+
   Token get endToken => _argumentList.endToken;
 
   /**
@@ -10651,11 +11154,13 @@ class SuperConstructorInvocation extends ConstructorInitializer {
   void set constructorName(SimpleIdentifier identifier) {
     _constructorName = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_constructorName, visitor);
     safelyVisitChild(_argumentList, visitor);
   }
 }
+
 /**
  * Instances of the class `SuperExpression` represent a super expression.
  *
@@ -10667,7 +11172,6 @@ class SuperConstructorInvocation extends ConstructorInitializer {
  * @coverage dart.engine.ast
  */
 class SuperExpression extends Expression {
-
   /**
    * The token representing the keyword.
    */
@@ -10688,12 +11192,17 @@ class SuperExpression extends Expression {
    * @param keyword the token representing the keyword
    */
   SuperExpression({Token keyword}) : this.full(keyword);
+
   accept(ASTVisitor visitor) => visitor.visitSuperExpression(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => keyword;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `SwitchCase` represent the case in a switch statement.
  *
@@ -10705,7 +11214,6 @@ class SuperExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class SwitchCase extends SwitchMember {
-
   /**
    * The expression controlling whether the statements will be executed.
    */
@@ -10734,6 +11242,7 @@ class SwitchCase extends SwitchMember {
    * @param statements the statements that will be executed if this switch member is selected
    */
   SwitchCase({List<Label> labels, Token keyword, Expression expression, Token colon, List<Statement> statements}) : this.full(labels, keyword, expression, colon, statements);
+
   accept(ASTVisitor visitor) => visitor.visitSwitchCase(this);
 
   /**
@@ -10751,12 +11260,14 @@ class SwitchCase extends SwitchMember {
   void set expression(Expression expression) {
     this._expression = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     labels.accept(visitor);
     safelyVisitChild(_expression, visitor);
     statements.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `SwitchDefault` represent the default case in a switch statement.
  *
@@ -10768,7 +11279,6 @@ class SwitchCase extends SwitchMember {
  * @coverage dart.engine.ast
  */
 class SwitchDefault extends SwitchMember {
-
   /**
    * Initialize a newly created switch default.
    *
@@ -10788,12 +11298,15 @@ class SwitchDefault extends SwitchMember {
    * @param statements the statements that will be executed if this switch member is selected
    */
   SwitchDefault({List<Label> labels, Token keyword, Token colon, List<Statement> statements}) : this.full(labels, keyword, colon, statements);
+
   accept(ASTVisitor visitor) => visitor.visitSwitchDefault(this);
+
   void visitChildren(ASTVisitor visitor) {
     labels.accept(visitor);
     statements.accept(visitor);
   }
 }
+
 /**
  * The abstract class `SwitchMember` defines the behavior common to objects representing
  * elements within a switch statement.
@@ -10807,7 +11320,6 @@ class SwitchDefault extends SwitchMember {
  * @coverage dart.engine.ast
  */
 abstract class SwitchMember extends ASTNode {
-
   /**
    * The labels associated with the switch member.
    */
@@ -10854,12 +11366,14 @@ abstract class SwitchMember extends ASTNode {
    * @param statements the statements that will be executed if this switch member is selected
    */
   SwitchMember({List<Label> labels, Token keyword, Token colon, List<Statement> statements}) : this.full(labels, keyword, colon, statements);
+
   Token get beginToken {
     if (!labels.isEmpty) {
       return labels.beginToken;
     }
     return keyword;
   }
+
   Token get endToken {
     if (!statements.isEmpty) {
       return statements.endToken;
@@ -10867,6 +11381,7 @@ abstract class SwitchMember extends ASTNode {
     return colon;
   }
 }
+
 /**
  * Instances of the class `SwitchStatement` represent a switch statement.
  *
@@ -10878,7 +11393,6 @@ abstract class SwitchMember extends ASTNode {
  * @coverage dart.engine.ast
  */
 class SwitchStatement extends Statement {
-
   /**
    * The token representing the 'switch' keyword.
    */
@@ -10948,8 +11462,11 @@ class SwitchStatement extends Statement {
    * @param rightBracket the right curly bracket
    */
   SwitchStatement({Token keyword, Token leftParenthesis, Expression expression, Token rightParenthesis, Token leftBracket, List<SwitchMember> members, Token rightBracket}) : this.full(keyword, leftParenthesis, expression, rightParenthesis, leftBracket, members, rightBracket);
+
   accept(ASTVisitor visitor) => visitor.visitSwitchStatement(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => rightBracket;
 
   /**
@@ -10968,11 +11485,13 @@ class SwitchStatement extends Statement {
   void set expression(Expression expression) {
     this._expression = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
     members.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `SymbolLiteral` represent a symbol literal expression.
  *
@@ -10984,7 +11503,6 @@ class SwitchStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class SymbolLiteral extends Literal {
-
   /**
    * The token introducing the literal.
    */
@@ -11013,12 +11531,17 @@ class SymbolLiteral extends Literal {
    * @param components the components of the literal
    */
   SymbolLiteral({Token poundSign, List<Token> components}) : this.full(poundSign, components);
+
   accept(ASTVisitor visitor) => visitor.visitSymbolLiteral(this);
+
   Token get beginToken => poundSign;
+
   Token get endToken => components[components.length - 1];
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `ThisExpression` represent a this expression.
  *
@@ -11030,7 +11553,6 @@ class SymbolLiteral extends Literal {
  * @coverage dart.engine.ast
  */
 class ThisExpression extends Expression {
-
   /**
    * The token representing the keyword.
    */
@@ -11051,12 +11573,17 @@ class ThisExpression extends Expression {
    * @param keyword the token representing the keyword
    */
   ThisExpression({Token keyword}) : this.full(keyword);
+
   accept(ASTVisitor visitor) => visitor.visitThisExpression(this);
+
   Token get beginToken => keyword;
+
   Token get endToken => keyword;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
+
 /**
  * Instances of the class `ThrowExpression` represent a throw expression.
  *
@@ -11068,7 +11595,6 @@ class ThisExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class ThrowExpression extends Expression {
-
   /**
    * The token representing the 'throw' keyword.
    */
@@ -11097,8 +11623,11 @@ class ThrowExpression extends Expression {
    * @param expression the expression computing the exception to be thrown
    */
   ThrowExpression({Token keyword, Expression expression}) : this.full(keyword, expression);
+
   accept(ASTVisitor visitor) => visitor.visitThrowExpression(this);
+
   Token get beginToken => keyword;
+
   Token get endToken {
     if (_expression != null) {
       return _expression.endToken;
@@ -11121,10 +11650,12 @@ class ThrowExpression extends Expression {
   void set expression(Expression expression) {
     this._expression = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
   }
 }
+
 /**
  * Instances of the class `TopLevelVariableDeclaration` represent the declaration of one or
  * more top-level variables of the same type.
@@ -11138,7 +11669,6 @@ class ThrowExpression extends Expression {
  * @coverage dart.engine.ast
  */
 class TopLevelVariableDeclaration extends CompilationUnitMember {
-
   /**
    * The top-level variables being declared.
    */
@@ -11171,8 +11701,11 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
    * @param semicolon the semicolon terminating the declaration
    */
   TopLevelVariableDeclaration({Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, Token semicolon}) : this.full(comment, metadata, variableList, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitTopLevelVariableDeclaration(this);
+
   Element get element => null;
+
   Token get endToken => semicolon;
 
   /**
@@ -11190,12 +11723,15 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
   void set variables(VariableDeclarationList variableList) {
     variableList = becomeParentOf(variableList);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_variableList, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata => _variableList.beginToken;
 }
+
 /**
  * Instances of the class `TryStatement` represent a try statement.
  *
@@ -11210,7 +11746,6 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
  * @coverage dart.engine.ast
  */
 class TryStatement extends Statement {
-
   /**
    * The token representing the 'try' keyword.
    */
@@ -11266,7 +11801,9 @@ class TryStatement extends Statement {
    * @param finallyBlock the finally block contained in the try statement
    */
   TryStatement({Token tryKeyword, Block body, List<CatchClause> catchClauses, Token finallyKeyword, Block finallyBlock}) : this.full(tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
+
   accept(ASTVisitor visitor) => visitor.visitTryStatement(this);
+
   Token get beginToken => tryKeyword;
 
   /**
@@ -11275,6 +11812,7 @@ class TryStatement extends Statement {
    * @return the body of the statement
    */
   Block get body => _body;
+
   Token get endToken {
     if (_finallyBlock != null) {
       return _finallyBlock.endToken;
@@ -11311,12 +11849,14 @@ class TryStatement extends Statement {
   void set finallyBlock(Block block) {
     _finallyBlock = becomeParentOf(block);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_body, visitor);
     catchClauses.accept(visitor);
     safelyVisitChild(_finallyBlock, visitor);
   }
 }
+
 /**
  * The abstract class `TypeAlias` defines the behavior common to declarations of type aliases.
  *
@@ -11332,7 +11872,6 @@ class TryStatement extends Statement {
  * @coverage dart.engine.ast
  */
 abstract class TypeAlias extends CompilationUnitMember {
-
   /**
    * The token representing the 'typedef' keyword.
    */
@@ -11365,9 +11904,12 @@ abstract class TypeAlias extends CompilationUnitMember {
    * @param semicolon the semicolon terminating the declaration
    */
   TypeAlias({Comment comment, List<Annotation> metadata, Token keyword, Token semicolon}) : this.full(comment, metadata, keyword, semicolon);
+
   Token get endToken => semicolon;
+
   Token get firstTokenAfterCommentAndMetadata => keyword;
 }
+
 /**
  * Instances of the class `TypeArgumentList` represent a list of type arguments.
  *
@@ -11379,7 +11921,6 @@ abstract class TypeAlias extends CompilationUnitMember {
  * @coverage dart.engine.ast
  */
 class TypeArgumentList extends ASTNode {
-
   /**
    * The left bracket.
    */
@@ -11417,13 +11958,18 @@ class TypeArgumentList extends ASTNode {
    * @param rightBracket the right bracket
    */
   TypeArgumentList({Token leftBracket, List<TypeName> arguments, Token rightBracket}) : this.full(leftBracket, arguments, rightBracket);
+
   accept(ASTVisitor visitor) => visitor.visitTypeArgumentList(this);
+
   Token get beginToken => leftBracket;
+
   Token get endToken => rightBracket;
+
   void visitChildren(ASTVisitor visitor) {
     arguments.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `TypeName` represent the name of a type, which can optionally
  * include type arguments.
@@ -11436,7 +11982,6 @@ class TypeArgumentList extends ASTNode {
  * @coverage dart.engine.ast
  */
 class TypeName extends ASTNode {
-
   /**
    * The name of the type.
    */
@@ -11472,8 +12017,11 @@ class TypeName extends ASTNode {
    *          no type arguments
    */
   TypeName({Identifier name, TypeArgumentList typeArguments}) : this.full(name, typeArguments);
+
   accept(ASTVisitor visitor) => visitor.visitTypeName(this);
+
   Token get beginToken => _name.beginToken;
+
   Token get endToken {
     if (_typeArguments != null) {
       return _typeArguments.endToken;
@@ -11495,6 +12043,7 @@ class TypeName extends ASTNode {
    * @return the type arguments associated with the type
    */
   TypeArgumentList get typeArguments => _typeArguments;
+
   bool get isSynthetic => _name.isSynthetic && _typeArguments == null;
 
   /**
@@ -11514,11 +12063,13 @@ class TypeName extends ASTNode {
   void set typeArguments(TypeArgumentList typeArguments) {
     this._typeArguments = becomeParentOf(typeArguments);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_typeArguments, visitor);
   }
 }
+
 /**
  * Instances of the class `TypeParameter` represent a type parameter.
  *
@@ -11530,7 +12081,6 @@ class TypeName extends ASTNode {
  * @coverage dart.engine.ast
  */
 class TypeParameter extends Declaration {
-
   /**
    * The name of the type parameter.
    */
@@ -11573,6 +12123,7 @@ class TypeParameter extends Declaration {
    * @param bound the name of the upper bound for legal arguments
    */
   TypeParameter({Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token keyword, TypeName bound}) : this.full(comment, metadata, name, keyword, bound);
+
   accept(ASTVisitor visitor) => visitor.visitTypeParameter(this);
 
   /**
@@ -11582,7 +12133,9 @@ class TypeParameter extends Declaration {
    * @return the name of the upper bound for legal arguments
    */
   TypeName get bound => _bound;
+
   TypeParameterElement get element => _name != null ? (_name.staticElement as TypeParameterElement) : null;
+
   Token get endToken {
     if (_bound == null) {
       return _name.endToken;
@@ -11614,13 +12167,16 @@ class TypeParameter extends Declaration {
   void set name(SimpleIdentifier identifier) {
     _name = becomeParentOf(identifier);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_bound, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
 }
+
 /**
  * Instances of the class `TypeParameterList` represent type parameters within a declaration.
  *
@@ -11632,7 +12188,6 @@ class TypeParameter extends Declaration {
  * @coverage dart.engine.ast
  */
 class TypeParameterList extends ASTNode {
-
   /**
    * The left angle bracket.
    */
@@ -11670,13 +12225,18 @@ class TypeParameterList extends ASTNode {
    * @param rightBracket the right angle bracket
    */
   TypeParameterList({Token leftBracket, List<TypeParameter> typeParameters, Token rightBracket}) : this.full(leftBracket, typeParameters, rightBracket);
+
   accept(ASTVisitor visitor) => visitor.visitTypeParameterList(this);
+
   Token get beginToken => leftBracket;
+
   Token get endToken => rightBracket;
+
   void visitChildren(ASTVisitor visitor) {
     typeParameters.accept(visitor);
   }
 }
+
 /**
  * The abstract class `TypedLiteral` defines the behavior common to literals that have a type
  * associated with them.
@@ -11690,7 +12250,6 @@ class TypeParameterList extends ASTNode {
  * @coverage dart.engine.ast
  */
 abstract class TypedLiteral extends Literal {
-
   /**
    * The token representing the 'const' keyword, or `null` if the literal is not a constant.
    */
@@ -11722,10 +12281,12 @@ abstract class TypedLiteral extends Literal {
    *          arguments were declared
    */
   TypedLiteral({Token constKeyword, TypeArgumentList typeArguments}) : this.full(constKeyword, typeArguments);
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(typeArguments, visitor);
   }
 }
+
 /**
  * The abstract class `UriBasedDirective` defines the behavior common to nodes that represent
  * a directive that references a URI.
@@ -11740,7 +12301,6 @@ abstract class TypedLiteral extends Literal {
  * @coverage dart.engine.ast
  */
 abstract class UriBasedDirective extends Directive {
-
   /**
    * The URI referenced by this directive.
    */
@@ -11790,11 +12350,13 @@ abstract class UriBasedDirective extends Directive {
   void set uri(StringLiteral uri) {
     this._uri = becomeParentOf(uri);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_uri, visitor);
   }
 }
+
 /**
  * Instances of the class `VariableDeclaration` represent an identifier that has an initial
  * value associated with it. Instances of this class are always children of the class
@@ -11808,7 +12370,6 @@ abstract class UriBasedDirective extends Directive {
  * @coverage dart.engine.ast
  */
 class VariableDeclaration extends Declaration {
-
   /**
    * The name of the variable being declared.
    */
@@ -11851,6 +12412,7 @@ class VariableDeclaration extends Declaration {
    * @param initializer the expression used to compute the initial value for the variable
    */
   VariableDeclaration({Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token equals, Expression initializer}) : this.full(comment, metadata, name, equals, initializer);
+
   accept(ASTVisitor visitor) => visitor.visitVariableDeclaration(this);
 
   /**
@@ -11863,13 +12425,15 @@ class VariableDeclaration extends Declaration {
       if (parent != null && parent.parent != null) {
         ASTNode node = parent.parent;
         if (node is AnnotatedNode) {
-          return ((node as AnnotatedNode)).documentationComment;
+          return (node as AnnotatedNode).documentationComment;
         }
       }
     }
     return comment;
   }
+
   VariableElement get element => _name != null ? (_name.staticElement as VariableElement) : null;
+
   Token get endToken {
     if (_initializer != null) {
       return _initializer.endToken;
@@ -11899,7 +12463,7 @@ class VariableDeclaration extends Declaration {
    */
   bool get isConst {
     ASTNode parent = this.parent;
-    return parent is VariableDeclarationList && ((parent as VariableDeclarationList)).isConst;
+    return parent is VariableDeclarationList && (parent as VariableDeclarationList).isConst;
   }
 
   /**
@@ -11911,7 +12475,7 @@ class VariableDeclaration extends Declaration {
    */
   bool get isFinal {
     ASTNode parent = this.parent;
-    return parent is VariableDeclarationList && ((parent as VariableDeclarationList)).isFinal;
+    return parent is VariableDeclarationList && (parent as VariableDeclarationList).isFinal;
   }
 
   /**
@@ -11931,13 +12495,16 @@ class VariableDeclaration extends Declaration {
   void set name(SimpleIdentifier name) {
     this._name = becomeParentOf(name);
   }
+
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_initializer, visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
 }
+
 /**
  * Instances of the class `VariableDeclarationList` represent the declaration of one or more
  * variables of the same type.
@@ -11956,7 +12523,6 @@ class VariableDeclaration extends Declaration {
  * @coverage dart.engine.ast
  */
 class VariableDeclarationList extends AnnotatedNode {
-
   /**
    * The token representing the 'final', 'const' or 'var' keyword, or `null` if no keyword was
    * included.
@@ -11999,7 +12565,9 @@ class VariableDeclarationList extends AnnotatedNode {
    * @param variables a list containing the individual variables being declared
    */
   VariableDeclarationList({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, List<VariableDeclaration> variables}) : this.full(comment, metadata, keyword, type, variables);
+
   accept(ASTVisitor visitor) => visitor.visitVariableDeclarationList(this);
+
   Token get endToken => variables.endToken;
 
   /**
@@ -12014,7 +12582,7 @@ class VariableDeclarationList extends AnnotatedNode {
    *
    * @return `true` if the variables in this list were declared with the 'const' modifier
    */
-  bool get isConst => keyword is KeywordToken && identical(((keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isConst => keyword is KeywordToken && identical((keyword as KeywordToken).keyword, Keyword.CONST);
 
   /**
    * Return `true` if the variables in this list were declared with the 'final' modifier.
@@ -12023,7 +12591,7 @@ class VariableDeclarationList extends AnnotatedNode {
    *
    * @return `true` if the variables in this list were declared with the 'final' modifier
    */
-  bool get isFinal => keyword is KeywordToken && identical(((keyword as KeywordToken)).keyword, Keyword.FINAL);
+  bool get isFinal => keyword is KeywordToken && identical((keyword as KeywordToken).keyword, Keyword.FINAL);
 
   /**
    * Set the type of the variables being declared to the given type name.
@@ -12033,10 +12601,12 @@ class VariableDeclarationList extends AnnotatedNode {
   void set type(TypeName typeName) {
     _type = becomeParentOf(typeName);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_type, visitor);
     variables.accept(visitor);
   }
+
   Token get firstTokenAfterCommentAndMetadata {
     if (keyword != null) {
       return keyword;
@@ -12046,6 +12616,7 @@ class VariableDeclarationList extends AnnotatedNode {
     return variables.beginToken;
   }
 }
+
 /**
  * Instances of the class `VariableDeclarationStatement` represent a list of variables that
  * are being declared in a context where a statement is required.
@@ -12058,7 +12629,6 @@ class VariableDeclarationList extends AnnotatedNode {
  * @coverage dart.engine.ast
  */
 class VariableDeclarationStatement extends Statement {
-
   /**
    * The variables being declared.
    */
@@ -12087,8 +12657,11 @@ class VariableDeclarationStatement extends Statement {
    * @param semicolon the semicolon terminating the statement
    */
   VariableDeclarationStatement({VariableDeclarationList variableList, Token semicolon}) : this.full(variableList, semicolon);
+
   accept(ASTVisitor visitor) => visitor.visitVariableDeclarationStatement(this);
+
   Token get beginToken => _variableList.beginToken;
+
   Token get endToken => semicolon;
 
   /**
@@ -12106,10 +12679,12 @@ class VariableDeclarationStatement extends Statement {
   void set variables(VariableDeclarationList variableList) {
     this._variableList = becomeParentOf(variableList);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_variableList, visitor);
   }
 }
+
 /**
  * Instances of the class `WhileStatement` represent a while statement.
  *
@@ -12121,7 +12696,6 @@ class VariableDeclarationStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class WhileStatement extends Statement {
-
   /**
    * The token representing the 'while' keyword.
    */
@@ -12174,7 +12748,9 @@ class WhileStatement extends Statement {
    * @param body the body of the loop
    */
   WhileStatement({Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement body}) : this.full(keyword, leftParenthesis, condition, rightParenthesis, body);
+
   accept(ASTVisitor visitor) => visitor.visitWhileStatement(this);
+
   Token get beginToken => keyword;
 
   /**
@@ -12190,6 +12766,7 @@ class WhileStatement extends Statement {
    * @return the expression used to determine whether to execute the body of the loop
    */
   Expression get condition => _condition;
+
   Token get endToken => _body.endToken;
 
   /**
@@ -12210,11 +12787,13 @@ class WhileStatement extends Statement {
   void set condition(Expression expression) {
     _condition = becomeParentOf(expression);
   }
+
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_condition, visitor);
     safelyVisitChild(_body, visitor);
   }
 }
+
 /**
  * Instances of the class `WithClause` represent the with clause in a class declaration.
  *
@@ -12226,7 +12805,6 @@ class WhileStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class WithClause extends ASTNode {
-
   /**
    * The token representing the 'with' keyword.
    */
@@ -12256,8 +12834,11 @@ class WithClause extends ASTNode {
    * @param mixinTypes the names of the mixins that were specified
    */
   WithClause({Token withKeyword, List<TypeName> mixinTypes}) : this.full(withKeyword, mixinTypes);
+
   accept(ASTVisitor visitor) => visitor.visitWithClause(this);
+
   Token get beginToken => withKeyword;
+
   Token get endToken => mixinTypes.endToken;
 
   /**
@@ -12268,10 +12849,12 @@ class WithClause extends ASTNode {
   void set mixinKeyword(Token withKeyword) {
     this.withKeyword = withKeyword;
   }
+
   void visitChildren(ASTVisitor visitor) {
     mixinTypes.accept(visitor);
   }
 }
+
 /**
  * Instances of the class `BreadthFirstVisitor` implement an AST visitor that will recursively
  * visit all of the nodes in an AST structure, similar to [GeneralizingASTVisitor]. This
@@ -12290,7 +12873,6 @@ class WithClause extends ASTNode {
  * @coverage dart.engine.ast
  */
 class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
-
   /**
    * A queue holding the nodes that have not yet been visited in the order in which they ought to be
    * visited.
@@ -12315,22 +12897,28 @@ class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
       next.accept(this);
     }
   }
+
   R visitNode(ASTNode node) {
     node.visitChildren(_childVisitor);
     return null;
   }
+
   BreadthFirstVisitor() {
     this._childVisitor = new GeneralizingASTVisitor_2(this);
   }
 }
+
 class GeneralizingASTVisitor_2 extends GeneralizingASTVisitor<Object> {
   final BreadthFirstVisitor BreadthFirstVisitor_this;
+
   GeneralizingASTVisitor_2(this.BreadthFirstVisitor_this) : super();
+
   Object visitNode(ASTNode node) {
     BreadthFirstVisitor_this._queue.add(node);
     return null;
   }
 }
+
 /**
  * Instances of the class `ConstantEvaluator` evaluate constant expressions to produce their
  * compile-time value. According to the Dart Language Specification: <blockquote> A constant
@@ -12373,12 +12961,12 @@ class GeneralizingASTVisitor_2 extends GeneralizingASTVisitor<Object> {
  * @coverage dart.engine.ast
  */
 class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
-
   /**
    * The value returned for expressions (or non-expression nodes) that are not compile-time constant
    * expressions.
    */
   static Object NOT_A_CONSTANT = new Object();
+
   Object visitAdjacentStrings(AdjacentStrings node) {
     JavaStringBuilder builder = new JavaStringBuilder();
     for (StringLiteral string in node.strings) {
@@ -12390,6 +12978,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     }
     return builder.toString();
   }
+
   Object visitBinaryExpression(BinaryExpression node) {
     Object leftOperand = node.leftOperand.accept(this);
     if (identical(leftOperand, NOT_A_CONSTANT)) {
@@ -12402,128 +12991,132 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     while (true) {
       if (node.operator.type == TokenType.AMPERSAND) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) & (rightOperand as int);
+          return (leftOperand as int) & (rightOperand as int);
         }
       } else if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
         if (leftOperand is bool && rightOperand is bool) {
-          return ((leftOperand as bool)) && ((rightOperand as bool));
+          return (leftOperand as bool) && (rightOperand as bool);
         }
       } else if (node.operator.type == TokenType.BANG_EQ) {
         if (leftOperand is bool && rightOperand is bool) {
-          return ((leftOperand as bool)) != ((rightOperand as bool));
+          return (leftOperand as bool) != (rightOperand as bool);
         } else if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) != rightOperand;
+          return (leftOperand as int) != rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)) != rightOperand;
+          return (leftOperand as double) != rightOperand;
         } else if (leftOperand is String && rightOperand is String) {
-          return ((leftOperand as String)) != rightOperand;
+          return (leftOperand as String) != rightOperand;
         }
       } else if (node.operator.type == TokenType.BAR) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) | (rightOperand as int);
+          return (leftOperand as int) | (rightOperand as int);
         }
       } else if (node.operator.type == TokenType.BAR_BAR) {
         if (leftOperand is bool && rightOperand is bool) {
-          return ((leftOperand as bool)) || ((rightOperand as bool));
+          return (leftOperand as bool) || (rightOperand as bool);
         }
       } else if (node.operator.type == TokenType.CARET) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) ^ (rightOperand as int);
+          return (leftOperand as int) ^ (rightOperand as int);
         }
       } else if (node.operator.type == TokenType.EQ_EQ) {
         if (leftOperand is bool && rightOperand is bool) {
           return identical(leftOperand as bool, rightOperand as bool);
         } else if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) == rightOperand;
+          return (leftOperand as int) == rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)) == rightOperand;
+          return (leftOperand as double) == rightOperand;
         } else if (leftOperand is String && rightOperand is String) {
-          return ((leftOperand as String)) == rightOperand;
+          return (leftOperand as String) == rightOperand;
         }
       } else if (node.operator.type == TokenType.GT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo(rightOperand as int) > 0;
+          return (leftOperand as int).compareTo(rightOperand as int) > 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo(rightOperand as double) > 0;
+          return (leftOperand as double).compareTo(rightOperand as double) > 0;
         }
       } else if (node.operator.type == TokenType.GT_EQ) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo(rightOperand as int) >= 0;
+          return (leftOperand as int).compareTo(rightOperand as int) >= 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo(rightOperand as double) >= 0;
+          return (leftOperand as double).compareTo(rightOperand as double) >= 0;
         }
       } else if (node.operator.type == TokenType.GT_GT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) >> ((rightOperand as int));
+          return (leftOperand as int) >> (rightOperand as int);
         }
       } else if (node.operator.type == TokenType.LT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo(rightOperand as int) < 0;
+          return (leftOperand as int).compareTo(rightOperand as int) < 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo(rightOperand as double) < 0;
+          return (leftOperand as double).compareTo(rightOperand as double) < 0;
         }
       } else if (node.operator.type == TokenType.LT_EQ) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).compareTo(rightOperand as int) <= 0;
+          return (leftOperand as int).compareTo(rightOperand as int) <= 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)).compareTo(rightOperand as double) <= 0;
+          return (leftOperand as double).compareTo(rightOperand as double) <= 0;
         }
       } else if (node.operator.type == TokenType.LT_LT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) << ((rightOperand as int));
+          return (leftOperand as int) << (rightOperand as int);
         }
       } else if (node.operator.type == TokenType.MINUS) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) - (rightOperand as int);
+          return (leftOperand as int) - (rightOperand as int);
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)) - ((rightOperand as double));
+          return (leftOperand as double) - (rightOperand as double);
         }
       } else if (node.operator.type == TokenType.PERCENT) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)).remainder(rightOperand as int);
+          return (leftOperand as int).remainder(rightOperand as int);
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)) % ((rightOperand as double));
+          return (leftOperand as double) % (rightOperand as double);
         }
       } else if (node.operator.type == TokenType.PLUS) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) + (rightOperand as int);
+          return (leftOperand as int) + (rightOperand as int);
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)) + ((rightOperand as double));
+          return (leftOperand as double) + (rightOperand as double);
         }
       } else if (node.operator.type == TokenType.STAR) {
         if (leftOperand is int && rightOperand is int) {
-          return ((leftOperand as int)) * (rightOperand as int);
+          return (leftOperand as int) * (rightOperand as int);
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)) * ((rightOperand as double));
+          return (leftOperand as double) * (rightOperand as double);
         }
       } else if (node.operator.type == TokenType.SLASH) {
         if (leftOperand is int && rightOperand is int) {
           if (rightOperand != 0) {
-            return ((leftOperand as int)) ~/ (rightOperand as int);
+            return (leftOperand as int) ~/ (rightOperand as int);
           } else {
-            return ((leftOperand as int)).toDouble() / ((rightOperand as int)).toDouble();
+            return (leftOperand as int).toDouble() / (rightOperand as int).toDouble();
           }
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)) / ((rightOperand as double));
+          return (leftOperand as double) / (rightOperand as double);
         }
       } else if (node.operator.type == TokenType.TILDE_SLASH) {
         if (leftOperand is int && rightOperand is int) {
           if (rightOperand != 0) {
-            return ((leftOperand as int)) ~/ (rightOperand as int);
+            return (leftOperand as int) ~/ (rightOperand as int);
           } else {
             return 0;
           }
         } else if (leftOperand is double && rightOperand is double) {
-          return ((leftOperand as double)) ~/ ((rightOperand as double));
+          return (leftOperand as double) ~/ (rightOperand as double);
         }
       }
       break;
     }
     return visitExpression(node);
   }
+
   Object visitBooleanLiteral(BooleanLiteral node) => node.value ? true : false;
+
   Object visitDoubleLiteral(DoubleLiteral node) => node.value;
+
   Object visitIntegerLiteral(IntegerLiteral node) => node.value;
+
   Object visitInterpolationExpression(InterpolationExpression node) {
     Object value = node.expression.accept(this);
     if (value == null || value is bool || value is String || value is int || value is double) {
@@ -12531,7 +13124,9 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     }
     return NOT_A_CONSTANT;
   }
+
   Object visitInterpolationString(InterpolationString node) => node.value;
+
   Object visitListLiteral(ListLiteral node) {
     List<Object> list = new List<Object>();
     for (Expression element in node.elements) {
@@ -12543,6 +13138,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     }
     return list;
   }
+
   Object visitMapLiteral(MapLiteral node) {
     Map<String, Object> map = new Map<String, Object>();
     for (MapLiteralEntry entry in node.entries) {
@@ -12555,11 +13151,17 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     }
     return map;
   }
+
   Object visitMethodInvocation(MethodInvocation node) => visitNode(node);
+
   Object visitNode(ASTNode node) => NOT_A_CONSTANT;
+
   Object visitNullLiteral(NullLiteral node) => null;
+
   Object visitParenthesizedExpression(ParenthesizedExpression node) => node.expression.accept(this);
+
   Object visitPrefixedIdentifier(PrefixedIdentifier node) => getConstantValue(null);
+
   Object visitPrefixExpression(PrefixExpression node) {
     Object operand = node.operand.accept(this);
     if (identical(operand, NOT_A_CONSTANT)) {
@@ -12574,24 +13176,28 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.TILDE) {
         if (operand is int) {
-          return ~((operand as int));
+          return ~(operand as int);
         }
       } else if (node.operator.type == TokenType.MINUS) {
         if (operand == null) {
           return null;
         } else if (operand is int) {
-          return -((operand as int));
+          return -(operand as int);
         } else if (operand is double) {
-          return -((operand as double));
+          return -(operand as double);
         }
       }
       break;
     }
     return NOT_A_CONSTANT;
   }
+
   Object visitPropertyAccess(PropertyAccess node) => getConstantValue(null);
+
   Object visitSimpleIdentifier(SimpleIdentifier node) => getConstantValue(null);
+
   Object visitSimpleStringLiteral(SimpleStringLiteral node) => node.value;
+
   Object visitStringInterpolation(StringInterpolation node) {
     JavaStringBuilder builder = new JavaStringBuilder();
     for (InterpolationElement element in node.elements) {
@@ -12603,6 +13209,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     }
     return builder.toString();
   }
+
   Object visitSymbolLiteral(SymbolLiteral node) {
     JavaStringBuilder builder = new JavaStringBuilder();
     for (Token component in node.components) {
@@ -12629,6 +13236,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     return NOT_A_CONSTANT;
   }
 }
+
 /**
  * Instances of the class `ElementLocator` locate the [Element]
  * associated with a given [ASTNode].
@@ -12636,7 +13244,6 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
  * @coverage dart.engine.ast
  */
 class ElementLocator {
-
   /**
    * Locate the [Element] associated with the given [ASTNode].
    *
@@ -12648,16 +13255,23 @@ class ElementLocator {
     return node.accept(mapper);
   }
 }
+
 /**
  * Visitor that maps nodes to elements.
  */
 class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
   Element visitAssignmentExpression(AssignmentExpression node) => node.bestElement;
+
   Element visitBinaryExpression(BinaryExpression node) => node.bestElement;
+
   Element visitClassDeclaration(ClassDeclaration node) => node.element;
+
   Element visitCompilationUnit(CompilationUnit node) => node.element;
+
   Element visitConstructorDeclaration(ConstructorDeclaration node) => node.element;
+
   Element visitFunctionDeclaration(FunctionDeclaration node) => node.element;
+
   Element visitIdentifier(Identifier node) {
     ASTNode parent = node.parent;
     if (parent is ConstructorDeclaration) {
@@ -12670,16 +13284,16 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
         }
         Element element = node.bestElement;
         if (element is ClassElement) {
-          return ((element as ClassElement)).unnamedConstructor;
+          return (element as ClassElement).unnamedConstructor;
         }
       }
     }
     if (parent is LibraryIdentifier) {
-      ASTNode grandParent = ((parent as LibraryIdentifier)).parent;
+      ASTNode grandParent = (parent as LibraryIdentifier).parent;
       if (grandParent is PartOfDirective) {
-        Element element = ((grandParent as PartOfDirective)).element;
+        Element element = (grandParent as PartOfDirective).element;
         if (element is LibraryElement) {
-          return ((element as LibraryElement)).definingCompilationUnit;
+          return (element as LibraryElement).definingCompilationUnit;
         }
       }
     }
@@ -12689,24 +13303,36 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
     }
     return element;
   }
+
   Element visitImportDirective(ImportDirective node) => node.element;
+
   Element visitIndexExpression(IndexExpression node) => node.bestElement;
+
   Element visitInstanceCreationExpression(InstanceCreationExpression node) => node.staticElement;
+
   Element visitLibraryDirective(LibraryDirective node) => node.element;
+
   Element visitMethodDeclaration(MethodDeclaration node) => node.element;
+
   Element visitMethodInvocation(MethodInvocation node) => node.methodName.bestElement;
+
   Element visitPostfixExpression(PostfixExpression node) => node.bestElement;
+
   Element visitPrefixedIdentifier(PrefixedIdentifier node) => node.bestElement;
+
   Element visitPrefixExpression(PrefixExpression node) => node.bestElement;
+
   Element visitStringLiteral(StringLiteral node) {
     ASTNode parent = node.parent;
     if (parent is UriBasedDirective) {
-      return ((parent as UriBasedDirective)).uriElement;
+      return (parent as UriBasedDirective).uriElement;
     }
     return null;
   }
+
   Element visitVariableDeclaration(VariableDeclaration node) => node.element;
 }
+
 /**
  * Instances of the class `GeneralizingASTVisitor` implement an AST visitor that will
  * recursively visit all of the nodes in an AST structure (like instances of the class
@@ -12727,134 +13353,259 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
  */
 class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
+
   R visitAnnotatedNode(AnnotatedNode node) => visitNode(node);
+
   R visitAnnotation(Annotation node) => visitNode(node);
+
   R visitArgumentDefinitionTest(ArgumentDefinitionTest node) => visitExpression(node);
+
   R visitArgumentList(ArgumentList node) => visitNode(node);
+
   R visitAsExpression(AsExpression node) => visitExpression(node);
+
   R visitAssertStatement(AssertStatement node) => visitStatement(node);
+
   R visitAssignmentExpression(AssignmentExpression node) => visitExpression(node);
+
   R visitBinaryExpression(BinaryExpression node) => visitExpression(node);
+
   R visitBlock(Block node) => visitStatement(node);
+
   R visitBlockFunctionBody(BlockFunctionBody node) => visitFunctionBody(node);
+
   R visitBooleanLiteral(BooleanLiteral node) => visitLiteral(node);
+
   R visitBreakStatement(BreakStatement node) => visitStatement(node);
+
   R visitCascadeExpression(CascadeExpression node) => visitExpression(node);
+
   R visitCatchClause(CatchClause node) => visitNode(node);
+
   R visitClassDeclaration(ClassDeclaration node) => visitCompilationUnitMember(node);
+
   R visitClassMember(ClassMember node) => visitDeclaration(node);
+
   R visitClassTypeAlias(ClassTypeAlias node) => visitTypeAlias(node);
+
   R visitCombinator(Combinator node) => visitNode(node);
+
   R visitComment(Comment node) => visitNode(node);
+
   R visitCommentReference(CommentReference node) => visitNode(node);
+
   R visitCompilationUnit(CompilationUnit node) => visitNode(node);
+
   R visitCompilationUnitMember(CompilationUnitMember node) => visitDeclaration(node);
+
   R visitConditionalExpression(ConditionalExpression node) => visitExpression(node);
+
   R visitConstructorDeclaration(ConstructorDeclaration node) => visitClassMember(node);
+
   R visitConstructorFieldInitializer(ConstructorFieldInitializer node) => visitConstructorInitializer(node);
+
   R visitConstructorInitializer(ConstructorInitializer node) => visitNode(node);
+
   R visitConstructorName(ConstructorName node) => visitNode(node);
+
   R visitContinueStatement(ContinueStatement node) => visitStatement(node);
+
   R visitDeclaration(Declaration node) => visitAnnotatedNode(node);
+
   R visitDeclaredIdentifier(DeclaredIdentifier node) => visitDeclaration(node);
+
   R visitDefaultFormalParameter(DefaultFormalParameter node) => visitFormalParameter(node);
+
   R visitDirective(Directive node) => visitAnnotatedNode(node);
+
   R visitDoStatement(DoStatement node) => visitStatement(node);
+
   R visitDoubleLiteral(DoubleLiteral node) => visitLiteral(node);
+
   R visitEmptyFunctionBody(EmptyFunctionBody node) => visitFunctionBody(node);
+
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
+
   R visitExportDirective(ExportDirective node) => visitNamespaceDirective(node);
+
   R visitExpression(Expression node) => visitNode(node);
+
   R visitExpressionFunctionBody(ExpressionFunctionBody node) => visitFunctionBody(node);
+
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
+
   R visitExtendsClause(ExtendsClause node) => visitNode(node);
+
   R visitFieldDeclaration(FieldDeclaration node) => visitClassMember(node);
+
   R visitFieldFormalParameter(FieldFormalParameter node) => visitNormalFormalParameter(node);
+
   R visitForEachStatement(ForEachStatement node) => visitStatement(node);
+
   R visitFormalParameter(FormalParameter node) => visitNode(node);
+
   R visitFormalParameterList(FormalParameterList node) => visitNode(node);
+
   R visitForStatement(ForStatement node) => visitStatement(node);
+
   R visitFunctionBody(FunctionBody node) => visitNode(node);
+
   R visitFunctionDeclaration(FunctionDeclaration node) => visitCompilationUnitMember(node);
+
   R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => visitStatement(node);
+
   R visitFunctionExpression(FunctionExpression node) => visitExpression(node);
+
   R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => visitExpression(node);
+
   R visitFunctionTypeAlias(FunctionTypeAlias node) => visitTypeAlias(node);
+
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => visitNormalFormalParameter(node);
+
   R visitHideCombinator(HideCombinator node) => visitCombinator(node);
+
   R visitIdentifier(Identifier node) => visitExpression(node);
+
   R visitIfStatement(IfStatement node) => visitStatement(node);
+
   R visitImplementsClause(ImplementsClause node) => visitNode(node);
+
   R visitImportDirective(ImportDirective node) => visitNamespaceDirective(node);
+
   R visitIndexExpression(IndexExpression node) => visitExpression(node);
+
   R visitInstanceCreationExpression(InstanceCreationExpression node) => visitExpression(node);
+
   R visitIntegerLiteral(IntegerLiteral node) => visitLiteral(node);
+
   R visitInterpolationElement(InterpolationElement node) => visitNode(node);
+
   R visitInterpolationExpression(InterpolationExpression node) => visitInterpolationElement(node);
+
   R visitInterpolationString(InterpolationString node) => visitInterpolationElement(node);
+
   R visitIsExpression(IsExpression node) => visitExpression(node);
+
   R visitLabel(Label node) => visitNode(node);
+
   R visitLabeledStatement(LabeledStatement node) => visitStatement(node);
+
   R visitLibraryDirective(LibraryDirective node) => visitDirective(node);
+
   R visitLibraryIdentifier(LibraryIdentifier node) => visitIdentifier(node);
+
   R visitListLiteral(ListLiteral node) => visitTypedLiteral(node);
+
   R visitLiteral(Literal node) => visitExpression(node);
+
   R visitMapLiteral(MapLiteral node) => visitTypedLiteral(node);
+
   R visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
+
   R visitMethodDeclaration(MethodDeclaration node) => visitClassMember(node);
+
   R visitMethodInvocation(MethodInvocation node) => visitExpression(node);
+
   R visitNamedExpression(NamedExpression node) => visitExpression(node);
+
   R visitNamespaceDirective(NamespaceDirective node) => visitUriBasedDirective(node);
+
   R visitNativeClause(NativeClause node) => visitNode(node);
+
   R visitNativeFunctionBody(NativeFunctionBody node) => visitFunctionBody(node);
+
   R visitNode(ASTNode node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitNormalFormalParameter(NormalFormalParameter node) => visitFormalParameter(node);
+
   R visitNullLiteral(NullLiteral node) => visitLiteral(node);
+
   R visitParenthesizedExpression(ParenthesizedExpression node) => visitExpression(node);
+
   R visitPartDirective(PartDirective node) => visitUriBasedDirective(node);
+
   R visitPartOfDirective(PartOfDirective node) => visitDirective(node);
+
   R visitPostfixExpression(PostfixExpression node) => visitExpression(node);
+
   R visitPrefixedIdentifier(PrefixedIdentifier node) => visitIdentifier(node);
+
   R visitPrefixExpression(PrefixExpression node) => visitExpression(node);
+
   R visitPropertyAccess(PropertyAccess node) => visitExpression(node);
+
   R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => visitConstructorInitializer(node);
+
   R visitRethrowExpression(RethrowExpression node) => visitExpression(node);
+
   R visitReturnStatement(ReturnStatement node) => visitStatement(node);
+
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
+
   R visitShowCombinator(ShowCombinator node) => visitCombinator(node);
+
   R visitSimpleFormalParameter(SimpleFormalParameter node) => visitNormalFormalParameter(node);
+
   R visitSimpleIdentifier(SimpleIdentifier node) => visitIdentifier(node);
+
   R visitSimpleStringLiteral(SimpleStringLiteral node) => visitStringLiteral(node);
+
   R visitStatement(Statement node) => visitNode(node);
+
   R visitStringInterpolation(StringInterpolation node) => visitStringLiteral(node);
+
   R visitStringLiteral(StringLiteral node) => visitLiteral(node);
+
   R visitSuperConstructorInvocation(SuperConstructorInvocation node) => visitConstructorInitializer(node);
+
   R visitSuperExpression(SuperExpression node) => visitExpression(node);
+
   R visitSwitchCase(SwitchCase node) => visitSwitchMember(node);
+
   R visitSwitchDefault(SwitchDefault node) => visitSwitchMember(node);
+
   R visitSwitchMember(SwitchMember node) => visitNode(node);
+
   R visitSwitchStatement(SwitchStatement node) => visitStatement(node);
+
   R visitSymbolLiteral(SymbolLiteral node) => visitLiteral(node);
+
   R visitThisExpression(ThisExpression node) => visitExpression(node);
+
   R visitThrowExpression(ThrowExpression node) => visitExpression(node);
+
   R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => visitCompilationUnitMember(node);
+
   R visitTryStatement(TryStatement node) => visitStatement(node);
+
   R visitTypeAlias(TypeAlias node) => visitCompilationUnitMember(node);
+
   R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
+
   R visitTypedLiteral(TypedLiteral node) => visitLiteral(node);
+
   R visitTypeName(TypeName node) => visitNode(node);
+
   R visitTypeParameter(TypeParameter node) => visitNode(node);
+
   R visitTypeParameterList(TypeParameterList node) => visitNode(node);
+
   R visitUriBasedDirective(UriBasedDirective node) => visitDirective(node);
+
   R visitVariableDeclaration(VariableDeclaration node) => visitDeclaration(node);
+
   R visitVariableDeclarationList(VariableDeclarationList node) => visitNode(node);
+
   R visitVariableDeclarationStatement(VariableDeclarationStatement node) => visitStatement(node);
+
   R visitWhileStatement(WhileStatement node) => visitStatement(node);
+
   R visitWithClause(WithClause node) => visitNode(node);
 }
+
 /**
  * Instances of the class `NodeLocator` locate the [ASTNode] associated with a
  * source range, given the AST structure built from the source. More specifically, they will return
@@ -12864,7 +13615,6 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
  * @coverage dart.engine.ast
  */
 class NodeLocator extends UnifyingASTVisitor<Object> {
-
   /**
    * The start offset of the range used to identify the node.
    */
@@ -12922,6 +13672,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
     }
     return foundNode;
   }
+
   Object visitNode(ASTNode node) {
     int start = node.offset;
     int end = start + node.length;
@@ -12945,6 +13696,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
     return null;
   }
 }
+
 /**
  * Instances of the class `NodeFoundException` are used to cancel visiting after a node has
  * been found.
@@ -12952,6 +13704,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
 class NodeLocator_NodeFoundException extends RuntimeException {
   static int _serialVersionUID = 1;
 }
+
 /**
  * Instances of the class `RecursiveASTVisitor` implement an AST visitor that will recursively
  * visit all of the nodes in an AST structure. For example, using an instance of this class to visit
@@ -12968,415 +13721,518 @@ class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     node.visitChildren(this);
     return null;
   }
+
   R visitAnnotation(Annotation node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitArgumentList(ArgumentList node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitAsExpression(AsExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitAssertStatement(AssertStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitAssignmentExpression(AssignmentExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitBlock(Block node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitBlockFunctionBody(BlockFunctionBody node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitBooleanLiteral(BooleanLiteral node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitBreakStatement(BreakStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitCascadeExpression(CascadeExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitCatchClause(CatchClause node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitClassDeclaration(ClassDeclaration node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitClassTypeAlias(ClassTypeAlias node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitComment(Comment node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitCommentReference(CommentReference node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitCompilationUnit(CompilationUnit node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitConditionalExpression(ConditionalExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitConstructorDeclaration(ConstructorDeclaration node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitConstructorName(ConstructorName node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitContinueStatement(ContinueStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitDeclaredIdentifier(DeclaredIdentifier node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitDefaultFormalParameter(DefaultFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitDoStatement(DoStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitDoubleLiteral(DoubleLiteral node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitEmptyFunctionBody(EmptyFunctionBody node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitEmptyStatement(EmptyStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitExportDirective(ExportDirective node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitExpressionFunctionBody(ExpressionFunctionBody node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitExpressionStatement(ExpressionStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitExtendsClause(ExtendsClause node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitFieldDeclaration(FieldDeclaration node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitFieldFormalParameter(FieldFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitForEachStatement(ForEachStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitFormalParameterList(FormalParameterList node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitForStatement(ForStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitFunctionExpression(FunctionExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitFunctionTypeAlias(FunctionTypeAlias node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitHideCombinator(HideCombinator node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitIfStatement(IfStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitImplementsClause(ImplementsClause node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitImportDirective(ImportDirective node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitIntegerLiteral(IntegerLiteral node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitInterpolationExpression(InterpolationExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitInterpolationString(InterpolationString node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitIsExpression(IsExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitLabel(Label node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitLabeledStatement(LabeledStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitLibraryDirective(LibraryDirective node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitLibraryIdentifier(LibraryIdentifier node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitListLiteral(ListLiteral node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitMapLiteral(MapLiteral node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitMapLiteralEntry(MapLiteralEntry node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitMethodDeclaration(MethodDeclaration node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitMethodInvocation(MethodInvocation node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitNamedExpression(NamedExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitNativeClause(NativeClause node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitNativeFunctionBody(NativeFunctionBody node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitNullLiteral(NullLiteral node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitParenthesizedExpression(ParenthesizedExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitPartDirective(PartDirective node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitPartOfDirective(PartOfDirective node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitPostfixExpression(PostfixExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitPrefixedIdentifier(PrefixedIdentifier node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitPrefixExpression(PrefixExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitPropertyAccess(PropertyAccess node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitRethrowExpression(RethrowExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitReturnStatement(ReturnStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitScriptTag(ScriptTag node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitShowCombinator(ShowCombinator node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitSimpleIdentifier(SimpleIdentifier node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitSimpleStringLiteral(SimpleStringLiteral node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitStringInterpolation(StringInterpolation node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitSuperExpression(SuperExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitSwitchCase(SwitchCase node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitSwitchDefault(SwitchDefault node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitSwitchStatement(SwitchStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitSymbolLiteral(SymbolLiteral node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitThisExpression(ThisExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitThrowExpression(ThrowExpression node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitTryStatement(TryStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitTypeArgumentList(TypeArgumentList node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitTypeName(TypeName node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitTypeParameter(TypeParameter node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitTypeParameterList(TypeParameterList node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitVariableDeclaration(VariableDeclaration node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitVariableDeclarationList(VariableDeclarationList node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitWhileStatement(WhileStatement node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitWithClause(WithClause node) {
     node.visitChildren(this);
     return null;
   }
 }
+
 /**
  * Instances of the class `SimpleASTVisitor` implement an AST visitor that will do nothing
  * when visiting an AST node. It is intended to be a superclass for classes that use the visitor
@@ -13387,109 +14243,212 @@ class RecursiveASTVisitor<R> implements ASTVisitor<R> {
  */
 class SimpleASTVisitor<R> implements ASTVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) => null;
+
   R visitAnnotation(Annotation node) => null;
+
   R visitArgumentDefinitionTest(ArgumentDefinitionTest node) => null;
+
   R visitArgumentList(ArgumentList node) => null;
+
   R visitAsExpression(AsExpression node) => null;
+
   R visitAssertStatement(AssertStatement node) => null;
+
   R visitAssignmentExpression(AssignmentExpression node) => null;
+
   R visitBinaryExpression(BinaryExpression node) => null;
+
   R visitBlock(Block node) => null;
+
   R visitBlockFunctionBody(BlockFunctionBody node) => null;
+
   R visitBooleanLiteral(BooleanLiteral node) => null;
+
   R visitBreakStatement(BreakStatement node) => null;
+
   R visitCascadeExpression(CascadeExpression node) => null;
+
   R visitCatchClause(CatchClause node) => null;
+
   R visitClassDeclaration(ClassDeclaration node) => null;
+
   R visitClassTypeAlias(ClassTypeAlias node) => null;
+
   R visitComment(Comment node) => null;
+
   R visitCommentReference(CommentReference node) => null;
+
   R visitCompilationUnit(CompilationUnit node) => null;
+
   R visitConditionalExpression(ConditionalExpression node) => null;
+
   R visitConstructorDeclaration(ConstructorDeclaration node) => null;
+
   R visitConstructorFieldInitializer(ConstructorFieldInitializer node) => null;
+
   R visitConstructorName(ConstructorName node) => null;
+
   R visitContinueStatement(ContinueStatement node) => null;
+
   R visitDeclaredIdentifier(DeclaredIdentifier node) => null;
+
   R visitDefaultFormalParameter(DefaultFormalParameter node) => null;
+
   R visitDoStatement(DoStatement node) => null;
+
   R visitDoubleLiteral(DoubleLiteral node) => null;
+
   R visitEmptyFunctionBody(EmptyFunctionBody node) => null;
+
   R visitEmptyStatement(EmptyStatement node) => null;
+
   R visitExportDirective(ExportDirective node) => null;
+
   R visitExpressionFunctionBody(ExpressionFunctionBody node) => null;
+
   R visitExpressionStatement(ExpressionStatement node) => null;
+
   R visitExtendsClause(ExtendsClause node) => null;
+
   R visitFieldDeclaration(FieldDeclaration node) => null;
+
   R visitFieldFormalParameter(FieldFormalParameter node) => null;
+
   R visitForEachStatement(ForEachStatement node) => null;
+
   R visitFormalParameterList(FormalParameterList node) => null;
+
   R visitForStatement(ForStatement node) => null;
+
   R visitFunctionDeclaration(FunctionDeclaration node) => null;
+
   R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => null;
+
   R visitFunctionExpression(FunctionExpression node) => null;
+
   R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => null;
+
   R visitFunctionTypeAlias(FunctionTypeAlias node) => null;
+
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => null;
+
   R visitHideCombinator(HideCombinator node) => null;
+
   R visitIfStatement(IfStatement node) => null;
+
   R visitImplementsClause(ImplementsClause node) => null;
+
   R visitImportDirective(ImportDirective node) => null;
+
   R visitIndexExpression(IndexExpression node) => null;
+
   R visitInstanceCreationExpression(InstanceCreationExpression node) => null;
+
   R visitIntegerLiteral(IntegerLiteral node) => null;
+
   R visitInterpolationExpression(InterpolationExpression node) => null;
+
   R visitInterpolationString(InterpolationString node) => null;
+
   R visitIsExpression(IsExpression node) => null;
+
   R visitLabel(Label node) => null;
+
   R visitLabeledStatement(LabeledStatement node) => null;
+
   R visitLibraryDirective(LibraryDirective node) => null;
+
   R visitLibraryIdentifier(LibraryIdentifier node) => null;
+
   R visitListLiteral(ListLiteral node) => null;
+
   R visitMapLiteral(MapLiteral node) => null;
+
   R visitMapLiteralEntry(MapLiteralEntry node) => null;
+
   R visitMethodDeclaration(MethodDeclaration node) => null;
+
   R visitMethodInvocation(MethodInvocation node) => null;
+
   R visitNamedExpression(NamedExpression node) => null;
+
   R visitNativeClause(NativeClause node) => null;
+
   R visitNativeFunctionBody(NativeFunctionBody node) => null;
+
   R visitNullLiteral(NullLiteral node) => null;
+
   R visitParenthesizedExpression(ParenthesizedExpression node) => null;
+
   R visitPartDirective(PartDirective node) => null;
+
   R visitPartOfDirective(PartOfDirective node) => null;
+
   R visitPostfixExpression(PostfixExpression node) => null;
+
   R visitPrefixedIdentifier(PrefixedIdentifier node) => null;
+
   R visitPrefixExpression(PrefixExpression node) => null;
+
   R visitPropertyAccess(PropertyAccess node) => null;
+
   R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => null;
+
   R visitRethrowExpression(RethrowExpression node) => null;
+
   R visitReturnStatement(ReturnStatement node) => null;
+
   R visitScriptTag(ScriptTag node) => null;
+
   R visitShowCombinator(ShowCombinator node) => null;
+
   R visitSimpleFormalParameter(SimpleFormalParameter node) => null;
+
   R visitSimpleIdentifier(SimpleIdentifier node) => null;
+
   R visitSimpleStringLiteral(SimpleStringLiteral node) => null;
+
   R visitStringInterpolation(StringInterpolation node) => null;
+
   R visitSuperConstructorInvocation(SuperConstructorInvocation node) => null;
+
   R visitSuperExpression(SuperExpression node) => null;
+
   R visitSwitchCase(SwitchCase node) => null;
+
   R visitSwitchDefault(SwitchDefault node) => null;
+
   R visitSwitchStatement(SwitchStatement node) => null;
+
   R visitSymbolLiteral(SymbolLiteral node) => null;
+
   R visitThisExpression(ThisExpression node) => null;
+
   R visitThrowExpression(ThrowExpression node) => null;
+
   R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => null;
+
   R visitTryStatement(TryStatement node) => null;
+
   R visitTypeArgumentList(TypeArgumentList node) => null;
+
   R visitTypeName(TypeName node) => null;
+
   R visitTypeParameter(TypeParameter node) => null;
+
   R visitTypeParameterList(TypeParameterList node) => null;
+
   R visitVariableDeclaration(VariableDeclaration node) => null;
+
   R visitVariableDeclarationList(VariableDeclarationList node) => null;
+
   R visitVariableDeclarationStatement(VariableDeclarationStatement node) => null;
+
   R visitWhileStatement(WhileStatement node) => null;
+
   R visitWithClause(WithClause node) => null;
 }
+
 /**
  * Instances of the class `ToSourceVisitor` write a source representation of a visited AST
  * node (and all of it's children) to a writer.
@@ -13497,7 +14456,6 @@ class SimpleASTVisitor<R> implements ASTVisitor<R> {
  * @coverage dart.engine.ast
  */
 class ToSourceVisitor implements ASTVisitor<Object> {
-
   /**
    * The writer to which the source is to be written.
    */
@@ -13512,10 +14470,12 @@ class ToSourceVisitor implements ASTVisitor<Object> {
   ToSourceVisitor(PrintWriter writer) {
     this._writer = writer;
   }
+
   Object visitAdjacentStrings(AdjacentStrings node) {
     visitList2(node.strings, " ");
     return null;
   }
+
   Object visitAnnotation(Annotation node) {
     _writer.print('@');
     visit(node.name);
@@ -13523,29 +14483,34 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.arguments);
     return null;
   }
+
   Object visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     _writer.print('?');
     visit(node.identifier);
     return null;
   }
+
   Object visitArgumentList(ArgumentList node) {
     _writer.print('(');
     visitList2(node.arguments, ", ");
     _writer.print(')');
     return null;
   }
+
   Object visitAsExpression(AsExpression node) {
     visit(node.expression);
     _writer.print(" as ");
     visit(node.type);
     return null;
   }
+
   Object visitAssertStatement(AssertStatement node) {
     _writer.print("assert (");
     visit(node.condition);
     _writer.print(");");
     return null;
   }
+
   Object visitAssignmentExpression(AssignmentExpression node) {
     visit(node.leftHandSide);
     _writer.print(' ');
@@ -13554,6 +14519,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.rightHandSide);
     return null;
   }
+
   Object visitBinaryExpression(BinaryExpression node) {
     visit(node.leftOperand);
     _writer.print(' ');
@@ -13562,31 +14528,37 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.rightOperand);
     return null;
   }
+
   Object visitBlock(Block node) {
     _writer.print('{');
     visitList2(node.statements, " ");
     _writer.print('}');
     return null;
   }
+
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     visit(node.block);
     return null;
   }
+
   Object visitBooleanLiteral(BooleanLiteral node) {
     _writer.print(node.literal.lexeme);
     return null;
   }
+
   Object visitBreakStatement(BreakStatement node) {
     _writer.print("break");
     visit3(" ", node.label);
     _writer.print(";");
     return null;
   }
+
   Object visitCascadeExpression(CascadeExpression node) {
     visit(node.target);
     visitList(node.cascadeSections);
     return null;
   }
+
   Object visitCatchClause(CatchClause node) {
     visit3("on ", node.exceptionType);
     if (node.catchKeyword != null) {
@@ -13603,6 +14575,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitClassDeclaration(ClassDeclaration node) {
     visit5(node.abstractKeyword, " ");
     _writer.print("class ");
@@ -13616,6 +14589,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print("}");
     return null;
   }
+
   Object visitClassTypeAlias(ClassTypeAlias node) {
     _writer.print("class ");
     visit(node.name);
@@ -13630,8 +14604,11 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print(";");
     return null;
   }
+
   Object visitComment(Comment node) => null;
+
   Object visitCommentReference(CommentReference node) => null;
+
   Object visitCompilationUnit(CompilationUnit node) {
     ScriptTag scriptTag = node.scriptTag;
     NodeList<Directive> directives = node.directives;
@@ -13642,6 +14619,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visitList4(prefix, node.declarations, " ");
     return null;
   }
+
   Object visitConditionalExpression(ConditionalExpression node) {
     visit(node.condition);
     _writer.print(" ? ");
@@ -13650,6 +14628,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.elseExpression);
     return null;
   }
+
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     visit5(node.externalKeyword, " ");
     visit5(node.constKeyword, " ");
@@ -13662,6 +14641,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit4(" ", node.body);
     return null;
   }
+
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     visit5(node.keyword, ".");
     visit(node.fieldName);
@@ -13669,23 +14649,27 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.expression);
     return null;
   }
+
   Object visitConstructorName(ConstructorName node) {
     visit(node.type);
     visit3(".", node.name);
     return null;
   }
+
   Object visitContinueStatement(ContinueStatement node) {
     _writer.print("continue");
     visit3(" ", node.label);
     _writer.print(";");
     return null;
   }
+
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     visit5(node.keyword, " ");
     visit2(node.type, " ");
     visit(node.identifier);
     return null;
   }
+
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     visit(node.parameter);
     if (node.separator != null) {
@@ -13695,6 +14679,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitDoStatement(DoStatement node) {
     _writer.print("do ");
     visit(node.body);
@@ -13703,18 +14688,22 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print(");");
     return null;
   }
+
   Object visitDoubleLiteral(DoubleLiteral node) {
     _writer.print(node.literal.lexeme);
     return null;
   }
+
   Object visitEmptyFunctionBody(EmptyFunctionBody node) {
     _writer.print(';');
     return null;
   }
+
   Object visitEmptyStatement(EmptyStatement node) {
     _writer.print(';');
     return null;
   }
+
   Object visitExportDirective(ExportDirective node) {
     _writer.print("export ");
     visit(node.uri);
@@ -13722,6 +14711,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print(';');
     return null;
   }
+
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _writer.print("=> ");
     visit(node.expression);
@@ -13730,22 +14720,26 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
     _writer.print(';');
     return null;
   }
+
   Object visitExtendsClause(ExtendsClause node) {
     _writer.print("extends ");
     visit(node.superclass);
     return null;
   }
+
   Object visitFieldDeclaration(FieldDeclaration node) {
     visit5(node.staticKeyword, " ");
     visit(node.fields);
     _writer.print(";");
     return null;
   }
+
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     visit5(node.keyword, " ");
     visit2(node.type, " ");
@@ -13754,6 +14748,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.parameters);
     return null;
   }
+
   Object visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     _writer.print("for (");
@@ -13768,6 +14763,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     _writer.print('(');
@@ -13795,6 +14791,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print(')');
     return null;
   }
+
   Object visitForStatement(ForStatement node) {
     Expression initialization = node.initialization;
     _writer.print("for (");
@@ -13811,6 +14808,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     visit2(node.returnType, " ");
     visit5(node.propertyKeyword, " ");
@@ -13818,22 +14816,26 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.functionExpression);
     return null;
   }
+
   Object visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     visit(node.functionDeclaration);
     _writer.print(';');
     return null;
   }
+
   Object visitFunctionExpression(FunctionExpression node) {
     visit(node.parameters);
     _writer.print(' ');
     visit(node.body);
     return null;
   }
+
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     visit(node.function);
     visit(node.argumentList);
     return null;
   }
+
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     _writer.print("typedef ");
     visit2(node.returnType, " ");
@@ -13843,17 +14845,20 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print(";");
     return null;
   }
+
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     visit2(node.returnType, " ");
     visit(node.identifier);
     visit(node.parameters);
     return null;
   }
+
   Object visitHideCombinator(HideCombinator node) {
     _writer.print("hide ");
     visitList2(node.hiddenNames, ", ");
     return null;
   }
+
   Object visitIfStatement(IfStatement node) {
     _writer.print("if (");
     visit(node.condition);
@@ -13862,11 +14867,13 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit3(" else ", node.elseStatement);
     return null;
   }
+
   Object visitImplementsClause(ImplementsClause node) {
     _writer.print("implements ");
     visitList2(node.interfaces, ", ");
     return null;
   }
+
   Object visitImportDirective(ImportDirective node) {
     _writer.print("import ");
     visit(node.uri);
@@ -13875,6 +14882,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print(';');
     return null;
   }
+
   Object visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
       _writer.print("..");
@@ -13886,16 +14894,19 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print(']');
     return null;
   }
+
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     visit5(node.keyword, " ");
     visit(node.constructorName);
     visit(node.argumentList);
     return null;
   }
+
   Object visitIntegerLiteral(IntegerLiteral node) {
     _writer.print(node.literal.lexeme);
     return null;
   }
+
   Object visitInterpolationExpression(InterpolationExpression node) {
     if (node.rightBracket != null) {
       _writer.print("\${");
@@ -13907,10 +14918,12 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitInterpolationString(InterpolationString node) {
     _writer.print(node.contents.lexeme);
     return null;
   }
+
   Object visitIsExpression(IsExpression node) {
     visit(node.expression);
     if (node.notOperator == null) {
@@ -13921,26 +14934,31 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.type);
     return null;
   }
+
   Object visitLabel(Label node) {
     visit(node.label);
     _writer.print(":");
     return null;
   }
+
   Object visitLabeledStatement(LabeledStatement node) {
     visitList3(node.labels, " ", " ");
     visit(node.statement);
     return null;
   }
+
   Object visitLibraryDirective(LibraryDirective node) {
     _writer.print("library ");
     visit(node.name);
     _writer.print(';');
     return null;
   }
+
   Object visitLibraryIdentifier(LibraryIdentifier node) {
     _writer.print(node.name);
     return null;
   }
+
   Object visitListLiteral(ListLiteral node) {
     if (node.constKeyword != null) {
       _writer.print(node.constKeyword.lexeme);
@@ -13952,6 +14970,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print("]");
     return null;
   }
+
   Object visitMapLiteral(MapLiteral node) {
     if (node.constKeyword != null) {
       _writer.print(node.constKeyword.lexeme);
@@ -13963,12 +14982,14 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print("}");
     return null;
   }
+
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     visit(node.key);
     _writer.print(" : ");
     visit(node.value);
     return null;
   }
+
   Object visitMethodDeclaration(MethodDeclaration node) {
     visit5(node.externalKeyword, " ");
     visit5(node.modifierKeyword, " ");
@@ -13982,6 +15003,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit4(" ", node.body);
     return null;
   }
+
   Object visitMethodInvocation(MethodInvocation node) {
     if (node.isCascaded) {
       _writer.print("..");
@@ -13992,60 +15014,71 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.argumentList);
     return null;
   }
+
   Object visitNamedExpression(NamedExpression node) {
     visit(node.name);
     visit3(" ", node.expression);
     return null;
   }
+
   Object visitNativeClause(NativeClause node) {
     _writer.print("native ");
     visit(node.name);
     return null;
   }
+
   Object visitNativeFunctionBody(NativeFunctionBody node) {
     _writer.print("native ");
     visit(node.stringLiteral);
     _writer.print(';');
     return null;
   }
+
   Object visitNullLiteral(NullLiteral node) {
     _writer.print("null");
     return null;
   }
+
   Object visitParenthesizedExpression(ParenthesizedExpression node) {
     _writer.print('(');
     visit(node.expression);
     _writer.print(')');
     return null;
   }
+
   Object visitPartDirective(PartDirective node) {
     _writer.print("part ");
     visit(node.uri);
     _writer.print(';');
     return null;
   }
+
   Object visitPartOfDirective(PartOfDirective node) {
     _writer.print("part of ");
     visit(node.libraryName);
     _writer.print(';');
     return null;
   }
+
   Object visitPostfixExpression(PostfixExpression node) {
     visit(node.operand);
     _writer.print(node.operator.lexeme);
     return null;
   }
+
   Object visitPrefixedIdentifier(PrefixedIdentifier node) {
     visit(node.prefix);
     _writer.print('.');
     visit(node.identifier);
     return null;
   }
+
   Object visitPrefixExpression(PrefixExpression node) {
     _writer.print(node.operator.lexeme);
     visit(node.operand);
     return null;
   }
+
   Object visitPropertyAccess(PropertyAccess node) {
     if (node.isCascaded) {
       _writer.print("..");
@@ -14056,16 +15089,19 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.propertyName);
     return null;
   }
+
   Object visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     _writer.print("this");
     visit3(".", node.constructorName);
     visit(node.argumentList);
     return null;
   }
+
   Object visitRethrowExpression(RethrowExpression node) {
     _writer.print("rethrow");
     return null;
   }
+
   Object visitReturnStatement(ReturnStatement node) {
     Expression expression = node.expression;
     if (expression == null) {
@@ -14077,43 +15113,52 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitScriptTag(ScriptTag node) {
     _writer.print(node.scriptTag.lexeme);
     return null;
   }
+
   Object visitShowCombinator(ShowCombinator node) {
     _writer.print("show ");
     visitList2(node.shownNames, ", ");
     return null;
   }
+
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     visit5(node.keyword, " ");
     visit2(node.type, " ");
     visit(node.identifier);
     return null;
   }
+
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _writer.print(node.token.lexeme);
     return null;
   }
+
   Object visitSimpleStringLiteral(SimpleStringLiteral node) {
     _writer.print(node.literal.lexeme);
     return null;
   }
+
   Object visitStringInterpolation(StringInterpolation node) {
     visitList(node.elements);
     return null;
   }
+
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _writer.print("super");
     visit3(".", node.constructorName);
     visit(node.argumentList);
     return null;
   }
+
   Object visitSuperExpression(SuperExpression node) {
     _writer.print("super");
     return null;
   }
+
   Object visitSwitchCase(SwitchCase node) {
     visitList3(node.labels, " ", " ");
     _writer.print("case ");
@@ -14122,12 +15167,14 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visitList2(node.statements, " ");
     return null;
   }
+
   Object visitSwitchDefault(SwitchDefault node) {
     visitList3(node.labels, " ", " ");
     _writer.print("default: ");
     visitList2(node.statements, " ");
     return null;
   }
+
   Object visitSwitchStatement(SwitchStatement node) {
     _writer.print("switch (");
     visit(node.expression);
@@ -14136,6 +15183,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print("}");
     return null;
   }
+
   Object visitSymbolLiteral(SymbolLiteral node) {
     _writer.print("#");
     List<Token> components = node.components;
@@ -14147,19 +15195,23 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitThisExpression(ThisExpression node) {
     _writer.print("this");
     return null;
   }
+
   Object visitThrowExpression(ThrowExpression node) {
     _writer.print("throw ");
     visit(node.expression);
     return null;
   }
+
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     visit2(node.variables, ";");
     return null;
   }
+
   Object visitTryStatement(TryStatement node) {
     _writer.print("try ");
     visit(node.body);
@@ -14167,44 +15219,52 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit3(" finally ", node.finallyBlock);
     return null;
   }
+
   Object visitTypeArgumentList(TypeArgumentList node) {
     _writer.print('<');
     visitList2(node.arguments, ", ");
     _writer.print('>');
     return null;
   }
+
   Object visitTypeName(TypeName node) {
     visit(node.name);
     visit(node.typeArguments);
     return null;
   }
+
   Object visitTypeParameter(TypeParameter node) {
     visit(node.name);
     visit3(" extends ", node.bound);
     return null;
   }
+
   Object visitTypeParameterList(TypeParameterList node) {
     _writer.print('<');
     visitList2(node.typeParameters, ", ");
     _writer.print('>');
     return null;
   }
+
   Object visitVariableDeclaration(VariableDeclaration node) {
     visit(node.name);
     visit3(" = ", node.initializer);
     return null;
   }
+
   Object visitVariableDeclarationList(VariableDeclarationList node) {
     visit5(node.keyword, " ");
     visit2(node.type, " ");
     visitList2(node.variables, ", ");
     return null;
   }
+
   Object visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     visit(node.variables);
     _writer.print(";");
     return null;
   }
+
   Object visitWhileStatement(WhileStatement node) {
     _writer.print("while (");
     visit(node.condition);
@@ -14212,6 +15272,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit(node.body);
     return null;
   }
+
   Object visitWithClause(WithClause node) {
     _writer.print("with ");
     visitList2(node.mixinTypes, ", ");
@@ -14353,6 +15414,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     }
   }
 }
+
 /**
  * Instances of the class `UnifyingASTVisitor` implement an AST visitor that will recursively
  * visit all of the nodes in an AST structure (like instances of the class
@@ -14367,113 +15429,217 @@ class ToSourceVisitor implements ASTVisitor<Object> {
  */
 class UnifyingASTVisitor<R> implements ASTVisitor<R> {
   R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
+
   R visitAnnotation(Annotation node) => visitNode(node);
+
   R visitArgumentDefinitionTest(ArgumentDefinitionTest node) => visitNode(node);
+
   R visitArgumentList(ArgumentList node) => visitNode(node);
+
   R visitAsExpression(AsExpression node) => visitNode(node);
+
   R visitAssertStatement(AssertStatement node) => visitNode(node);
+
   R visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
+
   R visitBinaryExpression(BinaryExpression node) => visitNode(node);
+
   R visitBlock(Block node) => visitNode(node);
+
   R visitBlockFunctionBody(BlockFunctionBody node) => visitNode(node);
+
   R visitBooleanLiteral(BooleanLiteral node) => visitNode(node);
+
   R visitBreakStatement(BreakStatement node) => visitNode(node);
+
   R visitCascadeExpression(CascadeExpression node) => visitNode(node);
+
   R visitCatchClause(CatchClause node) => visitNode(node);
+
   R visitClassDeclaration(ClassDeclaration node) => visitNode(node);
+
   R visitClassTypeAlias(ClassTypeAlias node) => visitNode(node);
+
   R visitComment(Comment node) => visitNode(node);
+
   R visitCommentReference(CommentReference node) => visitNode(node);
+
   R visitCompilationUnit(CompilationUnit node) => visitNode(node);
+
   R visitConditionalExpression(ConditionalExpression node) => visitNode(node);
+
   R visitConstructorDeclaration(ConstructorDeclaration node) => visitNode(node);
+
   R visitConstructorFieldInitializer(ConstructorFieldInitializer node) => visitNode(node);
+
   R visitConstructorName(ConstructorName node) => visitNode(node);
+
   R visitContinueStatement(ContinueStatement node) => visitNode(node);
+
   R visitDeclaredIdentifier(DeclaredIdentifier node) => visitNode(node);
+
   R visitDefaultFormalParameter(DefaultFormalParameter node) => visitNode(node);
+
   R visitDoStatement(DoStatement node) => visitNode(node);
+
   R visitDoubleLiteral(DoubleLiteral node) => visitNode(node);
+
   R visitEmptyFunctionBody(EmptyFunctionBody node) => visitNode(node);
+
   R visitEmptyStatement(EmptyStatement node) => visitNode(node);
+
   R visitExportDirective(ExportDirective node) => visitNode(node);
+
   R visitExpressionFunctionBody(ExpressionFunctionBody node) => visitNode(node);
+
   R visitExpressionStatement(ExpressionStatement node) => visitNode(node);
+
   R visitExtendsClause(ExtendsClause node) => visitNode(node);
+
   R visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
+
   R visitFieldFormalParameter(FieldFormalParameter node) => visitNode(node);
+
   R visitForEachStatement(ForEachStatement node) => visitNode(node);
+
   R visitFormalParameterList(FormalParameterList node) => visitNode(node);
+
   R visitForStatement(ForStatement node) => visitNode(node);
+
   R visitFunctionDeclaration(FunctionDeclaration node) => visitNode(node);
+
   R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => visitNode(node);
+
   R visitFunctionExpression(FunctionExpression node) => visitNode(node);
+
   R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => visitNode(node);
+
   R visitFunctionTypeAlias(FunctionTypeAlias node) => visitNode(node);
+
   R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => visitNode(node);
+
   R visitHideCombinator(HideCombinator node) => visitNode(node);
+
   R visitIfStatement(IfStatement node) => visitNode(node);
+
   R visitImplementsClause(ImplementsClause node) => visitNode(node);
+
   R visitImportDirective(ImportDirective node) => visitNode(node);
+
   R visitIndexExpression(IndexExpression node) => visitNode(node);
+
   R visitInstanceCreationExpression(InstanceCreationExpression node) => visitNode(node);
+
   R visitIntegerLiteral(IntegerLiteral node) => visitNode(node);
+
   R visitInterpolationExpression(InterpolationExpression node) => visitNode(node);
+
   R visitInterpolationString(InterpolationString node) => visitNode(node);
+
   R visitIsExpression(IsExpression node) => visitNode(node);
+
   R visitLabel(Label node) => visitNode(node);
+
   R visitLabeledStatement(LabeledStatement node) => visitNode(node);
+
   R visitLibraryDirective(LibraryDirective node) => visitNode(node);
+
   R visitLibraryIdentifier(LibraryIdentifier node) => visitNode(node);
+
   R visitListLiteral(ListLiteral node) => visitNode(node);
+
   R visitMapLiteral(MapLiteral node) => visitNode(node);
+
   R visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
+
   R visitMethodDeclaration(MethodDeclaration node) => visitNode(node);
+
   R visitMethodInvocation(MethodInvocation node) => visitNode(node);
+
   R visitNamedExpression(NamedExpression node) => visitNode(node);
+
   R visitNativeClause(NativeClause node) => visitNode(node);
+
   R visitNativeFunctionBody(NativeFunctionBody node) => visitNode(node);
+
   R visitNode(ASTNode node) {
     node.visitChildren(this);
     return null;
   }
+
   R visitNullLiteral(NullLiteral node) => visitNode(node);
+
   R visitParenthesizedExpression(ParenthesizedExpression node) => visitNode(node);
+
   R visitPartDirective(PartDirective node) => visitNode(node);
+
   R visitPartOfDirective(PartOfDirective node) => visitNode(node);
+
   R visitPostfixExpression(PostfixExpression node) => visitNode(node);
+
   R visitPrefixedIdentifier(PrefixedIdentifier node) => visitNode(node);
+
   R visitPrefixExpression(PrefixExpression node) => visitNode(node);
+
   R visitPropertyAccess(PropertyAccess node) => visitNode(node);
+
   R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => visitNode(node);
+
   R visitRethrowExpression(RethrowExpression node) => visitNode(node);
+
   R visitReturnStatement(ReturnStatement node) => visitNode(node);
+
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
+
   R visitShowCombinator(ShowCombinator node) => visitNode(node);
+
   R visitSimpleFormalParameter(SimpleFormalParameter node) => visitNode(node);
+
   R visitSimpleIdentifier(SimpleIdentifier node) => visitNode(node);
+
   R visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);
+
   R visitStringInterpolation(StringInterpolation node) => visitNode(node);
+
   R visitSuperConstructorInvocation(SuperConstructorInvocation node) => visitNode(node);
+
   R visitSuperExpression(SuperExpression node) => visitNode(node);
+
   R visitSwitchCase(SwitchCase node) => visitNode(node);
+
   R visitSwitchDefault(SwitchDefault node) => visitNode(node);
+
   R visitSwitchStatement(SwitchStatement node) => visitNode(node);
+
   R visitSymbolLiteral(SymbolLiteral node) => visitNode(node);
+
   R visitThisExpression(ThisExpression node) => visitNode(node);
+
   R visitThrowExpression(ThrowExpression node) => visitNode(node);
+
   R visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => visitNode(node);
+
   R visitTryStatement(TryStatement node) => visitNode(node);
+
   R visitTypeArgumentList(TypeArgumentList node) => visitNode(node);
+
   R visitTypeName(TypeName node) => visitNode(node);
+
   R visitTypeParameter(TypeParameter node) => visitNode(node);
+
   R visitTypeParameterList(TypeParameterList node) => visitNode(node);
+
   R visitVariableDeclaration(VariableDeclaration node) => visitNode(node);
+
   R visitVariableDeclarationList(VariableDeclarationList node) => visitNode(node);
+
   R visitVariableDeclarationStatement(VariableDeclarationStatement node) => visitNode(node);
+
   R visitWhileStatement(WhileStatement node) => visitNode(node);
+
   R visitWithClause(WithClause node) => visitNode(node);
 }
+
 /**
  * Instances of the class `ASTCloner` implement an object that will clone any AST structure
  * that it visits. The cloner will only clone the structure, it will not preserve any resolution
@@ -14481,25 +15647,41 @@ class UnifyingASTVisitor<R> implements ASTVisitor<R> {
  */
 class ASTCloner implements ASTVisitor<ASTNode> {
   AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings.full(clone3(node.strings));
+
   Annotation visitAnnotation(Annotation node) => new Annotation.full(node.atSign, clone2(node.name), node.period, clone2(node.constructorName), clone2(node.arguments));
+
   ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) => new ArgumentDefinitionTest.full(node.question, clone2(node.identifier));
+
   ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList.full(node.leftParenthesis, clone3(node.arguments), node.rightParenthesis);
+
   AsExpression visitAsExpression(AsExpression node) => new AsExpression.full(clone2(node.expression), node.asOperator, clone2(node.type));
+
   ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement.full(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
+
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression.full(clone2(node.leftHandSide), node.operator, clone2(node.rightHandSide));
+
   BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression.full(clone2(node.leftOperand), node.operator, clone2(node.rightOperand));
+
   Block visitBlock(Block node) => new Block.full(node.leftBracket, clone3(node.statements), node.rightBracket);
+
   BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody.full(clone2(node.block));
+
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) => new BooleanLiteral.full(node.literal, node.value);
+
   BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement.full(node.keyword, clone2(node.label), node.semicolon);
+
   CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression.full(clone2(node.target), clone3(node.cascadeSections));
+
   CatchClause visitCatchClause(CatchClause node) => new CatchClause.full(node.onKeyword, clone2(node.exceptionType), node.catchKeyword, node.leftParenthesis, clone2(node.exceptionParameter), node.comma, clone2(node.stackTraceParameter), node.rightParenthesis, clone2(node.body));
+
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration copy = new ClassDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.abstractKeyword, node.classKeyword, clone2(node.name), clone2(node.typeParameters), clone2(node.extendsClause), clone2(node.withClause), clone2(node.implementsClause), node.leftBracket, clone3(node.members), node.rightBracket);
     copy.nativeClause = clone2(node.nativeClause);
     return copy;
   }
+
   ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.name), clone2(node.typeParameters), node.equals, node.abstractKeyword, clone2(node.superclass), clone2(node.withClause), clone2(node.implementsClause), node.semicolon);
+
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
       return Comment.createDocumentationComment2(node.tokens, clone3(node.references));
@@ -14508,29 +15690,49 @@ class ASTCloner implements ASTVisitor<ASTNode> {
     }
     return Comment.createEndOfLineComment(node.tokens);
   }
+
   CommentReference visitCommentReference(CommentReference node) => new CommentReference.full(node.newKeyword, clone2(node.identifier));
+
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
     CompilationUnit clone = new CompilationUnit.full(node.beginToken, clone2(node.scriptTag), clone3(node.directives), clone3(node.declarations), node.endToken);
     clone.lineInfo = node.lineInfo;
     return clone;
   }
+
   ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression.full(clone2(node.condition), node.question, clone2(node.thenExpression), node.colon, clone2(node.elseExpression));
+
   ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) => new ConstructorDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.constKeyword, node.factoryKeyword, clone2(node.returnType), node.period, clone2(node.name), clone2(node.parameters), node.separator, clone3(node.initializers), clone2(node.redirectedConstructor), clone2(node.body));
+
   ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer.full(node.keyword, node.period, clone2(node.fieldName), node.equals, clone2(node.expression));
+
   ConstructorName visitConstructorName(ConstructorName node) => new ConstructorName.full(clone2(node.type), node.period, clone2(node.name));
+
   ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement.full(node.keyword, clone2(node.label), node.semicolon);
+
   DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
+
   DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter.full(clone2(node.parameter), node.kind, node.separator, clone2(node.defaultValue));
+
   DoStatement visitDoStatement(DoStatement node) => new DoStatement.full(node.doKeyword, clone2(node.body), node.whileKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
+
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) => new DoubleLiteral.full(node.literal, node.value);
+
   EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody.full(node.semicolon);
+
   EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement.full(node.semicolon);
+
   ExportDirective visitExportDirective(ExportDirective node) => new ExportDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), clone3(node.combinators), node.semicolon);
+
   ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody.full(node.functionDefinition, clone2(node.expression), node.semicolon);
+
   ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement.full(clone2(node.expression), node.semicolon);
+
   ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(node.keyword, clone2(node.superclass));
+
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.staticKeyword, clone2(node.fields), node.semicolon);
+
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), node.thisToken, node.period, clone2(node.identifier), clone2(node.parameters));
+
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
@@ -14538,18 +15740,31 @@ class ASTCloner implements ASTVisitor<ASTNode> {
     }
     return new ForEachStatement.con1_full(node.forKeyword, node.leftParenthesis, clone2(loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
   }
+
   FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(node.leftParenthesis, clone3(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
+
   ForStatement visitForStatement(ForStatement node) => new ForStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.variables), clone2(node.initialization), node.leftSeparator, clone2(node.condition), node.rightSeparator, clone3(node.updaters), node.rightParenthesis, clone2(node.body));
+
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, clone2(node.returnType), node.propertyKeyword, clone2(node.name), clone2(node.functionExpression));
+
   FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement.full(clone2(node.functionDeclaration));
+
   FunctionExpression visitFunctionExpression(FunctionExpression node) => new FunctionExpression.full(clone2(node.parameters), clone2(node.body));
+
   FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => new FunctionExpressionInvocation.full(clone2(node.function), clone2(node.argumentList));
+
   FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.returnType), clone2(node.name), clone2(node.typeParameters), clone2(node.parameters), node.semicolon);
+
   FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.returnType), clone2(node.identifier), clone2(node.parameters));
+
   HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator.full(node.keyword, clone3(node.hiddenNames));
+
   IfStatement visitIfStatement(IfStatement node) => new IfStatement.full(node.ifKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.thenStatement), node.elseKeyword, clone2(node.elseStatement));
+
   ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause.full(node.keyword, clone3(node.interfaces));
+
   ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), node.asToken, clone2(node.prefix), clone3(node.combinators), node.semicolon);
+
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = node.period;
     if (period == null) {
@@ -14558,65 +15773,120 @@ class ASTCloner implements ASTVisitor<ASTNode> {
       return new IndexExpression.forCascade_full(period, node.leftBracket, clone2(node.index), node.rightBracket);
     }
   }
+
   InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression.full(node.keyword, clone2(node.constructorName), clone2(node.argumentList));
+
   IntegerLiteral visitIntegerLiteral(IntegerLiteral node) => new IntegerLiteral.full(node.literal, node.value);
+
   InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression.full(node.leftBracket, clone2(node.expression), node.rightBracket);
+
   InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString.full(node.contents, node.value);
+
   IsExpression visitIsExpression(IsExpression node) => new IsExpression.full(clone2(node.expression), node.isOperator, node.notOperator, clone2(node.type));
+
   Label visitLabel(Label node) => new Label.full(clone2(node.label), node.colon);
+
   LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement.full(clone3(node.labels), clone2(node.statement));
+
   LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.libraryToken, clone2(node.name), node.semicolon);
+
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier.full(clone3(node.components));
+
   ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral.full(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.elements), node.rightBracket);
+
   MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral.full(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.entries), node.rightBracket);
+
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry.full(clone2(node.key), node.separator, clone2(node.value));
+
   MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.modifierKeyword, clone2(node.returnType), node.propertyKeyword, node.operatorKeyword, clone2(node.name), clone2(node.parameters), clone2(node.body));
+
   MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation.full(clone2(node.target), node.period, clone2(node.methodName), clone2(node.argumentList));
+
   NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression.full(clone2(node.name), clone2(node.expression));
+
   ASTNode visitNativeClause(NativeClause node) => new NativeClause.full(node.keyword, clone2(node.name));
+
   NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody.full(node.nativeToken, clone2(node.stringLiteral), node.semicolon);
+
   NullLiteral visitNullLiteral(NullLiteral node) => new NullLiteral.full(node.literal);
+
   ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression.full(node.leftParenthesis, clone2(node.expression), node.rightParenthesis);
+
   PartDirective visitPartDirective(PartDirective node) => new PartDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.partToken, clone2(node.uri), node.semicolon);
+
   PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.partToken, node.ofToken, clone2(node.libraryName), node.semicolon);
+
   PostfixExpression visitPostfixExpression(PostfixExpression node) => new PostfixExpression.full(clone2(node.operand), node.operator);
+
   PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) => new PrefixedIdentifier.full(clone2(node.prefix), node.period, clone2(node.identifier));
+
   PrefixExpression visitPrefixExpression(PrefixExpression node) => new PrefixExpression.full(node.operator, clone2(node.operand));
+
   PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess.full(clone2(node.target), node.operator, clone2(node.propertyName));
+
   RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => new RedirectingConstructorInvocation.full(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
+
   RethrowExpression visitRethrowExpression(RethrowExpression node) => new RethrowExpression.full(node.keyword);
+
   ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement.full(node.keyword, clone2(node.expression), node.semicolon);
+
   ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag.full(node.scriptTag);
+
   ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator.full(node.keyword, clone3(node.shownNames));
+
   SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
+
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) => new SimpleIdentifier.full(node.token);
+
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) => new SimpleStringLiteral.full(node.literal, node.value);
+
   StringInterpolation visitStringInterpolation(StringInterpolation node) => new StringInterpolation.full(clone3(node.elements));
+
   SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) => new SuperConstructorInvocation.full(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
+
   SuperExpression visitSuperExpression(SuperExpression node) => new SuperExpression.full(node.keyword);
+
   SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase.full(clone3(node.labels), node.keyword, clone2(node.expression), node.colon, clone3(node.statements));
+
   SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault.full(clone3(node.labels), node.keyword, node.colon, clone3(node.statements));
+
   SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement.full(node.keyword, node.leftParenthesis, clone2(node.expression), node.rightParenthesis, node.leftBracket, clone3(node.members), node.rightBracket);
+
   ASTNode visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral.full(node.poundSign, node.components);
+
   ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression.full(node.keyword);
+
   ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression.full(node.keyword, clone2(node.expression));
+
   TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.variables), node.semicolon);
+
   TryStatement visitTryStatement(TryStatement node) => new TryStatement.full(node.tryKeyword, clone2(node.body), clone3(node.catchClauses), node.finallyKeyword, clone2(node.finallyBlock));
+
   TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList.full(node.leftBracket, clone3(node.arguments), node.rightBracket);
+
   TypeName visitTypeName(TypeName node) => new TypeName.full(clone2(node.name), clone2(node.typeArguments));
+
   TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.name), node.keyword, clone2(node.bound));
+
   TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList.full(node.leftBracket, clone3(node.typeParameters), node.rightBracket);
+
   VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration.full(null, clone3(node.metadata), clone2(node.name), node.equals, clone2(node.initializer));
+
   VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList.full(null, clone3(node.metadata), node.keyword, clone2(node.type), clone3(node.variables));
+
   VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement.full(clone2(node.variables), node.semicolon);
+
   WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement.full(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.body));
+
   WithClause visitWithClause(WithClause node) => new WithClause.full(node.withKeyword, clone3(node.mixinTypes));
+
   ASTNode clone2(ASTNode node) {
     if (node == null) {
       return null;
     }
     return node.accept(this) as ASTNode;
   }
+
   List clone3(NodeList nodes) {
     List clonedNodes = new List();
     for (ASTNode node in nodes) {
@@ -14625,12 +15895,12 @@ class ASTCloner implements ASTVisitor<ASTNode> {
     return clonedNodes;
   }
 }
+
 /**
  * Instances of the class `ASTComparator` compare the structure of two ASTNodes to see whether
  * they are equal.
  */
 class ASTComparator implements ASTVisitor<bool> {
-
   /**
    * Return `true` if the two AST nodes are equal.
    *
@@ -14648,414 +15918,517 @@ class ASTComparator implements ASTVisitor<bool> {
    * beginning of each visit method (until [isEqual] is invoked).
    */
   ASTNode _other;
+
   bool visitAdjacentStrings(AdjacentStrings node) {
     AdjacentStrings other = this._other as AdjacentStrings;
     return isEqual5(node.strings, other.strings);
   }
+
   bool visitAnnotation(Annotation node) {
     Annotation other = this._other as Annotation;
     return isEqual6(node.atSign, other.atSign) && isEqual(node.name, other.name) && isEqual6(node.period, other.period) && isEqual(node.constructorName, other.constructorName) && isEqual(node.arguments, other.arguments);
   }
+
   bool visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     ArgumentDefinitionTest other = this._other as ArgumentDefinitionTest;
     return isEqual6(node.question, other.question) && isEqual(node.identifier, other.identifier);
   }
+
   bool visitArgumentList(ArgumentList node) {
     ArgumentList other = this._other as ArgumentList;
     return isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual5(node.arguments, other.arguments) && isEqual6(node.rightParenthesis, other.rightParenthesis);
   }
+
   bool visitAsExpression(AsExpression node) {
     AsExpression other = this._other as AsExpression;
     return isEqual(node.expression, other.expression) && isEqual6(node.asOperator, other.asOperator) && isEqual(node.type, other.type);
   }
+
   bool visitAssertStatement(AssertStatement node) {
     AssertStatement other = this._other as AssertStatement;
     return isEqual6(node.keyword, other.keyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression other = this._other as AssignmentExpression;
     return isEqual(node.leftHandSide, other.leftHandSide) && isEqual6(node.operator, other.operator) && isEqual(node.rightHandSide, other.rightHandSide);
   }
+
   bool visitBinaryExpression(BinaryExpression node) {
     BinaryExpression other = this._other as BinaryExpression;
     return isEqual(node.leftOperand, other.leftOperand) && isEqual6(node.operator, other.operator) && isEqual(node.rightOperand, other.rightOperand);
   }
+
   bool visitBlock(Block node) {
     Block other = this._other as Block;
     return isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.statements, other.statements) && isEqual6(node.rightBracket, other.rightBracket);
   }
+
   bool visitBlockFunctionBody(BlockFunctionBody node) {
     BlockFunctionBody other = this._other as BlockFunctionBody;
     return isEqual(node.block, other.block);
   }
+
   bool visitBooleanLiteral(BooleanLiteral node) {
     BooleanLiteral other = this._other as BooleanLiteral;
     return isEqual6(node.literal, other.literal) && identical(node.value, other.value);
   }
+
   bool visitBreakStatement(BreakStatement node) {
     BreakStatement other = this._other as BreakStatement;
     return isEqual6(node.keyword, other.keyword) && isEqual(node.label, other.label) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitCascadeExpression(CascadeExpression node) {
     CascadeExpression other = this._other as CascadeExpression;
     return isEqual(node.target, other.target) && isEqual5(node.cascadeSections, other.cascadeSections);
   }
+
   bool visitCatchClause(CatchClause node) {
     CatchClause other = this._other as CatchClause;
     return isEqual6(node.onKeyword, other.onKeyword) && isEqual(node.exceptionType, other.exceptionType) && isEqual6(node.catchKeyword, other.catchKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.exceptionParameter, other.exceptionParameter) && isEqual6(node.comma, other.comma) && isEqual(node.stackTraceParameter, other.stackTraceParameter) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
   }
+
   bool visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration other = this._other as ClassDeclaration;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.abstractKeyword, other.abstractKeyword) && isEqual6(node.classKeyword, other.classKeyword) && isEqual(node.name, other.name) && isEqual(node.typeParameters, other.typeParameters) && isEqual(node.extendsClause, other.extendsClause) && isEqual(node.withClause, other.withClause) && isEqual(node.implementsClause, other.implementsClause) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.members, other.members) && isEqual6(node.rightBracket, other.rightBracket);
   }
+
   bool visitClassTypeAlias(ClassTypeAlias node) {
     ClassTypeAlias other = this._other as ClassTypeAlias;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.name, other.name) && isEqual(node.typeParameters, other.typeParameters) && isEqual6(node.equals, other.equals) && isEqual6(node.abstractKeyword, other.abstractKeyword) && isEqual(node.superclass, other.superclass) && isEqual(node.withClause, other.withClause) && isEqual(node.implementsClause, other.implementsClause) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitComment(Comment node) {
     Comment other = this._other as Comment;
     return isEqual5(node.references, other.references);
   }
+
   bool visitCommentReference(CommentReference node) {
     CommentReference other = this._other as CommentReference;
     return isEqual6(node.newKeyword, other.newKeyword) && isEqual(node.identifier, other.identifier);
   }
+
   bool visitCompilationUnit(CompilationUnit node) {
     CompilationUnit other = this._other as CompilationUnit;
     return isEqual6(node.beginToken, other.beginToken) && isEqual(node.scriptTag, other.scriptTag) && isEqual5(node.directives, other.directives) && isEqual5(node.declarations, other.declarations) && isEqual6(node.endToken, other.endToken);
   }
+
   bool visitConditionalExpression(ConditionalExpression node) {
     ConditionalExpression other = this._other as ConditionalExpression;
     return isEqual(node.condition, other.condition) && isEqual6(node.question, other.question) && isEqual(node.thenExpression, other.thenExpression) && isEqual6(node.colon, other.colon) && isEqual(node.elseExpression, other.elseExpression);
   }
+
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration other = this._other as ConstructorDeclaration;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.externalKeyword, other.externalKeyword) && isEqual6(node.constKeyword, other.constKeyword) && isEqual6(node.factoryKeyword, other.factoryKeyword) && isEqual(node.returnType, other.returnType) && isEqual6(node.period, other.period) && isEqual(node.name, other.name) && isEqual(node.parameters, other.parameters) && isEqual6(node.separator, other.separator) && isEqual5(node.initializers, other.initializers) && isEqual(node.redirectedConstructor, other.redirectedConstructor) && isEqual(node.body, other.body);
   }
+
   bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     ConstructorFieldInitializer other = this._other as ConstructorFieldInitializer;
     return isEqual6(node.keyword, other.keyword) && isEqual6(node.period, other.period) && isEqual(node.fieldName, other.fieldName) && isEqual6(node.equals, other.equals) && isEqual(node.expression, other.expression);
   }
+
   bool visitConstructorName(ConstructorName node) {
     ConstructorName other = this._other as ConstructorName;
     return isEqual(node.type, other.type) && isEqual6(node.period, other.period) && isEqual(node.name, other.name);
   }
+
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement other = this._other as ContinueStatement;
     return isEqual6(node.keyword, other.keyword) && isEqual(node.label, other.label) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitDeclaredIdentifier(DeclaredIdentifier node) {
     DeclaredIdentifier other = this._other as DeclaredIdentifier;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual(node.identifier, other.identifier);
   }
+
   bool visitDefaultFormalParameter(DefaultFormalParameter node) {
     DefaultFormalParameter other = this._other as DefaultFormalParameter;
     return isEqual(node.parameter, other.parameter) && identical(node.kind, other.kind) && isEqual6(node.separator, other.separator) && isEqual(node.defaultValue, other.defaultValue);
   }
+
   bool visitDoStatement(DoStatement node) {
     DoStatement other = this._other as DoStatement;
     return isEqual6(node.doKeyword, other.doKeyword) && isEqual(node.body, other.body) && isEqual6(node.whileKeyword, other.whileKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitDoubleLiteral(DoubleLiteral node) {
     DoubleLiteral other = this._other as DoubleLiteral;
     return isEqual6(node.literal, other.literal) && node.value == other.value;
   }
+
   bool visitEmptyFunctionBody(EmptyFunctionBody node) {
     EmptyFunctionBody other = this._other as EmptyFunctionBody;
     return isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitEmptyStatement(EmptyStatement node) {
     EmptyStatement other = this._other as EmptyStatement;
     return isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitExportDirective(ExportDirective node) {
     ExportDirective other = this._other as ExportDirective;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.uri, other.uri) && isEqual5(node.combinators, other.combinators) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
     ExpressionFunctionBody other = this._other as ExpressionFunctionBody;
     return isEqual6(node.functionDefinition, other.functionDefinition) && isEqual(node.expression, other.expression) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitExpressionStatement(ExpressionStatement node) {
     ExpressionStatement other = this._other as ExpressionStatement;
     return isEqual(node.expression, other.expression) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitExtendsClause(ExtendsClause node) {
     ExtendsClause other = this._other as ExtendsClause;
     return isEqual6(node.keyword, other.keyword) && isEqual(node.superclass, other.superclass);
   }
+
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration other = this._other as FieldDeclaration;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.staticKeyword, other.staticKeyword) && isEqual(node.fields, other.fields) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitFieldFormalParameter(FieldFormalParameter node) {
     FieldFormalParameter other = this._other as FieldFormalParameter;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual6(node.thisToken, other.thisToken) && isEqual6(node.period, other.period) && isEqual(node.identifier, other.identifier);
   }
+
   bool visitForEachStatement(ForEachStatement node) {
     ForEachStatement other = this._other as ForEachStatement;
     return isEqual6(node.forKeyword, other.forKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.loopVariable, other.loopVariable) && isEqual6(node.inKeyword, other.inKeyword) && isEqual(node.iterator, other.iterator) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
   }
+
   bool visitFormalParameterList(FormalParameterList node) {
     FormalParameterList other = this._other as FormalParameterList;
     return isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual5(node.parameters, other.parameters) && isEqual6(node.leftDelimiter, other.leftDelimiter) && isEqual6(node.rightDelimiter, other.rightDelimiter) && isEqual6(node.rightParenthesis, other.rightParenthesis);
   }
+
   bool visitForStatement(ForStatement node) {
     ForStatement other = this._other as ForStatement;
     return isEqual6(node.forKeyword, other.forKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.variables, other.variables) && isEqual(node.initialization, other.initialization) && isEqual6(node.leftSeparator, other.leftSeparator) && isEqual(node.condition, other.condition) && isEqual6(node.rightSeparator, other.rightSeparator) && isEqual5(node.updaters, other.updaters) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
   }
+
   bool visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionDeclaration other = this._other as FunctionDeclaration;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.externalKeyword, other.externalKeyword) && isEqual(node.returnType, other.returnType) && isEqual6(node.propertyKeyword, other.propertyKeyword) && isEqual(node.name, other.name) && isEqual(node.functionExpression, other.functionExpression);
   }
+
   bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     FunctionDeclarationStatement other = this._other as FunctionDeclarationStatement;
     return isEqual(node.functionDeclaration, other.functionDeclaration);
   }
+
   bool visitFunctionExpression(FunctionExpression node) {
     FunctionExpression other = this._other as FunctionExpression;
     return isEqual(node.parameters, other.parameters) && isEqual(node.body, other.body);
   }
+
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     FunctionExpressionInvocation other = this._other as FunctionExpressionInvocation;
     return isEqual(node.function, other.function) && isEqual(node.argumentList, other.argumentList);
   }
+
   bool visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAlias other = this._other as FunctionTypeAlias;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.returnType, other.returnType) && isEqual(node.name, other.name) && isEqual(node.typeParameters, other.typeParameters) && isEqual(node.parameters, other.parameters) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     FunctionTypedFormalParameter other = this._other as FunctionTypedFormalParameter;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.returnType, other.returnType) && isEqual(node.identifier, other.identifier) && isEqual(node.parameters, other.parameters);
   }
+
   bool visitHideCombinator(HideCombinator node) {
     HideCombinator other = this._other as HideCombinator;
     return isEqual6(node.keyword, other.keyword) && isEqual5(node.hiddenNames, other.hiddenNames);
   }
+
   bool visitIfStatement(IfStatement node) {
     IfStatement other = this._other as IfStatement;
     return isEqual6(node.ifKeyword, other.ifKeyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.thenStatement, other.thenStatement) && isEqual6(node.elseKeyword, other.elseKeyword) && isEqual(node.elseStatement, other.elseStatement);
   }
+
   bool visitImplementsClause(ImplementsClause node) {
     ImplementsClause other = this._other as ImplementsClause;
     return isEqual6(node.keyword, other.keyword) && isEqual5(node.interfaces, other.interfaces);
   }
+
   bool visitImportDirective(ImportDirective node) {
     ImportDirective other = this._other as ImportDirective;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.uri, other.uri) && isEqual6(node.asToken, other.asToken) && isEqual(node.prefix, other.prefix) && isEqual5(node.combinators, other.combinators) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitIndexExpression(IndexExpression node) {
     IndexExpression other = this._other as IndexExpression;
     return isEqual(node.target, other.target) && isEqual6(node.leftBracket, other.leftBracket) && isEqual(node.index, other.index) && isEqual6(node.rightBracket, other.rightBracket);
   }
+
   bool visitInstanceCreationExpression(InstanceCreationExpression node) {
     InstanceCreationExpression other = this._other as InstanceCreationExpression;
     return isEqual6(node.keyword, other.keyword) && isEqual(node.constructorName, other.constructorName) && isEqual(node.argumentList, other.argumentList);
   }
+
   bool visitIntegerLiteral(IntegerLiteral node) {
     IntegerLiteral other = this._other as IntegerLiteral;
     return isEqual6(node.literal, other.literal) && identical(node.value, other.value);
   }
+
   bool visitInterpolationExpression(InterpolationExpression node) {
     InterpolationExpression other = this._other as InterpolationExpression;
     return isEqual6(node.leftBracket, other.leftBracket) && isEqual(node.expression, other.expression) && isEqual6(node.rightBracket, other.rightBracket);
   }
+
   bool visitInterpolationString(InterpolationString node) {
     InterpolationString other = this._other as InterpolationString;
     return isEqual6(node.contents, other.contents) && node.value == other.value;
   }
+
   bool visitIsExpression(IsExpression node) {
     IsExpression other = this._other as IsExpression;
     return isEqual(node.expression, other.expression) && isEqual6(node.isOperator, other.isOperator) && isEqual6(node.notOperator, other.notOperator) && isEqual(node.type, other.type);
   }
+
   bool visitLabel(Label node) {
     Label other = this._other as Label;
     return isEqual(node.label, other.label) && isEqual6(node.colon, other.colon);
   }
+
   bool visitLabeledStatement(LabeledStatement node) {
     LabeledStatement other = this._other as LabeledStatement;
     return isEqual5(node.labels, other.labels) && isEqual(node.statement, other.statement);
   }
+
   bool visitLibraryDirective(LibraryDirective node) {
     LibraryDirective other = this._other as LibraryDirective;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.libraryToken, other.libraryToken) && isEqual(node.name, other.name) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitLibraryIdentifier(LibraryIdentifier node) {
     LibraryIdentifier other = this._other as LibraryIdentifier;
     return isEqual5(node.components, other.components);
   }
+
   bool visitListLiteral(ListLiteral node) {
     ListLiteral other = this._other as ListLiteral;
     return isEqual6(node.constKeyword, other.constKeyword) && isEqual(node.typeArguments, other.typeArguments) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.elements, other.elements) && isEqual6(node.rightBracket, other.rightBracket);
   }
+
   bool visitMapLiteral(MapLiteral node) {
     MapLiteral other = this._other as MapLiteral;
     return isEqual6(node.constKeyword, other.constKeyword) && isEqual(node.typeArguments, other.typeArguments) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.entries, other.entries) && isEqual6(node.rightBracket, other.rightBracket);
   }
+
   bool visitMapLiteralEntry(MapLiteralEntry node) {
     MapLiteralEntry other = this._other as MapLiteralEntry;
     return isEqual(node.key, other.key) && isEqual6(node.separator, other.separator) && isEqual(node.value, other.value);
   }
+
   bool visitMethodDeclaration(MethodDeclaration node) {
     MethodDeclaration other = this._other as MethodDeclaration;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.externalKeyword, other.externalKeyword) && isEqual6(node.modifierKeyword, other.modifierKeyword) && isEqual(node.returnType, other.returnType) && isEqual6(node.propertyKeyword, other.propertyKeyword) && isEqual6(node.propertyKeyword, other.propertyKeyword) && isEqual(node.name, other.name) && isEqual(node.parameters, other.parameters) && isEqual(node.body, other.body);
   }
+
   bool visitMethodInvocation(MethodInvocation node) {
     MethodInvocation other = this._other as MethodInvocation;
     return isEqual(node.target, other.target) && isEqual6(node.period, other.period) && isEqual(node.methodName, other.methodName) && isEqual(node.argumentList, other.argumentList);
   }
+
   bool visitNamedExpression(NamedExpression node) {
     NamedExpression other = this._other as NamedExpression;
     return isEqual(node.name, other.name) && isEqual(node.expression, other.expression);
   }
+
   bool visitNativeClause(NativeClause node) {
     NativeClause other = this._other as NativeClause;
     return isEqual6(node.keyword, other.keyword) && isEqual(node.name, other.name);
   }
+
   bool visitNativeFunctionBody(NativeFunctionBody node) {
     NativeFunctionBody other = this._other as NativeFunctionBody;
     return isEqual6(node.nativeToken, other.nativeToken) && isEqual(node.stringLiteral, other.stringLiteral) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitNullLiteral(NullLiteral node) {
     NullLiteral other = this._other as NullLiteral;
     return isEqual6(node.literal, other.literal);
   }
+
   bool visitParenthesizedExpression(ParenthesizedExpression node) {
     ParenthesizedExpression other = this._other as ParenthesizedExpression;
     return isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.expression, other.expression) && isEqual6(node.rightParenthesis, other.rightParenthesis);
   }
+
   bool visitPartDirective(PartDirective node) {
     PartDirective other = this._other as PartDirective;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.partToken, other.partToken) && isEqual(node.uri, other.uri) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitPartOfDirective(PartOfDirective node) {
     PartOfDirective other = this._other as PartOfDirective;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.partToken, other.partToken) && isEqual6(node.ofToken, other.ofToken) && isEqual(node.libraryName, other.libraryName) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitPostfixExpression(PostfixExpression node) {
     PostfixExpression other = this._other as PostfixExpression;
     return isEqual(node.operand, other.operand) && isEqual6(node.operator, other.operator);
   }
+
   bool visitPrefixedIdentifier(PrefixedIdentifier node) {
     PrefixedIdentifier other = this._other as PrefixedIdentifier;
     return isEqual(node.prefix, other.prefix) && isEqual6(node.period, other.period) && isEqual(node.identifier, other.identifier);
   }
+
   bool visitPrefixExpression(PrefixExpression node) {
     PrefixExpression other = this._other as PrefixExpression;
     return isEqual6(node.operator, other.operator) && isEqual(node.operand, other.operand);
   }
+
   bool visitPropertyAccess(PropertyAccess node) {
     PropertyAccess other = this._other as PropertyAccess;
     return isEqual(node.target, other.target) && isEqual6(node.operator, other.operator) && isEqual(node.propertyName, other.propertyName);
   }
+
   bool visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation other = this._other as RedirectingConstructorInvocation;
     return isEqual6(node.keyword, other.keyword) && isEqual6(node.period, other.period) && isEqual(node.constructorName, other.constructorName) && isEqual(node.argumentList, other.argumentList);
   }
+
   bool visitRethrowExpression(RethrowExpression node) {
     RethrowExpression other = this._other as RethrowExpression;
     return isEqual6(node.keyword, other.keyword);
   }
+
   bool visitReturnStatement(ReturnStatement node) {
     ReturnStatement other = this._other as ReturnStatement;
     return isEqual6(node.keyword, other.keyword) && isEqual(node.expression, other.expression) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitScriptTag(ScriptTag node) {
     ScriptTag other = this._other as ScriptTag;
     return isEqual6(node.scriptTag, other.scriptTag);
   }
+
   bool visitShowCombinator(ShowCombinator node) {
     ShowCombinator other = this._other as ShowCombinator;
     return isEqual6(node.keyword, other.keyword) && isEqual5(node.shownNames, other.shownNames);
   }
+
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleFormalParameter other = this._other as SimpleFormalParameter;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual(node.identifier, other.identifier);
   }
+
   bool visitSimpleIdentifier(SimpleIdentifier node) {
     SimpleIdentifier other = this._other as SimpleIdentifier;
     return isEqual6(node.token, other.token);
   }
+
   bool visitSimpleStringLiteral(SimpleStringLiteral node) {
     SimpleStringLiteral other = this._other as SimpleStringLiteral;
     return isEqual6(node.literal, other.literal) && identical(node.value, other.value);
   }
+
   bool visitStringInterpolation(StringInterpolation node) {
     StringInterpolation other = this._other as StringInterpolation;
     return isEqual5(node.elements, other.elements);
   }
+
   bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SuperConstructorInvocation other = this._other as SuperConstructorInvocation;
     return isEqual6(node.keyword, other.keyword) && isEqual6(node.period, other.period) && isEqual(node.constructorName, other.constructorName) && isEqual(node.argumentList, other.argumentList);
   }
+
   bool visitSuperExpression(SuperExpression node) {
     SuperExpression other = this._other as SuperExpression;
     return isEqual6(node.keyword, other.keyword);
   }
+
   bool visitSwitchCase(SwitchCase node) {
     SwitchCase other = this._other as SwitchCase;
     return isEqual5(node.labels, other.labels) && isEqual6(node.keyword, other.keyword) && isEqual(node.expression, other.expression) && isEqual6(node.colon, other.colon) && isEqual5(node.statements, other.statements);
   }
+
   bool visitSwitchDefault(SwitchDefault node) {
     SwitchDefault other = this._other as SwitchDefault;
     return isEqual5(node.labels, other.labels) && isEqual6(node.keyword, other.keyword) && isEqual6(node.colon, other.colon) && isEqual5(node.statements, other.statements);
   }
+
   bool visitSwitchStatement(SwitchStatement node) {
     SwitchStatement other = this._other as SwitchStatement;
     return isEqual6(node.keyword, other.keyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.expression, other.expression) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.members, other.members) && isEqual6(node.rightBracket, other.rightBracket);
   }
+
   bool visitSymbolLiteral(SymbolLiteral node) {
     SymbolLiteral other = this._other as SymbolLiteral;
     return isEqual6(node.poundSign, other.poundSign) && isEqual7(node.components, other.components);
   }
+
   bool visitThisExpression(ThisExpression node) {
     ThisExpression other = this._other as ThisExpression;
     return isEqual6(node.keyword, other.keyword);
   }
+
   bool visitThrowExpression(ThrowExpression node) {
     ThrowExpression other = this._other as ThrowExpression;
     return isEqual6(node.keyword, other.keyword) && isEqual(node.expression, other.expression);
   }
+
   bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     TopLevelVariableDeclaration other = this._other as TopLevelVariableDeclaration;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.variables, other.variables) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitTryStatement(TryStatement node) {
     TryStatement other = this._other as TryStatement;
     return isEqual6(node.tryKeyword, other.tryKeyword) && isEqual(node.body, other.body) && isEqual5(node.catchClauses, other.catchClauses) && isEqual6(node.finallyKeyword, other.finallyKeyword) && isEqual(node.finallyBlock, other.finallyBlock);
   }
+
   bool visitTypeArgumentList(TypeArgumentList node) {
     TypeArgumentList other = this._other as TypeArgumentList;
     return isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.arguments, other.arguments) && isEqual6(node.rightBracket, other.rightBracket);
   }
+
   bool visitTypeName(TypeName node) {
     TypeName other = this._other as TypeName;
     return isEqual(node.name, other.name) && isEqual(node.typeArguments, other.typeArguments);
   }
+
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter other = this._other as TypeParameter;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.name, other.name) && isEqual6(node.keyword, other.keyword) && isEqual(node.bound, other.bound);
   }
+
   bool visitTypeParameterList(TypeParameterList node) {
     TypeParameterList other = this._other as TypeParameterList;
     return isEqual6(node.leftBracket, other.leftBracket) && isEqual5(node.typeParameters, other.typeParameters) && isEqual6(node.rightBracket, other.rightBracket);
   }
+
   bool visitVariableDeclaration(VariableDeclaration node) {
     VariableDeclaration other = this._other as VariableDeclaration;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual(node.name, other.name) && isEqual6(node.equals, other.equals) && isEqual(node.initializer, other.initializer);
   }
+
   bool visitVariableDeclarationList(VariableDeclarationList node) {
     VariableDeclarationList other = this._other as VariableDeclarationList;
     return isEqual(node.documentationComment, other.documentationComment) && isEqual5(node.metadata, other.metadata) && isEqual6(node.keyword, other.keyword) && isEqual(node.type, other.type) && isEqual5(node.variables, other.variables);
   }
+
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     VariableDeclarationStatement other = this._other as VariableDeclarationStatement;
     return isEqual(node.variables, other.variables) && isEqual6(node.semicolon, other.semicolon);
   }
+
   bool visitWhileStatement(WhileStatement node) {
     WhileStatement other = this._other as WhileStatement;
     return isEqual6(node.keyword, other.keyword) && isEqual6(node.leftParenthesis, other.leftParenthesis) && isEqual(node.condition, other.condition) && isEqual6(node.rightParenthesis, other.rightParenthesis) && isEqual(node.body, other.body);
   }
+
   bool visitWithClause(WithClause node) {
     WithClause other = this._other as WithClause;
     return isEqual6(node.withKeyword, other.withKeyword) && isEqual5(node.mixinTypes, other.mixinTypes);
@@ -15145,6 +16518,7 @@ class ASTComparator implements ASTVisitor<bool> {
     return true;
   }
 }
+
 /**
  * Instances of the class `IncrementalASTCloner` implement an object that will clone any AST
  * structure that it visits. The cloner will clone the structure, replacing the specified ASTNode
@@ -15152,7 +16526,6 @@ class ASTComparator implements ASTVisitor<bool> {
  * results.
  */
 class IncrementalASTCloner implements ASTVisitor<ASTNode> {
-
   /**
    * The node to be replaced during the cloning process.
    */
@@ -15181,26 +16554,33 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     this._newNode = newNode;
     this._tokenMap = tokenMap;
   }
+
   AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings.full(clone5(node.strings));
+
   Annotation visitAnnotation(Annotation node) {
     Annotation copy = new Annotation.full(map(node.atSign), clone4(node.name), map(node.period), clone4(node.constructorName), clone4(node.arguments));
     copy.element = node.element;
     return copy;
   }
+
   ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
     ArgumentDefinitionTest copy = new ArgumentDefinitionTest.full(map(node.question), clone4(node.identifier));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList.full(map(node.leftParenthesis), clone5(node.arguments), map(node.rightParenthesis));
+
   AsExpression visitAsExpression(AsExpression node) {
     AsExpression copy = new AsExpression.full(clone4(node.expression), map(node.asOperator), clone4(node.type));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement.full(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
+
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression copy = new AssignmentExpression.full(clone4(node.leftHandSide), map(node.operator), clone4(node.rightHandSide));
     copy.propagatedElement = node.propagatedElement;
@@ -15209,6 +16589,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
   BinaryExpression visitBinaryExpression(BinaryExpression node) {
     BinaryExpression copy = new BinaryExpression.full(clone4(node.leftOperand), map(node.operator), clone4(node.rightOperand));
     copy.propagatedElement = node.propagatedElement;
@@ -15217,28 +16598,37 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
   Block visitBlock(Block node) => new Block.full(map(node.leftBracket), clone5(node.statements), map(node.rightBracket));
+
   BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody.full(clone4(node.block));
+
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) {
     BooleanLiteral copy = new BooleanLiteral.full(map(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement.full(map(node.keyword), clone4(node.label), map(node.semicolon));
+
   CascadeExpression visitCascadeExpression(CascadeExpression node) {
     CascadeExpression copy = new CascadeExpression.full(clone4(node.target), clone5(node.cascadeSections));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   CatchClause visitCatchClause(CatchClause node) => new CatchClause.full(map(node.onKeyword), clone4(node.exceptionType), map(node.catchKeyword), map(node.leftParenthesis), clone4(node.exceptionParameter), map(node.comma), clone4(node.stackTraceParameter), map(node.rightParenthesis), clone4(node.body));
+
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration copy = new ClassDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.abstractKeyword), map(node.classKeyword), clone4(node.name), clone4(node.typeParameters), clone4(node.extendsClause), clone4(node.withClause), clone4(node.implementsClause), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
     copy.nativeClause = clone4(node.nativeClause);
     return copy;
   }
+
   ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.name), clone4(node.typeParameters), map(node.equals), map(node.abstractKeyword), clone4(node.superclass), clone4(node.withClause), clone4(node.implementsClause), map(node.semicolon));
+
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
       return Comment.createDocumentationComment2(map2(node.tokens), clone5(node.references));
@@ -15247,52 +16637,72 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     }
     return Comment.createEndOfLineComment(map2(node.tokens));
   }
+
   CommentReference visitCommentReference(CommentReference node) => new CommentReference.full(map(node.newKeyword), clone4(node.identifier));
+
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
     CompilationUnit copy = new CompilationUnit.full(map(node.beginToken), clone4(node.scriptTag), clone5(node.directives), clone5(node.declarations), map(node.endToken));
     copy.lineInfo = node.lineInfo;
     copy.element = node.element;
     return copy;
   }
+
   ConditionalExpression visitConditionalExpression(ConditionalExpression node) {
     ConditionalExpression copy = new ConditionalExpression.full(clone4(node.condition), map(node.question), clone4(node.thenExpression), map(node.colon), clone4(node.elseExpression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration copy = new ConstructorDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.constKeyword), map(node.factoryKeyword), clone4(node.returnType), map(node.period), clone4(node.name), clone4(node.parameters), map(node.separator), clone5(node.initializers), clone4(node.redirectedConstructor), clone4(node.body));
     copy.element = node.element;
     return copy;
   }
+
   ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer.full(map(node.keyword), map(node.period), clone4(node.fieldName), map(node.equals), clone4(node.expression));
+
   ConstructorName visitConstructorName(ConstructorName node) {
     ConstructorName copy = new ConstructorName.full(clone4(node.type), map(node.period), clone4(node.name));
     copy.staticElement = node.staticElement;
     return copy;
   }
+
   ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement.full(map(node.keyword), clone4(node.label), map(node.semicolon));
+
   DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
+
   DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter.full(clone4(node.parameter), node.kind, map(node.separator), clone4(node.defaultValue));
+
   DoStatement visitDoStatement(DoStatement node) => new DoStatement.full(map(node.doKeyword), clone4(node.body), map(node.whileKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
+
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) {
     DoubleLiteral copy = new DoubleLiteral.full(map(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody.full(map(node.semicolon));
+
   EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement.full(map(node.semicolon));
+
   ExportDirective visitExportDirective(ExportDirective node) {
     ExportDirective copy = new ExportDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), clone5(node.combinators), map(node.semicolon));
     copy.element = node.element;
     return copy;
   }
+
   ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody.full(map(node.functionDefinition), clone4(node.expression), map(node.semicolon));
+
   ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement.full(clone4(node.expression), map(node.semicolon));
+
   ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(map(node.keyword), clone4(node.superclass));
+
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.staticKeyword), clone4(node.fields), map(node.semicolon));
+
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), map(node.thisToken), map(node.period), clone4(node.identifier), clone4(node.parameters));
+
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
@@ -15300,10 +16710,15 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     }
     return new ForEachStatement.con1_full(map(node.forKeyword), map(node.leftParenthesis), clone4(loopVariable), map(node.inKeyword), clone4(node.iterator), map(node.rightParenthesis), clone4(node.body));
   }
+
   FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(map(node.leftParenthesis), clone5(node.parameters), map(node.leftDelimiter), map(node.rightDelimiter), map(node.rightParenthesis));
+
   ForStatement visitForStatement(ForStatement node) => new ForStatement.full(map(node.forKeyword), map(node.leftParenthesis), clone4(node.variables), clone4(node.initialization), map(node.leftSeparator), clone4(node.condition), map(node.rightSeparator), clone5(node.updaters), map(node.rightParenthesis), clone4(node.body));
+
   FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), clone4(node.returnType), map(node.propertyKeyword), clone4(node.name), clone4(node.functionExpression));
+
   FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement.full(clone4(node.functionDeclaration));
+
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
     FunctionExpression copy = new FunctionExpression.full(clone4(node.parameters), clone4(node.body));
     copy.element = node.element;
@@ -15311,6 +16726,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
   FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     FunctionExpressionInvocation copy = new FunctionExpressionInvocation.full(clone4(node.function), clone4(node.argumentList));
     copy.propagatedElement = node.propagatedElement;
@@ -15319,12 +16735,19 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
   FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.returnType), clone4(node.name), clone4(node.typeParameters), clone4(node.parameters), map(node.semicolon));
+
   FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter.full(clone4(node.documentationComment), clone5(node.metadata), clone4(node.returnType), clone4(node.identifier), clone4(node.parameters));
+
   HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator.full(map(node.keyword), clone5(node.hiddenNames));
+
   IfStatement visitIfStatement(IfStatement node) => new IfStatement.full(map(node.ifKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.thenStatement), map(node.elseKeyword), clone4(node.elseStatement));
+
   ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause.full(map(node.keyword), clone5(node.interfaces));
+
   ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), map(node.asToken), clone4(node.prefix), clone5(node.combinators), map(node.semicolon));
+
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = map(node.period);
     IndexExpression copy;
@@ -15340,6 +16763,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
   InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) {
     InstanceCreationExpression copy = new InstanceCreationExpression.full(map(node.keyword), clone4(node.constructorName), clone4(node.argumentList));
     copy.propagatedType = node.propagatedType;
@@ -15347,79 +16771,100 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
   IntegerLiteral visitIntegerLiteral(IntegerLiteral node) {
     IntegerLiteral copy = new IntegerLiteral.full(map(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression.full(map(node.leftBracket), clone4(node.expression), map(node.rightBracket));
+
   InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString.full(map(node.contents), node.value);
+
   IsExpression visitIsExpression(IsExpression node) {
     IsExpression copy = new IsExpression.full(clone4(node.expression), map(node.isOperator), map(node.notOperator), clone4(node.type));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   Label visitLabel(Label node) => new Label.full(clone4(node.label), map(node.colon));
+
   LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement.full(clone5(node.labels), clone4(node.statement));
+
   LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.libraryToken), clone4(node.name), map(node.semicolon));
+
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) {
     LibraryIdentifier copy = new LibraryIdentifier.full(clone5(node.components));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   ListLiteral visitListLiteral(ListLiteral node) {
     ListLiteral copy = new ListLiteral.full(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.elements), map(node.rightBracket));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   MapLiteral visitMapLiteral(MapLiteral node) {
     MapLiteral copy = new MapLiteral.full(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.entries), map(node.rightBracket));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry.full(clone4(node.key), map(node.separator), clone4(node.value));
+
   MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.modifierKeyword), clone4(node.returnType), map(node.propertyKeyword), map(node.operatorKeyword), clone4(node.name), clone4(node.parameters), clone4(node.body));
+
   MethodInvocation visitMethodInvocation(MethodInvocation node) {
     MethodInvocation copy = new MethodInvocation.full(clone4(node.target), map(node.period), clone4(node.methodName), clone4(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   NamedExpression visitNamedExpression(NamedExpression node) {
     NamedExpression copy = new NamedExpression.full(clone4(node.name), clone4(node.expression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   ASTNode visitNativeClause(NativeClause node) => new NativeClause.full(map(node.keyword), clone4(node.name));
+
   NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody.full(map(node.nativeToken), clone4(node.stringLiteral), map(node.semicolon));
+
   NullLiteral visitNullLiteral(NullLiteral node) {
     NullLiteral copy = new NullLiteral.full(map(node.literal));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) {
     ParenthesizedExpression copy = new ParenthesizedExpression.full(map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   PartDirective visitPartDirective(PartDirective node) {
     PartDirective copy = new PartDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), clone4(node.uri), map(node.semicolon));
     copy.element = node.element;
     return copy;
   }
+
   PartOfDirective visitPartOfDirective(PartOfDirective node) {
     PartOfDirective copy = new PartOfDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), map(node.ofToken), clone4(node.libraryName), map(node.semicolon));
     copy.element = node.element;
     return copy;
   }
+
   PostfixExpression visitPostfixExpression(PostfixExpression node) {
     PostfixExpression copy = new PostfixExpression.full(clone4(node.operand), map(node.operator));
     copy.propagatedElement = node.propagatedElement;
@@ -15428,12 +16873,14 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
   PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
     PrefixedIdentifier copy = new PrefixedIdentifier.full(clone4(node.prefix), map(node.period), clone4(node.identifier));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   PrefixExpression visitPrefixExpression(PrefixExpression node) {
     PrefixExpression copy = new PrefixExpression.full(map(node.operator), clone4(node.operand));
     copy.propagatedElement = node.propagatedElement;
@@ -15442,27 +16889,35 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
   PropertyAccess visitPropertyAccess(PropertyAccess node) {
     PropertyAccess copy = new PropertyAccess.full(clone4(node.target), map(node.operator), clone4(node.propertyName));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation copy = new RedirectingConstructorInvocation.full(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
     copy.staticElement = node.staticElement;
     return copy;
   }
+
   RethrowExpression visitRethrowExpression(RethrowExpression node) {
     RethrowExpression copy = new RethrowExpression.full(map(node.keyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement.full(map(node.keyword), clone4(node.expression), map(node.semicolon));
+
   ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag.full(map(node.scriptTag));
+
   ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator.full(map(node.keyword), clone5(node.shownNames));
+
   SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
+
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
     SimpleIdentifier copy = new SimpleIdentifier.full(map(node.token));
     copy.auxiliaryElements = node.auxiliaryElements;
@@ -15472,65 +16927,87 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     copy.staticType = node.staticType;
     return copy;
   }
+
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) {
     SimpleStringLiteral copy = new SimpleStringLiteral.full(map(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   StringInterpolation visitStringInterpolation(StringInterpolation node) {
     StringInterpolation copy = new StringInterpolation.full(clone5(node.elements));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     SuperConstructorInvocation copy = new SuperConstructorInvocation.full(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
     copy.staticElement = node.staticElement;
     return copy;
   }
+
   SuperExpression visitSuperExpression(SuperExpression node) {
     SuperExpression copy = new SuperExpression.full(map(node.keyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase.full(clone5(node.labels), map(node.keyword), clone4(node.expression), map(node.colon), clone5(node.statements));
+
   SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault.full(clone5(node.labels), map(node.keyword), map(node.colon), clone5(node.statements));
+
   SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement.full(map(node.keyword), map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
+
   ASTNode visitSymbolLiteral(SymbolLiteral node) {
     SymbolLiteral copy = new SymbolLiteral.full(map(node.poundSign), map2(node.components));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   ThisExpression visitThisExpression(ThisExpression node) {
     ThisExpression copy = new ThisExpression.full(map(node.keyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   ThrowExpression visitThrowExpression(ThrowExpression node) {
     ThrowExpression copy = new ThrowExpression.full(map(node.keyword), clone4(node.expression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
+
   TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), clone4(node.variables), map(node.semicolon));
+
   TryStatement visitTryStatement(TryStatement node) => new TryStatement.full(map(node.tryKeyword), clone4(node.body), clone5(node.catchClauses), map(node.finallyKeyword), clone4(node.finallyBlock));
+
   TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList.full(map(node.leftBracket), clone5(node.arguments), map(node.rightBracket));
+
   TypeName visitTypeName(TypeName node) {
     TypeName copy = new TypeName.full(clone4(node.name), clone4(node.typeArguments));
     copy.type = node.type;
     return copy;
   }
+
   TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter.full(clone4(node.documentationComment), clone5(node.metadata), clone4(node.name), map(node.keyword), clone4(node.bound));
+
   TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList.full(map(node.leftBracket), clone5(node.typeParameters), map(node.rightBracket));
+
   VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration.full(null, clone5(node.metadata), clone4(node.name), map(node.equals), clone4(node.initializer));
+
   VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList.full(null, clone5(node.metadata), map(node.keyword), clone4(node.type), clone5(node.variables));
+
   VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement.full(clone4(node.variables), map(node.semicolon));
+
   WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement.full(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.body));
+
   WithClause visitWithClause(WithClause node) => new WithClause.full(map(node.withKeyword), clone5(node.mixinTypes));
+
   ASTNode clone4(ASTNode node) {
     if (node == null) {
       return null;
@@ -15540,6 +17017,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     }
     return node.accept(this) as ASTNode;
   }
+
   List clone5(NodeList nodes) {
     List clonedNodes = new List();
     for (ASTNode node in nodes) {
@@ -15547,12 +17025,14 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     }
     return clonedNodes;
   }
+
   Token map(Token oldToken) {
     if (oldToken == null) {
       return null;
     }
     return _tokenMap.get(oldToken);
   }
+
   List<Token> map2(List<Token> oldTokens) {
     List<Token> newTokens = new List<Token>(oldTokens.length);
     for (int index = 0; index < newTokens.length; index++) {
@@ -15561,6 +17041,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     return newTokens;
   }
 }
+
 /**
  * Traverse the AST from initial child node to successive parents, building a collection of local
  * variable and parameter names visible to the initial child node. In case of name shadowing, the
@@ -15573,22 +17054,30 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
  */
 class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
   Declaration declaration;
+
   ASTNode _immediateChild;
+
   final Map<String, SimpleIdentifier> locals = new Map<String, SimpleIdentifier>();
+
   int _position = 0;
+
   bool _referenceIsWithinLocalFunction = false;
+
   ScopedNameFinder(int position) {
     this._position = position;
   }
+
   Object visitBlock(Block node) {
     checkStatements(node.statements);
     return super.visitBlock(node);
   }
+
   Object visitCatchClause(CatchClause node) {
     addToScope(node.exceptionParameter);
     addToScope(node.stackTraceParameter);
     return super.visitCatchClause(node);
   }
+
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     if (_immediateChild != node.parameters) {
       addParameters(node.parameters.parameters);
@@ -15596,10 +17085,12 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     declaration = node;
     return null;
   }
+
   Object visitFieldDeclaration(FieldDeclaration node) {
     declaration = node;
     return null;
   }
+
   Object visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable != null) {
@@ -15607,12 +17098,14 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     }
     return super.visitForEachStatement(node);
   }
+
   Object visitForStatement(ForStatement node) {
     if (_immediateChild != node.variables && node.variables != null) {
       addVariables(node.variables.variables);
     }
     return super.visitForStatement(node);
   }
+
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.parent is! FunctionDeclarationStatement) {
       declaration = node;
@@ -15620,16 +17113,19 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     }
     return super.visitFunctionDeclaration(node);
   }
+
   Object visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     _referenceIsWithinLocalFunction = true;
     return super.visitFunctionDeclarationStatement(node);
   }
+
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parameters != null && _immediateChild != node.parameters) {
       addParameters(node.parameters.parameters);
     }
     return super.visitFunctionExpression(node);
   }
+
   Object visitMethodDeclaration(MethodDeclaration node) {
     declaration = node;
     if (node.parameters == null) {
@@ -15640,6 +17136,7 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitNode(ASTNode node) {
     _immediateChild = node;
     ASTNode parent = node.parent;
@@ -15648,23 +17145,28 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     }
     return null;
   }
+
   Object visitSwitchMember(SwitchMember node) {
     checkStatements(node.statements);
     return super.visitSwitchMember(node);
   }
+
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     declaration = node;
     return null;
   }
+
   Object visitTypeAlias(TypeAlias node) {
     declaration = node;
     return null;
   }
+
   void addParameters(NodeList<FormalParameter> vars) {
     for (FormalParameter var2 in vars) {
       addToScope(var2.identifier);
     }
   }
+
   void addToScope(SimpleIdentifier identifier) {
     if (identifier != null && isInRange(identifier)) {
       String name = identifier.name;
@@ -15673,6 +17175,7 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
       }
     }
   }
+
   void addVariables(NodeList<VariableDeclaration> vars) {
     for (VariableDeclaration var2 in vars) {
       addToScope(var2.name);
@@ -15690,12 +17193,13 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
         return;
       }
       if (stmt is VariableDeclarationStatement) {
-        addVariables(((stmt as VariableDeclarationStatement)).variables.variables);
+        addVariables((stmt as VariableDeclarationStatement).variables.variables);
       } else if (stmt is FunctionDeclarationStatement && !_referenceIsWithinLocalFunction) {
-        addToScope(((stmt as FunctionDeclarationStatement)).functionDeclaration.name);
+        addToScope((stmt as FunctionDeclarationStatement).functionDeclaration.name);
       }
     }
   }
+
   bool isInRange(ASTNode node) {
     if (_position < 0) {
       return true;

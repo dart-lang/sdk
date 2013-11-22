@@ -21,7 +21,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("packages/myapp/lib.dart", "foo() => 'foo';");
     requestShouldSucceed("packages/myapp/sub/lib.dart", "bar() => 'bar';");
 

@@ -77,6 +77,7 @@ Future<Server> setupServer(int proxyHops,
 }
 
 class ProxyServer {
+  final bool ipV6;
   HttpServer server;
   HttpClient client;
   int requestCount = 0;
@@ -92,7 +93,7 @@ class ProxyServer {
 
   var nonce = "12345678";  // No need for random nonce in test.
 
-  ProxyServer() : client = new HttpClient();
+  ProxyServer({this.ipV6: false}) : client = new HttpClient();
 
   void useBasicAuthentication(String username, String password) {
     this.username = username;
@@ -141,7 +142,8 @@ class ProxyServer {
 
   Future<ProxyServer> start() {
     var x = new Completer();
-    HttpServer.bind("localhost", 0).then((s) {
+    var host = ipV6 ? "::1" : "localhost";
+    HttpServer.bind(host, 0).then((s) {
       server = s;
       x.complete(this);
       server.listen((HttpRequest request) {
@@ -269,8 +271,8 @@ class ProxyServer {
   int get port => server.port;
 }
 
-Future<ProxyServer> setupProxyServer() {
-  ProxyServer proxyServer = new ProxyServer();
+Future<ProxyServer> setupProxyServer({ipV6: false}) {
+  ProxyServer proxyServer = new ProxyServer(ipV6: ipV6);
   return proxyServer.start();
 }
 
@@ -378,6 +380,55 @@ void testProxy() {
             response.listen((_) {}, onDone: () {
               testProxyDoneCount++;
               if (testProxyDoneCount == proxy.length * 2) {
+                Expect.equals(proxy.length, server.requestCount);
+                Expect.equals(proxy.length, secureServer.requestCount);
+                proxyServer.shutdown();
+                server.shutdown();
+                secureServer.shutdown();
+                client.close();
+              }
+            });
+          });
+      }
+
+      test(false);
+      test(true);
+    }
+  });
+  });
+  });
+}
+
+int testProxyIPV6DoneCount = 0;
+void testProxyIPV6() {
+  setupProxyServer(ipV6: true).then((proxyServer) {
+  setupServer(1, directRequestPaths: ["/4"]).then((server) {
+  setupServer(1, directRequestPaths: ["/4"], secure: true).then((secureServer) {
+    HttpClient client = new HttpClient();
+
+    List<String> proxy = ["PROXY [::1]:${proxyServer.port}"];
+    client.findProxy = (Uri uri) {
+      // Pick the proxy configuration based on the request path.
+      int index = int.parse(uri.path.substring(1));
+      return proxy[index];
+    };
+
+    for (int i = 0; i < proxy.length; i++) {
+      test(bool secure) {
+        String url = secure
+            ? "https://localhost:${secureServer.port}/$i"
+            : "http://localhost:${server.port}/$i";
+
+        client.postUrl(Uri.parse(url))
+          .then((HttpClientRequest clientRequest) {
+            String content = "$i$i$i";
+            clientRequest.write(content);
+            return clientRequest.close();
+          })
+          .then((HttpClientResponse response) {
+            response.listen((_) {}, onDone: () {
+              testProxyIPV6DoneCount++;
+              if (testProxyIPV6DoneCount == proxy.length * 2) {
                 Expect.equals(proxy.length, server.requestCount);
                 Expect.equals(proxy.length, secureServer.requestCount);
                 proxyServer.shutdown();
@@ -756,6 +807,7 @@ main() {
   testInvalidProxy();
   testDirectProxy();
   testProxy();
+  testProxyIPV6();
   testProxyChain();
   testProxyFromEnviroment();
   // The two invocations of uses the same global variable for state -

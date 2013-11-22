@@ -72,8 +72,8 @@ def _load_idl_file(file_name, import_options):
       defines=import_options.idl_defines)
     return IDLFile(idl_ast, file_name)
   except SyntaxError, e:
-    raise RuntimeError('Failed to load file %s: %s'
-                       % (file_name, e))
+    raise RuntimeError('Failed to load file %s: %s: Content: %s[end]'
+                       % (file_name, e, content))
 
 
 class DatabaseBuilder(object):

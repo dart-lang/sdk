@@ -1462,7 +1462,7 @@ if (typeof WeakMap === 'undefined') {
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-var ShadowDOMPolyfill = {};
+window.ShadowDOMPolyfill = {};
 
 (function(scope) {
   'use strict';
@@ -1831,7 +1831,430 @@ var ShadowDOMPolyfill = {};
   scope.wrapIfNeeded = wrapIfNeeded;
   scope.wrappers = wrappers;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
+
+/*
+ * Copyright 2013 The Polymer Authors. All rights reserved.
+ * Use of this source code is goverened by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+(function(context) {
+  'use strict';
+
+  var OriginalMutationObserver = window.MutationObserver;
+  var callbacks = [];
+  var pending = false;
+  var timerFunc;
+
+  function handle() {
+    pending = false;
+    var copies = callbacks.slice(0);
+    callbacks = [];
+    for (var i = 0; i < copies.length; i++) {
+      (0, copies[i])();
+    }
+  }
+
+  if (OriginalMutationObserver) {
+    var counter = 1;
+    var observer = new OriginalMutationObserver(handle);
+    var textNode = document.createTextNode(counter);
+    observer.observe(textNode, {characterData: true});
+
+    timerFunc = function() {
+      counter = (counter + 1) % 2;
+      textNode.data = counter;
+    };
+
+  } else {
+    timerFunc = window.setImmediate || window.setTimeout;
+  }
+
+  function setEndOfMicrotask(func) {
+    callbacks.push(func);
+    if (pending)
+      return;
+    pending = true;
+    timerFunc(handle, 0);
+  }
+
+  context.setEndOfMicrotask = setEndOfMicrotask;
+
+})(window.ShadowDOMPolyfill);
+
+/*
+ * Copyright 2013 The Polymer Authors. All rights reserved.
+ * Use of this source code is goverened by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
+
+(function(scope) {
+  'use strict';
+
+  var setEndOfMicrotask = scope.setEndOfMicrotask
+  var wrapIfNeeded = scope.wrapIfNeeded
+  var wrappers = scope.wrappers;
+
+  var registrationsTable = new WeakMap();
+  var globalMutationObservers = [];
+  var isScheduled = false;
+
+  function scheduleCallback(observer) {
+    if (isScheduled)
+      return;
+    setEndOfMicrotask(notifyObservers);
+    isScheduled = true;
+  }
+
+  // http://dom.spec.whatwg.org/#mutation-observers
+  function notifyObservers() {
+    isScheduled = false;
+
+    do {
+      var notifyList = globalMutationObservers.slice();
+      var anyNonEmpty = false;
+      for (var i = 0; i < notifyList.length; i++) {
+        var mo = notifyList[i];
+        var queue = mo.takeRecords();
+        removeTransientObserversFor(mo);
+        if (queue.length) {
+          mo.callback_(queue, mo);
+          anyNonEmpty = true;
+        }
+      }
+    } while (anyNonEmpty);
+  }
+
+  /**
+   * @param {string} type
+   * @param {Node} target
+   * @constructor
+   */
+  function MutationRecord(type, target) {
+    this.type = type;
+    this.target = target;
+    this.addedNodes = new wrappers.NodeList();
+    this.removedNodes = new wrappers.NodeList();
+    this.previousSibling = null;
+    this.nextSibling = null;
+    this.attributeName = null;
+    this.attributeNamespace = null;
+    this.oldValue = null;
+  }
+
+  /**
+   * Registers transient observers to ancestor and its ancesors for the node
+   * which was removed.
+   * @param {!Node} ancestor
+   * @param {!Node} node
+   */
+  function registerTransientObservers(ancestor, node) {
+    for (; ancestor; ancestor = ancestor.parentNode) {
+      var registrations = registrationsTable.get(ancestor);
+      if (!registrations)
+        continue;
+      for (var i = 0; i < registrations.length; i++) {
+        var registration = registrations[i];
+        if (registration.options.subtree)
+          registration.addTransientObserver(node);
+      }
+    }
+  }
+
+  function removeTransientObserversFor(observer) {
+    for (var i = 0; i < observer.nodes_.length; i++) {
+      var node = observer.nodes_[i];
+      var registrations = registrationsTable.get(node);
+      if (!registrations)
+        return;
+      for (var j = 0; j < registrations.length; j++) {
+        var registration = registrations[j];
+        if (registration.observer === observer)
+          registration.removeTransientObservers();
+      }
+    }
+  }
+
+  // http://dom.spec.whatwg.org/#queue-a-mutation-record
+  function enqueueMutation(target, type, data) {
+    // 1.
+    var interestedObservers = Object.create(null);
+    var associatedStrings = Object.create(null);
+
+    // 2.
+    for (var node = target; node; node = node.parentNode) {
+      // 3.
+      var registrations = registrationsTable.get(node);
+      if (!registrations)
+        continue;
+      for (var j = 0; j < registrations.length; j++) {
+        var registration = registrations[j];
+        var options = registration.options;
+        // 1.
+        if (node !== target && !options.subtree)
+          continue;
+
+        // 2.
+        if (type === 'attributes' && !options.attributes)
+          continue;
+
+        // 3. If type is "attributes", options's attributeFilter is present, and
+        // either options's attributeFilter does not contain name or namespace
+        // is non-null, continue.
+        if (type === 'attributes' && options.attributeFilter &&
+            (data.namespace !== null ||
+             options.attributeFilter.indexOf(data.name) === -1)) {
+          continue;
+        }
+
+        // 4.
+        if (type === 'characterData' && !options.characterData)
+          continue;
+
+        // 5.
+        if (type === 'childList' && !options.childList)
+          continue;
+
+        // 6.
+        var observer = registration.observer;
+        interestedObservers[observer.uid_] = observer;
+
+        // 7. If either type is "attributes" and options's attributeOldValue is
+        // true, or type is "characterData" and options's characterDataOldValue
+        // is true, set the paired string of registered observer's observer in
+        // interested observers to oldValue.
+        if (type === 'attributes' && options.attributeOldValue ||
+            type === 'characterData' && options.characterDataOldValue) {
+          associatedStrings[observer.uid_] = data.oldValue;
+        }
+      }
+    }
+
+    var anyRecordsEnqueued = false;
+
+    // 4.
+    for (var uid in interestedObservers) {
+      var observer = interestedObservers[uid];
+      var record = new MutationRecord(type, target);
+
+      // 2.
+      if ('name' in data && 'namespace' in data) {
+        record.attributeName = data.name;
+        record.attributeNamespace = data.namespace;
+      }
+
+      // 3.
+      if (data.addedNodes)
+        record.addedNodes = data.addedNodes;
+
+      // 4.
+      if (data.removedNodes)
+        record.removedNodes = data.removedNodes;
+
+      // 5.
+      if (data.previousSibling)
+        record.previousSibling = data.previousSibling;
+
+      // 6.
+      if (data.nextSibling)
+        record.nextSibling = data.nextSibling;
+
+      // 7.
+      if (associatedStrings[uid] !== undefined)
+        record.oldValue = associatedStrings[uid];
+
+      // 8.
+      observer.records_.push(record);
+
+      anyRecordsEnqueued = true;
+    }
+
+    if (anyRecordsEnqueued)
+      scheduleCallback();
+  }
+
+  var slice = Array.prototype.slice;
+
+  /**
+   * @param {!Object} options
+   * @constructor
+   */
+  function MutationObserverOptions(options) {
+    this.childList = !!options.childList;
+    this.subtree = !!options.subtree;
+
+    // 1. If either options' attributeOldValue or attributeFilter is present
+    // and options' attributes is omitted, set options' attributes to true.
+    if (!('attributes' in options) &&
+        ('attributeOldValue' in options || 'attributeFilter' in options)) {
+      this.attributes = true;
+    } else {
+      this.attributes = !!options.attributes;
+    }
+
+    // 2. If options' characterDataOldValue is present and options'
+    // characterData is omitted, set options' characterData to true.
+    if ('characterDataOldValue' in options && !('characterData' in options))
+      this.characterData = true;
+    else
+      this.characterData = !!options.characterData;
+
+    // 3. & 4.
+    if (!this.attributes &&
+        (options.attributeOldValue || 'attributeFilter' in options) ||
+        // 5.
+        !this.characterData && options.characterDataOldValue) {
+      throw new TypeError();
+    }
+
+    this.characterData = !!options.characterData;
+    this.attributeOldValue = !!options.attributeOldValue;
+    this.characterDataOldValue = !!options.characterDataOldValue;
+    if ('attributeFilter' in options) {
+      if (options.attributeFilter == null ||
+          typeof options.attributeFilter !== 'object') {
+        throw new TypeError();
+      }
+      this.attributeFilter = slice.call(options.attributeFilter);
+    } else {
+      this.attributeFilter = null;
+    }
+  }
+
+  var uidCounter = 0;
+
+  /**
+   * The class that maps to the DOM MutationObserver interface.
+   * @param {Function} callback.
+   * @constructor
+   */
+  function MutationObserver(callback) {
+    this.callback_ = callback;
+    this.nodes_ = [];
+    this.records_ = [];
+    this.uid_ = ++uidCounter;
+
+    // This will leak. There is no way to implement this without WeakRefs :'(
+    globalMutationObservers.push(this);
+  }
+
+  MutationObserver.prototype = {
+    // http://dom.spec.whatwg.org/#dom-mutationobserver-observe
+    observe: function(target, options) {
+      target = wrapIfNeeded(target);
+
+      var newOptions = new MutationObserverOptions(options);
+
+      // 6.
+      var registration;
+      var registrations = registrationsTable.get(target);
+      if (!registrations)
+        registrationsTable.set(target, registrations = []);
+
+      for (var i = 0; i < registrations.length; i++) {
+        if (registrations[i].observer === this) {
+          registration = registrations[i];
+          // 6.1.
+          registration.removeTransientObservers();
+          // 6.2.
+          registration.options = newOptions;
+        }
+      }
+
+      // 7.
+      if (!registration) {
+        registration = new Registration(this, target, newOptions);
+        registrations.push(registration);
+        this.nodes_.push(target);
+      }
+    },
+
+    // http://dom.spec.whatwg.org/#dom-mutationobserver-disconnect
+    disconnect: function() {
+      this.nodes_.forEach(function(node) {
+        var registrations = registrationsTable.get(node);
+        for (var i = 0; i < registrations.length; i++) {
+          var registration = registrations[i];
+          if (registration.observer === this) {
+            registrations.splice(i, 1);
+            // Each node can only have one registered observer associated with
+            // this observer.
+            break;
+          }
+        }
+      }, this);
+      this.records_ = [];
+    },
+
+    takeRecords: function() {
+      var copyOfRecords = this.records_;
+      this.records_ = [];
+      return copyOfRecords;
+    }
+  };
+
+  /**
+   * Class used to represent a registered observer.
+   * @param {MutationObserver} observer
+   * @param {Node} target
+   * @param {MutationObserverOptions} options
+   * @constructor
+   */
+  function Registration(observer, target, options) {
+    this.observer = observer;
+    this.target = target;
+    this.options = options;
+    this.transientObservedNodes = [];
+  }
+
+  Registration.prototype = {
+    /**
+     * Adds a transient observer on node. The transient observer gets removed
+     * next time we deliver the change records.
+     * @param {Node} node
+     */
+    addTransientObserver: function(node) {
+      // Don't add transient observers on the target itself. We already have all
+      // the required listeners set up on the target.
+      if (node === this.target)
+        return;
+
+      this.transientObservedNodes.push(node);
+      var registrations = registrationsTable.get(node);
+      if (!registrations)
+        registrationsTable.set(node, registrations = []);
+
+      // We know that registrations does not contain this because we already
+      // checked if node === this.target.
+      registrations.push(this);
+    },
+
+    removeTransientObservers: function() {
+      var transientObservedNodes = this.transientObservedNodes;
+      this.transientObservedNodes = [];
+
+      for (var i = 0; i < transientObservedNodes.length; i++) {
+        var node = transientObservedNodes[i];
+        var registrations = registrationsTable.get(node);
+        for (var j = 0; j < registrations.length; j++) {
+          if (registrations[j] === this) {
+            registrations.splice(j, 1);
+            // Each node can only have one registered observer associated with
+            // this observer.
+            break;
+          }
+        }
+      }
+    }
+  };
+
+  scope.enqueueMutation = enqueueMutation;
+  scope.registerTransientObservers = registerTransientObservers;
+  scope.wrappers.MutationObserver = MutationObserver;
+  scope.wrappers.MutationRecord = MutationRecord;
+
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -2579,7 +3002,7 @@ var ShadowDOMPolyfill = {};
   scope.wrappers.MutationEvent = MutationEvent;
   scope.wrappers.UIEvent = UIEvent;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2012 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -2626,7 +3049,8 @@ var ShadowDOMPolyfill = {};
   scope.addWrapNodeListMethod = addWrapNodeListMethod;
   scope.wrapNodeList = wrapNodeList;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2012 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -2636,9 +3060,11 @@ var ShadowDOMPolyfill = {};
 
   var EventTarget = scope.wrappers.EventTarget;
   var NodeList = scope.wrappers.NodeList;
-  var defineWrapGetter = scope.defineWrapGetter;
   var assert = scope.assert;
+  var defineWrapGetter = scope.defineWrapGetter;
+  var enqueueMutation = scope.enqueueMutation;
   var mixin = scope.mixin;
+  var registerTransientObservers = scope.registerTransientObservers;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
@@ -2648,6 +3074,36 @@ var ShadowDOMPolyfill = {};
     assert(node instanceof Node);
   }
 
+  function createOneElementNodeList(node) {
+    var nodes = new NodeList();
+    nodes[0] = node;
+    nodes.length = 1;
+    return nodes;
+  }
+
+  var surpressMutations = false;
+
+  /**
+   * Called before node is inserted into a node to enqueue its removal from its
+   * old parent.
+   * @param {!Node} node The node that is about to be removed.
+   * @param {!Node} parent The parent node that the node is being removed from.
+   * @param {!NodeList} nodes The collected nodes.
+   */
+  function enqueueRemovalForInsertedNodes(node, parent, nodes) {
+    enqueueMutation(parent, 'childList', {
+      removedNodes: nodes,
+      previousSibling: node.previousSibling,
+      nextSibling: node.nextSibling
+    });
+  }
+
+  function enqueueRemovalForInsertedDocumentFragment(df, nodes) {
+    enqueueMutation(df, 'childList', {
+      removedNodes: nodes
+    });
+  }
+
   /**
    * Collects nodes from a DocumentFragment or a Node for removal followed
    * by an insertion.
@@ -2655,58 +3111,93 @@ var ShadowDOMPolyfill = {};
    * This updates the internal pointers for node, previousNode and nextNode.
    */
   function collectNodes(node, parentNode, previousNode, nextNode) {
-    if (!(node instanceof DocumentFragment)) {
-      if (node.parentNode)
-        node.parentNode.removeChild(node);
-      node.parentNode_ = parentNode;
-      node.previousSibling_ = previousNode;
-      node.nextSibling_ = nextNode;
+    if (node instanceof DocumentFragment) {
+      var nodes = collectNodesForDocumentFragment(node);
+
+      // The extra loop is to work around bugs with DocumentFragments in IE.
+      surpressMutations = true;
+      for (var i = nodes.length - 1; i >= 0; i--) {
+        node.removeChild(nodes[i]);
+        nodes[i].parentNode_ = parentNode;
+      }
+      surpressMutations = false;
+
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].previousSibling_ = nodes[i - 1] || previousNode;
+        nodes[i].nextSibling_ = nodes[i + 1] || nextNode;
+      }
+
       if (previousNode)
-        previousNode.nextSibling_ = node;
+        previousNode.nextSibling_ = nodes[0];
       if (nextNode)
-        nextNode.previousSibling_ = node;
-      return [node];
+        nextNode.previousSibling_ = nodes[nodes.length - 1];
+
+      return nodes;
     }
 
-    var nodes = [];
-    for (var child = node.firstChild; child; child = child.nextSibling) {
-      nodes.push(child);
+    var nodes = createOneElementNodeList(node);
+    var oldParent = node.parentNode;
+    if (oldParent) {
+      // This will enqueue the mutation record for the removal as needed.
+      oldParent.removeChild(node);
     }
 
-    for (var i = nodes.length - 1; i >= 0; i--) {
-      node.removeChild(nodes[i]);
-      nodes[i].parentNode_ = parentNode;
-    }
-
-    for (var i = 0; i < nodes.length; i++) {
-      nodes[i].previousSibling_ = nodes[i - 1] || previousNode;
-      nodes[i].nextSibling_ = nodes[i + 1] || nextNode;
-    }
-
+    node.parentNode_ = parentNode;
+    node.previousSibling_ = previousNode;
+    node.nextSibling_ = nextNode;
     if (previousNode)
-      previousNode.nextSibling_ = nodes[0];
+      previousNode.nextSibling_ = node;
     if (nextNode)
-      nextNode.previousSibling_ = nodes[nodes.length - 1];
+      nextNode.previousSibling_ = node;
 
     return nodes;
   }
 
-  function collectNodesNoNeedToUpdatePointers(node) {
-    if (node instanceof DocumentFragment) {
-      var nodes = [];
-      var i = 0;
-      for (var child = node.firstChild; child; child = child.nextSibling) {
-        nodes[i++] = child;
-      }
-      return nodes;
+  function collectNodesNative(node) {
+    if (node instanceof DocumentFragment)
+      return collectNodesForDocumentFragment(node);
+
+    var nodes = createOneElementNodeList(node);
+    var oldParent = node.parentNode;
+    if (oldParent)
+      enqueueRemovalForInsertedNodes(node, oldParent, nodes);
+    return nodes;
+  }
+
+  function collectNodesForDocumentFragment(node) {
+    var nodes = new NodeList();
+    var i = 0;
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      nodes[i++] = child;
     }
-    return [node];
+    nodes.length = i;
+    enqueueRemovalForInsertedDocumentFragment(node, nodes);
+    return nodes;
+  }
+
+  function snapshotNodeList(nodeList) {
+    // NodeLists are not live at the moment so just return the same object.
+    return nodeList;
+  }
+
+  // http://dom.spec.whatwg.org/#node-is-inserted
+  function nodeWasAdded(node) {
+    node.nodeIsInserted_();
   }
 
   function nodesWereAdded(nodes) {
     for (var i = 0; i < nodes.length; i++) {
-      nodes[i].nodeWasAdded_();
+      nodeWasAdded(nodes[i]);
     }
+  }
+
+  // http://dom.spec.whatwg.org/#node-is-removed
+  function nodeWasRemoved(node) {
+    // Nothing at this point in time.
+  }
+
+  function nodesWereRemoved(nodes) {
+    // Nothing at this point in time.
   }
 
   function ensureSameOwnerDocument(parent, child) {
@@ -2851,68 +3342,55 @@ var ShadowDOMPolyfill = {};
   Node.prototype = Object.create(EventTarget.prototype);
   mixin(Node.prototype, {
     appendChild: function(childWrapper) {
-      assertIsNodeWrapper(childWrapper);
-
-      var nodes;
-
-      if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
-        var previousNode = this.lastChild;
-        var nextNode = null;
-        nodes = collectNodes(childWrapper, this, previousNode, nextNode);
-
-        this.lastChild_ = nodes[nodes.length - 1];
-        if (!previousNode)
-          this.firstChild_ = nodes[0];
-
-        originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
-      } else {
-        nodes = collectNodesNoNeedToUpdatePointers(childWrapper)
-        ensureSameOwnerDocument(this, childWrapper);
-        originalAppendChild.call(this.impl, unwrap(childWrapper));
-      }
-
-      nodesWereAdded(nodes);
-
-      return childWrapper;
+      return this.insertBefore(childWrapper, null);
     },
 
     insertBefore: function(childWrapper, refWrapper) {
-      // TODO(arv): Unify with appendChild
-      if (!refWrapper)
-        return this.appendChild(childWrapper);
-
       assertIsNodeWrapper(childWrapper);
-      assertIsNodeWrapper(refWrapper);
-      assert(refWrapper.parentNode === this);
+
+      refWrapper = refWrapper || null;
+      refWrapper && assertIsNodeWrapper(refWrapper);
+      refWrapper && assert(refWrapper.parentNode === this);
 
       var nodes;
+      var previousNode =
+          refWrapper ? refWrapper.previousSibling : this.lastChild;
 
-      if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
-        var previousNode = refWrapper.previousSibling;
-        var nextNode = refWrapper;
-        nodes = collectNodes(childWrapper, this, previousNode, nextNode);
+      var useNative = !this.invalidateShadowRenderer() &&
+                      !invalidateParent(childWrapper);
 
-        if (this.firstChild === refWrapper)
-          this.firstChild_ = nodes[0];
+      if (useNative)
+        nodes = collectNodesNative(childWrapper);
+      else
+        nodes = collectNodes(childWrapper, this, previousNode, refWrapper);
 
-        // insertBefore refWrapper no matter what the parent is?
-        var refNode = unwrap(refWrapper);
-        var parentNode = refNode.parentNode;
-
-        if (parentNode) {
-          originalInsertBefore.call(
-              parentNode,
-              unwrapNodesForInsertion(this, nodes),
-              refNode);
-        } else {
-          adoptNodesIfNeeded(this, nodes);
-        }
-      } else {
-        nodes = collectNodesNoNeedToUpdatePointers(childWrapper);
+      if (useNative) {
         ensureSameOwnerDocument(this, childWrapper);
         originalInsertBefore.call(this.impl, unwrap(childWrapper),
                                   unwrap(refWrapper));
+      } else {
+        if (!previousNode)
+          this.firstChild_ = nodes[0];
+        if (!refWrapper)
+          this.lastChild_ = nodes[nodes.length - 1];
+
+        var refNode = unwrap(refWrapper);
+        var parentNode = refNode ? refNode.parentNode : this.impl;
+
+        // insertBefore refWrapper no matter what the parent is?
+        if (parentNode) {
+          originalInsertBefore.call(parentNode,
+              unwrapNodesForInsertion(this, nodes), refNode);
+        } else {
+          adoptNodesIfNeeded(this, nodes);
+        }
       }
+
+      enqueueMutation(this, 'childList', {
+        addedNodes: nodes,
+        nextSibling: refWrapper,
+        previousSibling: previousNode
+      });
 
       nodesWereAdded(nodes);
 
@@ -2939,15 +3417,15 @@ var ShadowDOMPolyfill = {};
       }
 
       var childNode = unwrap(childWrapper);
-      if (this.invalidateShadowRenderer()) {
+      var childWrapperNextSibling = childWrapper.nextSibling;
+      var childWrapperPreviousSibling = childWrapper.previousSibling;
 
+      if (this.invalidateShadowRenderer()) {
         // We need to remove the real node from the DOM before updating the
         // pointers. This is so that that mutation event is dispatched before
         // the pointers have changed.
         var thisFirstChild = this.firstChild;
         var thisLastChild = this.lastChild;
-        var childWrapperNextSibling = childWrapper.nextSibling;
-        var childWrapperPreviousSibling = childWrapper.previousSibling;
 
         var parentNode = childNode.parentNode;
         if (parentNode)
@@ -2970,6 +3448,16 @@ var ShadowDOMPolyfill = {};
         removeChildOriginalHelper(this.impl, childNode);
       }
 
+      if (!surpressMutations) {
+        enqueueMutation(this, 'childList', {
+          removedNodes: createOneElementNodeList(childWrapper),
+          nextSibling: childWrapperNextSibling,
+          previousSibling: childWrapperPreviousSibling
+        });
+      }
+
+      registerTransientObservers(this, childWrapper);
+
       return childWrapper;
     },
 
@@ -2983,16 +3471,22 @@ var ShadowDOMPolyfill = {};
       }
 
       var oldChildNode = unwrap(oldChildWrapper);
+      var nextNode = oldChildWrapper.nextSibling;
+      var previousNode = oldChildWrapper.previousSibling;
       var nodes;
 
-      if (this.invalidateShadowRenderer() ||
-          invalidateParent(newChildWrapper)) {
-        var previousNode = oldChildWrapper.previousSibling;
-        var nextNode = oldChildWrapper.nextSibling;
+      var useNative = !this.invalidateShadowRenderer() &&
+                      !invalidateParent(newChildWrapper);
+
+      if (useNative) {
+        nodes = collectNodesNative(newChildWrapper);
+      } else {
         if (nextNode === newChildWrapper)
           nextNode = newChildWrapper.nextSibling;
         nodes = collectNodes(newChildWrapper, this, previousNode, nextNode);
+      }
 
+      if (!useNative) {
         if (this.firstChild === oldChildWrapper)
           this.firstChild_ = nodes[0];
         if (this.lastChild === oldChildWrapper)
@@ -3009,25 +3503,32 @@ var ShadowDOMPolyfill = {};
               oldChildNode);
         }
       } else {
-        nodes = collectNodesNoNeedToUpdatePointers(newChildWrapper);
         ensureSameOwnerDocument(this, newChildWrapper);
         originalReplaceChild.call(this.impl, unwrap(newChildWrapper),
                                   oldChildNode);
       }
 
+      enqueueMutation(this, 'childList', {
+        addedNodes: nodes,
+        removedNodes: createOneElementNodeList(oldChildWrapper),
+        nextSibling: nextNode,
+        previousSibling: previousNode
+      });
+
+      nodeWasRemoved(oldChildWrapper);
       nodesWereAdded(nodes);
 
       return oldChildWrapper;
     },
 
     /**
-     * Called after a node was added. Subclasses override this to invalidate
+     * Called after a node was inserted. Subclasses override this to invalidate
      * the renderer as needed.
      * @private
      */
-    nodeWasAdded_: function() {
+    nodeIsInserted_: function() {
       for (var child = this.firstChild; child; child = child.nextSibling) {
-        child.nodeWasAdded_();
+        child.nodeIsInserted_();
       }
     },
 
@@ -3084,6 +3585,8 @@ var ShadowDOMPolyfill = {};
       return s;
     },
     set textContent(textContent) {
+      var removedNodes = snapshotNodeList(this.childNodes);
+
       if (this.invalidateShadowRenderer()) {
         removeAllChildNodes(this);
         if (textContent !== '') {
@@ -3093,6 +3596,16 @@ var ShadowDOMPolyfill = {};
       } else {
         this.impl.textContent = textContent;
       }
+
+      var addedNodes = snapshotNodeList(this.childNodes);
+
+      enqueueMutation(this, 'childList', {
+        addedNodes: addedNodes,
+        removedNodes: removedNodes
+      });
+
+      nodesWereRemoved(removedNodes);
+      nodesWereAdded(addedNodes);
     },
 
     get childNodes() {
@@ -3106,9 +3619,6 @@ var ShadowDOMPolyfill = {};
     },
 
     cloneNode: function(deep) {
-      if (!this.invalidateShadowRenderer())
-        return wrap(this.impl.cloneNode(deep));
-
       var clone = wrap(this.impl.cloneNode(false));
       if (deep) {
         for (var child = this.firstChild; child; child = child.nextSibling) {
@@ -3151,9 +3661,14 @@ var ShadowDOMPolyfill = {};
   delete Node.prototype.querySelectorAll;
   Node.prototype = mixin(Object.create(EventTarget.prototype), Node.prototype);
 
+  scope.nodeWasAdded = nodeWasAdded;
+  scope.nodeWasRemoved = nodeWasRemoved;
+  scope.nodesWereAdded = nodesWereAdded;
+  scope.nodesWereRemoved = nodesWereRemoved;
+  scope.snapshotNodeList = snapshotNodeList;
   scope.wrappers.Node = Node;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -3227,7 +3742,7 @@ var ShadowDOMPolyfill = {};
   scope.GetElementsByInterface = GetElementsByInterface;
   scope.SelectorsInterface = SelectorsInterface;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -3297,7 +3812,7 @@ var ShadowDOMPolyfill = {};
   scope.ChildNodeInterface = ChildNodeInterface;
   scope.ParentNodeInterface = ParentNodeInterface;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -3308,6 +3823,7 @@ var ShadowDOMPolyfill = {};
 
   var ChildNodeInterface = scope.ChildNodeInterface;
   var Node = scope.wrappers.Node;
+  var enqueueMutation = scope.enqueueMutation;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
 
@@ -3323,6 +3839,16 @@ var ShadowDOMPolyfill = {};
     },
     set textContent(value) {
       this.data = value;
+    },
+    get data() {
+      return this.impl.data;
+    },
+    set data(value) {
+      var oldValue = this.impl.data;
+      enqueueMutation(this, 'characterData', {
+        oldValue: oldValue
+      });
+      this.impl.data = value;
     }
   });
 
@@ -3332,7 +3858,7 @@ var ShadowDOMPolyfill = {};
                   document.createTextNode(''));
 
   scope.wrappers.CharacterData = CharacterData;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -3347,6 +3873,7 @@ var ShadowDOMPolyfill = {};
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
   var addWrapNodeListMethod = scope.addWrapNodeListMethod;
+  var enqueueMutation = scope.enqueueMutation;
   var mixin = scope.mixin;
   var oneOf = scope.oneOf;
   var registerWrapper = scope.registerWrapper;
@@ -3374,6 +3901,17 @@ var ShadowDOMPolyfill = {};
       renderer.invalidate();
   }
 
+  function enqueAttributeChange(element, name, oldValue) {
+    // This is not fully spec compliant. We should use localName (which might
+    // have a different case than name) and the namespace (which requires us
+    // to get the Attr object).
+    enqueueMutation(element, 'attributes', {
+      name: name,
+      namespace: null,
+      oldValue: oldValue
+    });
+  }
+
   function Element(node) {
     Node.call(this, node);
   }
@@ -3394,12 +3932,16 @@ var ShadowDOMPolyfill = {};
     },
 
     setAttribute: function(name, value) {
+      var oldValue = this.impl.getAttribute(name);
       this.impl.setAttribute(name, value);
+      enqueAttributeChange(this, name, oldValue);
       invalidateRendererBasedOnAttribute(this, name);
     },
 
     removeAttribute: function(name) {
+      var oldValue = this.impl.getAttribute(name);
       this.impl.removeAttribute(name);
+      enqueAttributeChange(this, name, oldValue);
       invalidateRendererBasedOnAttribute(this, name);
     },
 
@@ -3450,7 +3992,7 @@ var ShadowDOMPolyfill = {};
   // that reflect attributes.
   scope.matchesName = matchesName;
   scope.wrappers.Element = Element;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -3461,8 +4003,12 @@ var ShadowDOMPolyfill = {};
 
   var Element = scope.wrappers.Element;
   var defineGetter = scope.defineGetter;
+  var enqueueMutation = scope.enqueueMutation;
   var mixin = scope.mixin;
+  var nodesWereAdded = scope.nodesWereAdded;
+  var nodesWereRemoved = scope.nodesWereRemoved;
   var registerWrapper = scope.registerWrapper;
+  var snapshotNodeList = scope.snapshotNodeList;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -3564,10 +4110,21 @@ var ShadowDOMPolyfill = {};
       return getInnerHTML(this);
     },
     set innerHTML(value) {
+      var removedNodes = snapshotNodeList(this.childNodes);
+
       if (this.invalidateShadowRenderer())
         setInnerHTML(this, value, this.tagName);
       else
         this.impl.innerHTML = value;
+      var addedNodes = snapshotNodeList(this.childNodes);
+
+      enqueueMutation(this, 'childList', {
+        addedNodes: addedNodes,
+        removedNodes: removedNodes
+      });
+
+      nodesWereRemoved(removedNodes);
+      nodesWereAdded(addedNodes);
     },
 
     get outerHTML() {
@@ -3651,7 +4208,8 @@ var ShadowDOMPolyfill = {};
   // TODO: Find a better way to share these two with WrapperShadowRoot.
   scope.getInnerHTML = getInnerHTML;
   scope.setInnerHTML = setInnerHTML
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -3682,7 +4240,7 @@ var ShadowDOMPolyfill = {};
                   document.createElement('canvas'));
 
   scope.wrappers.HTMLCanvasElement = HTMLCanvasElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -3724,7 +4282,8 @@ var ShadowDOMPolyfill = {};
     registerWrapper(OriginalHTMLContentElement, HTMLContentElement);
 
   scope.wrappers.HTMLContentElement = HTMLContentElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -3767,7 +4326,7 @@ var ShadowDOMPolyfill = {};
 
   scope.wrappers.HTMLImageElement = HTMLImageElement;
   scope.wrappers.Image = Image;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -3794,7 +4353,7 @@ var ShadowDOMPolyfill = {};
     registerWrapper(OriginalHTMLShadowElement, HTMLShadowElement);
 
   scope.wrappers.HTMLShadowElement = HTMLShadowElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -3879,7 +4438,8 @@ var ShadowDOMPolyfill = {};
     registerWrapper(OriginalHTMLTemplateElement, HTMLTemplateElement);
 
   scope.wrappers.HTMLTemplateElement = HTMLTemplateElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -3901,7 +4461,7 @@ var ShadowDOMPolyfill = {};
                   document.createElement('audio'));
 
   scope.wrappers.HTMLMediaElement = HTMLMediaElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -3944,7 +4504,7 @@ var ShadowDOMPolyfill = {};
 
   scope.wrappers.HTMLAudioElement = HTMLAudioElement;
   scope.wrappers.Audio = Audio;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -4008,7 +4568,7 @@ var ShadowDOMPolyfill = {};
 
   scope.wrappers.HTMLOptionElement = HTMLOptionElement;
   scope.wrappers.Option = Option;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -4040,7 +4600,8 @@ var ShadowDOMPolyfill = {};
   HTMLUnknownElement.prototype = Object.create(HTMLElement.prototype);
   registerWrapper(OriginalHTMLUnknownElement, HTMLUnknownElement);
   scope.wrappers.HTMLUnknownElement = HTMLUnknownElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -4076,10 +4637,11 @@ var ShadowDOMPolyfill = {};
     }
   });
 
-  registerWrapper(OriginalCanvasRenderingContext2D, CanvasRenderingContext2D);
+  registerWrapper(OriginalCanvasRenderingContext2D, CanvasRenderingContext2D,
+                  document.createElement('canvas').getContext('2d'));
 
   scope.wrappers.CanvasRenderingContext2D = CanvasRenderingContext2D;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -4119,10 +4681,111 @@ var ShadowDOMPolyfill = {};
     }
   });
 
-  registerWrapper(OriginalWebGLRenderingContext, WebGLRenderingContext);
+  // Blink/WebKit has broken DOM bindings. Usually we would create an instance
+  // of the object and pass it into registerWrapper as a "blueprint" but
+  // creating WebGL contexts is expensive and might fail so we use a dummy
+  // object with dummy instance properties for these broken browsers.
+  var instanceProperties = /WebKit/.test(navigator.userAgent) ?
+      {drawingBufferHeight: null, drawingBufferWidth: null} : {};
+
+  registerWrapper(OriginalWebGLRenderingContext, WebGLRenderingContext,
+      instanceProperties);
 
   scope.wrappers.WebGLRenderingContext = WebGLRenderingContext;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
+
+// Copyright 2013 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
+  var wrap = scope.wrap;
+
+  var OriginalRange = window.Range;
+
+  function Range(impl) {
+    this.impl = impl;
+  }
+  Range.prototype = {
+    get startContainer() {
+      return wrap(this.impl.startContainer);
+    },
+    get endContainer() {
+      return wrap(this.impl.endContainer);
+    },
+    get commonAncestorContainer() {
+      return wrap(this.impl.commonAncestorContainer);
+    },
+    setStart: function(refNode,offset) {
+      this.impl.setStart(unwrapIfNeeded(refNode), offset);
+    },
+    setEnd: function(refNode,offset) {
+      this.impl.setEnd(unwrapIfNeeded(refNode), offset);
+    },
+    setStartBefore: function(refNode) {
+      this.impl.setStartBefore(unwrapIfNeeded(refNode));
+    },
+    setStartAfter: function(refNode) {
+      this.impl.setStartAfter(unwrapIfNeeded(refNode));
+    },
+    setEndBefore: function(refNode) {
+      this.impl.setEndBefore(unwrapIfNeeded(refNode));
+    },
+    setEndAfter: function(refNode) {
+      this.impl.setEndAfter(unwrapIfNeeded(refNode));
+    },
+    selectNode: function(refNode) {
+      this.impl.selectNode(unwrapIfNeeded(refNode));
+    },
+    selectNodeContents: function(refNode) {
+      this.impl.selectNodeContents(unwrapIfNeeded(refNode));
+    },
+    compareBoundaryPoints: function(how, sourceRange) {
+      return this.impl.compareBoundaryPoints(how, unwrap(sourceRange));
+    },
+    extractContents: function() {
+      return wrap(this.impl.extractContents());
+    },
+    cloneContents: function() {
+      return wrap(this.impl.cloneContents());
+    },
+    insertNode: function(node) {
+      this.impl.insertNode(unwrapIfNeeded(node));
+    },
+    surroundContents: function(newParent) {
+      this.impl.surroundContents(unwrapIfNeeded(newParent));
+    },
+    cloneRange: function() {
+      return wrap(this.impl.cloneRange());
+    },
+    isPointInRange: function(node, offset) {
+      return this.impl.isPointInRange(unwrapIfNeeded(node), offset);
+    },
+    comparePoint: function(node, offset) {
+      return this.impl.comparePoint(unwrapIfNeeded(node), offset);
+    },
+    intersectsNode: function(node) {
+      return this.impl.intersectsNode(unwrapIfNeeded(node));
+    }
+  };
+
+  // IE9 does not have createContextualFragment.
+  if (OriginalRange.prototype.createContextualFragment) {
+    Range.prototype.createContextualFragment = function(html) {
+      return wrap(this.impl.createContextualFragment(html));
+    };
+  }
+
+  registerWrapper(window.Range, Range, document.createRange());
+
+  scope.wrappers.Range = Range;
+
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -4149,7 +4812,7 @@ var ShadowDOMPolyfill = {};
   scope.wrappers.DocumentFragment = DocumentFragment;
   scope.wrappers.Text = Text;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -4214,7 +4877,9 @@ var ShadowDOMPolyfill = {};
   });
 
   scope.wrappers.ShadowRoot = ShadowRoot;
-})(this.ShadowDOMPolyfill);
+
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -4849,8 +5514,8 @@ var ShadowDOMPolyfill = {};
     return getDistributedChildNodes(this);
   };
 
-  HTMLShadowElement.prototype.nodeWasAdded_ =
-  HTMLContentElement.prototype.nodeWasAdded_ = function() {
+  HTMLShadowElement.prototype.nodeIsInserted_ =
+  HTMLContentElement.prototype.nodeIsInserted_ = function() {
     // Invalidate old renderer if any.
     this.invalidateShadowRenderer();
 
@@ -4875,7 +5540,8 @@ var ShadowDOMPolyfill = {};
     remove: remove,
   };
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -4929,7 +5595,7 @@ var ShadowDOMPolyfill = {};
 
   elementsWithFormProperty.forEach(createWrapperConstructor);
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -5221,7 +5887,7 @@ var ShadowDOMPolyfill = {};
   scope.wrappers.DOMImplementation = DOMImplementation;
   scope.wrappers.Document = Document;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -5271,188 +5937,7 @@ var ShadowDOMPolyfill = {};
 
   scope.wrappers.Window = Window;
 
-})(this.ShadowDOMPolyfill);
-
-// Copyright 2013 The Polymer Authors. All rights reserved.
-// Use of this source code is goverened by a BSD-style
-// license that can be found in the LICENSE file.
-
-(function(scope) {
-  'use strict';
-
-  var defineGetter = scope.defineGetter;
-  var defineWrapGetter = scope.defineWrapGetter;
-  var registerWrapper = scope.registerWrapper;
-  var unwrapIfNeeded = scope.unwrapIfNeeded;
-  var wrapNodeList = scope.wrapNodeList;
-  var wrappers = scope.wrappers;
-
-  var OriginalMutationObserver = window.MutationObserver ||
-      window.WebKitMutationObserver;
-
-  if (!OriginalMutationObserver)
-    return;
-
-  var OriginalMutationRecord = window.MutationRecord;
-
-  function MutationRecord(impl) {
-    this.impl = impl;
-  }
-
-  MutationRecord.prototype = {
-    get addedNodes() {
-      return wrapNodeList(this.impl.addedNodes);
-    },
-    get removedNodes() {
-      return wrapNodeList(this.impl.removedNodes);
-    }
-  };
-
-  ['target', 'previousSibling', 'nextSibling'].forEach(function(name) {
-    defineWrapGetter(MutationRecord, name);
-  });
-
-  // WebKit/Blink treats these as instance properties so we override
-  [
-    'type',
-    'attributeName',
-    'attributeNamespace',
-    'oldValue'
-  ].forEach(function(name) {
-    defineGetter(MutationRecord, name, function() {
-      return this.impl[name];
-    });
-  });
-
-  if (OriginalMutationRecord)
-    registerWrapper(OriginalMutationRecord, MutationRecord);
-
-  function wrapRecord(record) {
-    return new MutationRecord(record);
-  }
-
-  function wrapRecords(records) {
-    return records.map(wrapRecord);
-  }
-
-  function MutationObserver(callback) {
-    var self = this;
-    this.impl = new OriginalMutationObserver(function(mutations, observer) {
-      callback.call(self, wrapRecords(mutations), self);
-    });
-  }
-
-  var OriginalNode = window.Node;
-
-  MutationObserver.prototype = {
-    observe: function(target, options) {
-      this.impl.observe(unwrapIfNeeded(target), options);
-    },
-    disconnect: function() {
-      this.impl.disconnect();
-    },
-    takeRecords: function() {
-      return wrapRecords(this.impl.takeRecords());
-    }
-  };
-
-  scope.wrappers.MutationObserver = MutationObserver;
-  scope.wrappers.MutationRecord = MutationRecord;
-
-})(this.ShadowDOMPolyfill);
-
-// Copyright 2013 The Polymer Authors. All rights reserved.
-// Use of this source code is goverened by a BSD-style
-// license that can be found in the LICENSE file.
-
-(function(scope) {
-  'use strict';
-
-  var registerWrapper = scope.registerWrapper;
-  var unwrap = scope.unwrap;
-  var unwrapIfNeeded = scope.unwrapIfNeeded;
-  var wrap = scope.wrap;
-
-  var OriginalRange = window.Range;
-
-  function Range(impl) {
-    this.impl = impl;
-  }
-  Range.prototype = {
-    get startContainer() {
-      return wrap(this.impl.startContainer);
-    },
-    get endContainer() {
-      return wrap(this.impl.endContainer);
-    },
-    get commonAncestorContainer() {
-      return wrap(this.impl.commonAncestorContainer);
-    },
-    setStart: function(refNode,offset) {
-      this.impl.setStart(unwrapIfNeeded(refNode), offset);
-    },
-    setEnd: function(refNode,offset) {
-      this.impl.setEnd(unwrapIfNeeded(refNode), offset);
-    },
-    setStartBefore: function(refNode) {
-      this.impl.setStartBefore(unwrapIfNeeded(refNode));
-    },
-    setStartAfter: function(refNode) {
-      this.impl.setStartAfter(unwrapIfNeeded(refNode));
-    },
-    setEndBefore: function(refNode) {
-      this.impl.setEndBefore(unwrapIfNeeded(refNode));
-    },
-    setEndAfter: function(refNode) {
-      this.impl.setEndAfter(unwrapIfNeeded(refNode));
-    },
-    selectNode: function(refNode) {
-      this.impl.selectNode(unwrapIfNeeded(refNode));
-    },
-    selectNodeContents: function(refNode) {
-      this.impl.selectNodeContents(unwrapIfNeeded(refNode));
-    },
-    compareBoundaryPoints: function(how, sourceRange) {
-      return this.impl.compareBoundaryPoints(how, unwrap(sourceRange));
-    },
-    extractContents: function() {
-      return wrap(this.impl.extractContents());
-    },
-    cloneContents: function() {
-      return wrap(this.impl.cloneContents());
-    },
-    insertNode: function(node) {
-      this.impl.insertNode(unwrapIfNeeded(node));
-    },
-    surroundContents: function(newParent) {
-      this.impl.surroundContents(unwrapIfNeeded(newParent));
-    },
-    cloneRange: function() {
-      return wrap(this.impl.cloneRange());
-    },
-    isPointInRange: function(node, offset) {
-      return this.impl.isPointInRange(unwrapIfNeeded(node), offset);
-    },
-    comparePoint: function(node, offset) {
-      return this.impl.comparePoint(unwrapIfNeeded(node), offset);
-    },
-    intersectsNode: function(node) {
-      return this.impl.intersectsNode(unwrapIfNeeded(node));
-    }
-  };
-
-  // IE9 does not have createContextualFragment.
-  if (OriginalRange.prototype.createContextualFragment) {
-    Range.prototype.createContextualFragment = function(html) {
-      return wrap(this.impl.createContextualFragment(html));
-    };
-  }
-
-  registerWrapper(window.Range, Range);
-
-  scope.wrappers.Range = Range;
-
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
 
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
@@ -5554,7 +6039,8 @@ var ShadowDOMPolyfill = {};
   // Export for testing.
   scope.knownElements = elements;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
+
 /*
  * Copyright 2013 The Polymer Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style
@@ -6057,7 +6543,7 @@ var ShadowCSS = {
    * Convert ^ and ^^ combinators by replacing with space.
   */
   convertCombinators: function(cssText) {
-    return cssText.replace('^^', ' ').replace('^', ' ');
+    return cssText.replace(/\^\^/g, ' ').replace(/\^/g, ' ');
   },
   // change a selector like 'div' to 'name div'
   scopeRules: function(cssRules, name, typeExtension) {

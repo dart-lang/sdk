@@ -35,7 +35,7 @@
         ['OS!="android"', {
           'dependencies': [
             'runtime/dart-runtime.gyp:test_extension',
-            'samples/sample_extension/sample_extension.gyp:sample_extension',
+            'runtime/dart-runtime.gyp:sample_extension',
           ],
         }],
       ],
@@ -85,6 +85,9 @@
       'type': 'none',
       'dependencies': [
         'create_sdk',
+      ],
+      'inputs': [
+        '<(PRODUCT_DIR)/dart-sdk/README',
       ],
       'actions': [
         {
@@ -155,7 +158,10 @@
       'target_name': 'api_docs',
       'type': 'none',
       'dependencies': [
+        # TODO(alanknight) : Once we're fully switched over to the new
+        # viewer remove the old api_docs gyp file.
         'utils/apidoc/apidoc.gyp:api_docs',
+        'utils/apidoc/docgen.gyp:docgen',
       ],
     },
     {
@@ -203,7 +209,7 @@
       'conditions': [
         ['OS!="android"', {
            'dependencies': [
-             'samples/sample_extension/sample_extension.gyp:sample_extension',
+             'runtime/dart-runtime.gyp:sample_extension',
            ],
           },
         ],

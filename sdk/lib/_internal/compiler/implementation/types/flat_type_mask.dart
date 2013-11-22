@@ -82,14 +82,48 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  bool isInMask(other, Compiler compiler) {
+  bool isSingleImplementationOf(ClassElement cls, Compiler compiler) {
+    // Special case basic types so that, for example, JSString is the
+    // single implementation of String.
+    // The general optimization is to realize there is only one class that
+    // implements [base] and [base] is not instantiated. We however do
+    // not track correctly the list of truly instantiated classes.
+    Backend backend = compiler.backend;
+    if (containsOnlyString(compiler)) {
+      return cls == compiler.stringClass || cls == backend.stringImplementation;
+    }
+    if (containsOnlyBool(compiler)) {
+      return cls == compiler.boolClass || cls == backend.boolImplementation;
+    }
+    if (containsOnlyInt(compiler)) {
+      return cls == compiler.intClass || cls == backend.intImplementation;
+    }
+    if (containsOnlyDouble(compiler)) {
+      return cls == compiler.doubleClass
+          || cls == compiler.backend.doubleImplementation;
+    }
+    return false;
+  }
+
+  bool isInMask(TypeMask other, Compiler compiler) {
     if (isEmpty) {
       return isNullable ? other.isNullable : true;
     }
     if (other.isEmpty) return false;
     if (isNullable && !other.isNullable) return false;
     if (other is! FlatTypeMask) return other.containsMask(this, compiler);
-    return satisfies(other.base, compiler);
+    FlatTypeMask flatOther = other;
+    ClassElement otherBase = flatOther.base;
+    if (flatOther.isExact) {
+      return (isExact && base == otherBase)
+          || isSingleImplementationOf(otherBase, compiler);
+    }
+    if (flatOther.isSubclass) {
+      if (isSubtype) return false;
+      return base == otherBase || isSubclassOf(base, otherBase, compiler);
+    }
+    assert(flatOther.isSubtype);
+    return satisfies(otherBase, compiler);
   }
 
   bool containsMask(TypeMask other, Compiler compiler) {
@@ -138,26 +172,6 @@ class FlatTypeMask implements TypeMask {
     if (isEmpty) return false;
     if (base == cls) return true;
     if (isSubtypeOf(base, cls, compiler)) return true;
-
-    // Special case basic types so that, for example, String satisfies
-    // JSString.
-    // The general optimization is to realize there is only one class that
-    // implements [base] and [base] is not instantiated. We however do
-    // not track correctly the list of truly instantiated classes.
-    Backend backend = compiler.backend;
-    if (containsOnlyString(compiler)) {
-      return cls == compiler.stringClass || cls == backend.stringImplementation;
-    }
-    if (containsOnlyBool(compiler)) {
-      return cls == compiler.boolClass || cls == backend.boolImplementation;
-    }
-    if (containsOnlyInt(compiler)) {
-      return cls == compiler.intClass || cls == backend.intImplementation;
-    }
-    if (containsOnlyDouble(compiler)) {
-      return cls == compiler.doubleClass
-          || cls == compiler.backend.doubleImplementation;
-    }
     return false;
   }
 
@@ -476,7 +490,7 @@ class FlatTypeMask implements TypeMask {
     Element element = findMatchIn(cls, selector, compiler);
     if (element == null) return false;
 
-    if (element.isAbstract(compiler)) {
+    if (element.isAbstract) {
       ClassElement enclosingClass = element.getEnclosingClass();
       return hasConcreteMatch(enclosingClass.superclass, selector, compiler);
     }
@@ -505,7 +519,7 @@ class FlatTypeMask implements TypeMask {
     // `null`.
     if (isEmpty) return false;
     // A call on an exact mask for an abstract class is dead code.
-    if (isExact && base.isAbstract(compiler)) return false;
+    if (isExact && base.isAbstract) return false;
     // If the receiver is guaranteed to have a member that
     // matches what we're looking for, there's no need to
     // introduce a noSuchMethod handler. It will never be called.
@@ -550,7 +564,7 @@ class FlatTypeMask implements TypeMask {
 
     bool hasMatch = hasConcreteMatch(base, selector, compiler);
     if (isExact) return !hasMatch;
-    if (!base.isAbstract(compiler) && !hasMatch) return true;
+    if (!base.isAbstract && !hasMatch) return true;
 
     Set<ClassElement> subtypesToCheck;
     if (isSubtype) {
@@ -566,7 +580,7 @@ class FlatTypeMask implements TypeMask {
               // instance of them will be created at runtime, and
               // therefore there is no instance that will require
               // [noSuchMethod] handling.
-              return !cls.isAbstract(compiler)
+              return !cls.isAbstract
                   && !hasConcreteMatch(cls, selector, compiler);
            });
   }

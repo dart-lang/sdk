@@ -49,5 +49,43 @@ main() {
         'Item 3 is expressions',
       ]);
     }));
+
+    test('should update after changes', wrapMicrotask(() {
+      var model = toObservable(
+              ['hello', 'from', 'polymer', 'expressions', 'a', 'b', 'c']);
+
+      templateBind(testDiv.query('template'))
+          ..bindingDelegate = new PolymerExpressions()
+          ..model = model;
+
+      performMicrotaskCheckpoint();
+
+      expect(testDiv.queryAll('div').map((n) => n.text), [
+        'Item 0 is hello',
+        'Item 1 is from',
+        'Item 2 is polymer',
+        'Item 3 is expressions',
+        'Item 4 is a',
+        'Item 5 is b',
+        'Item 6 is c',
+      ]);
+
+      model.removeAt(1);
+      model[1] = 'world';
+      model[2] = '!';
+      model.insert(5, 'e');
+
+      performMicrotaskCheckpoint();
+
+      expect(testDiv.queryAll('div').map((n) => n.text), [
+        'Item 0 is hello',
+        'Item 1 is world',
+        'Item 2 is !',
+        'Item 3 is a',
+        'Item 4 is b',
+        'Item 5 is e',
+        'Item 6 is c',
+      ]);
+    }));
   });
 }

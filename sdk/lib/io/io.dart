@@ -16,7 +16,8 @@ library dart.io;
 
 import 'dart:async';
 import 'dart:_collection-dev';
-import 'dart:collection' show LinkedHashSet,
+import 'dart:collection' show HashMap,
+                              HashSet,
                               LinkedList,
                               LinkedListEntry;
 import 'dart:convert';

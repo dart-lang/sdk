@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 
 import 'barback/load_all_transformers.dart';
 import 'barback/pub_package_provider.dart';
@@ -16,6 +17,8 @@ import 'barback/sources.dart';
 import 'log.dart' as log;
 import 'package_graph.dart';
 import 'utils.dart';
+
+export 'barback/sources.dart' show WatcherType;
 
 /// An identifier for a transformer and the configuration that will be passed to
 /// it.
@@ -108,7 +111,7 @@ class TransformerId {
 /// the app when the server is started will be maintained.
 Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
     BarbackMode mode, {Iterable<Transformer> builtInTransformers,
-    bool watchForUpdates: true}) {
+    WatcherType watcher: WatcherType.AUTO}) {
   var provider = new PubPackageProvider(graph);
   var barback = new Barback(provider);
 
@@ -117,7 +120,10 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {
     return new Future.sync(() {
-      if (watchForUpdates) return watchSources(graph, barback);
+      if (watcher != WatcherType.NONE) {
+        return watchSources(graph, barback, watcher);
+      }
+
       loadSources(graph, barback);
     }).then((_) {
       var completer = new Completer();
@@ -128,7 +134,9 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
       var subscriptions = [
         server.barback.errors.listen((error) {
           if (error is TransformerException) error = error.error;
-          if (!completer.isCompleted) completer.completeError(error);
+          if (!completer.isCompleted) {
+            completer.completeError(error, new Trace.current());
+          }
         }),
         server.barback.results.listen((_) {}, onError: (error, stackTrace) {
           if (completer.isCompleted) return;

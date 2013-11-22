@@ -56,9 +56,9 @@ void CodeBreakpoint::PatchFunctionReturn() {
   // than the sequence we are replacing. We pad at the top with nops so that
   // the end of the new sequence is lined up with the code descriptor.
   instr1->SetInstructionBits(Instr::kNopInstruction);
-  instr2->SetImmInstrBits(LUI, ZR, TMP1, target_hi);
-  instr3->SetImmInstrBits(ORI, TMP1, TMP1, target_lo);
-  instr4->SetSpecialInstrBits(JALR, TMP1, ZR, RA);
+  instr2->SetImmInstrBits(LUI, ZR, TMP, target_hi);
+  instr3->SetImmInstrBits(ORI, TMP, TMP, target_lo);
+  instr4->SetSpecialInstrBits(JALR, TMP, ZR, RA);
   instr5->SetInstructionBits(Instr::kNopInstruction);
 
   CPU::FlushICache(pc_ - 5 * Instr::kInstrSize, 5 * Instr::kInstrSize);
@@ -72,7 +72,7 @@ void CodeBreakpoint::RestoreFunctionReturn() {
   Instr* instr4 = Instr::At(pc_ - 2 * Instr::kInstrSize);
   Instr* instr5 = Instr::At(pc_ - 1 * Instr::kInstrSize);
 
-  ASSERT(instr2->OpcodeField() == LUI && instr2->RtField() == TMP1);
+  ASSERT(instr2->OpcodeField() == LUI && instr2->RtField() == TMP);
 
   instr1->SetImmInstrBits(LW, SP, RA, 2 * kWordSize);
   instr2->SetImmInstrBits(LW, SP, FP, 1 * kWordSize);

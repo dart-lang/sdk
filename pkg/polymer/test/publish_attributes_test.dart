@@ -37,8 +37,19 @@ class XSquid extends XZot {
   XSquid.created() : super.created();
 
   @published int baz = 13;
-  @published int zot = 5;
+  @published int zot = 3;
   @published int squid = 7;
+}
+
+// Test inherited "attriubtes"
+class XBaz extends PolymerElement {
+  XBaz.created() : super.created();
+  @observable int qux = 13;
+}
+
+@CustomTag('x-qux')
+class XQux extends XBaz {
+  XQux.created() : super.created();
 }
 
 main() {
@@ -55,5 +66,6 @@ main() {
     expect(published('x-bar'), [#Foo, #baz, #Bar]);
     expect(published('x-zot'), [#Foo, #baz, #Bar, #zot]);
     expect(published('x-squid'), [#Foo, #baz, #Bar, #zot, #squid]);
+    expect(published('x-qux'), [#qux]);
   });
 }

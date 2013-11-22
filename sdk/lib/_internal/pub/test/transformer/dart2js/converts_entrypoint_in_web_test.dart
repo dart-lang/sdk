@@ -20,7 +20,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("main.dart.js", contains("hello"));
     endPubServe();
   });

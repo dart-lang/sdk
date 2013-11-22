@@ -9,6 +9,7 @@ import "dart:typed_data";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
+
 void testClientRequest(Future handler(request)) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
@@ -31,6 +32,7 @@ void testClientRequest(Future handler(request)) {
   });
 }
 
+
 void testResponseDone() {
   testClientRequest((request) {
     request.close().then((res1) {
@@ -41,6 +43,7 @@ void testResponseDone() {
     return request.done;
   });
 }
+
 
 void testBadResponseAdd() {
   asyncStart();
@@ -80,6 +83,7 @@ void testBadResponseAdd() {
   });
 }
 
+
 void testBadResponseClose() {
   asyncStart();
   testClientRequest((request) {
@@ -103,8 +107,26 @@ void testBadResponseClose() {
   });
 }
 
+
+void testBadHeaders() {
+  asyncStart();
+  testClientRequest((request) {
+    var value = "a";
+    for (int i = 0; i < 8 * 1024; i++) {
+      value += 'a';
+    }
+    request.headers.set('name', value);
+    request.done.catchError((error) {
+      asyncEnd();
+    }, test: (e) => e is HttpException);
+    return request.close();
+  });
+}
+
+
 void main() {
   testResponseDone();
   testBadResponseAdd();
   testBadResponseClose();
+  testBadHeaders();
 }

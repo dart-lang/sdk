@@ -1079,6 +1079,10 @@ class ConcreteTypesInferrer extends TypesInferrer {
     throw new UnsupportedError("");
   }
 
+  bool isCalledOnce(Element element) {
+    throw new UnsupportedError("");
+  }
+
   // --- analysis ---
 
   /**
@@ -1236,7 +1240,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
 
     ConcreteType result = emptyConcreteType;
     void registerClass(ClassElement element) {
-      if (!element.isAbstract(compiler)) {
+      if (!element.isAbstract) {
         result =
             result.union(singletonConcreteType(new ClassBaseType(element)));
         augmentSeenClasses(element);
@@ -1520,7 +1524,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
     listElementType = emptyConcreteType;
     concreteSeenClasses = compiler.enqueuer.resolution
         .seenClasses
-        .where((cls) => !cls.isAbstract(compiler))
+        .where((cls) => !cls.isAbstract)
         .toList()
         ..add(baseTypes.numBaseType.element);
     nativeTypesToConcreteTypes = new Map<ClassElement, ConcreteType>()

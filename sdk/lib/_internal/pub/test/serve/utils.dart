@@ -92,17 +92,15 @@ class DartTransformer extends Transformer {
 """;
 }
 
-/// Schedules starting the "pub serve" process.
+/// Schedules starting the `pub serve` process.
 ///
-/// If [shouldGetFirst] is `true`, validates that pub get is run first. If
-/// [dart2js] is `false`, does not compile Dart entrypoints in "web" to
-/// JavaScript.
+/// Unlike [pubServe], this doesn't determine the port number of the server, and
+/// so may be used to test for errors in the initialization process.
 ///
 /// Returns the `pub serve` process.
-ScheduledProcess startPubServe({bool shouldGetFirst: false,
-    Iterable<String> args}) {
+ScheduledProcess startPubServe([Iterable<String> args]) {
   // Use port 0 to get an ephemeral port.
-  var pubArgs = ["serve", "--port=0", "--hostname=127.0.0.1"];
+  var pubArgs = ["serve", "--port=0", "--hostname=127.0.0.1", "--force-poll"];
 
   if (args != null) pubArgs.addAll(args);
 
@@ -110,7 +108,18 @@ ScheduledProcess startPubServe({bool shouldGetFirst: false,
   // timeout to cope with that.
   currentSchedule.timeout = new Duration(seconds: 15);
 
-  _pubServer = startPub(args: pubArgs);
+  return startPub(args: pubArgs);
+}
+
+/// Schedules starting the "pub serve" process and records its port number for
+/// future requests.
+///
+/// If [shouldGetFirst] is `true`, validates that pub get is run first.
+///
+/// Returns the `pub serve` process.
+ScheduledProcess pubServe({bool shouldGetFirst: false,
+    Iterable<String> args}) {
+  _pubServer = startPubServe(args);
 
   currentSchedule.onComplete.schedule(() {
     if (_webSocket != null) {

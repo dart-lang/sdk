@@ -22,7 +22,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe();
+    pubServe();
     requestShouldSucceed("index.html", "body");
 
     schedule(() => deleteEntry(

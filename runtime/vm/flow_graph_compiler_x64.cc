@@ -236,10 +236,13 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   } else {
     __ j(ZERO, is_not_instance_lbl);
   }
+  const intptr_t num_type_args = type_class.NumTypeArguments();
+  const intptr_t num_type_params = type_class.NumTypeParameters();
+  const intptr_t from_index = num_type_args - num_type_params;
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
-      type_arguments.IsRaw(type_arguments.Length());
+      type_arguments.IsRaw(from_index, num_type_params);
   // Signature class is an instantiated parameterized type.
   if (!type_class.IsSignatureClass()) {
     if (is_raw_type) {
@@ -561,7 +564,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            const AbstractType& type,
                                            bool negate_result,
                                            LocationSummary* locs) {
-  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
 
   Label is_instance, is_not_instance;
   __ pushq(RCX);  // Store instantiator on stack.
@@ -650,7 +653,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(dst_type.IsMalformed() || dst_type.IsMalbounded() ||
+  ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
   __ pushq(RCX);  // Store instantiator.
   __ pushq(RDX);  // Store instantiator type arguments.
@@ -667,7 +670,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   }
 
   // Generate throw new TypeError() if the type is malformed or malbounded.
-  if (dst_type.IsMalformed() || dst_type.IsMalbounded()) {
+  if (dst_type.IsMalformedOrMalbounded()) {
     __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
     __ pushq(RAX);  // Push the source object.
     __ PushObject(dst_name, PP);  // Push the name of the destination.
@@ -977,7 +980,7 @@ void FlowGraphCompiler::CopyParameters() {
         ICData::New(function, Symbols::Call(), Object::empty_array(),
                     Isolate::kNoDeoptId, kNumArgsChecked));
     __ LoadObject(RBX, ic_data, PP);
-    __ LeaveFrameWithPP();  // The arguments are still on the stack.
+    __ LeaveDartFrame();  // The arguments are still on the stack.
     __ jmp(&StubCode::CallNoSuchMethodFunctionLabel());
     // The noSuchMethod call may return to the caller, but not here.
     __ int3();
@@ -1176,7 +1179,7 @@ void FlowGraphCompiler::CompileGraph() {
             ICData::New(function, name, Object::empty_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(RBX, ic_data, PP);
-        __ LeaveFrameWithPP();  // The arguments are still on the stack.
+        __ LeaveDartFrame();  // The arguments are still on the stack.
         __ jmp(&StubCode::CallNoSuchMethodFunctionLabel());
         // The noSuchMethod call may return to the caller, but not here.
         __ int3();
@@ -1478,11 +1481,8 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
                                                     bool needs_number_check,
                                                     intptr_t token_pos) {
-  if (needs_number_check) {
-    if (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()) {
-      needs_number_check = false;
-    }
-  }
+  ASSERT(!needs_number_check ||
+         (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()));
 
   if (obj.IsSmi() && (Smi::Cast(obj).Value() == 0)) {
     ASSERT(!needs_number_check);
@@ -1637,36 +1637,6 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     assembler()->Bind(&next_test);
   }
   assembler()->Bind(&match_found);
-}
-
-
-void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
-                                                FpuRegister left,
-                                                FpuRegister right,
-                                                BranchInstr* branch) {
-  ASSERT(branch != NULL);
-  assembler()->comisd(left, right);
-  BlockEntryInstr* nan_result = (true_condition == NOT_EQUAL) ?
-      branch->true_successor() : branch->false_successor();
-  assembler()->j(PARITY_EVEN, GetJumpLabel(nan_result));
-  branch->EmitBranchOnCondition(this, true_condition);
-}
-
-
-void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
-                                              FpuRegister left,
-                                              FpuRegister right,
-                                              Register result) {
-  assembler()->comisd(left, right);
-  Label is_false, is_true, done;
-  assembler()->j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN false;
-  assembler()->j(true_condition, &is_true, Assembler::kNearJump);
-  assembler()->Bind(&is_false);
-  assembler()->LoadObject(result, Bool::False(), PP);
-  assembler()->jmp(&done);
-  assembler()->Bind(&is_true);
-  assembler()->LoadObject(result, Bool::True(), PP);
-  assembler()->Bind(&done);
 }
 
 

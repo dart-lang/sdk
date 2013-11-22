@@ -66,6 +66,6 @@ pubspec.lock
 tools/out
 tools/xcodebuild
 pkg/shadow_dom/tool/node_modules
-
-
-
+editor/util/testing/mac/CodeLab.suite/Results
+editor/util/testing/mac/DartEditor.suite/Results
+editor/util/testing/mac/Samples.suite/Results

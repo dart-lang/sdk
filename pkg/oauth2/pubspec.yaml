@@ -5,7 +5,7 @@ homepage: http://www.dartlang.org
 description: >
   A client library for authenticating with a remote service via OAuth2 on
   behalf of a user, and making authorized HTTP requests with the user's
-  OAuth2 credentials.
+  OAuth2 credentials. Currently only works with dart:io.
 dependencies:
   http: ">=0.9.0 <0.10.0"
 dev_dependencies:

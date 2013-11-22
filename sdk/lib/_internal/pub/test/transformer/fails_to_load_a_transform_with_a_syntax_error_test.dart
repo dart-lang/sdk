@@ -8,6 +8,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
+import '../serve/utils.dart';
 
 main() {
   initConfig();
@@ -27,7 +28,7 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    var pub = startPub(args: ['serve', '--port=0', "--hostname=127.0.0.1"]);
+    var pub = startPubServe();
     expect(pub.nextErrLine(), completion(startsWith('Error on line')));
     pub.shouldExit(1);
     expect(pub.remainingStderr(),

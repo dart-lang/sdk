@@ -50,7 +50,7 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    var server = startPubServe();
+    var server = pubServe();
     requestShouldSucceed("foo.txt", "debug");
     endPubServe();
   });

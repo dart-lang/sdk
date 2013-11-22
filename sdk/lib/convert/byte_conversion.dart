@@ -10,6 +10,10 @@ part of dart.convert;
  *
  * Instead of limiting the interface to one non-chunked list of bytes it
  * accepts its input in chunks (themselves being lists of bytes).
+ *
+ * This abstract class will likely get more methods over time. Implementers are
+ * urged to extend or mix in [ByteConversionSinkBase] to ensure that their
+ * class covers the newly added methods.
  */
 abstract class ByteConversionSink extends ChunkedConversionSink<List<int>> {
   ByteConversionSink();

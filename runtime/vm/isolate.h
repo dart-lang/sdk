@@ -34,6 +34,7 @@ class HandleVisitor;
 class Heap;
 class ICData;
 class Instance;
+class IsolateProfilerData;
 class LongJump;
 class MessageHandler;
 class Mutex;
@@ -50,6 +51,7 @@ class RawInteger;
 class RawError;
 class RawFloat32x4;
 class RawInt32x4;
+class SampleBuffer;
 class Simulator;
 class StackResource;
 class StackZone;
@@ -202,6 +204,9 @@ class Isolate : public BaseIsolate {
 
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
+
+  // Retrieve the stack address bounds.
+  bool GetStackBounds(uintptr_t* lower, uintptr_t* upper);
 
   static uword GetSpecifiedStackSize();
 
@@ -383,6 +388,18 @@ class Isolate : public BaseIsolate {
     return defer_finalization_count_ == 0;
   }
 
+  Mutex* profiler_data_mutex() {
+    return &profiler_data_mutex_;
+  }
+
+  void set_profiler_data(IsolateProfilerData* profiler_data) {
+    profiler_data_ = profiler_data;
+  }
+
+  IsolateProfilerData* profiler_data() {
+    return profiler_data_;
+  }
+
  private:
   Isolate();
 
@@ -440,6 +457,9 @@ class Isolate : public BaseIsolate {
 
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_;
+
+  IsolateProfilerData* profiler_data_;
+  Mutex profiler_data_mutex_;
 
   // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object)                                         \
@@ -541,6 +561,7 @@ class IsolateSpawnState {
   void set_isolate(Isolate* value) { isolate_ = value; }
   char* script_url() const { return script_url_; }
   char* library_url() const { return library_url_; }
+  char* class_name() const { return class_name_; }
   char* function_name() const { return function_name_; }
   char* exception_callback_name() const { return exception_callback_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
@@ -552,6 +573,7 @@ class IsolateSpawnState {
   Isolate* isolate_;
   char* script_url_;
   char* library_url_;
+  char* class_name_;
   char* function_name_;
   char* exception_callback_name_;
 };

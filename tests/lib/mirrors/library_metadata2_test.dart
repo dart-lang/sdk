@@ -6,11 +6,11 @@ import 'dart:mirrors';
 
 import 'library_metadata2_lib1.dart';
 
-import 'library_metadata2_lib2.dart'; /// 01: runtime error
+import 'library_metadata2_lib2.dart'; /// 01: compile-time error
 
 void main() {
   for (var library in currentMirrorSystem().libraries.values) {
     print(library.metadata);  // Processing @MyConst() in lib2 results in a
-                              // runtime error here.
+                              // delayed compilation error here.
   }
 }

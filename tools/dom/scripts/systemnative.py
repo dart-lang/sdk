@@ -1231,7 +1231,6 @@ class CPPLibraryEmitter():
     e.Emit('\n');
     e.Emit('} // namespace WebCore\n');
     e.Emit('#endif // DartWebkitClassIds_h\n');
-    self._emitters.Flush()
 
     path = os.path.join(output_dir, 'DartWebkitClassIds.cpp')
     e = self._emitters.FileEmitter(path)
@@ -1281,7 +1280,6 @@ class CPPLibraryEmitter():
     e.Emit("};\n");
     e.Emit('\n');
     e.Emit('} // namespace WebCore\n');
-    self._emitters.Flush()
 
 def _IsOptionalStringArgumentInInitEventMethod(interface, operation, argument):
   return (

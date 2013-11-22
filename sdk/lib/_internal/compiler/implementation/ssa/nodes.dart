@@ -811,6 +811,7 @@ abstract class HInstruction implements Spannable {
 
   bool useGvn() => _useGvn;
   void setUseGvn() { _useGvn = true; }
+  void clearUseGvn() { _useGvn = false; }
 
   void updateInput(int i, HInstruction insn) {
     assert(insn != null);
@@ -1390,47 +1391,33 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
-  final bool isSideEffectFree;
   HInvokeDynamicField(
       Selector selector, Element element, List<HInstruction> inputs,
-      TypeMask type, this.isSideEffectFree)
+      TypeMask type)
       : super(selector, element, inputs, type);
   toString() => 'invoke dynamic field: $selector';
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(selector, element, inputs, type, isSideEffectFree)
-    : super(selector, element, inputs, type, isSideEffectFree) {
-    sideEffects.clearAllSideEffects();
-    if (isSideEffectFree) {
-      setUseGvn();
-      sideEffects.setDependsOnInstancePropertyStore();
-    } else {
-      sideEffects.setDependsOnSomething();
-      sideEffects.setAllSideEffects();
-    }
-  }
+  HInvokeDynamicGetter(selector, element, inputs, type)
+    : super(selector, element, inputs, type);
   toString() => 'invoke dynamic getter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(selector, element, inputs, type, isSideEffectFree)
-    : super(selector, element, inputs, type, isSideEffectFree) {
-    sideEffects.clearAllSideEffects();
-    if (isSideEffectFree) {
-      sideEffects.setChangesInstanceProperty();
-    } else {
-      sideEffects.setAllSideEffects();
-      sideEffects.setDependsOnSomething();
-    }
-  }
+  HInvokeDynamicSetter(selector, element, inputs, type)
+    : super(selector, element, inputs, type);
   toString() => 'invoke dynamic setter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
 
 class HInvokeStatic extends HInvoke {
   final Element element;
+
+  final bool targetCanThrow;
+
+  bool canThrow() => targetCanThrow;
 
   /// If this instruction is a call to a constructor, [instantiatedTypes]
   /// contains the type(s) used in the (Dart) `New` expression(s).
@@ -1439,7 +1426,9 @@ class HInvokeStatic extends HInvoke {
   List<DartType> instantiatedTypes;
 
   /** The first input must be the target. */
-  HInvokeStatic(this.element, inputs, TypeMask type) : super(inputs, type);
+  HInvokeStatic(this.element, inputs, TypeMask type,
+                {this.targetCanThrow: true})
+    : super(inputs, type);
 
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
@@ -1501,6 +1490,7 @@ class HFieldGet extends HFieldAccess {
             : element.isAssignable(),
         super(element, <HInstruction>[receiver], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     setUseGvn();
     if (this.isAssignable) {
       sideEffects.setDependsOnInstancePropertyStore();
@@ -1539,6 +1529,7 @@ class HFieldSet extends HFieldAccess {
       : super(element, <HInstruction>[receiver, value],
               const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     sideEffects.setChangesInstanceProperty();
   }
 
@@ -1631,6 +1622,7 @@ abstract class HInvokeBinary extends HInstruction {
   HInvokeBinary(HInstruction left, HInstruction right, this.selector, type)
       : super(<HInstruction>[left, right], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     setUseGvn();
   }
 
@@ -1767,6 +1759,7 @@ abstract class HInvokeUnary extends HInstruction {
   HInvokeUnary(HInstruction input, this.selector, type)
       : super(<HInstruction>[input], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     setUseGvn();
   }
 
@@ -2110,6 +2103,7 @@ class HStatic extends HInstruction {
     assert(element != null);
     assert(invariant(this, element.isDeclaration));
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     if (element.isAssignable()) {
       sideEffects.setDependsOnStaticPropertyStore();
     }
@@ -2132,6 +2126,7 @@ class HInterceptor extends HInstruction {
   HInterceptor(HInstruction receiver, TypeMask type)
       : super(<HInstruction>[receiver], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     setUseGvn();
   }
   String toString() => 'interceptor on $interceptedClasses';
@@ -2197,6 +2192,7 @@ class HStaticStore extends HInstruction {
   HStaticStore(this.element, HInstruction value)
       : super(<HInstruction>[value], const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     sideEffects.setChangesStaticProperty();
   }
   toString() => 'static store ${element.name}';
@@ -2223,6 +2219,7 @@ class HIndex extends HInstruction {
   HIndex(HInstruction receiver, HInstruction index, this.selector, type)
       : super(<HInstruction>[receiver, index], type) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     sideEffects.setDependsOnIndexStore();
     setUseGvn();
   }
@@ -2235,6 +2232,7 @@ class HIndex extends HInstruction {
 
   HInstruction getDartReceiver(Compiler compiler) => receiver;
   bool onlyThrowsNSM() => true;
+  bool canThrow() => receiver.canBeNull();
 
   int typeCode() => HInstruction.INDEX_TYPECODE;
   bool typeEquals(HInstruction other) => other is HIndex;
@@ -2254,6 +2252,7 @@ class HIndexAssign extends HInstruction {
       : super(<HInstruction>[receiver, index, value],
               const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
     sideEffects.setChangesIndex();
   }
   String toString() => 'index assign operator';
@@ -2265,6 +2264,7 @@ class HIndexAssign extends HInstruction {
 
   HInstruction getDartReceiver(Compiler compiler) => receiver;
   bool onlyThrowsNSM() => true;
+  bool canThrow() => receiver.canBeNull();
 }
 
 class HIs extends HInstruction {

@@ -11,7 +11,7 @@ class ClassEmitter extends CodeEmitterHelper {
    * Invariant: [classElement] must be a declaration element.
    */
   void generateClass(ClassElement classElement,
-                     CodeBuffer buffer,
+                     ClassBuilder properties,
                      Map<String, jsAst.Expression> additionalProperties) {
     final onlyForRti =
         task.typeTestEmitter.rtiNeededClasses.contains(classElement);
@@ -48,7 +48,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     emitClassBuilderWithReflectionData(
-        className, classElement, builder, buffer);
+        className, classElement, builder, properties);
   }
 
   void emitClassConstructor(ClassElement classElement,
@@ -160,8 +160,6 @@ class ClassEmitter extends CodeEmitterHelper {
             buffer.write(accessorName);
             if (name != accessorName) {
               buffer.write(':$name');
-              // Only the native classes can have renaming accessors.
-              assert(classIsNative);
             }
 
             int getterCode = 0;
@@ -212,7 +210,11 @@ class ClassEmitter extends CodeEmitterHelper {
             }
           }
           if (backend.isAccessibleByReflection(field)) {
-            buffer.write(new String.fromCharCode(REFLECTION_MARKER));
+            buffer.write('-');
+            if (backend.isNeededForReflection(field)) {
+              DartType type = field.computeType(compiler);
+              buffer.write('${task.metadataEmitter.reifyType(type)}');
+            }
           }
         }
       });
@@ -293,77 +295,66 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitClassBuilderWithReflectionData(String className,
                                           ClassElement classElement,
-                                          ClassBuilder builder,
-                                          CodeBuffer buffer) {
+                                          ClassBuilder classBuilder,
+                                          ClassBuilder enclosingBuilder) {
     var metadata = task.metadataEmitter.buildMetadataFunction(classElement);
     if (metadata != null) {
-      builder.addProperty("@", metadata);
+      classBuilder.addProperty("@", metadata);
     }
 
     if (backend.isNeededForReflection(classElement)) {
       Link typeVars = classElement.typeVariables;
-      Iterable properties = [];
-      if (task.typeVariableHandler.typeVariablesOf(classElement) != null) {
-        properties = task.typeVariableHandler.typeVariablesOf(classElement)
-            .map(js.toExpression);
-      }
+      Iterable typeVariableProperties = task.typeVariableHandler
+          .typeVariablesOf(classElement).map(js.toExpression);
 
       ClassElement superclass = classElement.superclass;
       bool hasSuper = superclass != null;
-      if ((!properties.isEmpty && !hasSuper) ||
+      if ((!typeVariableProperties.isEmpty && !hasSuper) ||
           (hasSuper && superclass.typeVariables != typeVars)) {
-        builder.addProperty('<>', new jsAst.ArrayInitializer.from(properties));
+        classBuilder.addProperty('<>',
+            new jsAst.ArrayInitializer.from(typeVariableProperties));
       }
     }
-    List<CodeBuffer> classBuffers = task.elementBuffers[classElement];
-    if (classBuffers == null) {
-      classBuffers = [];
-    } else {
-      task.elementBuffers.remove(classElement);
-    }
-    CodeBuffer statics = new CodeBuffer();
-    statics.write('{$n');
-    bool hasStatics = false;
+
+    List<jsAst.Property> statics = new List<jsAst.Property>();
     ClassBuilder staticsBuilder = new ClassBuilder();
     if (emitFields(classElement, staticsBuilder, null, emitStatics: true)) {
-      hasStatics = true;
-      statics.write('"":$_');
-      statics.write(
-          jsAst.prettyPrint(staticsBuilder.properties.single.value, compiler));
-      statics.write(',$n');
+      statics.add(staticsBuilder.properties.single);
     }
-    for (CodeBuffer classBuffer in classBuffers) {
-      // TODO(ahe): What about deferred?
-      if (classBuffer != null) {
-        hasStatics = true;
-        statics.addBuffer(classBuffer);
+
+    Map<String, ClassBuilder> classPropertyLists =
+        task.elementDecriptors.remove(classElement);
+    if (classPropertyLists != null) {
+      for (ClassBuilder classProperties in classPropertyLists.values) {
+        // TODO(ahe): What about deferred?
+        if (classProperties != null) {
+          statics.addAll(classProperties.properties);
+        }
       }
     }
-    statics.write('}$n');
-    if (hasStatics) {
-      builder.addProperty('static', new jsAst.Blob(statics));
+
+    if (!statics.isEmpty) {
+      classBuilder.addProperty('static', new jsAst.ObjectInitializer(statics));
     }
 
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
-    if (!buffer.isEmpty) {
-      buffer.write(',$n$n');
-    }
-    buffer.write('$className:$_');
-    buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
+    enclosingBuilder.addProperty(className, classBuilder.toObjectInitializer());
+
     String reflectionName = task.getReflectionName(classElement, className);
     if (reflectionName != null) {
       if (!backend.isNeededForReflection(classElement)) {
-        buffer.write(',$n$n"+$reflectionName": 0');
+        enclosingBuilder.addProperty("+$reflectionName", js.number(0));
       } else {
-        List<int> types = <int>[];
+        List<int> types = new List<int>();
         if (classElement.supertype != null) {
-          types.add(
-              task.metadataEmitter.reifyType(classElement.supertype));
+          types.add(task.metadataEmitter.reifyType(classElement.supertype));
         }
         for (DartType interface in classElement.interfaces) {
           types.add(task.metadataEmitter.reifyType(interface));
         }
-        buffer.write(',$n$n"+$reflectionName": $types');
+        enclosingBuilder.addProperty("+$reflectionName",
+            new jsAst.ArrayInitializer.from(types.map((typeNumber) =>
+                js.number(typeNumber))));
       }
     }
   }
@@ -419,30 +410,20 @@ class ClassEmitter extends CodeEmitterHelper {
       // setters.
       bool needsGetter = false;
       bool needsSetter = false;
-      // We need to name shadowed fields differently, so they don't clash with
-      // the non-shadowed field.
-      bool isShadowed = false;
       if (isLibrary || isMixinNativeField || holder == element) {
         needsGetter = fieldNeedsGetter(field);
         needsSetter = fieldNeedsSetter(field);
-      } else {
-        ClassElement cls = element;
-        isShadowed = cls.isShadowedByField(field);
       }
 
       if ((isInstantiated && !holder.isNative())
           || needsGetter
           || needsSetter) {
-        String accessorName = isShadowed
-            ? namer.shadowedFieldName(field)
-            : namer.getNameOfField(field);
-        String fieldName = field.hasFixedBackendName()
-            ? field.fixedBackendName()
-            : (isMixinNativeField ? name : accessorName);
+        String accessorName = namer.fieldAccessorName(field);
+        String fieldName = namer.fieldPropertyName(field);
         bool needsCheckedSetter = false;
         if (compiler.enableTypeAssertions
             && needsSetter
-            && canGenerateCheckedSetter(field)) {
+            && !canAvoidGeneratedCheckedSetter(field)) {
           needsCheckedSetter = true;
           needsSetter = false;
         }
@@ -516,49 +497,21 @@ class ClassEmitter extends CodeEmitterHelper {
     return field is ClosureFieldElement;
   }
 
-  bool canGenerateCheckedSetter(VariableElement field) {
+  bool canAvoidGeneratedCheckedSetter(Element member) {
     // We never generate accessors for top-level/static fields.
-    if (!field.isInstanceMember()) return false;
-    DartType type = field.computeType(compiler).unalias(compiler);
-    if (type.element.isTypeVariable() ||
-        (type is FunctionType && type.containsTypeVariables) ||
-        type.treatAsDynamic ||
-        type.element == compiler.objectClass) {
-      // TODO(ngeoffray): Support type checks on type parameters.
-      return false;
-    }
-    return true;
+    if (!member.isInstanceMember()) return true;
+    DartType type = member.computeType(compiler);
+    return type.treatAsDynamic || (type.element == compiler.objectClass);
   }
 
   void generateCheckedSetter(Element member,
                              String fieldName,
                              String accessorName,
                              ClassBuilder builder) {
-    assert(canGenerateCheckedSetter(member));
-    DartType type = member.computeType(compiler);
-    // TODO(ahe): Generate a dynamic type error here.
-    if (type.element.isErroneous()) return;
-    type = type.unalias(compiler);
-    // TODO(11273): Support complex subtype checks.
-    type = type.asRaw();
-    CheckedModeHelper helper =
-        backend.getCheckedModeHelper(type, typeCast: false);
-    FunctionElement helperElement = helper.getElement(compiler);
-    String helperName = namer.isolateAccess(helperElement);
-    List<jsAst.Expression> arguments = <jsAst.Expression>[js('v')];
-    if (helperElement.computeSignature(compiler).parameterCount != 1) {
-      arguments.add(js.string(namer.operatorIsType(type)));
-    }
-
+    jsAst.Expression code = backend.generatedCode[member];
+    assert(code != null);
     String setterName = namer.setterNameFromAccessorName(accessorName);
-    String receiver = backend.isInterceptorClass(member.getEnclosingClass())
-        ? 'receiver' : 'this';
-    List<String> args = backend.isInterceptedMethod(member)
-        ? ['receiver', 'v']
-        : ['v'];
-    builder.addProperty(setterName,
-        js.fun(args,
-            js('$receiver.$fieldName = #', js(helperName)(arguments))));
+    builder.addProperty(setterName, code);
     generateReflectionDataForFieldGetterOrSetter(
         member, setterName, builder, isGetter: false);
   }

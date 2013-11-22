@@ -261,23 +261,19 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     if (constant == null) return false;
 
     Selector selector = node.selector;
-    // TODO(ngeoffray): make one shot interceptors know whether
-    // they have side effects.
     HInstruction instruction;
     if (selector.isGetter()) {
       instruction = new HInvokeDynamicGetter(
           selector,
           node.element,
           <HInstruction>[constant, node.inputs[1]],
-          node.instructionType,
-          false);
+          node.instructionType);
     } else if (node.selector.isSetter()) {
       instruction = new HInvokeDynamicSetter(
           selector,
           node.element,
           <HInstruction>[constant, node.inputs[1], node.inputs[2]],
-          node.instructionType,
-          false);
+          node.instructionType);
     } else {
       List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
       inputs[0] = constant;

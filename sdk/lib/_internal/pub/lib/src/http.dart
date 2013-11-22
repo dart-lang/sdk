@@ -52,6 +52,7 @@ class PubHttpClient extends http.BaseClient {
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     _requestStopwatches[request] = new Stopwatch()..start();
+    request.headers[HttpHeaders.USER_AGENT] = "Dart pub ${sdk.version}";
     _logRequest(request);
 
     // TODO(nweiz): remove this when issue 4061 is fixed.
@@ -85,7 +86,7 @@ class PubHttpClient extends http.BaseClient {
       return http.Response.fromStream(streamedResponse).then((response) {
         throw new PubHttpException(response);
       });
-    }).catchError((error) {
+    }).catchError((error, stackTrace) {
       if (error is SocketException &&
           error.osError != null) {
         if (error.osError.errorCode == 8 ||
@@ -93,14 +94,14 @@ class PubHttpClient extends http.BaseClient {
             error.osError.errorCode == -5 ||
             error.osError.errorCode == 11001 ||
             error.osError.errorCode == 11004) {
-          fail('Could not resolve URL "${request.url.origin}".');
+          fail('Could not resolve URL "${request.url.origin}".',
+              error, stackTrace);
         } else if (error.osError.errorCode == -12276) {
           fail('Unable to validate SSL certificate for '
-              '"${request.url.origin}".');
+              '"${request.url.origin}".',
+              error, stackTrace);
         }
       }
-      print('Error in PubHttpClient.send (issue 12581) error: $error');
-      print('    stacktrace: $stackTrace');
       throw error;
     }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
   }
@@ -197,7 +198,7 @@ void handleJsonError(http.Response response) {
       errorMap['error']['message'] is! String) {
     invalidServerResponse(response);
   }
-  throw errorMap['error']['message'];
+  fail(errorMap['error']['message']);
 }
 
 /// Parses a response body, assuming it's JSON-formatted. Throws a user-friendly

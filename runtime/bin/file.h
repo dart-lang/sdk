@@ -90,17 +90,17 @@ class File {
 
   // Get the length of the file. Returns a negative value if the length cannot
   // be determined (e.g. not seekable device).
-  off_t Length();
+  off64_t Length();
 
   // Get the current position in the file.
   // Returns a negative value if position cannot be determined.
-  off_t Position();
+  off64_t Position();
 
   // Set the byte position in the file.
-  bool SetPosition(int64_t position);
+  bool SetPosition(off64_t position);
 
   // Truncate (or extend) the file to the given length in bytes.
-  bool Truncate(int64_t length);
+  bool Truncate(off64_t length);
 
   // Flush contents of file.
   bool Flush();
@@ -126,7 +126,7 @@ class File {
   static bool DeleteLink(const char* path);
   static bool Rename(const char* old_path, const char* new_path);
   static bool RenameLink(const char* old_path, const char* new_path);
-  static off_t LengthFromPath(const char* path);
+  static off64_t LengthFromPath(const char* path);
   static void Stat(const char* path, int64_t* data);
   static time_t LastModified(const char* path);
   static char* LinkTarget(const char* pathname);

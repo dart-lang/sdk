@@ -6,7 +6,7 @@ description: >
   A package for manipulating stack traces and printing them readably.
 
 dependencies:
-  path: ">=0.9.0 <0.10.0"
+  path: ">=1.0.0-rc.1 <2.0.0"
 
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"

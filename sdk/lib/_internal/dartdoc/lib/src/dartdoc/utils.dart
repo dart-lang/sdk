@@ -115,7 +115,8 @@ String importUriToPath(Uri uri, {String basePath, String packageRoot}) {
  * If [map] contains an [Export] under [key], this merges that with [export].
  * Otherwise, it sets [key] to [export].
  */
-void addOrMergeExport(Map<String, Export> map, String key, Export export) {
+void addOrMergeExport(Map<LibraryMirror, Export> map,
+                      LibraryMirror key, Export export) {
   if (map.containsKey(key)) {
     map[key] = map[key].merge(export);
   } else {

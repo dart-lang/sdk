@@ -240,7 +240,7 @@ abstract class Element implements Spannable {
   bool hasFixedBackendName();
   String fixedBackendName();
 
-  bool isAbstract(Compiler compiler);
+  bool get isAbstract;
   bool isForeign(Compiler compiler);
 
   void addMetadata(MetadataAnnotation annotation);
@@ -793,14 +793,10 @@ abstract class FunctionElement extends Element {
   bool get isRedirectingFactory;
 
   /**
-   * Compute the type of the target of a redirecting constructor or factory
-   * for an instantiation site with type [:newType:].
-   *
-   * TODO(karlklose): get rid of this method and resolve the target type
-   * during resolution when we correctly resolve chains of redirections.
+   * Compute the type of the target of a constructor for an instantiation site
+   * with type [:newType:].
    */
-  InterfaceType computeTargetType(Compiler compiler,
-                                  InterfaceType newType);
+  InterfaceType computeTargetType(InterfaceType newType);
 
   // TODO(kasperl): These are bit fishy. Do we really need them?
   void set patch(FunctionElement value);
@@ -881,7 +877,7 @@ abstract class ClassElement extends TypeDeclarationElement
   bool isObject(Compiler compiler);
   bool isSubclassOf(ClassElement cls);
   bool implementsInterface(ClassElement intrface);
-  bool isShadowedByField(Element fieldMember);
+  bool hasFieldShadowedBy(Element fieldMember);
 
   ClassElement ensureResolved(Compiler compiler);
 

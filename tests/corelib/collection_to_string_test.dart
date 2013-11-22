@@ -241,8 +241,8 @@ populateRandomCollection(int size, bool exact,
         if (startIndex - start > MAX_LENGTH - 6) {  // Limit - ", ...)".length.
           String prefix = stringRep.toString().substring(0, startIndex);
           stringRep.clear();
-          stringRep.add(prefix);
-          stringRep.add(", ...");
+          stringRep.write(prefix);
+          stringRep.write(", ...");
         }
       }
     } else if (stringRep.length - start > MAX_LENGTH - 1) {  // 80 - ")".length.

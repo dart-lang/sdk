@@ -75,11 +75,11 @@ abstract class HttpStatus {
  * The following example shows how to bind a [HttpServer] to a IPv6
  * [InternetAddress] on port 80, and listening to requests.
  *
- *   HttpServer.bind(InternetAddress.ANY_IP_V6, 80).then((server) {
- *     server.listen((HttpRequest request) {
- *       // Handle requests.
+ *     HttpServer.bind(InternetAddress.ANY_IP_V6, 80).then((server) {
+ *       server.listen((HttpRequest request) {
+ *         // Handle requests.
+ *       });
  *     });
- *   });
  */
 abstract class HttpServer implements Stream<HttpRequest> {
   /**
@@ -1156,18 +1156,18 @@ abstract class HttpClient {
    * The string returned by [f] must be in the format used by browser
    * PAC (proxy auto-config) scripts. That is either
    *
-   *   "DIRECT"
+   *     "DIRECT"
    *
    * for using a direct connection or
    *
-   *   "PROXY host:port"
+   *     "PROXY host:port"
    *
    * for using the proxy server [:host:] on port [:port:].
    *
    * A configuration can contain several configuration elements
    * separated by semicolons, e.g.
    *
-   *   "PROXY host:port; PROXY host2:port2; DIRECT"
+   *     "PROXY host:port; PROXY host2:port2; DIRECT"
    *
    * The static function [findProxyFromEnvironment] on this class can
    * be used to implement proxy server resolving based on environment

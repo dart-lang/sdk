@@ -12,34 +12,30 @@ isAnonymousMixinApplication(classMirror) {
   return MirrorSystem.getName(classMirror.simpleName).contains(' with ');
 }
 
-check(classMirror) {
-  if (classMirror is TypedefMirror) return;
-
+checkClass(classMirror) {
   Expect.isTrue(classMirror.simpleName is Symbol);
   Expect.notEquals(null, classMirror.owner);
   Expect.isTrue(classMirror.owner is LibraryMirror);
   if (!isAnonymousMixinApplication(classMirror)) {
     Expect.equals(classMirror.originalDeclaration,
-                  classMirror.owner.classes[classMirror.simpleName]);
+                  classMirror.owner.declarations[classMirror.simpleName]);
   } else {
-    Expect.isNull(classMirror.owner.classes[classMirror.simpleName]);
+    Expect.isNull(classMirror.owner.declarations[classMirror.simpleName]);
   }
   Expect.isTrue(classMirror.superinterfaces is List);
   if (classMirror.superclass == null) {
     Expect.equals(reflectClass(Object), classMirror);
   } else {
-    check(classMirror.superclass);
+    checkClass(classMirror.superclass);
   }
 }
 
-main() {
-  currentMirrorSystem().libraries.values.forEach((libraryMirror) {
-    libraryMirror.classes.values.forEach((classMirror) {
-      check(classMirror);
-    });
-  });
+checkLibrary(libraryMirror) {
+  libraryMirror.declarations.values
+      .where((d) => d is ClassMirror)
+      .forEach(checkClass);
+}
 
-  Expect.throws(() => reflectClass(dynamic),
-                (e) => e is ArgumentError,
-                'dynamic is not a class');
+main() {
+  currentMirrorSystem().libraries.values.forEach(checkLibrary);
 }

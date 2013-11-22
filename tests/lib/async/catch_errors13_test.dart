@@ -19,16 +19,36 @@ main() {
 
   // Test that errors are caught by nested `catchErrors`. Also uses
   // `scheduleMicrotask` in the body of a Timer.
+  bool outerTimerRan = false;
+  int outerTimerCounterDelayCount = 0;
   catchErrors(() {
     events.add("catch error entry");
     catchErrors(() {
       events.add("catch error entry2");
       Timer.run(() { throw "timer error"; });
-      new Timer(const Duration(milliseconds: 50),
-                () {
-                     scheduleMicrotask(() { throw "scheduleMicrotask"; });
-                     throw "delayed error";
-                   });
+
+      // We want this timer to run after the timer below. When the machine is
+      // slow we saw that the timer below was scheduled more than 50ms after
+      // this line. A duration of 50ms was therefore not enough to guarantee
+      // that this timer runs before the timer below.
+      // Instead of increasing the duration to a bigger amount we decided to
+      // verify that the other timer already ran, and reschedule if not.
+      // This way we could reduce the timeout (to 10ms now), while still
+      // allowing for more time, in case the machine is slow.
+      void runDelayed() {
+        new Timer(const Duration(milliseconds: 10),
+                  () {
+                    if (outerTimerRan) {
+                      scheduleMicrotask(() { throw "scheduleMicrotask"; });
+                      throw "delayed error";
+                    } else if (outerTimerCounterDelayCount < 100) {
+                      outerTimerCounterDelayCount++;
+                      runDelayed();
+                    }
+                  });
+      }
+
+      runDelayed();
     }).listen((x) {
       events.add(x);
       if (x == "scheduleMicrotask") {
@@ -36,7 +56,10 @@ main() {
       }
     });
     events.add("after inner");
-    Timer.run(() { throw "timer outer"; });
+    Timer.run(() {
+      outerTimerRan = true;
+      throw "timer outer";
+    });
     throw "inner throw";
   }).listen((x) {
       events.add(x);

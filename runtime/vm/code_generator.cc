@@ -658,9 +658,7 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
 }
 
 
-// TODO(regis): Is this entry still used for malformed types or just malbounded
-// types? Revisit.
-// Report that the type of the type check is malformed.
+// Report that the type of the type check is malformed or malbounded.
 // Arg0: src value.
 // Arg1: name of destination being assigned to.
 // Arg2: type of destination being assigned to.
@@ -675,14 +673,13 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
 
   String& dst_type_name = String::Handle();
-  Error& error = Error::Handle();
-  if (dst_type.IsMalformed()) {
-    error = dst_type.malformed_error();
+  LanguageError& error = LanguageError::Handle(dst_type.error());
+  ASSERT(!error.IsNull());
+  if (error.kind() == LanguageError::kMalformedType) {
     dst_type_name = Symbols::Malformed().raw();
   } else {
-    const bool is_malbounded = dst_type.IsMalboundedWithError(&error);
+    ASSERT(error.kind() == LanguageError::kMalboundedType);
     dst_type_name = Symbols::Malbounded().raw();
-    ASSERT(is_malbounded);
   }
   const String& error_message = String::ZoneHandle(
       Symbols::New(error.ToErrorCString()));
@@ -1343,6 +1340,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   if (FLAG_use_osr && (interrupt_bits == 0)) {
     DartFrameIterator iterator;
     StackFrame* frame = iterator.NextFrame();
+    ASSERT(frame != NULL);
     const Function& function = Function::Handle(frame->LookupDartFunction());
     ASSERT(!function.IsNull());
     if (!CanOptimizeFunction(function, isolate)) return;

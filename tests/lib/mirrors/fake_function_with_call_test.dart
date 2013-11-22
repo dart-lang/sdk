@@ -6,6 +6,15 @@ import "dart:mirrors";
 
 import "package:expect/expect.dart";
 
+membersOf(ClassMirror cm) {
+  var result = new Map();
+  cm.declarations.forEach((k,v) {
+    if(v is MethodMirror && !v.isConstructor) result[k] = v;
+    if(v is VariableMirror) result[k] = v;
+  });
+  return result;
+}
+
 class WannabeFunction {
   int call(int a, int b) => a + b;
   method(x) => x * x;
@@ -39,6 +48,6 @@ main() {
   ClassMirror km = cm.type;
   Expect.equals(reflectClass(WannabeFunction), km);
   Expect.equals(#WannabeFunction, km.simpleName);
-  Expect.equals(mm, km.members[#call]);
-  Expect.setEquals([#call, #method], km.members.keys);
+  Expect.equals(mm, km.declarations[#call]);
+  Expect.setEquals([#call, #method], membersOf(km).keys);
 }

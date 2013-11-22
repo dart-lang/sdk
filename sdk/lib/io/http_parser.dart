@@ -15,16 +15,17 @@ class _Const {
   // Bytes for "HTTP/1.1".
   static const HTTP11 = const [72, 84, 84, 80, 47, 49, 46, 49];
 
-  static const END_CHUNKED = const [0x30, 13, 10, 13, 10];
-
-  // Bytes for '()<>@,;:\\"/[]?={} \t'.
-  static const SEPARATORS = const [40, 41, 60, 62, 64, 44, 59, 58, 92, 34, 47,
-                                   91, 93, 63, 61, 123, 125, 32, 9];
-
-  // Bytes for '()<>@,;:\\"/[]?={} \t\r\n'.
-  static const SEPARATORS_AND_CR_LF = const [40, 41, 60, 62, 64, 44, 59, 58, 92,
-                                             34, 47, 91, 93, 63, 61, 123, 125,
-                                             32, 9, 13, 10];
+  static const bool T = true;
+  static const bool F = false;
+  // Loopup-map for the following characters: '()<>@,;:\\"/[]?={} \t'.
+  static const SEPARATOR_MAP = const [
+      F,F,F,F,F,F,F,F,F,T,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,T,F,T,F,F,
+      F,F,F,T,T,F,F,T,F,F,T,F,F,F,F,F,F,F,F,F,F,T,T,T,T,T,T,T,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,T,T,T,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,T,F,T,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,
+      F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F,F];
 }
 
 
@@ -210,9 +211,8 @@ class _HttpParser
           _pauseStateChanged();
         },
         onCancel: () {
-          try {
+          if (_socketSubscription != null) {
             _socketSubscription.cancel();
-          } catch (e) {
           }
         });
     _reset();
@@ -370,7 +370,9 @@ class _HttpParser
           if (byte == _CharCode.SP) {
             _state = _State.REQUEST_LINE_URI;
           } else {
-            if (_Const.SEPARATORS_AND_CR_LF.indexOf(byte) != -1) {
+            if (_Const.SEPARATOR_MAP[byte] ||
+                byte == _CharCode.CR ||
+                byte == _CharCode.LF) {
               throw new HttpException("Invalid request method");
             }
             _method_or_status_code.add(byte);
@@ -524,10 +526,10 @@ class _HttpParser
                 if (tokens[i].toLowerCase() == "upgrade") {
                   _connectionUpgrade = true;
                 }
-                _headers.add(headerField, tokens[i]);
+                _headers._add(headerField, tokens[i]);
               }
             } else {
-              _headers.add(headerField, headerValue);
+              _headers._add(headerField, headerValue);
             }
             _headerField.clear();
             _headerValue.clear();
@@ -665,12 +667,14 @@ class _HttpParser
             if (_index == 0) {
               data = _buffer;
             } else {
-              data = new Uint8List(dataAvailable);
-              data.setRange(0, dataAvailable, _buffer, _index);
+              data = new Uint8List.view(_buffer.buffer,
+                                        _index,
+                                        dataAvailable);
             }
           } else {
-            data = new Uint8List(_remainingContent);
-            data.setRange(0, _remainingContent, _buffer, _index);
+            data = new Uint8List.view(_buffer.buffer,
+                                      _index,
+                                      _remainingContent);
           }
           _bodyController.add(data);
           if (_remainingContent != -1) {
@@ -835,7 +839,7 @@ class _HttpParser
   }
 
   bool _isTokenChar(int byte) {
-    return byte > 31 && byte < 128 && _Const.SEPARATORS.indexOf(byte) == -1;
+    return byte > 31 && byte < 128 && !_Const.SEPARATOR_MAP[byte];
   }
 
   List<String> _tokenizeFieldValue(String headerValue) {
@@ -956,7 +960,7 @@ class _HttpParser
   bool _parserCalled = false;
 
   // The data that is currently being parsed.
-  List<int> _buffer;
+  Uint8List _buffer;
   int _index;
 
   final bool _requestParser;

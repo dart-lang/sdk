@@ -68,8 +68,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
         Element thisElement =
             closureData.freeVariableMapping[closureData.thisElement];
         if (thisElement != null) {
-          assert(thisElement.hasFixedBackendName());
-          String thisName = thisElement.fixedBackendName();
+          String thisName = namer.instanceFieldPropertyName(thisElement);
           thisAccess = js('this')[js.string(thisName)];
         }
       }

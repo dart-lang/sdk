@@ -4,6 +4,8 @@
 
 part of js_backend;
 
+const VERBOSE_OPTIMIZER_HINTS = false;
+
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final Set<HInstruction> boundsChecked = new Set<HInstruction>();
   final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
@@ -147,7 +149,7 @@ class FunctionInlineCache {
   }
 
   void markAsNonInlinable(FunctionElement element, {bool insideLoop}) {
-    if (insideLoop) {
+    if (insideLoop == null || insideLoop) {
       // If we can't inline a function inside a loop, then we should not inline
       // it outside a loop either.
       canBeInlined[element] = false;
@@ -193,6 +195,7 @@ class JavaScriptBackend extends Backend {
   ClassElement jsExtendableArrayClass;
 
   Element jsIndexableLength;
+  Element jsArrayTypedConstructor;
   Element jsArrayRemoveLast;
   Element jsArrayAdd;
   Element jsStringSplit;
@@ -204,6 +207,10 @@ class JavaScriptBackend extends Backend {
   ClassElement mapLiteralClass;
   ClassElement constMapLiteralClass;
   ClassElement typeVariableClass;
+
+  ClassElement noSideEffectsClass;
+  ClassElement noThrowsClass;
+  ClassElement noInlineClass;
 
   Element getInterceptorMethod;
   Element interceptedNames;
@@ -610,6 +617,7 @@ class JavaScriptBackend extends Backend {
     }
 
     jsArrayClass.ensureResolved(compiler);
+    jsArrayTypedConstructor = compiler.lookupElementIn(jsArrayClass, 'typed');
     jsArrayRemoveLast = compiler.lookupElementIn(jsArrayClass, 'removeLast');
     jsArrayAdd = compiler.lookupElementIn(jsArrayClass, 'add');
 
@@ -642,6 +650,10 @@ class JavaScriptBackend extends Backend {
     fixedArrayType = new TypeMask.nonNullExact(jsFixedArrayClass);
     extendableArrayType = new TypeMask.nonNullExact(jsExtendableArrayClass);
     nonNullType = compiler.typesTask.dynamicType.nonNullable();
+
+    noSideEffectsClass = compiler.findHelper('NoSideEffects');
+    noThrowsClass = compiler.findHelper('NoThrows');
+    noInlineClass = compiler.findHelper('NoInline');
   }
 
   void validateInterceptorImplementsAllObjectMethods(
@@ -662,6 +674,12 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
       cls.forEachMember((ClassElement classElement, Element member) {
+        if (member.name == Compiler.CALL_OPERATOR_NAME) {
+          compiler.reportError(
+              member,
+              MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS);
+          return;
+        }
         if (member.isSynthesized) return;
         // All methods on [Object] are shadowed by [Interceptor].
         if (classElement == compiler.objectClass) return;
@@ -800,6 +818,9 @@ class JavaScriptBackend extends Backend {
         // of the map.
         enqueueClass(enqueuer, compiler.listClass, elements);
         enqueueClass(enqueuer, mapLiteralClass, elements);
+        // For map literals, the dependency between the implementation class
+        // and [Map] is not visible, so we have to add it manually.
+        rti.registerRtiDependency(mapLiteralClass, cls);
         enqueueInResolution(getMapMaker(), elements);
       } else if (cls == compiler.boundClosureClass) {
         // TODO(ngeoffray): Move the bound closure class in the
@@ -942,6 +963,8 @@ class JavaScriptBackend extends Backend {
 
   void registerGetRuntimeTypeArgument(TreeElements elements) {
     enqueueInResolution(getGetRuntimeTypeArgument(), elements);
+    enqueueInResolution(getGetTypeArgumentByIndex(), elements);
+    enqueueInResolution(getCopyTypeArguments(), elements);
   }
 
   void registerGenericCallMethod(Element callMethod,
@@ -1016,7 +1039,7 @@ class JavaScriptBackend extends Backend {
     if (!type.treatAsRaw || type.containsTypeVariables) {
       enqueueInResolution(getSetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeInfo(), elements);
-      enqueueInResolution(getGetRuntimeTypeArgument(), elements);
+      registerGetRuntimeTypeArgument(elements);
       if (inCheckedMode) {
         enqueueInResolution(getAssertSubtype(), elements);
       }
@@ -1225,7 +1248,10 @@ class JavaScriptBackend extends Backend {
         registerCompileTimeConstant(initialValue, work.resolutionTree);
         compiler.constantHandler.addCompileTimeConstantForEmission(
             initialValue);
-        return;
+        // We don't need to generate code for static or top-level
+        // variables. For instance variables, we may need to generate
+        // the checked setter.
+        if (Elements.isStaticOrTopLevel(element)) return;
       } else {
         // If the constant-handler was not able to produce a result we have to
         // go through the builder (below) to generate the lazy initializer for
@@ -1531,6 +1557,14 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper('getRuntimeTypeInfo');
   }
 
+  Element getGetTypeArgumentByIndex() {
+    return compiler.findHelper('getTypeArgumentByIndex');
+  }
+
+  Element getCopyTypeArguments() {
+    return compiler.findHelper('copyTypeArguments');
+  }
+
   Element getComputeSignature() {
     return compiler.findHelper('computeSignature');
   }
@@ -1810,6 +1844,13 @@ class JavaScriptBackend extends Backend {
         && mask.satisfies(jsIndexingBehaviorInterface, compiler);
   }
 
+  bool couldBeTypedArray(TypeMask mask) {
+    TypeMask indexing = new TypeMask.subtype(jsIndexingBehaviorInterface);
+    // Checking if [mask] contains [indexing] means that we want to
+    // know if [mask] is not a more specific type than [indexing].
+    return isTypedArray(mask) || mask.containsMask(indexing, compiler);
+  }
+
   /// Called when [enqueuer] is empty, but before it is closed.
   void onQueueEmpty(Enqueuer enqueuer) {
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
@@ -1839,6 +1880,53 @@ class JavaScriptBackend extends Backend {
       }
     }
     customElementsAnalysis.onQueueEmpty(enqueuer);
+  }
+
+  void onElementResolved(Element element, TreeElements elements) {
+    LibraryElement library = element.getLibrary();
+    if (!library.isPlatformLibrary && !library.canUseNative) return;
+    bool hasNoInline = false;
+    bool hasNoThrows = false;
+    bool hasNoSideEffects = false;
+    for (MetadataAnnotation metadata in element.metadata) {
+      metadata.ensureResolved(compiler);
+      if (!metadata.value.isConstructedObject()) continue;
+      ObjectConstant value = metadata.value;
+      ClassElement cls = value.type.element;
+      if (cls == noInlineClass) {
+        hasNoInline = true;
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          compiler.reportHere(element, "Cannot inline");
+        }
+        inlineCache.markAsNonInlinable(element);
+      } else if (cls == noThrowsClass) {
+        hasNoThrows = true;
+        if (!Elements.isStaticOrTopLevelFunction(element)) {
+          compiler.internalErrorOnElement(
+              element,
+              "@NoThrows() is currently limited to top-level"
+              " or static functions");
+        }
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          compiler.reportHere(element, "Cannot throw");
+        }
+        compiler.world.registerCannotThrow(element);
+      } else if (cls == noSideEffectsClass) {
+        hasNoSideEffects = true;
+        if (VERBOSE_OPTIMIZER_HINTS) {
+          compiler.reportHere(element, "Has no side effects");
+        }
+        compiler.world.registerSideEffectsFree(element);
+      }
+    }
+    if (hasNoThrows && !hasNoInline) {
+      compiler.internalErrorOnElement(
+          element, "@NoThrows() should always be combined with @NoInline");
+    }
+    if (hasNoSideEffects && !hasNoInline) {
+      compiler.internalErrorOnElement(
+          element, "@NoSideEffects() should always be combined with @NoInline");
+    }
   }
 }
 

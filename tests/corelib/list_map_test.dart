@@ -20,7 +20,7 @@ void testOperations() {
   // Function that reverses l and r lists when used to map.
   int rev(x) => 11 - x;
   // A base list that starts out like l, but isn't const.
-  Iterable base = l.map((x) => x).toList();
+  List base = l.map((x) => x).toList();
 
   Iterable reversed = l.map(rev);
 

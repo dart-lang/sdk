@@ -172,6 +172,14 @@ class HierarchyIterator implements Iterator<ClassMirror> {
   }
 }
 
+/// Returns `true` if [cls] is declared in a private dart library.
+bool isFromPrivateDartLibrary(ClassMirror cls) {
+  if (isMixinApplication(cls)) cls = cls.mixin;
+  var uri = cls.library.uri;
+  return uri.scheme == 'dart' && uri.path.startsWith('_');
+}
+
+/// Returns `true` if [mirror] reflects a mixin application.
 bool isMixinApplication(Mirror mirror) {
   return mirror is ClassMirror && mirror.mixin != mirror;
 }

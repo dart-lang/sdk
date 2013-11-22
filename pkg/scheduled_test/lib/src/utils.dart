@@ -28,8 +28,7 @@ class Pair<E, F> {
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
-  future.then((value) => completer.complete(value),
-      onError: completer.completeError);
+  future.then(completer.complete, onError: completer.completeError);
 }
 
 /// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
@@ -78,19 +77,49 @@ bool orderedIterableEquals(Iterable iterable1, Iterable iterable2) {
 Stream errorStream(error) => new Future.error(error).asStream();
 
 /// Returns a buffered stream that will emit the same values as the stream
-/// returned by [future] once [future] completes. If [future] completes to an
-/// error, the return value will emit that error and then close.
-Stream futureStream(Future<Stream> future) {
-  var controller = new StreamController(sync: true);
-  future.then((stream) {
-    stream.listen(
-        controller.add,
-        onError: controller.addError,
-        onDone: controller.close);
-  }).catchError((e) {
-    controller.addError(e);
-    controller.close();
+/// returned by [future] once [future] completes.
+///
+/// If [future] completes to an error, the return value will emit that error and
+/// then close.
+///
+/// If [broadcast] is true, a broadcast stream is returned. This assumes that
+/// the stream returned by [future] will be a broadcast stream as well.
+/// [broadcast] defaults to false.
+Stream futureStream(Future<Stream> future, {bool broadcast: false}) {
+  var subscription;
+  var controller;
+
+  future = future.catchError((e, stackTrace) {
+    // Since [controller] is synchronous, it's likely that emitting an error
+    // will cause it to be cancelled before we call close.
+    if (controller != null) controller.addError(e, stackTrace);
+    if (controller != null) controller.close();
+    controller = null;
   });
+
+  onListen() {
+    future.then((stream) {
+      if (controller == null) return;
+      subscription = stream.listen(
+          controller.add,
+          onError: controller.addError,
+          onDone: controller.close);
+    });
+  }
+
+  onCancel() {
+    if (subscription != null) subscription.cancel();
+    subscription = null;
+    controller = null;
+  }
+
+  if (broadcast) {
+    controller = new StreamController.broadcast(
+        sync: true, onListen: onListen, onCancel: onCancel);
+  } else {
+    controller = new StreamController(
+        sync: true, onListen: onListen, onCancel: onCancel);
+  }
   return controller.stream;
 }
 

@@ -34,7 +34,7 @@ main() {
 
     createLockFile('myapp', sandbox: ['foo'], pkg: ['barback']);
 
-    startPubServe();
+    pubServe();
     requestShould404("assets/myapp/bar.out");
     endPubServe();
   });

@@ -13,6 +13,7 @@ namespace dart {
 
 // List of bootstrap native entry points used in the core dart library.
 #define BOOTSTRAP_NATIVE_LIST(V)                                               \
+  V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
   V(Object_setHash, 2)                                                         \
   V(Object_toString, 1)                                                        \
@@ -43,7 +44,7 @@ namespace dart {
   V(Bool_fromEnvironment, 3)                                                   \
   V(RawReceivePortImpl_factory, 1)                                             \
   V(RawReceivePortImpl_closeInternal, 1)                                       \
-  V(SendPortImpl_sendInternal_, 3)                                             \
+  V(SendPortImpl_sendInternal_, 2)                                             \
   V(Smi_shlFromInt, 2)                                                         \
   V(Smi_shrFromInt, 2)                                                         \
   V(Smi_bitNegate, 1)                                                          \
@@ -95,6 +96,7 @@ namespace dart {
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_splitWithCharCode, 2)                                        \
   V(OneByteString_allocate, 1)                                                 \
+  V(OneByteString_allocateFromOneByteList, 1)                                  \
   V(OneByteString_setAt, 3)                                                    \
   V(ExternalOneByteString_getCid, 0)                                           \
   V(String_getHashCode, 1)                                                     \
@@ -262,7 +264,6 @@ namespace dart {
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
   V(Mirrors_mangleName, 2)                                                     \
-  V(Mirrors_unmangleName, 1)                                                   \
   V(MirrorReference_equals, 2)                                                 \
   V(InstanceMirror_invoke, 5)                                                  \
   V(InstanceMirror_invokeGetter, 3)                                            \
@@ -292,20 +293,18 @@ namespace dart {
   V(LibraryMirror_invokeSetter, 4)                                             \
   V(TypeVariableMirror_owner, 1)                                               \
   V(TypeVariableMirror_upper_bound, 1)                                         \
-  V(TypeVariableMirror_instantiate_from, 2)                                    \
   V(DeclarationMirror_metadata, 1)                                             \
   V(FunctionTypeMirror_call_method, 2)                                         \
   V(FunctionTypeMirror_parameters, 2)                                          \
-  V(FunctionTypeMirror_return_type, 1)                                         \
+  V(FunctionTypeMirror_return_type, 2)                                         \
   V(MethodMirror_owner, 1)                                                     \
   V(MethodMirror_parameters, 2)                                                \
-  V(MethodMirror_return_type, 1)                                               \
+  V(MethodMirror_return_type, 2)                                               \
   V(MethodMirror_source, 1)                                                    \
-  V(ParameterMirror_type, 2)                                                   \
+  V(ParameterMirror_type, 3)                                                   \
   V(TypedefMirror_referent, 1)                                                 \
-  V(TypedefMirror_instantiate_from, 2)                                         \
   V(TypedefMirror_declaration, 1)                                              \
-  V(VariableMirror_type, 1)                                                    \
+  V(VariableMirror_type, 2)                                                    \
   V(GrowableList_allocate, 2)                                                  \
   V(GrowableList_getIndexed, 2)                                                \
   V(GrowableList_setIndexed, 3)                                                \

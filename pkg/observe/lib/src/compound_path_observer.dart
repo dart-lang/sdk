@@ -85,6 +85,7 @@ class CompoundPathObserver extends ChangeNotifier {
 
   void _resolve() {
     _scheduled = false;
+    if (_observers.isEmpty) return;
     var newValue = _observers.map((o) => o.value).toList();
     if (_computeValue != null) newValue = _computeValue(newValue);
     _value = notifyPropertyChange(#value, _value, newValue);

@@ -47,7 +47,7 @@ static const char* kVMServiceIOLibraryScriptResourceName =
 static const char* kVMServiceLibraryName =
     kLibraryResourceNamePrefix "/vmservice.dart";
 
-#define kClientResourceNamePrefix "/vmservice/client/out/web"
+#define kClientResourceNamePrefix "/vmservice/client/deployed/web"
 
 Dart_Isolate VmService::isolate_ = NULL;
 Dart_Port VmService::port_ = ILLEGAL_PORT;

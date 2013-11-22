@@ -91,9 +91,9 @@ testFieldAccess(mirrors) {
   var instance = new Class();
 
   var libMirror = mirrors.findLibrary(#MirrorsTest);
-  var classMirror = libMirror.classes[#Class];
+  var classMirror = libMirror.declarations[#Class];
   var instMirror = reflect(instance);
-  var fieldMirror = classMirror.members[#field];
+  var fieldMirror = classMirror.declarations[#field];
   var future;
 
   expect(fieldMirror is VariableMirror, isTrue);
@@ -166,10 +166,10 @@ testReflectClass(mirrors) {
 
 testNames(mirrors) {
   var libMirror = mirrors.findLibrary(#MirrorsTest);
-  var classMirror = libMirror.classes[#Class];
-  var typedefMirror = libMirror.members[#Typedef];
-  var methodMirror = libMirror.functions[#testNames];
-  var variableMirror = classMirror.variables[#field];
+  var classMirror = libMirror.declarations[#Class];
+  var typedefMirror = libMirror.declarations[#Typedef];
+  var methodMirror = libMirror.declarations[#testNames];
+  var variableMirror = classMirror.declarations[#field];
 
   expect(libMirror.simpleName, equals(#MirrorsTest));
   expect(libMirror.qualifiedName, equals(#MirrorsTest));

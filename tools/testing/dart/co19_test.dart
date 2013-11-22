@@ -36,6 +36,7 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
     const <String>['-mrelease', '-rnone', '-cdartanalyzer'],
     const <String>['-mrelease', '-rnone', '-cdart2analyzer'],
     const <String>['-mrelease', '-rvm', '-cdart2dart', '--use-sdk'],
+    const <String>['-mrelease', '-rvm', '-cdart2dart', '--use-sdk', '--minified'],
     const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk'],
     const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk',
                    '--minified'],

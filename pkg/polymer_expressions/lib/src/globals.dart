@@ -24,6 +24,10 @@ Iterable<IndexedValue> enumerate(Iterable iterable) =>
   final int index;
   final V value;
 
+  operator==(o) => o is IndexedValue && o.index == index && o.value == value;
+  int get hashCode => value.hashCode;
+  String toString() => '($index, $value)';
+
   IndexedValue(this.index, this.value);
 }
 

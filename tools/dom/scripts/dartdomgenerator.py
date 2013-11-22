@@ -8,7 +8,7 @@
 import dartgenerator
 import database
 import fremontcutbuilder
-import logging.config
+import logging
 import monitored
 import multiemitter
 import optparse
@@ -139,6 +139,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
         template_loader.Load('cpp_resolver.template'), dartium_output_dir)
     cpp_library_emitter.EmitClassIdTable(
         webkit_database, dartium_output_dir, type_registry, renamer)
+    emitters.Flush()
 
   if update_dom_metadata:
     metadata.Flush()

@@ -198,47 +198,30 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 }
 
 
-bool EventHandlerImplementation::GetInterruptMessage(InterruptMessage* msg) {
-  char* dst = reinterpret_cast<char*>(msg);
-  int total_read = 0;
-  int bytes_read =
-      TEMP_FAILURE_RETRY(read(interrupt_fds_[0], dst, kInterruptMessageSize));
-  if (bytes_read < 0) {
-    return false;
-  }
-  total_read = bytes_read;
-  while (total_read < kInterruptMessageSize) {
-    bytes_read = TEMP_FAILURE_RETRY(read(interrupt_fds_[0],
-                                         dst + total_read,
-                                         kInterruptMessageSize - total_read));
-    if (bytes_read > 0) {
-      total_read = total_read + bytes_read;
-    }
-  }
-  return (total_read == kInterruptMessageSize) ? true : false;
-}
-
 void EventHandlerImplementation::HandleInterruptFd() {
-  InterruptMessage msg;
-  while (GetInterruptMessage(&msg)) {
-    if (msg.id == kTimerId) {
-      timeout_queue_.UpdateTimeout(msg.dart_port, msg.data);
-    } else if (msg.id == kShutdownId) {
+  const intptr_t MAX_MESSAGES = kInterruptMessageSize;
+  InterruptMessage msg[MAX_MESSAGES];
+  ssize_t bytes = TEMP_FAILURE_RETRY(
+      read(interrupt_fds_[0], msg, MAX_MESSAGES * kInterruptMessageSize));
+  for (ssize_t i = 0; i < bytes / kInterruptMessageSize; i++) {
+    if (msg[i].id == kTimerId) {
+      timeout_queue_.UpdateTimeout(msg[i].dart_port, msg[i].data);
+    } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
-      SocketData* sd = GetSocketData(msg.id);
-      if ((msg.data & (1 << kShutdownReadCommand)) != 0) {
-        ASSERT(msg.data == (1 << kShutdownReadCommand));
+      SocketData* sd = GetSocketData(msg[i].id);
+      if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
+        ASSERT(msg[i].data == (1 << kShutdownReadCommand));
         // Close the socket for reading.
         sd->ShutdownRead();
         UpdateKqueue(kqueue_fd_, sd);
-      } else if ((msg.data & (1 << kShutdownWriteCommand)) != 0) {
-        ASSERT(msg.data == (1 << kShutdownWriteCommand));
+      } else if ((msg[i].data & (1 << kShutdownWriteCommand)) != 0) {
+        ASSERT(msg[i].data == (1 << kShutdownWriteCommand));
         // Close the socket for writing.
         sd->ShutdownWrite();
         UpdateKqueue(kqueue_fd_, sd);
-      } else if ((msg.data & (1 << kCloseCommand)) != 0) {
-        ASSERT(msg.data == (1 << kCloseCommand));
+      } else if ((msg[i].data & (1 << kCloseCommand)) != 0) {
+        ASSERT(msg[i].data == (1 << kCloseCommand));
         // Close the socket and free system resources.
         RemoveFromKqueue(kqueue_fd_, sd);
         intptr_t fd = sd->fd();
@@ -253,13 +236,13 @@ void EventHandlerImplementation::HandleInterruptFd() {
         }
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
-        DartUtils::PostInt32(msg.dart_port, 1 << kDestroyedEvent);
+        DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
       } else {
-        if ((msg.data & (1 << kInEvent)) != 0 && sd->IsClosedRead()) {
-          DartUtils::PostInt32(msg.dart_port, 1 << kCloseEvent);
+        if ((msg[i].data & (1 << kInEvent)) != 0 && sd->IsClosedRead()) {
+          DartUtils::PostInt32(msg[i].dart_port, 1 << kCloseEvent);
         } else {
           // Setup events to wait for.
-          sd->SetPortAndMask(msg.dart_port, msg.data);
+          sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
           UpdateKqueue(kqueue_fd_, sd);
         }
       }
@@ -343,6 +326,7 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
 
 void EventHandlerImplementation::HandleEvents(struct kevent* events,
                                               int size) {
+  bool interrupt_seen = false;
   for (int i = 0; i < size; i++) {
     // If flag EV_ERROR is set it indicates an error in kevent processing.
     if ((events[i].flags & EV_ERROR) != 0) {
@@ -351,7 +335,9 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       strerror_r(events[i].data, error_message, kBufferSize);
       FATAL1("kevent failed %s\n", error_message);
     }
-    if (events[i].udata != NULL) {
+    if (events[i].udata == NULL) {
+      interrupt_seen = true;
+    } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
       intptr_t event_mask = GetEvents(events + i, sd);
       if (event_mask != 0) {
@@ -365,7 +351,11 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       }
     }
   }
-  HandleInterruptFd();
+  if (interrupt_seen) {
+    // Handle after socket events, so we avoid closing a socket before we handle
+    // the current events.
+    HandleInterruptFd();
+  }
 }
 
 

@@ -32,8 +32,18 @@
     </template>
   </polymer-element>
 
+  <polymer-element name="test-c">
+    <template>
+      <div>
+        <span id="c-1">1</span>
+        <span id="c-2" on-click="{{clickHandler}}">2</span>
+      </div>
+    </template>
+  </polymer-element>
+
   <test-a id="a"></test-a>
   <test-b id="b"></test-b>
+  <test-c id="c"></test-c>
 
   <script type="application/dart" src="events_test.dart"></script>
   </body>

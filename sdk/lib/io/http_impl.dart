@@ -4,6 +4,8 @@
 
 part of dart.io;
 
+const int _HEADERS_BUFFER_SIZE = 8 * 1024;
+
 class _HttpIncoming extends Stream<List<int>> {
   final int _transferLength;
   final Completer _dataCompleter = new Completer();
@@ -93,7 +95,10 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
                _HttpServer this._httpServer,
                _HttpConnection this._httpConnection)
       : super(_incoming) {
-    response.headers.persistentConnection = headers.persistentConnection;
+    if (headers.protocolVersion == "1.1") {
+      response.headers.chunkedTransferEncoding = true;
+      response.headers.persistentConnection = headers.persistentConnection;
+    }
 
     if (_httpServer._sessionManagerInstance != null) {
       // Map to session if exists.
@@ -479,9 +484,17 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   Future<T> get done => _dataSink.done;
 
   Future _writeHeaders({bool drainRequest: true}) {
+    void write() {
+      try {
+        _writeHeader();
+      } catch (error) {
+        // Headers too large.
+        throw new HttpException(
+            "Headers size exceeded the of '$_HEADERS_BUFFER_SIZE' bytes");
+      }
+    }
     if (_headersWritten) return new Future.value();
     _headersWritten = true;
-    headers._synchronize();  // Be sure the 'chunked' option is updated.
     _dataSink.encoding = encoding;
     bool isServerSide = this is _HttpResponse;
     if (isServerSide) {
@@ -503,10 +516,10 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
         return response._httpRequest.drain()
             // TODO(ajohnsen): Timeout on drain?
             .catchError((_) {})  // Ignore errors.
-            .then((_) => _writeHeader());
+            .then((_) => write());
       }
     }
-    return new Future.sync(_writeHeader);
+    return new Future.sync(write);
   }
 
   Future _addStream(Stream<List<int>> stream) {
@@ -532,8 +545,6 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   }
 
   Future _close() {
-    // TODO(ajohnsen): Currently, contentLength, chunkedTransferEncoding and
-    // persistentConnection is not guaranteed to be in sync.
     if (!_headersWritten) {
       if (!_ignoreBody && headers.contentLength == -1) {
         // If no body was written, _ignoreBody is false (it's not a HEAD
@@ -549,10 +560,10 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
         return _headersSink.done;
       }
     }
-    return _writeHeaders().then((_) => _headersSink.close());
+    return _writeHeaders().whenComplete(_headersSink.close);
   }
 
-  void _writeHeader();  // TODO(ajohnsen): Better name.
+  void _writeHeader();
 }
 
 
@@ -713,7 +724,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
                 _HttpOutgoing outgoing,
                 String serverHeader)
       : super(uri, protocolVersion, outgoing) {
-    if (serverHeader != null) headers.set('Server', serverHeader);
+    if (serverHeader != null) headers._add('server', serverHeader);
   }
 
   List<Cookie> get cookies {
@@ -736,7 +747,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY}) {
     if (_headersWritten) throw new StateError("Header already sent");
     statusCode = status;
-    headers.set("Location", location.toString());
+    headers.set("location", location.toString());
     return close();
   }
 
@@ -769,21 +780,29 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   }
 
   void _writeHeader() {
-    var builder = new BytesBuilder();
-    writeSP() => builder.add(const [_CharCode.SP]);
-    writeCRLF() => builder.add(const [_CharCode.CR, _CharCode.LF]);
+    Uint8List buffer = _httpRequest._httpConnection._headersBuffer;
+    int offset = 0;
+
+    void write(List<int> bytes) {
+      int len = bytes.length;
+      for (int i = 0; i < len; i++) {
+        buffer[offset + i] = bytes[i];
+      }
+      offset += len;
+    }
 
     // Write status line.
     if (headers.protocolVersion == "1.1") {
-      builder.add(_Const.HTTP11);
+      write(_Const.HTTP11);
     } else {
-      builder.add(_Const.HTTP10);
+      write(_Const.HTTP10);
     }
-    writeSP();
-    builder.add(statusCode.toString().codeUnits);
-    writeSP();
-    builder.add(reasonPhrase.codeUnits);
-    writeCRLF();
+    buffer[offset++] = _CharCode.SP;
+    write(statusCode.toString().codeUnits);
+    buffer[offset++] = _CharCode.SP;
+    write(reasonPhrase.codeUnits);
+    buffer[offset++] = _CharCode.CR;
+    buffer[offset++] = _CharCode.LF;
 
     var session = _httpRequest._session;
     if (session != null && !session._destroyed) {
@@ -816,9 +835,10 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     headers._finalize();
 
     // Write headers.
-    headers._write(builder);
-    writeCRLF();
-    _headersSink.add(builder.takeBytes());
+    offset = headers._write(buffer, offset);
+    buffer[offset++] = _CharCode.CR;
+    buffer[offset++] = _CharCode.LF;
+    _headersSink.add(new Uint8List.view(buffer.buffer, 0, offset));
   }
 
   String _findReasonPhrase(int statusCode) {
@@ -913,13 +933,15 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
       contentLength = 0;
+    } else {
+      headers.chunkedTransferEncoding = true;
     }
   }
 
   Future<HttpClientResponse> get done {
     if (_response == null) {
-      _response = Future.wait([_responseCompleter.future,
-                               super.done])
+      _response = Future.wait([_responseCompleter.future, super.done],
+                              eagerError: true)
         .then((list) => list[0]);
     }
     return _response;
@@ -1012,21 +1034,27 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   }
 
   void _writeHeader() {
-    var builder = new BytesBuilder();
+    Uint8List buffer = _httpClientConnection._headersBuffer;
+    int offset = 0;
 
-    writeSP() => builder.add(const [_CharCode.SP]);
-
-    writeCRLF() => builder.add(const [_CharCode.CR, _CharCode.LF]);
+    void write(List<int> bytes) {
+      int len = bytes.length;
+      for (int i = 0; i < len; i++) {
+        buffer[offset + i] = bytes[i];
+      }
+      offset += len;
+    }
 
     // Write the request method.
-    builder.add(method.codeUnits);
-    writeSP();
+    write(method.codeUnits);
+    buffer[offset++] = _CharCode.SP;
     // Write the request URI.
-    builder.add(_requestUri().codeUnits);
-    writeSP();
+    write(_requestUri().codeUnits);
+    buffer[offset++] = _CharCode.SP;
     // Write HTTP/1.1.
-    builder.add(_Const.HTTP11);
-    writeCRLF();
+    write(_Const.HTTP11);
+    buffer[offset++] = _CharCode.CR;
+    buffer[offset++] = _CharCode.LF;
 
     // Add the cookies to the headers.
     if (!cookies.isEmpty) {
@@ -1043,9 +1071,10 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     headers._finalize();
 
     // Write headers.
-    headers._write(builder);
-    writeCRLF();
-    _headersSink.add(builder.takeBytes());
+    offset = headers._write(buffer, offset);
+    buffer[offset++] = _CharCode.CR;
+    buffer[offset++] = _CharCode.LF;
+    _headersSink.add(new Uint8List.view(buffer.buffer, 0, offset));
   }
 }
 
@@ -1209,6 +1238,7 @@ class _HttpClientConnection {
   Timer _idleTimer;
   bool closed = false;
   Uri _currentUri;
+  final Uint8List _headersBuffer = new Uint8List(_HEADERS_BUFFER_SIZE);
 
   Completer<_HttpIncoming> _nextResponseCompleter;
   Future _streamFuture;
@@ -1273,9 +1303,9 @@ class _HttpClientConnection {
                                          this);
     request.headers.host = uri.host;
     request.headers.port = port;
-    request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
+    request.headers._add(HttpHeaders.ACCEPT_ENCODING, "gzip");
     if (_httpClient.userAgent != null) {
-      request.headers.set('User-Agent', _httpClient.userAgent);
+      request.headers._add('user-agent', _httpClient.userAgent);
     }
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
@@ -1460,9 +1490,9 @@ class _HttpClient implements HttpClient {
   bool _closing = false;
 
   final Map<String, Set<_HttpClientConnection>> _idleConnections
-      = new Map<String, Set<_HttpClientConnection>>();
+      = new HashMap<String, Set<_HttpClientConnection>>();
   final Set<_HttpClientConnection> _activeConnections
-      = new Set<_HttpClientConnection>();
+      = new HashSet<_HttpClientConnection>();
   final List<_Credentials> _credentials = [];
   final List<_ProxyCredentials> _proxyCredentials = [];
   Function _authenticate;
@@ -1578,9 +1608,11 @@ class _HttpClient implements HttpClient {
       throw new ArgumentError(method);
     }
     if (method != "CONNECT") {
-      if (uri.host.isEmpty ||
-          (uri.scheme != "http" && uri.scheme != "https")) {
-        throw new ArgumentError("Unsupported scheme '${uri.scheme}' in $uri");
+      if (uri.host.isEmpty) {
+        throw new ArgumentError("No host specified in URI $uri");
+      } else if (uri.scheme != "http" && uri.scheme != "https") {
+        throw new ArgumentError(
+            "Unsupported scheme '${uri.scheme}' in URI $uri");
       }
     }
 
@@ -1651,7 +1683,7 @@ class _HttpClient implements HttpClient {
       return;
     }
     if (!_idleConnections.containsKey(connection.key)) {
-      _idleConnections[connection.key] = new LinkedHashSet();
+      _idleConnections[connection.key] = new HashSet();
     }
     _idleConnections[connection.key].add(connection);
     connection.startTimer();
@@ -1791,7 +1823,12 @@ class _HttpClient implements HttpClient {
       if (option == null) return null;
       Iterator<String> names = option.split(",").map((s) => s.trim()).iterator;
       while (names.moveNext()) {
-        if (url.host.endsWith(names.current)) {
+        var name = names.current;
+        if ((name.startsWith("[") &&
+             name.endsWith("]") &&
+             "[${url.host}]" == name) ||
+            (name.isNotEmpty &&
+             url.host.endsWith(name))) {
           return "DIRECT";
         }
       }
@@ -1800,6 +1837,8 @@ class _HttpClient implements HttpClient {
 
     checkProxy(String option) {
       if (option == null) return null;
+      option = option.trim();
+      if (option.isEmpty) return null;
       int pos = option.indexOf("://");
       if (pos >= 0) {
         option = option.substring(pos + 3);
@@ -1808,7 +1847,13 @@ class _HttpClient implements HttpClient {
       if (pos >= 0) {
         option = option.substring(0, pos);
       }
-      if (option.indexOf(":") == -1) option = "$option:1080";
+      // Add default port if no port configured.
+      if (option.indexOf("[") == 0) {
+        var pos = option.lastIndexOf(":");
+        if (option.indexOf("]") > pos) option = "$option:1080";
+      } else {
+        if (option.indexOf(":") == -1) option = "$option:1080";
+      }
       return "PROXY $option";
     }
 
@@ -1856,6 +1901,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
   final _HttpParser _httpParser;
   StreamSubscription _subscription;
   Timer _idleTimer;
+  final Uint8List _headersBuffer = new Uint8List(_HEADERS_BUFFER_SIZE);
 
   Future _streamFuture;
 
@@ -2148,12 +2194,15 @@ class _ProxyConfiguration {
             password = userinfo.substring(colon + 1).trim();
           }
           // Look for proxy host and port.
-          int colon = proxy.indexOf(":");
+          int colon = proxy.lastIndexOf(":");
           if (colon == -1 || colon == 0 || colon == proxy.length - 1) {
             throw new HttpException(
                 "Invalid proxy configuration $configuration");
           }
           String host = proxy.substring(0, colon).trim();
+          if (host.startsWith("[") && host.endsWith("]")) {
+            host = host.substring(1, host.length - 1);
+          }
           String portString = proxy.substring(colon + 1).trim();
           int port;
           try {
@@ -2526,3 +2575,5 @@ String _getHttpVersion() {
   version = version.substring(0, index);
   return 'Dart/$version (dart:io)';
 }
+
+

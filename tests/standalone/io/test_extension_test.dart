@@ -56,6 +56,13 @@ void main() {
     var script = join(testDirectory, 'test_extension_tester.dart');
     return Process.run(Platform.executable, [script]);
   })..then((ProcessResult result) {
+    if (result.exitCode != 0) {
+      print('Subprocess failed with exit code ${result.exitCode}');
+      print('stdout:');
+      print('${result.stdout}');
+      print('stderr:');
+      print('${result.stderr}');
+    }
     Expect.equals(0, result.exitCode);
     tempDirectory.deleteSync(recursive: true);
   })..catchError((_) {

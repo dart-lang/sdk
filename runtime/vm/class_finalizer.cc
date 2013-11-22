@@ -286,8 +286,8 @@ void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
     }
     if (factory.is_const()) {
       type = factory.RedirectionType();
-      if (type.IsMalformed()) {
-        ReportError(Error::Handle(type.malformed_error()));
+      if (type.IsMalformedOrMalbounded()) {
+        ReportError(Error::Handle(type.error()));
       }
     }
   }
@@ -316,8 +316,8 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   // Check if target is already resolved.
   Type& type = Type::Handle(factory.RedirectionType());
   Function& target = Function::Handle(factory.RedirectionTarget());
-  if (type.IsMalformed()) {
-    // Already resolved to a malformed type. Will throw on usage.
+  if (type.IsMalformedOrMalbounded()) {
+    // Already resolved to a malformed or malbounded type. Will throw on usage.
     ASSERT(target.IsNull());
     return;
   }
@@ -334,7 +334,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   ResolveType(cls, type, kCanonicalize);
   type ^= FinalizeType(cls, type, kCanonicalize);
   factory.SetRedirectionType(type);
-  if (type.IsMalformed()) {
+  if (type.IsMalformedOrMalbounded()) {
     ASSERT(factory.RedirectionTarget() == Function::null());
     return;
   }
@@ -430,13 +430,14 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     if (!target_type.IsInstantiated()) {
       const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
           type.arguments());
-      Error& malformed_error = Error::Handle();
-      target_type ^= target_type.InstantiateFrom(type_args, &malformed_error);
-      if (malformed_error.IsNull()) {
+      Error& bound_error = Error::Handle();
+      target_type ^= target_type.InstantiateFrom(type_args, &bound_error);
+      if (bound_error.IsNull()) {
         target_type ^= FinalizeType(cls, target_type, kCanonicalize);
       } else {
+        ASSERT(target_type.IsInstantiated() && type_args.IsInstantiated());
         const Script& script = Script::Handle(target_class.script());
-        FinalizeMalformedType(malformed_error, script, target_type,
+        FinalizeMalformedType(bound_error, script, target_type,
                               "cannot resolve redirecting factory");
         target_target = Function::null();
       }
@@ -596,14 +597,16 @@ void ClassFinalizer::FinalizeTypeArguments(
       if (!super_type_args.IsNull()) {
         super_type_arg = super_type_args.TypeAt(super_offset + i);
         if (!super_type_arg.IsInstantiated()) {
-          Error& malformed_error = Error::Handle();
-          super_type_arg = super_type_arg.InstantiateFrom(arguments,
-                                                          &malformed_error);
-          if (!malformed_error.IsNull()) {
-            if (!super_type_arg.IsInstantiated()) {
-              // CheckTypeArgumentBounds will insert a BoundedType.
-            } else if (bound_error->IsNull()) {
-              *bound_error = malformed_error.raw();
+          Error& error = Error::Handle();
+          super_type_arg = super_type_arg.InstantiateFrom(arguments, &error);
+          if (!error.IsNull()) {
+            // InstantiateFrom does not report an error if the type is still
+            // uninstantiated. Instead, it will return a new BoundedType so that
+            // the check is postponed to run time.
+            ASSERT(super_type_arg.IsInstantiated());
+            // Keep only the first bound error.
+            if (bound_error->IsNull()) {
+              *bound_error = error.raw();
             }
           }
         }
@@ -665,14 +668,13 @@ void ClassFinalizer::CheckTypeArgumentBounds(
         type_param.set_bound(declared_bound);
       }
       ASSERT(declared_bound.IsFinalized() || declared_bound.IsBeingFinalized());
-      Error& malformed_error = Error::Handle();
+      Error& error = Error::Handle();
       // Note that the bound may be malformed, in which case the bound check
       // will return an error and the bound check will be postponed to run time.
       if (declared_bound.IsInstantiated()) {
         instantiated_bound = declared_bound.raw();
       } else {
-        instantiated_bound =
-            declared_bound.InstantiateFrom(arguments, &malformed_error);
+        instantiated_bound = declared_bound.InstantiateFrom(arguments, &error);
       }
       if (!instantiated_bound.IsFinalized()) {
         // The bound refers to type parameters, creating a cycle; postpone
@@ -684,34 +686,20 @@ void ClassFinalizer::CheckTypeArgumentBounds(
         arguments.SetTypeAt(offset + i, type_arg);
         continue;
       }
-      // TODO(regis): We could simplify this code if we could differentiate
-      // between a failed bound check and a bound check that is undecidable at
-      // compile time.
       // Shortcut the special case where we check a type parameter against its
       // declared upper bound.
-      bool below_bound = true;
-      if (malformed_error.IsNull() &&
-          (!type_arg.Equals(type_param) ||
-           !instantiated_bound.Equals(declared_bound))) {
-        // Pass NULL to prevent expensive and unnecessary error formatting in
-        // the case the bound check is postponed to run time.
-        below_bound = type_param.CheckBound(type_arg, instantiated_bound, NULL);
-      }
-      if (!malformed_error.IsNull() || !below_bound) {
-        if (!type_arg.IsInstantiated() ||
-            !instantiated_bound.IsInstantiated()) {
+      if (error.IsNull() &&
+          !(type_arg.Equals(type_param) &&
+            instantiated_bound.Equals(declared_bound))) {
+        if (!type_param.CheckBound(type_arg, instantiated_bound, &error) &&
+            error.IsNull()) {
+          // The bound cannot be checked at compile time; postpone to run time.
           type_arg = BoundedType::New(type_arg, instantiated_bound, type_param);
           arguments.SetTypeAt(offset + i, type_arg);
-        } else if (bound_error->IsNull()) {
-          if (malformed_error.IsNull()) {
-            // Call CheckBound again to format error message.
-            type_param.CheckBound(type_arg,
-                                  instantiated_bound,
-                                  &malformed_error);
-          }
-          ASSERT(!malformed_error.IsNull());
-          *bound_error = malformed_error.raw();
         }
+      }
+      if (!error.IsNull() && bound_error->IsNull()) {
+        *bound_error = error.raw();
       }
     }
   }
@@ -822,7 +810,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // Specifying no type arguments indicates a raw type, which is not an error.
   // However, type parameter bounds are checked below, even for a raw type.
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
-    // Wrong number of type arguments. The type is malformed.
+    // Wrong number of type arguments. The type is mapped to the raw type.
     if (FLAG_error_on_bad_type) {
       const Script& script = Script::Handle(cls.script());
       const String& type_class_name = String::Handle(type_class.Name());
@@ -895,7 +883,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         }
         CheckTypeArgumentBounds(type_class, full_arguments, &bound_error);
       }
-      if (full_arguments.IsRaw(num_type_arguments)) {
+      if (full_arguments.IsRaw(0, num_type_arguments)) {
         // The parameterized_type is raw. Set its argument vector to null, which
         // is more efficient in type tests.
         full_arguments = TypeArguments::null();
@@ -903,6 +891,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         // FinalizeTypeArguments can modify 'full_arguments',
         // canonicalize afterwards.
         full_arguments ^= full_arguments.Canonicalize();
+        ASSERT(full_arguments.Length() == num_type_arguments);
       }
       parameterized_type.set_arguments(full_arguments);
     } else {
@@ -927,18 +916,17 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     FinalizeTypesInClass(type_class);
   }
 
-  // If a bound error occurred, return a BoundedType with a malformed bound.
-  // The malformed bound will be ignored in production mode.
+  // If a bound error occurred, mark the type as malbounded.
+  // The bound error will be ignored in production mode.
   if (!bound_error.IsNull()) {
     // No compile-time error during finalization.
     const String& parameterized_type_name = String::Handle(
         parameterized_type.UserVisibleName());
-    const Type& malformed_bound = Type::Handle(
-        NewFinalizedMalformedType(bound_error,
-                                  Script::Handle(cls.script()),
-                                  parameterized_type.token_pos(),
-                                  "type '%s' has an out of bound type argument",
-                                  parameterized_type_name.ToCString()));
+    FinalizeMalboundedType(bound_error,
+                           Script::Handle(cls.script()),
+                           parameterized_type,
+                           "type '%s' has an out of bound type argument",
+                           parameterized_type_name.ToCString());
 
     if (FLAG_trace_type_finalization) {
       OS::Print("Done finalizing malbounded type '%s' with bound error: %s\n",
@@ -946,9 +934,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                 bound_error.ToCString());
     }
 
-    return BoundedType::New(parameterized_type,
-                            malformed_bound,
-                            TypeParameter::Handle());
+    return parameterized_type.raw();;
   }
 
   if (FLAG_trace_type_finalization) {
@@ -1171,18 +1157,18 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         (field.value() != Object::sentinel().raw())) {
       // The parser does not preset the value if the type is a type parameter or
       // is parameterized unless the value is null.
-      Error& malformed_error = Error::Handle();
-      if (type.IsMalformed()) {
-        malformed_error = type.malformed_error();
+      Error& error = Error::Handle();
+      if (type.IsMalformedOrMalbounded()) {
+        error = type.error();
       } else {
         ASSERT(type.IsInstantiated());
       }
       const Instance& const_value = Instance::Handle(field.value());
-      if (!malformed_error.IsNull() ||
+      if (!error.IsNull() ||
           (!type.IsDynamicType() &&
            !const_value.IsInstanceOf(type,
                                      AbstractTypeArguments::Handle(),
-                                     &malformed_error))) {
+                                     &error))) {
         if (FLAG_error_on_bad_type) {
           const AbstractType& const_value_type = AbstractType::Handle(
               const_value.GetType());
@@ -1190,7 +1176,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
               const_value_type.UserVisibleName());
           const String& type_name = String::Handle(type.UserVisibleName());
           const Script& script = Script::Handle(cls.script());
-          ReportError(malformed_error, script, field.token_pos(),
+          ReportError(error, script, field.token_pos(),
                       "error initializing static %s field '%s': "
                       "type '%s' is not a subtype of type '%s'",
                       field.is_const() ? "const" : "final",
@@ -1494,17 +1480,17 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
     }
     mixin_app_class.set_type_parameters(cloned_type_params);
   }
-  // If the mixin class is a mixin application typedef class, we insert a new
+  // If the mixin class is a mixin application alias class, we insert a new
   // synthesized mixin application class in the super chain of this mixin
   // application class. The new class will have the aliased mixin as actual
   // mixin.
-  if (mixin_class.is_mixin_typedef()) {
-    ApplyMixinTypedef(mixin_app_class);
+  if (mixin_class.is_mixin_app_alias()) {
+    ApplyMixinAppAlias(mixin_app_class);
   }
 }
 
 
-/* Support for mixin typedef.
+/* Support for mixin alias.
 Consider the following example:
 
 class I<T> { }
@@ -1514,7 +1500,7 @@ class M<T> { }
 class A<U, V> = Object with M<Map<U, V>> implements I<V>;
 class C<T, K> = S<T> with A<T, List<K>> implements J<K>;
 
-Before the call to ApplyMixinTypedef, the VM has already synthesized 2 mixin
+Before the call to ApplyMixinAppAlias, the VM has already synthesized 2 mixin
 application classes Object&M and S&A:
 
 Object&M<T> extends Object implements M<T> { ... members of M applied here ... }
@@ -1527,19 +1513,19 @@ In theory, class A should be an alias of Object&M instead of extending it.
 In practice, the additional class provides a hook for implemented interfaces
 (e.g. I<V>) and for type argument substitution via the super type relation (e.g.
 type parameter T of Object&M is substituted with Map<U, V>, U and V being the
-type parameters of the typedef A).
+type parameters of the alias A).
 
 Similarly, class C should be an alias of S&A instead of extending it.
 
 Since A is used as a mixin, it must extend Object. The fact that it extends
 Object&M must be hidden so that no error is wrongly reported.
 
-Now, A does not have any members to be mixed into S&A, because A is a typedef.
+Now, A does not have any members to be mixed into S&A, because A is an alias.
 The members to be mixed in are actually those of M, and they should appear in a
 scope where the type parameter T is visible. The class S&A declares the type
 parameters of A, i.e. U and V, but not T.
 
-Therefore, the call to ApplyMixinTypedef inserts another synthesized class S&A`
+Therefore, the call to ApplyMixinAppAlias inserts another synthesized class S&A`
 as the superclass of S&A. The class S&A` declares a type argument T:
 
 Instead of
@@ -1560,15 +1546,14 @@ The instantiator vector must end with the type parameters U and V of S&A.
 The offset of the first type parameter U of S&A must be at the finalized index
 of type parameter U of A.
 */
-// TODO(regis): The syntax does not use 'typedef' anymore. Rename to 'alias'?
-void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
-  // If this mixin typedef is aliasing another mixin typedef, another class
+void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class) {
+  // If this mixin alias is aliasing another mixin alias, another class
   // will be inserted via recursion. No need to check here.
   // The mixin type may or may not be finalized yet.
   AbstractType& super_type = AbstractType::Handle(mixin_app_class.super_type());
   const Type& mixin_type = Type::Handle(mixin_app_class.mixin());
   const Class& mixin_class = Class::Handle(mixin_type.type_class());
-  ASSERT(mixin_class.is_mixin_typedef());
+  ASSERT(mixin_class.is_mixin_app_alias());
   const Class& aliased_mixin_app_class = Class::Handle(
       mixin_class.SuperClass());
   const Type& aliased_mixin_type = Type::Handle(
@@ -1590,7 +1575,7 @@ void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
     library.AddClass(inserted_class);
 
     if (FLAG_trace_class_finalization) {
-      OS::Print("Creating mixin typedef application %s\n",
+      OS::Print("Creating mixin application alias %s\n",
                 inserted_class.ToCString());
     }
 
@@ -1623,9 +1608,9 @@ void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
   // old super type arguments (propagating type arguments to the super class)
   // with new type arguments providing type arguments to the mixin.
   // The appended type arguments are those of the super type of the mixin
-  // typedef that are forwarding to the aliased mixin type, except
+  // application alias that are forwarding to the aliased mixin type, except
   // that they must refer to the type parameters of the mixin application
-  // class rather than to those of the mixin typedef class.
+  // class rather than to those of the mixin application alias class.
   // This type parameter substitution is performed by an instantiation step.
   // It is important that the type parameters of the mixin application class
   // are not finalized yet, because new type parameters may have been added
@@ -1700,12 +1685,12 @@ void ClassFinalizer::ApplyMixinTypedef(const Class& mixin_app_class) {
                          new_super_type_args,
                          mixin_app_class.token_pos());
   mixin_app_class.set_super_type(super_type);
-  // Mark this mixin application class as being a typedef.
-  mixin_app_class.set_is_mixin_typedef();
+  // Mark this mixin application class as being an alias.
+  mixin_app_class.set_is_mixin_app_alias();
   ASSERT(!mixin_app_class.is_type_finalized());
   ASSERT(!mixin_app_class.is_mixin_type_applied());
   if (FLAG_trace_class_finalization) {
-    OS::Print("Inserting class %s to mixin typedef application %s "
+    OS::Print("Inserting class %s to mixin application alias %s "
               "with super type '%s'\n",
               inserted_class.ToCString(),
               mixin_app_class.ToCString(),
@@ -1744,10 +1729,10 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class) {
 
   // Check that the super class of the mixin class is class Object.
   Class& mixin_super_class = Class::Handle(mixin_class.SuperClass());
-  // Skip over mixin application typedef classes, which are aliases (but are
-  // implemented as subclasses) of the mixin application classes they name.
-  if (!mixin_super_class.IsNull() && mixin_class.is_mixin_typedef()) {
-    while (mixin_super_class.is_mixin_typedef()) {
+  // Skip over mixin application alias classes, which are implemented as
+  // subclasses of the mixin application classes they name.
+  if (!mixin_super_class.IsNull() && mixin_class.is_mixin_app_alias()) {
+    while (mixin_super_class.is_mixin_app_alias()) {
       mixin_super_class = mixin_super_class.SuperClass();
     }
     mixin_super_class = mixin_super_class.SuperClass();
@@ -1781,7 +1766,7 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class) {
   // to avoid cycles while finalizing its mixin type.
   mixin_app_class.set_is_mixin_type_applied();
   // Finalize the mixin type, which may have been changed in case
-  // mixin_app_class is a typedef.
+  // mixin_app_class is an alias.
   mixin_type = mixin_app_class.mixin();
   ASSERT(!mixin_type.IsBeingFinalized());
   mixin_type ^=
@@ -1856,14 +1841,14 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   ASSERT(mixin_type.HasResolvedTypeClass());
   const Class& mixin_cls = Class::Handle(isolate, mixin_type.type_class());
   mixin_cls.EnsureIsFinalized(isolate);
-  // If the mixin is a mixin application typedef class, there are no members to
+  // If the mixin is a mixin application alias class, there are no members to
   // apply here. A new synthesized class representing the aliased mixin
   // application class was inserted in the super chain of this mixin application
   // class. Members of the actual mixin class will be applied when visiting
   // the mixin application class referring to the actual mixin.
-  ASSERT(!mixin_cls.is_mixin_typedef() ||
+  ASSERT(!mixin_cls.is_mixin_app_alias() ||
          Class::Handle(isolate, cls.SuperClass()).IsMixinApplication());
-  // A default constructor will be created for the typedef class.
+  // A default constructor will be created for the mixin app alias class.
 
   if (FLAG_trace_class_finalization) {
     OS::Print("Applying mixin members of %s to %s at pos %" Pd "\n",
@@ -2077,8 +2062,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as parsed and finalized.
   cls.Finalize();
-  // Mixin typedef classes may still lack their forwarding constructor.
-  if (cls.is_mixin_typedef() &&
+  // Mixin app alias classes may still lack their forwarding constructor.
+  if (cls.is_mixin_app_alias() &&
       (cls.functions() == Object::empty_array().raw())) {
     const GrowableObjectArray& cloned_funcs =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
@@ -2419,8 +2404,8 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
 
   // Resolve super type. Failures lead to a longjmp.
   ResolveType(cls, super_type, kCanonicalizeWellFormed);
-  if (super_type.IsMalformed()) {
-    ReportError(Error::Handle(super_type.malformed_error()));
+  if (super_type.IsMalformedOrMalbounded()) {
+    ReportError(Error::Handle(super_type.error()));
   }
   if (super_type.IsDynamicType()) {
     const Script& script = Script::Handle(cls.script());
@@ -2497,8 +2482,9 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     interface ^= super_interfaces.At(i);
     ResolveType(cls, interface, kCanonicalizeWellFormed);
     ASSERT(!interface.IsTypeParameter());  // Should be detected by parser.
+    // A malbounded interface is only reported when involved in a type test.
     if (interface.IsMalformed()) {
-      ReportError(Error::Handle(interface.malformed_error()));
+      ReportError(Error::Handle(interface.error()));
     }
     if (interface.IsDynamicType()) {
       const Script& script = Script::Handle(cls.script());
@@ -2631,7 +2617,7 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
   if (FLAG_error_on_bad_type) {
     ReportError(error);
   }
-  type.set_malformed_error(error);
+  type.set_error(error);
   // Make the type raw, since it may not be possible to
   // properly finalize its type arguments.
   type.set_type_class(Class::Handle(Object::dynamic_class()));
@@ -2675,6 +2661,29 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
   va_start(args, format);
   ReportMalformedType(prev_error, script, type, format, args);
   va_end(args);
+}
+
+
+void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
+                                            const Script& script,
+                                            const Type& type,
+                                            const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  LanguageError& error = LanguageError::Handle(
+      LanguageError::NewFormattedV(
+          prev_error, script, type.token_pos(),
+          LanguageError::kMalboundedType, Heap::kOld,
+          format, args));
+  va_end(args);
+  if (FLAG_error_on_bad_type) {
+    ReportError(error);
+  }
+  type.set_error(error);
+  if (!type.IsFinalized()) {
+    type.SetIsFinalized();
+    // Do not canonicalize malbounded types.
+  }
 }
 
 

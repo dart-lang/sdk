@@ -34,31 +34,39 @@ class _StringBase {
    */
   static String createFromCharCodes(Iterable<int> charCodes) {
     if (charCodes != null) {
-      // TODO(srdjan): Also skip copying of typed arrays.
+      // TODO(srdjan): Also skip copying of wide typed arrays.
       final ccid = charCodes._cid;
+      bool isOneByteString = false;
       if ((ccid != _List._classId) &&
           (ccid != _GrowableList._classId) &&
           (ccid != _ImmutableList._classId)) {
-        charCodes = new List<int>.from(charCodes, growable: false);
-      }
-
-      bool isOneByteString = true;
-      for (int i = 0; i < charCodes.length; i++) {
-        int e = charCodes[i];
-        if (e is! _Smi) throw new ArgumentError(e);
-        // Is e Latin1?
-        if ((e < 0) || (e > 0xFF)) {
-          isOneByteString = false;
-          break;
+        if ((charCodes is Uint8List) || (charCodes is Int8List)) {
+          isOneByteString = true;
+        } else {
+          charCodes = new List<int>.from(charCodes, growable: false);
         }
       }
-      if (isOneByteString) {
-        var s = _OneByteString._allocate(charCodes.length);
-        for (int i = 0; i < charCodes.length; i++) {
-          s._setAt(i, charCodes[i]);
+      final len = charCodes.length;
+      if (!isOneByteString) {
+        for (int i = 0; i < len; i++) {
+          int e = charCodes[i];
+          if (e is! _Smi) throw new ArgumentError(e);
+          // Is e Latin1?
+          if ((e < 0) || (e > 0xFF)) {
+            return _createFromCodePoints(charCodes);
+          }
         }
-        return s;
       }
+      // Allocate a one byte string. When the list is 128 entries or longer,
+      // it's faster to perform a runtime-call.
+      if (len >= 128) {
+        return _OneByteString._allocateFromOneByteList(charCodes);
+      }
+      var s = _OneByteString._allocate(len);
+      for (int i = 0; i < len; i++) {
+        s._setAt(i, charCodes[i]);
+      }
+      return s;
     }
     return _createFromCodePoints(charCodes);
   }
@@ -627,6 +635,10 @@ class _OneByteString extends _StringBase implements String {
   // Allocates a string of given length, expecting its content to be
   // set using _setAt.
   static _OneByteString _allocate(int length) native "OneByteString_allocate";
+
+
+  static _OneByteString _allocateFromOneByteList(List<int> list)
+      native "OneByteString_allocateFromOneByteList";
 
   // This is internal helper method. Code point value must be a valid
   // Latin1 value (0..0xFF), index must be valid.

@@ -35,6 +35,15 @@ $endif
   }
 
 $if DART2JS
+  /**
+   * The newest document in this window.
+   *
+   * ## Other resources
+   *
+   * * [Loading web pages]
+   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
+   * from WHATWG.
+   */
   Document get document => JS('Document', '#.document', this);
 
   WindowBase _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
@@ -42,6 +51,16 @@ $if DART2JS
   WindowBase _open3(url, name, options) =>
       JS('Window', '#.open(#,#,#)', this, url, name, options);
 
+  /**
+   * Opens a new window.
+   *
+   * ## Other resources
+   *
+   * * [Window.open]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.open) from MDN.
+   * * [Window open]
+   * (http://docs.webplatform.org/wiki/dom/methods/open) from WebPlatform.org.
+   */
   WindowBase open(String url, String name, [String options]) {
     if (options == null) {
       return _DOMWindowCrossFrame._createSafe(_open2(url, name));
@@ -53,6 +72,12 @@ $if DART2JS
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
   // _LocationWrapper.
+  /**
+   * The current location of this window.
+   *
+   *     Location currentLocation = window.location;
+   *     print(currentLocation.href); // 'http://www.example.com:80/'
+   */
   Location get location {
     // Firefox work-around for Location.  The Firefox location object cannot be
     // made to behave like a Dart object so must be wrapped.
@@ -121,6 +146,14 @@ $if DART2JS
     return _requestAnimationFrame(_wrapZone(callback));
   }
 
+  /**
+   * Cancels an animation frame request.
+   *
+   * ## Other resources
+   *
+   * * [Window.cancelAnimationFrame]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame) from MDN.
+   */
   void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
     _cancelAnimationFrame(id);
@@ -161,7 +194,7 @@ $if DART2JS
   /**
    * Gets an instance of the Indexed DB factory to being using Indexed DB.
    *
-   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
+   * Use [indexed_db.IdbFactory.supported] to check if Indexed DB is supported on the
    * current platform.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
@@ -169,10 +202,11 @@ $if DART2JS
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
   @Experimental()
   IdbFactory get indexedDB =>
-      JS('IdbFactory|Null',  // If not supported, returns `null`.
+      JS('IdbFactory|Null',  // If not supported, returns null.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
+  /// The debugging console for this window.
   @DomName('Window.console')
   Console get console => Console._safeConsole;
 
@@ -211,6 +245,15 @@ $endif
     return _requestFileSystem(persistent? 1 : 0, size);
   }
 
+  /**
+   * Converts a point from node coordinates to this window's coordinates.
+   *
+   * ## Other resources
+   *
+   * * [webkitConvertPointFromPageToNode]
+   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromNodeToPage)
+   * from Safari Development Library.
+   */
   @DomName('Window.convertPointFromNodeToPage')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -221,6 +264,15 @@ $endif
     return new Point(result.x, result.y);
   }
 
+  /**
+   * Converts a point from this window's coordinates to node coordinates.
+   *
+   * ## Other resources
+   *
+   * * [webkitConvertPointFromPageToNode]
+   * (https://developer.apple.com/library/safari/documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html#//apple_ref/javascript/instm/DOMWindow/webkitConvertPointFromPageToNode)
+   * from Safari Development Library.
+   */
   @DomName('Window.convertPointFromPageToNode')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -252,13 +304,46 @@ $!MEMBERS
   @DomName('Window.onbeforeunload')
   Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
+  /**
+   * Moves this window to a specific position.
+   *
+   * x and y can be negative.
+   *
+   * ## Other resources
+   *
+   * * [Window.moveTo]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo) from MDN.
+   * * [Window.moveTo]
+   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveto) from W3C.
+   */
   void moveTo(Point p) {
     _moveTo(p.x, p.y);
   }
 
 $if DART2JS
+  /**
+   * The distance this window has been scrolled horizontally.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollX]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   */
   int get scrollX => JS('bool', '("scrollX" in #)', this) ? JS('int',
       '#.scrollX', this) : document.documentElement.scrollLeft;
+
+  /**
+   * The distance this window has been scrolled vertically.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface specification]
+   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollY]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   */
   int get scrollY => JS('bool', '("scrollY" in #)', this) ? JS('int',
       '#.scrollY', this) : document.documentElement.scrollTop;
 $endif

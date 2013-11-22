@@ -82,4 +82,3 @@ const RANGE2_FIRST = 0x7b;   //  {|}~     encodes 6..9
 const RANGE2_LAST = 0x7e;
 const RANGE3_FIRST = 0x25;   //  %&'()*+  encodes 10..16
 const RANGE3_LAST = 0x2b;
-const REFLECTION_MARKER = 0x2d;

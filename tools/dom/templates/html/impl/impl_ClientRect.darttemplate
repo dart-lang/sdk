@@ -27,7 +27,7 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rectangle$IM
    * The intersection of two axis-aligned rectangles, if any, is always another
    * axis-aligned rectangle.
    *
-   * Returns the intersection of this and `other`, or `null` if they don't
+   * Returns the intersection of this and `other`, or null if they don't
    * intersect.
    */
   Rectangle intersection(Rectangle other) {

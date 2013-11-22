@@ -165,13 +165,11 @@ void testConfigurations(List<Map> configurations) {
       // issues with starting up a new browser just after killing the hanging
       // browser.
       maxBrowserProcesses = 1;
-    } else if (conf['runtime'].startsWith('safari') &&
-               conf['use_browser_controller']) {
+    } else if (conf['runtime'].startsWith('safari')) {
       // Safari does not allow us to run from a fresh profile, so we can only
       // use one browser.
       maxBrowserProcesses = 1;
     } else if (conf['runtime'] == 'chrome' &&
-               conf['use_browser_controller'] &&
                Platform.operatingSystem == 'macos') {
       // Chrome on mac results in random timeouts.
       maxBrowserProcesses = math.max(1, maxBrowserProcesses ~/ 2);

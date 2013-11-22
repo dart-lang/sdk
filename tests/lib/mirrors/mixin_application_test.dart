@@ -47,6 +47,23 @@ class Subclass2A extends MixinApplicationA {
   ga() {}
 }
 
+membersOf(ClassMirror cm) {
+  var result = new Map();
+  cm.declarations.forEach((k,v) {
+    if(v is MethodMirror && !v.isConstructor) result[k] = v;
+    if(v is VariableMirror) result[k] = v;
+  });
+  return result;
+}
+
+constructorsOf(ClassMirror cm) {
+  var result = new Map();
+  cm.declarations.forEach((k,v) {
+    if(v is MethodMirror && v.isConstructor) result[k] = v;
+  });
+  return result;
+}
+
 checkClass(Type type, List<String> expectedSuperclasses) {
   int i = 0;
   for (var cls = reflectClass(type); cls != null; cls = cls.superclass) {
@@ -70,10 +87,10 @@ testMixin() {
   expect(
       '{i: Variable(s(i) in s(Mixin)),'
       ' m: Method(s(m) in s(Mixin))}',
-      reflectClass(Mixin).members);
+      membersOf(reflectClass(Mixin)));
 
   expect('{Mixin: Method(s(Mixin) in s(Mixin), constructor)}',
-         reflectClass(Mixin).constructors);
+         constructorsOf(reflectClass(Mixin)));
 }
 
 testMixin2() {
@@ -85,10 +102,10 @@ testMixin2() {
   expect(
       '{i2: Variable(s(i2) in s(Mixin2)),'
       ' m2: Method(s(m2) in s(Mixin2))}',
-      reflectClass(Mixin2).members);
+      membersOf(reflectClass(Mixin2)));
 
   expect('{Mixin2: Method(s(Mixin2) in s(Mixin2), constructor)}',
-         reflectClass(Mixin2).constructors);
+         constructorsOf(reflectClass(Mixin2)));
 }
 
 testMixinApplication() {
@@ -105,11 +122,11 @@ testMixinApplication() {
   expect(
       '{i: Variable(s(i) in s($owner)),'
       ' m: Method(s(m) in s($owner))}',
-      reflectClass(MixinApplication).members);
+      membersOf(reflectClass(MixinApplication)));
 
   expect('{MixinApplication: Method(s(MixinApplication) in s(MixinApplication),'
          ' constructor)}',
-         reflectClass(MixinApplication).constructors);
+         constructorsOf(reflectClass(MixinApplication)));
 
   expectSame(reflectClass(C), reflectClass(MixinApplication).superclass);
 }
@@ -134,17 +151,17 @@ testMixinApplicationA() {
   expect(
       '{i2: Variable(s(i2) in s($owner)),'
       ' m2: Method(s(m2) in s($owner))}',
-      reflectClass(MixinApplicationA).members);
+      membersOf(reflectClass(MixinApplicationA)));
 
   expect(
       '{MixinApplicationA: Method(s(MixinApplicationA) in s(MixinApplicationA),'
       ' constructor)}',
-      reflectClass(MixinApplicationA).constructors);
+      constructorsOf(reflectClass(MixinApplicationA)));
 
   expect(
       '{i: Variable(s(i) in s(Mixin)),'
       ' m: Method(s(m) in s(Mixin))}',
-      reflectClass(MixinApplicationA).superclass.members);
+      membersOf(reflectClass(MixinApplicationA).superclass));
 
   String name = 'test.model.C with test.mixin_application_test.Mixin';
   name = 'Mixin'; /// 01: ok
@@ -152,7 +169,7 @@ testMixinApplicationA() {
       '{$name:'
       ' Method(s($name)'
       ' in s($name), constructor)}',
-      reflectClass(MixinApplicationA).superclass.constructors);
+      constructorsOf(reflectClass(MixinApplicationA).superclass));
 
   expectSame(
       reflectClass(C),
@@ -174,12 +191,12 @@ testUnusedMixinApplication() {
   expect(
       '{i: Variable(s(i) in s($owner)),'
       ' m: Method(s(m) in s($owner))}',
-      reflectClass(UnusedMixinApplication).members);
+      membersOf(reflectClass(UnusedMixinApplication)));
 
   expect(
       '{UnusedMixinApplication: Method(s(UnusedMixinApplication)'
       ' in s(UnusedMixinApplication), constructor)}',
-      reflectClass(UnusedMixinApplication).constructors);
+      constructorsOf(reflectClass(UnusedMixinApplication)));
 
   expectSame(reflectClass(C), reflectClass(UnusedMixinApplication).superclass);
 }
@@ -199,16 +216,16 @@ testSubclass() {
 
   expect(
       '{f: Method(s(f) in s(Subclass))}',
-      reflectClass(Subclass).members);
+      membersOf(reflectClass(Subclass)));
 
   expect(
       '{Subclass: Method(s(Subclass) in s(Subclass), constructor)}',
-      reflectClass(Subclass).constructors);
+      constructorsOf(reflectClass(Subclass)));
 
   expect(
       '{i: Variable(s(i) in s(Mixin)),'
       ' m: Method(s(m) in s(Mixin))}',
-      reflectClass(Subclass).superclass.members);
+      membersOf(reflectClass(Subclass).superclass));
 
   String name = 'test.model.C with test.mixin_application_test.Mixin';
   name = 'Mixin'; /// 01: ok
@@ -216,7 +233,7 @@ testSubclass() {
       '{$name:'
       ' Method(s($name)'
       ' in s($name), constructor)}',
-      reflectClass(Subclass).superclass.constructors);
+      constructorsOf(reflectClass(Subclass).superclass));
 
   expectSame(
       reflectClass(C),
@@ -235,11 +252,11 @@ testSubclass2() {
 
   expect(
       '{g: Method(s(g) in s(Subclass2))}',
-      reflectClass(Subclass2).members);
+      membersOf(reflectClass(Subclass2)));
 
   expect(
       '{Subclass2: Method(s(Subclass2) in s(Subclass2), constructor)}',
-      reflectClass(Subclass2).constructors);
+      constructorsOf(reflectClass(Subclass2)));
 
   expectSame(
       reflectClass(MixinApplication),
@@ -264,16 +281,16 @@ testSubclassA() {
 
   expect(
       '{fa: Method(s(fa) in s(SubclassA))}',
-      reflectClass(SubclassA).members);
+      membersOf(reflectClass(SubclassA)));
 
   expect(
       '{SubclassA: Method(s(SubclassA) in s(SubclassA), constructor)}',
-      reflectClass(SubclassA).constructors);
+      constructorsOf(reflectClass(SubclassA)));
 
   expect(
       '{i2: Variable(s(i2) in s(Mixin2)),'
       ' m2: Method(s(m2) in s(Mixin2))}',
-      reflectClass(SubclassA).superclass.members);
+      membersOf(reflectClass(SubclassA).superclass));
 
   String name =
       'test.model.C with test.mixin_application_test.Mixin,'
@@ -281,12 +298,12 @@ testSubclassA() {
   name = 'Mixin2'; /// 01: ok
   expect(
       '{$name: Method(s($name) in s($name), constructor)}',
-      reflectClass(SubclassA).superclass.constructors);
+      constructorsOf(reflectClass(SubclassA).superclass));
 
   expect(
       '{i: Variable(s(i) in s(Mixin)),'
       ' m: Method(s(m) in s(Mixin))}',
-      reflectClass(SubclassA).superclass.superclass.members);
+      membersOf(reflectClass(SubclassA).superclass.superclass));
 
   name = 'test.model.C with test.mixin_application_test.Mixin';
   name = 'Mixin'; /// 01: ok
@@ -294,7 +311,7 @@ testSubclassA() {
       '{$name:'
       ' Method(s($name)'
       ' in s($name), constructor)}',
-      reflectClass(SubclassA).superclass.superclass.constructors);
+      constructorsOf(reflectClass(SubclassA).superclass.superclass));
 
   expectSame(
       reflectClass(C),
@@ -319,11 +336,11 @@ testSubclass2A() {
 
   expect(
       '{ga: Method(s(ga) in s(Subclass2A))}',
-      reflectClass(Subclass2A).members);
+      membersOf(reflectClass(Subclass2A)));
 
   expect(
       '{Subclass2A: Method(s(Subclass2A) in s(Subclass2A), constructor)}',
-      reflectClass(Subclass2A).constructors);
+      constructorsOf(reflectClass(Subclass2A)));
 
   expectSame(reflectClass(MixinApplicationA),
              reflectClass(Subclass2A).superclass);

@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Final phase of the polymer transformation: includes any additional polyfills
- * that may needed by the deployed app.
- */
+/** Includes any additional polyfills that may needed by the deployed app. */
 library polymer.src.build.polyfill_injector;
 
 import 'dart:async';
@@ -99,13 +96,17 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
 
       // JS interop code is required for Polymer CSS shimming.
       if (!jsInteropFound) _addScript('browser/interop.js');
+
+      // TODO(sigmund): enable using .min.js. This currently fails in checked
+      // mode because of bugs in dart2js mirrors (dartbug.com/14720).
+      // var suffix = options.releaseMode ? '.min.js' : '.debug.js';
+      var suffix = '.debug.js';
       if (!customElementFound) {
-        _addScript('custom_element/custom-elements.debug.js');
+        _addScript('custom_element/custom-elements$suffix');
       }
 
       // This polyfill needs to be the first one on the head
-      // TODO(jmesserly): this is .debug to workaround issue 13046.
-      if (!shadowDomFound) _addScript('shadow_dom/shadow_dom.debug.js');
+      if (!shadowDomFound) _addScript('shadow_dom/shadow_dom$suffix');
 
       transform.addOutput(
           new Asset.fromString(transform.primaryInput.id, document.outerHtml));

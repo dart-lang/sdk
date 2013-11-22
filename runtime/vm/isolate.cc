@@ -22,8 +22,10 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/service.h"
+#include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -309,6 +311,7 @@ Isolate::Isolate()
       stack_frame_index_(-1),
       object_histogram_(NULL),
       object_id_ring_(NULL),
+      profiler_data_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       reusable_handles_() {
   if (FLAG_print_object_histogram && (Dart::vm_isolate() != NULL)) {
@@ -337,7 +340,15 @@ Isolate::~Isolate() {
 }
 
 void Isolate::SetCurrent(Isolate* current) {
+  ScopedSignalBlocker ssb;
+  Isolate* old_isolate = Current();
+  if (old_isolate != NULL) {
+    ProfilerManager::DescheduleIsolate(old_isolate);
+  }
   Thread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
+  if (current != NULL) {
+    ProfilerManager::ScheduleIsolate(current);
+  }
 }
 
 
@@ -397,6 +408,10 @@ Isolate* Isolate::Init(const char* name_prefix) {
                 "\tisolate:    %s\n", result->name());
     }
   }
+
+  // Setup for profiling.
+  ProfilerManager::SetupIsolateForProfiling(result);
+
   return result;
 }
 
@@ -441,6 +456,21 @@ void Isolate::SetStackLimit(uword limit) {
     stack_limit_ = limit;
   }
   saved_stack_limit_ = limit;
+}
+
+
+bool Isolate::GetStackBounds(uintptr_t* lower, uintptr_t* upper) {
+  uintptr_t stack_lower = stack_limit();
+  if (stack_lower == static_cast<uintptr_t>(~0)) {
+    stack_lower = saved_stack_limit();
+  }
+  if (stack_lower == static_cast<uintptr_t>(~0)) {
+    return false;
+  }
+  uintptr_t stack_upper = stack_lower + GetSpecifiedStackSize();
+  *lower = stack_lower;
+  *upper = stack_upper;
+  return true;
 }
 
 
@@ -674,6 +704,11 @@ void Isolate::Shutdown() {
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
 
+    ScopedSignalBlocker ssb;
+
+    ProfilerManager::DescheduleIsolate(this);
+
+
     if (FLAG_print_object_histogram) {
       heap()->CollectAllGarbage();
       object_histogram()->Print();
@@ -715,6 +750,7 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
+  ProfilerManager::ShutdownIsolateForProfiling(this);
 }
 
 
@@ -934,11 +970,11 @@ char* Isolate::GetStatusDetails() {
   char buffer[300];
   int64_t address = reinterpret_cast<int64_t>(this);
   int n = OS::SNPrint(buffer, 300, format, address, name(), main_port(),
-                      (start_time() / 1000L), saved_stack_limit(),
-                      heap()->Used(Heap::kNew) / KB,
-                      heap()->Capacity(Heap::kNew) / KB,
-                      heap()->Used(Heap::kOld) / KB,
-                      heap()->Capacity(Heap::kOld) / KB);
+                      start_time() / 1000L, saved_stack_limit(),
+                      RoundWordsToKB(heap()->UsedInWords(Heap::kNew)),
+                      RoundWordsToKB(heap()->CapacityInWords(Heap::kNew)),
+                      RoundWordsToKB(heap()->UsedInWords(Heap::kOld)),
+                      RoundWordsToKB(heap()->CapacityInWords(Heap::kOld)));
   ASSERT(n < 300);
   return strdup(buffer);
 }
@@ -996,17 +1032,21 @@ IsolateSpawnState::IsolateSpawnState(const Function& func)
     : isolate_(NULL),
       script_url_(NULL),
       library_url_(NULL),
+      class_name_(NULL),
       function_name_(NULL),
       exception_callback_name_(NULL) {
   script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
-  ASSERT(cls.IsTopLevel());
   const Library& lib = Library::Handle(cls.library());
   const String& lib_url = String::Handle(lib.url());
   library_url_ = strdup(lib_url.ToCString());
 
   const String& func_name = String::Handle(func.name());
   function_name_ = strdup(func_name.ToCString());
+  if (!cls.IsTopLevel()) {
+    const String& class_name = String::Handle(cls.Name());
+    class_name_ = strdup(class_name.ToCString());
+  }
   exception_callback_name_ = strdup("_unhandledExceptionCallback");
 }
 
@@ -1014,6 +1054,7 @@ IsolateSpawnState::IsolateSpawnState(const Function& func)
 IsolateSpawnState::IsolateSpawnState(const char* script_url)
     : isolate_(NULL),
       library_url_(NULL),
+      class_name_(NULL),
       function_name_(NULL),
       exception_callback_name_(NULL) {
   script_url_ = strdup(script_url);
@@ -1027,6 +1068,7 @@ IsolateSpawnState::~IsolateSpawnState() {
   free(script_url_);
   free(library_url_);
   free(function_name_);
+  free(class_name_);
   free(exception_callback_name_);
 }
 
@@ -1048,13 +1090,36 @@ RawObject* IsolateSpawnState::ResolveFunction() {
   ASSERT(!lib.IsNull());
 
   // Resolve the function.
-  const String& func_name =
-      String::Handle(String::New(function_name()));
-  const Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
+  const String& func_name = String::Handle(String::New(function_name()));
+
+  if (class_name() == NULL) {
+    const Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
+    if (func.IsNull()) {
+      const String& msg = String::Handle(String::NewFormatted(
+          "Unable to resolve function '%s' in library '%s'.",
+          function_name(),
+          (library_url() != NULL ? library_url() : script_url())));
+      return LanguageError::New(msg);
+    }
+    return func.raw();
+  }
+
+  const String& cls_name = String::Handle(String::New(class_name()));
+  const Class& cls = Class::Handle(lib.LookupLocalClass(cls_name));
+  if (cls.IsNull()) {
+    const String& msg = String::Handle(String::NewFormatted(
+          "Unable to resolve class '%s' in library '%s'.",
+          class_name(),
+          (library_url() != NULL ? library_url() : script_url())));
+    return LanguageError::New(msg);
+  }
+  const Function& func =
+      Function::Handle(cls.LookupStaticFunctionAllowPrivate(func_name));
   if (func.IsNull()) {
     const String& msg = String::Handle(String::NewFormatted(
-        "Unable to resolve function '%s' in library '%s'.",
-        function_name(), (library_url() ? library_url() : script_url())));
+          "Unable to resolve static method '%s.%s' in library '%s'.",
+          class_name(), function_name(),
+          (library_url() != NULL ? library_url() : script_url())));
     return LanguageError::New(msg);
   }
   return func.raw();

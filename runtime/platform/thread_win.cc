@@ -39,11 +39,23 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
+  ASSERT(ThreadInlineImpl::thread_id_key != Thread::kUnsetThreadLocalKey);
+
+  ThreadId thread_id = ThreadInlineImpl::CreateThreadId();
+  // Set thread ID in TLS.
+  Thread::SetThreadLocal(ThreadInlineImpl::thread_id_key,
+                         reinterpret_cast<DWORD>(thread_id));
+  MonitorData::GetMonitorWaitDataForThread();
+
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
 
   // Clean up the monitor wait data for this thread.
   MonitorWaitData::ThreadExit();
+
+  // Clear thread ID in TLS.
+  Thread::SetThreadLocal(ThreadInlineImpl::thread_id_key, NULL);
+  ThreadInlineImpl::DestroyThreadId(thread_id);
 
   return 0;
 }
@@ -64,6 +76,27 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   return 0;
 }
 
+
+ThreadId ThreadInlineImpl::CreateThreadId() {
+  // Create an ID for this thread that can be shared with other threads.
+  HANDLE thread_id = OpenThread(THREAD_GET_CONTEXT |
+                                THREAD_SUSPEND_RESUME |
+                                THREAD_QUERY_INFORMATION,
+                                false,
+                                GetCurrentThreadId());
+  ASSERT(thread_id != NULL);
+  return thread_id;
+}
+
+
+void ThreadInlineImpl::DestroyThreadId(ThreadId thread_id) {
+  ASSERT(thread_id != NULL);
+  // Destroy thread ID.
+  CloseHandle(thread_id);
+}
+
+
+ThreadLocalKey ThreadInlineImpl::thread_id_key = Thread::kUnsetThreadLocalKey;
 
 ThreadLocalKey Thread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
 
@@ -89,6 +122,44 @@ void Thread::DeleteThreadLocal(ThreadLocalKey key) {
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
+}
+
+
+ThreadId Thread::GetCurrentThreadId() {
+  ThreadId id = reinterpret_cast<ThreadId>(
+      Thread::GetThreadLocal(ThreadInlineImpl::thread_id_key));
+  ASSERT(id != NULL);
+  return id;
+}
+
+
+void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
+  static const int64_t kTimeEpoc = 116444736000000000LL;
+  static const int64_t kTimeScaler = 10;  // 100 ns to us.
+  // Although win32 uses 64-bit integers for representing timestamps,
+  // these are packed into a FILETIME structure. The FILETIME
+  // structure is just a struct representing a 64-bit integer. The
+  // TimeStamp union allows access to both a FILETIME and an integer
+  // representation of the timestamp. The Windows timestamp is in
+  // 100-nanosecond intervals since January 1, 1601.
+  union TimeStamp {
+    FILETIME ft_;
+    int64_t t_;
+  };
+  ASSERT(cpu_usage != NULL);
+  TimeStamp created;
+  TimeStamp exited;
+  TimeStamp kernel;
+  TimeStamp user;
+  BOOL result = GetThreadTimes(thread_id,
+                               &created.ft_,
+                               &exited.ft_,
+                               &kernel.ft_,
+                               &user.ft_);
+  if (!result) {
+    FATAL1("GetThreadCpuUsage failed %d\n", GetLastError());
+  }
+  *cpu_usage = (user.t_ - kTimeEpoc) / kTimeScaler;
 }
 
 
@@ -241,6 +312,8 @@ void MonitorData::SignalAndRemoveFirstWaiter() {
     } else {
       waiters_head_ = waiters_head_->next_;
     }
+    // Clear next.
+    first->next_ = NULL;
     // Signal event.
     BOOL result = SetEvent(first->event_);
     if (result == 0) {
@@ -259,11 +332,16 @@ void MonitorData::SignalAndRemoveAllWaiters() {
   waiters_head_ = waiters_tail_ = NULL;
   // Iterate and signal all events.
   while (current != NULL) {
+    // Copy next.
+    MonitorWaitData* next = current->next_;
+    // Clear next.
+    current->next_ = NULL;
+    // Signal event.
     BOOL result = SetEvent(current->event_);
     if (result == 0) {
       FATAL1("Failed to set event for NotifyAll %d", GetLastError());
     }
-    current = current->next_;
+    current = next;
   }
   LeaveCriticalSection(&waiters_cs_);
 }
@@ -272,11 +350,8 @@ void MonitorData::SignalAndRemoveAllWaiters() {
 MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   // Ensure that the thread local key for monitor wait data objects is
   // initialized.
-  EnterCriticalSection(&waiters_cs_);
-  if (MonitorWaitData::monitor_wait_data_key_ == Thread::kUnsetThreadLocalKey) {
-    MonitorWaitData::monitor_wait_data_key_ = Thread::CreateThreadLocal();
-  }
-  LeaveCriticalSection(&waiters_cs_);
+  ASSERT(MonitorWaitData::monitor_wait_data_key_ !=
+         Thread::kUnsetThreadLocalKey);
 
   // Get the MonitorWaitData object containing the event for this
   // thread from thread local storage. Create it if it does not exist.
@@ -300,7 +375,7 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
   Monitor::WaitResult retval = kNotified;
 
   // Get the wait data object containing the event to wait for.
-  MonitorWaitData* wait_data = data_.GetMonitorWaitDataForThread();
+  MonitorWaitData* wait_data = MonitorData::GetMonitorWaitDataForThread();
 
   // Start waiting by adding the MonitorWaitData to the list of
   // waiters.
@@ -335,6 +410,19 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
   EnterCriticalSection(&data_.cs_);
 
   return retval;
+}
+
+
+Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
+  // TODO(johnmccutchan): Investigate sub-millisecond sleep times on Windows.
+  int64_t millis = micros / kMicrosecondsPerMillisecond;
+  if ((millis * kMicrosecondsPerMillisecond) < micros) {
+    // We've been asked to sleep for a fraction of a millisecond,
+    // this isn't supported on Windows. Bumps milliseconds up by one
+    // so that we never return too early. We likely return late though.
+    millis += 1;
+  }
+  return Wait(millis);
 }
 
 

@@ -248,6 +248,14 @@ String remoteObject(value) {
     return "(list, id $id, len $len) $text";
   } else if (kind == "object") {
     return "(obj, id $id) $text";
+  } else if (kind == "function") {
+    var location = value['location'] != null
+        ? ", file '${value['location']['url']}'"
+          ", token pos ${value['location']['tokenOffset']}"
+        : "";
+    var name = value['name'];
+    var signature = value['signature'];
+    return "(closure ${name}${signature} $location)";
   } else {
     return "$text";
   }

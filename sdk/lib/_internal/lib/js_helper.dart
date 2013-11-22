@@ -30,11 +30,13 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import 'dart:_collection-dev' as _symbol_dev;
+import 'dart:_collection-dev' show MappedIterable;
 
 import 'dart:_js_names' show
     mangledNames,
     unmangleGlobalNameIfPreservedAnyways;
 
+part 'annotations.dart';
 part 'constant_map.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
@@ -414,16 +416,6 @@ class Primitives {
     return "Instance of '$name'";
   }
 
-  static List newGrowableList(length) {
-    return JS('JSExtendableArray', r'new Array(#)', length);
-  }
-
-  static List newFixedList(length) {
-    var result = JS('JSFixedArray', r'new Array(#)', length);
-    JS('void', r'#.fixed$length = #', result, true);
-    return result;
-  }
-
   static num dateNow() => JS('num', r'Date.now()');
 
   static num numMicroseconds() {
@@ -526,11 +518,37 @@ class Primitives {
   }
 
   static String getTimeZoneName(receiver) {
-    // When calling toString on a Date it will emit the timezone in parenthesis.
+    // Firefox and Chrome emit the timezone in parenthesis.
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
     var d = lazyAsJsDate(receiver);
-    return JS('String', r'/\((.*)\)/.exec(#.toString())[1]', d);
+    List match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
+    if (match != null) return match[1];
+
+    // Internet Explorer 10+ emits the zone name without parenthesis:
+    // Example: Thu Oct 31 14:07:44 PDT 2013
+    match = JS('JSArray|Null',
+                // Thu followed by a space.
+                r'/^[A-Z,a-z]{3}\s'
+                // Oct 31 followed by space.
+                r'[A-Z,a-z]{3}\s\d+\s'
+                // Time followed by a space.
+                r'\d{2}:\d{2}:\d{2}\s'
+                // The time zone name followed by a space.
+                r'([A-Z]{3,5})\s'
+                // The year.
+                r'\d{4}$/'
+                '.exec(#.toString())',
+                d);
+    if (match != null) return match[1];
+
+    // IE 9 and Opera don't provide the zone name. We fall back to emitting the
+    // UTC/GMT offset.
+    // Example (IE9): Wed Nov 20 09:51:00 UTC+0100 2013
+    //       (Opera): Wed Nov 20 2013 11:03:38 GMT+0100
+    match = JS('JSArray|Null', r'/(?:GMT|UTC)[+-]\d{4}/.exec(#.toString())', d);
+    if (match != null) return match[0];
+    return "";
   }
 
   static int getTimeZoneOffsetInMinutes(receiver) {
@@ -1442,11 +1460,6 @@ int objectHashCode(var object) {
  */
 makeLiteralMap(keyValuePairs) {
   return fillLiteralMap(keyValuePairs, new LinkedHashMap());
-}
-
-makeConstantMap(keyValuePairs) {
-  return fillLiteralMap(keyValuePairs,
-      new LinkedHashMap(equals: identical, hashCode: objectHashCode));
 }
 
 fillLiteralMap(keyValuePairs, Map result) {

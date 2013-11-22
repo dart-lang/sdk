@@ -44,9 +44,9 @@ Heap::Heap() : read_only_(false), gc_in_progress_(false) {
     old_weak_tables_[sel] = new WeakTable();
   }
   new_space_ = new Scavenger(this,
-                             (FLAG_new_gen_heap_size * MB),
+                             (FLAG_new_gen_heap_size * MBInWords),
                              kNewObjectAlignmentOffset);
-  old_space_ = new PageSpace(this, (FLAG_old_gen_heap_size * MB));
+  old_space_ = new PageSpace(this, (FLAG_old_gen_heap_size * MBInWords));
   stats_.num_ = 0;
 }
 
@@ -251,9 +251,9 @@ void Heap::Init(Isolate* isolate) {
 
 
 void Heap::StartEndAddress(uword* start, uword* end) const {
-  ASSERT(new_space_->capacity() != 0);
+  ASSERT(new_space_->CapacityInWords() != 0);
   new_space_->StartEndAddress(start, end);
-  if (old_space_->capacity() != 0) {
+  if (old_space_->CapacityInWords() != 0) {
     uword old_start;
     uword old_end;
     old_space_->StartEndAddress(&old_start, &old_end);
@@ -298,18 +298,21 @@ bool Heap::Verify() const {
 void Heap::PrintSizes() const {
   OS::PrintErr("New space (%" Pd "k of %" Pd "k) "
                "Old space (%" Pd "k of %" Pd "k)\n",
-               (Used(kNew) / KB), (Capacity(kNew) / KB),
-               (Used(kOld) / KB), (Capacity(kOld) / KB));
+               (UsedInWords(kNew) / KBInWords),
+               (CapacityInWords(kNew) / KBInWords),
+               (UsedInWords(kOld) / KBInWords),
+               (CapacityInWords(kOld) / KBInWords));
 }
 
 
-intptr_t Heap::Used(Space space) const {
-  return space == kNew ? new_space_->in_use() : old_space_->in_use();
+intptr_t Heap::UsedInWords(Space space) const {
+  return space == kNew ? new_space_->UsedInWords() : old_space_->UsedInWords();
 }
 
 
-intptr_t Heap::Capacity(Space space) const {
-  return space == kNew ? new_space_->capacity() : old_space_->capacity();
+intptr_t Heap::CapacityInWords(Space space) const {
+  return space == kNew ? new_space_->CapacityInWords() :
+                         old_space_->CapacityInWords();
 }
 
 
@@ -410,10 +413,10 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   stats_.space_ = space;
   stats_.reason_ = reason;
   stats_.before_.micros_ = OS::GetCurrentTimeMicros();
-  stats_.before_.new_used_ = new_space_->in_use();
-  stats_.before_.new_capacity_ = new_space_->capacity();
-  stats_.before_.old_used_ = old_space_->in_use();
-  stats_.before_.old_capacity_ = old_space_->capacity();
+  stats_.before_.new_used_in_words_ = new_space_->UsedInWords();
+  stats_.before_.new_capacity_in_words_ = new_space_->CapacityInWords();
+  stats_.before_.old_used_in_words_ = old_space_->UsedInWords();
+  stats_.before_.old_capacity_in_words_ = old_space_->CapacityInWords();
   stats_.times_[0] = 0;
   stats_.times_[1] = 0;
   stats_.times_[2] = 0;
@@ -427,29 +430,12 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
 
 void Heap::RecordAfterGC() {
   stats_.after_.micros_ = OS::GetCurrentTimeMicros();
-  stats_.after_.new_used_ = new_space_->in_use();
-  stats_.after_.new_capacity_ = new_space_->capacity();
-  stats_.after_.old_used_ = old_space_->in_use();
-  stats_.after_.old_capacity_ = old_space_->capacity();
+  stats_.after_.new_used_in_words_ = new_space_->UsedInWords();
+  stats_.after_.new_capacity_in_words_ = new_space_->CapacityInWords();
+  stats_.after_.old_used_in_words_ = old_space_->UsedInWords();
+  stats_.after_.old_capacity_in_words_ = old_space_->CapacityInWords();
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
-}
-
-
-static intptr_t RoundToKB(intptr_t memory_size) {
-  return (memory_size + (KB >> 1)) >> KBLog2;
-}
-
-
-static double RoundToSecs(int64_t micros) {
-  const int k1M = 1000000;  // Converting us to secs.
-  return static_cast<double>(micros + (k1M / 2)) / k1M;
-}
-
-
-static double RoundToMillis(int64_t micros) {
-  const int k1K = 1000;  // Conversting us to ms.
-  return static_cast<double>(micros + (k1K / 2)) / k1K;
 }
 
 
@@ -480,18 +466,21 @@ void Heap::PrintStats() {
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate->main_port(), space_str, GCReasonToString(stats_.reason_),
     stats_.num_,
-    RoundToSecs(stats_.before_.micros_ - isolate->start_time()),
-    RoundToMillis(stats_.after_.micros_ - stats_.before_.micros_),
-    RoundToKB(stats_.before_.new_used_), RoundToKB(stats_.after_.new_used_),
-    RoundToKB(stats_.before_.new_capacity_),
-    RoundToKB(stats_.after_.new_capacity_),
-    RoundToKB(stats_.before_.old_used_), RoundToKB(stats_.after_.old_used_),
-    RoundToKB(stats_.before_.old_capacity_),
-    RoundToKB(stats_.after_.old_capacity_),
-    RoundToMillis(stats_.times_[0]),
-    RoundToMillis(stats_.times_[1]),
-    RoundToMillis(stats_.times_[2]),
-    RoundToMillis(stats_.times_[3]),
+    RoundMicrosecondsToSeconds(stats_.before_.micros_ - isolate->start_time()),
+    RoundMicrosecondsToMilliseconds(stats_.after_.micros_ -
+                                    stats_.before_.micros_),
+    RoundWordsToKB(stats_.before_.new_used_in_words_),
+    RoundWordsToKB(stats_.after_.new_used_in_words_),
+    RoundWordsToKB(stats_.before_.new_capacity_in_words_),
+    RoundWordsToKB(stats_.after_.new_capacity_in_words_),
+    RoundWordsToKB(stats_.before_.old_used_in_words_),
+    RoundWordsToKB(stats_.after_.old_used_in_words_),
+    RoundWordsToKB(stats_.before_.old_capacity_in_words_),
+    RoundWordsToKB(stats_.after_.old_capacity_in_words_),
+    RoundMicrosecondsToMilliseconds(stats_.times_[0]),
+    RoundMicrosecondsToMilliseconds(stats_.times_[1]),
+    RoundMicrosecondsToMilliseconds(stats_.times_[2]),
+    RoundMicrosecondsToMilliseconds(stats_.times_[3]),
     stats_.data_[0],
     stats_.data_[1],
     stats_.data_[2],

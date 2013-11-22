@@ -135,6 +135,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   final Compiler compiler;
   final V types;
   final Map<Node, T> concreteTypes = new Map<Node, T>();
+  final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
 
   InferrerEngine(this.compiler, this.types);
 
@@ -372,6 +373,20 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         && element.getEnclosingClass().isNative()
         && element.isField();
   }
+
+  void analyze(Element element);
+
+  bool checkIfExposesThis(Element element) {
+    element = element.implementation;
+    return generativeConstructorsExposingThis.contains(element);
+  }
+
+  void recordExposesThis(Element element, bool exposesThis) {
+    element = element.implementation;
+    if (exposesThis) {
+      generativeConstructorsExposingThis.add(element);
+    }
+  }
 }
 
 class SimpleTypeInferrerVisitor<T>
@@ -379,6 +394,7 @@ class SimpleTypeInferrerVisitor<T>
   T returnType;
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
+  bool seenSuperConstructorCall = false;
   SideEffects sideEffects = new SideEffects.empty();
   final Element outermostElement;
   final InferrerEngine<T, TypeSystem<T>> inferrer;
@@ -401,6 +417,11 @@ class SimpleTypeInferrerVisitor<T>
     assert(outermostElement != null);
     return new SimpleTypeInferrerVisitor<T>.internal(
         element, outermostElement, inferrer, compiler, handler);
+  }
+
+  void analyzeSuperConstructorCall(Element target) {
+    inferrer.analyze(target);
+    isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
   T run() {
@@ -460,6 +481,7 @@ class SimpleTypeInferrerVisitor<T>
         }
         locals.update(element, parameterType, node);
       });
+      ClassElement cls = analyzedElement.getEnclosingClass();
       if (analyzedElement.isSynthesized) {
         node = analyzedElement;
         synthesizeForwardingCall(node, analyzedElement.targetConstructor);
@@ -467,9 +489,22 @@ class SimpleTypeInferrerVisitor<T>
         visitingInitializers = true;
         visit(node.initializers);
         visitingInitializers = false;
+        // For a generative constructor like: `Foo();`, we synthesize
+        // a call to the default super constructor (the one that takes
+        // no argument). Resolution ensures that such a constructor
+        // exists.
+        if (!isConstructorRedirect
+            && !seenSuperConstructorCall
+            && !cls.isObject(compiler)) {
+          Selector selector =
+              new Selector.callDefaultConstructor(analyzedElement.getLibrary());
+          FunctionElement target = cls.superclass.lookupConstructor(selector);
+          analyzeSuperConstructorCall(target);
+          synthesizeForwardingCall(analyzedElement, target);
+        }
         visit(node.body);
+        inferrer.recordExposesThis(analyzedElement, isThisExposed);
       }
-      ClassElement cls = analyzedElement.getEnclosingClass();
       if (!isConstructorRedirect) {
         // Iterate over all instance fields, and give a null type to
         // fields that we haven't initialized for sure.
@@ -571,13 +606,18 @@ class SimpleTypeInferrerVisitor<T>
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
 
+  bool isInClassOrSubclass(Element element) {
+    ClassElement cls = outermostElement.getEnclosingClass();
+    ClassElement enclosing = element.getEnclosingClass();
+    return (enclosing == cls) || compiler.world.isSubclass(cls, enclosing);
+  }
+
   void checkIfExposesThis(Selector selector) {
     if (isThisExposed) return;
     inferrer.forEachElementMatching(selector, (element) {
       if (element.isField()) {
         if (!selector.isSetter()
-            && element.getEnclosingClass() ==
-                    outermostElement.getEnclosingClass()
+            && isInClassOrSubclass(element)
             && !element.modifiers.isFinal()
             && locals.fieldScope.readField(element) == null
             && element.parseNode(compiler).asSendSet() == null) {
@@ -761,6 +801,22 @@ class SimpleTypeInferrerVisitor<T>
     } else if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, setterSelector, element, arguments);
     } else if (Elements.isUnresolved(element) || element.isSetter()) {
+      if (analyzedElement.isGenerativeConstructor()
+          && (node.asSendSet() != null)
+          && (node.asSendSet().receiver != null)
+          && node.asSendSet().receiver.isThis()) {
+        Iterable<Element> targets = compiler.world.allFunctions.filter(
+            types.newTypedSelector(thisType, setterSelector));
+        // We just recognized a field initialization of the form:
+        // `this.foo = 42`. If there is only one target, we can update
+        // its type.
+        if (targets.length == 1) {
+          Element single = targets.first;
+          if (single.isField()) {
+            locals.updateField(single, rhsType);
+          }
+        }
+      }
       handleDynamicSend(
           node, setterSelector, receiverType, arguments);
     } else if (element.isField()) {
@@ -786,6 +842,10 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitSuperSend(Send node) {
     Element element = elements[node];
+    if (visitingInitializers) {
+      seenSuperConstructorCall = true;
+      analyzeSuperConstructorCall(element);
+    }
     Selector selector = elements.getSelector(node);
     // TODO(ngeoffray): We could do better here if we knew what we
     // are calling does not expose this.
@@ -809,11 +869,36 @@ class SimpleTypeInferrerVisitor<T>
     }
   }
 
-  T visitStaticSend(Send node) {
-    if (visitingInitializers && Initializers.isConstructorRedirect(node)) {
-      isConstructorRedirect = true;
+  // Try to find the length given to a fixed array constructor call.
+  int findLength(Send node) {
+    Node firstArgument = node.arguments.head;
+    Element element = elements[firstArgument];
+    LiteralInt length = firstArgument.asLiteralInt();
+    if (length != null) {
+      return length.value;
+    } else if (element != null
+               && element.isField()
+               && Elements.isStaticOrTopLevelField(element)
+               && compiler.world.fieldNeverChanges(element)) {
+      var constant =
+          compiler.constantHandler.getConstantForVariable(element);
+      if (constant != null && constant.isInt()) {
+        return constant.value;
+      }
     }
+    return null;
+  }
+
+  T visitStaticSend(Send node) {
     Element element = elements[node];
+    if (visitingInitializers) {
+      if (Initializers.isConstructorRedirect(node)) {
+        isConstructorRedirect = true;
+      } else if (Initializers.isSuperConstructorCall(node)) {
+        seenSuperConstructorCall = true;
+        analyzeSuperConstructorCall(element);
+      }
+    }
     if (element.isForeign(compiler)) {
       return handleForeignSend(node);
     }
@@ -830,38 +915,24 @@ class SimpleTypeInferrerVisitor<T>
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)
         || Elements.isFilledListConstructorCall(element, node, compiler)) {
 
-      int initialLength;
-      T elementType;
-      if (Elements.isFixedListConstructorCall(element, node, compiler)) {
-        LiteralInt length = node.arguments.head.asLiteralInt();
-        if (length != null) {
-          initialLength = length.value;
-        }
-        elementType = types.nullType;
-      } else {
-        LiteralInt length = node.arguments.head.asLiteralInt();
-        if (length != null) {
-          initialLength = length.value;
-        }
-        elementType = arguments.positional[1];
-      }
+      int length = findLength(node);
+      T elementType =
+          Elements.isFixedListConstructorCall(element, node, compiler)
+              ? types.nullType
+              : arguments.positional[1];
 
       return inferrer.concreteTypes.putIfAbsent(
           node, () => types.allocateContainer(
               types.fixedListType, node, outermostElement,
-              elementType, initialLength));
+              elementType, length));
     } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
-      int initialLength;
-      LiteralInt length = node.arguments.head.asLiteralInt();
-      if (length != null) {
-        initialLength = length.value;
-      }
+      int length = findLength(node);
       T elementType = inferrer.returnTypeOfElement(
           element.getEnclosingClass().lookupMember('[]'));
       return inferrer.concreteTypes.putIfAbsent(
         node, () => types.allocateContainer(
           types.nonNullExact(element.getEnclosingClass()), node,
-          outermostElement, elementType, initialLength));
+          outermostElement, elementType, length));
     } else if (element.isFunction() || element.isConstructor()) {
       return returnType;
     } else {

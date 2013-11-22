@@ -90,13 +90,18 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   if (Dart_IsNull(sender)) {
     id = kTimerId;
   } else {
-    Socket::GetSocketIdNativeField(sender, &id);
+    id = Socket::GetSocketIdNativeField(sender);
   }
   Dart_Handle handle = Dart_GetNativeArgument(args, 1);
   Dart_Port dart_port =
       DartUtils::GetIntegerField(handle, DartUtils::kIdFieldName);
   int64_t data = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  event_handler->SendData(id, dart_port, data);
+  if (id == kTimerId && data == 0) {
+    // This is a 0-timer. Simply queue a 'null' on the port.
+    DartUtils::PostNull(dart_port);
+  } else {
+    event_handler->SendData(id, dart_port, data);
+  }
 }
 
 }  // namespace bin

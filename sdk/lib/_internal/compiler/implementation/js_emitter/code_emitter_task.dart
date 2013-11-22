@@ -25,7 +25,7 @@ class CodeEmitterTask extends CompilerTask {
   ConstantEmitter constantEmitter;
   NativeEmitter nativeEmitter;
   CodeBuffer mainBuffer;
-  final CodeBuffer deferredLibraries = new CodeBuffer();
+  final CodeBuffer deferredLibrariesBuffer = new CodeBuffer();
   final CodeBuffer deferredConstants = new CodeBuffer();
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
@@ -70,14 +70,20 @@ class CodeEmitterTask extends CompilerTask {
   bool hasMakeConstantList = false;
 
   /**
-   * For classes and libraries, record code for static/top-level members.
-   * Later, this code is emitted when the class or library is emitted.
-   * See [bufferForElement].
+   * Accumulate properties for classes and libraries, describing their
+   * static/top-level members.
+   * Later, these members are emitted when the class or library is emitted.
+   *
+   * For supporting deferred loading we keep one list per output unit.
+   *
+   * The String determines the outputUnit, either "main" or "deferred"
+   *
+   * See [getElementDecriptor].
    */
   // TODO(ahe): Generate statics with their class, and store only libraries in
   // this map.
-  final Map<Element, List<CodeBuffer>> elementBuffers =
-      new Map<Element, List<CodeBuffer>>();
+  final Map<Element, Map<String, ClassBuilder>> elementDecriptors
+      = new Map<Element, Map<String, ClassBuilder>>();
 
   final bool generateSourceMap;
 
@@ -123,6 +129,7 @@ class CodeEmitterTask extends CompilerTask {
       => '${namer.isolateName}.${namer.isolatePropertiesName}';
   String get lazyInitializerName
       => '${namer.isolateName}.\$lazy';
+  String get initName => 'init';
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
     const RANGE1_SIZE = RANGE1_LAST - RANGE1_FIRST + 1;
@@ -137,16 +144,14 @@ class CodeEmitterTask extends CompilerTask {
     String reflectableField = namer.reflectableField;
 
     // function generateAccessor(field, prototype, cls) {
-    jsAst.Fun fun = js.fun(['field', 'accessors', 'cls'], [
+    jsAst.Fun fun = js.fun(['fieldDescriptor', 'accessors', 'cls'], [
+      js('var fieldInformation = fieldDescriptor.split("-")'),
+      js('var field = fieldInformation[0]'),
       js('var len = field.length'),
       js('var code = field.charCodeAt(len - 1)'),
-      js('var reflectable = false'),
-      js.if_('code == $REFLECTION_MARKER', [
-          js('len--'),
-          js('code = field.charCodeAt(len - 1)'),
-          js('field = field.substring(0, len)'),
-          js('reflectable = true')
-      ]),
+      js('var reflectable'),
+      js.if_('fieldInformation.length > 1', js('reflectable = true'),
+             js('reflectable = false')),
       js('code = ((code >= $RANGE1_FIRST) && (code <= $RANGE1_LAST))'
           '    ? code - $RANGE1_ADJUST'
           '    : ((code >= $RANGE2_FIRST) && (code <= $RANGE2_LAST))'
@@ -738,9 +743,9 @@ class CodeEmitterTask extends CompilerTask {
         js.fun([r'$collectedClasses'], precompiledFunction));
   }
 
-  void generateClass(ClassElement classElement, CodeBuffer buffer) {
+  void generateClass(ClassElement classElement, ClassBuilder properties) {
     classEmitter.generateClass(
-        classElement, buffer, additionalProperties[classElement]);
+        classElement, properties, additionalProperties[classElement]);
   }
 
   int _selectorRank(Selector selector) {
@@ -803,7 +808,7 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  void emitStaticFunctions(CodeBuffer eagerBuffer) {
+  void emitStaticFunctions() {
     bool isStaticFunction(Element element) =>
         !element.isInstanceMember() && !element.isField();
 
@@ -813,8 +818,7 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(elements)) {
       ClassBuilder builder = new ClassBuilder();
       containerBuilder.addMember(element, builder);
-      builder.writeOn_DO_NOT_USE(
-          bufferForElement(element, eagerBuffer), compiler, ',$n$n');
+      getElementDecriptor(element).properties.addAll(builder.properties);
     }
   }
 
@@ -924,9 +928,9 @@ class CodeEmitterTask extends CompilerTask {
     hasMakeConstantList = true;
     buffer
         ..write(namer.isolateName)
-        ..write(r'''.makeConstantList = function(list) {
-  list.immutable$list = true;
-  list.fixed$length = true;
+        ..write('''.makeConstantList = function(list) {
+  list.immutable\$list = $initName;
+  list.fixed\$length = $initName;
   return list;
 };
 ''');
@@ -1139,6 +1143,46 @@ mainBuffer.add(r'''
 ''');
   }
 
+  void writeLibraryDescriptors(LibraryElement library) {
+    var uri = library.canonicalUri;
+    if (uri.scheme == 'file' && compiler.sourceMapUri != null) {
+      // TODO(ahe): It is a hack to use compiler.sourceMapUri
+      // here.  It should be relative to the main JavaScript
+      // output file.
+      uri = relativize(
+          compiler.sourceMapUri, library.canonicalUri, false);
+    }
+    Map<String, ClassBuilder> descriptors =
+        elementDecriptors[library];
+
+    Map<String, CodeBuffer> outputBuffers =
+      {"main": mainBuffer,
+       "deferred": deferredLibrariesBuffer};
+
+    for (String outputUnit in outputBuffers.keys) {
+      ClassBuilder descriptor =
+          descriptors.putIfAbsent(outputUnit, ()
+              => new ClassBuilder());
+      if (descriptor.properties.isEmpty) continue;
+      bool isDeferred = outputUnit != "main";
+      jsAst.Fun metadata = metadataEmitter.buildMetadataFunction(library);
+
+      jsAst.ObjectInitializer initializers =
+          descriptor.toObjectInitializer();
+      outputBuffers[outputUnit]
+          ..write('["${library.getLibraryName()}",$_')
+          ..write('"${uri}",$_')
+          ..write(metadata == null ? "" : jsAst.prettyPrint(metadata, compiler))
+          ..write(isDeferred ? '[]' : '')
+          ..write(',$_')
+          ..write(namer.globalObjectFor(library))
+          ..write(',$_')
+          ..write(jsAst.prettyPrint(initializers, compiler))
+          ..write(library == compiler.mainApp ? ',${n}1' : "")
+          ..write('],$n');
+    }
+  }
+
   String assembleProgram() {
     measure(() {
       // Compute the required type checks to know which classes need a
@@ -1172,7 +1216,7 @@ mainBuffer.add(r'''
       mainBuffer.add(
           '$isolateProperties$_=$_$isolatePropertiesName$N');
 
-      emitStaticFunctions(mainBuffer);
+      emitStaticFunctions();
 
       if (!regularClasses.isEmpty ||
           !deferredClasses.isEmpty ||
@@ -1201,7 +1245,7 @@ mainBuffer.add(r'''
       // Might create methodClosures.
       if (!regularClasses.isEmpty) {
         for (ClassElement element in regularClasses) {
-          generateClass(element, bufferForElement(element, mainBuffer));
+          generateClass(element, getElementDecriptor(element));
         }
       }
 
@@ -1211,7 +1255,7 @@ mainBuffer.add(r'''
       // Might create methodClosures.
       if (!deferredClasses.isEmpty) {
         for (ClassElement element in deferredClasses) {
-          generateClass(element, bufferForElement(element, mainBuffer));
+          generateClass(element, getElementDecriptor(element));
         }
       }
 
@@ -1232,14 +1276,14 @@ mainBuffer.add(r'''
       // the classesCollector variable.
       classesCollector = 'classesCollector should not be used from now on';
 
-      if (!elementBuffers.isEmpty) {
+      if (!elementDecriptors.isEmpty) {
         var oldClassesCollector = classesCollector;
         classesCollector = r"$$";
         if (compiler.enableMinification) {
           mainBuffer.write(';');
         }
 
-        for (Element element in elementBuffers.keys) {
+        for (Element element in elementDecriptors.keys) {
           // TODO(ahe): Should iterate over all libraries.  Otherwise, we will
           // not see libraries that only have fields.
           if (element.isLibrary()) {
@@ -1247,15 +1291,8 @@ mainBuffer.add(r'''
             ClassBuilder builder = new ClassBuilder();
             if (classEmitter.emitFields(
                     library, builder, null, emitStatics: true)) {
-              List<CodeBuffer> buffers = elementBuffers[library];
-              var buffer = buffers[0];
-              if (buffer == null) {
-                buffers[0] = buffer = new CodeBuffer();
-              }
-              for (jsAst.Property property in builder.properties) {
-                if (!buffer.isEmpty) buffer.write(',$n');
-                buffer.addBuffer(jsAst.prettyPrint(property, compiler));
-              }
+              getElementDescriptorForOutputUnit(library, "main")
+                  .properties.addAll(builder.properties);
             }
           }
         }
@@ -1298,64 +1335,24 @@ mainBuffer.add(r'''
             ..write('([$n');
 
         List<Element> sortedElements =
-            Elements.sortedByPosition(elementBuffers.keys);
-        bool hasPendingStatics = false;
-        for (Element element in sortedElements) {
-          if (!element.isLibrary()) {
-            for (CodeBuffer b in elementBuffers[element]) {
-              if (b != null) {
-                hasPendingStatics = true;
-                compiler.reportInfo(
-                    element, MessageKind.GENERIC, {'text': 'Pending statics.'});
-                print(b.getText());
-              }
-            }
-            continue;
-          }
-          LibraryElement library = element;
-          List<CodeBuffer> buffers = elementBuffers[library];
-          var buffer = buffers[0];
-          var uri = library.canonicalUri;
-          if (uri.scheme == 'file' && compiler.sourceMapUri != null) {
-            // TODO(ahe): It is a hack to use compiler.sourceMapUri
-            // here.  It should be relative to the main JavaScript
-            // output file.
-            uri = relativize(
-                compiler.sourceMapUri, library.canonicalUri, false);
-          }
-          if (buffer != null) {
-            var metadata = metadataEmitter.buildMetadataFunction(library);
-            mainBuffer
-                ..write('["${library.getLibraryName()}",$_')
-                ..write('"${uri}",$_')
-                ..write(metadata == null
-                        ? "" : jsAst.prettyPrint(metadata, compiler))
-                ..write(',$_')
-                ..write(namer.globalObjectFor(library))
-                ..write(',$_')
-                ..write('{$n')
-                ..addBuffer(buffer)
-                ..write('}');
-            if (library == compiler.mainApp) {
-              mainBuffer.write(',${n}1');
-            }
-            mainBuffer.write('],$n');
-          }
-          buffer = buffers[1];
-          if (buffer != null) {
-            deferredLibraries
-                ..write('["${library.getLibraryName()}",$_')
-                ..write('"${uri}",$_')
-                ..write('[],$_')
-                ..write(namer.globalObjectFor(library))
-                ..write(',$_')
-                ..write('{$n')
-                ..addBuffer(buffer)
-                ..write('}],$n');
-          }
-          elementBuffers[library] = const [];
+            Elements.sortedByPosition(elementDecriptors.keys);
+
+        Iterable<Element> pendingStatics = sortedElements.where((element) {
+            return !element.isLibrary() &&
+                elementDecriptors[element].values.any((descriptor) =>
+                    descriptor != null);
+        });
+
+        pendingStatics.forEach((element) =>
+            compiler.reportInfo(
+                element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
+
+        for (LibraryElement library in sortedElements.where((element) =>
+            element.isLibrary())) {
+          writeLibraryDescriptors(library);
+          elementDecriptors[library] = const {};
         }
-        if (hasPendingStatics) {
+        if (!pendingStatics.isEmpty) {
           compiler.internalError('Pending statics (see above).');
         }
         mainBuffer.write('])$N');
@@ -1368,14 +1365,15 @@ mainBuffer.add(r'''
 
       typeTestEmitter.emitRuntimeTypeSupport(mainBuffer);
       interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
+      interceptorEmitter.emitOneShotInterceptors(mainBuffer);
       // Constants in checked mode call into RTI code to set type information
-      // which may need getInterceptor methods, so we have to make sure that
-      // [emitGetInterceptorMethods] has been called.
+      // which may need getInterceptor (and one-shot interceptor) methods, so
+      // we have to make sure that [emitGetInterceptorMethods] and
+      // [emitOneShotInterceptors] have been called.
       emitCompileTimeConstants(mainBuffer);
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
-      interceptorEmitter.emitOneShotInterceptors(mainBuffer);
       interceptorEmitter.emitInterceptedNames(mainBuffer);
       interceptorEmitter.emitMapTypeToInterceptor(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
@@ -1467,7 +1465,16 @@ if (typeof $printHelperName === "function") {
     return compiler.assembledCode;
   }
 
-  CodeBuffer bufferForElement(Element element, CodeBuffer eagerBuffer) {
+  ClassBuilder getElementDescriptorForOutputUnit(Element element,
+      String outputUnit) {
+    Map<String, ClassBuilder> descriptors =
+        elementDecriptors.putIfAbsent(
+            element, () => new Map<String, ClassBuilder>());
+    return descriptors.putIfAbsent(outputUnit,
+        () => new ClassBuilder());
+  }
+
+  ClassBuilder getElementDecriptor(Element element) {
     Element owner = element.getLibrary();
     if (!element.isTopLevel() && !element.isNative()) {
       // For static (not top level) elements, record their code in a buffer
@@ -1483,15 +1490,8 @@ if (typeof $printHelperName === "function") {
     if (owner == null) {
       compiler.internalErrorOnElement(element, 'Owner is null');
     }
-    List<CodeBuffer> buffers = elementBuffers.putIfAbsent(
-        owner, () => <CodeBuffer>[null, null]);
-    bool deferred = isDeferred(element);
-    int index = deferred ? 1 : 0;
-    CodeBuffer buffer = buffers[index];
-    if (buffer == null) {
-      buffer = buffers[index] = new CodeBuffer();
-    }
-    return buffer;
+    String outputUnit = isDeferred(element) ? "deferred" : "main";
+    return getElementDescriptorForOutputUnit(owner, outputUnit);
   }
 
   /**
@@ -1516,14 +1516,14 @@ if (typeof $printHelperName === "function") {
 
 
   void emitDeferredCode() {
-    if (deferredLibraries.isEmpty && deferredConstants.isEmpty) return;
+    if (deferredLibrariesBuffer.isEmpty && deferredConstants.isEmpty) return;
 
     var oldClassesCollector = classesCollector;
     classesCollector = r"$$";
 
     // It does not make sense to defer constants if there are no
     // deferred elements.
-    assert(!deferredLibraries.isEmpty);
+    assert(!deferredLibrariesBuffer.isEmpty);
 
     var buffer = new CodeBuffer()
         ..write(buildGeneratedBy())
@@ -1539,7 +1539,7 @@ if (typeof $printHelperName === "function") {
                 '$classesCollector$_=$_{};$n')
         ..write(getReflectionDataParser(classesCollector, namer))
         ..write('([$n')
-        ..addBuffer(deferredLibraries)
+        ..addBuffer(deferredLibrariesBuffer)
         ..write('])$N');
 
     if (!deferredClasses.isEmpty) {

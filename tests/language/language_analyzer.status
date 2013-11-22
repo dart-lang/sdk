@@ -6,14 +6,12 @@
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
-# TBD: using built-in identifers
-built_in_identifier_prefix_test: fail # Issue 12694
+# Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
+built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 
 # TBD: these look like bad tests, no issue number
 class_literal_test: fail
 constructor_call_as_function_test/01: fail
-
-function_type_alias9_test/00: crash # Issue 11987
 
 # TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/03: fail
@@ -55,6 +53,8 @@ factory5_test/none: fail # Issue 11578
 type_variable_bounds_test/none: fail # Issue 11578
 type_variable_scope_test/none: fail # Issue 11578
 factory_implementation_test/none: fail # Issue 11578
+malbounded_redirecting_factory_test/none: fail # Issue 11578
+malbounded_redirecting_factory2_test/none: fail # Issue 11578
 
 # test issue 11579, assignment, no setter
 getter_no_setter_test/none: fail
@@ -166,7 +166,6 @@ bad_named_parameters2_test: StaticWarning
 bad_named_parameters_test: StaticWarning
 bit_operations_test: StaticWarning
 body_less_constructor_wrong_arg_negative_test: CompileTimeError
-built_in_identifier_test/01: CompileTimeError
 call_constructor_on_unresolvable_class_test/04: StaticWarning
 call_constructor_on_unresolvable_class_test/05: StaticWarning
 call_constructor_on_unresolvable_class_test/06: StaticWarning

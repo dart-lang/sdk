@@ -146,7 +146,9 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
 void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
   const Class& cls = Class::ZoneHandle(
-       Class::New(function_name, Script::Handle(), Scanner::kDummyTokenIndex));
+      Class::New(function_name, Script::Handle(), Scanner::kDummyTokenIndex));
+  const Library& lib = Library::ZoneHandle(Library::New(function_name));
+  cls.set_library(lib);
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, false, false, cls, 0));

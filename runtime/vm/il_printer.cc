@@ -372,9 +372,6 @@ void EqualityCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(" %s ", Token::Str(kind()));
   right()->PrintTo(f);
-  if (HasICData()) {
-    PrintICData(f, *ic_data());
-  }
 }
 
 
@@ -573,6 +570,18 @@ void ExtractConstructorTypeArgumentsInstr::PrintOperandsTo(
 
 void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%" Pd "", num_context_variables());
+}
+
+
+void MathUnaryInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("'%s', ", MethodRecognizer::KindToCString(kind()));
+  value()->PrintTo(f);
+}
+
+
+void MergedMathInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("'%s', ", MergedMathInstr::KindToCString(kind()));
+  Definition::PrintOperandsTo(f);
 }
 
 

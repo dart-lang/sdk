@@ -102,19 +102,19 @@ class PartialParser extends Parser {
       if (!allowAbstract) {
         listener.reportError(token, MessageKind.BODY_EXPECTED);
       }
-      // No body.
-    } else if (identical(value, '=>')) {
-      token = parseExpression(token.next);
-      expectSemicolon(token);
-    } else if (value == '=') {
-      token = parseRedirectingFactoryBody(token);
-      expectSemicolon(token);
+      listener.handleNoFunctionBody(token);
     } else {
-      token = skipBlock(token);
+      if (identical(value, '=>')) {
+        token = parseExpression(token.next);
+        expectSemicolon(token);
+      } else if (value == '=') {
+        token = parseRedirectingFactoryBody(token);
+        expectSemicolon(token);
+      } else {
+        token = skipBlock(token);
+      }
+      listener.skippedFunctionBody(token);
     }
-    // There is no "skipped function body event", so we use
-    // handleNoFunctionBody instead.
-    listener.handleNoFunctionBody(token);
     return token;
   }
 

@@ -5,7 +5,7 @@
 #include "vm/parser.h"
 
 #include "lib/invocation_mirror.h"
-#include "vm/bigint_operations.h"
+#include "platform/utils.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
@@ -14,14 +14,22 @@
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
+#include "vm/handles.h"
+#include "vm/heap.h"
+#include "vm/isolate.h"
 #include "vm/longjump.h"
+#include "vm/native_arguments.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/os.h"
 #include "vm/resolver.h"
+#include "vm/scanner.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/timer.h"
+#include "vm/zone.h"
 
 namespace dart {
 
@@ -194,11 +202,14 @@ class Parser::TryBlocks : public ZoneAllocated {
       : try_block_(try_block),
         inlined_finally_nodes_(),
         outer_try_block_(outer_try_block),
-        try_index_(try_index) { }
+        try_index_(try_index),
+        inside_catch_(false) { }
 
   TryBlocks* outer_try_block() const { return outer_try_block_; }
   Block* try_block() const { return try_block_; }
   intptr_t try_index() const { return try_index_; }
+  bool inside_catch() const { return inside_catch_; }
+  void enter_catch() { inside_catch_ = true; }
 
   void AddNodeForFinallyInlining(AstNode* node);
   AstNode* GetNodeToInlineFinally(int index) {
@@ -213,6 +224,7 @@ class Parser::TryBlocks : public ZoneAllocated {
   GrowableArray<AstNode*> inlined_finally_nodes_;
   TryBlocks* outer_try_block_;
   const intptr_t try_index_;
+  bool inside_catch_;
 
   DISALLOW_COPY_AND_ASSIGN(TryBlocks);
 };
@@ -864,9 +876,7 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
 
 
 RawArray* Parser::EvaluateMetadata() {
-  if (CurrentToken() != Token::kAT) {
-    ErrorMsg("Metadata character '@' expected");
-  }
+  CheckToken(Token::kAT, "Metadata character '@' expected");
   GrowableObjectArray& meta_values =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   while (CurrentToken() == Token::kAT) {
@@ -1077,10 +1087,10 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
     current_block_->scope->AddVariable(catch_excp_var);
   }
   LocalVariable* catch_trace_var =
-      current_block_->scope->LocalLookupVariable(Symbols::StacktraceVar());
+      current_block_->scope->LocalLookupVariable(Symbols::StackTraceVar());
   if (catch_trace_var == NULL) {
     catch_trace_var = new LocalVariable(token_pos,
-                                        Symbols::StacktraceVar(),
+                                        Symbols::StackTraceVar(),
                                         Type::ZoneHandle(Type::DynamicType()));
     current_block_->scope->AddVariable(catch_trace_var);
   }
@@ -1096,10 +1106,6 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
   SequenceNode* try_block = CloseBlock();  // End try block.
 
   OpenBlock();  // Start catch handler list.
-  SourceLabel* end_catch_label =
-      SourceLabel::New(token_pos, NULL, SourceLabel::kCatch);
-  current_block_->scope->AddLabel(end_catch_label);
-
   OpenBlock();  // Start catch clause.
   AstNode* compare_transition_sentinel = new ComparisonNode(
       token_pos,
@@ -1120,8 +1126,6 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
       new ThrowNode(token_pos,
                     new LoadLocalNode(token_pos, catch_excp_var),
                     new LoadLocalNode(token_pos, catch_trace_var)));
-  current_block_->statements->Add(
-      new JumpNode(token_pos, Token::kCONTINUE, end_catch_label));
   SequenceNode* catch_clause = CloseBlock();  // End catch clause.
 
   current_block_->statements->Add(catch_clause);
@@ -1138,7 +1142,6 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
 
   AstNode* try_catch_node = new TryCatchNode(token_pos,
                                              try_block,
-                                             end_catch_label,
                                              context_var,
                                              catch_block,
                                              NULL,  // No finally block.
@@ -1601,6 +1604,10 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         signature_type ^= ClassFinalizer::FinalizeType(
             signature_class, signature_type, ClassFinalizer::kCanonicalize);
       }
+      // A signature type itself cannot be malformed or malbounded, only its
+      // signature function's result type or parameter types may be.
+      ASSERT(!signature_type.IsMalformed());
+      ASSERT(!signature_type.IsMalbounded());
       // The type of the parameter is now the signature type.
       parameter.type = &signature_type;
     }
@@ -1693,13 +1700,9 @@ void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
                             evaluate_metadata,
                             params);
       if (params->has_optional_positional_parameters) {
-        if (CurrentToken() != Token::kRBRACK) {
-          ErrorMsg("',' or ']' expected");
-        }
+        CheckToken(Token::kRBRACK, "',' or ']' expected");
       } else {
-        if (CurrentToken() != Token::kRBRACE) {
-          ErrorMsg("',' or '}' expected");
-        }
+        CheckToken(Token::kRBRACE, "',' or '}' expected");
       }
       ConsumeToken();  // ']' or '}'.
     }
@@ -1719,9 +1722,7 @@ String& Parser::ParseNativeDeclaration() {
   TRACE_PARSER("ParseNativeDeclaration");
   ASSERT(IsLiteral("native"));
   ConsumeToken();
-  if (CurrentToken() != Token::kSTRING) {
-    ErrorMsg("string literal expected");
-  }
+  CheckToken(Token::kSTRING, "string literal expected");
   String& native_name = *CurrentLiteral();
   ConsumeToken();
   return native_name;
@@ -2122,9 +2123,7 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
     ctor_name = String::Concat(ctor_name,
                                *ExpectIdentifier("constructor name expected"));
   }
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("parameter list expected");
-  }
+  CheckToken(Token::kLPAREN, "parameter list expected");
 
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // 'this' parameter is the first argument to super class constructor.
@@ -2383,9 +2382,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
     ctor_name = String::Concat(ctor_name,
                                *ExpectIdentifier("constructor name expected"));
   }
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("parameter list expected");
-  }
+  CheckToken(Token::kLPAREN, "parameter list expected");
 
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
   // 'this' parameter is the first argument to constructor.
@@ -2442,7 +2439,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
       current_class(), receiver, &initialized_fields);
   receiver->set_invisible(false);
 
-  // If the class of this implicit constructor is a mixin typedef class,
+  // If the class of this implicit constructor is a mixin application alias,
   // it is a forwarding constructor of the aliased mixin application class.
   // If the class of this implicit constructor is a mixin application class,
   // it is a forwarding constructor of the mixin. The forwarding
@@ -2450,7 +2447,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // expressions and then calls the respective super constructor with
   // the same name and number of parameters.
   ArgumentListNode* forwarding_args = NULL;
-  if (current_class().is_mixin_typedef() ||
+  if (current_class().is_mixin_app_alias() ||
       current_class().IsMixinApplication()) {
     // At this point we don't support forwarding constructors
     // that have optional parameters because we don't know the default
@@ -3005,9 +3002,7 @@ void Parser::SkipInitializers() {
         ConsumeToken();
         ExpectIdentifier("identifier expected");
       }
-      if (CurrentToken() != Token::kLPAREN) {
-        ErrorMsg("'(' expected");
-      }
+      CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
     } else {
       SkipIf(Token::kTHIS);
@@ -3184,7 +3179,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
           method->name->ToCString(),
           String::Handle(type.UserVisibleName()).ToCString());
     } else {
-      // TODO(regis): What if the redirection type is malbounded?
+      // We handle malformed and malbounded redirection type at run time.
       redirection_type ^= type.raw();
     }
     if (CurrentToken() == Token::kPERIOD) {
@@ -3218,9 +3213,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
             *ExpectIdentifier("constructor name expected"));
       }
       method->redirect_name = &redir_name;
-      if (CurrentToken() != Token::kLPAREN) {
-        ErrorMsg("'(' expected");
-      }
+      CheckToken(Token::kLPAREN);
       SkipToMatchingParenthesis();
     } else {
       SkipInitializers();
@@ -3687,9 +3680,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     // Ensure that names are symbols.
     *member.name = Symbols::New(*member.name);
 
-    if (CurrentToken() != Token::kLPAREN) {
-      ErrorMsg("left parenthesis expected");
-    }
+    CheckToken(Token::kLPAREN);
   } else if ((CurrentToken() == Token::kGET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
              (LookaheadToken(1) != Token::kASSIGN) &&
@@ -3709,9 +3700,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     member.kind = RawFunction::kSetterFunction;
     member.name_pos = this->TokenPos();
     member.name = ExpectIdentifier("identifier expected");
-    if (CurrentToken() != Token::kLPAREN) {
-      ErrorMsg("'(' expected");
-    }
+    CheckToken(Token::kLPAREN);
     // The grammar allows a return type, so member.type is not always NULL here.
     // If no return type is specified, the return type of the setter is dynamic.
     if (member.type == NULL) {
@@ -3896,12 +3885,14 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     ConsumeToken();  // extends or =
     const intptr_t type_pos = TokenPos();
     super_type = ParseType(ClassFinalizer::kResolveTypeParameters);
-    if (super_type.IsMalformed() || super_type.IsDynamicType()) {
+    if (super_type.IsMalformedOrMalbounded()) {
+      ErrorMsg(Error::Handle(super_type.error()));
+    }
+    if (super_type.IsDynamicType()) {
       // Unlikely here, since super type is not resolved yet.
       ErrorMsg(type_pos,
-               "class '%s' may not extend %s",
-               class_name.ToCString(),
-               super_type.IsMalformed() ? "a malformed type" : "'dynamic'");
+               "class '%s' may not extend 'dynamic'",
+               class_name.ToCString());
     }
     if (super_type.IsTypeParameter()) {
       ErrorMsg(type_pos,
@@ -3914,7 +3905,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       super_type = ParseMixins(super_type);
     }
     if (is_mixin_declaration) {
-      cls.set_is_mixin_typedef();
+      cls.set_is_mixin_app_alias();
       cls.set_is_synthesized_class();
     }
   } else {
@@ -3944,9 +3935,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   if (is_mixin_declaration) {
     ExpectSemicolon();
   } else {
-    if (CurrentToken() != Token::kLBRACE) {
-      ErrorMsg("{ expected");
-    }
+    CheckToken(Token::kLBRACE);
     SkipBlock();
     ExpectToken(Token::kRBRACE);
   }
@@ -4073,13 +4062,15 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 }
 
 
-void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
-                               intptr_t metadata_pos) {
-  TRACE_PARSER("ParseMixinTypedef");
+void Parser::ParseMixinAppAlias(
+    const GrowableObjectArray& pending_classes,
+    intptr_t metadata_pos) {
+  TRACE_PARSER("ParseMixinAppAlias");
   const intptr_t classname_pos = TokenPos();
   String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
   if (FLAG_trace_parser) {
-    OS::Print("toplevel parsing typedef class '%s'\n", class_name.ToCString());
+    OS::Print("toplevel parsing mixin application alias class '%s'\n",
+              class_name.ToCString());
   }
   const Object& obj = Object::Handle(library_.LookupLocalObject(class_name));
   if (!obj.IsNull()) {
@@ -4088,7 +4079,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
   }
   const Class& mixin_application =
       Class::Handle(Class::New(class_name, script_, classname_pos));
-  mixin_application.set_is_mixin_typedef();
+  mixin_application.set_is_mixin_app_alias();
   library_.AddClass(mixin_application);
   set_current_class(mixin_application);
   ParseTypeParameters(mixin_application);
@@ -4110,15 +4101,13 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes,
              String::Handle(type.UserVisibleName()).ToCString());
   }
 
-  if (CurrentToken() != Token::kWITH) {
-    ErrorMsg("mixin application 'with Type' expected");
-  }
+  CheckToken(Token::kWITH, "mixin application 'with Type' expected");
   type = ParseMixins(type);
 
   mixin_application.set_super_type(type);
   mixin_application.set_is_synthesized_class();
 
-  // This mixin application typedef needs an implicit constructor, but it is
+  // This mixin application alias needs an implicit constructor, but it is
   // too early to call 'AddImplicitConstructor(mixin_application)' here,
   // because this class should be lazily compiled.
   if (CurrentToken() == Token::kIMPLEMENTS) {
@@ -4155,7 +4144,7 @@ bool Parser::IsFunctionTypeAliasName() {
 
 // Look ahead to detect if we are seeing ident [ TypeParameters ] "=".
 // Token position remains unchanged.
-bool Parser::IsMixinTypedef() {
+bool Parser::IsMixinAppAlias() {
   if (IsIdentifier() && (LookaheadToken(1) == Token::kASSIGN)) {
     return true;
   }
@@ -4177,11 +4166,11 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   TRACE_PARSER("ParseTypedef");
   ExpectToken(Token::kTYPEDEF);
 
-  if (IsMixinTypedef()) {
+  if (IsMixinAppAlias()) {
     if (FLAG_warn_mixin_typedef) {
-      Warning("deprecated mixin typedef");
+      Warning("deprecated mixin application typedef");
     }
-    ParseMixinTypedef(pending_classes, metadata_pos);
+    ParseMixinAppAlias(pending_classes, metadata_pos);
     return;
   }
 
@@ -4191,7 +4180,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
     ConsumeToken();
     result_type = Type::VoidType();
   } else if (!IsFunctionTypeAliasName()) {
-    // Type annotations in typedef are never ignored, even in unchecked mode.
+    // Type annotations in typedef are never ignored, even in production mode.
     // Wait until we have an owner class before resolving the result type.
     result_type = ParseType(ClassFinalizer::kDoNotResolve);
   }
@@ -4229,9 +4218,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                          &result_type);
   }
   // Parse the formal parameters of the function type.
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("formal parameter list expected");
-  }
+  CheckToken(Token::kLPAREN, "formal parameter list expected");
   ParamList func_params;
 
   // Add implicit closure object parameter.
@@ -4657,9 +4644,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   // A setter named x= may co-exist with a function named x, thus we do
   // not need to check setters.
 
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("'(' expected");
-  }
+  CheckToken(Token::kLPAREN);
   const intptr_t function_pos = TokenPos();
   ParamList params;
   const bool allow_explicit_default_values = true;
@@ -4916,9 +4901,7 @@ void Parser::ParseLibraryImportExport() {
   ASSERT(is_import || is_export);
   const intptr_t import_pos = TokenPos();
   ConsumeToken();
-  if (CurrentToken() != Token::kSTRING) {
-    ErrorMsg("library url expected");
-  }
+  CheckToken(Token::kSTRING, "library url expected");
   AstNode* url_literal = ParseStringLiteral(false);
   ASSERT(url_literal->IsLiteralNode());
   ASSERT(url_literal->AsLiteralNode()->literal().IsString());
@@ -5007,9 +4990,7 @@ void Parser::ParseLibraryImportExport() {
 void Parser::ParseLibraryPart() {
   const intptr_t source_pos = TokenPos();
   ConsumeToken();  // Consume "part".
-  if (CurrentToken() != Token::kSTRING) {
-    ErrorMsg("url expected");
-  }
+  CheckToken(Token::kSTRING, "url expected");
   AstNode* url_literal = ParseStringLiteral(false);
   ASSERT(url_literal->IsLiteralNode());
   ASSERT(url_literal->AsLiteralNode()->literal().IsString());
@@ -5075,9 +5056,7 @@ void Parser::ParseLibraryDefinition() {
 
 void Parser::ParsePartHeader() {
   SkipMetadata();
-  if (CurrentToken() != Token::kPART) {
-    ErrorMsg("'part of' expected");
-  }
+  CheckToken(Token::kPART, "'part of' expected");
   ConsumeToken();
   if (!IsLiteral("of")) {
     ErrorMsg("'part of' expected");
@@ -5589,10 +5568,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                line_number);
     }
   }
-
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("'(' expected");
-  }
+  CheckToken(Token::kLPAREN);
 
   // Check whether we have parsed this closure function before, in a previous
   // compilation. If so, reuse the function object, else create a new one
@@ -5714,27 +5690,23 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // The call to ClassFinalizer::FinalizeType may have
     // extended the vector of type arguments.
     signature_type_arguments = signature_type.arguments();
-    ASSERT(signature_type.IsMalformed() ||
-           signature_type_arguments.IsNull() ||
+    ASSERT(signature_type_arguments.IsNull() ||
            (signature_type_arguments.Length() ==
             signature_class.NumTypeArguments()));
 
     // The signature_class should not have changed.
-    ASSERT(signature_type.IsMalformed() ||
-           (signature_type.type_class() == signature_class.raw()));
+    ASSERT(signature_type.type_class() == signature_class.raw());
   }
+
+  // A signature type itself cannot be malformed or malbounded, only its
+  // signature function's result type or parameter types may be.
+  ASSERT(!signature_type.IsMalformed());
+  ASSERT(!signature_type.IsMalbounded());
 
   if (variable_name != NULL) {
     // Patch the function type of the variable now that the signature is known.
     function_type.set_type_class(signature_class);
     function_type.set_arguments(signature_type_arguments);
-
-    // Mark the function type as malformed if the signature type is malformed.
-    if (signature_type.IsMalformed()) {
-      const Error& error = Error::Handle(signature_type.malformed_error());
-      function_type.set_malformed_error(error);
-    }
-    // TODO(regis): What if the signature is malbounded?
 
     // The function type was initially marked as instantiated, but it may
     // actually be uninstantiated.
@@ -6689,36 +6661,39 @@ AstNode* Parser::ParseAssertStatement() {
 
 struct CatchParamDesc {
   CatchParamDesc()
-      : token_pos(0), type(NULL), var(NULL) { }
+      : token_pos(0), type(NULL), name(NULL), var(NULL) { }
   intptr_t token_pos;
   const AbstractType* type;
-  const String* var;
+  const String* name;
+  LocalVariable* var;
 };
 
 
 // Populate local scope of the catch block with the catch parameters.
-void Parser::AddCatchParamsToScope(const CatchParamDesc& exception_param,
-                                   const CatchParamDesc& stack_trace_param,
+void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
+                                   CatchParamDesc* stack_trace_param,
                                    LocalScope* scope) {
-  if (exception_param.var != NULL) {
-    LocalVariable* var = new LocalVariable(exception_param.token_pos,
-                                           *exception_param.var,
-                                           *exception_param.type);
+  if (exception_param->name != NULL) {
+    LocalVariable* var = new LocalVariable(exception_param->token_pos,
+                                           *exception_param->name,
+                                           *exception_param->type);
     var->set_is_final();
     bool added_to_scope = scope->AddVariable(var);
     ASSERT(added_to_scope);
+    exception_param->var = var;
   }
-  if (stack_trace_param.var != NULL) {
-    LocalVariable* var = new LocalVariable(TokenPos(),
-                                           *stack_trace_param.var,
-                                           *stack_trace_param.type);
+  if (stack_trace_param->name != NULL) {
+    LocalVariable* var = new LocalVariable(stack_trace_param->token_pos,
+                                           *stack_trace_param->name,
+                                           *stack_trace_param->type);
     var->set_is_final();
     bool added_to_scope = scope->AddVariable(var);
     if (!added_to_scope) {
-      ErrorMsg(stack_trace_param.token_pos,
+      ErrorMsg(stack_trace_param->token_pos,
                "name '%s' already exists in scope",
-               stack_trace_param.var->ToCString());
+               stack_trace_param->name->ToCString());
     }
+    stack_trace_param->var = var;
   }
 }
 
@@ -6787,22 +6762,197 @@ void Parser::AddFinallyBlockToNode(AstNode* node,
 }
 
 
+SequenceNode* Parser::ParseCatchClauses(
+    intptr_t handler_pos,
+    LocalVariable* exception_var,
+    LocalVariable* stack_trace_var,
+    const GrowableObjectArray& handler_types,
+    bool* needs_stack_trace) {
+  // All catch blocks are merged into an if-then-else sequence of the
+  // different types specified using the 'is' operator.  While parsing
+  // record the type tests (either a ComparisonNode or else the LiteralNode
+  // true for a generic catch) and the catch bodies in a pair of parallel
+  // lists.  Afterward, construct the nested if-then-else.
+  bool generic_catch_seen = false;
+  GrowableArray<AstNode*> type_tests;
+  GrowableArray<SequenceNode*> catch_blocks;
+  while ((CurrentToken() == Token::kCATCH) || IsLiteral("on")) {
+    // Open a block that contains the if or an unconditional body.  It's
+    // closed in the loop that builds the if-then-else nest.
+    OpenBlock();
+    const intptr_t catch_pos = TokenPos();
+    CatchParamDesc exception_param;
+    CatchParamDesc stack_trace_param;
+    if (IsLiteral("on")) {
+      ConsumeToken();
+      exception_param.type = &AbstractType::ZoneHandle(
+          ParseType(ClassFinalizer::kCanonicalize));
+    } else {
+      exception_param.type = &AbstractType::ZoneHandle(Type::DynamicType());
+    }
+    if (CurrentToken() == Token::kCATCH) {
+      ConsumeToken();  // Consume the 'catch'.
+      ExpectToken(Token::kLPAREN);
+      exception_param.token_pos = TokenPos();
+      exception_param.name = ExpectIdentifier("identifier expected");
+      if (CurrentToken() == Token::kCOMMA) {
+        ConsumeToken();
+        // TODO(hausner): Make implicit type be StackTrace, not dynamic.
+        stack_trace_param.type =
+            &AbstractType::ZoneHandle(Type::DynamicType());
+        stack_trace_param.token_pos = TokenPos();
+        stack_trace_param.name = ExpectIdentifier("identifier expected");
+      }
+      ExpectToken(Token::kRPAREN);
+    }
+
+    // Create a block containing the catch clause parameters and the
+    // following code:
+    // 1) Store exception object and stack trace object into user-defined
+    //    variables (as needed).
+    // 2) Nested block with source code from catch clause block.
+    OpenBlock();
+    AddCatchParamsToScope(&exception_param, &stack_trace_param,
+                          current_block_->scope);
+
+    if (exception_param.var != NULL) {
+      // Generate code to load the exception object (:exception_var) into
+      // the exception variable specified in this block.
+      ASSERT(exception_var != NULL);
+      current_block_->statements->Add(
+          new StoreLocalNode(catch_pos, exception_param.var,
+                             new LoadLocalNode(catch_pos, exception_var)));
+    }
+    if (stack_trace_param.var != NULL) {
+      // A stack trace variable is specified in this block, so generate code
+      // to load the stack trace object (:stack_trace_var) into the stack
+      // trace variable specified in this block.
+      *needs_stack_trace = true;
+      ArgumentListNode* no_args = new ArgumentListNode(catch_pos);
+      ASSERT(stack_trace_var != NULL);
+      current_block_->statements->Add(
+          new StoreLocalNode(catch_pos, stack_trace_param.var,
+                             new LoadLocalNode(catch_pos, stack_trace_var)));
+      current_block_->statements->Add(
+          new InstanceCallNode(
+              catch_pos,
+              new LoadLocalNode(catch_pos, stack_trace_param.var),
+              Library::PrivateCoreLibName(Symbols::_setupFullStackTrace()),
+              no_args));
+    }
+
+    // Add nested block with user-defined code.  This blocks allows
+    // declarations in the body to shadow the catch parameters.
+    CheckToken(Token::kLBRACE);
+    current_block_->statements->Add(ParseNestedStatement(false, NULL));
+    catch_blocks.Add(CloseBlock());
+
+    const bool is_bad_type =
+        exception_param.type->IsMalformed() ||
+        exception_param.type->IsMalbounded();
+    if (exception_param.type->IsDynamicType() || is_bad_type) {
+      // There is no exception type or else it is malformed or malbounded.
+      // In the first case, unconditionally execute the catch body.  In the
+      // second case, unconditionally throw.
+      generic_catch_seen = true;
+      type_tests.Add(new LiteralNode(catch_pos, Bool::True()));
+      if (is_bad_type) {
+        // Replace the body with one that throws.
+        SequenceNode* block = new SequenceNode(catch_pos, NULL);
+        block->Add(ThrowTypeError(catch_pos, *exception_param.type));
+        catch_blocks.Last() = block;
+      }
+      // This catch clause will handle all exceptions. We can safely forget
+      // all previous catch clause types.
+      handler_types.SetLength(0);
+      handler_types.Add(*exception_param.type);
+    } else {
+      // Has a type specification that is not malformed or malbounded.  Now
+      // form an 'if type check' to guard the catch handler code.
+      if (!exception_param.type->IsInstantiated() &&
+          (current_block_->scope->function_level() > 0)) {
+        // Make sure that the instantiator is captured.
+        CaptureInstantiator();
+      }
+      TypeNode* exception_type = new TypeNode(catch_pos, *exception_param.type);
+      AstNode* exception_value = new LoadLocalNode(catch_pos, exception_var);
+      if (!exception_type->type().IsInstantiated()) {
+        EnsureExpressionTemp();
+      }
+      type_tests.Add(new ComparisonNode(catch_pos, Token::kIS, exception_value,
+                                        exception_type));
+
+      // Do not add uninstantiated types (e.g. type parameter T or generic
+      // type List<T>), since the debugger won't be able to instantiate it
+      // when walking the stack.
+      //
+      // This means that the debugger is not able to determine whether an
+      // exception is caught if the catch clause uses generic types.  It
+      // will report the exception as uncaught when in fact it might be
+      // caught and handled when we unwind the stack.
+      if (!generic_catch_seen && exception_param.type->IsInstantiated()) {
+        handler_types.Add(*exception_param.type);
+      }
+    }
+
+    ASSERT(type_tests.length() == catch_blocks.length());
+  }
+
+  // Build the if/then/else nest from the inside out.  Keep the AST simple
+  // for the case of a single generic catch clause.  The initial value of
+  // current is the last (innermost) else block if there were any catch
+  // clauses.
+  SequenceNode* current = NULL;
+  if (!generic_catch_seen) {
+    // There isn't a generic catch clause so create a clause body that
+    // rethrows the exception.  This includes the case that there were no
+    // catch clauses.
+    current = new SequenceNode(handler_pos, NULL);
+    current->Add(
+        new ThrowNode(handler_pos,
+                      new LoadLocalNode(handler_pos, exception_var),
+                      new LoadLocalNode(handler_pos, stack_trace_var)));
+  } else if (type_tests.Last()->IsLiteralNode()) {
+    ASSERT(type_tests.Last()->AsLiteralNode()->literal().raw() ==
+           Bool::True().raw());
+    // The last body is entered unconditionally.  Start building the
+    // if/then/else nest with that body as the innermost else block.
+    // Note that it is nested inside an extra block which we opened
+    // before we knew the body was entered unconditionally.
+    type_tests.RemoveLast();
+    current_block_->statements->Add(catch_blocks.RemoveLast());
+    current = CloseBlock();
+  }
+  // If the last body was entered conditionally and there is no need to add
+  // a rethrow, use an empty else body (current = NULL above).
+
+  while (!type_tests.is_empty()) {
+    AstNode* type_test = type_tests.RemoveLast();
+    SequenceNode* catch_block = catch_blocks.RemoveLast();
+    current_block_->statements->Add(
+        new IfNode(type_test->token_pos(), type_test, catch_block, current));
+    current = CloseBlock();
+  }
+  return current;
+}
+
+
 AstNode* Parser::ParseTryStatement(String* label_name) {
   TRACE_PARSER("ParseTryStatement");
 
-  // We create three stack slots for exceptions here:
-  // ':saved_try_context_var' - Used to save the context before start of the try
-  //                            block. The context register is restored from
-  //                            this slot before processing the catch block
-  //                            handler.
+  // We create three variables for exceptions here:
+  // ':saved_try_context_var' - Used to save the context before the start of
+  //                            the try block. The context register is
+  //                            restored from this variable before
+  //                            processing the catch block handler.
   // ':exception_var' - Used to save the current exception object that was
   //                    thrown.
-  // ':stacktrace_var' - Used to save the current stack trace object into which
-  //                     the stack trace was copied into when an exception was
-  //                     thrown.
-  // :exception_var and :stacktrace_var get set with the exception object
-  // and the stacktrace object when an exception is thrown.
-  // These three implicit variables can never be captured variables.
+  // ':stack_trace_var' - Used to save the current stack trace object which
+  //                      the stack trace was copied into when an exception
+  //                      was thrown.
+  // :exception_var and :stack_trace_var get set with the exception object
+  // and the stack trace object when an exception is thrown.  These three
+  // implicit variables can never be captured.
   LocalVariable* context_var =
       current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
   if (context_var == NULL) {
@@ -6811,21 +6961,21 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
                                     Type::ZoneHandle(Type::DynamicType()));
     current_block_->scope->AddVariable(context_var);
   }
-  LocalVariable* catch_excp_var =
+  LocalVariable* exception_var =
       current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
-  if (catch_excp_var == NULL) {
-    catch_excp_var = new LocalVariable(TokenPos(),
-                                       Symbols::ExceptionVar(),
-                                       Type::ZoneHandle(Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_excp_var);
+  if (exception_var == NULL) {
+    exception_var = new LocalVariable(TokenPos(),
+                                      Symbols::ExceptionVar(),
+                                      Type::ZoneHandle(Type::DynamicType()));
+    current_block_->scope->AddVariable(exception_var);
   }
-  LocalVariable* catch_trace_var =
-      current_block_->scope->LocalLookupVariable(Symbols::StacktraceVar());
-  if (catch_trace_var == NULL) {
-    catch_trace_var = new LocalVariable(TokenPos(),
-                                        Symbols::StacktraceVar(),
+  LocalVariable* stack_trace_var =
+      current_block_->scope->LocalLookupVariable(Symbols::StackTraceVar());
+  if (stack_trace_var == NULL) {
+    stack_trace_var = new LocalVariable(TokenPos(),
+                                        Symbols::StackTraceVar(),
                                         Type::ZoneHandle(Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_trace_var);
+    current_block_->scope->AddVariable(stack_trace_var);
   }
 
   const intptr_t try_pos = TokenPos();
@@ -6840,155 +6990,27 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
 
   // Now parse the 'try' block.
   OpenBlock();
-  Block* current_try_block = current_block_;
-  PushTryBlock(current_try_block);
+  PushTryBlock(current_block_);
   ExpectToken(Token::kLBRACE);
   ParseStatementSequence();
   ExpectToken(Token::kRBRACE);
   SequenceNode* try_block = CloseBlock();
 
-  // Now create a label for the end of catch block processing so that we can
-  // jump over the catch block code after executing the try block.
-  SourceLabel* end_catch_label =
-      SourceLabel::New(TokenPos(), NULL, SourceLabel::kCatch);
+  if ((CurrentToken() != Token::kCATCH) && !IsLiteral("on") &&
+      (CurrentToken() != Token::kFINALLY)) {
+    ErrorMsg("catch or finally clause expected");
+  }
 
-  // Now parse the 'catch' blocks if any and merge all of them into
-  // an if-then sequence of the different types specified using the 'is'
-  // operator.
-  bool catch_seen = false;
-  bool generic_catch_seen = false;
+  // Now parse the 'catch' blocks if any.
+  try_blocks_list_->enter_catch();
   const intptr_t handler_pos = TokenPos();
-  OpenBlock();  // Start the catch block sequence.
-  current_block_->scope->AddLabel(end_catch_label);
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  bool needs_stacktrace = false;
-  while ((CurrentToken() == Token::kCATCH) || IsLiteral("on")) {
-    const intptr_t catch_pos = TokenPos();
-    CatchParamDesc exception_param;
-    CatchParamDesc stack_trace_param;
-    catch_seen = true;
-    if (IsLiteral("on")) {
-      ConsumeToken();
-      exception_param.type = &AbstractType::ZoneHandle(
-          ParseType(ClassFinalizer::kCanonicalize));
-    } else {
-      exception_param.type =
-          &AbstractType::ZoneHandle(Type::DynamicType());
-    }
-    if (CurrentToken() == Token::kCATCH) {
-      ConsumeToken();  // Consume the 'catch'.
-      ExpectToken(Token::kLPAREN);
-      exception_param.token_pos = TokenPos();
-      exception_param.var = ExpectIdentifier("identifier expected");
-      if (CurrentToken() == Token::kCOMMA) {
-        ConsumeToken();
-        // TODO(hausner): Make implicit type be StackTrace, not dynamic.
-        stack_trace_param.type =
-            &AbstractType::ZoneHandle(Type::DynamicType());
-        stack_trace_param.token_pos = TokenPos();
-        stack_trace_param.var = ExpectIdentifier("identifier expected");
-      }
-      ExpectToken(Token::kRPAREN);
-    }
+  bool needs_stack_trace = false;
+  SequenceNode* catch_handler_list =
+      ParseCatchClauses(handler_pos, exception_var, stack_trace_var,
+                        handler_types, &needs_stack_trace);
 
-    OpenBlock();
-    AddCatchParamsToScope(exception_param,
-                          stack_trace_param,
-                          current_block_->scope);
-
-    // Parse the individual catch handler code and add an unconditional
-    // JUMP to the end of the try block.
-    ExpectToken(Token::kLBRACE);
-    OpenBlock();
-
-    if (exception_param.var != NULL) {
-      // Generate code to load the exception object (:exception_var) into
-      // the exception variable specified in this block.
-      LocalVariable* var = LookupLocalScope(*exception_param.var);
-      ASSERT(var != NULL);
-      ASSERT(catch_excp_var != NULL);
-      current_block_->statements->Add(
-          new StoreLocalNode(catch_pos, var,
-                             new LoadLocalNode(catch_pos, catch_excp_var)));
-    }
-    if (stack_trace_param.var != NULL) {
-      // A stack trace variable is specified in this block, so generate code
-      // to load the stack trace object (:stacktrace_var) into the stack trace
-      // variable specified in this block.
-      needs_stacktrace = true;
-      ArgumentListNode* no_args = new ArgumentListNode(catch_pos);
-      LocalVariable* trace = LookupLocalScope(*stack_trace_param.var);
-      ASSERT(catch_trace_var != NULL);
-      current_block_->statements->Add(
-          new StoreLocalNode(catch_pos, trace,
-                             new LoadLocalNode(catch_pos, catch_trace_var)));
-      current_block_->statements->Add(
-          new InstanceCallNode(
-              catch_pos,
-              new LoadLocalNode(catch_pos, trace),
-              Library::PrivateCoreLibName(Symbols::_setupFullStackTrace()),
-              no_args));
-    }
-
-    ParseStatementSequence();  // Parse the catch handler code.
-    current_block_->statements->Add(
-        new JumpNode(catch_pos, Token::kCONTINUE, end_catch_label));
-    SequenceNode* catch_handler = CloseBlock();
-    ExpectToken(Token::kRBRACE);
-
-    const bool is_bad_type = exception_param.type->IsMalformed() ||
-                             exception_param.type->IsMalbounded();
-    if (!is_bad_type && !exception_param.type->IsDynamicType()) {
-      // Has a type specification that is not malformed or malbounded.
-      // Now form an 'if type check' as an exception type exists in the
-      // catch specifier.
-      if (!exception_param.type->IsInstantiated() &&
-          (current_block_->scope->function_level() > 0)) {
-        // Make sure that the instantiator is captured.
-        CaptureInstantiator();
-      }
-      TypeNode* exception_type = new TypeNode(catch_pos, *exception_param.type);
-      AstNode* exception_var = new LoadLocalNode(catch_pos, catch_excp_var);
-      if (!exception_type->type().IsInstantiated()) {
-        EnsureExpressionTemp();
-      }
-      AstNode* type_cond_expr = new ComparisonNode(
-          catch_pos, Token::kIS, exception_var, exception_type);
-      current_block_->statements->Add(
-          new IfNode(catch_pos, type_cond_expr, catch_handler, NULL));
-
-      // Do not add uninstantiated types (e.g. type parameter T or
-      // generic type List<T>), since the debugger won't be able to
-      // instantiate it when walking the stack.
-      // This means that the debugger is not able to determine whether
-      // an exception is caught if the catch clause uses generic types.
-      // It will report the exception as uncaught when in fact it might
-      // be caught and handled when we unwind the stack.
-      if (exception_param.type->IsInstantiated()) {
-        handler_types.Add(*exception_param.type);
-      }
-    } else {
-      if (is_bad_type) {
-        current_block_->statements->Add(ThrowTypeError(catch_pos,
-                                                       *exception_param.type));
-        // We still add the dead code below to satisfy the code generator.
-      }
-      // No exception type exists in the catch specifier so execute the
-      // catch handler code unconditionally.
-      current_block_->statements->Add(catch_handler);
-      generic_catch_seen = true;
-      // This catch clause will handle all exceptions. We can safely forget
-      // all previous catch clause types.
-      handler_types.SetLength(0);
-      handler_types.Add(*exception_param.type);
-    }
-    SequenceNode* catch_clause = CloseBlock();
-
-    // Add this individual catch handler to the catch handlers list.
-    current_block_->statements->Add(catch_clause);
-  }
-  SequenceNode* catch_handler_list = CloseBlock();
   TryBlocks* inner_try_block = PopTryBlock();
   const intptr_t try_index = inner_try_block->try_index();
   TryBlocks* outer_try_block = try_blocks_list_;
@@ -7018,38 +7040,26 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       tokens_iterator_.SetCurrentPosition(finally_pos);
     }
     finally_block = ParseFinallyBlock();
-  } else {
-    if (!catch_seen) {
-      ErrorMsg("catch or finally clause expected");
-    }
   }
 
-  if (!generic_catch_seen) {
-    // No generic catch handler exists so rethrow the exception so that
-    // the next catch handler can deal with it.
-    catch_handler_list->Add(
-        new ThrowNode(handler_pos,
-                      new LoadLocalNode(handler_pos, catch_excp_var),
-                      new LoadLocalNode(handler_pos, catch_trace_var)));
-  }
-  CatchClauseNode* catch_block =
+  CatchClauseNode* catch_clause =
       new CatchClauseNode(handler_pos,
                           catch_handler_list,
                           Array::ZoneHandle(Array::MakeArray(handler_types)),
                           context_var,
-                          catch_excp_var,
-                          catch_trace_var,
+                          exception_var,
+                          stack_trace_var,
                           (finally_block != NULL)
                               ? AllocateTryIndex()
                               : CatchClauseNode::kInvalidTryIndex,
-                          needs_stacktrace);
+                          needs_stack_trace);
 
   // Now create the try/catch ast node and return it. If there is a label
   // on the try/catch, close the block that's embedding the try statement
   // and attach the label to it.
   AstNode* try_catch_node =
-      new TryCatchNode(try_pos, try_block, end_catch_label,
-                       context_var, catch_block, finally_block, try_index);
+      new TryCatchNode(try_pos, try_block, context_var, catch_clause,
+                       finally_block, try_index);
 
   if (try_label != NULL) {
     current_block_->statements->Add(try_catch_node);
@@ -7206,19 +7216,18 @@ AstNode* Parser::ParseStatement() {
     ConsumeToken();
     ExpectSemicolon();
     // Check if it is ok to do a rethrow.
-    SourceLabel* label = current_block_->scope->LookupInnermostCatchLabel();
-    if (label == NULL ||
-        label->FunctionLevel() != current_block_->scope->function_level()) {
+    if ((try_blocks_list_ == NULL) || !try_blocks_list_->inside_catch()) {
       ErrorMsg(statement_pos, "rethrow of an exception is not valid here");
     }
-    ASSERT(label->owner() != NULL);
-    LocalScope* scope = label->owner()->parent();
+    // The exception and stack trace variables are bound in the block
+    // containing the try.
+    LocalScope* scope = try_blocks_list_->try_block()->scope->parent();
     ASSERT(scope != NULL);
     LocalVariable* excp_var =
         scope->LocalLookupVariable(Symbols::ExceptionVar());
     ASSERT(excp_var != NULL);
     LocalVariable* trace_var =
-        scope->LocalLookupVariable(Symbols::StacktraceVar());
+        scope->LocalLookupVariable(Symbols::StackTraceVar());
     ASSERT(trace_var != NULL);
     statement = new ThrowNode(statement_pos,
                               new LoadLocalNode(statement_pos, excp_var),
@@ -7319,6 +7328,17 @@ void Parser::Unimplemented(const char* msg) {
 }
 
 
+void Parser::CheckToken(Token::Kind token_expected, const char* msg) {
+  if (CurrentToken() != token_expected) {
+    if (msg != NULL) {
+      ErrorMsg("%s", msg);
+    } else {
+      ErrorMsg("'%s' expected", Token::Str(token_expected));
+    }
+  }
+}
+
+
 void Parser::ExpectToken(Token::Kind token_expected) {
   if (CurrentToken() != token_expected) {
     ErrorMsg("'%s' expected", Token::Str(token_expected));
@@ -7409,13 +7429,8 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
   // Dst name argument.
   arguments->Add(new LiteralNode(type_pos, Symbols::Empty()));
   // Malformed type error or malbounded type error.
-  Error& error = Error::Handle();
-  if (type.IsMalformed()) {
-    error = type.malformed_error();
-  } else {
-    const bool is_malbounded = type.IsMalboundedWithError(&error);
-    ASSERT(is_malbounded);
-  }
+  const Error& error = Error::Handle(type.error());
+  ASSERT(!error.IsNull());
   arguments->Add(new LiteralNode(type_pos, String::ZoneHandle(
       Symbols::New(error.ToErrorCString()))));
   return MakeStaticCall(Symbols::TypeError(),
@@ -7539,7 +7554,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         // In checked mode, the type may be malformed or malbounded.
         if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
              (op_kind == Token::kAS)) &&
-            (type.IsMalformed() || type.IsMalbounded())) {
+            type.IsMalformedOrMalbounded()) {
           // Note that a type error is thrown even if the tested value is null
           // in a type test or in a type cast.
           return ThrowTypeError(type_pos, type);
@@ -8120,9 +8135,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
 AstNode* Parser::ParseInstanceCall(AstNode* receiver, const String& func_name) {
   TRACE_PARSER("ParseInstanceCall");
   const intptr_t call_pos = TokenPos();
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg(call_pos, "left parenthesis expected");
-  }
+  CheckToken(Token::kLPAREN);
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
   return new InstanceCallNode(call_pos, receiver, func_name, arguments);
 }
@@ -9212,9 +9225,7 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
 RawAbstractType* Parser::ParseType(
     ClassFinalizer::FinalizationKind finalization) {
   TRACE_PARSER("ParseType");
-  if (CurrentToken() != Token::kIDENT) {
-    ErrorMsg("type name expected");
-  }
+  CheckToken(Token::kIDENT, "type name expected");
   QualIdent type_name;
   if (finalization == ClassFinalizer::kIgnore) {
     if (!is_top_level_ && (current_block_ != NULL)) {
@@ -9309,7 +9320,9 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       element_type = list_type_arguments.TypeAt(0);
       ASSERT(!element_type.IsMalformed());  // Would be mapped to dynamic.
       ASSERT(!element_type.IsMalbounded());  // No declared bound in List.
-      if (is_const && !element_type.IsInstantiated()) {
+      if (element_type.IsDynamicType()) {
+        list_type_arguments = AbstractTypeArguments::null();
+      } else if (is_const && !element_type.IsInstantiated()) {
         ErrorMsg(type_pos,
                  "the type argument of a constant list literal cannot include "
                  "a type variable");
@@ -9505,7 +9518,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       ASSERT(!key_type.IsMalformed() && !value_type.IsMalformed());
       // No declared bounds in Map.
       ASSERT(!key_type.IsMalbounded() && !value_type.IsMalbounded());
-      if (is_const && !type_arguments.IsInstantiated()) {
+      if (key_type.IsDynamicType() && value_type.IsDynamicType()) {
+        map_type_arguments = AbstractTypeArguments::null();
+      } else if (is_const && !type_arguments.IsInstantiated()) {
         ErrorMsg(type_pos,
                  "the type arguments of a constant map literal cannot include "
                  "a type variable");
@@ -9795,29 +9810,16 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       ParseType(ClassFinalizer::kCanonicalizeWellFormed));
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
-  if (!type.IsMalformed()) {
-    if (type.IsTypeParameter() || type.IsDynamicType()) {
-      // Replace the type with a malformed type.
-      type = ClassFinalizer::NewFinalizedMalformedType(
-          Error::Handle(),  // No previous error.
-          script_,
-          type_pos,
-          "%s'%s' cannot be instantiated",
-          type.IsTypeParameter() ? "type parameter " : "",
-          type.IsTypeParameter() ?
-              String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
-    } else if (FLAG_enable_type_checks || FLAG_error_on_bad_type) {
-      Error& bound_error = Error::Handle();
-      if (type.IsMalboundedWithError(&bound_error)) {
-        // Replace the type with a malformed type.
-        type = ClassFinalizer::NewFinalizedMalformedType(
-            bound_error,
-            script_,
-            type_pos,
-            "malbounded type '%s' cannot be instantiated",
-            String::Handle(type.UserVisibleName()).ToCString());
-      }
-    }
+  if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
+    // Replace the type with a malformed type.
+    type = ClassFinalizer::NewFinalizedMalformedType(
+        Error::Handle(),  // No previous error.
+        script_,
+        type_pos,
+        "%s'%s' cannot be instantiated",
+        type.IsTypeParameter() ? "type parameter " : "",
+        type.IsTypeParameter() ?
+            String::Handle(type.UserVisibleName()).ToCString() : "dynamic");
   }
 
   // The grammar allows for an optional ('.' identifier)? after the type, which
@@ -9831,17 +9833,15 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   }
 
   // Parse constructor parameters.
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("'(' expected");
-  }
+  CheckToken(Token::kLPAREN);
   intptr_t call_pos = TokenPos();
   ArgumentListNode* arguments = ParseActualParameters(NULL, is_const);
 
-  // Parsing is complete, so we can return a throw in case of a malformed type
-  // or report a compile-time error if the constructor is const.
-  if (type.IsMalformed()) {
+  // Parsing is complete, so we can return a throw in case of a malformed or
+  // malbounded type or report a compile-time error if the constructor is const.
+  if (type.IsMalformedOrMalbounded()) {
     if (is_const) {
-      const Error& error = Error::Handle(type.malformed_error());
+      const Error& error = Error::Handle(type.error());
       ErrorMsg(error);
     }
     return ThrowTypeError(type_pos, type);
@@ -9882,8 +9882,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
             "class '%s' has no constructor or factory named '%s'",
             String::Handle(type_class.Name()).ToCString(),
             external_constructor_name.ToCString());
-        const Error& error = Error::Handle(type.malformed_error());
-        ErrorMsg(error);
+        ErrorMsg(Error::Handle(type.error()));
       }
       return ThrowNoSuchMethodError(call_pos,
                                     type_class,
@@ -9895,19 +9894,24 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
     } else if (constructor.IsRedirectingFactory()) {
       ClassFinalizer::ResolveRedirectingFactory(type_class, constructor);
       Type& redirect_type = Type::Handle(constructor.RedirectionType());
-      if (!redirect_type.IsMalformed() && !redirect_type.IsInstantiated()) {
+      if (!redirect_type.IsMalformedOrMalbounded() &&
+          !redirect_type.IsInstantiated()) {
         // The type arguments of the redirection type are instantiated from the
         // type arguments of the parsed type of the 'new' or 'const' expression.
-        Error& malformed_error = Error::Handle();
-        redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
-                                                       &malformed_error);
-        if (!malformed_error.IsNull()) {
-          redirect_type.set_malformed_error(malformed_error);
+        Error& error = Error::Handle();
+        redirect_type ^= redirect_type.InstantiateFrom(type_arguments, &error);
+        if (!error.IsNull()) {
+          redirect_type = ClassFinalizer::NewFinalizedMalformedType(
+              error,
+              script_,
+              call_pos,
+              "redirecting factory type '%s' cannot be instantiated",
+              String::Handle(redirect_type.UserVisibleName()).ToCString());
         }
       }
-      if (redirect_type.IsMalformed()) {
+      if (redirect_type.IsMalformedOrMalbounded()) {
         if (is_const) {
-          ErrorMsg(Error::Handle(redirect_type.malformed_error()));
+          ErrorMsg(Error::Handle(redirect_type.error()));
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
@@ -9972,12 +9976,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                   &constructor);
   }
 
-  // Return a throw in case of a malformed type or report a compile-time error
-  // if the constructor is const.
-  if (type.IsMalformed()) {
+  // Return a throw in case of a malformed or malbounded type or report a
+  // compile-time error if the constructor is const.
+  if (type.IsMalformedOrMalbounded()) {
     if (is_const) {
-      const Error& error = Error::Handle(type.malformed_error());
-      ErrorMsg(error);
+      ErrorMsg(Error::Handle(type.error()));
     }
     return ThrowTypeError(type_pos, type);
   }

@@ -960,10 +960,10 @@ class Class : public Object {
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
-  bool is_mixin_typedef() const {
-    return MixinTypedefBit::decode(raw_ptr()->state_bits_);
+  bool is_mixin_app_alias() const {
+    return MixinAppAliasBit::decode(raw_ptr()->state_bits_);
   }
-  void set_is_mixin_typedef() const;
+  void set_is_mixin_app_alias() const;
 
   bool is_mixin_type_applied() const {
     return MixinTypeAppliedBit::decode(raw_ptr()->state_bits_);
@@ -1062,7 +1062,7 @@ class Class : public Object {
     kPatchBit = 6,
     kSynthesizedClassBit = 7,
     kMarkedForParsingBit = 8,
-    kMixinTypedefBit = 9,
+    kMixinAppAliasBit = 9,
     kMixinTypeAppliedBit = 10,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
@@ -1074,7 +1074,7 @@ class Class : public Object {
   class PatchBit : public BitField<bool, kPatchBit, 1> {};
   class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
   class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
-  class MixinTypedefBit : public BitField<bool, kMixinTypedefBit, 1> {};
+  class MixinAppAliasBit : public BitField<bool, kMixinAppAliasBit, 1> {};
   class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
 
   void set_name(const String& value) const;
@@ -1187,10 +1187,6 @@ class AbstractTypeArguments : public Object {
   // Returns true if all types of this vector are finalized.
   virtual bool IsFinalized() const { return true; }
 
-  // Returns true if both arguments represent vectors of equal types.
-  static bool AreEqual(const AbstractTypeArguments& arguments,
-                       const AbstractTypeArguments& other_arguments);
-
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
@@ -1220,10 +1216,10 @@ class AbstractTypeArguments : public Object {
     return SubvectorName(0, Length(), kUserVisibleName);
   }
 
-  // Check if this type argument vector consists solely of DynamicType,
-  // considering only a prefix of length 'len'.
-  bool IsRaw(intptr_t len) const {
-    return IsDynamicTypes(false, len);
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType.
+  bool IsRaw(intptr_t from_index, intptr_t len) const {
+    return IsDynamicTypes(false, from_index, len);
   }
 
   // Check if this type argument vector would consist solely of DynamicType if
@@ -1231,24 +1227,28 @@ class AbstractTypeArguments : public Object {
   // parameter as it would be first instantiated from a vector of dynamic types.
   // Consider only a prefix of length 'len'.
   bool IsRawInstantiatedRaw(intptr_t len) const {
-    return IsDynamicTypes(true, len);
+    return IsDynamicTypes(true, 0, len);
   }
 
-  // Check the subtype relationship, considering only a prefix of length 'len'.
+  // Check the subtype relationship, considering only a subvector of length
+  // 'len' starting at 'from_index'.
   bool IsSubtypeOf(const AbstractTypeArguments& other,
+                   intptr_t from_index,
                    intptr_t len,
                    Error* bound_error) const {
-    return TypeTest(kIsSubtypeOf, other, len, bound_error);
+    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error);
   }
 
-  // Check the 'more specific' relationship, considering only a prefix of
-  // length 'len'.
+  // Check the 'more specific' relationship, considering only a subvector of
+  // length 'len' starting at 'from_index'.
   bool IsMoreSpecificThan(const AbstractTypeArguments& other,
+                          intptr_t from_index,
                           intptr_t len,
                           Error* bound_error) const {
-    return TypeTest(kIsMoreSpecificThan, other, len, bound_error);
+    return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error);
   }
 
+  // Check if the vectors are equal.
   bool Equals(const AbstractTypeArguments& other) const;
 
   // UNREACHABLEs as AbstractTypeArguments is an abstract class.
@@ -1265,16 +1265,19 @@ class AbstractTypeArguments : public Object {
   virtual intptr_t Hash() const;
 
  private:
-  // Check if this type argument vector consists solely of DynamicType,
-  // considering only a prefix of length 'len'.
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType.
   // If raw_instantiated is true, consider each type parameter to be first
   // instantiated from a vector of dynamic types.
-  bool IsDynamicTypes(bool raw_instantiated, intptr_t len) const;
+  bool IsDynamicTypes(bool raw_instantiated,
+                      intptr_t from_index,
+                      intptr_t len) const;
 
   // Check the subtype or 'more specific' relationship, considering only a
-  // prefix of length 'len'.
+  // subvector of length 'len' starting at 'from_index'.
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractTypeArguments& other,
+                intptr_t from_index,
                 intptr_t len,
                 Error* bound_error) const;
 
@@ -1442,6 +1445,8 @@ class Function : public Object {
   RawString* UserVisibleName() const;
   RawString* QualifiedUserVisibleName() const;
   virtual RawString* DictionaryName() const { return name(); }
+
+  RawString* GetSource();
 
   // Build a string of the form 'C<T, R>(T, {b: B, c: C}) => R' representing the
   // internal signature of the given function. In this example, T and R are
@@ -2368,7 +2373,8 @@ class Script : public Object {
   void Tokenize(const String& private_key) const;
 
   RawString* GetLine(intptr_t line_number) const;
-
+  RawString* GetSnippet(intptr_t from_token_pos,
+                        intptr_t to_token_pos) const;
   RawString* GetSnippet(intptr_t from_line,
                         intptr_t from_column,
                         intptr_t to_line,
@@ -3786,6 +3792,8 @@ class LanguageError : public Error {
     kMalboundedType,
   };
 
+  Kind kind() const { return static_cast<Kind>(raw_ptr()->kind_); }
+
   // Build, cache, and return formatted message.
   RawString* FormatMessage() const;
 
@@ -3826,7 +3834,6 @@ class LanguageError : public Error {
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(intptr_t value) const;
 
-  Kind kind() const { return static_cast<Kind>(raw_ptr()->kind_); }
   void set_kind(uint8_t value) const;
 
   RawString* message() const { return raw_ptr()->message_; }
@@ -3996,10 +4003,10 @@ class AbstractType : public Instance {
   virtual bool IsFinalized() const;
   virtual bool IsBeingFinalized() const;
   virtual bool IsMalformed() const;
-  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
-  virtual bool IsMalboundedWithError(Error* bound_error) const;
-  virtual RawError* malformed_error() const;
-  virtual void set_malformed_error(const Error& value) const;
+  virtual bool IsMalbounded() const;
+  virtual bool IsMalformedOrMalbounded() const;
+  virtual RawLanguageError* error() const;
+  virtual void set_error(const LanguageError& value) const;
   virtual bool IsResolved() const;
   virtual bool HasResolvedTypeClass() const;
   virtual RawClass* type_class() const;
@@ -4140,10 +4147,10 @@ class Type : public AbstractType {
   }
   void set_is_being_finalized() const;
   virtual bool IsMalformed() const;
-  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
-  virtual bool IsMalboundedWithError(Error* bound_error) const;
-  virtual RawError* malformed_error() const;
-  virtual void set_malformed_error(const Error& value) const;
+  virtual bool IsMalbounded() const;
+  virtual bool IsMalformedOrMalbounded() const;
+  virtual RawLanguageError* error() const { return raw_ptr()->error_; }
+  virtual void set_error(const LanguageError& value) const;
   virtual bool IsResolved() const;  // Class and all arguments classes resolved.
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
@@ -4251,7 +4258,7 @@ class TypeParameter : public AbstractType {
   virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsMalformed() const { return false; }
   virtual bool IsMalbounded() const { return false; }
-  virtual bool IsMalboundedWithError(Error* bound_error) const { return false; }
+  virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
   RawClass* parameterized_class() const {
@@ -4263,7 +4270,9 @@ class TypeParameter : public AbstractType {
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
   // Returns true if bounded_type is below upper_bound, otherwise return false
-  // and set bound_error if not NULL.
+  // and set bound_error if both bounded_type and upper_bound are instantiated.
+  // If one or both are not instantiated, returning false only means that the
+  // bound cannot be checked yet and this is not an error.
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
                   Error* bound_error) const;
@@ -4316,9 +4325,9 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).IsBeingFinalized();
   }
   virtual bool IsMalformed() const;
-  virtual bool IsMalbounded() const { return IsMalboundedWithError(NULL); }
-  virtual bool IsMalboundedWithError(Error* bound_error) const;
-  virtual RawError* malformed_error() const;
+  virtual bool IsMalbounded() const;
+  virtual bool IsMalformedOrMalbounded() const;
+  virtual RawLanguageError* error() const;
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const {
     return AbstractType::Handle(type()).HasResolvedTypeClass();
@@ -4341,6 +4350,10 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated() const {
+    // It is not possible to encounter an instantiated bounded type with an
+    // uninstantiated upper bound. Therefore, we do not need to check if the
+    // bound is instantiated. Moreover, doing so could lead into cycles, as in
+    // class C<T extends C<C>> { }.
     return AbstractType::Handle(type()).IsInstantiated();
   }
   virtual bool Equals(const Instance& other) const;
@@ -4391,6 +4404,7 @@ class MixinAppType : public AbstractType {
   // TODO(regis): Handle malformed and malbounded MixinAppType.
   virtual bool IsMalformed() const { return false; }
   virtual bool IsMalbounded() const { return false; }
+  virtual bool IsMalformedOrMalbounded() const { return false; }
   virtual bool IsResolved() const { return false; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const;
@@ -6144,6 +6158,7 @@ class Stacktrace : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
   friend class Class;
+  friend class Debugger;
 };
 
 

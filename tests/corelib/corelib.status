@@ -74,8 +74,7 @@ collection_length_test: Pass, Timeout # Issue 12844
 [ $runtime == opera ]
 core_runtime_types_test: Fail
 null_nosuchmethod_test: Fail # Issue: 7413
-date_time7_test: Fail
-unicode_test: Fail
+unicode_test: Fail # Issue 14694
 
 [ $compiler == dart2js ]
 error_stack_trace1_test: RuntimeError # Issue 12399
@@ -93,7 +92,6 @@ list_test/01: RuntimeError # Issue 14616
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $runtime == ie9 ]
-date_time7_test: Fail # BUG(3304): Maybe this doesn't time out?
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 list_test: Fail # IE doesn't support typed data.
 shuffle_test: Fail # IE doesn't support typed data.
@@ -106,17 +104,6 @@ list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
-
-# Library changes
-[ $compiler == none || $compiler == dart2js || $compiler == dart2dart ]
-map_keys2_test: RuntimeError # Generic types aren't right.
-
-[ $compiler == dart2js ]
-map_values2_test: RuntimeError # Issue 8210
-
-## Tests failing after merge of experimental library branch.
-[ $compiler == dart2js ]
-# Tests fail due to bug in generics on constants, issue 6827
 
 [ $compiler == dart2dart && $minified ]
 error_stack_trace1_test: Fail # Fails in minified mode, test depends on method names.
@@ -153,12 +140,7 @@ collection_length_test: Pass, Timeout
 collection_to_string_test: Pass, Crash # Issue: 11207
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-collection_to_string_test: StaticWarning
-error_stack_trace_test: StaticWarning
-iterable_element_at_test: StaticWarning
-iterable_test: StaticWarning
-list_map_test: StaticWarning
-num_clamp_test: StaticWarning
-queue_test: StaticWarning
-string_codeunits_test: StaticWarning
-string_test: StaticWarning
+error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
+iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
+num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
+string_test: StaticWarning, OK # Test generates error on purpose.

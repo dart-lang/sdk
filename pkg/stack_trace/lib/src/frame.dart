@@ -69,7 +69,8 @@ class Frame {
   /// This will usually be the string form of [uri], but a relative URI will be
   /// used if possible.
   String get library {
-    if (uri.scheme != 'file') return uri.toString();
+    if (uri.scheme != Uri.base.scheme) return uri.toString();
+    if (path.style == path.Style.url) return path.relative(uri.toString());
     return path.relative(path.fromUri(uri));
   }
 
@@ -118,6 +119,10 @@ class Frame {
     // always be found. The column is optional.
     var member = match[1].replaceAll("<anonymous closure>", "<fn>");
     var uri = Uri.parse(match[2]);
+    // Work around issue 11901.
+    if (uri == new Uri(path: 'timer_impl.dart')) {
+      uri = Uri.parse('dart:async/timer_impl.dart');
+    }
     var line = int.parse(match[3]);
     var column = null;
     var columnMatch = match[4];
@@ -136,14 +141,17 @@ class Frame {
 
     // V8 stack frames can be in two forms.
     if (match[2] != null) {
-      // The first form looks like "  at FUNCTION (URI:LINE:COL)"
-      var uri = Uri.parse(match[2]);
+      // The first form looks like " at FUNCTION (PATH:LINE:COL)". PATH is
+      // usually an absolute URL, but it can be a path if the stack frame came
+      // from d8.
+      var uri = _uriOrPathToUri(match[2]);
       var member = match[1].replaceAll("<anonymous>", "<fn>");
       return new Frame(uri, int.parse(match[3]), int.parse(match[4]), member);
     } else {
-      // The second form looks like " at URI:LINE:COL", and is used for
-      // anonymous functions.
-      var uri = Uri.parse(match[5]);
+      // The second form looks like " at PATH:LINE:COL", and is used for
+      // anonymous functions. PATH is usually an absolute URL, but it can be a
+      // path if the stack frame came from d8.
+      var uri = _uriOrPathToUri(match[5]);
       return new Frame(uri, int.parse(match[6]), int.parse(match[7]), "<fn>");
     }
   }
@@ -162,7 +170,8 @@ class Frame {
           "Couldn't parse Firefox stack trace line '$frame'.");
     }
 
-    var uri = Uri.parse(match[3]);
+    // Normally this is a URI, but in a jsshell trace it can be a path.
+    var uri = _uriOrPathToUri(match[3]);
     var member = match[1];
     member += new List.filled('/'.allMatches(match[2]).length, ".<fn>").join();
     if (member == '') member = '<fn>';
@@ -213,6 +222,30 @@ class Frame {
     var line = match[2] == null ? null : int.parse(match[2]);
     var column = match[3] == null ? null : int.parse(match[3]);
     return new Frame(uri, line, column, match[4]);
+  }
+
+  /// A regular expression matching an absolute URI.
+  static final _uriRegExp = new RegExp(r'^[a-zA-Z][-+.a-zA-Z\d]*://');
+
+  /// A regular expression matching a Windows path.
+  static final _windowsRegExp = new RegExp(r'^([a-zA-Z]:[\\/]|\\\\)');
+
+  /// Converts [uriOrPath], which can be a URI, a Windows path, or a Posix path,
+  /// to a URI (absolute if possible).
+  static Uri _uriOrPathToUri(String uriOrPath) {
+    if (uriOrPath.contains(_uriRegExp)) {
+      return Uri.parse(uriOrPath);
+    } else if (uriOrPath.contains(_windowsRegExp)) {
+      return new Uri.file(uriOrPath, windows: true);
+    } else if (uriOrPath.startsWith('/')) {
+      return new Uri.file(uriOrPath, windows: false);
+    }
+
+    // As far as I've seen, Firefox and V8 both always report absolute paths in
+    // their stack frames. However, if we do get a relative path, we should
+    // handle it gracefully.
+    if (uriOrPath.contains('\\')) return path.windows.toUri(uriOrPath);
+    return Uri.parse(uriOrPath);
   }
 
   Frame(this.uri, this.line, this.column, this.member);

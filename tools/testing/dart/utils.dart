@@ -65,6 +65,53 @@ class DebugLogger {
   static String get _datetime => "${new DateTime.now()}";
 }
 
+String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
+  int currentIndentation = startIndentation;
+  var buffer = new StringBuffer();
+
+  String indentationString() {
+    return new List.filled(currentIndentation, ' ').join('');
+  }
+
+  addString(String s, {bool indentation: true, bool newLine: true}) {
+    if (indentation) {
+      buffer.write(indentationString());
+    }
+    buffer.write(s.replaceAll("\n", "\n${indentationString()}"));
+    if (newLine) buffer.write("\n");
+  }
+
+  prettifyJsonInternal(
+      Object obj, {bool indentation: true, bool newLine: true}) {
+    if (obj is List) {
+      addString("[", indentation: indentation);
+      currentIndentation += shiftWidth;
+      for (var item in obj) {
+
+        prettifyJsonInternal(item, indentation: indentation, newLine: false);
+        addString(",", indentation: false);
+      }
+      currentIndentation -= shiftWidth;
+      addString("]", indentation: indentation);
+    } else if (obj is Map) {
+      addString("{", indentation: indentation);
+      currentIndentation += shiftWidth;
+      for (var key in obj.keys) {
+        addString("$key: ", indentation: indentation, newLine: false);
+        currentIndentation += shiftWidth;
+        prettifyJsonInternal(obj[key], indentation: false);
+        currentIndentation -= shiftWidth;
+      }
+      currentIndentation -= shiftWidth;
+      addString("}", indentation: indentation, newLine: newLine);
+    } else {
+      addString("$obj", indentation: indentation, newLine: newLine);
+    }
+  }
+  prettifyJsonInternal(json);
+  return buffer.toString();
+}
+
 
 /**
  * [areByteArraysEqual] compares a range of bytes from [buffer1] with a
@@ -126,16 +173,47 @@ String decodeUtf8(List<int> bytes) {
 }
 
 class Locations {
-  static String getDartiumLocation(Map globalConfiguration) {
-    var dartium = globalConfiguration['dartium'];
-    if (dartium != null && dartium != '') {
-      return dartium;
+  static String getBrowserLocation(String browserName,
+                                   Map globalConfiguration) {
+    var location = globalConfiguration[browserName];
+    if (location != null && location != '') {
+      return location;
     }
-    if (Platform.operatingSystem == 'macos') {
-      return new Path('client/tests/dartium/Chromium.app/Contents/'
-          'MacOS/Chromium').toNativePath();
+    final browserLocations = const {
+        'firefox': const {
+          'windows': 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
+          'linux': 'firefox',
+          'macos': '/Applications/Firefox.app/Contents/MacOS/firefox'
+        },
+        'chrome': const {
+          'windows':
+            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+          'macos':
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+          'linux': 'google-chrome'
+        },
+        'dartium': const {
+          'windows': 'client\\tests\\dartium\\chrome.exe',
+          'macos': 'client/tests/dartium/Chromium.app/Contents/MacOS/Chromium',
+          'linux': 'client/tests/dartium/chrome'
+        },
+        'safari': const {
+          'macos': '/Applications/Safari.app/Contents/MacOS/Safari'
+        },
+        'ie9': const {
+          'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+        },
+        'ie10': const {
+          'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+        }};
+
+    assert(browserLocations[browserName] != null);
+    location = browserLocations[browserName][Platform.operatingSystem];
+    if (location != null) {
+      return location;
+    } else {
+      throw '$browserName not supported on ${Platform.operatingSystem}';
     }
-    return new Path('client/tests/dartium/chrome').toNativePath();
   }
 }
 

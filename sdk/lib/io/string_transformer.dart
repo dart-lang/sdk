@@ -4,6 +4,7 @@
 
 part of dart.io;
 
+/// The current system encoding.
 const SystemEncoding SYSTEM_ENCODING = const SystemEncoding();
 
 /**

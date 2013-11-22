@@ -7,6 +7,12 @@
 // The original test/main has been commented out and we have a test/main which
 // throws an error to ensure that this file is not executed as part of the
 // test.
+// 
+// When issue14236_test.dart fails, you must regenerate it using the VM 
+// with your changes. Notes on regenerating:
+// 1) Swap the test and main functions below.
+// 2) $ dart --snapshot=issue14236_test.dart issue14236_source.dart
+// 3) Undo changes in 1.
 
 library test.issue14236;
 import "dart:isolate";

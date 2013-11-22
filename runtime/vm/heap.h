@@ -162,8 +162,8 @@ class Heap {
   void PrintSizes() const;
 
   // Return amount of memory used and capacity in a space.
-  intptr_t Used(Space space) const;
-  intptr_t Capacity(Space space) const;
+  intptr_t UsedInWords(Space space) const;
+  intptr_t CapacityInWords(Space space) const;
 
   // Returns the [lowest, highest) addresses in the heap.
   void StartEndAddress(uword* start, uword* end) const;
@@ -244,10 +244,10 @@ class Heap {
     public:
       Data() {}
       int64_t micros_;
-      intptr_t new_used_;
-      intptr_t new_capacity_;
-      intptr_t old_used_;
-      intptr_t old_capacity_;
+      intptr_t new_used_in_words_;
+      intptr_t new_capacity_in_words_;
+      intptr_t old_used_in_words_;
+      intptr_t old_capacity_in_words_;
     private:
       DISALLOW_COPY_AND_ASSIGN(Data);
     };

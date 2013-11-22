@@ -14,6 +14,7 @@
 
 #include "platform/utils.h"
 #include "platform/assert.h"
+#include "platform/thread.h"
 
 namespace dart {
 
@@ -305,6 +306,12 @@ void OS::InitOnce() {
   init_once_called = true;
   // Do not pop up a message box when abort is called.
   _set_abort_behavior(0, _WRITE_ABORT_MSG);
+  ThreadInlineImpl::thread_id_key = Thread::CreateThreadLocal();
+  MonitorWaitData::monitor_wait_data_key_ = Thread::CreateThreadLocal();
+  MonitorData::GetMonitorWaitDataForThread();
+  ThreadId thread_id = ThreadInlineImpl::CreateThreadId();
+  Thread::SetThreadLocal(ThreadInlineImpl::thread_id_key,
+                         reinterpret_cast<DWORD>(thread_id));
 }
 
 

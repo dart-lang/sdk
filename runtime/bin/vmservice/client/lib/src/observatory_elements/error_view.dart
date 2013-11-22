@@ -11,6 +11,7 @@ import 'observatory_element.dart';
 @CustomTag('error-view')
 class ErrorViewElement extends ObservatoryElement {
   @published String error = '';
+  @published error_obj;
 
   ErrorViewElement.created() : super.created();
 }

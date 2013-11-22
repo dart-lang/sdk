@@ -24,6 +24,7 @@ class ObjectPointerVisitor;
   V(TopLevel, "::")                                                            \
   V(DefaultLabel, ":L")                                                        \
   V(This, "this")                                                              \
+  V(Other, "other")                                                            \
   V(Super, "super")                                                            \
   V(Call, "call")                                                              \
   V(Current, "current")                                                        \
@@ -59,7 +60,7 @@ class ObjectPointerVisitor;
   V(SavedEntryContextVar, ":saved_entry_context_var")                          \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(ExceptionVar, ":exception_var")                                            \
-  V(StacktraceVar, ":stacktrace_var")                                          \
+  V(StackTraceVar, ":stack_trace_var")                                         \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
   V(ClosureFunctionField, ":function")                                         \
@@ -281,17 +282,17 @@ class ObjectPointerVisitor;
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \
   V(_stackTrace, "_stackTrace")                                                \
-  V(_SpecialTypeMirrorImpl, "_SpecialTypeMirrorImpl")                          \
-  V(_LocalClassMirrorImpl, "_LocalClassMirrorImpl")                            \
-  V(_LocalFunctionTypeMirrorImpl, "_LocalFunctionTypeMirrorImpl")              \
-  V(_LocalLibraryMirrorImpl, "_LocalLibraryMirrorImpl")                        \
-  V(_LocalMethodMirrorImpl, "_LocalMethodMirrorImpl")                          \
-  V(_LocalVariableMirrorImpl, "_LocalVariableMirrorImpl")                      \
-  V(_LocalParameterMirrorImpl, "_LocalParameterMirrorImpl")                    \
-  V(_LocalIsolateMirrorImpl, "_LocalIsolateMirrorImpl")                        \
-  V(_LocalMirrorSystemImpl, "_LocalMirrorSystemImpl")                          \
-  V(_LocalTypedefMirrorImpl, "_LocalTypedefMirrorImpl")                        \
-  V(_LocalTypeVariableMirrorImpl, "_LocalTypeVariableMirrorImpl")              \
+  V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \
+  V(_LocalClassMirror, "_LocalClassMirror")                                    \
+  V(_LocalFunctionTypeMirror, "_LocalFunctionTypeMirror")                      \
+  V(_LocalLibraryMirror, "_LocalLibraryMirror")                                \
+  V(_LocalMethodMirror, "_LocalMethodMirror")                                  \
+  V(_LocalVariableMirror, "_LocalVariableMirror")                              \
+  V(_LocalParameterMirror, "_LocalParameterMirror")                            \
+  V(_LocalIsolateMirror, "_LocalIsolateMirror")                                \
+  V(_LocalMirrorSystem, "_LocalMirrorSystem")                                  \
+  V(_LocalTypedefMirror, "_LocalTypedefMirror")                                \
+  V(_LocalTypeVariableMirror, "_LocalTypeVariableMirror")                      \
   V(hashCode, "get:hashCode")                                                  \
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
@@ -313,6 +314,13 @@ class Symbols : public AllStatic {
     k##symbol##Id,
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 #undef DEFINE_SYMBOL_INDEX
+
+    kKwTableStart,  // First keyword at kKwTableStart + 1.
+
+#define DEFINE_KEYWORD_SYMBOL_INDEX(token, chars, ignore1, ignore2)            \
+    token##Id,
+    DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
+#undef DEFINE_KEYWORD_SYMBOL_INDEX
 
     kNullCharId,  // One char code symbol starts here and takes up 256 entries.
     kMaxPredefinedId = kNullCharId + kMaxOneCharCodeSymbol + 1,
@@ -395,6 +403,9 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   static const String& symbol() { return *(symbol_handles_[k##symbol##Id]); }
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 #undef DEFINE_SYMBOL_HANDLE_ACCESSOR
+
+  // Get symbol for scanner keyword.
+  static const String& Keyword(Token::Kind keyword);
 
   // Initialize frequently used symbols in the vm isolate.
   static void InitOnce(Isolate* isolate);

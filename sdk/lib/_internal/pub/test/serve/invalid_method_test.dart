@@ -18,7 +18,7 @@ main() {
       ])
     ]).create();
 
-    startPubServe();
+    pubServe();
 
     postShould405("index.html");
     endPubServe();

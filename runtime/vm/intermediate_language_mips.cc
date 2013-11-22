@@ -111,27 +111,113 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-bool IfThenElseInstr::IsSupported() {
-  return false;
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQ: return NE;
+    case NE: return EQ;
+    case LT: return GE;
+    case LE: return GT;
+    case GT: return LE;
+    case GE: return LT;
+    default:
+      OS::Print("Error: Condition not recognized: %d\n", condition);
+      UNIMPLEMENTED();
+      return EQ;
+  }
 }
 
 
-bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
-                               Value* v1,
-                               Value* v2) {
-  UNREACHABLE();
-  return false;
+// Detect pattern when one value is zero and another is a power of 2.
+static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
+  return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
+         (Utils::IsPowerOfTwo(v2) && (v1 == 0));
 }
 
 
 LocationSummary* IfThenElseInstr::MakeLocationSummary() const {
-  UNREACHABLE();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrConstant(left()));
+  // Only one of the inputs can be a constant. Choose register if the first one
+  // is a constant.
+  locs->set_in(1, locs->in(0).IsConstant()
+                      ? Location::RequiresRegister()
+                      : Location::RegisterOrConstant(right()));
+  locs->set_out(Location::RequiresRegister());
+  return locs;
 }
 
 
 void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  const Register result = locs()->out().reg();
+  ASSERT(Token::IsEqualityOperator(kind()));
+
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+
+  // Clear out register.
+  __ mov(result, ZR);
+
+  // Compare left and right. For now only equality comparison is supported.
+  // TODO(vegorov): reuse code from the other comparison instructions instead of
+  // generating it inline here.
+  if (left.IsConstant()) {
+    __ CompareObject(CMPRES1, CMPRES2, right.reg(), left.constant());
+  } else if (right.IsConstant()) {
+    __ CompareObject(CMPRES1, CMPRES2, left.reg(), right.constant());
+  } else {
+    __ slt(CMPRES1, left.reg(), right.reg());
+    __ slt(CMPRES2, right.reg(), left.reg());
+  }
+
+  Condition true_condition =
+      ((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kEQ)) ? EQ : NE;
+
+  const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
+
+  intptr_t true_value = if_true_;
+  intptr_t false_value = if_false_;
+
+  if (is_power_of_two_kind) {
+    if (true_value == 0) {
+      // We need to have zero in result on true_condition.
+      true_condition = NegateCondition(true_condition);
+    }
+  } else {
+    if (true_value == 0) {
+      // Swap values so that false_value is zero.
+      intptr_t temp = true_value;
+      true_value = false_value;
+      false_value = temp;
+    } else {
+      true_condition = NegateCondition(true_condition);
+    }
+  }
+
+  if (true_condition == EQ) {
+    __ xor_(result, CMPRES1, CMPRES2);
+    __ xori(result, result, Immediate(1));
+  } else {
+    ASSERT(true_condition == NE);
+    __ xor_(result, CMPRES1, CMPRES2);
+  }
+
+  if (is_power_of_two_kind) {
+    const intptr_t shift =
+        Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
+    __ sll(result, result, shift + kSmiTagSize);
+  } else {
+    __ AddImmediate(result, result, -1);
+    const int32_t val =
+        Smi::RawValue(true_value) - Smi::RawValue(false_value);
+    __ AndImmediate(result, result, val);
+    if (false_value != 0) {
+      __ AddImmediate(result, result, Smi::RawValue(false_value));
+    }
+  }
 }
 
 
@@ -304,95 +390,8 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (IsCheckedStrictEqual()) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    locs->set_temp(0, Location::RequiresRegister());
-    locs->set_out(Location::RequiresRegister());
-    return locs;
-  }
-  if (IsPolymorphic()) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-    locs->set_in(0, Location::RegisterLocation(A1));
-    locs->set_in(1, Location::RegisterLocation(A0));
-    locs->set_temp(0, Location::RegisterLocation(T0));
-    locs->set_out(Location::RegisterLocation(V0));
-    return locs;
-  }
-  const intptr_t kNumTemps = 1;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(A1));
-  locs->set_in(1, Location::RegisterLocation(A0));
-  locs->set_temp(0, Location::RegisterLocation(T0));
-  locs->set_out(Location::RegisterLocation(V0));
-  return locs;
-}
-
-
-// A1: left.
-// A0: right.
-// Uses T0 to load ic_call_data.
-// Result in V0.
-static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
-                                       intptr_t deopt_id,
-                                       intptr_t token_pos,
-                                       Token::Kind kind,
-                                       LocationSummary* locs,
-                                       const ICData& original_ic_data) {
-  if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   deopt_id,
-                                   token_pos);
-  }
-  const int kNumberOfArguments = 2;
-  const Array& kNoArgumentNames = Object::null_array();
-  const int kNumArgumentsChecked = 2;
-
-  __ TraceSimMsg("EmitEqualityAsInstanceCall");
-  __ Comment("EmitEqualityAsInstanceCall");
-
-  ICData& equality_ic_data = ICData::ZoneHandle();
-  if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
-    ASSERT(!original_ic_data.IsNull());
-    if (original_ic_data.NumberOfChecks() == 0) {
-      // IC call for reoptimization populates original ICData.
-      equality_ic_data = original_ic_data.raw();
-    } else {
-      // Megamorphic call.
-      equality_ic_data = original_ic_data.AsUnaryClassChecks();
-    }
-  } else {
-    const Array& arguments_descriptor =
-        Array::Handle(ArgumentsDescriptor::New(kNumberOfArguments,
-                                               kNoArgumentNames));
-    equality_ic_data = ICData::New(compiler->parsed_function().function(),
-                                   Symbols::EqualOperator(),
-                                   arguments_descriptor,
-                                   deopt_id,
-                                   kNumArgumentsChecked);
-  }
-  compiler->GenerateInstanceCall(deopt_id,
-                                 token_pos,
-                                 kNumberOfArguments,
-                                 kNoArgumentNames,
-                                 locs,
-                                 equality_ic_data);
-  if (kind == Token::kNE) {
-    Label true_label, done;
-    // Negate the condition: true label returns false and vice versa.
-    __ BranchEqual(V0, Bool::True(), &true_label);
-    __ LoadObject(V0, Bool::True());
-    __ b(&done);
-    __ Bind(&true_label);
-    __ LoadObject(V0, Bool::False());
-    __ Bind(&done);
-  }
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -431,10 +430,10 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 }
 
 
-// Branches on condition c assuming comparison results in CMPRES and CMPRES2.
+// Branches on condition c assuming comparison results in CMPRES1 and CMPRES2.
 static void EmitBranchAfterCompare(
-    FlowGraphCompiler* compiler, Condition c, Label* is_true) {
-  switch (c) {
+    FlowGraphCompiler* compiler, Condition condition, Label* is_true) {
+  switch (condition) {
     case EQ: __ beq(CMPRES1, CMPRES2, is_true); break;
     case NE: __ bne(CMPRES1, CMPRES2, is_true); break;
     case GT: __ bne(CMPRES2, ZR, is_true); break;
@@ -445,178 +444,6 @@ static void EmitBranchAfterCompare(
       UNREACHABLE();
       break;
   }
-}
-
-
-// A1: left, also on stack.
-// A0: right, also on stack.
-static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
-                                          const ICData& orig_ic_data,
-                                          LocationSummary* locs,
-                                          BranchInstr* branch,
-                                          Token::Kind kind,
-                                          intptr_t deopt_id,
-                                          intptr_t token_pos) {
-  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
-  ASSERT(ic_data.NumberOfChecks() > 0);
-  ASSERT(ic_data.num_args_tested() == 1);
-  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
-  Register left = locs->in(0).reg();
-  Register right = locs->in(1).reg();
-  ASSERT(left == A1);
-  ASSERT(right == A0);
-  Register temp = locs->temp(0).reg();
-
-  __ TraceSimMsg("EmitEqualityAsPolymorphicCall");
-  __ Comment("EmitEqualityAsPolymorphicCall");
-
-  LoadValueCid(compiler, temp, left,
-               (ic_data.GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
-  // 'temp' contains class-id of the left argument.
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  Condition cond = TokenKindToSmiCondition(kind);
-  Label done;
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    // Assert that the Smi is at position 0, if at all.
-    ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmiCid) || (i == 0));
-    Label next_test;
-    if (i < len - 1) {
-      __ BranchNotEqual(temp, ic_data.GetReceiverClassIdAt(i), &next_test);
-    } else {
-      __ BranchNotEqual(temp, ic_data.GetReceiverClassIdAt(i), deopt);
-    }
-    const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
-    if (target.Owner() == object_store->object_class()) {
-      // Object.== is same as ===.
-      __ Drop(2);
-      __ slt(CMPRES1, left, right);
-      __ slt(CMPRES2, right, left);
-      if (branch != NULL) {
-        branch->EmitBranchOnCondition(compiler, cond);
-      } else {
-        Register result = locs->out().reg();
-        Label load_true;
-        EmitBranchAfterCompare(compiler, cond, &load_true);
-        __ LoadObject(result, Bool::False());
-        __ b(&done);
-        __ Bind(&load_true);
-        __ LoadObject(result, Bool::True());
-      }
-    } else {
-      const int kNumberOfArguments = 2;
-      const Array& kNoArgumentNames = Object::null_array();
-      compiler->GenerateStaticCall(deopt_id,
-                                   token_pos,
-                                   target,
-                                   kNumberOfArguments,
-                                   kNoArgumentNames,
-                                   locs);
-      if (branch == NULL) {
-        if (kind == Token::kNE) {
-          Label is_true;
-          __ CompareObject(CMPRES1, CMPRES2, V0, Bool::True());
-          __ beq(CMPRES, CMPRES2, &is_true);
-          __ LoadObject(V0, Bool::True());
-          __ b(&done);
-          __ Bind(&is_true);
-          __ LoadObject(V0, Bool::False());
-        }
-      } else {
-        if (branch->is_checked()) {
-          EmitAssertBoolean(V0, token_pos, deopt_id, locs, compiler);
-        }
-        __ CompareObject(CMPRES1, CMPRES2, V0, Bool::True());
-        branch->EmitBranchOnCondition(compiler, cond);
-      }
-    }
-    if (i < len - 1) {
-      __ b(&done);
-      __ Bind(&next_test);
-    }
-  }
-  __ Bind(&done);
-}
-
-
-// Emit code when ICData's targets are all Object == (which is ===).
-static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
-                                   const ICData& orig_ic_data,
-                                   const LocationSummary& locs,
-                                   Token::Kind kind,
-                                   BranchInstr* branch,
-                                   intptr_t deopt_id) {
-  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  Register left = locs.in(0).reg();
-  Register right = locs.in(1).reg();
-  Register temp = locs.temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
-
-  __ Comment("CheckedStrictEqual");
-
-  __ andi(CMPRES, left, Immediate(kSmiTagMask));
-  __ beq(CMPRES, ZR, deopt);
-  // 'left' is not Smi.
-  Label identity_compare;
-  __ LoadImmediate(CMPRES1, reinterpret_cast<int32_t>(Object::null()));
-  __ beq(right, CMPRES1, &identity_compare);
-  __ beq(left, CMPRES1, &identity_compare);
-
-  __ LoadClassId(temp, left);
-  const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (i == (len - 1)) {
-      __ BranchNotEqual(temp, ic_data.GetReceiverClassIdAt(i), deopt);
-    } else {
-      __ BranchEqual(temp, ic_data.GetReceiverClassIdAt(i), &identity_compare);
-    }
-  }
-  __ Bind(&identity_compare);
-  __ subu(CMPRES1, left, right);
-  if (branch == NULL) {
-    Label done, is_equal;
-    Register result = locs.out().reg();
-    __ beq(CMPRES, ZR, &is_equal);
-    // Not equal.
-    __ LoadObject(result, Bool::Get(kind != Token::kEQ));
-    __ b(&done);
-    __ Bind(&is_equal);
-    __ LoadObject(result, Bool::Get(kind == Token::kEQ));
-    __ Bind(&done);
-
-  } else {
-    Condition cond = TokenKindToSmiCondition(kind);
-    __ mov(CMPRES2, ZR);
-    branch->EmitBranchOnCondition(compiler, cond);
-  }
-}
-
-
-// First test if receiver is NULL, in which case === is applied.
-// If type feedback was provided (lists of <class-id, target>), do a
-// type by type check (either === or static call to the operator.
-static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
-                                       LocationSummary* locs,
-                                       Token::Kind kind,
-                                       BranchInstr* branch,
-                                       const ICData& ic_data,
-                                       intptr_t deopt_id,
-                                       intptr_t token_pos) {
-  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
-  Register left = locs->in(0).reg();
-  Register right = locs->in(1).reg();
-  __ TraceSimMsg("EmitGenericEqualityCompare");
-  __ Comment("EmitGenericEqualityCompare");
-  ASSERT(left == A1);
-  ASSERT(right == A0);
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A1, Address(SP, 1 * kWordSize));
-  __ sw(A0, Address(SP, 0 * kWordSize));
-  EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
-                                deopt_id, token_pos);
 }
 
 
@@ -635,10 +462,30 @@ static Condition FlipCondition(Condition condition) {
 }
 
 
+// The comparison result is in CMPRES1/CMPRES2.
+static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
+                                  Condition true_condition,
+                                  BranchLabels labels) {
+  __ TraceSimMsg("ControlInstruction::EmitBranchOnCondition");
+  if (labels.fall_through == labels.false_label) {
+    // If the next block is the false successor, fall through to it.
+    EmitBranchAfterCompare(compiler, true_condition, labels.true_label);
+  } else {
+    // If the next block is not the false successor, branch to it.
+    Condition false_condition = NegateCondition(true_condition);
+    EmitBranchAfterCompare(compiler, false_condition, labels.false_label);
+    // Fall through or jump to the true successor.
+    if (labels.fall_through != labels.true_label) {
+      __ b(labels.true_label);
+    }
+  }
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
-                                BranchInstr* branch) {
+                                BranchLabels labels) {
   __ TraceSimMsg("EmitSmiComparisonOp");
   __ Comment("EmitSmiComparisonOp");
   Location left = locs.in(0);
@@ -656,35 +503,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     __ slt(CMPRES1, left.reg(), right.reg());
     __ slt(CMPRES2, right.reg(), left.reg());
   }
-
-  if (branch != NULL) {
-    branch->EmitBranchOnCondition(compiler, true_condition);
-  } else {
-    Register result = locs.out().reg();
-    Label done, is_true;
-    EmitBranchAfterCompare(compiler, true_condition, &is_true);
-    __ LoadObject(result, Bool::False());
-    __ b(&done);
-    __ Bind(&is_true);
-    __ LoadObject(result, Bool::True());
-    __ Bind(&done);
-  }
-}
-
-
-static void EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
-                                      const LocationSummary& locs,
-                                      Token::Kind kind,
-                                      BranchInstr* branch) {
-  UNIMPLEMENTED();
-}
-
-
-static void EmitUnboxedMintComparisonOp(FlowGraphCompiler* compiler,
-                                        const LocationSummary& locs,
-                                        Token::Kind kind,
-                                        BranchInstr* branch) {
-  UNIMPLEMENTED();
+  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 
@@ -706,63 +525,68 @@ static Condition TokenKindToDoubleCondition(Token::Kind kind) {
 static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
-                                   BranchInstr* branch) {
+                                   BranchLabels labels) {
   DRegister left = locs.in(0).fpu_reg();
   DRegister right = locs.in(1).fpu_reg();
 
   __ Comment("DoubleComparisonOp(left=%d, right=%d)", left, right);
 
   Condition true_condition = TokenKindToDoubleCondition(kind);
-  if (branch != NULL) {
-    compiler->EmitDoubleCompareBranch(
-        true_condition, left, right, branch);
-  } else {
-    compiler->EmitDoubleCompareBool(
-        true_condition, left, right, locs.out().reg());
+  __ cund(left, right);
+  Label* nan_label = (true_condition == NE)
+      ? labels.true_label : labels.false_label;
+  __ bc1t(nan_label);
+
+  switch (true_condition) {
+    case EQ: __ ceqd(left, right); break;
+    case NE: __ ceqd(left, right); break;
+    case LT: __ coltd(left, right); break;
+    case LE: __ coled(left, right); break;
+    case GT: __ coltd(right, left); break;
+    case GE: __ coled(right, left); break;
+    default: {
+      // Should only passing the above conditions to this function.
+      UNREACHABLE();
+      break;
+    }
   }
+
+  __ LoadImmediate(TMP, 1);
+  if (true_condition == NE) {
+    __ movf(CMPRES1, ZR);
+    __ movt(CMPRES1, TMP);
+  } else {
+    __ movf(CMPRES1, TMP);
+    __ movt(CMPRES1, ZR);
+  }
+  __ mov(CMPRES2, ZR);
+
+  // EmitBranchOnCondition expects ordering to be described by CMPRES1, CMPRES2.
+  EmitBranchOnCondition(compiler, EQ, labels);
 }
 
 
 void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
-  BranchInstr* kNoBranch = NULL;
   __ Comment("EqualityCompareInstr");
+
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+
   if (operation_cid() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch);
-    return;
+    EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
   }
-  if (operation_cid() == kMintCid) {
-    EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), kNoBranch);
-    return;
-  }
-  if (operation_cid() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
-    return;
-  }
-  if (IsCheckedStrictEqual()) {
-    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
-                           deopt_id());
-    return;
-  }
-  if (IsPolymorphic()) {
-    EmitGenericEqualityCompare(compiler, locs(), kind(), kNoBranch, *ic_data(),
-                               deopt_id(), token_pos());
-    return;
-  }
-  Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  ASSERT(left == A1);
-  ASSERT(right == A0);
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A1, Address(SP, 1 * kWordSize));
-  __ sw(A0, Address(SP, 0 * kWordSize));
-  EmitEqualityAsInstanceCall(compiler,
-                             deopt_id(),
-                             token_pos(),
-                             kind(),
-                             locs(),
-                             *ic_data());
-  ASSERT(locs()->out().reg() == V0);
+  Register result = locs()->out().reg();
+  Label done;
+  __ Bind(&is_false);
+  __ LoadObject(result, Bool::False());
+  __ b(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
 }
 
 
@@ -771,48 +595,54 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   __ TraceSimMsg("EqualityCompareInstr");
   __ Comment("EqualityCompareInstr:BranchCode");
   ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
+
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+
   if (operation_cid() == kSmiCid) {
-    // Deoptimizes if both arguments not Smi.
-    EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
-    return;
+    EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
   }
-  if (operation_cid() == kMintCid) {
-    EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), branch);
-    return;
-  }
-  if (operation_cid() == kDoubleCid) {
-    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
-    return;
-  }
-  if (IsCheckedStrictEqual()) {
-    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
-                           deopt_id());
-    return;
-  }
-  if (IsPolymorphic()) {
-    EmitGenericEqualityCompare(compiler, locs(), kind(), branch, *ic_data(),
-                               deopt_id(), token_pos());
-    return;
-  }
+}
+
+
+LocationSummary* TestSmiInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  // Only one input can be a constant operand. The case of two constant
+  // operands should be handled by constant propagation.
+  locs->set_in(1, Location::RegisterOrConstant(right()));
+  return locs;
+}
+
+
+void TestSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Never emitted outside of the BranchInstr.
+  UNREACHABLE();
+}
+
+
+void TestSmiInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                  BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+
+  Condition true_condition = (kind() == Token::kNE) ? NE : EQ;
   Register left = locs()->in(0).reg();
-  Register right = locs()->in(1).reg();
-  ASSERT(left == A1);
-  ASSERT(right == A0);
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A1, Address(SP, 1 * kWordSize));
-  __ sw(A0, Address(SP, 0 * kWordSize));
-  EmitEqualityAsInstanceCall(compiler,
-                             deopt_id(),
-                             token_pos(),
-                             Token::kEQ,  // kNE reverse occurs at branch.
-                             locs(),
-                             *ic_data());
-  if (branch->is_checked()) {
-    EmitAssertBoolean(V0, token_pos(), deopt_id(), locs(), compiler);
+  Location right = locs()->in(1);
+  if (right.IsConstant()) {
+    ASSERT(right.constant().IsSmi());
+    const int32_t imm =
+        reinterpret_cast<int32_t>(right.constant().raw());
+    __ AndImmediate(CMPRES1, left, imm);
+  } else {
+    __ and_(CMPRES1, left, right.reg());
   }
-  Condition branch_condition = (kind() == Token::kNE) ? NE : EQ;
-  __ CompareObject(CMPRES1, CMPRES2, V0, Bool::True());
-  branch->EmitBranchOnCondition(compiler, branch_condition);
+  __ mov(CMPRES2, ZR);
+  EmitBranchOnCondition(compiler, true_condition, labels);
 }
 
 
@@ -854,33 +684,39 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
 
 void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("RelationalOpInstr");
+
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+
   if (operation_cid() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), NULL);
-    return;
+    EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
   }
-  if (operation_cid() == kMintCid) {
-    EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), NULL);
-    return;
-  }
-  ASSERT(operation_cid() == kDoubleCid);
-  EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL);
-  return;
+  Register result = locs()->out().reg();
+  Label done;
+  __ Bind(&is_false);
+  __ LoadObject(result, Bool::False());
+  __ b(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
 }
 
 
 void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                        BranchInstr* branch) {
   __ TraceSimMsg("RelationalOpInstr");
+
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+
   if (operation_cid() == kSmiCid) {
-    EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
-    return;
+    EmitSmiComparisonOp(compiler, *locs(), kind(), labels);
+  } else {
+    ASSERT(operation_cid() == kDoubleCid);
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
   }
-  if (operation_cid() == kMintCid) {
-    EmitUnboxedMintComparisonOp(compiler, *locs(), kind(), branch);
-    return;
-  }
-  ASSERT(operation_cid() == kDoubleCid);
-  EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
 }
 
 
@@ -958,9 +794,9 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(result,
                    reinterpret_cast<uword>(Symbols::PredefinedAddress()));
   __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
-  __ sll(TMP1, char_code, 1);  // Char code is a smi.
-  __ addu(TMP1, TMP1, result);
-  __ lw(result, Address(TMP1));
+  __ sll(TMP, char_code, 1);  // Char code is a smi.
+  __ addu(TMP, TMP, result);
+  __ lw(result, Address(TMP));
 }
 
 
@@ -1017,8 +853,8 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register object = locs()->in(0).reg();
   Register result = locs()->out().reg();
   Label load, done;
-  __ andi(CMPRES, object, Immediate(kSmiTagMask));
-  __ bne(CMPRES, ZR, &load);
+  __ andi(CMPRES1, object, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &load);
   __ LoadImmediate(result, Smi::RawValue(kSmiCid));
   __ b(&done);
   __ Bind(&load);
@@ -1236,9 +1072,9 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptUint32Load);
         __ lw(result, element_address);
         // Verify that the unsigned value in 'result' can fit inside a Smi.
-        __ LoadImmediate(TMP1, 0xC0000000);
-        __ and_(CMPRES, result, TMP1);
-        __ bne(CMPRES, ZR, deopt);
+        __ LoadImmediate(TMP, 0xC0000000);
+        __ and_(CMPRES1, result, TMP);
+        __ bne(CMPRES1, ZR, deopt);
         __ SmiTag(result);
       }
       break;
@@ -1421,8 +1257,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiUntag(value);
         __ BranchUnsignedLess(value, 0xFF + 1, &store_value);
         __ LoadImmediate(TMP, 0xFF);
-        __ slti(CMPRES, value, Immediate(1));
-        __ movn(TMP, ZR, CMPRES);
+        __ slti(CMPRES1, value, Immediate(1));
+        __ movn(TMP, ZR, CMPRES1);
         __ mov(value, TMP);
         __ Bind(&store_value);
         __ sb(value, element_address);
@@ -1610,31 +1446,29 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ bne(CMPRES1, ZR, fail);
       }
       __ Bind(&skip_length_check);
-      __ lw(TMP1, field_nullability_operand);
-      __ subu(CMPRES, value_cid_reg, TMP1);
+      __ lw(TMP, field_nullability_operand);
+      __ subu(CMPRES1, value_cid_reg, TMP);
     } else if (value_cid == kNullCid) {
-      // TODO(regis): TMP1 may conflict. Revisit.
-      __ lw(TMP1, field_nullability_operand);
-      __ LoadImmediate(CMPRES, value_cid);
-      __ subu(CMPRES, TMP1, CMPRES);
+      __ lw(TMP, field_nullability_operand);
+      __ LoadImmediate(CMPRES1, value_cid);
+      __ subu(CMPRES1, TMP, CMPRES1);
     } else {
       Label skip_length_check;
-      // TODO(regis): TMP1 may conflict. Revisit.
-      __ lw(TMP1, field_cid_operand);
-      __ LoadImmediate(CMPRES, value_cid);
-      __ subu(CMPRES, TMP1, CMPRES);
-      __ bne(CMPRES, ZR, &skip_length_check);
+      __ lw(TMP, field_cid_operand);
+      __ LoadImmediate(CMPRES1, value_cid);
+      __ subu(CMPRES1, TMP, CMPRES1);
+      __ bne(CMPRES1, ZR, &skip_length_check);
       // Insert length check.
       if (field_has_length) {
         ASSERT(value_cid_reg != kNoRegister);
         if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
           __ lw(TMP, FieldAddress(value_reg, Array::length_offset()));
-          __ LoadImmediate(CMPRES, Smi::RawValue(field_length));
-          __ subu(CMPRES, TMP, CMPRES);
+          __ LoadImmediate(CMPRES1, Smi::RawValue(field_length));
+          __ subu(CMPRES1, TMP, CMPRES1);
         } else if (RawObject::IsTypedDataClassId(value_cid)) {
           __ lw(TMP, FieldAddress(value_reg, TypedData::length_offset()));
-          __ LoadImmediate(CMPRES, Smi::RawValue(field_length));
-          __ subu(CMPRES, TMP, CMPRES);
+          __ LoadImmediate(CMPRES1, Smi::RawValue(field_length));
+          __ subu(CMPRES1, TMP, CMPRES1);
         } else if (field_cid != kIllegalCid) {
           ASSERT(field_cid != value_cid);
           ASSERT(field_length >= 0);
@@ -1646,11 +1480,11 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           ASSERT(field_length == Field::kUnknownFixedLength);
           // Following jump cannot not occur, fall through.
         }
-        __ bne(CMPRES, ZR, fail);
+        __ bne(CMPRES1, ZR, fail);
       }
       __ Bind(&skip_length_check);
     }
-    __ beq(CMPRES, ZR, &ok);
+    __ beq(CMPRES1, ZR, &ok);
 
     __ lw(CMPRES1, field_cid_operand);
     __ BranchNotEqual(CMPRES1, kIllegalCid, fail);
@@ -1684,16 +1518,15 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // Updated field length from regular array.
         __ b(&length_set);
         __ Bind(&no_fixed_length);
-        // TODO(regis): TMP1 may conflict. Revisit.
-        __ LoadImmediate(TMP1, Smi::RawValue(Field::kNoFixedLength));
-        __ sw(TMP1, field_length_operand);
+        __ LoadImmediate(TMP, Smi::RawValue(Field::kNoFixedLength));
+        __ sw(TMP, field_length_operand);
         __ Bind(&length_set);
       }
     } else {
       ASSERT(field_reg != kNoRegister);
-      __ LoadImmediate(TMP1, value_cid);
-      __ sw(TMP1, field_cid_operand);
-      __ sw(TMP1, field_nullability_operand);
+      __ LoadImmediate(TMP, value_cid);
+      __ sw(TMP, field_cid_operand);
+      __ sw(TMP, field_nullability_operand);
       if (field_has_length) {
         ASSERT(value_cid_reg != kNoRegister);
         if ((value_cid == kArrayCid) || (value_cid == kImmutableArrayCid)) {
@@ -1722,18 +1555,18 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     if (value_cid == kDynamicCid) {
       // Field's guarded class id is fixed by value's class id is not known.
-      __ andi(CMPRES, value_reg, Immediate(kSmiTagMask));
+      __ andi(CMPRES1, value_reg, Immediate(kSmiTagMask));
 
       if (field_cid != kSmiCid) {
-        __ beq(CMPRES, ZR, fail);
+        __ beq(CMPRES1, ZR, fail);
         __ LoadClassId(value_cid_reg, value_reg);
-        __ LoadImmediate(TMP1, field_cid);
-        __ subu(CMPRES, value_cid_reg, TMP1);
+        __ LoadImmediate(TMP, field_cid);
+        __ subu(CMPRES1, value_cid_reg, TMP);
       }
 
       if (field_has_length) {
         // Jump when Value CID != Field guard CID
-        __ bne(CMPRES, ZR, fail);
+        __ bne(CMPRES1, ZR, fail);
         // Classes are same, perform guarded list length check.
         ASSERT(field_reg != kNoRegister);
         ASSERT(value_cid_reg != kNoRegister);
@@ -1748,20 +1581,20 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ lw(value_cid_reg,
                 FieldAddress(value_reg, TypedData::length_offset()));
         }
-        __ lw(TMP1, field_length_operand);
-        __ subu(CMPRES, value_cid_reg, TMP1);
+        __ lw(TMP, field_length_operand);
+        __ subu(CMPRES1, value_cid_reg, TMP);
       }
 
       if (field().is_nullable() && (field_cid != kNullCid)) {
-        __ beq(CMPRES, ZR, &ok);
+        __ beq(CMPRES1, ZR, &ok);
         __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
-        __ subu(CMPRES, value_reg, TMP);
+        __ subu(CMPRES1, value_reg, TMP);
       }
 
       if (ok_is_fall_through) {
-        __ bne(CMPRES, ZR, fail);
+        __ bne(CMPRES1, ZR, fail);
       } else {
-        __ beq(CMPRES, ZR, &ok);
+        __ beq(CMPRES1, ZR, &ok);
       }
     } else {
       // Both value's and field's class id is known.
@@ -1780,10 +1613,10 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ lw(value_cid_reg,
                 FieldAddress(value_reg, TypedData::length_offset()));
         }
-        __ LoadImmediate(TMP1, Smi::RawValue(field_length));
-        __ subu(CMPRES, value_cid_reg, TMP1);
+        __ LoadImmediate(TMP, Smi::RawValue(field_length));
+        __ subu(CMPRES1, value_cid_reg, TMP);
         if (ok_is_fall_through) {
-          __ bne(CMPRES, ZR, fail);
+          __ bne(CMPRES1, ZR, fail);
         }
       } else {
         // Nothing to emit.
@@ -2002,10 +1835,10 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // (or null).
   // A runtime call to instantiate the type is required.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ LoadObject(TMP1, Object::ZoneHandle());
-  __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
-  __ LoadObject(TMP1, type());
-  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  __ LoadObject(TMP, Object::ZoneHandle());
+  __ sw(TMP, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ LoadObject(TMP, type());
+  __ sw(TMP, Address(SP, 1 * kWordSize));
   // Push instantiator type arguments.
   __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
 
@@ -2056,10 +1889,10 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ LoadObject(TMP1, Object::ZoneHandle());
-  __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
-  __ LoadObject(TMP1, type_arguments());
-  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  __ LoadObject(TMP, Object::ZoneHandle());
+  __ sw(TMP, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ LoadObject(TMP, type_arguments());
+  __ sw(TMP, Address(SP, 1 * kWordSize));
   // Push instantiator type arguments.
   __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
 
@@ -2202,8 +2035,8 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("CloneContextInstr");
 
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ LoadObject(TMP1, Object::ZoneHandle());  // Make room for the result.
-  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  __ LoadObject(TMP, Object::ZoneHandle());  // Make room for the result.
+  __ sw(TMP, Address(SP, 1 * kWordSize));
   __ sw(context_value, Address(SP, 0 * kWordSize));
 
   compiler->GenerateRuntimeCall(token_pos(),
@@ -2230,11 +2063,11 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 catch_handler_types_,
                                 needs_stacktrace());
   // Restore pool pointer.
-  __ GetNextPC(CMPRES, TMP);
+  __ GetNextPC(CMPRES1, TMP);
   const intptr_t object_pool_pc_dist =
      Instructions::HeaderSize() - Instructions::object_pool_offset() +
      compiler->assembler()->CodeSize() - 1 * Instr::kInstrSize;
-  __ LoadFromOffset(PP, CMPRES, -object_pool_pc_dist);
+  __ LoadFromOffset(PP, CMPRES1, -object_pool_pc_dist);
 
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -2310,9 +2143,9 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  __ LoadImmediate(TMP1, Isolate::Current()->stack_limit_address());
+  __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
 
-  __ lw(CMPRES1, Address(TMP1));
+  __ lw(CMPRES1, Address(TMP));
   __ BranchUnsignedLessEqual(SP, CMPRES1, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
     Register temp = locs()->temp(0).reg();
@@ -2362,8 +2195,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     } else {
       if (!is_truncating) {
         // Check for overflow (preserve left).
-        __ sll(TMP1, left, value);
-        __ sra(CMPRES1, TMP1, value);
+        __ sll(TMP, left, value);
+        __ sra(CMPRES1, TMP, value);
         __ bne(CMPRES1, left, deopt);  // Overflow.
       }
       // Shift for result now we know there is no overflow.
@@ -2413,13 +2246,13 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       Label done, is_not_zero;
 
-      __ sltiu(CMPRES,
+      __ sltiu(CMPRES1,
           right, Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
-      __ movz(result, ZR, CMPRES);  // result = right >= kBits ? 0 : result.
-      __ sra(TMP1, right, kSmiTagSize);
-      __ sllv(TMP1, left, TMP1);
+      __ movz(result, ZR, CMPRES1);  // result = right >= kBits ? 0 : result.
+      __ sra(TMP, right, kSmiTagSize);
+      __ sllv(TMP, left, TMP);
       // result = right < kBits ? left << right : result.
-      __ movn(result, TMP1, CMPRES);
+      __ movn(result, TMP, CMPRES1);
     } else {
       __ sra(TMP, right, kSmiTagSize);
       __ sllv(result, left, TMP);
@@ -2457,6 +2290,13 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     } else {
       summary->set_in(1, Location::RequiresRegister());
     }
+    summary->AddTemp(Location::RequiresRegister());
+    summary->set_out(Location::RequiresRegister());
+    return summary;
+  }
+  if (op_kind() == Token::kMOD) {
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
     summary->AddTemp(Location::RequiresRegister());
     summary->set_out(Location::RequiresRegister());
     return summary;
@@ -2502,8 +2342,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (deopt == NULL) {
           __ AddImmediate(result, left, -imm);
         } else {
-          __ SubImmediateDetectOverflow(result, left, imm, CMPRES);
-          __ bltz(CMPRES, deopt);
+          __ SubImmediateDetectOverflow(result, left, imm, CMPRES1);
+          __ bltz(CMPRES1, deopt);
         }
         break;
       }
@@ -2512,8 +2352,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ AddImmediate(result, left, imm);
         } else {
           Register temp = locs()->temp(0).reg();
-          __ AddImmediateDetectOverflow(result, left, imm, CMPRES, temp);
-          __ bltz(CMPRES, deopt);
+          __ AddImmediateDetectOverflow(result, left, imm, CMPRES1, temp);
+          __ bltz(CMPRES1, deopt);
         }
         break;
       }
@@ -2524,8 +2364,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           if (value == 2) {
             __ sll(result, left, 1);
           } else {
-            __ LoadImmediate(TMP1, value);
-            __ mult(left, TMP1);
+            __ LoadImmediate(TMP, value);
+            __ mult(left, TMP);
             __ mflo(result);
           }
         } else {
@@ -2533,12 +2373,12 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             __ sra(CMPRES2, left, 31);  // CMPRES2 = sign of left.
             __ sll(result, left, 1);
           } else {
-            __ LoadImmediate(TMP1, value);
-            __ mult(left, TMP1);
+            __ LoadImmediate(TMP, value);
+            __ mult(left, TMP);
             __ mflo(result);
             __ mfhi(CMPRES2);
           }
-          __ sra(CMPRES, result, 31);
+          __ sra(CMPRES1, result, 31);
           __ bne(CMPRES1, CMPRES2, deopt);
         }
         break;
@@ -2579,8 +2419,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (Utils::IsUint(kImmBits, imm)) {
           __ andi(result, left, Immediate(imm));
         } else {
-          __ LoadImmediate(TMP1, imm);
-          __ and_(result, left, TMP1);
+          __ LoadImmediate(TMP, imm);
+          __ and_(result, left, TMP);
         }
         break;
       }
@@ -2589,8 +2429,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (Utils::IsUint(kImmBits, imm)) {
           __ ori(result, left, Immediate(imm));
         } else {
-          __ LoadImmediate(TMP1, imm);
-          __ or_(result, left, TMP1);
+          __ LoadImmediate(TMP, imm);
+          __ or_(result, left, TMP);
         }
         break;
       }
@@ -2599,8 +2439,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (Utils::IsUint(kImmBits, imm)) {
           __ xori(result, left, Immediate(imm));
         } else {
-          __ LoadImmediate(TMP1, imm);
-          __ xor_(result, left, TMP1);
+          __ LoadImmediate(TMP, imm);
+          __ xor_(result, left, TMP);
         }
         break;
       }
@@ -2645,8 +2485,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ addu(result, left, right);
       } else {
         Register temp = locs()->temp(0).reg();
-        __ AdduDetectOverflow(result, left, right, CMPRES, temp);
-        __ bltz(CMPRES, deopt);
+        __ AdduDetectOverflow(result, left, right, CMPRES1, temp);
+        __ bltz(CMPRES1, deopt);
       }
       break;
     }
@@ -2655,8 +2495,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (deopt == NULL) {
         __ subu(result, left, right);
       } else {
-        __ SubuDetectOverflow(result, left, right, CMPRES);
-        __ bltz(CMPRES, deopt);
+        __ SubuDetectOverflow(result, left, right, CMPRES1);
+        __ bltz(CMPRES1, deopt);
       }
       break;
     }
@@ -2701,6 +2541,33 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     }
+    case Token::kMOD: {
+      // Handle divide by zero in runtime.
+      __ beq(right, ZR, deopt);
+      Register temp = locs()->temp(0).reg();
+      __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+      __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ div(temp, TMP);
+      __ mfhi(result);
+      //  res = left % right;
+      //  if (res < 0) {
+      //    if (right < 0) {
+      //      res = res - right;
+      //    } else {
+      //      res = res + right;
+      //    }
+      //  }
+      Label done, subtract;
+      __ bgez(result, &done);
+      __ bltz(right, &subtract);
+      __ addu(result, result, TMP);
+      __ b(&done);
+      __ Bind(&subtract);
+      __ subu(result, result, TMP);
+      __ Bind(&done);
+      __ SmiTag(result);
+      break;
+    }
     case Token::kSHR: {
       Register temp = locs()->temp(0).reg();
       if (CanDeoptimize()) {
@@ -2726,11 +2593,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kDIV: {
       // Dispatches to 'Double./'.
       // TODO(srdjan): Implement as conversion to double and double division.
-      UNREACHABLE();
-      break;
-    }
-    case Token::kMOD: {
-      // TODO(srdjan): Implement.
       UNREACHABLE();
       break;
     }
@@ -2769,14 +2631,14 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
   if (left_cid == kSmiCid) {
-    __ andi(CMPRES, right, Immediate(kSmiTagMask));
+    __ andi(CMPRES1, right, Immediate(kSmiTagMask));
   } else if (right_cid == kSmiCid) {
-    __ andi(CMPRES, left, Immediate(kSmiTagMask));
+    __ andi(CMPRES1, left, Immediate(kSmiTagMask));
   } else {
     __ or_(TMP, left, right);
-    __ andi(CMPRES, TMP, Immediate(kSmiTagMask));
+    __ andi(CMPRES1, TMP, Immediate(kSmiTagMask));
   }
-  __ beq(CMPRES, ZR, deopt);
+  __ beq(CMPRES1, ZR, deopt);
 }
 
 
@@ -2872,8 +2734,8 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
     Label is_smi, done;
 
-    __ andi(CMPRES, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES, ZR, &is_smi);
+    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
+    __ beq(CMPRES1, ZR, &is_smi);
     __ LoadClassId(CMPRES1, value);
     __ BranchNotEqual(CMPRES1, kDoubleCid, deopt);
     __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
@@ -3331,8 +3193,8 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kNEGATE: {
       Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                             kDeoptUnaryOp);
-      __ SubuDetectOverflow(result, ZR, value, CMPRES);
-      __ bltz(CMPRES, deopt);
+      __ SubuDetectOverflow(result, ZR, value, CMPRES1);
+      __ bltz(CMPRES1, deopt);
       break;
     }
     case Token::kBIT_NOT:
@@ -3414,8 +3276,8 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label do_call, done;
   // Check for overflow and that it fits into Smi.
   __ LoadImmediate(TMP, 0xC0000000);
-  __ subu(CMPRES, result, TMP);
-  __ bltz(CMPRES, &do_call);
+  __ subu(CMPRES1, result, TMP);
+  __ bltz(CMPRES1, &do_call);
   __ SmiTag(result);
   __ b(&done);
   __ Bind(&do_call);
@@ -3456,8 +3318,8 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Check for overflow and that it fits into Smi.
   __ LoadImmediate(TMP, 0xC0000000);
-  __ subu(CMPRES, result, TMP);
-  __ bltz(CMPRES, deopt);
+  __ subu(CMPRES1, result, TMP);
+  __ bltz(CMPRES1, deopt);
   __ SmiTag(result);
 }
 
@@ -3532,6 +3394,82 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // double values are passed and returned in vfp registers.
   __ CallRuntime(TargetFunction(), InputCount());
   __ Bind(&skip_call);
+}
+
+
+LocationSummary* MergedMathInstr::MakeLocationSummary() const {
+  if (kind() == MergedMathInstr::kTruncDivMod) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 3;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_temp(1, Location::RequiresRegister());  // result_div.
+    summary->set_temp(2, Location::RequiresRegister());  // result_mod.
+    summary->set_out(Location::RequiresRegister());
+    return summary;
+  }
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label* deopt = NULL;
+  if (CanDeoptimize()) {
+    deopt = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
+  }
+  if (kind() == MergedMathInstr::kTruncDivMod) {
+    Register left = locs()->in(0).reg();
+    Register right = locs()->in(1).reg();
+    Register result = locs()->out().reg();
+    Register temp = locs()->temp(0).reg();
+    Register result_div = locs()->temp(1).reg();
+    Register result_mod = locs()->temp(2).reg();
+    // Handle divide by zero in runtime.
+    __ beq(right, ZR, deopt);
+    __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+    __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+    __ div(temp, TMP);
+    __ mflo(result_div);
+    __ mfhi(result_mod);
+    // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+    // case we cannot tag the result.
+    __ BranchEqual(result_div, 0x40000000, deopt);
+    //  res = left % right;
+    //  if (res < 0) {
+    //    if (right < 0) {
+    //      res = res - right;
+    //    } else {
+    //      res = res + right;
+    //    }
+    //  }
+    Label done, subtract;
+    __ bgez(result_mod, &done);
+    __ bltz(right, &subtract);
+    __ addu(result_mod, result_mod, TMP);
+    __ b(&done);
+    __ Bind(&subtract);
+    __ subu(result_mod, result_mod, TMP);
+    __ Bind(&done);
+
+    __ SmiTag(result_div);
+    __ SmiTag(result_mod);
+    __ LoadObject(result, Array::ZoneHandle(Array::New(2, Heap::kOld)));
+    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays.
+    // [0]: divide resut, [1]: mod result.
+    __ LoadImmediate(temp,
+        FlowGraphCompiler::DataOffsetFor(kArrayCid) - kHeapObjectTag);
+    __ addu(temp, result, temp);
+    Address div_result_address(temp, 0);
+    Address mod_result_address(temp, kWordSize);
+    __ StoreIntoObjectNoBarrier(result, div_result_address, result_div);
+    __ StoreIntoObjectNoBarrier(result, mod_result_address, result_mod);
+    return;
+  }
+  UNIMPLEMENTED();
 }
 
 
@@ -3621,23 +3559,23 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label is_ok;
   intptr_t cix = 0;
   if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
-    __ andi(CMPRES, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES, ZR, &is_ok);
+    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
+    __ beq(CMPRES1, ZR, &is_ok);
     cix++;  // Skip first check.
   } else {
-    __ andi(CMPRES, value, Immediate(kSmiTagMask));
-    __ beq(CMPRES, ZR, deopt);
+    __ andi(CMPRES1, value, Immediate(kSmiTagMask));
+    __ beq(CMPRES1, ZR, deopt);
   }
   __ LoadClassId(temp, value);
   const intptr_t num_checks = unary_checks().NumberOfChecks();
   for (intptr_t i = cix; i < num_checks; i++) {
     ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
-    __ LoadImmediate(TMP1, unary_checks().GetReceiverClassIdAt(i));
-    __ subu(CMPRES, temp, TMP1);
+    __ LoadImmediate(TMP, unary_checks().GetReceiverClassIdAt(i));
+    __ subu(CMPRES1, temp, TMP);
     if (i == (num_checks - 1)) {
-      __ bne(CMPRES, ZR, deopt);
+      __ bne(CMPRES1, ZR, deopt);
     } else {
-      __ beq(CMPRES, ZR, &is_ok);
+      __ beq(CMPRES1, ZR, &is_ok);
     }
   }
   __ Bind(&is_ok);
@@ -3857,54 +3795,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static Condition NegateCondition(Condition condition) {
-  switch (condition) {
-    case EQ: return NE;
-    case NE: return EQ;
-    case LT: return GE;
-    case LE: return GT;
-    case GT: return LE;
-    case GE: return LT;
-    default:
-      OS::Print("Error: Condition not recognized: %d\n", condition);
-      UNIMPLEMENTED();
-      return EQ;
-  }
-}
-
-
-void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
-                                           bool value) {
-  __ TraceSimMsg("ControlInstruction::EmitBranchOnValue");
-  if (value && !compiler->CanFallThroughTo(true_successor())) {
-    __ b(compiler->GetJumpLabel(true_successor()));
-  } else if (!value && !compiler->CanFallThroughTo(false_successor())) {
-    __ b(compiler->GetJumpLabel(false_successor()));
-  }
-}
-
-
-// The comparison result is in CMPRES.
-void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
-                                               Condition true_condition) {
-  __ TraceSimMsg("ControlInstruction::EmitBranchOnCondition");
-  if (compiler->CanFallThroughTo(false_successor())) {
-    // If the next block is the false successor, fall through to it.
-    Label* label = compiler->GetJumpLabel(true_successor());
-    EmitBranchAfterCompare(compiler, true_condition, label);
-  } else {
-    // If the next block is not the false successor, branch to it.
-    Condition false_condition = NegateCondition(true_condition);
-    Label* label = compiler->GetJumpLabel(false_successor());
-    EmitBranchAfterCompare(compiler, false_condition, label);
-    // Fall through or jump to the true successor.
-    if (!compiler->CanFallThroughTo(true_successor())) {
-      __ b(compiler->GetJumpLabel(true_successor()));
-    }
-  }
-}
-
-
 LocationSummary* CurrentContextInstr::MakeLocationSummary() const {
   return LocationSummary::Make(0,
                                Location::RequiresRegister(),
@@ -3920,58 +3810,74 @@ void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
+  if (needs_number_check()) {
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    locs->set_in(0, Location::RegisterLocation(A0));
+    locs->set_in(1, Location::RegisterLocation(A1));
+    locs->set_out(Location::RegisterLocation(A0));
+    return locs;
+  }
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RegisterOrConstant(left()));
-  locs->set_in(1, Location::RegisterOrConstant(right()));
+  // Only one of the inputs can be a constant. Choose register if the first one
+  // is a constant.
+  locs->set_in(1, locs->in(0).IsConstant()
+                      ? Location::RequiresRegister()
+                      : Location::RegisterOrConstant(right()));
   locs->set_out(Location::RequiresRegister());
   return locs;
 }
 
+
+static void EmitStrictComparison(FlowGraphCompiler* compiler,
+                                 StrictCompareInstr* compare,
+                                 BranchLabels labels) {
+  LocationSummary* locs = compare->locs();
+  bool needs_number_check = compare->needs_number_check();
+  intptr_t token_pos = compare->token_pos();
+  Token::Kind kind = compare->kind();
+  Location left = locs->in(0);
+  Location right = locs->in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+  if (left.IsConstant()) {
+    compiler->EmitEqualityRegConstCompare(right.reg(),
+                                          left.constant(),
+                                          needs_number_check,
+                                          token_pos);
+  } else if (right.IsConstant()) {
+    compiler->EmitEqualityRegConstCompare(left.reg(),
+                                          right.constant(),
+                                          needs_number_check,
+                                          token_pos);
+  } else {
+    compiler->EmitEqualityRegRegCompare(left.reg(),
+                                       right.reg(),
+                                       needs_number_check,
+                                       token_pos);
+  }
+  Condition true_condition = (kind == Token::kEQ_STRICT) ? EQ : NE;
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
 
 // Special code for numbers (compare values instead of references.)
 void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("StrictCompareInstr");
   __ Comment("StrictCompareInstr");
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-  Location left = locs()->in(0);
-  Location right = locs()->in(1);
-  if (left.IsConstant() && right.IsConstant()) {
-    // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = (kind() == Token::kEQ_STRICT) ?
-        left.constant().raw() == right.constant().raw() :
-        left.constant().raw() != right.constant().raw();
-    __ LoadObject(locs()->out().reg(), Bool::Get(result));
-    return;
-  }
-  if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(),
-                                          left.constant(),
-                                          needs_number_check(),
-                                          token_pos());
-  } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(),
-                                          right.constant(),
-                                          needs_number_check(),
-                                          token_pos());
-  } else {
-    compiler->EmitEqualityRegRegCompare(left.reg(),
-                                       right.reg(),
-                                       needs_number_check(),
-                                       token_pos());
-  }
+
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+
+  EmitStrictComparison(compiler, this, labels);
 
   Register result = locs()->out().reg();
-  Label load_true, done;
-  if (kind() == Token::kEQ_STRICT) {
-    __ beq(CMPRES1, CMPRES2, &load_true);
-  } else {
-    ASSERT(kind() == Token::kNE_STRICT);
-    __ bne(CMPRES1, CMPRES2, &load_true);
-  }
+  Label done;
+  __ Bind(&is_false);
   __ LoadObject(result, Bool::False());
   __ b(&done);
-  __ Bind(&load_true);
+  __ Bind(&is_true);
   __ LoadObject(result, Bool::True());
   __ Bind(&done);
 }
@@ -3981,35 +3887,10 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                         BranchInstr* branch) {
   __ TraceSimMsg("StrictCompareInstr::EmitBranchCode");
   ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
-  Location left = locs()->in(0);
-  Location right = locs()->in(1);
-  if (left.IsConstant() && right.IsConstant()) {
-    // TODO(vegorov): should be eliminated earlier by constant propagation.
-    const bool result = (kind() == Token::kEQ_STRICT) ?
-        left.constant().raw() == right.constant().raw() :
-        left.constant().raw() != right.constant().raw();
-    branch->EmitBranchOnValue(compiler, result);
-    return;
-  }
-  if (left.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(right.reg(),
-                                          left.constant(),
-                                          needs_number_check(),
-                                          token_pos());
-  } else if (right.IsConstant()) {
-    compiler->EmitEqualityRegConstCompare(left.reg(),
-                                          right.constant(),
-                                          needs_number_check(),
-                                          token_pos());
-  } else {
-    compiler->EmitEqualityRegRegCompare(left.reg(),
-                                        right.reg(),
-                                        needs_number_check(),
-                                        token_pos());
-  }
 
-  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
-  branch->EmitBranchOnCondition(compiler, true_condition);
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+
+  EmitStrictComparison(compiler, this, labels);
 }
 
 
@@ -4025,9 +3906,9 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
 
   __ LoadObject(result, Bool::True());
-  __ LoadObject(TMP1, Bool::False());
-  __ subu(CMPRES, value, result);
-  __ movz(result, TMP1, CMPRES);  // If value is True, move False into result.
+  __ LoadObject(TMP, Bool::False());
+  __ subu(CMPRES1, value, result);
+  __ movz(result, TMP, CMPRES1);  // If value is True, move False into result.
 }
 
 

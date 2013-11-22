@@ -5,8 +5,24 @@
 part of dart.io;
 
 class _HttpHeaders implements HttpHeaders {
+  final Map<String, List<String>> _headers;
+  final String protocolVersion;
+
+  bool _mutable = true;  // Are the headers currently mutable?
+  List<String> _noFoldingHeaders;
+
+  int _contentLength = -1;
+  bool _persistentConnection = true;
+  bool _chunkedTransferEncoding = false;
+  String _host;
+  int _port;
+
   _HttpHeaders(String this.protocolVersion)
-      : _headers = new Map<String, List<String>>();
+      : _headers = new HashMap<String, List<String>>() {
+    if (protocolVersion == "1.0") {
+      _persistentConnection = false;
+    }
+  }
 
   List<String> operator[](String name) {
     name = name.toLowerCase();
@@ -25,6 +41,10 @@ class _HttpHeaders implements HttpHeaders {
 
   void add(String name, value) {
     _checkMutable();
+    _addAll(name.toLowerCase(), value);
+  }
+
+  void _addAll(String name, value) {
     if (value is List) {
       for (int i = 0; i < value.length; i++) {
         _add(name, value[i]);
@@ -35,10 +55,10 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void set(String name, Object value) {
-    name = name.toLowerCase();
     _checkMutable();
-    removeAll(name);
-    add(name, value);
+    name = name.toLowerCase();
+    _headers.remove(name);
+    _addAll(name, value);
   }
 
   void remove(String name, Object value) {
@@ -69,38 +89,53 @@ class _HttpHeaders implements HttpHeaders {
     _noFoldingHeaders.add(name);
   }
 
-  bool get persistentConnection {
-    List<String> connection = _headers[HttpHeaders.CONNECTION];
-    if (protocolVersion == "1.1") {
-      if (connection == null) return true;
-      return !connection.any((value) => value.toLowerCase() == "close");
-    } else {
-      if (connection == null) return false;
-      return connection.any((value) => value.toLowerCase() == "keep-alive");
-    }
-  }
+  bool get persistentConnection => _persistentConnection;
 
   void set persistentConnection(bool persistentConnection) {
     _checkMutable();
-    // Determine the value of the "Connection" header.
-    remove(HttpHeaders.CONNECTION, "close");
-    remove(HttpHeaders.CONNECTION, "keep-alive");
-    if (protocolVersion == "1.1" && !persistentConnection) {
-      add(HttpHeaders.CONNECTION, "close");
-    } else if (protocolVersion == "1.0" && persistentConnection) {
-      add(HttpHeaders.CONNECTION, "keep-alive");
+    if (persistentConnection == _persistentConnection) return;
+    if (persistentConnection) {
+      if (protocolVersion == "1.1") {
+        remove(HttpHeaders.CONNECTION, "close");
+      } else {
+        if (_contentLength == -1) {
+          throw new HttpException(
+              "Trying to set 'Connection: Keep-Alive' on HTTP 1.0 headers with "
+              "no ContentLength");
+        }
+        add(HttpHeaders.CONNECTION, "keep-alive");
+      }
+    } else {
+      if (protocolVersion == "1.1") {
+        add(HttpHeaders.CONNECTION, "close");
+      } else {
+        remove(HttpHeaders.CONNECTION, "keep-alive");
+      }
     }
+    _persistentConnection = persistentConnection;
   }
 
   int get contentLength => _contentLength;
 
   void set contentLength(int contentLength) {
     _checkMutable();
+    if (protocolVersion == "1.0" &&
+        persistentConnection &&
+        contentLength == -1) {
+      throw new HttpException(
+          "Trying to clear ContentLength on HTTP 1.0 headers with "
+          "'Connection: Keep-Alive' set");
+    }
+    if (_contentLength == contentLength) return;
     _contentLength = contentLength;
     if (_contentLength >= 0) {
+      if (chunkedTransferEncoding) chunkedTransferEncoding = false;
       _set(HttpHeaders.CONTENT_LENGTH, contentLength.toString());
     } else {
       removeAll(HttpHeaders.CONTENT_LENGTH);
+      if (protocolVersion == "1.1") {
+        chunkedTransferEncoding = true;
+      }
     }
   }
 
@@ -108,16 +143,23 @@ class _HttpHeaders implements HttpHeaders {
 
   void set chunkedTransferEncoding(bool chunkedTransferEncoding) {
     _checkMutable();
-    _chunkedTransferEncoding = chunkedTransferEncoding;
-    List<String> values = _headers[HttpHeaders.TRANSFER_ENCODING];
-    if ((values == null || values[values.length - 1] != "chunked") &&
-        chunkedTransferEncoding) {
-      // Headers does not specify chunked encoding - add it if set.
+    if (chunkedTransferEncoding && protocolVersion == "1.0") {
+      throw new HttpException(
+          "Trying to set 'Transfer-Encoding: Chunked' on HTTP 1.0 headers");
+    }
+    if (chunkedTransferEncoding == _chunkedTransferEncoding) return;
+    if (chunkedTransferEncoding) {
+      List<String> values = _headers[HttpHeaders.TRANSFER_ENCODING];
+      if ((values == null || values.last != "chunked")) {
+        // Headers does not specify chunked encoding - add it if set.
         _addValue(HttpHeaders.TRANSFER_ENCODING, "chunked");
-    } else if (!chunkedTransferEncoding) {
+      }
+      contentLength = -1;
+    } else {
       // Headers does specify chunked encoding - remove it if not set.
       remove(HttpHeaders.TRANSFER_ENCODING, "chunked");
     }
+    _chunkedTransferEncoding = chunkedTransferEncoding;
   }
 
   String get host => _host;
@@ -207,10 +249,10 @@ class _HttpHeaders implements HttpHeaders {
     _set(HttpHeaders.CONTENT_TYPE, contentType.toString());
   }
 
+  // [name] must be a lower-case version of the name.
   void _add(String name, value) {
-    var lowerCaseName = name.toLowerCase();
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
-    if (lowerCaseName == HttpHeaders.CONTENT_LENGTH) {
+    if (name == HttpHeaders.CONTENT_LENGTH) {
       if (value is int) {
         contentLength = value;
       } else if (value is String) {
@@ -218,13 +260,13 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.TRANSFER_ENCODING) {
+    } else if (name == HttpHeaders.TRANSFER_ENCODING) {
       if (value == "chunked") {
         chunkedTransferEncoding = true;
       } else {
-        _addValue(lowerCaseName, value);
+        _addValue(name, value);
       }
-    } else if (lowerCaseName == HttpHeaders.DATE) {
+    } else if (name == HttpHeaders.DATE) {
       if (value is DateTime) {
         date = value;
       } else if (value is String) {
@@ -232,7 +274,7 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.EXPIRES) {
+    } else if (name == HttpHeaders.EXPIRES) {
       if (value is DateTime) {
         expires = value;
       } else if (value is String) {
@@ -240,7 +282,7 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.IF_MODIFIED_SINCE) {
+    } else if (name == HttpHeaders.IF_MODIFIED_SINCE) {
       if (value is DateTime) {
         ifModifiedSince = value;
       } else if (value is String) {
@@ -248,7 +290,7 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.HOST) {
+    } else if (name == HttpHeaders.HOST) {
       if (value is String) {
         int pos = value.indexOf(":");
         if (pos == -1) {
@@ -274,10 +316,18 @@ class _HttpHeaders implements HttpHeaders {
       } else {
         throw new HttpException("Unexpected type for header named $name");
       }
-    } else if (lowerCaseName == HttpHeaders.CONTENT_TYPE) {
+    } else if (name == HttpHeaders.CONNECTION) {
+      var lowerCaseValue = value.toLowerCase();
+      if (lowerCaseValue == 'close') {
+        _persistentConnection = false;
+      } else if (lowerCaseValue == 'keep-alive') {
+        _persistentConnection = true;
+      }
+      _addValue(name, value);
+    } else if (name == HttpHeaders.CONTENT_TYPE) {
       _set(HttpHeaders.CONTENT_TYPE, value);
     } else {
-      _addValue(lowerCaseName, value);
+      _addValue(name, value);
     }
   }
 
@@ -295,7 +345,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   void _set(String name, String value) {
-    name = name.toLowerCase();
+    assert(name == name.toLowerCase());
     List<String> values = new List<String>();
     _headers[name] = values;
     values.add(value);
@@ -320,55 +370,40 @@ class _HttpHeaders implements HttpHeaders {
     return true;
   }
 
-  void _synchronize() {
-    // If the content length is not known make sure chunked transfer
-    // encoding is used for HTTP 1.1.
-    if (contentLength < 0) {
-      if (protocolVersion == "1.0") {
-        persistentConnection = false;
-      } else {
-        chunkedTransferEncoding = true;
-      }
-    }
-    // If a Transfer-Encoding header field is present the
-    // Content-Length header MUST NOT be sent (RFC 2616 section 4.4).
-    if (chunkedTransferEncoding &&
-        contentLength >= 0 &&
-        protocolVersion == "1.1") {
-      contentLength = -1;
-    }
-  }
-
   void _finalize() {
-    _synchronize();
     _mutable = false;
   }
 
-  _write(BytesBuilder builder) {
-    final COLONSP = const [_CharCode.COLON, _CharCode.SP];
-    final COMMASP = const [_CharCode.COMMA, _CharCode.SP];
-    final CRLF = const [_CharCode.CR, _CharCode.LF];
+  int _write(Uint8List buffer, int offset) {
+    void write(List<int> bytes) {
+      int len = bytes.length;
+      for (int i = 0; i < len; i++) {
+        buffer[offset + i] = bytes[i];
+      }
+      offset += len;
+    }
 
     // Format headers.
     _headers.forEach((String name, List<String> values) {
       bool fold = _foldHeader(name);
       var nameData = name.codeUnits;
-      builder.add(nameData);
-      builder.add(const [_CharCode.COLON, _CharCode.SP]);
+      write(nameData);
+      write(const [_CharCode.COLON, _CharCode.SP]);
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
           if (fold) {
-            builder.add(const [_CharCode.COMMA, _CharCode.SP]);
+            write(const [_CharCode.COMMA, _CharCode.SP]);
           } else {
-            builder.add(const [_CharCode.CR, _CharCode.LF]);
-            builder.add(nameData);
-            builder.add(const [_CharCode.COLON, _CharCode.SP]);
+            write(const [_CharCode.CR, _CharCode.LF]);
+            write(nameData);
+            write(const [_CharCode.COLON, _CharCode.SP]);
           }
         }
-        builder.add(values[i].codeUnits);
+        write(values[i].codeUnits);
       }
-      builder.add(const [_CharCode.CR, _CharCode.LF]);
+      write(const [_CharCode.CR, _CharCode.LF]);
     });
+    return offset;
   }
 
   String toString() {
@@ -457,17 +492,6 @@ class _HttpHeaders implements HttpHeaders {
     }
     return cookies;
   }
-
-
-  bool _mutable = true;  // Are the headers currently mutable?
-  Map<String, List<String>> _headers;
-  List<String> _noFoldingHeaders;
-
-  int _contentLength = -1;
-  bool _chunkedTransferEncoding = false;
-  final String protocolVersion;
-  String _host;
-  int _port;
 }
 
 
@@ -478,7 +502,7 @@ class _HeaderValue implements HeaderValue {
   _HeaderValue([String this._value = "", Map<String, String> parameters]) {
     if (parameters != null) {
       _parameters =
-          new _UnmodifiableMap(new Map<String, String>.from(parameters));
+          new _UnmodifiableMap(new HashMap<String, String>.from(parameters));
     }
   }
 
@@ -495,7 +519,7 @@ class _HeaderValue implements HeaderValue {
 
   void _ensureParameters() {
     if (_parameters == null) {
-      _parameters = new _UnmodifiableMap(new Map<String, String>());
+      _parameters = new _UnmodifiableMap(new HashMap<String, String>());
     }
   }
 
@@ -553,7 +577,7 @@ class _HeaderValue implements HeaderValue {
     }
 
     void parseParameters() {
-      var parameters = new Map<String, String>();
+      var parameters = new HashMap<String, String>();
       _parameters = new _UnmodifiableMap(parameters);
 
       String parseParameterName() {

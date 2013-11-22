@@ -108,7 +108,7 @@ class FileTest {
         var file2 = new File(outFilename);
         var output = file2.openWrite();
         output.add(buffer);
-        output.close();
+        output.flush().then((_) => output.close());
         output.done.then((_) {
           // Now read the contents of the file just written.
           List<int> buffer2 = new List<int>();
@@ -147,7 +147,7 @@ class FileTest {
     IOSink output = file.openWrite();
     output.add(buffer);
     output.add(buffer);
-    output.close();
+    output.flush().then((_) => output.close());
     output.done.then((_) {
       Stream input = file.openRead();
       int position = 0;

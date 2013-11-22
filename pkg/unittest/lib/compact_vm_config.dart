@@ -190,7 +190,7 @@ class CompactVMConfiguration extends VMConfiguration {
 void useCompactVMConfiguration() {
   // If the test is running on the Dart buildbots, we don't want to use this
   // config since it's output may not be what the bots expect.
-  if (Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) {
+  if (Platform.environment['LOGNAME'] == 'chrome-bot') {
     return;
   }
 

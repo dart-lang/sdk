@@ -5,7 +5,8 @@
 library run_async_test;
 
 import 'dart:async';
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:expect/expect.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test("run async timer after async test", () {

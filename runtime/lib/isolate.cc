@@ -95,18 +95,17 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
+DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, send_id, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, reply_id, arguments->NativeArgAt(1));
   // TODO(iposva): Allow for arbitrary messages to be sent.
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator);
   writer.WriteMessage(obj);
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(send_id.Value(), reply_id.Value(),
+  PortMap::PostMessage(new Message(send_id.Value(), Message::kIllegalPort,
                                    data, writer.BytesWritten(),
                                    Message::kNormalPriority));
   return Object::null();
@@ -216,30 +215,22 @@ static RawObject* Spawn(NativeArguments* arguments, IsolateSpawnState* state) {
 
 DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
-  bool throw_exception = false;
-  Function& func = Function::Handle();
   if (closure.IsClosure()) {
+    Function& func = Function::Handle();
     func = Closure::function(closure);
-    const Class& cls = Class::Handle(func.Owner());
-    if (!func.IsClosureFunction() || !func.is_static() || !cls.IsTopLevel()) {
-      throw_exception = true;
-    }
-  } else {
-    throw_exception = true;
-  }
-  if (throw_exception) {
-    const String& msg = String::Handle(String::New(
-        "Isolate.spawn expects to be passed a top-level function"));
-    Exceptions::ThrowArgumentError(msg);
-  }
-
+    if (func.IsImplicitClosureFunction() && func.is_static()) {
 #if defined(DEBUG)
-  Context& ctx = Context::Handle();
-  ctx = Closure::context(closure);
-  ASSERT(ctx.num_variables() == 0);
+      Context& ctx = Context::Handle();
+      ctx = Closure::context(closure);
+      ASSERT(ctx.num_variables() == 0);
 #endif
-
-  return Spawn(arguments, new IsolateSpawnState(func));
+      return Spawn(arguments, new IsolateSpawnState(func));
+    }
+  }
+  const String& msg = String::Handle(String::New(
+      "Isolate.spawn expects to be passed a static or top-level function"));
+  Exceptions::ThrowArgumentError(msg);
+  return Object::null();
 }
 
 

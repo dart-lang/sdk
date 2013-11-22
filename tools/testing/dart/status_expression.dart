@@ -30,6 +30,13 @@ library status_expression;
  *  to A if B is true, and to the empty set if B is false.
  */
 
+class ExprEvaluationException {
+  String error;
+
+  ExprEvaluationException(this.error);
+
+  toString() => error;
+}
 
 class Token {
   static const String LEFT_PAREN = "(";
@@ -97,7 +104,15 @@ class TermVariable {
 
   TermVariable(this.name);
 
-  String termValue(environment) => environment[name].toString();
+  String termValue(environment) {
+    var value = environment[name];
+    if (value == null) {
+      throw new ExprEvaluationException(
+          "Could not find '$name' in environment "
+          "while evaluating status file expression.");
+    }
+    return value.toString();
+  }
 }
 
 

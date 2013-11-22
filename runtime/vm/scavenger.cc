@@ -303,7 +303,9 @@ class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
 };
 
 
-Scavenger::Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment)
+Scavenger::Scavenger(Heap* heap,
+                     intptr_t max_capacity_in_words,
+                     uword object_alignment)
     : heap_(heap),
       object_alignment_(object_alignment),
       scavenging_(false) {
@@ -312,7 +314,7 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment)
   ASSERT(Object::tags_offset() == 0);
 
   // Allocate the virtual memory for this scavenge heap.
-  space_ = VirtualMemory::Reserve(max_capacity);
+  space_ = VirtualMemory::Reserve(max_capacity_in_words << kWordSizeLog2);
   if (space_ == NULL) {
     FATAL("Out of memory.\n");
   }
@@ -439,7 +441,7 @@ void Scavenger::IterateRoots(Isolate* isolate,
   IterateStoreBuffers(isolate, visitor);
   IterateObjectIdTable(isolate, visitor);
   int64_t end = OS::GetCurrentTimeMicros();
-  heap_->RecordData(kToKBAfterStoreBuffer, (in_use() + (KB >> 1)) >> KBLog2);
+  heap_->RecordData(kToKBAfterStoreBuffer, RoundWordsToKB(UsedInWords()));
   heap_->RecordTime(kVisitIsolateRoots, middle - start);
   heap_->RecordTime(kIterateStoreBuffers, end - middle);
 }

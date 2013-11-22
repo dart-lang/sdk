@@ -68,7 +68,7 @@ namespace dart {
     V(WeakProperty)                                                            \
     V(MirrorReference)                                                         \
     V(Float32x4)                                                               \
-    V(Int32x4)                                                                \
+    V(Int32x4)                                                                 \
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \
@@ -94,7 +94,7 @@ namespace dart {
   V(Float32Array)                                                              \
   V(Float64Array)                                                              \
   V(Float32x4Array)                                                            \
-  V(Int32x4Array)                                                             \
+  V(Int32x4Array)                                                              \
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
@@ -1163,9 +1163,9 @@ class RawType : public RawAbstractType {
   }
   RawObject* type_class_;  // Either resolved class or unresolved class.
   RawAbstractTypeArguments* arguments_;
-  RawError* malformed_error_;  // Error object if type is malformed.
+  RawLanguageError* error_;  // Error object if type is malformed or malbounded.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->malformed_error_);
+    return reinterpret_cast<RawObject**>(&ptr()->error_);
   }
   intptr_t token_pos_;
   int8_t type_state_;

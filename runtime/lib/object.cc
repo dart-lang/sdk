@@ -18,6 +18,13 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
 
 
+DEFINE_NATIVE_ENTRY(Object_equals, 1) {
+  // Implemented in the flow graph builder.
+  UNREACHABLE();
+  return Object::null();
+}
+
+
 DEFINE_NATIVE_ENTRY(Object_cid, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   return Smi::New(instance.GetClassId());

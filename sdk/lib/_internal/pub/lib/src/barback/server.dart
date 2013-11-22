@@ -16,6 +16,9 @@ import '../barback.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 
+/// Callback for determining if an asset with [id] should be served or not.
+typedef bool AllowAsset(AssetId id);
+
 /// A server that serves assets transformed by barback.
 class BarbackServer {
   /// The underlying HTTP server.
@@ -33,6 +36,15 @@ class BarbackServer {
 
   /// The server's address.
   final InternetAddress address;
+
+  /// Optional callback to determine if an asset should be served.
+  ///
+  /// This can be set to allow outside code to filter out assets. Pub serve
+  /// uses this after plug-ins are loaded to avoid serving ".dart" files in
+  /// release mode.
+  ///
+  /// If this is `null`, all assets may be served.
+  AllowAsset allowAsset;
 
   /// The results of requests handled by the server.
   ///
@@ -91,6 +103,12 @@ class BarbackServer {
       return;
     }
 
+    // See if the asset should be blocked.
+    if (allowAsset != null && !allowAsset(id)) {
+      _notFound(request, "Asset $id is not available in this configuration.");
+      return;
+    }
+
     _logRequest(request, "Loading $id");
     barback.getAssetById(id).then((asset) {
       return validateStream(asset.read()).then((stream) {
@@ -130,7 +148,7 @@ class BarbackServer {
         trace = new Trace.from(trace);
         _logRequest(request, "$error\n$trace");
 
-        _resultsController.addError(error);
+        _resultsController.addError(error, trace);
         close();
         return;
       }
@@ -208,12 +226,8 @@ class BarbackServer {
             _webSocketError(socket, 'Unknown command "${command["command"]}".');
             break;
         }
-      }, onError: (error) {
-        _resultsController.addError(error);
-      }, cancelOnError: true);
-    }).catchError((error) {
-      _resultsController.addError(error);
-    });
+      }, onError: _resultsController.addError, cancelOnError: true);
+    }).catchError(_resultsController.addError);
   }
 
   /// Converts a [url] served by pub serve into an [AssetId] that can be

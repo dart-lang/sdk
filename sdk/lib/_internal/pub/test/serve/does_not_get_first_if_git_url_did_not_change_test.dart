@@ -21,7 +21,7 @@ main() {
     }).create();
 
     pubGet();
-    startPubServe(shouldGetFirst: false);
+    pubServe(shouldGetFirst: false);
     requestShouldSucceed("packages/foo/foo.dart", 'main() => "foo";');
     endPubServe();
   });

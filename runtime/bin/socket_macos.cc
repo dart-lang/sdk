@@ -244,6 +244,18 @@ bool Socket::ReverseLookup(RawAddr addr,
 }
 
 
+bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
+  int result;
+  if (type == SocketAddress::TYPE_IPV4) {
+    result = inet_pton(AF_INET, address, &addr->in.sin_addr);
+  } else {
+    ASSERT(type == SocketAddress::TYPE_IPV6);
+    result = inet_pton(AF_INET6, address, &addr->in6.sin6_addr);
+  }
+  return result == 1;
+}
+
+
 static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
   if (ifa->ifa_addr == NULL) {
     // OpenVPN's virtual device tun0.

@@ -31,6 +31,10 @@ abstract class Browser {
 
   /** The version of the browser - normally set when starting a browser */
   String version = "";
+
+  // The path to the browser executable.
+  String _binary;
+
   /**
    * The underlying process - don't mess directly with this if you don't
    * know what you are doing (this is an interactive process that needs
@@ -55,21 +59,24 @@ abstract class Browser {
   Browser();
 
   factory Browser.byName(String name,
-                         [Map globalConfiguration = const {},
-                          bool checkedMode = false]) {
-    if (name == 'ff' || name == 'firefox') {
-      return new Firefox();
+                         String executablePath,
+                         [bool checkedMode = false]) {
+    var browser;
+    if (name == 'firefox') {
+      browser = new Firefox();
     } else if (name == 'chrome') {
-      return new Chrome();
+      browser = new Chrome();
     } else if (name == 'dartium') {
-      return new Dartium(globalConfiguration, checkedMode);
+      browser = new Dartium(checkedMode);
     } else if (name == 'safari') {
-      return new Safari();
+      browser = new Safari();
     } else if (name.startsWith('ie')) {
-      return new IE();
+      browser = new IE();
     } else {
       throw "Non supported browser";
     }
+    browser._binary = executablePath;
+    return browser;
   }
 
   static const List<String> SUPPORTED_BROWSERS =
@@ -194,12 +201,6 @@ abstract class Browser {
 
 class Safari extends Browser {
   /**
-   * The binary used to run safari - changing this can be nececcary for
-   * testing or using non standard safari installation.
-   */
-  static const String binary = "/Applications/Safari.app/Contents/MacOS/Safari";
-
-  /**
    * We get the safari version by parsing a version file
    */
   static const String versionFile =
@@ -318,10 +319,10 @@ class Safari extends Browser {
             _cleanup = () { userDir.deleteSync(recursive: true); };
             _createLaunchHTML(userDir.path, url);
             var args = ["${userDir.path}/launch.html"];
-            return startBrowser(binary, args);
+            return startBrowser(_binary, args);
           });
         }).catchError((error) {
-          _logEvent("Running $binary --version failed with $error");
+          _logEvent("Running $_binary --version failed with $error");
           return false;
         });
       });
@@ -338,22 +339,7 @@ class Safari extends Browser {
 
 
 class Chrome extends Browser {
-  String _binary;
   String _version = "Version not found yet";
-
-  Chrome() {
-    _binary = _getBinary();
-  }
-
-  String _getBinary() {
-    if (Platform.isWindows) {
-      return "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
-    } else if (Platform.isMacOS) {
-      return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-    }
-    assert(Platform.isLinux);
-    return 'google-chrome';
-  }
 
   Map<String, String> _getEnvironment() => null;
 
@@ -410,14 +396,9 @@ class Chrome extends Browser {
 }
 
 class Dartium extends Chrome {
-  final Map globalConfiguration;
   final bool checkedMode;
 
-  Dartium(this.globalConfiguration, this.checkedMode);
-
-  String _getBinary() {
-    return Locations.getDartiumLocation(globalConfiguration);
-  }
+  Dartium(this.checkedMode);
 
   Map<String, String> _getEnvironment() {
     var environment = new Map<String,String>.from(Platform.environment);
@@ -435,10 +416,6 @@ class Dartium extends Chrome {
 }
 
 class IE extends Browser {
-
-  static const String binary =
-      "c:\\Program Files\\Internet Explorer\\iexplore.exe";
-
   Future<String> getVersion() {
     var args = ["query",
                 "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Internet Explorer",
@@ -463,7 +440,7 @@ class IE extends Browser {
     _logEvent("Starting ie browser on: $url");
     return getVersion().then((version) {
       _logEvent("Got version: $version");
-      return startBrowser(binary, [url]);
+      return startBrowser(_binary, [url]);
     });
   }
   String toString() => "IE";
@@ -494,10 +471,11 @@ final dartiumOnAndroidConfig = new AndroidBrowserConfig(
 
 
 class AndroidBrowser extends Browser {
+  final bool checkedMode;
   AdbDevice _adbDevice;
   AndroidBrowserConfig _config;
 
-  AndroidBrowser(this._adbDevice, this._config);
+  AndroidBrowser(this._adbDevice, this._config, this.checkedMode);
 
   Future<bool> start(String url) {
     var intent = new Intent(
@@ -510,6 +488,12 @@ class AndroidBrowser extends Browser {
       return _adbDevice.adbRoot();
     }).then((_) {
       return _adbDevice.setProp("DART_FORWARDING_PRINT", "1");
+    }).then((_) {
+      if (checkedMode) {
+        return _adbDevice.setProp("DART_FLAGS", "--checked");
+      } else {
+        return _adbDevice.setProp("DART_FLAGS", "");
+      }
     }).then((_) {
       return _adbDevice.startActivity(intent).then((_) => true);
     });
@@ -603,8 +587,6 @@ class Firefox extends Browser {
   static const String disableScriptTimeLimit =
       'user_pref("dom.max_script_run_time", 0);';
 
-  static String _binary = _getBinary();
-
   Future _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
     var randomFile = file.openSync(mode: FileMode.WRITE);
@@ -612,17 +594,6 @@ class Firefox extends Browser {
     randomFile.writeStringSync(disableDefaultCheck);
     randomFile.writeStringSync(disableScriptTimeLimit);
     randomFile.close();
-  }
-
-  // This is extracted to a function since we may need to support several
-  // locations.
-  static String _getWindowsBinary() {
-    return "C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe";
-  }
-
-  static String _getBinary() {
-    if (Platform.isWindows) return _getWindowsBinary();
-    if (Platform.isLinux) return 'firefox';
   }
 
   Future<bool> start(String url) {
@@ -659,11 +630,9 @@ class Firefox extends Browser {
  * Describes the current state of a browser used for testing.
  */
 class BrowserTestingStatus {
-// TODO(ricow): Add prefetching to the browsers. We spend a lot of time waiting
-// for the next test. Handling timeouts is the hard part of this!
-
   Browser browser;
   BrowserTest currentTest;
+
   // This is currently not used for anything except for error reporting.
   // Given the usefulness of this in debugging issues this should not be
   // removed even when we have really stable system.
@@ -681,6 +650,7 @@ class BrowserTest {
   Function doneCallback;
   String url;
   int timeout;
+  String lastKnownMessage = '';
   Stopwatch stopwatch;
 
   // This might be null
@@ -702,20 +672,22 @@ class BrowserTest {
 
 /* Describes the output of running the test in a browser */
 class BrowserTestOutput {
-  final bool didTimeout;
   final Duration delayUntilTestStarted;
   final Duration duration;
+
+  final String lastKnownMessage;
+
   final BrowserOutput browserOutput;
-  final String dom;
+  final bool didTimeout;
 
   BrowserTestOutput(
-      this.delayUntilTestStarted, this.duration, this.dom,
+      this.delayUntilTestStarted, this.duration, this.lastKnownMessage,
       this.browserOutput, {this.didTimeout: false});
 }
 
 /**
  * Encapsulates all the functionality for running tests in browsers.
- * The interface is rather simple. After starting the runner tests
+ * The interface is rather simple. After starting, the runner tests
  * are simply added to the queue and a the supplied callbacks are called
  * whenever a test completes.
  */
@@ -760,6 +732,7 @@ class BrowserTestRunner {
         globalConfiguration, localIp, useIframe);
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
+      testingServer.testStatusUpdateCallBack = handleStatusUpdate;
       testingServer.testStartedCallBack = handleStarted;
       testingServer.nextTestCallBack = getNextTest;
       return getBrowsers().then((browsers) {
@@ -788,9 +761,9 @@ class BrowserTestRunner {
     var androidBrowserCreationMapping = {
       'chromeOnAndroid' : (AdbDevice device) => new AndroidChrome(device),
       'ContentShellOnAndroid' : (AdbDevice device) =>
-          new AndroidBrowser(device, contentShellOnAndroidConfig),
+          new AndroidBrowser(device, contentShellOnAndroidConfig, checkedMode),
       'DartiumOnAndroid' : (AdbDevice device) =>
-          new AndroidBrowser(device, dartiumOnAndroidConfig),
+          new AndroidBrowser(device, dartiumOnAndroidConfig, checkedMode),
     };
     if (androidBrowserCreationMapping.containsKey(browserName)) {
       AdbHelper.listDevices().then((deviceIds) {
@@ -874,6 +847,18 @@ class BrowserTestRunner {
     }
   }
 
+  void handleStatusUpdate(String browserId, String output, int testId) {
+    var status = browserStatus[browserId];
+
+    if (status == null || status.timeout) {
+      // We don't do anything, this browser is currently being killed and
+      // replaced. The browser here can be null if we decided to kill the
+      // browser.
+    } else if (status.currentTest != null && status.currentTest.id != testId) {
+      status.currentTest.lastKnownMessage = output;
+    }
+  }
+
   void handleStarted(String browserId, String output, int testId) {
     var status = browserStatus[browserId];
 
@@ -895,13 +880,18 @@ class BrowserTestRunner {
 
     status.currentTest.stopwatch.stop();
     status.browser.close().then((_) {
+      var lastKnownMessage =
+          'Dom could not be fetched, since the test timed out.';
+      if (status.currentTest.lastKnownMessage.length > 0) {
+        lastKnownMessage = status.currentTest.lastKnownMessage;
+      }
       // Wait until the browser is closed before reporting the test as timeout.
       // This will enable us to capture stdout/stderr from the browser
       // (which might provide us with information about what went wrong).
       var browserTestOutput = new BrowserTestOutput(
           status.currentTest.delayUntilTestStarted,
           status.currentTest.stopwatch.elapsed,
-          'Dom could not be fetched, since the test timed out.',
+          lastKnownMessage,
           status.browser.testBrowserOutput,
           didTimeout: true);
       status.currentTest.doneCallback(browserTestOutput);
@@ -915,10 +905,12 @@ class BrowserTestRunner {
         browser = new AndroidChrome(adbDeviceMapping[id]);
       } else if (browserName == 'ContentShellOnAndroid') {
         browser = new AndroidBrowser(adbDeviceMapping[id],
-                                     contentShellOnAndroidConfig);
+                                     contentShellOnAndroidConfig,
+                                     checkedMode);
       } else if (browserName == 'DartiumOnAndroid') {
         browser = new AndroidBrowser(adbDeviceMapping[id],
-                                     dartiumOnAndroidConfig);
+                                     dartiumOnAndroidConfig,
+                                     checkedMode);
       } else {
         browserStatus.remove(id);
         browser = getInstance();
@@ -960,6 +952,7 @@ class BrowserTestRunner {
     BrowserTest test = testQueue.removeLast();
     if (status.currentTest == null) {
       status.currentTest = test;
+      status.currentTest.lastKnownMessage = '';
     } else {
       // TODO(ricow): Handle this better.
       print("This is bad, should never happen, getNextTest all full");
@@ -1027,8 +1020,9 @@ class BrowserTestRunner {
   }
 
   Browser getInstance() {
-    var browser =
-        new Browser.byName(browserName, globalConfiguration, checkedMode);
+    if (browserName == 'ff') browserName = 'firefox';
+    var path = Locations.getBrowserLocation(browserName, globalConfiguration);
+    var browser = new Browser.byName(browserName, path, checkedMode);
     browser.logger = logger;
     return browser;
   }
@@ -1053,6 +1047,7 @@ class BrowserTestingServer {
   static const String driverPath = "/driver";
   static const String nextTestPath = "/next_test";
   static const String reportPath = "/report";
+  static const String statusUpdatePath = "/status_update";
   static const String startedPath = "/started";
   static const String waitSignal = "WAIT";
   static const String terminateSignal = "TERMINATE";
@@ -1064,6 +1059,7 @@ class BrowserTestingServer {
   bool useIframe = false;
 
   Function testDoneCallBack;
+  Function testStatusUpdateCallBack;
   Function testStartedCallBack;
   Function nextTestCallBack;
 
@@ -1078,11 +1074,19 @@ class BrowserTestingServer {
         // we don't want the browser to cache the result of getNextTest.
         request.response.headers.set("Cache-Control",
                                      "no-cache, no-store, must-revalidate");
-        if (request.uri.path.startsWith(reportPath)) {
-          var browserId = request.uri.path.substring(reportPath.length + 1);
+        bool isReport = request.uri.path.startsWith(reportPath);
+        bool isStatusUpdate = request.uri.path.startsWith(statusUpdatePath);
+        if (isReport || isStatusUpdate) {
+          var browserId;
+          if (isStatusUpdate) {
+            browserId = request.uri.path.substring(statusUpdatePath.length + 1);
+          } else {
+            browserId = request.uri.path.substring(reportPath.length + 1);
+          }
           var testId =
               int.parse(request.uri.queryParameters["id"].split("=")[1]);
-          handleReport(request, browserId, testId);
+          handleReport(
+              request, browserId, testId, isStatusUpdate: isStatusUpdate);
           // handleReport will asynchroniously fetch the data and will handle
           // the closing of the streams.
           return;
@@ -1148,14 +1152,19 @@ class BrowserTestingServer {
     });
   }
 
-  void handleReport(HttpRequest request, String browserId, var testId) {
+  void handleReport(HttpRequest request, String browserId, var testId,
+                    {bool isStatusUpdate}) {
     StringBuffer buffer = new StringBuffer();
     request.transform(UTF8.decoder).listen((data) {
       buffer.write(data);
     }, onDone: () {
       String back = buffer.toString();
       request.response.close();
-      testDoneCallBack(browserId, back, testId);
+      if (isStatusUpdate) {
+        testStatusUpdateCallBack(browserId, back, testId);
+      } else {
+        testDoneCallBack(browserId, back, testId);
+      }
       // TODO(ricow): We should do something smart if we get an error here.
     }, onError: (error) { DebugLogger.error("$error"); });
   }
@@ -1207,7 +1216,6 @@ class BrowserTestingServer {
 <head>
   <title>Driving page</title>
   <script type='text/javascript'>
-
     function startTesting() {
       var number_of_tests = 0;
       var current_id;
@@ -1303,39 +1311,69 @@ class BrowserTestingServer {
             'POST', '$errorReportingUrl?test=1', handleReady, msg, true); 
       }
 
-      function reportMessage(msg) {
-        if (msg == 'STARTING') {
+      function reportMessage(msg, isFirstMessage, isStatusUpdate) {
+        if (isFirstMessage) {
           test_completed = false;
           current_id = next_id;
           contactBrowserController(
             'POST', '$startedPath/${browserId}?id=' + current_id,
             function () {}, msg, true);
-          return;
-        }
+        } else if (isStatusUpdate) {
+            contactBrowserController(
+              'POST', '$statusUpdatePath/${browserId}?id=' + current_id,
+              function() {}, msg, true);
+        } else {
+          var is_double_report = test_completed;
+          test_completed = true;
 
-        var is_double_report = test_completed;
-        test_completed = true;
-
-        function handleReady() {
-          if (this.readyState == this.DONE) {
-            if (this.status == 200) {
-              if (!is_double_report) {
-                getNextTask();
+          function handleReady() {
+            if (this.readyState == this.DONE) {
+              if (this.status == 200) {
+                if (!is_double_report) {
+                  getNextTask();
+                }
+              } else {
+                reportError('Error sending result to server');
               }
-            } else {
-              reportError('Error sending result to server');
             }
           }
-        }
-        contactBrowserController(
+          contactBrowserController(
             'POST', '$reportPath/${browserId}?id=' + current_id, handleReady,
             msg, true);
+        }
+      }
+
+      function parseResult(result) {
+        var parsedData = null;
+        try {
+          parsedData = JSON.parse(result);
+        } catch(error) { }
+        return parsedData;
       }
 
       function messageHandler(e) {
         var msg = e.data;
         if (typeof msg != 'string') return;
-        reportMessage(msg);
+        
+        var parsedData = parseResult(msg);
+        if (parsedData) {
+          // Only if the JSON was valid, we'll post it back.
+          var message = parsedData['message'];
+          var isFirstMessage = parsedData['is_first_message'];
+          var isStatusUpdate = parsedData['is_status_update'];
+          var isDone = parsedData['is_done'];
+          if (!isFirstMessage && !isStatusUpdate) {
+            if (!isDone) {
+              alert("Bug in test_controller.js: " +
+                    "isFirstMessage/isStatusUpdate/isDone were all false");
+            }
+          }
+          if (message) {
+            reportMessage(message, isFirstMessage, isStatusUpdate);
+          }
+        } else {
+          reportMessage(msg, msg == 'STARTING', false);
+        }
       }
 
       window.addEventListener('message', messageHandler, false);

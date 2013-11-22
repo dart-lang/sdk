@@ -141,6 +141,8 @@ final _rootUri = currentMirrorSystem().isolate.rootLibrary.uri;
 final String _packageRoot =
     '${path.dirname(Uri.parse(window.location.href).path)}/packages/';
 
+final Logger _loaderLog = new Logger('polymer.loader');
+
 /**
  * Reads the library at [uriString] (which can be an absolute URI or a relative
  * URI from the root library), and:
@@ -164,16 +166,16 @@ void _loadLibrary(String uriString) {
   }
 
   if (lib == null) {
-    print('warning: $uri library not found');
+    _loaderLog.info('$uri library not found');
     return;
   }
 
   // Search top-level functions marked with @initMethod
-  for (var f in lib.functions.values) {
+  for (var f in lib.declarations.values.where((d) => d is MethodMirror)) {
     _maybeInvoke(lib, f);
   }
 
-  for (var c in lib.classes.values) {
+  for (var c in lib.declarations.values.where((d) => d is ClassMirror)) {
     // Search for @CustomTag on classes
     for (var m in c.metadata) {
       var meta = m.reflectee;

@@ -3000,6 +3000,10 @@ class _ByteDataView implements ByteData {
     return _offset;
   }
 
+  int get elementSizeInBytes {
+    return 1;
+  }
+
   // Method(s) implementing ByteData interface.
 
   int getInt8(int byteOffset) {

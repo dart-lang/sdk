@@ -18,7 +18,7 @@ class FunctionSet {
 
   void add(Element element) {
     assert(element.isInstanceMember());
-    assert(!element.isAbstract(compiler));
+    assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes.putIfAbsent(name, () => newNode(name));
     node.add(element);
@@ -26,7 +26,7 @@ class FunctionSet {
 
   void remove(Element element) {
     assert(element.isInstanceMember());
-    assert(!element.isAbstract(compiler));
+    assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes[name];
     if (node != null) {
@@ -36,7 +36,7 @@ class FunctionSet {
 
   bool contains(Element element) {
     assert(element.isInstanceMember());
-    assert(!element.isAbstract(compiler));
+    assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes[name];
     return (node != null)

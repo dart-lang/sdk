@@ -140,7 +140,7 @@ void main() {
           '</head><body><polymer-element>2</polymer-element></html>',
       'b|asset/test3.html':
           '<!DOCTYPE html><html><head>'
-          '<link rel="import" href="packages/c/test4.html">'
+          '<link rel="import" href="../../packages/c/test4.html">'
           '</head><body><polymer-element>3</polymer-element></html>',
       'c|lib/test4.html':
           '<!DOCTYPE html><html><head>'
@@ -160,7 +160,7 @@ void main() {
           '<polymer-element>2</polymer-element></body></html>',
       'b|asset/test3.html':
           '<!DOCTYPE html><html><head>'
-          '<link rel="import" href="packages/c/test4.html">'
+          '<link rel="import" href="../../packages/c/test4.html">'
           '</head><body><polymer-element>3</polymer-element></html>',
       'c|lib/test4.html':
           '<!DOCTYPE html><html><head>'
@@ -359,6 +359,43 @@ void main() {
           '</body></html>',
       'a|web/test_2.html.scriptUrls':
           '[["a","web/s1.dart"]]',
+    });
+
+  testPhases('imports with Dart script after JS script', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test_1.html">'
+          '</head></html>',
+      'a|web/test_1.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test_1.html">'
+          '</head><body>'
+          '<foo>42</foo><bar-baz></bar-baz>'
+          '<polymer-element>1'
+          '<script src="s1.js"></script>'
+          '<script type="application/dart" src="s1.dart"></script>'
+          '</polymer-element>'
+          'FOO</body></html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<foo>42</foo><bar-baz></bar-baz>'
+          '<polymer-element>1'
+          '<script src="s1.js"></script>'
+          '</polymer-element>'
+          'FOO</body></html>',
+      'a|web/test.html.scriptUrls': '[["a","web/s1.dart"]]',
+      'a|web/test_1.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<foo>42</foo><bar-baz></bar-baz>'
+          '<polymer-element>1'
+          '<script src="s1.js"></script>'
+          '<script type="application/dart" src="s1.dart"></script>'
+          '</polymer-element>'
+          'FOO</body></html>',
+      'a|web/test_1.html.scriptUrls': '[]',
     });
 
   testPhases('imports cycle, 2-step lasso', phases, {

@@ -244,7 +244,7 @@
           "   * Gets the data for the specified type.",
           "   *",
           "   * The data is only available from within a drop operation (such as an",
-          "   * [Element.onDrop] event) and will return `null` before the event is",
+          "   * [Element.onDrop] event) and will return null before the event is",
           "   * triggered.",
           "   *",
           "   * Data transfer is prohibited across domains. If a drag originates",
@@ -1424,7 +1424,7 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Using the full-screen API]",
+          "   * * [Using the fullscreen API]",
           "   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)",
           "   * tutorial from WebPlatform.org.",
           "   * * [Fullscreen specification]",
@@ -1443,6 +1443,62 @@
           "   *",
           "   * * [Pointer lock specification]",
           "   * (http://www.w3.org/TR/pointerlock/) from W3C.",
+          "   */"
+        ]
+      }
+    },
+    "Event": {
+      "members": {
+        "AT_TARGET": [
+          "/**",
+          "   * This event is being handled by the event target.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Target phase] (http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "BUBBLING_PHASE": [
+          "/**",
+          "   * This event is bubbling up through the target's ancestors.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "CAPTURING_PHASE": [
+          "/**",
+          "   * This event is propagating through the target's ancestors, starting from the",
+          "   * document.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "clipboardData": [
+          "/**",
+          "   * Access to the system's clipboard data during copy, cut, and paste events.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [clipboardData specification]",
+          "   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.",
+          "   */"
+        ],
+        "path": [
+          "/**",
+          "   * This event's path, taking into account shadow DOM.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Shadow DOM extensions to Event]",
+          "   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from",
+          "   * W3C.",
           "   */"
         ]
       }
@@ -2515,7 +2571,7 @@
           "/**",
           "   * The document this node belongs to.",
           "   *",
-          "   * Returns `null` if this node does not belong to any document.",
+          "   * Returns null if this node does not belong to any document.",
           "   *",
           "   * ## Other resources",
           "   *",
@@ -2528,7 +2584,7 @@
           "/**",
           "   * The parent element of this node.",
           "   *",
-          "   * Returns `null` if this node either does not have a parent or its parent is",
+          "   * Returns null if this node either does not have a parent or its parent is",
           "   * not an element.",
           "   *",
           "   * ## Other resources",
@@ -3198,6 +3254,65 @@
         " */"
       ],
       "members": {
+        "alert": [
+          "/**",
+          "   * Displays a modal alert to the user.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [User prompts]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "applicationCache": [
+          "/**",
+          "   * The application cache for this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [A beginner's guide to using the application cache]",
+          "   * (http://www.html5rocks.com/en/tutorials/appcache/beginner) from HTML5Rocks.",
+          "   * * [Application cache API]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#application-cache-api)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "confirm": [
+          "/**",
+          "   * Displays a modal OK/Cancel prompt to the user.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [User prompts]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "crypto": [
+          "/**",
+          "   * Entrypoint for the browser's cryptographic functions.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Web cryptography API](http://www.w3.org/TR/WebCryptoAPI/) from W3C.",
+          "   */"
+        ],
+        "CSS": [
+          "/**",
+          "   * Entrypoint for CSS-related functions.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The CSS interface](http://dev.w3.org/csswg/css-conditional/#the-css-interface) from W3C.",
+          "   */"
+        ],
+        "defaultStatus": [
+          "/// *Deprecated*."
+        ],
+        "defaultstatus": [
+          "/// *Deprecated*."
+        ],
         "devicemotionEvent": [
           "/**",
           "   * Static factory designed to expose `devicemotion` events to event",
@@ -3214,12 +3329,52 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "devicePixelRatio": [
+          "/**",
+          "   * The ratio between physical pixels and logical CSS pixels.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [devicePixelRatio]",
+          "   * (http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html) from",
+          "   * quirksmode.",
+          "   * * [More about devicePixelRatio]",
+          "   * (http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html) from",
+          "   * quirksmode.",
+          "   */"
+        ],
         "DOMContentLoadedEvent": [
           "/**",
           "   * Static factory designed to expose `contentloaded` events to event",
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "find": [
+          "/**",
+          "   * Finds text in this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.find]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.find) from MDN.",
+          "   */"
+        ],
+        "getMatchedCSSRules": [
+          "/**",
+          "   * Returns all CSS rules that apply to the element's pseudo-element.",
+          "   */"
+        ],
+        "getSelection": [
+          "/**",
+          "   * Returns the currently selected text.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.getSelection]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)",
+          "   * from MDN.",
           "   */"
         ],
         "hashchangeEvent": [
@@ -3230,6 +3385,89 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "history": [
+          "/**",
+          "   * The current session history for this window's newest document.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Loading web pages]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "innerHeight": [
+          "/**",
+          "   * The height of the viewport including scrollbars.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [innerHeight]",
+          "   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight) from",
+          "   * WebPlatform.org.",
+          "   */"
+        ],
+        "innerWidth": [
+          "/**",
+          "   * The width of the viewport including scrollbars.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [innerWidth]",
+          "   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth) from",
+          "   * WebPlatform.org.",
+          "   */"
+        ],
+        "localStorage": [
+          "/**",
+          "   * Storage for this window that persists across sessions.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [DOM storage guide]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from",
+          "   * MDN.",
+          "   * * [The past, present & future of local storage for web applications]",
+          "   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.",
+          "   * * [Local storage specification]",
+          "   * (http://www.w3.org/TR/webstorage/#the-localstorage-attribute) from W3C.",
+          "   */"
+        ],
+        "locationbar": [
+          "/**",
+          "   * This window's location bar, which displays the URL.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Browser interface elements]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "matchMedia": [
+          "/**",
+          "   * Returns a list of media queries for the given query string.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Testing media queries]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)",
+          "   * from MDN.",
+          "   * * [The MediaQueryList specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.",
+          "   */"
+        ],
+        "menubar": [
+          "/**",
+          "   * This window's menu bar, which displays menu commands.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Browser interface elements]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
+          "   * from WHATWG.",
+          "   */"
+        ],
         "messageEvent": [
           "/**",
           "   * Static factory designed to expose `message` events to event",
@@ -3238,12 +3476,59 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "moveBy": [
+          "/**",
+          "   * Moves this window.",
+          "   *",
+          "   * x and y can be negative.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.moveBy]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy) from MDN.",
+          "   * * [Window.moveBy]",
+          "   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.",
+          "   */"
+        ],
+        "name": [
+          "/**",
+          "   * The name of this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window name]",
+          "   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from",
+          "   * WebPlatform.org.",
+          "   */"
+        ],
+        "navigator": [
+          "/**",
+          "   * The user agent accessing this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The navigator object]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#the-navigator-object)",
+          "   * from WHATWG.",
+          "   */"
+        ],
         "offlineEvent": [
           "/**",
           "   * Static factory designed to expose `offline` events to event",
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "offscreenBuffering": [
+          "/**",
+          "   * Whether objects are drawn offscreen before being displayed.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [offscreenBuffering]",
+          "   * (http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering) from",
+          "   * WebPlatform.org.",
           "   */"
         ],
         "onabort": [
@@ -3419,6 +3704,31 @@
         "onwebkitAnimationStart": [
           "/// Stream of `animationstart` events handled by this [Window]."
         ],
+        "openDatabase": [
+          "/// *Deprecated.*"
+        ],
+        "outerHeight": [
+          "/**",
+          "   * The height of this window including all user interface elements.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [outerHeight]",
+          "   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight) from",
+          "   * WebPlatform.org.",
+          "   */"
+        ],
+        "outerWidth": [
+          "/**",
+          "   * The width of the window including all user interface elements.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [outerWidth]",
+          "   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth) from",
+          "   * WebPlatform.org.",
+          "   */"
+        ],
         "pagehideEvent": [
           "/**",
           "   * Static factory designed to expose `pagehide` events to event",
@@ -3435,12 +3745,86 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "pageXOffset": [
+          "/**",
+          "   * The distance this window has been scrolled horizontally.",
+          "   *",
+          "   * This attribute is an alias for [scrollX].",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   * * [scrollX and pageXOffset]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.",
+          "   */"
+        ],
+        "pageYOffset": [
+          "/**",
+          "   * The distance this window has been scrolled vertically.",
+          "   *",
+          "   * This attribute is an alias for [scrollY].",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   * * [scrollY and pageYOffset]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.",
+          "   */"
+        ],
+        "performance": [
+          "/**",
+          "   * Timing and navigation data for this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Measuring page load speed with navigation timeing]",
+          "   * (http://www.html5rocks.com/en/tutorials/webperformance/basics/) from",
+          "   * HTML5Rocks.",
+          "   * * [Navigation timing specification]",
+          "   * (http://www.w3.org/TR/navigation-timing/) from W3C.",
+          "   */"
+        ],
+        "PERSISTENT": [
+          "/**",
+          "   * Indicates that file system data cannot be cleared unless given user",
+          "   * permission.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Exploring the FileSystem APIs]",
+          "   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.",
+          "   * * [File API]",
+          "   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.",
+          "   */"
+        ],
         "popstateEvent": [
           "/**",
           "   * Static factory designed to expose `popstate` events to event",
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "print": [
+          "/**",
+          "   * Opens the print dialog for this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.print]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.print) from MDN.",
+          "   */"
+        ],
+        "resizeBy": [
+          "/**",
+          "   * Resizes this window by an offset.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window resizeBy] (http://docs.webplatform.org/wiki/dom/methods/resizeBy)",
+          "   * from WebPlatform.org.",
           "   */"
         ],
         "resizeEvent": [
@@ -3451,12 +3835,224 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "resizeTo": [
+          "/**",
+          "   * Resizes this window to a specific width and height.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window resizeTo] (http://docs.webplatform.org/wiki/dom/methods/resizeTo)",
+          "   * from WebPlatform.org.",
+          "   */"
+        ],
+        "screen": [
+          "/**",
+          "   * Information about the screen displaying this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   */"
+        ],
+        "screenLeft": [
+          "/**",
+          "   * The distance from the left side of the screen to the left side of this",
+          "   * window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   */"
+        ],
+        "screenTop": [
+          "/**",
+          "   * The distance from the top of the screen to the top of this window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   */"
+        ],
+        "screenX": [
+          "/**",
+          "   * The distance from the left side of the screen to the mouse pointer.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   */"
+        ],
+        "screenY": [
+          "/**",
+          "   * The distance from the top of the screen to the mouse pointer.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Screen interface specification]",
+          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   */"
+        ],
+        "scroll": [
+          "/**",
+          "   * Scrolls the page horizontally and vertically to a specific point.",
+          "   *",
+          "   * This method is identical to [scrollTo].",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)",
+          "   * from WebPlatform.org.",
+          "   */"
+        ],
+        "scrollbars": [
+          "/**",
+          "   * This window's scroll bars.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Browser interface elements]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "scrollBy": [
+          "/**",
+          "   * Scrolls the page horizontally and vertically by an offset.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)",
+          "   * from WebPlatform.org.",
+          "   */"
+        ],
+        "scrollTo": [
+          "/**",
+          "   * Scrolls the page horizontally and vertically to a specific point.",
+          "   *",
+          "   * This method is identical to [scroll].",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)",
+          "   * from WebPlatform.org.",
+          "   */"
+        ],
+        "self": [
+          "/**",
+          "   * The current window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.self]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.self) from MDN.",
+          "   */"
+        ],
+        "sessionStorage": [
+          "/**",
+          "   * Storage for this window that is cleared when this session ends.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [DOM storage guide]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from",
+          "   * MDN.",
+          "   * * [The past, present & future of local storage for web applications]",
+          "   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.",
+          "   * * [Local storage specification]",
+          "   * (http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.",
+          "   */"
+        ],
+        "showModalDialog": [
+          "/**",
+          "   * Opens a new page as a modal dialog.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Dialogs implemented using separate documents]",
+          "   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "speechSynthesis": [
+          "/**",
+          "   * Access to speech synthesis in the browser.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Web speech specification]",
+          "   * (https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "status": [
+          "/// *Deprecated*."
+        ],
+        "statusbar": [
+          "/**",
+          "   * This window's status bar.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Browser interface elements]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
+          "   * from WHATWG.",
+          "   */"
+        ],
+        "stop": [
+          "/**",
+          "   * Stops the window from loading.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [The Window object]",
+          "   * (http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)",
+          "   * from W3C.",
+          "   */"
+        ],
         "storageEvent": [
           "/**",
           "   * Static factory designed to expose `storage` events to event",
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "styleMedia": [
+          "/**",
+          "   * Access to CSS media queries.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [StyleMedia class reference]",
+          "   * (https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html)",
+          "   * from Safari Developer Library.",
+          "   */"
+        ],
+        "TEMPORARY": [
+          "/**",
+          "   * Indicates that file system data can be cleared at any time.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Exploring the FileSystem APIs]",
+          "   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.",
+          "   * * [File API]",
+          "   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.",
+          "   */"
+        ],
+        "toolbar": [
+          "/**",
+          "   * This window's tool bar.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Browser interface elements]",
+          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
+          "   * from WHATWG.",
           "   */"
         ],
         "unloadEvent": [
@@ -3489,6 +4085,27 @@
           "   * handlers that are not necessarily instances of [Window].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "webkitResolveLocalFileSystemURL": [
+          "/**",
+          "   * Asynchronously retrieves a local filesystem entry.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Obtaining access to file system entry points]",
+          "   * (http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)",
+          "   * from W3C.",
+          "   */"
+        ],
+        "window": [
+          "/**",
+          "   * The current window.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Window.window]",
+          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.window) from MDN.",
           "   */"
         ]
       }
@@ -3559,7 +4176,7 @@
         ],
         "getResponseHeader": [
           "/**",
-          "   * Return the response header named `header`, or `null` if not found.",
+          "   * Return the response header named `header`, or null if not found.",
           "   *",
           "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
           "   * for a list of common response headers.",

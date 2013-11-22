@@ -8,6 +8,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
+import '../serve/utils.dart';
 
 main() {
   initConfig();
@@ -19,7 +20,7 @@ main() {
       })
     ]).create();
 
-    var pub = startPub(args: ['serve', '--port=0', "--hostname=127.0.0.1"]);
+    var pub = startPubServe();
     // Ignore the line containing the path to the pubspec.
     expect(pub.nextErrLine(), completes);
     expect(pub.nextErrLine(), completion(equals('"transformers.foo" refers to '

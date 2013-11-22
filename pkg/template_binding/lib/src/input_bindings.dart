@@ -128,42 +128,31 @@ class _CheckedBinding extends _InputBinding {
 }
 
 class _SelectBinding extends _InputBinding {
+  MutationObserver _onMutation;
+
   _SelectBinding(node, property, model, path)
       : super(node, property, model, path);
 
   SelectElement get node => super.node;
 
   void valueChanged(newValue) {
+    _cancelMutationObserver();
+
     if (_tryUpdateValue(newValue)) return;
 
-    // The binding may wish to bind to an <option> which has not yet been
-    // produced by a child <template>. Furthermore, we may need to wait for
-    // <optgroup> iterating and then for <option>.
-    //
-    // Unlike the JavaScript implemenation, we don't have a special
-    // "Object.observe" event loop to schedule on.
-    // (See the the "ensureScheduled" function:
-    // https://github.com/Polymer/mdv/commit/9a51ad7ed74a292bf71662cea28acbd151ff65c8)
-    //
-    // Instead we use scheduleMicrotask. Each <template repeat> needs a delay of
-    // 2:
-    //   * once to happen after the child _TemplateIterator is created
-    //   * once to be after _TemplateIterator's CompoundPathObserver resolve
-    // And then we need to do this delay sequence twice:
-    //   * once for OPTGROUP
-    //   * once for OPTION.
-    // The resulting 2 * 2 is our maxRetries.
-    //
-    // TODO(jmesserly): a much better approach would be to find the nested
-    // <template> and wait on some future that completes when it has expanded.
-    var maxRetries = 4;
-    delaySetSelectedIndex() {
-      if (!_tryUpdateValue(newValue) && maxRetries-- > 0) {
-        scheduleMicrotask(delaySetSelectedIndex);
-      }
-    }
+    // It could be that a template will expand an <option> child (or grandchild,
+    // if we have an <optgroup> in between). Since selected index cannot be set
+    // if the children aren't created yet, we need to wait for them to be
+    // created do this with a MutationObserver.
+    // Dart note: unlike JS we use mutation observers to avoid:
+    // https://github.com/Polymer/NodeBind/issues/5
 
-    scheduleMicrotask(delaySetSelectedIndex);
+    // Note: it doesn't matter when the children get added; even if they get
+    // added much later, presumably we want the selected index data binding to
+    // still take effect.
+    _onMutation = new MutationObserver((x, y) {
+      if (_tryUpdateValue(value)) _cancelMutationObserver();
+    })..observe(node, childList: true, subtree: true);
   }
 
   bool _tryUpdateValue(newValue) {
@@ -177,7 +166,16 @@ class _SelectBinding extends _InputBinding {
     }
   }
 
+  void _cancelMutationObserver() {
+    if (_onMutation != null) {
+      _onMutation.disconnect();
+      _onMutation = null;
+    }
+  }
+
   void nodeValueChanged(e) {
+    _cancelMutationObserver();
+
     if (property == 'selectedIndex') {
       value = node.selectedIndex;
     } else if (property == 'value') {

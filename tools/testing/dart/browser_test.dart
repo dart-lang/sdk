@@ -6,8 +6,13 @@ part of test_suite;
 
 String getHtmlContents(String title,
                        String scriptType,
-                       Path sourceScript) =>
-"""
+                       Path sourceScript,
+                       {bool use_unittest_controller: false}) {
+  var testControllerJs = '/root_dart/tools/testing/dart/test_controller.js';
+  if (use_unittest_controller) {
+    testControllerJs = '/root_dart/pkg/unittest/lib/test_controller.js';
+  }
+  return """
 <!DOCTYPE html>
 <html>
 <head>
@@ -24,9 +29,10 @@ String getHtmlContents(String title,
 <body>
   <h1> Running $title </h1>
   <script type="text/javascript"
-          src="/root_dart/pkg/unittest/lib/test_controller.js">
+          src="$testControllerJs">
   </script>
-  <script type="$scriptType" src="$sourceScript" onerror="externalError(null)"
+  <script type="$scriptType" src="$sourceScript"
+          onerror="scriptTagOnErrorCallback(null)"
           defer>
   </script>
   <script type="text/javascript"
@@ -34,8 +40,8 @@ String getHtmlContents(String title,
   <script type="text/javascript"
           src="/root_dart/pkg/browser/lib/interop.js"></script>
 </body>
-</html>
-""";
+</html>""";
+}
 
 String dartTestWrapper(String libraryPathComponent) {
   return """

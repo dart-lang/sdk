@@ -1,6 +1,8 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
+
 library engine.test_support;
+
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_junit.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -10,12 +12,12 @@ import 'package:analyzer/src/generated/ast.dart' show ASTNode, NodeLocator;
 import 'package:analyzer/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl, RecordingErrorListener;
 import 'package:unittest/unittest.dart' as _ut;
+
 /**
  * Instances of the class `GatheringErrorListener` implement an error listener that collects
  * all of the errors passed to it for later examination.
  */
 class GatheringErrorListener implements AnalysisErrorListener {
-
   /**
    * The source being parsed.
    */
@@ -247,6 +249,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @return `true` if at least one error has been gathered
    */
   bool hasErrors() => errors.length > 0;
+
   void onError(AnalysisError error) {
     if (_rawSource != null) {
       int left = error.offset;
@@ -384,6 +387,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     return true;
   }
 }
+
 /**
  * The class `EngineTestCase` defines utility methods for making assertions.
  */
@@ -605,10 +609,10 @@ class EngineTestCase extends JUnitTestCase {
     JUnitTestCase.assertEquals(expectedToken.type, actualToken.type);
     if (expectedToken is KeywordToken) {
       assertInstanceOf(KeywordToken, actualToken);
-      JUnitTestCase.assertEquals(((expectedToken as KeywordToken)).keyword, ((actualToken as KeywordToken)).keyword);
+      JUnitTestCase.assertEquals((expectedToken as KeywordToken).keyword, (actualToken as KeywordToken).keyword);
     } else if (expectedToken is StringToken) {
       assertInstanceOf(StringToken, actualToken);
-      JUnitTestCase.assertEquals(((expectedToken as StringToken)).lexeme, ((actualToken as StringToken)).lexeme);
+      JUnitTestCase.assertEquals((expectedToken as StringToken).lexeme, (actualToken as StringToken).lexeme);
     }
   }
 
@@ -701,6 +705,7 @@ class EngineTestCase extends JUnitTestCase {
     ASTNode node = new NodeLocator.con1(offset).searchWithin(root);
     return node.getAncestor(clazz);
   }
+
   static void assertContains2(List<Object> array, List<bool> found, Object element) {
     if (element == null) {
       for (int i = 0; i < array.length; i++) {
@@ -746,6 +751,7 @@ class EngineTestCase extends JUnitTestCase {
     }
     return diffPos;
   }
+
   AnalysisContextImpl createAnalysisContext() {
     AnalysisContextImpl context = new AnalysisContextImpl();
     context.sourceFactory = new SourceFactory.con2([]);
@@ -785,11 +791,13 @@ class EngineTestCase extends JUnitTestCase {
     JUnitTestCase.fail("Could not find method named ${methodName} in ${type.displayName}");
     return null;
   }
+
   static dartSuite() {
     _ut.group('EngineTestCase', () {
     });
   }
 }
+
 main() {
 }
 

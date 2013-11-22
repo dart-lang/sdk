@@ -100,6 +100,29 @@ dev_dependencies:
       expect(pubspec.devDependencies, isEmpty);
     });
 
+    test("allows a version constraint for dependency overrides", () {
+      var pubspec = new Pubspec.parse('''
+dependency_overrides:
+  foo:
+    mock: ok
+    version: ">=1.2.3 <3.4.5"
+''', sources);
+
+      var foo = pubspec.dependencyOverrides[0];
+      expect(foo.name, equals('foo'));
+      expect(foo.constraint.allows(new Version(1, 2, 3)), isTrue);
+      expect(foo.constraint.allows(new Version(1, 2, 5)), isTrue);
+      expect(foo.constraint.allows(new Version(3, 4, 5)), isFalse);
+    });
+
+    test("allows an empty dependency overrides map", () {
+      var pubspec = new Pubspec.parse('''
+dependency_overrides:
+''', sources);
+
+      expect(pubspec.dependencyOverrides, isEmpty);
+    });
+
     test("allows an unknown source", () {
       var pubspec = new Pubspec.parse('''
 dependencies:
@@ -141,6 +164,15 @@ dev_dependencies:
   myapp:
     mock: ok
 ''', (pubspec) => pubspec.devDependencies);
+    });
+
+    test("throws if it has an override on itself", () {
+      expectPubspecException('''
+name: myapp
+dependency_overrides:
+  myapp:
+    mock: ok
+''', (pubspec) => pubspec.dependencyOverrides);
     });
 
     test("throws if the description isn't valid", () {
@@ -192,6 +224,18 @@ dependencies:
 
     test("throws if a transformer's configuration isn't a map", () {
       expectPubspecException('transformers: {pkg: 12}',
+          (pubspec) => pubspec.transformers);
+    });
+
+    test("throws if a transformer's configuration contains a top-level key "
+        "beginning with a dollar sign", () {
+      expectPubspecException('transformers: {pkg: {\$key: value}}',
+          (pubspec) => pubspec.transformers);
+    });
+
+    test("doesn't throw if a transformer's configuration contains a "
+        "non-top-level key beginning with a dollar sign", () {
+      expectPubspecException('transformers: {pkg: {\$key: value}}',
           (pubspec) => pubspec.transformers);
     });
 

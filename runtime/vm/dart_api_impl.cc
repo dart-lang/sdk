@@ -38,6 +38,8 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
+DEFINE_FLAG(bool, check_function_fingerprints, false,
+            "Check function fingerprints");
 DEFINE_FLAG(bool, trace_api, false,
             "Trace invocation of API calls (debug mode only)");
 
@@ -820,6 +822,9 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
         Error::Handle(isolate,
                       Dart::InitializeIsolate(snapshot, callback_data));
     if (error_obj.IsNull()) {
+      if (FLAG_check_function_fingerprints) {
+        Library::CheckFunctionFingerprints();
+      }
       START_TIMER(time_total_runtime);
       return reinterpret_cast<Dart_Isolate>(isolate);
     }
@@ -2869,17 +2874,17 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     constructor = constructor.RedirectionTarget();
     if (constructor.IsNull()) {
       ASSERT(redirect_type.IsMalformed());
-      return Api::NewHandle(isolate, redirect_type.malformed_error());
+      return Api::NewHandle(isolate, redirect_type.error());
     }
 
     if (!redirect_type.IsInstantiated()) {
       // The type arguments of the redirection type are instantiated from the
       // type arguments of the type argument.
-      Error& malformed_error = Error::Handle();
+      Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
-                                                     &malformed_error);
-      if (!malformed_error.IsNull()) {
-        return Api::NewHandle(isolate, malformed_error.raw());
+                                                     &bound_error);
+      if (!bound_error.IsNull()) {
+        return Api::NewHandle(isolate, bound_error.raw());
       }
     }
 

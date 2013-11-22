@@ -64,9 +64,9 @@ main() {
 
   raises(() => reflectClass(Class).metadata);
   raises(() => reflectClass(Class).typeVariables.single.metadata);
-  raises(() => reflectClass(Class).variables[#field].metadata);
-  raises(() => reflectClass(Class).methods[#method].metadata);
-  raises(() => reflectClass(Class).methods[#method].parameters.single.metadata);
+  raises(() => reflectClass(Class).declarations[#field].metadata);
+  raises(() => reflectClass(Class).declarations[#method].metadata);
+  raises(() => reflectClass(Class).declarations[#method].parameters.single.metadata);
   raises(() => reflectClass(Class).owner.metadata);
 
 

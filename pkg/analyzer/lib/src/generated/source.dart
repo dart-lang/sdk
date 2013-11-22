@@ -1,9 +1,12 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
+
 library engine.source;
+
 import 'java_core.dart';
 import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext;
+
 /**
  * Instances of the class `SourceFactory` resolve possibly relative URI's against an existing
  * [Source].
@@ -11,7 +14,6 @@ import 'engine.dart' show AnalysisContext;
  * @coverage dart.engine.source
  */
 class SourceFactory {
-
   /**
    * The analysis context that this source factory is associated with.
    */
@@ -206,6 +208,7 @@ class SourceFactory {
     }
   }
 }
+
 /**
  * The abstract class `UriResolver` defines the behavior of objects that are used to resolve
  * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
@@ -214,7 +217,6 @@ class SourceFactory {
  * @coverage dart.engine.source
  */
 abstract class UriResolver {
-
   /**
    * If this resolver should be used for URI's of the given kind, resolve the given absolute URI.
    * The URI does not need to have the scheme handled by this resolver if the kind matches. Return a
@@ -247,6 +249,7 @@ abstract class UriResolver {
    */
   Uri restoreAbsolute(Source source) => null;
 }
+
 /**
  * The interface `Source` defines the behavior of objects representing source code that can be
  * compiled.
@@ -254,7 +257,6 @@ abstract class UriResolver {
  * @coverage dart.engine.source
  */
 abstract class Source {
-
   /**
    * An empty array of sources.
    */
@@ -367,12 +369,12 @@ abstract class Source {
    */
   Source resolveRelative(Uri relativeUri);
 }
+
 /**
  * The interface `ContentReceiver` defines the behavior of objects that can receive the
  * content of a source.
  */
 abstract class Source_ContentReceiver {
-
   /**
    * Accept the contents of a source represented as a character buffer.
    *
@@ -389,6 +391,7 @@ abstract class Source_ContentReceiver {
    */
   void accept2(String contents, int modificationTime);
 }
+
 /**
  * The enumeration `SourceKind` defines the different kinds of sources that are known to the
  * analysis engine.
@@ -396,7 +399,6 @@ abstract class Source_ContentReceiver {
  * @coverage dart.engine.source
  */
 class SourceKind extends Enum<SourceKind> {
-
   /**
    * A source containing HTML. The HTML might or might not contain Dart scripts.
    */
@@ -419,9 +421,12 @@ class SourceKind extends Enum<SourceKind> {
    * does not want to spend the time to identify the kind.
    */
   static final SourceKind UNKNOWN = new SourceKind('UNKNOWN', 3);
+
   static final List<SourceKind> values = [HTML, LIBRARY, PART, UNKNOWN];
+
   SourceKind(String name, int ordinal) : super(name, ordinal);
 }
+
 /**
  * The enumeration `UriKind` defines the different kinds of URI's that are known to the
  * analysis engine. These are used to keep track of the kind of URI associated with a given source.
@@ -429,7 +434,6 @@ class SourceKind extends Enum<SourceKind> {
  * @coverage dart.engine.source
  */
 class UriKind extends Enum<UriKind> {
-
   /**
    * A 'dart:' URI.
    */
@@ -449,6 +453,7 @@ class UriKind extends Enum<UriKind> {
    * A 'package:' URI.
    */
   static final UriKind PACKAGE_URI = new UriKind('PACKAGE_URI', 3, 0x70);
+
   static final List<UriKind> values = [DART_URI, FILE_URI, PACKAGE_SELF_URI, PACKAGE_URI];
 
   /**
@@ -488,13 +493,13 @@ class UriKind extends Enum<UriKind> {
     this.encoding = encoding;
   }
 }
+
 /**
  * A source range defines an [Element]'s source coordinates relative to its [Source].
  *
  * @coverage dart.engine.utilities
  */
 class SourceRange {
-
   /**
    * The 0-based index of the first character of the source code for this element, relative to the
    * source buffer in which this element is contained.
@@ -545,6 +550,7 @@ class SourceRange {
     int thisEnd = end;
     return otherRange.contains(thisEnd);
   }
+
   bool operator ==(Object obj) {
     if (obj is! SourceRange) {
       return false;
@@ -573,6 +579,7 @@ class SourceRange {
    * @return the expanded translated of [SourceRange], with moved start and the same length.
    */
   SourceRange getTranslated(int delta) => new SourceRange(offset + delta, length);
+
   int get hashCode => 31 * offset + length;
 
   /**
@@ -595,6 +602,7 @@ class SourceRange {
    * @return `true` if this [SourceRange] starts in <code>otherRange</code>.
    */
   bool startsIn(SourceRange otherRange) => otherRange.contains(offset);
+
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append("[offset=");
@@ -605,6 +613,7 @@ class SourceRange {
     return builder.toString();
   }
 }
+
 /**
  * The interface `SourceContainer` is used by clients to define a collection of sources
  *
@@ -616,7 +625,6 @@ class SourceRange {
  * @coverage dart.engine.source
  */
 abstract class SourceContainer {
-
   /**
    * Determine if the specified source is part of the receiver's collection of sources.
    *
@@ -625,13 +633,13 @@ abstract class SourceContainer {
    */
   bool contains(Source source);
 }
+
 /**
  * Instances of the class `DartUriResolver` resolve `dart` URI's.
  *
  * @coverage dart.engine.source
  */
 class DartUriResolver extends UriResolver {
-
   /**
    * The Dart SDK against which URI's are to be resolved.
    */
@@ -659,12 +667,14 @@ class DartUriResolver extends UriResolver {
   DartUriResolver(DartSdk sdk) {
     this.dartSdk = sdk;
   }
+
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
     if (identical(kind, UriKind.DART_URI)) {
       return dartSdk.fromEncoding(contentCache, kind, uri);
     }
     return null;
   }
+
   Source resolveAbsolute(ContentCache contentCache, Uri uri) {
     if (!isDartUri(uri)) {
       return null;
@@ -672,6 +682,7 @@ class DartUriResolver extends UriResolver {
     return dartSdk.mapDartUri(uri.toString());
   }
 }
+
 /**
  * Instances of the class `LineInfo` encapsulate information about line and column information
  * within a source file.
@@ -679,7 +690,6 @@ class DartUriResolver extends UriResolver {
  * @coverage dart.engine.utilities
  */
 class LineInfo {
-
   /**
    * An array containing the offsets of the first character of each line in the source code.
    */
@@ -716,12 +726,12 @@ class LineInfo {
     return new LineInfo_Location(lineCount, offset - _lineStarts[lineCount - 1] + 1);
   }
 }
+
 /**
  * Instances of the class `Location` represent the location of a character as a line and
  * column pair.
  */
 class LineInfo_Location {
-
   /**
    * The one-based index of the line containing the character.
    */
@@ -744,6 +754,7 @@ class LineInfo_Location {
     this.columnNumber = columnNumber;
   }
 }
+
 /**
  * Instances of class `ContentCache` hold content used to override the default content of a
  * [Source].
@@ -751,7 +762,6 @@ class LineInfo_Location {
  * @coverage dart.engine.source
  */
 class ContentCache {
-
   /**
    * A table mapping sources to the contents of those sources. This is used to override the default
    * contents of a source.

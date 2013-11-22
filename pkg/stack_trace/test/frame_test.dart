@@ -30,6 +30,15 @@ void main() {
       expect(frame.member, equals('Foo._bar'));
     });
 
+    test('parses a stack frame with timer_impl correctly', () {
+      var frame = new Frame.parseVM("#1      Foo._bar "
+          "(timer_impl.dart:24)");
+      expect(frame.uri, equals(Uri.parse("dart:async/timer_impl.dart")));
+      expect(frame.line, equals(24));
+      expect(frame.column, null);
+      expect(frame.member, equals('Foo._bar'));
+    });
+
     test('converts "<anonymous closure>" to "<fn>"', () {
       String parsedMember(String member) =>
           new Frame.parseVM('#0 $member (foo:0:0)').member;
@@ -67,6 +76,52 @@ void main() {
           "(http://pub.dartlang.org/stuff.dart.js:560:28)");
       expect(frame.uri,
           equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with an absolute POSIX path correctly', () {
+      var frame = new Frame.parseV8("    at VW.call\$0 "
+          "(/path/to/stuff.dart.js:560:28)");
+      expect(frame.uri, equals(Uri.parse("file:///path/to/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with an absolute Windows path correctly', () {
+      var frame = new Frame.parseV8("    at VW.call\$0 "
+          r"(C:\path\to\stuff.dart.js:560:28)");
+      expect(frame.uri, equals(Uri.parse("file:///C:/path/to/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with a Windows UNC path correctly', () {
+      var frame = new Frame.parseV8("    at VW.call\$0 "
+          r"(\\mount\path\to\stuff.dart.js:560:28)");
+      expect(frame.uri,
+          equals(Uri.parse("file://mount/path/to/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with a relative POSIX path correctly', () {
+      var frame = new Frame.parseV8("    at VW.call\$0 "
+          "(path/to/stuff.dart.js:560:28)");
+      expect(frame.uri, equals(Uri.parse("path/to/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with a relative Windows path correctly', () {
+      var frame = new Frame.parseV8("    at VW.call\$0 "
+          r"(path\to\stuff.dart.js:560:28)");
+      expect(frame.uri, equals(Uri.parse("path/to/stuff.dart.js")));
       expect(frame.line, equals(560));
       expect(frame.column, equals(28));
       expect(frame.member, equals('VW.call\$0'));
@@ -130,6 +185,52 @@ void main() {
           ".VW.call\$0@http://pub.dartlang.org/stuff.dart.js:560");
       expect(frame.uri,
           equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, isNull);
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with an absolute POSIX path correctly', () {
+      var frame = new Frame.parseFirefox(
+          ".VW.call\$0@/path/to/stuff.dart.js:560");
+      expect(frame.uri, equals(Uri.parse("file:///path/to/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, isNull);
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with an absolute Windows path correctly', () {
+      var frame = new Frame.parseFirefox(
+          r".VW.call$0@C:\path\to\stuff.dart.js:560");
+      expect(frame.uri, equals(Uri.parse("file:///C:/path/to/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, isNull);
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with a Windows UNC path correctly', () {
+      var frame = new Frame.parseFirefox(
+          r".VW.call$0@\\mount\path\to\stuff.dart.js:560");
+      expect(frame.uri,
+          equals(Uri.parse("file://mount/path/to/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, isNull);
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with a relative POSIX path correctly', () {
+      var frame = new Frame.parseFirefox(
+          ".VW.call\$0@path/to/stuff.dart.js:560");
+      expect(frame.uri, equals(Uri.parse("path/to/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, isNull);
+      expect(frame.member, equals('VW.call\$0'));
+    });
+
+    test('parses a stack frame with a relative Windows path correctly', () {
+      var frame = new Frame.parseFirefox(
+          r".VW.call$0@path\to\stuff.dart.js:560");
+      expect(frame.uri, equals(Uri.parse("path/to/stuff.dart.js")));
       expect(frame.line, equals(560));
       expect(frame.column, isNull);
       expect(frame.member, equals('VW.call\$0'));
@@ -393,6 +494,12 @@ void main() {
     test('prints a frame without a column correctly', () {
       expect(new Frame.parseVM('#0 Foo (dart:core/uri.dart:5)').toString(),
           equals('dart:core/uri.dart 5 in Foo'));
+    });
+
+    test('prints relative paths as relative', () {
+      var relative = path.normalize('relative/path/to/foo.dart');
+      expect(new Frame.parseFriendly('$relative 5:10  Foo').toString(),
+          equals('$relative 5:10 in Foo'));
     });
   });
 }

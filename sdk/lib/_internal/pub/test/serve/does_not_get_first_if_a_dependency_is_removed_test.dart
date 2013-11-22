@@ -29,7 +29,7 @@ main() {
       d.appPubspec()
     ]).create();
 
-    startPubServe(shouldGetFirst: false);
+    pubServe(shouldGetFirst: false);
     requestShouldSucceed("packages/foo/foo.dart", 'main() => "foo";');
     endPubServe();
   });

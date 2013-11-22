@@ -40,7 +40,7 @@ testTypeVariableOfTypedef() {
 
   TypedefMirror predicateOfDynamic = reflectType(Predicate);
   TypedefMirror predicateOfList =
-      thisLibrary.variables[#somePredicateOfList].type;
+      (thisLibrary.declarations[#somePredicateOfList] as VariableMirror).type;
   TypedefMirror predicateDecl = predicateOfList.originalDeclaration;
   
   Expect.equals(predicateDecl, predicateOfDynamic.typeVariables[0].owner);

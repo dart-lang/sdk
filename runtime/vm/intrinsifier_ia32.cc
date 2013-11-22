@@ -730,27 +730,6 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Integer_remainder(Assembler* assembler) {
-  Label fall_through;
-  TestBothArgumentsSmis(assembler, &fall_through);
-  // EAX: right argument (divisor)
-  __ movl(EBX, EAX);
-  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument (dividend).
-  // EAX: Tagged left (dividend).
-  // EBX: Tagged right (divisor).
-  // Check if modulo by zero -> exception thrown in main function.
-  __ cmpl(EBX, Immediate(0));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);
-  EmitRemainderOperation(assembler);
-  // Untagged remainder result in EDX.
-  __ movl(EAX, EDX);
-  __ SmiTag(EAX);
-  __ ret();
-
-  __ Bind(&fall_through);
-}
-
-
 void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
@@ -1344,60 +1323,6 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ cvtsi2sd(XMM1, EAX);
   __ jmp(&double_op);
   __ Bind(&fall_through);
-}
-
-
-enum TrigonometricFunctions {
-  kSine,
-  kCosine,
-};
-
-
-static void EmitTrigonometric(Assembler* assembler,
-                              TrigonometricFunctions kind) {
-  Label fall_through, is_smi, double_op;
-  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
-  // Argument is double and is in EAX.
-  __ fldl(FieldAddress(EAX, Double::value_offset()));
-  __ Bind(&double_op);
-  switch (kind) {
-    case kSine:   __ fsin(); break;
-    case kCosine: __ fcos(); break;
-    default:
-      UNREACHABLE();
-  }
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
-  Label alloc_failed;
-  __ TryAllocate(double_class,
-                 &alloc_failed,
-                 Assembler::kNearJump,
-                 EAX);  // Result register.
-  __ fstpl(FieldAddress(EAX, Double::value_offset()));
-  __ ret();
-
-  __ Bind(&is_smi);  // smi -> double.
-  __ SmiUntag(EAX);
-  __ pushl(EAX);
-  __ filds(Address(ESP, 0));
-  __ popl(EAX);
-  __ jmp(&double_op);
-
-  __ Bind(&alloc_failed);
-  __ ffree(0);
-  __ fincstp();
-
-  __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::Math_sin(Assembler* assembler) {
-  EmitTrigonometric(assembler, kSine);
-}
-
-
-void Intrinsifier::Math_cos(Assembler* assembler) {
-  EmitTrigonometric(assembler, kCosine);
 }
 
 

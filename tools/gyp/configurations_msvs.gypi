@@ -26,6 +26,7 @@
             'AdditionalDependencies': [
               'advapi32.lib',
               'shell32.lib',
+              'dbghelp.lib',
             ],
           },
         },
@@ -57,6 +58,7 @@
             'AdditionalDependencies': [
               'advapi32.lib',
               'shell32.lib',
+              'dbghelp.lib',
             ],
           },
         },

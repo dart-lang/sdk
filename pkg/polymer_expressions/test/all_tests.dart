@@ -7,9 +7,11 @@ library all_tests;
 import 'eval_test.dart' as eval;
 import 'parser_test.dart' as parser;
 import 'tokenizer_test.dart' as tokenizer;
+import 'visitor_test.dart' as visitor;
 
 main() {
-  tokenizer.main();
-  parser.main();
   eval.main();
+  parser.main();
+  tokenizer.main();
+  visitor.main();
 }

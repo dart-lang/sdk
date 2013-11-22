@@ -44,7 +44,7 @@ patch class TypeError extends AssertionError {
                    Object src_value,
                    String dst_type_name,
                    String dst_name,
-                   String bound_error)
+                   String error_msg)
       native "TypeError_throwNew";
 
   String toString() {
@@ -53,7 +53,7 @@ patch class TypeError extends AssertionError {
       str = "${str}type '$_srcType' is not a subtype of "
             "type '$_dstType' of '$_dstName'.";
     } else {
-      str = "${str}malformed type used.";
+      str = "${str}type error.";
     }
     return str;
   }

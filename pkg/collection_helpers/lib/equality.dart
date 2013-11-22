@@ -5,7 +5,7 @@
 /**
  * Defines equality relations on collections.
  */
-library dart.collection_helper.equality;
+library dart.collection_helpers.equality;
 
 import "dart:collection";
 

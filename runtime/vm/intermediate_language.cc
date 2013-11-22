@@ -24,16 +24,12 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
-    "Maximum number of polymorphic checks in equality operator,"
-    " otherwise use megamorphic dispatch.");
 DEFINE_FLAG(bool, new_identity_spec, true,
     "Use new identity check rules for numbers.");
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
-DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
@@ -169,6 +165,7 @@ bool MathMinMaxInstr::AttributesEqual(Instruction* other) const {
   return (op_kind() == other_op->op_kind()) &&
       (result_cid() == other_op->result_cid());
 }
+
 
 bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
   BinarySmiOpInstr* other_op = other->AsBinarySmiOp();
@@ -490,7 +487,7 @@ void Instruction::RemoveEnvironment() {
 
 Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsBlockEntry());
-  ASSERT(!IsControl());
+  ASSERT(!IsBranch());
   ASSERT(!IsThrow());
   ASSERT(!IsReturn());
   ASSERT(!IsReThrow());
@@ -763,6 +760,7 @@ BranchInstr::BranchInstr(ComparisonInstr* comparison, bool is_checked)
       is_checked_(is_checked),
       constrained_type_(NULL),
       constant_target_(NULL) {
+  ASSERT(comparison->env() == NULL);
   for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
     comparison->InputAt(i)->set_instruction(this);
   }
@@ -774,28 +772,19 @@ void BranchInstr::RawSetInputAt(intptr_t i, Value* value) {
 }
 
 
-// A misleadingly named function for use in template functions that replace
-// both definitions with definitions and branch comparisons with
-// comparisons.  In the branch case, leave the branch intact and replace its
-// comparison with a new comparison not currently in the graph.
-void BranchInstr::ReplaceWith(ComparisonInstr* other,
-                              ForwardInstructionIterator* ignored) {
-  SetComparison(other);
-}
-
-
-void BranchInstr::SetComparison(ComparisonInstr* comp) {
-  for (intptr_t i = comp->InputCount() - 1; i >= 0; --i) {
-    Value* input = comp->InputAt(i);
+void BranchInstr::SetComparison(ComparisonInstr* new_comparison) {
+  for (intptr_t i = new_comparison->InputCount() - 1; i >= 0; --i) {
+    Value* input = new_comparison->InputAt(i);
     input->definition()->AddInputUse(input);
     input->set_instruction(this);
   }
   // There should be no need to copy or unuse an environment.
   ASSERT(comparison()->env() == NULL);
+  ASSERT(new_comparison->env() == NULL);
   // Remove the current comparison's input uses.
   comparison()->UnuseAllInputs();
-  ASSERT(!comp->HasUses());
-  comparison_ = comp;
+  ASSERT(!new_comparison->HasUses());
+  comparison_ = new_comparison;
 }
 
 
@@ -1090,12 +1079,12 @@ BlockEntryInstr* GraphEntryInstr::SuccessorAt(intptr_t index) const {
 }
 
 
-intptr_t ControlInstruction::SuccessorCount() const {
+intptr_t BranchInstr::SuccessorCount() const {
   return 2;
 }
 
 
-BlockEntryInstr* ControlInstruction::SuccessorAt(intptr_t index) const {
+BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
   if (index == 0) return true_successor_;
   if (index == 1) return false_successor_;
   UNREACHABLE();
@@ -1116,21 +1105,6 @@ BlockEntryInstr* GotoInstr::SuccessorAt(intptr_t index) const {
 
 void Instruction::Goto(JoinEntryInstr* entry) {
   LinkTo(new GotoInstr(entry));
-}
-
-
-bool EqualityCompareInstr::IsPolymorphic() const {
-  return HasICData() &&
-      (ic_data()->NumberOfChecks() > 0) &&
-      (ic_data()->NumberOfChecks() <= FLAG_max_polymorphic_checks);
-}
-
-
-bool EqualityCompareInstr::IsCheckedStrictEqual() const {
-  if (!HasICData()) return false;
-  return ic_data()->AllTargetsHaveSameOwner(kInstanceCid) &&
-         (unary_ic_data_->NumberOfChecks() <=
-             FLAG_max_equality_polymorphic_checks);
 }
 
 
@@ -1455,7 +1429,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     const AbstractType& new_dst_type = AbstractType::Handle(
         dst_type().InstantiateFrom(instantiator_type_args, NULL));
     // If dst_type is instantiated to dynamic or Object, skip the test.
-    if (!new_dst_type.IsMalformed() && !new_dst_type.IsMalbounded() &&
+    if (!new_dst_type.IsMalformedOrMalbounded() &&
         (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
       return value()->definition();
     }
@@ -1542,9 +1516,9 @@ Definition* UnboxInt32x4Instr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* defn = value()->definition();
-  if (defn->IsComparison() &&
-      (value()->Type()->ToCid() == kBoolCid) &&
-      defn->HasOnlyUse(value())) {
+  if (defn->IsComparison() && defn->HasOnlyUse(value())) {
+    // Comparisons always have a bool result.
+    ASSERT(value()->Type()->ToCid() == kBoolCid);
     defn->AsComparison()->NegateComparison();
     return defn;
   }
@@ -1613,7 +1587,7 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
       (other->Type()->ToCid() == kBoolCid)) {
     return other_defn;
   }
-  // Handle e !== true
+  // Handle e !== true.
   if ((kind == Token::kNE_STRICT) &&
       (constant.raw() == Bool::True().raw()) &&
       other_defn->IsComparison() &&
@@ -1622,6 +1596,7 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
     *negated = true;
     return other_defn;
   }
+  // Handle e === false.
   if ((kind == Token::kEQ_STRICT) &&
       (constant.raw() == Bool::False().raw()) &&
       other_defn->IsComparison() &&
@@ -1631,6 +1606,25 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
     return other_defn;
   }
   return compare;
+}
+
+
+// Recognize the pattern (a & b) == 0 where left is a bitwise and operation
+// and right is a constant 0.
+static bool RecognizeTestPattern(Value* left, Value* right) {
+  if (!right->BindsToConstant()) {
+    return false;
+  }
+
+  const Object& value = right->BoundConstant();
+  if (!value.IsSmi() || (Smi::Cast(value).Value() != 0)) {
+    return false;
+  }
+
+  Definition* left_defn = left->definition();
+  return left_defn->IsBinarySmiOp() &&
+      (left_defn->AsBinarySmiOp()->op_kind() == Token::kBIT_AND) &&
+      left_defn->HasOnlyUse(left);
 }
 
 
@@ -1680,6 +1674,29 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
       ASSERT(comp->input_use_list() == NULL);
       comp->ClearSSATempIndex();
       comp->ClearTempIndex();
+    }
+  } else if (comparison()->IsEqualityCompare() &&
+             comparison()->operation_cid() == kSmiCid) {
+    BinarySmiOpInstr* bit_and = NULL;
+    if (RecognizeTestPattern(comparison()->left(), comparison()->right())) {
+      bit_and = comparison()->left()->definition()->AsBinarySmiOp();
+    } else if (RecognizeTestPattern(comparison()->right(),
+                                    comparison()->left())) {
+      bit_and = comparison()->right()->definition()->AsBinarySmiOp();
+    }
+    if (bit_and != NULL) {
+      if (FLAG_trace_optimization) {
+        OS::Print("Merging test smi v%" Pd "\n", bit_and->ssa_temp_index());
+      }
+      TestSmiInstr* test = new TestSmiInstr(comparison()->token_pos(),
+                                            comparison()->kind(),
+                                            bit_and->left()->Copy(),
+                                            bit_and->right()->Copy());
+      ASSERT(!CanDeoptimize());
+      RemoveEnvironment();
+      flow_graph->CopyDeoptTarget(this, bit_and);
+      SetComparison(test);
+      bit_and->RemoveFromGraph();
     }
   }
   return this;
@@ -2453,6 +2470,29 @@ void IfThenElseInstr::InferRange() {
 }
 
 
+static bool BindsToSmiConstant(Value* value) {
+  return value->BindsToConstant() && value->BoundConstant().IsSmi();
+}
+
+
+bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
+                               Value* v1,
+                               Value* v2) {
+  if (!(comparison->IsStrictCompare() &&
+        !comparison->AsStrictCompare()->needs_number_check()) &&
+      !(comparison->IsEqualityCompare() &&
+        (comparison->AsEqualityCompare()->operation_cid() == kSmiCid))) {
+    return false;
+  }
+
+  if (!BindsToSmiConstant(v1) || !BindsToSmiConstant(v2)) {
+    return false;
+  }
+
+  return true;
+}
+
+
 void PhiInstr::InferRange() {
   RangeBoundary new_min;
   RangeBoundary new_max;
@@ -2896,6 +2936,22 @@ const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
       UNREACHABLE();
   }
   return kSinRuntimeEntry;
+}
+
+
+MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
+                                 intptr_t original_deopt_id,
+                                 MergedMathInstr::Kind kind)
+    : inputs_(inputs),
+      locs_(NULL),
+      kind_(kind) {
+  ASSERT(inputs_->length() == InputCountFor(kind_));
+  for (intptr_t i = 0; i < inputs_->length(); ++i) {
+    ASSERT((*inputs)[i] != NULL);
+    (*inputs)[i]->set_instruction(this);
+    (*inputs)[i]->set_use_index(i);
+  }
+  deopt_id_ = original_deopt_id;
 }
 
 #undef __

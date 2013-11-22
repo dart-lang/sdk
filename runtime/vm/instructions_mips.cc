@@ -180,9 +180,9 @@ void CallPattern::InsertAt(uword pc, uword target_address) {
   uint16_t target_lo = target_address & 0xffff;
   uint16_t target_hi = target_address >> 16;
 
-  lui->SetImmInstrBits(LUI, ZR, TMP1, target_hi);
-  ori->SetImmInstrBits(ORI, TMP1, TMP1, target_lo);
-  jr->SetSpecialInstrBits(JALR, TMP1, ZR, RA);
+  lui->SetImmInstrBits(LUI, ZR, TMP, target_hi);
+  ori->SetImmInstrBits(ORI, TMP, TMP, target_lo);
+  jr->SetSpecialInstrBits(JALR, TMP, ZR, RA);
   nop->SetInstructionBits(Instr::kNopInstruction);
 
   ASSERT(kFixedLengthInBytes == 4 * Instr::kInstrSize);

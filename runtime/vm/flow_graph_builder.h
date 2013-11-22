@@ -5,36 +5,48 @@
 #ifndef VM_FLOW_GRAPH_BUILDER_H_
 #define VM_FLOW_GRAPH_BUILDER_H_
 
+#include "platform/assert.h"
+#include "platform/globals.h"
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/growable_array.h"
 #include "vm/intermediate_language.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
+class AbstractType;
+class AbstractTypeArguments;
+class Array;
+class Class;
+class Field;
 class FlowGraph;
-class Instruction;
+class LocalVariable;
 class ParsedFunction;
+class String;
+
+class NestedStatement;
+class TestGraphVisitor;
 
 // List of recognized list factories:
 // (factory-name-symbol, result-cid, fingerprint).
 // TODO(srdjan): Store the values in the snapshot instead.
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(_ListFactory, kArrayCid, 1436567945)                                       \
-  V(_GrowableListWithData, kGrowableObjectArrayCid, 461305701)                 \
-  V(_GrowableListFactory, kGrowableObjectArrayCid, 910639199)                  \
-  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 810750844)                      \
-  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1246070930)                   \
-  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1882603960)     \
-  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 565702275)                    \
-  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 745756560)                  \
-  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 2141385820)                   \
-  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 2076467298)                 \
-  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 1223523117)                   \
-  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1032112679)                 \
-  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 1863852388)               \
-  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 1986018007)               \
-  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1144749257)           \
+  V(_ListFactory, kArrayCid, 176587978)                                        \
+  V(_GrowableListWithData, kGrowableObjectArrayCid, 264792196)                 \
+  V(_GrowableListFactory, kGrowableObjectArrayCid, 1720763678)                 \
+  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 545976988)                      \
+  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 981297074)                    \
+  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1617830104)     \
+  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 300928419)                    \
+  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 480982704)                  \
+  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 1876611964)                   \
+  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 1811693442)                 \
+  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 958749261)                    \
+  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 767338823)                  \
+  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 1599078532)               \
+  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 1721244151)               \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 879975401)            \
 
 
 // A class to collect the exits from an inlined function during graph
@@ -117,8 +129,7 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
   void SetInitialBlockId(intptr_t id) { last_used_block_id_ = id; }
 
-  void set_context_level(intptr_t value) { context_level_ = value; }
-  intptr_t context_level() const { return context_level_; }
+  intptr_t context_level() const;
 
   void IncrementLoopDepth() { ++loop_depth_; }
   void DecrementLoopDepth() { --loop_depth_; }
@@ -151,14 +162,25 @@ class FlowGraphBuilder: public ValueObject {
     return guarded_fields_;
   }
 
+  intptr_t temp_count() const { return temp_count_; }
+  intptr_t AllocateTemp() { return temp_count_++; }
+  void DeallocateTemps(intptr_t count) {
+    ASSERT(temp_count_ >= count);
+    temp_count_ -= count;
+  }
+
   intptr_t args_pushed() const { return args_pushed_; }
   void add_args_pushed(intptr_t n) { args_pushed_ += n; }
+
+  NestedStatement* nesting_stack() const { return nesting_stack_; }
 
   // When compiling for OSR, remove blocks that are not reachable from the
   // OSR entry point.
   void PruneUnreachable();
 
  private:
+  friend class NestedStatement;  // Explicit access to nesting_stack_.
+
   intptr_t parameter_count() const {
     return num_copied_params_ + num_non_copied_params_;
   }
@@ -176,14 +198,19 @@ class FlowGraphBuilder: public ValueObject {
   ZoneGrowableArray<const Field*>* guarded_fields_;
 
   intptr_t last_used_block_id_;
-  intptr_t context_level_;
   intptr_t try_index_;
   intptr_t catch_try_index_;
   intptr_t loop_depth_;
   GraphEntryInstr* graph_entry_;
 
+  // The expression stack height.
+  intptr_t temp_count_;
+
   // Outgoing argument stack height.
   intptr_t args_pushed_;
+
+  // A stack of enclosing nested statements.
+  NestedStatement* nesting_stack_;
 
   // The deopt id of the OSR entry or Isolate::kNoDeoptId if not compiling
   // for OSR.
@@ -192,8 +219,6 @@ class FlowGraphBuilder: public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
 
-
-class TestGraphVisitor;
 
 // Translate an AstNode to a control-flow graph fragment for its effects
 // (e.g., a statement or an expression in an effect context).  Implements a
@@ -206,10 +231,8 @@ class TestGraphVisitor;
 //   - (i0, i1): an open graph fragment
 class EffectGraphVisitor : public AstNodeVisitor {
  public:
-  EffectGraphVisitor(FlowGraphBuilder* owner,
-                     intptr_t temp_index)
+  explicit EffectGraphVisitor(FlowGraphBuilder* owner)
       : owner_(owner),
-        temp_index_(temp_index),
         entry_(NULL),
         exit_(NULL) { }
 
@@ -220,7 +243,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
 #undef DECLARE_VISIT
 
   FlowGraphBuilder* owner() const { return owner_; }
-  intptr_t temp_index() const { return temp_index_; }
   Instruction* entry() const { return entry_; }
   Instruction* exit() const { return exit_; }
 
@@ -331,20 +353,20 @@ class EffectGraphVisitor : public AstNodeVisitor {
       ZoneGrowableArray<PushArgumentInstr*>* arguments,
       bool result_is_needed);
 
+  StrictCompareInstr* BuildStrictCompare(AstNode* left,
+                                         AstNode* right,
+                                         Token::Kind kind,
+                                         intptr_t token_pos);
+
   virtual void BuildTypeTest(ComparisonNode* node);
   virtual void BuildTypeCast(ComparisonNode* node);
 
   bool MustSaveRestoreContext(SequenceNode* node) const;
 
-  // Moves parent context into the context register.
-  void UnchainContext();
+  // Moves the nth parent context into the context register.
+  void UnchainContexts(intptr_t n);
 
   void CloseFragment() { exit_ = NULL; }
-  intptr_t AllocateTempIndex() { return temp_index_++; }
-  void DeallocateTempIndex(intptr_t n) {
-    ASSERT(temp_index_ >= n);
-    temp_index_ -= n;
-  }
 
   // Returns a local variable index for a temporary local that is
   // on top of the current expression stack.
@@ -407,9 +429,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Shared global state.
   FlowGraphBuilder* owner_;
 
-  // Input parameters.
-  intptr_t temp_index_;
-
   // Output parameters.
   Instruction* entry_;
   Instruction* exit_;
@@ -423,9 +442,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 // language Value.
 class ValueGraphVisitor : public EffectGraphVisitor {
  public:
-  ValueGraphVisitor(FlowGraphBuilder* owner,
-                    intptr_t temp_index)
-      : EffectGraphVisitor(owner, temp_index), value_(NULL) { }
+  explicit ValueGraphVisitor(FlowGraphBuilder* owner)
+      : EffectGraphVisitor(owner), value_(NULL) { }
 
   // Visit functions overridden by this class.
   virtual void VisitLiteralNode(LiteralNode* node);
@@ -487,9 +505,8 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 class TestGraphVisitor : public ValueGraphVisitor {
  public:
   TestGraphVisitor(FlowGraphBuilder* owner,
-                   intptr_t temp_index,
                    intptr_t condition_token_pos)
-      : ValueGraphVisitor(owner, temp_index),
+      : ValueGraphVisitor(owner),
         true_successor_addresses_(1),
         false_successor_addresses_(1),
         condition_token_pos_(condition_token_pos) { }

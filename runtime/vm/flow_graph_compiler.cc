@@ -127,9 +127,6 @@ void FlowGraphCompiler::InitCompiler() {
         if (current->IsInstanceCall()) {
           ic_data = current->AsInstanceCall()->ic_data();
           ASSERT(ic_data != NULL);
-        } else if (current->IsEqualityCompare()) {
-          ic_data = current->AsEqualityCompare()->ic_data();
-          ASSERT(ic_data != NULL);
         }
         if ((ic_data != NULL) && (ic_data->NumberOfChecks() == 0)) {
           may_reoptimize_ = true;
@@ -323,10 +320,23 @@ bool FlowGraphCompiler::WasCompacted(
 }
 
 
-bool FlowGraphCompiler::CanFallThroughTo(BlockEntryInstr* block_entry) const {
+Label* FlowGraphCompiler::NextNonEmptyLabel() const {
   const intptr_t current_index = current_block()->postorder_number();
-  Label* next_nonempty = block_info_[current_index]->next_nonempty_label();
-  return next_nonempty == GetJumpLabel(block_entry);
+  return block_info_[current_index]->next_nonempty_label();
+}
+
+
+bool FlowGraphCompiler::CanFallThroughTo(BlockEntryInstr* block_entry) const {
+  return NextNonEmptyLabel() == GetJumpLabel(block_entry);
+}
+
+
+BranchLabels FlowGraphCompiler::CreateBranchLabels(BranchInstr* branch) const {
+  Label* true_label = GetJumpLabel(branch->true_successor());
+  Label* false_label = GetJumpLabel(branch->false_successor());
+  Label* fall_through = NextNonEmptyLabel();
+  BranchLabels result = { true_label, false_label, fall_through };
+  return result;
 }
 
 
@@ -1167,7 +1177,7 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
 
 // Returns true if checking against this type is a direct class id comparison.
 bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
-  ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   // Requires CHA, which can be applied in optimized code only,
   if (!FLAG_use_cha || !is_optimizing()) return false;
   if (!type.IsInstantiated()) return false;
@@ -1178,13 +1188,16 @@ bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
   if (type_class.is_implemented()) return false;
   const intptr_t type_cid = type_class.id();
   if (CHA::HasSubclasses(type_cid)) return false;
-  if (type_class.NumTypeArguments() > 0) {
+  const intptr_t num_type_args = type_class.NumTypeArguments();
+  if (num_type_args > 0) {
     // Only raw types can be directly compared, thus disregarding type
     // arguments.
+    const intptr_t num_type_params = type_class.NumTypeParameters();
+    const intptr_t from_index = num_type_args - num_type_params;
     const AbstractTypeArguments& type_arguments =
         AbstractTypeArguments::Handle(type.arguments());
     const bool is_raw_type = type_arguments.IsNull() ||
-        type_arguments.IsRaw(type_arguments.Length());
+        type_arguments.IsRaw(from_index, num_type_params);
     return is_raw_type;
   }
   return true;

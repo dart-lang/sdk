@@ -50,7 +50,7 @@ const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
  *       ...
  *     }
  *
- * Completes to `true` if any errors were encountered, `false` otherwise.
+ * Completes to true if any errors were encountered, false otherwise.
  */
 Future<bool> convert(String libUri, String jsonPath) {
   var paths = <String>[];

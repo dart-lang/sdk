@@ -15,6 +15,13 @@ abstract class Link implements FileSystemEntity {
   factory Link(String path) => new _Link(path);
 
   /**
+   * Create a Lint object from a URI.
+   *
+   * If [uri] cannot reference a link this throws [UnsupportedError].
+   */
+  factory Link.fromUri(Uri uri) => new Link(uri.toFilePath());
+
+  /**
    * Creates a symbolic link. Returns a [:Future<Link>:] that completes with
    * the link when it has been created. If the link exists,
    * the future will complete with an error.
@@ -142,7 +149,6 @@ class _Link extends FileSystemEntity implements Link {
                               'is not a String');
     }
   }
-
 
   String toString() => "Link: '$path'";
 

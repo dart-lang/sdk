@@ -7,7 +7,7 @@ We've tried very hard to make this library do the "right" thing on whatever
 platform you run it on, including in the browser. When you use the top-level
 functions, it will assume the current platform's path style and work with
 that. If you want to explicitly work with paths of a specific style, you can
-construct a `path.Builder` for that style.
+construct a `path.Context` for that style.
 
 ## Using
 
@@ -27,10 +27,10 @@ This calls the top-level [join] function to join "directory" and
 
 If you want to work with paths for a specific platform regardless of the
 underlying platform that the program is running on, you can create a
-[Builder] and give it an explicit [Style]:
+[Context] and give it an explicit [Style]:
 
-    var builder = new path.Builder(style: Style.windows);
-    builder.join("directory", "file.txt");
+    var context = new path.Context(style: Style.windows);
+    context.join("directory", "file.txt");
 
 This will join "directory" and "file.txt" using the Windows path separator,
 even when the program is run on a POSIX machine.

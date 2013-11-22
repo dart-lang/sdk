@@ -723,24 +723,6 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Integer_remainder(Assembler* assembler) {
-  // Check to see if we have integer division
-  Label fall_through;
-  TestBothArgumentsSmis(assembler, &fall_through);
-  // R1: Tagged left (dividend).
-  // R0: Tagged right (divisor).
-  // Check if modulo by zero -> exception thrown in main function.
-  __ cmp(R0, ShifterOperand(0));
-  __ b(&fall_through, EQ);
-  EmitRemainderOperation(assembler);
-  // Untagged remainder result in R1.
-  __ mov(R0, ShifterOperand(R1, LSL, 1));  // Tag result and return.
-  __ Ret();
-
-  __ Bind(&fall_through);
-}
-
-
 void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   // Check to see if we have integer division
   Label fall_through;
@@ -1318,14 +1300,6 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ vcvtdi(D1, S0);
   __ b(&double_op);
   __ Bind(&fall_through);
-}
-
-
-void Intrinsifier::Math_sin(Assembler* assembler) {
-}
-
-
-void Intrinsifier::Math_cos(Assembler* assembler) {
 }
 
 

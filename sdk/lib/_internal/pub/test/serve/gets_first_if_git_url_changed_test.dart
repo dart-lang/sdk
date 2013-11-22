@@ -33,7 +33,7 @@ main() {
       "foo": {"git": "../foo-after.git"}
     }).create();
 
-    startPubServe(shouldGetFirst: true);
+    pubServe(shouldGetFirst: true);
     requestShouldSucceed("packages/foo/foo.dart", 'main() => "after";');
     endPubServe();
   });

@@ -15,7 +15,7 @@ main() {
       d.appPubspec()
     ]).create();
 
-    startPubServe();
+    pubServe();
     requestShould404("packages/foo/nope.dart");
     requestShould404("assets/foo/nope.png");
     requestShould404("dir/packages/foo/nope.dart");

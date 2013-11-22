@@ -6,7 +6,6 @@ library pub_tests;
 
 import 'package:scheduled_test/scheduled_test.dart';
 
-import 'descriptor.dart' as d;
 import 'test_pub.dart';
 
 final USAGE_STRING = """
@@ -168,24 +167,6 @@ main() {
   group('version', () {
     integration('displays the current version', () {
       schedulePub(args: ['version'], output: VERSION_STRING);
-    });
-
-    integration('parses a release-style version', () {
-      d.dir(sdkPath, [
-        d.file('version', '0.1.2.0_r17645'),
-      ]).create();
-
-      schedulePub(args: ['version'], output: "Pub 0.1.2+0.r17645\n");
-    });
-
-    integration('parses a dev-only style version', () {
-      // The "version" file generated on developer builds is a little funky and
-      // we need to make sure we don't choke on it.
-      d.dir(sdkPath, [
-        d.file('version', '0.1.2.0_r16279_bobross'),
-      ]).create();
-
-      schedulePub(args: ['version'], output: "Pub 0.1.2+0.r16279.bobross\n");
     });
   });
 }

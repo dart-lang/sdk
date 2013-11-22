@@ -13,9 +13,6 @@ import '../../descriptor.dart';
 import '../../scheduled_test.dart';
 import '../utils.dart';
 
-/// A path builder to ensure that [load] uses POSIX paths.
-final path.Builder _path = new path.Builder(style: path.Style.posix);
-
 /// A descriptor describing a directory containing multiple files.
 class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
   /// The entries contained within this directory. This is intentionally
@@ -58,11 +55,11 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
 
   Stream<List<int>> load(String pathToLoad) {
     return futureStream(new Future.value().then((_) {
-      if (_path.isAbsolute(pathToLoad)) {
+      if (path.posix.isAbsolute(pathToLoad)) {
         throw new ArgumentError("Can't load absolute path '$pathToLoad'.");
       }
 
-      var split = _path.split(_path.normalize(pathToLoad));
+      var split = path.posix.split(path.posix.normalize(pathToLoad));
       if (split.isEmpty || split.first == '.' || split.first == '..') {
         throw new ArgumentError("Can't load '$pathToLoad' from within "
             "'$name'.");
@@ -88,7 +85,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
           return (matchingEntries.first as ReadableDescriptor).read();
         } else {
           return (matchingEntries.first as LoadableDescriptor)
-              .load(_path.joinAll(remainingPath));
+              .load(path.posix.joinAll(remainingPath));
         }
       }
     }));

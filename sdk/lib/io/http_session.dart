@@ -19,7 +19,7 @@ class _HttpSession implements HttpSession {
   _HttpSession _prev;
   _HttpSession _next;
 
-  final Map _data = new Map();
+  final Map _data = new HashMap();
 
   _HttpSession(_HttpSessionManager this._sessionManager, String this.id)
     : _lastSeen = new DateTime.now();

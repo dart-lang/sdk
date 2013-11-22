@@ -59,6 +59,13 @@ class BacktrackingSolver {
   /// only allow the very latest version for each of these packages.
   final _forceLatest = new Set<String>();
 
+  /// The set of packages whose dependecy is being overridden by the root
+  /// package, keyed by the name of the package.
+  ///
+  /// Any dependency on a package that appears in this map will be overriden
+  /// to use the one here.
+  final _overrides = new Map<String, PackageDep>();
+
   /// Every time a package is encountered when traversing the dependency graph,
   /// the solver must select a version for it, sometimes when multiple versions
   /// are valid. This keeps track of which versions have been selected so far
@@ -90,6 +97,10 @@ class BacktrackingSolver {
       forceLatestVersion(package);
       lockFile.packages.remove(package);
     }
+
+    for (var override in root.dependencyOverrides) {
+      _overrides[override.name] = override;
+    }
   }
 
   /// Run the solver. Completes with a list of specific package versions if
@@ -98,6 +109,10 @@ class BacktrackingSolver {
     var stopwatch = new Stopwatch();
 
     _logParameters();
+
+    // Sort the overrides by package name to make sure they're deterministic.
+    var overrides = _overrides.values.toList();
+    overrides.sort((a, b) => a.name.compareTo(b.name));
 
     return newFuture(() {
       stopwatch.start();
@@ -108,12 +123,12 @@ class BacktrackingSolver {
       _validateSdkConstraint(root.pubspec);
       return _traverseSolution();
     }).then((packages) {
-      return new SolveResult(packages, null, attemptedSolutions);
+      return new SolveResult(packages, overrides, null, attemptedSolutions);
     }).catchError((error) {
       if (error is! SolveFailure) throw error;
 
       // Wrap a failure in a result so we can attach some other data.
-      return new SolveResult(null, error, attemptedSolutions);
+      return new SolveResult(null, overrides, error, attemptedSolutions);
     }).whenComplete(() {
       // Gather some solving metrics.
       var buffer = new StringBuffer();
@@ -381,10 +396,25 @@ class Traverser {
     return _solver.cache.getPubspec(id).then((pubspec) {
       _validateSdkConstraint(pubspec);
 
-      var deps = pubspec.dependencies.toList();
+      var deps = pubspec.dependencies.toSet();
 
-      // Include dev dependencies of the root package.
-      if (id.isRoot) deps.addAll(pubspec.devDependencies);
+      if (id.isRoot) {
+        // Include dev dependencies of the root package.
+        deps.addAll(pubspec.devDependencies);
+
+        // Add all overrides. This ensures a dependency only present as an
+        // override is still included.
+        deps.addAll(_solver._overrides.values);
+      }
+
+      // Replace any overridden dependencies.
+      deps = deps.map((dep) {
+        var override = _solver._overrides[dep.name];
+        if (override != null) return override;
+
+        // Not overridden.
+        return dep;
+      });
 
       // Make sure the package doesn't have any bad dependencies.
       for (var dep in deps) {

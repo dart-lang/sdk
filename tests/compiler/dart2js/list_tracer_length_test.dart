@@ -71,6 +71,22 @@ main() {
 }
 """;
 
+const String TEST8 = r"""
+var b = 42;
+var a = new List(b);
+main() {
+  return a[1];
+}
+""";
+
+const String TEST9 = r"""
+const b = 42;
+var a = new List(b);
+main() {
+  return a[1];
+}
+""";
+
 void checkRangeError(String test, {bool hasRangeError}) {
   asyncTest(() => compileAll(test).then((generated) {
     Expect.equals(hasRangeError, generated.contains('ioore'));
@@ -88,4 +104,6 @@ main() {
   checkRangeError(TEST5, hasRangeError: true);
   checkRangeError(TEST6, hasRangeError: true);
   checkRangeError(TEST7, hasRangeError: false);
+  checkRangeError(TEST8, hasRangeError: true);
+  checkRangeError(TEST9, hasRangeError: false);
 }

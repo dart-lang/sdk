@@ -35,19 +35,21 @@ ref_before_declaration_test/06: MissingCompileTimeError
 vm/*: Skip # Issue 12699
 
 [ $compiler == dart2js && $checked ]
-checked_setter2_test: Fail # Issue 11273
 type_variable_bounds_test/02: Fail # Issue 12702
 type_variable_bounds2_test/01: Fail # Issue 12702
 type_variable_bounds2_test/04: Fail # Issue 12702
 type_variable_bounds2_test/06: Pass # Issue 12702 (pass for the wrong reasons).
 type_variable_bounds3_test/00: Fail # Issue 12702
 closure_type_test: Fail # Issue 12745
-function_subtype_setter0_test: Fail # Issue 11273
-redirecting_factory_malbounded_test/01: Fail # Issue 12825
+malbounded_redirecting_factory_test/02: Fail # Issue 12825
+malbounded_redirecting_factory_test/03: Fail # Issue 12825
+malbounded_redirecting_factory2_test/02: Fail # Issue 12825
+malbounded_redirecting_factory2_test/03: Fail # Issue 12825
 malbounded_instantiation_test/01: Fail # Issue 12702
 malbounded_type_cast_test: Fail # Issue 14121
 malbounded_type_test_test/03: Fail # Issue 14121
 malbounded_type_test_test/04: Fail # Issue 14121
+default_factory2_test/01: Fail # Issue 14121
 
 [ $compiler == dart2js && $unchecked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
@@ -125,13 +127,13 @@ not_enough_positional_arguments_test/01: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/02: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/05: CompileTimeError # Issue 12838
 metadata_test: CompileTimeError # Issue 5841
-metadata_syntax_test/05: MissingCompileTimeError # Issue 14548
 infinity_test: RuntimeError # Issue 4984
 positive_bit_operations_test: RuntimeError # Issue 12795
 mixin_mixin2_test: RuntimeError # Issue 13109.
 mixin_mixin3_test: RuntimeError # Issue 13109.
 mixin_mixin7_test: RuntimeError # Issue 13109.
 mixin_regress_13688_test: RuntimeError # Issue 13109.
+modulo_test: RuntimeError # Issue 15246
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793
@@ -187,12 +189,14 @@ label_test: Skip
 [ $compiler == dart2dart ]
 regress_13494_test: Fail # Issue 13494
 malformed_test/none: CompileTimeError # Issue 12695
+mixin_regress_13688_test: RuntimeError # Issue 15244
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633
 factory3_test: Fail # Issue 13077
+redirecting_factory_long_test: Fail # Issue 13077
 type_checks_in_factory_method_test: Fail # Issue 12747
 
 # Mixins fail on the VM.
@@ -233,7 +237,6 @@ not_enough_positional_arguments_test/02: Fail # Issue 12839
 not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
-metadata_syntax_test/05: MissingCompileTimeError # Issue 14548
 const_var_test: Pass, Fail # Issue 12794
 map_literal3_test: Fail # Issue 12794
 external_test/13: Fail # Issue 12888

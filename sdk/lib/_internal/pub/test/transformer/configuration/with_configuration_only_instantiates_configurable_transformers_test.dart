@@ -67,7 +67,7 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    var server = startPubServe();
+    var server = pubServe();
     requestShouldSucceed("foo.json", JSON.encode(configuration));
     requestShould404("foo.out");
     endPubServe();

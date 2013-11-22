@@ -27,6 +27,10 @@ class World {
   final Map<ClassElement, Set<ClassElement>> _supertypes =
       new Map<ClassElement, Set<ClassElement>>();
 
+  final Set<Element> sideEffectsFreeElements = new Set<Element>();
+
+  final Set<Element> elementsThatCannotThrow = new Set<Element>();
+
   Set<ClassElement> subclassesOf(ClassElement cls) {
     return _subclasses[cls.declaration];
   }
@@ -187,7 +191,7 @@ class World {
   }
 
   void registerUsedElement(Element element) {
-    if (element.isInstanceMember() && !element.isAbstract(compiler)) {
+    if (element.isInstanceMember() && !element.isAbstract) {
       allFunctions.add(element);
     }
   }
@@ -230,6 +234,22 @@ class World {
     return functionsCalledInLoop.contains(element.declaration);
   }
 
+  bool fieldNeverChanges(Element element) {
+    if (!element.isField()) return false;
+    if (element.isNative()) {
+      // Some native fields are views of data that may be changed by operations.
+      // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
+      // TODO(sra): Refine the effect classification so that native effects are
+      // distinct from ordinary Dart effects.
+      return false;
+    }
+
+    return element.modifiers.isFinal()
+        || element.modifiers.isConst()
+        || (element.isInstanceMember()
+            && !compiler.resolverWorld.hasInvokedSetter(element, compiler));
+  }
+
   SideEffects getSideEffectsOfElement(Element element) {
     // The type inferrer (where the side effects are being computed),
     // does not see generative constructor bodies because they are
@@ -238,31 +258,51 @@ class World {
     // implies that currently, the side effects of a constructor body
     // contain the side effects of the initializers.
     assert(!element.isGenerativeConstructorBody());
+    assert(!element.isField());
     return sideEffects.putIfAbsent(element.declaration, () {
       return new SideEffects();
     });
   }
 
   void registerSideEffects(Element element, SideEffects effects) {
+    if (sideEffectsFreeElements.contains(element)) return;
     sideEffects[element.declaration] = effects;
+  }
+
+  void registerSideEffectsFree(Element element) {
+    sideEffects[element.declaration] = new SideEffects.empty();
+    sideEffectsFreeElements.add(element);
   }
 
   SideEffects getSideEffectsOfSelector(Selector selector) {
     // We're not tracking side effects of closures.
-    if (selector.isClosureCall()) {
-      return new SideEffects();
-    }
+    if (selector.isClosureCall()) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
     for (Element e in allFunctions.filter(selector)) {
       if (e.isField()) {
         if (selector.isGetter()) {
-          sideEffects.setDependsOnInstancePropertyStore();
+          if (!fieldNeverChanges(e)) {
+            sideEffects.setDependsOnInstancePropertyStore();
+          }
         } else if (selector.isSetter()) {
           sideEffects.setChangesInstanceProperty();
+        } else {
+          assert(selector.isCall());
+          sideEffects.setAllSideEffects();
+          sideEffects.setDependsOnSomething();
         }
+      } else {
+        sideEffects.add(getSideEffectsOfElement(e));
       }
-      sideEffects.add(getSideEffectsOfElement(e));
     }
     return sideEffects;
+  }
+
+  void registerCannotThrow(Element element) {
+    elementsThatCannotThrow.add(element);
+  }
+
+  bool getCannotThrow(Element element) {
+    return elementsThatCannotThrow.contains(element);
   }
 }

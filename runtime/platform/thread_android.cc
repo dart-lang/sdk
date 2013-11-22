@@ -39,10 +39,10 @@ namespace dart {
 #endif
 
 
-static void ComputeTimeSpec(struct timespec* ts, int64_t millis) {
-  int64_t secs = millis / kMillisecondsPerSecond;
+static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
+  int64_t secs = micros / kMicrosecondsPerSecond;
   int64_t nanos =
-      (millis - (secs * kMillisecondsPerSecond)) * kNanosecondsPerMillisecond;
+      (micros - (secs * kMicrosecondsPerSecond)) * kNanosecondsPerMicrosecond;
   int result = clock_gettime(CLOCK_MONOTONIC, ts);
   ASSERT(result == 0);
   ts->tv_sec += secs;
@@ -141,6 +141,22 @@ void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
+}
+
+
+ThreadId Thread::GetCurrentThreadId() {
+  return pthread_self();
+}
+
+
+void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
+  ASSERT(thread_id == GetCurrentThreadId());
+  ASSERT(cpu_usage != NULL);
+  struct timespec ts;
+  int r = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+  ASSERT(r == 0);
+  *cpu_usage = (ts.tv_sec * kNanosecondsPerSecond + ts.tv_nsec) /
+               kNanosecondsPerMicrosecond;
 }
 
 
@@ -252,17 +268,21 @@ void Monitor::Exit() {
 
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
+  return WaitMicros(millis * kMicrosecondsPerMillisecond);
+}
+
+
+Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   // TODO(iposva): Do we need to track lock owners?
   Monitor::WaitResult retval = kNotified;
-  if (millis == 0) {
+  if (micros == kNoTimeout) {
     // Wait forever.
     int result = pthread_cond_wait(data_.cond(), data_.mutex());
     VALIDATE_PTHREAD_RESULT(result);
   } else {
     struct timespec ts;
-    ComputeTimeSpec(&ts, millis);
-    int result = pthread_cond_timedwait_monotonic(
-        data_.cond(), data_.mutex(), &ts);
+    ComputeTimeSpecMicros(&ts, micros);
+    int result = pthread_cond_timedwait(data_.cond(), data_.mutex(), &ts);
     ASSERT((result == 0) || (result == ETIMEDOUT));
     if (result == ETIMEDOUT) {
       retval = kTimedOut;

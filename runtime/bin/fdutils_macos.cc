@@ -20,12 +20,10 @@ bool FDUtils::SetCloseOnExec(intptr_t fd) {
   intptr_t status;
   status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFD));
   if (status < 0) {
-    perror("fcntl F_GETFD failed");
     return false;
   }
   status |= FD_CLOEXEC;
   if (TEMP_FAILURE_RETRY(fcntl(fd, F_SETFD, status)) < 0) {
-    perror("fcntl F_SETFD failed");
     return false;
   }
   return true;
@@ -36,12 +34,10 @@ static bool SetBlockingHelper(intptr_t fd, bool blocking) {
   intptr_t status;
   status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFL));
   if (status < 0) {
-    perror("fcntl F_GETFL failed");
     return false;
   }
   status = blocking ? (status & ~O_NONBLOCK) : (status | O_NONBLOCK);
   if (TEMP_FAILURE_RETRY(fcntl(fd, F_SETFL, status)) < 0) {
-    perror("fcntl F_SETFL failed");
     return false;
   }
   return true;
@@ -62,7 +58,6 @@ bool FDUtils::IsBlocking(intptr_t fd, bool* is_blocking) {
   intptr_t status;
   status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFL));
   if (status < 0) {
-    perror("fcntl F_GETFL failed");
     return false;
   }
   *is_blocking = (status & O_NONBLOCK) == 0;
@@ -74,7 +69,6 @@ intptr_t FDUtils::AvailableBytes(intptr_t fd) {
   int available;  // ioctl for FIONREAD expects an 'int*' argument.
   int result = TEMP_FAILURE_RETRY(ioctl(fd, FIONREAD, &available));
   if (result < 0) {
-    perror("ioctl FIONREAD failed");
     return result;
   }
 #ifdef DEBUG

@@ -6,6 +6,8 @@ import 'package:unittest/unittest.dart';
 
 // TODO(gram): Convert to a shouldFail passing test.
 main() {
+  SimpleConfiguration config = unittestConfiguration;
+  config.timeout = const Duration(seconds: 2);
   group('Broken', () {
     test('test that should time out', () {
       expectAsync0(() {});

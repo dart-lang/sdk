@@ -563,7 +563,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
                                          bool* is_instance) {
   ASSERT(is_instance != NULL);
   // We cannot give an answer if the given type is malformed or malbounded.
-  if (type.IsMalformed() || type.IsMalbounded()) {
+  if (type.IsMalformedOrMalbounded()) {
     return false;
   }
 
@@ -578,7 +578,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
 
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
-  if (compile_type.IsMalformed() || compile_type.IsMalbounded()) {
+  if (compile_type.IsMalformedOrMalbounded()) {
     return false;
   }
 
@@ -803,24 +803,20 @@ CompileType StrictCompareInstr::ComputeType() const {
 }
 
 
-CompileType EqualityCompareInstr::ComputeType() const {
-  return IsInlinedNumericComparison() ? CompileType::Bool()
-                                      : CompileType::Dynamic();
-}
-
-
-bool EqualityCompareInstr::RecomputeType() {
-  return UpdateType(ComputeType());
-}
-
-
-CompileType RelationalOpInstr::ComputeType() const {
+CompileType TestSmiInstr::ComputeType() const {
   return CompileType::Bool();
 }
 
 
-bool RelationalOpInstr::RecomputeType() {
-  return UpdateType(ComputeType());
+CompileType EqualityCompareInstr::ComputeType() const {
+  // Used for numeric comparisons only.
+  return CompileType::Bool();
+}
+
+
+CompileType RelationalOpInstr::ComputeType() const {
+  // Used for numeric comparisons only.
+  return CompileType::Bool();
 }
 
 
@@ -897,6 +893,18 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   if (FLAG_enable_type_checks) {
     return CompileType::FromAbstractType(
         AbstractType::ZoneHandle(StaticField().type()));
+  }
+  const Field& field = this->StaticField();
+  ASSERT(field.is_static());
+  if (field.is_final()) {
+    Instance& obj = Instance::Handle(field.value());
+    if ((obj.raw() != Object::sentinel().raw()) &&
+        (obj.raw() != Object::transition_sentinel().raw()) &&
+        !obj.IsNull()) {
+      return CompileType(CompileType::kNonNullable,
+                         Class::Handle(obj.clazz()).id(),
+                         NULL);
+    }
   }
   return CompileType::Dynamic();
 }
@@ -1211,5 +1219,14 @@ CompileType InvokeMathCFunctionInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
 
+
+CompileType MergedMathInstr::ComputeType() const {
+  if (kind() == MergedMathInstr::kTruncDivMod) {
+    return CompileType::FromCid(kArrayCid);
+  } else {
+    UNIMPLEMENTED();
+    return CompileType::Dynamic();
+  }
+}
 
 }  // namespace dart
