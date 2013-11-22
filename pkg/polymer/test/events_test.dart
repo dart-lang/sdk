@@ -29,6 +29,21 @@ class TestA extends PolymerElement {
   }
 }
 
+@reflectable
+class TestBase extends PolymerElement {
+  TestBase.created() : super.created();
+
+  List clicks = [];
+  void clickHandler(e) {
+    clicks.add('local click under $localName (id $id) on ${e.target.id}');
+  }
+}
+
+@CustomTag("test-c")
+class TestC extends TestBase {
+  TestC.created() : super.created();
+}
+
 main() {
   initPolymer();
   useHtmlConfiguration();
@@ -55,5 +70,18 @@ main() {
     var b2 = testB.shadowRoot.query('#b-2');
     b2.click();
     expect(testB.clicks, ['local click under test-b (id b) on b-2']);
+  });
+
+  test('event on superclass', () {
+    var testC = query('#c');
+    expect(testC.clicks, isEmpty);
+    testC.click();
+    expect(testC.clicks, []);
+    var c1 = testC.shadowRoot.query('#c-1');
+    c1.click();
+    expect(testC.clicks, []);
+    var c2 = testC.shadowRoot.query('#c-2');
+    c2.click();
+    expect(testC.clicks, ['local click under test-c (id c) on c-2']);
   });
 }

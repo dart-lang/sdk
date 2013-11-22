@@ -794,8 +794,8 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // explicitly. Unless VM mirrors are optimized first, this will be expensive
     // once custom elements extend directly from Element (see issue 11108).
     var receiverMirror = reflect(receiver);
-    var method = receiverMirror.type.declarations[methodName];
-    if (method != null && method is MethodMirror) {
+    var method = _findMethod(receiverMirror.type, methodName);
+    if (method != null) {
       // This will either truncate the argument list or extend it with extra
       // null arguments, so it will match the signature.
       // TODO(sigmund): consider accepting optional arguments when we can tell
@@ -803,6 +803,14 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       args.length = method.parameters.where((p) => !p.isOptional).length;
     }
     return receiverMirror.invoke(methodName, args).reflectee;
+  }
+
+  static MethodMirror _findMethod(ClassMirror type, Symbol name) {
+    do {
+      var member = type.declarations[name];
+      if (member is MethodMirror) return member;
+      type = type.superclass;
+    } while (type != null);
   }
 
   /**

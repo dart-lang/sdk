@@ -116,5 +116,6 @@ main() {
   test('events handled', () {
     XTest test = query('x-test');
     expect(test._onTestDone, isNotNull, reason: 'ready was called');
+    return test._onTestDone;
   });
 }

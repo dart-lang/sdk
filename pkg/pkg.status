@@ -58,6 +58,7 @@ polymer/test/nested_binding_test: Skip # uses dart:html
 polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
+polymer/test/property_change_test: Skip # uses dart:html
 polymer/test/publish_attributes_test: Skip #uses dart:html
 polymer/test/publish_inherited_properties_test: Skip #uses dart:html
 polymer/test/register_test: Skip #uses dart:html
@@ -104,6 +105,7 @@ polymer/test/event_path_test: Pass, Timeout # Issue 13260
 polymer/test/events_test: Pass, Timeout # Issue 13260
 polymer/test/nested_binding_test: Pass, Timeout # Issue 13260
 polymer/test/noscript_test: Pass, Timeout # Issue 13260
+polymer/test/property_change_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/prop_attr_bind_reflection_test: Pass, Timeout # Issue 13260
 polymer/test/publish_attributes_test: Pass, Timeout # Issue 13260

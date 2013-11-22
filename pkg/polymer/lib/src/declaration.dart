@@ -267,12 +267,7 @@ class PolymerDeclaration extends HtmlElement {
         }
 
         var property = new Symbol(attr);
-        var mirror = cls.declarations[property];
-        if (mirror is MethodMirror) {
-          if (!mirror.isGetter || !_hasSetter(cls, mirror)) mirror = null;
-        } else if (mirror is! VariableMirror) {
-          mirror = null;
-        }
+        var mirror = _getProperty(cls, property);
         if (mirror == null) {
           window.console.warn('property for attribute $attr of polymer-element '
               'name=$name not found.');
@@ -439,6 +434,8 @@ class PolymerDeclaration extends HtmlElement {
   // If an element may take 6us to create, getCustomPropertyNames might
   // cost 1.6us more.
   void inferObservers(ClassMirror cls) {
+    if (cls == _objectType) return;
+    inferObservers(cls.superclass);
     for (var method in cls.declarations.values) {
       if (method is! MethodMirror || method.isStatic
           || !method.isRegularMethod) continue;
@@ -499,38 +496,43 @@ PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 
 final _objectType = reflectClass(Object);
 
+
 Map _getPublishedProperties(ClassMirror cls, Map props) {
   if (cls == _objectType) return props;
   props = _getPublishedProperties(cls.superclass, props);
-  for (var field in cls.declarations.values) {
-    if (field is! VariableMirror ||
-        field.isFinal || field.isStatic || field.isPrivate) continue;
+  for (var member in cls.declarations.values) {
+    if (member.isStatic || member.isPrivate) continue;
 
-    for (var meta in field.metadata) {
-      if (meta.reflectee is PublishedProperty) {
-        if (props == null) props = {};
-        props[field.simpleName] = field;
-        break;
-      }
-    }
-  }
+    if (member is VariableMirror && !member.isFinal
+        || member is MethodMirror && member.isGetter) {
 
-  for (var getter in cls.declarations.values) {
-    if (getter is! MethodMirror || !getter.isGetter ||
-        getter.isStatic || getter.isPrivate) continue;
-
-    for (var meta in getter.metadata) {
-      if (meta.reflectee is PublishedProperty) {
-        if (_hasSetter(cls, getter)) {
-          if (props == null) props = {};
-          props[getter.simpleName] = getter;
+      for (var meta in member.metadata) {
+        if (meta.reflectee is PublishedProperty) {
+          // Note: we delay the setter check until we find @published because
+          // it's a tad expensive.
+          if (member is! MethodMirror || _hasSetter(cls, member)) {
+            if (props == null) props = {};
+            props[member.simpleName] = member;
+          }
+          break;
         }
-        break;
       }
     }
   }
 
   return props;
+}
+
+DeclarationMirror _getProperty(ClassMirror cls, Symbol property) {
+  do {
+    var mirror = cls.declarations[property];
+    if (mirror is MethodMirror && mirror.isGetter && _hasSetter(cls, mirror)
+        || mirror is VariableMirror) {
+      return mirror;
+    }
+    cls = cls.superclass;
+  } while (cls != null);
+  return null;
 }
 
 bool _hasSetter(ClassMirror cls, MethodMirror getter) {
