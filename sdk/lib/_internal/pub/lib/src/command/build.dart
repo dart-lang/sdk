@@ -50,6 +50,7 @@ class BuildCommand extends PubCommand {
     cleanDir(target);
 
     var dart2jsTransformer;
+    var builtFiles = 0;
 
     return entrypoint.ensureLockFileIsUpToDate().then((_) {
       return entrypoint.loadPackageGraph();
@@ -78,6 +79,14 @@ class BuildCommand extends PubCommand {
           () => server.barback.getAllAssets());
     }).then((assets) {
       return Future.wait(assets.map((asset) {
+        // In release mode, strip out .dart files since all relevant ones have
+        // been compiled to JavaScript already.
+        if (mode == BarbackMode.RELEASE && asset.id.extension == ".dart") {
+          return new Future.value();
+        }
+
+        builtFiles++;
+
         // Figure out the output directory for the asset, which is the same
         // as the path pub serve would use to serve it.
         var relativeUrl = barback.idtoUrlPath(entrypoint.root.name, asset.id);
@@ -92,10 +101,8 @@ class BuildCommand extends PubCommand {
         // TODO(rnystrom): Should we display this to the user?
         return createFileFromStream(asset.read(), destPath);
       })).then((_) {
-        _copyBrowserJsFiles(dart2jsTransformer.entrypoints);
-        // TODO(rnystrom): Should this count include the JS files?
-        log.message("Built ${assets.length} "
-            "${pluralize('file', assets.length)}!");
+        builtFiles += _copyBrowserJsFiles(dart2jsTransformer.entrypoints);
+        log.message("Built $builtFiles ${pluralize('file', builtFiles)}!");
       });
     }).catchError((error) {
       // If [getAllAssets()] throws a BarbackException, the error has already
@@ -110,11 +117,13 @@ class BuildCommand extends PubCommand {
   /// If this package depends directly on the `browser` package, this ensures
   /// that the JavaScript bootstrap files are copied into `packages/browser/`
   /// directories next to each entrypoint in [entrypoints].
-  void _copyBrowserJsFiles(Iterable<AssetId> entrypoints) {
+  ///
+  /// Returns the number of files it copied.
+  int _copyBrowserJsFiles(Iterable<AssetId> entrypoints) {
     // Must depend on the browser package.
     if (!entrypoint.root.dependencies.any(
         (dep) => dep.name == 'browser' && dep.source == 'hosted')) {
-      return;
+      return 0;
     }
 
     // Get all of the directories that contain Dart entrypoints.
@@ -131,6 +140,8 @@ class BuildCommand extends PubCommand {
       _addBrowserJs(dir, "dart");
       _addBrowserJs(dir, "interop");
     }
+
+    return entrypointDirs.length * 2;
   }
 
   // TODO(nweiz): do something more principled when issue 6101 is fixed.

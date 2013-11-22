@@ -16,6 +16,9 @@ import '../barback.dart';
 import '../log.dart' as log;
 import '../utils.dart';
 
+/// Callback for determining if an asset with [id] should be served or not.
+typedef bool AllowAsset(AssetId id);
+
 /// A server that serves assets transformed by barback.
 class BarbackServer {
   /// The underlying HTTP server.
@@ -33,6 +36,15 @@ class BarbackServer {
 
   /// The server's address.
   final InternetAddress address;
+
+  /// Optional callback to determine if an asset should be served.
+  ///
+  /// This can be set to allow outside code to filter out assets. Pub serve
+  /// uses this after plug-ins are loaded to avoid serving ".dart" files in
+  /// release mode.
+  ///
+  /// If this is `null`, all assets may be served.
+  AllowAsset allowAsset;
 
   /// The results of requests handled by the server.
   ///
@@ -88,6 +100,12 @@ class BarbackServer {
       // If we got here, we had a path like "/packages" which is a special
       // directory, but not a valid path since it lacks a following package name.
       _notFound(request, ex.message);
+      return;
+    }
+
+    // See if the asset should be blocked.
+    if (allowAsset != null && !allowAsset(id)) {
+      _notFound(request, "Asset $id is not available in this configuration.");
       return;
     }
 

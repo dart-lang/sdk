@@ -80,6 +80,12 @@ class ServeCommand extends PubCommand {
           builtInTransformers: builtInTransformers,
           watcher: watcherType);
     }).then((server) {
+      // In release mode, strip out .dart files since all relevant ones have
+      // been compiled to JavaScript already.
+      if (mode == BarbackMode.RELEASE) {
+        server.allowAsset = (url) => !url.path.endsWith(".dart");
+      }
+
       /// This completer is used to keep pub running (by not completing) and
       /// to pipe fatal errors to pub's top-level error-handling machinery.
       var completer = new Completer();

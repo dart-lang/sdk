@@ -115,7 +115,11 @@ Future loadAllTransformers(BarbackServer server, PackageGraph graph,
         return unionAll(phase.map((id) => loader.transformersFor(id)));
       }).toList();
 
-      if (builtInTransformers != null && builtInTransformers.isNotEmpty) {
+      // The built-in transformers are for dart2js and forwarding assets around
+      // dart2js, and those only apply to the entrypoints in the root package.
+      if (package.name == graph.entrypoint.root.name &&
+          builtInTransformers != null &&
+          builtInTransformers.isNotEmpty) {
         phases.add(builtInTransformers);
       }
 
