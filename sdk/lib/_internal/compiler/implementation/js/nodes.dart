@@ -925,8 +925,16 @@ class ArrayElement extends Node {
 
 class ObjectInitializer extends Expression {
   List<Property> properties;
+  bool isOneLiner;
 
-  ObjectInitializer(this.properties);
+  /**
+   * Constructs a new object-initializer containing the given [properties].
+   *
+   * [isOneLiner] describes the behaviour when pretty-printing (non-minified).
+   * If true print all properties on the same line.
+   * If false print each property on a seperate line.
+   */
+  ObjectInitializer(this.properties, {this.isOneLiner: true});
 
   accept(NodeVisitor visitor) => visitor.visitObjectInitializer(this);
 
