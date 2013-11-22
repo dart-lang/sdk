@@ -78,19 +78,11 @@ static void UpdateKqueue(intptr_t kqueue_fd_, SocketData* sd) {
   static const intptr_t kMaxChanges = 2;
   intptr_t changes = 0;
   struct kevent events[kMaxChanges];
-  // Only report events once and wait for them to be re-enabled after the
-  // event has been handled by the Dart code. This is done by using EV_ONESHOT.
   if (sd->port() != 0) {
     // Register or unregister READ filter if needed.
     if (sd->HasReadEvent()) {
       if (!sd->read_tracked_by_kqueue()) {
-        EV_SET(events + changes,
-               sd->fd(),
-               EVFILT_READ,
-               EV_ADD | EV_ONESHOT,
-               0,
-               0,
-               sd);
+        EV_SET(events + changes, sd->fd(), EVFILT_READ, EV_ADD, 0, 0, sd);
         ++changes;
         sd->set_read_tracked_by_kqueue(true);
       }
@@ -102,13 +94,7 @@ static void UpdateKqueue(intptr_t kqueue_fd_, SocketData* sd) {
     // Register or unregister WRITE filter if needed.
     if (sd->HasWriteEvent()) {
       if (!sd->write_tracked_by_kqueue()) {
-        EV_SET(events + changes,
-               sd->fd(),
-               EVFILT_WRITE,
-               EV_ADD | EV_ONESHOT,
-               0,
-               0,
-               sd);
+        EV_SET(events + changes, sd->fd(), EVFILT_WRITE, EV_ADD, 0, 0, sd);
         ++changes;
         sd->set_write_tracked_by_kqueue(true);
       }
@@ -356,8 +342,7 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       interrupt_seen = true;
     } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
-      sd->set_read_tracked_by_kqueue(false);
-      sd->set_write_tracked_by_kqueue(false);
+      RemoveFromKqueue(kqueue_fd_, sd);
       intptr_t event_mask = GetEvents(events + i, sd);
       if (event_mask != 0) {
         Dart_Port port = sd->port();
