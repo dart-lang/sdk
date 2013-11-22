@@ -9,15 +9,19 @@ import "dart:convert";
 import "dart:io";
 import "dart:async";
 
+import "ddbg/lib/commando.dart";
+
 
 Map<int, Completer> outstandingCommands;
 
 Socket vmSock;
 String vmData;
-var stdinSubscription;
+Commando cmdo;
 var vmSubscription;
 int seqNum = 0;
 int isolate_id = -1;
+
+Process targetProcess;
 
 final verbose = false;
 final printMessages = false;
@@ -60,7 +64,7 @@ void printHelp() {
 void quitShell() {
   vmSubscription.cancel();
   vmSock.close();
-  stdinSubscription.cancel();
+  cmdo.done();
 }
 
 
@@ -75,6 +79,18 @@ Future sendCmd(Map<String, dynamic> cmd) {
   return completer.future;
 }
 
+
+typedef void HandlerType(Map response);
+
+HandlerType showPromptAfter(void handler(Map response)) {
+  // Hide the command prompt immediately.
+  return (response) {
+    handler(response);
+    cmdo.show();
+  };
+}
+
+
 void processCommand(String cmdLine) {
   
   void huh() {
@@ -82,6 +98,7 @@ void processCommand(String cmdLine) {
   }
 
   seqNum++;
+  cmdLine = cmdLine.trim();
   var args = cmdLine.split(' ');
   if (args.length == 0) {
     return;
@@ -93,17 +110,20 @@ void processCommand(String cmdLine) {
     var cmd = { "id": seqNum,
                 "command": simple_commands[command],
                 "params": { "isolateId" : isolate_id } };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
   } else if (command == "bt") {
     var cmd = { "id": seqNum,
                 "command": "getStackTrace",
                 "params": { "isolateId" : isolate_id } };
-    sendCmd(cmd).then((result) => handleStackTraceResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleStackTraceResponse));
   } else if (command == "ll") {
     var cmd = { "id": seqNum,
                 "command": "getLibraries",
                 "params": { "isolateId" : isolate_id } };
-    sendCmd(cmd).then((result) => handleGetLibraryResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetLibraryResponse));
   } else if (command == "sbp" && args.length >= 2) {
     var url, line;
     if (args.length == 2 && pausedLocation != null) {
@@ -119,19 +139,22 @@ void processCommand(String cmdLine) {
                 "params": { "isolateId" : isolate_id,
                             "url": url,
                             "line": line }};
-    sendCmd(cmd).then((result) => handleSetBpResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleSetBpResponse));
   } else if (command == "rbp" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "removeBreakpoint",
                 "params": { "isolateId" : isolate_id,
                             "breakpointId": int.parse(args[1]) } };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
   } else if (command == "ls" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getScriptURLs",
                 "params": { "isolateId" : isolate_id,
                             "libraryId": int.parse(args[1]) } };
-    sendCmd(cmd).then((result) => handleGetScriptsResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetScriptsResponse));
   } else if (command == "eval" && args.length > 3) {
     var expr = args.getRange(3, args.length).join(" ");
     var target = args[1];
@@ -150,83 +173,95 @@ void processCommand(String cmdLine) {
                 "params": { "isolateId": isolate_id,
                             target: int.parse(args[2]),
                             "expression": expr } };
-    sendCmd(cmd).then((result) => handleEvalResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleEvalResponse));
   } else if (command == "po" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getObjectProperties",
                 "params": { "isolateId" : isolate_id,
                             "objectId": int.parse(args[1]) } };
-    sendCmd(cmd).then((result) => handleGetObjPropsResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetObjPropsResponse));
   } else if (command == "pl" && args.length >= 3) {
-     var cmd;
-     if (args.length == 3) {
-       cmd = { "id": seqNum,
-               "command": "getListElements",
-               "params": { "isolateId" : isolate_id,
-                           "objectId": int.parse(args[1]),
-                           "index": int.parse(args[2]) } };
+    var cmd;
+    if (args.length == 3) {
+      cmd = { "id": seqNum,
+              "command": "getListElements",
+              "params": { "isolateId" : isolate_id,
+                          "objectId": int.parse(args[1]),
+                          "index": int.parse(args[2]) } };
     } else {
-       cmd = { "id": seqNum,
-               "command": "getListElements",
-               "params": { "isolateId" : isolate_id,
-                           "objectId": int.parse(args[1]),
-                           "index": int.parse(args[2]),
-                           "length": int.parse(args[3]) } };
+      cmd = { "id": seqNum,
+              "command": "getListElements",
+              "params": { "isolateId" : isolate_id,
+                          "objectId": int.parse(args[1]),
+                          "index": int.parse(args[2]),
+                          "length": int.parse(args[3]) } };
     }
-    sendCmd(cmd).then((result) => handleGetListResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetListResponse));
   } else if (command == "pc" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getClassProperties",
                 "params": { "isolateId" : isolate_id,
                             "classId": int.parse(args[1]) } };
-    sendCmd(cmd).then((result) => handleGetClassPropsResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetClassPropsResponse));
   } else if (command == "plib" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getLibraryProperties",
                 "params": {"isolateId" : isolate_id,
                            "libraryId": int.parse(args[1]) } };
-    sendCmd(cmd).then((result) => handleGetLibraryPropsResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetLibraryPropsResponse));
   } else if (command == "slib" && args.length == 3) {
     var cmd = { "id": seqNum,
                 "command": "setLibraryProperties",
                 "params": {"isolateId" : isolate_id,
                            "libraryId": int.parse(args[1]),
                            "debuggingEnabled": args[2] } };
-    sendCmd(cmd).then((result) => handleSetLibraryPropsResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleSetLibraryPropsResponse));
   } else if (command == "pg" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getGlobalVariables",
                 "params": { "isolateId" : isolate_id,
                             "libraryId": int.parse(args[1]) } };
-    sendCmd(cmd).then((result) => handleGetGlobalVarsResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetGlobalVarsResponse));
   } else if (command == "gs" && args.length == 3) {
     var cmd = { "id": seqNum,
                 "command":  "getScriptSource",
                 "params": { "isolateId" : isolate_id,
                             "libraryId": int.parse(args[1]),
                             "url": args[2] } };
-    sendCmd(cmd).then((result) => handleGetSourceResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetSourceResponse));
   } else if (command == "tok" && args.length == 3) {
     var cmd = { "id": seqNum,
                 "command":  "getLineNumberTable",
                 "params": { "isolateId" : isolate_id,
                             "libraryId": int.parse(args[1]),
                             "url": args[2] } };
-    sendCmd(cmd).then((result) => handleGetLineTableResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetLineTableResponse));
   } else if (command == "epi" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command":  "setPauseOnException",
                 "params": { "isolateId" : isolate_id,
                             "exceptions": args[1] } };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
   } else if (command == "li") {
     var cmd = { "id": seqNum, "command": "getIsolateIds" };
-    sendCmd(cmd).then((result) => handleGetIsolatesResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGetIsolatesResponse));
   } else if (command == "i" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "interrupt",
                 "params": { "isolateId": int.parse(args[1]) } };
-    sendCmd(cmd).then((result) => handleGenericResponse(result));
+    cmdo.hide();
+    sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
   } else if (command == "q") {
     quitShell();
   } else if (command == "h") {
@@ -269,7 +304,7 @@ printNamedObject(obj) {
 }
 
 
-handleGetObjPropsResponse(response) {
+handleGetObjPropsResponse(Map response) {
   Map props = response["result"];
   int class_id = props["classId"];
   if (class_id == -1) {
@@ -283,7 +318,7 @@ handleGetObjPropsResponse(response) {
   }
 }
 
-handleGetListResponse(response) {
+handleGetListResponse(Map response) {
   Map result = response["result"];
   if (result["elements"] != null) {
     // List slice.
@@ -304,7 +339,7 @@ handleGetListResponse(response) {
 }
 
 
-handleGetClassPropsResponse(response) {
+handleGetClassPropsResponse(Map response) {
   Map props = response["result"];
   assert(props["name"] != null);
   int libId = props["libraryId"];
@@ -320,7 +355,7 @@ handleGetClassPropsResponse(response) {
 }
 
 
-handleGetLibraryPropsResponse(response) {
+handleGetLibraryPropsResponse(Map response) {
   Map props = response["result"];
   assert(props["url"] != null);
   print("  library url: ${props["url"]}");
@@ -345,14 +380,14 @@ handleGetLibraryPropsResponse(response) {
 }
 
 
-handleSetLibraryPropsResponse(response) {
+handleSetLibraryPropsResponse(Map response) {
   Map props = response["result"];
   assert(props["debuggingEnabled"] != null);
   print("  debugging enabled: ${props["debuggingEnabled"]}");
 }
 
 
-handleGetGlobalVarsResponse(response) {
+handleGetGlobalVarsResponse(Map response) {
   List globals = response["result"]["globals"];
   for (int i = 0; i < globals.length; i++) {
     printNamedObject(globals[i]);
@@ -360,27 +395,27 @@ handleGetGlobalVarsResponse(response) {
 }
 
 
-handleGetSourceResponse(response) {
+handleGetSourceResponse(Map response) {
   Map result = response["result"];
   String source = result["text"];
   print("Source text:\n$source\n--------");
 }
 
 
-handleGetLineTableResponse(response) {
+handleGetLineTableResponse(Map response) {
   Map result = response["result"];
   var info = result["lines"];
   print("Line info table:\n$info");
 }
 
 
-handleGetIsolatesResponse(response) {
+void handleGetIsolatesResponse(Map response) {
   Map result = response["result"];
   print("Isolates: ${result["isolateIds"]}");
 }
 
 
-void handleGetLibraryResponse(response) {
+void handleGetLibraryResponse(Map response) {
   Map result = response["result"];
   List libs = result["libraries"];
   print("Loaded libraries:");
@@ -391,7 +426,7 @@ void handleGetLibraryResponse(response) {
 }
 
 
-void handleGetScriptsResponse(response) {
+void handleGetScriptsResponse(Map response) {
   Map result = response["result"];
   List urls = result["urls"];
   print("Loaded scripts:");
@@ -401,13 +436,13 @@ void handleGetScriptsResponse(response) {
 }
 
 
-void handleEvalResponse(response) {
+void handleEvalResponse(Map response) {
   Map result = response["result"];
   print(remoteObject(result));
 }
 
 
-void handleSetBpResponse(response) {
+void handleSetBpResponse(Map response) {
   Map result = response["result"];
   var id = result["breakpointId"];
   assert(id != null);
@@ -415,14 +450,14 @@ void handleSetBpResponse(response) {
 }
 
 
-void handleGenericResponse(response) {
+void handleGenericResponse(Map response) {
   if (response["error"] != null) {
     print("Error: ${response["error"]}");
   }
 }
 
 
-void handleStackTraceResponse(response) {
+void handleStackTraceResponse(Map response) {
   Map result = response["result"];
   List callFrames = result["callFrames"];
   assert(callFrames != null);
@@ -478,32 +513,40 @@ void processVmMessage(String jsonString) {
   }
   var event = msg["event"];
   if (event == "paused") {
+    cmdo.hide();
     handlePausedEvent(msg);
+    cmdo.show();
     return;
   }
   if (event == "breakpointResolved") {
     Map params = msg["params"];
     assert(params != null);
+    cmdo.hide();
     print("BP ${params["breakpointId"]} resolved and "
           "set at line ${params["line"]}.");
+    cmdo.show();
     return;
   }
   if (event == "isolate") {
     Map params = msg["params"];
     assert(params != null);
+    cmdo.hide();
     print("Isolate ${params["id"]} has been ${params["reason"]}.");
+    cmdo.show();
     return;
   }
   if (msg["id"] != null) {
     var id = msg["id"];
     if (outstandingCommands.containsKey(id)) {
+      var completer = outstandingCommands.remove(id);
       if (msg["error"] != null) {
         print("VM says: ${msg["error"]}");
+        // TODO(turnidge): Rework how hide/show happens.  For now we
+        // show here explicitly.
+        cmdo.show();
       } else {
-        var completer = outstandingCommands[id];
         completer.complete(msg);
       }
-      outstandingCommands.remove(id);
     }
   }
 }
@@ -608,6 +651,30 @@ int jsonObjectLength(String string) {
   return 0;
 }
 
+List<String> debuggerCommandCompleter(List<String> commandParts) {
+  List<String> completions = new List<String>();
+
+  // TODO(turnidge): Have a global command table and use it to for
+  // help messages, command completion, and command dispatching.  For now
+  // we hardcode the list here.
+  //
+  // TODO(turnidge): Implement completion for arguments as well.
+  List<String> allCommands = ['q', 'bt', 'r', 's', 'so', 'si', 'sbp', 'rbp',
+                              'po', 'eval', 'pl', 'pc', 'll', 'plib', 'slib',
+                              'pg', 'ls', 'gs', 'tok', 'epi', 'li', 'i', 'h'];
+
+  // Completion of first word in the command.
+  if (commandParts.length == 1) {
+    String prefix = commandParts.last;
+    for (String command in allCommands) {
+      if (command.startsWith(prefix)) {
+        completions.add(command);
+      }
+    } 
+  }
+
+  return completions;
+}
 
 void debuggerMain() {
   outstandingCommands = new Map<int, Completer>();
@@ -628,20 +695,46 @@ void debuggerMain() {
           // TODO(floitsch): do we want to print the stack trace?
           quitShell();
         });
-    stdinSubscription = stdin.transform(UTF8.decoder)
-                             .transform(new LineSplitter())
-                             .listen((String line) => processCommand(line));
+    cmdo = new Commando(stdin, stdout, processCommand,
+                        completer : debuggerCommandCompleter);
   });
 }
 
-void main(List<String> arguments) {
-  if (arguments.length > 0) {
-    arguments = <String>['--debug', '--verbose_debug']..addAll(arguments);
-    Process.start(Platform.executable, arguments).then((Process process) {
-      process.stdin.close();
-      process.exitCode.then((int exitCode) {
-        print('${arguments.join(" ")} exited with $exitCode');
-      });
+void main(List<String> args) {
+  if (args.length > 0) {
+    if (verbose) {
+      args = <String>['--debug', '--verbose_debug']..addAll(args);
+    } else {
+      args = <String>['--debug']..addAll(args);
+    }
+    Process.start(Platform.executable, args).then((Process process) {
+        targetProcess = process;
+        process.stdin.close();
+
+        // TODO(turnidge): For now we only show full lines of output
+        // from the debugged process.  Should show each character.
+        process.stdout
+            .transform(UTF8.decoder)
+            .transform(new LineSplitter())
+            .listen((String line) {
+                // Hide/show command prompt across asynchronous output.
+                if (cmdo != null) {
+                  cmdo.hide();
+                }
+                print("$line");
+                if (cmdo != null) {
+                  cmdo.show();
+                }
+              });
+
+        process.exitCode.then((int exitCode) {
+            if (exitCode == 0) {
+              print('Program exited normally.');
+            } else {
+              print('Program exited with code $exitCode.');
+            }
+          });
+
       debuggerMain();
     });
   } else {
