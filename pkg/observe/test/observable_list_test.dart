@@ -253,7 +253,11 @@ main() {
       expect(list, []);
 
       performMicrotaskCheckpoint();
-      expectChanges(propRecords, [_lengthChange(6, 0)]);
+      expectChanges(propRecords, [
+          _lengthChange(6, 0),
+          new PropertyChangeRecord(list, #isEmpty, false, true),
+          new PropertyChangeRecord(list, #isNotEmpty, true, false),
+      ]);
       expectChanges(listRecords, [_change(0, removed: [1, 2, 3, 1, 3, 4])]);
     });
   });

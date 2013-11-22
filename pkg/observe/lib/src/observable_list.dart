@@ -82,7 +82,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     if (len == value) return;
 
     // Produce notifications if needed
-    notifyPropertyChange(#length, len, value);
+    _notifyChangeLength(len, value);
     if (_hasListObservers) {
       if (value < len) {
         _recordChange(new ListChangeRecord(this, value,
@@ -106,6 +106,15 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     _list[index] = value;
   }
 
+  // Forwarders so we can reflect on the properties.
+  @reflectable bool get isEmpty => super.isEmpty;
+  @reflectable bool get isNotEmpty => super.isNotEmpty;
+
+  // TODO(jmesserly): should we support first/last/single? They're kind of
+  // dangerous to use in a path because they throw exceptions. Also we'd need
+  // to produce property change notifications which seems to conflict with our
+  // existing list notifications.
+
   // The following methods are here so that we can provide nice change events.
 
   void setAll(int index, Iterable<E> iterable) {
@@ -122,7 +131,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
 
   void add(E value) {
     int len = _list.length;
-    notifyPropertyChange(#length, len, len + 1);
+    _notifyChangeLength(len, len + 1);
     if (_hasListObservers) {
       _recordChange(new ListChangeRecord(this, len, addedCount: 1));
     }
@@ -134,7 +143,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     int len = _list.length;
     _list.addAll(iterable);
 
-    notifyPropertyChange(#length, len, _list.length);
+    _notifyChangeLength(len, _list.length);
 
     int added = _list.length - len;
     if (_hasListObservers && added > 0) {
@@ -157,7 +166,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     int rangeLength = end - start;
     int len = _list.length;
 
-    notifyPropertyChange(#length, len, len - rangeLength);
+    _notifyChangeLength(len, len - rangeLength);
     if (_hasListObservers && rangeLength > 0) {
       _recordChange(new ListChangeRecord(this, start,
           removed: _list.getRange(start, end).toList()));
@@ -184,7 +193,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     _list.setRange(index + insertionLength, this.length, this, index);
     _list.setAll(index, iterable);
 
-    notifyPropertyChange(#length, len, _list.length);
+    _notifyChangeLength(len, _list.length);
 
     if (_hasListObservers && insertionLength > 0) {
       _recordChange(new ListChangeRecord(this, index,
@@ -207,7 +216,7 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     _list.length++;
     _list.setRange(index + 1, length, this, index);
 
-    notifyPropertyChange(#length, _list.length - 1, _list.length);
+    _notifyChangeLength(_list.length - 1, _list.length);
     if (_hasListObservers) {
       _recordChange(new ListChangeRecord(this, index, addedCount: 1));
     }
@@ -238,6 +247,12 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
       scheduleMicrotask(deliverListChanges);
     }
     _listRecords.add(record);
+  }
+
+  void _notifyChangeLength(int oldValue, int newValue) {
+    notifyPropertyChange(#length, oldValue, newValue);
+    notifyPropertyChange(#isEmpty, oldValue == 0, newValue == 0);
+    notifyPropertyChange(#isNotEmpty, oldValue != 0, newValue != 0);
   }
 
   bool deliverListChanges() {
