@@ -113,7 +113,7 @@ polymer/test/publish_inherited_properties_test: Pass, Timeout # Issue 13260
 polymer/test/register_test: Pass, Timeout # Issue 13260
 polymer/test/take_attributes_test: Pass, Timeout # Issue 13260
 polymer/test/template_distribute_dynamic_test: Pass, Timeout # Issue 13260
-polymer/test/unbind_test: Pass, Timeout # Issue 13260
+polymer/test/unbind_test: Pass, Fail, Timeout # Issue 13260, 15259
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
@@ -234,6 +234,8 @@ scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8
 # Skip tests on the browser if the test depends on dart:io
 third_party/html5lib/test/parser_test: Skip
 third_party/html5lib/test/tokenizer_test: Skip
+
+polymer/test/unbind_test: Pass, Fail # Issue 15259
 
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
