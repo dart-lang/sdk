@@ -339,9 +339,12 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
       interrupt_seen = true;
     } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].udata);
-      RemoveFromKqueue(kqueue_fd_, sd);
       intptr_t event_mask = GetEvents(events + i, sd);
       if (event_mask != 0) {
+        // Unregister events for the file descriptor. Events will be
+        // registered again when the current event has been handled in
+        // Dart code.
+        RemoveFromKqueue(kqueue_fd_, sd);
         Dart_Port port = sd->port();
         ASSERT(port != 0);
         DartUtils::PostInt32(port, event_mask);
