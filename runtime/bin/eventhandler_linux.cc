@@ -341,7 +341,10 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
     } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
       intptr_t event_mask = GetPollEvents(events[i].events, sd);
-      if (event_mask != 0) {
+      if (event_mask == 0) {
+        // Event not handled, re-add to epoll.
+        UpdateEpollInstance(epoll_fd_, sd);
+      } else {
         Dart_Port port = sd->port();
         ASSERT(port != 0);
         DartUtils::PostInt32(port, event_mask);
