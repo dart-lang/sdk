@@ -11,6 +11,16 @@ import "dart:async";
 
 import "ddbg/lib/commando.dart";
 
+class TargetIsolate {
+  int id;
+  // The location of the last paused event.
+  Map pausedLocation = null;
+
+  TargetIsolate(this.id);
+  bool get isPaused => pausedLocation != null;
+}
+
+Map<int, TargetIsolate> targetIsolates= new Map<int, TargetIsolate>();
 
 Map<int, Completer> outstandingCommands;
 
@@ -19,15 +29,14 @@ String vmData;
 Commando cmdo;
 var vmSubscription;
 int seqNum = 0;
-int isolate_id = -1;
 
 Process targetProcess;
 
 final verbose = false;
 final printMessages = false;
 
-// The location of the last paused event.
-Map pausedLocation = null;
+TargetIsolate currentIsolate;
+TargetIsolate mainIsolate;
 
 
 void printHelp() {
@@ -55,9 +64,17 @@ void printHelp() {
   tok <lib_id> <script_url> Get line and token table of script in library
   epi <none|all|unhandled>  Set exception pause info
   li List ids of all isolates in the VM
+  sci <id>  Set current target isolate
   i <id> Interrupt execution of given isolate id
   h   Print help
 """);
+}
+
+
+String formatLocation(Map location) {
+  if (location == null) return "";
+  var fileName = location["url"].split("/").last;
+  return "file: $fileName lib: ${location['libraryId']} token: ${location['tokenOffset']}";
 }
 
 
@@ -79,6 +96,22 @@ Future sendCmd(Map<String, dynamic> cmd) {
   return completer.future;
 }
 
+
+bool checkCurrentIsolate() {
+  if (currentIsolate != null) {
+    return true;
+  }
+  print("Need valid current isolate");
+  return false;
+}
+
+
+bool checkPaused() {
+  if (!checkCurrentIsolate()) return false;
+  if (currentIsolate.isPaused) return true;
+  print("Current isolate must be paused");
+  return false;
+}
 
 typedef void HandlerType(Map response);
 
@@ -104,30 +137,31 @@ void processCommand(String cmdLine) {
     return;
   }
   var command = args[0];
-  var simple_commands =
+  var resume_commands =
       { 'r':'resume', 's':'stepOver', 'si':'stepInto', 'so':'stepOut'};
-  if (simple_commands[command] != null) {
+  if (resume_commands[command] != null) {
+    if (!checkPaused()) return;
     var cmd = { "id": seqNum,
-                "command": simple_commands[command],
-                "params": { "isolateId" : isolate_id } };
+                "command": resume_commands[command],
+                "params": { "isolateId" : currentIsolate.id } };
     cmdo.hide();
-    sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
+    sendCmd(cmd).then(showPromptAfter(handleResumedResponse));
   } else if (command == "bt") {
     var cmd = { "id": seqNum,
                 "command": "getStackTrace",
-                "params": { "isolateId" : isolate_id } };
+                "params": { "isolateId" : currentIsolate.id } };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleStackTraceResponse));
   } else if (command == "ll") {
     var cmd = { "id": seqNum,
                 "command": "getLibraries",
-                "params": { "isolateId" : isolate_id } };
+                "params": { "isolateId" : currentIsolate.id } };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetLibraryResponse));
   } else if (command == "sbp" && args.length >= 2) {
     var url, line;
-    if (args.length == 2 && pausedLocation != null) {
-      url = pausedLocation["url"];
+    if (args.length == 2 && currentIsolate.pausedLocation != null) {
+      url = currentIsolate.pausedLocation["url"];
       assert(url != null);
       line = int.parse(args[1]);
     } else {
@@ -136,7 +170,7 @@ void processCommand(String cmdLine) {
     }
     var cmd = { "id": seqNum,
                 "command": "setBreakpoint",
-                "params": { "isolateId" : isolate_id,
+                "params": { "isolateId" : currentIsolate.id,
                             "url": url,
                             "line": line }};
     cmdo.hide();
@@ -144,14 +178,14 @@ void processCommand(String cmdLine) {
   } else if (command == "rbp" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "removeBreakpoint",
-                "params": { "isolateId" : isolate_id,
+                "params": { "isolateId" : currentIsolate.id,
                             "breakpointId": int.parse(args[1]) } };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
   } else if (command == "ls" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getScriptURLs",
-                "params": { "isolateId" : isolate_id,
+                "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]) } };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetScriptsResponse));
@@ -170,7 +204,7 @@ void processCommand(String cmdLine) {
     }
     var cmd = { "id": seqNum,
                 "command": "evaluateExpr",
-                "params": { "isolateId": isolate_id,
+                "params": { "isolateId": currentIsolate.id,
                             target: int.parse(args[2]),
                             "expression": expr } };
     cmdo.hide();
@@ -178,7 +212,7 @@ void processCommand(String cmdLine) {
   } else if (command == "po" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getObjectProperties",
-                "params": { "isolateId" : isolate_id,
+                "params": { "isolateId" : currentIsolate.id,
                             "objectId": int.parse(args[1]) } };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetObjPropsResponse));
@@ -187,13 +221,13 @@ void processCommand(String cmdLine) {
     if (args.length == 3) {
       cmd = { "id": seqNum,
               "command": "getListElements",
-              "params": { "isolateId" : isolate_id,
+              "params": { "isolateId" : currentIsolate.id,
                           "objectId": int.parse(args[1]),
                           "index": int.parse(args[2]) } };
     } else {
       cmd = { "id": seqNum,
               "command": "getListElements",
-              "params": { "isolateId" : isolate_id,
+              "params": { "isolateId" : currentIsolate.id,
                           "objectId": int.parse(args[1]),
                           "index": int.parse(args[2]),
                           "length": int.parse(args[3]) } };
@@ -203,21 +237,21 @@ void processCommand(String cmdLine) {
   } else if (command == "pc" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getClassProperties",
-                "params": { "isolateId" : isolate_id,
+                "params": { "isolateId" : currentIsolate.id,
                             "classId": int.parse(args[1]) } };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetClassPropsResponse));
   } else if (command == "plib" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getLibraryProperties",
-                "params": {"isolateId" : isolate_id,
+                "params": {"isolateId" : currentIsolate.id,
                            "libraryId": int.parse(args[1]) } };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetLibraryPropsResponse));
   } else if (command == "slib" && args.length == 3) {
     var cmd = { "id": seqNum,
                 "command": "setLibraryProperties",
-                "params": {"isolateId" : isolate_id,
+                "params": {"isolateId" : currentIsolate.id,
                            "libraryId": int.parse(args[1]),
                            "debuggingEnabled": args[2] } };
     cmdo.hide();
@@ -225,14 +259,14 @@ void processCommand(String cmdLine) {
   } else if (command == "pg" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getGlobalVariables",
-                "params": { "isolateId" : isolate_id,
+                "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]) } };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetGlobalVarsResponse));
   } else if (command == "gs" && args.length == 3) {
     var cmd = { "id": seqNum,
                 "command":  "getScriptSource",
-                "params": { "isolateId" : isolate_id,
+                "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]),
                             "url": args[2] } };
     cmdo.hide();
@@ -240,7 +274,7 @@ void processCommand(String cmdLine) {
   } else if (command == "tok" && args.length == 3) {
     var cmd = { "id": seqNum,
                 "command":  "getLineNumberTable",
-                "params": { "isolateId" : isolate_id,
+                "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]),
                             "url": args[2] } };
     cmdo.hide();
@@ -248,7 +282,7 @@ void processCommand(String cmdLine) {
   } else if (command == "epi" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command":  "setPauseOnException",
-                "params": { "isolateId" : isolate_id,
+                "params": { "isolateId" : currentIsolate.id,
                             "exceptions": args[1] } };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
@@ -256,6 +290,14 @@ void processCommand(String cmdLine) {
     var cmd = { "id": seqNum, "command": "getIsolateIds" };
     cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetIsolatesResponse));
+  } else if (command == "sci" && args.length == 2) {
+    var id = int.parse(args[1]);
+    if (targetIsolates[id] != null) {
+      currentIsolate = targetIsolates[id];
+      print("Setting current target isolate to $id");
+    } else {
+      print("$id is not a valid isolate id");
+    }
   } else if (command == "i" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "interrupt",
@@ -284,10 +326,7 @@ String remoteObject(value) {
   } else if (kind == "object") {
     return "(obj, id $id) $text";
   } else if (kind == "function") {
-    var location = value['location'] != null
-        ? ", file '${value['location']['url']}'"
-          ", token pos ${value['location']['tokenOffset']}"
-        : "";
+    var location = formatLocation(value['location']);
     var name = value['name'];
     var signature = value['signature'];
     return "(closure ${name}${signature} $location)";
@@ -411,7 +450,22 @@ handleGetLineTableResponse(Map response) {
 
 void handleGetIsolatesResponse(Map response) {
   Map result = response["result"];
-  print("Isolates: ${result["isolateIds"]}");
+  List ids = result["isolateIds"];
+  assert(ids != null);
+  print("List of isolates:");
+  for (int id in ids) {
+    TargetIsolate isolate = targetIsolates[id];
+    var state = (isolate != null) ? "running" : "<unknown isolate>";
+    if (isolate != null && isolate.isPaused) {
+      var loc = formatLocation(isolate.pausedLocation);
+      state = "paused at $loc";
+    }
+    var marker = " ";
+    if (currentIsolate != null && id == currentIsolate.id) {
+      marker = "*";
+    }
+    print("$marker $id $state");
+  }
 }
 
 
@@ -456,6 +510,15 @@ void handleGenericResponse(Map response) {
   }
 }
 
+void handleResumedResponse(Map response) {
+  if (response["error"] != null) {
+    print("Error: ${response["error"]}");
+    return;
+  }
+  assert(currentIsolate != null);
+  currentIsolate.pausedLocation = null;
+}
+
 
 void handleStackTraceResponse(Map response) {
   Map result = response["result"];
@@ -467,10 +530,8 @@ void handleStackTraceResponse(Map response) {
 
 void printStackFrame(frame_num, Map frame) {
   var fname = frame["functionName"];
-  var libId = frame["location"]["libraryId"];
-  var url = frame["location"]["url"];
-  var toff = frame["location"]["tokenOffset"];
-  print("$frame_num  $fname (url: $url token: $toff lib: $libId)");
+  var loc = formatLocation(frame["location"]);
+  print("$frame_num  $fname ($loc)");
   List locals = frame["locals"];
   for (int i = 0; i < locals.length; i++) {
     printNamedObject(locals[i]);
@@ -488,23 +549,65 @@ void printStackTrace(List frames) {
 void handlePausedEvent(msg) {
   assert(msg["params"] != null);
   var reason = msg["params"]["reason"];
-  isolate_id = msg["params"]["isolateId"];
-  assert(isolate_id != null);
-  pausedLocation = msg["params"]["location"];
-  assert(pausedLocation != null);
+  int isolateId = msg["params"]["isolateId"];
+  assert(isolateId != null);
+  var isolate = targetIsolates[isolateId];
+  assert(isolate != null);
+  assert(!isolate.isPaused);
+  var location = msg["params"]["location"];;
+  assert(location != null);
+  isolate.pausedLocation = location;
   if (reason == "breakpoint") {
-    print("Isolate $isolate_id paused on breakpoint");
-    print("location: $pausedLocation");
+    print("Isolate $isolateId paused on breakpoint");
+    print("location: ${formatLocation(location)}");
   } else if (reason == "interrupted") {
-    print("Isolate $isolate_id paused due to an interrupt");
+    print("Isolate $isolateId paused due to an interrupt");
+    print("location: ${formatLocation(location)}");
   } else {
     assert(reason == "exception");
     var excObj = msg["params"]["exception"];
-    print("Isolate $isolate_id paused on exception");
+    print("Isolate $isolateId paused on exception");
     print(remoteObject(excObj));
   }
 }
 
+void handleIsolateEvent(msg) {
+  Map params = msg["params"];
+  assert(params != null);
+  var isolateId = params["id"];
+  var reason = params["reason"];
+  if (reason == "created") {
+    print("Isolate $isolateId has been created.");
+    assert(targetIsolates[isolateId] == null);
+    targetIsolates[isolateId] = new TargetIsolate(isolateId);
+    if (mainIsolate == null) {
+      mainIsolate = targetIsolates[isolateId];
+      currentIsolate = mainIsolate;
+      print("Current isolate set to ${currentIsolate.id}.");
+    }
+  } else {
+    assert(reason == "shutdown");
+    var isolate = targetIsolates.remove(isolateId);
+    assert(isolate != null);
+    if (isolate == mainIsolate) {
+      mainIsolate = null;
+      print("Main isolate ${isolate.id} has terminated.");
+    } else {
+      print("Isolate ${isolate.id} has terminated.");
+    }
+    if (isolate == currentIsolate) {
+      currentIsolate = mainIsolate;
+      if (currentIsolate == null && !targetIsolates.isEmpty) {
+        currentIsolate = targetIsolates.first;
+      }
+      if (currentIsolate != null) {
+        print("Setting current isolate to ${currentIsolate.id}.");
+      } else {
+        print("All isolates have terminated.");
+      }
+    }
+  }
+}
 
 void processVmMessage(String jsonString) {
   var msg = JSON.decode(jsonString);
@@ -512,6 +615,12 @@ void processVmMessage(String jsonString) {
     return;
   }
   var event = msg["event"];
+  if (event == "isolate") {
+    cmdo.hide();
+    handleIsolateEvent(msg);
+    cmdo.show();
+    return;
+  }
   if (event == "paused") {
     cmdo.hide();
     handlePausedEvent(msg);
@@ -521,17 +630,11 @@ void processVmMessage(String jsonString) {
   if (event == "breakpointResolved") {
     Map params = msg["params"];
     assert(params != null);
+    var isolateId = params["isolateId"];
+    var location = formatLocation(params["location"]);
     cmdo.hide();
-    print("BP ${params["breakpointId"]} resolved and "
-          "set at line ${params["line"]}.");
-    cmdo.show();
-    return;
-  }
-  if (event == "isolate") {
-    Map params = msg["params"];
-    assert(params != null);
-    cmdo.hide();
-    print("Isolate ${params["id"]} has been ${params["reason"]}.");
+    print("BP ${params["breakpointId"]} resolved in isolate $isolateId"
+          " at $location.");
     cmdo.show();
     return;
   }
