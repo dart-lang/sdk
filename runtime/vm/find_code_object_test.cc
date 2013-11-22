@@ -142,19 +142,11 @@ TEST_CASE(FindCodeObject) {
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
-#if defined(TARGET_ARCH_MIPS)
-  // MIPS can only Branch +/- 128KB
-  EXPECT(code.Size() > ((PageSpace::kPageSizeInWords << kWordSizeLog2) / 2));
-  EXPECT(Code::LookupCode(pc) == code.raw());
-  pc = code.EntryPoint() + ((PageSpace::kPageSizeInWords << kWordSizeLog2) / 4);
-  EXPECT(Code::LookupCode(pc) == code.raw());
-#else
   EXPECT(code.Size() > (PageSpace::kPageSizeInWords << kWordSizeLog2));
   EXPECT(Code::LookupCode(pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
   pc = code.EntryPoint() + (1 * MB);
   EXPECT(Code::LookupCode(pc) == code.raw());
-#endif  // defined(TARGET_ARCH_MIPS)
 }
 
 }  // namespace dart
