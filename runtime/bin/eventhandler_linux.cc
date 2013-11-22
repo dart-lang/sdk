@@ -184,32 +184,29 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
 
 
 void EventHandlerImplementation::HandleInterruptFd() {
-  InterruptMessage msg;
-  intptr_t available = FDUtils::AvailableBytes(interrupt_fds_[0]);
-  for (int i = 0;
-       i + kInterruptMessageSize <= available;
-       i += kInterruptMessageSize) {
-    VOID_TEMP_FAILURE_RETRY(read(interrupt_fds_[0],
-                                 reinterpret_cast<char*>(&msg),
-                                 kInterruptMessageSize));
-    if (msg.id == kTimerId) {
-      timeout_queue_.UpdateTimeout(msg.dart_port, msg.data);
-    } else if (msg.id == kShutdownId) {
+  const intptr_t MAX_MESSAGES = kInterruptMessageSize;
+  InterruptMessage msg[MAX_MESSAGES];
+  ssize_t bytes = TEMP_FAILURE_RETRY(
+      read(interrupt_fds_[0], msg, MAX_MESSAGES * kInterruptMessageSize));
+  for (ssize_t i = 0; i < bytes / kInterruptMessageSize; i++) {
+    if (msg[i].id == kTimerId) {
+      timeout_queue_.UpdateTimeout(msg[i].dart_port, msg[i].data);
+    } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
-      SocketData* sd = GetSocketData(msg.id);
-      if ((msg.data & (1 << kShutdownReadCommand)) != 0) {
-        ASSERT(msg.data == (1 << kShutdownReadCommand));
+      SocketData* sd = GetSocketData(msg[i].id);
+      if ((msg[i].data & (1 << kShutdownReadCommand)) != 0) {
+        ASSERT(msg[i].data == (1 << kShutdownReadCommand));
         // Close the socket for reading.
         sd->ShutdownRead();
         UpdateEpollInstance(epoll_fd_, sd);
-      } else if ((msg.data & (1 << kShutdownWriteCommand)) != 0) {
-        ASSERT(msg.data == (1 << kShutdownWriteCommand));
+      } else if ((msg[i].data & (1 << kShutdownWriteCommand)) != 0) {
+        ASSERT(msg[i].data == (1 << kShutdownWriteCommand));
         // Close the socket for writing.
         sd->ShutdownWrite();
         UpdateEpollInstance(epoll_fd_, sd);
-      } else if ((msg.data & (1 << kCloseCommand)) != 0) {
-        ASSERT(msg.data == (1 << kCloseCommand));
+      } else if ((msg[i].data & (1 << kCloseCommand)) != 0) {
+        ASSERT(msg[i].data == (1 << kCloseCommand));
         // Close the socket and free system resources and move on to
         // next message.
         RemoveFromEpollInstance(epoll_fd_, sd);
@@ -225,13 +222,13 @@ void EventHandlerImplementation::HandleInterruptFd() {
         }
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
         delete sd;
-        DartUtils::PostInt32(msg.dart_port, 1 << kDestroyedEvent);
+        DartUtils::PostInt32(msg[i].dart_port, 1 << kDestroyedEvent);
       } else {
-        if ((msg.data & (1 << kInEvent)) != 0 && sd->IsClosedRead()) {
-          DartUtils::PostInt32(msg.dart_port, 1 << kCloseEvent);
+        if ((msg[i].data & (1 << kInEvent)) != 0 && sd->IsClosedRead()) {
+          DartUtils::PostInt32(msg[i].dart_port, 1 << kCloseEvent);
         } else {
           // Setup events to wait for.
-          sd->SetPortAndMask(msg.dart_port, msg.data);
+          sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
           UpdateEpollInstance(epoll_fd_, sd);
         }
       }
