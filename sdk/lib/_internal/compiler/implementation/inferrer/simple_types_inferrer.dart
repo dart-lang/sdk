@@ -805,7 +805,7 @@ class SimpleTypeInferrerVisitor<T>
           && (node.asSendSet() != null)
           && (node.asSendSet().receiver != null)
           && node.asSendSet().receiver.isThis()) {
-        Setlet<Element> targets = compiler.world.allFunctions.filter(
+        Iterable<Element> targets = compiler.world.allFunctions.filter(
             types.newTypedSelector(thisType, setterSelector));
         // We just recognized a field initialization of the form:
         // `this.foo = 42`. If there is only one target, we can update
