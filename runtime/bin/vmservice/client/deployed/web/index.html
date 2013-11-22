@@ -18,12 +18,12 @@
       <div class="panel panel-danger">
         <div class="panel-heading">Error</div>
         <div class="panel-body">
-	        <template if="{{ (error_obj == null) || (error_obj['type'] != '@LanguageError') }}">
-	          <p>{{ error }}</p>
-	        </template>
-	        <template if="{{ (error_obj != null) &amp;&amp; (error_obj['type'] == '@LanguageError') }}">
-	          <pre>{{ error_obj['error_msg'] }}</pre>
-	        </template>
+          <template if="{{ (error_obj == null) || (error_obj['type'] != 'LanguageError') }}">
+            <p>{{ error }}</p>
+          </template>
+          <template if="{{ (error_obj != null) &amp;&amp; (error_obj['type'] == 'LanguageError') }}">
+            <pre>{{ error_obj['error_msg'] }}</pre>
+          </template>
         </div>
       </div>
     </div>
@@ -326,7 +326,55 @@
       <tr template="" repeat="{{ lib in library['libraries'] }}">
         <td>
           <a href="{{ app.locationManager.currentIsolateObjectLink(lib['id'])}}">
-            {{ lib['name'] }}
+            {{ lib['url'] }}
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Variables</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template="" repeat="{{ variable in library['variables'] }}">
+        <td>
+          <template if="{{ variable['final'] }}">
+            final
+          </template>
+          <template if="{{ variable['const'] }}">
+            const
+          </template>
+          <template if="{{ (variable['declared_type']['name'] == 'dynamic' &amp;&amp; !variable['final'] &amp;&amp; !variable['const']) }}">
+            var
+          </template>
+          <template if="{{ (variable['declared_type']['name'] != 'dynamic') }}">
+            <a href="{{ app.locationManager.currentIsolateClassLink(variable['declared_type']['id']) }}">
+              {{ variable['declared_type']['user_name'] }}
+            </a>
+          </template>
+          <a href="{{ app.locationManager.currentIsolateObjectLink(variable['id'])}}">
+            {{ variable['user_name'] }}
+          </a>
+        </td>
+        <td>
+          <template if="{{ (variable['value']['type'] == 'null') }}">
+            {{ "null" }}
+          </template>
+          <template if="{{ (variable['value']['type'] != 'null') }}">
+            <a href="{{ app.locationManager.currentIsolateObjectLink(variable['value']['id'])}}">
+              {{ variable['value']['preview'] }}
+            </a>
+          </template>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Functions</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template="" repeat="{{ func in library['functions'] }}">
+        <td>
+          <a href="{{ app.locationManager.currentIsolateObjectLink(func['id'])}}">
+            {{ func['user_name'] }}
           </a>
         </td>
       </tr>

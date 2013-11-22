@@ -15871,7 +15871,7 @@ a.KM=v
 C.Wp.ZL(a)
 C.Wp.FH(a)
 return a
-"21"},"+new MessageViewerElement$created:0:0":1}},"+MessageViewerElement": [24]}],["metadata","/Users/iposva/Downloads/dart/dart-sdk/lib/html/html_common/metadata.dart",,B,{fA:{"":"a;T9,Jt",static:{"":"Xd,en,yS,PZ,xa",}},tz:{"":"a;"},jR:{"":"a;oc>"},PO:{"":"a;"},c5:{"":"a;"}}],["navigation_bar_element","package:observatory/src/observatory_elements/navigation_bar.dart",,Q,{ih:{"":["uL;tH-,VJ,Ai,VJ,Ai,ZI,uN,z3,TQ,Vk,Ye,mT,KM-",null,null,null,null,null,null,null,null,null,null,null,null,function(){return[C.nJ]}],
+"21"},"+new MessageViewerElement$created:0:0":1}},"+MessageViewerElement": [24]}],["metadata","../../../../../../../../../dart/dart-sdk/lib/html/html_common/metadata.dart",,B,{fA:{"":"a;T9,Jt",static:{"":"Xd,en,yS,PZ,xa",}},tz:{"":"a;"},jR:{"":"a;oc>"},PO:{"":"a;"},c5:{"":"a;"}}],["navigation_bar_element","package:observatory/src/observatory_elements/navigation_bar.dart",,Q,{ih:{"":["uL;tH-,VJ,Ai,VJ,Ai,ZI,uN,z3,TQ,Vk,Ye,mT,KM-",null,null,null,null,null,null,null,null,null,null,null,null,function(){return[C.nJ]}],
 "@":function(){return[C.KG]},
 static:{BW:function(a){var z,y,x,w,v
 z=$.Nd()
