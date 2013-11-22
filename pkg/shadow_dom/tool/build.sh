@@ -18,7 +18,7 @@ POLYMER_DIR=../../../third_party/polymer
 
 NEWLINE=$'\n'
 REVISIONS=""
-for NAME in ShadowDOM observe-js WeakMap platform; do
+for NAME in ShadowDOM observe-js WeakMap platform-dev; do
   GIT_REMOTE="$POLYMER_REMOTE/$NAME.git"
   GIT_DIR="$POLYMER_DIR/$NAME"
   echo "*** Syncing $GIT_DIR from $GIT_REMOTE"
