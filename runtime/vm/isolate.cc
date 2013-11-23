@@ -25,7 +25,6 @@
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/service.h"
-#include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -340,7 +339,6 @@ Isolate::~Isolate() {
 }
 
 void Isolate::SetCurrent(Isolate* current) {
-  ScopedSignalBlocker ssb;
   Isolate* old_isolate = Current();
   if (old_isolate != NULL) {
     ProfilerManager::DescheduleIsolate(old_isolate);
@@ -704,11 +702,6 @@ void Isolate::Shutdown() {
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
 
-    ScopedSignalBlocker ssb;
-
-    ProfilerManager::DescheduleIsolate(this);
-
-
     if (FLAG_print_object_histogram) {
       heap()->CollectAllGarbage();
       object_histogram()->Print();
@@ -750,6 +743,7 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
+  ProfilerManager::DescheduleIsolate(this);
   ProfilerManager::ShutdownIsolateForProfiling(this);
 }
 

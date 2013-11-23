@@ -24,7 +24,7 @@ class ProfilerManager : public AllStatic {
 
   static void SetupIsolateForProfiling(Isolate* isolate);
   static void ShutdownIsolateForProfiling(Isolate* isolate);
-  static void ScheduleIsolate(Isolate* isolate);
+  static void ScheduleIsolate(Isolate* isolate, bool inside_signal = false);
   static void DescheduleIsolate(Isolate* isolate);
 
   static void PrintToJSONStream(Isolate* isolate, JSONStream* stream);

@@ -31,11 +31,15 @@ static void ProfileSignalAction(int signal, siginfo_t* info, void* context_) {
     if (profiler_data == NULL) {
       return;
     }
+    if (!profiler_data->CanExpire()) {
+      // Descheduled.
+      return;
+    }
   }
   // Thread owns no profiler locks at this point.
   // This call will acquire both ProfilerManager::monitor and the
   // isolate's profiler data mutex.
-  ProfilerManager::ScheduleIsolate(isolate);
+  ProfilerManager::ScheduleIsolate(isolate, true);
 }
 
 
@@ -50,6 +54,12 @@ int64_t ProfilerManager::SampleAndRescheduleIsolates(int64_t current_time) {
     Isolate* isolate = isolates_[i];
     ScopedMutex isolate_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
+    if (profiler_data == NULL) {
+      // Isolate has been shutdown for profiling.
+      RemoveIsolate(i);
+      // Remove moves the last element into i, do not increment i.
+      continue;
+    }
     ASSERT(profiler_data != NULL);
     if (profiler_data->ShouldSample(current_time)) {
       pthread_kill(profiler_data->thread_id(), SIGPROF);
