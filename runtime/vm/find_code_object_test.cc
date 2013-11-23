@@ -22,6 +22,12 @@ TEST_CASE(FindCodeObject) {
   const int kScriptSize = 512 * KB;
   const int kNumFunctions = 1024;
   char scriptChars[kScriptSize];
+
+  // Get access to the code index table.
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+
+  StackZone zone(isolate);
   String& url = String::Handle(String::New("dart-test:FindCodeObject"));
   String& source = String::Handle();
   Script& script = Script::Handle();
@@ -31,10 +37,6 @@ TEST_CASE(FindCodeObject) {
   String& function_name = String::Handle();
   Function& function = Function::Handle();
   char buffer[256];
-
-  // Get access to the code index table.
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
 
   lib = Library::CoreLibrary();
 
@@ -62,6 +64,8 @@ TEST_CASE(FindCodeObject) {
     function = clsA.LookupStaticFunction(function_name);
     EXPECT(!function.IsNull());
     EXPECT(CompilerTest::TestCompileFunction(function));
+    const Code& code = Code::ZoneHandle(function.CurrentCode());
+    EXPECT(!code.IsNull())
     EXPECT(function.HasCode());
   }
 
@@ -110,6 +114,8 @@ TEST_CASE(FindCodeObject) {
     function = clsB.LookupStaticFunction(function_name);
     EXPECT(!function.IsNull());
     EXPECT(CompilerTest::TestCompileFunction(function));
+    const Code& code = Code::ZoneHandle(function.CurrentCode());
+    EXPECT(!code.IsNull());
     EXPECT(function.HasCode());
   }
 
