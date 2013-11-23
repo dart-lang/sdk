@@ -61,12 +61,12 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->MarkFrameStart();
 
   // Current PP, FP, and PC.
-  builder->AddPp(current->function(), slot_ix++);
+  builder->AddPp(current->code(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
+  builder->AddReturnAddress(current->code(), deopt_id(), slot_ix++);
 
-  // Callee's PC marker is not used anymore. Pass Function::null() to set to 0.
-  builder->AddPcMarker(Function::Handle(), slot_ix++);
+  // Callee's PC marker is not used anymore. Pass Code::null() to set to 0.
+  builder->AddPcMarker(Code::Handle(), slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -84,17 +84,17 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   current = current->outer();
   while (current != NULL) {
     // PP, FP, and PC.
-    builder->AddPp(current->function(), slot_ix++);
+    builder->AddPp(current->code(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddress(current->function(),
+    builder->AddReturnAddress(current->code(),
                               Isolate::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
     // PC marker.
-    builder->AddPcMarker(previous->function(), slot_ix++);
+    builder->AddPcMarker(previous->code(), slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.
@@ -126,7 +126,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   builder->AddCallerPc(slot_ix++);
 
   // PC marker.
-  builder->AddPcMarker(previous->function(), slot_ix++);
+  builder->AddPcMarker(previous->code(), slot_ix++);
 
   // For the outermost environment, set the incoming arguments.
   for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
@@ -1406,6 +1406,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ BranchNotEqual(T1, reinterpret_cast<int32_t>(Object::null()),
                       &is_compiled);
     __ BranchLink(&StubCode::CompileFunctionRuntimeCallLabel());
+    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                         Isolate::kNoDeoptId,
+                         token_pos);
+    RecordSafepoint(locs);
     __ lw(T1, FieldAddress(T0, Function::code_offset()));
     __ Bind(&is_compiled);
   }

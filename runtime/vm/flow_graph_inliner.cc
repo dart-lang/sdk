@@ -59,10 +59,12 @@ DECLARE_FLAG(bool, compiler_stats);
 
 
 // Test if a call is recursive by looking in the deoptimization environment.
-static bool IsCallRecursive(const Function& function, Definition* call) {
+static bool IsCallRecursive(const Code& code, Definition* call) {
   Environment* env = call->env();
   while (env != NULL) {
-    if (function.raw() == env->function().raw()) return true;
+    if (code.raw() == env->code().raw()) {
+      return true;
+    }
     env = env->outer();
   }
   return false;
@@ -434,6 +436,9 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    // Make a handle for the unoptimized code so that it is not disconnected
+    // from the function while we are trying to inline it.
+    const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
     // Abort if the inlinable bit on the function is low.
     if (!function.IsInlineable()) {
       TRACE_INLINING(OS::Print("     Bailout: not inlinable\n"));
@@ -466,7 +471,7 @@ class CallSiteInliner : public ValueObject {
 
     // Abort if this is a recursive occurrence.
     Definition* call = call_data->call;
-    if (!FLAG_inline_recursive && IsCallRecursive(function, call)) {
+    if (!FLAG_inline_recursive && IsCallRecursive(unoptimized_code, call)) {
       function.set_is_inlinable(false);
       TRACE_INLINING(OS::Print("     Bailout: recursive function\n"));
       return false;
@@ -493,11 +498,11 @@ class CallSiteInliner : public ValueObject {
 
       // Load IC data for the callee.
       Array& ic_data_array = Array::Handle();
-      if (function.HasCode()) {
-        const Code& unoptimized_code =
-            Code::Handle(function.unoptimized_code());
-        ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
-      }
+
+      // IsInlineable above checked HasCode. Creating a Handle for the code
+      // should have kept GC from detaching, but let's assert just to make sure.
+      ASSERT(function.HasCode());
+      ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
 
       // Build the callee graph.
       InlineExitCollector* exit_collector =
@@ -620,7 +625,9 @@ class CallSiteInliner : public ValueObject {
       collected_call_sites_->FindCallSites(callee_graph, inlining_depth_);
 
       // Add the function to the cache.
-      if (!in_cache) function_cache_.Add(parsed_function);
+      if (!in_cache) {
+        function_cache_.Add(parsed_function);
+      }
 
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
@@ -639,6 +646,9 @@ class CallSiteInliner : public ValueObject {
                                       (*callee_graph->guarded_fields())[i]);
       }
 
+      // We allocate a ZoneHandle for the unoptimized code so that it cannot be
+      // disconnected from its function during the rest of compilation.
+      Code::ZoneHandle(unoptimized_code.raw());
       TRACE_INLINING(OS::Print("     Success\n"));
       return true;
     } else {

@@ -4103,22 +4103,6 @@ void Function::SetCode(const Code& value) const {
 }
 
 
-void Function::DetachCode() const {
-  // Set unoptimized code as non-entrant, and set code and unoptimized code
-  // to null.
-  CodePatcher::PatchEntry(Code::Handle(unoptimized_code()));
-  StorePointer(&raw_ptr()->code_, Code::null());
-  StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-}
-
-
-void Function::ReattachCode(const Code& code) const {
-  StorePointer(&raw_ptr()->code_, code.raw());
-  StorePointer(&raw_ptr()->unoptimized_code_, code.raw());
-  CodePatcher::RestoreEntry(code);
-}
-
-
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
 

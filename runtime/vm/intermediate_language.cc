@@ -2024,12 +2024,12 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 Environment* Environment::From(const GrowableArray<Definition*>& definitions,
                                intptr_t fixed_parameter_count,
-                               const Function& function) {
+                               const Code& code) {
   Environment* env =
       new Environment(definitions.length(),
                       fixed_parameter_count,
                       Isolate::kNoDeoptId,
-                      function,
+                      code,
                       NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new Value(definitions[i]));
@@ -2044,7 +2044,7 @@ Environment* Environment::DeepCopy(intptr_t length) const {
       new Environment(length,
                       fixed_parameter_count_,
                       deopt_id_,
-                      function_,
+                      code_,
                       (outer_ == NULL) ? NULL : outer_->DeepCopy());
   if (locations_ != NULL) {
     Location* new_locations =

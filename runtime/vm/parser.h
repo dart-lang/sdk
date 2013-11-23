@@ -40,6 +40,7 @@ class ParsedFunction : public ZoneAllocated {
  public:
   explicit ParsedFunction(const Function& function)
       : function_(function),
+        code_(Code::Handle(function.unoptimized_code())),
         node_sequence_(NULL),
         instantiator_(NULL),
         default_parameter_values_(Array::ZoneHandle()),
@@ -54,6 +55,7 @@ class ParsedFunction : public ZoneAllocated {
   }
 
   const Function& function() const { return function_; }
+  RawCode* code() const { return code_.raw(); }
 
   SequenceNode* node_sequence() const { return node_sequence_; }
   void SetNodeSequence(SequenceNode* node_sequence);
@@ -115,6 +117,7 @@ class ParsedFunction : public ZoneAllocated {
 
  private:
   const Function& function_;
+  Code& code_;
   SequenceNode* node_sequence_;
   AstNode* instantiator_;
   Array& default_parameter_values_;

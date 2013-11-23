@@ -734,8 +734,10 @@ static RawError* CompileFunctionHelper(const Function& function,
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
+  // Make sure unoptimized code is not collected while we are compiling.
+  const Code& unoptimized_code = Code::ZoneHandle(function.unoptimized_code());
   // Skips parsing if we need to only install unoptimized code.
-  if (!optimized && !Code::Handle(function.unoptimized_code()).IsNull()) {
+  if (!optimized && !unoptimized_code.IsNull()) {
     InstallUnoptimizedCode(function);
     isolate->set_long_jump_base(base);
     return Error::null();

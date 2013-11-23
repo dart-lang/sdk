@@ -123,13 +123,15 @@ class MarkingVisitor : public ObjectPointerVisitor {
   MarkingVisitor(Isolate* isolate,
                  Heap* heap,
                  PageSpace* page_space,
-                 MarkingStack* marking_stack)
+                 MarkingStack* marking_stack,
+                 bool visit_function_code)
       : ObjectPointerVisitor(isolate),
         heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(page_space),
         marking_stack_(marking_stack),
-        visiting_old_object_(NULL) {
+        visiting_old_object_(NULL),
+        visit_function_code_(visit_function_code) {
     ASSERT(heap_ != vm_heap_);
   }
 
@@ -139,6 +141,12 @@ class MarkingVisitor : public ObjectPointerVisitor {
     for (RawObject** current = first; current <= last; current++) {
       MarkObject(*current, current);
     }
+  }
+
+  bool visit_function_code() const { return visit_function_code_; }
+
+  GrowableArray<RawFunction*>* skipped_code_functions() {
+    return &skipped_code_functions_;
   }
 
   void DelayWeakProperty(RawWeakProperty* raw_weak) {
@@ -157,6 +165,9 @@ class MarkingVisitor : public ObjectPointerVisitor {
     DelaySet::iterator it = delay_set_.begin();
     for (; it != delay_set_.end(); ++it) {
       WeakProperty::Clear(it->second);
+    }
+    if (!visit_function_code_) {
+      DetachCode();
     }
   }
 
@@ -195,10 +206,14 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
   void MarkObject(RawObject* raw_obj, RawObject** p) {
     // Fast exit if the raw object is a Smi.
-    if (!raw_obj->IsHeapObject()) return;
+    if (!raw_obj->IsHeapObject()) {
+      return;
+    }
 
     // Fast exit if the raw object is marked.
-    if (raw_obj->IsMarked()) return;
+    if (raw_obj->IsMarked()) {
+      return;
+    }
 
     // Skip over new objects, but verify consistency of heap while at it.
     if (raw_obj->IsNewObject()) {
@@ -215,6 +230,31 @@ class MarkingVisitor : public ObjectPointerVisitor {
     MarkAndPush(raw_obj);
   }
 
+  void DetachCode() {
+    for (int i = 0; i < skipped_code_functions_.length(); i++) {
+      RawFunction* func = skipped_code_functions_[i];
+      RawCode* code = func->ptr()->code_;
+      if (!code->IsMarked()) {
+        // If the code wasn't strongly visited through other references
+        // after skipping the function's code pointer, then we disconnect the
+        // code from the function.
+        func->ptr()->code_ = Code::null();
+        func->ptr()->unoptimized_code_ = Code::null();
+        if (FLAG_log_code_drop) {
+          // NOTE: This code runs while GC is in progress and runs within
+          // a NoHandleScope block. Hence it is not okay to use a regular Zone
+          // or Scope handle. We use a direct stack handle so the raw pointer in
+          // this handle is not traversed. The use of a handle is mainly to
+          // be able to reuse the handle based code and avoid having to add
+          // helper functions to the raw object interface.
+          String name;
+          name = func->ptr()->name_;
+          OS::Print("Detaching code: %s\n", name.ToCString());
+        }
+      }
+    }
+  }
+
   Heap* heap_;
   Heap* vm_heap_;
   PageSpace* page_space_;
@@ -222,6 +262,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
   RawObject* visiting_old_object_;
   typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
   DelaySet delay_set_;
+  const bool visit_function_code_;
+  GrowableArray<RawFunction*> skipped_code_functions_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
 };
@@ -429,10 +471,13 @@ void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
 
 void GCMarker::MarkObjects(Isolate* isolate,
                            PageSpace* page_space,
-                           bool invoke_api_callbacks) {
+                           bool invoke_api_callbacks,
+                           bool collect_code) {
+  const bool visit_function_code = !collect_code;
   MarkingStack marking_stack;
   Prologue(isolate, invoke_api_callbacks);
-  MarkingVisitor mark(isolate, heap_, page_space, &marking_stack);
+  MarkingVisitor mark(
+      isolate, heap_, page_space, &marking_stack, visit_function_code);
   IterateRoots(isolate, &mark, !invoke_api_callbacks);
   DrainMarkingStack(isolate, &mark);
   IterateWeakReferences(isolate, &mark);
@@ -441,7 +486,6 @@ void GCMarker::MarkObjects(Isolate* isolate,
   mark.Finalize();
   ProcessWeakTables(page_space);
   ProcessObjectIdTable(isolate);
-
 
   Epilogue(isolate, invoke_api_callbacks);
 }

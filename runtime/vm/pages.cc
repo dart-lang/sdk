@@ -23,12 +23,14 @@ DEFINE_FLAG(bool, print_free_list_before_gc, false,
             "Print free list statistics before a GC");
 DEFINE_FLAG(bool, print_free_list_after_gc, false,
             "Print free list statistics after a GC");
-DEFINE_FLAG(bool, collect_code, false,
+DEFINE_FLAG(bool, collect_code, true,
             "Attempt to GC infrequently used code.");
 DEFINE_FLAG(int, code_collection_interval_in_us, 30000000,
             "Time between attempts to collect unused code.");
 DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
+DEFINE_FLAG(bool, always_drop_code, false,
+            "Always try to drop code if the function's usage counter is >= 0");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(memory->size() > VirtualMemory::PageSize());
@@ -385,61 +387,21 @@ void PageSpace::WriteProtect(bool read_only) {
 }
 
 
-class CodeDetacherVisitor : public ObjectVisitor {
- public:
-  explicit CodeDetacherVisitor(Isolate* isolate) : ObjectVisitor(isolate) { }
-
-  virtual void VisitObject(RawObject* obj);
-
- private:
-  static bool MayDetachCode(const Function& fn);
-  DISALLOW_COPY_AND_ASSIGN(CodeDetacherVisitor);
-};
-
-
-bool CodeDetacherVisitor::MayDetachCode(const Function& fn) {
-  return fn.HasCode() &&  // Not already detached.
-         !fn.HasOptimizedCode() &&
-         !fn.HasBreakpoint() &&
-         (fn.usage_counter() > 0);
-}
-
-
-void CodeDetacherVisitor::VisitObject(RawObject* raw_obj) {
-  Isolate* isolate = Isolate::Current();
-  HANDLESCOPE(isolate);
-  const Object& obj = Object::Handle(raw_obj);
-  if (obj.GetClassId() == kFunctionCid) {
-    const Function& fn = Function::Cast(obj);
-    if (CodeDetacherVisitor::MayDetachCode(fn)) {
-      fn.set_usage_counter(fn.usage_counter() / 2);
-      if (fn.usage_counter() == 0) {
-        if (FLAG_log_code_drop) {
-          const String& name = String::Handle(fn.name());
-          OS::Print("Detaching code for function %s\n", name.ToCString());
-        }
-        fn.DetachCode();
-      }
-    }
-  }
-}
-
-
-void PageSpace::TryDetachingCode() {
+bool PageSpace::ShouldCollectCode() {
   // Try to collect code if enough time has passed since the last attempt.
   const int64_t start = OS::GetCurrentTimeMicros();
   const int64_t last_code_collection_in_us =
       page_space_controller_.last_code_collection_in_us();
+
   if ((start - last_code_collection_in_us) >
-       FLAG_code_collection_interval_in_us) {
+      FLAG_code_collection_interval_in_us) {
     if (FLAG_log_code_drop) {
       OS::Print("Trying to detach code.\n");
     }
-    Isolate* isolate = Isolate::Current();
-    CodeDetacherVisitor code_detacher(isolate);
-    heap_->IterateObjects(&code_detacher);
     page_space_controller_.set_last_code_collection_in_us(start);
+    return true;
   }
+  return false;
 }
 
 
@@ -448,9 +410,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   ASSERT(!sweeping_);
   sweeping_ = true;
   Isolate* isolate = Isolate::Current();
-  if (FLAG_collect_code) {
-    TryDetachingCode();
-  }
 
   NoHandleScope no_handles(isolate);
 
@@ -470,8 +429,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   const int64_t start = OS::GetCurrentTimeMicros();
 
   // Mark all reachable old-gen objects.
+  bool collect_code = FLAG_collect_code && ShouldCollectCode();
   GCMarker marker(heap_);
-  marker.MarkObjects(isolate, this, invoke_api_callbacks);
+  marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
 
   int64_t mid1 = OS::GetCurrentTimeMicros();
 

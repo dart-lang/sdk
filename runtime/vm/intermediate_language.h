@@ -6889,7 +6889,7 @@ class Environment : public ZoneAllocated {
   // Construct an environment by constructing uses from an array of definitions.
   static Environment* From(const GrowableArray<Definition*>& definitions,
                            intptr_t fixed_parameter_count,
-                           const Function& function);
+                           const Code& code);
 
   void set_locations(Location* locations) {
     ASSERT(locations_ == NULL);
@@ -6929,7 +6929,7 @@ class Environment : public ZoneAllocated {
     return fixed_parameter_count_;
   }
 
-  const Function& function() const { return function_; }
+  const Code& code() const { return code_; }
 
   Environment* DeepCopy() const { return DeepCopy(Length()); }
 
@@ -6944,13 +6944,13 @@ class Environment : public ZoneAllocated {
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
               intptr_t deopt_id,
-              const Function& function,
+              const Code& code,
               Environment* outer)
       : values_(length),
         locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count),
         deopt_id_(deopt_id),
-        function_(function),
+        code_(code),
         outer_(outer) { }
 
   // Deep copy an environment.  The 'length' parameter may be less than the
@@ -6962,7 +6962,7 @@ class Environment : public ZoneAllocated {
   Location* locations_;
   const intptr_t fixed_parameter_count_;
   intptr_t deopt_id_;
-  const Function& function_;
+  const Code& code_;
   Environment* outer_;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);

@@ -3994,7 +3994,9 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
         new CheckStackOverflowInstr(function.token_pos(), 0);
     // If we are inlining don't actually attach the stack check. We must still
     // create the stack check in order to allocate a deopt id.
-    if (!IsInlining()) for_effect.AddInstruction(check);
+    if (!IsInlining()) {
+      for_effect.AddInstruction(check);
+    }
   }
   parsed_function()->node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);

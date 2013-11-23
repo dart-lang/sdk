@@ -64,12 +64,12 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // The real frame starts here.
   builder->MarkFrameStart();
 
-  // Callee's PC marker is not used anymore. Pass Function::null() to set to 0.
-  builder->AddPcMarker(Function::Handle(), slot_ix++);
+  // Callee's PC marker is not used anymore. Pass Code::null() to set to 0.
+  builder->AddPcMarker(Code::Handle(), slot_ix++);
 
   // Current FP and PC.
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
+  builder->AddReturnAddress(current->code(), deopt_id(), slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -84,7 +84,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   }
 
   // Current PC marker and caller FP.
-  builder->AddPcMarker(current->function(), slot_ix++);
+  builder->AddPcMarker(current->code(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
 
   Environment* previous = current;
@@ -92,7 +92,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   while (current != NULL) {
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddress(current->function(),
+    builder->AddReturnAddress(current->code(),
                               Isolate::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
@@ -114,7 +114,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     }
 
     // PC marker and caller FP.
-    builder->AddPcMarker(current->function(), slot_ix++);
+    builder->AddPcMarker(current->code(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // Iterate on the outer environment.
@@ -146,7 +146,9 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 #define __ assem->
   __ Comment("Deopt stub for id %" Pd "", deopt_id());
   __ Bind(entry_label());
-  if (FLAG_trap_on_deoptimization) __ int3();
+  if (FLAG_trap_on_deoptimization) {
+    __ int3();
+  }
 
   ASSERT(deopt_env() != NULL);
 
@@ -1406,6 +1408,10 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ cmpl(EBX, raw_null);
     __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
     __ call(&StubCode::CompileFunctionRuntimeCallLabel());
+    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                         Isolate::kNoDeoptId,
+                         token_pos);
+    RecordSafepoint(locs);
     __ movl(EBX, FieldAddress(EAX, Function::code_offset()));
     __ Bind(&is_compiled);
   }
