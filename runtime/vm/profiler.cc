@@ -103,11 +103,6 @@ void ProfilerManager::Shutdown() {
     {
       ScopedMonitor lock(monitor_);
       shutdown_ = true;
-      for (intptr_t i = 0; i < isolates_size_; i++) {
-        Isolate* isolate = isolates_[i];
-        ASSERT(isolate != NULL);
-        FreeIsolateProfilingData(isolate);
-      }
       isolates_size_ = 0;
       free(isolates_);
       isolates_ = NULL;
@@ -180,7 +175,7 @@ void ProfilerManager::ScheduleIsolate(Isolate* isolate, bool inside_signal) {
   }
   ASSERT(initialized_);
   ASSERT(isolate != NULL);
-  {
+  if (!inside_signal) {
     ScopedSignalBlocker ssb;
     {
       ScopedMonitor lock(monitor_);
@@ -192,9 +187,25 @@ void ProfilerManager::ScheduleIsolate(Isolate* isolate, bool inside_signal) {
         }
         profiler_data->Scheduled(OS::GetCurrentTimeMicros(),
                                  Thread::GetCurrentThreadId());
-        AddIsolate(isolate);
-        lock.Notify();
       }
+      AddIsolate(isolate);
+      lock.Notify();
+    }
+  } else {
+    // Do not need a signal blocker inside a signal handler.
+    {
+      ScopedMonitor lock(monitor_);
+      {
+        ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
+        IsolateProfilerData* profiler_data = isolate->profiler_data();
+        if (profiler_data == NULL) {
+          return;
+        }
+        profiler_data->Scheduled(OS::GetCurrentTimeMicros(),
+                                 Thread::GetCurrentThreadId());
+      }
+      AddIsolate(isolate);
+      lock.Notify();
     }
   }
 }
@@ -264,6 +275,10 @@ void ProfilerManager::AddIsolate(Isolate* isolate) {
 
 intptr_t ProfilerManager::FindIsolate(Isolate* isolate) {
   // Must be called with monitor_ locked.
+  if (isolates_ == NULL) {
+    // We are shutting down.
+    return -1;
+  }
   for (intptr_t i = 0; i < isolates_size_; i++) {
     if (isolates_[i] == isolate) {
       return i;
@@ -275,6 +290,10 @@ intptr_t ProfilerManager::FindIsolate(Isolate* isolate) {
 
 void ProfilerManager::RemoveIsolate(intptr_t i) {
   // Must be called with monitor_ locked.
+  if (isolates_ == NULL) {
+    // We are shutting down.
+    return;
+  }
   ASSERT(i < isolates_size_);
   intptr_t last = isolates_size_ - 1;
   if (i != last) {
@@ -577,6 +596,7 @@ ProfilerSampleStackWalker::ProfilerSampleStackWalker(Sample* sample,
 
 int ProfilerSampleStackWalker::walk() {
   uword* pc = reinterpret_cast<uword*>(original_pc_);
+#if defined(WALK_STACK)
   uword* fp = reinterpret_cast<uword*>(original_fp_);
   uword* previous_fp = fp;
   if (original_sp_ < lower_bound_) {
@@ -601,6 +621,10 @@ int ProfilerSampleStackWalker::walk() {
     lower_bound_ = reinterpret_cast<uintptr_t>(fp);
   }
   return i;
+#else
+  sample_->pcs[0] = reinterpret_cast<uintptr_t>(pc);
+  return 0;
+#endif
 }
 
 

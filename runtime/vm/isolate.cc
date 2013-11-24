@@ -369,6 +369,9 @@ Isolate* Isolate::Init(const char* name_prefix) {
   Isolate* result = new Isolate();
   ASSERT(result != NULL);
 
+  // Setup for profiling.
+  ProfilerManager::SetupIsolateForProfiling(result);
+
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
   SetCurrent(result);
@@ -407,8 +410,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
     }
   }
 
-  // Setup for profiling.
-  ProfilerManager::SetupIsolateForProfiling(result);
 
   return result;
 }
