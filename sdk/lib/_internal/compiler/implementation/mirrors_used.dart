@@ -105,11 +105,11 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
   void analyzeUsage(LibraryElement mainApp) {
     if (compiler.mirrorsLibrary == null) return;
     measure(analyzer.run);
-    List<String> symbols = analyzer.mergedMirrorUsage.symbols;
+    List /*<String|Element>*/ symbols = analyzer.mergedMirrorUsage.symbols;
     List<Element> targets = analyzer.mergedMirrorUsage.targets;
     List<Element> metaTargets = analyzer.mergedMirrorUsage.metaTargets;
     compiler.backend.registerMirrorUsage(
-        symbols == null ? null : new Set<String>.from(symbols),
+        symbols == null ? null : new Set/*<String|Element>*/.from(symbols),
         targets == null ? null : new Set<Element>.from(targets),
         metaTargets == null ? null : new Set<Element>.from(metaTargets));
     librariesWithUsage = analyzer.librariesWithUsage;
@@ -304,7 +304,7 @@ class MirrorUsageAnalyzer {
       return a;
     }
     // TODO(ahe): Test the following cases.
-    List<String> symbols = a.symbols;
+    List /*<String|Element>*/ symbols = a.symbols;
     if (symbols == null) {
       symbols = b.symbols;
     } else if (b.symbols != null) {
