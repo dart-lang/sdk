@@ -271,5 +271,8 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
     if (isClosure(info.element)) {
       bailout('Returned from a closure');
     }
+    if (compiler.backend.isNeededForReflection(info.element)) {
+      bailout('Escape in reflection');
+    }
   }
 }
