@@ -53,9 +53,15 @@ void testInt(int value) {
   testParse("$value", value);
   testParse("+$value", value);
   testParse("-$value", -value);
-  testParse("0x${value.toRadixString(16)}", value);
-  testParse("+0x${value.toRadixString(16)}", value);
-  testParse("-0x${value.toRadixString(16)}", -value);
+  var hex = "0x${value.toRadixString(16)}";
+  var lchex = hex.toLowerCase();
+  testParse(lchex, value);
+  testParse("+$lchex", value);
+  testParse("-$lchex", -value);
+  var uchex = hex.toUpperCase();
+  testParse(uchex, value);
+  testParse("+$uchex", value);
+  testParse("-$uchex", -value);
 }
 
 void testIntAround(int value) {
@@ -68,9 +74,27 @@ void testDouble(double value) {
   testParse("$value", value);
   testParse("+$value", value);
   testParse("-$value", -value);
-  testParse("${value.toStringAsExponential()}", value);
-  testParse("+${value.toStringAsExponential()}", value);
-  testParse("-${value.toStringAsExponential()}", -value);
+  if (value.isFinite) {
+    String exp = value.toStringAsExponential();
+    String lcexp = exp.toLowerCase();
+    testParse(lcexp, value);
+    testParse("+$lcexp", value);
+    testParse("-$lcexp", -value);
+    String ucexp = exp.toUpperCase();
+    testParse(ucexp, value);
+    testParse("+$ucexp", value);
+    testParse("-$ucexp", -value);
+  }
+}
+
+void testFail(String source) {
+  var object = new Object();
+  Expect.throws(() {
+    num.parse(source, (s) {
+      Expect.equals(source, s);
+      throw object;
+    });
+  }, (e) => identical(object, e), "Fail: '$source'");
 }
 
 void main() {
@@ -109,4 +133,63 @@ void main() {
   testDouble(1.7976931348623157e+308);
   testDouble(double.INFINITY);
   testDouble(double.NAN);          /// 01: ok
+
+  // Strings that cannot occur from toString of a number.
+  testParse("000000000000", 0);
+  testParse("000000000001", 1);
+  testParse("000000000000.0000000000000", 0.0);
+  testParse("000000000001.0000000000000", 1.0);
+  testParse("0x0000000000", 0);
+  testParse("0e0", 0.0);
+  testParse("0e+0", 0.0);
+  testParse("0e-0", 0.0);
+  testParse("-0e0", -0.0);
+  testParse("-0e+0", -0.0);
+  testParse("-0e-0", -0.0);
+  testParse("1e0", 1.0);
+  testParse("1e+0", 1.0);
+  testParse("1e-0", 1.0);
+  testParse("-1e0", -1.0);
+  testParse("-1e+0", -1.0);
+  testParse("-1e-0", -1.0);
+  testParse("1.", 1.0);
+  testParse(".1", 0.1);
+  testParse("1.e1", 10.0);
+  testParse(".1e1", 1.0);
+
+  // Negative tests - things not to allow.
+
+  // Spaces inside the numeral.
+  testFail("- 1");
+  testFail("+ 1");
+  testFail("2 2");
+  testFail("0x 42");
+  testFail("1 .");
+  testFail(". 1");
+  testFail("1e 2");
+  testFail("1 e2");
+  // Invalid characters.
+  testFail("0x1H");
+  testFail("12H");
+  testFail("1x2");
+  testFail("00x2");
+  // Empty hex number.
+  testFail("0x");
+  testFail("-0x");
+  testFail("+0x");
+  // Double exponent without value.
+  testFail("e1");
+  testFail("e+1");
+  testFail("e-1");
+  testFail("-e1");
+  testFail("-e+1");
+  testFail("-e-1");
+  // Incorrect ways to write NaN/Infinity.
+  testFail("infinity");
+  testFail("INFINITY");
+  testFail("inf");
+  testFail("nan");
+  testFail("NAN");
+  testFail("qnan");
+  testFail("snan");
 }
