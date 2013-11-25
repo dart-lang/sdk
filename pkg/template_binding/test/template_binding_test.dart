@@ -1177,27 +1177,38 @@ templateInstantiationTests() {
     });
 
     recursivelySetTemplateModel(div, m);
+
+    var completer = new Completer();
+
+    new MutationObserver((records, observer) {
+      var select = div.nodes[0].nextNode;
+      if (select == null || select.querySelector('option') == null) return;
+
+      observer.disconnect();
+      new Future(() {
+        expect(select.nodes.length, 2);
+
+        expect(select.selectedIndex, 1, reason: 'selected index should update '
+            'after template expands.');
+
+        expect(select.nodes[0].tagName, 'TEMPLATE');
+        expect((templateBind(templateBind(select.nodes[0]).ref)
+            .content.nodes[0] as Element).tagName, 'OPTGROUP');
+
+        var optgroup = select.nodes[1];
+        expect(optgroup.nodes[0].tagName, 'TEMPLATE');
+        expect(optgroup.nodes[1].tagName, 'OPTION');
+        expect(optgroup.nodes[1].text, '0');
+        expect(optgroup.nodes[2].tagName, 'OPTION');
+        expect(optgroup.nodes[2].text, '1');
+
+        completer.complete();
+      });
+    })..observe(div, childList: true, subtree: true);
+
     Observable.dirtyCheck();
 
-    // Use a timer so it's slower than mutation observers.
-    return new Future(() {
-      var select = div.nodes[0].nextNode;
-      expect(select.nodes.length, 2);
-
-      expect(select.selectedIndex, 1, reason: 'selected index should update by '
-          'animationFrame time');
-
-      expect(select.nodes[0].tagName, 'TEMPLATE');
-      expect((templateBind(templateBind(select.nodes[0]).ref)
-          .content.nodes[0] as Element).tagName, 'OPTGROUP');
-
-      var optgroup = select.nodes[1];
-      expect(optgroup.nodes[0].tagName, 'TEMPLATE');
-      expect(optgroup.nodes[1].tagName, 'OPTION');
-      expect(optgroup.nodes[1].text, '0');
-      expect(optgroup.nodes[2].tagName, 'OPTION');
-      expect(optgroup.nodes[2].text, '1');
-    });
+    return completer.future;
   });
 
   observeTest('NestedIterateTableMixedSemanticNative', () {
