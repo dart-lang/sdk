@@ -82,8 +82,11 @@ abstract class Observable {
     // actually includes this mixin. While perhaps too inclusive, it lets us
     // avoid complex logic that walks "with" and "implements" clauses.
     for (var type = mirror.type; type != objectType; type = type.superclass) {
-      for (var field in type.variables.values) {
-        if (field.isFinal || field.isStatic || field.isPrivate) continue;
+      for (var field in type.declarations.values) {
+        if (field is! VariableMirror ||
+            field.isFinal ||
+            field.isStatic ||
+            field.isPrivate) continue;
 
         for (var meta in field.metadata) {
           if (meta.reflectee is ObservableProperty) {
