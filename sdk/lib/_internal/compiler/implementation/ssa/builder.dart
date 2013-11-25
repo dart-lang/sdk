@@ -885,29 +885,12 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
   }
 }
 
-class SsaBuilder extends ResolvedVisitor implements Visitor {
-  final SsaBuilderTask builder;
-  final JavaScriptBackend backend;
-  final CodegenWorkItem work;
-  final ConstantSystem constantSystem;
-  HGraph graph;
-  LocalsHandler localsHandler;
-  HInstruction rethrowableException;
-  Map<Element, HInstruction> parameters;
-  final RuntimeTypes rti;
-  HParameterValue lastAddedParameter;
-
-  Map<TargetElement, JumpHandler> jumpTargets;
-
-  /**
-   * Variables stored in the current activation. These variables are
-   * being updated in try/catch blocks, and should be
-   * accessed indirectly through [HLocalGet] and [HLocalSet].
-   */
-  Map<Element, HLocalValue> activationVariables;
-
-  // We build the Ssa graph by simulating a stack machine.
-  List<HInstruction> stack;
+/**
+ * This mixin implements functionality that is shared between the [SsaBuilder]
+ * and the [SsaFromIrBuilder] classes.
+ */
+class SsaGraphBuilderMixin {
+  final HGraph graph = new HGraph();
 
   /**
    * The current block to add instructions to. Might be null, if we are
@@ -930,6 +913,88 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    * isAborted.
    */
   bool isReachable = true;
+
+  HBasicBlock get current => _current;
+  void set current(c) {
+    isReachable = c != null;
+    _current = c;
+  }
+
+  HBasicBlock addNewBlock() {
+    HBasicBlock block = graph.addNewBlock();
+    // If adding a new block during building of an expression, it is due to
+    // conditional expressions or short-circuit logical operators.
+    return block;
+  }
+
+  void open(HBasicBlock block) {
+    block.open();
+    current = block;
+    lastOpenedBlock = block;
+  }
+
+  HBasicBlock close(HControlFlow end) {
+    HBasicBlock result = current;
+    current.close(end);
+    current = null;
+    return result;
+  }
+
+  HBasicBlock closeAndGotoExit(HControlFlow end) {
+    HBasicBlock result = current;
+    current.close(end);
+    current = null;
+    result.addSuccessor(graph.exit);
+    return result;
+  }
+
+  void goto(HBasicBlock from, HBasicBlock to) {
+    from.close(new HGoto());
+    from.addSuccessor(to);
+  }
+
+  bool isAborted() {
+    return _current == null;
+  }
+
+  /**
+   * Creates a new block, transitions to it from any current block, and
+   * opens the new block.
+   */
+  HBasicBlock openNewBlock() {
+    HBasicBlock newBlock = addNewBlock();
+    if (!isAborted()) goto(current, newBlock);
+    open(newBlock);
+    return newBlock;
+  }
+
+  void add(HInstruction instruction) {
+    current.add(instruction);
+  }
+}
+
+class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
+  final SsaBuilderTask builder;
+  final JavaScriptBackend backend;
+  final CodegenWorkItem work;
+  final ConstantSystem constantSystem;
+  LocalsHandler localsHandler;
+  HInstruction rethrowableException;
+  Map<Element, HInstruction> parameters;
+  final RuntimeTypes rti;
+  HParameterValue lastAddedParameter;
+
+  Map<TargetElement, JumpHandler> jumpTargets;
+
+  /**
+   * Variables stored in the current activation. These variables are
+   * being updated in try/catch blocks, and should be
+   * accessed indirectly through [HLocalGet] and [HLocalSet].
+   */
+  Map<Element, HLocalValue> activationVariables;
+
+  // We build the Ssa graph by simulating a stack machine.
+  List<HInstruction> stack;
 
   /**
    * True if we are visiting the expression of a throw expression.
@@ -971,7 +1036,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     : this.builder = builder,
       this.backend = builder.backend,
       this.work = work,
-      graph = new HGraph(),
       stack = new List<HInstruction>(),
       activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
@@ -990,12 +1054,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   bool inTryStatement = false;
   int loopNesting = 0;
-
-  HBasicBlock get current => _current;
-  void set current(c) {
-    isReachable = c != null;
-    _current = c;
-  }
 
   Constant getConstantForNode(Node node) {
     ConstantHandler handler = compiler.constantHandler;
@@ -1225,9 +1283,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         localsHandler, inTryStatement);
     inTryStatement = false;
     LocalsHandler newLocalsHandler = new LocalsHandler(this);
-    newLocalsHandler.closureData =
-        compiler.closureToClassMapper.computeClosureToClassMapping(
-            function, function.parseNode(compiler), elements);
+    if (compiler.irBuilder.hasIr(function)) {
+      // TODO(lry): handle ir functions with nested closure definitions.
+      newLocalsHandler.closureData =
+          new ClosureClassMap(null, null, null, new ThisElement(function));
+    } else {
+      newLocalsHandler.closureData =
+          compiler.closureToClassMapper.computeClosureToClassMapping(
+              function, function.parseNode(compiler), elements);
+    }
     int argumentIndex = 0;
     if (isInstanceMember) {
       newLocalsHandler.updateLocal(newLocalsHandler.closureData.thisElement,
@@ -1350,7 +1414,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return true;
     }
 
-    bool heuristicSayGoodToGo(FunctionExpression functionExpression) {
+    bool heuristicSayGoodToGo(bool canBeInlined(int maxNodes, bool useMax)) {
       // Don't inline recursivly
       if (inliningStack.any((entry) => entry.function == function)) {
         return false;
@@ -1382,17 +1446,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                   (entry) => inferrer.isCalledOnce(entry.function)))) {
         useMaxInliningNodes = false;
       }
-      bool canBeInlined = InlineWeeder.canBeInlined(
-          functionExpression, maxInliningNodes, useMaxInliningNodes);
-      if (canBeInlined) {
+      bool canInline = canBeInlined(maxInliningNodes, useMaxInliningNodes);
+      if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
         backend.inlineCache.markAsNonInlinable(element, insideLoop: insideLoop);
       }
-      return canBeInlined;
+      return canInline;
     }
 
-    void doInlining(FunctionExpression functionExpression) {
+    void doInlining(void visitBody()) {
       // Add an explicit null check on the receiver before doing the
       // inlining. We use [element] to get the same name in the
       // NoSuchMethodError message as if we had called it.
@@ -1418,7 +1481,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         if (element.isGenerativeConstructor()) {
           buildFactory(element);
         } else {
-          functionExpression.body.accept(this);
+          visitBody();
         }
         removeInlinedInstantiation(instantiatedType);
       });
@@ -1426,11 +1489,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     if (meetsHardConstraints()) {
-      FunctionExpression functionExpression = function.parseNode(compiler);
-
-      if (heuristicSayGoodToGo(functionExpression)) {
-        doInlining(functionExpression);
-        return true;
+      if (compiler.irBuilder.hasIr(function)) {
+        IrFunction irFunction = compiler.irBuilder.getIr(function);
+        bool canInline(int n, bool b) {
+          return IrInlineWeeder.canBeInlined(irFunction, n, b);
+        }
+        if (heuristicSayGoodToGo(canInline)) {
+          SsaFromIrInliner irInliner = new SsaFromIrInliner(this);
+          doInlining(() => irInliner.visitAll(irFunction.statements));
+          return true;
+        }
+      } else {
+        FunctionExpression functionNode = function.parseNode(compiler);
+        bool canInline(int n, bool b) {
+          return InlineWeeder.canBeInlined(functionNode, n, b);
+        }
+        if (heuristicSayGoodToGo(canInline)) {
+          doInlining(() => functionNode.body.accept(this));
+          return true;
+        }
       }
     }
 
@@ -2058,58 +2135,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return graph;
   }
 
-  HBasicBlock addNewBlock() {
-    HBasicBlock block = graph.addNewBlock();
-    // If adding a new block during building of an expression, it is due to
-    // conditional expressions or short-circuit logical operators.
-    return block;
-  }
-
-  void open(HBasicBlock block) {
-    block.open();
-    current = block;
-    lastOpenedBlock = block;
-  }
-
-  HBasicBlock close(HControlFlow end) {
-    HBasicBlock result = current;
-    current.close(end);
-    current = null;
-    return result;
-  }
-
-  HBasicBlock closeAndGotoExit(HControlFlow end) {
-    HBasicBlock result = current;
-    current.close(end);
-    current = null;
-    result.addSuccessor(graph.exit);
-    return result;
-  }
-
-  void goto(HBasicBlock from, HBasicBlock to) {
-    from.close(new HGoto());
-    from.addSuccessor(to);
-  }
-
-  bool isAborted() {
-    return _current == null;
-  }
-
-  /**
-   * Creates a new block, transitions to it from any current block, and
-   * opens the new block.
-   */
-  HBasicBlock openNewBlock() {
-    HBasicBlock newBlock = addNewBlock();
-    if (!isAborted()) goto(current, newBlock);
-    open(newBlock);
-    return newBlock;
-  }
-
-  void add(HInstruction instruction) {
-    current.add(instruction);
-  }
-
   void addWithPosition(HInstruction instruction, Node node) {
     add(attachPosition(instruction, node));
   }
@@ -2166,7 +2191,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     Script script = element.getCompilationUnit().script;
     SourceFile sourceFile = script.file;
-    SourceFileLocation location = new SourceFileLocation(sourceFile, token);
+    SourceFileLocation location =
+        new TokenSourceFileLocation(sourceFile, token);
     if (!location.isValid()) {
       throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
           {'offset': token.charOffset,

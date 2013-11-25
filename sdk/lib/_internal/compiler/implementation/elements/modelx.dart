@@ -29,7 +29,6 @@ import '../dart_types.dart';
 
 import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
 
-
 class ElementX implements Element {
   static int elementHashCode = 0;
 

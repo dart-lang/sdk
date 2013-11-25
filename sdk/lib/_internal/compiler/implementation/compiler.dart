@@ -544,6 +544,7 @@ abstract class Compiler implements DiagnosticListener {
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
+  IrBuilderTask irBuilder;
   ti.TypesTask typesTask;
   Backend backend;
   ConstantHandler constantHandler;
@@ -656,6 +657,7 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this),
       closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
+      irBuilder = new IrBuilderTask(this),
       typesTask = new ti.TypesTask(this),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
       deferredLoadTask = new DeferredLoadTask(this),
@@ -1110,6 +1112,9 @@ abstract class Compiler implements DiagnosticListener {
     backend.onResolutionComplete();
 
     deferredLoadTask.onResolutionComplete(main);
+
+    log('Building IR...');
+    irBuilder.buildNodes();
 
     log('Inferring types...');
     typesTask.onResolutionComplete(main);
