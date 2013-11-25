@@ -128,7 +128,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
       _coreLibrary = _sdkLibraries.singleWhere((lib) =>
           lib.uri.toString().startsWith('dart:core'));
       var availableLibrariesByPath = new Map.fromIterables(
-          availableLibraries.map((each) => each.uri),
+          availableLibraries.map((each) => each.uri.toFilePath()),
           availableLibraries);
       var librariesToDocument = requestedLibraries.map(
           (each) => availableLibrariesByPath.putIfAbsent(each,
@@ -189,14 +189,14 @@ String _packageIntro(packageDir) {
   return contents;
 }
 
-List<Uri> _listLibraries(List<String> args) {
-  var libraries = new List<Uri>();
+List<String> _listLibraries(List<String> args) {
+  var libraries = new List<String>();
   for (var arg in args) {
     var type = FileSystemEntity.typeSync(arg);
 
     if (type == FileSystemEntityType.FILE) {
       if (arg.endsWith('.dart')) {
-        libraries.add(new Uri.file(path.absolute(arg)));
+        libraries.add(path.absolute(arg));
         logger.info('Added to libraries: ${libraries.last}');
       }
     } else {
@@ -206,7 +206,7 @@ List<Uri> _listLibraries(List<String> args) {
   return libraries;
 }
 
-List<Uri> _listDartFromDir(String args) {
+List<String> _listDartFromDir(String args) {
   var libraries = [];
   // To avoid anaylzing package files twice, only files with paths not
   // containing '/packages' will be added. The only exception is if the file to
@@ -223,12 +223,12 @@ List<Uri> _listDartFromDir(String args) {
       var contents = new File(f).readAsStringSync();
       if (!(contents.contains(new RegExp('\npart of ')) ||
           contents.startsWith(new RegExp('part of ')))) {
-        libraries.add(new Uri.file(path.normalize(path.absolute(f))));
+        libraries.add(f);
         logger.info('Added to libraries: $f');
       }
     }
   });
-  return libraries;
+  return libraries.map(path.absolute).map(path.normalize).toList();
 }
 
 String _findPackageRoot(String directory) {
@@ -251,11 +251,11 @@ String _packageName(String pubspecName) {
   return spec["name"];
 }
 
-List<Uri> _listSdk() {
-  var sdk = new List<Uri>();
+List<String> _listSdk() {
+  var sdk = new List<String>();
   LIBRARIES.forEach((String name, LibraryInfo info) {
     if (info.documented) {
-      sdk.add(Uri.parse('dart:$name'));
+      sdk.add('dart:$name');
       logger.info('Add to SDK: ${sdk.last}');
     }
   });
@@ -264,7 +264,7 @@ List<Uri> _listSdk() {
 
 /// Analyzes set of libraries by getting a mirror system and triggers the
 /// documentation of the libraries.
-Future<MirrorSystem> getMirrorSystem(List<Uri> libraries,
+Future<MirrorSystem> getMirrorSystem(List<String> libraries,
     {String packageRoot, bool parseSdk: false}) {
   if (libraries.isEmpty) throw new StateError('No Libraries.');
   // Finds the root of SDK library based off the location of docgen.
@@ -286,7 +286,7 @@ String findRootDirectory() {
 
 /// Analyzes set of libraries and provides a mirror system which can be used
 /// for static inspection of the source code.
-Future<MirrorSystem> _analyzeLibraries(List<Uri> libraries,
+Future<MirrorSystem> _analyzeLibraries(List<String> libraries,
       String libraryRoot, {String packageRoot}) {
   SourceFileProvider provider = new CompilerSourceFileProvider();
   api.DiagnosticHandler diagnosticHandler =
@@ -294,12 +294,16 @@ Future<MirrorSystem> _analyzeLibraries(List<Uri> libraries,
         ..showHints = false
         ..showWarnings = false)
           .diagnosticHandler;
-  Uri libraryUri = new Uri.file(appendSlash(libraryRoot));
+  Uri libraryUri = new Uri(scheme: 'file', path: appendSlash(libraryRoot));
   Uri packageUri = null;
   if (packageRoot != null) {
-    packageUri = new Uri.file(appendSlash(packageRoot));
+    packageUri = new Uri(scheme: 'file', path: appendSlash(packageRoot));
   }
-  return dart2js.analyze(libraries, libraryUri, packageUri,
+  List<Uri> librariesUri = <Uri>[];
+  libraries.forEach((library) {
+    librariesUri.add(currentDirectory.resolve(library));
+  });
+  return dart2js.analyze(librariesUri, libraryUri, packageUri,
       provider.readStringFromUri, diagnosticHandler,
       ['--preserve-comments', '--categories=Client,Server'])
       ..catchError((error) {
