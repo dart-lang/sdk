@@ -74,9 +74,7 @@ function printToDOM(message) {
 function printToConsole(message) {
   var consoleAvailable = typeof console === 'object';
 
-  if (!consoleAvailable) {
-    printToDOM(message);
-  } else {
+  if (consoleAvailable) {
     console.log(message);
   }
 }
