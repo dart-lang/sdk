@@ -254,6 +254,7 @@
     'object_id_ring.h',
     'object_id_ring_test.cc',
     'object_mips_test.cc',
+    'object_set.h',
     'object_store.cc',
     'object_store.h',
     'object_store_test.cc',
