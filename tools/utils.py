@@ -234,7 +234,8 @@ def GetBaseDir():
 # Return the base part of the version, Major.Minor.Build.Patch,
 # without the _revision addition
 def GetShortVersion():
-  (major, minor, build, patch) = ReadVersionFile()
+  (channel, major, minor, build, patch) = ReadVersionFile()
+  # TODO(kustermann/ricow): Add the channel to the version string.
   return '%s.%s.%s.%s' % (major, minor, build, patch)
 
 
@@ -243,7 +244,7 @@ def GetVersion():
   if not version_tuple:
     return None
 
-  (major, minor, build, patch) = version_tuple
+  (channel, major, minor, build, patch) = version_tuple
   revision = GetSVNRevision()
   user = GetUserName()
   # We don't add username to release builds (or any builds on the bots)
@@ -257,6 +258,7 @@ def GetVersion():
   if revision:
     revision_string = '_r%s' % revision
 
+  # TODO(kustermann/ricow): Add the channel to the version string.
   return ("%s.%s.%s.%s%s%s" %
           (major, minor, build, patch, revision_string, user_string))
 
@@ -275,13 +277,19 @@ def ReadVersionFile():
   except:
     print "Warning: Couldn't read VERSION file (%s)" % version_file
     return None
-  major_match = re.search('MAJOR (\d+)', content)
-  minor_match = re.search('MINOR (\d+)', content)
-  build_match = re.search('BUILD (\d+)', content)
-  patch_match = re.search('PATCH (\d+)', content)
-  if major_match and minor_match and build_match and patch_match:
-    return (major_match.group(1), minor_match.group(1), build_match.group(1),
-            patch_match.group(1))
+  channel_match = re.search(
+      '^CHANNEL ([A-Za-z0-9]+)$', content, flags=re.MULTILINE)
+  major_match = re.search('^MAJOR (\d+)$', content, flags=re.MULTILINE)
+  minor_match = re.search('^MINOR (\d+)$', content, flags=re.MULTILINE)
+  build_match = re.search('^BUILD (\d+)$', content, flags=re.MULTILINE)
+  patch_match = re.search('^PATCH (\d+)$', content, flags=re.MULTILINE)
+  if (channel_match and
+      major_match and
+      minor_match and
+      build_match and
+      patch_match):
+    return (channel_match.group(1), major_match.group(1), minor_match.group(1),
+            build_match.group(1), patch_match.group(1))
   else:
     print "Warning: VERSION file (%s) has wrong format" % version_file
     return None
