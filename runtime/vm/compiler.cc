@@ -388,7 +388,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Do optimizations that depend on the propagated type information.
-        optimizer.Canonicalize();
+        if (optimizer.Canonicalize()) {
+          // Invoke Canonicalize twice in order to fully canonicalize patterns
+          // like "if (a & const == 0) { }".
+          optimizer.Canonicalize();
+        }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         BranchSimplifier::Simplify(flow_graph);

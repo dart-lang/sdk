@@ -365,6 +365,9 @@ void StrictCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(", ");
   right()->PrintTo(f);
+  if (needs_number_check()) {
+    f->Print(", with number check");
+  }
 }
 
 
@@ -427,9 +430,7 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
-  left()->PrintTo(f);
-  f->Print(" %s ", Token::Str(kind_));
-  right()->PrintTo(f);
+  comparison()->PrintOperandsTo(f);
   f->Print(" ? %" Pd " : %" Pd,
            if_true_,
            if_false_);

@@ -341,8 +341,8 @@ class BranchSimplifier : public AllStatic {
   // Duplicate a branch while replacing its comparison's left and right
   // inputs.
   static BranchInstr* CloneBranch(BranchInstr* branch,
-                                  Value* left,
-                                  Value* right);
+                                  Value* new_left,
+                                  Value* new_right);
 };
 
 

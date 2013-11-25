@@ -23,13 +23,6 @@ template <typename T> class GrowableArray;
 class ParsedFunction;
 
 
-struct BranchLabels {
-  Label* true_label;
-  Label* false_label;
-  Label* fall_through;
-};
-
-
 class ParallelMoveResolver : public ValueObject {
  public:
   explicit ParallelMoveResolver(FlowGraphCompiler* compiler);

@@ -433,7 +433,8 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
         new BranchInstr(new StrictCompareInstr(call_block->start_pos(),
                                                Token::kEQ_STRICT,
                                                new Value(true_const),
-                                               new Value(true_const)));
+                                               new Value(true_const),
+                                               false));  // No number check.
     branch->InheritDeoptTarget(call_);
     *branch->true_successor_address() = callee_entry;
     *branch->false_successor_address() = false_block;
@@ -833,8 +834,8 @@ void TestGraphVisitor::ReturnValue(Value* value) {
       new StrictCompareInstr(condition_token_pos(),
                              Token::kEQ_STRICT,
                              value,
-                             constant_true);
-  comp->set_needs_number_check(false);
+                             constant_true,
+                             false);  // No number check.
   BranchInstr* branch = new BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
@@ -856,7 +857,8 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
         comp->token_pos(),
         (comp->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
         comp->left(),
-        comp->right()));
+        comp->right(),
+        false));  // No number check.
   } else {
     branch = new BranchInstr(comp, FLAG_enable_type_checks);
   }
@@ -874,8 +876,8 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
       new StrictCompareInstr(condition_token_pos(),
                              Token::kNE_STRICT,
                              neg->value(),
-                             constant_true);
-  comp->set_needs_number_check(false);
+                             constant_true,
+                             false);  // No number check.
   BranchInstr* branch = new BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
@@ -1201,7 +1203,8 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
         for_right.Bind(new StrictCompareInstr(node->token_pos(),
                                               Token::kEQ_STRICT,
                                               right_value,
-                                              constant_true));
+                                              constant_true,
+                                              false));  // No number check.
     for_right.Do(BuildStoreExprTemp(compare));
 
     if (node->kind() == Token::kAND) {
@@ -1536,7 +1539,8 @@ StrictCompareInstr* EffectGraphVisitor::BuildStrictCompare(AstNode* left,
   StrictCompareInstr* comp = new StrictCompareInstr(token_pos,
                                                     kind,
                                                     for_left_value.value(),
-                                                    for_right_value.value());
+                                                    for_right_value.value(),
+                                                    true);  // Number check.
   return comp;
 }
 
@@ -3090,13 +3094,14 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             node->scope()->LookupVariable(Symbols::Other(),
                                           true);  // Test only.
         Value* other = Bind(new LoadLocalInstr(*other_var));
+        // Receiver is not a number because numbers override equality.
+        const bool kNoNumberCheck = false;
         StrictCompareInstr* compare =
             new StrictCompareInstr(node->token_pos(),
                                    Token::kEQ_STRICT,
                                    receiver,
-                                   other);
-        // Receiver is not a number because numbers override equality.
-        compare->set_needs_number_check(false);
+                                   other,
+                                   kNoNumberCheck);
         return ReturnDefinition(compare);
       }
       case MethodRecognizer::kStringBaseLength:
@@ -3124,7 +3129,8 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
             new StrictCompareInstr(node->token_pos(),
                                    Token::kEQ_STRICT,
                                    load_val,
-                                   zero_val);
+                                   zero_val,
+                                   false);  // No number check.
         return ReturnDefinition(compare);
       }
       case MethodRecognizer::kGrowableArrayLength:

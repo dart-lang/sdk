@@ -24,8 +24,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, new_identity_spec, true,
-    "Use new identity check rules for numbers.");
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -752,23 +750,6 @@ void Definition::ReplaceWith(Definition* other,
   }
   set_previous(NULL);
   set_next(NULL);
-}
-
-
-BranchInstr::BranchInstr(ComparisonInstr* comparison, bool is_checked)
-    : comparison_(comparison),
-      is_checked_(is_checked),
-      constrained_type_(NULL),
-      constant_target_(NULL) {
-  ASSERT(comparison->env() == NULL);
-  for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
-    comparison->InputAt(i)->set_instruction(this);
-  }
-}
-
-
-void BranchInstr::RawSetInputAt(intptr_t i, Value* value) {
-  comparison()->RawSetInputAt(i, value);
 }
 
 
@@ -1922,9 +1903,10 @@ void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
                                        Token::Kind kind,
                                        Value* left,
-                                       Value* right)
+                                       Value* right,
+                                       bool needs_number_check)
     : ComparisonInstr(token_pos, kind, left, right),
-      needs_number_check_(FLAG_new_identity_spec) {
+      needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
 }
 
@@ -2475,21 +2457,60 @@ static bool BindsToSmiConstant(Value* value) {
 }
 
 
+ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
+                                                           Value* new_right) {
+  return new EqualityCompareInstr(token_pos(),
+                                  kind(),
+                                  new_left,
+                                  new_right,
+                                  operation_cid(),
+                                  deopt_id());
+}
+
+
+ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
+                                                        Value* new_right) {
+  return new RelationalOpInstr(token_pos(),
+                               kind(),
+                               new_left,
+                               new_right,
+                               operation_cid(),
+                               deopt_id());
+}
+
+
+ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
+                                                         Value* new_right) {
+  return new StrictCompareInstr(token_pos(),
+                                kind(),
+                                new_left,
+                                new_right,
+                                needs_number_check());
+}
+
+
+
+ComparisonInstr* TestSmiInstr::CopyWithNewOperands(Value* new_left,
+                                                   Value* new_right) {
+  return new TestSmiInstr(token_pos(), kind(), new_left, new_right);
+}
+
+
 bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
                                Value* v1,
                                Value* v2) {
-  if (!(comparison->IsStrictCompare() &&
-        !comparison->AsStrictCompare()->needs_number_check()) &&
-      !(comparison->IsEqualityCompare() &&
-        (comparison->AsEqualityCompare()->operation_cid() == kSmiCid))) {
+  bool is_smi_result = BindsToSmiConstant(v1) && BindsToSmiConstant(v2);
+  if (comparison->IsStrictCompare()) {
+    // Strict comparison with number checks calls a stub and is not supported
+    // by if-conversion.
+    return is_smi_result
+        && !comparison->AsStrictCompare()->needs_number_check();
+  }
+  if (comparison->operation_cid() != kSmiCid) {
+    // Non-smi comparisons are not supported by if-conversion.
     return false;
   }
-
-  if (!BindsToSmiConstant(v1) || !BindsToSmiConstant(v2)) {
-    return false;
-  }
-
-  return true;
+  return is_smi_result;
 }
 
 

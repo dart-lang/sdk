@@ -1290,7 +1290,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
           new StrictCompareInstr(call_->instance_call()->token_pos(),
                                  Token::kEQ_STRICT,
                                  new Value(load_cid),
-                                 new Value(cid_constant));
+                                 new Value(cid_constant),
+                                 false);  // No number check.
       BranchInstr* branch = new BranchInstr(compare);
       branch->InheritDeoptTarget(call_);
       AppendInstruction(AppendInstruction(cursor, cid_constant), branch);

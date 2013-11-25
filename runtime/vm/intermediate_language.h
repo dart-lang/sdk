@@ -2152,12 +2152,20 @@ class TemplateDefinition : public Definition {
 
  private:
   friend class BranchInstr;
+  friend class IfThenElseInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     inputs_[i] = value;
   }
 
   LocationSummary* locs_;
+};
+
+
+struct BranchLabels {
+  Label* true_label;
+  Label* false_label;
+  Label* fall_through;
 };
 
 
@@ -2171,8 +2179,13 @@ class ComparisonInstr : public TemplateDefinition<2> {
   intptr_t token_pos() const { return token_pos_; }
   Token::Kind kind() const { return kind_; }
 
+  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right) = 0;
+
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch) = 0;
+
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
+                                       BranchLabels labels) = 0;
 
   void SetDeoptId(intptr_t deopt_id) {
     deopt_id_ = deopt_id;
@@ -2207,7 +2220,16 @@ class ComparisonInstr : public TemplateDefinition<2> {
 
 class BranchInstr : public Instruction {
  public:
-  explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false);
+  explicit BranchInstr(ComparisonInstr* comparison, bool is_checked = false)
+      : comparison_(comparison),
+        is_checked_(is_checked),
+        constrained_type_(NULL),
+        constant_target_(NULL) {
+    ASSERT(comparison->env() == NULL);
+    for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
+      comparison->InputAt(i)->set_instruction(this);
+    }
+  }
 
   DECLARE_INSTRUCTION(Branch)
 
@@ -2243,6 +2265,8 @@ class BranchInstr : public Instruction {
       LocationSummary* summary = comparison()->MakeLocationSummary();
       // Branches don't produce a result.
       summary->set_out(Location::NoLocation());
+      // The back-end expects the location summary to be stored in the
+      // comparison.
       comparison()->locs_ = summary;
     }
     return comparison()->locs_;
@@ -2296,7 +2320,9 @@ class BranchInstr : public Instruction {
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
  private:
-  virtual void RawSetInputAt(intptr_t i, Value* value);
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    comparison()->RawSetInputAt(i, value);
+  }
 
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
@@ -2888,9 +2914,13 @@ class StrictCompareInstr : public ComparisonInstr {
   StrictCompareInstr(intptr_t token_pos,
                      Token::Kind kind,
                      Value* left,
-                     Value* right);
+                     Value* right,
+                     bool needs_number_check);
 
   DECLARE_INSTRUCTION(StrictCompare)
+
+  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+
   virtual CompileType ComputeType() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2906,6 +2936,9 @@ class StrictCompareInstr : public ComparisonInstr {
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
+
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
+                                       BranchLabels labels);
 
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
@@ -2936,6 +2969,9 @@ class TestSmiInstr : public ComparisonInstr {
   }
 
   DECLARE_INSTRUCTION(TestSmi);
+
+  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+
   virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const { return false; }
@@ -2960,6 +2996,9 @@ class TestSmiInstr : public ComparisonInstr {
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
 
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
+                                       BranchLabels labels);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(TestSmiInstr);
 };
@@ -2980,6 +3019,9 @@ class EqualityCompareInstr : public ComparisonInstr {
   }
 
   DECLARE_INSTRUCTION(EqualityCompare)
+
+  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+
   virtual CompileType ComputeType() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2993,6 +3035,9 @@ class EqualityCompareInstr : public ComparisonInstr {
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
+
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
+                                       BranchLabels labels);
 
   virtual intptr_t DeoptimizationTarget() const {
     return GetDeoptId();
@@ -3029,6 +3074,9 @@ class RelationalOpInstr : public ComparisonInstr {
   }
 
   DECLARE_INSTRUCTION(RelationalOp)
+
+  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+
   virtual CompileType ComputeType() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -3043,6 +3091,8 @@ class RelationalOpInstr : public ComparisonInstr {
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
 
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
+                                       BranchLabels labels);
 
   virtual intptr_t DeoptimizationTarget() const {
     return GetDeoptId();
@@ -3068,19 +3118,19 @@ class RelationalOpInstr : public ComparisonInstr {
 
 // TODO(vegorov): ComparisonInstr should be switched to use IfTheElseInstr for
 // materialization of true and false constants.
-class IfThenElseInstr : public TemplateDefinition<2> {
+class IfThenElseInstr : public Definition {
  public:
-  IfThenElseInstr(Token::Kind kind,
-                  Value* left,
-                  Value* right,
+  IfThenElseInstr(ComparisonInstr* comparison,
                   Value* if_true,
                   Value* if_false)
-      : kind_(kind),
+      : comparison_(comparison),
         if_true_(Smi::Cast(if_true->BoundConstant()).Value()),
         if_false_(Smi::Cast(if_false->BoundConstant()).Value()) {
-    ASSERT(Token::IsEqualityOperator(kind));
-    SetInputAt(0, left);
-    SetInputAt(1, right);
+    // Adjust uses at the comparison.
+    ASSERT(comparison->env() == NULL);
+    for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
+      comparison->InputAt(i)->set_instruction(this);
+    }
   }
 
   // Returns true if this combination of comparison and values flowing on
@@ -3089,35 +3139,66 @@ class IfThenElseInstr : public TemplateDefinition<2> {
 
   DECLARE_INSTRUCTION(IfThenElse)
 
+  intptr_t InputCount() const { return comparison()->InputCount(); }
+
+  Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
+
+  virtual bool CanDeoptimize() const {
+    return comparison()->CanDeoptimize();
+  }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    return comparison()->CanBecomeDeoptimizationTarget();
+  }
+
+  virtual LocationSummary* locs() {
+    if (comparison()->locs_ == NULL) {
+      LocationSummary* summary = MakeLocationSummary();
+      // The back-end expects the location summary to be stored in the
+      // comparison.
+      comparison()->locs_ = summary;
+    }
+    return comparison()->locs_;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return comparison()->DeoptimizationTarget();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t i) const {
+    return comparison()->RequiredInputRepresentation(i);
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual CompileType ComputeType() const;
 
   virtual void InferRange();
 
-  virtual bool CanDeoptimize() const { return false; }
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
+  ComparisonInstr* comparison() const { return comparison_; }
   intptr_t if_true() const { return if_true_; }
   intptr_t if_false() const { return if_false_; }
 
-  Token::Kind kind() const { return kind_; }
-
-  virtual bool AllowsCSE() const { return true; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AllowsCSE() const { return comparison()->AllowsCSE(); }
+  virtual EffectSet Effects() const { return comparison()->Effects(); }
+  virtual EffectSet Dependencies() const {
+    return comparison()->Dependencies();
+  }
   virtual bool AttributesEqual(Instruction* other) const {
     IfThenElseInstr* other_if_then_else = other->AsIfThenElse();
-    return (kind_ == other_if_then_else->kind_) &&
+    return comparison()->AttributesEqual(other_if_then_else->comparison()) &&
            (if_true_ == other_if_then_else->if_true_) &&
            (if_false_ == other_if_then_else->if_false_);
   }
 
-  virtual bool MayThrow() const { return false; }
+  virtual bool MayThrow() const { return comparison()->MayThrow(); }
 
  private:
-  const Token::Kind kind_;
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    comparison()->RawSetInputAt(i, value);
+  }
+
+  ComparisonInstr* comparison_;
   const intptr_t if_true_;
   const intptr_t if_false_;
 

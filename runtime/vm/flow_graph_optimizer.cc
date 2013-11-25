@@ -1456,10 +1456,12 @@ bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
       ConstantInstr* left_const = left->AsConstant();
       if ((right_const != NULL && right_const->value().IsNull()) ||
           (left_const != NULL && left_const->value().IsNull())) {
-        StrictCompareInstr* comp = new StrictCompareInstr(call->token_pos(),
-                                                          Token::kEQ_STRICT,
-                                                          new Value(left),
-                                                          new Value(right));
+        StrictCompareInstr* comp =
+            new StrictCompareInstr(call->token_pos(),
+                                   Token::kEQ_STRICT,
+                                   new Value(left),
+                                   new Value(right),
+                                   false);  // No number check.
         ReplaceCall(call, comp);
         return true;
       }
@@ -6368,34 +6370,17 @@ void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
 
 
 void ConstantPropagator::VisitIfThenElse(IfThenElseInstr* instr) {
-  ASSERT(Token::IsEqualityOperator(instr->kind()));
-
-  const Object& left = instr->left()->definition()->constant_value();
-  const Object& right = instr->right()->definition()->constant_value();
-
-  if (IsNonConstant(left) || IsNonConstant(right)) {
-    // TODO(vegorov): incorporate nullability information into the lattice.
-    if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
-        (right.IsNull() && instr->left()->Type()->HasDecidableNullability())) {
-      bool result = left.IsNull() ? instr->right()->Type()->IsNull()
-                                  : instr->left()->Type()->IsNull();
-      if (instr->kind() == Token::kNE_STRICT ||
-          instr->kind() == Token::kNE) {
-        result = !result;
-      }
-      SetValue(instr, Smi::Handle(
-          Smi::New(result ? instr->if_true() : instr->if_false())));
-    } else {
-      SetValue(instr, non_constant_);
-    }
-  } else if (IsConstant(left) && IsConstant(right)) {
-    bool result = (left.raw() == right.raw());
-    if (instr->kind() == Token::kNE_STRICT ||
-        instr->kind() == Token::kNE) {
-      result = !result;
-    }
-    SetValue(instr, Smi::Handle(
-        Smi::New(result ? instr->if_true() : instr->if_false())));
+  instr->comparison()->Accept(this);
+  const Object& value = instr->comparison()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    ASSERT(!value.IsNull());
+    ASSERT(value.IsBool());
+    bool result = Bool::Cast(value).value();
+    SetValue(instr,
+             Smi::Handle(Smi::New(
+                 result ? instr->if_true() : instr->if_false())));
   }
 }
 
@@ -7466,37 +7451,11 @@ JoinEntryInstr* BranchSimplifier::ToJoinEntry(TargetEntryInstr* target) {
 
 
 BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
-                                           Value* left,
-                                           Value* right) {
+                                           Value* new_left,
+                                           Value* new_right) {
   ComparisonInstr* comparison = branch->comparison();
-  ComparisonInstr* new_comparison = NULL;
-  if (comparison->IsStrictCompare()) {
-    new_comparison = new StrictCompareInstr(comparison->token_pos(),
-                                            comparison->kind(),
-                                            left,
-                                            right);
-  } else if (comparison->IsEqualityCompare()) {
-    EqualityCompareInstr* equality_compare = comparison->AsEqualityCompare();
-    EqualityCompareInstr* new_equality_compare =
-        new EqualityCompareInstr(equality_compare->token_pos(),
-                                 comparison->kind(),
-                                 left,
-                                 right,
-                                 equality_compare->operation_cid(),
-                                 equality_compare->deopt_id());
-    new_comparison = new_equality_compare;
-  } else {
-    ASSERT(comparison->IsRelationalOp());
-    RelationalOpInstr* relational_op = comparison->AsRelationalOp();
-    RelationalOpInstr* new_relational_op =
-        new RelationalOpInstr(relational_op->token_pos(),
-                              comparison->kind(),
-                              left,
-                              right,
-                              relational_op->operation_cid(),
-                              relational_op->deopt_id());
-    new_comparison = new_relational_op;
-  }
+  ComparisonInstr* new_comparison =
+      comparison->CopyWithNewOperands(new_left, new_right);
   return new BranchInstr(new_comparison, branch->is_checked());
 }
 
@@ -7708,10 +7667,11 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
           Value* if_true = (pred1 == branch->true_successor()) ? v1 : v2;
           Value* if_false = (pred2 == branch->true_successor()) ? v1 : v2;
 
+          ComparisonInstr* new_comparison =
+              comparison->CopyWithNewOperands(comparison->left()->Copy(),
+                                              comparison->right()->Copy());
           IfThenElseInstr* if_then_else = new IfThenElseInstr(
-              comparison->kind(),
-              comparison->InputAt(0)->Copy(),
-              comparison->InputAt(1)->Copy(),
+              new_comparison,
               if_true->Copy(),
               if_false->Copy());
           flow_graph->InsertBefore(branch,
