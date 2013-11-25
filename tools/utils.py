@@ -443,6 +443,17 @@ def Touch(name):
     os.utime(name, None)
 
 
+def ExecuteCommand(cmd):
+  """Execute a command in a subprocess."""
+  print 'Executing: ' + ' '.join(cmd)
+  pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+      shell=IsWindows())
+  output = pipe.communicate()
+  if pipe.returncode != 0:
+    raise Exception('Execution failed: ' + str(output))
+  return (pipe.returncode, output)
+
+
 def DartBinary():
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   dart_binary_prefix = os.path.join(tools_dir, 'testing', 'bin')

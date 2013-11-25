@@ -16,7 +16,6 @@ import subprocess
 import sys
 sys.path.append(abspath(join(dirname(__file__), '../../../tools')))
 import utils
-from upload_sdk import ExecuteCommand
 
 
 DART = abspath(join(dirname(__file__), '../../../%s/%s/dart-sdk/bin/dart'
@@ -63,7 +62,7 @@ def SetGsutil():
 def Upload(source, target):
   """ Upload files to Google Storage. """
   cmd = [GSUTIL, '-m', 'cp', '-q', '-a', 'public-read', '-r', source, target]
-  (status, output) = ExecuteCommand(cmd)
+  (status, output) = utils.ExecuteCommand(cmd)
   return status
 
 
@@ -73,7 +72,7 @@ def main():
   SetGsutil()
 
   # Execute Docgen.dart on the SDK.
-  ExecuteCommand(['python', 'dartdoc.py', '-d'])
+  utils.ExecuteCommand(['python', 'dartdoc.py', '-d'])
 
   # Use SVN Revision to get the revision number.
   revision = None
@@ -109,8 +108,8 @@ def main():
   Upload('./VERSION', GS_SITE + '/' + revision + '/' + 'VERSION')
 
   # Clean up the files it creates.
-  ExecuteCommand(['rm', '-rf', './docs'])
-  ExecuteCommand(['rm', '-f', './VERSION'])
+  utils.ExecuteCommand(['rm', '-rf', './docs'])
+  utils.ExecuteCommand(['rm', '-f', './VERSION'])
 
 
 if __name__ == '__main__':

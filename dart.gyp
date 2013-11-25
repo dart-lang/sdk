@@ -15,7 +15,6 @@
         'packages',
         'runtime',
         'samples',
-        'upload_sdk',
       ],
     },
     {
@@ -41,8 +40,6 @@
       ],
     },
     {
-      # Build the SDK. This target is separate from upload_sdk as the
-      # editor needs to build the SDK without uploading it.
       'target_name': 'create_sdk',
       'type': 'none',
       'dependencies': [
@@ -75,35 +72,6 @@
             '--snapshot_location', '<(SHARED_INTERMEDIATE_DIR)/'
           ],
           'message': 'Creating SDK.',
-        },
-      ],
-    },
-    {
-      # Upload the SDK. This target is separate from create_sdk as the
-      # editor needs to build the SDK without uploading it.
-      'target_name': 'upload_sdk',
-      'type': 'none',
-      'dependencies': [
-        'create_sdk',
-      ],
-      'inputs': [
-        '<(PRODUCT_DIR)/dart-sdk/README',
-      ],
-      'actions': [
-        {
-          'action_name': 'upload_sdk_py',
-          'inputs': [
-            '<(PRODUCT_DIR)/dart-sdk/README',
-            'tools/upload_sdk.py',
-          ],
-          'outputs': [
-            '<(PRODUCT_DIR)/dart-sdk/upload.stamp',
-          ],
-          'action': [
-            'python',
-            'tools/upload_sdk.py',
-            '<(PRODUCT_DIR)/dart-sdk'
-          ],
         },
       ],
     },
