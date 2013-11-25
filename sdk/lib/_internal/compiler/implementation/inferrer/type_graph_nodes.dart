@@ -817,6 +817,12 @@ class ContainerTypeInformation extends TypeInformation {
   /** The length after the container has been traced. */
   int inferredLength;
 
+  /**
+   * Whether this container goes through a growable check.
+   * We conservatively assume it does.
+   */
+  bool checksGrowable = true;
+
   ContainerTypeInformation(this.originalContainerType,
                            this.elementType,
                            this.originalLength) {

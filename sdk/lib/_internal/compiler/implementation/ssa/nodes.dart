@@ -1571,6 +1571,7 @@ class HLocalSet extends HFieldAccess {
 class HForeign extends HInstruction {
   final js.Node codeAst;
   final bool isStatement;
+  final bool _canThrow;
   final native.NativeBehavior nativeBehavior;
 
   HForeign(this.codeAst,
@@ -1578,8 +1579,11 @@ class HForeign extends HInstruction {
            List<HInstruction> inputs,
            {this.isStatement: false,
             SideEffects effects,
-            native.NativeBehavior nativeBehavior})
-      : this.nativeBehavior = nativeBehavior, super(inputs, type) {
+            native.NativeBehavior nativeBehavior,
+            canThrow: false})
+      : this.nativeBehavior = nativeBehavior,
+        this._canThrow = canThrow,
+        super(inputs, type) {
     if (effects == null && nativeBehavior != null) {
       effects = nativeBehavior.sideEffects;
     }
@@ -1597,7 +1601,9 @@ class HForeign extends HInstruction {
 
   bool isJsStatement() => isStatement;
   bool canThrow() {
-    return sideEffects.hasSideEffects() || sideEffects.dependsOnSomething();
+    return _canThrow
+        || sideEffects.hasSideEffects()
+        || sideEffects.dependsOnSomething();
   }
 }
 

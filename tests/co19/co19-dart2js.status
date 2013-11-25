@@ -27,7 +27,6 @@ Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # TODO(ahe): Please tri
 Language/05_Variables/05_Variables_A11_t01: fail
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
-LibTest/core/List/List_A03_t01: RuntimeError # TODO(kasperl): Please triage this failure.
 
 LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
@@ -439,7 +438,6 @@ Language/15_Types/4_Interface_Types_A12_t10: fail # co19-roll r546: Please triag
 LibTest/core/DateTime/DateTime_A01_t03: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Duration/operator_div_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/List_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Match/pattern_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/core/RegExp/allMatches_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure

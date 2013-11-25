@@ -32,6 +32,7 @@ abstract class TypesInferrer {
   void clear();
   Iterable<Element> getCallersOf(Element element);
   bool isCalledOnce(Element element);
+  bool isFixedArrayCheckedForGrowable(Node node);
 }
 
 /**

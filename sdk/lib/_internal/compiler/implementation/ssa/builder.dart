@@ -3800,10 +3800,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   handleNewSend(NewExpression node) {
     Send send = node.send;
     bool isFixedList = false;
+    bool isFixedListConstructorCall =
+        Elements.isFixedListConstructorCall(elements[send], send, compiler);
 
     TypeMask computeType(element) {
       Element originalElement = elements[send];
-      if (Elements.isFixedListConstructorCall(originalElement, send, compiler)
+      if (isFixedListConstructorCall
           || Elements.isFilledListConstructorCall(
                   originalElement, send, compiler)) {
         isFixedList = true;
@@ -3878,30 +3880,62 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
 
-    ClassElement cls = constructor.getEnclosingClass();
-    if (cls.isAbstract && constructor.isGenerativeConstructor()) {
-      generateAbstractClassInstantiationError(send, cls.name);
-      return;
-    }
-    if (backend.classNeedsRti(cls)) {
-      Link<DartType> typeVariable = cls.typeVariables;
-      expectedType.typeArguments.forEach((DartType argument) {
-        inputs.add(analyzeTypeArgument(argument));
-        typeVariable = typeVariable.tail;
-      });
-      assert(typeVariable.isEmpty);
-    }
-
     if (constructor.isFactoryConstructor() &&
         !expectedType.typeArguments.isEmpty) {
       compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
     }
-    TypeMask elementType = computeType(constructor);
-    addInlinedInstantiation(expectedType);
-    pushInvokeStatic(node, constructor, inputs, elementType);
-    removeInlinedInstantiation(expectedType);
-    HInstruction newInstance = stack.last;
 
+    TypeMask elementType = computeType(constructor);
+    if (isFixedListConstructorCall) {
+      if (!inputs[0].isNumber(compiler)) {
+        HTypeConversion conversion = new HTypeConversion(
+          null, HTypeConversion.ARGUMENT_TYPE_CHECK, backend.numType,
+          inputs[0], null);
+        add(conversion);
+        inputs[0] = conversion;
+      }
+      js.Expression code = js.js.parseForeignJS('Array(#)');
+      var behavior = new native.NativeBehavior();
+      behavior.typesReturned.add(expectedType);
+      // The allocation can throw only if the given length is a double
+      // or negative.
+      bool canThrow = true;
+      if (inputs[0].isInteger(compiler) && inputs[0] is HConstant) {
+        var constant = inputs[0];
+        if (constant.constant.value >= 0) canThrow = false;
+      }
+      HForeign foreign = new HForeign(
+          code, elementType, inputs, nativeBehavior: behavior,
+          canThrow: canThrow);
+      push(foreign);
+      TypesInferrer inferrer = compiler.typesTask.typesInferrer;
+      if (inferrer.isFixedArrayCheckedForGrowable(send)) {
+        js.Expression code = js.js.parseForeignJS(r'#.fixed$length = init');
+        // We set the instruction as [canThrow] to avoid it being dead code.
+        // We need a finer grained side effect.
+        add(new HForeign(
+              code, backend.nullType, [stack.last], canThrow: true));
+      }
+    } else {
+      ClassElement cls = constructor.getEnclosingClass();
+      if (cls.isAbstract && constructor.isGenerativeConstructor()) {
+        generateAbstractClassInstantiationError(send, cls.name);
+        return;
+      }
+      if (backend.classNeedsRti(cls)) {
+        Link<DartType> typeVariable = cls.typeVariables;
+        expectedType.typeArguments.forEach((DartType argument) {
+          inputs.add(analyzeTypeArgument(argument));
+          typeVariable = typeVariable.tail;
+        });
+        assert(typeVariable.isEmpty);
+      }
+
+      addInlinedInstantiation(expectedType);
+      pushInvokeStatic(node, constructor, inputs, elementType);
+      removeInlinedInstantiation(expectedType);
+    }
+    HInstruction newInstance = stack.last;
     if (isFixedList) {
       JavaScriptItemCompilationContext context = work.compilationContext;
       context.allocatedFixedLists.add(newInstance);
@@ -3911,7 +3945,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (isJSArrayTypedConstructor &&
+    if ((isFixedListConstructorCall || isJSArrayTypedConstructor) &&
         backend.classNeedsRti(compiler.listClass)) {
       handleListConstructor(type, send, newInstance);
     }

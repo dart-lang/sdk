@@ -139,9 +139,9 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   // The list of found assignments to the container.
   final List<TypeInformation> assignments = <TypeInformation>[];
 
-  bool enableLengthTracking = true;
+  bool callsGrowableMethod = false;
   bool continueAnalyzing = true;
-
+  
   static const int MAX_ANALYSIS_COUNT = 16;
   final Setlet<Element> analyzedElements = new Setlet<Element>();
 
@@ -178,7 +178,7 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
     }
 
     if (continueAnalyzing) {
-      if (enableLengthTracking && container.inferredLength == null) {
+      if (!callsGrowableMethod && container.inferredLength == null) {
         container.inferredLength = container.originalLength;
       }
       return assignments;
@@ -193,7 +193,7 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
             'because: $reason');
     }
     continueAnalyzing = false;
-    enableLengthTracking = false;
+    callsGrowableMethod = true;
   }
 
   visitNarrowTypeInformation(NarrowTypeInformation info) {}
@@ -248,10 +248,10 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
         }
       }
       if (!doNotChangeLengthSelectorsSet.contains(selectorName)) {
-        enableLengthTracking = false;
+        callsGrowableMethod = true;
       }
       if (selectorName == 'length' && selector.isSetter()) {
-        enableLengthTracking = false;
+        callsGrowableMethod = true;
         assignments.add(inferrer.types.nullType);
       }
     } else if (selector.isCall()

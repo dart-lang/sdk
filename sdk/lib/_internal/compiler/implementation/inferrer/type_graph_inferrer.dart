@@ -430,6 +430,10 @@ class TypeGraphInferrerEngine
       if (newAssignments == null) return;
 
       info.elementType.inferred = true;
+      TypeMask fixedListType = compiler.typesTask.fixedListType;
+      if (info.originalContainerType.forwardTo == fixedListType) {
+        info.checksGrowable = tracer.callsGrowableMethod;
+      }
       newAssignments.forEach(info.elementType.addAssignment);
       workQueue.add(info);
       workQueue.add(info.elementType);
@@ -873,6 +877,12 @@ class TypeGraphInferrer implements TypesInferrer {
   TypeMask getTypeOfNode(Element owner, Node node) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return inferrer.types.allocatedContainers[node].type;
+  }
+
+  bool isFixedArrayCheckedForGrowable(Node node) {
+    if (compiler.disableTypeInference) return true;
+    ContainerTypeInformation info = inferrer.types.allocatedContainers[node];
+    return info.checksGrowable;
   }
 
   TypeMask getTypeOfSelector(Selector selector) {
