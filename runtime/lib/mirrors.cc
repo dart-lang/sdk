@@ -250,7 +250,7 @@ static RawInstance* CreateTypedefMirror(const Class& cls,
   const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
-  args.SetAt(2, String::Handle(cls.UserVisibleName()));
+  args.SetAt(2, String::Handle(cls.Name()));
   args.SetAt(3, Bool::Get(cls.NumTypeParameters() != 0));
   args.SetAt(4, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
   args.SetAt(5, owner_mirror);

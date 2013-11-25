@@ -1578,7 +1578,7 @@ RawString* Class::UserVisibleName() const {
     case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().raw();
     default:
-      if (!IsSignatureClass()) {
+      if (!IsCanonicalSignatureClass()) {
         const String& name = String::Handle(Name());
         return String::IdentifierPrettyName(name);
       } else {
