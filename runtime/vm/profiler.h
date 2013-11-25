@@ -41,6 +41,7 @@ class ProfilerManager : public AllStatic {
   static intptr_t isolates_capacity_;
   static intptr_t isolates_size_;
 
+  static void ScheduleIsolateHelper(Isolate* isolate);
   static void ResizeIsolates(intptr_t new_capacity);
   static void AddIsolate(Isolate* isolate);
   static intptr_t FindIsolate(Isolate* isolate);

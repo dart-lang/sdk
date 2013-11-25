@@ -169,6 +169,27 @@ void ProfilerManager::ShutdownIsolateForProfiling(Isolate* isolate) {
 }
 
 
+void ProfilerManager::ScheduleIsolateHelper(Isolate* isolate) {
+  ScopedMonitor lock(monitor_);
+  intptr_t i = FindIsolate(isolate);
+  if (i >= 0) {
+    // Already scheduled.
+    return;
+  }
+  {
+    ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
+    IsolateProfilerData* profiler_data = isolate->profiler_data();
+    if (profiler_data == NULL) {
+      return;
+    }
+    profiler_data->Scheduled(OS::GetCurrentTimeMicros(),
+                             Thread::GetCurrentThreadId());
+  }
+  AddIsolate(isolate);
+  lock.Notify();
+}
+
+
 void ProfilerManager::ScheduleIsolate(Isolate* isolate, bool inside_signal) {
   if (!FLAG_profile) {
     return;
@@ -178,34 +199,12 @@ void ProfilerManager::ScheduleIsolate(Isolate* isolate, bool inside_signal) {
   if (!inside_signal) {
     ScopedSignalBlocker ssb;
     {
-      ScopedMonitor lock(monitor_);
-      {
-        ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
-        IsolateProfilerData* profiler_data = isolate->profiler_data();
-        if (profiler_data == NULL) {
-          return;
-        }
-        profiler_data->Scheduled(OS::GetCurrentTimeMicros(),
-                                 Thread::GetCurrentThreadId());
-      }
-      AddIsolate(isolate);
-      lock.Notify();
+      ScheduleIsolateHelper(isolate);
     }
   } else {
     // Do not need a signal blocker inside a signal handler.
     {
-      ScopedMonitor lock(monitor_);
-      {
-        ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
-        IsolateProfilerData* profiler_data = isolate->profiler_data();
-        if (profiler_data == NULL) {
-          return;
-        }
-        profiler_data->Scheduled(OS::GetCurrentTimeMicros(),
-                                 Thread::GetCurrentThreadId());
-      }
-      AddIsolate(isolate);
-      lock.Notify();
+      ScheduleIsolateHelper(isolate);
     }
   }
 }
