@@ -35,7 +35,6 @@ mirrors/generics_substitution_test/01: RuntimeError # Issue 12087
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
 mirrors/immutable_collections_test: RuntimeError # Issue 14030
 mirrors/initializing_formals_test/01: RuntimeError # Issue 6490
-mirrors/initializing_formals_test/02: RuntimeError # Issue 12087
 mirrors/initializing_formals_test/03: CompileTimeError # Issue 12164
 mirrors/instance_members_test: RuntimeError # Issue 14633
 mirrors/instance_members_with_override_test: RuntimeError # Issue 14633

@@ -1157,7 +1157,7 @@ class FieldParameterElementX extends VariableElementX
 
   DartType computeType(Compiler compiler) {
     VariableDefinitions definitions = variables.parseNode(compiler);
-    if (definitions.type == null && !definitions.modifiers.isVar()) {
+    if (definitions.type == null) {
       return fieldElement.computeType(compiler);
     }
     return super.computeType(compiler);
