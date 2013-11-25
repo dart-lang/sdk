@@ -262,6 +262,10 @@ def GetVersion():
   return ("%s.%s.%s.%s%s%s" %
           (major, minor, build, patch, revision_string, user_string))
 
+def GetChannel():
+  (channel, _, _, _, _) = ReadVersionFile()
+  return channel
+
 def GetUserName():
   key = 'USER'
   if sys.platform == 'win32':

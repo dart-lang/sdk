@@ -194,6 +194,7 @@ def Main():
       '-Dbuild.source=' + os.path.abspath('editor'),
       '-Dbuild.dart.sdk=' + GetSdkPath(),
       '-Dbuild.no.properties=true',
+      '-Dbuild.channel=' + utils.GetChannel(),
       '-buildfile',
       buildScript]
   print build_cmd
