@@ -15,7 +15,6 @@ import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import '../native_handler.dart' as native;
 import '../util/util.dart' show Spannable, Setlet;
 import 'simple_types_inferrer.dart';
-import 'ir_type_inferrer.dart';
 import '../dart2jslib.dart' show invariant;
 
 part 'type_graph_nodes.dart';
@@ -473,12 +472,8 @@ class TypeGraphInferrerEngine
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-      var visitor;
-      if (compiler.irBuilder.hasIr(element)) {
-        visitor = new IrTypeInferrerVisitor(compiler, element, this);
-      } else {
-        visitor = new SimpleTypeInferrerVisitor(element, compiler, this);
-      }
+    SimpleTypeInferrerVisitor visitor =
+        new SimpleTypeInferrerVisitor(element, compiler, this);
     TypeInformation type;
     compiler.withCurrentElement(element, () {
       type = visitor.run();
@@ -689,7 +684,6 @@ class TypeGraphInferrerEngine
   void recordReturnType(Element element, TypeInformation type) {
     TypeInformation info = types.getInferredTypeOf(element);
     if (element.name == '==') {
-      // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
       info.addAssignment(types.boolType);
     }
     // TODO(ngeoffray): Clean up. We do these checks because

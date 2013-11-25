@@ -173,50 +173,28 @@ class SourceMapEntry {
   SourceMapEntry(this.sourceLocation, this.targetOffset);
 }
 
-abstract class SourceFileLocation {
+class SourceFileLocation {
   SourceFile sourceFile;
-
-  SourceFileLocation(this.sourceFile) {
-    assert(isValid());
-  }
-
+  Token token;
   int line;
 
-  int get offset;
+  SourceFileLocation(this.sourceFile, this.token) {
+    assert(isValid());
+  }
 
   String getSourceUrl() => sourceFile.filename;
 
   int getLine() {
-    if (line == null) line = sourceFile.getLine(offset);
+    if (line == null) line = sourceFile.getLine(token.charOffset);
     return line;
   }
 
-  int getColumn() => sourceFile.getColumn(getLine(), offset);
-
-  String getSourceName();
-
-  bool isValid() => offset < sourceFile.length;
-}
-
-class TokenSourceFileLocation extends SourceFileLocation {
-  final Token token;
-
-  TokenSourceFileLocation(SourceFile sourceFile, this.token)
-    : super(sourceFile);
-
-  int get offset => token.charOffset;
+  int getColumn() => sourceFile.getColumn(getLine(), token.charOffset);
 
   String getSourceName() {
     if (token.isIdentifier()) return token.value;
     return null;
   }
-}
 
-class OffsetSourceFileLocation extends SourceFileLocation {
-  final int offset;
-  final String sourceName;
-  OffsetSourceFileLocation(SourceFile sourceFile, this.offset,
-      [this.sourceName]) : super(sourceFile);
-
-  String getSourceName() => sourceName;
+  bool isValid() => token.charOffset < sourceFile.length;
 }

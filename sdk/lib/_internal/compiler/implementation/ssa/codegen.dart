@@ -19,33 +19,23 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // TODO(sra): Attaching positions might be cleaner if the source position
     // was on a wrapping node.
     SourceFile sourceFile = sourceFileOfElement(element);
-    if (compiler.irBuilder.hasIr(element)) {
-      IrFunction function = compiler.irBuilder.getIr(element);
-      node.sourcePosition = new OffsetSourceFileLocation(
-          sourceFile, function.offset, function.sourceName);
-      node.endSourcePosition = new OffsetSourceFileLocation(
-          sourceFile, function.endOffset);
+    Node expression = element.implementation.parseNode(backend.compiler);
+    Token beginToken;
+    Token endToken;
+    if (expression == null) {
+      // Synthesized node. Use the enclosing element for the location.
+      beginToken = endToken = element.position();
     } else {
-      Node expression = element.implementation.parseNode(backend.compiler);
-      Token beginToken;
-      Token endToken;
-      if (expression == null) {
-        // Synthesized node. Use the enclosing element for the location.
-        beginToken = endToken = element.position();
-      } else {
-        beginToken = expression.getBeginToken();
-        endToken = expression.getEndToken();
-      }
-      // TODO(podivilov): find the right sourceFile here and remove offset
-      // checks below.
-      if (beginToken.charOffset < sourceFile.length) {
-        node.sourcePosition =
-            new TokenSourceFileLocation(sourceFile, beginToken);
-      }
-      if (endToken.charOffset < sourceFile.length) {
-        node.endSourcePosition =
-            new TokenSourceFileLocation(sourceFile, endToken);
-      }
+      beginToken = expression.getBeginToken();
+      endToken = expression.getEndToken();
+    }
+    // TODO(podivilov): find the right sourceFile here and remove offset checks
+    // below.
+    if (beginToken.charOffset < sourceFile.length) {
+      node.sourcePosition = new SourceFileLocation(sourceFile, beginToken);
+    }
+    if (endToken.charOffset < sourceFile.length) {
+      node.endSourcePosition = new SourceFileLocation(sourceFile, endToken);
     }
     return node;
   }

@@ -185,7 +185,7 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
 
 /**
  * A node representing a resolved element of the program. The kind of
- * elements that need an [ElementTypeInformation] are:
+ * elements that need an [ElementTypeRepresentation] are:
  *
  * - Functions (including getters and setters)
  * - Constructors (factory or generative)

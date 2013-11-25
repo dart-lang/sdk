@@ -16,7 +16,6 @@ import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
-import '../ir/ir_nodes.dart';
 import '../types/types.dart';
 import '../universe/universe.dart';
 import '../util/util.dart';
@@ -31,8 +30,6 @@ import '../elements/modelx.dart'
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 
 part 'builder.dart';
-part 'from_ir_builder.dart';
-part 'from_ir_inliner.dart';
 part 'codegen.dart';
 part 'codegen_helpers.dart';
 part 'interceptor_simplifier.dart';

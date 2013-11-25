@@ -268,7 +268,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
           node.element,
           <HInstruction>[constant, node.inputs[1]],
           node.instructionType);
-    } else if (selector.isSetter()) {
+    } else if (node.selector.isSetter()) {
       instruction = new HInvokeDynamicSetter(
           selector,
           node.element,
