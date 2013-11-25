@@ -86,7 +86,7 @@ void quitShell() {
 
 
 Future sendCmd(Map<String, dynamic> cmd) {
-  var completer = new Completer();
+  var completer = new Completer.sync();
   int id = cmd["id"];
   outstandingCommands[id] = completer;
   if (verbose) {
