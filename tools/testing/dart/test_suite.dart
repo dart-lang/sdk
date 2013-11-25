@@ -1533,23 +1533,8 @@ class StandardTestSuite extends TestSuite {
 
     bool hasCompileError = contents.contains("@compile-error");
     bool hasRuntimeError = contents.contains("@runtime-error");
-    bool hasDynamicTypeError = contents.contains("@dynamic-type-error");
     bool hasStaticWarning = contents.contains("@static-warning");
     bool isMultitest = multiTestRegExp.hasMatch(contents);
-
-    if (hasDynamicTypeError) {
-      // TODO(ahe): Remove this warning when co19 no longer uses this tag.
-
-      // @dynamic-type-error has been replaced by tests that use
-      // tests/co19/src/Utils/dynamic_check.dart to dynamically detect
-      // if a test is running in checked mode or not and change its
-      // expectations accordingly.
-
-      // Using stderr.writeString to avoid breaking dartc/junit_tests
-      // which parses the output of the --list option.
-      stderr.writeln(
-          "Warning: deprecated @dynamic-type-error tag used in $filePath");
-    }
 
     return {
       "vmOptions": <List>[[]],
