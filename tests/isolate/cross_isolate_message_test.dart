@@ -7,7 +7,8 @@
 
 library CrossIsolateMessageTest;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 /*
  * Everything starts in the main-isolate (in the main-method).
@@ -34,7 +35,8 @@ void crossIsolate2(SendPort toIsolate1) {
   toIsolate1.send(["fromIsolate2", 42]);
 }
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test("send message cross isolates ", () {
     ReceivePort fromIsolate1 = new ReceivePort();
     Isolate.spawn(crossIsolate1, fromIsolate1.sendPort);

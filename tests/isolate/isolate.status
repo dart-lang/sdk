@@ -90,29 +90,8 @@ spawn_uri_multi_test/none: RuntimeError # http://dartbug.com/13544
 [ $compiler == none && $runtime == dartium ]
 spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-# Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
-browser/compute_this_script_browser_test: Fail
-browser/typed_data_message_test: Skip # 13961
-count_test: Fail
-cross_isolate_message_test: Fail
-illegal_msg_function_test: Fail
-illegal_msg_mirror_test: Fail
-isolate_complex_messages_test: Fail
-isolate_stress_test: Fail
-mandel_isolate_test: Fail
-message2_test: Fail
-message_test: Fail
-mint_maker_test: Fail
-nested_spawn2_test: Fail
-nested_spawn_test: Fail
-raw_port_test: Fail
-request_reply_test: Fail
-spawn_function_custom_class_test: Fail
-spawn_function_test: Fail
-stacktrace_message_test: Fail
-unresolved_ports_test: Fail
-static_function_test: Fail
+[ $compiler == none && $runtime == dartium ]
+isolate_stress_test: Skip # Issue 14463
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning

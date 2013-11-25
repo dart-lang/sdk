@@ -8,7 +8,8 @@ library static_function_test;
 import 'dart:isolate';
 import 'dart:async';
 import 'static_function_lib.dart' as lib;
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import 'remote_unittest_helper.dart';
 
 void function(SendPort port) { port.send("TOP"); }
 void _function(SendPort port) { port.send("_TOP"); }
@@ -75,7 +76,8 @@ void throwsTest(name, function) {
   });
 }
 
-void main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   // Sanity check.
   spawnTest("function", function, "TOP");
   spawnTest("_function", _function, "_TOP");

@@ -7,7 +7,8 @@
 
 library Message2Test;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 // ---------------------------------------------------------------------------
 // Message passing test 2.
@@ -55,7 +56,8 @@ void pingPong(replyPort) {
   replyPort.send(port.sendPort);
 }
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test("map is equal after it is sent back and forth", () {
     ReceivePort port = new ReceivePort();
     Isolate.spawn(pingPong, port.sendPort);

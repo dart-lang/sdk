@@ -8,7 +8,8 @@
 library MessageTest;
 import 'dart:isolate';
 import 'dart:async';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 // ---------------------------------------------------------------------------
 // Message passing test.
@@ -93,7 +94,8 @@ Future remoteCall(SendPort port, message) {
   return receivePort.first;
 }
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test("send objects and receive them back", () {
     ReceivePort port = new ReceivePort();
     Isolate.spawn(pingPong, port.sendPort);

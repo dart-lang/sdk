@@ -4,10 +4,10 @@
 
 library illegal_msg_function_test;
 
-import "package:expect/expect.dart";
 import "dart:isolate";
 import "dart:async" show Future;
-import "package:async_helper/async_helper.dart";
+import "package:unittest/unittest.dart";
+import "remote_unittest_helper.dart";
 
 funcFoo(x) => x + 2;
 
@@ -19,31 +19,29 @@ echo(sendPort) {
   });
 }
 
-main() {
-  var function = funcFoo;
+void main([args, port]) {
+  if (testRemote(main, port)) return;
+  test("msg_function", () {
+    var function = funcFoo;
+    ReceivePort port = new ReceivePort();
+    Future spawn = Isolate.spawn(echo, port.sendPort);
+    var caught_exception = false;
+    var stream = port.asBroadcastStream();
+    stream.first.then(expectAsync1((snd) {
+      try {
+        snd.send(function);
+      } catch (e) {
+        caught_exception = true;
+      }
 
-  ReceivePort port = new ReceivePort();
-  Future spawn = Isolate.spawn(echo, port.sendPort);
-  var caught_exception = false;
-  var stream = port.asBroadcastStream();
-  asyncStart();
-  stream.first.then((snd) {
-    try {
-      snd.send(function);
-    } catch (e) {
-      caught_exception = true;
-    }
-
-    if (caught_exception) {
-      port.close();
-    } else {
-      asyncStart();
-      stream.first.then((msg) {
-        print("from worker ${msg}");
-        asyncEnd();
-      });
-    }
-    Expect.isTrue(caught_exception);
-    asyncEnd();
+      if (caught_exception) {
+        port.close();
+      } else {
+        stream.first.then(expectAsync1((msg) {
+          print("from worker ${msg}");
+        }));
+      }
+      expect(caught_exception, isTrue);
+    }));
   });
 }

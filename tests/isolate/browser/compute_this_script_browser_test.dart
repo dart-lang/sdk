@@ -11,6 +11,7 @@ import 'dart:html';
 import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
+import "../remote_unittest_helper.dart";
 
 child(var message) {
   var data = message[0];
@@ -18,7 +19,8 @@ child(var message) {
   reply.send('re: $data');
 }
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   useHtmlConfiguration();
   var script = new ScriptElement();
   document.body.append(script);

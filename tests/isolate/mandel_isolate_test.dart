@@ -6,15 +6,17 @@ library MandelIsolateTest;
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:math';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 const TERMINATION_MESSAGE = -1;
 const N = 100;
 const ISOLATES = 20;
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   // Test is really slow in debug builds of the VM.
-  SimpleConfiguration configuration = unittestConfiguration;
+  var configuration = unittestConfiguration;
   configuration.timeout = const Duration(seconds: 480);
   test("Render Mandelbrot in parallel", () {
     final state = new MandelbrotState();

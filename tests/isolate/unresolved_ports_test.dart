@@ -6,7 +6,8 @@
 library unresolved_ports;
 import 'dart:async';
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 // This test does the following:
 //  - main spawns two isolates: 'tim' and 'beth'
@@ -72,4 +73,7 @@ baseTest({bool failForNegativeTest: false}) {
   });
 }
 
-main() => baseTest();
+void main([args, port]) {
+  if (testRemote(main, port)) return;
+  baseTest();
+}

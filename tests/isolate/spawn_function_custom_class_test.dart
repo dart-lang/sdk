@@ -9,7 +9,8 @@
 
 library spawn_tests;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 class MyClass {
   var myVar = 'there';
@@ -24,7 +25,8 @@ child(args) {
   reply.send('re: ${new MyClass().myFunc(msg)}');
 }
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test('message - reply chain', () {
     ReceivePort port = new ReceivePort();
     Isolate.spawn(child, ['hi', port.sendPort]);
