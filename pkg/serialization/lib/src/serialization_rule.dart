@@ -410,13 +410,17 @@ class MirrorRule extends NamedObjectRule {
     if (name.contains(":")) {
       var uri = Uri.parse(name);
       var libMirror = currentMirrorSystem().libraries[uri];
-      return libMirror.classes[new Symbol(type)];
+      var candidate = libMirror.declarations[new Symbol(type)];
+      return candidate is ClassMirror ? candidate : null;
     } else {
       var symbol = new Symbol(name);
       var typeSymbol = new Symbol(type);
-      var libMirror = currentMirrorSystem().libraries.values.firstWhere(
-        (lib) => lib.simpleName == symbol && lib.classes[typeSymbol] != null);
-      return libMirror.classes[typeSymbol];
+      for (var libMirror in currentMirrorSystem().libraries.values) {
+        if (libMirror.simpleName != symbol) continue;
+        var candidate = libMirror.declarations[typeSymbol];
+        if (candidate != null && candidate is ClassMirror) return candidate;
+      }
+      return null;
     }
   }
 }
