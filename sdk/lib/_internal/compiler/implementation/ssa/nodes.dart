@@ -2812,13 +2812,11 @@ class HTryBlockInformation implements HStatementInformation {
 
 class HSwitchBlockInformation implements HStatementInformation {
   final HExpressionInformation expression;
-  final List<List<Constant>> matchExpressions;
   final List<HStatementInformation> statements;
   final TargetElement target;
   final List<LabelElement> labels;
 
   HSwitchBlockInformation(this.expression,
-                          this.matchExpressions,
                           this.statements,
                           this.target,
                           this.labels);

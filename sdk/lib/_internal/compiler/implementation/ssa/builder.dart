@@ -5190,7 +5190,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HBasicBlock expressionEnd = close(switchInstruction);
     LocalsHandler savedLocals = localsHandler;
 
-    List<List<Constant>> matchExpressions = <List<Constant>>[];
     List<HStatementInformation> statements = <HStatementInformation>[];
     bool hasDefault = false;
     Element getFallThroughErrorElement = backend.getFallThroughError();
@@ -5198,16 +5197,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         new HasNextIterator<Node>(switchCases.iterator);
     while (caseIterator.hasNext) {
       SwitchCase switchCase = caseIterator.next();
-      List<Constant> caseConstants = <Constant>[];
       HBasicBlock block = graph.addNewBlock();
       for (Constant constant in getConstants(switchCase)) {
-        caseConstants.add(constant);
         HConstant hConstant = graph.addConstant(constant, compiler);
         switchInstruction.inputs.add(hConstant);
         hConstant.usedBy.add(switchInstruction);
         expressionEnd.addSuccessor(block);
       }
-      matchExpressions.add(caseConstants);
 
       if (isDefaultCase(switchCase)) {
         // An HSwitch has n inputs and n+1 successors, the last being the
@@ -5265,7 +5261,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       close(new HGoto());
       defaultCase.addSuccessor(joinBlock);
       caseHandlers.add(savedLocals);
-      matchExpressions.add(<Constant>[]);
       statements.add(new HSubGraphBlockInformation(new SubGraph(
           defaultCase, defaultCase)));
     }
@@ -5288,7 +5283,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                              expressionEnd));
     expressionStart.setBlockFlow(
         new HSwitchBlockInformation(expressionInfo,
-                                    matchExpressions,
                                     statements,
                                     jumpHandler.target,
                                     jumpHandler.labels()),

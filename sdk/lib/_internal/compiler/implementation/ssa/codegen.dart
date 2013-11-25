@@ -675,20 +675,30 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     js.Expression key = pop();
     List<js.SwitchClause> cases = <js.SwitchClause>[];
+    HSwitch switchInstruction = info.expression.end.last;
+    List<HInstruction> inputs = switchInstruction.inputs;
+    List<HBasicBlock> successors = switchInstruction.block.successors;
 
     js.Block oldContainer = currentContainer;
-    for (int i = 0; i < info.matchExpressions.length; i++) {
-      for (Constant constant in info.matchExpressions[i]) {
-        generateConstant(constant);
+    for (int inputIndex = 1, statementIndex = 0;
+         inputIndex < inputs.length;
+         statementIndex++) {
+      HBasicBlock successor = successors[inputIndex - 1];
+      do {
+        visit(inputs[inputIndex]);
         currentContainer = new js.Block.empty();
         cases.add(new js.Case(pop(), currentContainer));
-      }
-      if (i == info.matchExpressions.length - 1) {
-        currentContainer = new js.Block.empty();
-        cases.add(new js.Default(currentContainer));
-      }
-      generateStatements(info.statements[i]);
+        inputIndex++;
+      } while ((successors[inputIndex - 1] == successor)
+               && (inputIndex < inputs.length));
+
+      generateStatements(info.statements[statementIndex]);
     }
+
+    currentContainer = new js.Block.empty();
+    cases.add(new js.Default(currentContainer));
+    generateStatements(info.statements.last);
+
     currentContainer = oldContainer;
 
     js.Statement result = new js.Switch(key, cases);
