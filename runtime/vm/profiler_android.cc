@@ -28,12 +28,14 @@ static void ProfileSignalAction(int signal, siginfo_t* info, void* context_) {
     // Thread owns isolate profiler data mutex.
     ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
-    if (profiler_data == NULL) {
-      return;
-    }
-    if (!profiler_data->CanExpire()) {
+    if ((profiler_data == NULL) || !profiler_data->CanExpire() ||
+        (profiler_data->sample_buffer() == NULL)) {
       // Descheduled.
       return;
+    }
+    if (profiler_data->thread_id() == Thread::GetCurrentThreadId()) {
+      // Still scheduled on this thread.
+      // TODO(johnmccutchan): Perform sample on Android.
     }
   }
   // Thread owns no profiler locks at this point.

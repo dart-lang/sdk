@@ -109,6 +109,10 @@ class IsolateProfilerData {
 
   SampleBuffer* sample_buffer() const { return sample_buffer_; }
 
+  void set_sample_buffer(SampleBuffer* sample_buffer) {
+    sample_buffer_ = sample_buffer;
+  }
+
  private:
   int64_t last_sampled_micros_;
   int64_t timer_expiration_micros_;
@@ -143,7 +147,7 @@ struct Sample {
 // Ring buffer of samples. One per isolate.
 class SampleBuffer {
  public:
-  static const intptr_t kDefaultBufferCapacity = 1000000;
+  static const intptr_t kDefaultBufferCapacity = 120000;  // 2 minutes @ 1000hz.
 
   explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
   ~SampleBuffer();

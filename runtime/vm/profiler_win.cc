@@ -20,7 +20,9 @@ static void CollectSample(IsolateProfilerData* profiler_data,
                           uintptr_t stack_lower,
                           uintptr_t stack_upper) {
   uintptr_t sp = stack_lower;
+  ASSERT(profiler_data != NULL);
   SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  ASSERT(sample_buffer != NULL);
   Sample* sample = sample_buffer->ReserveSample();
   ASSERT(sample != NULL);
   sample->timestamp = OS::GetCurrentTimeMicros();
@@ -101,7 +103,11 @@ int64_t ProfilerManager::SampleAndRescheduleIsolates(int64_t current_time) {
     Isolate* isolate = isolates_[i];
     ScopedMutex isolate_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
-    ASSERT(profiler_data != NULL);
+    if ((profiler_data == NULL) || !profiler_data->CanExpire() ||
+        (profiler_data->sample_buffer() == NULL)) {
+      // Descheduled.
+      continue;
+    }
     if (profiler_data->ShouldSample(current_time)) {
       SuspendAndSample(isolate, profiler_data);
       Reschedule(profiler_data);

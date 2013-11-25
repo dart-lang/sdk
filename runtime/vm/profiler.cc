@@ -68,7 +68,6 @@ namespace dart {
 // fail (sometimes leading to a crash).
 //
 
-
 DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
@@ -81,6 +80,10 @@ intptr_t ProfilerManager::isolates_size_ = 0;
 
 
 void ProfilerManager::InitOnce() {
+#if defined(USING_SIMULATOR)
+  // Force disable of profiling on simulator.
+  FLAG_profile = false;
+#endif
   if (!FLAG_profile) {
     return;
   }
@@ -123,8 +126,10 @@ void ProfilerManager::SetupIsolateForProfiling(Isolate* isolate) {
     {
       ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
       SampleBuffer* sample_buffer = new SampleBuffer();
+      ASSERT(sample_buffer != NULL);
       IsolateProfilerData* profiler_data =
           new IsolateProfilerData(isolate, sample_buffer);
+      ASSERT(profiler_data != NULL);
       profiler_data->set_sample_interval_micros(1000);
       isolate->set_profiler_data(profiler_data);
       if (FLAG_trace_profiled_isolates) {
@@ -148,6 +153,7 @@ void ProfilerManager::FreeIsolateProfilingData(Isolate* isolate) {
   isolate->set_profiler_data(NULL);
   SampleBuffer* sample_buffer = profiler_data->sample_buffer();
   ASSERT(sample_buffer != NULL);
+  profiler_data->set_sample_buffer(NULL);
   delete sample_buffer;
   delete profiler_data;
   if (FLAG_trace_profiled_isolates) {
@@ -528,24 +534,27 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
   start_ = 0;
   end_ = 0;
   capacity_ = capacity;
-  samples_ = reinterpret_cast<Sample*>(calloc(capacity, sizeof(Sample)));
+  samples_ = new Sample[capacity];
 }
 
 
 SampleBuffer::~SampleBuffer() {
   if (samples_ != NULL) {
-    free(samples_);
+    delete[] samples_;
     samples_ = NULL;
   }
 }
 
 
 Sample* SampleBuffer::ReserveSample() {
+  ASSERT(samples_ != NULL);
   intptr_t index = end_;
   end_ = WrapIncrement(end_);
   if (end_ == start_) {
     start_ = WrapIncrement(start_);
   }
+  ASSERT(index >= 0);
+  ASSERT(index < capacity_);
   // Reset.
   samples_[index] = Sample();
   return &samples_[index];

@@ -293,6 +293,8 @@ void MonitorData::RemoveWaiter(MonitorWaitData* wait_data) {
         ASSERT(previous != NULL);
         previous->next_ = current->next_;
       }
+      // Clear next.
+      wait_data->next_ = NULL;
       break;
     }
     previous = current;

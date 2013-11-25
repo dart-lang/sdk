@@ -52,23 +52,23 @@ static void ProfileSignalAction(int signal, siginfo_t* info, void* context_) {
     // Thread owns isolate profiler data mutex.
     ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
-    if (profiler_data == NULL) {
-      return;
-    }
-    if (!profiler_data->CanExpire()) {
+    if ((profiler_data == NULL) || !profiler_data->CanExpire() ||
+        (profiler_data->sample_buffer() == NULL)) {
       // Descheduled.
       return;
     }
-
-    uintptr_t stack_lower = 0;
-    uintptr_t stack_upper = 0;
-    isolate->GetStackBounds(&stack_lower, &stack_upper);
-    uintptr_t PC = SignalHandler::GetProgramCounter(mcontext);
-    uintptr_t FP = SignalHandler::GetFramePointer(mcontext);
-    uintptr_t SP = SignalHandler::GetStackPointer(mcontext);
-    int64_t sample_time = OS::GetCurrentTimeMicros();
-    profiler_data->SampledAt(sample_time);
-    CollectSample(profiler_data, PC, FP, SP, stack_lower, stack_upper);
+    if (profiler_data->thread_id() == Thread::GetCurrentThreadId()) {
+      // Still scheduled on this thread.
+      uintptr_t stack_lower = 0;
+      uintptr_t stack_upper = 0;
+      isolate->GetStackBounds(&stack_lower, &stack_upper);
+      uintptr_t PC = SignalHandler::GetProgramCounter(mcontext);
+      uintptr_t FP = SignalHandler::GetFramePointer(mcontext);
+      uintptr_t SP = SignalHandler::GetStackPointer(mcontext);
+      int64_t sample_time = OS::GetCurrentTimeMicros();
+      profiler_data->SampledAt(sample_time);
+      CollectSample(profiler_data, PC, FP, SP, stack_lower, stack_upper);
+    }
   }
   // Thread owns no profiler locks at this point.
   // This call will acquire both ProfilerManager::monitor and the
