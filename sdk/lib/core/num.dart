@@ -359,33 +359,4 @@ abstract class num implements Comparable<num> {
    *
    */
   String toString();
-
-  /**
-   * Parses a string containing a number literal into a number.
-   *
-   * The method first tries to read the [input] as integer (similar to
-   * [int.parse] without a radix).
-   * If that fails, it tries to parse the [input] as a double (similar to
-   * [double.parse]).
-   * If that fails, too, it invokes [onError] with [input].
-   *
-   * If no [onError] is supplied, it defaults to a function that throws a
-   * [FormatException].
-   *
-   * For any number `n`, this function satisfies
-   * `identical(n, num.parse(n.toString()))`.
-   */
-  static num parse(String input, [num onError(String input)]) {
-    String source = input.trim();
-    // TODO(lrn): Optimize to detect format and result type in one check.
-    num result = int.parse(source, onError: _returnNull);
-    if (result != null) return result;
-    result = double.parse(source, _returnNull);
-    if (result != null) return result;
-    if (onError == null) throw new FormatException(input);
-    return onError(input);
-  }
-
-  /** Helper function for [parse]. */
-  static _returnNull(_) => null;
 }
