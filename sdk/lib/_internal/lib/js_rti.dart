@@ -675,11 +675,11 @@ bool isFunctionSubtype(var s, var t) {
         return false;
       }
     }
-    sPos = 0;
-    // Check the optional parameters of [t] with the remaing optional parameters
-    // of [s]:
+    tPos = 0;
+    // Check the optional parameters of [t] with the remaining optional
+    // parameters of [s]:
     for (; tPos < tOptionalParametersLen ; sPos++, tPos++) {
-      if (!isAssignable(getIndex(tOptionalParameterTypes, sPos),
+      if (!isAssignable(getIndex(sOptionalParameterTypes, sPos),
                         getIndex(tOptionalParameterTypes, tPos))) {
         return false;
       }
