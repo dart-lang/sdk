@@ -349,7 +349,7 @@ class MirrorUsageAnalyzer {
 
 /// Used to represent a resolved MirrorsUsed constant.
 class MirrorUsage {
-  final List<String> symbols;
+  final List /* <String|Element> */ symbols;
   final List<Element> targets;
   final List<Element> metaTargets;
   final List<Element> override;
