@@ -484,13 +484,8 @@ function() {
  */
 const _constructorNameFallback = const JS_CONST(r'''
 function getTagFallback(o) {
-  if (o == null) return "Null";
   var constructor = o.constructor;
   if (typeof constructor == "function") {
-    var name = constructor.builtin$cls;
-    if (typeof name == "string") return name;
-    // The constructor is not null or undefined at this point. Try
-    // to grab hold of its name.
     name = constructor.name;
     // If the name is a non-empty string, we use that as the type name of this
     // object. On Firefox, we often get "Object" as the constructor name even
@@ -515,11 +510,15 @@ function(getTagFallback) {
     // TODO(sra): Recognize jsshell.
     if (typeof navigator != "object") return hooks;
 
-    var userAgent = navigator.userAgent;
+    var ua = navigator.userAgent;
     // TODO(antonm): remove a reference to DumpRenderTree.
-    if (userAgent.indexOf("Chrome") >= 0 ||
-        userAgent.indexOf("DumpRenderTree") >= 0) {
-      return hooks;
+    if (ua.indexOf("DumpRenderTree") >= 0) return hooks;
+    if (ua.indexOf("Chrome") >= 0) {
+      // Confirm constructor name is usable for dispatch.
+      function confirm(p) {
+        return typeof window == "object" && window[p] && window[p].name == p;
+      }
+      if (confirm("Window") && confirm("HTMLElement")) return hooks;
     }
 
     hooks.getTag = getTagFallback;
