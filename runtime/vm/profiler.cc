@@ -171,11 +171,6 @@ void ProfilerManager::ShutdownIsolateForProfiling(Isolate* isolate) {
 
 void ProfilerManager::ScheduleIsolateHelper(Isolate* isolate) {
   ScopedMonitor lock(monitor_);
-  intptr_t i = FindIsolate(isolate);
-  if (i >= 0) {
-    // Already scheduled.
-    return;
-  }
   {
     ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
@@ -184,6 +179,11 @@ void ProfilerManager::ScheduleIsolateHelper(Isolate* isolate) {
     }
     profiler_data->Scheduled(OS::GetCurrentTimeMicros(),
                              Thread::GetCurrentThreadId());
+  }
+  intptr_t i = FindIsolate(isolate);
+  if (i >= 0) {
+    // Already scheduled.
+    return;
   }
   AddIsolate(isolate);
   lock.Notify();
