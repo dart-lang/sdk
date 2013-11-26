@@ -69,7 +69,7 @@ void PathBuffer::Reset(int new_length) {
 // These are scanned to detect loops while doing a recursive directory listing.
 struct LinkList {
   dev_t dev;
-  ino_t ino;
+  ino64_t ino;
   LinkList* next;
 };
 
