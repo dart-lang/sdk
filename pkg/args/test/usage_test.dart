@@ -168,7 +168,7 @@ void main() {
           ''');
     });
 
-    test("hidden flags don't appear in the help", () {
+    test("hidden options don't appear in the help", () {
       var parser = new ArgParser();
       parser.addOption('first', help: 'The first option');
       parser.addOption('second', hide: true);
@@ -179,6 +179,20 @@ void main() {
           '''
           --first     The first option
           --third     The third option
+          ''');
+    });
+
+    test("hidden flags don't appear in the help", () {
+      var parser = new ArgParser();
+      parser.addFlag('first', help: 'The first flag');
+      parser.addFlag('second', hide: true);
+      parser.addFlag('third', help: 'The third flag');
+
+
+      validateUsage(parser,
+          '''
+          --[no-]first     The first flag
+          --[no-]third     The third flag
           ''');
     });
   });

@@ -321,9 +321,9 @@ class ArgParser {
    * * There is already an option using abbreviation [abbr].
    */
   void addFlag(String name, {String abbr, String help, bool defaultsTo: false,
-      bool negatable: true, void callback(bool value)}) {
+      bool negatable: true, void callback(bool value), bool hide: false}) {
     _addOption(name, abbr, help, null, null, defaultsTo, callback,
-        isFlag: true, negatable: negatable);
+        isFlag: true, negatable: negatable, hide: hide);
   }
 
   /**
