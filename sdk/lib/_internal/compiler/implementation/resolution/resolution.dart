@@ -12,7 +12,8 @@ import '../../compiler.dart' show Diagnostic;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
-    show FunctionElementX,
+    show BaseClassElementX,
+         FunctionElementX,
          ErroneousElementX,
          VariableElementX,
          FieldParameterElementX,
@@ -27,6 +28,7 @@ import '../util/util.dart';
 import '../scanner/scannerlib.dart' show PartialMetadataAnnotation;
 
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
+import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 
 part 'members.dart';
 part 'scope.dart';

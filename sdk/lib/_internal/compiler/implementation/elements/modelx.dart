@@ -29,6 +29,8 @@ import '../dart_types.dart';
 
 import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
 
+import '../ordered_typeset.dart' show OrderedTypeSet;
+
 class ElementX implements Element {
   static int elementHashCode = 0;
 
@@ -1704,7 +1706,11 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   // compilation. They don't have any user-side counter-part.
   Link<Element> backendMembers = const Link<Element>();
 
-  Link<DartType> allSupertypes;
+  OrderedTypeSet allSupertypesAndSelf;
+
+  Link<DartType> get allSupertypes => allSupertypesAndSelf.supertypes;
+
+  int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
 
   BaseClassElementX(String name,
                     Element enclosing,

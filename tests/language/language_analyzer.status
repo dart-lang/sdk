@@ -151,8 +151,22 @@ mixin_illegal_syntax_test/none: fail
 # test issue 14736, It is a static warning if a class C declares an instance method named n and has a setter named n=.
 setter4_test: StaticWarning
 
-
-
+# test issue 15060
+least_upper_bound_test/23: StaticWarning # Issue 15060
+least_upper_bound_test/24: StaticWarning # Issue 15060
+least_upper_bound_test/25: MissingStaticWarning # Issue 15060
+least_upper_bound_test/26: MissingStaticWarning # Issue 15060
+least_upper_bound_test/29: StaticWarning # Issue 15060
+least_upper_bound_test/30: StaticWarning # Issue 15060
+least_upper_bound_test/31: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/02: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/04: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/05: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/06: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/08: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/10: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/11: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/12: MissingStaticWarning # Issue 15060
 
 abstract_exact_selector_test: StaticWarning
 abstract_getter_test: StaticWarning

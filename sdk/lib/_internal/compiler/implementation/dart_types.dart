@@ -4,11 +4,14 @@
 
 library dart_types;
 
+import 'dart:math' show min;
+
 import 'dart2jslib.dart' show Compiler, invariant, Script, Message;
 import 'elements/modelx.dart'
     show VoidElementX, LibraryElementX, BaseClassElementX;
 import 'elements/elements.dart';
-import 'util/util.dart' show Link, LinkBuilder;
+import 'ordered_typeset.dart' show OrderedTypeSet;
+import 'util/util.dart' show Link, LinkBuilder, CURRENT_ELEMENT_SPANNABLE;
 
 class TypeKind {
   final String id;
@@ -1476,6 +1479,157 @@ class Types {
 
   static List<DartType> sorted(Iterable<DartType> types) {
     return types.toList()..sort(compare);
+  }
+
+  /// Computes the least upper bound of two interface types [a] and [b].
+  InterfaceType computeLeastUpperBoundInterfaces(InterfaceType a,
+                                                 InterfaceType b) {
+
+    /// Returns the set of supertypes of [type] at depth [depth].
+    Set<DartType> getSupertypesAtDepth(InterfaceType type, int depth) {
+      ClassElement cls = type.element;
+      OrderedTypeSet types = cls.allSupertypesAndSelf;
+      Link<DartType> typeVariables = cls.typeVariables;
+      Link<DartType> typeArguments = type.typeArguments;
+      Set<DartType> set = new Set<DartType>();
+      types.forEach(depth, (DartType type) {
+        set.add(type.subst(typeArguments, typeVariables));
+      });
+      return set;
+    }
+
+    ClassElement aClass = a.element;
+    ClassElement bClass = b.element;
+    int maxCommonDepth = min(aClass.hierarchyDepth, bClass.hierarchyDepth);
+    for (int depth = maxCommonDepth; depth >= 0; depth--) {
+      Set<DartType> aTypeSet = getSupertypesAtDepth(a, depth);
+      Set<DartType> bTypeSet = getSupertypesAtDepth(b, depth);
+      Set<DartType> intersection = aTypeSet..retainAll(bTypeSet);
+      if (intersection.length == 1) {
+        return intersection.first;
+      }
+    }
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, false,
+        message: 'No least upper bound computed for $a and $b.'));
+  }
+
+  /// Computes the least upper bound of the types in the longest prefix of [a]
+  /// and [b].
+  Link<DartType> computeLeastUpperBoundsTypes(Link<DartType> a,
+                                              Link<DartType> b) {
+    if (a.isEmpty || b.isEmpty) return const Link<DartType>();
+    LinkBuilder<DartType> types = new LinkBuilder<DartType>();
+    while (!a.isEmpty && !b.isEmpty) {
+      types.addLast(computeLeastUpperBound(a.head, b.head));
+      a = a.tail;
+      b = b.tail;
+    }
+    return types.toLink();
+  }
+
+  /// Computes the least upper bound of two function types [a] and [b].
+  ///
+  /// If the required parameter count of [a] and [b] does not match, `Function`
+  /// is returned.
+  ///
+  /// Otherwise, a function type is returned whose return type and
+  /// parameter types are the least upper bound of those of [a] and [b],
+  /// respectively. In addition, the optional parameters are the least upper
+  /// bound of the longest common prefix of the optional parameters of [a] and
+  /// [b], and the named parameters are the least upper bound of those common to
+  /// [a] and [b].
+  DartType computeLeastUpperBoundFunctionTypes(FunctionType a,
+                                               FunctionType b) {
+    if (a.parameterTypes.slowLength() != b.parameterTypes.slowLength()) {
+      return compiler.functionClass.rawType;
+    }
+    DartType returnType = computeLeastUpperBound(a.returnType, b.returnType);
+    Link<DartType> parameterTypes =
+        computeLeastUpperBoundsTypes(a.parameterTypes, b.parameterTypes);
+    Link<DartType> optionalParameterTypes =
+        computeLeastUpperBoundsTypes(a.optionalParameterTypes,
+                                     b.optionalParameterTypes);
+    LinkBuilder<String> namedParameters = new LinkBuilder<String>();
+    Link<String> aNamedParameters = a.namedParameters;
+    Link<String> bNamedParameters = b.namedParameters;
+    LinkBuilder<DartType> namedParameterTypes = new LinkBuilder<DartType>();
+    Link<DartType> aNamedParameterTypes = a.namedParameterTypes;
+    Link<DartType> bNamedParameterTypes = b.namedParameterTypes;
+    while (!aNamedParameters.isEmpty && !bNamedParameters.isEmpty) {
+      String aNamedParameter = aNamedParameters.head;
+      String bNamedParameter = bNamedParameters.head;
+      int result = aNamedParameter.compareTo(bNamedParameter);
+      if (result == 0) {
+        namedParameters.addLast(aNamedParameter);
+        namedParameterTypes.addLast(computeLeastUpperBound(
+            aNamedParameterTypes.head, bNamedParameterTypes.head));
+      }
+      if (result <= 0) {
+        aNamedParameters = aNamedParameters.tail;
+        aNamedParameterTypes = aNamedParameterTypes.tail;
+      }
+      if (result >= 0) {
+        bNamedParameters = bNamedParameters.tail;
+        bNamedParameterTypes = bNamedParameterTypes.tail;
+      }
+    }
+    return new FunctionType(compiler.functionClass,
+        returnType,
+        parameterTypes, optionalParameterTypes,
+        namedParameters.toLink(), namedParameterTypes.toLink());
+  }
+
+  /// Computes the least upper bound of two types of which at least one is a
+  /// type variable. The least upper bound of a type variable is defined in
+  /// terms of its bound, but to ensure reflexivity we need to check for common
+  /// bounds transitively.
+  DartType computeLeastUpperBoundTypeVariableTypes(DartType a,
+                                                   DartType b) {
+    Set<DartType> typeVariableBounds = new Set<DartType>();
+    while (a.kind == TypeKind.TYPE_VARIABLE) {
+      if (a == b) return a;
+      typeVariableBounds.add(a);
+      TypeVariableElement element = a.element;
+      a = element.bound;
+    }
+    while (b.kind == TypeKind.TYPE_VARIABLE) {
+      if (typeVariableBounds.contains(b)) return b;
+      TypeVariableElement element = b.element;
+      b = element.bound;
+    }
+    return computeLeastUpperBound(a, b);
+  }
+
+  /// Computes the least upper bound for [a] and [b].
+  DartType computeLeastUpperBound(DartType a, DartType b) {
+    if (a == b) return a;
+
+    if (a.kind == TypeKind.TYPE_VARIABLE ||
+           b.kind == TypeKind.TYPE_VARIABLE) {
+      return computeLeastUpperBoundTypeVariableTypes(a, b);
+    }
+
+    a = a.unalias(compiler);
+    b = b.unalias(compiler);
+
+    if (a.treatAsDynamic || b.treatAsDynamic) return dynamicType;
+    if (a.isVoid || b.isVoid) return voidType;
+
+    if (a.kind == TypeKind.FUNCTION && b.kind == TypeKind.FUNCTION) {
+      return computeLeastUpperBoundFunctionTypes(a, b);
+    }
+
+    if (a.kind == TypeKind.FUNCTION) {
+      a = compiler.functionClass.rawType;
+    }
+    if (b.kind == TypeKind.FUNCTION) {
+      b = compiler.functionClass.rawType;
+    }
+
+    if (a.kind == TypeKind.INTERFACE && b.kind == TypeKind.INTERFACE) {
+      return computeLeastUpperBoundInterfaces(a, b);
+    }
+    return dynamicType;
   }
 }
 

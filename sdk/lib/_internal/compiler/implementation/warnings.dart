@@ -537,7 +537,7 @@ class C<T> {
   m(T t) => const C<T>();
 }
 
-void main() => new C().m(null);  
+void main() => new C().m(null);
 """
 ]);
 

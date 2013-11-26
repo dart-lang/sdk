@@ -28,6 +28,8 @@ import '../scanner/scannerlib.dart' show Token,
                                          isUserDefinableOperator,
                                          isMinusOperator;
 
+import '../ordered_typeset.dart' show OrderedTypeSet;
+
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;
 const int STATE_DONE = 2;
@@ -836,12 +838,16 @@ abstract class ClassElement extends TypeDeclarationElement
     implements ScopeContainerElement {
   int get id;
 
+  /// The length of the longest inheritance path from [:Object:].
+  int get hierarchyDepth;
+
   InterfaceType get rawType;
   InterfaceType get thisType;
 
   ClassElement get superclass;
 
   DartType get supertype;
+  OrderedTypeSet get allSupertypesAndSelf;
   Link<DartType> get allSupertypes;
   Link<DartType> get interfaces;
 
@@ -866,7 +872,6 @@ abstract class ClassElement extends TypeDeclarationElement
   // TODO(kasperl): These are bit fishy. Do we really need them?
   void set thisType(InterfaceType value);
   void set supertype(DartType value);
-  void set allSupertypes(Link<DartType> value);
   void set interfaces(Link<DartType> value);
   void set patch(ClassElement value);
   void set origin(ClassElement value);

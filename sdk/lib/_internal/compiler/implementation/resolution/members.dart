@@ -661,16 +661,19 @@ class ResolverTask extends CompilerTask {
    * Warning: do not call this method directly. It should only be
    * called by [resolveClass] and [ClassSupertypeResolver].
    */
-  void loadSupertypes(ClassElement cls, Spannable from) {
+  void loadSupertypes(BaseClassElementX cls, Spannable from) {
     compiler.withCurrentElement(cls, () => measure(() {
       if (cls.supertypeLoadState == STATE_DONE) return;
       if (cls.supertypeLoadState == STATE_STARTED) {
         compiler.reportError(from, MessageKind.CYCLIC_CLASS_HIERARCHY,
                                  {'className': cls.name});
         cls.supertypeLoadState = STATE_DONE;
-        cls.allSupertypes = const Link<DartType>().prepend(
-            compiler.objectClass.computeType(compiler));
+        cls.allSupertypesAndSelf =
+            compiler.objectClass.allSupertypesAndSelf.extendClass(
+                cls.computeType(compiler));
         cls.supertype = cls.allSupertypes.head;
+        assert(invariant(from, cls.supertype != null,
+            message: 'Missing supertype on cyclic class $cls.'));
         return;
       }
       cls.supertypeLoadState = STATE_STARTED;
@@ -723,7 +726,8 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  void resolveClassInternal(ClassElement element, TreeElementMapping mapping) {
+  void resolveClassInternal(BaseClassElementX element,
+                            TreeElementMapping mapping) {
     if (!element.isPatch) {
       compiler.withCurrentElement(element, () => measure(() {
         assert(element.resolutionState == STATE_NOT_STARTED);
@@ -750,7 +754,7 @@ class ResolverTask extends CompilerTask {
       // Copy class hiearchy from origin.
       element.supertype = element.origin.supertype;
       element.interfaces = element.origin.interfaces;
-      element.allSupertypes = element.origin.allSupertypes;
+      element.allSupertypesAndSelf = element.origin.allSupertypesAndSelf;
       // Stepwise assignment to ensure invariant.
       element.supertypeLoadState = STATE_STARTED;
       element.supertypeLoadState = STATE_DONE;
@@ -3940,7 +3944,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         target.name, target, enclosing, false);
   }
 
-  void doApplyMixinTo(MixinApplicationElement mixinApplication,
+  void doApplyMixinTo(MixinApplicationElementX mixinApplication,
                       DartType supertype,
                       DartType mixinType) {
     Node node = mixinApplication.parseNode(compiler);
@@ -3965,12 +3969,14 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // The class that is the result of a mixin application implements
     // the interface of the class that was mixed in so always prepend
     // that to the interface list.
+
     interfaces = interfaces.prepend(mixinType);
     assert(mixinApplication.interfaces == null);
     mixinApplication.interfaces = interfaces;
 
+    ClassElement superclass = supertype.element;
     if (mixinType.kind != TypeKind.INTERFACE) {
-      mixinApplication.allSupertypes = const Link<DartType>();
+      mixinApplication.allSupertypesAndSelf = superclass.allSupertypesAndSelf;
       return;
     }
 
@@ -3979,7 +3985,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
     // Create forwarding constructors for constructor defined in the superclass
     // because they are now hidden by the mixin application.
-    ClassElement superclass = supertype.element;
     superclass.forEachLocalMember((Element member) {
       if (!member.isGenerativeConstructor()) return;
       FunctionElement forwarder =
@@ -4095,54 +4100,40 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
    * different type arguments, the type used in the most specific class comes
    * first.
    */
-  void calculateAllSupertypes(ClassElement cls) {
-    if (cls.allSupertypes != null) return;
+  void calculateAllSupertypes(BaseClassElementX cls) {
+    if (cls.allSupertypesAndSelf != null) return;
     final DartType supertype = cls.supertype;
     if (supertype != null) {
-      Map<Element, DartType> instantiations = new Map<Element, DartType>();
-      LinkBuilder<DartType> allSupertypes = new LinkBuilder<DartType>();
-
-      void addSupertype(DartType type) {
-        DartType existing =
-            instantiations.putIfAbsent(type.element, () => type);
-        if (existing != null && existing != type) {
-          compiler.reportError(cls,
-              MessageKind.MULTI_INHERITANCE,
-              {'thisType': cls.computeType(compiler),
-               'firstType': existing,
-               'secondType': type});
-        }
-        if (type.element != compiler.objectClass) {
-          allSupertypes.addLast(type);
-        }
-      }
-
-      addSupertype(supertype);
-      for (Link<DartType> interfaces = cls.interfaces;
-          !interfaces.isEmpty;
-          interfaces = interfaces.tail) {
-        addSupertype(interfaces.head);
-      }
-      addAllSupertypes(addSupertype, supertype);
+      OrderedTypeSetBuilder allSupertypes = new OrderedTypeSetBuilder(cls);
+      // TODO(15296): Collapse these iterations to one when the order is not
+      // needed.
+      allSupertypes.add(compiler, supertype);
       for (Link<DartType> interfaces = cls.interfaces;
            !interfaces.isEmpty;
            interfaces = interfaces.tail) {
-        addAllSupertypes(addSupertype, interfaces.head);
+        allSupertypes.add(compiler, interfaces.head);
       }
 
-      allSupertypes.addLast(compiler.objectClass.rawType);
-      cls.allSupertypes = allSupertypes.toLink();
+      addAllSupertypes(allSupertypes, supertype);
+      for (Link<DartType> interfaces = cls.interfaces;
+           !interfaces.isEmpty;
+           interfaces = interfaces.tail) {
+        addAllSupertypes(allSupertypes, interfaces.head);
+      }
+      allSupertypes.add(compiler, cls.computeType(compiler));
+      cls.allSupertypesAndSelf = allSupertypes.toTypeSet();
     } else {
       assert(identical(cls, compiler.objectClass));
-      cls.allSupertypes = const Link<DartType>();
+      cls.allSupertypesAndSelf =
+          new OrderedTypeSet.singleton(cls.computeType(compiler));
     }
-  }
+ }
 
   /**
    * Adds [type] and all supertypes of [type] to [allSupertypes] while
    * substituting type variables.
    */
-  void addAllSupertypes(void addSupertype(DartType supertype),
+  void addAllSupertypes(OrderedTypeSetBuilder allSupertypes,
                         InterfaceType type) {
     Link<DartType> typeArguments = type.typeArguments;
     ClassElement classElement = type.element;
@@ -4153,10 +4144,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
                  "during resolution of $element"));
     while (!supertypes.isEmpty) {
       DartType supertype = supertypes.head;
-      if (supertype.element != compiler.objectClass) {
-        DartType substituted = supertype.subst(typeArguments, typeVariables);
-        addSupertype(substituted);
-      }
+      allSupertypes.add(compiler,
+                        supertype.subst(typeArguments, typeVariables));
       supertypes = supertypes.tail;
     }
   }

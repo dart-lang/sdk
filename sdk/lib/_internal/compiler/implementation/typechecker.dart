@@ -1440,13 +1440,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType thenType = analyzeInPromotedContext(condition, thenExpression);
 
     DartType elseType = analyzeNonVoid(node.elseExpression);
-    if (types.isSubtype(thenType, elseType)) {
-      return thenType;
-    } else if (types.isSubtype(elseType, thenType)) {
-      return elseType;
-    } else {
-      return objectType;
-    }
+    return compiler.types.computeLeastUpperBound(thenType, elseType);
   }
 
   visitStringInterpolation(StringInterpolation node) {

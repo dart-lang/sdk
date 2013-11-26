@@ -127,8 +127,9 @@ class ClosureClassElement extends ClassElementX {
     superclass.ensureResolved(compiler);
     supertype = superclass.computeType(compiler);
     interfaces = const Link<DartType>();
-    allSupertypes = const Link<DartType>().prepend(supertype);
     thisType = rawType = new InterfaceType(this);
+    allSupertypesAndSelf =
+        superclass.allSupertypesAndSelf.extendClass(thisType);
   }
 
   bool isClosure() => true;
