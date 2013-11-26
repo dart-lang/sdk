@@ -88,7 +88,7 @@ Future<List<String>> getRequestedPaths() {
     var paths = _requestedPaths.toList();
     _requestedPaths.clear();
     return paths;
-  });
+  }, "get previous network requests");
 }
 
 /// Creates an HTTP server to serve [contents] as static files. This server will

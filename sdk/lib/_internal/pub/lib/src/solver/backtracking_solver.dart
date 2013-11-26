@@ -44,6 +44,8 @@ import '../sdk.dart' as sdk;
 import '../source_registry.dart';
 import '../utils.dart';
 import '../version.dart';
+import 'dependency_queue.dart';
+import 'version_queue.dart';
 import 'version_solver.dart';
 
 /// The top-level solver. Keeps track of the current potential solution, and
@@ -71,8 +73,8 @@ class BacktrackingSolver {
   /// are valid. This keeps track of which versions have been selected so far
   /// and which remain to be tried.
   ///
-  /// Each entry in the list is an ordered [Queue] of versions to try for a
-  /// single package. The first item in the queue is the currently selected
+  /// Each entry in the list is a [VersionQueue], which is an ordered queue of
+  /// versions to try for a single package. It maintains the currently selected
   /// version for that package. When a new dependency is encountered, a queue
   /// of versions of that dependency is pushed onto the end of the list. A
   /// queue is removed from the list once it's empty, indicating that none of
@@ -83,7 +85,7 @@ class BacktrackingSolver {
   /// on an already-selected package, and that constraint doesn't match the
   /// selected version, that will cause the current solution to fail and
   /// trigger backtracking.
-  final _selected = <Queue<PackageId>>[];
+  final _selected = <VersionQueue>[];
 
   /// The number of solutions the solver has tried so far.
   int get attemptedSolutions => _attemptedSolutions;
@@ -154,10 +156,10 @@ class BacktrackingSolver {
   /// in the list will be the currently selected version of that package.
   /// Subsequent items will be tried if it the current selection fails. Returns
   /// the first selected version.
-  PackageId select(Iterable<PackageId> versions) {
-    _selected.add(new Queue<PackageId>.from(versions));
+  PackageId select(VersionQueue versions) {
+    _selected.add(versions);
     logSolve();
-    return versions.first;
+    return versions.current;
   }
 
   /// Returns the the currently selected id for the package [name] or `null` if
@@ -168,7 +170,7 @@ class BacktrackingSolver {
 
     // Look through the current selections.
     for (var i = _selected.length - 1; i >= 0; i--) {
-      if (_selected[i].first.name == name) return _selected[i].first;
+      if (_selected[i].current.name == name) return _selected[i].current;
     }
 
     return null;
@@ -188,13 +190,15 @@ class BacktrackingSolver {
     return new Traverser(this).traverse().catchError((error) {
       if (error is! SolveFailure) throw error;
 
-      if (_backtrack(error)) {
-        _attemptedSolutions++;
-        return _traverseSolution();
-      }
+      return _backtrack(error).then((canTry) {
+        if (canTry) {
+          _attemptedSolutions++;
+          return _traverseSolution();
+        }
 
-      // All out of solutions, so fail.
-      throw error;
+        // All out of solutions, so fail.
+        throw error;
+      });
     });
   });
 
@@ -204,40 +208,47 @@ class BacktrackingSolver {
   /// the next possible solution.
   ///
   /// Returns `true` if there is a new solution to try.
-  bool _backtrack(SolveFailure failure) {
-    var dependers = failure.dependencies.map((dep) => dep.depender).toSet();
+  Future<bool> _backtrack(SolveFailure failure) {
+    // Bail if there is nothing to backtrack to.
+    if (_selected.isEmpty) return new Future.value(false);
 
-    while (!_selected.isEmpty) {
-      _backjump(failure);
+    // Get the set of packages that may have led to this failure.
+    var dependers = _getTransitiveDependers(failure.package);
 
-      // Advance past the current version of the leaf-most package.
-      var previous = _selected.last.removeFirst();
-      if (!_selected.last.isEmpty) {
-        logSolve();
-        return true;
-      }
+    // Advance past the current version of the leaf-most package.
+    advanceVersion() {
+      _backjump(failure, dependers);
+      var previous = _selected.last.current;
+      return _selected.last.advance().then((success) {
+        if (success) {
+          logSolve();
+          return true;
+        }
 
-      logSolve('$previous is last version, backtracking');
+        logSolve('$previous is last version, backtracking');
 
-      // That package has no more versions, so pop it and try the next one.
-      _selected.removeLast();
+        // That package has no more versions, so pop it and try the next one.
+        _selected.removeLast();
+        if (_selected.isEmpty) return false;
+
+        // If we got here, the leafmost package was discarded so we need to
+        // advance the next one.
+        return advanceVersion();
+      });
     }
 
-    return false;
+    return advanceVersion();
   }
 
   /// Walks the selected packages from most to least recent to determine which
   /// ones can be ignored and jumped over by the backtracker. The only packages
-  /// we need to backtrack to are ones that have other versions to try and that
-  /// led (possibly indirectly) to the failure. Everything else can be skipped.
-  void _backjump(SolveFailure failure) {
+  /// we need to backtrack to are ones that led (possibly indirectly) to the
+  /// failure. Everything else can be skipped.
+  void _backjump(SolveFailure failure, Set<String> dependers) {
     for (var i = _selected.length - 1; i >= 0; i--) {
       // Each queue will never be empty since it gets discarded by _backtrack()
       // when that happens.
-      var selected = _selected[i].first;
-
-      // If the package has no more versions, we can jump over it.
-      if (_selected[i].length == 1) continue;
+      var selected = _selected[i].current;
 
       // If we get to the package that failed, backtrack to here.
       if (selected.name == failure.package) {
@@ -248,10 +259,9 @@ class BacktrackingSolver {
 
       // If we get to a package that depends on the failing package, backtrack
       // to here.
-      var path = _getDependencyPath(selected, failure.package);
-      if (path != null) {
+      if (dependers.contains(selected.name)) {
         logSolve('backjump to ${selected.name} because it depends on '
-                 '${failure.package} along $path');
+                 '${failure.package}');
         _selected.removeRange(i + 1, _selected.length);
         return;
       }
@@ -264,40 +274,54 @@ class BacktrackingSolver {
     _selected.removeRange(1, _selected.length);
   }
 
-  /// Determines if [depender] has a direct or indirect dependency on
-  /// [dependent] based on the currently selected versions of all packages.
-  /// Returns a string describing the dependency chain if it does, or `null` if
-  /// there is no dependency.
-  String _getDependencyPath(PackageId depender, String dependent) {
-    // TODO(rnystrom): This is O(n^2) where n is the number of selected
-    // packages. Could store the reverse dependency graph to address that. If
-    // we do that, we need to make sure it gets correctly rolled back when
-    // backtracking occurs.
-    var visited = new Set<String>();
-
-    walkDeps(PackageId package, String currentPath) {
-      if (visited.contains(package.name)) return null;
-      visited.add(package.name);
-
-      var pubspec = cache.getCachedPubspec(package);
-      if (pubspec == null) return null;
+  /// Gets the set of currently selected packages that depend on [dependency]
+  /// either directly or indirectly.
+  ///
+  /// When backtracking, it's only useful to consider changing the version of
+  /// packages who have a dependency on the failed package that triggered
+  /// backtracking. This is used to determine those packages.
+  ///
+  /// We calculate the full set up front before backtracking because during
+  /// backtracking, we will unselect packages and start to lose this
+  /// information in the middle of the process.
+  ///
+  /// For example, consider dependencies A -> B -> C. We've selected A and B
+  /// then encounter a problem with C. We start backtracking. B has no more
+  /// versions so we discard it and keep backtracking to A. When we get there,
+  /// since we've unselected B, we no longer realize that A had a transitive
+  /// dependency on C. We would end up backjumping over A and failing.
+  ///
+  /// Calculating the dependency set up front before we start backtracking
+  /// solves that.
+  Set<String> _getTransitiveDependers(String dependency) {
+    // Generate a reverse dependency graph. For each package, create edges to
+    // each package that depends on it.
+    var dependers = new Map<String, Set<String>>();
+    for (var i = 0; i < _selected.length; i++) {
+      var id = _selected[i].current;
+      var pubspec = cache.getCachedPubspec(id);
+      if (pubspec == null) continue;
+      dependers.putIfAbsent(id.name, () => new Set<String>());
 
       for (var dep in pubspec.dependencies) {
-        if (dep.name == dependent) return currentPath;
-
-        var selected = getSelected(dep.name);
-        // Ignore unselected dependencies. We haven't traversed into them yet,
-        // so they can't affect backjumping.
-        if (selected == null) continue;
-
-        var depPath = walkDeps(selected, '$currentPath -> ${dep.name}');
-        if (depPath != null) return depPath;
+        var depender = dependers.putIfAbsent(dep.name,
+            () => new Set<String>());
+        depender.add(id.name);
       }
-
-      return null;
     }
 
-    return walkDeps(depender, depender.name);
+    // Now walk the depending graph to see which packages transitively depend
+    // on [dependency].
+    var visited = new Set<String>();
+    walk(String package) {
+      // Don't get stuck in cycles.
+      if (visited.contains(package)) return;
+      visited.add(package);
+      var depender = dependers[package].forEach(walk);
+    }
+
+    walk(dependency);
+    return visited;
   }
 
   /// Logs the initial parameters to the solver.
@@ -324,8 +348,7 @@ class BacktrackingSolver {
       if (_selected.isEmpty) {
         message = "* start at root";
       } else {
-        var count = _selected.last.length;
-        message = "* select ${_selected.last.first} ($count versions)";
+        message = "* select ${_selected.last.current}";
       }
     } else {
       // Otherwise, indent it under the current selected package.
@@ -424,79 +447,79 @@ class Traverser {
         }
       }
 
-      // Given a package dep, returns a future that completes to a pair of the
-      // dep and the number of versions available for it.
-      getNumVersions(PackageDep dep) {
-        // There is only ever one version of the root package.
-        if (dep.isRoot) {
-          return new Future.value(new Pair<PackageDep, int>(dep, 1));
-        }
-
-        return _solver.cache.getVersions(dep.toRef()).then((versions) {
-          return new Pair<PackageDep, int>(dep, versions.length);
-        }).catchError((error, trace) {
-          // If it fails for any reason, just treat that as no versions. This
-          // will sort this reference higher so that we can traverse into it
-          // and report the error more properly.
-          log.solver("Could not get versions for $dep:\n$error\n\n$trace");
-          return new Pair<PackageDep, int>(dep, 0);
-        });
-      }
-
-      return Future.wait(deps.map(getNumVersions)).then((pairs) {
-        // Future.wait() returns an immutable list, so make a copy.
-        pairs = pairs.toList();
-
-        // Sort in best-first order to minimize backtracking.
-        pairs.sort((a, b) {
-          // Traverse into packages we've already selected first.
-          var aIsSelected = _solver.getSelected(a.first.name) != null;
-          var bIsSelected = _solver.getSelected(b.first.name) != null;
-          if (aIsSelected && !bIsSelected) return -1;
-          if (!aIsSelected && bIsSelected) return 1;
-
-          // Traverse into packages with fewer versions since they will lead to
-          // less backtracking.
-          if (a.last != b.last) return a.last.compareTo(b.last);
-
-          // Otherwise, just sort by name so that it's deterministic.
-          return a.first.name.compareTo(b.first.name);
-        });
-
-        var queue = new Queue<PackageDep>.from(pairs.map((pair) => pair.first));
-        return _traverseDeps(id.name, queue);
-      });
+      return _traverseDeps(id.name, new DependencyQueue(_solver, deps));
     });
   }
 
   /// Traverses the references that [depender] depends on, stored in [deps].
+  ///
   /// Desctructively modifies [deps]. Completes to a list of packages if the
   /// traversal is complete. Completes it to an error if a failure occurred.
   /// Otherwise, recurses.
-  Future<List<PackageId>> _traverseDeps(String depender,
-      Queue<PackageDep> deps) {
+  Future<List<PackageId>> _traverseDeps(String depender, DependencyQueue deps) {
     // Move onto the next package if we've traversed all of these references.
     if (deps.isEmpty) return _traversePackage();
 
     return resetStack(() {
-      var dep = deps.removeFirst();
+      return deps.advance().then((dep) {
+        _validateDependency(dep, depender);
 
-      _validateDependency(dep, depender);
-      var constraint = _addConstraint(dep, depender);
+        // Add the dependency.
+        var dependencies = _getDependencies(dep.name);
+        dependencies.add(new Dependency(depender, dep));
 
-      var selected = _validateSelected(dep, constraint);
-      if (selected != null) {
-        // The selected package version is good, so enqueue it to traverse into
-        // it.
-        _packages.add(selected);
-        return _traverseDeps(depender, deps);
+        var constraint = _getConstraint(dep.name);
+
+        // See if it's possible for a package to match that constraint.
+        if (constraint.isEmpty) {
+          _solver.logSolve('disjoint constraints on ${dep.name}}');
+          throw new DisjointConstraintException(depender, dependencies);
+        }
+
+        var selected = _validateSelected(dep, constraint);
+        if (selected != null) {
+          // The selected package version is good, so enqueue it to traverse
+          // into it.
+          _packages.add(selected);
+          return _traverseDeps(depender, deps);
+        }
+
+        // We haven't selected a version. Try all of the versions that match
+        // the constraints we currently have for this package.
+        var locked = _getValidLocked(dep.name);
+
+        return VersionQueue.create(locked,
+            () => _getAllowedVersions(dep)).then((versions) {
+          _packages.add(_solver.select(versions));
+        });
+      }).then((_) => _traverseDeps(depender, deps));
+    });
+  }
+
+  /// Gets all versions of [dep] that match the current constraints placed on
+  /// it.
+  Future<Iterable<PackageId>> _getAllowedVersions(PackageDep dep) {
+    var constraint = _getConstraint(dep.name);
+    return _solver.cache.getVersions(dep.toRef()).then((versions) {
+      var allowed = versions.where((id) => constraint.allows(id.version));
+
+      if (allowed.isEmpty) {
+        _solver.logSolve('no versions for ${dep.name} match $constraint');
+        throw new NoVersionException(dep.name, constraint,
+            _getDependencies(dep.name));
       }
 
-      // We haven't selected a version. Get all of the versions that match the
-      // constraints we currently have for this package and add them to the
-      // set of solutions to try.
-      return _selectPackage(dep, constraint).then(
-          (_) => _traverseDeps(depender, deps));
+      // If we're doing an upgrade on this package, only allow the latest
+      // version.
+      if (_solver._forceLatest.contains(dep.name)) allowed = [allowed.first];
+
+      // Remove the locked version, if any, since that was already handled.
+      var locked = _getValidLocked(dep.name);
+      if (locked != null) {
+        allowed = allowed.where((dep) => dep.version != locked.version);
+      }
+
+      return allowed;
     });
   }
 
@@ -527,31 +550,6 @@ class Traverser {
     }
   }
 
-  /// Adds the version constraint that [depender] places on [dep] to the
-  /// overall constraint that all shared dependencies place on [dep]. Throws a
-  /// [SolveFailure] if that results in an unsolvable constraints.
-  ///
-  /// Returns the combined [VersionConstraint] that all dependers place on the
-  /// package.
-  VersionConstraint _addConstraint(PackageDep dep, String depender) {
-    // Add the dependency.
-    var dependencies = _getDependencies(dep.name);
-    dependencies.add(new Dependency(depender, dep));
-
-    // Determine the overall version constraint.
-    var constraint = dependencies
-        .map((dep) => dep.dep.constraint)
-        .fold(VersionConstraint.any, (a, b) => a.intersect(b));
-
-    // See if it's possible for a package to match that constraint.
-    if (constraint.isEmpty) {
-      _solver.logSolve('disjoint constraints on ${dep.name}');
-      throw new DisjointConstraintException(depender, dependencies);
-    }
-
-    return constraint;
-  }
-
   /// Validates the currently selected package against the new dependency that
   /// [dep] and [constraint] place on it. Returns `null` if there is no
   /// currently selected package, throws a [SolveFailure] if the new reference
@@ -569,42 +567,6 @@ class Traverser {
     }
 
     return selected;
-  }
-
-  /// Tries to select a package that matches [dep] and [constraint]. Updates
-  /// the solver state so that we can backtrack from this decision if it turns
-  /// out wrong, but continues traversing with the new selection.
-  ///
-  /// Returns a future that completes with a [SolveFailure] if a version
-  /// could not be selected or that completes successfully if a package was
-  /// selected and traversing should continue.
-  Future _selectPackage(PackageDep dep, VersionConstraint constraint) {
-    return _solver.cache.getVersions(dep.toRef()).then((versions) {
-      var allowed = versions.where((id) => constraint.allows(id.version));
-
-      // See if it's in the lockfile. If so, try that version first. If the
-      // locked version doesn't match our constraint, just ignore it.
-      var locked = _getValidLocked(dep.name, constraint);
-      if (locked != null) {
-        allowed = allowed.where((dep) => dep.version != locked.version)
-            .toList();
-        allowed.insert(0, locked);
-      }
-
-      if (allowed.isEmpty) {
-        _solver.logSolve('no versions for ${dep.name} match $constraint');
-        throw new NoVersionException(dep.name, constraint,
-                                     _getDependencies(dep.name));
-      }
-
-      // If we're doing an upgrade on this package, only allow the latest
-      // version.
-      if (_solver._forceLatest.contains(dep.name)) allowed = [allowed.first];
-
-      // Try the first package in the allowed set and keep track of the list of
-      // other possible versions in case that fails.
-      _packages.add(_solver.select(allowed));
-    });
   }
 
   /// Gets the list of dependencies for package [name]. Will create an empty
@@ -629,13 +591,22 @@ class Traverser {
         .firstWhere((dep) => !dep.dep.isRoot, orElse: () => null);
   }
 
+  /// Gets the combined [VersionConstraint] currently being placed on package
+  /// [name].
+  VersionConstraint _getConstraint(String name) {
+    return _getDependencies(name)
+        .map((dep) => dep.dep.constraint)
+        .fold(VersionConstraint.any, (a, b) => a.intersect(b));
+  }
+
   /// Gets the package [name] that's currently contained in the lockfile if it
   /// meets [constraint] and has the same source and description as other
   /// references to that package. Returns `null` otherwise.
-  PackageId _getValidLocked(String name, VersionConstraint constraint) {
+  PackageId _getValidLocked(String name) {
     var package = _solver.getLocked(name);
     if (package == null) return null;
 
+    var constraint = _getConstraint(name);
     if (!constraint.allows(package.version)) {
       _solver.logSolve('$package is locked but does not match $constraint');
       return null;
