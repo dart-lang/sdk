@@ -34,17 +34,25 @@ const whiteSpace = const [
   "\uFEFF"
 ];
 
+void expectNumEquals(num expect, num actual, String message) {
+  if (expect is double && expect.isNaN) {
+    Expect.isTrue(actual is double && actual.isNaN, "isNaN: $message");
+  } else {
+    Expect.identical(expect, actual, message);
+  }
+}
+
 void testParse(String source, num result) {
   for (String ws1 in whiteSpace) {
     for (String ws2 in whiteSpace) {
       String padded = "$ws1$source$ws2";
       // Use Expect.identical because it also handles NaN and 0.0/-0.0.
       // Except on dart2js: http://dartbug.com/11551
-      Expect.identical(result, num.parse(padded), "parse '$padded'");
+      expectNumEquals(result, num.parse(padded), "parse '$padded'");
       padded = "$ws1$ws2$source";
-      Expect.identical(result, num.parse(padded), "parse '$padded'");
+      expectNumEquals(result, num.parse(padded), "parse '$padded'");
       padded = "$source$ws1$ws2";
-      Expect.identical(result, num.parse(padded), "parse '$padded'");
+      expectNumEquals(result, num.parse(padded), "parse '$padded'");
     }
   }
 }

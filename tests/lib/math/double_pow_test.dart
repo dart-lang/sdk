@@ -66,18 +66,18 @@ main() {
   }
   for (var d in samples) {
     // otherwise, if either `x` or `y` is NaN then the result is NaN.
-    if (d != 0.0) Expect.identical(NaN, pow(NaN, d), "$d");
-    if (d != 1.0) Expect.identical(NaN, pow(d, NaN), "$d");
+    if (d != 0.0) Expect.isTrue(pow(NaN, d).isNaN, "$d");
+    if (d != 1.0) Expect.isTrue(pow(d, NaN).isNaN, "$d");
   }
 
   for (var d in samples) {
     // if `x` is a finite and strictly negative and `y` is a finite non-integer,
     // the result is NaN.
     if (d < 0 && !d.isInfinite) {
-      Expect.identical(NaN, pow(d, 0.5), "$d");
-      Expect.identical(NaN, pow(d, -0.5), "$d");
-      Expect.identical(NaN, pow(d, 1.5), "$d");
-      Expect.identical(NaN, pow(d, -1.5), "$d");
+      Expect.isTrue(pow(d, 0.5).isNaN, "$d");
+      Expect.isTrue(pow(d, -0.5).isNaN, "$d");
+      Expect.isTrue(pow(d, 1.5).isNaN, "$d");
+      Expect.isTrue(pow(d, -1.5).isNaN, "$d");
     }
   }
 
