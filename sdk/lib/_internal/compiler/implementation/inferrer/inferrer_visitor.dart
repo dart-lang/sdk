@@ -692,9 +692,7 @@ abstract class InferrerVisitor
   }
 
   T visitTypeReferenceSend(Send node) {
-    // If [node] is not a type literal is the class name of a static access,
-    // in which case we don't use the type mask.
-    return elements.isTypeLiteral(node) ? types.typeType : null;
+    return elements.isTypeLiteral(node) ? types.typeType : types.dynamicType;
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();

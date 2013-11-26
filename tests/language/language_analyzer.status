@@ -9,9 +9,10 @@ closure_call_wrong_argument_count_negative_test: skip
 # Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
 built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 
-# TBD: these look like bad tests, no issue number
+# Issue 15315
 class_literal_test: fail
 constructor_call_as_function_test/01: fail
+call_type_literal_test/01: fail
 
 # TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/03: fail
