@@ -13,6 +13,7 @@ namespace dart {
 #define kThreadError -1
 
 DECLARE_FLAG(bool, profile);
+DECLARE_FLAG(bool, trace_profiled_isolates);
 
 static void CollectSample(IsolateProfilerData* profiler_data,
                           uintptr_t pc,
@@ -138,11 +139,29 @@ int64_t ProfilerManager::SampleAndRescheduleIsolates(int64_t current_time) {
 void ProfilerManager::ThreadMain(uword parameters) {
   ASSERT(initialized_);
   ASSERT(FLAG_profile);
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager Windows ready.\n");
+  }
+  thread_running_ = true;
+  {
+    // Signal to main thread we are ready.
+    ScopedMonitor startup_lock(start_stop_monitor_);
+    startup_lock.Notify();
+  }
   ScopedMonitor lock(monitor_);
   while (!shutdown_) {
     int64_t current_time = OS::GetCurrentTimeMicros();
     int64_t next_sample = SampleAndRescheduleIsolates(current_time);
     lock.WaitMicros(next_sample);
+  }
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager Windows exiting.\n");
+  }
+  thread_running_ = false;
+  {
+    // Signal to main thread we are exiting.
+    ScopedMonitor shutdown_lock(start_stop_monitor_);
+    shutdown_lock.Notify();
   }
 }
 

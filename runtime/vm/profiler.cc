@@ -73,7 +73,9 @@ DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
 bool ProfilerManager::initialized_ = false;
 bool ProfilerManager::shutdown_ = false;
+bool ProfilerManager::thread_running_ = false;
 Monitor* ProfilerManager::monitor_ = NULL;
+Monitor* ProfilerManager::start_stop_monitor_ = NULL;
 Isolate** ProfilerManager::isolates_ = NULL;
 intptr_t ProfilerManager::isolates_capacity_ = 0;
 intptr_t ProfilerManager::isolates_size_ = 0;
@@ -90,9 +92,23 @@ void ProfilerManager::InitOnce() {
   NativeSymbolResolver::InitOnce();
   ASSERT(!initialized_);
   monitor_ = new Monitor();
+  start_stop_monitor_ = new Monitor();
   initialized_ = true;
   ResizeIsolates(16);
-  Thread::Start(ThreadMain, 0);
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager starting up.\n");
+  }
+  {
+    ScopedMonitor startup_lock(start_stop_monitor_);
+    Thread::Start(ThreadMain, 0);
+    while (!thread_running_) {
+      // Wait until profiler thread has started up.
+      startup_lock.Wait();
+    }
+  }
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager running.\n");
+  }
 }
 
 
@@ -101,11 +117,16 @@ void ProfilerManager::Shutdown() {
     return;
   }
   ASSERT(initialized_);
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager shutting down.\n");
+  }
+  intptr_t size_at_shutdown = 0;
   {
     ScopedSignalBlocker ssb;
     {
       ScopedMonitor lock(monitor_);
       shutdown_ = true;
+      size_at_shutdown = isolates_size_;
       isolates_size_ = 0;
       free(isolates_);
       isolates_ = NULL;
@@ -113,6 +134,17 @@ void ProfilerManager::Shutdown() {
     }
   }
   NativeSymbolResolver::ShutdownOnce();
+  {
+    ScopedMonitor shutdown_lock(start_stop_monitor_);
+    while (thread_running_) {
+      // Wait until profiler thread has exited.
+      shutdown_lock.Wait();
+    }
+  }
+  initialized_ = false;
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager shut down (%" Pd ").\n", size_at_shutdown);
+  }
 }
 
 
@@ -133,7 +165,7 @@ void ProfilerManager::SetupIsolateForProfiling(Isolate* isolate) {
       profiler_data->set_sample_interval_micros(1000);
       isolate->set_profiler_data(profiler_data);
       if (FLAG_trace_profiled_isolates) {
-        OS::Print("PROF SETUP %p %s %p\n",
+        OS::Print("ProfilerManager Setup Isolate %p %s %p\n",
             isolate,
             isolate->name(),
             reinterpret_cast<void*>(Thread::GetCurrentThreadId()));
@@ -157,8 +189,10 @@ void ProfilerManager::FreeIsolateProfilingData(Isolate* isolate) {
   delete sample_buffer;
   delete profiler_data;
   if (FLAG_trace_profiled_isolates) {
-    OS::Print("PROF SHUTDOWN %p %s %p\n", isolate,
-        isolate->name(), reinterpret_cast<void*>(Thread::GetCurrentThreadId()));
+    OS::Print("ProfilerManager Shutdown Isolate %p %s %p\n",
+        isolate,
+        isolate->name(),
+        reinterpret_cast<void*>(Thread::GetCurrentThreadId()));
   }
 }
 

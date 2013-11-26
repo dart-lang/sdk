@@ -35,7 +35,9 @@ class ProfilerManager : public AllStatic {
   static const intptr_t kMaxProfiledIsolates = 4096;
   static bool initialized_;
   static bool shutdown_;
+  static bool thread_running_;
   static Monitor* monitor_;
+  static Monitor* start_stop_monitor_;
 
   static Isolate** isolates_;
   static intptr_t isolates_capacity_;
