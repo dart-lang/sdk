@@ -689,8 +689,7 @@ static const int kCompilationErrorExitCode = 254;
 // Exit code indicating an unhandled error that is not a compilation error.
 static const int kErrorExitCode = 255;
 
-
-static int ErrorExit(int exit_code, const char* format, ...) {
+static void ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
   Log::VPrintErr(format, arguments);
@@ -702,14 +701,17 @@ static int ErrorExit(int exit_code, const char* format, ...) {
 
   Dart_Cleanup();
 
-  return exit_code;
+  exit(exit_code);
 }
 
 
-static int DartErrorExit(Dart_Handle error) {
+static void DartExitOnError(Dart_Handle error) {
+  if (!Dart_IsError(error)) {
+    return;
+  }
   const int exit_code = Dart_IsCompilationError(error) ?
       kCompilationErrorExitCode : kErrorExitCode;
-  return ErrorExit(exit_code, "%s\n", Dart_GetError(error));
+  ErrorExit(exit_code, "%s\n", Dart_GetError(error));
 }
 
 
@@ -754,7 +756,7 @@ static Dart_Handle GenerateScriptSource() {
 }
 
 
-int main(int argc, char** argv) {
+void main(int argc, char** argv) {
   char* script_name;
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
@@ -780,18 +782,18 @@ int main(int argc, char** argv) {
                      &verbose_debug_seen) < 0) {
     if (has_help_option) {
       PrintUsage();
-      return 0;
+      exit(0);
     } else if (has_version_option) {
       PrintVersion();
-      return 0;
+      exit(0);
     } else if (print_flags_seen) {
       // Will set the VM flags, print them out and then we exit as no
       // script was specified on the command line.
       Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
-      return 0;
+      exit(0);
     } else {
       PrintUsage();
-      return kErrorExitCode;
+      exit(kErrorExitCode);
     }
   }
 
@@ -799,7 +801,7 @@ int main(int argc, char** argv) {
     OSError err;
     fprintf(stderr, "Error determinig current directory: %s\n", err.message());
     fflush(stderr);
-    return kErrorExitCode;
+    exit(kErrorExitCode);
   }
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
@@ -813,7 +815,7 @@ int main(int argc, char** argv) {
                        DartUtils::EntropySource)) {
     fprintf(stderr, "%s", "VM initialization failed\n");
     fflush(stderr);
-    return kErrorExitCode;
+    exit(kErrorExitCode);
   }
 
   // Start the debugger wire protocol handler if necessary.
@@ -854,7 +856,7 @@ int main(int argc, char** argv) {
     Log::PrintErr("%s\n", error);
     free(error);
     delete [] isolate_name;
-    return is_compile_error ? kCompilationErrorExitCode : kErrorExitCode;
+    exit(is_compile_error ? kCompilationErrorExitCode : kErrorExitCode);
   }
   delete [] isolate_name;
 
@@ -871,10 +873,7 @@ int main(int argc, char** argv) {
     uint8_t* buffer = NULL;
     intptr_t size = 0;
     result = Dart_CreateScriptSnapshot(&buffer, &size);
-    if (Dart_IsError(result)) {
-      Log::PrintErr("%s\n", Dart_GetError(result));
-      return DartErrorExit(result);
-    }
+    DartExitOnError(result);
 
     // Write the magic number to indicate file is a script snapshot.
     DartUtils::WriteMagicNumber(snapshot_file);
@@ -894,40 +893,34 @@ int main(int argc, char** argv) {
 
     if (has_compile_all) {
       result = Dart_CompileAll();
-      if (Dart_IsError(result)) {
-        return DartErrorExit(result);
-      }
+      DartExitOnError(result);
     }
 
     if (Dart_IsNull(root_lib)) {
-      return ErrorExit(kErrorExitCode,
-                       "Unable to find root library for '%s'\n",
-                       script_name);
+      ErrorExit(kErrorExitCode,
+                "Unable to find root library for '%s'\n",
+                script_name);
     }
     if (has_print_script) {
       result = GenerateScriptSource();
-      if (Dart_IsError(result)) {
-        return DartErrorExit(result);
-      }
+      DartExitOnError(result);
     } else {
       // The helper function _getMainClosure creates a closure for the main
       // entry point which is either explicitly or implictly exported from the
       // root library.
       Dart_Handle main_closure = Dart_Invoke(
           builtin_lib, Dart_NewStringFromCString("_getMainClosure"), 0, NULL);
-      if (Dart_IsError(main_closure)) {
-        return DartErrorExit(result);
-      }
+      DartExitOnError(main_closure);
 
       // Set debug breakpoint if specified on the command line before calling
       // the main function.
       if (breakpoint_at != NULL) {
         result = SetBreakpoint(breakpoint_at, root_lib);
         if (Dart_IsError(result)) {
-          return ErrorExit(kErrorExitCode,
-                           "Error setting breakpoint at '%s': %s\n",
-                           breakpoint_at,
-                           Dart_GetError(result));
+          ErrorExit(kErrorExitCode,
+                    "Error setting breakpoint at '%s': %s\n",
+                    breakpoint_at,
+                    Dart_GetError(result));
         }
       }
 
@@ -948,22 +941,18 @@ int main(int argc, char** argv) {
       Dart_Handle initial_startup_msg = Dart_NewList(3);
       result = Dart_ListSetAt(initial_startup_msg, 1,
                               CreateRuntimeOptions(&dart_options));
-      if (Dart_IsError(result)) {
-        return DartErrorExit(result);
-      }
+      DartExitOnError(result);
       Dart_Port main_port = Dart_GetMainPortId();
       bool posted = Dart_Post(main_port, initial_startup_msg);
       if (!posted) {
-        return ErrorExit(kErrorExitCode,
-                         "Failed posting startup message to main "
-                         "isolate control port.");
+        ErrorExit(kErrorExitCode,
+                  "Failed posting startup message to main "
+                  "isolate control port.");
       }
 
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
-      if (Dart_IsError(result)) {
-        return DartErrorExit(result);
-      }
+      DartExitOnError(result);
     }
   }
 
@@ -993,12 +982,13 @@ int main(int argc, char** argv) {
 
   Platform::Cleanup();
 
-  return Process::GlobalExitCode();
+  exit(Process::GlobalExitCode());
 }
 
 }  // namespace bin
 }  // namespace dart
 
 int main(int argc, char** argv) {
-  return dart::bin::main(argc, argv);
+  dart::bin::main(argc, argv);
+  UNREACHABLE();
 }
