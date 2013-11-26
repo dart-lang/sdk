@@ -84,27 +84,6 @@ LibTest/core/double/toInt_A01_t01: Fail
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
 
 [ $compiler == none && $checked && ($runtime == vm || $runtime == dartium) ]
-LibTest/typed_data/Float32x4List/elementAt_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/fillRange_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/first_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/first_A03_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/firstWhere_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/firstWhere_A02_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/getRange_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/getRange_A02_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/last_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/lastWhere_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/map_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/map_A02_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/map_A03_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/operator_subscript_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/operator_subscripted_assignment_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/reversed_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/single_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/singleWhere_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/skip_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/take_A01_t01: Fail # Dart issue 12861
-LibTest/typed_data/Float32x4List/take_A02_t01: Fail # Dart issue 12861
 Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please triage this failure
 
 [ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]

@@ -137,7 +137,6 @@ Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: MissingRuntimeError, OK # c
 Language/13_Statements/09_Switch_A09_t01: PASS, FAIL, OK # co19 issue 633
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/typed_data/Float32x4List/reduce_A01_t01: Fail # co19-roll r623: Please triage this failure
 
 [ ($runtime == vm || $compiler == dart2js) && $checked]
 Language/14_Libraries_and_Scripts/1_Imports_A03_t46: PASS, FAIL, OK # co19 issue 560
