@@ -68,7 +68,7 @@ namespace dart {
 // fail (sometimes leading to a crash).
 //
 
-DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
+DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
 bool ProfilerManager::initialized_ = false;
@@ -141,7 +141,6 @@ void ProfilerManager::Shutdown() {
       shutdown_lock.Wait();
     }
   }
-  initialized_ = false;
   if (FLAG_trace_profiled_isolates) {
     OS::Print("ProfilerManager shut down (%" Pd ").\n", size_at_shutdown);
   }
@@ -212,6 +211,10 @@ void ProfilerManager::ShutdownIsolateForProfiling(Isolate* isolate) {
 void ProfilerManager::ScheduleIsolateHelper(Isolate* isolate) {
   ScopedMonitor lock(monitor_);
   {
+    if (shutdown_) {
+      // Shutdown.
+      return;
+    }
     ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
     if (profiler_data == NULL) {
@@ -260,6 +263,10 @@ void ProfilerManager::DescheduleIsolate(Isolate* isolate) {
     ScopedSignalBlocker ssb;
     {
       ScopedMonitor lock(monitor_);
+      if (shutdown_) {
+        // Shutdown.
+        return;
+      }
       intptr_t i = FindIsolate(isolate);
       if (i < 0) {
         // Not scheduled.
