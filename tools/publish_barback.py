@@ -20,31 +20,22 @@
 
 import os
 import os.path
-import re
 import shutil
 import sys
 import subprocess
 import tempfile
 
-def ReadVersion(file, field):
-  for line in open(file).read().split('\n'):
-    [k, v] = re.split('\s+', line)
-    if field == k:
-      return int(v)
+import utils
 
 def Main(argv):
   HOME = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
   BARBACK = os.path.join(HOME, 'pkg', 'barback')
 
-  versionFile = os.path.join(HOME, 'tools', 'VERSION')
-  major = ReadVersion(versionFile, 'MAJOR')
-  minor = ReadVersion(versionFile, 'MINOR')
-  build = ReadVersion(versionFile, 'BUILD')
-  patch = ReadVersion(versionFile, 'PATCH')
+  (channel, major, minor, build, patch) = utils.ReadVersionFile()
 
   # The bleeding_edge branch has a fixed version number of 0.1.x.y. Don't allow
   # users to publish packages from there.
-  if major == 0 and minor <= 1:
+  if (major == 0 and minor <= 1) or channel == 'be':
     print 'Error: Do not run this script from a bleeding_edge checkout.'
     return -1
 
