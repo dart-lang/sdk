@@ -1,5 +1,5 @@
 name: barback
-version: 0.9.0
+version: 0.9.0 # Replaced by publish_barback.py. Do not edit.
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
