@@ -23,7 +23,6 @@ main() {
   asyncTest(() => testDir(join(testsDir, 'standalone', 'io')));
   asyncTest(() => testDir(join(testsDir, 'lib', '..', 'standalone', 'io')));
   // Test a relative path.
-  asyncTest(() => testDir('.'));
   if (Platform.isWindows) {
     asyncTest(() =>testFile(join('\\\\?\\$testsDir', 'standalone', 'io',
                                  'resolve_symbolic_links_test.dart')));
@@ -37,7 +36,8 @@ main() {
          testFile(join(temp, 'link1', 'file2')),
          testDir(join(temp, 'dir1', 'dir2', '..', '.', '..', 'dir1')),
          testDir(join(temp, 'dir1', 'dir2', '..', '.', '..', 'dir1')),
-         testLink(join(temp, 'link1'))]))
+         testLink(join(temp, 'link1')),
+         testDir('.')]))
     .then((_) {
       if (Platform.isWindows) {
         // Windows applies '..' to a link without resolving the link first.
