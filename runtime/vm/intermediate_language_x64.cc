@@ -2376,6 +2376,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // if locs()->in(1).IsRegister.
   Register right = locs()->in(1).reg();
+  Range* right_range = this->right()->definition()->range();
   switch (op_kind()) {
     case Token::kADD: {
       __ addq(left, right);
@@ -2416,11 +2417,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT((right != RDX) && (right != RAX));
       ASSERT(temp == RDX);
       ASSERT(result == RAX);
-
-      // Handle divide by zero in runtime.
-      __ testq(right, right);
-      __ j(ZERO, deopt);
-
+      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+        // Handle divide by zero in runtime.
+        __ testq(right, right);
+        __ j(ZERO, deopt);
+      }
       // Check if both operands fit into 32bits as idiv with 64bit operands
       // requires twice as many cycles and has much higher latency.
       // We are checking this before untagging them to avoid corner case
@@ -2463,9 +2464,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT((right != RDX) && (right != RAX));
       ASSERT(temp == RAX);
       ASSERT(result == RDX);
-      // Handle divide by zero in runtime.
-      __ testq(right, right);
-      __ j(ZERO, deopt);
+      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+        // Handle divide by zero in runtime.
+        __ testq(right, right);
+        __ j(ZERO, deopt);
+      }
       // Check if both operands fit into 32bits as idiv with 64bit operands
       // requires twice as many cycles and has much higher latency.
       // We are checking this before untagging them to avoid corner case
@@ -2502,16 +2505,25 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       //      res = res + right;
       //    }
       //  }
-      Label subtract, all_done;
+      Label all_done;
       __ cmpq(result, Immediate(0));
       __ j(GREATER_EQUAL, &all_done, Assembler::kNearJump);
       // Result is negative, adjust it.
-      __ cmpq(right, Immediate(0));
-      __ j(LESS, &subtract, Assembler::kNearJump);
-      __ addq(result, right);
-      __ jmp(&all_done, Assembler::kNearJump);
-      __ Bind(&subtract);
-      __ subq(result, right);
+      if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+        Label subtract;
+        __ cmpq(right, Immediate(0));
+        __ j(LESS, &subtract, Assembler::kNearJump);
+        __ addq(result, right);
+        __ jmp(&all_done, Assembler::kNearJump);
+        __ Bind(&subtract);
+        __ subq(result, right);
+      } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+        // Right is positive.
+        __ addq(result, right);
+      } else {
+        // Right is negative.
+        __ subq(result, right);
+      }
       __ Bind(&all_done);
       __ SmiTag(result);
       break;
@@ -2524,7 +2536,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(right);
       // sarq operation masks the count to 6 bits.
       const intptr_t kCountLimit = 0x3F;
-      Range* right_range = this->right()->definition()->range();
       if ((right_range == NULL) ||
           !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
         __ CompareImmediate(right, Immediate(kCountLimit), PP);
@@ -4061,9 +4072,13 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT((right != RDX) && (right != RAX));
     ASSERT(temp == RDX);
     ASSERT((result != RDX) && (result != RAX));
-    // Handle divide by zero in runtime.
-    __ testq(right, right);
-    __ j(ZERO, deopt);
+
+    Range* right_range = InputAt(1)->definition()->range();
+    if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      // Handle divide by zero in runtime.
+      __ testq(right, right);
+      __ j(ZERO, deopt);
+    }
     // Check if both operands fit into 32bits as idiv with 64bit operands
     // requires twice as many cycles and has much higher latency.
     // We are checking this before untagging them to avoid corner case
@@ -4106,16 +4121,25 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     //      res = res + right;
     //    }
     //  }
-    Label subtract, all_done;
+    Label all_done;
     __ cmpq(RDX, Immediate(0));
     __ j(GREATER_EQUAL, &all_done, Assembler::kNearJump);
     // Result is negative, adjust it.
-    __ cmpq(right, Immediate(0));
-    __ j(LESS, &subtract, Assembler::kNearJump);
-    __ addq(RDX, right);
-    __ jmp(&all_done, Assembler::kNearJump);
-    __ Bind(&subtract);
-    __ subq(RDX, right);
+    if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+      Label subtract;
+      __ cmpq(right, Immediate(0));
+      __ j(LESS, &subtract, Assembler::kNearJump);
+      __ addq(RDX, right);
+      __ jmp(&all_done, Assembler::kNearJump);
+      __ Bind(&subtract);
+      __ subq(RDX, right);
+    } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+      // Right is positive.
+      __ addq(RDX, right);
+    } else {
+      // Right is negative.
+      __ subq(RDX, right);
+    }
     __ Bind(&all_done);
     __ SmiTag(result);
 

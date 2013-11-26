@@ -26,7 +26,18 @@ main() {
     }
     Expect.equals((i ~/ 10) + (i ~/ 10) + (i % 10), threeOp(i));
     Expect.equals((i ~/ 10) + (i ~/ 12) + (i % 10) + (i % 12), fourOp(i));
+    
+    // Zero test is done outside the loop.
+    if (i < 0) {
+      Expect.equals(i % -i, foo2(i));
+      Expect.equals(i ~/ -i + i % -i, fooTwo2(i));
+    } else if (i > 0) {
+      Expect.equals(i % i, foo2(i));
+      Expect.equals(i ~/ i + i % i, fooTwo2(i));
+    }
   }
+  Expect.throws(() => foo2(0), (e) => e is IntegerDivisionByZeroException);
+  Expect.throws(() => fooTwo2(0), (e) => e is IntegerDivisionByZeroException);
 }
 
 foo(i) => i % 256;  // This will get optimized to AND instruction.
@@ -61,4 +72,27 @@ fourOp(a) {
   var y0 = a % 10; 
   var y1 = a % 12;
   return x0 + x1 + y0 + y1;
+}
+
+foo2(i) {
+  // Make sure x has a range computed. 
+  var x = 0;
+  if (i < 0) {
+    x = -i;
+  } else {
+    x = i;
+  }
+  return i % x;
+}
+
+
+fooTwo2(i) {
+  // Make sure x has a range computed. 
+  var x = 0;
+  if (i < 0) {
+    x = -i;
+  } else {
+    x = i;
+  }
+  return i ~/ x + i % x;
 }

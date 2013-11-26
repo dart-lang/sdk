@@ -2539,6 +2539,9 @@ class Range : public ZoneAllocated {
   // Inclusive.
   bool IsWithin(intptr_t min_int, intptr_t max_int) const;
 
+  // Inclusive.
+  bool Overlaps(intptr_t min_int, intptr_t max_int) const;
+
   bool IsUnsatisfiable() const;
 
  private:

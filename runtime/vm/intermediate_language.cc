@@ -1114,6 +1114,10 @@ bool BinarySmiOpInstr::CanDeoptimize() const {
       }
       return true;
     }
+    case Token::kMOD: {
+      Range* right_range = this->right()->definition()->range();
+      return (right_range == NULL) || right_range->Overlaps(0, 0);
+    }
     default:
       return overflow_;
   }
@@ -2683,6 +2687,16 @@ bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
   if (min().LowerBound().value() < min_int) return false;
   if (max().UpperBound().value() > max_int) return false;
   return true;
+}
+
+
+bool Range::Overlaps(intptr_t min_int, intptr_t max_int) const {
+  const intptr_t this_min = min().LowerBound().value();
+  const intptr_t this_max = max().UpperBound().value();
+  if ((this_min <= min_int) && (min_int <= this_max)) return true;
+  if ((this_min <= max_int) && (max_int <= this_max)) return true;
+  if ((min_int < this_min) && (max_int > this_max)) return true;
+  return false;
 }
 
 

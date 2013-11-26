@@ -39,4 +39,24 @@ TEST_CASE(OptimizationTests) {
   EXPECT(!c3->Equals(c1));
 }
 
+
+TEST_CASE(RangeTests) {
+  Range* zero = new Range(
+      RangeBoundary::FromConstant(0),
+      RangeBoundary::FromConstant(0));
+  Range* positive = new Range(
+      RangeBoundary::FromConstant(0),
+      RangeBoundary::FromConstant(100));
+  Range* negative = new Range(
+      RangeBoundary::FromConstant(-1),
+      RangeBoundary::FromConstant(-100));
+  Range* range_x = new Range(
+      RangeBoundary::FromConstant(-15),
+      RangeBoundary::FromConstant(100));
+  EXPECT(zero->Overlaps(0, 0));
+  EXPECT(positive->Overlaps(0, 0));
+  EXPECT(!negative->Overlaps(0, 0));
+  EXPECT(range_x->Overlaps(0, 0));
+}
+
 }  // namespace dart

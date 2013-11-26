@@ -2426,6 +2426,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // if locs()->in(1).IsRegister.
   Register right = locs()->in(1).reg();
+  Range* right_range = this->right()->definition()->range();
   switch (op_kind()) {
     case Token::kADD: {
       __ addl(left, right);
@@ -2459,9 +2460,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      // Handle divide by zero in runtime.
-      __ testl(right, right);
-      __ j(ZERO, deopt);
+      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+        // Handle divide by zero in runtime.
+        __ testl(right, right);
+        __ j(ZERO, deopt);
+      }
       ASSERT(left == EAX);
       ASSERT((right != EDX) && (right != EAX));
       ASSERT(locs()->temp(0).reg() == EDX);
@@ -2478,9 +2481,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      // Handle divide by zero in runtime.
-      __ testl(right, right);
-      __ j(ZERO, deopt);
+      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+        // Handle divide by zero in runtime.
+        __ testl(right, right);
+        __ j(ZERO, deopt);
+      }
       ASSERT(left == EDX);
       ASSERT((right != EDX) && (right != EAX));
       ASSERT(locs()->temp(0).reg() == EAX);
@@ -2498,16 +2503,26 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       //      res = res + right;
       //    }
       //  }
-      Label subtract, done;
+      Label done;
       __ cmpl(result, Immediate(0));
       __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
       // Result is negative, adjust it.
-      __ cmpl(right, Immediate(0));
-      __ j(LESS, &subtract, Assembler::kNearJump);
-      __ addl(result, right);
-      __ jmp(&done, Assembler::kNearJump);
-      __ Bind(&subtract);
-      __ subl(result, right);
+      if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+        // Right can be positive and negative.
+        Label subtract;
+        __ cmpl(right, Immediate(0));
+        __ j(LESS, &subtract, Assembler::kNearJump);
+        __ addl(result, right);
+        __ jmp(&done, Assembler::kNearJump);
+        __ Bind(&subtract);
+        __ subl(result, right);
+      } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+        // Right is positive.
+        __ addl(result, right);
+      } else {
+        // Right is negative.
+        __ subl(result, right);
+      }
       __ Bind(&done);
       __ SmiTag(result);
       break;
@@ -2520,7 +2535,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(right);
       // sarl operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
-      Range* right_range = this->right()->definition()->range();
       if ((right_range == NULL) ||
           !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
         __ cmpl(right, Immediate(kCountLimit));
@@ -4013,9 +4027,12 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register left = locs()->in(0).reg();
     Register right = locs()->in(1).reg();
     Register result = locs()->out().reg();
-    // Handle divide by zero in runtime.
-    __ testl(right, right);
-    __ j(ZERO, deopt);
+    Range* right_range = InputAt(1)->definition()->range();
+    if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      // Handle divide by zero in runtime.
+      __ testl(right, right);
+      __ j(ZERO, deopt);
+    }
     ASSERT(left == EAX);
     ASSERT((right != EDX) && (right != EAX));
     ASSERT(locs()->temp(0).reg() == EDX);
@@ -4040,16 +4057,25 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     //      res = res + right;
     //    }
     //  }
-    Label subtract, done;
+    Label done;
     __ cmpl(EDX, Immediate(0));
     __ j(GREATER_EQUAL, &done, Assembler::kNearJump);
     // Result is negative, adjust it.
-    __ cmpl(right, Immediate(0));
-    __ j(LESS, &subtract, Assembler::kNearJump);
-    __ addl(EDX, right);
-    __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&subtract);
-    __ subl(EDX, right);
+    if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+      Label subtract;
+      __ cmpl(right, Immediate(0));
+      __ j(LESS, &subtract, Assembler::kNearJump);
+      __ addl(EDX, right);
+      __ jmp(&done, Assembler::kNearJump);
+      __ Bind(&subtract);
+      __ subl(EDX, right);
+    } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+      // Right is positive.
+      __ addl(EDX, right);
+    } else {
+      // Right is negative.
+      __ subl(EDX, right);
+    }
     __ Bind(&done);
 
     __ LoadObject(result, Array::ZoneHandle(Array::New(2, Heap::kOld)));

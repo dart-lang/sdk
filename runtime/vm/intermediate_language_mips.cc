@@ -2482,6 +2482,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   Register right = locs()->in(1).reg();
+  Range* right_range = this->right()->definition()->range();
   switch (op_kind()) {
     case Token::kADD: {
       if (deopt == NULL) {
@@ -2531,8 +2532,10 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      // Handle divide by zero in runtime.
-      __ beq(right, ZR, deopt);
+      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+        // Handle divide by zero in runtime.
+        __ beq(right, ZR, deopt);
+      }
       Register temp = locs()->temp(0).reg();
       __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
       __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
@@ -2545,8 +2548,10 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      // Handle divide by zero in runtime.
-      __ beq(right, ZR, deopt);
+      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+        // Handle divide by zero in runtime.
+        __ beq(right, ZR, deopt);
+      }
       Register temp = locs()->temp(0).reg();
       __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
       __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
@@ -2560,13 +2565,22 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       //      res = res + right;
       //    }
       //  }
-      Label done, subtract;
+      Label done;
       __ bgez(result, &done);
-      __ bltz(right, &subtract);
-      __ addu(result, result, TMP);
-      __ b(&done);
-      __ Bind(&subtract);
-      __ subu(result, result, TMP);
+      if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+        Label subtract;
+        __ bltz(right, &subtract);
+        __ addu(result, result, TMP);
+        __ b(&done);
+        __ Bind(&subtract);
+        __ subu(result, result, TMP);
+      } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+        // Right is positive.
+        __ addu(result, result, TMP);
+      } else {
+        // Right is negative.
+        __ subu(result, result, TMP);
+      }
       __ Bind(&done);
       __ SmiTag(result);
       break;
@@ -2579,7 +2593,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ sra(temp, right, kSmiTagSize);  // SmiUntag right into temp.
       // sra operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
-      Range* right_range = this->right()->definition()->range();
       if ((right_range == NULL) ||
           !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
         Label ok;
@@ -3431,8 +3444,11 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register temp = locs()->temp(0).reg();
     Register result_div = locs()->temp(1).reg();
     Register result_mod = locs()->temp(2).reg();
-    // Handle divide by zero in runtime.
-    __ beq(right, ZR, deopt);
+    Range* right_range = InputAt(1)->definition()->range();
+    if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      // Handle divide by zero in runtime.
+      __ beq(right, ZR, deopt);
+    }
     __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
     __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
     __ div(temp, TMP);
@@ -3449,13 +3465,22 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     //      res = res + right;
     //    }
     //  }
-    Label done, subtract;
+    Label done;
     __ bgez(result_mod, &done);
-    __ bltz(right, &subtract);
-    __ addu(result_mod, result_mod, TMP);
-    __ b(&done);
-    __ Bind(&subtract);
-    __ subu(result_mod, result_mod, TMP);
+    if ((right_range == NULL) || right_range->Overlaps(-1, 1)) {
+      Label subtract;
+      __ bltz(right, &subtract);
+      __ addu(result_mod, result_mod, TMP);
+      __ b(&done);
+      __ Bind(&subtract);
+      __ subu(result_mod, result_mod, TMP);
+    } else if (right_range->IsWithin(0, RangeBoundary::kPlusInfinity)) {
+      // Right is positive.
+      __ addu(result_mod, result_mod, TMP);
+    } else {
+      // Right is negative.
+      __ subu(result_mod, result_mod, TMP);
+    }
     __ Bind(&done);
 
     __ SmiTag(result_div);

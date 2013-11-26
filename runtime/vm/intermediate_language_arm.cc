@@ -2374,6 +2374,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   Register right = locs()->in(1).reg();
+  Range* right_range = this->right()->definition()->range();
   switch (op_kind()) {
     case Token::kADD: {
       if (deopt == NULL) {
@@ -2421,9 +2422,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      // Handle divide by zero in runtime.
-      __ cmp(right, ShifterOperand(0));
-      __ b(deopt, EQ);
+      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+        // Handle divide by zero in runtime.
+        __ cmp(right, ShifterOperand(0));
+        __ b(deopt, EQ);
+      }
       Register temp = locs()->temp(0).reg();
       DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
       __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
@@ -2439,9 +2442,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      // Handle divide by zero in runtime.
-      __ cmp(right, ShifterOperand(0));
-      __ b(deopt, EQ);
+      if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+        // Handle divide by zero in runtime.
+        __ cmp(right, ShifterOperand(0));
+        __ b(deopt, EQ);
+      }
       Register temp = locs()->temp(0).reg();
       DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
       __ Asr(temp, left, kSmiTagSize);  // SmiUntag left into temp.
@@ -2478,7 +2483,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Asr(IP, right, kSmiTagSize);  // SmiUntag right into IP.
       // sarl operation masks the count to 5 bits.
       const intptr_t kCountLimit = 0x1F;
-      Range* right_range = this->right()->definition()->range();
       if ((right_range == NULL) ||
           !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
         __ CompareImmediate(IP, kCountLimit);
@@ -4088,9 +4092,12 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register left = locs()->in(0).reg();
     Register right = locs()->in(1).reg();
     Register result = locs()->out().reg();
-    // Handle divide by zero in runtime.
-    __ cmp(right, ShifterOperand(0));
-    __ b(deopt, EQ);
+    Range* right_range = InputAt(1)->definition()->range();
+    if ((right_range == NULL) || right_range->Overlaps(0, 0)) {
+      // Handle divide by zero in runtime.
+      __ cmp(right, ShifterOperand(0));
+      __ b(deopt, EQ);
+    }
     Register temp = locs()->temp(0).reg();
     DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
     Register result_div = locs()->temp(2).reg();
