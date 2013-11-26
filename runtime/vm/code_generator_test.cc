@@ -293,7 +293,7 @@ CODEGEN_TEST_GENERATE(StaticCallCodegen, test) {
                                               RawScript::kScriptTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
   Class& cls = Class::Handle(LookupClass(lib, "A"));
   EXPECT(!cls.IsNull());
 
@@ -340,7 +340,7 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
                                               RawScript::kScriptTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
   Class& cls = Class::ZoneHandle(LookupClass(lib, "A"));
   EXPECT(!cls.IsNull());
 
@@ -532,7 +532,7 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
                                               RawScript::kScriptTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
   Class& cls = Class::ZoneHandle(LookupClass(lib, "A"));
   EXPECT(!cls.IsNull());
 

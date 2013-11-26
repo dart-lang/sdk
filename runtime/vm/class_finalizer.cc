@@ -37,18 +37,18 @@ bool ClassFinalizer::AllClassesFinalized() {
 // Only methods which owner classes where subclasses can be invalid.
 // TODO(srdjan): Be even more precise by recording the exact CHA optimization.
 static void RemoveOptimizedCode(
-    const GrowableArray<intptr_t>& added_subclasses_to_cids) {
+    const GrowableArray<intptr_t>& added_subclass_to_cids) {
   ASSERT(FLAG_use_cha);
-  if (added_subclasses_to_cids.is_empty()) return;
+  if (added_subclass_to_cids.is_empty()) return;
   // Deoptimize all live frames.
-  DeoptimizeIfOwner(added_subclasses_to_cids);
+  DeoptimizeIfOwner(added_subclass_to_cids);
   // Switch all functions' code to unoptimized.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   Class& cls = Class::Handle();
   Array& array = Array::Handle();
   Function& function = Function::Handle();
-  for (intptr_t i = 0; i < added_subclasses_to_cids.length(); i++) {
-    intptr_t cid = added_subclasses_to_cids[i];
+  for (intptr_t i = 0; i < added_subclass_to_cids.length(); i++) {
+    intptr_t cid = added_subclass_to_cids[i];
     cls = class_table.At(cid);
     ASSERT(!cls.IsNull());
     array = cls.functions();
@@ -89,30 +89,25 @@ void AddSuperType(const AbstractType& type,
 // Use array instead of set since we expect very few subclassed classes
 // to occur.
 static void CollectFinalizedSuperClasses(
-    const GrowableObjectArray& pending_classes,
-    GrowableArray<intptr_t>* finalized_super_classes) {
-  Class& cls = Class::Handle();
+    const Class& cls_, GrowableArray<intptr_t>* finalized_super_classes) {
+  Class& cls = Class::Handle(cls_.raw());
   AbstractType& super_type = Type::Handle();
-  for (intptr_t i = 0; i < pending_classes.Length(); i++) {
-    cls ^= pending_classes.At(i);
-    ASSERT(!cls.is_finalized());
-    super_type = cls.super_type();
-    if (!super_type.IsNull()) {
-      if (!super_type.IsMalformed() && super_type.HasResolvedTypeClass()) {
-        cls ^= super_type.type_class();
-        if (cls.is_finalized()) {
-          AddSuperType(super_type, finalized_super_classes);
-        }
+  super_type = cls.super_type();
+  if (!super_type.IsNull()) {
+    if (!super_type.IsMalformed() && super_type.HasResolvedTypeClass()) {
+      cls ^= super_type.type_class();
+      if (cls.is_finalized()) {
+        AddSuperType(super_type, finalized_super_classes);
       }
     }
   }
 }
 
 
-// Class finalization occurs:
+// Type hierarchy finalization occurs:
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
-bool ClassFinalizer::FinalizePendingClasses() {
+bool ClassFinalizer::FinalizeTypeHierarchy() {
   bool retval = true;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -126,7 +121,6 @@ bool ClassFinalizer::FinalizePendingClasses() {
     return true;
   }
 
-  GrowableArray<intptr_t> added_subclasses_to_cids;
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
@@ -134,9 +128,6 @@ bool ClassFinalizer::FinalizePendingClasses() {
     GrowableObjectArray& class_array = GrowableObjectArray::Handle();
     class_array = object_store->pending_classes();
     ASSERT(!class_array.IsNull());
-    // Collect superclasses that were already finalized before this run of
-    // finalization.
-    CollectFinalizedSuperClasses(class_array, &added_subclasses_to_cids);
     Class& cls = Class::Handle();
     // First resolve all superclasses.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
@@ -163,9 +154,6 @@ bool ClassFinalizer::FinalizePendingClasses() {
     retval = false;
   }
   isolate->set_long_jump_base(base);
-  if (FLAG_use_cha) {
-    RemoveOptimizedCode(added_subclasses_to_cids);
-  }
   return retval;
 }
 
@@ -237,8 +225,9 @@ void ClassFinalizer::VerifyBootstrapClasses() {
     }
   }
 
-  // Finalize classes that aren't pre-finalized by Object::Init().
-  if (!FinalizePendingClasses()) {
+  // Finalize type hierarchy for types that aren't pre-finalized
+  // by Object::Init().
+  if (!FinalizeTypeHierarchy()) {
     // TODO(srdjan): Exit like a real VM instead.
     const Error& err = Error::Handle(object_store->sticky_error());
     OS::PrintErr("Could not verify bootstrap classes : %s\n",
@@ -2055,6 +2044,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     // the class conflict with inherited methods.
     ApplyMixinMembers(cls);
   }
+  GrowableArray<intptr_t> added_subclass_to_cids;
+  CollectFinalizedSuperClasses(cls, &added_subclass_to_cids);
   // Ensure super class is finalized.
   const Class& super = Class::Handle(cls.SuperClass());
   if (!super.IsNull()) {
@@ -2081,6 +2072,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   // Run additional checks after all types are finalized.
   if (cls.is_const()) {
     CheckForLegalConstClass(cls);
+  }
+  if (FLAG_use_cha) {
+    RemoveOptimizedCode(added_subclass_to_cids);
   }
 }
 

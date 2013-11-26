@@ -26,7 +26,7 @@ TEST_CASE(DartEntry) {
                                               RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
   Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
@@ -54,7 +54,7 @@ TEST_CASE(InvokeStatic_CompileError) {
                                               RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
   Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
@@ -81,7 +81,7 @@ TEST_CASE(InvokeDynamic_CompileError) {
                                               RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
-  EXPECT(ClassFinalizer::FinalizePendingClasses());
+  EXPECT(ClassFinalizer::FinalizeTypeHierarchy());
   Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.

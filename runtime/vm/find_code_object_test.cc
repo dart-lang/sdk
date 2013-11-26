@@ -55,7 +55,7 @@ TEST_CASE(FindCodeObject) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   clsA = lib.LookupClass(String::Handle(Symbols::New("A")));
   EXPECT(!clsA.IsNull());
-  ClassFinalizer::FinalizePendingClasses();
+  ClassFinalizer::FinalizeTypeHierarchy();
   for (int i = 0; i < kNumFunctions; i++) {
     OS::SNPrint(buffer, 256, "foo%d", i);
     function_name = String::New(buffer);
@@ -103,7 +103,7 @@ TEST_CASE(FindCodeObject) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   clsB = lib.LookupClass(String::Handle(Symbols::New("B")));
   EXPECT(!clsB.IsNull());
-  ClassFinalizer::FinalizePendingClasses();
+  ClassFinalizer::FinalizeTypeHierarchy();
   for (int i = 0; i < kNumFunctions; i++) {
     OS::SNPrint(buffer, 256, "moo%d", i);
     function_name = String::New(buffer);

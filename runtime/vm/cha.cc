@@ -83,8 +83,11 @@ bool CHA::HasOverride(const Class& cls, const String& function_name) {
   Class& direct_subclass = Class::Handle();
   for (intptr_t i = 0; i < cls_direct_subclasses.Length(); i++) {
     direct_subclass ^= cls_direct_subclasses.At(i);
-    if (direct_subclass.LookupDynamicFunction(function_name) !=
-        Function::null()) {
+    // Unfinalized classes are treated as non-existent for CHA purposes,
+    // as that means that no instance of that class exists at runtime.
+    if (direct_subclass.is_finalized() &&
+        (direct_subclass.LookupDynamicFunction(function_name) !=
+         Function::null())) {
       return true;
     }
     if (HasOverride(direct_subclass, function_name)) {
