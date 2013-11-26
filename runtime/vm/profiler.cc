@@ -86,6 +86,10 @@ void ProfilerManager::InitOnce() {
   // Force disable of profiling on simulator.
   FLAG_profile = false;
 #endif
+#if defined(TARGET_OS_WINDOWS)
+  // Force disable of profiling on Windows.
+  FLAG_profile = false;
+#endif
   if (!FLAG_profile) {
     return;
   }
