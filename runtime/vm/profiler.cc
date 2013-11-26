@@ -68,7 +68,7 @@ namespace dart {
 // fail (sometimes leading to a crash).
 //
 
-DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
+DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
 bool ProfilerManager::initialized_ = false;
