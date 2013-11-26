@@ -700,6 +700,12 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
 }
 
 class BrowserCommandOutputImpl extends CommandOutputImpl {
+  // Although tests are reported as passing, content shell sometimes exits with
+  // a nonzero exitcode which makes our dartium builders extremely falky.
+  // See: http://dartbug.com/15139.
+  static int WHITELISTED_CONTENTSHELL_EXITCODE = -1073740022;
+  static bool isWindows = io.Platform.operatingSystem == 'windows';
+
   bool _failedBecauseOfMissingXDisplay;
 
   BrowserCommandOutputImpl(
@@ -832,7 +838,9 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
         DebugLogger.warning(message);
         diagnostics.add(message);
       }
-      return (exitCode != 0 && !hasCrashed);
+      return (!hasCrashed &&
+              exitCode != 0 &&
+              (!isWindows || exitCode != WHITELISTED_CONTENTSHELL_EXITCODE));
     }
     DebugLogger.warning("Couldn't find 'Content-Type: text/plain' in output. "
                         "($command).");
