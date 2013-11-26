@@ -4476,6 +4476,7 @@ class Integer : public Number {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual uint32_t AsTruncatedUint32Value() const;
 
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
@@ -4518,6 +4519,7 @@ class Smi : public Integer {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual int CompareWith(const Integer& other) const;
 
@@ -4607,6 +4609,7 @@ class Mint : public Integer {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual int CompareWith(const Integer& other) const;
 
@@ -4644,6 +4647,7 @@ class Bigint : public Integer {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual int CompareWith(const Integer& other) const;
 

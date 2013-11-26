@@ -68,6 +68,7 @@ class BigintOperations : public AllStatic {
   static bool FitsIntoUint64(const Bigint& bigint);
   static bool AbsFitsIntoUint64(const Bigint& bigint);
   static uint64_t ToUint64(const Bigint& bigint);
+  static uint32_t TruncateToUint32(const Bigint& bigint);
   static uint64_t AbsToUint64(const Bigint& bigint);
 
   static RawDouble* ToDouble(const Bigint& bigint);

@@ -12821,6 +12821,12 @@ int64_t Integer::AsInt64Value() const {
 }
 
 
+uint32_t Integer::AsTruncatedUint32Value() const {
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
 int Integer::CompareWith(const Integer& other) const {
   UNIMPLEMENTED();
   return 0;
@@ -13090,6 +13096,11 @@ int64_t Smi::AsInt64Value() const {
 }
 
 
+uint32_t Smi::AsTruncatedUint32Value() const {
+  return this->Value() & 0xFFFFFFFF;
+}
+
+
 static bool FitsIntoSmi(const Integer& integer) {
   if (integer.IsSmi()) {
     return true;
@@ -13220,6 +13231,11 @@ double Mint::AsDoubleValue() const {
 
 int64_t Mint::AsInt64Value() const {
   return this->value();
+}
+
+
+uint32_t Mint::AsTruncatedUint32Value() const {
+  return this->value() & 0xFFFFFFFF;
 }
 
 
@@ -13487,6 +13503,11 @@ int64_t Bigint::AsInt64Value() const {
     UNREACHABLE();
   }
   return BigintOperations::ToInt64(*this);
+}
+
+
+uint32_t Bigint::AsTruncatedUint32Value() const {
+  return BigintOperations::TruncateToUint32(*this);
 }
 
 

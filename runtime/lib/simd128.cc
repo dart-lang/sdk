@@ -406,10 +406,10 @@ DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, y, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, z, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, w, arguments->NativeArgAt(4));
-  int32_t _x = static_cast<int32_t>(x.AsInt64Value() & 0xFFFFFFFF);
-  int32_t _y = static_cast<int32_t>(y.AsInt64Value() & 0xFFFFFFFF);
-  int32_t _z = static_cast<int32_t>(z.AsInt64Value() & 0xFFFFFFFF);
-  int32_t _w = static_cast<int32_t>(w.AsInt64Value() & 0xFFFFFFFF);
+  int32_t _x = static_cast<int32_t>(x.AsTruncatedUint32Value());
+  int32_t _y = static_cast<int32_t>(y.AsTruncatedUint32Value());
+  int32_t _z = static_cast<int32_t>(z.AsTruncatedUint32Value());
+  int32_t _w = static_cast<int32_t>(w.AsTruncatedUint32Value());
   return Int32x4::New(_x, _y, _z, _w);
 }
 
