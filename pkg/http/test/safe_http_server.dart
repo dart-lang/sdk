@@ -30,8 +30,9 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
       : super(server),
         _inner = server;
 
-  Future close() => _inner.close();
+  Future close({bool force: false}) => _inner.close(force: force);
 
+  InternetAddress get address => _inner.address;
   int get port => _inner.port;
 
   set sessionTimeout(int timeout) {
@@ -138,6 +139,7 @@ class _HttpResponseWrapper implements HttpResponse {
   Future<HttpResponse> addStream(Stream<List<int>> stream) =>
     _inner.addStream(stream);
   Future close() => _inner.close();
+  Future flush() => _inner.flush();
   void write(Object obj) => _inner.write(obj);
   void writeAll(Iterable objects, [String separator = ""]) =>
     _inner.writeAll(objects, separator);

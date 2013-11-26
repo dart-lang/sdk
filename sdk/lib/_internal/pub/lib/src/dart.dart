@@ -107,7 +107,7 @@ Future runInIsolate(String code, message) {
       'uri': path.toUri(dartPath).toString(),
       'message': message
     }).then((_) => port.first).then((response) {
-      if (response['type'] == 'success') return;
+      if (response['type'] == 'success') return null;
       assert(response['type'] == 'error');
       return new Future.error(
           new CrossIsolateException.deserialize(response['error']));
