@@ -30,9 +30,11 @@ void main() {
   test1();
   test2();
   test3();
+  test3a();
   test4();
   test5();
   test6();
+  test6a();
   test7();
   test8();
   test9();
@@ -79,6 +81,22 @@ void test3() {
   }
 }
 
+void test3a() {
+  A a = new E();
+  void foo() {
+    a = new D();
+  }
+  if ((((a)) is B)) {
+    print(a.a);
+    print(a.b); /// 15: static type warning
+    void foo() {
+      a = new D();
+    }
+    print(a.a);
+    print(a.b); /// 16: static type warning
+  }
+}
+
 void test4() {
   A a = new E();
   if (a is B) {
@@ -103,6 +121,16 @@ void test6() {
     func(() => a);
     print(a.a);
     print(a.b); /// 07: static type warning
+  }
+  a = null;
+}
+
+void test6a() {
+  A a = new E();
+  if (((a) is B)) {
+    func(() => a);
+    print(a.a);
+    print(a.b); /// 14: static type warning
   }
   a = null;
 }

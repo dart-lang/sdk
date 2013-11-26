@@ -190,8 +190,14 @@ void test(A a) {
   }
   if ((a is B)) {
     print(a.a);
-    print(a.b); /// 53: static type warning
+    print(a.b);
     print(a.c); /// 54: static type warning
     print(a.d); /// 55: static type warning
+  }
+  if ((a is B && (a) is C) && a is B) {
+    print(a.a);
+    print(a.b);
+    print(a.c);
+    print(a.d); /// 56: static type warning
   }
 }
