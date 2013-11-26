@@ -29,10 +29,7 @@ main() {
   });
 
   test('default levels are in order', () {
-    final levels = const [
-        Level.ALL, Level.FINEST, Level.FINER, Level.FINE, Level.CONFIG,
-        Level.INFO, Level.WARNING, Level.SEVERE, Level.SHOUT, Level.OFF
-      ];
+    final levels = Level.LEVELS;
 
     for (int i = 0; i < levels.length; i++) {
       for (int j = i + 1; j < levels.length; j++) {
@@ -46,13 +43,12 @@ main() {
         Level.INFO, Level.CONFIG, Level.FINE, Level.SHOUT, Level.OFF,
         Level.FINER, Level.ALL, Level.WARNING, Level.FINEST,  Level.SEVERE,
       ];
-    final sorted = const [
-        Level.ALL, Level.FINEST, Level.FINER, Level.FINE, Level.CONFIG,
-        Level.INFO, Level.WARNING, Level.SEVERE, Level.SHOUT, Level.OFF
-      ];
+
+    final sorted = Level.LEVELS;
+
     expect(unsorted, isNot(orderedEquals(sorted)));
 
-    unsorted.sort((a, b) => a.compareTo(b));
+    unsorted.sort();
     expect(unsorted, orderedEquals(sorted));
   });
 
@@ -65,7 +61,7 @@ main() {
   });
 
   test('logger name cannot start with a "." ', () {
-    expect(() => new Logger('.c'), throws);
+    expect(() => new Logger('.c'), throwsArgumentError);
   });
 
   test('logger naming is hierarchical', () {

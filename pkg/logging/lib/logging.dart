@@ -311,6 +311,9 @@ class Level implements Comparable<Level> {
   /** Key for extra debugging loudness ([value] = 1200). */
   static const Level SHOUT = const Level('SHOUT', 1200);
 
+  static const List<Level> LEVELS = const
+      [ALL, FINEST, FINER, FINE, CONFIG, INFO, WARNING, SEVERE, SHOUT, OFF];
+
   bool operator ==(Object other) => other is Level && value == other.value;
   bool operator <(Level other) => value < other.value;
   bool operator <=(Level other) => value <= other.value;
