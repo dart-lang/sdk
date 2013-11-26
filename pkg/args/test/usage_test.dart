@@ -7,7 +7,7 @@ library usage_test;
 import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
 
-main() {
+void main() {
   group('ArgParser.getUsage()', () {
     test('negatable flags show "no-" in title', () {
       var parser = new ArgParser();
@@ -184,11 +184,7 @@ main() {
   });
 }
 
-throwsIllegalArg(function) {
-  expect(function, throwsArgumentError);
-}
-
-validateUsage(ArgParser parser, String expected) {
+void validateUsage(ArgParser parser, String expected) {
   expected = unindentString(expected);
   expect(parser.getUsage(), equals(expected));
 }

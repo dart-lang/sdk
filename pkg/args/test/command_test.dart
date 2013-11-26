@@ -6,8 +6,9 @@ library command_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
+import 'utils.dart';
 
-main() {
+void main() {
   group('ArgParser.addCommand()', () {
     test('creates a new ArgParser if none is given', () {
       var parser = new ArgParser();
@@ -203,12 +204,4 @@ main() {
       expect(args.command.command.rest, equals(['other', 'stuff']));
     });
   });
-}
-
-throwsIllegalArg(function) {
-  expect(function, throwsArgumentError);
-}
-
-throwsFormat(ArgParser parser, List<String> args) {
-  expect(() => parser.parse(args), throwsFormatException);
 }
