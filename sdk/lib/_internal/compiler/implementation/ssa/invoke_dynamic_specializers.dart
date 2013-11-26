@@ -208,11 +208,15 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       // Even if there is no builtin equivalent instruction, we know
       // the instruction does not have any side effect, and that it
       // can be GVN'ed.
-      instruction.sideEffects.clearAllSideEffects();
-      instruction.sideEffects.clearAllDependencies();
-      instruction.setUseGvn();
+      clearAllSideEffects(instruction);
     }
     return null;
+  }
+  
+  void clearAllSideEffects(HInstruction instruction) {
+    instruction.sideEffects.clearAllSideEffects();
+    instruction.sideEffects.clearAllDependencies();
+    instruction.setUseGvn();
   }
 
   HInstruction newBuiltinVariant(HInvokeDynamic instruction, Compiler compiler);
@@ -331,6 +335,20 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     }
     return super.computeTypeFromInputTypes(instruction, compiler);
   }
+
+  bool argumentLessThan32(HInstruction instruction) {
+    if (!instruction.isConstantInteger()) return false;
+    HConstant rightConstant = instruction;
+    IntConstant intConstant = rightConstant.constant;
+    int count = intConstant.value;
+    return count >= 0 && count <= 31;
+  }
+
+  bool isPositive(HInstruction instruction) {
+    // TODO: We should use the value range analysis. Currently, ranges
+    // are discarded just after the analysis.
+    return instruction is HBinaryBitOp;
+  }
 }
 
 class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
@@ -344,9 +362,14 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
                                    Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (!left.isNumber(compiler)) return null;
-    if (argumentLessThan32(right)) {
-      return newBuiltinVariant(instruction, compiler);
+    if (left.isNumber(compiler)) {
+      if (argumentLessThan32(right)) {
+        return newBuiltinVariant(instruction, compiler);
+      }
+      // Even if there is no builtin equivalent instruction, we know
+      // the instruction does not have any side effect, and that it
+      // can be GVN'ed.
+      clearAllSideEffects(instruction);
     }
     return null;
   }
@@ -358,23 +381,33 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
         instruction.inputs[1], instruction.inputs[2],
         instruction.selector, backend.intType);
   }
-
-  bool argumentLessThan32(HInstruction instruction) {
-    if (!instruction.isConstantInteger()) return false;
-    HConstant rightConstant = instruction;
-    IntConstant intConstant = rightConstant.constant;
-    int count = intConstant.value;
-    return count >= 0 && count <= 31;
-  }
 }
 
 class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   const ShiftRightSpecializer();
 
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    if (left.isNumber(compiler)) {
+      if (argumentLessThan32(right) && isPositive(left)) {
+        return newBuiltinVariant(instruction, compiler);
+      }
+      // Even if there is no builtin equivalent instruction, we know
+      // the instruction does not have any side effect, and that it
+      // can be GVN'ed.
+      clearAllSideEffects(instruction);
+    }
+    return null;
+  }
+
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
                                  Compiler compiler) {
-    // Shift right cannot be mapped to the native operator easily.    
-    return null;
+    JavaScriptBackend backend = compiler.backend;
+    return new HShiftRight(
+        instruction.inputs[1], instruction.inputs[2],
+        instruction.selector, backend.intType);
   }
 
   BinaryOperation operation(ConstantSystem constantSystem) {

@@ -221,6 +221,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // integer. Also, if we are using & with a positive constant we know
   // that the result is positive already and need no conversion.
   bool requiresUintConversion(HInstruction instruction) {
+    if (instruction is HShiftRight) {
+      return false;
+    }
     if (instruction is HBitAnd) {
       HBitAnd bitAnd = instruction;
       if (isNonNegativeInt32Constant(bitAnd.left) ||
@@ -1277,6 +1280,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitBitOr(HBitOr node)           => visitBitInvokeBinary(node, '|');
   visitBitXor(HBitXor node)         => visitBitInvokeBinary(node, '^');
   visitShiftLeft(HShiftLeft node)   => visitBitInvokeBinary(node, '<<');
+  visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>>');
 
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 

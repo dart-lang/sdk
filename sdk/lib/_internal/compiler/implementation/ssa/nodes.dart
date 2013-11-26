@@ -55,6 +55,7 @@ abstract class HVisitor<R> {
   R visitRangeConversion(HRangeConversion node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
+  R visitShiftRight(HShiftRight node);
   R visitStatic(HStatic node);
   R visitStaticStore(HStaticStore node);
   R visitStringConcat(HStringConcat node);
@@ -336,6 +337,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
+  visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
   visitSwitch(HSwitch node) => visitControlFlow(node);
   visitStatic(HStatic node) => visitInstruction(node);
@@ -801,6 +803,7 @@ abstract class HInstruction implements Spannable {
   static const int INDEX_TYPECODE = 27;
   static const int IS_TYPECODE = 28;
   static const int INVOKE_DYNAMIC_TYPECODE = 29;
+  static const int SHIFT_RIGHT_TYPECODE = 30;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++, usedBy = <HInstruction>[] {
@@ -1724,6 +1727,17 @@ class HShiftLeft extends HBinaryBitOp {
       => constantSystem.shiftLeft;
   int typeCode() => HInstruction.SHIFT_LEFT_TYPECODE;
   bool typeEquals(other) => other is HShiftLeft;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HShiftRight extends HBinaryBitOp {
+  HShiftRight(left, right, selector, type) : super(left, right, selector, type);
+  accept(HVisitor visitor) => visitor.visitShiftRight(this);
+
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.shiftRight;
+  int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
+  bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
 }
 
