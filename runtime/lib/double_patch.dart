@@ -45,6 +45,8 @@ patch class double {
       if (onError == null) throw new FormatException(str);
       return onError(str);
     }
+    // Parse can create a NaN that is not identical to double.NAN.
+    if (result.isNaN) return NAN;
     return result;
   }
 }
