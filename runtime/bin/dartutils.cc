@@ -65,19 +65,20 @@ const char* DartUtils::MapLibraryUrl(CommandLineOptions* url_mapping,
 
 
 int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
-  ASSERT(Dart_IsInteger(value_obj));
   int64_t value = 0;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) Dart_PropagateError(result);
   return value;
 }
 
 
 intptr_t DartUtils::GetIntptrValue(Dart_Handle value_obj) {
-  ASSERT(Dart_IsInteger(value_obj));
   int64_t value = 0;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (value < kIntptrMin || kIntptrMax < value) {
+    Dart_PropagateError(Dart_NewApiError("Value outside intptr:t range"));
+  }
   return static_cast<intptr_t>(value);
 }
 
@@ -86,11 +87,11 @@ bool DartUtils::GetInt64Value(Dart_Handle value_obj, int64_t* value) {
   bool valid = Dart_IsInteger(value_obj);
   if (valid) {
     Dart_Handle result = Dart_IntegerFitsIntoInt64(value_obj, &valid);
-    ASSERT(!Dart_IsError(result));
+    if (Dart_IsError(result)) Dart_PropagateError(result);
   }
   if (!valid) return false;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, value);
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) Dart_PropagateError(result);
   return true;
 }
 
@@ -98,7 +99,7 @@ bool DartUtils::GetInt64Value(Dart_Handle value_obj, int64_t* value) {
 const char* DartUtils::GetStringValue(Dart_Handle str_obj) {
   const char* cstring = NULL;
   Dart_Handle result = Dart_StringToCString(str_obj, &cstring);
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) Dart_PropagateError(result);
   return cstring;
 }
 
@@ -106,7 +107,7 @@ const char* DartUtils::GetStringValue(Dart_Handle str_obj) {
 bool DartUtils::GetBooleanValue(Dart_Handle bool_obj) {
   bool value = false;
   Dart_Handle result = Dart_BooleanValue(bool_obj, &value);
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) Dart_PropagateError(result);
   return value;
 }
 
@@ -117,14 +118,14 @@ void DartUtils::SetIntegerField(Dart_Handle handle,
   Dart_Handle result = Dart_SetField(handle,
                                      NewString(name),
                                      Dart_NewInteger(val));
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) Dart_PropagateError(result);
 }
 
 
 intptr_t DartUtils::GetIntegerField(Dart_Handle handle,
                                     const char* name) {
   Dart_Handle result = Dart_GetField(handle, NewString(name));
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) Dart_PropagateError(result);
   intptr_t value = DartUtils::GetIntegerValue(result);
   return value;
 }
@@ -134,7 +135,7 @@ void DartUtils::SetStringField(Dart_Handle handle,
                                const char* name,
                                const char* val) {
   Dart_Handle result = Dart_SetField(handle, NewString(name), NewString(val));
-  ASSERT(!Dart_IsError(result));
+  if (Dart_IsError(result)) Dart_PropagateError(result);
 }
 
 

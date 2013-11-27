@@ -78,23 +78,25 @@ class CommandLineOptions {
 
 class DartUtils {
  public:
-  // TODO(turnidge): Clean up the implementations of these so that
-  // they allow for proper error propagation.
-
-  // Assumes that the value object is known to be an integer object
-  // that fits in a signed 64-bit integer.
+  // Returns the integer value of a Dart object. If the object is not
+  // an integer value an API error is propagated.
   static int64_t GetIntegerValue(Dart_Handle value_obj);
-  // Assumes that the value object is known to be an intptr_t. This should
-  // only be known when the value has been put into Dart as a pointer encoded
-  // in a 64-bit integer. This is the case for file and directory operations.
+  // Returns the intptr_t value of a Dart object. If the object is not
+  // an integer value or the value is outside the intptr_t range an
+  // API error is propagated.
   static intptr_t GetIntptrValue(Dart_Handle value_obj);
   // Checks that the value object is an integer object that fits in a
   // signed 64-bit integer. If it is, the value is returned in the
   // value out parameter and true is returned. Otherwise, false is
   // returned.
   static bool GetInt64Value(Dart_Handle value_obj, int64_t* value);
+  // Returns the string value of a Dart object. If the object is not
+  // a string value an API error is propagated.
   static const char* GetStringValue(Dart_Handle str_obj);
+  // Returns the boolean value of a Dart object. If the object is not
+  // a boolean value an API error is propagated.
   static bool GetBooleanValue(Dart_Handle bool_obj);
+
   static void SetIntegerField(Dart_Handle handle,
                               const char* name,
                               intptr_t val);
