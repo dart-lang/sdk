@@ -133,10 +133,10 @@ void ProfilerManager::ThreadMain(uword parameters) {
   if (FLAG_trace_profiled_isolates) {
     OS::Print("ProfilerManager MacOS ready.\n");
   }
-  thread_running_ = true;
   {
     // Signal to main thread we are ready.
     ScopedMonitor startup_lock(start_stop_monitor_);
+    thread_running_ = true;
     startup_lock.Notify();
   }
   ScopedMonitor lock(monitor_);
@@ -148,10 +148,10 @@ void ProfilerManager::ThreadMain(uword parameters) {
   if (FLAG_trace_profiled_isolates) {
     OS::Print("ProfilerManager MacOS exiting.\n");
   }
-  thread_running_ = false;
   {
     // Signal to main thread we are exiting.
     ScopedMonitor shutdown_lock(start_stop_monitor_);
+    thread_running_ = false;
     shutdown_lock.Notify();
   }
 }
