@@ -57,7 +57,7 @@ main() {
   result = forked.runGuarded(() {
     Expect.identical(forked, Zone.current);
     events.add("run closure");
-    scheduleMicrotask(() {
+    forked.scheduleMicrotask(() {
       events.add("run closure 2");
       Expect.identical(forked, Zone.current);
       done.complete(true);

@@ -60,7 +60,7 @@ abstract class Timer {
    * canceled with the [cancel] function.
    */
   factory Timer.periodic(Duration duration,
-                                  void callback(Timer timer)) {
+                         void callback(Timer timer)) {
     if (Zone.current == Zone.ROOT) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
