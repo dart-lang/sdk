@@ -503,8 +503,7 @@ class StandardTestSuite extends TestSuite {
    * The [StandardTestSuite] also optionally takes a list of servers that have
    * been started up by the test harness, to be used by browser tests.
    */
-  factory StandardTestSuite.forDirectory(
-      Map configuration, Path directory) {
+  factory StandardTestSuite.forDirectory(Map configuration, Path directory) {
     final name = directory.filename;
 
     return new StandardTestSuite(configuration,
@@ -1729,7 +1728,7 @@ class TestUtils {
    * the main script using 'test_suite.dart' is not there, the main
    * script must set this to '.../dart/tools/test.dart'.
    */
-  static String testScriptPath = Platform.script.path;
+  static String testScriptPath = new Path(Platform.script.path).toNativePath();
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static Path currentWorkingDirectory =
       new Path(Directory.current.path);
