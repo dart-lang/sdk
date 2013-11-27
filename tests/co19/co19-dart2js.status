@@ -189,9 +189,6 @@ Language/12_Expressions/05_Strings_A02_t40: Crash # Issue 15237
 Language/12_Expressions/05_Strings_A02_t42: Crash # Issue 15237
 Language/12_Expressions/05_Strings_A02_t44: Crash # Issue 15237
 
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: Crash
-
-[ ($compiler == dart2js || $compiler == dart2dart) ]
 
 Language/13_Statements/05_If_A01_t04: Crash # Issue 15237
 Language/13_Statements/07_While_A01_t01: Crash # Issue 15237
@@ -209,6 +206,7 @@ Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t06: Crash # Issue 15
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
+Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: Crash # Issue 15357
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19 issue 648
 Language/03_Overview/2_Privacy_A01_t09: RuntimeError, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
