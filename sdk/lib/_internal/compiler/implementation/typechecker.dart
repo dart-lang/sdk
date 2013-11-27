@@ -1508,6 +1508,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     ClassElement cls = type.element;
     if (cls == compiler.doubleClass) return true;
     if (cls == compiler.intClass || cls == compiler.stringClass) return false;
+    if (cls == compiler.typeClass) return true;
     Element equals = cls.lookupMember('==');
     return equals.getEnclosingClass() != compiler.objectClass;
   }
@@ -1562,7 +1563,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (firstCaseType != null &&
         invalidSwitchExpressionType(firstCase, firstCaseType)) {
       compiler.reportError(firstCase.expression,
-          MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS);
+          MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+          {'type': firstCaseType});
     }
     return StatementType.NOT_RETURNING;
   }
