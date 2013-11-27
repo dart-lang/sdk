@@ -1197,7 +1197,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
     visitInvokeBinary(node, op);
-    if (requiresUintConversion(node)) {
+    if (op != '>>>' && requiresUintConversion(node)) {
       push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
