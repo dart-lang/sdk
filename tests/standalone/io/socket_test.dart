@@ -210,8 +210,22 @@ void testConnectStreamDataCloseCancel(bool useDestroy) {
   });
 }
 
-main() {
+void testCloseWriteNoListen() {
   asyncStart();
+  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+    server.listen(
+        (client) {
+          client.close();
+        });
+    Socket.connect("127.0.0.1", server.port).then((socket) {
+      socket.close();
+      server.close();
+      asyncEnd();
+    });
+  });
+}
+
+main() {
   testArguments();
   testSimpleBind();
   testInvalidBind();
@@ -224,5 +238,5 @@ main() {
   testConnectStreamDataClose(false);
   testConnectStreamDataCloseCancel(true);
   testConnectStreamDataCloseCancel(false);
-  asyncEnd();
+  testCloseWriteNoListen();
 }

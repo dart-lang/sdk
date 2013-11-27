@@ -615,7 +615,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       if (isClosedRead) {
         close();
       } else {
+        bool connected = eventPort != null;
         sendToEventHandler(1 << SHUTDOWN_WRITE_COMMAND);
+        if (!connected) disconnectFromEventHandler();
       }
       isClosedWrite = true;
     }
@@ -626,7 +628,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       if (isClosedWrite) {
         close();
       } else {
+        bool connected = eventPort != null;
         sendToEventHandler(1 << SHUTDOWN_READ_COMMAND);
+        if (!connected) disconnectFromEventHandler();
       }
       isClosedRead = true;
     }

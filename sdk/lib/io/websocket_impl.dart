@@ -393,10 +393,13 @@ class _WebSocketPong {
 class _WebSocketTransformerImpl implements WebSocketTransformer {
   final StreamController<WebSocket> _controller =
       new StreamController<WebSocket>(sync: true);
+  final Function _protocolSelector;
+
+  _WebSocketTransformerImpl(this._protocolSelector);
 
   Stream<WebSocket> bind(Stream<HttpRequest> stream) {
     stream.listen((request) {
-        _upgrade(request)
+        _upgrade(request, _protocolSelector)
             .then((WebSocket webSocket) => _controller.add(webSocket))
             .catchError(_controller.addError);
     });
@@ -404,31 +407,58 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
     return _controller.stream;
   }
 
-  static Future<WebSocket> _upgrade(HttpRequest request) {
+  static Future<WebSocket> _upgrade(HttpRequest request, _protocolSelector) {
     var response = request.response;
     if (!_isUpgradeRequest(request)) {
-      // Send error response and drain the request.
-      request.listen((_) {}, onDone: () {
-        response.statusCode = HttpStatus.BAD_REQUEST;
-        response.contentLength = 0;
-        response.close();
-      });
+      // Send error response.
+      response.statusCode = HttpStatus.BAD_REQUEST;
+      response.close();
       return new Future.error(
           new WebSocketException("Invalid WebSocket upgrade request"));
     }
 
-    // Send the upgrade response.
-    response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
-    response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
-    response.headers.add(HttpHeaders.UPGRADE, "websocket");
-    String key = request.headers.value("Sec-WebSocket-Key");
-    _SHA1 sha1 = new _SHA1();
-    sha1.add("$key$_webSocketGUID".codeUnits);
-    String accept = _CryptoUtils.bytesToBase64(sha1.close());
-    response.headers.add("Sec-WebSocket-Accept", accept);
-    response.headers.contentLength = 0;
-    return response.detachSocket()
-        .then((socket) => new _WebSocketImpl._fromSocket(socket, true));
+    Future upgrade(String protocol) {
+      // Send the upgrade response.
+      response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
+      response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
+      response.headers.add(HttpHeaders.UPGRADE, "websocket");
+      String key = request.headers.value("Sec-WebSocket-Key");
+      _SHA1 sha1 = new _SHA1();
+      sha1.add("$key$_webSocketGUID".codeUnits);
+      String accept = _CryptoUtils.bytesToBase64(sha1.close());
+      response.headers.add("Sec-WebSocket-Accept", accept);
+      if (protocol != null && protocol.isNotEmpty) {
+        response.headers.add("Sec-WebSocket-Protocol", protocol);
+      }
+      response.headers.contentLength = 0;
+      return response.detachSocket()
+          .then((socket) => new _WebSocketImpl._fromSocket(
+                socket, protocol, true));
+    }
+
+    var protocols = request.headers['Sec-WebSocket-Protocol'];
+    if (protocols != null && _protocolSelector != null) {
+      // The suggested protocols can be spread over multiple lines, each
+      // consisting of multiple protocols. To unify all of them, first join
+      // the lists with ', ' and then tokenize.
+      protocols = _HttpParser._tokenizeFieldValue(protocols.join(', '));
+      return new Future(() => _protocolSelector(protocols))
+        .then((protocol) {
+          if (protocols.indexOf(protocol) < 0) {
+            throw new WebSocketException(
+                "Selected protocol is not in the list of available protocols");
+          }
+          return protocol;
+        })
+        .catchError((error) {
+          response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+          response.close();
+          throw error;
+        })
+        .then(upgrade);
+    } else {
+      return upgrade(null);
+    }
   }
 
   static bool _isUpgradeRequest(HttpRequest request) {
@@ -724,6 +754,8 @@ class _WebSocketConsumer implements StreamConsumer {
 
 
 class _WebSocketImpl extends Stream implements WebSocket {
+  final String protocol;
+
   StreamController _controller;
   StreamSubscription _subscription;
   StreamSink _sink;
@@ -743,7 +775,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
 
   static final HttpClient _httpClient = new HttpClient();
 
-  static Future<WebSocket> connect(String url, [protocols]) {
+  static Future<WebSocket> connect(String url, List<String> protocols) {
     Uri uri = Uri.parse(url);
     if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
@@ -774,6 +806,9 @@ class _WebSocketImpl extends Stream implements WebSocket {
         request.headers.set(HttpHeaders.UPGRADE, "websocket");
         request.headers.set("Sec-WebSocket-Key", nonce);
         request.headers.set("Sec-WebSocket-Version", "13");
+        if (protocols.isNotEmpty) {
+          request.headers.add("Sec-WebSocket-Protocol", protocols);
+        }
         return request.close();
       })
       .then((response) {
@@ -808,12 +843,14 @@ class _WebSocketImpl extends Stream implements WebSocket {
             error("Bad response 'Sec-WebSocket-Accept' header");
           }
         }
+        var protocol = response.headers.value('Sec-WebSocket-Protocol');
         return response.detachSocket()
-            .then((socket) => new _WebSocketImpl._fromSocket(socket));
+            .then((socket) => new _WebSocketImpl._fromSocket(socket, protocol));
       });
   }
 
   _WebSocketImpl._fromSocket(Socket this._socket,
+                             String this.protocol,
                              [bool this._serverSide = false]) {
     _consumer = new _WebSocketConsumer(this, _socket);
     _sink = new _StreamSinkImpl(_consumer);
@@ -893,7 +930,6 @@ class _WebSocketImpl extends Stream implements WebSocket {
   int get readyState => _readyState;
 
   String get extensions => null;
-  String get protocol => null;
   int get closeCode => _closeCode;
   String get closeReason => _closeReason;
 

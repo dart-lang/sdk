@@ -842,7 +842,7 @@ class _HttpParser
     return byte > 31 && byte < 128 && !_Const.SEPARATOR_MAP[byte];
   }
 
-  List<String> _tokenizeFieldValue(String headerValue) {
+  static List<String> _tokenizeFieldValue(String headerValue) {
     List<String> tokens = new List<String>();
     int start = 0;
     int index = 0;
