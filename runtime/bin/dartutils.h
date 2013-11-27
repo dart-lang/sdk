@@ -81,6 +81,11 @@ class DartUtils {
   // Returns the integer value of a Dart object. If the object is not
   // an integer value an API error is propagated.
   static int64_t GetIntegerValue(Dart_Handle value_obj);
+  // Returns the integer value of a Dart object. If the object is not
+  // an integer value or outside the requested range an API error is
+  // propagated.
+  static int64_t GetInt64ValueCheckRange(
+      Dart_Handle value_obj, int64_t lower, int64_t upper);
   // Returns the intptr_t value of a Dart object. If the object is not
   // an integer value or the value is outside the intptr_t range an
   // API error is propagated.

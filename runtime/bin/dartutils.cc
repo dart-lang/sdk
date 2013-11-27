@@ -72,12 +72,22 @@ int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
 }
 
 
+int64_t DartUtils::GetInt64ValueCheckRange(
+    Dart_Handle value_obj, int64_t lower, int64_t upper) {
+  int64_t value = DartUtils::GetIntegerValue(value_obj);
+  if (value < lower || upper < value) {
+    Dart_PropagateError(Dart_NewApiError("Value outside expected range"));
+  }
+  return value;
+}
+
+
 intptr_t DartUtils::GetIntptrValue(Dart_Handle value_obj) {
   int64_t value = 0;
   Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
   if (Dart_IsError(result)) Dart_PropagateError(result);
   if (value < kIntptrMin || kIntptrMax < value) {
-    Dart_PropagateError(Dart_NewApiError("Value outside intptr:t range"));
+    Dart_PropagateError(Dart_NewApiError("Value outside intptr_t range"));
   }
   return static_cast<intptr_t>(value);
 }

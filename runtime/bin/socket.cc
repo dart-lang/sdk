@@ -103,21 +103,17 @@ void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   RawAddr addr;
   GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
-  int64_t port = 0;
-  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &port)) {
-    intptr_t socket = Socket::CreateConnect(addr, port);
-    OSError error;
-    if (socket >= 0) {
-      Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
-      Dart_SetReturnValue(args, Dart_True());
-    } else {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
-    }
+  int64_t port = DartUtils::GetInt64ValueCheckRange(
+      Dart_GetNativeArgument(args, 2),
+      0,
+      65535);
+  intptr_t socket = Socket::CreateConnect(addr, port);
+  OSError error;
+  if (socket >= 0) {
+    Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
+    Dart_SetReturnValue(args, Dart_True());
   } else {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
   }
 }
 
@@ -285,9 +281,8 @@ void FUNCTION_NAME(Socket_GetType)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
-  intptr_t num =
-      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
-  ASSERT(num == 0 || num == 1 || num == 2);
+  int64_t num = DartUtils::GetInt64ValueCheckRange(
+      Dart_GetNativeArgument(args, 1), 0, 2);
   intptr_t socket = Socket::GetStdioHandle(num);
   Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
   Dart_SetReturnValue(args, Dart_NewBoolean(socket >= 0));
@@ -303,31 +298,29 @@ void FUNCTION_NAME(Socket_SetSocketId)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   RawAddr addr;
-  int64_t port = 0;
-  int64_t backlog = 0;
   GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
-  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &port) &&
-      DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 3), &backlog)) {
-    bool v6_only = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 4));
-    intptr_t socket = ServerSocket::CreateBindListen(
-        addr, port, backlog, v6_only);
-    OSError error;
-    if (socket >= 0) {
-      Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
-      Dart_SetReturnValue(args, Dart_True());
-    } else {
-      if (socket == -5) {
-        OSError os_error(-1, "Invalid host", OSError::kUnknown);
-        Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
-      } else {
-        Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
-      }
-    }
+  int64_t port = DartUtils::GetInt64ValueCheckRange(
+      Dart_GetNativeArgument(args, 2),
+      0,
+      65535);
+  int64_t backlog = DartUtils::GetInt64ValueCheckRange(
+      Dart_GetNativeArgument(args, 3),
+      0,
+      65535);
+  bool v6_only = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 4));
+  intptr_t socket = ServerSocket::CreateBindListen(
+      addr, port, backlog, v6_only);
+  OSError error;
+  if (socket >= 0) {
+    Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
+    Dart_SetReturnValue(args, Dart_True());
   } else {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    if (socket == -5) {
+      OSError os_error(-1, "Invalid host", OSError::kUnknown);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    } else {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
+    }
   }
 }
 
