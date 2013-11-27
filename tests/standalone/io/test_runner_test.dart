@@ -12,7 +12,7 @@ import "../../../tools/testing/dart/status_file_parser.dart";
 import "../../../tools/testing/dart/test_options.dart";
 import "process_test_util.dart";
 
-final DEFAULT_TIMEOUT = 2;
+final DEFAULT_TIMEOUT = 10;
 final LONG_TIMEOUT = 30;
 
 class TestController {
@@ -140,8 +140,8 @@ void main(List<String> arguments) {
         throw "This test always fails, to test the test scripts.";
         break;
       case 'timeout':
-        // Run for 10 seconds, then exit.  This tests a 2 second timeout.
-        new Timer(new Duration(seconds: 10), (){ });
+        // This process should be killed by the test after DEFAULT_TIMEOUT
+        new Timer(new Duration(hours: 42), (){ });
         break;
       default:
         throw "Unknown option ${arguments[0]} passed to test_runner_test";
