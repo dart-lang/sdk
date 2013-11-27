@@ -86,6 +86,8 @@ void testWatchModifyFile() {
 
 
 void testWatchMoveFile() {
+  // Mac OS doesn't report move events.
+  if (Platform.isMacOS) return;
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
   var file = new File(join(dir.path, 'file'));
   file.createSync();
