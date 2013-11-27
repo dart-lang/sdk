@@ -15,18 +15,18 @@ LibTest/core/Stopwatch/start_A01_t01: PASS, FAIL, OK # co19 issue 657
 LibTest/core/Stopwatch/start_A01_t02: PASS, FAIL, OK # co19 issue 657
 LibTest/core/Stopwatch/elapsedTicks_A01_t01: PASS, FAIL, OK # co19 issue 657
 
-LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A01_t02: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A01_t03: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A01_t04: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnFunction_A02_t01: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnFunction_A03_t01: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnFunction_A04_t01: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnFunction_A04_t02: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnFunction_A04_t03: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A02_t02: Fail # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A02_t03: Fail # co19-roll r667: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t01: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnUri_A01_t02: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnUri_A01_t03: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnUri_A01_t04: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnUri_A01_t05: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnFunction_A02_t01: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnFunction_A03_t01: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnFunction_A04_t01: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnFunction_A04_t02: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnFunction_A04_t03: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnUri_A02_t02: Fail, OK # co19 issue 639
+LibTest/isolate/Isolate/spawnUri_A02_t03: Fail, OK # co19 issue 639
 
 
 [ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
@@ -38,7 +38,8 @@ Language/05_Variables/05_Variables_A06_t03: fail, pass, ok # co19 issue 624
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
 
-LibTest/collection/LinkedList/forEach_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
+LibTest/collection/LinkedList/forEach_A02_t01: RuntimeError, OK # co19 issue 662
+
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Set/intersection_A02_t01: Fail, OK # Issue 659
@@ -46,14 +47,15 @@ LibTest/core/Set/intersection_A02_t01: Fail, OK # Issue 659
 Language/07_Classes/07_Classes_A13_t01: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
 Language/07_Classes/07_Classes_A13_t04: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
 Language/07_Classes/07_Classes_A13_t07: Pass, MissingCompileTimeError, Fail # co19-roll r623: Please triage this failure
-LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-LibTest/core/Set/IterableBase_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
+
+LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError, OK # co19 issue 663
+LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError, OK # co19 issue 663
+LibTest/core/Set/IterableBase_A01_t01: RuntimeError, OK # co19 issue 663
 
 LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
 
-LibTest/collection/ListBase/ListBase_class_A01_t01: Fail, Timeout # co19-roll r641: Please triage this failure
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: Fail, Timeout # co19-roll r641: Please triage this failure
+LibTest/collection/ListBase/ListBase_class_A01_t01: Skip, OK # co19 issue 661
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip, OK # co19 issue 661
 
 [ $runtime == vm || $runtime == dartium || $compiler == dart2js ]
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
