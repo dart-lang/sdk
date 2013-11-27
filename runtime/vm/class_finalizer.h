@@ -78,11 +78,11 @@ class ClassFinalizer : public AllStatic {
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
 
-  // Return whether type hierarchy finalization failed.
-  // The function returns true if the finalization was successful.
-  // If finalization fails, an error message is set in the sticky error field
+  // Return whether processing pending classes (ObjectStore::pending_classes_)
+  // failed. The function returns true if the processing was successful.
+  // If processin fails, an error message is set in the sticky error field
   // in the object store.
-  static bool FinalizeTypeHierarchy();
+  static bool ProcessPendingClasses();
 
   // Finalize the types appearing in the declaration of class 'cls', i.e. its
   // type parameters and their upper bounds, its super type and interfaces.

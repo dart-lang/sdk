@@ -528,7 +528,7 @@ static bool RunIsolate(uword parameter) {
     StartIsolateScope start_scope(isolate);
     StackZone zone(isolate);
     HandleScope handle_scope(isolate);
-    if (!ClassFinalizer::FinalizeTypeHierarchy()) {
+    if (!ClassFinalizer::ProcessPendingClasses()) {
       // Error is in sticky error already.
       return false;
     }
