@@ -1255,8 +1255,10 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
   static const DART2JS_EXITCODE_CRASH = 253;
 
   CompilationCommandOutputImpl(Command command, int exitCode, bool timedOut,
-      List<int> stdout, List<int> stderr, Duration time)
-      : super(command, exitCode, timedOut, stdout, stderr, time, false);
+      List<int> stdout, List<int> stderr, Duration time,
+      bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+              compilationSkipped);
 
   Expectation result(TestCase testCase) {
     // Handle general crash/timeout detection.
@@ -1342,7 +1344,7 @@ CommandOutput createCommandOutput(Command command,
         command, exitCode, timedOut, stdout, stderr, time);
   } else if (command is CompilationCommand) {
     return new CompilationCommandOutputImpl(
-        command, exitCode, timedOut, stdout, stderr, time);
+        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is JSCommandlineCommand) {
     return new JsCommandlineOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time);
