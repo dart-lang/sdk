@@ -151,6 +151,55 @@ LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK # co19 issue 212
 
+[ $compiler == dart2js || $compiler == dart2dart ]
+
+Language/12_Expressions/05_Strings_A02_t02: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t03: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t04: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t05: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t06: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t07: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t08: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t09: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t10: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t11: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t12: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t13: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t14: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t15: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t16: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t17: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t18: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t19: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t20: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t21: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t22: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t23: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t24: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t25: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t28: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t29: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t32: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t32: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t33: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t34: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t36: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t38: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t40: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t42: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t44: Crash # Issue 15237
+
+Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: Crash
+
+[ ($compiler == dart2js || $compiler == dart2dart) && $host_checked ]
+
+Language/13_Statements/05_If_A01_t04: Crash # Issue 15237
+Language/13_Statements/07_While_A01_t01: Crash # Issue 15237
+Language/13_Statements/08_Do_A01_t03: Crash # Issue 15237
+Language/13_Statements/09_Switch_A01_t04: Crash # Issue 15237
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A15_t06: Crash # Issue 15237
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A22_t06: Crash # Issue 15237
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t06: Crash # Issue 15237
 
 #
 # Issues with co19 test suite.
@@ -484,7 +533,6 @@ LibTest/typed_data/Uint8List/Uint8List.view_A05_t01: RuntimeError # co19-roll r5
 LibTest/typed_data/Uint8List/Uint8List.view_A05_t02: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/Uint8List.view_A05_t03: RuntimeError # co19-roll r559: Please triage this failure
 Utils/tests/Expect/identical_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: CompileTimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js && $checked ]
 Language/12_Expressions/03_Numbers_A05_t02: fail # co19-roll r546: Please triage this failure

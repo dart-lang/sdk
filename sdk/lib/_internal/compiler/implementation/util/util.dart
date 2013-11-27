@@ -37,7 +37,7 @@ class SpannableAssertionFailure {
   final String message;
   SpannableAssertionFailure(this.node, this.message);
 
-  String toString() => 'Compiler crashed: $message';
+  String toString() => 'Assertion failure: $message';
 }
 
 /**

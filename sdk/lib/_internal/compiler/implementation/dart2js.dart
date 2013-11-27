@@ -4,7 +4,8 @@
 
 library dart2js.cmdline;
 
-import 'dart:async';
+import 'dart:async'
+    show Future, EventSink;
 import 'dart:io'
     show exit, File, FileMode, Platform, RandomAccessFile;
 import 'dart:math' as math;
@@ -418,9 +419,9 @@ Future compile(List<String> argv) {
     return new EventSinkWrapper(writeStringSync, onDone);
   }
 
-  return api.compile(uri, libraryRoot, packageRoot,
-              inputProvider, diagnosticHandler,
-              options, outputProvider, environment)
+  return compileFunc(uri, libraryRoot, packageRoot,
+                     inputProvider, diagnosticHandler,
+                     options, outputProvider, environment)
             .then(compilationDone);
 }
 
@@ -458,7 +459,7 @@ void fail(String message) {
   } else {
     print(message);
   }
-  exit(1);
+  exitFunc(1);
 }
 
 Future compilerMain(List<String> arguments) {
@@ -592,7 +593,7 @@ void helpAndExit(bool wantHelp, bool wantVersion, bool verbose) {
       help();
     }
   }
-  exit(0);
+  exitFunc(0);
 }
 
 void helpAndFail(String message) {
@@ -602,11 +603,18 @@ void helpAndFail(String message) {
 }
 
 void main(List<String> arguments) {
-  runZoned(() => compilerMain(arguments), onError: (exception, trace) {
+  internalMain(arguments);
+}
+
+var exitFunc = exit;
+var compileFunc = api.compile;
+
+Future internalMain(List<String> arguments) {
+  onError(exception, trace) {
     try {
-      print('Internal error: $exception');
+      print('The compiler crashed: $exception');
     } catch (ignored) {
-      print('Internal error: error while printing exception');
+      print('The compiler crashed: error while printing exception');
     }
 
     try {
@@ -614,7 +622,14 @@ void main(List<String> arguments) {
         print(trace);
       }
     } finally {
-      exit(253); // 253 is recognized as a crash by our test scripts.
+      exitFunc(253); // 253 is recognized as a crash by our test scripts.
     }
-  });
+  }
+
+  try {
+    return compilerMain(arguments).catchError(onError);
+  } catch (exception, trace) {
+    onError(exception, trace);
+    return new Future.value();
+  }
 }
