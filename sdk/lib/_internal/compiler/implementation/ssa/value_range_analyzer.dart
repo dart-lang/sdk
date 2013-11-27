@@ -24,8 +24,8 @@ class ValueRangeInfo {
     return new InstructionValue(instruction, this);
   }
 
-  Value newLengthValue(HInstruction instruction) {
-    return new LengthValue(instruction, this);
+  Value newPositiveValue(HInstruction instruction) {
+    return new PositiveValue(instruction, this);
   }
 
   Value newAddValue(Value left, Value right) {
@@ -291,14 +291,11 @@ class InstructionValue extends Value {
 }
 
 /**
- * Special value for instructions that represent the length of an
- * array. The difference with an [InstructionValue] is that we know
- * the value is positive.
+ * Special value for instructions whose type is a positive integer.
  */
-class LengthValue extends InstructionValue {
-  LengthValue(HInstruction instruction, info) : super(instruction, info);
+class PositiveValue extends InstructionValue {
+  PositiveValue(HInstruction instruction, info) : super(instruction, info);
   bool get isPositive => true;
-  String toString() => 'Length: $instruction';
 }
 
 /**
@@ -637,13 +634,15 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitInstruction(HInstruction instruction) {
-    return info.newUnboundRange();
-  }
-
-  Range visitParameterValue(HParameterValue parameter) {
-    if (!parameter.isInteger(compiler)) return info.newUnboundRange();
-    Value value = info.newInstructionValue(parameter);
-    return info.newNormalizedRange(value, value);
+    if (instruction.isUInt32(compiler)) {
+      return info.newNormalizedRange(
+          info.intZero, info.newPositiveValue(instruction));
+    } else if (instruction.isInteger(compiler)) {
+      InstructionValue value = info.newInstructionValue(instruction);
+      return info.newNormalizedRange(value, value);
+    } else {
+      return info.newUnboundRange();
+    }
   }
 
   Range visitPhi(HPhi phi) {
@@ -682,7 +681,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     }
     JavaScriptBackend backend = compiler.backend;
     assert(fieldGet.element == backend.jsIndexableLength);
-    LengthValue value = info.newLengthValue(fieldGet);
+    PositiveValue value = info.newPositiveValue(fieldGet);
     // We know this range is above zero. To simplify the analysis, we
     // put the zero value as the lower bound of this range. This
     // allows to easily remove the second bound check in the following
