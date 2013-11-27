@@ -24,6 +24,15 @@ class IsolateManager extends Observable {
     });
   }
 
+  Isolate getIsolate(int id) {
+    Isolate isolate = isolates[id];
+    if (isolate == null) {
+      isolate = new Isolate(id, '');
+      isolates[id] = isolate;
+    }
+    return isolate;
+  }
+
   void _updateIsolates(List<Map> members) {
     // Find dead isolates.
     var deadIsolates = [];
@@ -43,6 +52,8 @@ class IsolateManager extends Observable {
       if (isolates[id] == null) {
         var isolate = new Isolate(id, name);
         isolates[id] = isolate;
+      } else {
+        isolates[id].name = name;
       }
     });
   }

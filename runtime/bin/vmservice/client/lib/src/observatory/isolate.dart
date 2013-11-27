@@ -6,8 +6,10 @@ part of observatory;
 
 /// State for a running isolate.
 class Isolate extends Observable {
-  @observable final int id;
-  @observable final String name;
+  @observable int id;
+  @observable String name;
+  @observable final Map<String, ScriptSource> scripts =
+      toObservable(new Map<String, ScriptSource>());
 
   Isolate(this.id, this.name);
 

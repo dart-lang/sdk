@@ -6791,6 +6791,24 @@ RawString* Script::GenerateSource() const {
 }
 
 
+const char* Script::GetKindAsCString() const {
+  switch (kind()) {
+    case RawScript::kScriptTag:
+      return "script";
+    case RawScript::kLibraryTag:
+      return "library";
+    case RawScript::kSourceTag:
+      return "source";
+    case RawScript::kPatchTag:
+      return "patch";
+    default:
+      UNIMPLEMENTED();
+  }
+  UNREACHABLE();
+  return NULL;
+}
+
+
 void Script::set_url(const String& value) const {
   StorePointer(&raw_ptr()->url_, value.raw());
 }
@@ -7042,6 +7060,18 @@ const char* Script::ToCString() const {
 
 void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddProperty("id", id);
+  const String& name = String::Handle(url());
+  jsobj.AddProperty("name", name.ToCString());
+  jsobj.AddProperty("kind", GetKindAsCString());
+  if (ref) {
+    return;
+  }
+  const String& source = String::Handle(Source());
+  jsobj.AddProperty("source", source.ToCString());
 }
 
 
@@ -8157,6 +8187,15 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
           jsarr.AddValue(func);
         }
       }
+    }
+  }
+  {
+    JSONArray jsarr(&jsobj, "scripts");
+    Array& scripts = Array::Handle(LoadedScripts());
+    Script& script = Script::Handle();
+    for (intptr_t i = 0; i < scripts.Length(); i++) {
+      script ^= scripts.At(i);
+      jsarr.AddValue(script);
     }
   }
 }

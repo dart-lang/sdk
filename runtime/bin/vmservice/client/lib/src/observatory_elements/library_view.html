@@ -4,6 +4,19 @@
 <polymer-element name="library-view" extends="observatory-element">
   <template>
   <div class="alert alert-success">Library {{ library['name'] }}</div>
+  <div class="alert alert-info">Scripts</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template repeat="{{ script in library['scripts']}}">
+        <td>
+          {{ script['kind'] }}
+        </td>
+        <td>
+          <a href="{{ app.locationManager.currentIsolateScriptLink(script['id'], script['name']) }}">{{ script['name'] }}</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
   <div class="alert alert-info">Imported Libraries</div>
   <table class="table table-hover">
     <tbody>
@@ -87,6 +100,7 @@
       </tr>
     </tbody>
   </table>
+
   </template>
   <script type="application/dart" src="library_view.dart"></script>
 </polymer-element>

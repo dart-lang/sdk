@@ -108,7 +108,8 @@
     </div>
   </template>
   
-</polymer-element><polymer-element name="disassembly-entry" extends="observatory-element">
+</polymer-element>
+<polymer-element name="disassembly-entry" extends="observatory-element">
   <template>
   <div class="row">
     <template if="{{ instruction['type'] == 'DisassembledInstructionComment' }}">
@@ -260,7 +261,7 @@
   <template>
   	<div class="row">
   	  <div class="col-md-1">
-  	  	<img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">	
+  	  	<img src="img/isolate_icon.png" class="img-polaroid">	
   	  </div>
   	  <div class="col-md-1">{{ isolate }}</div>
   	  <div class="col-md-10">{{ name }}</div>
@@ -317,9 +318,23 @@
     </template>
   </template>
   
-</polymer-element><polymer-element name="library-view" extends="observatory-element">
+</polymer-element>
+<polymer-element name="library-view" extends="observatory-element">
   <template>
   <div class="alert alert-success">Library {{ library['name'] }}</div>
+  <div class="alert alert-info">Scripts</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template="" repeat="{{ script in library['scripts']}}">
+        <td>
+          {{ script['kind'] }}
+        </td>
+        <td>
+          <a href="{{ app.locationManager.currentIsolateScriptLink(script['id'], script['name']) }}">{{ script['name'] }}</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
   <div class="alert alert-info">Imported Libraries</div>
   <table class="table table-hover">
     <tbody>
@@ -403,6 +418,29 @@
       </tr>
     </tbody>
   </table>
+
+  </template>
+  
+</polymer-element><polymer-element name="source-view" extends="observatory-element">
+  <template>
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel-heading">{{ source.url }}</div>
+      <div class="panel-body">
+        <div class="row">
+          <div><strong>Source</strong></div>
+        </div>
+        <pre>        <template repeat="{{ line in source.lines }}">{{line.paddedLine}} {{line.src}}
+        </template>
+        </pre>
+      </div>
+    </div>
+  </div>
+  </template>
+  
+</polymer-element><polymer-element name="script-view" extends="observatory-element">
+  <template>
+    <source-view app="{{ app }}" source="{{ script['source'] }}"></source-view>
   </template>
   
 </polymer-element><polymer-element name="stack-trace" extends="observatory-element">
@@ -460,6 +498,9 @@
     </template>
     <template if="{{ messageType == 'Code' }}">
       <code-view app="{{ app }}" code="{{ message }}"></code-view>
+    </template>
+    <template if="{{ messageType == 'Script' }}">
+      <script-view app="{{ app }}" script="{{ message }}"></script-view>
     </template>
     <!-- Add new views and message types in the future here. -->
   </template>

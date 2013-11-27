@@ -14,12 +14,14 @@ import 'package:observatory/src/observatory_elements/isolate_summary.dart' as i8
 import 'package:observatory/src/observatory_elements/isolate_list.dart' as i9;
 import 'package:observatory/src/observatory_elements/json_view.dart' as i10;
 import 'package:observatory/src/observatory_elements/library_view.dart' as i11;
-import 'package:observatory/src/observatory_elements/stack_trace.dart' as i12;
-import 'package:observatory/src/observatory_elements/message_viewer.dart' as i13;
-import 'package:observatory/src/observatory_elements/navigation_bar.dart' as i14;
-import 'package:observatory/src/observatory_elements/response_viewer.dart' as i15;
-import 'package:observatory/src/observatory_elements/observatory_application.dart' as i16;
-import 'index.html.0.dart' as i17;
+import 'package:observatory/src/observatory_elements/source_view.dart' as i12;
+import 'package:observatory/src/observatory_elements/script_view.dart' as i13;
+import 'package:observatory/src/observatory_elements/stack_trace.dart' as i14;
+import 'package:observatory/src/observatory_elements/message_viewer.dart' as i15;
+import 'package:observatory/src/observatory_elements/navigation_bar.dart' as i16;
+import 'package:observatory/src/observatory_elements/response_viewer.dart' as i17;
+import 'package:observatory/src/observatory_elements/observatory_application.dart' as i18;
+import 'index.html.0.dart_modified.dart' as i19;
 
 void main() {
   configureForDeployment([
@@ -35,12 +37,14 @@ void main() {
       'package:observatory/src/observatory_elements/isolate_list.dart',
       'package:observatory/src/observatory_elements/json_view.dart',
       'package:observatory/src/observatory_elements/library_view.dart',
+      'package:observatory/src/observatory_elements/source_view.dart',
+      'package:observatory/src/observatory_elements/script_view.dart',
       'package:observatory/src/observatory_elements/stack_trace.dart',
       'package:observatory/src/observatory_elements/message_viewer.dart',
       'package:observatory/src/observatory_elements/navigation_bar.dart',
       'package:observatory/src/observatory_elements/response_viewer.dart',
       'package:observatory/src/observatory_elements/observatory_application.dart',
-      'index.html.0.dart',
+      'index.html.0.dart_modified.dart',
     ]);
-  i17.main();
+  i19.polymerMainWrapper();
 }
