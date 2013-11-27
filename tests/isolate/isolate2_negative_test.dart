@@ -18,5 +18,5 @@ main() {
   // anything back except an exception there is no asyncEnd().
   // If the exception is not thrown this test will timeout.
   asyncStart();
-  Isolate.spawn(entry);
+  Isolate.spawn(entry, null);
 }
