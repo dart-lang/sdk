@@ -166,7 +166,7 @@ class _LinuxDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         if (error is FileSystemException) return;
 
         _eventsController.addError(error, stackTrace);
-        _eventsController.close();
+        close();
       }, cancelOnError: true);
     });
   }
