@@ -14,7 +14,7 @@ testEmptyZoneSpecification() {
   asyncStart();
   bool timerDidRun = false;
   forked.createTimer(const Duration(milliseconds: 20), () {
-    // The createTimer functions on the Zone binds the closures.
+    // The createTimer function on the Zone binds the closures.
     Expect.identical(forked, Zone.current);
     timerDidRun = true;
     asyncEnd();
@@ -29,7 +29,7 @@ testEmptyZoneSpecification() {
       timer.cancel();
       asyncEnd();
     }
-    // The createPeriodicTimer functions on the Zone binds the closures.
+    // The createPeriodicTimer function on the Zone binds the closures.
     Expect.identical(forked, Zone.current);
   });
   Expect.identical(Zone.ROOT, Zone.current);
