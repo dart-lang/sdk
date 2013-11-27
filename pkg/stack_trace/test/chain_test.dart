@@ -6,6 +6,7 @@ library chain_test;
 
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart';
 
@@ -336,6 +337,7 @@ void main() {
     });
   });
 
+  var userSlashCode = p.join('user', 'code.dart');
   group('Chain.terse', () {
     test('makes each trace terse', () {
       var chain = new Chain([
@@ -355,12 +357,12 @@ void main() {
 
       expect(chain.terse.toString(), equals(
           'dart:core             Bar.baz\n'
-          'user/code.dart 10:11  Bang.qux\n'
+          '$userSlashCode 10:11  Bang.qux\n'
           'dart:core             Zop.zoop\n'
           '===== asynchronous gap ===========================\n'
-          'user/code.dart 10:11  Bang.qux\n'
+          '$userSlashCode 10:11  Bang.qux\n'
           'dart:core             Zip.zap\n'
-          'user/code.dart 10:11  Zop.zoop\n'));
+          '$userSlashCode 10:11  Zop.zoop\n'));
     });
 
     test('eliminates internal-only traces', () {
@@ -378,10 +380,10 @@ void main() {
       ]);
 
       expect(chain.terse.toString(), equals(
-          'user/code.dart 10:11  Foo.bar\n'
+          '$userSlashCode 10:11  Foo.bar\n'
           'dart:core             Bar.baz\n'
           '===== asynchronous gap ===========================\n'
-          'user/code.dart 10:11  Foo.bar\n'
+          '$userSlashCode 10:11  Foo.bar\n'
           'dart:core             Bar.baz\n'));
     });
   });
@@ -397,9 +399,9 @@ void main() {
     ]).toTrace();
 
     expect(trace.toString(), equals(
-        'user/code.dart 10:11  Foo.bar\n'
+        '$userSlashCode 10:11  Foo.bar\n'
         'dart:core 10:11       Bar.baz\n'
-        'user/code.dart 10:11  Foo.bar\n'
+        '$userSlashCode 10:11  Foo.bar\n'
         'dart:core 10:11       Bar.baz\n'));
   });
 
