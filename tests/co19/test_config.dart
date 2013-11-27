@@ -4,7 +4,6 @@
 
 library co19_test_config;
 
-import 'dart:io';
 import '../../tools/testing/dart/test_suite.dart';
 import '../../tools/testing/dart/utils.dart' show Path;
 

@@ -282,10 +282,10 @@ Future deleteTemporaryDartDirectories() {
   return completer.future;
 }
 
-void main() {
+void main(List<String> arguments) {
   deleteTemporaryDartDirectories().then((_) {
     var optionsParser = new TestOptionsParser();
-    var configurations = optionsParser.parse(new Options().arguments);
+    var configurations = optionsParser.parse(arguments);
     if (configurations != null && configurations.length > 0) {
       testConfigurations(configurations);
     }

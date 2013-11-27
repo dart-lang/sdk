@@ -147,9 +147,7 @@ io/directory_invalid_arguments_test: StaticWarning
 io/process_invalid_arguments_test: StaticWarning
 io/raw_secure_server_socket_argument_test: StaticWarning
 io/secure_socket_argument_test: StaticWarning
-io/skipping_dart2js_compilations_test: CompileTimeError, StaticWarning
 io/stdout_bad_argument_test: StaticWarning
-io/test_runner_test: CompileTimeError, StaticWarning
 package/package1_test: StaticWarning
 package/package_test: StaticWarning
 typed_data_test: StaticWarning

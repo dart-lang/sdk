@@ -276,5 +276,5 @@ Path CreateMultitestDirectory(String outputDir, Path suiteDir) {
   if (!dir.existsSync()) {
     dir.createSync();
   }
-  return new Path(new File(path).fullPathSync());
+  return new Path(new File(path).absolute.path);
 }

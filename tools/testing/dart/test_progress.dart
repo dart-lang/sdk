@@ -7,7 +7,6 @@ library test_progress;
 import "dart:async";
 import "dart:io";
 import "dart:io" as io;
-import "http_server.dart" as http_server;
 import "status_file_parser.dart";
 import "test_runner.dart";
 import "test_suite.dart";
@@ -323,17 +322,9 @@ class SkippedCompilationsPrinter extends EventListener {
 class LeftOverTempDirPrinter extends EventListener {
   final MIN_NUMBER_OF_TEMP_DIRS = 50;
 
-  static Directory _getTemporaryDirectory() {
-    // Dir will be located in the system temporary directory.
-    var dir = new Directory('').createTempSync();
-    var path = new Path(dir.path).directoryPath;
-    dir.deleteSync();
-    return new Directory(path.toNativePath());
-  }
-
   static RegExp _getTemporaryDirectoryRegexp() {
     // These are the patterns of temporary directory names created by
-    // 'Directory.createTempSync()' on linux/macos and windows.
+    // 'Directory.systemTemp.createTemp()' on linux/macos and windows.
     if (['macos', 'linux'].contains(Platform.operatingSystem)) {
       return new RegExp(r'^temp_dir1_......$');
     } else {
@@ -343,7 +334,7 @@ class LeftOverTempDirPrinter extends EventListener {
 
   static Stream<Directory> getLeftOverTemporaryDirectories() {
     var regExp = _getTemporaryDirectoryRegexp();
-    return _getTemporaryDirectory().list().where(
+    return Directory.systemTemp.list().where(
         (FileSystemEntity fse) {
           if (fse is Directory) {
             if (regExp.hasMatch(new Path(fse.path).filename)) {
@@ -359,7 +350,7 @@ class LeftOverTempDirPrinter extends EventListener {
       if (count > MIN_NUMBER_OF_TEMP_DIRS) {
         DebugLogger.warning("There are ${count} directories "
                             "in the system tempdir "
-                            "('${_getTemporaryDirectory().path}')! "
+                            "('${Directory.systemTemp.path}')! "
                             "Maybe left over directories?\n");
       }
     }).catchError((error) {

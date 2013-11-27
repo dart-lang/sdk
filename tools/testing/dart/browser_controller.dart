@@ -315,7 +315,7 @@ class Safari extends Browser {
         // Get the version and log that.
         return getVersion().then((version) {
           _logEvent("Got version: $version");
-          return new Directory('').createTemp().then((userDir) {
+          return Directory.systemTemp.createTemp().then((userDir) {
             _cleanup = () { userDir.deleteSync(recursive: true); };
             _createLaunchHTML(userDir.path, url);
             var args = ["${userDir.path}/launch.html"];
@@ -379,7 +379,7 @@ class Chrome extends Browser {
       if (!success) return false;
       _logEvent("Got version: $_version");
 
-      return new Directory('').createTemp().then((userDir) {
+      return Directory.systemTemp.createTemp().then((userDir) {
         _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["--user-data-dir=${userDir.path}", url,
                     "--disable-extensions", "--disable-popup-blocking",
@@ -608,7 +608,7 @@ class Firefox extends Browser {
       version = versionResult.stdout;
       _logEvent("Got version: $version");
 
-      return new Directory('').createTemp().then((userDir) {
+      return Directory.systemTemp.createTemp().then((userDir) {
         _createPreferenceFile(userDir.path);
         _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["-profile", "${userDir.path}",

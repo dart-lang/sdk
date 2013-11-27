@@ -17,7 +17,6 @@ library test_suite;
 import "dart:async";
 import "dart:convert" show LineSplitter, UTF8;
 import "dart:io";
-import "dart:isolate";
 import "drt_updater.dart";
 import "multitest.dart";
 import "status_file_parser.dart";
@@ -327,45 +326,16 @@ abstract class TestSuite {
 }
 
 
-void ccTestLister() {
-  port.receive((String runnerPath, SendPort replyTo) {
-    Future processFuture = Process.start(runnerPath, ["--list"]);
-    processFuture.then((Process p) {
-      // Drain stderr to not leak resources.
-      p.stderr.listen((_) { });
-      Stream<String> stdoutStream =
-          p.stdout.transform(UTF8.decoder)
-                  .transform(new LineSplitter());
-      var streamDone = false;
-      var processExited = false;
-      checkDone() {
-        if (streamDone && processExited) {
-          replyTo.send("");
-        }
-      }
-      stdoutStream.listen((String line) {
-        replyTo.send(line);
-      },
-      onDone: () {
-        streamDone = true;
-        checkDone();
-      });
-
-      p.exitCode.then((code) {
-        if (code < 0) {
-          print("Failed to list tests: $runnerPath --list");
-          replyTo.send("");
-        } else {
-          processExited = true;
-          checkDone();
-        }
-      });
-      port.close();
-    }).catchError((e) {
-      print("Failed to list tests: $runnerPath --list");
-      replyTo.send("");
-      return true;
-    });
+Future<Iterable<String>> ccTestLister(String runnerPath) {
+  return Process.run(runnerPath, ["--list"]).then((ProcessResult result) {
+    if (result.exitCode != 0) {
+      throw "Failed to list tests: '$runnerPath --list'. "
+            "Process exited with ${result.exitCode}";
+    }
+    return result.stdout
+      .split('\n')
+      .map((line) => line.trim())
+      .where((name) => name.length > 0);
   });
 }
 
@@ -385,7 +355,6 @@ class CCTestSuite extends TestSuite {
   final String dartDir;
   List<String> statusFilePaths;
   VoidFunction doDone;
-  ReceivePort receiveTestName;
   TestExpectations testExpectations;
 
   CCTestSuite(Map configuration,
@@ -409,30 +378,21 @@ class CCTestSuite extends TestSuite {
     }
   }
 
-  void testNameHandler(String testName, ignore) {
-    if (testName == "") {
-      receiveTestName.close();
+  void testNameHandler(String testName) {
+    // Only run the tests that match the pattern. Use the name
+    // "suiteName/testName" for cc tests.
+    String constructedName = '$suiteName/$testPrefix$testName';
 
-      if (doDone != null) doDone();
-    } else {
-      // Only run the tests that match the pattern. Use the name
-      // "suiteName/testName" for cc tests.
-      String constructedName = '$suiteName/$testPrefix$testName';
+    var expectations = testExpectations.expectations(
+        '$testPrefix$testName');
 
-      var expectations = testExpectations.expectations(
-          '$testPrefix$testName');
+    var args = TestUtils.standardOptions(configuration);
+    args.add(testName);
 
-      var args = TestUtils.standardOptions(configuration);
-      args.add(testName);
-
-      var command = CommandBuilder.instance.getCommand(
-          'run_vm_unittest', targetRunnerPath, args, configurationDir);
-      enqueueNewTestCase(
-          new TestCase(constructedName,
-                       [command],
-                       configuration,
-                       expectations));
-    }
+    var command = CommandBuilder.instance.getCommand(
+        'run_vm_unittest', targetRunnerPath, args, configurationDir);
+    enqueueNewTestCase(
+        new TestCase(constructedName, [command], configuration, expectations));
   }
 
   void forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) {
@@ -443,10 +403,13 @@ class CCTestSuite extends TestSuite {
     void statusFileRead() {
       filesRead++;
       if (filesRead == statusFilePaths.length) {
-        receiveTestName = new ReceivePort();
-        var port = spawnFunction(ccTestLister);
-        port.send(hostRunnerPath, receiveTestName.toSendPort());
-        receiveTestName.receive(testNameHandler);
+        ccTestLister(hostRunnerPath).then((Iterable<String> names) {
+          names.forEach(testNameHandler);
+          onDone();
+        }).catchError((error) {
+          print("Fatal error occured: $error");
+          exit(1);
+        });
       }
     }
 
@@ -1233,7 +1196,7 @@ class StandardTestSuite extends TestSuite {
         .append(testUniqueName);
 
     TestUtils.mkdirRecursive(new Path('.'), generatedTestPath);
-    return new File(generatedTestPath.toNativePath()).fullPathSync()
+    return new File(generatedTestPath.toNativePath()).absolute.path
         .replaceAll('\\', '/');
   }
 
@@ -1709,10 +1672,11 @@ class JUnitTestSuite extends TestSuite {
     updatedConfiguration['timeout'] *= 3;
     var command = CommandBuilder.instance.getCommand(
         'junit_test', 'java', args, configurationDir);
-    enqueueNewTestCase(new TestCase(suiteName,
-                                   [command],
-                                   updatedConfiguration,
-                                   new Set<String>.from([PASS])));
+    enqueueNewTestCase(
+        new TestCase(suiteName,
+                     [command],
+                     updatedConfiguration,
+                     new Set<Expectation>.from([Expectation.PASS])));
     doDone();
   }
 
@@ -1765,7 +1729,7 @@ class TestUtils {
    * the main script using 'test_suite.dart' is not there, the main
    * script must set this to '.../dart/tools/test.dart'.
    */
-  static String testScriptPath = new Options().script;
+  static String testScriptPath = Platform.script.path;
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static Path currentWorkingDirectory =
       new Path(Directory.current.path);
@@ -1847,7 +1811,7 @@ class TestUtils {
 
   static Path dartDir() {
     File scriptFile = new File(testScriptPath);
-    Path scriptPath = new Path(scriptFile.fullPathSync());
+    Path scriptPath = new Path(scriptFile.absolute.path);
     return scriptPath.directoryPath.directoryPath;
   }
 
