@@ -80,19 +80,19 @@ main() {
   var dynamicMirror = currentMirrorSystem().dynamicType;
   typeArguments(reflect(new A<num>()).type, [numMirror]);
   typeArguments(reflect(new A<dynamic>()).type, [dynamicMirror]);
-  typeArguments(reflect(new A()).type, [dynamicMirror]); /// 01: ok
+  typeArguments(reflect(new A()).type, [dynamicMirror]); 
   typeArguments(reflect(new B()).type, []);
   typeArguments(reflect(new C()).type, []);
   typeArguments(reflect(new D()).type, []);
   typeArguments(reflect(new E<num>()).type, [numMirror]);
-  typeArguments(reflect(new E<dynamic>()).type, [dynamicMirror]); /// 01: ok
-  typeArguments(reflect(new E()).type, [dynamicMirror]); /// 01: ok
+  typeArguments(reflect(new E<dynamic>()).type, [dynamicMirror]); 
+  typeArguments(reflect(new E()).type, [dynamicMirror]); 
   typeArguments(reflect(new F<num>()).type, [numMirror]);
-  typeArguments(reflect(new F<dynamic>()).type, [dynamicMirror]); /// 01: ok
-  typeArguments(reflect(new F()).type, [dynamicMirror]); /// 01: ok
+  typeArguments(reflect(new F<dynamic>()).type, [dynamicMirror]); 
+  typeArguments(reflect(new F()).type, [dynamicMirror]); 
   typeArguments(reflect(new G()).type, []);
-  typeArguments(reflect(new H<dynamic, num, dynamic>()).type, /// 01: ok
-      [dynamicMirror, numMirror, dynamicMirror]); /// 01: ok
+  typeArguments(reflect(new H<dynamic, num, dynamic>()).type, 
+      [dynamicMirror, numMirror, dynamicMirror]); 
   typeArguments(reflect(new I()).type, []);
 
   Expect.isFalse(reflect(new A<num>()).type.isOriginalDeclaration);
@@ -102,7 +102,7 @@ main() {
   Expect.isFalse(reflect(new E<num>()).type.isOriginalDeclaration);
   Expect.isFalse(reflect(new F<num>()).type.isOriginalDeclaration);
   Expect.isTrue(reflect(new G()).type.isOriginalDeclaration);
-  Expect.isFalse(reflect(new H()).type.isOriginalDeclaration); /// 01: ok
+  Expect.isFalse(reflect(new H()).type.isOriginalDeclaration); 
   Expect.isTrue(reflect(new I()).type.isOriginalDeclaration);
 
   Expect.equals(reflectClass(A),
@@ -138,8 +138,8 @@ main() {
                    reflect(new F<num>()).type.originalDeclaration);
   Expect.equals(reflect(new G()).type,
                 reflect(new G()).type.originalDeclaration);
-  Expect.notEquals(reflect(new H()).type, /// 01: ok
-                   reflect(new H()).type.originalDeclaration); /// 01: ok
+  Expect.notEquals(reflect(new H()).type, 
+                   reflect(new H()).type.originalDeclaration); 
   Expect.equals(reflect(new I()).type,
                 reflect(new I()).type.originalDeclaration);
 
