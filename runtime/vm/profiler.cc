@@ -579,14 +579,17 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
   start_ = 0;
   end_ = 0;
   capacity_ = capacity;
-  samples_ = new Sample[capacity];
+  samples_ = reinterpret_cast<Sample*>(calloc(capacity, sizeof(Sample)));
 }
 
 
 SampleBuffer::~SampleBuffer() {
   if (samples_ != NULL) {
-    delete[] samples_;
+    free(samples_);
     samples_ = NULL;
+    start_ = 0;
+    end_ = 0;
+    capacity_ = 0;
   }
 }
 
