@@ -191,7 +191,7 @@ Language/12_Expressions/05_Strings_A02_t44: Crash # Issue 15237
 
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: Crash
 
-[ ($compiler == dart2js || $compiler == dart2dart) && $host_checked ]
+[ ($compiler == dart2js || $compiler == dart2dart) ]
 
 Language/13_Statements/05_If_A01_t04: Crash # Issue 15237
 Language/13_Statements/07_While_A01_t01: Crash # Issue 15237

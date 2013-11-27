@@ -163,6 +163,7 @@ string_interpolation9_test/13: Crash # Issue 15237
 string_interpolation9_test/16: Crash # Issue 15237
 string_interpolation9_test/17: Crash # Issue 15237
 string_interpolation9_test/18: Crash # Issue 15237
+mixin_invalid_inheritance2_test/03: Crash # Issue 15237
 
 [ ($compiler == dart2js || $compiler == dart2dart) && $checked ]
 cyclic_typedef_test/07: Crash # Issue 15237
