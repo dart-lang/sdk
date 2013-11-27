@@ -102,10 +102,10 @@ void startRootIsolate(entry) {
 // TODO(eub, sigmund): move the "manager" to be entirely in JS.
 // Running any Dart code outside the context of an isolate gives it
 // the chance to break the isolate abstraction.
-_Manager get _globalState => JS("_Manager", r"$globalState");
+_Manager get _globalState => JS("_Manager", "init.globalState");
 
 set _globalState(_Manager val) {
-  JS("void", r"$globalState = #", val);
+  JS("void", "init.globalState = #", val);
 }
 
 /** State associated with the current manager. See [globalState]. */

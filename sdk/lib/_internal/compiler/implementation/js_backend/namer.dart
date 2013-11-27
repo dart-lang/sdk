@@ -177,6 +177,11 @@ class Namer implements ClosureNamer {
       "Z",
   ];
 
+  static const reservedGlobalHelperFunctions = const <String>[
+      "init",
+      "Isolate",
+  ];
+
   static final userGlobalObjects = new List.from(reservedGlobalObjectNames)
       ..remove('C')
       ..remove('H')
@@ -207,6 +212,7 @@ class Namer implements ClosureNamer {
       _jsVariableReserved.addAll(reservedGlobalObjectNames);
       // 26 letters in the alphabet, 25 not counting I.
       assert(reservedGlobalObjectNames.length == 25);
+      _jsVariableReserved.addAll(reservedGlobalHelperFunctions);
     }
     return _jsVariableReserved;
   }
