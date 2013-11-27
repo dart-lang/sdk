@@ -1,0 +1,173 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library stack_trace.chain;
+
+import 'dart:async';
+import 'dart:collection';
+
+import 'stack_zone_specification.dart';
+import 'trace.dart';
+import 'utils.dart';
+
+/// A function that handles errors in the zone wrapped by [Chain.capture].
+typedef void ChainHandler(error, Chain chain);
+
+/// A chain of stack traces.
+///
+/// A stack chain is a collection of one or more stack traces that collectively
+/// represent the path from [main] through nested function calls to a particular
+/// code location, usually where an error was thrown. Multiple stack traces are
+/// necessary when using asynchronous functions, since the program's stack is
+/// reset before each asynchronous callback is run.
+///
+/// Stack chains can be automatically tracked using [Chain.capture]. This sets
+/// up a new [Zone] in which the current stack chain is tracked and can be
+/// accessed using [new Chain.current]. Any errors that would be top-leveled in
+/// the zone can be handled, along with their associated chains, with the
+/// `onError` callback.
+///
+/// For the most part [Chain.capture] will notice when an error is thrown and
+/// associate the correct stack chain with it; the chain can be accessed using
+/// [new Chain.forTrace]. However, there are some cases where exceptions won't
+/// be automatically detected: any [Future] constructor,
+/// [Completer.completeError], [Stream.addError], and libraries that use these.
+/// For these, all you need to do is wrap the Future or Stream in a call to
+/// [Chain.track] and the errors will be tracked correctly.
+class Chain implements StackTrace {
+  /// The line used in the string representation of stack chains to represent
+  /// the gap between traces.
+  static const _GAP = '===== asynchronous gap ===========================\n';
+
+  /// The stack traces that make up this chain.
+  ///
+  /// Like the frames in a stack trace, the traces are ordered from most local
+  /// to least local. The first one is the trace where the actual exception was
+  /// raised, the second one is where that callback was scheduled, and so on.
+  final List<Trace> traces;
+
+  /// The [StackZoneSpecification] for the current zone.
+  static StackZoneSpecification get _currentSpec =>
+    Zone.current[#stack_trace.stack_zone.spec];
+
+  /// Runs [callback] in a [Zone] in which the current stack chain is tracked
+  /// and automatically associated with (most) errors.
+  ///
+  /// If [onError] is passed, any error in the zone that would otherwise go
+  /// unhandled is passed to it, along with the [Chain] associated with that
+  /// error. Note that if [callback] produces multiple unhandled errors,
+  /// [onError] may be called more than once. If [onError] isn't passed, the
+  /// parent Zone's `unhandledErrorHandler` will be called with the error and
+  /// its chain.
+  ///
+  /// For the most part an error thrown in the zone will have the correct stack
+  /// chain associated with it. However, there are some cases where exceptions
+  /// won't be automatically detected: any [Future] constructor,
+  /// [Completer.completeError], [Stream.addError], and libraries that use
+  /// these. For these, all you need to do is wrap the Future or Stream in a
+  /// call to [Chain.track] and the errors will be tracked correctly.
+  ///
+  /// Note that even if [onError] isn't passed, this zone will still be an error
+  /// zone. This means that any errors that would cross the zone boundary are
+  /// considered unhandled.
+  ///
+  /// If [callback] returns a value, it will be returned by [capture] as well.
+  ///
+  /// Currently, capturing stack chains doesn't work when using dart2js due to
+  /// issues [15171] and [15105]. Stack chains reported on dart2js will contain
+  /// only one trace.
+  ///
+  /// [15171]: https://code.google.com/p/dart/issues/detail?id=15171
+  /// [15105]: https://code.google.com/p/dart/issues/detail?id=15105
+  static capture(callback(), {ChainHandler onError}) {
+    var spec = new StackZoneSpecification(onError);
+    return runZoned(callback, zoneSpecification: spec.toSpec(), zoneValues: {
+      #stack_trace.stack_zone.spec: spec
+    });
+  }
+
+  /// Ensures that any errors emitted by [futureOrStream] have the correct stack
+  /// chain information associated with them.
+  ///
+  /// For the most part an error thrown within a [capture] zone will have the
+  /// correct stack chain automatically associated with it. However, there are
+  /// some cases where exceptions won't be automatically detected: any [Future]
+  /// constructor, [Completer.completeError], [Stream.addError], and libraries
+  /// that use these.
+  ///
+  /// This returns a [Future] or [Stream] that will emit the same values and
+  /// errors as [futureOrStream]. The only exception is that if [futureOrStream]
+  /// emits an error without a stack trace, one will be added in the return
+  /// value.
+  ///
+  /// If this is called outside of a [capture] zone, it just returns
+  /// [futureOrStream] as-is.
+  ///
+  /// As the name suggests, [futureOrStream] may be either a [Future] or a
+  /// [Stream].
+  static track(futureOrStream) {
+    if (_currentSpec == null) return futureOrStream;
+    if (futureOrStream is Future) {
+      return _currentSpec.trackFuture(futureOrStream, 1);
+    } else {
+      return _currentSpec.trackStream(futureOrStream, 1);
+    }
+  }
+
+  /// Returns the current stack chain.
+  ///
+  /// By default, the first frame of the first trace will be the line where
+  /// [Chain.current] is called. If [level] is passed, the first trace will
+  /// start that many frames up instead.
+  ///
+  /// If this is called outside of a [capture] zone, it just returns a
+  /// single-trace chain.
+  factory Chain.current([int level=0]) {
+    if (_currentSpec != null) return _currentSpec.currentChain(level + 1);
+    return new Chain([new Trace.current(level + 1)]);
+  }
+
+  /// Returns the stack chain associated with [trace].
+  ///
+  /// The first stack trace in the returned chain will always be [trace]
+  /// (converted to a [Trace] if necessary). If there is no chain associated
+  /// with [trace] or if this is called outside of a [capture] zone, this just
+  /// returns a single-trace chain containing [trace].
+  ///
+  /// If [trace] is already a [Chain], it will be returned as-is.
+  factory Chain.forTrace(StackTrace trace) {
+    if (trace is Chain) return trace;
+    if (_currentSpec == null) return new Chain([new Trace.from(trace)]);
+    return _currentSpec.chainFor(trace);
+  }
+
+  /// Parses a string representation of a stack chain.
+  ///
+  /// Specifically, this parses the output of [Chain.toString].
+  factory Chain.parse(String chain) =>
+    new Chain(chain.split(_GAP).map((trace) => new Trace.parseFriendly(trace)));
+
+  /// Returns a new [Chain] comprised of [traces].
+  Chain(Iterable<Trace> traces)
+      : traces = new UnmodifiableListView<Trace>(traces.toList());
+
+  /// Returns a terser version of [this].
+  ///
+  /// This calls [Trace.terse] on every trace in [traces], and discards any
+  /// trace that contain only internal frames.
+  Chain get terse {
+    return new Chain(traces.map((trace) => trace.terse).where((trace) {
+      // Ignore traces that contain only internal processing.
+      return trace.frames.length > 1;
+    }));
+  }
+
+  /// Converts [this] to a [Trace].
+  ///
+  /// The trace version of a chain is just the concatenation of all the traces
+  /// in the chain.
+  Trace toTrace() => new Trace(flatten(traces.map((trace) => trace.frames)));
+
+  String toString() => traces.join(_GAP);
+}

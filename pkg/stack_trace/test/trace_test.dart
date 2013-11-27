@@ -171,6 +171,24 @@ void main() {
           equals(Uri.parse("http://dartlang.org/foo/baz.dart")));
     });
 
+    test('parses a package:stack_trace stack chain correctly', () {
+      var trace = new Trace.parse(
+          'http://dartlang.org/foo/bar.dart 10:11  Foo.<fn>.bar\n'
+          'http://dartlang.org/foo/baz.dart        Foo.<fn>.bar\n'
+          '===== asynchronous gap ===========================\n'
+          'http://dartlang.org/foo/bang.dart 10:11  Foo.<fn>.bar\n'
+          'http://dartlang.org/foo/quux.dart        Foo.<fn>.bar');
+
+      expect(trace.frames[0].uri,
+          equals(Uri.parse("http://dartlang.org/foo/bar.dart")));
+      expect(trace.frames[1].uri,
+          equals(Uri.parse("http://dartlang.org/foo/baz.dart")));
+      expect(trace.frames[2].uri,
+          equals(Uri.parse("http://dartlang.org/foo/bang.dart")));
+      expect(trace.frames[3].uri,
+          equals(Uri.parse("http://dartlang.org/foo/quux.dart")));
+    });
+
     test('parses a real package:stack_trace stack trace correctly', () {
       var traceString = new Trace.current().toString();
       expect(new Trace.parse(traceString).toString(), equals(traceString));

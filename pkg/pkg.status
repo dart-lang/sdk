@@ -40,6 +40,7 @@ serialization/test/serialization_test: Pass, RuntimeError # Issue 14735
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_nested_groups_setup_teardown_test: Pass, RuntimeError # http://dartbug.com/10109
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
+stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 sequence_zip/test/stream_test: RuntimeError, OK # Timers are not supported.
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
 
@@ -169,6 +170,7 @@ unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
+stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
