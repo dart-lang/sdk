@@ -479,8 +479,6 @@ class TypeGraphInferrerEngine
     compiler.log('Inferred $overallRefineCount types.');
 
     processLoopInformation();
-
-    types.typeInformations.values.forEach((info) => print(info));
   }
 
   void analyze(Element element) {
