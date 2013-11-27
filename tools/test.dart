@@ -178,7 +178,9 @@ void testConfigurations(List<Map> configurations) {
     for (String key in selectors.keys) {
       if (key == 'co19') {
         testSuites.add(new Co19TestSuite(conf));
-      } else if (conf['runtime'] == 'vm' && key == 'vm') {
+      } else if (conf['compiler'] == 'none' &&
+                 conf['runtime'] == 'vm' &&
+                 key == 'vm') {
         // vm tests contain both cc tests (added here) and dart tests (added
         // in [TEST_SUITE_DIRECTORIES]).
         testSuites.add(new VMTestSuite(conf));
