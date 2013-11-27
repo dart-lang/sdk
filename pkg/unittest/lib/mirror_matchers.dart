@@ -49,17 +49,8 @@ class _HasProperty extends Matcher {
     var mirror = reflect(item);
     var classMirror = mirror.type;
     var symbol = new Symbol(_name);
-    var candidate = classMirror.declarations[symbol];
-    if (candidate == null) {
+    if (!classMirror.getters.containsKey(symbol)) {
       addStateInfo(matchState, {'reason': 'has no property named "$_name"'});
-      return false;
-    }
-    bool isInstanceField = candidate is VariableMirror && !candidate.isStatic;
-    bool isInstanceGetter =
-        candidate is MethodMirror && candidate.isGetter && !candidate.isStatic;
-    if (!(isInstanceField || isInstanceGetter)) {
-      addStateInfo(matchState, {'reason':
-          'has a member named "$_name", but it is not an instance property'});
       return false;
     }
     if (_matcher == null) return true;

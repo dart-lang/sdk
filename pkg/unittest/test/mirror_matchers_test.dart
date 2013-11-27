@@ -7,13 +7,6 @@ import 'package:unittest/mirror_matchers.dart';
 
 import 'test_utils.dart';
 
-class C {
-  var instanceField = 1;
-  get instanceGetter => 2;
-  static var staticField = 3;
-  static get staticGetter => 4;
-}
-
 void main() {
 
   initUtils();
@@ -28,18 +21,5 @@ void main() {
         'Expected: has property "length" which matches <2> '
         'Actual: [3] '
         'Which: has property "length" with value <1>');
-    var c = new C();
-    shouldPass(c, hasProperty('instanceField', 1));
-    shouldPass(c, hasProperty('instanceGetter', 2));
-    shouldFail(c, hasProperty('staticField'), 
-        'Expected: has property "staticField" '
-        'Actual: <Instance of \'C\'> '
-        'Which: has a member named "staticField",'
-        ' but it is not an instance property');
-    shouldFail(c, hasProperty('staticGetter'),
-        'Expected: has property "staticGetter" '
-        'Actual: <Instance of \'C\'> '
-        'Which: has a member named "staticGetter",'
-        ' but it is not an instance property');
   });
 }
