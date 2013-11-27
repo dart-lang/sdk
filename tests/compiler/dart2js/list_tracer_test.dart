@@ -214,10 +214,10 @@ void doTest(String allocation, {bool nullify}) {
     checkType('listUsedInLocal', typesTask.numType);
     checkType('listEscapingInSetterValue', typesTask.numType);
     checkType('listEscapingInIndex', typesTask.numType);
-    checkType('listEscapingInIndexSet', typesTask.intType);
+    checkType('listEscapingInIndexSet', typesTask.uint31Type);
     checkType('listEscapingTwiceInIndexSet', typesTask.numType);
     checkType('listSetInNonFinalField', typesTask.numType);
-    checkType('listWithChangedLength', typesTask.intType.nullable());
+    checkType('listWithChangedLength', typesTask.uint31Type.nullable());
 
     checkType('listPassedToClosure', typesTask.dynamicType);
     checkType('listReturnedFromClosure', typesTask.dynamicType);
@@ -227,8 +227,7 @@ void doTest(String allocation, {bool nullify}) {
 
     if (!allocation.contains('filled')) {
       checkType('listUnset', new TypeMask.nonNullEmpty());
-      // TODO(ngeoffray): Re-enable this test.
-      // checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
+      checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
     }
   }));
 }

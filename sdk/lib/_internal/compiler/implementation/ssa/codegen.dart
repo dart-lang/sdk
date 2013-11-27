@@ -189,18 +189,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return generateAtUseSite.contains(instruction);
   }
 
-  bool isNonNegativeInt32Constant(HInstruction instruction) {
-    if (instruction.isConstantInteger()) {
-      HConstant constantInstruction = instruction;
-      PrimitiveConstant primitiveConstant = constantInstruction.constant;
-      int value = primitiveConstant.value;
-      if (value >= 0 && value < (1 << 31)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   bool hasNonBitOpUser(HInstruction instruction, Set<HPhi> phiSet) {
     for (HInstruction user in instruction.usedBy) {
       if (user is HPhi) {
@@ -215,22 +203,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return false;
   }
 
-  // We want the outcome of bit-operations to be positive. However, if
-  // the result of a bit-operation is only used by other bit
-  // operations we do not have to convert to an unsigned
-  // integer. Also, if we are using & with a positive constant we know
-  // that the result is positive already and need no conversion.
-  bool requiresUintConversion(HInstruction instruction) {
-    if (instruction is HShiftRight) {
-      return false;
-    }
-    if (instruction is HBitAnd) {
-      HBitAnd bitAnd = instruction;
-      if (isNonNegativeInt32Constant(bitAnd.left) ||
-          isNonNegativeInt32Constant(bitAnd.right)) {
-        return false;
-      }
-    }
+  bool requiresUintConversion(instruction) {
+    if (instruction.isUInt31(compiler)) return false;
+    // If the result of a bit-operation is only used by other bit
+    // operations, we do not have to convert to an unsigned integer.
     return hasNonBitOpUser(instruction, new Set<HPhi>());
   }
 

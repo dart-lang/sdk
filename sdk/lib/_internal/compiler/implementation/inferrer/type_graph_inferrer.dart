@@ -16,7 +16,7 @@ import '../native_handler.dart' as native;
 import '../util/util.dart' show Spannable, Setlet;
 import 'simple_types_inferrer.dart';
 import 'ir_type_inferrer.dart';
-import '../dart2jslib.dart' show invariant;
+import '../dart2jslib.dart' show invariant, Constant;
 
 part 'type_graph_nodes.dart';
 part 'container_tracer.dart';
@@ -76,6 +76,18 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation get intType {
     if (intTypeCache != null) return intTypeCache;
     return intTypeCache = getConcreteTypeFor(compiler.typesTask.intType);
+  }
+
+  TypeInformation uint32TypeCache;
+  TypeInformation get uint32Type {
+    if (uint32TypeCache != null) return uint32TypeCache;
+    return uint32TypeCache = getConcreteTypeFor(compiler.typesTask.uint32Type);
+  }
+
+  TypeInformation uint31TypeCache;
+  TypeInformation get uint31Type {
+    if (uint31TypeCache != null) return uint31TypeCache;
+    return uint31TypeCache = getConcreteTypeFor(compiler.typesTask.uint31Type);
   }
 
   TypeInformation doubleTypeCache;
@@ -225,6 +237,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   ConcreteTypeInformation getConcreteTypeFor(TypeMask mask) {
+    assert(mask != null);
     return concreteTypes.putIfAbsent(mask, () {
       return new ConcreteTypeInformation(mask);
     });
@@ -466,6 +479,8 @@ class TypeGraphInferrerEngine
     compiler.log('Inferred $overallRefineCount types.');
 
     processLoopInformation();
+
+    types.typeInformations.values.forEach((info) => print(info));
   }
 
   void analyze(Element element) {
@@ -491,6 +506,15 @@ class TypeGraphInferrerEngine
         // If [element] is final and has an initializer, we record
         // the inferred type.
         if (node.asSendSet() != null) {
+          if (type is! ContainerTypeInformation) {
+            // For non-container types, the constant handler does
+            // constant folding that could give more precise results.
+            Constant value =
+                compiler.constantHandler.getConstantForVariable(element);
+            if (value != null) {
+              type = types.getConcreteTypeFor(value.computeMask(compiler));
+            }
+          }
           recordType(element, type);
         } else if (!element.isInstanceMember()) {
           recordType(element, types.nullType);

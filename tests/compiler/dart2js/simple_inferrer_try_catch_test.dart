@@ -177,11 +177,11 @@ void main() {
           typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
     }
 
-    checkReturn('returnInt1', typesTask.intType);
-    checkReturn('returnInt2', typesTask.intType);
-    checkReturn('returnInt3', typesTask.intType);
-    checkReturn('returnInt4', typesTask.intType);
-    checkReturn('returnInt5', typesTask.intType);
+    checkReturn('returnInt1', typesTask.uint31Type);
+    checkReturn('returnInt2', typesTask.uint31Type);
+    checkReturn('returnInt3', typesTask.uint31Type);
+    checkReturn('returnInt4', typesTask.uint31Type);
+    checkReturn('returnInt5', typesTask.uint31Type);
     checkReturn('returnInt6',
         new TypeMask.nonNullSubtype(compiler.intClass));
 

@@ -794,6 +794,13 @@ class CodeEmitterTask extends CompilerTask {
       }
     }
 
+    // These classes are just helpers for the backend's type system.
+    unneededClasses.add(backend.jsMutableArrayClass);
+    unneededClasses.add(backend.jsFixedArrayClass);
+    unneededClasses.add(backend.jsExtendableArrayClass);
+    unneededClasses.add(backend.jsUInt32Class);
+    unneededClasses.add(backend.jsUInt31Class);
+
     return (ClassElement cls) => !unneededClasses.contains(cls);
   }
 

@@ -41,6 +41,6 @@ void main() {
       Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
     }
 
-    checkReturnInClass('A', '+', compiler.typesTask.intType);
+    checkReturnInClass('A', '+', compiler.typesTask.uint31Type);
   }));
 }

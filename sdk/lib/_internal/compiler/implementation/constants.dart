@@ -48,6 +48,8 @@ abstract class Constant {
   // TODO(johnniwinther): Replace with a 'type' getter.
   DartType computeType(Compiler compiler);
 
+  ti.TypeMask computeMask(Compiler compiler);
+
   List<Constant> getDependencies();
 
   accept(ConstantVisitor visitor);
@@ -73,6 +75,10 @@ class FunctionConstant extends Constant {
 
   DartType computeType(Compiler compiler) {
     return compiler.functionClass.computeType(compiler);
+  }
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.functionType;
   }
 
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
@@ -111,6 +117,10 @@ class NullConstant extends PrimitiveConstant {
 
   DartType computeType(Compiler compiler) {
     return compiler.nullClass.computeType(compiler);
+  }
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.nullType;
   }
 
   void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
@@ -152,9 +162,17 @@ class IntConstant extends NumConstant {
   }
   const IntConstant._internal(this.value);
   bool isInt() => true;
+  bool isUInt31() => value >= 0 && value < (1 << 31);
+  bool isUInt32() => value >= 0 && value < (1 << 32);
 
   DartType computeType(Compiler compiler) {
     return compiler.intClass.computeType(compiler);
+  }
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    if (isUInt31()) return compiler.typesTask.uint31Type;
+    if (isUInt32()) return compiler.typesTask.uint32Type;
+    return compiler.typesTask.intType;
   }
 
   // We have to override the equality operator so that ints and doubles are
@@ -200,6 +218,10 @@ class DoubleConstant extends NumConstant {
     return compiler.doubleClass.computeType(compiler);
   }
 
+  ti.TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.doubleType;
+  }
+
   bool operator ==(var other) {
     if (other is !DoubleConstant) return false;
     DoubleConstant otherDouble = other;
@@ -228,6 +250,10 @@ abstract class BoolConstant extends PrimitiveConstant {
 
   DartType computeType(Compiler compiler) {
     return compiler.boolClass.computeType(compiler);
+  }
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.boolType;
   }
 
   BoolConstant negate();
@@ -286,6 +312,10 @@ class StringConstant extends PrimitiveConstant {
     return compiler.stringClass.computeType(compiler);
   }
 
+  ti.TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.stringType;
+  }
+
   bool operator ==(var other) {
     if (other is !StringConstant) return false;
     StringConstant otherString = other;
@@ -321,6 +351,10 @@ class TypeConstant extends ObjectConstant {
 
   bool operator ==(other) {
     return other is TypeConstant && representedType == other.representedType;
+  }
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.typeType;
   }
 
   int get hashCode => representedType.hashCode * 13;
@@ -367,6 +401,10 @@ class ListConstant extends ObjectConstant {
   List<Constant> getDependencies() => entries;
 
   int get length => entries.length;
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.constListType;
+  }
 
   accept(ConstantVisitor visitor) => visitor.visitList(this);
 
@@ -422,6 +460,10 @@ class MapConstant extends ObjectConstant {
     }
     hash ^= type.hashCode;
     return hash;
+  }
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.constMapType;
   }
 
   bool operator ==(var other) {
@@ -489,6 +531,10 @@ class InterceptorConstant extends Constant {
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
+  ti.TypeMask computeMask(Compiler compiler) {
+    return compiler.typesTask.nonNullType;
+  }
+
   String toString() {
     return 'InterceptorConstant(${Error.safeToString(dispatchedType)})';
   }
@@ -529,6 +575,13 @@ class ConstructedConstant extends ObjectConstant {
   }
 
   List<Constant> getDependencies() => fields;
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    if (compiler.backend.isInterceptorClass(type.element)) {
+      return compiler.typesTask.nonNullType;
+    }
+    return new ti.TypeMask.nonNullExact(type.element);
+  }
 
   accept(ConstantVisitor visitor) => visitor.visitConstructed(this);
 

@@ -10,6 +10,7 @@ import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart';
+import '../types/types.dart' show TypeMask;
 
 /**
  * The interface [InferrerVisitor] will use when working on types.
@@ -18,6 +19,8 @@ abstract class TypeSystem<T> {
   T get dynamicType;
   T get nullType;
   T get intType;
+  T get uint31Type;
+  T get uint32Type;
   T get doubleType;
   T get numType;
   T get boolType;
@@ -85,6 +88,11 @@ abstract class TypeSystem<T> {
    * [receiverType].
    */
   T refineReceiver(Selector selector, T receiverType);
+
+  /**
+   * Returns the internal inferrer representation for [mask].
+   */
+  T getConcreteTypeFor(TypeMask mask);
 }
 
 /**
@@ -248,8 +256,8 @@ class ArgumentsTypes<T> {
 
   bool hasNoArguments() => positional.isEmpty && named.isEmpty;
 
-  bool hasOnePositionalArgumentWithType(T type) {
-    return named.isEmpty && positional.length == 1 && positional[0] == type;
+  bool hasOnePositionalArgumentThatMatches(bool f(T type)) {
+    return named.isEmpty && positional.length == 1 && f(positional[0]);
   }
 
   void forEach(void f(T type)) {
@@ -652,22 +660,18 @@ abstract class InferrerVisitor
 
   T visitLiteralDouble(LiteralDouble node) {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
-    Constant constant = constantSystem.createDouble(node.value);
     // The JavaScript backend may turn this literal into an integer at
     // runtime.
-    return constantSystem.isDouble(constant)
-        ? types.doubleType
-        : types.intType;
+    return types.getConcreteTypeFor(
+        constantSystem.createDouble(node.value).computeMask(compiler));
   }
 
   T visitLiteralInt(LiteralInt node) {
     ConstantSystem constantSystem = compiler.backend.constantSystem;
-    Constant constant = constantSystem.createInt(node.value);
     // The JavaScript backend may turn this literal into a double at
     // runtime.
-    return constantSystem.isDouble(constant)
-        ? types.doubleType
-        : types.intType;
+    return types.getConcreteTypeFor(
+        constantSystem.createInt(node.value).computeMask(compiler));
   }
 
   T visitLiteralList(LiteralList node) {

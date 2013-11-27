@@ -507,12 +507,6 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     }
   }
 
-  bool hasOnePositionalArgumentWithType(TypeMask type) {
-    return arguments.named.isEmpty
-        && arguments.positional.length == 1
-        && arguments.positional[0].type == type;
-  }
-
   /**
    * We optimize certain operations on the [int] class because we know
    * more about their return type than the actual Dart code. For
@@ -521,33 +515,56 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
    */
   TypeInformation handleIntrisifiedSelector(Selector selector,
                                             TypeGraphInferrerEngine inferrer) {
-    if (!inferrer.compiler.backend.intImplementation.isResolved) return null;
-    TypeMask intType = inferrer.compiler.typesTask.intType;
-    TypeMask nullableIntType = intType.nullable();
+    Compiler compiler = inferrer.compiler;
+    if (!compiler.backend.intImplementation.isResolved) return null;
     TypeMask emptyType = const TypeMask.nonNullEmpty();
-    if (selector.mask != intType && selector.mask != nullableIntType) {
+    if (selector.mask == null) return null;
+    if (!selector.mask.containsOnlyInt(compiler)) {
       return null;
     }
     if (!selector.isCall() && !selector.isOperator()) return null;
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
+    ClassElement uint31Implementation = compiler.backend.uint31Implementation;
+    bool isInt(info) => info.type.containsOnlyInt(compiler);
+    bool isEmpty(info) => info.type == emptyType;
+    bool isUInt31(info) {
+      return info.type.satisfies(uint31Implementation, compiler);
+    }
+
     String name = selector.name;
+    // We are optimizing for the cases that are not expressed in the
+    // Dart code, for example:
+    // int + int -> int
+    // uint31 | uint31 -> uint31
     if (name == '*' || name == '+' || name == '%' || name == 'remainder') {
-      if (hasOnePositionalArgumentWithType(intType)
-          || hasOnePositionalArgumentWithType(nullableIntType)) {
+      if (arguments.hasOnePositionalArgumentThatMatches(isInt)) {
         return inferrer.types.intType;
-      } else if (hasOnePositionalArgumentWithType(emptyType)) {
+      } else if (arguments.hasOnePositionalArgumentThatMatches(isEmpty)) {
         return inferrer.types.nonNullEmptyType;
       } else {
         return null;
       }
+    } else if (name == '|' || name == '^') {
+      if (isUInt31(receiver)
+          && arguments.hasOnePositionalArgumentThatMatches(isUInt31)) {
+        return inferrer.types.uint31Type;
+      }
+    } else if (name == '>>') {
+      if (isUInt31(receiver)) {
+        return inferrer.types.uint31Type;
+      }
+    } else if (name == '&') {
+      if (isUInt31(receiver)
+          || arguments.hasOnePositionalArgumentThatMatches(isUInt31)) {
+        return inferrer.types.uint31Type;
+      }
     } else if (name == '-') {
       if (arguments.hasNoArguments()) return inferrer.types.intType;
-      if (hasOnePositionalArgumentWithType(intType)
-          || hasOnePositionalArgumentWithType(nullableIntType)) {
+      if (arguments.hasOnePositionalArgumentThatMatches(isInt)) {
         return inferrer.types.intType;
-      } else if (hasOnePositionalArgumentWithType(emptyType)) {
+      } else if (arguments.hasOnePositionalArgumentThatMatches(isEmpty)) {
         return inferrer.types.nonNullEmptyType;
       }
       return null;

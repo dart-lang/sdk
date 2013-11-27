@@ -254,6 +254,8 @@ abstract class Backend {
   ClassElement get typeImplementation => compiler.typeClass;
   ClassElement get boolImplementation => compiler.boolClass;
   ClassElement get nullImplementation => compiler.nullClass;
+  ClassElement get uint32Implementation => compiler.intClass;
+  ClassElement get uint31Implementation => compiler.intClass;
 
   ClassElement defaultSuperclass(ClassElement element) => compiler.objectClass;
 
@@ -262,6 +264,8 @@ abstract class Backend {
     ClassElement classElement = element.getEnclosingClass();
     return classElement == compiler.objectClass;
   }
+
+  bool isInterceptorClass(ClassElement element) => false;
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {}
 

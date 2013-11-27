@@ -96,7 +96,10 @@ class FlatTypeMask implements TypeMask {
       return cls == compiler.boolClass || cls == backend.boolImplementation;
     }
     if (containsOnlyInt(compiler)) {
-      return cls == compiler.intClass || cls == backend.intImplementation;
+      return cls == compiler.intClass
+          || cls == backend.intImplementation
+          || cls == backend.uint32Implementation
+          || cls == backend.uint31Implementation;
     }
     if (containsOnlyDouble(compiler)) {
       return cls == compiler.doubleClass
@@ -132,7 +135,9 @@ class FlatTypeMask implements TypeMask {
 
   bool containsOnlyInt(Compiler compiler) {
     return base == compiler.intClass
-        || base == compiler.backend.intImplementation;
+        || base == compiler.backend.intImplementation
+        || base == compiler.backend.uint31Implementation
+        || base == compiler.backend.uint32Implementation;
   }
 
   bool containsOnlyDouble(Compiler compiler) {

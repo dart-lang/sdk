@@ -717,16 +717,16 @@ void main() {
 
     checkReturn('returnNum1', typesTask.numType);
     checkReturn('returnNum2', typesTask.numType);
-    checkReturn('returnInt1', typesTask.intType);
-    checkReturn('returnInt2', typesTask.intType);
+    checkReturn('returnInt1', typesTask.uint31Type);
+    checkReturn('returnInt2', typesTask.uint31Type);
     checkReturn('returnDouble', typesTask.doubleType);
     checkReturn('returnGiveUp', interceptorType);
     checkReturn('returnInt5', typesTask.intType);
     checkReturn('returnInt6', typesTask.intType);
-    checkReturn('returnIntOrNull', typesTask.intType.nullable());
-    checkReturn('returnInt3', typesTask.intType);
+    checkReturn('returnIntOrNull', typesTask.uint31Type.nullable());
+    checkReturn('returnInt3', typesTask.uint31Type);
     checkReturn('returnDynamic', typesTask.dynamicType);
-    checkReturn('returnInt4', typesTask.intType);
+    checkReturn('returnInt4', typesTask.uint31Type);
     checkReturn('returnInt7', typesTask.intType);
     checkReturn('returnInt8', typesTask.intType);
     checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
@@ -761,34 +761,34 @@ void main() {
     checkReturn('testIsCheck27', intType);
     checkReturn('testIsCheck28', typesTask.dynamicType);
     checkReturn('testIsCheck29', typesTask.dynamicType);
-    checkReturn('testIf1', typesTask.intType.nullable());
-    checkReturn('testIf2', typesTask.intType.nullable());
+    checkReturn('testIf1', typesTask.uint31Type.nullable());
+    checkReturn('testIf2', typesTask.uint31Type.nullable());
     checkReturn('returnAsString',
         new TypeMask.subtype(compiler.stringClass));
-    checkReturn('returnIntAsNum', typesTask.intType);
+    checkReturn('returnIntAsNum', typesTask.uint31Type);
     checkReturn('returnAsTypedef', typesTask.functionType.nullable());
     checkReturn('returnTopLevelGetter', typesTask.intType);
     checkReturn('testDeadCode', typesTask.intType);
-    checkReturn('testLabeledIf', typesTask.intType.nullable());
+    checkReturn('testLabeledIf', typesTask.uint31Type.nullable());
     checkReturn('testSwitch1', typesTask.intType
         .union(typesTask.doubleType, compiler)
         .nullable().simplify(compiler));
-    checkReturn('testSwitch2', typesTask.intType);
+    checkReturn('testSwitch2', typesTask.uint31Type);
     checkReturn('testSwitch3', interceptorType.nullable());
-    checkReturn('testSwitch4', typesTask.intType);
-    checkReturn('testSwitch5', typesTask.intType);
+    checkReturn('testSwitch4', typesTask.uint31Type);
+    checkReturn('testSwitch5', typesTask.uint31Type);
     checkReturn('testContinue1', interceptorType.nullable());
     checkReturn('testBreak1', interceptorType.nullable());
     checkReturn('testContinue2', interceptorType.nullable());
     checkReturn('testBreak2', typesTask.intType.nullable());
-    checkReturn('testReturnElementOfConstList1', typesTask.intType);
-    checkReturn('testReturnElementOfConstList2', typesTask.intType);
-    checkReturn('testReturnItselfOrInt', typesTask.intType);
+    checkReturn('testReturnElementOfConstList1', typesTask.uint31Type);
+    checkReturn('testReturnElementOfConstList2', typesTask.uint31Type);
+    checkReturn('testReturnItselfOrInt', typesTask.uint31Type);
     checkReturn('testReturnInvokeDynamicGetter', typesTask.dynamicType);
 
     checkReturn('testDoWhile1', typesTask.stringType);
     checkReturn('testDoWhile2', typesTask.nullType);
-    checkReturn('testDoWhile3', typesTask.intType);
+    checkReturn('testDoWhile3', typesTask.uint31Type);
     checkReturn('testDoWhile4', typesTask.numType);
 
     checkReturnInClass(String className, String methodName, type) {
@@ -829,7 +829,7 @@ void main() {
         findElement(compiler, 'CascadeHelper')));
     checkReturn('testSpecialization1', typesTask.numType);
     checkReturn('testSpecialization2', typesTask.dynamicType);
-    checkReturn('testSpecialization3', typesTask.intType.nullable());
+    checkReturn('testSpecialization3', typesTask.uint31Type.nullable());
     checkReturn('testReturnNull1', typesTask.nullType);
     checkReturn('testReturnNull2', typesTask.nullType);
     checkReturn('testReturnNull3', typesTask.dynamicType);

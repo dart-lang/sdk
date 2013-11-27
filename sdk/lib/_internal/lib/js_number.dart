@@ -224,7 +224,7 @@ class JSNumber extends Interceptor implements num {
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
     if (JS('bool', r'# > 31', other)) return 0;
-    return JS('int', r'(# << #) >>> 0', this, other);
+    return JS('JSUInt32', r'(# << #) >>> 0', this, other);
   }
 
   num operator >>(num other) {
@@ -238,28 +238,28 @@ class JSNumber extends Interceptor implements num {
       // Given that 'a' is positive we must not use '>>'. Otherwise a number
       // that has the 31st bit set would be treated as negative and shift in
       // ones.
-      return JS('int', r'# >>> #', this, other);
+      return JS('JSUInt32', r'# >>> #', this, other);
     }
     // For negative numbers we just clamp the shift-by amount. 'a' could be
     // negative but not have its 31st bit set. The ">>" would then shift in
     // 0s instead of 1s. Therefore we cannot simply return 0xFFFFFFFF.
     if (JS('num', '#', other) > 31) other = 31;
-    return JS('int', r'(# >> #) >>> 0', this, other);
+    return JS('JSUInt32', r'(# >> #) >>> 0', this, other);
   }
 
   num operator &(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('int', r'(# & #) >>> 0', this, other);
+    return JS('JSUInt32', r'(# & #) >>> 0', this, other);
   }
 
   num operator |(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('int', r'(# | #) >>> 0', this, other);
+    return JS('JSUInt32', r'(# | #) >>> 0', this, other);
   }
 
   num operator ^(num other) {
     if (other is !num) throw new ArgumentError(other);
-    return JS('int', r'(# ^ #) >>> 0', this, other);
+    return JS('JSUInt32', r'(# ^ #) >>> 0', this, other);
   }
 
   bool operator <(num other) {
@@ -358,10 +358,13 @@ class JSInt extends JSNumber implements int, double {
 
   Type get runtimeType => int;
 
-  int operator ~() => JS('int', r'(~#) >>> 0', this);
+  int operator ~() => JS('JSUInt32', r'(~#) >>> 0', this);
 }
 
 class JSDouble extends JSNumber implements double {
   const JSDouble();
   Type get runtimeType => double;
 }
+
+class JSUInt32 extends JSInt {}
+class JSUInt31 extends JSUInt32 {}

@@ -135,7 +135,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     // integer or throw an error.
     JavaScriptBackend backend = compiler.backend;
     if (instruction.inputs[1].isPrimitiveOrNull(compiler)) {
-      return backend.intType;
+      return backend.uint32Type;
     }
     return super.computeTypeFromInputTypes(instruction, compiler);
   }
@@ -145,7 +145,8 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     JavaScriptBackend backend = compiler.backend;
     HInstruction input = instruction.inputs[1];
     if (input.isNumber(compiler)) {
-      return new HBitNot(input, instruction.selector, backend.intType);
+      return new HBitNot(input, instruction.selector,
+                         computeTypeFromInputTypes(instruction, compiler));
     }
     return null;
   }
@@ -331,7 +332,7 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     HInstruction left = instruction.inputs[1];
     JavaScriptBackend backend = compiler.backend;
     if (left.isPrimitiveOrNull(compiler)) {
-      return backend.intType;
+      return backend.uint32Type;
     }
     return super.computeTypeFromInputTypes(instruction, compiler);
   }
@@ -344,10 +345,10 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     return count >= 0 && count <= 31;
   }
 
-  bool isPositive(HInstruction instruction) {
+  bool isPositive(HInstruction instruction, Compiler compiler) {
     // TODO: We should use the value range analysis. Currently, ranges
     // are discarded just after the analysis.
-    return instruction is HBinaryBitOp;
+    return instruction.isUInt32(compiler);
   }
 }
 
@@ -379,19 +380,28 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
     JavaScriptBackend backend = compiler.backend;
     return new HShiftLeft(
         instruction.inputs[1], instruction.inputs[2],
-        instruction.selector, backend.intType);
+        instruction.selector, computeTypeFromInputTypes(instruction, compiler));
   }
 }
 
 class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   const ShiftRightSpecializer();
 
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    JavaScriptBackend backend = compiler.backend;
+    if (left.isUInt32(compiler)) return left.instructionType;
+    return super.computeTypeFromInputTypes(instruction, compiler);
+  }
+
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isNumber(compiler)) {
-      if (argumentLessThan32(right) && isPositive(left)) {
+      if (argumentLessThan32(right) && isPositive(left, compiler)) {
         return newBuiltinVariant(instruction, compiler);
       }
       // Even if there is no builtin equivalent instruction, we know
@@ -407,7 +417,7 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
     JavaScriptBackend backend = compiler.backend;
     return new HShiftRight(
         instruction.inputs[1], instruction.inputs[2],
-        instruction.selector, backend.intType);
+        instruction.selector, computeTypeFromInputTypes(instruction, compiler));
   }
 
   BinaryOperation operation(ConstantSystem constantSystem) {
@@ -422,12 +432,23 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.bitOr;
   }
 
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    JavaScriptBackend backend = compiler.backend;
+    if (left.isUInt31(compiler) && right.isUInt31(compiler)) {
+      return backend.uint31Type;
+    }
+    return super.computeTypeFromInputTypes(instruction, compiler);
+  }
+
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
                                  Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
     return new HBitOr(
         instruction.inputs[1], instruction.inputs[2],
-        instruction.selector, backend.intType);
+        instruction.selector, computeTypeFromInputTypes(instruction, compiler));
   }
 }
 
@@ -438,12 +459,23 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.bitAnd;
   }
 
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    JavaScriptBackend backend = compiler.backend;
+    if (left.isUInt31(compiler) || right.isUInt31(compiler)) {
+      return backend.uint31Type;
+    }
+    return super.computeTypeFromInputTypes(instruction, compiler);
+  }
+
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
                                  Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
     return new HBitAnd(
         instruction.inputs[1], instruction.inputs[2],
-        instruction.selector, backend.intType);
+        instruction.selector, computeTypeFromInputTypes(instruction, compiler));
   }
 }
 
@@ -454,12 +486,23 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.bitXor;
   }
 
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    JavaScriptBackend backend = compiler.backend;
+    if (left.isUInt31(compiler) && right.isUInt31(compiler)) {
+      return backend.uint31Type;
+    }
+    return super.computeTypeFromInputTypes(instruction, compiler);
+  }
+
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
                                  Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
     return new HBitXor(
         instruction.inputs[1], instruction.inputs[2],
-        instruction.selector, backend.intType);
+        instruction.selector, computeTypeFromInputTypes(instruction, compiler));
   }
 }
 

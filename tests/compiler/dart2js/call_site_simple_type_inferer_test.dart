@@ -225,7 +225,8 @@ void doTest(String test, bool enableInlining, Function f) {
       var inferrer = compiler.typesTask.typesInferrer;
       signature.forEachParameter((Element element) {
         Expect.equals(expectedTypes[index++],
-            inferrer.getTypeOfElement(element).simplify(compiler));
+            inferrer.getTypeOfElement(element).simplify(compiler),
+            test);
       });
       Expect.equals(index, expectedTypes.length);
   });
@@ -242,7 +243,7 @@ subclassOfInterceptor(compiler) {
 
 void test() {
   runTest(TEST_1, (compiler) => [compiler.typesTask.stringType]);
-  runTest(TEST_2, (compiler) => [compiler.typesTask.intType]);
+  runTest(TEST_2, (compiler) => [compiler.typesTask.uint31Type]);
   runTest(TEST_3, (compiler) => [compiler.typesTask.intType]);
   runTest(TEST_4, (compiler) => [compiler.typesTask.numType]);
   runTest(TEST_5, (compiler) => [compiler.typesTask.numType]);
@@ -251,32 +252,32 @@ void test() {
   runTest(TEST_7b,
       (compiler) => [compiler.typesTask.dynamicType.nonNullable()]);
 
-  runTest(TEST_8, (compiler) => [compiler.typesTask.intType,
+  runTest(TEST_8, (compiler) => [compiler.typesTask.uint31Type,
                                  subclassOfInterceptor(compiler),
                                  compiler.typesTask.dynamicType.nonNullable()]);
-  runTest(TEST_9, (compiler) => [compiler.typesTask.intType,
-                                 compiler.typesTask.intType]);
-  runTest(TEST_10, (compiler) => [compiler.typesTask.intType,
-                                 compiler.typesTask.intType]);
+  runTest(TEST_9, (compiler) => [compiler.typesTask.uint31Type,
+                                 compiler.typesTask.uint31Type]);
+  runTest(TEST_10, (compiler) => [compiler.typesTask.uint31Type,
+                                 compiler.typesTask.uint31Type]);
   runTest(TEST_11, (compiler) => [subclassOfInterceptor(compiler),
                                   subclassOfInterceptor(compiler)]);
 
   runTest(TEST_12, (compiler) => [compiler.typesTask.stringType,
-                                  compiler.typesTask.intType]);
+                                  compiler.typesTask.uint31Type]);
 
   runTest(TEST_13, (compiler) => [compiler.typesTask.numType]);
 
-  runTest(TEST_14, (compiler) => [compiler.typesTask.intType,
+  runTest(TEST_14, (compiler) => [compiler.typesTask.uint31Type,
                                   compiler.typesTask.stringType]);
 
   runTest(TEST_15, (compiler) => [compiler.typesTask.stringType,
                                   compiler.typesTask.boolType]);
 
-  runTest(TEST_16, (compiler) => [compiler.typesTask.intType,
-                                  compiler.typesTask.intType,
+  runTest(TEST_16, (compiler) => [compiler.typesTask.uint31Type,
+                                  compiler.typesTask.uint31Type,
                                   compiler.typesTask.stringType]);
 
-  runTest(TEST_17, (compiler) => [compiler.typesTask.intType,
+  runTest(TEST_17, (compiler) => [compiler.typesTask.uint31Type,
                                   compiler.typesTask.boolType,
                                   compiler.typesTask.doubleType]);
 

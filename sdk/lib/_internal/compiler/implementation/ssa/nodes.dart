@@ -162,30 +162,10 @@ class HGraph {
     return result;
   }
 
-  static TypeMask mapConstantTypeToSsaType(Constant constant,
-                                           Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    if (constant.isNull()) return backend.nullType;
-    if (constant.isBool()) return backend.boolType;
-    if (constant.isInt()) return backend.intType;
-    if (constant.isDouble()) return backend.doubleType;
-    if (constant.isString()) return backend.stringType;
-    if (constant.isList()) return backend.readableArrayType;
-    if (constant.isFunction()) return backend.nonNullType;
-    if (constant.isSentinel()) return backend.nonNullType;
-    // TODO(sra): What is the type of the prototype of an interceptor?
-    if (constant.isInterceptor()) return backend.nonNullType;
-    ObjectConstant objectConstant = constant;
-    if (backend.isInterceptorClass(objectConstant.type.element)) {
-      return backend.nonNullType;
-    }
-    return new TypeMask.nonNullExact(objectConstant.type.element);
-  }
-
   HConstant addConstant(Constant constant, Compiler compiler) {
     HConstant result = constants[constant];
     if (result == null) {
-      TypeMask type = mapConstantTypeToSsaType(constant, compiler);
+      TypeMask type = constant.computeMask(compiler);
       result = new HConstant.internal(constant, type);
       entry.addAtExit(result);
       constants[constant] = result;
@@ -919,6 +899,18 @@ abstract class HInstruction implements Spannable {
   bool isInteger(Compiler compiler) {
     return instructionType.containsOnlyInt(compiler)
         && !instructionType.isNullable;
+  }
+
+  bool isUInt32(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return !instructionType.isNullable
+        && instructionType.satisfies(backend.jsUInt32Class, compiler);
+  }
+
+  bool isUInt31(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return !instructionType.isNullable
+        && instructionType.satisfies(backend.jsUInt31Class, compiler);
   }
 
   bool isIntegerOrNull(Compiler compiler) {
