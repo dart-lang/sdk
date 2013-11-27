@@ -79,7 +79,7 @@ main() {
   var numMirror = reflectClass(num);
   var dynamicMirror = currentMirrorSystem().dynamicType;
   typeArguments(reflect(new A<num>()).type, [numMirror]);
-  typeArguments(reflect(new A<dynamic>()).type, [dynamicMirror]); /// 01: ok
+  typeArguments(reflect(new A<dynamic>()).type, [dynamicMirror]);
   typeArguments(reflect(new A()).type, [dynamicMirror]); /// 01: ok
   typeArguments(reflect(new B()).type, []);
   typeArguments(reflect(new C()).type, []);

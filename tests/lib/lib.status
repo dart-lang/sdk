@@ -24,7 +24,6 @@ mirrors/find_in_context_test: Fail # Issue 6490
 mirrors/find_in_context_private_test: Fail # Issue 6490
 mirrors/find_in_context_fake_function_test: Fail # Issue 6490
 mirrors/function_type_mirror_test: RuntimeError # Issue 12166
-mirrors/generics_test/01: RuntimeError # Issue 12087
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
 mirrors/generic_interface_test: RuntimeError # Issue 12087
