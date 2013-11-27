@@ -12,7 +12,6 @@ isolate2_negative_test: Skip  # Issue 12587.
 isolate3_negative_test: Skip  # Issue 12587.
 
 [ $analyzer ]
-isolate2_negative_test: Fail
 isolate_import_negative_test: Fail
 unresolved_ports_test: Pass
 
