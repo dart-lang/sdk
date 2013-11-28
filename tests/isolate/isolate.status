@@ -8,18 +8,13 @@ isolate_stress_test: Fail # Issue 12588: This should be able to pass when we hav
 
 [ $compiler == none ]
 serialization_test: SkipByDesign # Tests dart2js-specific serialization code
-isolate2_negative_test: Skip  # Issue 12587.
-isolate3_negative_test: Skip  # Issue 12587.
-
-[ $analyzer ]
-isolate_import_negative_test: Fail
-unresolved_ports_test: Pass
+isolate_throws_test/01: Skip # Issue 12587
+compile_time_error_test/01: Skip # Issue 12587
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
 
 [ $compiler == dart2js && $runtime == drt ]
-unresolved_ports_negative_test: Pass, Crash # Issue 10613
 isolate_stress_test: Pass, Crash # Issue 14438
 
 [ $compiler == dart2js ]
@@ -32,17 +27,9 @@ browser/typed_data_message_test: Fail # Issue 12624
 cross_isolate_message_test: Skip # Issue 12627
 message_test: Skip # Issue 12627
 
-[ $compiler == dart2js && $runtime == opera ]
-isolate2_negative_test: Skip # Issue 12625
-unresolved_ports_negative_test: Skip # Issue 12626
-
 [ $compiler == dart2js ]
 spawn_uri_vm_test: SkipByDesign # Test uses a ".dart" URI.
 spawn_uri_nested_vm_test: SkipByDesign # Test uses a ".dart" URI.
-spawn_uri_vm_negative_test: SkipByDesign # Test uses a ".dart" URI.
-
-[ $compiler == dart2js && $browser ]
-isolate2_negative_test: Fail, Pass # Issue 7769
 
 [ $compiler == dart2js && $jscl ]
 spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
@@ -51,12 +38,7 @@ spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 spawn_uri_test: Fail # Issue 12630
 
 [ $compiler == dart2js && $runtime == none ]
-spawn_function_negative_test: Fail # Issue 12628
-unresolved_ports_negative_test: Fail # Issue 12628
-isolate_negative_test: Fail # Issue 12628
 serialization_test: Pass # Issue 12628
-isolate_import_negative_test: Fail # Issue 12628
-isolate2_negative_test: Fail # Issue 12628
 illegal_msg_function_test: Pass # Issue 12628
 illegal_msg_mirror_test: Pass # Issue 12628
 
@@ -94,9 +76,5 @@ isolate_stress_test: Skip # Issue 14463
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
-isolate3_negative_test: CompileTimeError
-isolate_import_negative_test: CompileTimeError
 mint_maker_test: StaticWarning
 serialization_test: StaticWarning
-unresolved_ports_test: StaticWarning
-

@@ -5,18 +5,22 @@
 // Dart test program for testing that exceptions in other isolates bring down
 // the program.
 
-library isolate2_negative_test;
+import 'dart:async';
 import 'dart:isolate';
 import "package:async_helper/async_helper.dart";
+import "package:expect/expect.dart";
 
-void entry(msg) {
-  throw "foo";
+void entry(SendPort replyTo) {
+  throw "foo";  /// 01: runtime error
+  replyTo.send("done");
 }
 
 main() {
-  // We start an asynchronous operation, but since we don't expect to get
-  // anything back except an exception there is no asyncEnd().
-  // If the exception is not thrown this test will timeout.
   asyncStart();
-  Isolate.spawn(entry, null);
+  ReceivePort rp = new ReceivePort();
+  Isolate.spawn(entry, rp.sendPort);
+  rp.first.then((msg) {
+    Expect.equals("done", msg);
+    asyncEnd();
+  });
 }
