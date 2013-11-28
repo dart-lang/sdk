@@ -2660,6 +2660,14 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // dynamic invocation, because we statically know what the target is.
       } else if (!selector.applies(target, compiler)) {
         warnArgumentMismatch(node, target);
+        if (node.isSuperCall) {
+          // Similar to what we do when we can't find super via selector
+          // in [resolveSend] above, we still need to register the invocation,
+          // because we might call [:super.noSuchMethod:] which calls
+          // [JSInvocationMirror._invokeOn].
+          world.registerDynamicInvocation(selector);
+          compiler.backend.registerSuperNoSuchMethod(mapping);
+        }
       }
 
       if (target != null && target.isForeign(compiler)) {
