@@ -42,7 +42,8 @@ void expectNumEquals(num expect, num actual, String message) {
   }
 }
 
-void testParse(String source, num result) {
+// Test source surrounded by any combination of whitespace.
+void testParseAllWhitespace(String source, num result) {
   for (String ws1 in whiteSpace) {
     for (String ws2 in whiteSpace) {
       String padded = "$ws1$source$ws2";
@@ -57,6 +58,22 @@ void testParse(String source, num result) {
   }
 }
 
+// Test source and -source surrounded by any combination of whitespace.
+void testParseWhitespace(String source, num result) {
+  assert(result >= 0);
+  testParseAllWhitespace(source, result);
+  testParseAllWhitespace("-$source", -result);
+}
+
+// Test parsing source, optionally preceeded and/or followed by whitespace.
+void testParse(String source, num result) {
+  expectNumEquals(result, num.parse(source), "parse '$source'");
+  expectNumEquals(result, num.parse(" $source"), "parse ' $source'");
+  expectNumEquals(result, num.parse("$source "), "parse '$source '");
+  expectNumEquals(result, num.parse(" $source "), "parse ' $source '");
+}
+
+// Test parsing an integer in decimal or hex format, with or without signs.
 void testInt(int value) {
   testParse("$value", value);
   testParse("+$value", value);
@@ -72,6 +89,7 @@ void testInt(int value) {
   testParse("-$uchex", -value);
 }
 
+// Test parsing an integer, and the integers just around it.
 void testIntAround(int value) {
   testInt(value - 1);
   testInt(value);
@@ -165,6 +183,15 @@ void main() {
   testParse("1.e1", 10.0);
   testParse(".1e1", 1.0);
 
+  testParseWhitespace("0x1", 1);
+  testParseWhitespace("1", 1);
+  testParseWhitespace("1.0", 1.0);
+  testParseWhitespace("1e1", 10.0);
+  testParseWhitespace(".1e1", 1.0);
+  testParseWhitespace("1.e1", 10.0);
+  testParseWhitespace("1e+1", 10.0);
+  testParseWhitespace("1e-1", 0.1);
+
   // Negative tests - things not to allow.
 
   // Spaces inside the numeral.
@@ -181,11 +208,13 @@ void main() {
   testFail("12H");
   testFail("1x2");
   testFail("00x2");
+  testFail("0x2.2");
   // Empty hex number.
   testFail("0x");
   testFail("-0x");
   testFail("+0x");
   // Double exponent without value.
+  testFail(".e1");
   testFail("e1");
   testFail("e+1");
   testFail("e-1");
@@ -195,9 +224,12 @@ void main() {
   // Incorrect ways to write NaN/Infinity.
   testFail("infinity");
   testFail("INFINITY");
+  testFail("1.#INF");
   testFail("inf");
   testFail("nan");
   testFail("NAN");
+  testFail("1.#IND");
+  testFail("indef");
   testFail("qnan");
   testFail("snan");
 }
