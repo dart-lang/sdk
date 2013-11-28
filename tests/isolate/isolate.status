@@ -74,6 +74,12 @@ spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
 [ $compiler == none && $runtime == dartium ]
 isolate_stress_test: Skip # Issue 14463
 
+[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
+compile_time_error_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
+isolate_import_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
+isolate_throws_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
+simple_message_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
+
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
