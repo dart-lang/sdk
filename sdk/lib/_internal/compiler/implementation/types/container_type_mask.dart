@@ -92,14 +92,16 @@ class ContainerTypeMask extends ForwardingTypeMask {
     return allocationNode == other.allocationNode
         && isNullable == other.isNullable
         && elementType == other.elementType
-        && length == other.length;
+        && length == other.length
+        && forwardTo == other.forwardTo;
   }
 
   int get hashCode {
-    return computeHashCode(allocationNode, isNullable, elementType, length);
+    return computeHashCode(
+        allocationNode, isNullable, elementType, length, forwardTo);
   }
 
   String toString() {
-    return 'Container mask: $elementType $length';
+    return 'Container mask: $elementType length: $length type: $forwardTo';
   }
 }

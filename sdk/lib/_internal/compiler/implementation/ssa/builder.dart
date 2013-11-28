@@ -3958,6 +3958,9 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     }
     HInstruction newInstance = stack.last;
     if (isFixedList) {
+      // Overwrite the element type, in case the allocation site has
+      // been inlined.
+      newInstance.instructionType = elementType;
       JavaScriptItemCompilationContext context = work.compilationContext;
       context.allocatedFixedLists.add(newInstance);
     }
