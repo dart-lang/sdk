@@ -767,8 +767,8 @@ void main() {
         new TypeMask.subtype(compiler.stringClass));
     checkReturn('returnIntAsNum', typesTask.uint31Type);
     checkReturn('returnAsTypedef', typesTask.functionType.nullable());
-    checkReturn('returnTopLevelGetter', typesTask.intType);
-    checkReturn('testDeadCode', typesTask.intType);
+    checkReturn('returnTopLevelGetter', typesTask.uint31Type);
+    checkReturn('testDeadCode', typesTask.uint31Type);
     checkReturn('testLabeledIf', typesTask.uint31Type.nullable());
     checkReturn('testSwitch1', typesTask.intType
         .union(typesTask.doubleType, compiler)
@@ -795,7 +795,8 @@ void main() {
       var cls = findElement(compiler, className);
       var element = cls.lookupLocalMember(methodName);
       Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+          '$className:$methodName');
     }
 
     checkReturnInClass('A', 'returnInt1', typesTask.intType);
@@ -814,7 +815,7 @@ void main() {
     checkReturnInClass('B', 'returnInt6', typesTask.intType);
     checkReturnInClass('B', 'returnInt7', typesTask.intType);
     checkReturnInClass('B', 'returnInt8', typesTask.intType);
-    checkReturnInClass('B', 'returnInt9', typesTask.intType);
+    checkReturnInClass('B', 'returnInt9', typesTask.uint31Type);
 
     checkFactoryConstructor(String className, String factoryName) {
       var cls = findElement(compiler, className);

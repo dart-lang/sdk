@@ -543,7 +543,7 @@ void test() {
   runTest(TEST_19, {'f1': (types) => types.uint31Type,
                     'f2': (types) => types.stringType,
                     'f3': (types) => types.dynamicType});
-  runTest(TEST_20, {'f': (types) => types.intType.nullable()});
+  runTest(TEST_20, {'f': (types) => types.uint31Type.nullable()});
   runTest(TEST_21, {'f': (types) => types.uint31Type.nullable()});
 
   runTest(TEST_22, {'f1': (types) => types.uint31Type,
