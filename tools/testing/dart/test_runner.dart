@@ -2420,7 +2420,6 @@ class ProcessQueue {
             // Wait until the commandQueue/execturo is done (it may need to stop
             // batch runners, browser controllers, ....)
             commandQueue.done.then((_) {
-              print("Final cancel on Debug timer");
               cancelDebugTimer();
               eventAllTestsDone();
             });
