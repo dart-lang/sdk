@@ -1983,10 +1983,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     js.Call value = new js.Call(jsHelper, arguments);
     attachLocation(value, location);
-    // BUG(4906): Using throw here adds to the size of the generated code
+    // BUG(4906): Using throw/return here adds to the size of the generated code
     // but it has the advantage of explicitly telling the JS engine that
     // this code path will terminate abruptly. Needs more work.
-    pushStatement(new js.Throw(value));
+    if (helperName == 'wrapException') {
+      pushStatement(new js.Throw(value));
+    } else {
+      pushStatement(new js.Return(value));
+    }
   }
 
   visitThrowExpression(HThrowExpression node) {
@@ -2509,7 +2513,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         String methodName =
             backend.namer.invocationName(node.receiverTypeCheckSelector);
         js.Expression call = jsPropertyCall(pop(), methodName, []);
-        pushStatement(new js.Throw(call));
+        pushStatement(new js.Return(call));
       }
       currentContainer = oldContainer;
       body = unwrapStatement(body);
