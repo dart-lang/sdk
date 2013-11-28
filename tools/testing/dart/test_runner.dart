@@ -2324,7 +2324,57 @@ class ProcessQueue {
         });
     }
 
+    var testCaseEnqueuer;
     void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
+      Timer _debugTimer;
+      // If we haven't seen a single test finishing during a 10 minute period
+      // something is definitly wrong, so we dump the debugging information.
+      final debugTimerDuration = const Duration(minutes: 10);
+
+      void cancelDebugTimer() {
+        if (_debugTimer != null) {
+          _debugTimer.cancel();
+        }
+      }
+
+      void resetDebugTimer() {
+        cancelDebugTimer();
+        _debugTimer = new Timer(debugTimerDuration, () {
+          print("The debug timer of test.dart expired. Please report this issue"
+                " to ricow/kustermann and provide the following information:");
+          print("");
+          _graph.DumpCounts();
+          print("");
+          var unfinishedNodeStates = [
+              dgraph.NodeState.Initialized,
+              dgraph.NodeState.Waiting,
+              dgraph.NodeState.Enqueuing,
+              dgraph.NodeState.Processing];
+
+          for (var nodeState in unfinishedNodeStates) {
+            if (_graph.stateCount(nodeState) > 0) {
+              print("Commands in state '$nodeState':");
+              print("=================================");
+              print("");
+              for (var node in _graph.nodes) {
+                if (node.state == nodeState) {
+                  var command = node.userData;
+                  var testCases = testCaseEnqueuer.command2testCases[command];
+                  print("  Command: $command");
+                  for (var testCase in testCases) {
+                    print("    Enqueued by: ${testCase.configurationString} "
+                          "-- ${testCase.displayName}");
+                  }
+                  print("");
+                }
+              }
+              print("");
+              print("");
+            }
+          }
+        });
+      }
+
       bool recording = recordingOutputFile != null;
       bool replaying = recordedInputFile != null;
 
@@ -2359,6 +2409,8 @@ class ProcessQueue {
           new TestCaseCompleter(_graph, testCaseEnqueuer, commandQueue);
       testCaseCompleter.finishedTestCases.listen(
           (TestCase finishedTestCase) {
+            resetDebugTimer();
+
             // If we're recording, we don't report any TestCases to listeners.
             if (!recording) {
               eventFinishedTestCase(finishedTestCase);
@@ -2367,12 +2419,18 @@ class ProcessQueue {
           onDone: () {
             // Wait until the commandQueue/execturo is done (it may need to stop
             // batch runners, browser controllers, ....)
-            commandQueue.done.then((_) => eventAllTestsDone());
+            commandQueue.done.then((_) {
+              print("Final cancel on Debug timer");
+              cancelDebugTimer();
+              eventAllTestsDone();
+            });
           });
+
+      resetDebugTimer();
     }
 
     // Build up the dependency graph
-    var testCaseEnqueuer = new TestCaseEnqueuer(_graph, (TestCase newTestCase) {
+    testCaseEnqueuer = new TestCaseEnqueuer(_graph, (TestCase newTestCase) {
       eventTestAdded(newTestCase);
     });
 
