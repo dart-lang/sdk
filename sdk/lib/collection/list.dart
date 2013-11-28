@@ -12,6 +12,15 @@ Set _toStringVisiting = new HashSet.identity();
  *
  * All operations are defined in terms of `length`, `operator[]`,
  * `operator[]=` and `length=`, which need to be implemented.
+ *
+ * *NOTICE*: Forwarding just these four operations to a normal growable [List]
+ * (as created by `new List()`) will give very bad performance for `add` and
+ * `addAll` operations of `ListBase`. These operations are implemented by
+ * increasing the length of the list by one for each `add` operation, and
+ * repeatedly increasing the length of a growable list is not efficient.
+ * To avoid this, either override 'add' and 'addAll' to also forward directly
+ * to the growable list, or, preferably, use `DelegatingList` from
+ * "package:collection_helpers/wrappers.dart" instead.
  */
 abstract class ListBase<E> = Object with ListMixin<E>;
 
@@ -23,6 +32,15 @@ abstract class ListBase<E> = Object with ListMixin<E>;
  * This implements all read operations using only the `length` and
  * `operator[]` members. It implements write operations using those and
  * `length=` and `operator[]=`
+ *
+ * *NOTICE*: Forwarding just these four operations to a normal growable [List]
+ * (as created by `new List()`) will give very bad performance for `add` and
+ * `addAll` operations of `ListBase`. These operations are implemented by
+ * increasing the length of the list by one for each `add` operation, and
+ * repeatedly increasing the length of a growable list is not efficient.
+ * To avoid this, either override 'add' and 'addAll' to also forward directly
+ * to the growable list, or, if possible, use `DelegatingList` from
+ * "package:collection_helpers/wrappers.dart" instead.
  */
 abstract class ListMixin<E> implements List<E> {
 
