@@ -20,6 +20,9 @@ class PositionWithIdentifierName {
 }
 
 abstract class IrNode {
+  static int hashCount = 0;
+  final int hashCode = hashCount = (hashCount + 1) & 0x3fffffff;
+
   final /* int | PositionWithIdentifierName */ position;
 
   const IrNode(this.position);
