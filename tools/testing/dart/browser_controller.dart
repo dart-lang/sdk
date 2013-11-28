@@ -854,7 +854,7 @@ class BrowserTestRunner {
       // We don't do anything, this browser is currently being killed and
       // replaced. The browser here can be null if we decided to kill the
       // browser.
-    } else if (status.currentTest != null && status.currentTest.id != testId) {
+    } else if (status.currentTest != null && status.currentTest.id == testId) {
       status.currentTest.lastKnownMessage = output;
     }
   }

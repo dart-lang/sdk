@@ -34,7 +34,7 @@
 var recordedEventList = [];
 var timestampOfFirstEvent = null;
 
-var STATUS_UPDATE_INTERVALL = 5000; // Every 10 seconds.
+var STATUS_UPDATE_INTERVALL = 10000;
 
 function getCurrentTimestamp() {
   if (timestampOfFirstEvent == null) {
