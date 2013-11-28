@@ -486,7 +486,7 @@ const _constructorNameFallback = const JS_CONST(r'''
 function getTagFallback(o) {
   var constructor = o.constructor;
   if (typeof constructor == "function") {
-    name = constructor.name;
+    var name = constructor.name;
     // If the name is a non-empty string, we use that as the type name of this
     // object. On Firefox, we often get "Object" as the constructor name even
     // for more specialized objects so we have to fall through to the toString()
