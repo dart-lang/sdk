@@ -47,10 +47,10 @@ void main() {
           typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
     }
 
-    checkReturn('bar', typesTask.intType);
+    checkReturn('bar', typesTask.uint31Type);
     checkReturn('baz', typesTask.functionType);
 
-    checkReturnInClass('A', 'foo', typesTask.intType);
+    checkReturnInClass('A', 'foo', typesTask.uint31Type);
     checkReturnInClass('B', 'foo', typesTask.functionType);
   }));
 }
