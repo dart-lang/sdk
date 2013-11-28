@@ -4,7 +4,7 @@
 
 library pub.command.cache;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 import 'dart:convert';
 
 import '../command.dart';

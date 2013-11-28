@@ -4,7 +4,7 @@
 
 library io_test;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 import 'dart:io';
 
 import 'package:path/path.dart' as path;

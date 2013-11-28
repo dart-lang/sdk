@@ -8,7 +8,7 @@
 /// tests like that.
 library test_pub;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';

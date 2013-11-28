@@ -4,7 +4,7 @@
 
 library pub.validator.utf8_readme;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 import 'dart:convert';
 
 import '../entrypoint.dart';

@@ -4,7 +4,7 @@
 
 library descriptor.tar;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
