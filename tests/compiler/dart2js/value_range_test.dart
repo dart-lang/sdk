@@ -334,7 +334,8 @@ const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
   }
   class ObjectInterceptor {
   }
-  class JSUInt32 extends JSInt {}
+  class JSPositiveInt extends JSInt {}
+  class JSUInt32 extends JSPositiveInt {}
   class JSUInt31 extends JSUInt32 {}
   getInterceptor(x) {}''';
 

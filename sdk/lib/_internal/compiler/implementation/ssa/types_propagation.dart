@@ -107,6 +107,24 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return backend.numType;
   }
 
+  TypeMask checkPositiveInteger(HBinaryArithmetic instruction) {
+    HInstruction left = instruction.left;
+    HInstruction right = instruction.right;
+    JavaScriptBackend backend = compiler.backend;    
+    if (left.isPositiveInteger(compiler) && right.isPositiveInteger(compiler)) {
+      return backend.positiveIntType;
+    }
+    return visitBinaryArithmetic(instruction);
+  }
+
+  TypeMask visitMultiply(HMultiply instruction) {
+    return checkPositiveInteger(instruction);
+  }
+
+  TypeMask visitAdd(HAdd instruction) {
+    return checkPositiveInteger(instruction);
+  }
+
   TypeMask visitNegate(HNegate instruction) {
     return instruction.operand.instructionType;
   }
@@ -249,7 +267,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       if (right.isNumber(compiler)) return false;
       JavaScriptBackend backend = compiler.backend;    
       TypeMask type = right.isIntegerOrNull(compiler)
-          ? backend.intType
+          ? right.instructionType.nonNullable()
           : backend.numType;
       // TODO(ngeoffray): Some number operations don't have a builtin
       // variant and will do the check in their method anyway. We

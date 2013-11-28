@@ -98,6 +98,7 @@ class FlatTypeMask implements TypeMask {
     if (containsOnlyInt(compiler)) {
       return cls == compiler.intClass
           || cls == backend.intImplementation
+          || cls == backend.positiveIntImplementation
           || cls == backend.uint32Implementation
           || cls == backend.uint31Implementation;
     }
@@ -136,6 +137,7 @@ class FlatTypeMask implements TypeMask {
   bool containsOnlyInt(Compiler compiler) {
     return base == compiler.intClass
         || base == compiler.backend.intImplementation
+        || base == compiler.backend.positiveIntImplementation
         || base == compiler.backend.uint31Implementation
         || base == compiler.backend.uint32Implementation;
   }

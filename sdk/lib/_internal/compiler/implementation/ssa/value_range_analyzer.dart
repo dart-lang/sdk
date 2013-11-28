@@ -634,7 +634,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitInstruction(HInstruction instruction) {
-    if (instruction.isUInt32(compiler)) {
+    if (instruction.isPositiveInteger(compiler)) {
       return info.newNormalizedRange(
           info.intZero, info.newPositiveValue(instruction));
     } else if (instruction.isInteger(compiler)) {
@@ -824,7 +824,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range visitCheck(HCheck instruction) {
     if (ranges[instruction.checkedInput] == null) {
-      return info.newUnboundRange();
+      return visitInstruction(instruction);
     }
     return ranges[instruction.checkedInput];
   }

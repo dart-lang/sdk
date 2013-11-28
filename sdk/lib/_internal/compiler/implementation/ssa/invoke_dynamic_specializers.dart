@@ -220,11 +220,28 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     instruction.setUseGvn();
   }
 
+  bool inputsArePositiveIntegers(HInstruction instruction, Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    JavaScriptBackend backend = compiler.backend;
+    return left.isPositiveIntegerOrNull(compiler)
+        && right.isPositiveIntegerOrNull(compiler);
+  }
+
   HInstruction newBuiltinVariant(HInvokeDynamic instruction, Compiler compiler);
 }
 
 class AddSpecializer extends BinaryArithmeticSpecializer {
   const AddSpecializer();
+
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
+    if (inputsArePositiveIntegers(instruction, compiler)) {
+      JavaScriptBackend backend = compiler.backend;
+      return backend.positiveIntType;
+    }
+    return super.computeTypeFromInputTypes(instruction, compiler);
+  }
 
   BinaryOperation operation(ConstantSystem constantSystem) {
     return constantSystem.add;
@@ -267,6 +284,15 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
 class ModuloSpecializer extends BinaryArithmeticSpecializer {
   const ModuloSpecializer();
 
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
+    if (inputsArePositiveIntegers(instruction, compiler)) {
+      JavaScriptBackend backend = compiler.backend;
+      return backend.positiveIntType;
+    }
+    return super.computeTypeFromInputTypes(instruction, compiler);
+  }
+
   BinaryOperation operation(ConstantSystem constantSystem) {
     return constantSystem.modulo;
   }
@@ -283,6 +309,15 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
 
   BinaryOperation operation(ConstantSystem constantSystem) {
     return constantSystem.multiply;
+  }
+
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
+    if (inputsArePositiveIntegers(instruction, compiler)) {
+      JavaScriptBackend backend = compiler.backend;
+      return backend.positiveIntType;
+    }
+    return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
@@ -313,6 +348,15 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
 
   BinaryOperation operation(ConstantSystem constantSystem) {
     return constantSystem.truncatingDivide;
+  }
+
+  TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
+                                     Compiler compiler) {
+    if (inputsArePositiveIntegers(instruction, compiler)) {
+      JavaScriptBackend backend = compiler.backend;
+      return backend.positiveIntType;
+    }
+    return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
@@ -348,7 +392,7 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
   bool isPositive(HInstruction instruction, Compiler compiler) {
     // TODO: We should use the value range analysis. Currently, ranges
     // are discarded just after the analysis.
-    return instruction.isUInt32(compiler);
+    return instruction.isPositiveInteger(compiler);
   }
 }
 

@@ -721,14 +721,14 @@ void main() {
     checkReturn('returnInt2', typesTask.uint31Type);
     checkReturn('returnDouble', typesTask.doubleType);
     checkReturn('returnGiveUp', interceptorType);
-    checkReturn('returnInt5', typesTask.intType);
-    checkReturn('returnInt6', typesTask.intType);
+    checkReturn('returnInt5', typesTask.positiveIntType);
+    checkReturn('returnInt6', typesTask.positiveIntType);
     checkReturn('returnIntOrNull', typesTask.uint31Type.nullable());
     checkReturn('returnInt3', typesTask.uint31Type);
     checkReturn('returnDynamic', typesTask.dynamicType);
     checkReturn('returnInt4', typesTask.uint31Type);
-    checkReturn('returnInt7', typesTask.intType);
-    checkReturn('returnInt8', typesTask.intType);
+    checkReturn('returnInt7', typesTask.positiveIntType);
+    checkReturn('returnInt8', typesTask.positiveIntType);
     checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
     checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
     TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass);
@@ -780,7 +780,7 @@ void main() {
     checkReturn('testContinue1', interceptorType.nullable());
     checkReturn('testBreak1', interceptorType.nullable());
     checkReturn('testContinue2', interceptorType.nullable());
-    checkReturn('testBreak2', typesTask.intType.nullable());
+    checkReturn('testBreak2', typesTask.positiveIntType.nullable());
     checkReturn('testReturnElementOfConstList1', typesTask.uint31Type);
     checkReturn('testReturnElementOfConstList2', typesTask.uint31Type);
     checkReturn('testReturnItselfOrInt', typesTask.uint31Type);
@@ -799,22 +799,22 @@ void main() {
           '$className:$methodName');
     }
 
-    checkReturnInClass('A', 'returnInt1', typesTask.intType);
-    checkReturnInClass('A', 'returnInt2', typesTask.intType);
-    checkReturnInClass('A', 'returnInt3', typesTask.intType);
-    checkReturnInClass('A', 'returnInt4', typesTask.intType);
-    checkReturnInClass('A', 'returnInt5', typesTask.intType);
-    checkReturnInClass('A', 'returnInt6', typesTask.intType);
+    checkReturnInClass('A', 'returnInt1', typesTask.positiveIntType);
+    checkReturnInClass('A', 'returnInt2', typesTask.positiveIntType);
+    checkReturnInClass('A', 'returnInt3', typesTask.positiveIntType);
+    checkReturnInClass('A', 'returnInt4', typesTask.positiveIntType);
+    checkReturnInClass('A', 'returnInt5', typesTask.positiveIntType);
+    checkReturnInClass('A', 'returnInt6', typesTask.positiveIntType);
     checkReturnInClass('A', '==', interceptorType);
 
-    checkReturnInClass('B', 'returnInt1', typesTask.intType);
-    checkReturnInClass('B', 'returnInt2', typesTask.intType);
-    checkReturnInClass('B', 'returnInt3', typesTask.intType);
-    checkReturnInClass('B', 'returnInt4', typesTask.intType);
-    checkReturnInClass('B', 'returnInt5', typesTask.intType);
-    checkReturnInClass('B', 'returnInt6', typesTask.intType);
-    checkReturnInClass('B', 'returnInt7', typesTask.intType);
-    checkReturnInClass('B', 'returnInt8', typesTask.intType);
+    checkReturnInClass('B', 'returnInt1', typesTask.positiveIntType);
+    checkReturnInClass('B', 'returnInt2', typesTask.positiveIntType);
+    checkReturnInClass('B', 'returnInt3', typesTask.positiveIntType);
+    checkReturnInClass('B', 'returnInt4', typesTask.positiveIntType);
+    checkReturnInClass('B', 'returnInt5', typesTask.positiveIntType);
+    checkReturnInClass('B', 'returnInt6', typesTask.positiveIntType);
+    checkReturnInClass('B', 'returnInt7', typesTask.positiveIntType);
+    checkReturnInClass('B', 'returnInt8', typesTask.positiveIntType);
     checkReturnInClass('B', 'returnInt9', typesTask.uint31Type);
 
     checkFactoryConstructor(String className, String factoryName) {

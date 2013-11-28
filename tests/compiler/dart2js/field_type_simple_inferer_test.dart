@@ -555,15 +555,15 @@ void test() {
                     'f3': (types) => types.uint31Type.nullable(),
                     'f4': (types) => types.uint31Type.nullable()});
 
-  runTest(TEST_24, {'f1': (types) => types.intType,
-                    'f2': (types) => types.intType,
+  runTest(TEST_24, {'f1': (types) => types.positiveIntType,
+                    'f2': (types) => types.positiveIntType,
                     'f3': (types) => types.uint31Type,
                     'f4': (types) => types.uint31Type,
                     'f5': (types) => types.numType.nullable(),
                     'f6': (types) => types.stringType.nullable()});
 
   runTest(TEST_25, {'f1': (types) => types.uint31Type });
-  runTest(TEST_26, {'f1': (types) => types.intType });
+  runTest(TEST_26, {'f1': (types) => types.positiveIntType });
   runTest(TEST_27, {'f1': (types) => types.uint31Type,
                     'f2': (types) => types.uint31Type.nullable()});
 }

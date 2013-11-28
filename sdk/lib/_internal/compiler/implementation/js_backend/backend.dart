@@ -194,6 +194,7 @@ class JavaScriptBackend extends Backend {
   ClassElement jsMutableArrayClass;
   ClassElement jsFixedArrayClass;
   ClassElement jsExtendableArrayClass;
+  ClassElement jsPositiveIntClass;
   ClassElement jsUInt32Class;
   ClassElement jsUInt31Class;
 
@@ -231,6 +232,7 @@ class JavaScriptBackend extends Backend {
   TypeMask get intType => compiler.typesTask.intType;
   TypeMask get uint32Type => compiler.typesTask.uint32Type;
   TypeMask get uint31Type => compiler.typesTask.uint31Type;
+  TypeMask get positiveIntType => compiler.typesTask.positiveIntType;
   TypeMask get numType => compiler.typesTask.numType;
   TypeMask get boolType => compiler.typesTask.boolType;
   TypeMask get dynamicType => compiler.typesTask.dynamicType;
@@ -580,6 +582,7 @@ class JavaScriptBackend extends Backend {
       // The int class must be before the double class, because the
       // emitter relies on this list for the order of type checks.
       jsIntClass = compiler.findInterceptor('JSInt'),
+      jsPositiveIntClass = compiler.findInterceptor('JSPositiveInt'),
       jsUInt32Class = compiler.findInterceptor('JSUInt32'),
       jsUInt31Class = compiler.findInterceptor('JSUInt31'),
       jsDoubleClass = compiler.findInterceptor('JSDouble'),
@@ -853,6 +856,7 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsExtendableArrayClass, enqueuer, elements);
     } else if (cls == compiler.intClass || cls == jsIntClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
+      addInterceptors(jsPositiveIntClass, enqueuer, elements);
       addInterceptors(jsUInt32Class, enqueuer, elements);
       addInterceptors(jsUInt31Class, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
@@ -865,6 +869,7 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsNullClass, enqueuer, elements);
     } else if (cls == compiler.numClass || cls == jsNumberClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
+      addInterceptors(jsPositiveIntClass, enqueuer, elements);
       addInterceptors(jsUInt32Class, enqueuer, elements);
       addInterceptors(jsUInt31Class, enqueuer, elements);
       addInterceptors(jsDoubleClass, enqueuer, elements);
@@ -1426,7 +1431,8 @@ class JavaScriptBackend extends Backend {
           ? 'boolTypeCast'
           : 'boolTypeCheck';
     } else if (element == jsIntClass || element == compiler.intClass
-               || element == jsUInt32Class || element == jsUInt31Class) {
+               || element == jsUInt32Class || element == jsUInt31Class
+               || element == jsPositiveIntClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'intTypeCast'
@@ -1646,6 +1652,7 @@ class JavaScriptBackend extends Backend {
   ClassElement get intImplementation => jsIntClass;
   ClassElement get uint32Implementation => jsUInt32Class;
   ClassElement get uint31Implementation => jsUInt31Class;
+  ClassElement get positiveIntImplementation => jsPositiveIntClass;
   ClassElement get doubleImplementation => jsDoubleClass;
   ClassElement get numImplementation => jsNumberClass;
   ClassElement get stringImplementation => jsStringClass;

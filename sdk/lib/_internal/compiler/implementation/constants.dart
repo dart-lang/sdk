@@ -164,6 +164,7 @@ class IntConstant extends NumConstant {
   bool isInt() => true;
   bool isUInt31() => value >= 0 && value < (1 << 31);
   bool isUInt32() => value >= 0 && value < (1 << 32);
+  bool isPositive() => value >= 0;
 
   DartType computeType(Compiler compiler) {
     return compiler.intClass.computeType(compiler);
@@ -172,6 +173,7 @@ class IntConstant extends NumConstant {
   ti.TypeMask computeMask(Compiler compiler) {
     if (isUInt31()) return compiler.typesTask.uint31Type;
     if (isUInt32()) return compiler.typesTask.uint32Type;
+    if (isPositive()) return compiler.typesTask.positiveIntType;
     return compiler.typesTask.intType;
   }
 

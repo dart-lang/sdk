@@ -256,6 +256,7 @@ abstract class Backend {
   ClassElement get nullImplementation => compiler.nullClass;
   ClassElement get uint32Implementation => compiler.intClass;
   ClassElement get uint31Implementation => compiler.intClass;
+  ClassElement get positiveIntImplementation => compiler.intClass;
 
   ClassElement defaultSuperclass(ClassElement element) => compiler.objectClass;
 

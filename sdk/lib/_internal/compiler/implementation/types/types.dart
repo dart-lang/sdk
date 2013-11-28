@@ -58,6 +58,7 @@ class TypesTask extends CompilerTask {
   TypeMask intTypeCache;
   TypeMask uint32TypeCache;
   TypeMask uint31TypeCache;
+  TypeMask positiveIntTypeCache;
   TypeMask doubleTypeCache;
   TypeMask numTypeCache;
   TypeMask boolTypeCache;
@@ -107,6 +108,14 @@ class TypesTask extends CompilerTask {
           compiler.backend.uint31Implementation);
     }
     return uint31TypeCache;
+  }
+
+  TypeMask get positiveIntType {
+    if (positiveIntTypeCache == null) {
+      positiveIntTypeCache = new TypeMask.nonNullSubclass(
+          compiler.backend.positiveIntImplementation);
+    }
+    return positiveIntTypeCache;
   }
 
   TypeMask get doubleType {

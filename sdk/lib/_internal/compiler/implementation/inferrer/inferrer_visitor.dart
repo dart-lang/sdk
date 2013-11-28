@@ -21,6 +21,7 @@ abstract class TypeSystem<T> {
   T get intType;
   T get uint31Type;
   T get uint32Type;
+  T get positiveIntType;
   T get doubleType;
   T get numType;
   T get boolType;

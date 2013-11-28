@@ -90,6 +90,13 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return uint31TypeCache = getConcreteTypeFor(compiler.typesTask.uint31Type);
   }
 
+  TypeInformation positiveIntTypeCache;
+  TypeInformation get positiveIntType {
+    if (positiveIntTypeCache != null) return positiveIntTypeCache;
+    return positiveIntTypeCache =
+        getConcreteTypeFor(compiler.typesTask.positiveIntType);
+  }
+
   TypeInformation doubleTypeCache;
   TypeInformation get doubleType {
     if (doubleTypeCache != null) return doubleTypeCache;

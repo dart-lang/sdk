@@ -366,5 +366,6 @@ class JSDouble extends JSNumber implements double {
   Type get runtimeType => double;
 }
 
-class JSUInt32 extends JSInt {}
+class JSPositiveInt extends JSInt {}
+class JSUInt32 extends JSPositiveInt {}
 class JSUInt31 extends JSUInt32 {}

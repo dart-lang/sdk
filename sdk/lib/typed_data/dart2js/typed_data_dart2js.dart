@@ -10,7 +10,7 @@ library dart.typed_data;
 
 import 'dart:collection';
 import 'dart:_collection-dev';
-import 'dart:_interceptors' show JSIndexable;
+import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper'
     show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
 import 'dart:_foreign_helper' show JS, JS_CONST;
@@ -259,7 +259,7 @@ class ByteData extends TypedData native "DataView" {
       _getUint16(byteOffset, endian._littleEndian);
 
   @JSName('getUint16')
-  @Returns('int')
+  @Returns('JSUInt31')
   int _getUint16(int byteOffset, [bool littleEndian]) native;
 
   /**
@@ -275,7 +275,7 @@ class ByteData extends TypedData native "DataView" {
       _getUint32(byteOffset, endian._littleEndian);
 
   @JSName('getUint32')
-  @Returns('int')
+  @Returns('JSUInt32')
   int _getUint32(int byteOffset, [bool littleEndian]) native;
 
   /**
@@ -502,7 +502,7 @@ class Float32List
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  int get length => JS("int", '#.length', this);
+  int get length => JS("JSUInt32", '#.length', this);
 
   num operator[](int index) {
     _checkIndex(index, length);
@@ -577,7 +577,7 @@ class Float64List
 
   static const int BYTES_PER_ELEMENT = 8;
 
-  int get length => JS("int", '#.length', this);
+  int get length => JS("JSUInt32", '#.length', this);
 
   num operator[](int index) {
     _checkIndex(index, length);
@@ -653,7 +653,7 @@ class Int16List
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  int get length => JS("int", '#.length', this);
+  int get length => JS("JSUInt32", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -726,7 +726,7 @@ class Int32List
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  int get length => JS("int", '#.length', this);
+  int get length => JS("JSUInt32", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -796,7 +796,7 @@ class Int8List
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  int get length => JS("int", '#.length', this);
+  int get length => JS("JSUInt32", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -870,11 +870,11 @@ class Uint16List
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  int get length => JS("int", '#.length', this);
+  int get length => JS("JSUInt32", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
+    return JS("JSUInt31", "#[#]", this, index);
   }
 
   void operator[]=(int index, int value) {
@@ -944,11 +944,11 @@ class Uint32List
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  int get length => JS("int", '#.length', this);
+  int get length => JS("JSUInt32", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
+    return JS("JSUInt32", "#[#]", this, index);
   }
 
   void operator[]=(int index, int value) {
@@ -1015,11 +1015,11 @@ class Uint8ClampedList extends TypedData with ListMixin<int>,
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  int get length => JS("int", '#.length', this);
+  int get length => JS("JSUInt32", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
+    return JS("JSUInt31", "#[#]", this, index);
   }
 
   void operator[]=(int index, int value) {
@@ -1091,11 +1091,11 @@ class Uint8List
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  int get length => JS("int", '#.length', this);
+  int get length => JS("JSUInt32", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
+    return JS("JSUInt31", "#[#]", this, index);
   }
 
   void operator[]=(int index, int value) {
@@ -1364,7 +1364,8 @@ class Int32x4List
   }
 
   void _checkIndex(int index, int length) {
-    if (JS('bool', '(# >>> 0 != #)', index, index) || index >= length) {
+    if (JS('bool', '(# >>> 0 != #)', index, index)
+        || JS('bool', '# >= #', index, length)) {
       _invalidIndex(index, length);
     }
   }

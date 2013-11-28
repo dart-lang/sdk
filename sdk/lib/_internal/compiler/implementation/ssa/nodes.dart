@@ -912,6 +912,17 @@ abstract class HInstruction implements Spannable {
         && instructionType.satisfies(backend.jsUInt31Class, compiler);
   }
 
+  bool isPositiveInteger(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return !instructionType.isNullable
+        && instructionType.satisfies(backend.jsPositiveIntClass, compiler);
+  }
+
+  bool isPositiveIntegerOrNull(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return instructionType.satisfies(backend.jsPositiveIntClass, compiler);
+  }
+
   bool isIntegerOrNull(Compiler compiler) {
     return instructionType.containsOnlyInt(compiler);
   }

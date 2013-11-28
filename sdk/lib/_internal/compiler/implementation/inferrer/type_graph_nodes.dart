@@ -532,14 +532,22 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     bool isUInt31(info) {
       return info.type.satisfies(uint31Implementation, compiler);
     }
+    bool isPositiveInt(info) {
+      return info.type.satisfies(
+          compiler.backend.positiveIntImplementation, compiler);
+    }
 
     String name = selector.name;
     // We are optimizing for the cases that are not expressed in the
     // Dart code, for example:
     // int + int -> int
     // uint31 | uint31 -> uint31
-    if (name == '*' || name == '+' || name == '%' || name == 'remainder') {
-      if (arguments.hasOnePositionalArgumentThatMatches(isInt)) {
+    if (name == '*' || name == '+' || name == '%' || name == 'remainder'
+        || name == '~/') {
+      if (isPositiveInt(receiver)
+          && arguments.hasOnePositionalArgumentThatMatches(isPositiveInt)) {
+        return inferrer.types.positiveIntType;
+      } else if (arguments.hasOnePositionalArgumentThatMatches(isInt)) {
         return inferrer.types.intType;
       } else if (arguments.hasOnePositionalArgumentThatMatches(isEmpty)) {
         return inferrer.types.nonNullEmptyType;
@@ -560,8 +568,11 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           || arguments.hasOnePositionalArgumentThatMatches(isUInt31)) {
         return inferrer.types.uint31Type;
       }
+    } else if (name == 'unary-') {
+      // The receiver being an int, the return value will also be an
+      // int.
+      return inferrer.types.intType;
     } else if (name == '-') {
-      if (arguments.hasNoArguments()) return inferrer.types.intType;
       if (arguments.hasOnePositionalArgumentThatMatches(isInt)) {
         return inferrer.types.intType;
       } else if (arguments.hasOnePositionalArgumentThatMatches(isEmpty)) {
@@ -569,7 +580,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       }
       return null;
     } else if (name == 'abs') {
-      return arguments.hasNoArguments() ? inferrer.types.intType : null;
+      return arguments.hasNoArguments() ? inferrer.types.positiveIntType : null;
     }
     return null;
   }
