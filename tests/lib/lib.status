@@ -127,6 +127,7 @@ async/catch_errors28_test: Fail # Timer interface not supported: dartbug.com/772
 async/catch_errors8_test: Fail # Timer interface not supported: dartbug.com/7728.
 async/run_zoned8_test: Fail # Timer interface not supported: dartbug.com/7728.
 async/zone_bind_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/future_timeout_test: Fail # Timer interface not supported: dartbug.com/7728.
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.

@@ -408,6 +408,33 @@ abstract class Future<T> {
    * its subscribers. The stream closes after the completion value.
    */
   Stream<T> asStream();
+
+  /**
+   * Time-out the future computation after [timeLimit] has passed.
+   *
+   * Returns a new future that completes with the same value as this future,
+   * if this future completes in time.
+   *
+   * If this future does not complete before `timeLimit` has passed,
+   * the [onTimeout] action is executed instead, and its result (whether it
+   * returns or throws) is used as the result of the returned future.
+   *
+   * If `onTimeout` is omitted, a timeout will cause the returned future to
+   * complete with a [TimeoutException].
+   */
+  Future timeout(Duration timeLimit, [void onTimeout()]);
+}
+
+/**
+ * Thrown when a scheduled timeout happens while waiting for an async result.
+ */
+class TimeoutException implements Exception {
+  /** The duration that was exceeded without a result. */
+  final Duration duration;
+
+  TimeoutException(this.duration);
+
+  String toString() => "Timeout after $duration";
 }
 
 /**

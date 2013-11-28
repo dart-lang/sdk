@@ -13,6 +13,7 @@ class MyFuture implements Future {
   catchError(_, {test}) => null;
   whenComplete(_) => null;
   asStream() => null;
+  timeout(Duration timeLimit, [void onTimeout()]) => null;
 }
 
 main() {
