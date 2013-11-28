@@ -8,7 +8,6 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 main() {
-  List;  // work-around for a bug in the type-variable handler. TODO(zarah): remove.
   Expect.equals(3, reflect([1, 2, 3]).getField(#length).reflectee);
   Expect.throws(() => reflect({"hest": 42}).getField(#length),
                 (e) => e is UnsupportedError);

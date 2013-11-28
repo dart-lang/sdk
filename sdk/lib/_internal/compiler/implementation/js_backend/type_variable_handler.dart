@@ -40,31 +40,15 @@ class TypeVariableHandler {
   Compiler get compiler => backend.compiler;
 
   void registerClassWithTypeVariables(ClassElement cls) {
-    typeVariableClasses.add(cls);
-  }
-
-  void onResolutionQueueEmpty(Enqueuer enqueuer) {
-    if (typeVariableConstructor == null) {
-      if (!typeVariableClass.constructors.isEmpty &&
-          !typeVariableClass.constructors.tail.isEmpty) {
-        compiler.reportInternalError(
-            typeVariableClass,
-            'Class $typeVariableClass should only have one constructor');
-      }
-      typeVariableConstructor = typeVariableClass.constructors.head;
-      backend.enqueueClass(
-          enqueuer, typeVariableClass, compiler.globalDependencies);
-      backend.enqueueInResolution(
-          typeVariableConstructor, compiler.globalDependencies);
+    if (!backend.isTreeShakingDisabled || typeVariableConstructor == null) {
+      typeVariableClasses.add(cls);
+    } else {
+      processTypeVariablesOf(cls);
     }
   }
 
-  void onCodegenQueueEmpty() {
-    evaluator = new CompileTimeConstantEvaluator(
-        compiler.constantHandler, compiler.globalDependencies, compiler);
-
-    for (ClassElement cls in typeVariableClasses) {
-      // TODO(zarah): Running through all the members is suboptimal. Change this
+  void processTypeVariablesOf(ClassElement cls) {
+      //TODO(zarah): Running through all the members is suboptimal. Change this
       // as part of marking elements for reflection.
       bool hasMemberNeededForReflection(ClassElement cls) {
         bool result = false;
@@ -75,10 +59,17 @@ class TypeVariableHandler {
       }
 
       if (!backend.isNeededForReflection(cls) &&
-          !hasMemberNeededForReflection(cls)) continue;
+          !hasMemberNeededForReflection(cls)) {
+        return;
+      }
 
       InterfaceType typeVariableType = typeVariableClass.computeType(compiler);
       List<int> constants = <int>[];
+      evaluator = new CompileTimeConstantEvaluator(
+          compiler.constantHandler, 
+          compiler.globalDependencies, 
+          compiler);
+      
       for (TypeVariableType currentTypeVariable in cls.typeVariables) {
         List<Constant> createArguments(FunctionElement constructor) {
         if (constructor != typeVariableConstructor) {
@@ -103,8 +94,26 @@ class TypeVariableHandler {
             reifyTypeVariableConstant(c, currentTypeVariable.element));
       }
       typeVariables[cls] = constants;
+  }
+
+  void onTreeShakingDisabled(Enqueuer enqueuer) {
+    if (!enqueuer.isResolutionQueue || typeVariableClasses == null) return;
+    backend.enqueueClass(
+          enqueuer, typeVariableClass, compiler.globalDependencies);
+    Link constructors = typeVariableClass.ensureResolved(compiler).constructors;
+    if (constructors.isEmpty && constructors.tail.isEmpty) {
+      compiler.reportInternalError(
+          typeVariableClass,
+          "Class '$typeVariableClass' should only have one constructor");
     }
-    typeVariableClasses.clear();
+    typeVariableConstructor = typeVariableClass.constructors.head;
+    backend.enqueueInResolution(typeVariableConstructor,
+        compiler.globalDependencies);
+    enqueuer.registerInstantiatedType(typeVariableClass.rawType,
+        compiler.globalDependencies);
+    List<ClassElement> worklist = typeVariableClasses;
+    typeVariableClasses = null;
+    worklist.forEach((cls) => processTypeVariablesOf(cls));
   }
 
   /**

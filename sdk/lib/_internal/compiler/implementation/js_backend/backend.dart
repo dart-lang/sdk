@@ -1663,6 +1663,7 @@ class JavaScriptBackend extends Backend {
     if (element == disableTreeShakingMarker) {
       compiler.disableTypeInferenceForMirrors = true;
       isTreeShakingDisabled = true;
+      typeVariableHandler.onTreeShakingDisabled(enqueuer);
     } else if (element == preserveNamesMarker) {
       mustPreserveNames = true;
     } else if (element == preserveMetadataMarker) {
@@ -1888,13 +1889,6 @@ class JavaScriptBackend extends Backend {
       metadataConstants.clear();
     }
 
-    if (isTreeShakingDisabled) {
-      if (enqueuer.isResolutionQueue) {
-        typeVariableHandler.onResolutionQueueEmpty(enqueuer);
-      } else {
-        typeVariableHandler.onCodegenQueueEmpty();
-      }
-    }
     customElementsAnalysis.onQueueEmpty(enqueuer);
   }
 
