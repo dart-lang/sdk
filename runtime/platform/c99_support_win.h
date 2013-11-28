@@ -5,8 +5,10 @@
 #ifndef PLATFORM_C99_SUPPORT_WIN_H_
 #define PLATFORM_C99_SUPPORT_WIN_H_
 
-// Visual C++ is missing a bunch of C99 math macros and
-// functions. Define them here.
+#if defined(_MSC_VER) && (_MSC_VER < 1800)
+
+// Before Visual Studio 2013 Visual C++ was missing a bunch of C99 math macros
+// and functions. Define them here.
 
 #include <float.h>
 #include <string.h>
@@ -70,5 +72,6 @@ static inline double round(double x) {
 #define strtoll _strtoi64
 #endif
 
+#endif
 
 #endif  // PLATFORM_C99_SUPPORT_WIN_H_
