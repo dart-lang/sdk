@@ -3307,7 +3307,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     if (!compiler.hasIsolateSupport()) {
       // If the isolate library is not used, we just generate code
       // to fetch the current isolate.
-      String name = backend.namer.CURRENT_ISOLATE;
+      String name = backend.namer.currentIsolate;
       push(new HForeign(new js.LiteralString(name),
                         backend.dynamicType,
                         <HInstruction>[]));
@@ -3445,7 +3445,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
                       node: node.argumentsNode);
     }
     visit(node.arguments.head);
-    String isolateName = backend.namer.CURRENT_ISOLATE;
+    String isolateName = backend.namer.currentIsolate;
     SideEffects sideEffects = new SideEffects.empty();
     sideEffects.setAllSideEffects();
     push(new HForeign(js.js("$isolateName = #"),
@@ -3479,7 +3479,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     if (!node.arguments.isEmpty) {
       compiler.cancel('Too many arguments', node: node.argumentsNode);
     }
-    push(new HForeign(new js.LiteralString(backend.namer.CURRENT_ISOLATE),
+    push(new HForeign(new js.LiteralString(backend.namer.currentIsolate),
                       backend.dynamicType,
                       <HInstruction>[]));
   }

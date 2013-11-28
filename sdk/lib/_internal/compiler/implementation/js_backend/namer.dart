@@ -217,9 +217,7 @@ class Namer implements ClosureNamer {
     return _jsVariableReserved;
   }
 
-  final String CURRENT_ISOLATE;
-  String get GLOBAL_OBJECT => CURRENT_ISOLATE;
-
+  final String currentIsolate = r'$';
   final String getterPrefix = r'get$';
   final String setterPrefix = r'set$';
   final String metadataField = '@';
@@ -261,7 +259,6 @@ class Namer implements ClosureNamer {
 
   Namer(Compiler compiler)
       : compiler = compiler,
-        CURRENT_ISOLATE = compiler.globalJsName,
         globals = new Map<Element, String>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
         usedGlobalNames = new Set<String>(),
@@ -834,8 +831,8 @@ class Namer implements ClosureNamer {
   // TODO(ahe): Remove this method. Use get getNameOfMember instead.
   String getNameOfGlobalFunction(FunctionElement element) => getNameX(element);
 
-  /// Returns true if [element] is stored on CURRENT_ISOLATE ('$').  We intend
-  /// to store only mutable static state in [CURRENT_ISOLATE], constants are
+  /// Returns true if [element] is stored on current isolate ('$').  We intend
+  /// to store only mutable static state in [currentIsolate], constants are
   /// stored in 'C', and functions, accessors, classes, etc. are stored in one
   /// of the other objects in [reservedGlobalObjectNames].
   bool isPropertyOfCurrentIsolate(Element element) {
@@ -844,7 +841,7 @@ class Namer implements ClosureNamer {
     return
         // TODO(ahe): Re-write these tests to be positive (so it only returns
         // true for static/top-level mutable fields). Right now, a number of
-        // other elements, such as bound closures also live in CURRENT_ISOLATE.
+        // other elements, such as bound closures also live in [currentIsolate].
         !element.isAccessor() &&
         !element.isClass() &&
         !element.isConstructor() &&
@@ -852,9 +849,9 @@ class Namer implements ClosureNamer {
         !element.isLibrary();
   }
 
-  /// Returns [CURRENT_ISOLATE] or one of [reservedGlobalObjectNames].
+  /// Returns [currentIsolate] or one of [reservedGlobalObjectNames].
   String globalObjectFor(Element element) {
-    if (isPropertyOfCurrentIsolate(element)) return CURRENT_ISOLATE;
+    if (isPropertyOfCurrentIsolate(element)) return currentIsolate;
     LibraryElement library = element.getLibrary();
     if (library == compiler.interceptorsLibrary) return 'J';
     if (library.isInternalLibrary) return 'H';
@@ -962,11 +959,9 @@ class Namer implements ClosureNamer {
 
   String signatureLocation(FunctionType type) {
     ClassElement classElement = Types.getClassContext(type);
-    if (classElement != null) {
-      return '${isolateAccess(classElement)}';
-    } else {
-      return '${GLOBAL_OBJECT}';
-    }
+    return (classElement != null)
+        ? '${isolateAccess(classElement)}'
+        : currentIsolate;
   }
 
   String signatureName(FunctionType type) {

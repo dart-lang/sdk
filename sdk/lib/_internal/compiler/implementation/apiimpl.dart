@@ -57,8 +57,6 @@ class Compiler extends leg.Compiler {
             preserveComments: hasOption(options, '--preserve-comments'),
             verbose: hasOption(options, '--verbose'),
             sourceMapUri: extractSourceMapUri(options),
-            globalJsName: extractStringOption(
-                options, '--global-js-name=', r'$'),
             terseDiagnostics: hasOption(options, '--terse'),
             buildId: extractStringOption(
                 options, '--build-id=',

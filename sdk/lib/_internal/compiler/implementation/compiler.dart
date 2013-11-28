@@ -398,12 +398,6 @@ abstract class Compiler implements DiagnosticListener {
    */
   final Uri sourceMapUri;
 
-  /**
-   * The name to use for the global JS object in JS output.  Default
-   * value is "$".
-   */
-  final String globalJsName;
-
   /// Emit terse diagnostics without howToFix.
   final bool terseDiagnostics;
 
@@ -626,7 +620,6 @@ abstract class Compiler implements DiagnosticListener {
             this.verbose: false,
             this.sourceMapUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
-            this.globalJsName: r'$',
             this.terseDiagnostics: false,
             outputProvider,
             List<String> strips: const []})
