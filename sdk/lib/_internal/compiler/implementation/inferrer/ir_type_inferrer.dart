@@ -59,16 +59,7 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
   }
 
   TypeInformation typeOfConstant(Constant constant) {
-    if (constant.isBool()) return types.boolType;
-    if (constant.isNum()) {
-      ConstantSystem constantSystem = compiler.backend.constantSystem;
-      // The JavaScript backend may turn this literal into a double at runtime.
-      if (constantSystem.isDouble(constant)) return types.doubleType;
-      return types.intType;
-    }
-    if (constant.isString()) return types.stringType;
-    if (constant.isNull()) return types.nullType;
-    compiler.internalError("Unexpected constant: $constant");
+    return inferrer.types.getConcreteTypeFor(constant.computeMask(compiler));
   }
 
   void visitIrConstant(IrConstant node) {
