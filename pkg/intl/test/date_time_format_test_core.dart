@@ -144,7 +144,7 @@ testRoundTripParsing(String localeName, DateTime date) {
   // At least in most cases. In some cases, we can't even do that. e.g.
   // the skeleton WEEKDAY can't be reconstructed at all, and YEAR_MONTH
   // formats don't give us enough information to construct a valid date.
-  var badSkeletons = [
+  var badSkeletons = const [
       DateFormat.ABBR_WEEKDAY,
       DateFormat.WEEKDAY,
       DateFormat.QUARTER,
@@ -156,6 +156,9 @@ testRoundTripParsing(String localeName, DateTime date) {
       DateFormat.MONTH_WEEKDAY_DAY,
       DateFormat.NUM_MONTH_WEEKDAY_DAY,
       DateFormat.ABBR_MONTH_WEEKDAY_DAY];
+  var originalTime = new DateTime.now();
+  var originalTimeZoneOffset = date.timeZoneOffset;
+  var originalTimeZoneName = date.timeZoneName;
   for(int i = 0; i < formatsToTest.length; i++) {
     var skeleton = formatsToTest[i];
     if (!badSkeletons.any((x) => x == skeleton)) {
@@ -163,6 +166,25 @@ testRoundTripParsing(String localeName, DateTime date) {
       var actualResult = format.format(date);
       var parsed = format.parse(actualResult);
       var thenPrintAgain = format.format(parsed);
+      // We've seen a case where this failed in a way that seemed like a time
+      // zone shifting or some other strange behaviour that caused an off by
+      // one error in the date. Check for this and print out as much information
+      // as possible if it occurs again.
+      if (thenPrintAgain != actualResult) {
+        print("Date mismatch!");
+        print("  Expected $actualResult");
+        print("  Got $thenPrintAgain");
+        print("  Original date = $date");
+        print("  Original ms = ${date.millisecondsSinceEpoch}");
+        print("  Parsed back to $parsed");
+        print("  Parsed ms = ${parsed.millisecondsSinceEpoch}");
+        print("  Original tz = $originalTimeZoneOffset");
+        print("  Current tz name = $originalTimeZoneName");
+        print("  Current tz = ${parsed.timeZoneOffset}");
+        print("  Current tz name = ${parsed.timeZoneName}");
+        print("  Start time = $originalTime");
+        print("  Current time ${new DateTime.now()}");
+      }
       expect(thenPrintAgain, equals(actualResult));
     }
   }
