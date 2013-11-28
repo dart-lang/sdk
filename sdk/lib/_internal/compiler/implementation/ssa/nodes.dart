@@ -186,10 +186,9 @@ class HGraph {
   }
 
   HConstant addConstantString(DartString str,
-                              Node diagnosticNode,
                               Compiler compiler) {
     return addConstant(
-        compiler.backend.constantSystem.createString(str, diagnosticNode),
+        compiler.backend.constantSystem.createString(str),
         compiler);
   }
 

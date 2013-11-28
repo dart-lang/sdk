@@ -11,6 +11,7 @@ import '../source_file.dart';
 import '../tree/tree.dart';
 import '../scanner/scannerlib.dart' show Token;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import 'ir_pickler.dart' show Unpickler;
 
 /**
  * This task iterates through all resolved elements and builds [IrNode]s. The
@@ -69,6 +70,12 @@ class IrBuilderTask extends CompilerTask {
           }
 
           if (irNode != null) {
+            assert(() {
+              // In host-checked mode, serialize and de-serialize the IrNode.
+              List<int> data = irNode.pickle();
+              irNode = new Unpickler(compiler).unpickle(data);
+              return true;
+            });
             nodes[element] = irNode;
             unlinkTreeAndToken(element);
           }
@@ -229,7 +236,7 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
   }
 
   IrConstant visitLiteralString(LiteralString node) {
-    Constant value = constantSystem.createString(node.dartString, node);
+    Constant value = constantSystem.createString(node.dartString);
     return builder.addConstant(value, node);
   }
 

@@ -363,8 +363,7 @@ class DartConstantSystem extends ConstantSystem {
 
   IntConstant createInt(int i) => new IntConstant(i);
   DoubleConstant createDouble(double d) => new DoubleConstant(d);
-  StringConstant createString(DartString string, Node diagnosticNode)
-      => new StringConstant(string, diagnosticNode);
+  StringConstant createString(DartString string) => new StringConstant(string);
   BoolConstant createBool(bool value) => new BoolConstant(value);
   NullConstant createNull() => new NullConstant();
 

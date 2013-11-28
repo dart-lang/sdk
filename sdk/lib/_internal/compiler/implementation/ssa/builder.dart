@@ -2117,8 +2117,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     HInstruction subtypeInstruction = analyzeTypeArgument(subtype);
     HInstruction supertypeInstruction = analyzeTypeArgument(supertype);
     HInstruction messageInstruction =
-        graph.addConstantString(new DartString.literal(message),
-                                node, compiler);
+        graph.addConstantString(new DartString.literal(message), compiler);
     Element element = backend.getAssertIsSubtype();
     var inputs = <HInstruction>[subtypeInstruction, supertypeInstruction,
                                 messageInstruction];
@@ -3092,7 +3091,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
 
       HInstruction signatureName = graph.addConstantString(
           new DartString.literal(backend.namer.getFunctionTypeName(type)),
-          node, compiler);
+          compiler);
 
       HInstruction contextName;
       HInstruction context;
@@ -3101,7 +3100,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
         ClassElement contextClass = Types.getClassContext(type);
         contextName = graph.addConstantString(
             new DartString.literal(backend.namer.getNameOfClass(contextClass)),
-            node, compiler);
+            compiler);
         if (!currentElement.enclosingElement.isClosure()
             && currentElement.isInstanceMember()) {
           context = localsHandler.readThis();
@@ -3140,9 +3139,9 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       add(representations);
       String operator =
           backend.namer.operatorIs(backend.getImplementationClass(element));
-      HInstruction isFieldName = addConstantString(node, operator);
+      HInstruction isFieldName = addConstantString(operator);
       HInstruction asFieldName = compiler.world.hasAnySubtype(element)
-          ? addConstantString(node, backend.namer.substitutionName(element))
+          ? addConstantString(backend.namer.substitutionName(element))
           : graph.addConstantNull(compiler);
       List<HInstruction> inputs = <HInstruction>[expression,
                                                  isFieldName,
@@ -3353,7 +3352,6 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     }
     stack.add(
         addConstantString(
-            argument,
             backend.namer.getNameForJsGetName(
                 argument, string.dartString.slowToString())));
   }
@@ -3504,46 +3502,44 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     } else if (name == 'JS_CREATE_ISOLATE') {
       handleForeignCreateIsolate(node);
     } else if (name == 'JS_OPERATOR_IS_PREFIX') {
-      stack.add(addConstantString(node, backend.namer.operatorIsPrefix()));
+      stack.add(addConstantString(backend.namer.operatorIsPrefix()));
     } else if (name == 'JS_OBJECT_CLASS_NAME') {
       String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
-      stack.add(addConstantString(node, name));
+      stack.add(addConstantString(name));
     } else if (name == 'JS_NULL_CLASS_NAME') {
       String name = backend.namer.getRuntimeTypeName(compiler.nullClass);
-      stack.add(addConstantString(node, name));
+      stack.add(addConstantString(name));
     } else if (name == 'JS_FUNCTION_CLASS_NAME') {
       String name = backend.namer.getRuntimeTypeName(compiler.functionClass);
-      stack.add(addConstantString(node, name));
+      stack.add(addConstantString(name));
     } else if (name == 'JS_OPERATOR_AS_PREFIX') {
-      stack.add(addConstantString(node, backend.namer.operatorAsPrefix()));
+      stack.add(addConstantString(backend.namer.operatorAsPrefix()));
     } else if (name == 'JS_SIGNATURE_NAME') {
-      stack.add(addConstantString(node, backend.namer.operatorSignature()));
+      stack.add(addConstantString(backend.namer.operatorSignature()));
     } else if (name == 'JS_FUNCTION_TYPE_TAG') {
-      stack.add(addConstantString(node, backend.namer.functionTypeTag()));
+      stack.add(addConstantString(backend.namer.functionTypeTag()));
     } else if (name == 'JS_FUNCTION_TYPE_VOID_RETURN_TAG') {
-      stack.add(addConstantString(node,
-                                  backend.namer.functionTypeVoidReturnTag()));
+      stack.add(addConstantString(backend.namer.functionTypeVoidReturnTag()));
     } else if (name == 'JS_FUNCTION_TYPE_RETURN_TYPE_TAG') {
-      stack.add(addConstantString(node,
-                                  backend.namer.functionTypeReturnTypeTag()));
+      stack.add(addConstantString(backend.namer.functionTypeReturnTypeTag()));
     } else if (name ==
                'JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG') {
-      stack.add(addConstantString(node,
+      stack.add(addConstantString(
           backend.namer.functionTypeRequiredParametersTag()));
     } else if (name ==
                'JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG') {
-      stack.add(addConstantString(node,
+      stack.add(addConstantString(
           backend.namer.functionTypeOptionalParametersTag()));
     } else if (name ==
                'JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG') {
-      stack.add(addConstantString(node,
+      stack.add(addConstantString(
           backend.namer.functionTypeNamedParametersTag()));
     } else if (name == 'JS_DART_OBJECT_CONSTRUCTOR') {
       handleForeignDartObjectJsConstructorFunction(node);
     } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
       Element element = compiler.findHelper(
           'JavaScriptIndexingBehavior');
-      stack.add(addConstantString(node, backend.namer.operatorIs(element)));
+      stack.add(addConstantString(backend.namer.operatorIs(element)));
     } else if (name == 'JS_CURRENT_ISOLATE') {
       handleForeignJsCurrentIsolate(node);
     } else if (name == 'JS_GET_NAME') {
@@ -3576,11 +3572,11 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     if (selector.isSetter()) publicName += '=';
 
     Constant nameConstant = constantSystem.createString(
-        new DartString.literal(publicName), node);
+        new DartString.literal(publicName));
 
     String internalName = backend.namer.invocationName(selector);
     Constant internalNameConstant =
-        constantSystem.createString(new DartString.literal(internalName), node);
+        constantSystem.createString(new DartString.literal(internalName));
 
     Element createInvocationMirror = backend.getCreateInvocationMirror();
     var argumentsInstruction = buildLiteralList(arguments);
@@ -3589,8 +3585,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     var argumentNames = new List<HInstruction>();
     for (String argumentName in selector.namedArguments) {
       Constant argumentNameConstant =
-          constantSystem.createString(new DartString.literal(argumentName),
-                                      node);
+          constantSystem.createString(new DartString.literal(argumentName));
       argumentNames.add(graph.addConstant(argumentNameConstant, compiler));
     }
     var argumentNamesInstruction = buildLiteralList(argumentNames);
@@ -3688,7 +3683,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       // segmentation of '$'.
       String substitutionNameString = backend.namer.getNameForRti(cls);
       HInstruction substitutionName = graph.addConstantString(
-          new LiteralDartString(substitutionNameString), null, compiler);
+          new LiteralDartString(substitutionNameString), compiler);
       pushInvokeStatic(null,
                        backend.getGetRuntimeTypeArgument(),
                        [target, substitutionName, index],
@@ -4094,9 +4089,9 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     }
   }
 
-  HConstant addConstantString(Node node, String string) {
+  HConstant addConstantString(String string) {
     DartString dartString = new DartString.literal(string);
-    Constant constant = constantSystem.createString(dartString, node);
+    Constant constant = constantSystem.createString(dartString);
     return graph.addConstant(constant, compiler);
   }
 
@@ -4148,7 +4143,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
   }
 
   void generateError(Node node, String message, Element helper) {
-    HInstruction errorMessage = addConstantString(node, message);
+    HInstruction errorMessage = addConstantString(message);
     pushInvokeStatic(node, helper, [errorMessage]);
   }
 
@@ -4173,11 +4168,10 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
                                   List<String> existingArguments}) {
     Element helper = backend.getThrowNoSuchMethod();
     Constant receiverConstant =
-        constantSystem.createString(new DartString.empty(), diagnosticNode);
+        constantSystem.createString(new DartString.empty());
     HInstruction receiver = graph.addConstant(receiverConstant, compiler);
     DartString dartString = new DartString.literal(methodName);
-    Constant nameConstant =
-        constantSystem.createString(dartString, diagnosticNode);
+    Constant nameConstant = constantSystem.createString(dartString);
     HInstruction name = graph.addConstant(nameConstant, compiler);
     if (argumentValues == null) {
       argumentValues = <HInstruction>[];
@@ -4194,8 +4188,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       List<HInstruction> existingNames = <HInstruction>[];
       for (String name in existingArguments) {
         HInstruction nameConstant =
-            graph.addConstantString(new DartString.literal(name),
-                                    diagnosticNode, compiler);
+            graph.addConstantString(new DartString.literal(name), compiler);
         existingNames.add(nameConstant);
       }
       existingNamesList = buildLiteralList(existingNames);
@@ -4561,7 +4554,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
   }
 
   void visitLiteralString(LiteralString node) {
-    stack.add(graph.addConstantString(node.dartString, node, compiler));
+    stack.add(graph.addConstantString(node.dartString, compiler));
   }
 
   void visitLiteralSymbol(LiteralSymbol node) {
@@ -4573,7 +4566,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
   void visitStringJuxtaposition(StringJuxtaposition node) {
     if (!node.isInterpolation) {
       // This is a simple string with no interpolations.
-      stack.add(graph.addConstantString(node.dartString, node, compiler));
+      stack.add(graph.addConstantString(node.dartString, compiler));
       return;
     }
     StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this, node);

@@ -87,8 +87,7 @@ class TypeVariableHandler {
                 'Unexpected constructor $constructor');
           }
           Constant name = backend.constantSystem.createString(
-              new DartString.literal(currentTypeVariable.name),
-              null);
+              new DartString.literal(currentTypeVariable.name));
           Constant bound = backend.constantSystem.createInt(
               emitter.reifyType(currentTypeVariable.element.bound));
           Constant type = evaluator.makeTypeConstant(cls);

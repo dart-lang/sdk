@@ -776,8 +776,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     HInstruction folded = graph.addConstant(
         constantSystem.createString(
-            new DartString.concat(leftString.value, rightString.value),
-            node.node),
+            new DartString.concat(leftString.value, rightString.value)),
         compiler);
     if (prefix == null) return folded;
     return new HStringConcat(prefix, folded, node.node, backend.stringType);
@@ -791,7 +790,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (!constant.constant.isPrimitive()) return node;
       PrimitiveConstant primitive = constant.constant;
       return graph.addConstant(constantSystem.createString(
-          primitive.toDartString(), node.node), compiler);
+          primitive.toDartString()), compiler);
     }
     return node;
   }

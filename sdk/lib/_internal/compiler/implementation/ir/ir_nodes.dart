@@ -7,6 +7,7 @@
 library dart2js.ir_nodes;
 
 import '../dart2jslib.dart' show Constant;
+import 'ir_pickler.dart' show Pickler;
 
 /**
  * A pair of source offset and an identifier name. Identifier names are used in
@@ -26,6 +27,8 @@ abstract class IrNode {
   int get offset => (position is int) ? position : position.offset;
 
   String get sourceName => (position is int) ? null : position.sourceName;
+
+  List<int> pickle() => new Pickler().pickle(this);
 
   accept(IrNodesVisitor visitor);
 }

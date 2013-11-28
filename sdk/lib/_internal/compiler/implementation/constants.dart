@@ -298,12 +298,11 @@ class FalseConstant extends BoolConstant {
 class StringConstant extends PrimitiveConstant {
   final DartString value;
   final int hashCode;
-  final Node node;
 
   // TODO(floitsch): cache StringConstants.
   // TODO(floitsch): compute hashcode without calling toString() on the
   // DartString.
-  StringConstant(DartString value, this.node)
+  StringConstant(DartString value)
       : this.value = value,
         this.hashCode = value.slowToString().hashCode;
   bool isString() => true;
