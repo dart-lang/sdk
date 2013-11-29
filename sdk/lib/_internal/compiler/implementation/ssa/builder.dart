@@ -15,6 +15,8 @@ class InterceptedElement extends ElementX {
       : super(name, ElementKind.PARAMETER, enclosing);
 
   DartType computeType(Compiler compiler) => type;
+
+  accept(ElementVisitor visitor) => visitor.visitInterceptedElement(this);
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -1315,9 +1317,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     assert(argumentIndex == compiledArguments.length);
 
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
-    returnElement = new ElementX("result",
-                                 ElementKind.VARIABLE,
-                                 function);
+    returnElement = new VariableElementX.synthetic("result",
+        ElementKind.VARIABLE, function);
     newLocalsHandler.updateLocal(returnElement,
                                  graph.addConstantNull(compiler));
     elements = compiler.enqueuer.resolution.getCachedElements(function);
@@ -5365,9 +5366,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       open(startCatchBlock);
       // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
       // Note that the name of this element is irrelevant.
-      Element element = new ElementX('exception',
-                                     ElementKind.PARAMETER,
-                                     currentElement);
+      Element element = new VariableElementX.synthetic('exception',
+          ElementKind.PARAMETER, currentElement);
       exception = new HLocalValue(element, backend.nonNullType);
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;

@@ -19,7 +19,8 @@ import 'parser_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
     show ElementX,
          LibraryElementX,
-         ErroneousElementX;
+         ErroneousElementX,
+         FunctionElementX;
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     hide TreeElementMapping;
@@ -394,7 +395,8 @@ class MockCompiler extends Compiler {
 
   resolverVisitor() {
     Element mockElement =
-        new ElementX('', ElementKind.FUNCTION, mainApp.entryCompilationUnit);
+      new FunctionElementX('', ElementKind.FUNCTION, Modifiers.EMPTY,
+                           mainApp.entryCompilationUnit, false);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
                             new CollectingTreeElements(mockElement));

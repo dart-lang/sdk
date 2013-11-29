@@ -31,7 +31,9 @@ import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
 
 import '../ordered_typeset.dart' show OrderedTypeSet;
 
-class ElementX implements Element {
+import 'visitor.dart' show ElementVisitor;
+
+abstract class ElementX implements Element {
   static int elementHashCode = 0;
 
   final String name;
@@ -356,6 +358,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   String get message => '${messageKind.message(messageArguments)}';
 
   String toString() => '<$name: $message>';
+
+  accept(ElementVisitor visitor) => visitor.visitErroneousElementX(this);
 }
 
 /// A message attached to a [WarnOnUseElementX].
@@ -416,6 +420,8 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
     }
     return unwrapped;
   }
+
+  accept(ElementVisitor visitor) => visitor.visitWarnOnUseElementX(this);
 }
 
 /**
@@ -483,6 +489,8 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
       });
     }
   }
+
+  accept(ElementVisitor visitor) => visitor.visitAmbiguousElementX(this);
 }
 
 class ScopeX {
@@ -637,6 +645,8 @@ class CompilationUnitElementX extends ElementX
     if (this == other) return 0;
     return '${script.uri}'.compareTo('${other.script.uri}');
   }
+
+  accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
 }
 
 class Importers {
@@ -994,6 +1004,8 @@ class LibraryElementX extends ElementX implements LibraryElement {
     if (this == other) return 0;
     return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
   }
+
+  accept(ElementVisitor visitor) => visitor.visitLibraryElementX(this);
 }
 
 class PrefixElementX extends ElementX implements PrefixElement {
@@ -1013,6 +1025,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
   void addImport(Element element, Import import, DiagnosticListener listener) {
     importScope.addImport(this, element, import, listener);
   }
+
+  accept(ElementVisitor visitor) => visitor.visitPrefixElementX(this);
 }
 
 class TypedefElementX extends ElementX implements TypedefElement {
@@ -1096,6 +1110,8 @@ class TypedefElementX extends ElementX implements TypedefElement {
     computeType(compiler).accept(visitor, null);
     hasBeenCheckedForCycles = true;
   }
+
+  accept(ElementVisitor visitor) => visitor.visitTypedefElementX(this);
 }
 
 class VariableElementX extends ElementX implements VariableElement {
@@ -1110,6 +1126,12 @@ class VariableElementX extends ElementX implements VariableElement {
                    this.cachedNode)
     : this.variables = variables,
       super(name, kind, variables.enclosingElement);
+
+  VariableElementX.synthetic(String name,
+      ElementKind kind,
+      Element enclosing) :
+        variables = null,
+        super(name, kind, enclosing);
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
@@ -1133,13 +1155,13 @@ class VariableElementX extends ElementX implements VariableElement {
     return variables.computeType(compiler);
   }
 
-  DartType get type => variables.type;
-
   bool isInstanceMember() => variables.isInstanceMember();
 
   // Note: cachedNode.getBeginToken() will not be correct in all
   // cases, for example, for function typed parameters.
   Token position() => findMyName(variables.position());
+
+  accept(ElementVisitor visitor) => visitor.visitVariableElementX(this);
 }
 
 /**
@@ -1163,6 +1185,8 @@ class FieldParameterElementX extends VariableElementX
     }
     return super.computeType(compiler);
   }
+
+  accept(ElementVisitor visitor) => visitor.visitFieldParameterElementX(this);
 }
 
 // This element represents a list of variable or field declaration.
@@ -1231,6 +1255,8 @@ class VariableListElementX extends ElementX implements VariableListElement {
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
   }
+
+  accept(ElementVisitor visitor) => visitor.visitVariableListElementX(this);
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
@@ -1282,6 +1308,8 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
   }
+
+  accept(ElementVisitor visitor) => visitor.visitAbstractFieldElementX(this);
 }
 
 // TODO(johnniwinther): [FunctionSignature] should be merged with
@@ -1549,6 +1577,8 @@ class FunctionElementX extends ElementX implements FunctionElement {
            (isFunction() || isAccessor()) &&
            _hasNoBody;
   }
+
+  accept(ElementVisitor visitor) => visitor.visitFunctionElementX(this);
 }
 
 class ConstructorBodyElementX extends FunctionElementX
@@ -1578,6 +1608,8 @@ class ConstructorBodyElementX extends FunctionElementX
   }
 
   Token position() => constructor.position();
+
+  accept(ElementVisitor visitor) => visitor.visitConstructorBodyElementX(this);
 }
 
 /**
@@ -1626,6 +1658,10 @@ class SynthesizedConstructorElementX extends FunctionElementX {
   get declaration => this;
   get implementation => this;
   get defaultImplementation => this;
+
+  accept(ElementVisitor visitor) {
+    visitor.visitSynthesizedConstructorElementX(this);
+  }
 }
 
 class VoidElementX extends ElementX {
@@ -1635,6 +1671,8 @@ class VoidElementX extends ElementX {
     throw 'internal error: parseNode on void';
   }
   bool impliesType() => true;
+
+  accept(ElementVisitor visitor) => visitor.visitVoidElementX(this);
 }
 
 class TypeDeclarationElementX {
@@ -2260,6 +2298,8 @@ class MixinApplicationElementX extends BaseClassElementX
     return TypeDeclarationElementX.createTypeVariables(
         this, named.typeParameters);
   }
+
+  accept(ElementVisitor visitor) => visitor.visitMixinApplicationElement(this);
 }
 
 class LabelElementX extends ElementX implements LabelElement {
@@ -2296,6 +2336,8 @@ class LabelElementX extends ElementX implements LabelElement {
 
   Token position() => label.getBeginToken();
   String toString() => "${labelName}:";
+
+  accept(ElementVisitor visitor) => visitor.visitLabelElementX(this);
 }
 
 // Represents a reference to a statement or switch-case, either by label or the
@@ -2324,6 +2366,8 @@ class TargetElementX extends ElementX implements TargetElement {
 
   Token position() => statement.getBeginToken();
   String toString() => statement.toString();
+
+  accept(ElementVisitor visitor) => visitor.visitTargetElementX(this);
 }
 
 class TypeVariableElementX extends ElementX implements TypeVariableElement {
@@ -2342,6 +2386,8 @@ class TypeVariableElementX extends ElementX implements TypeVariableElement {
   String toString() => "${enclosingElement.toString()}.${name}";
 
   Token position() => cachedNode.getBeginToken();
+
+  accept(ElementVisitor visitor) => visitor.visitTypeVariableElementX(this);
 }
 
 /**

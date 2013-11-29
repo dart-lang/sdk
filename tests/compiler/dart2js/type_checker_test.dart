@@ -11,7 +11,7 @@ import 'mock_compiler.dart';
 import 'parser_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
-    show ElementX, CompilationUnitElementX;
+  show ElementX, CompilationUnitElementX, FunctionElementX;
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
 
@@ -1687,7 +1687,7 @@ abstract class num {
   bool operator <(num other);
   bool operator <=(num other);
   bool operator >(num other);
-  bool operator >=(num other);
+  bool operator >=(num other)
 }
 ''';
 
@@ -1803,8 +1803,8 @@ analyze(String text, {errors, warnings, List hints, List infos}) {
   Node node = listener.popNode();
   Element compilationUnit =
     new CompilationUnitElementX(new Script(null, null), compiler.mainApp);
-  Element function = new ElementX(
-      '', ElementKind.FUNCTION, compilationUnit);
+  Element function = new FunctionElementX(
+      '', ElementKind.FUNCTION, Modifiers.EMPTY, compilationUnit, false);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);

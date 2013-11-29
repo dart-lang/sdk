@@ -30,6 +30,8 @@ import '../scanner/scannerlib.dart' show Token,
 
 import '../ordered_typeset.dart' show OrderedTypeSet;
 
+import 'visitor.dart' show ElementVisitor;
+
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;
 const int STATE_DONE = 2;
@@ -257,6 +259,8 @@ abstract class Element implements Spannable {
   FunctionElement get targetConstructor;
 
   void diagnose(Element context, DiagnosticListener listener);
+
+  accept(ElementVisitor visitor) => visitor.visitElement(this);
 }
 
 class Elements {

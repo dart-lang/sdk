@@ -61,6 +61,8 @@ class PartialClassElement extends ClassElementX {
   // TODO(johnniwinther): Ensure that modifiers are always available.
   Modifiers get modifiers =>
       cachedNode != null ? cachedNode.modifiers : Modifiers.EMPTY;
+
+  accept(ElementVisitor visitor) => visitor.visitPartialClassElement(this);
 }
 
 class MemberListener extends NodeListener {
