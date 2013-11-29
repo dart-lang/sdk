@@ -113,21 +113,30 @@ class _Proxy {
 }
 
 /**
- * The annotation `@proxy` marks a class as implementing members through
- * `noSuchMethod`.
+ * The annotation `@proxy` marks a class as implementing interfaces and members
+ * dynamically through `noSuchMethod`.
  *
- * The annotation applies to concrete classes. It is not inherited by
- * subclasses.
+ * The annotation applies to any class. It is inherited by subclasses from both
+ * superclass and interfaces.
  *
- * The marked class is considerer to implement any method, getter or setter
- * declared by its interface, even if there is no implementation in the
- * class. It will not generate the warning that is otherwise specified for an
- * unimplemented method in a non-abstract class.
+ * If a class is annotated with `@proxy`, or it implements any class that is
+ * annotated, then the class is considered to implement any interface and
+ * any member with regard to static type analysis. As such, it is not a static
+ * type warning to assign the object to a variable of any type, and it is not
+ * a static type warning to access any member of the object.
+ *
+ * This only applies to static type warnings. The runtime type of the object
+ * is unaffected. It is not considered to implement any special interfaces at
+ * runtime, so assigning it to a typed variable may fail in checked mode, and
+ * testing it with the `is` operator will not work for any type except the
+ * ones it actually implements.
  *
  * Tools that understand `@proxy` should tell the user if a class using `@proxy`
  * does not override the `noSuchMethod` declared on [Object].
  *
- * The intent of the `@proxy` notation is to avoid irrelevant warnings when
- * a class implements its interface through `noSuchMethod`.
+ * The intent of the `@proxy` notation is to create objects that implement a
+ * type (or multiple types) that are not known at compile time. If the types
+ * are known at compile time, a class can be written that implements these
+ * types.
  */
 const Object proxy = const _Proxy();
