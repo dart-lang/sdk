@@ -19,23 +19,33 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // TODO(sra): Attaching positions might be cleaner if the source position
     // was on a wrapping node.
     SourceFile sourceFile = sourceFileOfElement(element);
-    Node expression = element.implementation.parseNode(backend.compiler);
-    Token beginToken;
-    Token endToken;
-    if (expression == null) {
-      // Synthesized node. Use the enclosing element for the location.
-      beginToken = endToken = element.position();
+    if (compiler.irBuilder.hasIr(element)) {
+      IrFunction function = compiler.irBuilder.getIr(element);
+      node.sourcePosition = new OffsetSourceFileLocation(
+          sourceFile, function.offset, function.sourceName);
+      node.endSourcePosition = new OffsetSourceFileLocation(
+          sourceFile, function.endOffset);
     } else {
-      beginToken = expression.getBeginToken();
-      endToken = expression.getEndToken();
-    }
-    // TODO(podivilov): find the right sourceFile here and remove offset checks
-    // below.
-    if (beginToken.charOffset < sourceFile.length) {
-      node.sourcePosition = new SourceFileLocation(sourceFile, beginToken);
-    }
-    if (endToken.charOffset < sourceFile.length) {
-      node.endSourcePosition = new SourceFileLocation(sourceFile, endToken);
+      Node expression = element.implementation.parseNode(backend.compiler);
+      Token beginToken;
+      Token endToken;
+      if (expression == null) {
+        // Synthesized node. Use the enclosing element for the location.
+        beginToken = endToken = element.position();
+      } else {
+        beginToken = expression.getBeginToken();
+        endToken = expression.getEndToken();
+      }
+      // TODO(podivilov): find the right sourceFile here and remove offset
+      // checks below.
+      if (beginToken.charOffset < sourceFile.length) {
+        node.sourcePosition =
+            new TokenSourceFileLocation(sourceFile, beginToken);
+      }
+      if (endToken.charOffset < sourceFile.length) {
+        node.endSourcePosition =
+            new TokenSourceFileLocation(sourceFile, endToken);
+      }
     }
     return node;
   }
@@ -179,18 +189,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return generateAtUseSite.contains(instruction);
   }
 
-  bool isNonNegativeInt32Constant(HInstruction instruction) {
-    if (instruction.isConstantInteger()) {
-      HConstant constantInstruction = instruction;
-      PrimitiveConstant primitiveConstant = constantInstruction.constant;
-      int value = primitiveConstant.value;
-      if (value >= 0 && value < (1 << 31)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   bool hasNonBitOpUser(HInstruction instruction, Set<HPhi> phiSet) {
     for (HInstruction user in instruction.usedBy) {
       if (user is HPhi) {
@@ -205,19 +203,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return false;
   }
 
-  // We want the outcome of bit-operations to be positive. However, if
-  // the result of a bit-operation is only used by other bit
-  // operations we do not have to convert to an unsigned
-  // integer. Also, if we are using & with a positive constant we know
-  // that the result is positive already and need no conversion.
-  bool requiresUintConversion(HInstruction instruction) {
-    if (instruction is HBitAnd) {
-      HBitAnd bitAnd = instruction;
-      if (isNonNegativeInt32Constant(bitAnd.left) ||
-          isNonNegativeInt32Constant(bitAnd.right)) {
-        return false;
-      }
-    }
+  bool requiresUintConversion(instruction) {
+    if (instruction.isUInt31(compiler)) return false;
+    // If the result of a bit-operation is only used by other bit
+    // operations, we do not have to convert to an unsigned integer.
     return hasNonBitOpUser(instruction, new Set<HPhi>());
   }
 
@@ -675,20 +664,30 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     js.Expression key = pop();
     List<js.SwitchClause> cases = <js.SwitchClause>[];
+    HSwitch switchInstruction = info.expression.end.last;
+    List<HInstruction> inputs = switchInstruction.inputs;
+    List<HBasicBlock> successors = switchInstruction.block.successors;
 
     js.Block oldContainer = currentContainer;
-    for (int i = 0; i < info.matchExpressions.length; i++) {
-      for (Constant constant in info.matchExpressions[i]) {
-        generateConstant(constant);
+    for (int inputIndex = 1, statementIndex = 0;
+         inputIndex < inputs.length;
+         statementIndex++) {
+      HBasicBlock successor = successors[inputIndex - 1];
+      do {
+        visit(inputs[inputIndex]);
         currentContainer = new js.Block.empty();
         cases.add(new js.Case(pop(), currentContainer));
-      }
-      if (i == info.matchExpressions.length - 1) {
-        currentContainer = new js.Block.empty();
-        cases.add(new js.Default(currentContainer));
-      }
-      generateStatements(info.statements[i]);
+        inputIndex++;
+      } while ((successors[inputIndex - 1] == successor)
+               && (inputIndex < inputs.length));
+
+      generateStatements(info.statements[statementIndex]);
     }
+
+    currentContainer = new js.Block.empty();
+    cases.add(new js.Default(currentContainer));
+    generateStatements(info.statements.last);
+
     currentContainer = oldContainer;
 
     js.Statement result = new js.Switch(key, cases);
@@ -1198,7 +1197,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
     visitInvokeBinary(node, op);
-    if (requiresUintConversion(node)) {
+    if (op != '>>>' && requiresUintConversion(node)) {
       push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
@@ -1257,6 +1256,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitBitOr(HBitOr node)           => visitBitInvokeBinary(node, '|');
   visitBitXor(HBitXor node)         => visitBitInvokeBinary(node, '^');
   visitShiftLeft(HShiftLeft node)   => visitBitInvokeBinary(node, '<<');
+  visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>>');
 
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
@@ -1983,10 +1983,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     js.Call value = new js.Call(jsHelper, arguments);
     attachLocation(value, location);
-    // BUG(4906): Using throw here adds to the size of the generated code
+    // BUG(4906): Using throw/return here adds to the size of the generated code
     // but it has the advantage of explicitly telling the JS engine that
     // this code path will terminate abruptly. Needs more work.
-    pushStatement(new js.Throw(value));
+    if (helperName == 'wrapException') {
+      pushStatement(new js.Throw(value));
+    } else {
+      pushStatement(new js.Return(value));
+    }
   }
 
   visitThrowExpression(HThrowExpression node) {
@@ -2509,7 +2513,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         String methodName =
             backend.namer.invocationName(node.receiverTypeCheckSelector);
         js.Expression call = jsPropertyCall(pop(), methodName, []);
-        pushStatement(new js.Throw(call));
+        pushStatement(new js.Return(call));
       }
       currentContainer = oldContainer;
       body = unwrapStatement(body);

@@ -12,7 +12,8 @@
 namespace dart {
 
 MegamorphicCacheTable::MegamorphicCacheTable()
-    : miss_handler_(NULL),
+    : miss_handler_function_(NULL),
+      miss_handler_code_(NULL),
       capacity_(0),
       length_(0),
       table_(NULL) {
@@ -65,14 +66,16 @@ void MegamorphicCacheTable::InitMissHandler() {
                                      false,  // Not external.
                                      cls,
                                      0));  // No token position.
+  miss_handler_code_ = code.raw();
+  miss_handler_function_ = function.raw();
   function.SetCode(code);
-  miss_handler_ = function.raw();
 }
 
 
 void MegamorphicCacheTable::VisitObjectPointers(ObjectPointerVisitor* v) {
   ASSERT(v != NULL);
-  v->VisitPointer(reinterpret_cast<RawObject**>(&miss_handler_));
+  v->VisitPointer(reinterpret_cast<RawObject**>(&miss_handler_code_));
+  v->VisitPointer(reinterpret_cast<RawObject**>(&miss_handler_function_));
   for (intptr_t i = 0; i < length_; ++i) {
     v->VisitPointer(reinterpret_cast<RawObject**>(&table_[i].name));
     v->VisitPointer(reinterpret_cast<RawObject**>(&table_[i].descriptor));

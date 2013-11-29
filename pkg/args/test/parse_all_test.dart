@@ -7,7 +7,7 @@ library parse_all_test;
 import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
 
-main() {
+void main() {
   group('ArgParser.parse(allowTrailingOptions: true) '
         'starting with a non-option', () {
     test('followed by flag', () {
@@ -57,7 +57,8 @@ main() {
     });
   });
 }
-expectThrows(ArgParser parser, List<String> args) =>
+
+void expectThrows(ArgParser parser, List<String> args) =>
   expect(() => parser.parse(args, allowTrailingOptions: true),
       throwsFormatException,
       reason: "with allowTrailingOptions: true");

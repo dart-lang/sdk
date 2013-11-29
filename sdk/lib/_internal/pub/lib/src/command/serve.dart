@@ -4,7 +4,7 @@
 
 library pub.command.serve;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 
 import 'package:barback/barback.dart';
 

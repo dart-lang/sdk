@@ -32,6 +32,7 @@ abstract class TypesInferrer {
   void clear();
   Iterable<Element> getCallersOf(Element element);
   bool isCalledOnce(Element element);
+  bool isFixedArrayCheckedForGrowable(Node node);
 }
 
 /**
@@ -52,8 +53,12 @@ class TypesTask extends CompilerTask {
   }
 
   TypeMask dynamicTypeCache;
+  TypeMask nonNullTypeCache;
   TypeMask nullTypeCache;
   TypeMask intTypeCache;
+  TypeMask uint32TypeCache;
+  TypeMask uint31TypeCache;
+  TypeMask positiveIntTypeCache;
   TypeMask doubleTypeCache;
   TypeMask numTypeCache;
   TypeMask boolTypeCache;
@@ -74,12 +79,43 @@ class TypesTask extends CompilerTask {
     return dynamicTypeCache;
   }
 
+  TypeMask get nonNullType {
+    if (nonNullTypeCache == null) {
+      nonNullTypeCache = new TypeMask.nonNullSubclass(compiler.objectClass);
+    }
+    return nonNullTypeCache;
+  }
+
   TypeMask get intType {
     if (intTypeCache == null) {
-      intTypeCache = new TypeMask.nonNullExact(
+      intTypeCache = new TypeMask.nonNullSubclass(
           compiler.backend.intImplementation);
     }
     return intTypeCache;
+  }
+
+  TypeMask get uint32Type {
+    if (uint32TypeCache == null) {
+      uint32TypeCache = new TypeMask.nonNullSubclass(
+          compiler.backend.uint32Implementation);
+    }
+    return uint32TypeCache;
+  }
+
+  TypeMask get uint31Type {
+    if (uint31TypeCache == null) {
+      uint31TypeCache = new TypeMask.nonNullExact(
+          compiler.backend.uint31Implementation);
+    }
+    return uint31TypeCache;
+  }
+
+  TypeMask get positiveIntType {
+    if (positiveIntTypeCache == null) {
+      positiveIntTypeCache = new TypeMask.nonNullSubclass(
+          compiler.backend.positiveIntImplementation);
+    }
+    return positiveIntTypeCache;
   }
 
   TypeMask get doubleType {

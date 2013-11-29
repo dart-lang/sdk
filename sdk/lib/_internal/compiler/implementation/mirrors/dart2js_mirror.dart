@@ -1616,8 +1616,7 @@ class Dart2JsStringConstantMirror extends Dart2JsConstantMirror {
 
   Dart2JsStringConstantMirror.fromString(Dart2JsMirrorSystem mirrors,
                                          String text)
-      : super(mirrors,
-              new StringConstant(new DartString.literal(text), null));
+      : super(mirrors, new StringConstant(new DartString.literal(text)));
 
   StringConstant get _constant => super._constant;
 

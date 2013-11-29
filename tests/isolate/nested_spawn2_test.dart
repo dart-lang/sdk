@@ -8,7 +8,8 @@
 
 library NestedSpawn2Test;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 void isolateA(SendPort init) {
   ReceivePort port = new ReceivePort();
@@ -51,7 +52,8 @@ void isolateB(SendPort mainPort) {
   }));
 }
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test("spawned isolate can spawn other isolates", () {
     ReceivePort init = new ReceivePort();
     Isolate.spawn(isolateA, init.sendPort);

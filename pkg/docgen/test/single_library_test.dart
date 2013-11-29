@@ -46,7 +46,7 @@ main() {
       var fileName = path.join(temporaryDir.path, 'temp.dart');
       var file = new File(fileName);
       file.writeAsStringSync(DART_LIBRARY);
-      getMirrorSystem([fileName])
+      getMirrorSystem([new Uri.file(fileName)])
         .then(expectAsync1((mirrorSystem) {
           var testLibraryUri = new Uri(scheme: 'file',
               path: path.absolute(fileName));

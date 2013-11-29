@@ -33,6 +33,10 @@ void main() {
     b = a.d; /// 02: static type warning
     a = null;
   }
+  if ((((a) is D) && (b = (a).d))) {
+    b = a.d; /// 03: static type warning
+    a = null;
+  }
   if (f(a = null) && a is D) {
     b = a.d;
   }

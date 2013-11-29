@@ -366,9 +366,44 @@ intptr_t RawRedirectionData::VisitRedirectionDataPointers(
 }
 
 
+bool RawFunction::SkipCode(RawFunction* raw_fun) {
+  // NOTE: This code runs while GC is in progress and runs within
+  // a NoHandleScope block. Hence it is not okay to use regular Zone or
+  // Scope handles. We use direct stack handles, and so the raw pointers in
+  // these handles are not traversed. The use of handles is mainly to
+  // be able to reuse the handle based code and avoid having to add
+  // helper functions to the raw object interface.
+  Function fn;
+  fn = raw_fun;
+
+  Code code;
+  code = fn.CurrentCode();
+
+  if (!code.IsNull() &&  // The function may not have code.
+      !code.is_optimized() &&
+      (fn.CurrentCode() == fn.unoptimized_code()) &&
+      !fn.HasBreakpoint() &&
+      (fn.usage_counter() >= 0)) {
+    fn.set_usage_counter(fn.usage_counter() / 2);
+    if (FLAG_always_drop_code || (fn.usage_counter() == 0)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
                                             ObjectPointerVisitor* visitor) {
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  if (visitor->visit_function_code() ||
+      !RawFunction::SkipCode(raw_obj)) {
+    visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  } else {
+    GrowableArray<RawFunction*>* sfga = visitor->skipped_code_functions();
+    ASSERT(sfga != NULL);
+    sfga->Add(raw_obj);
+    visitor->VisitPointers(raw_obj->from(), raw_obj->to_no_code());
+  }
   return Function::InstanceSize();
 }
 

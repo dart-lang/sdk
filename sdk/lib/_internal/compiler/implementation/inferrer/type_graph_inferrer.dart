@@ -15,7 +15,8 @@ import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import '../native_handler.dart' as native;
 import '../util/util.dart' show Spannable, Setlet;
 import 'simple_types_inferrer.dart';
-import '../dart2jslib.dart' show invariant;
+import 'ir_type_inferrer.dart';
+import '../dart2jslib.dart' show invariant, Constant;
 
 part 'type_graph_nodes.dart';
 part 'container_tracer.dart';
@@ -75,6 +76,25 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation get intType {
     if (intTypeCache != null) return intTypeCache;
     return intTypeCache = getConcreteTypeFor(compiler.typesTask.intType);
+  }
+
+  TypeInformation uint32TypeCache;
+  TypeInformation get uint32Type {
+    if (uint32TypeCache != null) return uint32TypeCache;
+    return uint32TypeCache = getConcreteTypeFor(compiler.typesTask.uint32Type);
+  }
+
+  TypeInformation uint31TypeCache;
+  TypeInformation get uint31Type {
+    if (uint31TypeCache != null) return uint31TypeCache;
+    return uint31TypeCache = getConcreteTypeFor(compiler.typesTask.uint31Type);
+  }
+
+  TypeInformation positiveIntTypeCache;
+  TypeInformation get positiveIntType {
+    if (positiveIntTypeCache != null) return positiveIntTypeCache;
+    return positiveIntTypeCache =
+        getConcreteTypeFor(compiler.typesTask.positiveIntType);
   }
 
   TypeInformation doubleTypeCache;
@@ -224,6 +244,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   ConcreteTypeInformation getConcreteTypeFor(TypeMask mask) {
+    assert(mask != null);
     return concreteTypes.putIfAbsent(mask, () {
       return new ConcreteTypeInformation(mask);
     });
@@ -430,6 +451,10 @@ class TypeGraphInferrerEngine
       if (newAssignments == null) return;
 
       info.elementType.inferred = true;
+      TypeMask fixedListType = compiler.typesTask.fixedListType;
+      if (info.originalContainerType.forwardTo == fixedListType) {
+        info.checksGrowable = tracer.callsGrowableMethod;
+      }
       newAssignments.forEach(info.elementType.addAssignment);
       workQueue.add(info);
       workQueue.add(info.elementType);
@@ -468,8 +493,12 @@ class TypeGraphInferrerEngine
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    SimpleTypeInferrerVisitor visitor =
-        new SimpleTypeInferrerVisitor(element, compiler, this);
+      var visitor;
+      if (compiler.irBuilder.hasIr(element)) {
+        visitor = new IrTypeInferrerVisitor(compiler, element, this);
+      } else {
+        visitor = new SimpleTypeInferrerVisitor(element, compiler, this);
+      }
     TypeInformation type;
     compiler.withCurrentElement(element, () {
       type = visitor.run();
@@ -482,6 +511,15 @@ class TypeGraphInferrerEngine
         // If [element] is final and has an initializer, we record
         // the inferred type.
         if (node.asSendSet() != null) {
+          if (type is! ContainerTypeInformation) {
+            // For non-container types, the constant handler does
+            // constant folding that could give more precise results.
+            Constant value =
+                compiler.constantHandler.getConstantForVariable(element);
+            if (value != null) {
+              type = types.getConcreteTypeFor(value.computeMask(compiler));
+            }
+          }
           recordType(element, type);
         } else if (!element.isInstanceMember()) {
           recordType(element, types.nullType);
@@ -680,6 +718,7 @@ class TypeGraphInferrerEngine
   void recordReturnType(Element element, TypeInformation type) {
     TypeInformation info = types.getInferredTypeOf(element);
     if (element.name == '==') {
+      // Even if x.== doesn't return a bool, 'x == null' evaluates to 'false'.
       info.addAssignment(types.boolType);
     }
     // TODO(ngeoffray): Clean up. We do these checks because
@@ -873,6 +912,12 @@ class TypeGraphInferrer implements TypesInferrer {
   TypeMask getTypeOfNode(Element owner, Node node) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
     return inferrer.types.allocatedContainers[node].type;
+  }
+
+  bool isFixedArrayCheckedForGrowable(Node node) {
+    if (compiler.disableTypeInference) return true;
+    ContainerTypeInformation info = inferrer.types.allocatedContainers[node];
+    return info.checksGrowable;
   }
 
   TypeMask getTypeOfSelector(Selector selector) {

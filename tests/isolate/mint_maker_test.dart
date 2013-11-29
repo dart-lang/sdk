@@ -5,7 +5,8 @@
 library MintMakerTest;
 import 'dart:async';
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 class Mint {
   Map<SendPort, Purse> _registry;
@@ -154,7 +155,8 @@ _checkBalance(PurseWrapper wrapper, expected) {
   }));
 }
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test("creating purse, deposit, and query balance", () {
     MintMakerWrapper.create().then(expectAsync1((mintMaker) {
       mintMaker.makeMint(expectAsync1((MintWrapper mint) {

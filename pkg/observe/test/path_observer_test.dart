@@ -152,6 +152,34 @@ observePathTests() {
     model.add(123);
   });
 
+  group('ObservableList', () {
+    observeTest('isNotEmpty', () {
+      var model = new ObservableList();
+      var path = observePath(model, 'isNotEmpty');
+      expect(path.value, false);
+
+      var future = path.changes.first.then((_) {
+        expect(path.value, true);
+      });
+      model.add(123);
+
+      return future;
+    });
+
+    observeTest('isEmpty', () {
+      var model = new ObservableList();
+      var path = observePath(model, 'isEmpty');
+      expect(path.value, true);
+
+      var future = path.changes.first.then((_) {
+        expect(path.value, false);
+      });
+      model.add(123);
+
+      return future;
+    });
+  });
+
   for (var createModel in [() => new TestModel(), () => new WatcherModel()]) {
     observeTest('Path Observation - ${createModel().runtimeType}', () {
       var model = createModel()..a =

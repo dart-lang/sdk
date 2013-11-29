@@ -214,7 +214,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       Element element = backend.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       HFieldGet result = new HFieldGet(
-          element, actualReceiver, backend.intType,
+          element, actualReceiver, backend.positiveIntType,
           isAssignable: !isFixed);
       return result;
     } else if (actualReceiver.isConstantMap()) {
@@ -776,8 +776,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     HInstruction folded = graph.addConstant(
         constantSystem.createString(
-            new DartString.concat(leftString.value, rightString.value),
-            node.node),
+            new DartString.concat(leftString.value, rightString.value)),
         compiler);
     if (prefix == null) return folded;
     return new HStringConcat(prefix, folded, node.node, backend.stringType);
@@ -791,7 +790,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (!constant.constant.isPrimitive()) return node;
       PrimitiveConstant primitive = constant.constant;
       return graph.addConstant(constantSystem.createString(
-          primitive.toDartString(), node.node), compiler);
+          primitive.toDartString()), compiler);
     }
     return node;
   }
@@ -831,12 +830,15 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction indexArgument) {
     Compiler compiler = backend.compiler;
     HFieldGet length = new HFieldGet(
-        backend.jsIndexableLength, array, backend.intType,
+        backend.jsIndexableLength, array, backend.positiveIntType,
         isAssignable: !isFixedLength(array.instructionType, compiler));
     indexNode.block.addBefore(indexNode, length);
 
+    TypeMask type = indexArgument.isPositiveInteger(compiler)
+        ? indexArgument.instructionType
+        : backend.positiveIntType;
     HBoundsCheck check = new HBoundsCheck(
-        indexArgument, length, array, backend.intType);
+        indexArgument, length, array, type);
     indexNode.block.addBefore(indexNode, check);
     // If the index input to the bounds check was not known to be an integer
     // then we replace its uses with the bounds check, which is known to be an

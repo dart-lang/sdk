@@ -6,8 +6,9 @@ library parse_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
+import 'utils.dart';
 
-main() {
+void main() {
   group('ArgParser.parse()', () {
     test('does not destructively modify the argument list', () {
       var parser = new ArgParser();
@@ -420,12 +421,4 @@ main() {
       });
     });
   });
-}
-
-throwsIllegalArg(function) {
-  expect(function, throwsArgumentError);
-}
-
-throwsFormat(ArgParser parser, List<String> args) {
-  expect(() => parser.parse(args), throwsFormatException);
 }

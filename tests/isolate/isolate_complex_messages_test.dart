@@ -7,9 +7,11 @@
 
 library IsolateComplexMessagesTest;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test("complex messages are serialized correctly", () {
     ReceivePort local = new ReceivePort();
     Isolate.spawn(logMessages, local.sendPort);

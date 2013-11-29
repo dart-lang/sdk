@@ -365,7 +365,7 @@ class CompileTimeConstantEvaluator extends Visitor {
   }
 
   Constant visitLiteralString(LiteralString node) {
-    return constantSystem.createString(node.dartString, node);
+    return constantSystem.createString(node.dartString);
   }
 
   Constant visitStringJuxtaposition(StringJuxtaposition node) {
@@ -373,7 +373,7 @@ class CompileTimeConstantEvaluator extends Visitor {
     StringConstant right = evaluate(node.second);
     if (left == null || right == null) return null;
     return constantSystem.createString(
-        new DartString.concat(left.value, right.value), node);
+        new DartString.concat(left.value, right.value));
   }
 
   Constant visitStringInterpolation(StringInterpolation node) {
@@ -399,14 +399,14 @@ class CompileTimeConstantEvaluator extends Visitor {
       if (partString == null) return null;
       accumulator = new DartString.concat(accumulator, partString.value);
     };
-    return constantSystem.createString(accumulator, node);
+    return constantSystem.createString(accumulator);
   }
 
   Constant visitLiteralSymbol(LiteralSymbol node) {
     InterfaceType type = compiler.symbolClass.computeType(compiler);
     List<Constant> createArguments(_) {
       return [constantSystem.createString(
-        new DartString.literal(node.slowNameString), node)];
+        new DartString.literal(node.slowNameString))];
     }
     return makeConstructedConstant(
         node, type, compiler.symbolConstructor, createArguments);
@@ -711,7 +711,7 @@ class CompileTimeConstantEvaluator extends Visitor {
         }
       } else {
         assert(constructor == compiler.stringEnvironment);
-        return constantSystem.createString(new DartString.literal(value), node);
+        return constantSystem.createString(new DartString.literal(value));
       }
     } else {
       return makeConstructedConstant(

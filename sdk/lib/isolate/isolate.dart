@@ -208,7 +208,7 @@ abstract class RawReceivePort {
   void close();
 
   /**
-   * Returns a [SendPort] that sends to this receive port.
+   * Returns a [SendPort] that sends to this raw receive port.
    */
   SendPort get sendPort;
 }

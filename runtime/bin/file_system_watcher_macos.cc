@@ -14,6 +14,7 @@
 
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
+#include "bin/file.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 
@@ -49,10 +50,11 @@ static FSEventsWatcher* watcher = NULL;
 
 union FSEvent {
   struct {
+    uint32_t exists;
     uint32_t flags;
     char path[PATH_MAX];
   } data;
-  uint8_t bytes[PATH_MAX + 4];
+  uint8_t bytes[PATH_MAX + 8];
 };
 
 class FSEventsWatcher {
@@ -179,7 +181,7 @@ class FSEventsWatcher {
         CFArrayCreate(NULL, reinterpret_cast<const void**>(&path_ref), 1, NULL),
         kFSEventStreamEventIdSinceNow,
         0.10,
-        kFSEventStreamCreateFlagFileEvents);
+        kFSEventStreamCreateFlagNoDefer | kFSEventStreamCreateFlagFileEvents);
 
     node->set_ref(ref);
 
@@ -201,11 +203,12 @@ class FSEventsWatcher {
     Node* node = reinterpret_cast<Node*>(client);
     for (size_t i = 0; i < num_events; i++) {
       char *path = reinterpret_cast<char**>(event_paths)[i];
+      FSEvent event;
+      event.data.exists = File::Exists(path);
       path += node->base_path_length();
       // If path is longer the base, skip next character ('/').
       if (path[0] != '\0') path += 1;
       if (!node->recursive() && strstr(path, "/") != NULL) continue;
-      FSEvent event;
       event.data.flags = event_flags[i];
       memmove(event.data.path, path, strlen(path) + 1);
       write(node->write_fd(), event.bytes, sizeof(event));
@@ -272,7 +275,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
         // The moved path is the path being watched.
         mask |= kDeleteSelf;
       } else {
-        mask |= kMove;
+        mask |= e.data.exists ? kCreate : kDelete;
       }
     }
     if (flags & kFSEventStreamEventFlagItemModified) mask |= kModifyContent;

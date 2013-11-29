@@ -700,6 +700,12 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
 }
 
 class BrowserCommandOutputImpl extends CommandOutputImpl {
+  // Although tests are reported as passing, content shell sometimes exits with
+  // a nonzero exitcode which makes our dartium builders extremely falky.
+  // See: http://dartbug.com/15139.
+  static int WHITELISTED_CONTENTSHELL_EXITCODE = -1073740022;
+  static bool isWindows = io.Platform.operatingSystem == 'windows';
+
   bool _failedBecauseOfMissingXDisplay;
 
   BrowserCommandOutputImpl(
@@ -832,7 +838,9 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
         DebugLogger.warning(message);
         diagnostics.add(message);
       }
-      return (exitCode != 0 && !hasCrashed);
+      return (!hasCrashed &&
+              exitCode != 0 &&
+              (!isWindows || exitCode != WHITELISTED_CONTENTSHELL_EXITCODE));
     }
     DebugLogger.warning("Couldn't find 'Content-Type: text/plain' in output. "
                         "($command).");
@@ -1247,8 +1255,10 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
   static const DART2JS_EXITCODE_CRASH = 253;
 
   CompilationCommandOutputImpl(Command command, int exitCode, bool timedOut,
-      List<int> stdout, List<int> stderr, Duration time)
-      : super(command, exitCode, timedOut, stdout, stderr, time, false);
+      List<int> stdout, List<int> stderr, Duration time,
+      bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+              compilationSkipped);
 
   Expectation result(TestCase testCase) {
     // Handle general crash/timeout detection.
@@ -1334,7 +1344,7 @@ CommandOutput createCommandOutput(Command command,
         command, exitCode, timedOut, stdout, stderr, time);
   } else if (command is CompilationCommand) {
     return new CompilationCommandOutputImpl(
-        command, exitCode, timedOut, stdout, stderr, time);
+        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is JSCommandlineCommand) {
     return new JsCommandlineOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time);
@@ -2314,7 +2324,57 @@ class ProcessQueue {
         });
     }
 
+    var testCaseEnqueuer;
     void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
+      Timer _debugTimer;
+      // If we haven't seen a single test finishing during a 10 minute period
+      // something is definitly wrong, so we dump the debugging information.
+      final debugTimerDuration = const Duration(minutes: 10);
+
+      void cancelDebugTimer() {
+        if (_debugTimer != null) {
+          _debugTimer.cancel();
+        }
+      }
+
+      void resetDebugTimer() {
+        cancelDebugTimer();
+        _debugTimer = new Timer(debugTimerDuration, () {
+          print("The debug timer of test.dart expired. Please report this issue"
+                " to ricow/kustermann and provide the following information:");
+          print("");
+          _graph.DumpCounts();
+          print("");
+          var unfinishedNodeStates = [
+              dgraph.NodeState.Initialized,
+              dgraph.NodeState.Waiting,
+              dgraph.NodeState.Enqueuing,
+              dgraph.NodeState.Processing];
+
+          for (var nodeState in unfinishedNodeStates) {
+            if (_graph.stateCount(nodeState) > 0) {
+              print("Commands in state '$nodeState':");
+              print("=================================");
+              print("");
+              for (var node in _graph.nodes) {
+                if (node.state == nodeState) {
+                  var command = node.userData;
+                  var testCases = testCaseEnqueuer.command2testCases[command];
+                  print("  Command: $command");
+                  for (var testCase in testCases) {
+                    print("    Enqueued by: ${testCase.configurationString} "
+                          "-- ${testCase.displayName}");
+                  }
+                  print("");
+                }
+              }
+              print("");
+              print("");
+            }
+          }
+        });
+      }
+
       bool recording = recordingOutputFile != null;
       bool replaying = recordedInputFile != null;
 
@@ -2349,6 +2409,8 @@ class ProcessQueue {
           new TestCaseCompleter(_graph, testCaseEnqueuer, commandQueue);
       testCaseCompleter.finishedTestCases.listen(
           (TestCase finishedTestCase) {
+            resetDebugTimer();
+
             // If we're recording, we don't report any TestCases to listeners.
             if (!recording) {
               eventFinishedTestCase(finishedTestCase);
@@ -2357,12 +2419,17 @@ class ProcessQueue {
           onDone: () {
             // Wait until the commandQueue/execturo is done (it may need to stop
             // batch runners, browser controllers, ....)
-            commandQueue.done.then((_) => eventAllTestsDone());
+            commandQueue.done.then((_) {
+              cancelDebugTimer();
+              eventAllTestsDone();
+            });
           });
+
+      resetDebugTimer();
     }
 
     // Build up the dependency graph
-    var testCaseEnqueuer = new TestCaseEnqueuer(_graph, (TestCase newTestCase) {
+    testCaseEnqueuer = new TestCaseEnqueuer(_graph, (TestCase newTestCase) {
       eventTestAdded(newTestCase);
     });
 

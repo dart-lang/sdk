@@ -1508,13 +1508,6 @@ class Function : public Object {
   // Sets function's code and code's function.
   void SetCode(const Code& value) const;
 
-  // Detaches code from the function by setting the code to null, and patches
-  // the code to be non-entrant.
-  void DetachCode() const;
-
-  // Reattaches code to the function, and patches the code to be entrant.
-  void ReattachCode(const Code& code) const;
-
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
 
@@ -2002,6 +1995,9 @@ class Function : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
+  // RawFunction::VisitFunctionPointers accesses the private constructor of
+  // Function.
+  friend class RawFunction;
 };
 
 
@@ -2365,6 +2361,7 @@ class Script : public Object {
   RawScript::Kind kind() const {
     return static_cast<RawScript::Kind>(raw_ptr()->kind_);
   }
+  const char* GetKindAsCString() const;
   intptr_t line_offset() const { return raw_ptr()->line_offset_; }
   intptr_t col_offset() const { return raw_ptr()->col_offset_; }
 
@@ -3360,6 +3357,10 @@ class Code : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
+
+  // So that the RawFunction pointer visitor can determine whether code the
+  // function points to is optimized.
+  friend class RawFunction;
 };
 
 
@@ -4476,6 +4477,7 @@ class Integer : public Number {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual uint32_t AsTruncatedUint32Value() const;
 
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
@@ -4518,6 +4520,7 @@ class Smi : public Integer {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual int CompareWith(const Integer& other) const;
 
@@ -4607,6 +4610,7 @@ class Mint : public Integer {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual int CompareWith(const Integer& other) const;
 
@@ -4644,6 +4648,7 @@ class Bigint : public Integer {
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
+  virtual uint32_t AsTruncatedUint32Value() const;
 
   virtual int CompareWith(const Integer& other) const;
 
@@ -5020,6 +5025,8 @@ class String : public Instance {
   friend class TwoByteString;
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
+  // So that the MarkingVisitor can print a debug string from a NoHandleScope.
+  friend class MarkingVisitor;
 };
 
 

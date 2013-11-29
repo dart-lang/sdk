@@ -63,7 +63,7 @@ void testBasicTypes() {
   });
   checkPrintType('1', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
-    Expect.identical(compiler.typesTask.intType, type);
+    Expect.identical(compiler.typesTask.uint31Type, type);
   });
   checkPrintType('[]', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
@@ -94,7 +94,7 @@ void testOptionalParameters() {
         var typesTask = compiler.typesTask;
         var inferrer = typesTask.typesInferrer;
         Expect.identical(
-            typesTask.intType,
+            typesTask.uint31Type,
             typesTask.getGuaranteedTypeOfElement(firstParameter));
         Expect.identical(
             typesTask.nullType,

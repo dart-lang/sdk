@@ -81,11 +81,11 @@ main() {
       LIST_INDEX_FOLDING, 'foo', new RegExp(r"return 1"));
 
   compileAndDoNotMatch(
-      LIST_INDEX_FOLDING, 'foo', new RegExp(r"throw"));
+      LIST_INDEX_FOLDING, 'foo', new RegExp(r"ioore"));
 
   compileAndMatch(
       STRING_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"));
 
   compileAndMatch(
-      RANGE_ERROR_INDEX_FOLDING, 'foo', new RegExp(r"throw"));
+      RANGE_ERROR_INDEX_FOLDING, 'foo', new RegExp(r"ioore"));
 }

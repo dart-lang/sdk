@@ -27,7 +27,6 @@ Language/03_Overview/1_Scoping_A02_t06: CompileTimeError # TODO(ahe): Please tri
 Language/05_Variables/05_Variables_A11_t01: fail
 LibTest/core/double/INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: RuntimeError # TODO(ahe): Please triage this failure.
-LibTest/core/List/List_A03_t01: RuntimeError # TODO(kasperl): Please triage this failure.
 
 LibTest/typed_data/ByteData/getFloat32_A02_t02: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/getFloat64_A02_t02: fail # co19-roll r569: Please triage this failure
@@ -115,7 +114,7 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TOD
 Language/15_Types/2_Dynamic_Type_System_A01_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/15_Types/8_Parameterized_Types_A03_t07: RuntimeError # co19-roll r607: Please triage this failure
 Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r623: Please triage this failure
-
+LibTest/typed_data/Float32x4List/reduce_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 
 [ $compiler == dart2js ]
 LibTest/core/int/operator_GT_A01_t01: RuntimeError, OK # co19 issue 200
@@ -152,6 +151,52 @@ LibTest/core/int/operator_remainder_A01_t01: RuntimeError, OK # Requires bigints
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK # co19 issue 212
 
+[ $compiler == dart2js || $compiler == dart2dart ]
+
+Language/12_Expressions/05_Strings_A02_t02: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t03: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t04: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t05: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t06: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t07: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t08: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t09: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t10: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t11: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t12: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t13: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t14: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t15: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t16: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t17: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t18: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t19: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t20: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t21: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t22: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t23: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t24: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t25: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t28: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t29: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t32: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t32: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t33: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t34: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t36: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t38: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t40: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t42: Crash # Issue 15237
+Language/12_Expressions/05_Strings_A02_t44: Crash # Issue 15237
+
+
+Language/13_Statements/05_If_A01_t04: Crash # Issue 15237
+Language/13_Statements/07_While_A01_t01: Crash # Issue 15237
+Language/13_Statements/08_Do_A01_t03: Crash # Issue 15237
+Language/13_Statements/09_Switch_A01_t04: Crash # Issue 15237
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A15_t06: Crash # Issue 15237
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A22_t06: Crash # Issue 15237
+Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t06: Crash # Issue 15237
 
 #
 # Issues with co19 test suite.
@@ -439,7 +484,6 @@ Language/15_Types/4_Interface_Types_A12_t10: fail # co19-roll r546: Please triag
 LibTest/core/DateTime/DateTime_A01_t03: fail # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Duration/operator_div_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/core/List/List_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/core/Match/pattern_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/core/RegExp/allMatches_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
@@ -486,7 +530,6 @@ LibTest/typed_data/Uint8List/Uint8List.view_A05_t01: RuntimeError # co19-roll r5
 LibTest/typed_data/Uint8List/Uint8List.view_A05_t02: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/Uint8List.view_A05_t03: RuntimeError # co19-roll r559: Please triage this failure
 Utils/tests/Expect/identical_A01_t01: fail # co19-roll r546: Please triage this failure
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05: CompileTimeError # co19-roll r607: Please triage this failure
 
 [ $compiler == dart2js && $checked ]
 Language/12_Expressions/03_Numbers_A05_t02: fail # co19-roll r546: Please triage this failure

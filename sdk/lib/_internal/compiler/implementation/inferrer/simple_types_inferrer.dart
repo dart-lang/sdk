@@ -74,6 +74,9 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get dynamicType => compiler.typesTask.dynamicType;
   TypeMask get nullType => compiler.typesTask.nullType;
   TypeMask get intType => compiler.typesTask.intType;
+  TypeMask get uint32Type => compiler.typesTask.uint32Type;
+  TypeMask get uint31Type => compiler.typesTask.uint31Type;
+  TypeMask get positiveIntType => compiler.typesTask.positiveIntType;
   TypeMask get doubleType => compiler.typesTask.doubleType;
   TypeMask get numType => compiler.typesTask.numType;
   TypeMask get boolType => compiler.typesTask.boolType;
@@ -123,6 +126,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     TypeMask newType = compiler.world.allFunctions.receiverType(selector);
     return receiverType.intersection(newType, compiler);
   }
+
+  TypeMask getConcreteTypeFor(TypeMask mask) => mask;
 }
 
 /**
@@ -680,7 +685,7 @@ class SimpleTypeInferrerVisitor<T>
     T indexType;
 
     if (isIncrementOrDecrement) {
-      rhsType = types.intType;
+      rhsType = types.uint31Type;
       if (node.isIndex) indexType = visit(node.arguments.head);
     } else if (node.isIndex) {
       indexType = visit(node.arguments.head);

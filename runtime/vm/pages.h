@@ -13,6 +13,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, collect_code);
 DECLARE_FLAG(bool, log_code_drop);
+DECLARE_FLAG(bool, always_drop_code);
 
 // Forward declarations.
 class Heap;
@@ -199,9 +200,9 @@ class PageSpace {
   RawObject* FindObject(FindObjectVisitor* visitor,
                         HeapPage::PageType type) const;
 
-  // Runs a visitor that attempts to drop references to code that has not
-  // been run in awhile.
-  void TryDetachingCode();
+  // Checks if enough time has elapsed since the last attempt to collect
+  // code.
+  bool ShouldCollectCode();
 
   // Collect the garbage in the page space using mark-sweep.
   void MarkSweep(bool invoke_api_callbacks);

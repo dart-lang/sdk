@@ -20,6 +20,7 @@ final defaultSelection = new Selection(-1, -1);
 
 var formatterSettings;
 
+CodeKind kind;
 bool machineFormat;
 bool overwriteFileContents;
 Selection selection;
@@ -36,18 +37,28 @@ main(args) {
   _readOptions(options);
 
   if (options.rest.isEmpty) {
-    _formatStdin(options);
+    _formatStdin(kind);
   } else {
     _formatPaths(options.rest);
   }
 }
 
 _readOptions(options) {
+  kind = _parseKind(options['kind']);
   machineFormat = options['machine'];
   overwriteFileContents = options['write'];
   selection = _parseSelection(options['selection']);
   formatterSettings =
       new FormatterOptions(codeTransforms: options['transform']);
+}
+
+CodeKind _parseKind(kindOption) {
+  switch(kindOption) {
+    case 'stmt' :
+      return CodeKind.STATEMENT;
+    default:
+      return CodeKind.COMPILATION_UNIT;
+  }
 }
 
 Selection _parseSelection(selectionOption) {
@@ -93,7 +104,7 @@ _formatFile(file) {
     try {
       var buffer = new StringBuffer();
       var rawSource = file.readAsStringSync();
-      var formatted = _formatCU(rawSource);
+      var formatted = _format(rawSource, CodeKind.COMPILATION_UNIT);
       if (overwriteFileContents) {
         file.writeAsStringSync(formatted);
       } else {
@@ -107,12 +118,12 @@ _formatFile(file) {
 
 _isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
-_formatStdin(options) {
+_formatStdin(kind) {
   var input = new StringBuffer();
   stdin.transform(new Utf8Decoder())
       .listen((data) => input.write(data),
         onError: (error) => _log('Error reading from stdin'),
-        onDone: () => print(_formatCU(input.toString())));
+        onDone: () => print(_format(input.toString(), kind)));
 }
 
 /// Initialize the arg parser instance.
@@ -122,6 +133,9 @@ ArgParser _initArgParser() {
   parser.addFlag('write', abbr: 'w', negatable: false,
       help: 'Write reformatted sources to files (overwriting contents).  '
             'Do not print reformatted sources to standard output.');
+  parser.addOption('kind', abbr: 'k', defaultsTo: 'cu',
+      help: 'Specify source snippet kind ("stmt" or "cu")'
+            ' --- [PROVISIONAL API].');
   parser.addFlag('machine', abbr: 'm', negatable: false,
       help: 'Produce output in a format suitable for parsing.');
   parser.addOption('selection', abbr: 's',
@@ -153,10 +167,10 @@ _printUsage() {
   _log(buffer.toString());
 }
 
-/// Format the given [src] as a compilation unit.
-String _formatCU(src) {
+/// Format this [src], treating it as the given snippet [kind].
+String _format(src, kind) {
   var formatResult = new CodeFormatter(formatterSettings).format(
-      CodeKind.COMPILATION_UNIT, src, selection: selection);
+      kind, src, selection: selection);
   if (machineFormat) {
     if (formatResult.selection == null) {
       formatResult.selection = defaultSelection;

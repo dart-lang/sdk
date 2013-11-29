@@ -42,6 +42,15 @@ f18(b) => b ? 2 : 0;
 
 f19(i) => i == 0 ? 0 : 0;
 
+f20(i) => i > 0 ? 0 : 1;
+f21(i) => i > 0 ? 2 : 3;
+f22(i) => i & 1 == 0 ? 0 : 1;
+f23(i) => i & 1 != 0 ? 1 : 0;
+
+f24(i) => i >= 0 ? 0 : 1;
+f25(i) => i < 0 ? 0 : 1;
+f26(i) => i <= 0 ? 0 : 1;
+
 main() {
   for (var i = 0; i < 20; i++) {
     f1(i);
@@ -65,6 +74,13 @@ main() {
     f17(true);
     f18(true);
     f19(i);
+    f20(i);
+    f21(i);
+    f22(i);
+    f23(i);
+    f24(i);
+    f25(i);
+    f26(i);
   }
 
   Expect.equals(0, f1(0));
@@ -117,4 +133,20 @@ main() {
 
   Expect.equals(0, f19(0));
   Expect.equals(0, f19(1));
+
+  Expect.equals(0, f20(123));
+  Expect.equals(2, f21(123));
+  Expect.equals(0, f22(122));
+  Expect.equals(1, f22(123));
+  Expect.equals(0, f23(122));
+  Expect.equals(1, f23(123));
+
+  Expect.equals(0, f24(0));
+  Expect.equals(1, f24(-1));
+
+  Expect.equals(0, f25(-1));
+  Expect.equals(1, f25(0));
+
+  Expect.equals(0, f26(0));
+  Expect.equals(1, f26(1));
 }

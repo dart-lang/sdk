@@ -15,7 +15,6 @@ import subprocess
 import sys
 sys.path.append(abspath(join(dirname(__file__), '../../../tools')))
 import utils
-from upload_sdk import ExecuteCommand
 
 DIRECTORY = abspath(dirname(__file__))
 DART_DIR = dirname(dirname(dirname(DIRECTORY)))
@@ -134,15 +133,15 @@ def main():
       docgen = [DART_EXECUTABLE, '--checked',
           '--package-root=' + PACKAGE_ROOT, join(DIRECTORY, 'docgen.dart')]
       docgen.extend(options.options.split())
-      ExecuteCommand(docgen)
+      utils.ExecuteCommand(docgen)
   if generate_all_docs:
     GenerateAllDocs(docgen_options)
   if not options.just_docs:
     cwd = os.getcwd()
     try:
-      ExecuteCommand(['git', 'clone', '-b', 'master',
+      utils.ExecuteCommand(['git', 'clone', '-b', 'master',
        'git://github.com/dart-lang/dartdoc-viewer.git'])
-      ExecuteCommand(['mv', 'docs', 'dartdoc-viewer/client/local'])
+      utils.ExecuteCommand(['mv', 'docs', 'dartdoc-viewer/client/local'])
       os.chdir('dartdoc-viewer/client/')
       subprocess.call([PUB, 'install'])
       subprocess.call([DART_EXECUTABLE, 'deploy.dart'])

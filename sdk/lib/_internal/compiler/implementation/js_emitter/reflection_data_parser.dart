@@ -68,7 +68,7 @@ String getReflectionDataParser(String classesCollector, Namer namer) {
 '''init.typeInformation[previousProperty] = element;
         } else if (firstChar === "@") {
           property = property.substring(1);
-          ${namer.CURRENT_ISOLATE}[property][$metadataField] = element;
+          ${namer.currentIsolate}[property][$metadataField] = element;
         } else if (firstChar === "*") {
           globalObject[previousProperty].$defaultValuesField = element;
           var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;

@@ -257,8 +257,9 @@ class _File extends FileSystemEntity implements File {
   FileStat statSync() => FileStat.statSync(path);
 
   Future<File> create({bool recursive: false}) {
-    return (recursive ? parent.create(recursive: true)
-                      : new Future.value(null))
+    var result = recursive ? parent.create(recursive: true)
+                           : new Future.value(null);
+    return result
       .then((_) => _IOService.dispatch(_FILE_CREATE, [path]))
       .then((response) {
         if (_isErrorResponse(response)) {

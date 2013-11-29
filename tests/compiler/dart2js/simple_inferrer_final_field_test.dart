@@ -39,11 +39,11 @@ void main() {
           typesInferrer.getTypeOfElement(element).simplify(compiler));
     }
 
-    checkFieldTypeInClass('A', 'intField', compiler.typesTask.intType);
+    checkFieldTypeInClass('A', 'intField', compiler.typesTask.uint31Type);
     checkFieldTypeInClass('A', 'giveUpField1',
         findTypeMask(compiler, 'Interceptor', 'nonNullSubclass'));
     checkFieldTypeInClass('A', 'giveUpField2',
         compiler.typesTask.dynamicType.nonNullable());
-    checkFieldTypeInClass('A', 'fieldParameter', compiler.typesTask.intType);
+    checkFieldTypeInClass('A', 'fieldParameter', compiler.typesTask.uint31Type);
   }));
 }

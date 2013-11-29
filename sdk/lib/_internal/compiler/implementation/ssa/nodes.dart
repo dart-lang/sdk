@@ -55,6 +55,7 @@ abstract class HVisitor<R> {
   R visitRangeConversion(HRangeConversion node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
+  R visitShiftRight(HShiftRight node);
   R visitStatic(HStatic node);
   R visitStaticStore(HStaticStore node);
   R visitStringConcat(HStringConcat node);
@@ -161,30 +162,10 @@ class HGraph {
     return result;
   }
 
-  static TypeMask mapConstantTypeToSsaType(Constant constant,
-                                           Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    if (constant.isNull()) return backend.nullType;
-    if (constant.isBool()) return backend.boolType;
-    if (constant.isInt()) return backend.intType;
-    if (constant.isDouble()) return backend.doubleType;
-    if (constant.isString()) return backend.stringType;
-    if (constant.isList()) return backend.readableArrayType;
-    if (constant.isFunction()) return backend.nonNullType;
-    if (constant.isSentinel()) return backend.nonNullType;
-    // TODO(sra): What is the type of the prototype of an interceptor?
-    if (constant.isInterceptor()) return backend.nonNullType;
-    ObjectConstant objectConstant = constant;
-    if (backend.isInterceptorClass(objectConstant.type.element)) {
-      return backend.nonNullType;
-    }
-    return new TypeMask.nonNullExact(objectConstant.type.element);
-  }
-
   HConstant addConstant(Constant constant, Compiler compiler) {
     HConstant result = constants[constant];
     if (result == null) {
-      TypeMask type = mapConstantTypeToSsaType(constant, compiler);
+      TypeMask type = constant.computeMask(compiler);
       result = new HConstant.internal(constant, type);
       entry.addAtExit(result);
       constants[constant] = result;
@@ -205,10 +186,9 @@ class HGraph {
   }
 
   HConstant addConstantString(DartString str,
-                              Node diagnosticNode,
                               Compiler compiler) {
     return addConstant(
-        compiler.backend.constantSystem.createString(str, diagnosticNode),
+        compiler.backend.constantSystem.createString(str),
         compiler);
   }
 
@@ -336,6 +316,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
+  visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
   visitSwitch(HSwitch node) => visitControlFlow(node);
   visitStatic(HStatic node) => visitInstruction(node);
@@ -801,6 +782,7 @@ abstract class HInstruction implements Spannable {
   static const int INDEX_TYPECODE = 27;
   static const int IS_TYPECODE = 28;
   static const int INVOKE_DYNAMIC_TYPECODE = 29;
+  static const int SHIFT_RIGHT_TYPECODE = 30;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++, usedBy = <HInstruction>[] {
@@ -916,6 +898,29 @@ abstract class HInstruction implements Spannable {
   bool isInteger(Compiler compiler) {
     return instructionType.containsOnlyInt(compiler)
         && !instructionType.isNullable;
+  }
+
+  bool isUInt32(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return !instructionType.isNullable
+        && instructionType.satisfies(backend.jsUInt32Class, compiler);
+  }
+
+  bool isUInt31(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return !instructionType.isNullable
+        && instructionType.satisfies(backend.jsUInt31Class, compiler);
+  }
+
+  bool isPositiveInteger(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return !instructionType.isNullable
+        && instructionType.satisfies(backend.jsPositiveIntClass, compiler);
+  }
+
+  bool isPositiveIntegerOrNull(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return instructionType.satisfies(backend.jsPositiveIntClass, compiler);
   }
 
   bool isIntegerOrNull(Compiler compiler) {
@@ -1571,6 +1576,7 @@ class HLocalSet extends HFieldAccess {
 class HForeign extends HInstruction {
   final js.Node codeAst;
   final bool isStatement;
+  final bool _canThrow;
   final native.NativeBehavior nativeBehavior;
 
   HForeign(this.codeAst,
@@ -1578,8 +1584,11 @@ class HForeign extends HInstruction {
            List<HInstruction> inputs,
            {this.isStatement: false,
             SideEffects effects,
-            native.NativeBehavior nativeBehavior})
-      : this.nativeBehavior = nativeBehavior, super(inputs, type) {
+            native.NativeBehavior nativeBehavior,
+            canThrow: false})
+      : this.nativeBehavior = nativeBehavior,
+        this._canThrow = canThrow,
+        super(inputs, type) {
     if (effects == null && nativeBehavior != null) {
       effects = nativeBehavior.sideEffects;
     }
@@ -1597,7 +1606,9 @@ class HForeign extends HInstruction {
 
   bool isJsStatement() => isStatement;
   bool canThrow() {
-    return sideEffects.hasSideEffects() || sideEffects.dependsOnSomething();
+    return _canThrow
+        || sideEffects.hasSideEffects()
+        || sideEffects.dependsOnSomething();
   }
 }
 
@@ -1718,6 +1729,17 @@ class HShiftLeft extends HBinaryBitOp {
       => constantSystem.shiftLeft;
   int typeCode() => HInstruction.SHIFT_LEFT_TYPECODE;
   bool typeEquals(other) => other is HShiftLeft;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HShiftRight extends HBinaryBitOp {
+  HShiftRight(left, right, selector, type) : super(left, right, selector, type);
+  accept(HVisitor visitor) => visitor.visitShiftRight(this);
+
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.shiftRight;
+  int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
+  bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2806,13 +2828,11 @@ class HTryBlockInformation implements HStatementInformation {
 
 class HSwitchBlockInformation implements HStatementInformation {
   final HExpressionInformation expression;
-  final List<List<Constant>> matchExpressions;
   final List<HStatementInformation> statements;
   final TargetElement target;
   final List<LabelElement> labels;
 
   HSwitchBlockInformation(this.expression,
-                          this.matchExpressions,
                           this.statements,
                           this.target,
                           this.labels);

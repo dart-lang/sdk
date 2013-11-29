@@ -229,6 +229,8 @@ abstract class ByteData implements TypedData {
    * form.
    * The return value will be between 0 and  2<sup>32</sup> - 1, inclusive.
    *
+   * Throws [RangeError] if [byteOffset] is negative, or
+   * `byteOffset + 4` is greater than the length of this object.
    */
   int getUint32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
 

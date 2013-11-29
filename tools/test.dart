@@ -178,7 +178,9 @@ void testConfigurations(List<Map> configurations) {
     for (String key in selectors.keys) {
       if (key == 'co19') {
         testSuites.add(new Co19TestSuite(conf));
-      } else if (conf['runtime'] == 'vm' && key == 'vm') {
+      } else if (conf['compiler'] == 'none' &&
+                 conf['runtime'] == 'vm' &&
+                 key == 'vm') {
         // vm tests contain both cc tests (added here) and dart tests (added
         // in [TEST_SUITE_DIRECTORIES]).
         testSuites.add(new VMTestSuite(conf));
@@ -282,10 +284,10 @@ Future deleteTemporaryDartDirectories() {
   return completer.future;
 }
 
-void main() {
+void main(List<String> arguments) {
   deleteTemporaryDartDirectories().then((_) {
     var optionsParser = new TestOptionsParser();
-    var configurations = optionsParser.parse(new Options().arguments);
+    var configurations = optionsParser.parse(arguments);
     if (configurations != null && configurations.length > 0) {
       testConfigurations(configurations);
     }

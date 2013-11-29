@@ -25,3 +25,4 @@ library stack_trace;
 
 export 'src/trace.dart';
 export 'src/frame.dart';
+export 'src/chain.dart';

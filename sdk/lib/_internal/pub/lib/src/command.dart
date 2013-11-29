@@ -5,7 +5,7 @@
 library pub.command;
 
 import 'dart:io';
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;

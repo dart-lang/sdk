@@ -254,6 +254,9 @@ abstract class Backend {
   ClassElement get typeImplementation => compiler.typeClass;
   ClassElement get boolImplementation => compiler.boolClass;
   ClassElement get nullImplementation => compiler.nullClass;
+  ClassElement get uint32Implementation => compiler.intClass;
+  ClassElement get uint31Implementation => compiler.intClass;
+  ClassElement get positiveIntImplementation => compiler.intClass;
 
   ClassElement defaultSuperclass(ClassElement element) => compiler.objectClass;
 
@@ -262,6 +265,8 @@ abstract class Backend {
     ClassElement classElement = element.getEnclosingClass();
     return classElement == compiler.objectClass;
   }
+
+  bool isInterceptorClass(ClassElement element) => false;
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {}
 
@@ -394,12 +399,6 @@ abstract class Compiler implements DiagnosticListener {
    */
   final Uri sourceMapUri;
 
-  /**
-   * The name to use for the global JS object in JS output.  Default
-   * value is "$".
-   */
-  final String globalJsName;
-
   /// Emit terse diagnostics without howToFix.
   final bool terseDiagnostics;
 
@@ -504,31 +503,30 @@ abstract class Compiler implements DiagnosticListener {
     _currentElement = element;
     try {
       return f();
-    } on SpannableAssertionFailure catch (ex, s) {
+    } on SpannableAssertionFailure catch (ex) {
       if (!hasCrashed) {
         String message = (ex.message != null) ? tryToString(ex.message)
                                               : tryToString(ex);
         SourceSpan span = spanFromSpannable(ex.node);
         reportError(ex.node, MessageKind.GENERIC, {'text': message});
-        pleaseReportCrash(s, 'The compiler crashed: $message.');
+        pleaseReportCrash();
       }
       hasCrashed = true;
-      throw new CompilerCancelledException('The compiler crashed.');
+      rethrow;
     } on CompilerCancelledException catch (ex) {
       rethrow;
     } on StackOverflowError catch (ex) {
       // We cannot report anything useful in this case, because we
       // do not have enough stack space.
       rethrow;
-    } catch (ex, s) {
+    } catch (ex) {
       if (hasCrashed) rethrow;
-      String message = 'The compiler crashed: ${tryToString(ex)}.';
       try {
-        unhandledExceptionOnElement(element, s, message);
+        unhandledExceptionOnElement(element);
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
-      throw new CompilerCancelledException(message);
+      rethrow;
     } finally {
       _currentElement = old;
     }
@@ -544,6 +542,7 @@ abstract class Compiler implements DiagnosticListener {
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
+  IrBuilderTask irBuilder;
   ti.TypesTask typesTask;
   Backend backend;
   ConstantHandler constantHandler;
@@ -622,7 +621,6 @@ abstract class Compiler implements DiagnosticListener {
             this.verbose: false,
             this.sourceMapUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
-            this.globalJsName: r'$',
             this.terseDiagnostics: false,
             outputProvider,
             List<String> strips: const []})
@@ -656,6 +654,7 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this),
       closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
+      irBuilder = new IrBuilderTask(this),
       typesTask = new ti.TypesTask(this),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
       deferredLoadTask = new DeferredLoadTask(this),
@@ -702,25 +701,17 @@ abstract class Compiler implements DiagnosticListener {
     internalError(message, element: element);
   }
 
-  void unhandledExceptionOnElement(Element element,
-                                   StackTrace stackTrace,
-                                   String message) {
+  void unhandledExceptionOnElement(Element element) {
     if (hasCrashed) return;
     hasCrashed = true;
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
                      api.Diagnostic.CRASH);
-    pleaseReportCrash(stackTrace, message);
+    pleaseReportCrash();
   }
 
-  void pleaseReportCrash(StackTrace stackTrace, String message) {
+  void pleaseReportCrash() {
     print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': buildId}));
-    if (message != null) {
-      print(message);
-    }
-    if (stackTrace != null) {
-      print(stackTrace);
-    }
   }
 
   void cancel(String reason, {Node node, Token token,
@@ -774,7 +765,7 @@ abstract class Compiler implements DiagnosticListener {
   Future<bool> run(Uri uri) {
     totalCompileTime.start();
 
-    return new Future.sync(() => runCompiler(uri)).catchError((error, trace) {
+    return new Future.sync(() => runCompiler(uri)).catchError((error) {
       if (error is CompilerCancelledException) {
         log('Error: $error');
         return false;
@@ -786,8 +777,7 @@ abstract class Compiler implements DiagnosticListener {
           reportDiagnostic(new SourceSpan(uri, 0, 0),
                            MessageKind.COMPILER_CRASHED.error().toString(),
                            api.Diagnostic.CRASH);
-          String message = 'The compiler crashed.';
-          pleaseReportCrash(trace, message);
+          pleaseReportCrash();
         }
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
@@ -1110,6 +1100,9 @@ abstract class Compiler implements DiagnosticListener {
     backend.onResolutionComplete();
 
     deferredLoadTask.onResolutionComplete(main);
+
+    log('Building IR...');
+    irBuilder.buildNodes();
 
     log('Inferring types...');
     typesTask.onResolutionComplete(main);

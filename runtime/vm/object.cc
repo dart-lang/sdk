@@ -1578,7 +1578,7 @@ RawString* Class::UserVisibleName() const {
     case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().raw();
     default:
-      if (!IsSignatureClass()) {
+      if (!IsCanonicalSignatureClass()) {
         const String& name = String::Handle(Name());
         return String::IdentifierPrettyName(name);
       } else {
@@ -4103,22 +4103,6 @@ void Function::SetCode(const Code& value) const {
 }
 
 
-void Function::DetachCode() const {
-  // Set unoptimized code as non-entrant, and set code and unoptimized code
-  // to null.
-  CodePatcher::PatchEntry(Code::Handle(unoptimized_code()));
-  StorePointer(&raw_ptr()->code_, Code::null());
-  StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-}
-
-
-void Function::ReattachCode(const Code& code) const {
-  StorePointer(&raw_ptr()->code_, code.raw());
-  StorePointer(&raw_ptr()->unoptimized_code_, code.raw());
-  CodePatcher::RestoreEntry(code);
-}
-
-
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
 
@@ -5918,18 +5902,21 @@ void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("id", id);
   jsobj.AddProperty("name", internal_field_name);
   jsobj.AddProperty("user_name", field_name);
-  if (ref) {
-    return;
+  if (is_static()) {
+    const Object& valueObj = Object::Handle(value());
+    jsobj.AddProperty("value", valueObj);
   }
   Class& cls = Class::Handle(owner());
-  jsobj.AddProperty("type", "Field");
-  jsobj.AddProperty("id", id);
-  jsobj.AddProperty("name", internal_field_name);
-  jsobj.AddProperty("user_name", field_name);
-  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("owner", cls);
+  AbstractType& declared_type = AbstractType::Handle(type());
+  cls = declared_type.type_class();
+  jsobj.AddProperty("declared_type", cls);
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("final", is_final());
   jsobj.AddProperty("const", is_const());
+  if (ref) {
+    return;
+  }
   jsobj.AddProperty("guard_nullable", is_nullable());
   if (guarded_cid() == kIllegalCid) {
     jsobj.AddProperty("guard_class", "unknown");
@@ -6804,6 +6791,24 @@ RawString* Script::GenerateSource() const {
 }
 
 
+const char* Script::GetKindAsCString() const {
+  switch (kind()) {
+    case RawScript::kScriptTag:
+      return "script";
+    case RawScript::kLibraryTag:
+      return "library";
+    case RawScript::kSourceTag:
+      return "source";
+    case RawScript::kPatchTag:
+      return "patch";
+    default:
+      UNIMPLEMENTED();
+  }
+  UNREACHABLE();
+  return NULL;
+}
+
+
 void Script::set_url(const String& value) const {
   StorePointer(&raw_ptr()->url_, value.raw());
 }
@@ -7055,6 +7060,18 @@ const char* Script::ToCString() const {
 
 void Script::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddProperty("id", id);
+  const String& name = String::Handle(url());
+  jsobj.AddProperty("name", name.ToCString());
+  jsobj.AddProperty("kind", GetKindAsCString());
+  if (ref) {
+    return;
+  }
+  const String& source = String::Handle(Source());
+  jsobj.AddProperty("source", source.ToCString());
 }
 
 
@@ -8123,15 +8140,18 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddProperty("id", id);
   jsobj.AddProperty("name", library_name);
-  if (ref) return;
   jsobj.AddProperty("url", library_url);
+  if (ref) return;
   {
     JSONArray jsarr(&jsobj, "classes");
     ClassDictionaryIterator class_iter(*this);
     Class& klass = Class::Handle();
     while (class_iter.HasNext()) {
       klass = class_iter.GetNextClass();
-      jsarr.AddValue(klass);
+      if (!klass.IsCanonicalSignatureClass() &&
+          !klass.IsAnonymousMixinApplication()) {
+        jsarr.AddValue(klass);
+      }
     }
   }
   {
@@ -8140,6 +8160,42 @@ void Library::PrintToJSONStream(JSONStream* stream, bool ref) const {
     for (intptr_t i = 0; i < num_imports(); i++) {
       lib = ImportLibraryAt(i);
       jsarr.AddValue(lib);
+    }
+  }
+  {
+    JSONArray jsarr(&jsobj, "variables");
+    DictionaryIterator entries(*this);
+    Object& entry = Object::Handle();
+    while (entries.HasNext()) {
+      entry = entries.GetNext();
+      if (entry.IsField()) {
+        jsarr.AddValue(entry);
+      }
+    }
+  }
+  {
+    JSONArray jsarr(&jsobj, "functions");
+    DictionaryIterator entries(*this);
+    Object& entry = Object::Handle();
+    while (entries.HasNext()) {
+      entry = entries.GetNext();
+      if (entry.IsFunction()) {
+        const Function& func = Function::Cast(entry);
+        if (func.kind() == RawFunction::kRegularFunction ||
+            func.kind() == RawFunction::kGetterFunction ||
+            func.kind() == RawFunction::kSetterFunction) {
+          jsarr.AddValue(func);
+        }
+      }
+    }
+  }
+  {
+    JSONArray jsarr(&jsobj, "scripts");
+    Array& scripts = Array::Handle(LoadedScripts());
+    Script& script = Script::Handle();
+    for (intptr_t i = 0; i < scripts.Length(); i++) {
+      script ^= scripts.At(i);
+      jsarr.AddValue(script);
     }
   }
 }
@@ -11342,7 +11398,23 @@ const char* Instance::ToCString() const {
 
 
 void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  intptr_t id = ring->GetIdForObject(raw());
+
   JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddProperty("id", id);
+
+  // Set the "preview" property for this instance.
+  if (IsNull()) {
+    jsobj.AddProperty("preview", "null");
+  } else if (raw() == Object::sentinel().raw() ||
+             raw() == Object::transition_sentinel().raw()) {
+    jsobj.AddProperty("preview", "<uninitialized>");
+  } else {
+    // TODO(turnidge): Handle special characters?  Truncate?
+    jsobj.AddProperty("preview", ToCString());
+  }
 }
 
 
@@ -12677,7 +12749,7 @@ const char* Number::ToCString() const {
 
 
 void Number::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -12689,7 +12761,7 @@ const char* Integer::ToCString() const {
 
 
 void Integer::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Number::PrintToJSONStream(stream, ref);
 }
 
 
@@ -12783,6 +12855,12 @@ double Integer::AsDoubleValue() const {
 
 
 int64_t Integer::AsInt64Value() const {
+  UNIMPLEMENTED();
+  return 0;
+}
+
+
+uint32_t Integer::AsTruncatedUint32Value() const {
   UNIMPLEMENTED();
   return 0;
 }
@@ -13057,6 +13135,11 @@ int64_t Smi::AsInt64Value() const {
 }
 
 
+uint32_t Smi::AsTruncatedUint32Value() const {
+  return this->Value() & 0xFFFFFFFF;
+}
+
+
 static bool FitsIntoSmi(const Integer& integer) {
   if (integer.IsSmi()) {
     return true;
@@ -13107,7 +13190,7 @@ const char* Smi::ToCString() const {
 
 
 void Smi::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Number::PrintToJSONStream(stream, ref);
 }
 
 
@@ -13190,6 +13273,11 @@ int64_t Mint::AsInt64Value() const {
 }
 
 
+uint32_t Mint::AsTruncatedUint32Value() const {
+  return this->value() & 0xFFFFFFFF;
+}
+
+
 int Mint::CompareWith(const Integer& other) const {
   ASSERT(!FitsIntoSmi(*this));
   if (other.IsMint() || other.IsSmi()) {
@@ -13226,7 +13314,7 @@ const char* Mint::ToCString() const {
 
 
 void Mint::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Number::PrintToJSONStream(stream, ref);
 }
 
 
@@ -13332,7 +13420,7 @@ const char* Double::ToCString() const {
 
 
 void Double::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Number::PrintToJSONStream(stream, ref);
 }
 
 
@@ -13457,6 +13545,11 @@ int64_t Bigint::AsInt64Value() const {
 }
 
 
+uint32_t Bigint::AsTruncatedUint32Value() const {
+  return BigintOperations::TruncateToUint32(*this);
+}
+
+
 // For positive values: Smi < Mint < Bigint.
 int Bigint::CompareWith(const Integer& other) const {
   ASSERT(!FitsIntoSmi(*this));
@@ -13503,7 +13596,7 @@ const char* Bigint::ToCString() const {
 
 
 void Bigint::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Number::PrintToJSONStream(stream, ref);
 }
 
 
@@ -14126,7 +14219,7 @@ const char* String::ToCString() const {
 
 
 void String::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -14884,7 +14977,7 @@ const char* Bool::ToCString() const {
 
 
 void Bool::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -14970,7 +15063,7 @@ const char* Array::ToCString() const {
 
 
 void Array::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -15183,7 +15276,7 @@ const char* GrowableObjectArray::ToCString() const {
 
 void GrowableObjectArray::PrintToJSONStream(JSONStream* stream,
                                             bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -15288,7 +15381,7 @@ const char* Float32x4::ToCString() const {
 
 
 void Float32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -15393,7 +15486,7 @@ const char* Int32x4::ToCString() const {
 
 
 void Int32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -15443,7 +15536,7 @@ const char* TypedData::ToCString() const {
 
 
 void TypedData::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -15479,7 +15572,7 @@ const char* ExternalTypedData::ToCString() const {
 
 void ExternalTypedData::PrintToJSONStream(JSONStream* stream,
                                           bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -15666,7 +15759,7 @@ const char* Stacktrace::ToCString() const {
 
 
 void Stacktrace::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -15876,7 +15969,7 @@ const char* JSRegExp::ToCString() const {
 
 
 void JSRegExp::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 
@@ -15896,7 +15989,7 @@ const char* WeakProperty::ToCString() const {
 
 
 void WeakProperty::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 RawAbstractType* MirrorReference::GetAbstractTypeReferent() const {
@@ -15958,7 +16051,7 @@ const char* MirrorReference::ToCString() const {
 
 
 void MirrorReference::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
+  Instance::PrintToJSONStream(stream, ref);
 }
 
 

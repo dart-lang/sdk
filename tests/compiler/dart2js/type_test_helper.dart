@@ -71,6 +71,10 @@ class TypeEnvironment {
     return compiler.types.isMoreSpecific(T, S);
   }
 
+  DartType computeLeastUpperBound(DartType T, DartType S) {
+    return compiler.types.computeLeastUpperBound(T, S);
+  }
+
   FunctionType functionType(DartType returnType,
                             List<DartType> parameters,
                             {List<DartType> optionalParameter,
@@ -88,7 +92,7 @@ class TypeEnvironment {
         namedParameterTypes.addLast(type);
       });
     }
-    FunctionType type = new FunctionType(
+    return new FunctionType(
         compiler.functionClass,
         returnType, parameterTypes, optionalParameterTypes,
         namedParameterNames.toLink(), namedParameterTypes.toLink());

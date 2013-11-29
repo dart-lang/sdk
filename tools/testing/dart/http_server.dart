@@ -6,7 +6,6 @@ library http_server;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'test_suite.dart';  // For TestUtils.
 // TODO(efortuna): Rewrite to not use the args library and simply take an
 // expected number of arguments, so test.dart doesn't rely on the args library?
@@ -38,7 +37,7 @@ const PREFIX_DARTDIR = 'root_dart';
 // http://host:port/root_packages/X -> $BuildDir/packages/X
 // Issue: 8368
 
-main() {
+main(List<String> arguments) {
   /** Convenience method for local testing. */
   var parser = new ArgParser();
   parser.addOption('port', abbr: 'p',
@@ -57,14 +56,14 @@ main() {
   parser.addOption('runtime', help: 'The runtime we are using (for csp flags).',
       defaultsTo: 'none');
 
-  var args = parser.parse(new Options().arguments);
+  var args = parser.parse(arguments);
   if (args['help']) {
     print(parser.getUsage());
   } else {
     // Pretend we're running test.dart so that TestUtils doesn't get confused
     // about the "current directory." This is only used if we're trying to run
     // this file independently for local testing.
-    TestUtils.testScriptPath = new Path(new Options().script)
+    TestUtils.testScriptPath = new Path(Platform.script.path)
         .directoryPath
         .join(new Path('../../test.dart'))
         .canonicalize()

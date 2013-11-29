@@ -205,7 +205,7 @@ class AdbDevice {
    */
   Future adbRoot() {
     var adbRootCompleter = new Completer();
-    return _adbCommand(['root']).then((_) {
+    _adbCommand(['root']).then((_) {
       // TODO: Figure out a way to wait until the adb daemon was restarted in
       // 'root mode' on the device.
       new Timer(_adbServerStartupTime, () => adbRootCompleter.complete(true));

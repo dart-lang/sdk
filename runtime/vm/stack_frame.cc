@@ -86,7 +86,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       // | spill slots | outgoing arguments | saved registers |
       // |XXXXXXXXXXXXX|--------------------|XXXXXXXXXXXXXXXXX|
       //
-      // The splill slots and any saved registers are described in the stack
+      // The spill slots and any saved registers are described in the stack
       // map.  The outgoing arguments are assumed to be tagged; the number
       // of outgoing arguments is not explicitly tracked.
       //

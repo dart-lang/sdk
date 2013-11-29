@@ -6,17 +6,22 @@
 
 library raw_port_test;
 import 'dart:isolate';
-import 'dart:async';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import 'remote_unittest_helper.dart';
 
 
-void remote(SendPort port) { port.send("reply"); }
+void remote(SendPort port) {
+  port.send("reply");
+}
+
 void remote2(SendPort port) {
   port.send("reply 1");
   port.send("reply 2");
 }
 
-main() {
+main([args, port]) {
+  if (testRemote(main, port)) return;
+
   test("raw receive", () {
     RawReceivePort port = new RawReceivePort();
     Isolate.spawn(remote, port.sendPort);
@@ -25,6 +30,7 @@ main() {
       port.close();
     });
   });
+
   test("raw receive twice - change handler", () {
     RawReceivePort port = new RawReceivePort();
     Isolate.spawn(remote2, port.sendPort);
@@ -36,6 +42,7 @@ main() {
       });
     });
   });
+
   test("from-raw-port", () {
     RawReceivePort rawPort = new RawReceivePort();
     Isolate.spawn(remote, rawPort.sendPort);
@@ -53,5 +60,4 @@ main() {
                   onDone: expectAsync0((){}));
     });
   });
-
 }

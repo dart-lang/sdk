@@ -123,14 +123,15 @@ void main() {
     checkReturn(String name, type) {
       var element = findElement(compiler, name);
       Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
+          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+          name);
     }
 
-    checkReturn('returnInt1', compiler.typesTask.intType);
-    checkReturn('returnInt2', compiler.typesTask.intType);
-    checkReturn('returnInt3', compiler.typesTask.intType);
-    checkReturn('returnInt4', compiler.typesTask.intType);
-    checkReturn('returnIntOrNull', compiler.typesTask.intType.nullable());
+    checkReturn('returnInt1', compiler.typesTask.uint31Type);
+    checkReturn('returnInt2', compiler.typesTask.uint31Type);
+    checkReturn('returnInt3', compiler.typesTask.uint31Type);
+    checkReturn('returnInt4', compiler.typesTask.uint31Type);
+    checkReturn('returnIntOrNull', compiler.typesTask.uint31Type.nullable());
 
     checkReturn('returnDyn1', compiler.typesTask.dynamicType.nonNullable());
     checkReturn('returnDyn2', compiler.typesTask.dynamicType.nonNullable());

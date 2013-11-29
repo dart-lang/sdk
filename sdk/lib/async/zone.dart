@@ -359,7 +359,7 @@ abstract class Zone {
       f(arg1, arg2), { bool runGuarded: true });
 
   /**
-   * Runs [f] asynchronously.
+   * Runs [f] asynchronously in this zone.
    */
   void scheduleMicrotask(void f());
 
@@ -732,20 +732,29 @@ ZoneBinaryCallback _rootRegisterBinaryCallback(
 }
 
 void _rootScheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
+  if (Zone.ROOT != zone) {
+    f = zone.bindCallback(f);
+  }
   _scheduleAsyncCallback(f);
 }
 
 Timer _rootCreateTimer(Zone self, ZoneDelegate parent, Zone zone,
                        Duration duration, void callback()) {
+  if (Zone.ROOT != zone) {
+    callback = zone.bindCallback(callback);
+  }
   return _createTimer(duration, callback);
 }
 
 Timer _rootCreatePeriodicTimer(
     Zone self, ZoneDelegate parent, Zone zone,
     Duration duration, void callback(Timer timer)) {
+  if (Zone.ROOT != zone) {
+    callback = zone.bindUnaryCallback(callback);
+  }
   return _createPeriodicTimer(duration, callback);
-
 }
+
 void _rootPrint(Zone self, ZoneDelegate parent, Zone zone, String line) {
   printToConsole(line);
 }

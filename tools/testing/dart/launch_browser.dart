@@ -20,14 +20,13 @@ void printHelp() {
   print("Supported browsers: ${Browser.SUPPORTED_BROWSERS}");
 }
 
-void main() {
-  var args = new Options().arguments;
-  if (args.length != 2) {
+void main(List<String> arguments) {
+  if (arguments.length != 2) {
     print("Wrong number of arguments, please pass in exactly two arguments");
     printHelp();
     return;
   }
-  var name = args[0];
+  var name = arguments[0];
 
   if (!Browser.supportedBrowser(name)) {
     print("Specified browser not supported");
@@ -37,5 +36,5 @@ void main() {
 
   var executable = Locations.getBrowserLocation(name, {});
   var browser = new Browser.byName(name, executable);
-  browser.start(args[1]);
+  browser.start(arguments[1]);
 }

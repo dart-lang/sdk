@@ -389,6 +389,8 @@ void initHooks() {
   hooks = applyHooksTransformer(_operaHooksTransformer, hooks);
   hooks = applyHooksTransformer(_safariHooksTransformer, hooks);
 
+  hooks = applyHooksTransformer(_fixDocumentHooksTransformer, hooks);
+
   // TODO(sra): Update ShadowDOM polyfil to use
   // [dartNativeDispatchHooksTransformer] and remove this hook.
   hooks = applyHooksTransformer(_dartExperimentalFixupGetTagHooksTransformer,
@@ -484,14 +486,9 @@ function() {
  */
 const _constructorNameFallback = const JS_CONST(r'''
 function getTagFallback(o) {
-  if (o == null) return "Null";
   var constructor = o.constructor;
   if (typeof constructor == "function") {
-    var name = constructor.builtin$cls;
-    if (typeof name == "string") return name;
-    // The constructor is not null or undefined at this point. Try
-    // to grab hold of its name.
-    name = constructor.name;
+    var name = constructor.name;
     // If the name is a non-empty string, we use that as the type name of this
     // object. On Firefox, we often get "Object" as the constructor name even
     // for more specialized objects so we have to fall through to the toString()
@@ -515,11 +512,15 @@ function(getTagFallback) {
     // TODO(sra): Recognize jsshell.
     if (typeof navigator != "object") return hooks;
 
-    var userAgent = navigator.userAgent;
+    var ua = navigator.userAgent;
     // TODO(antonm): remove a reference to DumpRenderTree.
-    if (userAgent.indexOf("Chrome") >= 0 ||
-        userAgent.indexOf("DumpRenderTree") >= 0) {
-      return hooks;
+    if (ua.indexOf("DumpRenderTree") >= 0) return hooks;
+    if (ua.indexOf("Chrome") >= 0) {
+      // Confirm constructor name is usable for dispatch.
+      function confirm(p) {
+        return typeof window == "object" && window[p] && window[p].name == p;
+      }
+      if (confirm("Window") && confirm("HTMLElement")) return hooks;
     }
 
     hooks.getTag = getTagFallback;
@@ -547,14 +548,6 @@ function(hooks) {
     var tag = getTag(o);
     var newTag = quickMap[tag];
     if (newTag) return newTag;
-    if (tag == "Document") {
-      // IE calls both HTML and XML documents "Document", so we check for the
-      // xmlVersion property, which is the empty string on HTML documents.
-      // Since both dart:html classes Document and HtmlDocument share the same
-      // type, we must patch the instances and not the prototype.
-      if (!!o.xmlVersion) return "!Document";
-      return "!HTMLDocument";
-    }
     // Patches for types which report themselves as Objects.
     if (tag == "Object") {
       if (window.DataView && (o instanceof window.DataView)) return "DataView";
@@ -563,7 +556,6 @@ function(hooks) {
   }
 
   function prototypeForTagIE(tag) {
-    if (tag == "Document") return null;  // Do not pre-patch Document.
     var constructor = window[tag];
     if (constructor == null) return null;
     return constructor.prototype;
@@ -573,6 +565,32 @@ function(hooks) {
   hooks.prototypeForTag = prototypeForTagIE;
 }''');
 
+const _fixDocumentHooksTransformer = const JS_CONST(r'''
+function(hooks) {
+  var getTag = hooks.getTag;
+  var prototypeForTag = hooks.prototypeForTag;
+  function getTagFixed(o) {
+    var tag = getTag(o);
+    if (tag == "Document") {
+      // Some browsers and the polymer polyfill call both HTML and XML documents
+      // "Document", so we check for the xmlVersion property, which is the empty
+      // string on HTML documents. Since both dart:html classes Document and
+      // HtmlDocument share the same type, we must patch the instances and not
+      // the prototype.
+      if (!!o.xmlVersion) return "!Document";
+      return "!HTMLDocument";
+    }
+    return tag;
+  }
+
+  function prototypeForTagFixed(tag) {
+    if (tag == "Document") return null;  // Do not pre-patch Document.
+    return prototypeForTag(tag);
+  }
+
+  hooks.getTag = getTagFixed;
+  hooks.prototypeForTag = prototypeForTagFixed;
+}''');
 
 const _firefoxHooksTransformer = const JS_CONST(r'''
 function(hooks) {
@@ -586,7 +604,7 @@ function(hooks) {
     "DataTransfer": "Clipboard",
     "GeoGeolocation": "Geolocation",
     "WorkerMessageEvent": "MessageEvent",
-    "XMLDocument": "Document"};
+    "XMLDocument": "!Document"};
 
   function getTagFirefox(o) {
     var tag = getTag(o);

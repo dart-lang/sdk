@@ -185,7 +185,7 @@ class TypePromotion {
   }
 
   String toString() {
-    return 'Promote ${variable} to ${type}';
+    return 'Promote ${variable} to ${type}${isValid ? '' : ' (invalid)'}';
   }
 }
 
@@ -410,16 +410,18 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
   }
 
-  void reshowTypePromotions(Node node, Node receiver, Node argument) {
-    for (TypePromotion typePromotion in  getShownTypePromotionsFor(receiver)) {
+  /// Show type promotions from [left] and [right] in [node] given that the
+  /// promoted variables are not potentially mutated in [right].
+  void reshowTypePromotions(Node node, Node left, Node right) {
+    for (TypePromotion typePromotion in  getShownTypePromotionsFor(left)) {
       typePromotion = typePromotion.copy();
-      checkTypePromotion(argument, typePromotion);
+      checkTypePromotion(right, typePromotion);
       showTypePromotion(node, typePromotion);
     }
 
-    for (TypePromotion typePromotion in getShownTypePromotionsFor(argument)) {
+    for (TypePromotion typePromotion in getShownTypePromotionsFor(right)) {
       typePromotion = typePromotion.copy();
-      checkTypePromotion(argument, typePromotion);
+      checkTypePromotion(right, typePromotion);
       showTypePromotion(node, typePromotion);
     }
   }
@@ -931,6 +933,17 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       analyze(node.receiver);
       if (!node.isIsNotCheck) {
         Element variable = elements[node.receiver];
+        if (variable == null) {
+          // Look for the variable element within parenthesized expressions.
+          ParenthesizedExpression parentheses =
+              node.receiver.asParenthesizedExpression();
+          while (parentheses != null) {
+            variable = elements[parentheses.expression];
+            if (variable != null) break;
+            parentheses = parentheses.expression.asParenthesizedExpression();
+          }
+        }
+
         if (variable != null &&
             (variable.isVariable() || variable.isParameter())) {
           DartType knownType = getKnownType(variable);
@@ -1410,7 +1423,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitParenthesizedExpression(ParenthesizedExpression node) {
-    return analyze(node.expression);
+    Expression expression = node.expression;
+    DartType type = analyze(expression);
+    for (TypePromotion typePromotion in getShownTypePromotionsFor(expression)) {
+      showTypePromotion(node, typePromotion);
+    }
+    return type;
   }
 
   DartType visitConditional(Conditional node) {
@@ -1422,13 +1440,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType thenType = analyzeInPromotedContext(condition, thenExpression);
 
     DartType elseType = analyzeNonVoid(node.elseExpression);
-    if (types.isSubtype(thenType, elseType)) {
-      return thenType;
-    } else if (types.isSubtype(elseType, thenType)) {
-      return elseType;
-    } else {
-      return objectType;
-    }
+    return compiler.types.computeLeastUpperBound(thenType, elseType);
   }
 
   visitStringInterpolation(StringInterpolation node) {
@@ -1496,6 +1508,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     ClassElement cls = type.element;
     if (cls == compiler.doubleClass) return true;
     if (cls == compiler.intClass || cls == compiler.stringClass) return false;
+    if (cls == compiler.typeClass) return true;
     Element equals = cls.lookupMember('==');
     return equals.getEnclosingClass() != compiler.objectClass;
   }
@@ -1550,7 +1563,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (firstCaseType != null &&
         invalidSwitchExpressionType(firstCase, firstCaseType)) {
       compiler.reportError(firstCase.expression,
-          MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS);
+          MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
+          {'type': firstCaseType});
     }
     return StatementType.NOT_RETURNING;
   }

@@ -52,8 +52,7 @@ abstract class ConstantSystem {
 
   Constant createInt(int i);
   Constant createDouble(double d);
-  // We need a diagnostic node to report errors in case the string is malformed.
-  Constant createString(DartString string, Node diagnosticNode);
+  Constant createString(DartString string);
   Constant createBool(bool value);
   Constant createNull();
 

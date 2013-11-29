@@ -28,7 +28,7 @@ void main() {
     var element = findElement(compiler, 'field');
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;        
-    Expect.equals(typesTask.intType,
+    Expect.equals(typesTask.uint31Type,
                   typesInferrer.getTypeOfElement(element).simplify(compiler),
                   'field');
   }));

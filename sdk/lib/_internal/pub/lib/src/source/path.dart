@@ -4,7 +4,7 @@
 
 library pub.source.path;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 
 import 'package:path/path.dart' as path;
 

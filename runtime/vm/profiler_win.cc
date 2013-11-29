@@ -13,6 +13,7 @@ namespace dart {
 #define kThreadError -1
 
 DECLARE_FLAG(bool, profile);
+DECLARE_FLAG(bool, trace_profiled_isolates);
 
 static void CollectSample(IsolateProfilerData* profiler_data,
                           uintptr_t pc,
@@ -20,7 +21,9 @@ static void CollectSample(IsolateProfilerData* profiler_data,
                           uintptr_t stack_lower,
                           uintptr_t stack_upper) {
   uintptr_t sp = stack_lower;
+  ASSERT(profiler_data != NULL);
   SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  ASSERT(sample_buffer != NULL);
   Sample* sample = sample_buffer->ReserveSample();
   ASSERT(sample != NULL);
   sample->timestamp = OS::GetCurrentTimeMicros();
@@ -101,7 +104,11 @@ int64_t ProfilerManager::SampleAndRescheduleIsolates(int64_t current_time) {
     Isolate* isolate = isolates_[i];
     ScopedMutex isolate_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
-    ASSERT(profiler_data != NULL);
+    if ((profiler_data == NULL) || !profiler_data->CanExpire() ||
+        (profiler_data->sample_buffer() == NULL)) {
+      // Descheduled.
+      continue;
+    }
     if (profiler_data->ShouldSample(current_time)) {
       SuspendAndSample(isolate, profiler_data);
       Reschedule(profiler_data);
@@ -132,11 +139,29 @@ int64_t ProfilerManager::SampleAndRescheduleIsolates(int64_t current_time) {
 void ProfilerManager::ThreadMain(uword parameters) {
   ASSERT(initialized_);
   ASSERT(FLAG_profile);
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager Windows ready.\n");
+  }
+  {
+    // Signal to main thread we are ready.
+    ScopedMonitor startup_lock(start_stop_monitor_);
+    thread_running_ = true;
+    startup_lock.Notify();
+  }
   ScopedMonitor lock(monitor_);
   while (!shutdown_) {
     int64_t current_time = OS::GetCurrentTimeMicros();
     int64_t next_sample = SampleAndRescheduleIsolates(current_time);
     lock.WaitMicros(next_sample);
+  }
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager Windows exiting.\n");
+  }
+  {
+    // Signal to main thread we are exiting.
+    ScopedMonitor shutdown_lock(start_stop_monitor_);
+    thread_running_ = false;
+    shutdown_lock.Notify();
   }
 }
 

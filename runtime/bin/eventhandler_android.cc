@@ -74,9 +74,6 @@ static void UpdateEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
   event.events = sd->GetPollEvents();
   event.data.ptr = sd;
   if (sd->port() != 0 && event.events != 0) {
-    // Only report events once and wait for them to be re-enabled after the
-    // event has been handled by the Dart code.
-    event.events |= EPOLLONESHOT;
     int status = 0;
     if (sd->tracked_by_epoll()) {
       status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
@@ -341,10 +338,11 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
     } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
       intptr_t event_mask = GetPollEvents(events[i].events, sd);
-      if (event_mask == 0) {
-        // Event not handled, re-add to epoll.
-        UpdateEpollInstance(epoll_fd_, sd);
-      } else {
+      if (event_mask != 0) {
+        // Unregister events for the file descriptor. Events will be
+        // registered again when the current event has been handled in
+        // Dart code.
+        RemoveFromEpollInstance(epoll_fd_, sd);
         Dart_Port port = sd->port();
         ASSERT(port != 0);
         DartUtils::PostInt32(port, event_mask);
@@ -400,9 +398,8 @@ void EventHandlerImplementation::Poll(uword args) {
       if (errno != EWOULDBLOCK) {
         perror("Poll failed");
       }
-    } else if (result == 0) {
-      handler->HandleTimeout();
     } else {
+      handler->HandleTimeout();
       handler->HandleEvents(events, result);
     }
   }

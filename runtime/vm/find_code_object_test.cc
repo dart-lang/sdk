@@ -22,6 +22,12 @@ TEST_CASE(FindCodeObject) {
   const int kScriptSize = 512 * KB;
   const int kNumFunctions = 1024;
   char scriptChars[kScriptSize];
+
+  // Get access to the code index table.
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+
+  StackZone zone(isolate);
   String& url = String::Handle(String::New("dart-test:FindCodeObject"));
   String& source = String::Handle();
   Script& script = Script::Handle();
@@ -31,10 +37,6 @@ TEST_CASE(FindCodeObject) {
   String& function_name = String::Handle();
   Function& function = Function::Handle();
   char buffer[256];
-
-  // Get access to the code index table.
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
 
   lib = Library::CoreLibrary();
 
@@ -55,13 +57,15 @@ TEST_CASE(FindCodeObject) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   clsA = lib.LookupClass(String::Handle(Symbols::New("A")));
   EXPECT(!clsA.IsNull());
-  ClassFinalizer::FinalizeTypeHierarchy();
+  ClassFinalizer::ProcessPendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
     OS::SNPrint(buffer, 256, "foo%d", i);
     function_name = String::New(buffer);
     function = clsA.LookupStaticFunction(function_name);
     EXPECT(!function.IsNull());
     EXPECT(CompilerTest::TestCompileFunction(function));
+    const Code& code = Code::ZoneHandle(function.CurrentCode());
+    EXPECT(!code.IsNull())
     EXPECT(function.HasCode());
   }
 
@@ -103,13 +107,15 @@ TEST_CASE(FindCodeObject) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   clsB = lib.LookupClass(String::Handle(Symbols::New("B")));
   EXPECT(!clsB.IsNull());
-  ClassFinalizer::FinalizeTypeHierarchy();
+  ClassFinalizer::ProcessPendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
     OS::SNPrint(buffer, 256, "moo%d", i);
     function_name = String::New(buffer);
     function = clsB.LookupStaticFunction(function_name);
     EXPECT(!function.IsNull());
     EXPECT(CompilerTest::TestCompileFunction(function));
+    const Code& code = Code::ZoneHandle(function.CurrentCode());
+    EXPECT(!code.IsNull());
     EXPECT(function.HasCode());
   }
 
@@ -142,19 +148,11 @@ TEST_CASE(FindCodeObject) {
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
-#if defined(TARGET_ARCH_MIPS)
-  // MIPS can only Branch +/- 128KB
-  EXPECT(code.Size() > ((PageSpace::kPageSizeInWords << kWordSizeLog2) / 2));
-  EXPECT(Code::LookupCode(pc) == code.raw());
-  pc = code.EntryPoint() + ((PageSpace::kPageSizeInWords << kWordSizeLog2) / 4);
-  EXPECT(Code::LookupCode(pc) == code.raw());
-#else
   EXPECT(code.Size() > (PageSpace::kPageSizeInWords << kWordSizeLog2));
   EXPECT(Code::LookupCode(pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
   pc = code.EntryPoint() + (1 * MB);
   EXPECT(Code::LookupCode(pc) == code.raw());
-#endif  // defined(TARGET_ARCH_MIPS)
 }
 
 }  // namespace dart

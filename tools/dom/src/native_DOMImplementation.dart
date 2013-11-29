@@ -387,6 +387,11 @@ class _Utils {
 
   static String addTrailingDot(String str) => '${str}.';
 
+  static String demangle(String str) {
+    var atPos = str.indexOf('@');
+    return atPos == -1 ? str : str.substring(0, atPos);
+  }
+
   static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
 
   static bool _isBuiltinType(ClassMirror cls) {

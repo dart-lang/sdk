@@ -6,7 +6,6 @@ library record_and_replay;
 
 import 'dart:io';
 import 'dart:convert';
-import 'dart:convert';
 
 import 'test_runner.dart';
 import 'utils.dart' show Path;

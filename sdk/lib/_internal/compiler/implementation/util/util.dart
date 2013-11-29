@@ -37,7 +37,7 @@ class SpannableAssertionFailure {
   final String message;
   SpannableAssertionFailure(this.node, this.message);
 
-  String toString() => 'Compiler crashed: $message';
+  String toString() => 'Assertion failure: $message';
 }
 
 /**
@@ -284,9 +284,10 @@ void writeJsonEscapedCharsOn(String string, buffer) {
   buffer.write(string);
 }
 
-int computeHashCode(part1, [part2, part3, part4]) {
+int computeHashCode(part1, [part2, part3, part4, part5]) {
   return (part1.hashCode
           ^ part2.hashCode
           ^ part3.hashCode
-          ^ part4.hashCode) & 0x3fffffff;
+          ^ part4.hashCode
+          ^ part5.hashCode) & 0x3fffffff;
 }

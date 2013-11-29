@@ -106,7 +106,7 @@ class Pool {
   /// emit exceptions.
   void _onTimeout() {
     for (var completer in _requestedResources) {
-      completer.completeException("Pool deadlock: all resources have been "
+      completer.completeError("Pool deadlock: all resources have been "
           "allocated for too long.", new Trace.current().vmTrace);
     }
     _requestedResources.clear();

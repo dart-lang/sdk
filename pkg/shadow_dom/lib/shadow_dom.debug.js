@@ -904,36 +904,35 @@ if (!HTMLElement.prototype.createShadowRoot
   // every PathObserver used by defineProperty share a single Object.observe
   // callback, and thus get() can simply call observer.deliver() and any changes
   // to any dependent value will be observed.
-  PathObserver.defineProperty = function(object, name, descriptor) {
+  PathObserver.defineProperty = function(target, name, object, path) {
     // TODO(rafaelw): Validate errors
-    var obj = descriptor.object;
-    var path = getPath(descriptor.path);
-    var notify = notifyFunction(object, name);
+    path = getPath(path);
+    var notify = notifyFunction(target, name);
 
-    var observer = new PathObserver(obj, descriptor.path,
+    var observer = new PathObserver(object, path,
         function(newValue, oldValue) {
           if (notify)
             notify(PROP_UPDATE_TYPE, oldValue);
         }
     );
 
-    Object.defineProperty(object, name, {
+    Object.defineProperty(target, name, {
       get: function() {
-        return path.getValueFrom(obj);
+        return path.getValueFrom(object);
       },
       set: function(newValue) {
-        path.setValueFrom(obj, newValue);
+        path.setValueFrom(object, newValue);
       },
       configurable: true
     });
 
     return {
       close: function() {
-        var oldValue = path.getValueFrom(obj);
+        var oldValue = path.getValueFrom(object);
         if (notify)
           observer.deliver();
         observer.close();
-        Object.defineProperty(object, name, {
+        Object.defineProperty(target, name, {
           value: oldValue,
           writable: true,
           configurable: true
@@ -1419,7 +1418,7 @@ if (!HTMLElement.prototype.createShadowRoot
     'delete': PROP_DELETE_TYPE,
     splice: ARRAY_SPLICE_TYPE
   };
-})(typeof global !== 'undefined' && global ? global : this);
+})(typeof global !== 'undefined' && global ? global : this || window);
 
 /*
  * Copyright 2012 The Polymer Authors. All rights reserved.
@@ -1490,16 +1489,19 @@ window.ShadowDOMPolyfill = {};
       throw new Error('Assertion failed');
   };
 
+  var defineProperty = Object.defineProperty;
+  var getOwnPropertyNames = Object.getOwnPropertyNames;
+  var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+
   function mixin(to, from) {
-    Object.getOwnPropertyNames(from).forEach(function(name) {
-      Object.defineProperty(to, name,
-                            Object.getOwnPropertyDescriptor(from, name));
+    getOwnPropertyNames(from).forEach(function(name) {
+      defineProperty(to, name, getOwnPropertyDescriptor(from, name));
     });
     return to;
   };
 
   function mixinStatics(to, from) {
-    Object.getOwnPropertyNames(from).forEach(function(name) {
+    getOwnPropertyNames(from).forEach(function(name) {
       switch (name) {
         case 'arguments':
         case 'caller':
@@ -1509,8 +1511,7 @@ window.ShadowDOMPolyfill = {};
         case 'toString':
           return;
       }
-      Object.defineProperty(to, name,
-                            Object.getOwnPropertyDescriptor(from, name));
+      defineProperty(to, name, getOwnPropertyDescriptor(from, name));
     });
     return to;
   };
@@ -1525,7 +1526,7 @@ window.ShadowDOMPolyfill = {};
   // Mozilla's old DOM bindings are bretty busted:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=855844
   // Make sure they are create before we start modifying things.
-  Object.getOwnPropertyNames(window);
+  getOwnPropertyNames(window);
 
   function getWrapperConstructor(node) {
     var nativePrototype = node.__proto__ || Object.getPrototypeOf(node);
@@ -1587,28 +1588,39 @@ window.ShadowDOMPolyfill = {};
         function() { return this.impl[name].apply(this.impl, arguments); };
   }
 
-  function installProperty(source, target, allowMethod) {
-    Object.getOwnPropertyNames(source).forEach(function(name) {
+  function getDescriptor(source, name) {
+    try {
+      return Object.getOwnPropertyDescriptor(source, name);
+    } catch (ex) {
+      // JSC and V8 both use data properties instead of accessors which can
+      // cause getting the property desciptor to throw an exception.
+      // https://bugs.webkit.org/show_bug.cgi?id=49739
+      return dummyDescriptor;
+    }
+  }
+
+  function installProperty(source, target, allowMethod, opt_blacklist) {
+    var names = getOwnPropertyNames(source);
+    for (var i = 0; i < names.length; i++) {
+      var name = names[i];
+      if (name === 'polymerBlackList_')
+        continue;
+
       if (name in target)
-        return;
+        continue;
+
+      if (source.polymerBlackList_ && source.polymerBlackList_[name])
+        continue;
 
       if (isFirefox) {
         // Tickle Firefox's old bindings.
         source.__lookupGetter__(name);
       }
-      var descriptor;
-      try {
-        descriptor = Object.getOwnPropertyDescriptor(source, name);
-      } catch (ex) {
-        // JSC and V8 both use data properties instead of accessors which can
-        // cause getting the property desciptor to throw an exception.
-        // https://bugs.webkit.org/show_bug.cgi?id=49739
-        descriptor = dummyDescriptor;
-      }
+      var descriptor = getDescriptor(source, name);
       var getter, setter;
       if (allowMethod && typeof descriptor.value === 'function') {
         target[name] = getMethod(name);
-        return;
+        continue;
       }
 
       var isEvent = isEventHandlerName(name);
@@ -1624,13 +1636,13 @@ window.ShadowDOMPolyfill = {};
           setter = getSetter(name);
       }
 
-      Object.defineProperty(target, name, {
+      defineProperty(target, name, {
         get: getter,
         set: setter,
         configurable: descriptor.configurable,
         enumerable: descriptor.enumerable
       });
-    });
+    }
   }
 
   /**
@@ -1655,6 +1667,12 @@ window.ShadowDOMPolyfill = {};
     addForwardingProperties(nativePrototype, wrapperPrototype);
     if (opt_instance)
       registerInstanceProperties(wrapperPrototype, opt_instance);
+    defineProperty(wrapperPrototype, 'constructor', {
+      value: wrapperConstructor,
+      configurable: true,
+      enumerable: false,
+      writable: true
+    });
   }
 
   function isWrapperFor(wrapperConstructor, nativeConstructor) {
@@ -1665,11 +1683,7 @@ window.ShadowDOMPolyfill = {};
   /**
    * Creates a generic wrapper constructor based on |object| and its
    * constructor.
-   * Sometimes the constructor does not have an associated instance
-   * (CharacterData for example). In that case you can pass the constructor that
-   * you want to map the object to using |opt_nativeConstructor|.
    * @param {Node} object
-   * @param {Function=} opt_nativeConstructor
    * @return {Function} The generated constructor.
    */
   function registerObject(object) {
@@ -1782,7 +1796,7 @@ window.ShadowDOMPolyfill = {};
   }
 
   function defineGetter(constructor, name, getter) {
-    Object.defineProperty(constructor.prototype, name, {
+    defineProperty(constructor.prototype, name, {
       get: getter,
       configurable: true,
       enumerable: true
@@ -2437,17 +2451,6 @@ window.ShadowDOMPolyfill = {};
     return false;
   }
 
-  var mutationEventsAreSilenced = 0;
-
-  function muteMutationEvents() {
-    mutationEventsAreSilenced++;
-  }
-
-  function unmuteMutationEvents() {
-    mutationEventsAreSilenced--;
-  }
-
-  var OriginalMutationEvent = window.MutationEvent;
 
   function dispatchOriginalEvent(originalEvent) {
     // Make sure this event is only dispatched once.
@@ -2455,15 +2458,9 @@ window.ShadowDOMPolyfill = {};
       return;
     handledEventsTable.set(originalEvent, true);
 
-    // Don't do rendering if this is a mutation event since rendering might
-    // mutate the DOM which would fire more events and we would most likely
-    // just iloop.
-    if (originalEvent instanceof OriginalMutationEvent) {
-      if (mutationEventsAreSilenced)
-        return;
-    } else {
-      scope.renderAllPending();
-    }
+    // Render before dispatching the event to ensure that the event path is
+    // correct.
+    scope.renderAllPending();
 
     var target = wrap(originalEvent.target);
     var event = wrap(originalEvent);
@@ -2633,6 +2630,7 @@ window.ShadowDOMPolyfill = {};
   };
 
   var OriginalEvent = window.Event;
+  OriginalEvent.prototype.polymerBlackList_ = {returnValue: true};
 
   /**
    * Creates a new Event wrapper or wraps an existin native Event object.
@@ -2748,13 +2746,6 @@ window.ShadowDOMPolyfill = {};
   var MouseEvent = registerGenericEvent('MouseEvent', UIEvent, mouseEventProto);
   var FocusEvent = registerGenericEvent('FocusEvent', UIEvent, focusEventProto);
 
-  var MutationEvent = registerGenericEvent('MutationEvent', Event, {
-    initMutationEvent: getInitFunction('initMutationEvent', 3),
-    get relatedNode() {
-      return wrap(this.impl.relatedNode);
-    },
-  });
-
   // In case the browser does not support event constructors we polyfill that
   // by calling `createEvent('Foo')` and `initFooEvent` where the arguments to
   // `initFooEvent` are derived from the registered default event init dict.
@@ -2821,10 +2812,39 @@ window.ShadowDOMPolyfill = {};
     configureEventConstructor('FocusEvent', {relatedTarget: null}, 'UIEvent');
   }
 
+  function BeforeUnloadEvent(impl) {
+    Event.call(this);
+  }
+  BeforeUnloadEvent.prototype = Object.create(Event.prototype);
+  mixin(BeforeUnloadEvent.prototype, {
+    get returnValue() {
+      return this.impl.returnValue;
+    },
+    set returnValue(v) {
+      this.impl.returnValue = v;
+    }
+  });
+
   function isValidListener(fun) {
     if (typeof fun === 'function')
       return true;
     return fun && fun.handleEvent;
+  }
+
+  function isMutationEvent(type) {
+    switch (type) {
+      case 'DOMAttrModified':
+      case 'DOMAttributeNameChanged':
+      case 'DOMCharacterDataModified':
+      case 'DOMElementNameChanged':
+      case 'DOMNodeInserted':
+      case 'DOMNodeInsertedIntoDocument':
+      case 'DOMNodeRemoved':
+      case 'DOMNodeRemovedFromDocument':
+      case 'DOMSubtreeModified':
+        return true;
+    }
+    return false;
   }
 
   var OriginalEventTarget = window.EventTarget;
@@ -2861,7 +2881,7 @@ window.ShadowDOMPolyfill = {};
 
   EventTarget.prototype = {
     addEventListener: function(type, fun, capture) {
-      if (!isValidListener(fun))
+      if (!isValidListener(fun) || isMutationEvent(type))
         return;
 
       var listener = new Listener(type, fun, capture);
@@ -2991,15 +3011,13 @@ window.ShadowDOMPolyfill = {};
   scope.elementFromPoint = elementFromPoint;
   scope.getEventHandlerGetter = getEventHandlerGetter;
   scope.getEventHandlerSetter = getEventHandlerSetter;
-  scope.muteMutationEvents = muteMutationEvents;
-  scope.unmuteMutationEvents = unmuteMutationEvents;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
+  scope.wrappers.BeforeUnloadEvent = BeforeUnloadEvent;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;
   scope.wrappers.EventTarget = EventTarget;
   scope.wrappers.FocusEvent = FocusEvent;
   scope.wrappers.MouseEvent = MouseEvent;
-  scope.wrappers.MutationEvent = MutationEvent;
   scope.wrappers.UIEvent = UIEvent;
 
 })(window.ShadowDOMPolyfill);
@@ -4365,10 +4383,8 @@ window.ShadowDOMPolyfill = {};
   var HTMLElement = scope.wrappers.HTMLElement;
   var getInnerHTML = scope.getInnerHTML;
   var mixin = scope.mixin;
-  var muteMutationEvents = scope.muteMutationEvents;
   var registerWrapper = scope.registerWrapper;
   var setInnerHTML = scope.setInnerHTML;
-  var unmuteMutationEvents = scope.unmuteMutationEvents;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -4397,11 +4413,9 @@ window.ShadowDOMPolyfill = {};
     var doc = getTemplateContentsOwner(templateElement.ownerDocument);
     var df = unwrap(doc.createDocumentFragment());
     var child;
-    muteMutationEvents();
     while (child = templateElement.firstChild) {
       df.appendChild(child);
     }
-    unmuteMutationEvents();
     return df;
   }
 
@@ -4894,9 +4908,7 @@ window.ShadowDOMPolyfill = {};
   var ShadowRoot = scope.wrappers.ShadowRoot;
   var assert = scope.assert;
   var mixin = scope.mixin;
-  var muteMutationEvents = scope.muteMutationEvents;
   var oneOf = scope.oneOf;
-  var unmuteMutationEvents = scope.unmuteMutationEvents;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -5240,11 +5252,8 @@ window.ShadowDOMPolyfill = {};
         this.renderNode(shadowRoot, renderNode, node, false);
       }
 
-      if (topMostRenderer) {
-        //muteMutationEvents();
+      if (topMostRenderer)
         renderNode.sync();
-        //unmuteMutationEvents();
-      }
 
       this.dirty = false;
     },
@@ -5679,6 +5688,8 @@ window.ShadowDOMPolyfill = {};
       doc.adoptNode(oldShadowRoot);
   }
 
+  var originalImportNode = document.importNode;
+
   mixin(Document.prototype, {
     adoptNode: function(node) {
       if (node.parentNode)
@@ -5688,6 +5699,17 @@ window.ShadowDOMPolyfill = {};
     },
     elementFromPoint: function(x, y) {
       return elementFromPoint(this, this, x, y);
+    },
+    importNode: function(node, deep) {
+      // We need to manually walk the tree to ensure we do not include rendered
+      // shadow trees.
+      var clone = wrap(originalImportNode.call(this.impl, unwrap(node), false));
+      if (deep) {
+        for (var child = node.firstChild; child; child = child.nextSibling) {
+          clone.appendChild(this.importNode(child, true));
+        }
+      }
+      return clone;
     }
   });
 
@@ -5806,6 +5828,7 @@ window.ShadowDOMPolyfill = {};
     window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
   ], [
     'adoptNode',
+    'importNode',
     'contains',
     'createComment',
     'createDocumentFragment',
@@ -6529,11 +6552,16 @@ var ShadowCSS = {
     return cssText.replace(cssColonHostRe, function(m, p1, p2, p3) {
       p1 = polyfillHostNoCombinator;
       if (p2) {
-        if (p2.match(polyfillHost)) {
-          return p1 + p2.replace(polyfillHost, '') + p3;
-        } else {
-          return p1 + p2 + p3 + ', ' + p2 + ' ' + p1 + p3;
+        var parts = p2.split(','), r = [];
+        for (var i=0, l=parts.length, p; (i<l) && (p=parts[i]); i++) {
+          p = p.trim();
+          if (p.match(polyfillHost)) {
+            r.push(p1 + p.replace(polyfillHost, '') + p3);
+          } else {
+            r.push(p1 + p + p3 + ', ' + p + ' ' + p1 + p3);
+          }
         }
+        return r.join(',');
       } else {
         return p1 + p3;
       }
@@ -6555,7 +6583,7 @@ var ShadowCSS = {
         cssText += this.propertiesFromRule(rule) + '\n}\n\n';
       } else if (rule.media) {
         cssText += '@media ' + rule.media.mediaText + ' {\n';
-        cssText += this.scopeRules(rule.cssRules, name);
+        cssText += this.scopeRules(rule.cssRules, name, typeExtension);
         cssText += '\n}\n\n';
       } else if (rule.cssText) {
         cssText += rule.cssText + '\n\n';
@@ -6568,8 +6596,9 @@ var ShadowCSS = {
     parts.forEach(function(p) {
       p = p.trim();
       if (this.selectorNeedsScoping(p, name, typeExtension)) {
-        p = strict ? this.applyStrictSelectorScope(p, name) :
-          this.applySimpleSelectorScope(p, name, typeExtension);
+        p = (strict && !p.match(polyfillHostNoCombinator)) ? 
+            this.applyStrictSelectorScope(p, name) :
+            this.applySimpleSelectorScope(p, name, typeExtension);
       }
       r.push(p);
     }, this);
@@ -6617,14 +6646,7 @@ var ShadowCSS = {
         polyfillHost);
   },
   propertiesFromRule: function(rule) {
-    var properties = rule.style.cssText;
-    // TODO(sorvell): Chrome cssom incorrectly removes quotes from the content
-    // property. (https://code.google.com/p/chromium/issues/detail?id=247231)
-    if (rule.style.content && !rule.style.content.match(/['"]+/)) {
-      properties = 'content: \'' + rule.style.content + '\';\n' + 
-        rule.style.cssText.replace(/content:[^;]*;/g, '');
-    }
-    return properties;
+    return rule.style.cssText;
   }
 };
 
@@ -6638,15 +6660,18 @@ var hostRuleRe = /@host[^{]*{(([^}]*?{[^{]*?}[\s\S]*?)+)}/gim,
     cssPolyfillUnscopedRuleCommentRe = /\/\*\s@polyfill-unscoped-rule([^*]*\*+([^/*][^*]*\*+)*)\//gim,
     cssPseudoRe = /::(x-[^\s{,(]*)/gim,
     cssPartRe = /::part\(([^)]*)\)/gim,
-    // note: :host pre-processed to -host.
-    cssColonHostRe = /(-host)(?:\(([^)]*)\))?([^,{]*)/gim,
+    // note: :host pre-processed to -shadowcsshost.
+    polyfillHost = '-shadowcsshost',
+    cssColonHostRe = new RegExp('(' + polyfillHost +
+        ')(?:\\((' +
+        '(?:\\([^)(]*\\)|[^)(]*)+?' +
+        ')\\))?([^,{]*)', 'gim'),
     selectorReSuffix = '([>\\s~+\[.,{:][\\s\\S]*)?$',
     hostRe = /@host/gim,
     colonHostRe = /\:host/gim,
-    polyfillHost = '-host',
     /* host name without combinator */
-    polyfillHostNoCombinator = '-host-no-combinator',
-    polyfillHostRe = /-host/gim;
+    polyfillHostNoCombinator = polyfillHost + '-no-combinator',
+    polyfillHostRe = new RegExp(polyfillHost, 'gim');
 
 function stylesToCssText(styles, preserveComments) {
   var cssText = '';

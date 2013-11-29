@@ -74,6 +74,9 @@ class JSString implements JSIndexable {
 }
 class JSFunction {}
 class JSInt {}
+class JSPositiveInt {}
+class JSUInt31 {}
+class JSUInt32 {}
 class JSDouble {}
 class JSNumber {}
 class JSNull {}

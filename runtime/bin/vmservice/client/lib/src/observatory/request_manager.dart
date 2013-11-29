@@ -47,11 +47,47 @@ abstract class RequestManager extends Observable {
 
   /// Request [requestString] from the VM service. Updates [responses].
   /// Will trigger [interceptor] if one is set.
-  Future<Map> get(String requestString) {
-    request(requestString).then((responseString) {
-      parseResponses(responseString);
+  void get(String requestString) {
+    if (_application.locationManager.isScriptLink) {
+      // We cache script sources.
+      String scriptName = _application.locationManager.scriptName;
+      getScriptSource(scriptName, requestString).then((source) {
+        if (source != null) {
+          setResponses([{
+            'type': 'Script',
+            'source': source
+          }]);
+        } else {
+          setResponses([{
+            'type': 'RequestError',
+            'error': 'Source for $scriptName could not be loaded.'
+          }]);
+        }
+      });
+    } else {
+      request(requestString).then((responseString) {
+        parseResponses(responseString);
+      }).catchError((e) {
+        setResponseError(e.target);
+      });
+    }
+  }
+
+  Future<ScriptSource> getScriptSource(String name, String requestString) {
+    int isolateId = _application.locationManager.currentIsolateId();
+    Isolate isolate = _application.isolateManager.getIsolate(isolateId);
+    ScriptSource source = isolate.scripts[name];
+    if (source != null) {
+      return new Future.value(source);
+    }
+    return request(requestString).then((responseString) {
+      var r = JSON.decode(responseString);
+      ScriptSource scriptSource = new ScriptSource(r);
+      isolate.scripts[name] = scriptSource;
+      return scriptSource;
     }).catchError((e) {
       setResponseError(e.target);
+      return null;
     });
   }
 

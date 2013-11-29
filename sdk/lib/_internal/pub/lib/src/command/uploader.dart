@@ -4,7 +4,7 @@
 
 library pub.command.uploader;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 
 import 'package:path/path.dart' as path;
 

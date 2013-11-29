@@ -29,6 +29,8 @@ class SubstituteFuture<T> implements Future<T> {
   Future then(onValue(T value), {Function onError}) =>
     _completer.future.then(onValue, onError: onError);
   Future<T> whenComplete(action()) => _completer.future.whenComplete(action);
+  Future timeout(Duration timeLimit, [void onTimeout()]) =>
+    _completer.future.timeout(timeLimit, onTimeout);
 
   /// Substitutes [newFuture] for the currently wrapped [Future], which is
   /// returned.

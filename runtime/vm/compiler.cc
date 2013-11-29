@@ -388,7 +388,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         // Do optimizations that depend on the propagated type information.
-        optimizer.Canonicalize();
+        if (optimizer.Canonicalize()) {
+          // Invoke Canonicalize twice in order to fully canonicalize patterns
+          // like "if (a & const == 0) { }".
+          optimizer.Canonicalize();
+        }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         BranchSimplifier::Simplify(flow_graph);
@@ -734,8 +738,10 @@ static RawError* CompileFunctionHelper(const Function& function,
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
+  // Make sure unoptimized code is not collected while we are compiling.
+  const Code& unoptimized_code = Code::ZoneHandle(function.unoptimized_code());
   // Skips parsing if we need to only install unoptimized code.
-  if (!optimized && !Code::Handle(function.unoptimized_code()).IsNull()) {
+  if (!optimized && !unoptimized_code.IsNull()) {
     InstallUnoptimizedCode(function);
     isolate->set_long_jump_base(base);
     return Error::null();

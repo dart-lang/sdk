@@ -353,8 +353,6 @@ abstract class FileSystemEntity {
    *     as expected.
    *   * `Mac OS`: Uses `FSEvents`. The implementation supports watching both
    *     files and directories. Recursive watching is supported.
-   *     Note: events happened slightly before calling [watch], may be part of
-   *     the returned stream, on Mac OS.
    *
    * The system will start listening for events once the returned [Stream] is
    * being listened to, not when the call to [watch] is issued.

@@ -693,6 +693,16 @@ int64_t BigintOperations::ToInt64(const Bigint& bigint) {
 }
 
 
+uint32_t BigintOperations::TruncateToUint32(const Bigint& bigint) {
+  uint32_t value = 0;
+  for (intptr_t i = bigint.Length() - 1; i >= 0; i--) {
+    value <<= kDigitBitSize;
+    value += static_cast<uint32_t>(bigint.GetChunkAt(i));
+  }
+  return value;
+}
+
+
 bool BigintOperations::AbsFitsIntoUint64(const Bigint& bigint) {
   intptr_t b_length = bigint.Length();
   intptr_t num_bits = CountBits(bigint.GetChunkAt(b_length - 1));

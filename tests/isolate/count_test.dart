@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library CountTest;
-import '../../pkg/unittest/lib/unittest.dart';
 import 'dart:isolate';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 void countMessages(replyTo) {
   int count = 0;
@@ -23,7 +24,8 @@ void countMessages(replyTo) {
   });
 }
 
-void main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test("count 10 consecutive messages", () {
     ReceivePort local = new ReceivePort();
     Isolate.spawn(countMessages, local.sendPort);

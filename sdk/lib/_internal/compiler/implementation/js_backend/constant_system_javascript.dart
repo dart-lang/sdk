@@ -217,8 +217,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   NumConstant createInt32(int i) => new IntConstant(i & BITS32);
   NumConstant createDouble(double d)
       => convertToJavaScriptConstant(new DoubleConstant(d));
-  StringConstant createString(DartString string, Node diagnosticNode)
-      => new StringConstant(string, diagnosticNode);
+  StringConstant createString(DartString string) => new StringConstant(string);
   BoolConstant createBool(bool value) => new BoolConstant(value);
   NullConstant createNull() => new NullConstant();
 

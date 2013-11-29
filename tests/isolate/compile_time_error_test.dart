@@ -7,28 +7,29 @@
 
 library Isolate3NegativeTest;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'dart:async';
+import "package:async_helper/async_helper.dart";
 
 class TestClass {
-  TestClass.named(num this.fld1) : fld2=fld1 {
-    TestClass.i = 0;  // Should cause a compilation error.
-  }
+  TestClass.named(num this.fld1)
+    // Should cause a compilation error (for the spawned isolate). It is a
+    // runtime error for the test.
+    : fld2 = fld1  /// 01: compile-time error
+  ;
   num fld1;
   num fld2;
 }
 
 void entry(SendPort replyTo) {
   var tmp = new TestClass.named(10);
-  replyTo.send(tmp);
+  replyTo.send("done");
 }
 
 main() {
-  test("child isolate compilation errors propagate correctly. ", () {
-    void msg_callback(var message) {
-      // This test is a negative test and should not complete successfully.
-    }
-    ReceivePort response = new ReceivePort();
-    Isolate.spawn(entry, response.sendPort);
-    response.first.then(expectAsync1(msg_callback));
+  asyncStart();
+  ReceivePort response = new ReceivePort();
+  Isolate.spawn(entry, response.sendPort);
+  response.first.then((_) {
+    asyncEnd();
   });
 }

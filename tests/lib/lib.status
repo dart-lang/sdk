@@ -24,7 +24,6 @@ mirrors/find_in_context_test: Fail # Issue 6490
 mirrors/find_in_context_private_test: Fail # Issue 6490
 mirrors/find_in_context_fake_function_test: Fail # Issue 6490
 mirrors/function_type_mirror_test: RuntimeError # Issue 12166
-mirrors/generics_test/01: RuntimeError # Issue 12087
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
 mirrors/generic_interface_test: RuntimeError # Issue 12087
@@ -35,7 +34,6 @@ mirrors/generics_substitution_test/01: RuntimeError # Issue 12087
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
 mirrors/immutable_collections_test: RuntimeError # Issue 14030
 mirrors/initializing_formals_test/01: RuntimeError # Issue 6490
-mirrors/initializing_formals_test/02: RuntimeError # Issue 12087
 mirrors/initializing_formals_test/03: CompileTimeError # Issue 12164
 mirrors/instance_members_test: RuntimeError # Issue 14633
 mirrors/instance_members_with_override_test: RuntimeError # Issue 14633
@@ -128,7 +126,8 @@ async/catch_errors20_test: Fail # Timer interface not supported: dartbug.com/772
 async/catch_errors28_test: Fail # Timer interface not supported: dartbug.com/7728.
 async/catch_errors8_test: Fail # Timer interface not supported: dartbug.com/7728.
 async/run_zoned8_test: Fail # Timer interface not supported: dartbug.com/7728.
-
+async/zone_bind_test: Fail # Timer interface not supported: dartbug.com/7728.
+async/future_timeout_test: Fail # Timer interface not supported: dartbug.com/7728.
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
@@ -168,6 +167,7 @@ async/timer_isolate_test: Pass, Fail # Issue 14734
 
 [ $compiler == dart2js ]
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
+typed_data/int32x4_bigint_test: RuntimeError # Issue 1533
 
 [ $runtime == opera ]
 async/multiple_timer_test: Pass, Fail # Probably issue 14734

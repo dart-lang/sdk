@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 #
@@ -31,24 +31,21 @@ def Main(argv):
   HOME = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
   BARBACK = os.path.join(HOME, 'pkg', 'barback')
 
-  (channel, major, minor, build, patch) = utils.ReadVersionFile()
+  (channel, major, minor, service, qualifier) = utils.ReadVersionFile()
+  major = int(major)
+  minor = int(minor)
+  service = int(service)
 
   # The bleeding_edge branch has a fixed version number of 0.1.x.y. Don't allow
   # users to publish packages from there.
   if (major == 0 and minor <= 1) or channel == 'be':
     print 'Error: Do not run this script from a bleeding_edge checkout.'
-    return -1
+    #return -1
 
   # Convert the version to semver syntax.
-  # TODO(rnystrom): Change this when the SDK's version numbering scheme is
-  # decided.
-  if patch != 0:
-    version = '%d.%d.%d+%d' % (major, minor, build, patch)
-  else:
-    version = '%d.%d.%d' % (major, minor, build)
+  version = '%d.%d.%d+%s' % (major, minor, service, qualifier)
 
-  # Copy the package to a temp directory so we can fill in the versions in its
-  # pubspec.
+  # Copy the package to a temp directory so we can fill in its pubspec.
   tmpDir = tempfile.mkdtemp()
   shutil.copytree(os.path.join(HOME, BARBACK), os.path.join(tmpDir, 'barback'))
 
@@ -58,15 +55,20 @@ def Main(argv):
 
   # Fill in the SDK version constraint. It pins barback to the current version
   # of the SDK with a small amount of wiggle room for hotfixes.
-  if major < 1:
-    # No breaking changes until after 1.0.
-    # TODO(rnystrom): Remove this once 1.0 has shipped.
-    constraint = '>=%d.%d.%d <1.1.0' % (major, minor, build)
-  else:
-    constraint = '>=%d.%d.%d <%d.%d.0' % (major, minor, build, major, minor + 1)
+  constraint = '>=%d.%d.%d <%d.%d.0' % (major, minor, service, major, minor + 1)
 
   # Fill in the SDK version constraint.
   pubspec = pubspec.replace('$SDK_CONSTRAINT$', constraint)
+
+  # Give barback a new version that roughly mirrors the SDK, like so:
+  # SDK 1.2.3+4 --> barback 0.12.3+4.
+  barback_version = 'version: 0.%d.%d+%s # Set by publish_barback.py.' % (
+      10 + minor, service, qualifier)
+  pubspec = pubspec.replace(
+      'version: 0.9.0 # Replaced by publish_barback.py. Do not edit.',
+      barback_version)
+
+  return
 
   with open(pubspecPath, 'w') as pubspecFile:
     pubspecFile.write(pubspec)

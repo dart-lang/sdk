@@ -2,18 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import 'dart:async';
-import 'dart:math';
-import 'dart:collection';
+library dart.io;
 
-part '../../../sdk/lib/io/common.dart';
-part "../../../sdk/lib/io/io_sink.dart";
+import "package:expect/expect.dart";
+import "dart:async";
+import "dart:collection";
+import "dart:convert";
+import "dart:math";
+import "dart:typed_data";
+import "dart:isolate";
+
+part "../../../sdk/lib/io/bytes_builder.dart";
+part "../../../sdk/lib/io/common.dart";
+part "../../../sdk/lib/io/crypto.dart";
+part "../../../sdk/lib/io/data_transformer.dart";
+part "../../../sdk/lib/io/directory.dart";
+part "../../../sdk/lib/io/directory_impl.dart";
+part "../../../sdk/lib/io/file.dart";
+part "../../../sdk/lib/io/file_impl.dart";
+part "../../../sdk/lib/io/file_system_entity.dart";
+part "../../../sdk/lib/io/link.dart";
 part "../../../sdk/lib/io/http.dart";
-part "../../../sdk/lib/io/http_date.dart";
-part "../../../sdk/lib/io/http_headers.dart";
 part "../../../sdk/lib/io/http_impl.dart";
+part "../../../sdk/lib/io/http_date.dart";
 part "../../../sdk/lib/io/http_parser.dart";
+part "../../../sdk/lib/io/http_headers.dart";
+part "../../../sdk/lib/io/http_session.dart";
+part "../../../sdk/lib/io/io_service.dart";
+part "../../../sdk/lib/io/io_sink.dart";
+part "../../../sdk/lib/io/platform.dart";
+part "../../../sdk/lib/io/platform_impl.dart";
+part "../../../sdk/lib/io/secure_socket.dart";
+part "../../../sdk/lib/io/secure_server_socket.dart";
 part "../../../sdk/lib/io/socket.dart";
 
 void testMultiValue() {

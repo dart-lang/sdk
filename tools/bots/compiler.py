@@ -257,47 +257,6 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set, arch,
       TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
                extras_flags, arch)
 
-
-def _DeleteTempWebdriverProfiles(directory):
-  """Find all the firefox profiles in a particular directory and delete them."""
-  for f in os.listdir(directory):
-    item = os.path.join(directory, f)
-    if os.path.isdir(item) and (f.startswith('tmp') or f.startswith('opera')):
-      subprocess.Popen('rm -rf %s' % item, shell=True)
-
-
-def CleanUpTemporaryFiles(system, browser):
-  """For some browser (selenium) tests, the browser creates a temporary profile
-  on each browser session start. On Windows, generally these files are
-  automatically deleted when all python processes complete. However, since our
-  buildbot slave script also runs on python, we never get the opportunity to
-  clear out the temp files, so we do so explicitly here. Our batch browser
-  testing will make this problem occur much less frequently, but will still
-  happen eventually unless we do this.
-
-  This problem also occurs with batch tests in Firefox. For some reason selenium
-  automatically deletes the temporary profiles for Firefox for one browser,
-  but not multiple ones when we have many open batch tasks running. This
-  behavior has not been reproduced outside of the buildbots.
-
-  Args:
-     - system: either 'linux', 'mac', 'windows'
-     - browser: one of the browsers, see GetBuildInfo
-  """
-  if system == 'windows':
-    temp_dir = 'C:\\Users\\chrome-bot\\AppData\\Local\\Temp'
-    for name in os.listdir(temp_dir):
-      fullname = os.path.join(temp_dir, name)
-      if os.path.isdir(fullname):
-        shutil.rmtree(fullname, ignore_errors=True)
-  elif browser == 'ff' or 'opera':
-    # Note: the buildbots run as root, so we can do this without requiring a
-    # password. The command won't actually work on regular machines without
-    # root permissions.
-    _DeleteTempWebdriverProfiles('/tmp')
-    _DeleteTempWebdriverProfiles('/var/tmp')
-
-
 def GetHasHardCodedCheckedMode(build_info):
   # TODO(ricow): We currently run checked mode tests on chrome on linux and
   # on the slow (all) IE windows bots. This is a hack and we should use the
@@ -363,9 +322,6 @@ def RunCompilerTests(build_info):
                  test_flags + ['--checked'], build_info.is_buildbot,
                  build_info.test_set, build_info.arch,
                  compiler=build_info.compiler)
-
-  if build_info.runtime != 'd8':
-    CleanUpTemporaryFiles(build_info.system, build_info.runtime)
 
 
 def BuildCompiler(build_info):

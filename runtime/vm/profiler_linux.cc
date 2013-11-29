@@ -13,6 +13,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, profile);
+DECLARE_FLAG(bool, trace_profiled_isolates);
 
 static void CollectSample(IsolateProfilerData* profiler_data,
                           uintptr_t pc,
@@ -52,24 +53,28 @@ static void ProfileSignalAction(int signal, siginfo_t* info, void* context_) {
     // Thread owns isolate profiler data mutex.
     ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
-    if (profiler_data == NULL) {
+    if ((profiler_data == NULL) || !profiler_data->CanExpire() ||
+        (profiler_data->sample_buffer() == NULL)) {
+      // Descheduled.
       return;
     }
-
-    uintptr_t stack_lower = 0;
-    uintptr_t stack_upper = 0;
-    isolate->GetStackBounds(&stack_lower, &stack_upper);
-    uintptr_t PC = SignalHandler::GetProgramCounter(mcontext);
-    uintptr_t FP = SignalHandler::GetFramePointer(mcontext);
-    uintptr_t SP = SignalHandler::GetStackPointer(mcontext);
-    int64_t sample_time = OS::GetCurrentTimeMicros();
-    profiler_data->SampledAt(sample_time);
-    CollectSample(profiler_data, PC, FP, SP, stack_lower, stack_upper);
+    if (profiler_data->thread_id() == Thread::GetCurrentThreadId()) {
+      // Still scheduled on this thread.
+      uintptr_t stack_lower = 0;
+      uintptr_t stack_upper = 0;
+      isolate->GetStackBounds(&stack_lower, &stack_upper);
+      uintptr_t PC = SignalHandler::GetProgramCounter(mcontext);
+      uintptr_t FP = SignalHandler::GetFramePointer(mcontext);
+      uintptr_t SP = SignalHandler::GetStackPointer(mcontext);
+      int64_t sample_time = OS::GetCurrentTimeMicros();
+      profiler_data->SampledAt(sample_time);
+      CollectSample(profiler_data, PC, FP, SP, stack_lower, stack_upper);
+    }
   }
   // Thread owns no profiler locks at this point.
   // This call will acquire both ProfilerManager::monitor and the
   // isolate's profiler data mutex.
-  ProfilerManager::ScheduleIsolate(isolate);
+  ProfilerManager::ScheduleIsolate(isolate, true);
 }
 
 
@@ -84,6 +89,12 @@ int64_t ProfilerManager::SampleAndRescheduleIsolates(int64_t current_time) {
     Isolate* isolate = isolates_[i];
     ScopedMutex isolate_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
+    if (profiler_data == NULL) {
+      // Isolate has been shutdown for profiling.
+      RemoveIsolate(i);
+      // Remove moves the last element into i, do not increment i.
+      continue;
+    }
     ASSERT(profiler_data != NULL);
     if (profiler_data->ShouldSample(current_time)) {
       pthread_kill(profiler_data->thread_id(), SIGPROF);
@@ -119,11 +130,29 @@ void ProfilerManager::ThreadMain(uword parameters) {
   ASSERT(initialized_);
   ASSERT(FLAG_profile);
   SignalHandler::Install(ProfileSignalAction);
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager Linux ready.\n");
+  }
+  {
+    // Signal to main thread we are ready.
+    ScopedMonitor startup_lock(start_stop_monitor_);
+    thread_running_ = true;
+    startup_lock.Notify();
+  }
   ScopedMonitor lock(monitor_);
   while (!shutdown_) {
     int64_t current_time = OS::GetCurrentTimeMicros();
     int64_t next_sample = SampleAndRescheduleIsolates(current_time);
     lock.WaitMicros(next_sample);
+  }
+  if (FLAG_trace_profiled_isolates) {
+    OS::Print("ProfilerManager Linux exiting.\n");
+  }
+  {
+    // Signal to main thread we are exiting.
+    ScopedMonitor shutdown_lock(start_stop_monitor_);
+    thread_running_ = false;
+    shutdown_lock.Notify();
   }
 }
 

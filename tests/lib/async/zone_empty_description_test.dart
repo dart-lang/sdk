@@ -51,8 +51,7 @@ testForkedZone(Zone forked) {
   asyncStart();
   bool asyncDidRun = false;
   forked.scheduleMicrotask(() {
-    // The scheduleMicrotask functions on the Zone don't bind the closures.
-    Expect.identical(Zone.ROOT, Zone.current);
+    Expect.identical(forked, Zone.current);
     asyncDidRun = true;
     asyncEnd();
   });
@@ -62,8 +61,7 @@ testForkedZone(Zone forked) {
   asyncStart();
   bool timerDidRun = false;
   forked.createTimer(const Duration(milliseconds: 0), () {
-    // The createTimer functions on the Zone don't bind the closures.
-    Expect.identical(Zone.ROOT, Zone.current);
+    Expect.identical(forked, Zone.current);
     timerDidRun = true;
     asyncEnd();
   });

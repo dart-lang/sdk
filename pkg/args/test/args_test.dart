@@ -6,8 +6,9 @@ library args_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
+import 'utils.dart';
 
-main() {
+void main() {
   group('ArgParser.addFlag()', () {
     test('throws ArgumentError if the flag already exists', () {
       var parser = new ArgParser();
@@ -182,43 +183,40 @@ main() {
     });
   });
 
-  group('ArgResults.options', () {
-    test('returns the provided options', () {
-      var parser = new ArgParser();
-      parser.addFlag('woof');
-      parser.addOption('meow');
-      var args = parser.parse(['--woof', '--meow', 'kitty']);
-      expect(args.options, hasLength(2));
-      expect(args.options.any((o) => o == 'woof'), isTrue);
-      expect(args.options.any((o) => o == 'meow'), isTrue);
+  group('ArgResults', () {
+    group('options', () {
+      test('returns the provided options', () {
+        var parser = new ArgParser();
+        parser.addFlag('woof');
+        parser.addOption('meow');
+        var args = parser.parse(['--woof', '--meow', 'kitty']);
+        expect(args.options, hasLength(2));
+        expect(args.options, contains('woof'));
+        expect(args.options, contains('meow'));
+      });
+
+      test('includes defaulted options', () {
+        var parser = new ArgParser();
+        parser.addFlag('woof', defaultsTo: false);
+        parser.addOption('meow', defaultsTo: 'kitty');
+        var args = parser.parse([]);
+        expect(args.options, hasLength(2));
+        expect(args.options, contains('woof'));
+        expect(args.options, contains('meow'));
+      });
     });
 
-    test('includes defaulted options', () {
-      var parser = new ArgParser();
-      parser.addFlag('woof', defaultsTo: false);
-      parser.addOption('meow', defaultsTo: 'kitty');
-      var args = parser.parse([]);
-      expect(args.options, hasLength(2));
-      expect(args.options.any((o) => o == 'woof'), isTrue);
-      expect(args.options.any((o) => o == 'meow'), isTrue);
-    });
-  });
-
-  group('ArgResults[]', () {
-    test('throws if the name is not an option', () {
+    test('[] throws if the name is not an option', () {
       var parser = new ArgParser();
       var results = parser.parse([]);
       throwsIllegalArg(() => results['unknown']);
     });
+
+    test('rest cannot be modified', () {
+      var results = new ArgResults({}, '', null, []);
+      expect(() => results.rest.add('oops'), throwsUnsupportedError);
+    });
   });
-}
-
-throwsIllegalArg(function, {String reason: null}) {
-  expect(function, throwsArgumentError, reason: reason);
-}
-
-throwsFormat(ArgParser parser, List<String> args) {
-  expect(() => parser.parse(args), throwsFormatException);
 }
 
 const _INVALID_OPTIONS = const [

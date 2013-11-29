@@ -680,7 +680,6 @@ bool RedefinitionInstr::RecomputeType() {
 
 
 CompileType IfThenElseInstr::ComputeType() const {
-  ASSERT(InputCount() == 2);
   return CompileType::FromCid(kSmiCid);
 }
 

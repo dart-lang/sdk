@@ -35,6 +35,6 @@ void main() {
       Expect.equals(type, mask.elementType.simplify(compiler), name);
     }
 
-    checkType('myList', compiler.typesTask.intType);
+    checkType('myList', compiler.typesTask.uint31Type);
   }));
 }

@@ -566,10 +566,8 @@ class DeoptRetAddressInstr : public DeoptInstr {
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Function& function = Function::Handle(deopt_context->isolate());
-    function ^= deopt_context->ObjectAt(object_table_index_);
-    const Code& code =
-        Code::Handle(deopt_context->isolate(), function.unoptimized_code());
+    Code& code = Code::Handle(deopt_context->isolate());
+    code ^= deopt_context->ObjectAt(object_table_index_);
     ASSERT(!code.IsNull());
     uword continue_at_pc = code.GetPcForDeoptId(deopt_id_,
                                                 PcDescriptors::kDeopt);
@@ -789,16 +787,16 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Function& function = Function::Handle(deopt_context->isolate());
-    function ^= deopt_context->ObjectAt(object_table_index_);
-    if (function.IsNull()) {
+    Code& code = Code::Handle(deopt_context->isolate());
+    code ^= deopt_context->ObjectAt(object_table_index_);
+    if (code.IsNull()) {
       // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
       *dest_addr = 0;
       return;
     }
-    const Code& code =
-        Code::Handle(deopt_context->isolate(), function.unoptimized_code());
-    ASSERT(!code.IsNull());
+    const Function& function =
+        Function::Handle(deopt_context->isolate(), code.function());
+    ASSERT(function.HasCode());
     const intptr_t pc_marker =
         code.EntryPoint() + Assembler::kEntryPointToPcMarkerOffset;
     *dest_addr = pc_marker;
@@ -813,7 +811,9 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // Clear invocation counter so that hopefully the function gets reoptimized
     // only after more feedback has been collected.
     function.set_usage_counter(0);
-    if (function.HasOptimizedCode()) function.SwitchToUnoptimizedCode();
+    if (function.HasOptimizedCode()) {
+      function.SwitchToUnoptimizedCode();
+    }
   }
 
  private:
@@ -841,10 +841,8 @@ class DeoptPpInstr : public DeoptInstr {
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    Function& function = Function::Handle(deopt_context->isolate());
-    function ^= deopt_context->ObjectAt(object_table_index_);
-    const Code& code =
-        Code::Handle(deopt_context->isolate(), function.unoptimized_code());
+    Code& code = Code::Handle(deopt_context->isolate());
+    code ^= deopt_context->ObjectAt(object_table_index_);
     ASSERT(!code.IsNull());
     const intptr_t pp = reinterpret_cast<intptr_t>(code.ObjectPool());
     *dest_addr = pp;
@@ -1051,9 +1049,10 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   ASSERT(Isolate::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
   ASSERT(func != NULL);
-  *func ^= object_table.At(ret_address_instr->object_table_index());
-  const Code& code = Code::Handle(func->unoptimized_code());
+  Code& code = Code::Handle();
+  code ^= object_table.At(ret_address_instr->object_table_index());
   ASSERT(!code.IsNull());
+  *func ^= code.function();
   uword res = code.GetPcForDeoptId(ret_address_instr->deopt_id(),
                                    PcDescriptors::kDeopt);
   ASSERT(res != 0);
@@ -1161,36 +1160,32 @@ intptr_t DeoptInfoBuilder::CalculateStackIndex(
 }
 
 
-void DeoptInfoBuilder::AddReturnAddress(const Function& function,
+void DeoptInfoBuilder::AddReturnAddress(const Code& code,
                                         intptr_t deopt_id,
                                         intptr_t dest_index) {
   // Check that deopt_id exists.
   // TODO(vegorov): verify after deoptimization targets as well.
 #ifdef DEBUG
-  const Code& code = Code::Handle(function.unoptimized_code());
-  // The inlined function's code pointer may be null if there is a GC during
-  // compilation.
-  // TODO(zra): See if we can avoid this check by ensuring that code is not
-  //            removed during inlining.
-  ASSERT(code.IsNull() || Isolate::IsDeoptAfter(deopt_id) ||
-      (code.GetPcForDeoptId(deopt_id, PcDescriptors::kDeopt) != 0));
+  ASSERT(Isolate::IsDeoptAfter(deopt_id) ||
+         (code.GetPcForDeoptId(deopt_id, PcDescriptors::kDeopt) != 0));
 #endif
-  const intptr_t object_table_index = FindOrAddObjectInTable(function);
+  const intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());
   instructions_.Add(new DeoptRetAddressInstr(object_table_index, deopt_id));
 }
 
 
-void DeoptInfoBuilder::AddPcMarker(const Function& function,
+void DeoptInfoBuilder::AddPcMarker(const Code& code,
                                    intptr_t dest_index) {
-  intptr_t object_table_index = FindOrAddObjectInTable(function);
+  intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());
   instructions_.Add(new DeoptPcMarkerInstr(object_table_index));
 }
 
 
-void DeoptInfoBuilder::AddPp(const Function& function, intptr_t dest_index) {
-  intptr_t object_table_index = FindOrAddObjectInTable(function);
+void DeoptInfoBuilder::AddPp(const Code& code,
+                             intptr_t dest_index) {
+  intptr_t object_table_index = FindOrAddObjectInTable(code);
   ASSERT(dest_index == FrameSize());
   instructions_.Add(new DeoptPpInstr(object_table_index));
 }

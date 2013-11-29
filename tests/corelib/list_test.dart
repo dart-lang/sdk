@@ -497,8 +497,8 @@ class MyFixedList<E> extends ListBase<E> {
 
 void testListConstructor() {
   Expect.throws(() { new List(0).add(4); });  // Is fixed-length.
-  Expect.throws(() { new List(-2); });  // Not negative.
-  Expect.throws(() { new List(null); });  // Not null. /// 01: ok
+  Expect.throws(() { new List(-2); });  // Not negative. /// 01: ok
+  Expect.throws(() { new List(null); });  // Not null.
   Expect.listEquals([4], new List()..add(4));
   Expect.throws(() { new List.filled(0, 42).add(4); });  // Is fixed-length.
   Expect.throws(() { new List.filled(-2, 42); });  // Not negative.

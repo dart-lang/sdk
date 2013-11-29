@@ -166,8 +166,9 @@ class _Link extends FileSystemEntity implements Link {
     if (Platform.operatingSystem == 'windows') {
       target = _makeWindowsLinkTarget(target);
     }
-    return (recursive ? parent.create(recursive: true)
-                      : new Future.value(null))
+    var result = recursive ? parent.create(recursive: true)
+                           : new Future.value(null);
+    return result
       .then((_) => _IOService.dispatch(_FILE_CREATE_LINK, [path, target]))
       .then((response) {
         if (_isErrorResponse(response)) {

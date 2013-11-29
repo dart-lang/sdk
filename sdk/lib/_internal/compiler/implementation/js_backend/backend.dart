@@ -163,6 +163,7 @@ class FunctionInlineCache {
 
 class JavaScriptBackend extends Backend {
   SsaBuilderTask builder;
+  SsaFromIrBuilderTask fromIrBuilder;
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
@@ -193,6 +194,9 @@ class JavaScriptBackend extends Backend {
   ClassElement jsMutableArrayClass;
   ClassElement jsFixedArrayClass;
   ClassElement jsExtendableArrayClass;
+  ClassElement jsPositiveIntClass;
+  ClassElement jsUInt32Class;
+  ClassElement jsUInt31Class;
 
   Element jsIndexableLength;
   Element jsArrayTypedConstructor;
@@ -226,6 +230,9 @@ class JavaScriptBackend extends Backend {
   TypeMask get stringType => compiler.typesTask.stringType;
   TypeMask get doubleType => compiler.typesTask.doubleType;
   TypeMask get intType => compiler.typesTask.intType;
+  TypeMask get uint32Type => compiler.typesTask.uint32Type;
+  TypeMask get uint31Type => compiler.typesTask.uint31Type;
+  TypeMask get positiveIntType => compiler.typesTask.positiveIntType;
   TypeMask get numType => compiler.typesTask.numType;
   TypeMask get boolType => compiler.typesTask.boolType;
   TypeMask get dynamicType => compiler.typesTask.dynamicType;
@@ -419,6 +426,7 @@ class JavaScriptBackend extends Backend {
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
+    fromIrBuilder = new SsaFromIrBuilderTask(compiler);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
     typeVariableHandler = new TypeVariableHandler(this);
@@ -574,6 +582,9 @@ class JavaScriptBackend extends Backend {
       // The int class must be before the double class, because the
       // emitter relies on this list for the order of type checks.
       jsIntClass = compiler.findInterceptor('JSInt'),
+      jsPositiveIntClass = compiler.findInterceptor('JSPositiveInt'),
+      jsUInt32Class = compiler.findInterceptor('JSUInt32'),
+      jsUInt31Class = compiler.findInterceptor('JSUInt31'),
       jsDoubleClass = compiler.findInterceptor('JSDouble'),
       jsNumberClass = compiler.findInterceptor('JSNumber'),
       jsNullClass = compiler.findInterceptor('JSNull'),
@@ -845,6 +856,9 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsExtendableArrayClass, enqueuer, elements);
     } else if (cls == compiler.intClass || cls == jsIntClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
+      addInterceptors(jsPositiveIntClass, enqueuer, elements);
+      addInterceptors(jsUInt32Class, enqueuer, elements);
+      addInterceptors(jsUInt31Class, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
     } else if (cls == compiler.doubleClass || cls == jsDoubleClass) {
       addInterceptors(jsDoubleClass, enqueuer, elements);
@@ -855,6 +869,9 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsNullClass, enqueuer, elements);
     } else if (cls == compiler.numClass || cls == jsNumberClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
+      addInterceptors(jsPositiveIntClass, enqueuer, elements);
+      addInterceptors(jsUInt32Class, enqueuer, elements);
+      addInterceptors(jsUInt31Class, enqueuer, elements);
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
     } else if (cls == jsPlainJavaScriptObjectClass) {
@@ -1260,8 +1277,9 @@ class JavaScriptBackend extends Backend {
         compiler.enqueuer.codegen.registerStaticUse(getCyclicThrowHelper());
       }
     }
-
-    HGraph graph = builder.build(work);
+    HGraph graph = compiler.irBuilder.hasIr(element)
+        ? fromIrBuilder.build(work)
+        : builder.build(work);
     optimizer.optimize(work, graph);
     jsAst.Expression code = generator.generateCode(work, graph);
     generatedCode[element] = code;
@@ -1412,7 +1430,9 @@ class JavaScriptBackend extends Backend {
       return typeCast
           ? 'boolTypeCast'
           : 'boolTypeCheck';
-    } else if (element == jsIntClass || element == compiler.intClass) {
+    } else if (element == jsIntClass || element == compiler.intClass
+               || element == jsUInt32Class || element == jsUInt31Class
+               || element == jsPositiveIntClass) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? 'intTypeCast'
@@ -1630,6 +1650,9 @@ class JavaScriptBackend extends Backend {
   }
 
   ClassElement get intImplementation => jsIntClass;
+  ClassElement get uint32Implementation => jsUInt32Class;
+  ClassElement get uint31Implementation => jsUInt31Class;
+  ClassElement get positiveIntImplementation => jsPositiveIntClass;
   ClassElement get doubleImplementation => jsDoubleClass;
   ClassElement get numImplementation => jsNumberClass;
   ClassElement get stringImplementation => jsStringClass;
@@ -1647,6 +1670,7 @@ class JavaScriptBackend extends Backend {
     if (element == disableTreeShakingMarker) {
       compiler.disableTypeInferenceForMirrors = true;
       isTreeShakingDisabled = true;
+      typeVariableHandler.onTreeShakingDisabled(enqueuer);
     } else if (element == preserveNamesMarker) {
       mustPreserveNames = true;
     } else if (element == preserveMetadataMarker) {
@@ -1872,13 +1896,6 @@ class JavaScriptBackend extends Backend {
       metadataConstants.clear();
     }
 
-    if (isTreeShakingDisabled) {
-      if (enqueuer.isResolutionQueue) {
-        typeVariableHandler.onResolutionQueueEmpty(enqueuer);
-      } else {
-        typeVariableHandler.onCodegenQueueEmpty();
-      }
-    }
     customElementsAnalysis.onQueueEmpty(enqueuer);
   }
 

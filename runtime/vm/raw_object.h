@@ -610,8 +610,11 @@ class RawFunction : public RawObject {
   };
 
  private:
+  // So that the MarkingVisitor::DetachCode can null out the code fields.
+  friend class MarkingVisitor;
   friend class Class;
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
+  static bool SkipCode(RawFunction* raw_fun);
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
@@ -620,10 +623,13 @@ class RawFunction : public RawObject {
   RawAbstractType* result_type_;
   RawArray* parameter_types_;
   RawArray* parameter_names_;
+  RawObject* data_;  // Additional data specific to the function kind.
   RawCode* code_;  // Compiled code for the function.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
-  RawObject* data_;  // Additional data specific to the function kind.
   RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
+  }
+  RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
 

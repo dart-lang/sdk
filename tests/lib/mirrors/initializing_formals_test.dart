@@ -75,7 +75,7 @@ main() {
   mm = reflectClass(Class).declarations[#Class.generic];
   pm = mm.parameters.single;
   Expect.equals(#tField, pm.simpleName);
-  Expect.equals(reflectClass(Class).typeVariables.single, pm.type);  /// 02: ok
+  Expect.equals(reflectClass(Class).typeVariables.single, pm.type);  
   Expect.isFalse(pm.isNamed);  /// 01: ok
   Expect.isFalse(pm.isFinal);  /// 01: ok
   Expect.isFalse(pm.isOptional);  /// 01: ok
@@ -111,7 +111,7 @@ main() {
   mm = reflectClass(Class).declarations[#Class.withVar];
   pm = mm.parameters.single;
   Expect.equals(#intField, pm.simpleName);
-  Expect.equals(reflectClass(int), pm.type);  // N.B.   /// 02: ok
+  Expect.equals(reflectClass(int), pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
   Expect.isFalse(pm.isFinal);  /// 01: ok
   Expect.isFalse(pm.isOptional);  /// 01: ok

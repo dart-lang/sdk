@@ -107,10 +107,10 @@ main() {
 
   var compiler1 = compilerFor(TEST1, uri);
   asyncTest(() => compiler1.runCompiler(uri).then((_) {
-    checkReturn(compiler1, 'test1', compiler1.typesTask.intType);
+    checkReturn(compiler1, 'test1', compiler1.typesTask.uint31Type);
     checkReturn(compiler1, 'test2',
         compiler1.typesTask.dynamicType.nonNullable());
-    checkReturn(compiler1, 'test3', compiler1.typesTask.intType);
+    checkReturn(compiler1, 'test3', compiler1.typesTask.uint31Type);
     checkReturn(compiler1, 'test4', compiler1.typesTask.mapType);
     checkReturn(compiler1, 'test5',
         compiler1.typesTask.dynamicType.nonNullable());
@@ -127,9 +127,9 @@ main() {
     checkReturn(compiler2, 'test5', compiler2.typesTask.mapType);
 
     checkReturn(compiler2, 'test6', compiler2.typesTask.numType);
-    checkReturn(compiler2, 'test7', compiler2.typesTask.intType);
-    checkReturn(compiler2, 'test8', compiler2.typesTask.intType);
-    checkReturn(compiler2, 'test9', compiler2.typesTask.intType);
+    checkReturn(compiler2, 'test7', compiler2.typesTask.uint31Type);
+    checkReturn(compiler2, 'test8', compiler2.typesTask.uint31Type);
+    checkReturn(compiler2, 'test9', compiler2.typesTask.uint31Type);
     checkReturn(compiler2, 'test10', compiler2.typesTask.numType);
     checkReturn(compiler2, 'test11', compiler2.typesTask.doubleType);
   }));

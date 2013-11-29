@@ -4,7 +4,7 @@
 
 library pub.command.help;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 
 import '../command.dart';
 import '../exit_codes.dart' as exit_codes;

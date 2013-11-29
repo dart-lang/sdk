@@ -1341,9 +1341,16 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     DartFrameIterator iterator;
     StackFrame* frame = iterator.NextFrame();
     ASSERT(frame != NULL);
-    const Function& function = Function::Handle(frame->LookupDartFunction());
+    const Code& code = Code::ZoneHandle(frame->LookupDartCode());
+    ASSERT(!code.IsNull());
+    const Function& function = Function::Handle(code.function());
     ASSERT(!function.IsNull());
-    if (!CanOptimizeFunction(function, isolate)) return;
+    // Since the code is referenced from the frame and the ZoneHandle,
+    // it cannot have been removed from the function.
+    ASSERT(function.HasCode());
+    if (!CanOptimizeFunction(function, isolate)) {
+      return;
+    }
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
     if (FLAG_trace_osr) {
@@ -1354,9 +1361,14 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
 
     const Code& original_code = Code::Handle(function.CurrentCode());
+    // Since the code is referenced from the frame and the ZoneHandle,
+    // it cannot have been removed from the function.
+    ASSERT(!original_code.IsNull());
     const Error& error =
         Error::Handle(Compiler::CompileOptimizedFunction(function, osr_id));
-    if (!error.IsNull()) Exceptions::PropagateError(error);
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+    }
 
     const Code& optimized_code = Code::Handle(function.CurrentCode());
     // The current code will not be changed in the case that the compiler
@@ -1433,30 +1445,25 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
       caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
+  const Code& target_code = Code::Handle(
+      caller_code.GetStaticCallTargetCodeAt(frame->pc()));
+  ASSERT(!target_code.IsNull());
+  // Since there was a reference to the target_code in the caller_code, it is
+  // not possible for the target_function's code to be disconnected.
+  ASSERT(target_function.HasCode());
+  ASSERT(target_function.raw() == target_code.function());
 
-  // Check whether the code object has been detached from the target function.
-  // If it has been detached, reattach it.
-  Code& target_code = Code::Handle();
-  if (target_function.HasCode()) {
-    target_code ^= target_function.CurrentCode();
-    CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
-                                   target_code.EntryPoint());
-    caller_code.SetStaticCallTargetCodeAt(frame->pc(), target_code);
-  } else {
-    ASSERT(target_function.unoptimized_code() == Code::null());
-    target_code ^= caller_code.GetStaticCallTargetCodeAt(frame->pc());
-    ASSERT(!target_code.IsNull());
-    ASSERT(!target_code.is_optimized());
-    target_function.ReattachCode(target_code);
-  }
+  const Code& current_target_code = Code::Handle(target_function.CurrentCode());
+  CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
+                                 current_target_code.EntryPoint());
+  caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
   if (FLAG_trace_patching) {
     OS::PrintErr("FixCallersTarget: patching from %#" Px " to '%s' %#" Px "\n",
         frame->pc(),
-        Function::Handle(target_code.function()).ToFullyQualifiedCString(),
-        target_code.EntryPoint());
+        target_function.ToFullyQualifiedCString(),
+        current_target_code.EntryPoint());
   }
-  arguments.SetReturn(target_code);
-  ASSERT(target_function.HasCode());
+  arguments.SetReturn(current_target_code);
 }
 
 
@@ -1481,7 +1488,7 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   const Function& function = Function::Handle(optimized_code.function());
   const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
   ASSERT(!unoptimized_code.IsNull());
-  // The switch to unoptimized code may have already occured.
+  // The switch to unoptimized code may have already occurred.
   if (function.HasOptimizedCode()) {
     function.SwitchToUnoptimizedCode();
   }

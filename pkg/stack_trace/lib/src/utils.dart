@@ -18,3 +18,19 @@ String padRight(String string, int length) {
   return result.toString();
 }
 
+/// Flattens nested lists inside an iterable into a single list containing only
+/// non-list elements.
+List flatten(Iterable nested) {
+  var result = [];
+  helper(list) {
+    for (var element in list) {
+      if (element is List) {
+        helper(element);
+      } else {
+        result.add(element);
+      }
+    }
+  }
+  helper(nested);
+  return result;
+}

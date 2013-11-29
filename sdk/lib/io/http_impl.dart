@@ -1749,13 +1749,13 @@ class _HttpClient implements HttpClient {
       bool callback(X509Certificate certificate) =>
           currentBadCertificateCallback == null ? false :
           currentBadCertificateCallback(certificate, uriHost, uriPort);
-      return (isSecure && proxy.isDirect
-                  ? SecureSocket.connect(host,
-                                         port,
-                                         sendClientCertificate: true,
-                                         onBadCertificate: callback)
-                  : Socket.connect(host, port))
-        .then((socket) {
+      Future socketFuture = (isSecure && proxy.isDirect
+          ? SecureSocket.connect(host,
+                                 port,
+                                 sendClientCertificate: true,
+                                 onBadCertificate: callback)
+          : Socket.connect(host, port));
+      return socketFuture.then((socket) {
           socket.setOption(SocketOption.TCP_NODELAY, true);
           var connection = new _HttpClientConnection(key, socket, this);
           if (isSecure && !proxy.isDirect) {

@@ -538,7 +538,8 @@ abstract class ClosureMirror implements InstanceMirror {
    * If the invocation returns a result *r*, this method returns
    * the result of calling [reflect](*r*).
    * If the invocation causes a compilation error
-   * this method throws a [MirrorError].
+   * the effect is the same as if a non-reflective compilation error
+   * had been encountered.
    * If the invocation throws an exception *e* (that it does not catch)
    * this method throws *e*.
    */

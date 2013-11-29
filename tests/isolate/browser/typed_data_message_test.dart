@@ -9,6 +9,7 @@ library TypedDataMessageTest;
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:unittest/unittest.dart';
+import "../remote_unittest_helper.dart";
 
 // ---------------------------------------------------------------------------
 // Message passing test.
@@ -86,7 +87,8 @@ Future sendReceive(SendPort port, msg) {
   return response.first;
 }
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   initializeList();
   test("send objects and receive them back", () {
     ReceivePort response = new ReceivePort();

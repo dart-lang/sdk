@@ -755,7 +755,7 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
   Environment* deopt_env =
       Environment::From(*env,
                         num_non_copied_params_,
-                        parsed_function_.function());
+                        Code::Handle(parsed_function_.code()));
   instr->SetEnvironment(deopt_env);
   for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
     Value* use = it.CurrentValue();

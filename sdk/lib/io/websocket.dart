@@ -53,7 +53,18 @@ abstract class WebSocketStatus {
  */
 abstract class WebSocketTransformer
     implements StreamTransformer<HttpRequest, WebSocket> {
-  factory WebSocketTransformer() => new _WebSocketTransformerImpl();
+
+  /**
+   * Create a new [WebSocketTransformer].
+   *
+   * If [protocolSelector] is provided, [protocolSelector] will be called to
+   * select what protocol to use, if any were provided by the client.
+   * [protocolSelector] is should return either a [String] or a [Future]
+   * completing with a [String]. The [String] must exist in the list of
+   * protocols.
+   */
+  factory WebSocketTransformer({protocolSelector(List<String> protocols)})
+      => new _WebSocketTransformerImpl(protocolSelector);
 
   /**
    * Upgrades a [HttpRequest] to a [WebSocket] connection. If the
@@ -61,9 +72,16 @@ abstract class WebSocketTransformer
    * with status code 500 will be returned. Otherwise the returned
    * future will complete with the [WebSocket] when the upgrade pocess
    * is complete.
+   *
+   * If [protocolSelector] is provided, [protocolSelector] will be called to
+   * select what protocol to use, if any were provided by the client.
+   * [protocolSelector] is should return either a [String] or a [Future]
+   * completing with a [String]. The [String] must exist in the list of
+   * protocols.
    */
-  static Future<WebSocket> upgrade(HttpRequest request) {
-    return _WebSocketTransformerImpl._upgrade(request);
+  static Future<WebSocket> upgrade(HttpRequest request,
+                                   {protocolSelector(List<String> protocols)}) {
+    return _WebSocketTransformerImpl._upgrade(request, protocolSelector);
   }
 
   /**
@@ -78,7 +96,7 @@ abstract class WebSocketTransformer
 /**
  * A two-way HTTP communication object for client or server applications.
  *
- * The stream exposes the messages received. A text message will be of type 
+ * The stream exposes the messages received. A text message will be of type
  * [:String:] and a binary message will be of type [:List<int>:].
  */
 abstract class WebSocket implements Stream, StreamSink {
@@ -92,11 +110,11 @@ abstract class WebSocket implements Stream, StreamSink {
 
   /**
    * Create a new web socket connection. The URL supplied in [url]
-   * must use the scheme [:ws:] or [:wss:]. The [protocols] argument is either
-   * a [:String:] or [:List<String>:] specifying the subprotocols the
-   * client is willing to speak.
+   * must use the scheme [:ws:] or [:wss:]. The [protocols] argument is
+   * specifying the subprotocols the client is willing to speak.
    */
-  static Future<WebSocket> connect(String url, [protocols]) =>
+  static Future<WebSocket> connect(String url,
+                                   {List<String> protocols: const []}) =>
       _WebSocketImpl.connect(url, protocols);
 
   /**

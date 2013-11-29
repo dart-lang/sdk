@@ -25,7 +25,6 @@
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/service.h"
-#include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -340,7 +339,6 @@ Isolate::~Isolate() {
 }
 
 void Isolate::SetCurrent(Isolate* current) {
-  ScopedSignalBlocker ssb;
   Isolate* old_isolate = Current();
   if (old_isolate != NULL) {
     ProfilerManager::DescheduleIsolate(old_isolate);
@@ -370,6 +368,9 @@ void Isolate::InitOnce() {
 Isolate* Isolate::Init(const char* name_prefix) {
   Isolate* result = new Isolate();
   ASSERT(result != NULL);
+
+  // Setup for profiling.
+  ProfilerManager::SetupIsolateForProfiling(result);
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
@@ -409,8 +410,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
     }
   }
 
-  // Setup for profiling.
-  ProfilerManager::SetupIsolateForProfiling(result);
 
   return result;
 }
@@ -529,7 +528,7 @@ static bool RunIsolate(uword parameter) {
     StartIsolateScope start_scope(isolate);
     StackZone zone(isolate);
     HandleScope handle_scope(isolate);
-    if (!ClassFinalizer::FinalizeTypeHierarchy()) {
+    if (!ClassFinalizer::ProcessPendingClasses()) {
       // Error is in sticky error already.
       return false;
     }
@@ -704,11 +703,6 @@ void Isolate::Shutdown() {
     StackZone stack_zone(this);
     HandleScope handle_scope(this);
 
-    ScopedSignalBlocker ssb;
-
-    ProfilerManager::DescheduleIsolate(this);
-
-
     if (FLAG_print_object_histogram) {
       heap()->CollectAllGarbage();
       object_histogram()->Print();
@@ -750,6 +744,7 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
+  ProfilerManager::DescheduleIsolate(this);
   ProfilerManager::ShutdownIsolateForProfiling(this);
 }
 

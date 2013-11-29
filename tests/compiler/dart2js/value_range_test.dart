@@ -334,6 +334,9 @@ const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
   }
   class ObjectInterceptor {
   }
+  class JSPositiveInt extends JSInt {}
+  class JSUInt32 extends JSPositiveInt {}
+  class JSUInt31 extends JSUInt32 {}
   getInterceptor(x) {}''';
 
 expect(String code, int kind) {

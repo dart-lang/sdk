@@ -104,10 +104,10 @@ static void CollectFinalizedSuperClasses(
 }
 
 
-// Type hierarchy finalization occurs:
+// Processing ObjectStore::pending_classes_ occurs:
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
-bool ClassFinalizer::FinalizeTypeHierarchy() {
+bool ClassFinalizer::ProcessPendingClasses() {
   bool retval = true;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -227,7 +227,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 
   // Finalize type hierarchy for types that aren't pre-finalized
   // by Object::Init().
-  if (!FinalizeTypeHierarchy()) {
+  if (!ProcessPendingClasses()) {
     // TODO(srdjan): Exit like a real VM instead.
     const Error& err = Error::Handle(object_store->sticky_error());
     OS::PrintErr("Could not verify bootstrap classes : %s\n",

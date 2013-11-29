@@ -14,6 +14,7 @@ class Function;
 class ObjectPointerVisitor;
 class RawArray;
 class RawFunction;
+class RawCode;
 class RawMegamorphicCache;
 class RawString;
 class String;
@@ -23,7 +24,7 @@ class MegamorphicCacheTable {
   MegamorphicCacheTable();
   ~MegamorphicCacheTable();
 
-  RawFunction* miss_handler() const { return miss_handler_; }
+  RawFunction* miss_handler() const { return miss_handler_function_; }
   void InitMissHandler();
 
   RawMegamorphicCache* Lookup(const String& name, const Array& descriptor);
@@ -41,7 +42,8 @@ class MegamorphicCacheTable {
 
   static const int kCapacityIncrement = 128;
 
-  RawFunction* miss_handler_;
+  RawFunction* miss_handler_function_;
+  RawCode* miss_handler_code_;
   intptr_t capacity_;
   intptr_t length_;
   Entry* table_;

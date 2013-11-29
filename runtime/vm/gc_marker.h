@@ -27,7 +27,8 @@ class GCMarker : public ValueObject {
 
   void MarkObjects(Isolate* isolate,
                    PageSpace* page_space,
-                   bool invoke_api_callbacks);
+                   bool invoke_api_callbacks,
+                   bool collect_code);
 
  private:
   void Prologue(Isolate* isolate, bool invoke_api_callbacks);

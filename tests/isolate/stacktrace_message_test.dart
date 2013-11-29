@@ -3,12 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate';
+import "package:unittest/unittest.dart";
+import "remote_unittest_helper.dart";
 
-main() {
-  ReceivePort reply = new ReceivePort();
-  Isolate.spawn(runTest, reply.sendPort);
-  reply.first.then((StackTrace stack) {
-    print(stack);
+void main([args, port]) {
+  if (testRemote(main, port)) return;
+  test("stacktrace_message", () {
+    ReceivePort reply = new ReceivePort();
+    Isolate.spawn(runTest, reply.sendPort);
+    reply.first.then(expectAsync1((StackTrace stack) {
+      print(stack);
+    }));
   });
 }
 

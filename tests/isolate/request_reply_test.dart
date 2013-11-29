@@ -5,7 +5,8 @@
 library RequestReplyTest;
 
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 void entry(initPort) {
   ReceivePort port = new ReceivePort();
@@ -18,7 +19,8 @@ void entry(initPort) {
   });
 }
 
-void main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test("send", () {
     ReceivePort init = new ReceivePort();
     Isolate.spawn(entry, init.sendPort);

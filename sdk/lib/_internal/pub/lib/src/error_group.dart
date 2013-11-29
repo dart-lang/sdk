@@ -194,6 +194,11 @@ class _ErrorGroupFuture implements Future {
     return _completer.future.whenComplete(action);
   }
 
+  Future timeout(Duration timeLimit, [void onTimeout()]) {
+    _hasListeners = true;
+    return _completer.future.timeout(timeLimit, onTimeout);
+  }
+
   Stream asStream() {
     _hasListeners = true;
     return _completer.future.asStream();

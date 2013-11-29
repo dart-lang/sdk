@@ -116,7 +116,7 @@ class CodeEmitterTask extends CompilerTask {
   String get name => 'CodeEmitter';
 
   String get currentGenerateAccessorName
-      => '${namer.CURRENT_ISOLATE}.\$generateAccessor';
+      => '${namer.currentIsolate}.\$generateAccessor';
   String get generateAccessorHolder
       => '$isolatePropertiesName.\$generateAccessor';
   String get finishClassesProperty
@@ -539,7 +539,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   List addLazyInitializerLogic() {
-    String isolate = namer.CURRENT_ISOLATE;
+    String isolate = namer.currentIsolate;
     String cyclicThrow = namer.isolateAccess(backend.getCyclicThrowHelper());
     var lazies = [];
     if (backend.rememberLazies) {
@@ -793,6 +793,14 @@ class CodeEmitterTask extends CompilerTask {
         unneededClasses.add(interceptor);
       }
     }
+
+    // These classes are just helpers for the backend's type system.
+    unneededClasses.add(backend.jsMutableArrayClass);
+    unneededClasses.add(backend.jsFixedArrayClass);
+    unneededClasses.add(backend.jsExtendableArrayClass);
+    unneededClasses.add(backend.jsUInt32Class);
+    unneededClasses.add(backend.jsUInt31Class);
+    unneededClasses.add(backend.jsPositiveIntClass);
 
     return (ClassElement cls) => !unneededClasses.contains(cls);
   }
@@ -1195,7 +1203,7 @@ mainBuffer.add(r'''
       addComment(HOOKS_API_USAGE, mainBuffer);
 
       if (!areAnyElementsDeferred) {
-        mainBuffer.add('(function(${namer.CURRENT_ISOLATE})$_{$n');
+        mainBuffer.add('(function(${namer.currentIsolate})$_{$n');
       }
 
       for (String globalObject in Namer.reservedGlobalObjectNames) {
@@ -1211,8 +1219,8 @@ mainBuffer.add(r'''
 
       mainBuffer.add('function ${namer.isolateName}()$_{}\n');
       mainBuffer.add('init()$N$n');
-      // Shorten the code by using [namer.CURRENT_ISOLATE] as temporary.
-      isolateProperties = namer.CURRENT_ISOLATE;
+      // Shorten the code by using [namer.currentIsolate] as temporary.
+      isolateProperties = namer.currentIsolate;
       mainBuffer.add(
           '$isolateProperties$_=$_$isolatePropertiesName$N');
 
@@ -1385,11 +1393,11 @@ mainBuffer.add(r'''
       isolateProperties = isolatePropertiesName;
       // The following code should not use the short-hand for the
       // initialStatics.
-      mainBuffer.add('${namer.CURRENT_ISOLATE}$_=${_}null$N');
+      mainBuffer.add('${namer.currentIsolate}$_=${_}null$N');
 
       emitFinishIsolateConstructorInvocation(mainBuffer);
       mainBuffer.add(
-          '${namer.CURRENT_ISOLATE}$_=${_}new ${namer.isolateName}()$N');
+          '${namer.currentIsolate}$_=${_}new ${namer.isolateName}()$N');
 
       emitConvertToFastObjectFunction();
       for (String globalObject in Namer.reservedGlobalObjectNames) {
@@ -1527,13 +1535,13 @@ if (typeof $printHelperName === "function") {
 
     var buffer = new CodeBuffer()
         ..write(buildGeneratedBy())
-        ..write('var old${namer.CURRENT_ISOLATE}$_='
-                '$_${namer.CURRENT_ISOLATE}$N'
+        ..write('var old${namer.currentIsolate}$_='
+                '$_${namer.currentIsolate}$N'
                 // TODO(ahe): This defines a lot of properties on the
                 // Isolate.prototype object.  We know this will turn it into a
                 // slow object in V8, so instead we should do something similar
                 // to Isolate.$finishIsolateConstructor.
-                '${namer.CURRENT_ISOLATE}$_='
+                '${namer.currentIsolate}$_='
                 '$_${namer.isolateName}.prototype$N$n'
                 // The classesCollector object ($$).
                 '$classesCollector$_=$_{};$n')
@@ -1544,14 +1552,14 @@ if (typeof $printHelperName === "function") {
 
     if (!deferredClasses.isEmpty) {
       buffer.write(
-          '$finishClassesName($classesCollector,$_${namer.CURRENT_ISOLATE},'
+          '$finishClassesName($classesCollector,$_${namer.currentIsolate},'
           '$_$isolatePropertiesName)$N');
     }
 
     buffer.write(
         // Reset the classesCollector ($$).
         '$classesCollector$_=${_}null$N$n'
-        '${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
+        '${namer.currentIsolate}$_=${_}old${namer.currentIsolate}$N');
 
     classesCollector = oldClassesCollector;
 

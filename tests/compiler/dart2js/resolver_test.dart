@@ -646,10 +646,20 @@ resolveConstructor(String script, String statement, String className,
 testClassHierarchy() {
   final MAIN = "main";
   MockCompiler compiler = new MockCompiler();
+  compiler.parseScript("""class A extends A {}
+                          main() { return new A(); }""");
+  FunctionElement mainElement = compiler.mainApp.find(MAIN);
+  compiler.resolver.resolve(mainElement);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
+                compiler.errors[0].message.kind);
+
+  compiler = new MockCompiler();
   compiler.parseScript("""class A extends B {}
                           class B extends A {}
                           main() { return new A(); }""");
-  FunctionElement mainElement = compiler.mainApp.find(MAIN);
+  mainElement = compiler.mainApp.find(MAIN);
   compiler.resolver.resolve(mainElement);
   Expect.equals(0, compiler.warnings.length);
   Expect.equals(2, compiler.errors.length);
@@ -714,6 +724,17 @@ testClassHierarchy() {
   supertypes = aElement.allSupertypes;
   Expect.equals(<String>['A<E>', 'D', 'Object'].toString(),
                 asSortedStrings(supertypes).toString());
+
+  compiler = new MockCompiler();
+  compiler.parseScript("""class A<T> {}
+                          class D extends A<int> implements A<double> {}
+                          main() { return new D(); }""");
+  mainElement = compiler.mainApp.find(MAIN);
+  compiler.resolver.resolve(mainElement);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(MessageKind.MULTI_INHERITANCE,
+                compiler.errors[0].message.kind);
 }
 
 testInitializers() {

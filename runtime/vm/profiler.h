@@ -24,7 +24,7 @@ class ProfilerManager : public AllStatic {
 
   static void SetupIsolateForProfiling(Isolate* isolate);
   static void ShutdownIsolateForProfiling(Isolate* isolate);
-  static void ScheduleIsolate(Isolate* isolate);
+  static void ScheduleIsolate(Isolate* isolate, bool inside_signal = false);
   static void DescheduleIsolate(Isolate* isolate);
 
   static void PrintToJSONStream(Isolate* isolate, JSONStream* stream);
@@ -35,12 +35,15 @@ class ProfilerManager : public AllStatic {
   static const intptr_t kMaxProfiledIsolates = 4096;
   static bool initialized_;
   static bool shutdown_;
+  static bool thread_running_;
   static Monitor* monitor_;
+  static Monitor* start_stop_monitor_;
 
   static Isolate** isolates_;
   static intptr_t isolates_capacity_;
   static intptr_t isolates_size_;
 
+  static void ScheduleIsolateHelper(Isolate* isolate);
   static void ResizeIsolates(intptr_t new_capacity);
   static void AddIsolate(Isolate* isolate);
   static intptr_t FindIsolate(Isolate* isolate);
@@ -108,6 +111,10 @@ class IsolateProfilerData {
 
   SampleBuffer* sample_buffer() const { return sample_buffer_; }
 
+  void set_sample_buffer(SampleBuffer* sample_buffer) {
+    sample_buffer_ = sample_buffer;
+  }
+
  private:
   int64_t last_sampled_micros_;
   int64_t timer_expiration_micros_;
@@ -142,7 +149,7 @@ struct Sample {
 // Ring buffer of samples. One per isolate.
 class SampleBuffer {
  public:
-  static const intptr_t kDefaultBufferCapacity = 1000000;
+  static const intptr_t kDefaultBufferCapacity = 120000;  // 2 minutes @ 1000hz.
 
   explicit SampleBuffer(intptr_t capacity = kDefaultBufferCapacity);
   ~SampleBuffer();

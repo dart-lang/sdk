@@ -278,9 +278,12 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     var result = new Map();
     for (String className in _classes) {
       var cls = reflectClassByMangledName(className);
-      if (cls is JsClassMirror) {
-        result[cls.simpleName] = cls;
-        cls._owner = this;
+      if (cls is ClassMirror) {
+        cls = cls.originalDeclaration;
+        if (cls is JsClassMirror) {
+          result[cls.simpleName] = cls;
+          cls._owner = this;
+        }
       }
     }
     return _cachedClasses =
@@ -479,6 +482,7 @@ TypeMirror reflectType(Type key) {
 
 TypeMirror reflectClassByMangledName(String mangledName) {
   String unmangledName = mangledGlobalNames[mangledName];
+  if (mangledName == 'dynamic') return JsMirrorSystem._dynamicType;
   if (unmangledName == null) unmangledName = mangledName;
   return reflectClassByName(s(unmangledName), mangledName);
 }
@@ -492,8 +496,8 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   disableTreeShaking();
   int typeArgIndex = mangledName.indexOf("<");
   if (typeArgIndex != -1) {
-    mirror = new JsTypeBoundClassMirror(
-        reflectClassByMangledName(mangledName.substring(0, typeArgIndex)),
+    mirror = new JsTypeBoundClassMirror(reflectClassByMangledName(
+        mangledName.substring(0, typeArgIndex)).originalDeclaration,
         // Remove the angle brackets enclosing the type arguments.
         mangledName.substring(typeArgIndex + 1, mangledName.length - 1));
     JsCache.update(classMirrors, mangledName, mirror);
@@ -539,8 +543,19 @@ TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
   if (mixins.length > 1 && mangledGlobalNames[mangledName] == null) {
     mirror = reflectMixinApplication(mixins, mangledName);
   } else {
-    mirror = new JsClassMirror(
+    ClassMirror classMirror = new JsClassMirror(
         symbol, mangledName, constructorOrInterceptor, fields, fieldsMetadata);
+    List typeVariables =
+        JS('JSExtendableArray|Null', '#.prototype["<>"]', constructor);
+    if (typeVariables == null || typeVariables.length == 0) {
+      mirror = classMirror;
+    } else {
+      String typeArguments = 'dynamic';
+      for (int i = 1; i < typeVariables.length; i++) {
+        typeArguments += ',dynamic';
+      }
+      mirror = new JsTypeBoundClassMirror(classMirror, typeArguments);
+    }
   }
 
   JsCache.update(classMirrors, mangledName, mirror);

@@ -86,8 +86,6 @@ compare_to2_test: RuntimeError, OK    # Requires bigint support.
 string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
 
-list_test/01: RuntimeError # Issue 14616
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
@@ -136,6 +134,9 @@ int_parse_radix_test: Skip # Timeout
 [ $arch == simmips && $checked ]
 collection_length_test: Pass, Timeout
 
+[ $arch == simarm && $checked ]
+num_parse_test: Pass, Timeout
+
 [ $arch == simmips && $mode == debug ]
 collection_to_string_test: Pass, Crash # Issue: 11207
 
@@ -144,3 +145,10 @@ error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
 iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
 num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
+
+[ $compiler == dart2js && $runtime == safari ]
+list_test/01: Fail # Safari bug: Array(-2) seen as dead code.
+
+[ $runtime == ie9 || $runtime == ie10 ]
+num_parse_test: RuntimeError  # Issue 15316
+num_parse_test/01: RuntimeError  # Issue 15316

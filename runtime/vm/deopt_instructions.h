@@ -282,14 +282,14 @@ class DeoptInfoBuilder : public ValueObject {
   const GrowableObjectArray& object_table() { return object_table_; }
 
   // Return address before instruction.
-  void AddReturnAddress(const Function& function,
+  void AddReturnAddress(const Code& code,
                         intptr_t deopt_id,
                         intptr_t dest_index);
 
   // Copy from optimized frame to unoptimized.
   void AddCopy(Value* value, const Location& source_loc, intptr_t dest_index);
-  void AddPcMarker(const Function& function, intptr_t dest_index);
-  void AddPp(const Function& function, intptr_t dest_index);
+  void AddPcMarker(const Code& code, intptr_t dest_index);
+  void AddPp(const Code& code, intptr_t dest_index);
   void AddCallerFp(intptr_t dest_index);
   void AddCallerPp(intptr_t dest_index);
   void AddCallerPc(intptr_t dest_index);

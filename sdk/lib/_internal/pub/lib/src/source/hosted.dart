@@ -4,7 +4,7 @@
 
 library pub.source.hosted;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 import 'dart:io' as io;
 import "dart:convert";
 
@@ -75,7 +75,7 @@ class HostedSource extends Source {
           expectedName: id.name, location: url);
     }).catchError((ex, stackTrace) {
       var parsed = _parseDescription(id.description);
-      _throwFriendlyError(ex, stackTrace, id, parsed.last);
+      _throwFriendlyError(ex, stackTrace, id.name, parsed.last);
     });
   }
 

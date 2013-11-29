@@ -122,6 +122,9 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     toString() {}
     operator+(other) => this;
   }
+  class JSPositiveInt extends JSInt {}
+  class JSUInt32 extends JSPositiveInt {}
+  class JSUInt31 extends JSUInt32 {}
   class JSNumber extends Interceptor implements num {
     // All these methods return a number to please type inferencing.
     operator-() => (this is JSInt) ? 42 : 42.2;

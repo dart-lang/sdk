@@ -4,7 +4,7 @@
 
 library pub.source.git;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 
 import 'package:path/path.dart' as path;
 
@@ -48,11 +48,11 @@ class GitSource extends Source {
       return _ensureRepoCache(id);
     }).then((_) => systemCacheDirectory(id)).then((path) {
       revisionCachePath = path;
-      if (entryExists(revisionCachePath)) return;
+      if (entryExists(revisionCachePath)) return null;
       return _clone(_repoCachePath(id), revisionCachePath, mirror: false);
     }).then((_) {
       var ref = _getEffectiveRef(id);
-      if (ref == 'HEAD') return;
+      if (ref == 'HEAD') return null;
       return _checkOut(revisionCachePath, ref);
     }).then((_) {
       return new Package.load(id.name, revisionCachePath, systemCache.sources);

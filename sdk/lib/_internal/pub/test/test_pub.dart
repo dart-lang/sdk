@@ -8,7 +8,7 @@
 /// tests like that.
 library test_pub;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -88,7 +88,7 @@ Future<List<String>> getRequestedPaths() {
     var paths = _requestedPaths.toList();
     _requestedPaths.clear();
     return paths;
-  });
+  }, "get previous network requests");
 }
 
 /// Creates an HTTP server to serve [contents] as static files. This server will

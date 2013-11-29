@@ -16,7 +16,7 @@ class LocationManager extends Observable {
   ObservatoryApplication get application => _application;
 
   @observable String currentHash = '';
-
+  @observable Uri currentHashUri;
   void init() {
     window.onHashChange.listen((event) {
       if (setDefaultHash()) {
@@ -48,6 +48,15 @@ class LocationManager extends Observable {
     return currentIsolateAnchorPrefix() != null;
   }
 
+  bool get isScriptLink {
+    String type = currentHashUri.queryParameters['type'];
+    return type == 'Script';
+  }
+
+  String get scriptName {
+    return Uri.decodeQueryComponent(currentHashUri.queryParameters['name']);
+  }
+
   /// Extract the current isolate id as an integer. Returns [InvalidIsolateId]
   /// if none is present in window.location.
   int currentIsolateId() {
@@ -76,6 +85,7 @@ class LocationManager extends Observable {
     currentHash = window.location.hash;
     // Chomp off the #
     String requestUrl = currentHash.substring(1);
+    currentHashUri = Uri.parse(requestUrl);
     application.requestManager.get(requestUrl);
   }
 
@@ -109,6 +119,16 @@ class LocationManager extends Observable {
     return classLink(isolateId, cid);
   }
 
+  /// Create a request for the script [objectId] with script [name].
+  @observable
+  String currentIsolateScriptLink(int objectId, String name) {
+    var isolateId = currentIsolateId();
+    if (isolateId == LocationManager.InvalidIsolateId) {
+      return defaultHash;
+    }
+    return scriptLink(isolateId, objectId, name);
+  }
+
   /// Create a request for [l] on [isolateId].
   @observable
   String relativeLink(int isolateId, String l) {
@@ -125,5 +145,13 @@ class LocationManager extends Observable {
   @observable
   String classLink(int isolateId, int cid) {
     return '#/isolates/$isolateId/classes/$cid';
+  }
+
+  @observable
+  /// Create a request for the script [objectId] with script [url].
+  String scriptLink(int isolateId, int objectId, String name) {
+    String encodedName = Uri.encodeQueryComponent(name);
+    return '#/isolates/$isolateId/objects/$objectId'
+           '?type=Script&name=$encodedName';
   }
 }

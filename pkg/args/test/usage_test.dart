@@ -7,7 +7,7 @@ library usage_test;
 import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
 
-main() {
+void main() {
   group('ArgParser.getUsage()', () {
     test('negatable flags show "no-" in title', () {
       var parser = new ArgParser();
@@ -168,7 +168,7 @@ main() {
           ''');
     });
 
-    test("hidden flags don't appear in the help", () {
+    test("hidden options don't appear in the help", () {
       var parser = new ArgParser();
       parser.addOption('first', help: 'The first option');
       parser.addOption('second', hide: true);
@@ -181,14 +181,24 @@ main() {
           --third     The third option
           ''');
     });
+
+    test("hidden flags don't appear in the help", () {
+      var parser = new ArgParser();
+      parser.addFlag('first', help: 'The first flag');
+      parser.addFlag('second', hide: true);
+      parser.addFlag('third', help: 'The third flag');
+
+
+      validateUsage(parser,
+          '''
+          --[no-]first     The first flag
+          --[no-]third     The third flag
+          ''');
+    });
   });
 }
 
-throwsIllegalArg(function) {
-  expect(function, throwsArgumentError);
-}
-
-validateUsage(ArgParser parser, String expected) {
+void validateUsage(ArgParser parser, String expected) {
   expected = unindentString(expected);
   expect(parser.getUsage(), equals(expected));
 }

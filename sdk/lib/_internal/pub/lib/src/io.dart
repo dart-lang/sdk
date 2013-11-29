@@ -5,7 +5,7 @@
 /// Helper functionality to make working with IO easier.
 library pub.io;
 
-import 'dart:async';
+import 'dart:async' hide TimeoutException;
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';

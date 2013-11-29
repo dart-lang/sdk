@@ -17,7 +17,6 @@
 #include "vm/object_id_ring.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
-#include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
@@ -173,7 +172,6 @@ const char* Dart::Cleanup() {
   vm_isolate_ = NULL;
 #endif
 
-  ScopedSignalBlocker ssb;
   ProfilerManager::Shutdown();
   CodeObservers::DeleteAll();
 

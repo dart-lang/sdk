@@ -12,4 +12,6 @@ export 'package:observatory/src/observatory_elements/navigation_bar.dart';
 export
   'package:observatory/src/observatory_elements/observatory_application.dart';
 export 'package:observatory/src/observatory_elements/response_viewer.dart';
+export 'package:observatory/src/observatory_elements/script_view.dart';
+export 'package:observatory/src/observatory_elements/source_view.dart';
 export 'package:observatory/src/observatory_elements/stack_trace.dart';

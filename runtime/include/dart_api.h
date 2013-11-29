@@ -409,6 +409,12 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  * This handle has the lifetime of the current isolate unless it is
  * explicitly deallocated by calling Dart_DeletePersistentHandle.
  *
+ * If the object becomes unreachable the callback is invoked with the weak
+ * persistent handle and the peer as arguments. This gives the native code the
+ * ability to cleanup data associated with the object and to delete the weak
+ * persistent handle. It is illegal to call into the VM from the callback,
+ * except to delete the weak persistent handle.
+ *
  * Requires there to be a current isolate.
  *
  * \param object An object.

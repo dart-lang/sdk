@@ -5,7 +5,8 @@
 // Example of spawning an isolate from a function.
 library spawn_tests;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+import "remote_unittest_helper.dart";
 
 child(args) {
   var msg = args[0];
@@ -13,7 +14,8 @@ child(args) {
   reply.send('re: $msg');
 }
 
-main() {
+void main([args, port]) {
+  if (testRemote(main, port)) return;
   test('message - reply chain', () {
     ReceivePort port = new ReceivePort();
     Isolate.spawn(child, ['hi', port.sendPort]);

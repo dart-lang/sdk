@@ -537,4 +537,37 @@ class _Future<T> implements Future<T> {
       source = listener;
     }
   }
+
+  Future timeout(Duration timeLimit, [void onTimeout()]) {
+    if (_isComplete) return new _Future.immediate(this);
+    _Future result = new _Future();
+    Timer timer;
+    if (onTimeout == null) {
+      timer = new Timer(timeLimit, () {
+        result._completeError(new TimeoutException(timeLimit));
+      });
+    } else {
+      Zone zone = Zone.current;
+      onTimeout = zone.registerCallback(onTimeout);
+      timer = new Timer(timeLimit, () {
+        try {
+          result._complete(zone.run(onTimeout));
+        } catch (e, s) {
+          result._completeError(e, s);
+        }
+      });
+    }
+    this.then((T v) {
+      if (timer.isActive) {
+        timer.cancel();
+        result._complete(v);
+      }
+    }, onError: (e, s) {
+      if (timer.isActive) {
+        timer.cancel();
+        result._completeError(e, s);
+      }
+    });
+    return result;
+  }
 }

@@ -10,7 +10,7 @@ import "../../../sdk/lib/_internal/compiler/implementation/js_backend/js_backend
 ValueRangeInfo info = new ValueRangeInfo(const JavaScriptConstantSystem());
 
 Value instructionValue = info.newInstructionValue(new HBreak(null));
-Value lengthValue = info.newLengthValue(new HBreak(null));
+Value lengthValue = info.newPositiveValue(new HBreak(null));
 
 Range createSingleRange(Value value) => info.newNormalizedRange(value, value);
 

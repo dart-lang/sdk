@@ -1083,6 +1083,10 @@ class ConcreteTypesInferrer extends TypesInferrer {
     throw new UnsupportedError("");
   }
 
+  bool isFixedArrayCheckedForGrowable(Node node) {
+    throw new UnsupportedError("");
+  }
+
   // --- analysis ---
 
   /**

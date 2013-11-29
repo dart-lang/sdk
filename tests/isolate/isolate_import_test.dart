@@ -4,11 +4,13 @@
 
 library IsolateImportNegativeTest;
 // Omitting the following import is an error:
-// import 'dart:isolate';
+/*  /// 01: runtime error, static type warning
+import 'dart:isolate';
+*/  /// 01: continued
 
 void entry(msg) {}
 
 main() {
-  Isolate.spawn(entry);
+  Isolate.spawn(entry, null);
 }
 
