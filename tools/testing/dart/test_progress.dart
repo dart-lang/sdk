@@ -7,6 +7,7 @@ library test_progress;
 import "dart:async";
 import "dart:io";
 import "dart:io" as io;
+import "dart:convert" show JSON;
 import "status_file_parser.dart";
 import "test_runner.dart";
 import "test_suite.dart";
@@ -186,6 +187,94 @@ class FlakyLogWriter extends EventListener {
     var fd = file.openSync(mode: FileMode.APPEND);
     fd.writeStringSync(msg);
     fd.closeSync();
+  }
+}
+
+class TestOutcomeLogWriter extends EventListener {
+  /*
+   * The ".test-outcome.log" file contains one line for every executed test.
+   * Such a line is an encoded JSON data structure of the following form:
+   * The durations are double values in milliseconds.
+   *
+   *  {
+   *     name: 'co19/LibTest/math/x',
+   *     configuration: {
+   *       mode : 'release',
+   *       compiler : 'dart2js',
+   *       ....
+   *     },
+   *     test_result: {
+   *       outcome: 'RuntimeError',
+   *       expected_outcomes: ['Pass', 'Fail'],
+   *       duration: 2600.64,
+   *       command_results: [
+   *         {
+   *           name: 'dart2js',
+   *           outcome: 'PASS',
+   *           duration: 2400.44,
+   *         },
+   *         {
+   *           name: 'ff',
+   *           outcome: 'RuntimeError',
+   *           duration: 200.2,
+   *         },
+   *       ],
+   *     }
+   *  },
+   */
+
+  static final INTERESTED_CONFIGURATION_PARAMETERS =
+      ['mode', 'arch', 'compiler', 'runtime', 'checked', 'host_checked',
+       'minified', 'csp', 'system', 'vm_options', 'use_sdk'];
+
+  IOSink _sink;
+
+  void done(TestCase test) {
+    var name = test.displayName;
+    var configuration = {};
+    for (var key in INTERESTED_CONFIGURATION_PARAMETERS) {
+      configuration[key] = test.configuration[key];
+    }
+    var outcome = '${test.lastCommandOutput.result(test)}';
+    var expectations =
+        test.expectedOutcomes.map((expectation) => "$expectation").toList();
+
+    var commandResults = [];
+    double totalDuration = 0.0;
+    for (var command in test.commands) {
+      var output = test.commandOutputs[command];
+      if (output != null) {
+        double duration = output.time.inMicroseconds/1000.0;
+        totalDuration += duration;
+        commandResults.add({
+          'name': command.displayName,
+          'outcome': "${output.result(test)}",
+          'duration': duration,
+        });
+      }
+    }
+    _writeTestOutcomeRecord({
+      'name' : name,
+      'configuration' : configuration,
+      'test_result' : {
+        'outcome' : outcome,
+        'expected_outcomes' : expectations,
+        'duration' : totalDuration,
+        'command_results' : commandResults,
+      },
+    });
+  }
+
+  void allDone() {
+    _sink.close();
+  }
+
+  void _writeTestOutcomeRecord(Map record) {
+    if (_sink == null) {
+      _sink = new File(TestUtils.testOutcomeFileName())
+          .openWrite(mode: FileMode.APPEND);
+    }
+    _sink.write("${JSON.encode(record)}\n");
   }
 }
 
