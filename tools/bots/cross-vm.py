@@ -87,7 +87,7 @@ def target_builder(arch, mode):
       run(test_args)
 
     with bot.BuildStep('execute checked_tests'):
-      run(test_args + ['--checked', '--append_logs')
+      run(test_args + ['--checked', '--append_logs'])
   finally:
     for path in temporary_files:
       if os.path.exists(path):
