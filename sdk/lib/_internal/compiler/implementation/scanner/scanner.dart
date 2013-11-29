@@ -17,6 +17,8 @@ abstract class Scanner {
 }
 
 abstract class AbstractScanner implements Scanner {
+  // TODO(ahe): Move this class to implementation.
+
   final bool includeComments;
 
   /**
@@ -186,14 +188,21 @@ abstract class AbstractScanner implements Scanner {
   /** Documentation in subclass [ArrayBasedScanner]. */
   void discardOpenLt();
 
-  // TODO(ahe): Move this class to implementation.
+  /// Return true when at EOF.
+  bool atEndOfFile();
 
   Token tokenize() {
-    int next = advance();
-    while (!identical(next, $EOF)) {
-      next = bigSwitch(next);
+    while (!atEndOfFile()) {
+      int next = advance();
+      while (!identical(next, $EOF)) {
+        next = bigSwitch(next);
+      }
+      if (atEndOfFile()) {
+        appendEofToken();
+      } else {
+        error('Unexpected $EOF byte in input.');
+      }
     }
-    appendEofToken();
 
     if (file != null) {
       file.length = stringOffset;
@@ -921,7 +930,14 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeInterpolatedIdentifier(int next) {
     appendPrecedenceToken(STRING_INTERPOLATION_IDENTIFIER_INFO);
     beginToken(); // The identifier starts here.
-    next = tokenizeKeywordOrIdentifier(next, false);
+
+    if ($a <= next && next <= $z) {
+      next = tokenizeKeywordOrIdentifier(next, false);
+    } else if (($A <= next && next <= $Z) || identical(next, $_)) {
+      next = tokenizeIdentifier(next, scanOffset, false);
+    } else {
+      error("expected identifier or '{'", shouldAdvance: false);
+    }
     beginToken(); // The string interpolation suffix starts here.
     return next;
   }
@@ -1035,9 +1051,14 @@ abstract class AbstractScanner implements Scanner {
     return error("unterminated string literal");
   }
 
-  int error(String message) {
+  int error(String message, {bool shouldAdvance: true}) {
     appendStringToken(BAD_INPUT_INFO, message);
-    return advance(); // Ensure progress.
+    if (atEndOfFile()) return $EOF;
+    if (shouldAdvance) {
+      return advance(); // Ensure progress.
+    } else {
+      return -1;
+    }
   }
 
   void unmatchedBeginGroup(BeginGroupToken begin) {

@@ -315,6 +315,16 @@ abstract class Statement extends Node {
   bool isValidBreakTarget() => true;
 }
 
+/// Errorneous expression that behaves as a literal integer (0).
+class ErrorExpression extends LiteralInt {
+  ErrorExpression(token)
+      : super(token, null);
+
+  ErrorExpression asErrorExpression() => this;
+
+  int get value => 0;
+}
+
 /**
  * A message send aka method invocation. In Dart, most operations can
  * (and should) be considered as message sends. Getters and setters

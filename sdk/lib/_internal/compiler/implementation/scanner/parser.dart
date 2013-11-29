@@ -1778,8 +1778,11 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
-    var begin = (token as BeginGroupToken);
+    // We expect [begin] to be of type [BeginGroupToken], but we don't know for
+    // sure until after calling expect.
+    var begin = token;
     token = expect('(', token);
+    // [begin] is now known to have type [BeginGroupToken].
     token = parseExpression(token);
     if (!identical(begin.endGroup, token)) {
       listener.unexpected(token);

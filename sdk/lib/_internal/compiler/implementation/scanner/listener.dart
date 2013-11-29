@@ -552,7 +552,13 @@ class Listener {
   }
 
   Token expectedExpression(Token token) {
-    error("expected an expression, but got '${token.value}'", token);
+    String message;
+    if (token.info == BAD_INPUT_INFO) {
+      message = token.value;
+    } else {
+      message = "expected an expression, but got '${token.value}'";
+    }
+    error(message, token);
     return skipToEof(token);
   }
 
@@ -972,16 +978,22 @@ class ElementListener extends Listener {
   }
 
   Token expectedExpression(Token token) {
-    listener.cancel("expected an expression, but got '${token.value}'",
-                    token: token);
-    pushNode(null);
-    return skipToEof(token);
+    if (token.info == BAD_INPUT_INFO) {
+      reportError(token, MessageKind.GENERIC, {'text': token.value});
+      pushNode(new ErrorExpression(token));
+      return token.next;
+    } else {
+      listener.cancel("expected an expression, but got '${token.value}'",
+                      token: token);
+      pushNode(null);
+      return skipToEof(token);
+    }
   }
 
   Token unexpected(Token token) {
     String message = "unexpected token '${token.value}'";
     if (token.info == BAD_INPUT_INFO) {
-      message = token.stringValue;
+      message = token.value;
     }
     listener.cancel(message, token: token);
     return skipToEof(token);

@@ -190,4 +190,6 @@ class Utf8BytesScanner extends ArrayBasedScanner {
         info, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
     tail = tail.next;
   }
+
+  bool atEndOfFile() => byteOffset >= bytes.length - 1;
 }
