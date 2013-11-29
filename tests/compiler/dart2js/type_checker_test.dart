@@ -1687,7 +1687,7 @@ abstract class num {
   bool operator <(num other);
   bool operator <=(num other);
   bool operator >(num other);
-  bool operator >=(num other)
+  bool operator >=(num other);
 }
 ''';
 

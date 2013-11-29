@@ -359,7 +359,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   String toString() => '<$name: $message>';
 
-  accept(ElementVisitor visitor) => visitor.visitErroneousElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitErroneousElement(this);
 }
 
 /// A message attached to a [WarnOnUseElementX].
@@ -421,7 +421,7 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
     return unwrapped;
   }
 
-  accept(ElementVisitor visitor) => visitor.visitWarnOnUseElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitWarnOnUseElement(this);
 }
 
 /**
@@ -490,7 +490,7 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
     }
   }
 
-  accept(ElementVisitor visitor) => visitor.visitAmbiguousElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
 }
 
 class ScopeX {
@@ -1005,7 +1005,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
     return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
   }
 
-  accept(ElementVisitor visitor) => visitor.visitLibraryElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
 }
 
 class PrefixElementX extends ElementX implements PrefixElement {
@@ -1026,7 +1026,7 @@ class PrefixElementX extends ElementX implements PrefixElement {
     importScope.addImport(this, element, import, listener);
   }
 
-  accept(ElementVisitor visitor) => visitor.visitPrefixElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
 }
 
 class TypedefElementX extends ElementX implements TypedefElement {
@@ -1111,7 +1111,7 @@ class TypedefElementX extends ElementX implements TypedefElement {
     hasBeenCheckedForCycles = true;
   }
 
-  accept(ElementVisitor visitor) => visitor.visitTypedefElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitTypedefElement(this);
 }
 
 class VariableElementX extends ElementX implements VariableElement {
@@ -1161,7 +1161,7 @@ class VariableElementX extends ElementX implements VariableElement {
   // cases, for example, for function typed parameters.
   Token position() => findMyName(variables.position());
 
-  accept(ElementVisitor visitor) => visitor.visitVariableElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
 }
 
 /**
@@ -1186,7 +1186,7 @@ class FieldParameterElementX extends VariableElementX
     return super.computeType(compiler);
   }
 
-  accept(ElementVisitor visitor) => visitor.visitFieldParameterElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
 }
 
 // This element represents a list of variable or field declaration.
@@ -1256,7 +1256,7 @@ class VariableListElementX extends ElementX implements VariableListElement {
     return isMember() && !modifiers.isStatic();
   }
 
-  accept(ElementVisitor visitor) => visitor.visitVariableListElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitVariableListElement(this);
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
@@ -1309,7 +1309,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
     return isMember() && !modifiers.isStatic();
   }
 
-  accept(ElementVisitor visitor) => visitor.visitAbstractFieldElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitAbstractFieldElement(this);
 }
 
 // TODO(johnniwinther): [FunctionSignature] should be merged with
@@ -1578,7 +1578,7 @@ class FunctionElementX extends ElementX implements FunctionElement {
            _hasNoBody;
   }
 
-  accept(ElementVisitor visitor) => visitor.visitFunctionElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
 }
 
 class ConstructorBodyElementX extends FunctionElementX
@@ -1609,7 +1609,7 @@ class ConstructorBodyElementX extends FunctionElementX
 
   Token position() => constructor.position();
 
-  accept(ElementVisitor visitor) => visitor.visitConstructorBodyElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitConstructorBodyElement(this);
 }
 
 /**
@@ -1660,11 +1660,11 @@ class SynthesizedConstructorElementX extends FunctionElementX {
   get defaultImplementation => this;
 
   accept(ElementVisitor visitor) {
-    visitor.visitSynthesizedConstructorElementX(this);
+    return visitor.visitFunctionElement(this);
   }
 }
 
-class VoidElementX extends ElementX {
+class VoidElementX extends ElementX implements VoidElement {
   VoidElementX(Element enclosing) : super('void', ElementKind.VOID, enclosing);
   DartType computeType(compiler) => compiler.types.voidType;
   Node parseNode(_) {
@@ -1672,7 +1672,7 @@ class VoidElementX extends ElementX {
   }
   bool impliesType() => true;
 
-  accept(ElementVisitor visitor) => visitor.visitVoidElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitVoidElement(this);
 }
 
 class TypeDeclarationElementX {
@@ -2337,7 +2337,7 @@ class LabelElementX extends ElementX implements LabelElement {
   Token position() => label.getBeginToken();
   String toString() => "${labelName}:";
 
-  accept(ElementVisitor visitor) => visitor.visitLabelElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
 }
 
 // Represents a reference to a statement or switch-case, either by label or the
@@ -2367,7 +2367,7 @@ class TargetElementX extends ElementX implements TargetElement {
   Token position() => statement.getBeginToken();
   String toString() => statement.toString();
 
-  accept(ElementVisitor visitor) => visitor.visitTargetElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitTargetElement(this);
 }
 
 class TypeVariableElementX extends ElementX implements TypeVariableElement {
@@ -2387,7 +2387,7 @@ class TypeVariableElementX extends ElementX implements TypeVariableElement {
 
   Token position() => cachedNode.getBeginToken();
 
-  accept(ElementVisitor visitor) => visitor.visitTypeVariableElementX(this);
+  accept(ElementVisitor visitor) => visitor.visitTypeVariableElement(this);
 }
 
 /**

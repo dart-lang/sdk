@@ -260,7 +260,7 @@ abstract class Element implements Spannable {
 
   void diagnose(Element context, DiagnosticListener listener);
 
-  accept(ElementVisitor visitor) => visitor.visitElement(this);
+  accept(ElementVisitor visitor);
 }
 
 class Elements {
@@ -994,3 +994,5 @@ abstract class MetadataAnnotation implements Spannable {
 
   MetadataAnnotation ensureResolved(Compiler compiler);
 }
+
+abstract class VoidElement extends Element {}

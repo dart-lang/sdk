@@ -62,7 +62,7 @@ class PartialClassElement extends ClassElementX {
   Modifiers get modifiers =>
       cachedNode != null ? cachedNode.modifiers : Modifiers.EMPTY;
 
-  accept(ElementVisitor visitor) => visitor.visitPartialClassElement(this);
+  accept(ElementVisitor visitor) => visitor.visitClassElement(this);
 }
 
 class MemberListener extends NodeListener {
