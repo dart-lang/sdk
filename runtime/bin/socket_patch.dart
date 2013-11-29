@@ -197,9 +197,10 @@ class _InternetAddress implements InternetAddress {
 
 class _NetworkInterface implements NetworkInterface {
   final String name;
-  final List<InternetAddress> addresses;
+  final int index;
+  final List<InternetAddress> addresses = [];
 
-  _NetworkInterface(String this.name, List<InternetAddress> this.addresses);
+  _NetworkInterface(this.name, this.index);
 
   String toString() {
     return "NetworkInterface('$name', $addresses)";
@@ -305,23 +306,21 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           if (isErrorResponse(response)) {
             throw createError(response, "Failed listing interfaces");
           } else {
-            var list = new List<NetworkInterface>();
             var map = response.skip(1)
                 .fold(new Map<String, List<InternetAddress>>(), (map, result) {
                   var type = new InternetAddressType._from(result[0]);
                   var name = result[3];
+                  var index = result[4];
                   var address = new _InternetAddress(
                       type, result[1], "", result[2]);
                   if (!includeLinkLocal && address.isLinkLocal) return map;
                   if (!includeLoopback && address.isLoopback) return map;
-                  map.putIfAbsent(name, () => new List<InternetAddress>());
-                  map[name].add(address);
+                  map.putIfAbsent(
+                      name, () => new _NetworkInterface(name, index));
+                  map[name].addresses.add(address);
                   return map;
-                })
-                .forEach((name, addresses) {
-                  list.add(new _NetworkInterface(name, addresses));
                 });
-            return list;
+            return map.values.toList();
           }
         });
   }

@@ -427,7 +427,7 @@ CObject* Socket::ListInterfacesRequest(const CObjectArray& request) {
       for (intptr_t i = 0; i < addresses->count(); i++) {
         InterfaceSocketAddress* interface = addresses->GetAt(i);
         SocketAddress* addr = interface->socket_address();
-        CObjectArray* entry = new CObjectArray(CObject::NewArray(4));
+        CObjectArray* entry = new CObjectArray(CObject::NewArray(5));
 
         CObjectInt32* type = new CObjectInt32(
             CObject::NewInt32(addr->GetType()));
@@ -448,6 +448,10 @@ CObject* Socket::ListInterfacesRequest(const CObjectArray& request) {
         CObjectString* interface_name = new CObjectString(CObject::NewString(
             interface->interface_name()));
         entry->SetAt(3, interface_name);
+
+        CObjectInt64* interface_index = new CObjectInt64(CObject::NewInt64(
+            interface->interface_index()));
+        entry->SetAt(4, interface_index);
 
         array->SetAt(i + 1, entry);
       }

@@ -145,6 +145,11 @@ abstract class NetworkInterface {
   String get name;
 
   /**
+   * Get the index of the [NetworkInterface].
+   */
+  String get index;
+
+  /**
    * Get a list of [InternetAddress]s currently bound to this
    * [NetworkInterface].
    */

@@ -110,9 +110,11 @@ class SocketAddress {
 class InterfaceSocketAddress {
  public:
   explicit InterfaceSocketAddress(struct sockaddr* sa,
-                                  const char* interface_name)
+                                  const char* interface_name,
+                                  intptr_t interface_index)
       : socket_address_(new SocketAddress(sa)),
-        interface_name_(interface_name) {}
+        interface_name_(interface_name),
+        interface_index_(interface_index) {}
 
   ~InterfaceSocketAddress() {
     delete socket_address_;
@@ -121,10 +123,12 @@ class InterfaceSocketAddress {
 
   SocketAddress* socket_address() const { return socket_address_; }
   const char* interface_name() const { return interface_name_; }
+  int interface_index() const { return interface_index_; }
 
  private:
   SocketAddress* socket_address_;
   const char* interface_name_;
+  intptr_t interface_index_;
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceSocketAddress);
 };

@@ -11,6 +11,7 @@
 #include <string.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
+#include <net/if.h>  // NOLINT
 #include <netinet/tcp.h>  // NOLINT
 #include <ifaddrs.h>  // NOLINT
 
@@ -298,7 +299,7 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
   for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
       addresses->SetAt(i, new InterfaceSocketAddress(
-          ifa->ifa_addr, strdup(ifa->ifa_name)));
+          ifa->ifa_addr, strdup(ifa->ifa_name), if_nametoindex(ifa->ifa_name)));
       i++;
     }
   }
