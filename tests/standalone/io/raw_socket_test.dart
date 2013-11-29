@@ -408,15 +408,21 @@ void testSocketZoneError() {
     RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
       Expect.notEquals(Zone.ROOT, Zone.current);
       server.listen((socket) {
+        Expect.notEquals(Zone.ROOT, Zone.current);
+        var timer;
+        void write() {
+          socket.write(const [0]);
+          timer = new Timer(const Duration(milliseconds: 5), write);
+        }
+        write();
         socket.listen((_) {
         }, onError: (error) {
+          timer.cancel();
           Expect.notEquals(Zone.ROOT, Zone.current);
           socket.close();
           server.close();
           throw error;
         });
-        Expect.notEquals(Zone.ROOT, Zone.current);
-        socket.write(const [0]);
       });
       RawSocket.connect("127.0.0.1", server.port).then((socket) {
         socket.close();

@@ -464,7 +464,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     var result =
         nativeWrite(bufferAndStart.buffer, bufferAndStart.start, bytes);
     if (result is OSError) {
-      reportError(result, "Write failed");
+      scheduleMicrotask(() => reportError(result, "Write failed"));
       result = 0;
     }
     return result;
