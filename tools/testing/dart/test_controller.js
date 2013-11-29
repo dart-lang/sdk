@@ -149,6 +149,9 @@ function notifyUpdate(testOutcome, isFirstMessage, isStatusUpdate, isDone) {
     // messages to the window.opener.
     var driver = getDriverWindow();
 
+    recordEvent('debug', 'Sending events to driver page (isFirstMessage = ' +
+                isFirstMessage + ', isStatusUpdate = ' +
+                isStatusUpdate + ', isDone = ' + isDone + ')');
     // Post the DOM and all events that happened.
     var events = recordedEventList.slice(0);
     events.push(buildDomEvent());
