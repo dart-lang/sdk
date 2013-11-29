@@ -737,6 +737,7 @@ class _RawServerSocket extends Stream<RawSocket>
   }
 
   _RawServerSocket(this._socket) {
+    var zone = Zone.current;
     _controller = new StreamController(sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
@@ -744,14 +745,14 @@ class _RawServerSocket extends Stream<RawSocket>
         onResume: _onPauseStateChange);
     _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
-      read: () {
+      read: zone.bindCallback(() {
         var socket = _socket.accept();
         if (socket != null) _controller.add(new _RawSocket(socket));
-      },
-      error: (e) {
+      }),
+      error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
         _controller.close();
-      }
+      })
     );
   }
 
@@ -814,6 +815,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   _RawSocket(this._socket) {
+    var zone = Zone.current;
     _controller = new StreamController(sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
@@ -830,10 +832,10 @@ class _RawSocket extends Stream<RawSocketEvent>
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
       destroyed: () => _controller.add(RawSocketEvent.CLOSED),
-      error: (e) {
+      error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
         close();
-      }
+      })
     );
   }
 

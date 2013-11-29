@@ -376,6 +376,57 @@ void testPauseSocket() {
   });
 }
 
+void testSocketZone() {
+  asyncStart();
+  Expect.equals(Zone.ROOT, Zone.current);
+  runZoned(() {
+    Expect.notEquals(Zone.ROOT, Zone.current);
+    RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+      Expect.notEquals(Zone.ROOT, Zone.current);
+      server.listen((socket) {
+        Expect.notEquals(Zone.ROOT, Zone.current);
+        socket.close();
+        server.close();
+      });
+      RawSocket.connect("127.0.0.1", server.port).then((socket) {
+        socket.listen((event) {
+          if (event == RawSocketEvent.READ_CLOSED) {
+            socket.close();
+            asyncEnd();
+          }
+        });
+      });
+    });
+  });
+}
+
+void testSocketZoneError() {
+  asyncStart();
+  Expect.equals(Zone.ROOT, Zone.current);
+  runZoned(() {
+    Expect.notEquals(Zone.ROOT, Zone.current);
+    RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
+      Expect.notEquals(Zone.ROOT, Zone.current);
+      server.listen((socket) {
+        socket.listen((_) {
+        }, onError: (error) {
+          Expect.notEquals(Zone.ROOT, Zone.current);
+          socket.close();
+          server.close();
+          throw error;
+        });
+        Expect.notEquals(Zone.ROOT, Zone.current);
+        socket.write(const [0]);
+      });
+      RawSocket.connect("127.0.0.1", server.port).then((socket) {
+        socket.close();
+      });
+    });
+  }, onError: (e) {
+    asyncEnd();
+  });
+}
+
 main() {
   asyncStart();
   testArguments();
@@ -389,5 +440,7 @@ main() {
   testSimpleReadWrite(dropReads: true);
   testPauseServerSocket();
   testPauseSocket();
+  testSocketZone();
+  testSocketZoneError();
   asyncEnd();
 }
