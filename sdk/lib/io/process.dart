@@ -41,10 +41,10 @@ class _ProcessUtils {
  * cross-platform issues.
  */
 void exit(int code) {
-  if (status is !int) {
-    throw new ArgumentError("exit: int status expected");
+  if (code is !int) {
+    throw new ArgumentError("Integer value for exit code expected");
   }
-  _ProcessUtils._exit(status);
+  _ProcessUtils._exit(code);
 }
 
 /**
@@ -58,10 +58,10 @@ void exit(int code) {
  * exit code.
  */
 set exitCode(int code) {
-  if (status is !int) {
-    throw new ArgumentError("setExitCode: int status expected");
+  if (code is !int) {
+    throw new ArgumentError("Integer value for exit code expected");
   }
-  _ProcessUtils._setExitCode(status);
+  _ProcessUtils._setExitCode(code);
 }
 
 /**
