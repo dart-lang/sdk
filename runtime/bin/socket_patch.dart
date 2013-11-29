@@ -307,7 +307,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
             throw createError(response, "Failed listing interfaces");
           } else {
             var map = response.skip(1)
-                .fold(new Map<String, List<InternetAddress>>(), (map, result) {
+                .fold(new Map<String, NetworkInterface>(), (map, result) {
                   var type = new InternetAddressType._from(result[0]);
                   var name = result[3];
                   var index = result[4];
