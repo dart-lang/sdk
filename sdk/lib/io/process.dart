@@ -14,12 +14,33 @@ class _ProcessUtils {
 }
 
 /**
- * Exit the Dart VM process immediately with the given [status] code.
+ * Exit the Dart VM process immediately with the given exit code.
  *
  * This does not wait for any asynchronous operations to terminate. Using
  * [exit] is therefore very likely to lose data.
+ *
+ * The handling of exit codes is platform specific.
+ *
+ * On Linux and Mac OS an exit code for normal termination will always
+ * be in the range [0..255]. If an exit code outside this range is
+ * set the actual exit code will be the lower 8 bits masked off and
+ * treated as an unsigned value. E.g. using an exit code of -1 will
+ * result in an actual exit code of 255 being reported.
+ *
+ * On Windows the exit code can be set to any 32-bit value. However
+ * some of these values are reserved for reporting system errors like
+ * crashes.
+ *
+ * Besides this the Dart executable itself uses an exit code of `254`
+ * for reporting compile time errors and an exit code of `255` for
+ * reporting runtime error (unhandled exception).
+ *
+ * Due to these facts it is recommended to only use exit codes in the
+ * range [0..127] for communicating the result of running a Dart
+ * program to the surrounding environment. This will avoid any
+ * cross-platform issues.
  */
-void exit(int status) {
+void exit(int code) {
   if (status is !int) {
     throw new ArgumentError("exit: int status expected");
   }
@@ -32,8 +53,11 @@ void exit(int status) {
  * The exit code is global for the Dart VM and the last assignment to
  * exitCode from any isolate determines the exit code of the Dart VM
  * on normal termination.
+ *
+ * See [exit] for more information on how to chose a value for the
+ * exit code.
  */
-set exitCode(int status) {
+set exitCode(int code) {
   if (status is !int) {
     throw new ArgumentError("setExitCode: int status expected");
   }
@@ -185,25 +209,16 @@ abstract class Process {
 
   /**
    * Returns the standard output stream of the process as a [:Stream:].
-   *
-   * Throws an [UnsupportedError] if the process is
-   * non-interactive.
    */
   Stream<List<int>> get stdout;
 
   /**
    * Returns the standard error stream of the process as a [:Stream:].
-   *
-   * Throws an [UnsupportedError] if the process is
-   * non-interactive.
    */
   Stream<List<int>> get stderr;
 
   /**
    * Returns the standard input stream of the process as an [IOSink].
-   *
-   * Throws an [UnsupportedError] if the process is
-   * non-interactive.
    */
   IOSink get stdin;
 
@@ -216,8 +231,24 @@ abstract class Process {
    * Returns a [:Future:] which completes with the exit code of the process
    * when the process completes.
    *
-   * Throws an [UnsupportedError] if the process is
-   * non-interactive.
+   * The handling of exit codes is platform specific.
+   *
+   * On Linux and Mac a normal exit code will be a positive value in
+   * the range [0..255]. If the process was terminated due to a signal
+   * the exit code will be a negative value in the range [-255..0[,
+   * where the absolute value of the exit code is the signal
+   * number. For example, if a process crashes due to a segmentation
+   * violation the exit code will be -11, as the signal SIGSEGV has the
+   * number 11.
+   *
+   * On Windows a process can report any 32-bit value as an exit
+   * code. When returning the exit code this exit code is turned into
+   * a signed value. Some special values are used to report
+   * termination due to some system event. E.g. if a process crashes
+   * due to an access violation the 32-bit exit code is `0xc0000005`,
+   * which will be returned as the negative number `-1073741819`. To
+   * get the original 32-bit value use `(0x100000000 + exitCode) &
+   * 0xffffffff`.
    */
   Future<int> exitCode;
 
@@ -245,6 +276,9 @@ abstract class Process {
 abstract class ProcessResult {
   /**
    * Exit code for the process.
+   *
+   * See [Process.exitCode] for more information in the exit code
+   * value.
    */
   int get exitCode;
 
