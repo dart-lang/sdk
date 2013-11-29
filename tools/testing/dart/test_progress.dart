@@ -210,12 +210,10 @@ class TestOutcomeLogWriter extends EventListener {
    *       command_results: [
    *         {
    *           name: 'dart2js',
-   *           outcome: 'PASS',
    *           duration: 2400.44,
    *         },
    *         {
    *           name: 'ff',
-   *           outcome: 'RuntimeError',
    *           duration: 200.2,
    *         },
    *       ],
@@ -248,7 +246,6 @@ class TestOutcomeLogWriter extends EventListener {
         totalDuration += duration;
         commandResults.add({
           'name': command.displayName,
-          'outcome': "${output.result(test)}",
           'duration': duration,
         });
       }
