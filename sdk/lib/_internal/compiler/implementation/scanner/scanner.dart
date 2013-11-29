@@ -200,7 +200,7 @@ abstract class AbstractScanner implements Scanner {
       if (atEndOfFile()) {
         appendEofToken();
       } else {
-        error('Unexpected $EOF byte in input.');
+        error('Unexpected ${$EOF} byte in input.');
       }
     }
 
