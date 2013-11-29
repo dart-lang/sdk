@@ -500,6 +500,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     canActivateEvents = false;
     for (int i = FIRST_EVENT; i <= LAST_EVENT; i++) {
       if (((events & (1 << i)) != 0)) {
+        if ((i == CLOSED_EVENT || i == READ_EVENT) && isClosedRead) continue;
         if (i == CLOSED_EVENT &&
             typeFlags != TYPE_LISTENING_SOCKET &&
             !isClosing &&
