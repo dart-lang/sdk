@@ -32,7 +32,7 @@ checkEquality(List<Map> equivalenceClasses) {
     equivalenceClass.forEach((name, member) {
       equivalenceClass.forEach((otherName, otherMember) {
         // Reflexivity, symmetry and transitivity.
-        Expect.equals(member, 
+        Expect.equals(member,
                       otherMember,
                       "$name == $otherName");
         Expect.equals(member.hashCode,
@@ -112,27 +112,29 @@ main() {
      'reflect(new A<int>()).type.originalDeclaration' :
           reflect(new A<int>()).type.originalDeclaration},
 
-    {'reflectClass(B).superclass' : reflectClass(B).superclass,  /// 02: ok
-     'reflect(new A<int>()).type' : reflect(new A<int>()).type}, /// 02: ok
+    {'reflectClass(B).superclass' : reflectClass(B).superclass,
+     'reflect(new A<int>()).type' : reflect(new A<int>()).type},
 
     {'reflectClass(B)' : reflectClass(B),
      'thisLibrary.declarations[#B]' : thisLibrary.declarations[#B],
      'reflect(new B()).type' : reflect(new B()).type},
 
-    {'reflectClass(BadEqualityHash).declarations[#==]'  /// 02: ok
-        : reflectClass(BadEqualityHash).declarations[#==],  /// 02: ok
-     'reflect(new BadEqualityHash()).type.declarations[#==]'  /// 02: ok
-        : reflect(new BadEqualityHash()).type.declarations[#==]},  /// 02: ok
+    {'reflectClass(BadEqualityHash).declarations[#==]'
+        : reflectClass(BadEqualityHash).declarations[#==],
+     'reflect(new BadEqualityHash()).type.declarations[#==]'
+        : reflect(new BadEqualityHash()).type.declarations[#==]},
 
-    {'reflectClass(BadEqualityHash).declarations[#==].parameters[0]'  /// 02: ok
-        : (reflectClass(BadEqualityHash).declarations[#==] as MethodMirror).parameters[0],  /// 02: ok
-     'reflect(new BadEqualityHash()).type.declarations[#==].parameters[0]'  /// 02: ok
-        : (reflect(new BadEqualityHash()).type.declarations[#==] as MethodMirror).parameters[0]},  /// 02: ok
+    {'reflectClass(BadEqualityHash).declarations[#==].parameters[0]'
+        : (reflectClass(BadEqualityHash).
+            declarations[#==] as MethodMirror).parameters[0],
+     'reflect(new BadEqualityHash()).type.declarations[#==].parameters[0]'
+        : (reflect(new BadEqualityHash()).type.
+            declarations[#==] as MethodMirror).parameters[0]},
 
-    {'reflectClass(BadEqualityHash).declarations[#count]'  /// 02: ok
-        : reflectClass(BadEqualityHash).declarations[#count],  /// 02: ok
-     'reflect(new BadEqualityHash()).type.declarations[#count]'  /// 02: ok
-        : reflect(new BadEqualityHash()).type.declarations[#count]},  /// 02: ok
+    {'reflectClass(BadEqualityHash).declarations[#count]'
+        : reflectClass(BadEqualityHash).declarations[#count],
+     'reflect(new BadEqualityHash()).type.declarations[#count]'
+        : reflect(new BadEqualityHash()).type.declarations[#count]},
 
     {'reflectType(Predicate)' : reflectType(Predicate),  /// 02: ok
      'thisLibrary.declarations[#somePredicate].type'  /// 02: ok
@@ -142,10 +144,10 @@ main() {
      'thisLibrary.declarations[#somePredicate].type.referent'  /// 02: ok
         : ((thisLibrary.declarations[#somePredicate] as VariableMirror).type as TypedefMirror).referent},  /// 02: ok
 
-    {'reflectClass(A).typeVariables.single'  /// 02: ok
-        : reflectClass(A).typeVariables.single,  /// 02: ok
-     'reflect(new A<int>()).type.originalDeclaration.typeVariables.single'  /// 02: ok
-        : reflect(new A<int>()).type.originalDeclaration.typeVariables.single},  /// 02: ok
+    {'reflectClass(A).typeVariables.single'
+        : reflectClass(A).typeVariables.single,
+     'reflect(new A<int>()).type.originalDeclaration.typeVariables.single'
+        : reflect(new A<int>()).type.originalDeclaration.typeVariables.single},
 
     {'currentMirrorSystem()' : currentMirrorSystem()},
 

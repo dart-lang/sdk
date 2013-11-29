@@ -183,9 +183,11 @@ abstract class JsDeclarationMirror extends JsMirror
 class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
   final DeclarationMirror owner;
   final TypeVariable _typeVariable;
+  final int _metadataIndex;
   TypeMirror _cachedUpperBound;
 
-  JsTypeVariableMirror(TypeVariable typeVariable, this.owner)
+  JsTypeVariableMirror(TypeVariable typeVariable, this.owner,
+                       this._metadataIndex)
       : this._typeVariable = typeVariable,
         super(s(typeVariable.name));
 
@@ -938,7 +940,7 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
         TypeVariable typeVariable = getMetadata(parsedIndex);
         TypeMirror owner = reflectClass(typeVariable.owner);
         TypeVariableMirror typeMirror =
-            new JsTypeVariableMirror(typeVariable, owner);
+            new JsTypeVariableMirror(typeVariable, owner, parsedIndex);
         result.add(typeMirror);
       }
     }
@@ -1438,7 +1440,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     if (typeVariables == null) return result;
     for (int i = 0; i < typeVariables.length; i++) {
       TypeVariable typeVariable = getMetadata(typeVariables[i]);
-      result.add(new JsTypeVariableMirror(typeVariable, this));
+      result.add(new JsTypeVariableMirror(typeVariable, this,
+                                          typeVariables[i]));
     }
     return _cachedTypeVariables = new UnmodifiableListView(result);
   }
@@ -1952,7 +1955,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
   } else if (ownerClass == null) {
     representation = runtimeTypeToString(type);
   } else if (ownerClass.isOriginalDeclaration) {
-    if (type is int) {
+    if (type is num) {
       // [type] represents a type variable so in the context of an original
       // declaration the corresponding type variable should be returned.
       TypeVariable typeVariable = getMetadata(type);
@@ -1965,11 +1968,24 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
       representation = runtimeTypeToString(type);
     }
   } else {
-    String substituteTypeVariable(int index) {
+    getTypeArgument(int index) {
       TypeVariable typeVariable = getMetadata(index);
       int variableIndex =
           findTypeVariableIndex(ownerClass.typeVariables, typeVariable.name);
-      var typeArgument = ownerClass.typeArguments[variableIndex];
+      return ownerClass.typeArguments[variableIndex];
+    }
+
+    if (type is num) {
+      // [type] represents a type variable used as type argument for example
+      // the type argument of Bar: class Foo<T> extends Bar<T> {}
+      TypeMirror typeArgument = getTypeArgument(type);
+      if (typeArgument is JsTypeVariableMirror)
+        return typeArgument;
+    }
+    String substituteTypeVariable(int index) {
+      var typeArgument = getTypeArgument(index);
+      if (typeArgument is JsTypeVariableMirror)
+        return '${typeArgument._metadataIndex}';
       assert(typeArgument is JsClassMirror ||
              typeArgument is JsTypeBoundClassMirror);
       return typeArgument._mangledName;
@@ -1978,7 +1994,8 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
         runtimeTypeToString(type, onTypeVariable: substituteTypeVariable);
   }
   if (representation != null) {
-    return reflectType(createRuntimeType(representation));
+    return reflectClassByMangledName(
+        getMangledTypeName(createRuntimeType(representation)));
   }
   return reflectClass(Function);
 }

@@ -17,7 +17,7 @@ mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/closures_test/none: RuntimeError # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
-mirrors/equality_test/02: RuntimeError # Issue 12333
+mirrors/equality_test/02: RuntimeError # Issue 12785
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
 mirrors/find_in_context_test: Fail # Issue 6490
@@ -30,9 +30,8 @@ mirrors/generic_interface_test: RuntimeError # Issue 12087
 mirrors/generic_local_function_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_test: RuntimeError # Issue 12333
 mirrors/generic_mixin_applications_test: RuntimeError # Issue 12333
-mirrors/generics_substitution_test/01: RuntimeError # Issue 12087
 mirrors/hierarchy_invariants_test: RuntimeError # Issue 11863
-mirrors/immutable_collections_test: RuntimeError # Issue 14030
+mirrors/immutable_collections_test: RuntimeError # Issue 15262
 mirrors/initializing_formals_test/01: RuntimeError # Issue 6490
 mirrors/initializing_formals_test/03: CompileTimeError # Issue 12164
 mirrors/instance_members_test: RuntimeError # Issue 14633
@@ -75,7 +74,6 @@ mirrors/removed_api_test: RuntimeError # Issue 14878
 mirrors/static_members_test: CompileTimeError # Issue 14633, Issue 12164
 mirrors/symbol_validation_test: RuntimeError # Issue 13597
 mirrors/toplevel_members_test: CompileTimeError # Issue 14633, Issue 12164
-mirrors/type_argument_is_type_variable_test: RuntimeError # Issue 12333
 mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
