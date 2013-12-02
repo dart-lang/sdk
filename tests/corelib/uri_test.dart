@@ -30,11 +30,35 @@ testEncodeDecodeComponent(String orig, String encoded) {
   Expect.stringEquals(orig, d);
 }
 
-testEncodeDecodeQueryComponent(String orig, String encoded) {
-  var e = Uri.encodeQueryComponent(orig);
-  Expect.stringEquals(encoded, e);
-  var d = Uri.decodeQueryComponent(encoded);
+testEncodeDecodeQueryComponent(String orig,
+                               String encodedUTF8,
+                               String encodedLatin1,
+                               String encodedAscii) {
+  var e, d;
+  e = Uri.encodeQueryComponent(orig);
+  Expect.stringEquals(encodedUTF8, e);
+  d = Uri.decodeQueryComponent(encodedUTF8);
   Expect.stringEquals(orig, d);
+
+  e = Uri.encodeQueryComponent(orig, encoding: UTF8);
+  Expect.stringEquals(encodedUTF8, e);
+  d = Uri.decodeQueryComponent(encodedUTF8, encoding: UTF8);
+  Expect.stringEquals(orig, d);
+
+  e = Uri.encodeQueryComponent(orig, encoding: LATIN1);
+  Expect.stringEquals(encodedLatin1, e);
+  d = Uri.decodeQueryComponent(encodedLatin1, encoding: LATIN1);
+  Expect.stringEquals(orig, d);
+
+  if (encodedAscii != null) {
+    e = Uri.encodeQueryComponent(orig, encoding: ASCII);
+    Expect.stringEquals(encodedAscii, e);
+    d = Uri.decodeQueryComponent(encodedAscii, encoding: ASCII);
+    Expect.stringEquals(orig, d);
+  } else {
+    Expect.throws(() => Uri.encodeQueryComponent(orig, encoding: ASCII),
+                  (e) => e is ArgumentError);
+  }
 }
 
 testUriPerRFCs(Uri base) {
@@ -229,5 +253,7 @@ main() {
   testEncodeDecodeComponent("\u0800", "%E0%A0%80");
   testEncodeDecodeComponent(":/@',;?&=+\$", "%3A%2F%40'%2C%3B%3F%26%3D%2B%24");
   testEncodeDecodeComponent(s, "%F0%90%80%80");
-  testEncodeDecodeQueryComponent("A + B", "A+%2B+B");
+  testEncodeDecodeQueryComponent("A + B", "A+%2B+B", "A+%2B+B", "A+%2B+B");
+  testEncodeDecodeQueryComponent(
+      "æ ø å", "%C3%A6+%C3%B8+%C3%A5", "%E6+%F8+%E5", null);
 }
