@@ -10,7 +10,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: Pass, Fail
 Language/14_Libraries_and_Scripts/3_Parts_A02_t02: Pass, Timeout # Issue 13719: Please triage this failure.
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: Pass # Issue 14478: This should break.
 LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Issue 13719: Please triage this failure.
-LibTest/async/Future/Future_A01_t03: Fail # co19-roll r641: Please triage this failure
 LibTest/core/int/operator_left_shift_A01_t02: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue 13719: Please triage this failure.
 LibTest/isolate/SendPort/send_A02_t01: Fail # Issue 13921
@@ -25,7 +24,6 @@ LibTest/isolate/Isolate/spawn_A01_t02: RuntimeError # co19-roll r667: Please tri
 LibTest/isolate/Isolate/spawn_A01_t03: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/isolate/Isolate/spawn_A01_t04: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/isolate/Isolate/spawn_A01_t05: RuntimeError # co19-roll r667: Please triage this failure
-
 
 [ $compiler == none && $runtime == dartium && $checked ]
 Language/13_Statements/09_Switch_A09_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)

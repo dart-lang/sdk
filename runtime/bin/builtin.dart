@@ -4,6 +4,7 @@
 
 library builtin;
 import 'dart:io';
+import 'dart:async';
 // import 'root_library'; happens here from C Code
 
 // The root library (aka the script) is imported into this library. The
@@ -91,6 +92,10 @@ void _makeHttpRequest(String uri) {
   } catch (error) {
     _requestFailed(error);
   }
+  // TODO(floitsch): remove this line. It's just here to push an event on the
+  // event loop so that we invoke the scheduled microtasks. Also remove the
+  // import of dart:async when this line is not needed anymore.
+  Timer.run(() {});
 }
 
 

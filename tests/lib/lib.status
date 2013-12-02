@@ -229,8 +229,8 @@ mirrors/find_in_context_fake_function_test: Fail # Issue 13719: Needs VM flag
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/timer_isolate_test: Fail
 
-[ ($compiler != none && $runtime != none) || ($compiler == none && ($runtime != dartium && $runtime != drt)) ]
-async/schedule_microtask_test: Fail # Issue 9001, Issue 9002
+[ $compiler == dart2js ]
+async/schedule_microtask_test: Fail # Issue 9002
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 14116

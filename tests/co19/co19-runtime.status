@@ -20,6 +20,8 @@ LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
 LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
 
+LibTest/async/Future/Future_A01_t03: Fail, Ok # co19 issue 660.
+
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
 Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675

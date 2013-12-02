@@ -57,6 +57,24 @@ class _ReceivePortImpl extends Stream implements ReceivePort {
   StreamController _controller;
 }
 
+typedef void ImmediateCallback();
+
+/// The callback that has been registered through `scheduleImmediate`.
+ImmediateCallback _pendingImmediateCallback;
+
+/// The closure that should be used as scheduleImmediateClosure, when the VM
+/// is responsible for the event loop.
+void _isolateScheduleImmediate(void callback()) {
+  assert(_pendingImmediateCallback == null);
+  _pendingImmediateCallback = callback;
+}
+
+/// The embedder can execute this function to get hold of
+/// [_isolateScheduleImmediate] above.
+Function _getIsolateScheduleImmediateClosure() {
+  return _isolateScheduleImmediate;
+}
+
 class _RawReceivePortImpl implements RawReceivePort {
   factory _RawReceivePortImpl() native "RawReceivePortImpl_factory";
 
@@ -92,7 +110,15 @@ class _RawReceivePortImpl implements RawReceivePort {
   static void _handleMessage(
       _RawReceivePortImpl port, int replyId, var message) {
     assert(port != null);
+    // TODO(floitsch): this relies on the fact that any exception aborts the
+    // VM. Once we have non-fatal global exceptions we need to catch errors
+    // so that we can run the immediate callbacks.
     port._handler(message);
+    if (_pendingImmediateCallback != null) {
+      var callback = _pendingImmediateCallback;
+      _pendingImmediateCallback = null;
+      callback();
+    }
   }
 
   // Call into the VM to close the VM maintained mappings.
