@@ -24,6 +24,9 @@ class PublishedProperty extends ObservableProperty {
 /**
  * The mixin class for Polymer elements. It provides convenience features on top
  * of the custom elements web standard.
+ *
+ * If this class is used as a mixin,
+ * you must call `polymerCreated()` from the body of your constructor.
  */
 abstract class Polymer implements Element, Observable, NodeBindExtension {
   // Fully ported from revision:
@@ -124,6 +127,12 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   // TODO(jmesserly): Polymer does not have this feature. Reconcile.
   ShadowRoot getShadowRoot(String customTagName) => _shadowRoots[customTagName];
 
+  /**
+   * If this class is used as a mixin, this method must be called from inside
+   * of the `created()` constructor.
+   *
+   * If this class is a superclass, calling `super.created()` is sufficient.
+   */
   void polymerCreated() {
     if (this.ownerDocument.window != null || alwaysPrepare ||
         _preparingElements > 0) {
