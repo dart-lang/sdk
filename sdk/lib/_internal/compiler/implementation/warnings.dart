@@ -1341,6 +1341,11 @@ main() {}
           howToFix: "Try using a different name.",
           examples: const ["do() {} main() {}"]);
 
+  static const MessageKind UNUSED_METHOD = const MessageKind(
+      "Hint: The method '#{method_name}' is never called.",
+      howToFix: "Consider deleting it.",
+      examples: const ["deadCode() {} main() {}"]);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

@@ -661,10 +661,16 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
   Link<Element> get exports;
 
   /**
-   * [:true:] if this library is part of the platform, that is its canonical
+   * [:true:] if this library is part of the platform, that is, its canonical
    * uri has the scheme 'dart'.
    */
   bool get isPlatformLibrary;
+
+  /**
+   * [:true:] if this library is from a package, that is, its canonical uri has
+   * the scheme 'package'.
+   */
+  bool get isPackageLibrary;
 
   /**
    * [:true:] if this library is a platform library whose path starts with

@@ -1087,8 +1087,15 @@ abstract class Compiler implements DiagnosticListener {
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
+    if (analyzeOnly) {
+      if (!analyzeAll) {
+        // No point in reporting unused code when [analyzeAll] is true: all
+        // code is artificially used.
+        reportUnusedCode();
+      }
+      return;
+    }
     if (compilationFailed) return;
-    if (analyzeOnly) return;
     assert(main != null);
     phase = PHASE_DONE_RESOLVING;
 
@@ -1517,6 +1524,28 @@ abstract class Compiler implements DiagnosticListener {
       currentToken = currentToken.next;
     }
     return firstToken;
+  }
+
+  void reportUnusedCode() {
+    void checkLive(member) {
+      if (member.isFunction()) {
+        if (!enqueuer.resolution.isLive(member)) {
+          reportHint(member, MessageKind.UNUSED_METHOD,
+                     {'method_name': member.name});
+        }
+      } else if (member.isClass() && !member.isMixinApplication) {
+        member.forEachLocalMember(checkLive);
+      }
+    }
+    libraries.forEach((_, library) {
+      // TODO(ahe): Implement better heuristics to discover entry points of
+      // packages and use that to discover unused implementation details in
+      // packages.
+      if (library.isPlatformLibrary || library.isPackageLibrary) return;
+      library.compilationUnits.forEach((unit) {
+        unit.forEachLocalMember(checkLive);
+      });
+    });
   }
 }
 

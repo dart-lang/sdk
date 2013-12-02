@@ -985,7 +985,9 @@ class LibraryElementX extends ElementX implements LibraryElement {
 
   Scope buildScope() => new LibraryScope(this);
 
-  bool get isPlatformLibrary => canonicalUri.scheme == "dart";
+  bool get isPlatformLibrary => canonicalUri.scheme == 'dart';
+
+  bool get isPackageLibrary => canonicalUri.scheme == 'package';
 
   bool get isInternalLibrary =>
       isPlatformLibrary && canonicalUri.path.startsWith('_');
