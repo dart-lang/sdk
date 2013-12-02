@@ -1087,6 +1087,7 @@ abstract class Compiler implements DiagnosticListener {
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
+    if (compilationFailed) return;
     if (analyzeOnly) {
       if (!analyzeAll) {
         // No point in reporting unused code when [analyzeAll] is true: all
@@ -1095,7 +1096,6 @@ abstract class Compiler implements DiagnosticListener {
       }
       return;
     }
-    if (compilationFailed) return;
     assert(main != null);
     phase = PHASE_DONE_RESOLVING;
 

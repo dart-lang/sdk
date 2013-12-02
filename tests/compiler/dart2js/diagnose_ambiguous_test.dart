@@ -14,16 +14,11 @@ main() {
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  var unusedPattern = new RegExp("Hint: The method '.*' is never called\\.");
-
   var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
   var diagnostics = [];
   void diagnosticHandler(Uri uri, int begin, int end,
                          String message, Diagnostic kind) {
     if (kind == Diagnostic.VERBOSE_INFO) {
-      return;
-    }
-    if (message.startsWith(unusedPattern)) {
       return;
     }
     diagnostics.add('$uri:$begin:$end:$message:$kind');
