@@ -190,6 +190,8 @@ mirrors/generic_local_function_test: RuntimeError # Issue 14913
 
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
+mirrors/removed_api_test: RuntimeError # Issue 14931
+
 mirrors/static_members_test: RuntimeError # Issue 14632
 mirrors/toplevel_members_test: RuntimeError # Issue 14632
 mirrors/instance_members_test: RuntimeError # Issue 14632

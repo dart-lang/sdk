@@ -248,7 +248,7 @@ class _LocalInstanceMirror extends _LocalObjectMirror
   Function operator [](Symbol selector) {
     bool found = false;
     for (ClassMirror c = type; c != null; c = c.superclass) {
-      var target = c._methods[selector];
+      var target = c.methods[selector];
       if (target != null && !target.isStatic && target.isRegularMethod) {
         found = true;
         break;
@@ -335,6 +335,14 @@ class _LocalClosureMirror extends _LocalInstanceMirror
     // It is tempting to implement this in terms of Function.apply, but then
     // lazy compilation errors would be fatal.
     return reflect(_apply(arguments, names));
+  }
+
+  Future<InstanceMirror> applyAsync(List positionalArguments,
+                                    [Map<Symbol, dynamic> namedArguments]) {
+    return new Future(() {
+      return this.apply(_unwrapAsyncPositionals(positionalArguments),
+                        _unwrapAsyncNamed(namedArguments));
+    });
   }
 
   InstanceMirror findInContext(Symbol name, {ifAbsent: null}) {
@@ -496,41 +504,71 @@ class _LocalClassMirror extends _LocalObjectMirror
   Map<Symbol, DeclarationMirror> get declarations {
     if (_declarations != null) return _declarations;
     var decls = new Map<Symbol, DeclarationMirror>();
-    decls.addAll(_members);
-    decls.addAll(_constructors);
+    decls.addAll(members);
+    decls.addAll(constructors);
     typeVariables.forEach((tv) => decls[tv.simpleName] = tv);
     return _declarations =
         new _UnmodifiableMapView<Symbol, DeclarationMirror>(decls);
   }
 
-  Map<Symbol, Mirror> _cachedMembers;
-  Map<Symbol, Mirror> get _members {
-    if (_cachedMembers == null) {
+  Map<Symbol, Mirror> _members;
+  Map<Symbol, Mirror> get members {
+    if (_members == null) {
       var whoseMembers = _isMixinAlias ? _trueSuperclass : this;
-      _cachedMembers = _makeMemberMap(mixin._computeMembers(whoseMembers._reflectee));
+      _members = _makeMemberMap(mixin._computeMembers(whoseMembers._reflectee));
     }
-    return _cachedMembers;
+    return _members;
   }
 
-  Map<Symbol, MethodMirror> _cachedMethods;
-  Map<Symbol, MethodMirror> get _methods {
-    if (_cachedMethods == null) {
-      _cachedMethods = _filterMap(
-          _members,
+  Map<Symbol, MethodMirror> _methods;
+  Map<Symbol, MethodMirror> get methods {
+    if (_methods == null) {
+      _methods = _filterMap(
+          members,
           (key, value) => (value is MethodMirror && value.isRegularMethod));
     }
-    return _cachedMethods;
+    return _methods;
   }
 
-  Map<Symbol, MethodMirror> _cachedConstructors;
-  Map<Symbol, MethodMirror> get _constructors {
-    if (_cachedConstructors == null) {
+  Map<Symbol, MethodMirror> _getters;
+  Map<Symbol, MethodMirror> get getters {
+    if (_getters == null) {
+      _getters = _filterMap(
+          members,
+          (key, value) => (value is MethodMirror && value.isGetter));
+    }
+    return _getters;
+  }
+
+  Map<Symbol, MethodMirror> _setters;
+  Map<Symbol, MethodMirror> get setters {
+    if (_setters == null) {
+      _setters = _filterMap(
+          members,
+          (key, value) => (value is MethodMirror && value.isSetter));
+    }
+    return _setters;
+  }
+
+  Map<Symbol, VariableMirror> _variables;
+  Map<Symbol, VariableMirror> get variables {
+    if (_variables == null) {
+      _variables = _filterMap(
+          members,
+          (key, value) => (value is VariableMirror));
+    }
+    return _variables;
+  }
+
+  Map<Symbol, MethodMirror> _constructors;
+  Map<Symbol, MethodMirror> get constructors {
+    if (_constructors == null) {
       var constructorsList = _computeConstructors(_reflectee);
       var stringName = _n(simpleName);
       constructorsList.forEach((c) => c._patchConstructorName(stringName));
-      _cachedConstructors = _makeMemberMap(constructorsList);
+      _constructors = _makeMemberMap(constructorsList);
     }
-    return _cachedConstructors;
+    return _constructors;
   }
 
   bool get _isAnonymousMixinApplication {
@@ -584,7 +622,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   String toString() => "ClassMirror on '${MirrorSystem.getName(simpleName)}'";
 
   Function operator [](Symbol selector) {
-    var target = _methods[selector];
+    var target = methods[selector];
     if (target == null || !target.isStatic || !target.isRegularMethod) {
       throw new ArgumentError(
           "${MirrorSystem.getName(simpleName)} has no static method "
@@ -618,6 +656,16 @@ class _LocalClassMirror extends _LocalObjectMirror
                                       _n(constructorName),
                                       arguments,
                                       names));
+  }
+
+  Future<InstanceMirror> newInstanceAsync(Symbol constructorName,
+                                          List positionalArguments,
+                                          [Map<Symbol, dynamic> namedArguments]) {
+    return new Future(() {
+      return this.newInstance(constructorName,
+                              _unwrapAsyncPositionals(positionalArguments),
+                              _unwrapAsyncNamed(namedArguments));
+    });
   }
 
   List<InstanceMirror> get metadata {
@@ -948,23 +996,64 @@ class _LocalLibraryMirror extends _LocalObjectMirror
   Map<Symbol, DeclarationMirror> get declarations {
     if (_declarations != null) return _declarations;
     return _declarations =
-        new _UnmodifiableMapView<Symbol, DeclarationMirror>(_members);
+        new _UnmodifiableMapView<Symbol, DeclarationMirror>(members);
   }
 
-  Map<Symbol, Mirror> _cachedMembers;
-  Map<Symbol, Mirror> get _members {
-    if (_cachedMembers == null) {
-      _cachedMembers = _makeMemberMap(_computeMembers(_reflectee));
+  Map<Symbol, Mirror> _members;
+  Map<Symbol, Mirror> get members {
+    if (_members == null) {
+      _members = _makeMemberMap(_computeMembers(_reflectee));
     }
-    return _cachedMembers;
+    return _members;
   }
 
-  Map<Symbol, MethodMirror> _cachedFunctions;
-  Map<Symbol, MethodMirror> get _functions {
-    if (_cachedFunctions == null) {
-      _cachedFunctions = _filterMap(_members, (key, value) => (value is MethodMirror));
+  Map<Symbol, ClassMirror> _types;
+  Map<Symbol, TypeMirror> get types {
+    if (_types == null) {
+      _types = _filterMap(members, (key, value) => (value is TypeMirror));
     }
-    return _cachedFunctions;
+    return _types;
+  }
+
+  Map<Symbol, ClassMirror> _classes;
+  Map<Symbol, ClassMirror> get classes {
+    if (_classes == null) {
+      _classes = _filterMap(members, (key, value) => (value is ClassMirror));
+    }
+    return _classes;
+  }
+
+  Map<Symbol, MethodMirror> _functions;
+  Map<Symbol, MethodMirror> get functions {
+    if (_functions == null) {
+      _functions = _filterMap(members, (key, value) => (value is MethodMirror));
+    }
+    return _functions;
+  }
+
+  Map<Symbol, MethodMirror> _getters;
+  Map<Symbol, MethodMirror> get getters {
+    if (_getters == null) {
+      _getters = _filterMap(functions, (key, value) => (value.isGetter));
+    }
+    return _getters;
+  }
+
+  Map<Symbol, MethodMirror> _setters;
+  Map<Symbol, MethodMirror> get setters {
+    if (_setters == null) {
+      _setters = _filterMap(functions, (key, value) => (value.isSetter));
+    }
+    return _setters;
+  }
+
+  Map<Symbol, VariableMirror> _variables;
+  Map<Symbol, VariableMirror> get variables {
+    if (_variables == null) {
+      _variables = _filterMap(members,
+                              (key, value) => (value is VariableMirror));
+    }
+    return _variables;
   }
 
   List<InstanceMirror> get metadata {
@@ -983,7 +1072,7 @@ class _LocalLibraryMirror extends _LocalObjectMirror
   String toString() => "LibraryMirror on '${_n(simpleName)}'";
 
   Function operator [](Symbol selector) {
-    var target = _functions[selector];
+    var target = functions[selector];
     if (target == null || !target.isRegularMethod) {
       throw new ArgumentError(
           "${MirrorSystem.getName(simpleName)} has no top-level method "
