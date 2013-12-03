@@ -205,6 +205,9 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                     Definition* left_instr,
                                     Definition* right_instr);
   void TryMergeTruncDivMod(GrowableArray<BinarySmiOpInstr*>* merge_candidates);
+  void TryMergeMathUnary(GrowableArray<MathUnaryInstr*>* merge_candidates);
+
+  void AppendLoadIndexedForMerged(Definition* instr, intptr_t ix, intptr_t cid);
 
   FlowGraph* flow_graph_;
 

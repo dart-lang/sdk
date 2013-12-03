@@ -255,19 +255,19 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
 // Used by TryMergeDivMod.
 // Inserts a load-indexed instruction between a TRUNCDIV or MOD instruction,
 // and the using instruction. This is an intermediate step before merging.
-static void DivModAppendLoadIndexed(BinarySmiOpInstr* instr,
-                                    FlowGraph* flow_graph) {
-  const intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(kArrayCid);
-  const intptr_t ix = (instr->op_kind() == Token::kTRUNCDIV) ? 0 : 1;
+void FlowGraphOptimizer::AppendLoadIndexedForMerged(Definition* instr,
+                                                    intptr_t ix,
+                                                    intptr_t cid) {
+  const intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(cid);
   ConstantInstr* index_instr = new ConstantInstr(Smi::Handle(Smi::New(ix)));
-  flow_graph->InsertAfter(instr, index_instr, NULL, Definition::kValue);
+  flow_graph()->InsertAfter(instr, index_instr, NULL, Definition::kValue);
   LoadIndexedInstr* load = new LoadIndexedInstr(new Value(instr),
                                                 new Value(index_instr),
                                                 index_scale,
-                                                kArrayCid,
+                                                cid,
                                                 Isolate::kNoDeoptId);
   instr->ReplaceUsesWith(load);
-  flow_graph->InsertAfter(index_instr, load, NULL, Definition::kValue);
+  flow_graph()->InsertAfter(index_instr, load, NULL, Definition::kValue);
 }
 
 
@@ -297,7 +297,7 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
   for (intptr_t i = 0; i < merge_candidates->length(); i++) {
     BinarySmiOpInstr* curr_instr = (*merge_candidates)[i];
     if (curr_instr == NULL) {
-      // Instructions was merged already.
+      // Instruction was merged already.
       continue;
     }
     ASSERT((curr_instr->op_kind() == Token::kTRUNCDIV) ||
@@ -316,8 +316,14 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
           (other_binop->right()->definition() == right_def)) {
         (*merge_candidates)[k] = NULL;  // Clear it.
         // Append a LoadIndexed behind TRUNC_DIV and MOD.
-        DivModAppendLoadIndexed(curr_instr, flow_graph_);
-        DivModAppendLoadIndexed(other_binop, flow_graph_);
+        AppendLoadIndexedForMerged(
+            curr_instr,
+            MergedMathInstr::ResultIndexOf(curr_instr->op_kind()),
+            kArrayCid);
+        AppendLoadIndexedForMerged(
+            other_binop,
+            MergedMathInstr::ResultIndexOf(other_binop->op_kind()),
+            kArrayCid);
 
         ZoneGrowableArray<Value*>* args = new ZoneGrowableArray<Value*>(2);
         args->Add(new Value(curr_instr->left()->definition()));
@@ -337,16 +343,73 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
 }
 
 
+void FlowGraphOptimizer::TryMergeMathUnary(
+    GrowableArray<MathUnaryInstr*>* merge_candidates) {
+  if (!FlowGraphCompiler::SupportsSinCos()) {
+    return;
+  }
+  if (merge_candidates->length() < 2) {
+    // Need at least a SIN and a COS.
+    return;
+  }
+  for (intptr_t i = 0; i < merge_candidates->length(); i++) {
+    MathUnaryInstr* curr_instr = (*merge_candidates)[i];
+    if (curr_instr == NULL) {
+      // Instruction was merged already.
+      continue;
+    }
+    ASSERT((curr_instr->kind() == MethodRecognizer::kMathSin) ||
+           (curr_instr->kind() == MethodRecognizer::kMathCos));
+    // Check if there is sin/cos binop with same inputs.
+    const intptr_t other_kind =
+        (curr_instr->kind() == MethodRecognizer::kMathSin) ?
+            MethodRecognizer::kMathCos : MethodRecognizer::kMathSin;
+    Definition* def = curr_instr->value()->definition();
+    for (intptr_t k = i + 1; k < merge_candidates->length(); k++) {
+      MathUnaryInstr* other_op = (*merge_candidates)[k];
+      // 'other_op' can be NULL if it was already merged.
+      if ((other_op != NULL) && (other_op->kind() == other_kind) &&
+          (other_op->value()->definition() == def)) {
+        (*merge_candidates)[k] = NULL;  // Clear it.
+        // Append a LoadIndexed behind SIN and COS.
+        AppendLoadIndexedForMerged(
+            curr_instr,
+            MergedMathInstr::ResultIndexOf(curr_instr->kind()),
+            kTypedDataFloat64ArrayCid);
+        AppendLoadIndexedForMerged(
+            other_op,
+            MergedMathInstr::ResultIndexOf(other_op->kind()),
+            kTypedDataFloat64ArrayCid);
+        ZoneGrowableArray<Value*>* args = new ZoneGrowableArray<Value*>(1);
+        args->Add(new Value(curr_instr->value()->definition()));
+
+        // Replace with TruncDivMod.
+        MergedMathInstr* div_mod = new MergedMathInstr(
+            args,
+            curr_instr->DeoptimizationTarget(),
+            MergedMathInstr::kSinCos);
+        curr_instr->ReplaceWith(div_mod, current_iterator());
+        other_op->ReplaceUsesWith(div_mod);
+        other_op->RemoveFromGraph();
+        OS::Print("Merged SINCOS\n");
+      }
+    }
+  }
+}
+
+
 // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
 // shift can be a truncating Smi shift-left and result is always Smi.
 // Merging occurs only per basic-block.
 void FlowGraphOptimizer::TryOptimizePatterns() {
   if (!FLAG_truncating_left_shift) return;
   ASSERT(current_iterator_ == NULL);
-  GrowableArray<BinarySmiOpInstr*> for_merge;
+  GrowableArray<BinarySmiOpInstr*> div_mod_merge;
+  GrowableArray<MathUnaryInstr*> sin_cos_merge;
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Merging only per basic-block.
-    for_merge.Clear();
+    div_mod_merge.Clear();
+    sin_cos_merge.Clear();
     BlockEntryInstr* entry = block_order_[i];
     ForwardInstructionIterator it(entry);
     current_iterator_ = &it;
@@ -359,7 +422,7 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
                                        binop->right()->definition());
         } else if ((binop->op_kind() == Token::kTRUNCDIV) ||
                    (binop->op_kind() == Token::kMOD)) {
-          for_merge.Add(binop);
+          div_mod_merge.Add(binop);
         }
       } else if (it.Current()->IsBinaryMintOp()) {
         BinaryMintOpInstr* mintop = it.Current()->AsBinaryMintOp();
@@ -368,9 +431,16 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
                                        mintop->left()->definition(),
                                        mintop->right()->definition());
         }
+      } else if (it.Current()->IsMathUnary()) {
+        MathUnaryInstr* math_unary = it.Current()->AsMathUnary();
+        if ((math_unary->kind() == MethodRecognizer::kMathSin) ||
+            (math_unary->kind() == MethodRecognizer::kMathCos)) {
+          sin_cos_merge.Add(math_unary);
+        }
       }
     }
-    TryMergeTruncDivMod(&for_merge);
+    TryMergeTruncDivMod(&div_mod_merge);
+    TryMergeMathUnary(&sin_cos_merge);
     current_iterator_ = NULL;
   }
 }

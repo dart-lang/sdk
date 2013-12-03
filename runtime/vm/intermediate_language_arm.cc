@@ -4145,6 +4145,9 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ StoreIntoObjectNoBarrier(result, store_address, result_mod);
     return;
   }
+  if (kind() == MergedMathInstr::kSinCos) {
+    UNIMPLEMENTED();
+  }
   UNIMPLEMENTED();
 }
 

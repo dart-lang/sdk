@@ -512,6 +512,7 @@ class Assembler : public ValueObject {
 
   void fsin();
   void fcos();
+  void fsincos();
   void fptan();
 
   void xchgl(Register dst, Register src);

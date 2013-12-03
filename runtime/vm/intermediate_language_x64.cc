@@ -4052,9 +4052,26 @@ LocationSummary* MergedMathInstr::MakeLocationSummary() const {
     summary->set_temp(0, Location::RegisterLocation(RDX));
     return summary;
   }
+  if (kind() == MergedMathInstr::kSinCos) {
+    const intptr_t kNumInputs = 1;
+    const intptr_t kNumTemps = 0;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    summary->set_in(0, Location::FpuRegisterLocation(XMM1));
+    summary->set_out(Location::RegisterLocation(RAX));
+    return summary;
+  }
   UNIMPLEMENTED();
   return NULL;
 }
+
+
+
+typedef void (*SinCosCFunction) (double x, double* res_sin, double* res_cos);
+
+extern const RuntimeEntry kSinCosRuntimeEntry(
+    "libc_sincos", reinterpret_cast<RuntimeFunction>(
+        static_cast<SinCosCFunction>(&SinCos)), 1, true, true);
 
 
 void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -4146,15 +4163,13 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(result, Array::ZoneHandle(Array::New(2, Heap::kOld)), PP);
     const intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(kArrayCid);
     Address trunc_div_address(
-        FlowGraphCompiler::ElementAddressForIntIndex(kArrayCid,
-                                                     index_scale,
-                                                     result,
-                                                     0));
+        FlowGraphCompiler::ElementAddressForIntIndex(
+            kArrayCid, index_scale, result,
+            MergedMathInstr::ResultIndexOf(Token::kTRUNCDIV)));
     Address mod_address(
-        FlowGraphCompiler::ElementAddressForIntIndex(kArrayCid,
-                                                     index_scale,
-                                                     result,
-                                                     1));
+        FlowGraphCompiler::ElementAddressForIntIndex(
+            kArrayCid, index_scale, result,
+            MergedMathInstr::ResultIndexOf(Token::kMOD)));
     __ SmiTag(RAX);
     __ SmiTag(RDX);
     __ StoreIntoObjectNoBarrier(result, trunc_div_address, RAX);
@@ -4162,6 +4177,50 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // FLAG_throw_on_javascript_int_overflow: not needed.
     // Note that the result of an integer division/modulo of two
     // in-range arguments, cannot create out-of-range result.
+    return;
+  }
+  if (kind() == MergedMathInstr::kSinCos) {
+    __ EnterFrame(0);
+    // +-------------------------------+
+    // | double-argument               |  <- TOS
+    // +-------------------------------+
+    // | address-cos-result            |  +8
+    // +-------------------------------+
+    // | address-sin-result            |  +16
+    // +-------------------------------+
+    // | double-storage-for-cos-result |  +24
+    // +-------------------------------+
+    // | double-storage-for-sin-result |  +32
+    // +-------------------------------+
+    // ....
+    __ ReserveAlignedFrameSpace(kDoubleSize * 3 + kWordSize * 2);
+    __ movsd(Address(RSP, 0), locs()->in(0).fpu_reg());
+
+    __ leaq(RDI, Address(RSP, 2 * kWordSize + kDoubleSize));
+    __ leaq(RSI, Address(RSP, 2 * kWordSize + 2 * kDoubleSize));
+    __ movaps(XMM0, locs()->in(0).fpu_reg());
+
+    __ CallRuntime(kSinCosRuntimeEntry, InputCount());
+    __ movsd(XMM0, Address(RSP, 2 * kWordSize + kDoubleSize * 2));  // sin.
+    __ movsd(XMM1, Address(RSP, 2 * kWordSize + kDoubleSize));  // cos.
+    __ leave();
+
+    Register result = locs()->out().reg();
+    const TypedData& res_array = TypedData::ZoneHandle(
+      TypedData::New(kTypedDataFloat64ArrayCid, 2, Heap::kOld));
+    __ LoadObject(result, res_array, PP);
+    const intptr_t index_scale =
+        FlowGraphCompiler::ElementSizeFor(kTypedDataFloat64ArrayCid);
+    Address sin_address(
+        FlowGraphCompiler::ElementAddressForIntIndex(
+            kTypedDataFloat64ArrayCid, index_scale, result,
+            MergedMathInstr::ResultIndexOf(MethodRecognizer::kMathSin)));
+    Address cos_address(
+        FlowGraphCompiler::ElementAddressForIntIndex(
+            kTypedDataFloat64ArrayCid, index_scale, result,
+            MergedMathInstr::ResultIndexOf(MethodRecognizer::kMathCos)));
+    __ movsd(sin_address, XMM0);
+    __ movsd(cos_address, XMM1);
     return;
   }
   UNIMPLEMENTED();

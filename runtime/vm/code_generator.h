@@ -102,6 +102,7 @@ void DeoptimizeAll();
 void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes);
 
 double DartModulo(double a, double b);
+void SinCos(double arg, double* sin_res, double* cos_res);
 
 }  // namespace dart
 

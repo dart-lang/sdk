@@ -43,6 +43,11 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
+bool FlowGraphCompiler::SupportsSinCos() {
+  return true;
+}
+
+
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder,
                                                  const Array& deopt_table) {

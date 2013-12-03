@@ -354,10 +354,8 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         optimizer.ApplyICData();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        // Optimize (a << b) & c patterns, merge operations. Must occur before
-        // 'SelectRepresentations' which inserts conversion nodes.
-        // TODO(srdjan): Moved before inlining until environment use list can
-        // be used to detect when shift-left is outside the scope of bit-and.
+        // Optimize (a << b) & c patterns, merge operations.
+        // Run early in order to have more opportunity to optimize left shifts.
         optimizer.TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
@@ -440,6 +438,13 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
             DEBUG_ASSERT(flow_graph->VerifyUseLists());
           }
         }
+
+        // Optimize (a << b) & c patterns, merge operations.
+        // Run after CSE in order to have more opportunity to merge
+        // instructions that have same inputs.
+        optimizer.TryOptimizePatterns();
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
         if (FLAG_loop_invariant_code_motion &&
             (function.deoptimization_counter() <
              FLAG_deoptimization_counter_licm_threshold)) {
