@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-test/serve/missing_file_test: Pass, Fail # Issue 12570
-
 test/hosted/version_negotiation_test: Pass, Timeout # Issue 14346
 
 test/upgrade/hosted/upgrade_removed_constraints_test: Pass, Fail # Issue 15349
