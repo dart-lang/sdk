@@ -331,9 +331,12 @@ void solo_integration(String description, void body()) =>
 
 void _integration(String description, void body(), [Function testFn]) {
   testFn(description, () {
+    // TODO(nweiz): remove this when issue 15362 is fixed.
+    currentSchedule.timeout *= 2;
+
     // The windows bots are very slow, so we increase the default timeout.
     if (Platform.operatingSystem == "windows") {
-      currentSchedule.timeout = new Duration(seconds: 10);
+      currentSchedule.timeout *= 2;
     }
 
     _sandboxDir = createSystemTempDir();
