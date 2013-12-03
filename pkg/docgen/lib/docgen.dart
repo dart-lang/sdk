@@ -1498,9 +1498,13 @@ String docName(DeclarationMirror m) {
   }
   var owner = m.owner;
   if (owner == null) return m.qualifiedName;
-  // For the unnamed constructor we just return the class name.
-  if (m.simpleName == '') return docName(owner);
-  return docName(owner) + '.' + m.simpleName;
+  var simpleName = m.simpleName;
+  if (m is MethodMirror && m.isConstructor) {
+    // We name constructors specially -- including the class name again and a
+    // "-" to separate the constructor from its name (if any).
+    simpleName = '${owner.simpleName}-$simpleName';
+  }
+  return docName(owner) + '.' + simpleName;
 }
 
 /// Remove statics from the map of inherited items before adding them.
