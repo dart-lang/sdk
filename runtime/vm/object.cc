@@ -1822,7 +1822,7 @@ RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
     closure ^= closures.At(i);
     ASSERT(!closure.IsNull());
     if ((closure.token_pos() <= token_pos) &&
-        (token_pos < closure.end_token_pos()) &&
+        (token_pos <= closure.end_token_pos()) &&
         (best_fit_token_pos < closure.token_pos())) {
       best_fit_index = i;
       best_fit_token_pos = closure.token_pos();
