@@ -86,7 +86,7 @@ class HostedSource extends Source {
           "$server/packages/$package/versions/$version.tar.gz");
       log.io("Get package from $url.");
 
-      log.message('Downloading $id...');
+      log.message('Downloading ${id.name} ${id.version}...');
 
       // Download and extract the archive to a temp directory.
       var tempDir = systemCache.createTempDir();

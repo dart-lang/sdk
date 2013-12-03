@@ -14,9 +14,10 @@ import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
 import 'package_graph.dart';
+import 'solver/version_solver.dart';
 import 'system_cache.dart';
 import 'utils.dart';
-import 'solver/version_solver.dart';
+import 'version.dart';
 
 /// Pub operates over a directed graph of dependencies that starts at a root
 /// "entrypoint" package. This is typically the package where the current
@@ -146,9 +147,18 @@ class Entrypoint {
       // Warn the user if any overrides were in effect.
       if (result.overrides.isNotEmpty) {
         var buffer = new StringBuffer();
-        buffer.write("Warning: You are overriding these dependencies:");
+        buffer.write("Warning: You are using these overridden dependencies:");
         for (var override in result.overrides) {
-          buffer.write("\n- $override");
+          var source = cache.sources[override.source];
+          buffer.write("\n- ${override.name}");
+          if (override.constraint != VersionConstraint.any) {
+            buffer.write(" version ${override.constraint}");
+          }
+          if (source != cache.sources.defaultSource) {
+            var description = source.formatDescription(root.dir,
+                override.description);
+            buffer.write(" (from ${override.source} $description)");
+          }
         }
         log.warning(buffer);
       }

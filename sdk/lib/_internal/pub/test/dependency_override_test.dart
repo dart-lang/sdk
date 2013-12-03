@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:path/path.dart' as path;
+
 import 'descriptor.dart' as d;
 import 'test_pub.dart';
 
@@ -86,9 +88,13 @@ main() {
     integration("warns about overridden dependencies", () {
       servePackages([
         packageMap("foo", "1.0.0"),
-        packageMap("bar", "1.0.0"),
-        packageMap("baz", "1.0.0")
+        packageMap("bar", "1.0.0")
       ]);
+
+      d.dir("baz", [
+        d.libDir("baz"),
+        d.libPubspec("baz", "0.0.1")
+      ]).create();
 
       d.dir(appPath, [
         d.pubspec({
@@ -96,17 +102,19 @@ main() {
           "dependency_overrides": {
             "foo": "any",
             "bar": "any",
-            "baz": "any"
+            "baz": {"path": "../baz"}
           }
         })
       ]).create();
 
+      var bazPath = path.join("..", "baz");
+
       schedulePub(args: [command.name], output: command.success, error:
           """
-          Warning: You are overriding these dependencies:
-          - bar any from hosted (bar)
-          - baz any from hosted (baz)
-          - foo any from hosted (foo)
+          Warning: You are using these overridden dependencies:
+          - bar
+          - baz (from path $bazPath)
+          - foo
           """);
     });
   });

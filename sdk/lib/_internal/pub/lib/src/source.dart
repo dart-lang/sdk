@@ -228,10 +228,21 @@ abstract class Source {
   }
 
   /// When a [LockFile] is serialized, it uses this method to get the
-  /// [description] in the right format. [containingPath] references the
-  /// containing directory of the root package.
+  /// [description] in the right format.
+  ///
+  /// [containingPath] is the containing directory of the root package.
   dynamic serializeDescription(String containingPath, description) {
     return description;
+  }
+
+  /// When a package [description] is shown to the user, this is called to
+  /// convert it into a human-friendly form.
+  ///
+  /// By default, it just converts the description to a string, but sources
+  /// may customize this. [containingPath] is the containing directory of the
+  /// root package.
+  String formatDescription(String containingPath, description) {
+    return description.toString();
   }
 
   /// Returns whether or not [description1] describes the same package as
