@@ -324,8 +324,10 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
     }
   });
   // After everything is created, do a pass through all classes to make sure no
-  // intermediate classes created by mixins are included.
-  entityMap.values.where((e) => e is Class).forEach((c) => c.makeValid());
+  // intermediate classes created by mixins are included, all the links to
+  // exported members point to the new library.
+  entityMap.values.where((e) => e is Class).forEach(
+      (c) => c.updateLinksAndRemoveIntermediaryClasses());
   // Everything is a subclass of Object, therefore empty the list to avoid a
   // giant list of subclasses to be printed out.
   if (includeSdk) (entityMap['dart-core.Object'] as Class).subclasses.clear();
@@ -342,7 +344,8 @@ void _documentLibraries(List<LibraryMirror> libs, {bool includeSdk: false,
       throw new StateError('No library_list.json');
     }
     libraryMap =
-        JSON.decode(new File('$_outputDirectory/library_list.json').readAsStringSync());
+        JSON.decode(new File(
+            '$_outputDirectory/library_list.json').readAsStringSync());
     libraryMap['libraries'].addAll(filteredEntities
         .where((e) => e is Library)
         .map((e) => e.previewMap));
@@ -618,7 +621,8 @@ markdown.Node fixReference(String name, LibraryMirror currentLibrary,
   if (elementName != null) {
     return new markdown.Element.text('a', elementName);
   }
-  return _fixComplexReference(name, currentLibrary, currentClass, currentMember);
+  return _fixComplexReference(name, currentLibrary, currentClass,
+      currentMember);
 }
 
 markdown.Node fixReferenceWithScope(String name, DeclarationMirror scope) {
@@ -643,11 +647,17 @@ void _writeToFile(String text, String filename, {bool append: false}) {
   if (!dir.existsSync()) {
     dir.createSync();
   }
-  // We assume there's a single extra level of directory structure for packages.
   if (path.split(filename).length > 1) {
-    var subdir = new Directory(path.join(_outputDirectory, path.dirname(filename)));
-    if (!subdir.existsSync()) {
-      subdir.createSync();
+    var splitList = path.split(filename);
+    for (int i = 0; i < splitList.length; i++) {
+      var level = splitList[i];
+    }
+    for (var level in path.split(filename)) {
+      var subdir = new Directory(path.join(_outputDirectory,
+                                           path.dirname(filename)));
+      if (!subdir.existsSync()) {
+        subdir.createSync();
+      }
     }
   }
   File file = new File(path.join(_outputDirectory, filename));
@@ -857,14 +867,25 @@ class Library extends Indexable {
   bool hasBeenCheckedForPackage = false;
   String packageIntro;
 
+  Map<String, Exported> _exportedMembers;
+
   Library(LibraryMirror libraryMirror) : super(libraryMirror) {
     var exported = _calcExportedItems(libraryMirror);
-    this.classes = _createClasses(
-        exported['classes']..addAll(libraryMirror.classes));
+    _createClasses(exported['classes']..addAll(libraryMirror.classes));
     this.functions = _createMethods(
         exported['methods']..addAll(libraryMirror.functions));
     this.variables = _createVariables(
         exported['variables']..addAll(libraryMirror.variables));
+
+    var exportedVariables = {};
+    variables.forEach((key, value) {
+      if (value is ExportedVariable) {
+        exportedVariables[key] = value;
+      }
+    });
+    _exportedMembers = new Map.from(this.classes.exported)
+        ..addAll(this.functions.exported)
+        ..addAll(exportedVariables);
   }
 
   String get packagePrefix => packageName == null || packageName.isEmpty ?
@@ -883,13 +904,12 @@ class Library extends Indexable {
 
   String get name => docName(mirror);
 
-  /// Returns a [ClassGroup] containing error, typedef and regular classes.
-  ClassGroup _createClasses(Map<String, ClassMirror> mirrorMap) {
-    var group = new ClassGroup();
+  /// Set our classes field with error, typedef and regular classes.
+  void _createClasses(Map<String, ClassMirror> mirrorMap) {
+    this.classes = new ClassGroup();
     mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
-        group.addClass(mirror);
+      this.classes.addClass(mirror, this);
     });
-    return group;
   }
 
   /// For the given library determine what items (if any) are exported.
@@ -1087,16 +1107,26 @@ class Class extends Indexable implements Comparable {
   ///
   /// If it does not exist in the owner library, it is a mixin applciation and
   /// should be removed.
-  void makeValid() {
+  void updateLinksAndRemoveIntermediaryClasses() {
     var library = entityMap[owner];
-    if (library != null && !library.classes.containsKey(name)) {
-      this.isPrivate = true;
-      // Since we are now making the mixin a private class, make all elements
-      // with the mixin as an owner private too.
-      entityMap.values.where((e) => e.owner == qualifiedName)
-        .forEach((element) => element.isPrivate = true);
-      // Move the subclass up to the next public superclass
-      subclasses.forEach((subclass) => addSubclass(subclass));
+    if (library != null) {
+      if (!library.classes.containsKey(name) && mirror.isNameSynthetic) {
+        // In the mixin case, remove the intermediary classes.
+        this.isPrivate = true;
+        // Since we are now making the mixin a private class, make all elements
+        // with the mixin as an owner private too.
+        entityMap.values.where((e) => e.owner == qualifiedName).forEach(
+            (element) => element.isPrivate = true);
+        // Move the subclass up to the next public superclass
+        subclasses.forEach((subclass) => addSubclass(subclass));
+      } else {
+        // It is an exported item. Loop through each of the exported types,
+        // and tell them to update their links, given these other exported
+        // names within the library.
+        for (Exported member in library._exportedMembers.values) {
+          member.updateExports(library._exportedMembers.keys);
+        }
+      }
     }
   }
 
@@ -1110,8 +1140,8 @@ class Class extends Indexable implements Comparable {
     });
   }
 
-  /// If a class extends a private superclass, find the closest public superclass
-  /// of the private superclass.
+  /// If a class extends a private superclass, find the closest public
+  /// superclass of the private superclass.
   String validSuperclass() {
     if (superclass == null) return 'dart.core.Object';
     if (_isVisible(superclass)) return superclass.qualifiedName;
@@ -1140,6 +1170,52 @@ class Class extends Indexable implements Comparable {
   int compareTo(aClass) => name.compareTo(aClass.name);
 }
 
+abstract class Exported {
+  void updateExports(Map<String, Indexable> libraryExports);
+}
+
+Map _filterMap(exported, map, test) {
+  map.forEach((key, value) {
+    if (test(value)) exported[key] = value;
+  });
+  return exported;
+}
+
+class ExportedClass extends Class implements Exported {
+  Class _originalClass;
+  Library _exportingLibrary;
+
+  ExportedClass(ClassMirror originalClass, Library this._exportingLibrary) :
+      super._(originalClass) {
+    _originalClass = new Class(originalClass);
+  }
+
+  // The qualified name (for URL purposes) and the file name are the same,
+  // of the form packageName/ClassName or packageName/ClassName.methodName.
+  // This defines both the URL and the directory structure.
+  String get fileName => path.join(_exportingLibrary.packageName,
+      _exportingLibrary.mirror.qualifiedName + '.' + _originalClass.name);
+
+  void updateExports(Map<String, Indexable> libraryExports) {
+    // TODO(efortuna): If this class points to another exported class or type
+    // of some sort, then that reference needs to be updated here.
+    /* these need to be updated:
+    'comment': comment,
+    'superclass': validSuperclass(),
+    'implements': interfaces.where(_isVisible)
+        .map((e) => e.qualifiedName).toList(),
+    'subclass': (subclasses.toList()..sort())
+        .map((x) => x.qualifiedName).toList(),
+    'variables': recurseMap(variables),
+    'inheritedVariables': recurseMap(inheritedVariables),
+    'methods': methods.toMap(),
+    'inheritedMethods': inheritedMethods.toMap(),
+    'annotations': annotations.map((a) => a.toMap()).toList(),
+    'generics': recurseMap(generics)
+    */
+  }
+}
+
 /// A container to categorize classes into the following groups: abstract
 /// classes, regular classes, typedefs, and errors.
 class ClassGroup {
@@ -1147,7 +1223,17 @@ class ClassGroup {
   Map<String, Typedef> typedefs = {};
   Map<String, Class> errors = {};
 
-  void addClass(ClassMirror classMirror) {
+  Map<String, Exported> get exported {
+    var exported = _filterMap({}, classes, (value) => value is ExportedClass);
+    // TODO(efortuna): The line below needs updating.
+    exported = _filterMap(exported, typedefs,
+        (value) => value is ExportedClass);
+    exported = _filterMap(exported, errors,
+        (value) => value is ExportedClass);
+    return exported;
+  }
+
+  void addClass(ClassMirror classMirror, Library containingLibrary) {
     if (classMirror.isTypedef) {
       // This is actually a Dart2jsTypedefMirror, and it does define value,
       // but we don't have visibility to that type.
@@ -1158,6 +1244,13 @@ class ClassGroup {
       }
     } else {
       var clazz = new Class(classMirror);
+
+      if (classMirror.library.qualifiedName !=
+          containingLibrary.mirror.qualifiedName) {
+        var exportedClass = new ExportedClass(classMirror, containingLibrary);
+        entityMap[clazz.fileName] = exportedClass;
+        clazz = exportedClass;
+      }
 
       if (clazz.isError()) {
         errors[classMirror.simpleName] = clazz;
@@ -1261,6 +1354,26 @@ class Variable extends Indexable {
   }
 }
 
+class ExportedVariable extends Variable implements Exported {
+  Library _exportingLibrary;
+
+  ExportedVariable(String variableName, VariableMirror originalVariable,
+      Library this._exportingLibrary) : super(variableName, originalVariable);
+
+  String get fileName => '${_exportingLibrary.packageName}/' +
+      super.fileName.substring(packagePrefix.length);
+
+  void updateExports(Map<String, Indexable> libraryExports) {
+    // TODO(efortuna): if this class points to another exported class or type
+    // of some sort, then that reference needs to be updated here.
+    /* these need to be updated:
+    'comment': comment,
+    'type': new List.filled(1, type.toMap()),
+    'annotations': annotations.map((a) => a.toMap()).toList()
+    */
+  }
+}
+
 /// A class containing properties of a Dart method.
 class Method extends Indexable {
 
@@ -1331,6 +1444,31 @@ class Method extends Indexable {
   }
 }
 
+class ExportedMethod extends Method implements Exported {
+  Library _exportingLibrary;
+
+  ExportedMethod(MethodMirror originalMethod, Library this._exportingLibrary) :
+      super(originalMethod);
+
+  String get fileName => '${_exportingLibrary.packageName}/' +
+      super.fileName.substring(packagePrefix.length);
+
+  void updateExports(Map<String, Indexable> libraryExports) {
+    // TODO(efortuna): if this class points to another exported class or type
+    // of some sort, then that reference needs to be updated here.
+    /* these need to be updated:
+    'qualifiedName': qualifiedName,
+    'comment': comment,
+    'commentFrom': commentInheritedFrom,
+    'return': new List.filled(1, returnType.toMap()),
+    'parameters': recurseMap(parameters),
+    'annotations': annotations.map((a) => a.toMap()).toList()
+    */
+  }
+}
+
+
+
 /// A container to categorize methods into the following groups: setters,
 /// getters, constructors, operators, regular methods.
 class MethodGroup {
@@ -1339,6 +1477,16 @@ class MethodGroup {
   Map<String, Method> constructors = {};
   Map<String, Method> operators = {};
   Map<String, Method> regularMethods = {};
+
+  Map<String, Exported> get exported {
+    var exported = {};
+    for (Map<String, Method> group in [setters, getters, constructors,
+      operators, regularMethods]) {
+      exported = _filterMap(exported, group,
+          (value) => value is ExportedMethod);
+    }
+    return exported;
+  }
 
   void addMethod(MethodMirror mirror) {
     var method = new Method(mirror);
