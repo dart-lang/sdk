@@ -49,4 +49,18 @@ main() {
     expect(A.ncallbacks, 2);
     expect(b is A, isTrue);
   });
+
+  test("can extend elements that don't have special prototypes", () {
+    document.register('fancy-section', FancySection, extendsTag: 'section');
+    var fancy = document.createElement('section', 'fancy-section');
+    expect(fancy is FancySection, true, reason: 'fancy-section was registered');
+    expect(fancy.wasCreated, true, reason: 'FancySection ctor was called');
+  });
+}
+
+class FancySection extends HtmlElement {
+  bool wasCreated = false;
+  FancySection.created() : super.created() {
+    wasCreated = true;
+  }
 }
