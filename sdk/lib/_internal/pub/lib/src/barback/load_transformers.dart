@@ -61,7 +61,9 @@ Iterable initialize(Uri uri, Map configuration, BarbackMode mode) {
 
   // TODO(nweiz): if no valid transformers are found, throw an error message
   // describing candidates and why they were rejected.
-  return mirrors.libraries[uri].classes.values.map((classMirror) {
+  return mirrors.libraries[uri].declarations.values.map((declaration) {
+    if (declaration is! ClassMirror) return null;
+    var classMirror = declaration;
     if (classMirror.isPrivate) return null;
     if (isAbstract(classMirror)) return null;
     if (!classIsA(classMirror, transformerClass) &&
@@ -139,21 +141,15 @@ class ForeignTransform implements Transform {
 }
 
 /// Returns the mirror for the root Object type.
-ClassMirror get objectMirror {
-  if (_objectMirror == null) {
-    _objectMirror = currentMirrorSystem()
-        .libraries[Uri.parse('dart:core')]
-        .classes[const Symbol('Object')];
-  }
-  return _objectMirror;
-}
-ClassMirror _objectMirror;
+ClassMirror get objectMirror => reflectClass(Object);
 
 // TODO(nweiz): clean this up when issue 13248 is fixed.
 MethodMirror getConstructor(ClassMirror classMirror, String constructor) {
   var name = new Symbol("\${MirrorSystem.getName(classMirror.simpleName)}"
       ".\$constructor");
-  return classMirror.constructors[name];
+  var candidate = classMirror.declarations[name];
+  if (candidate is MethodMirror && candidate.isConstructor) return candidate;
+  return null;
 }
 
 // TODO(nweiz): get rid of this when issue 12439 is fixed.
@@ -169,7 +165,7 @@ bool classIsA(ClassMirror mirror, ClassMirror superclass) {
 
 // TODO(nweiz): get rid of this when issue 12826 is fixed.
 /// Returns whether or not [mirror] is an abstract class.
-bool isAbstract(ClassMirror mirror) => mirror.members.values
+bool isAbstract(ClassMirror mirror) => mirror.declarations.values
     .any((member) => member is MethodMirror && member.isAbstract);
 
 /// Converts [transformerOrGroup] into a serializable map.
