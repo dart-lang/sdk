@@ -1326,8 +1326,12 @@ class JavaScriptBackend extends Backend {
           if (importTag == null) continue;
           LibraryElement importedLibrary = library.getLibraryFromTag(tag);
           if (importedLibrary != compiler.mirrorsLibrary) continue;
+          MessageKind kind =
+              compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(library)
+              ? MessageKind.MIRROR_IMPORT
+              : MessageKind.MIRROR_IMPORT_NO_USAGE;
           compiler.withCurrentElement(library, () {
-            compiler.reportInfo(importTag, MessageKind.MIRROR_IMPORT);
+            compiler.reportInfo(importTag, kind);
           });
         }
       }

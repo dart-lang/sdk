@@ -1104,7 +1104,7 @@ class Comment {
 }
 
 /**
- * EXPERIMENTAL API: Description of how "dart:mirrors" is used.
+ * Annotation describing how "dart:mirrors" is used (EXPERIMENTAL).
  *
  * When used as metadata on an import of "dart:mirrors" in library *L*, this
  * class describes how "dart:mirrors" is used by library *L* unless overridden.
@@ -1124,7 +1124,7 @@ class Comment {
  *
  *     class Foo {
  *       noSuchMethod(Invocation invocation) {
- *         print(Mirrors.getName(invocation.memberName));
+ *         print(MirrorSystem.getName(invocation.memberName));
  *       }
  *     }
  *

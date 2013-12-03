@@ -1079,11 +1079,18 @@ main() => A.A = 1;
       "a class.");
 
   static const MessageKind STATIC_FUNCTION_BLOAT = const MessageKind(
-      "Hint: Using '#{class}.#{name}' may result in larger output.");
+      "Hint: Using '#{class}.#{name}' may lead to unnecessarily large "
+      "generated code.",
+      howToFix:
+          "Try adding '@MirrorsUsed(...)' as described at "
+          "https://goo.gl/Akrrog.");
 
-  static const MessageKind NON_CONST_BLOAT = const MessageKind('''
-Hint: Using "new #{name}' may result in larger output.
-Use 'const #{name}' if possible.''');
+  static const MessageKind NON_CONST_BLOAT = const MessageKind(
+      "Hint: Using 'new #{name}' may lead to unnecessarily large generated "
+      "code.",
+      howToFix:
+          "Try using 'const #{name}' or adding '@MirrorsUsed(...)' as "
+          "described at https://goo.gl/Akrrog.");
 
   static const MessageKind STRING_EXPECTED = const MessageKind(
       "Error: Expected a 'String', but got an instance of '#{type}'.");
@@ -1330,6 +1337,13 @@ main() {}
 
   static const MessageKind MIRROR_IMPORT = const MessageKind(
       "Info: Import of 'dart:mirrors'.");
+
+  static const MessageKind MIRROR_IMPORT_NO_USAGE = const MessageKind(
+      "Info: This import is not annotated with @MirrorsUsed, which may lead to "
+      "unnecessarily large generated code.",
+      howToFix:
+          "Try adding '@MirrorsUsed(...)' as described at "
+          "https://goo.gl/Akrrog.");
 
   static const MessageKind WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT =
       const MessageKind(
