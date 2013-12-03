@@ -4,7 +4,7 @@
 
 library pub.source.hosted;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 import 'dart:io' as io;
 import "dart:convert";
 

@@ -429,12 +429,21 @@ abstract class Future<T> {
  * Thrown when a scheduled timeout happens while waiting for an async result.
  */
 class TimeoutException implements Exception {
-  /** The duration that was exceeded without a result. */
+  /** Description of the cause of the timeout. */
+  final String message;
+  /** The duration that was exceeded. */
   final Duration duration;
 
-  TimeoutException(this.duration);
+  TimeoutException(this.message, [this.duration]);
 
-  String toString() => "Timeout after $duration";
+  String toString() {
+    if (message != null) {
+      if (duration != null) return "TimeoutException after $duration: $message";
+      return "TimeoutException: $message";
+    }
+    if (duration != null) return "TimeoutException after $duration";
+    return "TimeoutException";
+  }
 }
 
 /**

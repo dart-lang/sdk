@@ -5,7 +5,7 @@
 /// Helper functionality for invoking Git.
 library pub.git;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 import 'io.dart';
 import 'log.dart' as log;
 

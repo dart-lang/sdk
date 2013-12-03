@@ -4,7 +4,7 @@
 
 library pub.dart2js_transformer;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';

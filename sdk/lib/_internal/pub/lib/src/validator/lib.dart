@@ -4,7 +4,7 @@
 
 library pub.validator.lib;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 
 import 'package:path/path.dart' as path;
 

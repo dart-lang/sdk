@@ -4,7 +4,7 @@
 
 library pub.command.list_package_dirs;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:path/path.dart' as path;

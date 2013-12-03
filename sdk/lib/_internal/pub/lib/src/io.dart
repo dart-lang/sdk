@@ -5,7 +5,7 @@
 /// Helper functionality to make working with IO easier.
 library pub.io;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
@@ -630,10 +630,12 @@ Future _doProcess(Function fn, String executable, List<String> args,
 /// Note that timing out will not cancel the asynchronous operation behind
 /// [input].
 Future timeout(Future input, int milliseconds, String description) {
+  // TODO(nwiez): Replace this with [Future.timeout].
   var completer = new Completer();
-  var timer = new Timer(new Duration(milliseconds: milliseconds), () {
+  var duration = new Duration(milliseconds: milliseconds);
+  var timer = new Timer(duration, () {
     completer.completeError(new TimeoutException(
-        'Timed out while $description.'),
+        'Timed out while $description.', duration),
         new Trace.current());
   });
   input.then((value) {
@@ -814,15 +816,6 @@ ByteStream createTarGz(List contents, {baseDir}) {
     controller.close();
   });
   return new ByteStream(controller.stream);
-}
-
-/// Exception thrown when an operation times out.
-class TimeoutException implements Exception {
-  final String message;
-
-  const TimeoutException(this.message);
-
-  String toString() => message;
 }
 
 /// Contains the results of invoking a [Process] and waiting for it to complete.

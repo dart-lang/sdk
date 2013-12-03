@@ -544,7 +544,8 @@ class _Future<T> implements Future<T> {
     Timer timer;
     if (onTimeout == null) {
       timer = new Timer(timeLimit, () {
-        result._completeError(new TimeoutException(timeLimit));
+        result._completeError(new TimeoutException("Future not completed",
+                                                   timeLimit));
       });
     } else {
       Zone zone = Zone.current;

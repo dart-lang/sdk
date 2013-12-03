@@ -5,7 +5,7 @@
 /// A library for compiling Dart code and manipulating analyzer parse trees.
 library pub.dart;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:analyzer/analyzer.dart';
