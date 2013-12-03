@@ -21,7 +21,7 @@ import '../utils.dart';
 /// loaded, then adds the transformers to `server.barback`.
 ///
 /// Any [builtInTransformers] that are provided will automatically be added to
-/// the end of every package's cascade.
+/// the end of the root package's cascade.
 Future loadAllTransformers(BarbackServer server, PackageGraph graph,
     BarbackMode mode, Iterable<Transformer> builtInTransformers) {
   // In order to determine in what order we should load transformers, we need to
