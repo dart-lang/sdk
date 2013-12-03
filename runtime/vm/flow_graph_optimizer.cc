@@ -391,7 +391,6 @@ void FlowGraphOptimizer::TryMergeMathUnary(
         curr_instr->ReplaceWith(div_mod, current_iterator());
         other_op->ReplaceUsesWith(div_mod);
         other_op->RemoveFromGraph();
-        OS::Print("Merged SINCOS\n");
       }
     }
   }
