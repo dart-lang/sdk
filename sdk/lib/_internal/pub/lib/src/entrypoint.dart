@@ -188,10 +188,8 @@ class Entrypoint {
   /// This will be `false` if there is no lockfile at all, or if the pubspec
   /// contains dependencies that are not in the lockfile or that don't match
   /// what's in there.
-  bool isLockFileUpToDate() {
-    var lockFile = loadLockFile();
-
-    checkDependency(package) {
+  bool _isLockFileUpToDate(LockFile lockFile) {
+    return root.immediateDependencies.every((package) {
       var locked = lockFile.packages[package.name];
       if (locked == null) return false;
 
@@ -199,36 +197,75 @@ class Entrypoint {
       if (!package.constraint.allows(locked.version)) return false;
 
       var source = cache.sources[package.source];
-      if (!source.descriptionsEqual(package.description, locked.description)) {
-        return false;
-      }
+      if (source == null) return false;
 
-      return true;
-    }
+      return source.descriptionsEqual(package.description, locked.description);
+    });
+  }
 
-    if (!root.dependencies.every(checkDependency)) return false;
-    if (!root.devDependencies.every(checkDependency)) return false;
+  /// Determines whether all of the packages in the lockfile are already
+  /// installed and available.
+  ///
+  /// Note: this assumes [isLockFileUpToDate] has already been called and
+  /// returned `true`.
+  Future<bool> _arePackagesAvailable(LockFile lockFile) {
+    return Future.wait(lockFile.packages.values.map((package) {
+      var source = cache.sources[package.source];
 
-    return true;
+      // This should only be called after [_isLockFileUpToDate] has returned
+      // `true`, which ensures all of the sources in the lock file are valid.
+      assert(source != null);
+
+      // We only care about cached sources. Uncached sources aren't "installed".
+      // If one of those is missing, we want to show the user the file not
+      // found error later since installing won't accomplish anything.
+      if (!source.shouldCache) return new Future.value(true);
+
+      // Get the directory.
+      return source.getDirectory(package).then((dir) {
+        // See if the directory is there and looks like a package.
+        return dirExists(dir) || fileExists(path.join(dir, "pubspec.yaml"));
+      });
+    })).then((results) {
+      // Make sure they are all true.
+      return results.every((result) => result);
+    });
   }
 
   /// Gets dependencies if the lockfile is out of date with respect to the
   /// pubspec.
   Future ensureLockFileIsUpToDate() {
     return new Future.sync(() {
-      if (isLockFileUpToDate()) return null;
+      var lockFile = loadLockFile();
 
-      if (lockFileExists) {
-        log.message(
-            "Your pubspec has changed, so we need to update your lockfile:");
-      } else {
-        log.message(
-            "You don't have a lockfile, so we need to generate that:");
+      // If we don't have a current lock file, we definitely need to install.
+      if (!_isLockFileUpToDate(lockFile)) {
+        if (lockFileExists) {
+          log.message(
+              "Your pubspec has changed, so we need to update your lockfile:");
+        } else {
+          log.message(
+              "You don't have a lockfile, so we need to generate that:");
+        }
+
+        return false;
       }
 
-      return getDependencies().then((_) {
-        log.message("Got dependencies!");
+      // If we do have a lock file, we still need to make sure the packages
+      // are actually installed. The user may have just gotten a package that
+      // includes a lockfile.
+      return _arePackagesAvailable(lockFile).then((available) {
+        if (!available) {
+          log.message(
+              "You are missing some dependencies, so we need to install them "
+              "first:");
+        }
+
+        return available;
       });
+    }).then((upToDate) {
+      if (upToDate) return null;
+      return getDependencies().then((_) => log.message("Got dependencies!"));
     });
   }
 

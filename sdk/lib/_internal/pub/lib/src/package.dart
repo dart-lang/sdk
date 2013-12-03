@@ -40,6 +40,25 @@ class Package {
   /// The dependency overrides this package specifies in its pubspec.
   List<PackageDep> get dependencyOverrides => pubspec.dependencyOverrides;
 
+  /// All immediate dependencies this package specifies.
+  ///
+  /// This includes regular, dev dependencies, and overrides.
+  Set<PackageDep> get immediateDependencies {
+    var deps = {};
+
+    addToMap(dep) {
+      deps[dep.name] = dep;
+    }
+
+    dependencies.forEach(addToMap);
+    devDependencies.forEach(addToMap);
+
+    // Make sure to add these last so they replace normal dependencies.
+    dependencyOverrides.forEach(addToMap);
+
+    return deps.values.toSet();
+  }
+
   /// Returns the path to the README file at the root of the entrypoint, or null
   /// if no README file is found. If multiple READMEs are found, this uses the
   /// same conventions as pub.dartlang.org for choosing the primary one: the
