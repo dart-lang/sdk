@@ -409,7 +409,7 @@ class _Utils {
       throw new UnsupportedError("Invalid custom element from $libName.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
-    var createdConstructor = cls.constructors[new Symbol('$className.created')];
+    var createdConstructor = cls.declarations[new Symbol('$className.created')];
     if (createdConstructor == null ||
         createdConstructor is! MethodMirror ||
         !createdConstructor.isConstructor) {
