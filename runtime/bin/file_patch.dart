@@ -50,7 +50,7 @@ class _WatcherPath {
 
 patch class _FileSystemWatcher {
   static int _id;
-  static final Map<int, _FileSystemWatcherPath> _idMap = {};
+  static final Map<int, _WatcherPath> _idMap = {};
 
   final String _path;
   final int _events;
