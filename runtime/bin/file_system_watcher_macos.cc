@@ -42,12 +42,6 @@ enum {
 namespace dart {
 namespace bin {
 
-static Mutex* watcher_mutex = new Mutex();
-static Monitor* watcher_monitor = new Monitor();
-
-class FSEventsWatcher;
-static FSEventsWatcher* watcher = NULL;
-
 union FSEvent {
   struct {
     uint32_t exists;
@@ -99,13 +93,17 @@ class FSEventsWatcher {
     FSEventStreamRef ref_;
   };
 
-  FSEventsWatcher() : run_loop_(0), users_(0) {
+  FSEventsWatcher() : run_loop_(0) {
     Thread::Start(Run, reinterpret_cast<uword>(this));
   }
 
   ~FSEventsWatcher() {
     CFRunLoopStop(run_loop_);
   }
+
+  Monitor& monitor() { return monitor_; }
+
+  bool has_run_loop() const { return run_loop_ != NULL; }
 
   static void TimerCallback(CFRunLoopTimerRef timer, void* context) {
     // Dummy callback to keep RunLoop alive.
@@ -116,9 +114,9 @@ class FSEventsWatcher {
     watcher->run_loop_ = CFRunLoopGetCurrent();
 
     // Notify, as the run-loop is set.
-    watcher_monitor->Enter();
-    watcher_monitor->Notify();
-    watcher_monitor->Exit();
+    watcher->monitor().Enter();
+    watcher->monitor().Notify();
+    watcher->monitor().Exit();
 
     CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
         NULL,
@@ -132,27 +130,6 @@ class FSEventsWatcher {
     CFRunLoopAddTimer(watcher->run_loop_, timer, kCFRunLoopCommonModes);
 
     CFRunLoopRun();
-  }
-
-  static void Increment() {
-    if (watcher == NULL) {
-      watcher_monitor->Enter();
-      watcher = new FSEventsWatcher();
-      while (watcher->run_loop_ == NULL) {
-        watcher_monitor->Wait(Monitor::kNoTimeout);
-      }
-      watcher_monitor->Exit();
-    }
-    watcher->users_++;
-  }
-
-  static void Decrement() {
-    ASSERT(watcher->users_ > 0);
-    watcher->users_--;
-    if (watcher->users_ == 0) {
-      delete watcher;
-      watcher = NULL;
-    }
   }
 
   Node* AddPath(const char* path, int events, bool recursive) {
@@ -215,8 +192,8 @@ class FSEventsWatcher {
     }
   }
 
+  Monitor monitor_;
   CFRunLoopRef run_loop_;
-  int users_;
 };
 
 
@@ -226,36 +203,50 @@ bool FileSystemWatcher::IsSupported() {
 }
 
 
-intptr_t FileSystemWatcher::WatchPath(const char* path,
+intptr_t FileSystemWatcher::Init() {
+  FSEventsWatcher* watcher = new FSEventsWatcher();
+  watcher->monitor().Enter();
+  while (!watcher->has_run_loop()) {
+    watcher->monitor().Wait(1);
+  }
+  watcher->monitor().Exit();
+  return reinterpret_cast<intptr_t>(watcher);
+}
+
+
+void FileSystemWatcher::Close(intptr_t id) {
+  FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(id);
+  delete watcher;
+}
+
+
+intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      const char* path,
                                       int events,
                                       bool recursive) {
-  MutexLocker lock(watcher_mutex);
-  FSEventsWatcher::Increment();
-
+  FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(id);
   FSEventsWatcher::Node* node = watcher->AddPath(path, events, recursive);
   node->Start();
   return reinterpret_cast<intptr_t>(node);
 }
 
 
-void FileSystemWatcher::UnwatchPath(intptr_t id) {
-  MutexLocker lock(watcher_mutex);
-
-  FSEventsWatcher::Node* node = reinterpret_cast<FSEventsWatcher::Node*>(id);
+void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
+  USE(id);
+  FSEventsWatcher::Node* node =
+      reinterpret_cast<FSEventsWatcher::Node*>(path_id);
   node->Stop();
   delete node;
-
-  FSEventsWatcher::Decrement();
 }
 
 
-intptr_t FileSystemWatcher::GetSocketId(intptr_t id) {
-  return reinterpret_cast<FSEventsWatcher::Node*>(id)->read_fd();
+intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
+  return reinterpret_cast<FSEventsWatcher::Node*>(path_id)->read_fd();
 }
 
 
-Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
-  intptr_t fd = GetSocketId(id);
+Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
+  intptr_t fd = GetSocketId(id, path_id);
   intptr_t avail = FDUtils::AvailableBytes(fd);
   int count = avail / sizeof(FSEvent);
   if (count <= 0) return Dart_NewList(0);
@@ -267,7 +258,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
       return DartUtils::NewDartOSError();
     }
     size_t path_len = strlen(e.data.path);
-    Dart_Handle event = Dart_NewList(4);
+    Dart_Handle event = Dart_NewList(5);
     int flags = e.data.flags;
     int mask = 0;
     if (flags & kFSEventStreamEventFlagItemRenamed) {
@@ -295,6 +286,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     Dart_ListSetAt(event, 2, Dart_NewStringFromUTF8(
         reinterpret_cast<uint8_t*>(e.data.path), path_len));
     Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
+    Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
     Dart_ListSetAt(events, i, event);
   }
   return events;

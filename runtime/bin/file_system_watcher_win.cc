@@ -23,9 +23,21 @@ bool FileSystemWatcher::IsSupported() {
 }
 
 
-intptr_t FileSystemWatcher::WatchPath(const char* path,
+intptr_t FileSystemWatcher::Init() {
+  return 0;
+}
+
+
+void FileSystemWatcher::Close(intptr_t id) {
+  USE(id);
+}
+
+
+intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      const char* path,
                                       int events,
                                       bool recursive) {
+  USE(id);
   const wchar_t* name = StringUtils::Utf8ToWide(path);
   HANDLE dir = CreateFileW(name,
                            FILE_LIST_DIRECTORY,
@@ -59,19 +71,22 @@ intptr_t FileSystemWatcher::WatchPath(const char* path,
 }
 
 
-void FileSystemWatcher::UnwatchPath(intptr_t id) {
-  // Nothing to do.
+void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
+  USE(id);
+  USE(path_id);
 }
 
 
-intptr_t FileSystemWatcher::GetSocketId(intptr_t id) {
-  return id;
+intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
+  USE(id);
+  return path_id;
 }
 
 
-Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
+Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
+  USE(id);
   const intptr_t kEventSize = sizeof(FILE_NOTIFY_INFORMATION);
-  DirectoryWatchHandle* dir = reinterpret_cast<DirectoryWatchHandle*>(id);
+  DirectoryWatchHandle* dir = reinterpret_cast<DirectoryWatchHandle*>(path_id);
   intptr_t available = dir->Available();
   intptr_t max_count = available / kEventSize + 1;
   Dart_Handle events = Dart_NewList(max_count);
@@ -83,7 +98,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     FILE_NOTIFY_INFORMATION* e =
         reinterpret_cast<FILE_NOTIFY_INFORMATION*>(buffer + offset);
 
-    Dart_Handle event = Dart_NewList(4);
+    Dart_Handle event = Dart_NewList(5);
     int mask = 0;
     if (e->Action == FILE_ACTION_ADDED) mask |= kCreate;
     if (e->Action == FILE_ACTION_REMOVED) mask |= kDelete;
@@ -96,6 +111,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id) {
     Dart_ListSetAt(event, 2, Dart_NewStringFromUTF16(
         reinterpret_cast<uint16_t*>(e->FileName), e->FileNameLength / 2));
     Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
+    Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
     Dart_ListSetAt(events, i, event);
     i++;
     if (e->NextEntryOffset == 0) break;

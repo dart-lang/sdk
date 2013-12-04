@@ -370,9 +370,9 @@ abstract class FileSystemEntity {
    */
   Stream<FileSystemEvent> watch({int events: FileSystemEvent.ALL,
                                  bool recursive: false})
-     => new _FileSystemWatcher(_trimTrailingPathSeparators(path),
-                               events,
-                               recursive).stream;
+     => _FileSystemWatcher.watch(_trimTrailingPathSeparators(path),
+                                 events,
+                                 recursive);
 
   Future<FileSystemEntity> _delete({bool recursive: false});
   void _deleteSync({bool recursive: false});
@@ -741,9 +741,8 @@ class FileSystemMoveEvent extends FileSystemEvent {
 }
 
 
-abstract class _FileSystemWatcher {
-  external factory _FileSystemWatcher(String path, int events, bool recursive);
+class _FileSystemWatcher {
+  external static Stream<FileSystemEvent> watch(
+      String path, int events, bool recursive);
   external static bool get isSupported;
-
-  Stream<FileSystemEvent> get stream;
 }
