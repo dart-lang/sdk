@@ -333,7 +333,7 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
     if (_isEmpty) return;
     if (_hasOneListener) {
       _state |= _BroadcastStreamController._STATE_FIRING;
-      _BufferingStreamSubscription subscription = _next;
+      _BroadcastSubscription subscription = _next;
       subscription._add(data);
       _state &= ~_BroadcastStreamController._STATE_FIRING;
       if (_isEmpty) {
