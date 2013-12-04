@@ -29,7 +29,10 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
     }
     timer._milliSeconds = repeating ? milliSeconds : -1;
     timer._addTimerToList();
-    timer._notifyEventHandler();
+    if (identical(timer, _timers.first)) {
+      // The new timer is the first in queue. Update event handler.
+      timer._notifyEventHandler();
+    }
     return timer;
   }
 
@@ -72,9 +75,8 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
     _wakeupTime += _milliSeconds;
   }
 
-  // Adds a timer to the timer list and resets the native timer if it is the
-  // earliest timer in the list. Timers with the same wakeup time are enqueued
-  // in order and notified in FIFO order.
+  // Adds a timer to the timer list. Timers with the same wakeup time are
+  // enqueued in order and notified in FIFO order.
   void _addTimerToList() {
     _Timer entry = _timers.isEmpty ? null : _timers.first;
     while (entry != null) {
