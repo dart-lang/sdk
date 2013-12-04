@@ -391,6 +391,43 @@ LibTest/typed_data/ByteData/setUint8_A01_t01: fail # co19-roll r569: Please tria
 LibTest/typed_data/ByteData/toString_A01_t01: fail # co19-roll r569: Please triage this failure
 LibTest/typed_data/ByteData/elementSizeInBytes_A01_t01: fail # co19-roll r569: Please triage this failure
 
+LibTest/typed_data/Int32x4/flagW_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagW_A01_t02: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagW_A01_t03: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagX_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagX_A01_t02: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagX_A01_t03: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagY_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagY_A01_t02: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagY_A01_t03: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagZ_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagZ_A01_t02: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/flagZ_A01_t03: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/Int32x4_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/Int32x4.bool_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/Int32x4.fromFloat32x4Bits_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/Int32x4.fromFloat32x4Bits_A01_t02: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/operator_AND_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/operator_OR_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/operator_XOR_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/select_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/w_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/w_A01_t02: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/withFlagW_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/withFlagX_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/withFlagY_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/withFlagZ_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/withW_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/withX_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/withY_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/withZ_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/x_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/x_A01_t02: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/y_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/y_A01_t02: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/z_A01_t01: fail # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/z_A01_t02: fail # co19-roll r672: Please triage this failure
+
 [ $compiler == dart2js ]
 Language/03_Overview/1_Scoping_A02_t28: fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
