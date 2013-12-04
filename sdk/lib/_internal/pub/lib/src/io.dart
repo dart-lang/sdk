@@ -690,31 +690,29 @@ Future withTempDir(Future fn(String path)) {
 Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
   log.fine("Extracting .tar.gz stream to $destination.");
 
-  return _descriptorPool.withResource(() {
-    if (Platform.operatingSystem == "windows") {
-      return _extractTarGzWindows(stream, destination);
-    }
+  if (Platform.operatingSystem == "windows") {
+    return _extractTarGzWindows(stream, destination);
+  }
 
-    return startProcess("tar",
-        ["--extract", "--gunzip", "--directory", destination]).then((process) {
-      // Ignore errors on process.std{out,err}. They'll be passed to
-      // process.exitCode, and we don't want them being top-levelled by
-      // std{out,err}Sink.
-      store(process.stdout.handleError((_) {}), stdout, closeSink: false);
-      store(process.stderr.handleError((_) {}), stderr, closeSink: false);
-      return Future.wait([
-        store(stream, process.stdin),
-        process.exitCode
-      ]);
-    }).then((results) {
-      var exitCode = results[1];
-      if (exitCode != 0) {
-        throw new Exception("Failed to extract .tar.gz stream to $destination "
-            "(exit code $exitCode).");
-      }
-      log.fine("Extracted .tar.gz stream to $destination. Exit code "
-          "$exitCode.");
-    });
+  return startProcess("tar",
+      ["--extract", "--gunzip", "--directory", destination]).then((process) {
+    // Ignore errors on process.std{out,err}. They'll be passed to
+    // process.exitCode, and we don't want them being top-levelled by
+    // std{out,err}Sink.
+    store(process.stdout.handleError((_) {}), stdout, closeSink: false);
+    store(process.stderr.handleError((_) {}), stderr, closeSink: false);
+    return Future.wait([
+      store(stream, process.stdin),
+      process.exitCode
+    ]);
+  }).then((results) {
+    var exitCode = results[1];
+    if (exitCode != 0) {
+      throw new Exception("Failed to extract .tar.gz stream to $destination "
+          "(exit code $exitCode).");
+    }
+    log.fine("Extracted .tar.gz stream to $destination. Exit code "
+        "$exitCode.");
   });
 }
 
