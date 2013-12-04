@@ -537,6 +537,29 @@ LibTest/async/Stream/asBroadcastStream_A03_t01: RuntimeError # co19-roll r641: P
 LibTest/async/Timer/isActive_A01_t01: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/async/Future/wait_A01_t07: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/async/Timer/isActive_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
+LibTest/async/Zone/createPeriodicTimer_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/async/Zone/createTimer_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsedInUs_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsedTicks_A01_t02: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsedTicks_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/start_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+
+[ $compiler == dart2js && $runtime == d8 ]
+LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsedInUs_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsedTicks_A01_t02: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsedTicks_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/start_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
 
 [ $compiler == dart2js && $minified ]
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
@@ -574,6 +597,13 @@ Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18:
 Language/14_Libraries_and_Scripts/2_Exports_A05_t03: MissingCompileTimeError # co19-roll r623: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t04: fail # Issue 14654
 LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t02: Fail # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t03: Fail # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t04: Fail # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A02_t02: Fail # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A02_t03: Fail # co19-roll r672: Please triage this failure
 
 [ $compiler == dart2js ]
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure

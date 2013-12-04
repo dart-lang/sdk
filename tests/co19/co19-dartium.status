@@ -16,6 +16,15 @@ LibTest/isolate/SendPort/send_A02_t01: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t04: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t05: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t06: Fail # Issue 13921
+LibTest/isolate/Isolate/spawnUri_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t02: Timeout  # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t03: Timeout # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t04: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A01_t05: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/isolate/RawReceivePort/RawReceivePort_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/isolate/RawReceivePort/RawReceivePort_A01_t02: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/isolate/RawReceivePort/close_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
 
 
 Language/12_Expressions/13_Spawning_an_Isolate_A01_t01: RuntimeError # co19-roll r667: Please triage this failure

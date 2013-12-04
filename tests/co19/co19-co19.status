@@ -15,19 +15,11 @@ LibTest/core/Stopwatch/start_A01_t01: PASS, FAIL, OK # co19 issue 657
 LibTest/core/Stopwatch/start_A01_t02: PASS, FAIL, OK # co19 issue 657
 LibTest/core/Stopwatch/elapsedTicks_A01_t01: PASS, FAIL, OK # co19 issue 657
 
-LibTest/isolate/Isolate/spawnUri_A01_t01: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnUri_A01_t02: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnUri_A01_t03: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnUri_A01_t04: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnUri_A01_t05: Fail, OK # co19 issue 639
 LibTest/isolate/Isolate/spawnFunction_A02_t01: Fail, OK # co19 issue 639
 LibTest/isolate/Isolate/spawnFunction_A03_t01: Fail, OK # co19 issue 639
 LibTest/isolate/Isolate/spawnFunction_A04_t01: Fail, OK # co19 issue 639
 LibTest/isolate/Isolate/spawnFunction_A04_t02: Fail, OK # co19 issue 639
 LibTest/isolate/Isolate/spawnFunction_A04_t03: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnUri_A02_t02: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnUri_A02_t03: Fail, OK # co19 issue 639
-
 
 [ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail, pass, ok # co19 issue 649
@@ -57,6 +49,8 @@ LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip, OK # co19 issue 661
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip, OK # co19 issue 661
 
+LibTest/isolate/Isolate/spawnUri_A02_t04: Timeout, Fail # co19-roll r672: Please triage this failure
+
 [ $runtime == vm || $runtime == dartium || $compiler == dart2js ]
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44
@@ -76,8 +70,6 @@ LibTest/async/Stream/Stream.periodic_A01_t01: TIMEOUT, PASS, FAIL, OK # co19 iss
 
 LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493
 LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495
-
-LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: Fail # co19-roll r559: Please triage this failure
 
 
 [ $runtime == vm || $compiler == dart2js ]

@@ -20,8 +20,6 @@ LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
 LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
 
-LibTest/async/Future/Future_A01_t03: Fail, Ok # co19 issue 660.
-
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
 Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
@@ -37,6 +35,9 @@ LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage 
 LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
 LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
+
+LibTest/isolate/Isolate/spawnUri_A02_t02: Timeout # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A02_t03: Timeout # co19-roll r672: Please triage this failure
 
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
@@ -91,3 +92,6 @@ Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please 
 [ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
 Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349
 Language/15_Types/4_Interface_Types_A11_t02: pass, timeout # Issue 13349
+
+[ $runtime == vm ]
+LibTest/isolate/Isolate/spawn_A02_t01: Timeout # co19-roll r672: Please triage this failure
