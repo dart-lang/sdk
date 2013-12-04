@@ -134,7 +134,14 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
 
   // The set of [TypeInformation] where the traced container could
   // flow in, and operations done on them.
-  final Setlet<TypeInformation> allUsers = new Setlet<TypeInformation>();
+  final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
+
+  // Work list that gets populated with [TypeInformation] that could
+  // contain the container.
+  final List<TypeInformation> workList = <TypeInformation>[];
+
+  // The current [TypeInformation] in the analysis.
+  TypeInformation currentUser;
 
   // The list of found assignments to the container.
   final List<TypeInformation> assignments = <TypeInformation>[];
@@ -148,32 +155,26 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   ContainerTracerVisitor(this.container, inferrer)
       : this.inferrer = inferrer, this.compiler = inferrer.compiler;
 
+  void addNewEscapeInformation(TypeInformation info) {
+    if (flowsInto.contains(info)) return;
+    flowsInto.add(info);
+    workList.add(info);
+  }
+
   List<TypeInformation> run() {
     // Collect the [TypeInformation] where the container can flow in,
     // as well as the operations done on all these [TypeInformation]s.
-    List<TypeInformation> workList = <TypeInformation>[];
-    allUsers.add(container);
-    workList.add(container);
+    addNewEscapeInformation(container);
     while (!workList.isEmpty) {
-      TypeInformation user = workList.removeLast();
-      user.users.forEach((TypeInformation info) {
-        if (allUsers.contains(info)) return;
-        allUsers.add(info);
+      currentUser = workList.removeLast();
+      currentUser.users.forEach((TypeInformation info) {
         analyzedElements.add(info.owner);
-        if (info.reachedBy(user, inferrer)) {
-          workList.add(info);
-        }
+        info.accept(this);
       });
+      if (!continueAnalyzing) break;
       if (analyzedElements.length > MAX_ANALYSIS_COUNT) {
         bailout('Too many users');
         break;
-      }
-    }
-
-    if (continueAnalyzing) {
-      for (TypeInformation info in allUsers) {
-        info.accept(this);
-        if (!continueAnalyzing) break;
       }
     }
 
@@ -196,10 +197,18 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
     callsGrowableMethod = true;
   }
 
-  visitNarrowTypeInformation(NarrowTypeInformation info) {}
-  visitPhiElementTypeInformation(PhiElementTypeInformation info) {}
+  visitNarrowTypeInformation(NarrowTypeInformation info) {
+    addNewEscapeInformation(info);
+  }
+
+  visitPhiElementTypeInformation(PhiElementTypeInformation info) {
+    addNewEscapeInformation(info);
+  }
+
   visitElementInContainerTypeInformation(
-      ElementInContainerTypeInformation info) {}
+      ElementInContainerTypeInformation info) {
+    addNewEscapeInformation(info);
+  }
 
   visitContainerTypeInformation(ContainerTypeInformation info) {
     if (container != info) {
@@ -214,17 +223,19 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   }
 
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
-    analyzedElements.add(info.caller);
     Element called = info.calledElement;
     if (called.isForeign(compiler) && called.name == 'JS') {
       bailout('Used in JS ${info.call}');
+    }
+    if (inferrer.types.getInferredTypeOf(called) == currentUser) {
+      addNewEscapeInformation(info);
     }
   }
 
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     Selector selector = info.selector;
     String selectorName = selector.name;
-    if (allUsers.contains(info.receiver)) {
+    if (currentUser == info.receiver) {
       if (!okSelectorsSet.contains(selectorName)) {
         if (selector.isCall()) {
           int positionalLength = info.arguments.positional.length;
@@ -259,6 +270,13 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
       bailout('Passed to a closure');
       return;
     }
+
+    if (info.targets
+            .map((element) => inferrer.types.getInferredTypeOf(element))
+            .any((other) => other == currentUser)) {
+      addNewEscapeInformation(info);
+    }
+
   }
 
   bool isClosure(Element element) {
@@ -274,5 +292,6 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
     if (compiler.backend.isNeededForReflection(info.element)) {
       bailout('Escape in reflection');
     }
+    addNewEscapeInformation(info);
   }
 }

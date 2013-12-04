@@ -108,10 +108,6 @@ abstract class TypeInformation {
     users = const <TypeInformation>[];
   }
 
-  bool reachedBy(TypeInformation info, TypeGraphInferrerEngine inferrer) {
-    return true;
-  }
-
   /// Reset the analysis of this node by making its type empty.
   void reset(TypeGraphInferrerEngine inferrer) {
     if (abandonInferencing) return;
@@ -439,10 +435,6 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
 
   Iterable<Element> get callees => [calledElement.implementation];
 
-  bool reachedBy(TypeInformation info, TypeGraphInferrerEngine inferrer) {
-    return info == inferrer.types.getInferredTypeOf(calledElement);
-  }
-
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStaticCallSiteTypeInformation(this);
   }
@@ -678,12 +670,6 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       arguments.forEach((info) => info.removeUser(this));
     }
     super.removeAndClearReferences(inferrer);
-  }
-
-  bool reachedBy(TypeInformation info, TypeGraphInferrerEngine inferrer) {
-    return targets
-            .map((element) => inferrer.types.getInferredTypeOf(element))
-            .any((other) => other == info);
   }
 
   String toString() => 'Call site $call on ${receiver.type} $type';
