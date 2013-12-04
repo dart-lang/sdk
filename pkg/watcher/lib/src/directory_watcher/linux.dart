@@ -213,7 +213,7 @@ class _LinuxDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
       if (oldState == _EntryState.DIRECTORY) {
         var watcher = _subWatchers.remove(path);
-        if (watcher == null) return;
+        if (watcher == null) continue;
         for (var path in watcher._allFiles) {
           _eventsController.add(new WatchEvent(ChangeType.REMOVE, path));
         }
@@ -247,6 +247,17 @@ class _LinuxDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// Handles the underlying event stream closing, indicating that the directory
   /// being watched was removed.
   void _onDone() {
+    // Most of the time when a directory is removed, its contents will get
+    // individual REMOVE events before the watch stream is closed -- in that
+    // case, [_entries] will be empty here. However, if the directory's removal
+    // is caused by a MOVE, we need to manually emit events.
+    if (isReady) {
+      _entries.forEach((path, state) {
+        if (state == _EntryState.DIRECTORY) return;
+        _eventsController.add(new WatchEvent(ChangeType.REMOVE, path));
+      });
+    }
+
     // The parent directory often gets a close event before the subdirectories
     // are done emitting events. We wait for them to finish before we close
     // [events] so that we can be sure to emit a remove event for every file

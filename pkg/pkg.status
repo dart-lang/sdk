@@ -349,8 +349,5 @@ watcher/test/*/linux_test: Skip
 [ $runtime == vm && ($system == windows || $system == linux) ]
 watcher/test/*/mac_os_test: Skip
 
-[ $runtime == vm && $system == linux ]
-watcher/test/*/linux_test: Pass, Fail # Issue 14606
-
 [ $runtime == vm && $system == macos ]
 watcher/test/directory_watcher/mac_os_test: Pass, Fail  # Issue 15024
