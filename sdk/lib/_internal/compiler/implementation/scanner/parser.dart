@@ -431,16 +431,6 @@ class Parser {
     return token;
   }
 
-  bool isDefaultKeyword(Token token) {
-    String value = token.stringValue;
-    if (identical(value, 'default')) return true;
-    if (identical(value, 'factory')) {
-      listener.recoverableError("expected 'default'", token: token);
-      return true;
-    }
-    return false;
-  }
-
   Token skipBlock(Token token) {
     if (!optional('{', token)) {
       return listener.expectedBlockToSkip(token);

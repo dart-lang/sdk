@@ -6,7 +6,6 @@ library concrete_types_inferrer;
 
 import 'dart:collection' show Queue, IterableBase;
 import '../dart2jslib.dart' hide Selector, TypedSelector;
-import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
@@ -407,36 +406,6 @@ class ConcreteTypesEnvironment {
     return result;
   }
 
-  /**
-   * Returns true if and only if the environment is compatible with [signature].
-   */
-  bool matches(FunctionSignature signature) {
-    Types types = inferrer.compiler.types;
-    bool paramMatches(ConcreteType concrete, VariableElement parameter) {
-      DartType parameterType = parameter.variables.type;
-      if (parameterType.treatAsDynamic || parameterType.treatAsRaw) {
-        return true;
-      }
-      for (BaseType baseType in concrete.baseTypes) {
-        if (baseType.isUnknown()) return false;
-        if (baseType.isNull()) continue;
-        ClassBaseType classType = baseType;
-        if (!types.isSubtype(classType.element.rawType,
-                             parameterType)) return false;
-      }
-      return true;
-    }
-    for (VariableElement param in signature.requiredParameters) {
-      ConcreteType concrete = environment[param];
-      if (concrete == null || !paramMatches(concrete, param)) return false;
-    }
-    for (VariableElement param in signature.optionalParameters) {
-      ConcreteType concrete = environment[param];
-      if (concrete != null && !paramMatches(concrete, param)) return false;
-    }
-    return true;
-  }
-
   String toString() => "{ this: $typeOfThis, env: $environment }";
 }
 
@@ -513,10 +482,6 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyNull(Compiler compiler) {
-    throw new UnsupportedError("");
-  }
-
   bool containsOnlyBool(Compiler compiler) {
     throw new UnsupportedError("");
   }
@@ -545,19 +510,11 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  Iterable<ClassElement> containedClasses(Compiler compiler) {
-    throw new UnsupportedError("");
-  }
-
   TypeMask union(TypeMask other, Compiler compiler) {
     throw new UnsupportedError("");
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
-    throw new UnsupportedError("");
-  }
-
-  bool understands(Selector selector, Compiler compiler) {
     throw new UnsupportedError("");
   }
 
@@ -1074,10 +1031,6 @@ class ConcreteTypesInferrer extends TypesInferrer {
   }
 
   void clear() {}
-
-  Iterable<Element> getCallersOf(Element element) {
-    throw new UnsupportedError("");
-  }
 
   bool isCalledOnce(Element element) {
     throw new UnsupportedError("");

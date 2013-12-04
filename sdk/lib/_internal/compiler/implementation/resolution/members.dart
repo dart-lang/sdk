@@ -528,12 +528,6 @@ class ResolverTask extends CompilerTask {
     return new ResolverVisitor(compiler, element, mapping);
   }
 
-  void visitBody(ResolverVisitor visitor, Statement body) {
-    if (!compiler.analyzeSignaturesOnly) {
-      visitor.visit(body);
-    }
-  }
-
   TreeElements resolveField(VariableElement element) {
     Node tree = element.parseNode(compiler);
     if(element.modifiers.isStatic() && element.variables.isTopLevel()) {
@@ -1424,16 +1418,6 @@ class InitializerResolver {
     }
   }
 
-  FunctionElement resolveRedirection(FunctionElement constructor,
-                                     FunctionExpression functionNode) {
-    if (functionNode.initializers == null) return null;
-    Link<Node> link = functionNode.initializers.nodes;
-    if (!link.isEmpty && Initializers.isConstructorRedirect(link.head)) {
-      return resolveSuperOrThisForSend(constructor, functionNode, link.head);
-    }
-    return null;
-  }
-
   /**
    * Resolve all initializers of this constructor. In the case of a redirecting
    * constructor, the resolved constructor's function element is returned.
@@ -1528,18 +1512,10 @@ class CommonResolverVisitor<R> extends Visitor<R> {
     compiler.reportFatalError(node, kind, arguments);
   }
 
-  void dualError(Node node, DualKind kind, [Map arguments = const {}]) {
-    error(node, kind.error, arguments);
-  }
-
   void warning(Node node, MessageKind kind, [Map arguments = const {}]) {
     ResolutionWarning message =
         new ResolutionWarning(kind, arguments, compiler.terseDiagnostics);
     compiler.reportWarning(node, message);
-  }
-
-  void dualWarning(Node node, DualKind kind, [Map arguments = const {}]) {
-    warning(node, kind.warning, arguments);
   }
 
   void cancel(Node node, String message) {
@@ -2332,11 +2308,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     doInPromotionScope(node.thenPart,
         () => visitIn(node.thenPart, new BlockScope(scope)));
     visitIn(node.elsePart, new BlockScope(scope));
-  }
-
-  static bool isLogicalOperator(Identifier op) {
-    String str = op.source;
-    return (identical(str, '&&') || str == '||' || str == '!');
   }
 
   Element resolveSend(Send node) {

@@ -1083,13 +1083,6 @@ class ElementListener extends Listener {
     return node;
   }
 
-  Node peekNode() {
-    assert(!nodes.isEmpty);
-    Node node = nodes.head;
-    if (VERBOSE) log("peek $node");
-    return node;
-  }
-
   void log(message) {
     print(message);
   }

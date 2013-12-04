@@ -9,7 +9,6 @@ import '../ssa/ssa.dart'
     show InterceptedElement;
 import '../closure.dart'
     show ThisElement,
-         CheckVariableElement,
          BoxElement,
          BoxFieldElement,
          ClosureClassElement,
@@ -44,7 +43,6 @@ abstract class ElementVisitor<R> {
   R visitTypeVariableElement(TypeVariableElement e) => visitElement(e);
   R visitInterceptedElement(InterceptedElement e) => visitElement(e);
   R visitThisElement(ThisElement e) => visitElement(e);
-  R visitCheckVariableElement(CheckVariableElement e ) => visitElement(e);
   R visitBoxElement(BoxElement e) => visitElement(e);
   R visitBoxFieldElement(BoxFieldElement e) => visitElement(e);
   R visitClosureClassElement(ClosureClassElement e) => visitClassElement(e);

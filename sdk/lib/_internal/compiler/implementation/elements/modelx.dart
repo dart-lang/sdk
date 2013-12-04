@@ -287,8 +287,6 @@ abstract class ElementX implements Element {
 
   FunctionElement asFunctionElement() => null;
 
-  static bool isInvalid(Element e) => e == null || e.isErroneous();
-
   bool get isAbstract => modifiers.isAbstract();
   bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
 
@@ -1872,22 +1870,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
     return null;
   }
 
-  Element lookupSuperInterfaceMember(String memberName,
-                                     LibraryElement fromLibrary) {
-    bool isPrivate = isPrivateName(memberName);
-    for (InterfaceType t in interfaces) {
-      ClassElement cls = t.element;
-      Element e = cls.lookupLocalMember(memberName);
-      if (e == null) continue;
-      // Private members from a different library are not visible.
-      if (isPrivate && !identical(fromLibrary, e.getLibrary())) continue;
-      // Static members are not inherited.
-      if (e.modifiers.isStatic()) continue;
-      return e;
-    }
-    return null;
-  }
-
   /**
    * Find the first member in the class chain with the given [selector].
    *
@@ -2005,13 +1987,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   // callers of this method would benefit from using the noMatch method.
   Element lookupConstructor(Selector selector, [Element noMatch(Element)]) {
     Element result = localLookup(selector.name);
-    return validateConstructorLookupResults(selector, result, noMatch);
-  }
-
-  Element lookupFactoryConstructor(Selector selector,
-                                   [Element noMatch(Element)]) {
-    String constructorName = selector.name;
-    Element result = localLookup(constructorName);
     return validateConstructorLookupResults(selector, result, noMatch);
   }
 

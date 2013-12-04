@@ -87,12 +87,6 @@ abstract class Backend {
 
   void initializeHelperClasses() {}
 
-  void enqueueAllTopLevelFunctions(LibraryElement lib, Enqueuer world) {
-    lib.forEachExport((Element e) {
-      if (e.isFunction()) world.addToWorkList(e);
-    });
-  }
-
   void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements);
   void codegen(CodegenWorkItem work);
 

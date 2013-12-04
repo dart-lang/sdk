@@ -6,13 +6,11 @@ part of dart2js;
 
 abstract class Operation {
   String get name;
-  bool isUserDefinable();
 }
 
 abstract class UnaryOperation extends Operation {
   /** Returns [:null:] if it was unable to fold the operation. */
   Constant fold(Constant constant);
-  apply(value);
 }
 
 abstract class BinaryOperation extends Operation {

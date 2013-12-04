@@ -224,8 +224,6 @@ class DartBackend extends Backend {
   }
 
   void codegen(CodegenWorkItem work) { }
-  void processNativeClasses(Enqueuer world,
-                            Iterable<LibraryElement> libraries) { }
 
   bool isUserLibrary(LibraryElement lib) {
     final INTERNAL_HELPERS = [

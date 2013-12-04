@@ -74,8 +74,6 @@ class CodeBuffer implements StringBuffer {
 
   CodeBuffer addAll(Iterable<Object> iterable) => writeAll(iterable);
 
-  CodeBuffer addCharCode(int charCode) => writeCharCode(charCode);
-
   CodeBuffer writeCharCode(int charCode) {
     buffer.writeCharCode(charCode);
     return this;

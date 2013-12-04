@@ -20,8 +20,6 @@ class World {
   // distinct sets to make class hierarchy analysis faster.
   final Map<ClassElement, Set<ClassElement>> _subclasses =
       new Map<ClassElement, Set<ClassElement>>();
-  final Map<ClassElement, Set<ClassElement>> _superclasses =
-      new Map<ClassElement, Set<ClassElement>>();
   final Map<ClassElement, Set<ClassElement>> _subtypes =
       new Map<ClassElement, Set<ClassElement>>();
   final Map<ClassElement, Set<ClassElement>> _supertypes =
@@ -37,10 +35,6 @@ class World {
 
   Set<ClassElement> subtypesOf(ClassElement cls) {
     return _subtypes[cls.declaration];
-  }
-
-  Set<ClassElement> superclassesOf(ClassElement cls) {
-    return _superclasses[cls.declaration];
   }
 
   Set<ClassElement> supertypesOf(ClassElement cls) {
@@ -81,11 +75,8 @@ class World {
       // implemented by that type on the superclasses.
       DartType type = cls.supertype;
       while (type != null) {
-        Set<Element> superclassesOfClass =
-            _superclasses.putIfAbsent(cls, () => new Set<ClassElement>());
         Set<Element> subclassesOfSuperclass =
             _subclasses.putIfAbsent(type.element, () => new Set<ClassElement>());
-        superclassesOfClass.add(type.element);
         subclassesOfSuperclass.add(cls);
 
         Set<Element> typesImplementedBySubclassesOfCls =
@@ -151,10 +142,6 @@ class World {
     return allFunctions.filter(selector).any((each) => each.isGetter());
   }
 
-  bool hasAnyUserDefinedSetter(Selector selector) {
-     return allFunctions.filter(selector).any((each) => each.isSetter());
-  }
-
   // Returns whether a subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass,
                                     ClassElement type) {
@@ -206,24 +193,6 @@ class World {
         ? new ti.TypeMask.subclass(compiler.objectClass)
         : selector.mask;
     return mask.locateSingleElement(selector, compiler);
-  }
-
-  bool hasSingleMatch(Selector selector) {
-    Iterable<Element> targets = allFunctions.filter(selector);
-    return targets.length == 1;
-  }
-
-  Iterable<ClassElement> locateNoSuchMethodHolders(Selector selector) {
-    Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
-    ti.TypeMask mask = selector.mask;
-    if (mask != null) {
-      noSuchMethodSelector = new TypedSelector(mask, noSuchMethodSelector);
-    }
-    ClassElement objectClass = compiler.objectClass;
-    return allFunctions
-        .filter(noSuchMethodSelector)
-        .map((Element member) => member.getEnclosingClass())
-        .where((ClassElement holder) => !identical(holder, objectClass));
   }
 
   void addFunctionCalledInLoop(Element element) {

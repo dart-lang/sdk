@@ -103,7 +103,6 @@ class Keyword {
 abstract class KeywordState {
   KeywordState(this.keyword);
 
-  bool isLeaf();
   KeywordState next(int c);
   final Keyword keyword;
 
@@ -172,8 +171,6 @@ class ArrayKeywordState extends KeywordState {
   ArrayKeywordState(List<KeywordState> this.table, String syntax)
     : super((syntax == null) ? null : Keyword.keywords[syntax]);
 
-  bool isLeaf() => false;
-
   KeywordState next(int c) => table[c - $a];
 
   String toString() {
@@ -200,8 +197,6 @@ class ArrayKeywordState extends KeywordState {
  */
 class LeafKeywordState extends KeywordState {
   LeafKeywordState(String syntax) : super(Keyword.keywords[syntax]);
-
-  bool isLeaf() => true;
 
   KeywordState next(int c) => null;
 

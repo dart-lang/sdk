@@ -149,6 +149,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   ContinueStatement asContinueStatement() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
+  ErrorExpression asErrorExpression() => null;
   Export asExport() => null;
   Expression asExpression() => null;
   ExpressionStatement asExpressionStatement() => null;
@@ -171,6 +172,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   LiteralMapEntry asLiteralMapEntry() => null;
   LiteralNull asLiteralNull() => null;
   LiteralString asLiteralString() => null;
+  LiteralSymbol asLiteralSymbol() => null;
   MixinApplication asMixinApplication() => null;
   Modifiers asModifiers() => null;
   NamedArgument asNamedArgument() => null;
@@ -597,10 +599,6 @@ class If extends Statement {
 
   bool get hasElsePart => elsePart != null;
 
-  void validate() {
-    // TODO(ahe): Check that condition has size one.
-  }
-
   accept(Visitor visitor) => visitor.visitIf(this);
 
   visitChildren(Visitor visitor) {
@@ -918,7 +916,6 @@ class LiteralString extends StringNode {
   void visitChildren(Visitor visitor) {}
 
   bool get isInterpolation => false;
-  bool isValidated() => dartString != null;
 
   Token getBeginToken() => token;
   Token getEndToken() => token;
@@ -1725,8 +1722,6 @@ class LabeledStatement extends Statement {
   Token getEndToken() => statement.getEndToken();
 
   bool isValidContinueTarget() => statement.isValidContinueTarget();
-
-  Node getBody() => statement;
 }
 
 abstract class LibraryTag extends Node {

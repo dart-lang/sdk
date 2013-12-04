@@ -370,8 +370,6 @@ class PlaceholderCollector extends Visitor {
     compiler.cancel(reason, node: node);
   }
 
-  void unreachable() { internalError('Unreachable case'); }
-
   visit(Node node) => (node == null) ? null : node.accept(this);
 
   visitNode(Node node) { node.visitChildren(this); }  // We must go deeper.

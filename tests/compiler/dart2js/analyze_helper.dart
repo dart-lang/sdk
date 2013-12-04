@@ -123,20 +123,29 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   }
 }
 
-Future analyze(List<Uri> uriList, Map<String, List<String>> whiteList) {
+Future analyze(List<Uri> uriList,
+               Map<String, List<String>> whiteList,
+               {bool analyzeAll: true}) {
   var libraryRoot = currentDirectory.resolve('sdk/');
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
+  var options = <String>['--analyze-only', '--categories=Client,Server'];
+  if (analyzeAll) options.add('--analyze-all');
   var compiler = new Compiler(
       provider.readStringFromUri,
       null,
       handler.diagnosticHandler,
       libraryRoot, libraryRoot,
-      <String>['--analyze-only', '--analyze-all',
-               '--categories=Client,Server'],
+      options,
       {});
-  compiler.librariesToAnalyzeWhenRun = uriList;
-  return compiler.run(null).then((_) {
-    handler.checkResults();
-  });
+  if (analyzeAll) {
+    compiler.librariesToAnalyzeWhenRun = uriList;
+    return compiler.run(null).then((_) {
+      handler.checkResults();
+    });
+  } else {
+    return compiler.run(uriList.single).then((_) {
+      handler.checkResults();
+    });
+  }
 }

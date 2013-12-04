@@ -974,10 +974,6 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getTraceFromException(), elements);
   }
 
-  void registerSetRuntimeType(TreeElements elements) {
-    enqueueInResolution(getSetRuntimeTypeInfo(), elements);
-  }
-
   void registerGetRuntimeTypeArgument(TreeElements elements) {
     enqueueInResolution(getGetRuntimeTypeArgument(), elements);
     enqueueInResolution(getGetTypeArgumentByIndex(), elements);

@@ -36,7 +36,6 @@ class SideEffects {
 
   bool getFlag(int position) => (flags & (1 << position)) != 0;
   void setFlag(int position) { flags |= (1 << position); }
-  void clearFlag(int position) { flags &= ~(1 << position); }
 
   int getChangesFlags() => flags & ((1 << FLAG_CHANGES_COUNT) - 1);
   int getDependsOnFlags() {
@@ -47,9 +46,7 @@ class SideEffects {
   bool dependsOnSomething() => getDependsOnFlags() != 0;
 
   void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
-  bool hasAllSideEffects() {
-    return getChangesFlags() == (1 << FLAG_CHANGES_COUNT) - 1;
-  }
+
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
 
   void setDependsOnSomething() {

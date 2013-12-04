@@ -298,8 +298,6 @@ class Namer implements ClosureNamer {
     }
   }
 
-  bool isReserved(String name) => name == isolateName;
-
   String constantName(Constant constant) {
     // In the current implementation it doesn't make sense to give names to
     // function constants since the function-implementation itself serves as
@@ -518,13 +516,6 @@ class Namer implements ClosureNamer {
     // We dynamically create setters from the field-name. The setter name must
     // therefore be derived from the instance field-name.
     return '$setterPrefix$name';
-  }
-
-  String publicGetterName(String name) {
-    // We dynamically create getters from the field-name. The getter name must
-    // therefore be derived from the instance field-name.
-    String fieldName = getMappedInstanceName(name);
-    return '$getterPrefix$fieldName';
   }
 
   String getterNameFromAccessorName(String name) {
@@ -827,9 +818,6 @@ class Namer implements ClosureNamer {
   String getNameOfMember(Element member) => getNameX(member);
 
   String getNameOfGlobalField(VariableElement field) => getNameX(field);
-
-  // TODO(ahe): Remove this method. Use get getNameOfMember instead.
-  String getNameOfGlobalFunction(FunctionElement element) => getNameX(element);
 
   /// Returns true if [element] is stored on current isolate ('$').  We intend
   /// to store only mutable static state in [currentIsolate], constants are

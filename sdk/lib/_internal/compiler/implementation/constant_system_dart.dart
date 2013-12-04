@@ -8,7 +8,6 @@ const DART_CONSTANT_SYSTEM = const DartConstantSystem();
 
 class BitNotOperation implements UnaryOperation {
   final String name = '~';
-  bool isUserDefinable() => true;
   const BitNotOperation();
   Constant fold(Constant constant) {
     if (constant.isInt()) {
@@ -17,12 +16,10 @@ class BitNotOperation implements UnaryOperation {
     }
     return null;
   }
-  apply(value) => ~value;
 }
 
 class NegateOperation implements UnaryOperation {
   final String name = 'negate';
-  bool isUserDefinable() => true;
   const NegateOperation();
   Constant fold(Constant constant) {
     if (constant.isInt()) {
@@ -35,12 +32,10 @@ class NegateOperation implements UnaryOperation {
     }
     return null;
   }
-  apply(value) => -value;
 }
 
 class NotOperation implements UnaryOperation {
   final String name = '!';
-  bool isUserDefinable() => true;
   const NotOperation();
   Constant fold(Constant constant) {
     if (constant.isBool()) {
@@ -49,14 +44,12 @@ class NotOperation implements UnaryOperation {
     }
     return null;
   }
-  apply(value) => !value;
 }
 
 /**
  * Operations that only work if both arguments are integers.
  */
 abstract class BinaryBitOperation implements BinaryOperation {
-  bool isUserDefinable() => true;
   const BinaryBitOperation();
   Constant fold(Constant left, Constant right) {
     if (left.isInt() && right.isInt()) {
@@ -116,7 +109,6 @@ class ShiftRightOperation extends BinaryBitOperation {
 }
 
 abstract class BinaryBoolOperation implements BinaryOperation {
-  bool isUserDefinable() => false;
   const BinaryBoolOperation();
   Constant fold(Constant left, Constant right) {
     if (left.isBool() && right.isBool()) {
@@ -146,7 +138,6 @@ class BooleanOrOperation extends BinaryBoolOperation {
 }
 
 abstract class ArithmeticNumOperation implements BinaryOperation {
-  bool isUserDefinable() => true;
   const ArithmeticNumOperation();
   Constant fold(Constant left, Constant right) {
     if (left.isNum() && right.isNum()) {
@@ -228,7 +219,6 @@ class DivideOperation extends ArithmeticNumOperation {
 
 class AddOperation implements BinaryOperation {
   final String name = '+';
-  bool isUserDefinable() => true;
   const AddOperation();
   Constant fold(Constant left, Constant right) {
     if (left.isInt() && right.isInt()) {
@@ -249,7 +239,6 @@ class AddOperation implements BinaryOperation {
 }
 
 abstract class RelationalNumOperation implements BinaryOperation {
-  bool isUserDefinable() => true;
   const RelationalNumOperation();
   Constant fold(Constant left, Constant right) {
     if (left.isNum() && right.isNum()) {
@@ -294,7 +283,6 @@ class GreaterEqualOperation extends RelationalNumOperation {
 
 class EqualsOperation implements BinaryOperation {
   final String name = '==';
-  bool isUserDefinable() => true;
   const EqualsOperation();
   Constant fold(Constant left, Constant right) {
     if (left.isNum() && right.isNum()) {
@@ -317,7 +305,6 @@ class EqualsOperation implements BinaryOperation {
 
 class IdentityOperation implements BinaryOperation {
   final String name = '===';
-  bool isUserDefinable() => false;
   const IdentityOperation();
   BoolConstant fold(Constant left, Constant right) {
     // In order to preserve runtime semantics which says that NaN !== NaN don't

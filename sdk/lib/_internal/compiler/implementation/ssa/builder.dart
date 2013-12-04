@@ -315,12 +315,6 @@ class LocalsHandler {
     }
   }
 
-  bool hasValueForDirectLocal(Element element) {
-    assert(element != null);
-    assert(isAccessedDirectly(element));
-    return directLocals[element] != null;
-  }
-
   /**
    * Returns true if the local can be accessed directly. Boxed variables or
    * captured variables that are stored in the closure-field return [false].
@@ -2985,11 +2979,6 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     return new HForeign(code, type, inputs);
   }
 
-  HInstruction getRuntimeTypeInfo(HInstruction target) {
-    pushInvokeStatic(null, backend.getGetRuntimeTypeInfo(), [target]);
-    return pop();
-  }
-
   HLiteralList buildLiteralList(List<HInstruction> inputs) {
     return new HLiteralList(inputs, backend.extendableArrayType);
   }
@@ -5312,12 +5301,6 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
         joinBlock);
 
     jumpHandler.close();
-  }
-
-  Element lookupOperator(ClassElement classElement, String operatorName) {
-    String dartMethodName =
-        Elements.constructOperatorName(operatorName, false);
-    return classElement.lookupMember(dartMethodName);
   }
 
   visitSwitchCase(SwitchCase node) {

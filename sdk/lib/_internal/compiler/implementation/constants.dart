@@ -123,10 +123,6 @@ class NullConstant extends PrimitiveConstant {
     return compiler.typesTask.nullType;
   }
 
-  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
-    buffer.write(JsNull);
-  }
-
   // The magic constant has no meaning. It is just a random value.
   int get hashCode => 785965825;
   DartString toDartString() => const LiteralDartString("null");
@@ -337,6 +333,7 @@ abstract class ObjectConstant extends Constant {
   final DartType type;
 
   ObjectConstant(this.type);
+
   bool isObject() => true;
 
   DartType computeType(Compiler compiler) => type;

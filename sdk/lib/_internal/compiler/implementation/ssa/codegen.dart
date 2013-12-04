@@ -65,11 +65,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
     return attachPosition(new js.Fun(parameters, body), element);
   }
 
-  CodeBuffer prettyPrint(js.Node node) {
-    var code = js.prettyPrint(node, compiler, allowVariableMinification: true);
-    return code;
-  }
-
   js.Expression generateCode(CodegenWorkItem work, HGraph graph) {
     if (work.element.isField()) {
       return generateLazyInitializer(work, graph);
@@ -406,10 +401,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool isJSExpression(HExpressionInformation info) {
     return !identical(expressionType(info), TYPE_STATEMENT);
-  }
-
-  bool isJSDeclaration(HExpressionInformation info) {
-    return identical(expressionType(info), TYPE_DECLARATION);
   }
 
   bool isJSCondition(HExpressionInformation info) {

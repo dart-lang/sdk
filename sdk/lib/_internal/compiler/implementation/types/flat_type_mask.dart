@@ -154,11 +154,6 @@ class FlatTypeMask implements TypeMask {
         || base == compiler.backend.numImplementation;
   }
 
-  bool containsOnlyNull(Compiler compiler) {
-    return base == compiler.nullClass
-        || base == compiler.backend.nullImplementation;
-  }
-
   bool containsOnlyBool(Compiler compiler) {
     return base == compiler.boolClass
         || base == compiler.backend.boolImplementation;
@@ -403,16 +398,6 @@ class FlatTypeMask implements TypeMask {
     return new TypeMask(null, EMPTY, isNullable && other.isNullable);
   }
 
-  Iterable<ClassElement> containedClasses(Compiler compiler) {
-    Iterable<ClassElement> self = [ base ];
-    if (isExact) {
-      return self;
-    } else {
-      Set<ClassElement> subset = containedSubset(this, compiler);
-      return (subset == null) ? self : [ self, subset ].expand((x) => x);
-    }
-  }
-
   /**
    * Returns whether [element] will be the one used at runtime when being
    * invoked on an instance of [cls]. [selector] is used to ensure library
@@ -502,23 +487,6 @@ class FlatTypeMask implements TypeMask {
       return hasConcreteMatch(enclosingClass.superclass, selector, compiler);
     }
     return selector.appliesUntyped(element, compiler);
-  }
-
-  /**
-   * Returns whether this [TypeMask] understands [selector].
-   */
-  bool understands(Selector selector, Compiler compiler) {
-    ClassElement cls;
-    if (isEmpty) {
-      if (!isNullable) return false;
-      cls = compiler.backend.nullImplementation;
-    } else {
-      cls = base;
-    }
-
-    // Use [lookupMember] because finding abstract members is okay.
-    Element element = cls.implementation.lookupMember(selector.name);
-    return element != null && selector.appliesUntyped(element, compiler);
   }
 
   bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {

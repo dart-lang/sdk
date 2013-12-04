@@ -328,7 +328,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   // TODO(karlklose): remove these functions.
-  DartType unhandledStatement() => StatementType.NOT_RETURNING;
   DartType unhandledExpression() => types.dynamicType;
 
   DartType analyzeNonVoid(Node node) {

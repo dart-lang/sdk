@@ -219,10 +219,6 @@ class UnionTypeMask implements TypeMask {
     });
   }
 
-  bool containsOnlyNull(Compiler compiler) {
-    return disjointMasks.every((mask) => mask.containsOnlyNull(compiler));
-  }
-
   bool containsOnlyBool(Compiler compiler) {
     return disjointMasks.every((mask) => mask.containsOnlyBool(compiler));
   }
@@ -248,15 +244,6 @@ class UnionTypeMask implements TypeMask {
   }
 
   ClassElement singleClass(Compiler compiler) => null;
-
-  Iterable<ClassElement> containedClasses(Compiler compiler) {
-    return disjointMasks.expand(
-        (TypeMask mask) => mask.containedClasses(compiler));
-  }
-
-  bool understands(Selector selector, Compiler compiler) {
-    return disjointMasks.any((e) => e.understands(selector, compiler));
-  }
 
   bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
     return disjointMasks.any(
