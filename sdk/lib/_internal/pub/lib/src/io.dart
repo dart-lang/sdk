@@ -218,27 +218,11 @@ String createDir(String dir) {
   return dir;
 }
 
-/// Ensures that [dirPath] and all its parent directories exist. If they don't
+/// Ensures that [dir] and all its parent directories exist. If they don't
 /// exist, creates them.
-String ensureDir(String dirPath) {
-  log.fine("Ensuring directory $dirPath exists.");
-  var dir = new Directory(dirPath);
-  if (dirPath == '.' || dirExists(dirPath)) return dirPath;
-
-  ensureDir(path.dirname(dirPath));
-
-  try {
-    createDir(dirPath);
-  } on FileSystemException catch (ex) {
-    // Error 17 means the directory already exists (or 183 on Windows).
-    if (ex.osError.errorCode == 17 || ex.osError.errorCode == 183) {
-      log.fine("Got 'already exists' error when creating directory.");
-    } else {
-      throw ex;
-    }
-  }
-
-  return dirPath;
+String ensureDir(String dir) {
+  new Directory(dir).createSync(recursive: true);
+  return dir;
 }
 
 /// Creates a temp directory in [dir], whose name will be [prefix] with
