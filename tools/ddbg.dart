@@ -8,6 +8,7 @@
 import "dart:convert";
 import "dart:io";
 import "dart:async";
+import "dart:math";
 
 import "ddbg/lib/commando.dart";
 
@@ -26,11 +27,14 @@ Map<int, Completer> outstandingCommands;
 
 Socket vmSock;
 String vmData;
+var cmdSubscription;
 Commando cmdo;
 var vmSubscription;
 int seqNum = 0;
 
-Process targetProcess;
+bool isDebugging = false;
+Process targetProcess = null;
+bool suppressNextExitCode = false;
 
 final verbose = false;
 final printMessages = false;
@@ -38,50 +42,12 @@ final printMessages = false;
 TargetIsolate currentIsolate;
 TargetIsolate mainIsolate;
 
-
-void printHelp() {
-  print("""
-  q   Quit debugger shell
-  bt  Show backtrace
-  r   Resume execution
-  s   Single step
-  so  Step over
-  si  Step into
-  sbp [<file>] <line> Set breakpoint
-  rbp <id> Remove breakpoint with given id
-  po <id> Print object info for given id
-  eval obj <id> <expr> Evaluate expr on object id
-  eval cls <id> <expr> Evaluate expr on class id
-  eval lib <id> <expr> Evaluate expr in toplevel of library id
-  pl <id> <idx> [<len>] Print list element/slice
-  pc <id> Print class info for given id
-  ll  List loaded libraries
-  plib <id> Print library info for given library id
-  slib <id> <true|false> Set library id debuggable
-  pg <id> Print all global variables visible within given library id
-  ls <lib_id> List loaded scripts in library
-  gs <lib_id> <script_url> Get source text of script in library
-  tok <lib_id> <script_url> Get line and token table of script in library
-  epi <none|all|unhandled>  Set exception pause info
-  li List ids of all isolates in the VM
-  sci <id>  Set current target isolate
-  i <id> Interrupt execution of given isolate id
-  h   Print help
-""");
-}
-
+int debugPort = 5858;
 
 String formatLocation(Map location) {
   if (location == null) return "";
   var fileName = location["url"].split("/").last;
   return "file: $fileName lib: ${location['libraryId']} token: ${location['tokenOffset']}";
-}
-
-
-void quitShell() {
-  vmSubscription.cancel();
-  vmSock.close();
-  cmdo.done();
 }
 
 
@@ -113,6 +79,411 @@ bool checkPaused() {
   return false;
 }
 
+// These settings are allowed in the 'set' and 'show' debugger commands.
+var validSettings = ['vm', 'vmargs', 'script', 'args'];
+
+// The current values for all settings.
+var settings = new Map();
+
+// Generates a string of 'count' spaces.
+String _spaces(int count) {
+  return new List.filled(count, ' ').join('');
+}
+
+// TODO(turnidge): Move all commands here.
+List<Command> commandList =
+    [ new HelpCommand(),
+      new QuitCommand(),
+      new RunCommand(),
+      new KillCommand(),
+      new ConnectCommand(),
+      new DisconnectCommand(),
+      new SetCommand(),
+      new ShowCommand() ];
+
+
+Command matchCommand(String commandName, bool exactMatchWins) {
+  List matches = [];
+  for (var command in commandList) {
+    if (command.name.startsWith(commandName)) {
+      if (exactMatchWins && command.name == commandName) {
+        // Exact match
+        return [command];
+      } else {
+        matches.add(command);
+      }
+    }
+  }
+  return matches;
+}
+
+abstract class Command {
+  String get name;
+  Future run(List<String> args);
+}
+
+class HelpCommand extends Command {
+  final name = 'help';
+  final helpShort = 'Show a list of debugger commands';
+  final helpLong ="""
+Show a list of debugger commands or get more information about a
+particular command.
+
+Usage:
+  help
+  help <command>
+""";
+
+  Future run(List<String> args) {
+    if (args.length == 1) {
+      print("Debugger commands:\n");
+      for (var command in commandList) {
+        const tabStop = 12;
+        var spaces = _spaces(max(1, (tabStop - command.name.length)));
+        print('  ${command.name}${spaces}${command.helpShort}');
+      }
+
+      // TODO(turnidge): Convert all commands to use the Command class.
+      print("""
+  bt          Show backtrace
+  r           Resume execution
+  s           Single step
+  so          Step over
+  si          Step into
+  sbp [<file>] <line> Set breakpoint
+  rbp <id>    Remove breakpoint with given id
+  po <id>     Print object info for given id
+  eval obj <id> <expr> Evaluate expr on object id
+  eval cls <id> <expr> Evaluate expr on class id
+  eval lib <id> <expr> Evaluate expr in toplevel of library id
+  pl <id> <idx> [<len>] Print list element/slice
+  pc <id>     Print class info for given id
+  ll          List loaded libraries
+  plib <id>   Print library info for given library id
+  slib <id> <true|false> Set library id debuggable
+  pg <id>     Print all global variables visible within given library id
+  ls <lib_id> List loaded scripts in library
+  gs <lib_id> <script_url> Get source text of script in library
+  tok <lib_id> <script_url> Get line and token table of script in library
+  epi <none|all|unhandled>  Set exception pause info
+  li          List ids of all isolates in the VM
+  sci <id>    Set current target isolate
+  i <id>      Interrupt execution of given isolate id
+""");
+
+      print("For more information about a particular command, type:\n\n"
+            "  help <command>\n");
+
+      print("Commands may be abbreviated: e.g. type 'h' for 'help.\n");
+    } else if (args.length == 2) {
+      var commandName = args[1];
+      var matches = matchCommand(commandName, true);
+      if (matches.length == 0) {
+        print("Command '$commandName' not recognized.  "
+              "Try 'help' for a list of commands.");
+      } else {
+        for (var command in matches) {
+          print("---- ${command.name} ----\n${command.helpLong}");
+        }
+      }
+    } else {
+      print("Command '$command' not recognized.  "
+            "Try 'help' for a list of commands.");
+    }
+
+    return new Future.value();
+  }
+}
+
+
+class QuitCommand extends Command {
+  final name = 'quit';
+  final helpShort = 'Quit the debugger.';
+  final helpLong ="""
+Quit the debugger.
+
+Usage:
+  quit
+""";
+
+  Future run(List<String> args) {
+    if (args.length > 1) {
+      print("Unexpected arguments to $name command.");
+      return new Future.value();
+    }
+    return debuggerQuit();
+  }
+}
+
+class SetCommand extends Command {
+  final name = 'set';
+  final helpShort = 'Change the value of a debugger setting.';
+  final helpLong ="""
+Change the value of a debugger setting.
+
+Usage:
+  set <setting> <value>
+
+Valid settings are:
+  ${validSettings.join('\n  ')}.
+
+See also 'help show'.
+""";
+
+  Future run(List<String> args) {
+    if (args.length < 3 || !validSettings.contains(args[1])) {
+      print("Undefined $name command.  Try 'help $name'.");
+      return new Future.value();
+    }
+    var option = args[1];
+    var value = args.getRange(2, args.length).join(' ');
+    settings[option] = value;
+    return new Future.value();
+  }
+}
+
+class ShowCommand extends Command {
+  final name = 'show';
+  final helpShort = 'Show the current value of a debugger setting.';
+  final helpLong ="""
+Show the current value of a debugger setting.
+
+Usage:
+  show
+  show <setting>
+
+If no <setting> is specified, all current settings are shown.
+
+Valid settings are:
+  ${validSettings.join('\n  ')}.
+
+See also 'help set'.
+""";
+
+  Future run(List<String> args) {
+    if (args.length == 1) {
+      for (var option in validSettings) {
+        var value = settings[option];
+        print("$option = '$value'");
+      }
+    } else if (args.length == 2 && validSettings.contains(args[1])) {
+      var option = args[1];
+      var value = settings[option];
+      if (value == null) {
+        print('$option has not been set.');
+      } else {
+        print("$option = '$value'");
+      }
+      return new Future.value();
+    } else {
+      print("Undefined $name command.  Try 'help $name'.");
+    }
+    return new Future.value();
+  }
+}
+
+class RunCommand extends Command {
+  final name = 'run';
+  final helpShort = "Run the currrent script.";
+  final helpLong ="""
+Runs the current script.
+
+Usage:
+  run
+  run <args>
+
+The current script will be run on the current vm.  The 'vm' and
+'vmargs' settings are used to specify the current vm and vm arguments.
+The 'script' and 'args' settings are used to specify the current
+script and script arguments.
+
+For more information on settings type 'help show' or 'help set'.
+
+If <args> are provided to the run command, it is the same as typing
+'set args <args>' followed by 'run'.
+""";
+
+  Future run(List<String> cmdArgs) {
+    if (isDebugging) {
+      // TODO(turnidge): Implement modal y/n dialog to stop running script.
+      print("There is already a running dart process.  "
+            "Try 'kill'.");
+      return new Future.value();
+    }
+    assert(targetProcess == null);
+    if (settings['script'] == null) {
+      print("There is no script specified.  "
+            "Use 'set script' to set the current script.");
+      return new Future.value();
+    }
+    if (cmdArgs.length > 1) {
+      settings['args'] = cmdArgs.getRange(1, cmdArgs.length);
+    }
+
+    // Build the process arguments.
+    var processArgs = ['--debug:$debugPort'];
+    if (verbose) {
+      processArgs.add('--verbose_debug');
+    }
+    if (settings['vmargs'] != null) {
+      processArgs.addAll(settings['vmargs'].split(' '));
+    }
+    processArgs.add(settings['script']);
+    if (settings['args'] != null) {
+      processArgs.addAll(settings['args'].split(' '));
+    }
+    String vm = settings['vm'];
+
+    isDebugging = true;
+    cmdo.hide();
+    return Process.start(vm, processArgs).then((Process process) {
+        print("Started process ${process.pid} '$vm ${processArgs.join(' ')}'");
+        targetProcess = process;
+        process.stdin.close();
+
+        // TODO(turnidge): For now we only show full lines of output
+        // from the debugged process.  Should show each character.
+        process.stdout
+            .transform(UTF8.decoder)
+            .transform(new LineSplitter())
+            .listen((String line) {
+                cmdo.hide();
+                // TODO(turnidge): Escape output in any way?
+                print(line);
+                cmdo.show();
+              });
+
+        process.stderr
+            .transform(UTF8.decoder)
+            .transform(new LineSplitter())
+            .listen((String line) {
+                cmdo.hide();
+                print(line);
+                cmdo.show();
+              });
+
+        process.exitCode.then((int exitCode) {
+            cmdo.hide();
+            if (suppressNextExitCode) {
+              suppressNextExitCode = false;
+            } else {
+              if (exitCode == 0) {
+                print('Process exited normally.');
+              } else {
+                print('Process exited with code $exitCode.');
+              }
+            }
+            targetProcess = null;
+            cmdo.show();
+          });
+
+        // Wait for the vm to open the debugging port.
+        return openVmSocket(0);
+      });
+  }
+}
+
+class KillCommand extends Command {
+  final name = 'kill';
+  final helpShort = 'Kill the currently executing script.';
+  final helpLong ="""
+Kill the currently executing script.
+
+Usage:
+  kill
+""";
+
+  Future run(List<String> cmdArgs) {
+    if (!isDebugging) {
+      print('There is no running script.');
+      return new Future.value();
+    }
+    if (targetProcess == null) {
+      print("The active dart process was not started with 'run'. "
+            "Try 'disconnect' instead.");
+      return new Future.value();
+    }
+    assert(targetProcess != null);
+    bool result = targetProcess.kill();
+    if (result) {
+      print('Process killed.');
+      suppressNextExitCode = true;
+    } else {
+      print('Unable to kill process ${targetProcess.pid}');
+    }
+    return new Future.value();
+  }
+}
+
+class ConnectCommand extends Command {
+  final name = 'connect';
+  final helpShort = "Connect to a running dart script.";
+  final helpLong ="""
+Connect to a running dart script.
+
+Usage:
+  connect
+  connect <port>
+
+The debugger will connect to a dart script which has already been
+started with the --debug option.  If no port is provided, the debugger
+will attempt to connect on the default debugger port.
+""";
+
+  Future run(List<String> cmdArgs) {
+    if (cmdArgs.length > 2) {
+      print("Too many arguments to 'connect'.");
+    }
+    if (isDebugging) {
+      // TODO(turnidge): Implement modal y/n dialog to stop running script.
+      print("There is already a running dart process.  "
+            "Try 'kill'.");
+      return new Future.value();
+    }
+    assert(targetProcess == null);
+    if (cmdArgs.length == 2) {
+      debugPort = int.parse(cmdArgs[1]);
+    }
+
+    isDebugging = true;
+    cmdo.hide();
+    return openVmSocket(0);
+  }
+}
+
+class DisconnectCommand extends Command {
+  final name = 'disconnect';
+  final helpShort = "Disconnect from a running dart script.";
+  final helpLong ="""
+Disconnect from a running dart script.
+
+Usage:
+  disconnect
+
+The debugger will disconnect from a dart script's debugging port.  The
+script must have been connected to earlier with the 'connect' command.
+""";
+
+  Future run(List<String> cmdArgs) {
+    if (cmdArgs.length > 1) {
+      print("Too many arguments to 'disconnect'.");
+    }
+    if (!isDebugging) {
+      // TODO(turnidge): Implement modal y/n dialog to stop running script.
+      print("There is no active dart process.  "
+            "Try 'connect'.");
+      return new Future.value();
+    }
+    if (targetProcess != null) {
+      print("The active dart process was started with 'run'.  "
+            "Try 'kill'.");
+    }
+
+    cmdo.hide();
+    return closeVmSocket();
+  }
+}
+
 typedef void HandlerType(Map response);
 
 HandlerType showPromptAfter(void handler(Map response)) {
@@ -122,13 +493,13 @@ HandlerType showPromptAfter(void handler(Map response)) {
   };
 }
 
-
 void processCommand(String cmdLine) {
   
   void huh() {
-    print("'$cmdLine' not understood, try h for help");
+    print("'$cmdLine' not understood, try 'help' for help.");
   }
 
+  cmdo.hide();
   seqNum++;
   cmdLine = cmdLine.trim();
   var args = cmdLine.split(' ');
@@ -136,6 +507,7 @@ void processCommand(String cmdLine) {
     return;
   }
   var command = args[0];
+
   var resume_commands =
       { 'r':'resume', 's':'stepOver', 'si':'stepInto', 'so':'stepOut'};
   if (resume_commands[command] != null) {
@@ -143,19 +515,16 @@ void processCommand(String cmdLine) {
     var cmd = { "id": seqNum,
                 "command": resume_commands[command],
                 "params": { "isolateId" : currentIsolate.id } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleResumedResponse));
   } else if (command == "bt") {
     var cmd = { "id": seqNum,
                 "command": "getStackTrace",
                 "params": { "isolateId" : currentIsolate.id } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleStackTraceResponse));
   } else if (command == "ll") {
     var cmd = { "id": seqNum,
                 "command": "getLibraries",
                 "params": { "isolateId" : currentIsolate.id } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetLibraryResponse));
   } else if (command == "sbp" && args.length >= 2) {
     var url, line;
@@ -172,21 +541,18 @@ void processCommand(String cmdLine) {
                 "params": { "isolateId" : currentIsolate.id,
                             "url": url,
                             "line": line }};
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleSetBpResponse));
   } else if (command == "rbp" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "removeBreakpoint",
                 "params": { "isolateId" : currentIsolate.id,
                             "breakpointId": int.parse(args[1]) } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
   } else if (command == "ls" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getScriptURLs",
                 "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]) } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetScriptsResponse));
   } else if (command == "eval" && args.length > 3) {
     var expr = args.getRange(3, args.length).join(" ");
@@ -206,14 +572,12 @@ void processCommand(String cmdLine) {
                 "params": { "isolateId": currentIsolate.id,
                             target: int.parse(args[2]),
                             "expression": expr } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleEvalResponse));
   } else if (command == "po" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getObjectProperties",
                 "params": { "isolateId" : currentIsolate.id,
                             "objectId": int.parse(args[1]) } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetObjPropsResponse));
   } else if (command == "pl" && args.length >= 3) {
     var cmd;
@@ -231,21 +595,18 @@ void processCommand(String cmdLine) {
                           "index": int.parse(args[2]),
                           "length": int.parse(args[3]) } };
     }
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetListResponse));
   } else if (command == "pc" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getClassProperties",
                 "params": { "isolateId" : currentIsolate.id,
                             "classId": int.parse(args[1]) } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetClassPropsResponse));
   } else if (command == "plib" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getLibraryProperties",
                 "params": {"isolateId" : currentIsolate.id,
                            "libraryId": int.parse(args[1]) } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetLibraryPropsResponse));
   } else if (command == "slib" && args.length == 3) {
     var cmd = { "id": seqNum,
@@ -253,14 +614,12 @@ void processCommand(String cmdLine) {
                 "params": {"isolateId" : currentIsolate.id,
                            "libraryId": int.parse(args[1]),
                            "debuggingEnabled": args[2] } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleSetLibraryPropsResponse));
   } else if (command == "pg" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "getGlobalVariables",
                 "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]) } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetGlobalVarsResponse));
   } else if (command == "gs" && args.length == 3) {
     var cmd = { "id": seqNum,
@@ -268,7 +627,6 @@ void processCommand(String cmdLine) {
                 "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]),
                             "url": args[2] } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetSourceResponse));
   } else if (command == "tok" && args.length == 3) {
     var cmd = { "id": seqNum,
@@ -276,18 +634,15 @@ void processCommand(String cmdLine) {
                 "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]),
                             "url": args[2] } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetLineTableResponse));
   } else if (command == "epi" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command":  "setPauseOnException",
                 "params": { "isolateId" : currentIsolate.id,
                             "exceptions": args[1] } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
   } else if (command == "li") {
     var cmd = { "id": seqNum, "command": "getIsolateIds" };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGetIsolatesResponse));
   } else if (command == "sci" && args.length == 2) {
     var id = int.parse(args[1]);
@@ -297,19 +652,43 @@ void processCommand(String cmdLine) {
     } else {
       print("$id is not a valid isolate id");
     }
+    cmdo.show();
   } else if (command == "i" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "interrupt",
                 "params": { "isolateId": int.parse(args[1]) } };
-    cmdo.hide();
     sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
-  } else if (command == "q") {
-    quitShell();
-  } else if (command == "h") {
-    printHelp();
-  } else {
+  } else if (command.length == 0) {
     huh();
+    cmdo.show();
+  } else {
+    // TODO(turnidge): Use this for all commands.
+    var matches = matchCommand(command, true);
+    if (matches.length == 0) {
+      huh();
+      cmdo.show();
+    } else if (matches.length == 1) {
+      matches[0].run(args).then((_) {
+          cmdo.show();
+        });
+    } else {
+      var matchNames = matches.map((handler) => handler.name);
+      print("Ambigous command '$command' : ${matchNames.toList()}");
+      cmdo.show();
+    }
   }
+}
+
+
+void processError(error, trace) {
+  cmdo.hide();
+  print("\nInternal error:\n$error\n$trace");
+  cmdo.show();
+}
+
+
+void processDone() {
+  debuggerQuit();
 }
 
 
@@ -761,85 +1140,169 @@ List<String> debuggerCommandCompleter(List<String> commandParts) {
   // we hardcode the list here.
   //
   // TODO(turnidge): Implement completion for arguments as well.
-  List<String> allCommands = ['q', 'bt', 'r', 's', 'so', 'si', 'sbp', 'rbp',
+  List<String> oldCommands = ['bt', 'r', 's', 'so', 'si', 'sbp', 'rbp',
                               'po', 'eval', 'pl', 'pc', 'll', 'plib', 'slib',
-                              'pg', 'ls', 'gs', 'tok', 'epi', 'li', 'i', 'h'];
+                              'pg', 'ls', 'gs', 'tok', 'epi', 'li', 'i' ];
 
   // Completion of first word in the command.
   if (commandParts.length == 1) {
     String prefix = commandParts.last;
-    for (String command in allCommands) {
+    for (var command in oldCommands) {
       if (command.startsWith(prefix)) {
         completions.add(command);
       }
-    } 
+    }
+    for (var command in commandList) {
+      if (command.name.startsWith(prefix)) {
+        completions.add(command.name);
+      }
+    }
   }
 
   return completions;
 }
 
-void debuggerMain() {
+Future closeCommando() {
+  var subscription = cmdSubscription;
+  cmdSubscription = null;
+  cmdo = null;
+
+  var future = subscription.cancel();
+  if (future != null) {
+    return future;
+  } else {
+    return new Future.value();
+  }
+}
+
+
+Future openVmSocket(int attempt) {
+  return Socket.connect("127.0.0.1", debugPort).then(
+      setupVmSocket,
+      onError: (e) {
+        // We were unable to connect to the debugger's port.  Try again.
+        retryOpenVmSocket(e, attempt);
+      });
+}
+
+
+void setupVmSocket(Socket s) {
+  vmSock = s;
+  vmSock.setOption(SocketOption.TCP_NODELAY, true);
+  var stringStream = vmSock.transform(UTF8.decoder);
   outstandingCommands = new Map<int, Completer>();
-  Socket.connect("127.0.0.1", 5858).then((s) {
-    vmSock = s;
-    vmSock.setOption(SocketOption.TCP_NODELAY, true);
-    var stringStream = vmSock.transform(UTF8.decoder);
-    vmSubscription = stringStream.listen(
-        (String data) {
-          processVmData(data);
-        },
-        onDone: () {
+  vmSubscription = stringStream.listen(
+      (String data) {
+        processVmData(data);
+      },
+      onDone: () {
+        cmdo.hide();
+        if (verbose) {
           print("VM debugger connection closed");
-          quitShell();
-        },
-        onError: (err) {
-          print("Error in debug connection: $err");
-          // TODO(floitsch): do we want to print the stack trace?
-          quitShell();
-        });
-    cmdo = new Commando(stdin, stdout, processCommand,
-                        completer : debuggerCommandCompleter);
-  });
+        }
+        closeVmSocket().then((_) {
+            cmdo.show();
+          });
+      },
+      onError: (err) {
+        cmdo.hide();
+        // TODO(floitsch): do we want to print the stack trace?
+        print("Error in debug connection: $err");
+
+        // TODO(turnidge): Kill the debugged process here?
+        closeVmSocket().then((_) {
+            cmdo.show();
+          });
+      });
+}
+
+
+Future retryOpenVmSocket(error, int attempt) {
+  var delay;
+  if (attempt < 10) {
+    delay = new Duration(milliseconds:10);
+  } else if (attempt < 20) {
+    delay = new Duration(seconds:1);
+  } else {
+    // Too many retries.  Give up.
+    //
+    // TODO(turnidge): Kill the debugged process here?
+    print('Timed out waiting for debugger to start.\nError: $e');
+    return closeVmSocket();
+  }
+      
+  // Wait and retry.
+  return new Future.delayed(delay, () {
+      openVmSocket(attempt + 1);
+    });
+}
+
+
+Future closeVmSocket() {
+  if (vmSubscription == null) {
+    // Already closed, nothing to do.
+    assert(vmSock == null);
+    return new Future.value();
+  }
+
+  isDebugging = false;
+  var subscription = vmSubscription;
+  var sock = vmSock;
+
+  // Wait for the socket to close and the subscription to be
+  // cancelled.  Perhaps overkill, but it means we know these will be
+  // done.
+  //
+  // This is uglier than it needs to be since cancel can return null.
+  var cleanupFutures = [sock.close()];
+  var future = subscription.cancel();
+  if (future != null) {
+    cleanupFutures.add(future);
+  }
+
+  vmSubscription = null;
+  vmSock = null;
+  outstandingCommands = null;
+  
+  return Future.wait(cleanupFutures);
+}
+
+Future debuggerQuit() {
+  // Kill target process, if any.
+  if (targetProcess != null) {
+    if (!targetProcess.kill()) {
+      print('Unable to kill process ${targetProcess.pid}');
+    }
+  }
+
+  // Restore terminal settings, close connections.
+  return Future.wait([closeCommando(), closeVmSocket()]).then((_) {
+      exit(0);
+
+      // Unreachable.
+      return new Future.value();
+    });
+}
+
+
+void parseArgs(List<String> args) {
+  int pos = 0;
+  settings['vm'] = Platform.executable;
+  while (pos < args.length && args[pos].startsWith('-')) {
+    pos++;
+  }
+  if (pos < args.length) {
+    settings['vmargs'] = args.getRange(0, pos).join(' ');
+    settings['script'] = args[pos];
+    settings['args'] = args.getRange(pos + 1, args.length).join(' ');
+  }
 }
 
 void main(List<String> args) {
-  if (args.length > 0) {
-    if (verbose) {
-      args = <String>['--debug', '--verbose_debug']..addAll(args);
-    } else {
-      args = <String>['--debug']..addAll(args);
-    }
-    Process.start(Platform.executable, args).then((Process process) {
-        targetProcess = process;
-        process.stdin.close();
+  parseArgs(args);
 
-        // TODO(turnidge): For now we only show full lines of output
-        // from the debugged process.  Should show each character.
-        process.stdout
-            .transform(UTF8.decoder)
-            .transform(new LineSplitter())
-            .listen((String line) {
-                // Hide/show command prompt across asynchronous output.
-                if (cmdo != null) {
-                  cmdo.hide();
-                }
-                print("$line");
-                if (cmdo != null) {
-                  cmdo.show();
-                }
-              });
-
-        process.exitCode.then((int exitCode) {
-            if (exitCode == 0) {
-              print('Program exited normally.');
-            } else {
-              print('Program exited with code $exitCode.');
-            }
-          });
-
-      debuggerMain();
-    });
-  } else {
-    debuggerMain();
-  }
+  cmdo = new Commando(completer: debuggerCommandCompleter);
+  cmdSubscription = cmdo.commands.listen(processCommand,
+                                         onError: processError,
+                                         onDone: processDone);
 }

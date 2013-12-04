@@ -30,18 +30,45 @@ class Commando {
   static const runeSpace   = 0x20;
   static const runeDEL     = 0x7F;
 
-  Commando(this._stdin,
-           this._stdout,
-           this._handleCommand,
-           {this.prompt : '> ', this.completer : null}) {
+  StreamController<String> _commandController;
+
+  Stream get commands => _commandController.stream;
+
+  Commando({consoleIn,
+            consoleOut,
+            this.prompt : '> ',
+          this.completer : null}) {
+    _stdin = (consoleIn != null ? consoleIn : stdin);
+    _stdout = (consoleOut != null ? consoleOut : stdout);
+    _commandController = new StreamController<String>(
+        onCancel: _onCancel);
     _stdin.echoMode = false;
     _stdin.lineMode = false;
     _screenWidth = _term.cols - 1;
     _writePrompt();
+    // TODO(turnidge): Handle errors in _stdin here.
     _stdinSubscription =
-        _stdin.transform(UTF8.decoder).listen(_handleText, onDone:done);
+        _stdin.transform(UTF8.decoder).listen(_handleText, onDone:_done);
   }
 
+  Future _onCancel() {
+    _stdin.echoMode = true;
+    _stdin.lineMode = true;
+    var future = _stdinSubscription.cancel();
+    if (future != null) {
+      return future;
+    } else {
+      return new Future.value();
+    }
+  }
+
+  // Before terminating, call close() to restore terminal settings.
+  void _done() {
+    _onCancel().then((_) {
+        _commandController.close();
+      });
+  }
+  
   void _handleText(String text) {
     try {
       if (!_promptShown) {
@@ -79,11 +106,7 @@ class Commando {
         }
       }
     } catch(e, trace) {
-      stderr.writeln('\nUnexpected exception: $e');
-      stderr.writeln(trace);
-      stderr.close().then((_) {
-          done();
-        });
+      _commandController.addError(e, trace);
     }
   }
 
@@ -102,8 +125,8 @@ class Commando {
       case runeCtrlD:
         if (_currentLine.length == 0) {
           // ^D on an empty line means quit.
-          _stdout.writeln();
-          done();
+          _stdout.writeln("^D");
+          _done();
         } else {
           _delete();
         }
@@ -205,12 +228,6 @@ class Commando {
 
   bool _isControlRune(int char) {
     return (char >= 0x00 && char < 0x20) || (char == 0x7f);
-  }
-
-  void done() {
-    _stdin.echoMode = true;
-    _stdin.lineMode = true;
-    _stdinSubscription.cancel();
   }
 
   void _writePromptAndLine() {
@@ -370,7 +387,7 @@ class Commando {
     _stdout.writeln();
 
     // Call the user's command handler.
-    _handleCommand(new String.fromCharCodes(_currentLine));
+    _commandController.add(new String.fromCharCodes(_currentLine));
     
     _currentLine = [];
     _cursorPos = 0;
@@ -610,14 +627,12 @@ class Commando {
   Stdin _stdin;
   StreamSubscription _stdinSubscription;
   IOSink _stdout;
-  final _handleCommand;
   final String prompt;
   bool _promptShown = true;
   final CommandCompleter completer;
   TermInfo _term = new TermInfo();
 
-  // TODO(turnidge): Update screenwidth when we clear the screen.  See
-  // if we can get screen resize events too.
+  // TODO(turnidge): See if we can get screen resize events.
   int _screenWidth;
   List<int> _currentLine = [];  // A list of runes.
   StringBuffer _bufferedInput = new StringBuffer();
@@ -676,8 +691,11 @@ Commando cmdo;
 
 void _handleCommand(String rawCommand) {
   String command = rawCommand.trim();
+  cmdo.hide();
   if (command == 'quit') {
-    cmdo.done();
+    cmdo.close().then((_) {
+        print('Exiting');
+      });
   } else if (command == 'help') {
     switch (_helpCount) {
       case 0:
@@ -702,11 +720,12 @@ void _handleCommand(String rawCommand) {
   } else {
     print('Received command($command)');
   }
+  cmdo.show();
 }
 
 
 void main() {
-  stdout.writeln('[Commando demo]');
-  cmd = new Commando(stdin, stdout, _handleCommand,
-                     completer:_myCompleter);
+  print('[Commando demo]');
+  cmdo = new Commando(completer:_myCompleter);
+  cmdo.commands.listen(_handleCommand);
 }
