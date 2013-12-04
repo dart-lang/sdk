@@ -1920,7 +1920,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       if (source != null && allIndexed && typeVariables.isEmpty) {
         copyRuntimeTypeInfo(source, newObject);
       } else {
-        callSetRuntimeTypeInfo(classElement, typeArguments, newObject);
+        newObject =
+            callSetRuntimeTypeInfo(classElement, typeArguments, newObject);
       }
     }
 
@@ -2141,8 +2142,6 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
   void pushWithPosition(HInstruction instruction, Node node) {
     push(attachPosition(instruction, node));
   }
-
-  HInstruction peek() => stack.last;
 
   HInstruction pop() {
     return stack.removeLast();
@@ -3769,17 +3768,17 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     return result;
   }
 
-  void handleListConstructor(InterfaceType type,
-                             Node currentNode,
-                             HInstruction newObject) {
-    if (!backend.classNeedsRti(type.element)) return;
-    if (!type.treatAsRaw) {
-      List<HInstruction> inputs = <HInstruction>[];
-      type.typeArguments.forEach((DartType argument) {
-        inputs.add(analyzeTypeArgument(argument));
-      });
-      callSetRuntimeTypeInfo(type.element, inputs, newObject);
+  HInstruction handleListConstructor(InterfaceType type,
+                                     Node currentNode,
+                                     HInstruction newObject) {
+    if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
+      return newObject;
     }
+    List<HInstruction> inputs = <HInstruction>[];
+    type.typeArguments.forEach((DartType argument) {
+      inputs.add(analyzeTypeArgument(argument));
+    });
+    return callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
   void copyRuntimeTypeInfo(HInstruction source, HInstruction target) {
@@ -3788,11 +3787,11 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     pop();
   }
 
-  void callSetRuntimeTypeInfo(ClassElement element,
-                              List<HInstruction> rtiInputs,
-                              HInstruction newObject) {
+  HInstruction callSetRuntimeTypeInfo(ClassElement element,
+                                      List<HInstruction> rtiInputs,
+                                      HInstruction newObject) {
     if (!backend.classNeedsRti(element) || element.typeVariables.isEmpty) {
-      return;
+      return newObject;
     }
 
     HInstruction typeInfo = buildLiteralList(rtiInputs);
@@ -3805,7 +3804,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
         typeInfoSetterElement,
         <HInstruction>[newObject, typeInfo],
         backend.dynamicType);
-    pop();
+    stack.last.instructionType = newObject.instructionType;
+    return pop();
   }
 
   handleNewSend(NewExpression node) {
@@ -3813,6 +3813,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     bool isFixedList = false;
     bool isFixedListConstructorCall =
         Elements.isFixedListConstructorCall(elements[send], send, compiler);
+    bool isGrowableListConstructorCall =
+        Elements.isGrowableListConstructorCall(elements[send], send, compiler);
 
     TypeMask computeType(element) {
       Element originalElement = elements[send];
@@ -3825,8 +3827,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
         return inferred.containsAll(compiler)
             ? backend.fixedArrayType
             : inferred;
-      } else if (Elements.isGrowableListConstructorCall(
-                    originalElement, send, compiler)) {
+      } else if (isGrowableListConstructorCall) {
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(currentElement, send, compiler);
         return inferred.containsAll(compiler)
@@ -3927,6 +3928,11 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
         add(new HForeign(
               code, backend.nullType, [stack.last], canThrow: true));
       }
+    } else if (isGrowableListConstructorCall) {
+      js.Expression code = js.js.parseForeignJS('Array()');
+      var behavior = new native.NativeBehavior();
+      behavior.typesReturned.add(expectedType);
+      push(new HForeign(code, elementType, inputs, nativeBehavior: behavior));
     } else {
       ClassElement cls = constructor.getEnclosingClass();
       if (cls.isAbstract && constructor.isGenerativeConstructor()) {
@@ -3959,9 +3965,11 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if ((isFixedListConstructorCall || isJSArrayTypedConstructor) &&
-        backend.classNeedsRti(compiler.listClass)) {
-      handleListConstructor(type, send, newInstance);
+    if (backend.classNeedsRti(compiler.listClass) &&
+        (isFixedListConstructorCall || isGrowableListConstructorCall ||
+         isJSArrayTypedConstructor)) {
+      newInstance = handleListConstructor(type, send, pop());
+      stack.add(newInstance);
     }
 
     // Finally, if we called a redirecting factory constructor, check the type.
@@ -4707,15 +4715,17 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     }
   }
 
-  void setRtiIfNeeded(HInstruction object, Node node) {
+  HInstruction setRtiIfNeeded(HInstruction object, Node node) {
     InterfaceType type = elements.getType(node);
-    if (!backend.classNeedsRti(type.element) || type.treatAsRaw) return;
+    if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
+      return object;
+    }
     List<HInstruction> arguments = <HInstruction>[];
     for (DartType argument in type.typeArguments) {
       arguments.add(analyzeTypeArgument(argument));
     }
-    callSetRuntimeTypeInfo(type.element, arguments, object);
     compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
+    return callSetRuntimeTypeInfo(type.element, arguments, object);
   }
 
   visitLiteralList(LiteralList node) {
@@ -4733,7 +4743,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       }
       instruction = buildLiteralList(inputs);
       add(instruction);
-      setRtiIfNeeded(instruction, node);
+      instruction = setRtiIfNeeded(instruction, node);
     }
 
     TypeMask type =
@@ -4936,7 +4946,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     add(keyValuePairs);
     TypeMask mapType = new TypeMask.nonNullSubtype(backend.mapLiteralClass);
     pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
-    setRtiIfNeeded(peek(), node);
+    stack.add(setRtiIfNeeded(pop(), node));
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
