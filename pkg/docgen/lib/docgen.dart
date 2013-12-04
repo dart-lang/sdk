@@ -763,14 +763,23 @@ class Indexable {
   }
 
   /// Returns a map of [Variable] objects constructed from [mirrorMap].
+  /// The optional parameter [containingLibrary] is contains data for variables
+  /// defined at the top level of a library (potentially for exporting
+  /// purposes).
   Map<String, Variable> _createVariables(Map<String,
-      VariableMirror> mirrorMap) {
+      VariableMirror> mirrorMap, [Library containingLibrary]) {
     var data = {};
     // TODO(janicejl): When map to map feature is created, replace the below
     // with a filter. Issue(#9590).
     mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
       if (_includePrivate || !_isHidden(mirror)) {
-        entityMap[docName(mirror)] = new Variable(mirrorName, mirror);
+        if (containingLibrary != null && mirror.owner.qualifiedName !=
+            containingLibrary.mirror.qualifiedName) {
+          entityMap[docName(mirror)] = new ExportedVariable(mirrorName, mirror,
+              containingLibrary);
+        } else {
+          entityMap[docName(mirror)] = new Variable(mirrorName, mirror);
+        }
         data[mirrorName] = entityMap[docName(mirror)];
       }
     });
@@ -778,11 +787,15 @@ class Indexable {
   }
 
   /// Returns a map of [Method] objects constructed from [mirrorMap].
-  MethodGroup _createMethods(Map<String, MethodMirror> mirrorMap) {
+  /// The optional parameter [containingLibrary] is contains data for variables
+  /// defined at the top level of a library (potentially for exporting
+  /// purposes).
+  MethodGroup _createMethods(Map<String, MethodMirror> mirrorMap,
+      [Library containingLibrary]) {
     var group = new MethodGroup();
     mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
       if (_includePrivate || !mirror.isPrivate) {
-        group.addMethod(mirror);
+        group.addMethod(mirror, containingLibrary);
       }
     });
     return group;
@@ -873,9 +886,9 @@ class Library extends Indexable {
     var exported = _calcExportedItems(libraryMirror);
     _createClasses(exported['classes']..addAll(libraryMirror.classes));
     this.functions = _createMethods(
-        exported['methods']..addAll(libraryMirror.functions));
+        exported['methods']..addAll(libraryMirror.functions), this);
     this.variables = _createVariables(
-        exported['variables']..addAll(libraryMirror.variables));
+        exported['variables']..addAll(libraryMirror.variables), this);
 
     var exportedVariables = {};
     variables.forEach((key, value) {
@@ -1360,8 +1373,8 @@ class ExportedVariable extends Variable implements Exported {
   ExportedVariable(String variableName, VariableMirror originalVariable,
       Library this._exportingLibrary) : super(variableName, originalVariable);
 
-  String get fileName => '${_exportingLibrary.packageName}/' +
-      super.fileName.substring(packagePrefix.length);
+  String get fileName => path.join(_exportingLibrary.packageName,
+          _exportingLibrary.mirror.qualifiedName + '.' + super.name);
 
   void updateExports(Map<String, Indexable> libraryExports) {
     // TODO(efortuna): if this class points to another exported class or type
@@ -1450,8 +1463,10 @@ class ExportedMethod extends Method implements Exported {
   ExportedMethod(MethodMirror originalMethod, Library this._exportingLibrary) :
       super(originalMethod);
 
-  String get fileName => '${_exportingLibrary.packageName}/' +
-      super.fileName.substring(packagePrefix.length);
+  // TODO(efortuna): Refactor this code so the exported items can share this
+  // behavior.
+  String get fileName => path.join(_exportingLibrary.packageName,
+      _exportingLibrary.mirror.qualifiedName + '.' + super.name);
 
   void updateExports(Map<String, Indexable> libraryExports) {
     // TODO(efortuna): if this class points to another exported class or type
@@ -1488,8 +1503,17 @@ class MethodGroup {
     return exported;
   }
 
-  void addMethod(MethodMirror mirror) {
-    var method = new Method(mirror);
+  /// The optional parameter [containingLibrary] is contains data for variables
+  /// defined at the top level of a library (potentially for exporting
+  /// purposes).
+  void addMethod(MethodMirror mirror, [Library containingLibrary]) {
+    var method;
+    if (containingLibrary != null && mirror.owner.qualifiedName !=
+        containingLibrary.mirror.qualifiedName) {
+      method = new ExportedMethod(mirror, containingLibrary);
+    } else {
+      method = new Method(mirror);
+    }
     entityMap[docName(mirror)] = method;
     if (mirror.isSetter) {
       setters[mirror.simpleName] = method;
