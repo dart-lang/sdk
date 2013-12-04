@@ -782,6 +782,16 @@ main() {
         'var l = [1,2,3,4];',
         'var l = [1, 2, 3, 4];'
       );
+      expectStmtFormatsTo(
+        'var l = [\n'
+        '1,\n'
+        '2,\n'
+        '];',
+        'var l = [\n'
+        '  1,\n'
+        '  2,\n'
+        '];'
+      );
       //Dangling ','
       expectStmtFormatsTo(
         'var l = [1,];',
@@ -793,6 +803,17 @@ main() {
       expectStmtFormatsTo(
         'var map = const {"foo": "bar", "fuz": null};',
         'var map = const {"foo": "bar", "fuz": null};'
+      );
+
+      expectStmtFormatsTo(
+          'var map = {\n'
+          '"foo": "bar",\n'
+          '"bar": "baz"'
+          '};',
+          'var map = {\n'
+          '  "foo": "bar",\n'
+          '  "bar": "baz"'
+          '};'
       );
 
       //Dangling ','

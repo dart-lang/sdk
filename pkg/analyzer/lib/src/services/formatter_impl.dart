@@ -355,6 +355,10 @@ class SourceVisitor implements ASTVisitor {
   /// A counter for spaces that should be emitted preceding the next token.
   int leadingSpaces = 0;
 
+  /// A flag to specify whether line-leading spaces should be preserved (and
+  /// addded to the indent level).
+  bool allowLineLeadingSpaces;
+
   /// Used for matching EOL comments
   final twoSlashes = new RegExp(r'//[^/]');
 
@@ -598,7 +602,7 @@ class SourceVisitor implements ASTVisitor {
         // preceding comma
         token(node.initializers[i].beginToken.previous);
         newlines();
-        space(2);
+        space(n: 2, allowLineLeading: true);
       }
       node.initializers[i].accept(this);
     }
@@ -936,8 +940,10 @@ class SourceVisitor implements ASTVisitor {
     modifier(node.constKeyword);
     visit(node.typeArguments);
     token(node.leftBracket);
+    indent();
     visitCommaSeparatedNodes(node.elements);
     optionalTrailingComma(node.rightBracket);
+    unindent();
     token(node.rightBracket);
   }
 
@@ -945,8 +951,10 @@ class SourceVisitor implements ASTVisitor {
     modifier(node.constKeyword);
     visitNode(node.typeArguments, followedBy: space);
     token(node.leftBracket);
+    indent();
     visitCommaSeparatedNodes(node.entries);
     optionalTrailingComma(node.rightBracket);
+    unindent();
     token(node.rightBracket);
   }
 
@@ -1351,7 +1359,10 @@ class SourceVisitor implements ASTVisitor {
 
   emitSpaces() {
     while (leadingSpaces > 0) {
-      writer.print(' ');
+      if (!writer.currentLine.isWhitespace() || allowLineLeadingSpaces) {
+        writer.print(' ');
+      }
+      allowLineLeadingSpaces = false;
       leadingSpaces--;
     }
   }
@@ -1370,10 +1381,13 @@ class SourceVisitor implements ASTVisitor {
     }
   }
 
-  /// Emit a non-breakable space.
-  space([n = 1]) {
+  /// Emit a non-breakable space. If [allowLineLeading] is specified, spaces
+  /// will be preserved at the start of a line (in addition to the
+  /// indent-level), otherwise line-leading spaces will be ignored.
+  space({n: 1, allowLineLeading: false}) {
     //TODO(pquitslund): replace with a proper space token
     leadingSpaces+=n;
+    allowLineLeadingSpaces = allowLineLeading;
   }
 
   /// Emit a breakable space
