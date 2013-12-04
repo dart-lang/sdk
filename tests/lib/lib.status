@@ -81,6 +81,8 @@ mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
 mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 mirrors/variable_is_const_test/01: MissingCompileTimeError # Issue 5519
 
+typed_data/typed_data_setRange_test: Fail # Issues 15134, 15412
+
 [ $runtime == safari ]
 mirrors/return_type_test: Pass, Timeout # Issue 12858
 
