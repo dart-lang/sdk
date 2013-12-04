@@ -130,6 +130,16 @@ abstract class _BroadcastStreamController<T>
   /** Whether there are currently one or more subscribers. */
   bool get hasListener => !_isEmpty;
 
+  /**
+   * Test whether the stream has exactly one listener.
+   *
+   * Assumes that the stream has a listener (not [_isEmpty]).
+   */
+  bool get _hasOneListener {
+    assert(!_isEmpty);
+    return identical(_next._next, this);
+  }
+
   /** Whether an event is being fired (sent to some, but not all, listeners). */
   bool get _isFiring => (_state & _STATE_FIRING) != 0;
 
@@ -321,6 +331,16 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
 
   void _sendData(T data) {
     if (_isEmpty) return;
+    if (_hasOneListener) {
+      _state |= _BroadcastStreamController._STATE_FIRING;
+      _BufferingStreamSubscription subscription = _next;
+      subscription._add(data);
+      _state &= ~_BroadcastStreamController._STATE_FIRING;
+      if (_isEmpty) {
+        _callOnCancel();
+      }
+      return;
+    }
     _forEachListener((_BufferingStreamSubscription<T> subscription) {
       subscription._add(data);
     });
