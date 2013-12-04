@@ -6,7 +6,6 @@ library barback.internal_asset;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'asset.dart';

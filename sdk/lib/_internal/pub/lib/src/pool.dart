@@ -9,6 +9,8 @@ import 'dart:collection';
 
 import 'package:stack_trace/stack_trace.dart';
 
+import 'utils.dart';
+
 // TODO(nweiz): put this somewhere that it can be shared between packages.
 /// Manages an abstract pool of resources with a limit on how many may be in use
 /// at once.
@@ -74,7 +76,7 @@ class Pool {
   /// The return value of [callback] is piped to the returned Future.
   Future withResource(callback()) {
     return request().then((resource) =>
-        new Future.sync(callback).whenComplete(resource.release));
+        syncFuture(callback).whenComplete(resource.release));
   }
 
   /// If there are any pending requests, this will fire the oldest one.
@@ -108,7 +110,7 @@ class Pool {
   void _onTimeout() {
     for (var completer in _requestedResources) {
       completer.completeError("Pool deadlock: all resources have been "
-          "allocated for too long.", new Trace.current().vmTrace);
+          "allocated for too long.", new Chain.current());
     }
     _requestedResources.clear();
     _timer = null;

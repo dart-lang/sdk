@@ -291,7 +291,7 @@ class PhaseInput {
   /// synchronously to ensure that [_adjustTransformers] isn't called before the
   /// callback.
   Future _waitForTransformers(callback()) {
-    if (_adjustTransformersFuture == null) return new Future.sync(callback);
+    if (_adjustTransformersFuture == null) return syncFuture(callback);
     return _adjustTransformersFuture.then(
         (_) => _waitForTransformers(callback));
   }

@@ -77,6 +77,9 @@ class FutureGroup<T> {
   Future<List> get future => _completer.future;
 }
 
+/// Like [Future.sync], but wraps the Future in [Chain.track] as well.
+Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
+
 /// Returns a buffered stream that will emit the same values as the stream
 /// returned by [future] once [future] completes.
 ///

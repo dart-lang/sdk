@@ -7,6 +7,8 @@ library barback.utils;
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:stack_trace/stack_trace.dart';
+
 /// A pair of values.
 class Pair<E, F> {
   E first;
@@ -151,12 +153,12 @@ Stream mergeStreams(Iterable<Stream> streams, {bool broadcast: false}) {
 
   for (var stream in streams) {
     stream.listen(
-      controller.add,
-      onError: controller.addError,
-      onDone: () {
-    doneCount++;
-    if (doneCount == streams.length) controller.close();
-  });
+        controller.add,
+        onError: controller.addError,
+        onDone: () {
+      doneCount++;
+      if (doneCount == streams.length) controller.close();
+    });
   }
 
   return controller.stream;
@@ -192,6 +194,9 @@ Future pumpEventQueue([int times=20]) {
 /// the covers.
 // TODO(jmesserly): doc comment changed to due 14601.
 Future newFuture(callback()) => new Future.value().then((_) => callback());
+
+/// Like [Future.sync], but wraps the Future in [Chain.track] as well.
+Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
 
 /// Returns a buffered stream that will emit the same values as the stream
 /// returned by [future] once [future] completes.

@@ -295,26 +295,26 @@ class CrossIsolateException implements Exception {
   /// property.
   final String message;
 
-  /// The exception's stack trace, or `null` if no stack trace was available.
-  final Trace stackTrace;
+  /// The exception's stack chain, or `null` if no stack chain was available.
+  final Chain stackTrace;
 
-  /// Loads a [CrossIsolateException] from a map.
+  /// Loads a [CrossIsolateException] from a serialized representation.
   ///
   /// [error] should be the result of [CrossIsolateException.serialize].
   CrossIsolateException.deserialize(Map error)
       : type = error['type'],
         message = error['message'],
         stackTrace = error['stack'] == null ? null :
-            new Trace.parse(error['stack']);
+            new Chain.parse(error['stack']);
 
-  /// Serializes [error] to a map that can safely be passed across isolate
+  /// Serializes [error] to an object that can safely be passed across isolate
   /// boundaries.
   static Map serialize(error, [StackTrace stack]) {
     if (stack == null && error is Error) stack = error.stackTrace;
     return {
       'type': error.runtimeType.toString(),
       'message': getErrorMessage(error),
-      'stack': stack == null ? null : stack.toString()
+      'stack': stack == null ? null : new Chain.forTrace(stack).toString()
     };
   }
 

@@ -150,24 +150,17 @@ class CrossIsolateException implements Exception {
   /// property.
   final String message;
 
-  /// The exception's stack trace, or `null` if no stack trace was available.
-  final Trace stackTrace;
+  /// The exception's stack chain, or `null` if no stack chain was available.
+  final Chain stackTrace;
 
   /// Loads a [CrossIsolateException] from a serialized representation.
   ///
   /// [error] should be the result of [CrossIsolateException.serialize].
-  factory CrossIsolateException.deserialize(Map error) {
-    var type = error['type'];
-    var message = error['message'];
-    var stackTrace = error['stack'] == null ? null :
-            new Trace.parse(error['stack']);
-    return new CrossIsolateException._(type, message, stackTrace);
-  }
-
-  /// Loads a [CrossIsolateException] from a serialized representation.
-  ///
-  /// [error] should be the result of [CrossIsolateException.serialize].
-  CrossIsolateException._(this.type, this.message, this.stackTrace);
+  CrossIsolateException.deserialize(Map error)
+      : type = error['type'],
+        message = error['message'],
+        stackTrace = error['stack'] == null ? null :
+            new Chain.parse(error['stack']);
 
   /// Serializes [error] to an object that can safely be passed across isolate
   /// boundaries.
@@ -176,7 +169,7 @@ class CrossIsolateException implements Exception {
     return {
       'type': error.runtimeType.toString(),
       'message': getErrorMessage(error),
-      'stack': stack == null ? null : stack.toString()
+      'stack': stack == null ? null : new Chain.forTrace(stack).toString()
     };
   }
 

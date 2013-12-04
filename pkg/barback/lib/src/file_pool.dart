@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'pool.dart';
 import 'utils.dart';
 
@@ -33,7 +35,7 @@ class FilePool {
   /// try again.
   Stream<List<int>> openRead(String path) {
     return futureStream(_pool.request().then((resource) {
-      return new File(path).openRead().transform(
+      return Chain.track(new File(path).openRead()).transform(
           new StreamTransformer.fromHandlers(handleDone: (sink) {
         sink.close();
         resource.release();
