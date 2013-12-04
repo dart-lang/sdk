@@ -895,6 +895,8 @@ class ArgumentDefinitionTest extends Expression {
    */
   SimpleIdentifier get identifier => _identifier;
 
+  int get precedence => 15;
+
   /**
    * Set the identifier representing the argument being tested to the given identifier.
    *
@@ -1163,6 +1165,8 @@ class AsExpression extends Expression {
    */
   Expression get expression => _expression;
 
+  int get precedence => 7;
+
   /**
    * Return the name of the type being cast to.
    *
@@ -1376,6 +1380,8 @@ class AssignmentExpression extends Expression {
    */
   Expression get leftHandSide => _leftHandSide;
 
+  int get precedence => 1;
+
   /**
    * Return the element associated with the operator based on the propagated type of the
    * left-hand-side, or `null` if the AST structure has not been resolved, if the operator is
@@ -1579,6 +1585,8 @@ class BinaryExpression extends Expression {
    * @return the expression used to compute the left operand
    */
   Expression get leftOperand => _leftOperand;
+
+  int get precedence => operator.type.precedence;
 
   /**
    * Return the element associated with the operator based on the propagated type of the left
@@ -1996,6 +2004,8 @@ class CascadeExpression extends Expression {
   Token get beginToken => _target.beginToken;
 
   Token get endToken => cascadeSections.endToken;
+
+  int get precedence => 2;
 
   /**
    * Return the target of the cascade sections.
@@ -3197,6 +3207,8 @@ class ConditionalExpression extends Expression {
   Expression get elseExpression => _elseExpression;
 
   Token get endToken => _elseExpression.endToken;
+
+  int get precedence => 3;
 
   /**
    * Return the expression that is executed if the condition evaluates to `true`.
@@ -4511,7 +4523,7 @@ class EmptyStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class EphemeralIdentifier extends SimpleIdentifier {
-  EphemeralIdentifier.full(ASTNode parent, int location) : super.full(new Token(TokenType.IDENTIFIER, location)) {
+  EphemeralIdentifier.full(ASTNode parent, int location) : super.full(new StringToken(TokenType.IDENTIFIER, "", location)) {
     parent.becomeParentOf(this);
   }
 
@@ -4626,6 +4638,19 @@ abstract class Expression extends ASTNode {
     }
     return DynamicTypeImpl.instance;
   }
+
+  /**
+   * Return the precedence of this expression. The precedence is a positive integer value that
+   * defines how the source code is parsed into an AST. For example `a * b + c` is parsed as
+   * `(a * b) + c` because the precedence of `*` is greater than the precedence of
+   * `+`.
+   *
+   * You should not assume that returned values will stay the same, they might change as result of
+   * specification change. Only relative order should be used.
+   *
+   * @return the precedence of this expression
+   */
+  int get precedence;
 
   /**
    * If this expression is an argument to an invocation, and the AST structure has been resolved,
@@ -6110,6 +6135,8 @@ class FunctionExpression extends Expression {
    */
   FormalParameterList get parameters => _parameters;
 
+  int get precedence => 16;
+
   /**
    * Set the body of the function to the given function body.
    *
@@ -6225,6 +6252,8 @@ class FunctionExpressionInvocation extends Expression {
    * @return the expression producing the function being invoked
    */
   Expression get function => _function;
+
+  int get precedence => 15;
 
   /**
    * Return the element associated with the function being invoked based on propagated type
@@ -7153,6 +7182,8 @@ class IndexExpression extends Expression {
    */
   Token get leftBracket => _leftBracket;
 
+  int get precedence => 15;
+
   /**
    * Return the element associated with the operator based on the propagated type of the target, or
    * `null` if the AST structure has not been resolved or if the operator could not be
@@ -7436,6 +7467,8 @@ class InstanceCreationExpression extends Expression {
   Token get beginToken => keyword;
 
   Token get endToken => _argumentList.endToken;
+
+  int get precedence => 15;
 
   /**
    * Return `true` if this creation expression is used to invoke a constant constructor.
@@ -7768,6 +7801,8 @@ class IsExpression extends Expression {
    */
   Expression get expression => _expression;
 
+  int get precedence => 7;
+
   /**
    * Return the name of the type being tested for.
    *
@@ -8079,6 +8114,8 @@ class LibraryIdentifier extends Identifier {
     return builder.toString();
   }
 
+  int get precedence => 15;
+
   Element get propagatedElement => null;
 
   Element get staticElement => null;
@@ -8215,6 +8252,7 @@ class ListLiteral extends TypedLiteral {
  * @coverage dart.engine.ast
  */
 abstract class Literal extends Expression {
+  int get precedence => 16;
 }
 
 /**
@@ -8751,6 +8789,8 @@ class MethodInvocation extends Expression {
    */
   SimpleIdentifier get methodName => _methodName;
 
+  int get precedence => 15;
+
   /**
    * Return the expression used to compute the receiver of the invocation. If this invocation is not
    * part of a cascade expression, then this is the same as [getTarget]. If this invocation
@@ -8902,6 +8942,8 @@ class NamedExpression extends Expression {
    * @return the name associated with the expression
    */
   Label get name => _name;
+
+  int get precedence => 0;
 
   /**
    * Set the expression with which the name is associated to the given expression.
@@ -9356,6 +9398,8 @@ class ParenthesizedExpression extends Expression {
    */
   Token get leftParenthesis => _leftParenthesis;
 
+  int get precedence => 15;
+
   /**
    * Return the right parenthesis.
    *
@@ -9625,6 +9669,8 @@ class PostfixExpression extends Expression {
    */
   Expression get operand => _operand;
 
+  int get precedence => 15;
+
   /**
    * Return the element associated with the operator based on the propagated type of the operand, or
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
@@ -9804,6 +9850,8 @@ class PrefixExpression extends Expression {
    */
   Expression get operand => _operand;
 
+  int get precedence => 14;
+
   /**
    * Return the element associated with the operator based on the propagated type of the operand, or
    * `null` if the AST structure has not been resolved, if the operator is not user definable,
@@ -9972,6 +10020,8 @@ class PrefixedIdentifier extends Identifier {
 
   String get name => "${_prefix.name}.${_identifier.name}";
 
+  int get precedence => 15;
+
   /**
    * Return the prefix associated with the library in which the identifier is defined.
    *
@@ -10080,6 +10130,8 @@ class PropertyAccess extends Expression {
   }
 
   Token get endToken => _propertyName.endToken;
+
+  int get precedence => 15;
 
   /**
    * Return the name of the property being accessed.
@@ -10305,6 +10357,8 @@ class RethrowExpression extends Expression {
   Token get beginToken => keyword;
 
   Token get endToken => keyword;
+
+  int get precedence => 0;
 
   void visitChildren(ASTVisitor visitor) {
   }
@@ -10634,6 +10688,8 @@ class SimpleIdentifier extends Identifier {
   Token get endToken => token;
 
   String get name => token.lexeme;
+
+  int get precedence => 16;
 
   Element get propagatedElement => _propagatedElement;
 
@@ -11199,6 +11255,8 @@ class SuperExpression extends Expression {
 
   Token get endToken => keyword;
 
+  int get precedence => 16;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
@@ -11580,6 +11638,8 @@ class ThisExpression extends Expression {
 
   Token get endToken => keyword;
 
+  int get precedence => 16;
+
   void visitChildren(ASTVisitor visitor) {
   }
 }
@@ -11641,6 +11701,8 @@ class ThrowExpression extends Expression {
    * @return the expression computing the exception to be thrown
    */
   Expression get expression => _expression;
+
+  int get precedence => 0;
 
   /**
    * Set the expression computing the exception to be thrown to the given expression.
@@ -15888,9 +15950,10 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   }
 
   List clone3(NodeList nodes) {
+    int count = nodes.length;
     List clonedNodes = new List();
-    for (ASTNode node in nodes) {
-      clonedNodes.add(node.accept(this) as ASTNode);
+    for (int i = 0; i < count; i++) {
+      clonedNodes.add((nodes[i]).accept(this) as ASTNode);
     }
     return clonedNodes;
   }
@@ -15908,7 +15971,7 @@ class ASTComparator implements ASTVisitor<bool> {
    * @param second the second node being compared
    * @return `true` if the two AST nodes are equal
    */
-  static bool equals3(CompilationUnit first, CompilationUnit second) {
+  static bool equals4(CompilationUnit first, CompilationUnit second) {
     ASTComparator comparator = new ASTComparator();
     return comparator.isEqual(first, second);
   }
@@ -16176,7 +16239,7 @@ class ASTComparator implements ASTVisitor<bool> {
 
   bool visitIntegerLiteral(IntegerLiteral node) {
     IntegerLiteral other = this._other as IntegerLiteral;
-    return isEqual6(node.literal, other.literal) && identical(node.value, other.value);
+    return isEqual6(node.literal, other.literal) && (node.value == other.value);
   }
 
   bool visitInterpolationExpression(InterpolationExpression node) {
@@ -16331,7 +16394,7 @@ class ASTComparator implements ASTVisitor<bool> {
 
   bool visitSimpleStringLiteral(SimpleStringLiteral node) {
     SimpleStringLiteral other = this._other as SimpleStringLiteral;
-    return isEqual6(node.literal, other.literal) && identical(node.value, other.value);
+    return isEqual6(node.literal, other.literal) && (node.value == other.value);
   }
 
   bool visitStringInterpolation(StringInterpolation node) {

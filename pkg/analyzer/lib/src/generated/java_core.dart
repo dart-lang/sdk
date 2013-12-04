@@ -82,6 +82,9 @@ bool isInstanceOf(o, Type t) {
 
 class JavaArrays {
   static bool equals(List a, List b) {
+    if (identical(a, b)) {
+      return true;
+    }
     if (a.length != b.length) {
       return false;
     }
@@ -401,14 +404,6 @@ javaListSet(List list, int index, newValue) {
   return oldValue;
 }
 
-bool javaSetAdd(Set s, o) {
-  if (!s.contains(o)) {
-    s.add(o);
-    return true;
-  }
-  return false;
-}
-
 bool javaCollectionContainsAll(Iterable list, Iterable c) {
   return c.fold(true, (bool prev, e) => prev && list.contains(e));
 }
@@ -417,12 +412,6 @@ javaMapPut(Map target, key, value) {
   var oldValue = target[key];
   target[key] = value;
   return oldValue;
-}
-
-void javaMapPutAll(Map target, Map source) {
-  source.forEach((k, v) {
-    target[k] = v;
-  });
 }
 
 bool javaStringEqualsIgnoreCase(String a, String b) {

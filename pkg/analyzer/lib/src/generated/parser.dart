@@ -1163,60 +1163,69 @@ class IncrementalParser {
   }
 
   /**
-   * Given a range of tokens that were re-scanned, re-parse the minimimum number of tokens to
-   * produce a consistent AST structure. The range is represented by the first and last tokens in
-   * the range. The tokens are assumed to be contained in the same token stream.
+   * Given a range of tokens that were re-scanned, re-parse the minimum number of tokens to produce
+   * a consistent AST structure. The range is represented by the first and last tokens in the range.
+   * The tokens are assumed to be contained in the same token stream.
    *
-   * @param firstToken the first token in the range of tokens that were re-scanned or `null`
-   *          if no new tokens were inserted
-   * @param lastToken the last token in the range of tokens that were re-scanned or `null` if
-   *          no new tokens were inserted
+   * @param leftToken the token in the new token stream immediately to the left of the range of
+   *          tokens that were inserted
+   * @param rightToken the token in the new token stream immediately to the right of the range of
+   *          tokens that were inserted
    * @param originalStart the offset in the original source of the first character that was modified
    * @param originalEnd the offset in the original source of the last character that was modified
    */
-  ASTNode reparse(ASTNode originalStructure, Token firstToken, Token lastToken, int originalStart, int originalEnd) {
+  ASTNode reparse(ASTNode originalStructure, Token leftToken, Token rightToken, int originalStart, int originalEnd) {
     ASTNode oldNode = null;
     ASTNode newNode = null;
-    if (firstToken != null) {
-      if (originalEnd < originalStart) {
-        oldNode = new NodeLocator.con1(originalStart).searchWithin(originalStructure);
-      } else {
-        oldNode = new NodeLocator.con2(originalStart, originalEnd).searchWithin(originalStructure);
-      }
-      int originalOffset = oldNode.offset;
-      Token parseToken = findTokenAt(firstToken, originalOffset);
-      if (parseToken == null) {
-        return null;
-      }
-      Parser parser = new Parser(_source, _errorListener);
-      parser.currentToken = parseToken;
-      while (newNode == null) {
-        ASTNode parent = oldNode.parent;
-        if (parent == null) {
-          parseToken = findFirstToken(parseToken);
-          parser.currentToken = parseToken;
-          return parser.parseCompilationUnit2() as ASTNode;
-        }
-        try {
-          IncrementalParseDispatcher dispatcher = new IncrementalParseDispatcher(parser, oldNode);
-          newNode = parent.accept(dispatcher);
-        } on InsufficientContextException catch (exception) {
-          oldNode = parent;
-          originalOffset = oldNode.offset;
-          parseToken = findTokenAt(parseToken, originalOffset);
-          parser.currentToken = parseToken;
-        } on JavaException catch (exception) {
-          return null;
-        }
-      }
-      if (newNode.offset != originalOffset) {
-        return null;
-      }
-      if (identical(oldNode, originalStructure)) {
-        return newNode as ASTNode;
-      }
-      ResolutionCopier.copyResolutionData(oldNode, newNode);
+    Token firstToken = leftToken.next;
+    if (identical(firstToken, rightToken)) {
+      firstToken = leftToken;
     }
+    if (originalEnd < originalStart) {
+      oldNode = new NodeLocator.con1(originalStart).searchWithin(originalStructure);
+    } else {
+      oldNode = new NodeLocator.con2(originalStart, originalEnd).searchWithin(originalStructure);
+    }
+    int originalOffset = oldNode.offset;
+    Token parseToken = findTokenAt(firstToken, originalOffset);
+    if (parseToken == null) {
+      return null;
+    }
+    Parser parser = new Parser(_source, _errorListener);
+    parser.currentToken = parseToken;
+    while (newNode == null) {
+      ASTNode parent = oldNode.parent;
+      if (parent == null) {
+        parseToken = findFirstToken(parseToken);
+        parser.currentToken = parseToken;
+        return parser.parseCompilationUnit2() as ASTNode;
+      }
+      bool advanceToParent = false;
+      try {
+        IncrementalParseDispatcher dispatcher = new IncrementalParseDispatcher(parser, oldNode);
+        newNode = parent.accept(dispatcher);
+        Token mappedToken = _tokenMap.get(oldNode.endToken.next);
+        if (mappedToken == null || mappedToken.offset != newNode.endToken.next.offset || newNode.offset != oldNode.offset) {
+          advanceToParent = true;
+        }
+      } on InsufficientContextException catch (exception) {
+        advanceToParent = true;
+      } on JavaException catch (exception) {
+        return null;
+      }
+      if (advanceToParent) {
+        newNode = null;
+        oldNode = parent;
+        originalOffset = oldNode.offset;
+        parseToken = findTokenAt(parseToken, originalOffset);
+        parser.currentToken = parseToken;
+      }
+    }
+    if (identical(oldNode, originalStructure)) {
+      ResolutionCopier.copyResolutionData(oldNode, newNode);
+      return newNode as ASTNode;
+    }
+    ResolutionCopier.copyResolutionData(oldNode, newNode);
     IncrementalASTCloner cloner = new IncrementalASTCloner(oldNode, newNode, _tokenMap);
     return originalStructure.accept(cloner) as ASTNode;
   }
@@ -1342,9 +1351,7 @@ class Parser {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseCompilationUnit");
     try {
       _currentToken = token;
-      CompilationUnit compilationUnit = parseCompilationUnit2();
-      gatherTodoComments(token);
-      return compilationUnit;
+      return parseCompilationUnit2();
     } finally {
       instrumentation.log2(2);
     }
@@ -1722,8 +1729,9 @@ class Parser {
           if (partOfDirectiveFound) {
             reportError9(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, []);
           } else {
-            for (Directive precedingDirective in directives) {
-              reportError10(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, precedingDirective.keyword, []);
+            int directiveCount = directives.length;
+            for (int i = 0; i < directiveCount; i++) {
+              reportError10(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directives[i].keyword, []);
             }
             partOfDirectiveFound = true;
           }
@@ -2529,7 +2537,15 @@ class Parser {
    *
    * @return the synthetic identifier that was created
    */
-  SimpleIdentifier createSyntheticIdentifier() => new SimpleIdentifier.full(createSyntheticToken2(TokenType.IDENTIFIER));
+  SimpleIdentifier createSyntheticIdentifier() {
+    Token syntheticToken;
+    if (identical(_currentToken.type, TokenType.KEYWORD)) {
+      syntheticToken = injectToken(new SyntheticStringToken(TokenType.IDENTIFIER, _currentToken.lexeme, _currentToken.offset));
+    } else {
+      syntheticToken = createSyntheticToken2(TokenType.IDENTIFIER);
+    }
+    return new SimpleIdentifier.full(syntheticToken);
+  }
 
   /**
    * Create a synthetic string literal.
@@ -2543,14 +2559,14 @@ class Parser {
    *
    * @return the synthetic token that was created
    */
-  Token createSyntheticToken(Keyword keyword) => new Parser_SyntheticKeywordToken(keyword, _currentToken.offset);
+  Token createSyntheticToken(Keyword keyword) => injectToken(new Parser_SyntheticKeywordToken(keyword, _currentToken.offset));
 
   /**
    * Create a synthetic token with the given type.
    *
    * @return the synthetic token that was created
    */
-  Token createSyntheticToken2(TokenType type) => new StringToken(type, "", _currentToken.offset);
+  Token createSyntheticToken2(TokenType type) => injectToken(new StringToken(type, "", _currentToken.offset));
 
   /**
    * Check that the given expression is assignable and report an error if it isn't.
@@ -2617,7 +2633,9 @@ class Parser {
    * @return the range that was found
    */
   List<int> findRange(List<List<int>> ranges, int index) {
-    for (List<int> range in ranges) {
+    int rangeCount = ranges.length;
+    for (int i = 0; i < rangeCount; i++) {
+      List<int> range = ranges[i];
       if (range[0] <= index && index <= range[1]) {
         return range;
       } else if (index < range[0]) {
@@ -2625,19 +2643,6 @@ class Parser {
       }
     }
     return null;
-  }
-
-  void gatherTodoComments(Token token) {
-    while (token != null && token.type != TokenType.EOF) {
-      Token commentToken = token.precedingComments;
-      while (commentToken != null) {
-        if (identical(commentToken.type, TokenType.SINGLE_LINE_COMMENT) || identical(commentToken.type, TokenType.MULTI_LINE_COMMENT)) {
-          scrapeTodoComment(commentToken);
-        }
-        commentToken = commentToken.next;
-      }
-      token = token.next;
-    }
   }
 
   /**
@@ -2723,6 +2728,19 @@ class Parser {
       return false;
     }
     return matchesIdentifier2(next);
+  }
+
+  /**
+   * Inject the given token into the token stream immediately before the current token.
+   *
+   * @param token the token to be added to the token stream
+   * @return the token that was just added to the token stream
+   */
+  Token injectToken(Token token) {
+    Token previous = _currentToken.previous;
+    token.setNext(_currentToken);
+    previous.setNext(token);
+    return token;
   }
 
   /**
@@ -3623,12 +3641,11 @@ class Parser {
       return null;
     }
     try {
-      List<bool> errorFound = [false];
-      AnalysisErrorListener listener = new AnalysisErrorListener_16(errorFound);
+      BooleanErrorListener listener = new BooleanErrorListener();
       Scanner scanner = new Scanner(null, new SubSequenceReader(new CharSequence(referenceSource), sourceOffset), listener);
       scanner.setSourceStart(1, 1);
       Token firstToken = scanner.tokenize();
-      if (errorFound[0]) {
+      if (listener.errorReported) {
         return null;
       }
       Token newKeyword = null;
@@ -3869,7 +3886,7 @@ class Parser {
       }
     } else {
       body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
-      if (constKeyword != null && factoryKeyword != null) {
+      if (constKeyword != null && factoryKeyword != null && externalKeyword == null) {
         reportError10(ParserErrorCode.CONST_FACTORY, factoryKeyword, []);
       } else if (body is EmptyFunctionBody) {
         if (factoryKeyword != null && externalKeyword == null) {
@@ -5577,7 +5594,7 @@ class Parser {
           if (definedLabels.contains(label)) {
             reportError10(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.token, [label]);
           } else {
-            javaSetAdd(definedLabels, label);
+            definedLabels.add(label);
           }
           Token colon = expect2(TokenType.COLON);
           labels.add(new Label.full(identifier, colon));
@@ -6029,20 +6046,6 @@ class Parser {
    */
   void reportError10(ParserErrorCode errorCode, Token token, List<Object> arguments) {
     _errorListener.onError(new AnalysisError.con2(_source, token.offset, token.length, errorCode, arguments));
-  }
-
-  /**
-   * Look for user defined tasks in comments and convert them into info level analysis issues.
-   *
-   * @param commentToken the comment token to analyze
-   */
-  void scrapeTodoComment(Token commentToken) {
-    JavaPatternMatcher matcher = new JavaPatternMatcher(TodoCode.TODO_REGEX, commentToken.lexeme);
-    if (matcher.find()) {
-      int offset = commentToken.offset + matcher.start() + matcher.group(1).length;
-      int length = matcher.group(2).length;
-      // _errorListener.onError(new AnalysisError.con2(_source, offset, length, TodoCode.TODO, [matcher.group(2)]));
-    }
   }
 
   /**
@@ -6841,16 +6844,6 @@ class Parser_SyntheticKeywordToken extends KeywordToken {
   Token copy() => new Parser_SyntheticKeywordToken(keyword, offset);
 
   int get length => 0;
-}
-
-class AnalysisErrorListener_16 implements AnalysisErrorListener {
-  List<bool> errorFound;
-
-  AnalysisErrorListener_16(this.errorFound);
-
-  void onError(AnalysisError error) {
-    errorFound[0] = true;
-  }
 }
 
 /**

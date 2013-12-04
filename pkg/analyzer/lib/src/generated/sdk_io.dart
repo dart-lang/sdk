@@ -62,11 +62,6 @@ class DirectoryBasedDartSdk implements DartSdk {
   static String _CHROMIUM_DIRECTORY_NAME = "chromium";
 
   /**
-   * The name of the environment variable whose value is the path to the default Dart SDK directory.
-   */
-  static String _DART_SDK_ENVIRONMENT_VARIABLE_NAME = "DART_SDK";
-
-  /**
    * The name of the file containing the Dartium executable on Linux.
    */
   static String _DARTIUM_EXECUTABLE_NAME_LINUX = "chrome";
@@ -154,36 +149,16 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
-   * Return the default Dart SDK, or `null` if the directory containing the default SDK cannot
-   * be determined (or does not exist).
-   *
-   * Added in order to test AnalysisContextImpl2.
-   *
-   * @return the default Dart SDK
-   */
-  static DirectoryBasedDartSdk get defaultSdk2 {
-    JavaFile sdkDirectory = defaultSdkDirectory;
-    if (sdkDirectory == null) {
-      return null;
-    }
-    return new DirectoryBasedDartSdk.con1(sdkDirectory, true);
-  }
-
-  /**
    * Return the default directory for the Dart SDK, or `null` if the directory cannot be
    * determined (or does not exist). The default directory is provided by a [System] property
-   * named `com.google.dart.sdk`, or, if the property is not defined, an environment variable
-   * named `DART_SDK`.
+   * named `com.google.dart.sdk`.
    *
    * @return the default directory for the Dart SDK
    */
   static JavaFile get defaultSdkDirectory {
     String sdkProperty = JavaSystemIO.getProperty(_DEFAULT_DIRECTORY_PROPERTY_NAME);
     if (sdkProperty == null) {
-      sdkProperty = JavaSystemIO.getenv(_DART_SDK_ENVIRONMENT_VARIABLE_NAME);
-      if (sdkProperty == null) {
-        return null;
-      }
+      return null;
     }
     JavaFile sdkDirectory = new JavaFile(sdkProperty);
     if (!sdkDirectory.exists()) {
@@ -471,14 +446,13 @@ class SdkLibrariesReader {
    * @return the library map read from the given source
    */
   LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
-    List<bool> foundError = [false];
-    AnalysisErrorListener errorListener = new AnalysisErrorListener_11(foundError);
+    BooleanErrorListener errorListener = new BooleanErrorListener();
     Source source = new FileBasedSource.con2(null, librariesFile, UriKind.FILE_URI);
     Scanner scanner = new Scanner(source, new CharSequenceReader(new CharSequence(libraryFileContents)), errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder = new SdkLibrariesReader_LibraryBuilder();
-    if (!foundError[0]) {
+    if (!errorListener.errorReported) {
       unit.accept(libraryBuilder);
     }
     return libraryBuilder.librariesMap;
@@ -563,17 +537,5 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
       librariesMap.setLibrary(libraryName, library);
     }
     return null;
-  }
-}
-
-class AnalysisErrorListener_11 implements AnalysisErrorListener {
-  List<bool> foundError;
-
-  AnalysisErrorListener_11(this.foundError);
-
-  void onError(AnalysisError error) {
-    if (error != null && error.errorCode.type != ErrorType.TODO) {
-      foundError[0] = true;
-    }
   }
 }

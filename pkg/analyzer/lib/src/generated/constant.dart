@@ -606,7 +606,7 @@ class DirectedGraph<N> {
       tails = new Set<N>();
       _edges[head] = tails;
     }
-    javaSetAdd(tails, tail);
+    tails.add(tail);
   }
 
   /**

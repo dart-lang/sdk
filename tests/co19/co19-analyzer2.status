@@ -132,8 +132,6 @@ Language/07_Classes/10_Superinterfaces_A07_t05: StaticWarning # co19-roll r667: 
 LibTest/convert/JsonEncoder/JsonEncoder_A01_t01: StaticWarning # co19-roll r667: Please triage this failure
 LibTest/isolate/Isolate/spawnFunction_A02_t02: CompileTimeError # co19-roll r667: Please triage this failure
 LibTest/async/Zone/operator_subscript_A01_t01: StaticWarning # co19-roll r672: Please triage this failure
-  
-
 
 # co19 issue 656
 LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656

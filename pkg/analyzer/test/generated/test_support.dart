@@ -286,7 +286,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param secondError the second error being compared
    * @return `true` if the two errors are equivalent
    */
-  bool equals4(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && equals5(firstError.source, secondError.source);
+  bool equals5(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && equals6(firstError.source, secondError.source);
 
   /**
    * Return `true` if the two sources are equivalent.
@@ -295,7 +295,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param secondSource the second source being compared
    * @return `true` if the two sources are equivalent
    */
-  bool equals5(Source firstSource, Source secondSource) {
+  bool equals6(Source firstSource, Source secondSource) {
     if (firstSource == null) {
       return secondSource == null;
     } else if (secondSource == null) {
@@ -379,7 +379,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   bool foundAndRemoved(List<AnalysisError> errors, AnalysisError targetError) {
     for (AnalysisError error in errors) {
-      if (equals4(error, targetError)) {
+      if (equals5(error, targetError)) {
         errors.remove(error);
         return true;
       }
