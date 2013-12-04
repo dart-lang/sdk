@@ -525,6 +525,7 @@ struct MemberDesc {
     has_var = false;
     has_factory = false;
     has_operator = false;
+    has_native = false;
     metadata_pos = -1;
     operator_token = Token::kILLEGAL;
     type = NULL;
@@ -576,6 +577,7 @@ struct MemberDesc {
   bool has_var;
   bool has_factory;
   bool has_operator;
+  bool has_native;
   intptr_t metadata_pos;
   Token::Kind operator_token;
   const AbstractType* type;
@@ -1574,6 +1576,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
                         /* is_const = */ false,
                         /* is_abstract = */ false,
                         /* is_external = */ false,
+                        /* is_native = */ false,
                         current_class(),
                         parameter.name_pos));
       signature_function.set_result_type(result_type);
@@ -3274,6 +3277,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     ParseNativeDeclaration();
     method_end_pos = TokenPos();
     ExpectSemicolon();
+    method->has_native = true;
   } else {
     // We haven't found a method body. Issue error if one is required.
     const bool must_have_body =
@@ -3329,6 +3333,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->has_const,
                     method->has_abstract,
                     method->has_external,
+                    method->has_native,
                     current_class(),
                     method->decl_begin_pos));
   func.set_result_type(*method->type);
@@ -3446,6 +3451,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                field->has_const,
                                /* is_abstract = */ false,
                                /* is_external = */ false,
+                               /* is_native = */ false,
                                current_class(),
                                field->name_pos);
         getter.set_result_type(*field->type);
@@ -3468,6 +3474,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                              field->has_final,
                              /* is_abstract = */ false,
                              /* is_external = */ false,
+                             /* is_native = */ false,
                              current_class(),
                              field->name_pos);
       ParamList params;
@@ -3484,6 +3491,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                field->has_final,
                                /* is_abstract = */ false,
                                /* is_external = */ false,
+                               /* is_native = */ false,
                                current_class(),
                                field->name_pos);
         ParamList params;
@@ -4010,6 +4018,7 @@ void Parser::AddImplicitConstructor(const Class& cls) {
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
+                    /* is_native = */ false,
                     cls,
                     cls.token_pos()));
   ctor.set_end_token_pos(ctor.token_pos());
@@ -4238,6 +4247,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
+                    /* is_native = */ false,
                     function_type_alias,
                     alias_name_pos));
   signature_function.set_result_type(result_type);
@@ -4571,6 +4581,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                                is_const,
                                /* is_abstract = */ false,
                                /* is_external = */ false,
+                               /* is_native = */ false,
                                current_class(),
                                name_pos);
         getter.set_result_type(type);
@@ -4651,6 +4662,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   ParseFormalParameterList(allow_explicit_default_values, false, &params);
 
   intptr_t function_end_pos = function_pos;
+  bool is_native = false;
   if (is_external) {
     function_end_pos = TokenPos();
     ExpectSemicolon();
@@ -4667,6 +4679,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ParseNativeDeclaration();
     function_end_pos = TokenPos();
     ExpectSemicolon();
+    is_native = true;
   } else {
     ErrorMsg("function block expected");
   }
@@ -4677,6 +4690,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     is_external,
+                    is_native,
                     current_class(),
                     decl_begin_pos));
   func.set_result_type(result_type);
@@ -4781,6 +4795,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   }
 
   intptr_t accessor_end_pos = accessor_pos;
+  bool is_native = false;
   if (is_external) {
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
@@ -4797,17 +4812,19 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     ParseNativeDeclaration();
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
+    is_native = true;
   } else {
     ErrorMsg("function block expected");
   }
   Function& func = Function::Handle(
       Function::New(accessor_name,
-                    is_getter? RawFunction::kGetterFunction :
-                               RawFunction::kSetterFunction,
+                    is_getter ? RawFunction::kGetterFunction :
+                                RawFunction::kSetterFunction,
                     is_static,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     is_external,
+                    is_native,
                     current_class(),
                     decl_begin_pos));
   func.set_result_type(result_type);
@@ -5287,7 +5304,7 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
 // Builds ReturnNode/NativeBodyNode for a native function.
 void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                       const Function& func) {
-  func.set_is_native(true);
+  ASSERT(func.is_native());
   TRACE_PARSER("ParseNativeFunctionBlock");
   const Class& cls = Class::Handle(func.Owner());
   const Library& library = Library::Handle(cls.library());

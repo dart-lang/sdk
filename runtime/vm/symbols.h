@@ -134,9 +134,9 @@ class ObjectPointerVisitor;
   V(Int, "int")                                                                \
   V(Double, "double")                                                          \
   V(_Float32x4, "_Float32x4")                                                  \
-  V(_Int32x4, "_Int32x4")                                                    \
+  V(_Int32x4, "_Int32x4")                                                      \
   V(Float32x4, "Float32x4")                                                    \
-  V(Int32x4, "Int32x4")                                                      \
+  V(Int32x4, "Int32x4")                                                        \
   V(Int8List, "Int8List")                                                      \
   V(Int8ListFactory, "Int8List.")                                              \
   V(Uint8List, "Uint8List")                                                    \
@@ -157,8 +157,8 @@ class ObjectPointerVisitor;
   V(Uint64ListFactory, "Uint64List.")                                          \
   V(Float32x4List, "Float32x4List")                                            \
   V(Float32x4ListFactory, "Float32x4List.")                                    \
-  V(Int32x4List, "Int32x4List")                                              \
-  V(Int32x4ListFactory, "Int32x4List.")                                      \
+  V(Int32x4List, "Int32x4List")                                                \
+  V(Int32x4ListFactory, "Int32x4List.")                                        \
   V(Float32List, "Float32List")                                                \
   V(Float32ListFactory, "Float32List.")                                        \
   V(Float64List, "Float64List")                                                \

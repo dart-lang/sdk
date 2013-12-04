@@ -77,6 +77,7 @@ static RawFunction* CreateMethodExtractor(const String& getter_name,
                   false,  // Not const.
                   false,  // Not abstract.
                   false,  // Not external.
+                  false,  // Not native.
                   owner,
                   0));  // No token position.
 

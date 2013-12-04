@@ -1188,6 +1188,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                             /* is_const = */ field.is_const(),
                             /* is_abstract = */ false,
                             /* is_external = */ false,
+                            /* is_native = */ false,
                             cls,
                             field.token_pos()));
           getter.set_result_type(type);
@@ -1798,6 +1799,7 @@ void ClassFinalizer::CreateForwardingConstructors(
                         false,  // Not const.
                         false,  // Not abstract.
                         false,  // Not external.
+                        false,  // Not native.
                         mixin_app,
                         mixin_app.token_pos()));
 

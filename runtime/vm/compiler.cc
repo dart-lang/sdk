@@ -922,10 +922,11 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     const Function& func = Function::ZoneHandle(Function::New(
         String::Handle(Symbols::New(kEvalConst)),
         RawFunction::kRegularFunction,
-        true,  // static function.
-        false,  // not const function.
+        true,  // static function
+        false,  // not const function
         false,  // not abstract
-        false,  // not external.
+        false,  // not external
+        false,  // not native
         Class::Handle(Type::Handle(Type::Function()).type_class()),
         fragment->token_pos()));
 

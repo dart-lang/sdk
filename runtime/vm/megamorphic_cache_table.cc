@@ -64,6 +64,7 @@ void MegamorphicCacheTable::InitMissHandler() {
                                      false,  // Not const.
                                      false,  // Not abstract.
                                      false,  // Not external.
+                                     false,  // Not native.
                                      cls,
                                      0));  // No token position.
   miss_handler_code_ = code.raw();

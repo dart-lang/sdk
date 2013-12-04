@@ -2129,6 +2129,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
                     false,  // Not const.
                     false,  // Not abstract.
                     false,  // Not external.
+                    false,  // Not native.
                     *this,
                     0));  // No token position.
   ArgumentsDescriptor desc(args_desc);
@@ -2337,6 +2338,7 @@ RawObject* Class::Evaluate(const String& expr) const {
                                      false,  // Not const.
                                      false,  // Not abstract.
                                      false,  // Not external.
+                                     false,  // Not native.
                                      temp_class,
                                      0));
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));
@@ -5042,6 +5044,7 @@ RawFunction* Function::New(const String& name,
                            bool is_const,
                            bool is_abstract,
                            bool is_external,
+                           bool is_native,
                            const Object& owner,
                            intptr_t token_pos) {
   ASSERT(!owner.IsNull());
@@ -5054,6 +5057,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_const(is_const);
   result.set_is_abstract(is_abstract);
   result.set_is_external(is_external);
+  result.set_is_native(is_native);
   result.set_is_visible(true);  // Will be computed later.
   result.set_is_intrinsic(false);
   result.set_is_recognized(false);
@@ -5069,7 +5073,6 @@ RawFunction* Function::New(const String& name,
   result.set_optimized_call_site_count(0);
   result.set_is_optimizable(true);
   result.set_has_finally(false);
-  result.set_is_native(false);
   result.set_is_inlinable(true);
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
@@ -5111,6 +5114,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
+                    parent.is_native(),
                     parent_owner,
                     token_pos));
   result.set_parent_function(parent);
@@ -5497,6 +5501,7 @@ RawFunction* Function::NewStaticInitializer(const Field& field) {
                     false,  // !const
                     false,  // !abstract
                     false,  // !external
+                    false,  // !native
                     Class::Handle(field.owner()),
                     field.token_pos()));
   init_function.set_result_type(AbstractType::Handle(field.type()));
@@ -11040,6 +11045,7 @@ RawObject* Instance::Evaluate(const String& expr) const {
                                      false,  // Not const.
                                      false,  // Not abstract.
                                      false,  // Not external.
+                                     false,  // Not native.
                                      temp_class,
                                      0));
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));

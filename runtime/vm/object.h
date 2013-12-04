@@ -1888,6 +1888,7 @@ class Function : public Object {
                           bool is_const,
                           bool is_abstract,
                           bool is_external,
+                          bool is_native,
                           const Object& owner,
                           intptr_t token_pos);
 
