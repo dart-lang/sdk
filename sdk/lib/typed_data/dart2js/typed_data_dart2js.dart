@@ -456,78 +456,16 @@ class ByteData extends TypedData native "DataView" {
       JS('ByteData', 'new DataView(#, #, #)', arg1, arg2, arg3);
 }
 
-
-// TODO(sra): Move this type to a public name in a private library so that other
-// platform libraries like dart:html and dart:webaudio can tell a native array
-// from a list that implements the implicit interface.
-class _NativeTypedArray extends TypedData
-    implements JavaScriptIndexingBehavior {
-  int get length => JS("JSUInt32", '#.length', this);
-
-  bool _setRangeFast(int start, int end,
-      _NativeTypedArray source, int skipCount) {
-    int targetLength = this.length;
-    _checkIndex(start, targetLength + 1);
-    _checkIndex(end, targetLength + 1);
-    if (start > end) throw new RangeError.range(start, 0, end);
-    int count = end - start;
-
-    if (skipCount < 0) throw new ArgumentError(skipCount);
-
-    int sourceLength = source.length;
-    if (sourceLength - skipCount < count)  {
-      throw new StateError("Not enough elements");
-    }
-
-    if (skipCount != 0 || sourceLength != count) {
-      // Create a view of the exact subrange that is copied from the source.
-      source = JS('', '#.subarray(#, #)',
-          source, skipCount, skipCount + count);
-    }
-    JS('void', '#.set(#, #)', this, source, start);
-  }
-}
-
-// TODO(sra): Move to private library, like [_NativeTypedArray].
-class _NativeTypedArrayOfDouble
-    extends _NativeTypedArray
-        with ListMixin<double>, FixedLengthListMixin<double>
-    implements List<double> {
-
-  void setRange(int start, int end, Iterable<double> iterable,
-                [int skipCount = 0]) {
-    if (iterable is _NativeTypedArrayOfDouble) {
-      _setRangeFast(start, end, iterable, skipCount);
-      return;
-    }
-    super.setRange(start, end, iterable, skipCount);
-  }
-}
-
-// TODO(sra): Move to private library, like [_NativeTypedArray].
-class _NativeTypedArrayOfInt
-    extends _NativeTypedArray
-        with ListMixin<int>, FixedLengthListMixin<int>
-    implements List<int> {
-
-  void setRange(int start, int end, Iterable<int> iterable,
-                [int skipCount = 0]) {
-    if (iterable is _NativeTypedArrayOfInt) {
-      _setRangeFast(start, end, iterable, skipCount);
-      return;
-    }
-    super.setRange(start, end, iterable, skipCount);
-  }
-}
-
-
 /**
  * A fixed-length list of IEEE 754 single-precision binary floating-point
  * numbers  that is viewable as a [TypedData]. For long lists, this
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
-class Float32List extends _NativeTypedArrayOfDouble native "Float32Array" {
+class Float32List
+    extends TypedData with ListMixin<double>, FixedLengthListMixin<double>
+    implements JavaScriptIndexingBehavior, List<double>
+    native "Float32Array" {
   /**
    * Creates a [Float32List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -564,6 +502,8 @@ class Float32List extends _NativeTypedArrayOfDouble native "Float32Array" {
 
   static const int BYTES_PER_ELEMENT = 4;
 
+  int get length => JS("JSUInt32", '#.length', this);
+
   num operator[](int index) {
     _checkIndex(index, length);
     return JS("num", "#[#]", this, index);
@@ -597,7 +537,10 @@ class Float32List extends _NativeTypedArrayOfDouble native "Float32Array" {
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
-class Float64List extends _NativeTypedArrayOfDouble native "Float64Array" {
+class Float64List
+    extends TypedData with ListMixin<double>, FixedLengthListMixin<double>
+    implements JavaScriptIndexingBehavior, List<double>
+    native "Float64Array" {
   /**
    * Creates a [Float64List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -634,6 +577,8 @@ class Float64List extends _NativeTypedArrayOfDouble native "Float64Array" {
 
   static const int BYTES_PER_ELEMENT = 8;
 
+  int get length => JS("JSUInt32", '#.length', this);
+
   num operator[](int index) {
     _checkIndex(index, length);
     return JS("num", "#[#]", this, index);
@@ -669,7 +614,10 @@ class Float64List extends _NativeTypedArrayOfDouble native "Float64Array" {
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int16List extends _NativeTypedArrayOfInt native "Int16Array" {
+class Int16List
+    extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
+    implements JavaScriptIndexingBehavior, List<int>
+    native "Int16Array" {
   /**
    * Creates an [Int16List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -705,6 +653,8 @@ class Int16List extends _NativeTypedArrayOfInt native "Int16Array" {
 
   static const int BYTES_PER_ELEMENT = 2;
 
+  int get length => JS("JSUInt32", '#.length', this);
+
   int operator[](int index) {
     _checkIndex(index, length);
     return JS("int", "#[#]", this, index);
@@ -737,7 +687,10 @@ class Int16List extends _NativeTypedArrayOfInt native "Int16Array" {
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int32List extends _NativeTypedArrayOfInt native "Int32Array" {
+class Int32List
+    extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
+    implements JavaScriptIndexingBehavior, List<int>
+    native "Int32Array" {
   /**
    * Creates an [Int32List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -773,6 +726,8 @@ class Int32List extends _NativeTypedArrayOfInt native "Int32Array" {
 
   static const int BYTES_PER_ELEMENT = 4;
 
+  int get length => JS("JSUInt32", '#.length', this);
+
   int operator[](int index) {
     _checkIndex(index, length);
     return JS("int", "#[#]", this, index);
@@ -805,7 +760,10 @@ class Int32List extends _NativeTypedArrayOfInt native "Int32Array" {
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int8List extends _NativeTypedArrayOfInt native "Int8Array" {
+class Int8List
+    extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
+    implements JavaScriptIndexingBehavior, List<int>
+    native "Int8Array" {
   /**
    * Creates an [Int8List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -837,6 +795,8 @@ class Int8List extends _NativeTypedArrayOfInt native "Int8Array" {
           : _create3(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
+
+  int get length => JS("JSUInt32", '#.length', this);
 
   int operator[](int index) {
     _checkIndex(index, length);
@@ -870,7 +830,10 @@ class Int8List extends _NativeTypedArrayOfInt native "Int8Array" {
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint16List extends _NativeTypedArrayOfInt native "Uint16Array" {
+class Uint16List
+    extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
+    implements JavaScriptIndexingBehavior, List<int>
+    native "Uint16Array" {
   /**
    * Creates a [Uint16List] of the specified length (in elements), all
    * of whose elements are initially zero.
@@ -907,6 +870,8 @@ class Uint16List extends _NativeTypedArrayOfInt native "Uint16Array" {
 
   static const int BYTES_PER_ELEMENT = 2;
 
+  int get length => JS("JSUInt32", '#.length', this);
+
   int operator[](int index) {
     _checkIndex(index, length);
     return JS("JSUInt31", "#[#]", this, index);
@@ -939,7 +904,10 @@ class Uint16List extends _NativeTypedArrayOfInt native "Uint16Array" {
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint32List extends _NativeTypedArrayOfInt native "Uint32Array" {
+class Uint32List
+    extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
+    implements JavaScriptIndexingBehavior, List<int>
+    native "Uint32Array" {
   /**
    * Creates a [Uint32List] of the specified length (in elements), all
    * of whose elements are initially zero.
@@ -976,6 +944,8 @@ class Uint32List extends _NativeTypedArrayOfInt native "Uint32Array" {
 
   static const int BYTES_PER_ELEMENT = 4;
 
+  int get length => JS("JSUInt32", '#.length', this);
+
   int operator[](int index) {
     _checkIndex(index, length);
     return JS("JSUInt32", "#[#]", this, index);
@@ -1009,7 +979,8 @@ class Uint32List extends _NativeTypedArrayOfInt native "Uint32Array" {
  * more space- and time-efficient than the default [List] implementation.
  * Indexed store clamps the value to range 0..0xFF.
  */
-class Uint8ClampedList extends _NativeTypedArrayOfInt
+class Uint8ClampedList extends TypedData with ListMixin<int>,
+    FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int>
     native "Uint8ClampedArray,CanvasPixelArray" {
   /**
    * Creates a [Uint8ClampedList] of the specified length (in elements), all of
@@ -1079,7 +1050,9 @@ class Uint8ClampedList extends _NativeTypedArrayOfInt
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint8List extends _NativeTypedArrayOfInt
+class Uint8List
+    extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
+    implements JavaScriptIndexingBehavior, List<int>
     // On some browsers Uint8ClampedArray is a subtype of Uint8Array.  Marking
     // Uint8List as !nonleaf ensures that the native dispatch correctly handles
     // the potential for Uint8ClampedArray to 'accidentally' pick up the
@@ -1152,9 +1125,7 @@ class Uint8List extends _NativeTypedArrayOfInt
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int64List
-    extends TypedData
-    implements JavaScriptIndexingBehavior, List<int> {
+class Int64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
   /**
    * Creates an [Int64List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1199,9 +1170,7 @@ class Int64List
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint64List
-    extends TypedData
-    implements JavaScriptIndexingBehavior, List<int> {
+class Uint64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
   /**
    * Creates a [Uint64List] of the specified length (in elements), all
    * of whose elements are initially zero.
