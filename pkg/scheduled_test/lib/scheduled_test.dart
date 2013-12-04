@@ -191,6 +191,7 @@ library scheduled_test;
 
 import 'dart:async';
 
+import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart' as unittest;
 
 import 'src/schedule.dart';
@@ -230,22 +231,26 @@ void _test(String description, void body(), Function testFn) {
   _ensureInitialized();
   _ensureSetUpForTopLevel();
   testFn(description, () {
-    var asyncDone = unittest.expectAsync0(() {});
-    return currentSchedule.run(() {
-      if (_setUpFn != null) _setUpFn();
-      body();
-    }).then((_) {
-      // If we got here, the test completed successfully so tell unittest so.
-      asyncDone();
-    }).catchError((e) {
+    var completer = new Completer();
+
+    Chain.capture(() {
+      _currentSchedule = new Schedule();
+      return currentSchedule.run(() {
+        if (_setUpFn != null) _setUpFn();
+        body();
+      }).then(completer.complete);
+    }, onError: (e, chain) {
       if (e is ScheduleError) {
         assert(e.schedule.errors.contains(e));
         assert(e.schedule == currentSchedule);
         unittest.registerException(e.schedule.errorString());
       } else {
-        unittest.registerException(e);
+        unittest.registerException(e, chain);
       }
+      completer.complete();
     });
+
+    return completer.future;
   });
 }
 
@@ -317,7 +322,6 @@ void _setUpScheduledTest([void setUpFn()]) {
         throw new StateError('There seems to be another scheduled test '
             'still running.');
       }
-      _currentSchedule = new Schedule();
       if (_setUpFn != null) {
         var parentFn = _setUpFn;
         _setUpFn = () { parentFn(); setUpFn(); };
@@ -332,9 +336,7 @@ void _setUpScheduledTest([void setUpFn()]) {
     });
   } else {
     unittest.setUp(() {
-      if (currentSchedule == null) {
-        throw new StateError('No schedule allocated.');
-      } else if (_setUpFn != null) {
+      if (_setUpFn != null) {
         var parentFn = _setUpFn;
         _setUpFn = () { parentFn(); setUpFn(); };
       } else {

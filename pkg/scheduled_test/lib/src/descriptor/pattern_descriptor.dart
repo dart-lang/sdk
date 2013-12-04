@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';
@@ -112,5 +113,6 @@ class PatternDescriptor extends Descriptor {
   }
 
   Future create([String parent]) => new Future.error(
-      new UnsupportedError("Pattern descriptors don't support create()."));
+      new UnsupportedError("Pattern descriptors don't support create()."),
+      new Chain.current());
 }

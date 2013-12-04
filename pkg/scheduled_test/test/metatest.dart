@@ -204,7 +204,7 @@ class _MetaConfiguration extends Configuration {
         "description": testCase.description,
         "message": testCase.message,
         "result": testCase.result,
-        "stackTrace": testCase.stackTrace
+        "stackTrace": testCase.stackTrace.toString()
       }).toList()
     });
   }

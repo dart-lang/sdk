@@ -31,6 +31,9 @@ void chainToCompleter(Future future, Completer completer) {
   future.then(completer.complete, onError: completer.completeError);
 }
 
+/// Like [Future.sync], but wraps the Future in [Chain.track] as well.
+Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
+
 /// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
 /// first line is prefixed with that instead.
 String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
@@ -71,10 +74,6 @@ bool orderedIterableEquals(Iterable iterable1, Iterable iterable2) {
     if (iter1.current != iter2.current) return false;
   }
 }
-
-// TODO(nweiz): remove this when issue 8731 is fixed.
-/// Returns a [Stream] that will immediately emit [error] and then close.
-Stream errorStream(error) => new Future.error(error).asStream();
 
 /// Returns a buffered stream that will emit the same values as the stream
 /// returned by [future] once [future] completes.
@@ -127,12 +126,11 @@ Stream futureStream(Future<Stream> future, {bool broadcast: false}) {
 ///
 /// If the [StreamIterator] has no elements, the result is a state error.
 Future<String> streamIteratorFirst(StreamIterator<String> streamIterator) {
-  StackTrace stackTrace = new Trace.current();
   return streamIterator.moveNext().then((hasNext) {
     if (hasNext) {
       return streamIterator.current;
     } else {
-      return new Future.error(new StateError("No elements"), stackTrace);
+      throw new StateError("No elements");
     }
   });
 }
@@ -233,8 +231,12 @@ bool fullMatch(String string, Pattern pattern) {
 /// Returns a string representation of [trace] that has the core and test frames
 /// folded together.
 String terseTraceString(StackTrace trace) {
-  return new Trace.from(trace).terse.foldFrames((frame) {
-    return frame.package == 'scheduled_test' || frame.package == 'unittest' ||
-        frame.isCore;
-  }).toString().trim();
+  return new Chain(new Chain.forTrace(trace).traces.map((trace) {
+    return trace.foldFrames((frame) {
+      return frame.package == 'scheduled_test' ||
+             frame.package == 'unittest' ||
+             frame.package == 'stack_trace' ||
+             frame.isCore;
+    });
+  })).terse.toString().trim();
 }

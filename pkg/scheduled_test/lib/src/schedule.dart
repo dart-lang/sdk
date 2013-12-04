@@ -426,7 +426,7 @@ class TaskQueue {
     }
 
     var task = new Task(() {
-      return new Future.sync(fn).catchError((e, stackTrace) {
+      return syncFuture(fn).catchError((e, stackTrace) {
         throw new ScheduleError.from(_schedule, e, stackTrace: stackTrace);
       });
     }, description, this);
@@ -495,15 +495,15 @@ class TaskQueue {
       _schedule.currentQueue != this || pendingCallbacks.isEmpty;
 
     _totalCallbacks++;
-    var trace = new Trace.current();
+    var chain = new Chain.current();
     var pendingCallback = new PendingCallback._(() {
       var fullDescription = description;
       if (fullDescription == null) {
         fullDescription = "Out-of-band operation #${_totalCallbacks}";
       }
 
-      var stackString = prefixLines(terseTraceString(trace));
-      fullDescription += "\n\nStack trace:\n$stackString";
+      var stackString = prefixLines(terseTraceString(chain));
+      fullDescription += "\n\nStack chain:\n$stackString";
       return fullDescription;
     });
     _pendingCallbacks.add(pendingCallback);

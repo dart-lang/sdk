@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'scheduled_test.dart';
 import 'src/utils.dart';
 import 'src/value_future.dart';
@@ -97,12 +99,12 @@ class ScheduledProcess {
     _scheduleExceptionCleanup();
 
     var stdoutWithCanceller = _lineStreamWithCanceller(
-        _process.then((p) => p.stdout));
+        _process.then((p) => Chain.track(p.stdout)));
     _stdoutCanceller = stdoutWithCanceller.last;
     _stdoutLog = stdoutWithCanceller.first;
 
     var stderrWithCanceller = _lineStreamWithCanceller(
-        _process.then((p) => p.stderr));
+        _process.then((p) => Chain.track(p.stderr)));
     _stderrCanceller = stderrWithCanceller.last;
     _stderrLog = stderrWithCanceller.first;
 
@@ -150,10 +152,11 @@ class ScheduledProcess {
         workingDirectory = results[2];
         environment = results[3];
         _updateDescription(executable, arguments);
-        return Process.start(executable,
-                             arguments,
-                             workingDirectory: workingDirectory,
-                             environment: environment).then((process) {
+        return Chain.track(
+            Process.start(executable,
+                          arguments,
+                          workingDirectory: workingDirectory,
+                          environment: environment)).then((process) {
           process.stdin.encoding = UTF8;
           return process;
         });
@@ -169,7 +172,7 @@ class ScheduledProcess {
     // process is running, we want the schedule to move to the onException
     // queue where the process will be killed, rather than blocking the tasks
     // queue waiting for the process to exit.
-    _process.then((p) => p.exitCode).then((exitCode) {
+    _process.then((p) => Chain.track(p.exitCode)).then((exitCode) {
       if (_endExpected) {
         exitCodeCompleter.complete(exitCode);
         return;

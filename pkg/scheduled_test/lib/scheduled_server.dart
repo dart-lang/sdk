@@ -8,9 +8,12 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'scheduled_test.dart';
 import 'src/scheduled_server/handler.dart';
 import 'src/scheduled_server/safe_http_server.dart';
+import 'src/utils.dart';
 
 typedef Future ScheduledHandler(HttpRequest request);
 
@@ -46,8 +49,8 @@ class ScheduledServer {
 
     var scheduledServer;
     scheduledServer = new ScheduledServer._(schedule(() {
-      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
-        server.listen(scheduledServer._handleRequest,
+      return Chain.track(SafeHttpServer.bind("127.0.0.1", 0)).then((server) {
+        Chain.track(server).listen(scheduledServer._handleRequest,
             onError: currentSchedule.signalError);
         currentSchedule.onComplete.schedule(server.close);
         return server;
@@ -89,7 +92,7 @@ class ScheduledServer {
   /// responsibility to check that the method/path are correct and that it's
   /// being run at the correct time.
   void _handleRequest(HttpRequest request) {
-    wrapFuture(new Future.sync(() {
+    wrapFuture(syncFuture(() {
       if (_handlers.isEmpty) {
         fail("'$description' received ${request.method} ${request.uri.path} "
              "when no more requests were expected.");
