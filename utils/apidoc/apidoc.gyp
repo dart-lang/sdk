@@ -91,7 +91,6 @@
             '--exclude-lib=dartdoc',
             '--exclude-lib=docgen',
             '--exclude-lib=expect',
-            '--exclude-lib=http',
             '--exclude-lib=oauth2',
             '--exclude-lib=scheduled_test',
             '--exclude-lib=stack_trace',
