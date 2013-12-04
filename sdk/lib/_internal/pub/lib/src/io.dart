@@ -16,10 +16,19 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'error_group.dart';
 import 'log.dart' as log;
+import 'pool.dart';
 import 'sdk.dart' as sdk;
 import 'utils.dart';
 
 export 'package:http/http.dart' show ByteStream;
+
+/// The pool used for restricting access to asynchronous operations that consume
+/// file descriptors.
+///
+/// The maximum number of allocated descriptors is based on empirical tests that
+/// indicate that beyond 32, additional file reads don't provide substantial
+/// additional throughput.
+final _descriptorPool = new Pool(32);
 
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.
@@ -179,9 +188,11 @@ String writeBinaryFile(String file, List<int> contents) {
 Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
   log.io("Creating $file from stream.");
 
-  return stream.pipe(new File(file).openWrite()).then((_) {
-    log.fine("Created $file from stream.");
-    return file;
+  return _descriptorPool.withResource(() {
+    return stream.pipe(new File(file).openWrite()).then((_) {
+      log.fine("Created $file from stream.");
+      return file;
+    });
   });
 }
 
@@ -486,6 +497,7 @@ Future store(Stream stream, EventSink sink,
 /// the inherited variables.
 Future<PubProcessResult> runProcess(String executable, List<String> args,
     {workingDir, Map<String, String> environment}) {
+  // TODO(nweiz): use _descriptorPool here.
   return _doProcess(Process.run, executable, args, workingDir, environment)
       .then((result) {
     // TODO(rnystrom): Remove this and change to returning one string.
@@ -511,9 +523,11 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 /// [environment] is provided, that will be used to augment (not replace) the
 /// the inherited variables.
 Future<PubProcess> startProcess(String executable, List<String> args,
-    {workingDir, Map<String, String> environment}) =>
-  _doProcess(Process.start, executable, args, workingDir, environment)
-      .then((process) => new PubProcess(process));
+    {workingDir, Map<String, String> environment}) {
+  // TODO(nweiz): use _descriptorPool here.
+  return _doProcess(Process.start, executable, args, workingDir, environment)
+      .then((ioProcess) => new PubProcess(ioProcess));
+}
 
 /// A wrapper around [Process] that exposes `dart:async`-style APIs.
 class PubProcess {
@@ -691,7 +705,8 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
       throw new Exception("Failed to extract .tar.gz stream to $destination "
           "(exit code $exitCode).");
     }
-    log.fine("Extracted .tar.gz stream to $destination. Exit code $exitCode.");
+    log.fine("Extracted .tar.gz stream to $destination. Exit code "
+        "$exitCode.");
   });
 }
 
@@ -713,10 +728,14 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
     // Write the archive to a temp file.
     var dataFile = path.join(tempDir, 'data.tar.gz');
     return createFileFromStream(stream, dataFile).then((_) {
-      // TODO(nweiz): get rid of this as soon as we know whether the windows bot
-      // failures are due to a timing issue.
-      return new Future.delayed(new Duration(seconds: 2));
-    }).then((_) {
+      log.io("Does $dataFile exist? ${fileExists(dataFile)}");
+      try {
+        readBinaryFile(dataFile);
+        log.io("Can read $dataFile.");
+      } on IOException catch (e) {
+        log.io("Cannot read $dataFile: $e");
+      }
+
       // 7zip can't unarchive from gzip -> tar -> destination all in one step
       // first we un-gzip it to a tar file.
       // Note: Setting the working directory instead of passing in a full file
@@ -756,70 +775,60 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
 /// considered to be [baseDir], which defaults to the current working directory.
 /// Returns a [ByteStream] that will emit the contents of the archive.
 ByteStream createTarGz(List contents, {baseDir}) {
-  var buffer = new StringBuffer();
-  buffer.write('Creating .tag.gz stream containing:\n');
-  contents.forEach((file) => buffer.write('$file\n'));
-  log.fine(buffer.toString());
+  return new ByteStream(futureStream(_descriptorPool.request().then((resource) {
+    return new Future.sync(() {
+      var buffer = new StringBuffer();
+      buffer.write('Creating .tag.gz stream containing:\n');
+      contents.forEach((file) => buffer.write('$file\n'));
+      log.fine(buffer.toString());
 
-  var controller = new StreamController<List<int>>(sync: true);
+      var controller = new StreamController<List<int>>(sync: true);
 
-  if (baseDir == null) baseDir = path.current;
-  baseDir = path.absolute(baseDir);
-  contents = contents.map((entry) {
-    entry = path.absolute(entry);
-    if (!isBeneath(entry, baseDir)) {
-      throw new ArgumentError('Entry $entry is not inside $baseDir.');
-    }
-    return path.relative(entry, from: baseDir);
-  }).toList();
+      if (baseDir == null) baseDir = path.current;
+      baseDir = path.absolute(baseDir);
+      contents = contents.map((entry) {
+        entry = path.absolute(entry);
+        if (!isBeneath(entry, baseDir)) {
+          throw new ArgumentError('Entry $entry is not inside $baseDir.');
+        }
+        return path.relative(entry, from: baseDir);
+      }).toList();
 
-  if (Platform.operatingSystem != "windows") {
-    var args = ["--create", "--gzip", "--directory", baseDir];
-    args.addAll(contents);
-    // TODO(nweiz): It's possible that enough command-line arguments will make
-    // the process choke, so at some point we should save the arguments to a
-    // file and pass them in via --files-from for tar and -i@filename for 7zip.
-    startProcess("tar", args).then((process) {
-      store(process.stdout, controller);
-    }).catchError((e, stackTrace) {
-      // We don't have to worry about double-signaling here, since the store()
-      // above will only be reached if startProcess succeeds.
-      controller.addError(e, stackTrace);
-      controller.close();
+      if (Platform.operatingSystem != "windows") {
+        var args = ["--create", "--gzip", "--directory", baseDir];
+        args.addAll(contents);
+        // TODO(nweiz): It's possible that enough command-line arguments will
+        // make the process choke, so at some point we should save the arguments
+        // to a file and pass them in via --files-from for tar and -i@filename
+        // for 7zip.
+        return startProcess("tar", args).then((process) => process.stdout);
+      }
+
+      return withTempDir((tempDir) {
+        // Create the tar file.
+        var tarFile = path.join(tempDir, "intermediate.tar");
+        var args = ["a", "-w$baseDir", tarFile];
+        args.addAll(contents.map((entry) => '-i!$entry'));
+
+        // We're passing 'baseDir' both as '-w' and setting it as the working
+        // directory explicitly here intentionally. The former ensures that the
+        // files added to the archive have the correct relative path in the
+        // archive. The latter enables relative paths in the "-i" args to be
+        // resolved.
+        return runProcess(pathTo7zip, args, workingDir: baseDir).then((_) {
+          // GZIP it. 7zip doesn't support doing both as a single operation.
+          // Send the output to stdout.
+          args = ["a", "unused", "-tgzip", "-so", tarFile];
+          return startProcess(pathTo7zip, args);
+        }).then((process) => process.stdout);
+      });
+    }).then((stream) {
+      return stream.transform(onDoneTransformer(() => resource.release()));
+    }).catchError((e) {
+      resource.release();
+      throw e;
     });
-    return new ByteStream(controller.stream);
-  }
-
-  withTempDir((tempDir) {
-    // Create the tar file.
-    var tarFile = path.join(tempDir, "intermediate.tar");
-    var args = ["a", "-w$baseDir", tarFile];
-    args.addAll(contents.map((entry) => '-i!$entry'));
-
-    // We're passing 'baseDir' both as '-w' and setting it as the working
-    // directory explicitly here intentionally. The former ensures that the
-    // files added to the archive have the correct relative path in the archive.
-    // The latter enables relative paths in the "-i" args to be resolved.
-    return runProcess(pathTo7zip, args, workingDir: baseDir).then((_) {
-      // GZIP it. 7zip doesn't support doing both as a single operation. Send
-      // the output to stdout.
-      args = ["a", "unused", "-tgzip", "-so", tarFile];
-      return startProcess(pathTo7zip, args);
-    }).then((process) {
-      // Ignore 7zip's stderr. 7zip writes its normal output to stderr. We don't
-      // want to show that since it's meaningless.
-      //
-      // TODO(rnystrom): Should log the stderr and display it if an actual error
-      // occurs.
-      return store(process.stdout, controller);
-    });
-  }).catchError((e, stackTrace) {
-    // We don't have to worry about double-signaling here, since the store()
-    // above will only be reached if everything succeeds.
-    controller.addError(e, stackTrace);
-    controller.close();
-  });
-  return new ByteStream(controller.stream);
+  })));
 }
 
 /// Contains the results of invoking a [Process] and waiting for it to complete.
