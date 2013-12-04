@@ -8,14 +8,21 @@ class _InstanceBindingMap {
   final List bindings;
   final List<_InstanceBindingMap> children;
   final Node templateRef;
+  final bool hasSubTemplate;
 
-  _InstanceBindingMap._(this.bindings, this.children, this.templateRef);
+  _InstanceBindingMap._(this.bindings, this.children, this.templateRef,
+      this.hasSubTemplate);
 
   factory _InstanceBindingMap(Node node, BindingDelegate delegate) {
     var bindings = _getBindings(node, delegate);
+
+    bool hasSubTemplate = false;
     Node templateRef = null;
 
-    if (isSemanticTemplate(node)) templateRef = node;
+    if (isSemanticTemplate(node)) {
+      templateRef = node;
+      hasSubTemplate = true;
+    }
 
     List children = null;
     for (var c = node.firstChild, i = 0; c != null; c = c.nextNode, i++) {
@@ -24,9 +31,13 @@ class _InstanceBindingMap {
 
       if (children == null) children = new List(node.nodes.length);
       children[i] = childMap;
+      if (childMap.hasSubTemplate) {
+        hasSubTemplate = true;
+      }
     }
 
-    return new _InstanceBindingMap._(bindings, children, templateRef);
+    return new _InstanceBindingMap._(bindings, children, templateRef,
+        hasSubTemplate);
   }
 }
 
