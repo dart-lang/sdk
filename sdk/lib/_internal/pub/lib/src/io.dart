@@ -186,10 +186,18 @@ String writeBinaryFile(String file, List<int> contents) {
 /// Writes [stream] to a new file at path [file]. Will replace any file already
 /// at that path. Completes when the file is done being written.
 Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
-  log.io("Creating $file from stream.");
+  // TODO(nweiz): remove extra logging when we figure out the windows bot issue.
+  log.io("Creating $file from stream (is the stream broadcast? "
+      "${stream.isBroadcast}).");
+
+  var pair = tee(stream);
+  pair.first.listen(
+      (data) => log.io("stream emitted ${data.length} bytes"),
+      onError: (error, st) => log.io("stream emitted $error\n$st"),
+      onDone: () => log.io("stream is done"));
 
   return _descriptorPool.withResource(() {
-    return stream.pipe(new File(file).openWrite()).then((_) {
+    return pair.last.pipe(new File(file).openWrite()).then((_) {
       log.fine("Created $file from stream.");
       return file;
     });
@@ -481,22 +489,23 @@ Future store(Stream stream, EventSink sink,
 /// the inherited variables.
 Future<PubProcessResult> runProcess(String executable, List<String> args,
     {workingDir, Map<String, String> environment}) {
-  // TODO(nweiz): use _descriptorPool here.
-  return _doProcess(Process.run, executable, args, workingDir, environment)
-      .then((result) {
-    // TODO(rnystrom): Remove this and change to returning one string.
-    List<String> toLines(String output) {
-      var lines = splitLines(output);
-      if (!lines.isEmpty && lines.last == "") lines.removeLast();
-      return lines;
-    }
+  return _descriptorPool.withResource(() {
+    return _doProcess(Process.run, executable, args, workingDir, environment)
+        .then((result) {
+      // TODO(rnystrom): Remove this and change to returning one string.
+      List<String> toLines(String output) {
+        var lines = splitLines(output);
+        if (!lines.isEmpty && lines.last == "") lines.removeLast();
+        return lines;
+      }
 
-    var pubResult = new PubProcessResult(toLines(result.stdout),
-                                toLines(result.stderr),
-                                result.exitCode);
+      var pubResult = new PubProcessResult(toLines(result.stdout),
+                                  toLines(result.stderr),
+                                  result.exitCode);
 
-    log.processResult(executable, pubResult);
-    return pubResult;
+      log.processResult(executable, pubResult);
+      return pubResult;
+    });
   });
 }
 
@@ -508,9 +517,14 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
 /// the inherited variables.
 Future<PubProcess> startProcess(String executable, List<String> args,
     {workingDir, Map<String, String> environment}) {
-  // TODO(nweiz): use _descriptorPool here.
-  return _doProcess(Process.start, executable, args, workingDir, environment)
-      .then((ioProcess) => new PubProcess(ioProcess));
+  return _descriptorPool.request().then((resource) {
+    return _doProcess(Process.start, executable, args, workingDir, environment)
+        .then((ioProcess) {
+      var process = new PubProcess(ioProcess);
+      process.exitCode.whenComplete(resource.release);
+      return process;
+    });
+  });
 }
 
 /// A wrapper around [Process] that exposes `dart:async`-style APIs.
@@ -689,8 +703,7 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
       throw new Exception("Failed to extract .tar.gz stream to $destination "
           "(exit code $exitCode).");
     }
-    log.fine("Extracted .tar.gz stream to $destination. Exit code "
-        "$exitCode.");
+    log.fine("Extracted .tar.gz stream to $destination. Exit code $exitCode.");
   });
 }
 
@@ -712,6 +725,8 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
     // Write the archive to a temp file.
     var dataFile = path.join(tempDir, 'data.tar.gz');
     return createFileFromStream(stream, dataFile).then((_) {
+      // TODO(nweiz): remove this when we're finished debugging the windows
+      // bots.
       log.io("Does $dataFile exist? ${fileExists(dataFile)}");
       try {
         readBinaryFile(dataFile);
