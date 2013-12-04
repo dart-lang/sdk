@@ -116,7 +116,6 @@ bool checkPaused() {
 typedef void HandlerType(Map response);
 
 HandlerType showPromptAfter(void handler(Map response)) {
-  // Hide the command prompt immediately.
   return (response) {
     handler(response);
     cmdo.show();

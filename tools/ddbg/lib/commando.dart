@@ -263,6 +263,8 @@ class Commando {
 
   void _clearScreen() {
     _stdout.write(_term.clear);
+    _term.resize();
+    _screenWidth = _term.cols - 1;
     _writePromptAndLine();
   }
 
@@ -372,7 +374,6 @@ class Commando {
     
     _currentLine = [];
     _cursorPos = 0;
-    _linePos = _lines.length;
     if (_promptShown) {
       _writePrompt();
     }
@@ -593,7 +594,6 @@ class Commando {
         
   int _nextMargin(int pos) {
     var truePos = pos + prompt.length;
-    var curLine = _getLine(pos);
     return ((truePos ~/ _screenWidth) + 1) * _screenWidth - prompt.length;
   }
 
