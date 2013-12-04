@@ -77,67 +77,9 @@ class FutureGroup<T> {
   Future<List> get future => _completer.future;
 }
 
-/// Returns a buffered stream that will emit the same values as the stream
-/// returned by [future] once [future] completes.
-///
-/// If [future] completes to an error, the return value will emit that error and
-/// then close.
-///
-/// If [broadcast] is true, a broadcast stream is returned. This assumes that
-/// the stream returned by [future] will be a broadcast stream as well.
-/// [broadcast] defaults to false.
-Stream futureStream(Future<Stream> future, {bool broadcast: false}) {
-  var subscription;
-  var controller;
-
-  future = future.catchError((e, stackTrace) {
-    // Since [controller] is synchronous, it's likely that emitting an error
-    // will cause it to be cancelled before we call close.
-    if (controller != null) controller.addError(e, stackTrace);
-    if (controller != null) controller.close();
-    controller = null;
-  });
-
-  onListen() {
-    future.then((stream) {
-      if (controller == null) return;
-      subscription = stream.listen(
-          controller.add,
-          onError: controller.addError,
-          onDone: controller.close);
-    });
-  }
-
-  onCancel() {
-    if (subscription != null) subscription.cancel();
-    subscription = null;
-    controller = null;
-  }
-
-  if (broadcast) {
-    controller = new StreamController.broadcast(
-        sync: true, onListen: onListen, onCancel: onCancel);
-  } else {
-    controller = new StreamController(
-        sync: true, onListen: onListen, onCancel: onCancel);
-  }
-  return controller.stream;
-}
-
 /// Like [new Future], but avoids around issue 11911 by using [new Future.value]
 /// under the covers.
 Future newFuture(callback()) => new Future.value().then((_) => callback());
-
-/// Returns a [StreamTransformer] that will call [onDone] when the stream
-/// completes.
-///
-/// The stream will be passed through unchanged.
-StreamTransformer onDoneTransformer(void onDone()) {
-  return new StreamTransformer.fromHandlers(handleDone: (sink) {
-    onDone();
-    sink.close();
-  });
-}
 
 // TODO(rnystrom): Move into String?
 /// Pads [source] to [length] by adding spaces at the end.
