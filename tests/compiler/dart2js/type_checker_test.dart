@@ -1518,6 +1518,12 @@ testTypePromotionHints() {
                            class E<T> extends D<T> {
                              T e;
                            }
+                           class F<S, U> extends E<S> {
+                             S f;
+                           }
+                           class G<V> extends F<V, V> {
+                             V g;
+                           }
                            ''');
 
   check(String text, {warnings, hints, infos}) {
@@ -1530,7 +1536,7 @@ testTypePromotionHints() {
               var x = a.c;
             }''',
         warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
-        hints: [MessageKind.NOT_MORE_SPECIFIC],
+        hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
         infos: []);
 
   check(r'''
@@ -1540,7 +1546,7 @@ testTypePromotionHints() {
             }''',
         warnings: [MessageKind.MEMBER_NOT_FOUND.warning,
                    MessageKind.MEMBER_NOT_FOUND.warning],
-        hints: [MessageKind.NOT_MORE_SPECIFIC],
+        hints: [MessageKind.NOT_MORE_SPECIFIC_SUBTYPE],
         infos: []);
 
   check(r'''
@@ -1555,8 +1561,38 @@ testTypePromotionHints() {
 
   check('''
            D<int> d = new E();
-           if (d is E) {
+           if (d is E) { // Suggest E<int>.
              var x = d.e;
+           }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
+                             {'shownTypeSuggestion': 'E<int>'})],
+        infos: []);
+
+  check('''
+           D<int> d = new F();
+           if (d is F) { // Suggest F<int, dynamic>.
+             var x = d.f;
+           }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
+                             {'shownTypeSuggestion': 'F<int, dynamic>'})],
+        infos: []);
+
+  check('''
+           D<int> d = new G();
+           if (d is G) { // Suggest G<int>.
+             var x = d.f;
+           }''',
+        warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
+        hints: [checkMessage(MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
+                             {'shownTypeSuggestion': 'G<int>'})],
+        infos: []);
+
+  check('''
+           F<double, int> f = new G();
+           if (f is G) { // Cannot suggest a more specific type.
+             var x = f.g;
            }''',
         warnings: [MessageKind.MEMBER_NOT_FOUND.warning],
         hints: [MessageKind.NOT_MORE_SPECIFIC],

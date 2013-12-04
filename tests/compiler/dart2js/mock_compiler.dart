@@ -439,25 +439,62 @@ class MockCompiler extends Compiler {
   }
 }
 
-void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
+/// A function the checks [message]. If the check fails or if [message] is
+/// `null`, an error string is returned. Otherwise `null` is returned.
+typedef String CheckMessage(Message message);
+
+CheckMessage checkMessage(MessageKind kind, Map arguments) {
+  return (Message message) {
+    if (message == null) return '$kind';
+    if (message.kind != kind) return 'Expected message $kind, found $message.';
+    for (var key in arguments.keys) {
+      if (!message.arguments.containsKey(key)) {
+        return 'Expected argument $key not found in $message.kind.';
+      }
+      String expectedValue = '${arguments[key]}';
+      String foundValue = '${message.arguments[key]}';
+      if (expectedValue != foundValue) {
+        return 'Expected argument $key with value $expectedValue, '
+               'found $foundValue.';
+      }
+    }
+    return null;
+  };
+}
+
+/// [expectedWarnings] must be a list of either [MessageKind] or [CheckMessage].
+void compareWarningKinds(String text,
+                         List expectedWarnings,
+                         List<WarningMessage> foundWarnings) {
   var fail = (message) => Expect.fail('$text: $message');
-  HasNextIterator<MessageKind> expected =
+  HasNextIterator expectedIterator =
       new HasNextIterator(expectedWarnings.iterator);
-  HasNextIterator<WarningMessage> found =
+  HasNextIterator<WarningMessage> foundIterator =
       new HasNextIterator(foundWarnings.iterator);
-  while (expected.hasNext && found.hasNext) {
-    Expect.equals(expected.next(), found.next().message.kind);
+  while (expectedIterator.hasNext && foundIterator.hasNext) {
+    var expected = expectedIterator.next();
+    var found = foundIterator.next();
+    if (expected is MessageKind) {
+      Expect.equals(expected, found.message.kind);
+    } else if (expected is CheckMessage) {
+      String error = expected(found.message);
+      Expect.isNull(error, error);
+    } else {
+      Expect.fail("Unexpected expectedWarnings value: $expected.");
+    }
   }
-  if (expected.hasNext) {
+  if (expectedIterator.hasNext) {
     do {
-      print('Expected warning "${expected.next()}" did not occur');
-    } while (expected.hasNext);
+      var expected = expectedIterator.next();
+      if (expected is CheckMessage) expected = expected(null);
+      print('Expected warning "${expected}" did not occur');
+    } while (expectedIterator.hasNext);
     fail('Too few warnings');
   }
-  if (found.hasNext) {
+  if (foundIterator.hasNext) {
     do {
-      print('Additional warning "${found.next()}"');
-    } while (found.hasNext);
+      print('Additional warning "${foundIterator.next()}"');
+    } while (foundIterator.hasNext);
     fail('Too many warnings');
   }
 }

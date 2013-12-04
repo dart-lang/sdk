@@ -897,6 +897,41 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return type;
   }
 
+  /// Compute a version of [shownType] that is more specific that [knownType].
+  /// This is used to provided better hints when trying to promote a supertype
+  /// to a raw subtype. For instance trying to promote `Iterable<int>` to `List`
+  /// we suggest the use of `List<int>`, which would make promotion valid.
+  DartType computeMoreSpecificType(DartType shownType,
+                                   DartType knownType) {
+    if (knownType.kind == TypeKind.INTERFACE &&
+        shownType.kind == TypeKind.INTERFACE &&
+        types.isSubtype(shownType.asRaw(), knownType)) {
+      // For the comments in the block, assume the hierarchy:
+      //     class A<T, V> {}
+      //     class B<S, U> extends A<S, int> {}
+      // and a promotion from a [knownType] of `A<double, int>` to a
+      // [shownType] of `B`.
+      InterfaceType knownInterfaceType = knownType;
+      ClassElement shownClass = shownType.element;
+
+      // Compute `B<double, dynamic>` as the subtype of `A<double, int>` using
+      // the relation between `A<S, int>` and `A<double, int>`.
+      MoreSpecificSubtypeVisitor visitor =
+          new MoreSpecificSubtypeVisitor(compiler);
+      InterfaceType shownTypeGeneric = visitor.computeMoreSpecific(
+          shownClass, knownInterfaceType);
+
+      if (shownTypeGeneric != null &&
+          types.isMoreSpecific(shownTypeGeneric, knownType)) {
+        // This should be the case but we double-check.
+        // TODO(johnniwinther): Ensure that we don't suggest malbounded types.
+        return shownTypeGeneric;
+      }
+    }
+    return null;
+
+  }
+
   DartType visitSend(Send node) {
     Element element = elements[node];
 
@@ -953,13 +988,30 @@ class TypeCheckerVisitor extends Visitor<DartType> {
                 new TypePromotion(node, variable, shownType);
             if (!types.isMoreSpecific(shownType, knownType)) {
               String variableName = variable.name;
-              // TODO(johnniwinther): Provide a how-to-fix in the case one tries
-              // to promote a generic type to a raw type.
-              typePromotion.addHint(node,
-                  MessageKind.NOT_MORE_SPECIFIC,
-                  {'variableName': variableName,
-                   'shownType': shownType,
-                   'knownType': knownType});
+              if (!types.isSubtype(shownType, knownType)) {
+                typePromotion.addHint(node,
+                    MessageKind.NOT_MORE_SPECIFIC_SUBTYPE,
+                    {'variableName': variableName,
+                     'shownType': shownType,
+                     'knownType': knownType});
+              } else {
+                DartType shownTypeSuggestion =
+                    computeMoreSpecificType(shownType, knownType);
+                if (shownTypeSuggestion != null) {
+                  typePromotion.addHint(node,
+                      MessageKind.NOT_MORE_SPECIFIC_SUGGESTION,
+                      {'variableName': variableName,
+                       'shownType': shownType,
+                       'shownTypeSuggestion': shownTypeSuggestion,
+                       'knownType': knownType});
+                } else {
+                  typePromotion.addHint(node,
+                      MessageKind.NOT_MORE_SPECIFIC,
+                      {'variableName': variableName,
+                       'shownType': shownType,
+                       'knownType': knownType});
+                }
+              }
             }
             showTypePromotion(node, typePromotion);
           }
