@@ -910,6 +910,25 @@ class ResolverTask extends CompilerTask {
             MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD);
       }
     }
+
+    if (!cls.isAbstract) {
+      for (DartType supertype in cls.allSupertypes) {
+        // This must have been reported elsewhere.
+        if (!supertype.element.isClass()) continue;
+        ClassElement superclass = supertype.element;
+        superclass.forEachMember((ClassElement holder, Element member) {
+          if (member.isAbstract) {
+            Element mine = cls.lookupMember(member.name);
+            if (mine == null || mine.isAbstract) {
+              compiler.reportWarningCode(
+                  cls, MessageKind.UNIMPLEMENTED_METHOD,
+                  {'class_name': cls.name, 'member_name': member.name});
+              compiler.reportHint(member, MessageKind.THIS_IS_THE_METHOD, {});
+            }
+          }
+        });
+      }
+    }
   }
 
   void checkAbstractField(Element member) {

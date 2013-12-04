@@ -122,4 +122,6 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
   Iterable<V> get values {
     return _getMap().values;
   }
+
+  int get length => _getMap().length;
 }

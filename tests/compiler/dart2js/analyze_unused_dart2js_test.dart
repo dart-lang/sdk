@@ -8,13 +8,11 @@ import 'package:async_helper/async_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 
-import 'analyze_dart2js_test.dart' as analyze_dart2js;
-
 import 'analyze_helper.dart';
 
 void main() {
   var uri = currentDirectory.resolve(
       'sdk/lib/_internal/compiler/implementation/use_unused_api.dart');
   asyncTest(
-      () => analyze([uri], analyze_dart2js.WHITE_LIST, analyzeAll: false));
+      () => analyze([uri], {}, analyzeAll: false));
 }

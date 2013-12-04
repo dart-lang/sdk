@@ -230,7 +230,9 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
   List<InstanceMirror> get metadata => throw new UnimplementedError();
 
   bool get hasReflectedType => false;
-  Type get reflectedType => throw new UnsupportedError("This type does not support reflectedTypees");
+  Type get reflectedType {
+    throw new UnsupportedError("This type does not support reflectedTypees");
+  }
 
   List<TypeVariableMirror> get typeVariables => const <TypeVariableMirror>[];
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
@@ -457,6 +459,14 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
 
   // TODO(ahe): Test this getter.
   DeclarationMirror get owner => null;
+
+  // TODO(ahe): Implement this.
+  Map<Symbol, MethodMirror> get topLevelMembers
+      => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this.
+  Function operator [](Symbol name)
+      => throw new UnimplementedError();
 }
 
 String n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
@@ -731,6 +741,16 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   }
 
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
+
+  // TODO(ahe): Implement this.
+  Map<Symbol, MethodMirror> get instanceMembers
+      => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this.
+  Map<Symbol, MethodMirror> get staticMembers => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this.
+  Function operator [](Symbol name) => throw new UnimplementedError();
 }
 
 abstract class JsObjectMirror implements ObjectMirror {
@@ -881,6 +901,9 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   // TODO(ahe): Remove this method from the API.
   MirrorSystem get mirrors => currentJsMirrorSystem;
+
+  // TODO(ahe): Implement this method.
+  Function operator [](Symbol name) => throw new UnimplementedError();
 }
 
 /**
@@ -890,7 +913,8 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
  * to JsCLassMirror that returns an empty list since it represents original
  * declarations and classes that are not generic.
  */
-class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror {
+class JsTypeBoundClassMirror extends JsDeclarationMirror
+    implements ClassMirror {
   final JsClassMirror _class;
 
   /**
@@ -1092,6 +1116,19 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror implements ClassMirror 
   Type get reflectedType => _class.reflectedType;
 
   Symbol get simpleName => _class.simpleName;
+
+  // TODO(ahe): Implement this.
+  Map<Symbol, MethodMirror> get instanceMembers
+      => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this.
+  Map<Symbol, MethodMirror> get staticMembers => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this.
+  ClassMirror get mixin => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this.
+  Function operator [](Symbol name) => throw new UnimplementedError();
 }
 
 class JsClassMirror extends JsTypeMirror with JsObjectMirror
@@ -1447,6 +1484,19 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   }
 
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
+
+  // TODO(ahe): Implement this.
+  Map<Symbol, MethodMirror> get instanceMembers
+      => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this.
+  Map<Symbol, MethodMirror> get staticMembers => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this.
+  ClassMirror get mixin => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this.
+  Function operator [](Symbol name) => throw new UnimplementedError();
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
@@ -1556,6 +1606,9 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
     }
     receiver._storeField(_jsName, arg);
   }
+
+  // TODO(ahe): Implement this method.
+  bool get isConst => throw new UnimplementedError();
 }
 
 class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
@@ -1610,11 +1663,16 @@ function(reflectee) {
 
   String toString() => "ClosureMirror on '${Error.safeToString(reflectee)}'";
 
-  // TODO(ahe): Implement these.
+  // TODO(ahe): Implement this method.
   String get source => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
   InstanceMirror findInContext(Symbol name) {
     throw new UnsupportedError("ClosureMirror.findInContext not yet supported");
   }
+
+  // TODO(ahe): Implement this method.
+  Function operator [](Symbol name) => throw new UnimplementedError();
 }
 
 class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
@@ -1764,11 +1822,20 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   // TODO(ahe): Test this.
   bool get isRegularMethod => !isGetter && !isSetter && !isConstructor;
 
-  // TODO(ahe): Implement these.
+  // TODO(ahe): Implement this method.
   bool get isConstConstructor => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
   bool get isGenerativeConstructor => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
   bool get isRedirectingConstructor => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
   bool get isFactoryConstructor => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
+  String get source => throw new UnimplementedError();
 }
 
 class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
@@ -1821,9 +1888,63 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
   JsFunctionTypeMirror get value => referent;
 
   String get _prettyName => 'TypedefMirror';
+
+  // TODO(ahe): Implement this method.
+  List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
+  List<TypeMirror> get typeArguments => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
+  bool get isOriginalDeclaration => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
+  TypeMirror get originalDeclaration => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
+  DeclarationMirror get owner => throw new UnimplementedError();
+
+  // TODO(ahe): Implement this method.
+  List<InstanceMirror> get metadata => throw new UnimplementedError();
 }
 
-class JsFunctionTypeMirror implements FunctionTypeMirror {
+// TODO(ahe): Remove this class when API is updated.
+class BrokenClassMirror {
+  bool get hasReflectedType => throw new UnimplementedError();
+  Type get reflectedType => throw new UnimplementedError();
+  ClassMirror get superclass => throw new UnimplementedError();
+  List<ClassMirror> get superinterfaces => throw new UnimplementedError();
+  Map<Symbol, DeclarationMirror> get declarations
+      => throw new UnimplementedError();
+  Map<Symbol, MethodMirror> get instanceMembers
+      => throw new UnimplementedError();
+  Map<Symbol, MethodMirror> get staticMembers => throw new UnimplementedError();
+  ClassMirror get mixin => throw new UnimplementedError();
+  InstanceMirror newInstance(
+      Symbol constructorName,
+      List positionalArguments,
+      [Map<Symbol,dynamic> namedArguments]) => throw new UnimplementedError();
+  Function operator [](Symbol name) => throw new UnimplementedError();
+  InstanceMirror invoke(Symbol memberName,
+                        List positionalArguments,
+                        [Map<Symbol, dynamic> namedArguments])
+      => throw new UnimplementedError();
+  InstanceMirror getField(Symbol fieldName) => throw new UnimplementedError();
+  InstanceMirror setField(Symbol fieldName, Object value)
+      => throw new UnimplementedError();
+  List<TypeVariableMirror> get typeVariables => throw new UnimplementedError();
+  List<TypeMirror> get typeArguments => throw new UnimplementedError();
+  TypeMirror get originalDeclaration => throw new UnimplementedError();
+  Symbol get simpleName => throw new UnimplementedError();
+  Symbol get qualifiedName => throw new UnimplementedError();
+  bool get isPrivate => throw new UnimplementedError();
+  bool get isTopLevel => throw new UnimplementedError();
+  SourceLocation get location => throw new UnimplementedError();
+  List<InstanceMirror> get metadata => throw new UnimplementedError();
+}
+
+class JsFunctionTypeMirror extends BrokenClassMirror
+    implements FunctionTypeMirror {
   final _typeData;
   String _cachedToString;
   TypeMirror _cachedReturnType;
@@ -1923,6 +2044,9 @@ class JsFunctionTypeMirror implements FunctionTypeMirror {
     }
     return _cachedToString = "$s'";
   }
+
+  // TODO(ahe): Implement this method.
+  MethodMirror get callMethod => throw new UnimplementedError();
 }
 
 int findTypeVariableIndex(List<TypeVariableMirror> typeVariables, String name) {

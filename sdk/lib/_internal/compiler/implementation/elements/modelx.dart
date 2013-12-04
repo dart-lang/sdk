@@ -1310,6 +1310,11 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
   }
 
   accept(ElementVisitor visitor) => visitor.visitAbstractFieldElement(this);
+
+  bool get isAbstract {
+    return getter != null && getter.isAbstract
+        || setter != null && setter.isAbstract;
+  }
 }
 
 // TODO(johnniwinther): [FunctionSignature] should be merged with

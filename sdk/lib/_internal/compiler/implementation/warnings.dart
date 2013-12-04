@@ -1360,6 +1360,41 @@ main() {}
       howToFix: "Consider deleting it.",
       examples: const ["deadCode() {} main() {}"]);
 
+  static const MessageKind UNIMPLEMENTED_METHOD = const MessageKind(
+      "Warning: '#{class_name}' doesn't implement '#{member_name}'.",
+      howToFix: "Try adding an implementation of '#{member_name}'.",
+      examples: const ["""
+abstract class I {
+  m();
+}
+
+class C implements I {}
+
+class D implements I {
+  m() {}
+}
+
+main() {
+ new D().m();
+ new C();
+}
+""", """
+abstract class I {
+  m();
+}
+
+class C extends I {}
+
+class D extends I {
+  m() {}
+}
+
+main() {
+ new D().m();
+ new C();
+}
+"""]);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

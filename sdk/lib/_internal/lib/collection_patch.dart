@@ -515,7 +515,7 @@ class _LinkedHashMap<K, V> implements LinkedHashMap<K, V> {
   // iterated over.
   int _modifications = 0;
 
-  _LinkedHash();
+  _LinkedHashMap();
 
 
   int get length => _length;
