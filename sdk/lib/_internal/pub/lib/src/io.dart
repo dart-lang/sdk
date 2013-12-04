@@ -734,6 +734,10 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
     // Write the archive to a temp file.
     var dataFile = path.join(tempDir, 'data.tar.gz');
     return createFileFromStream(stream, dataFile).then((_) {
+      // TODO(nweiz): get rid of this as soon as we know whether the windows bot
+      // failures are due to a timing issue.
+      return new Future.delayed(new Duration(seconds: 2));
+    }).then((_) {
       // 7zip can't unarchive from gzip -> tar -> destination all in one step
       // first we un-gzip it to a tar file.
       // Note: Setting the working directory instead of passing in a full file
