@@ -14,6 +14,15 @@ import subprocess
 import sys
 import tempfile
 
+class Version(object):
+  def __init__(self, channel, major, minor, patch, prerelease,
+               prerelease_patch):
+    self.channel = channel
+    self.major = major
+    self.minor = minor
+    self.patch = patch
+    self.prerelease = prerelease
+    self.prerelease_patch = prerelease_patch
 
 # Try to guess the host operating system.
 def GuessOS():
@@ -231,40 +240,47 @@ def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
 def GetBaseDir():
   return BASE_DIR
 
-# Return the base part of the version, Major.Minor.Build.Patch,
-# without the _revision addition
 def GetShortVersion():
-  (channel, major, minor, build, patch) = ReadVersionFile()
-  # TODO(kustermann/ricow): Add the channel to the version string.
-  return '%s.%s.%s.%s' % (major, minor, build, patch)
+  version = ReadVersionFile()
+  return ('%s.%s.%s.%s.%s' % (
+      version.major, version.minor, version.patch, version.prerelease,
+      version.prerelease_patch))
 
-
-def GetVersion():
-  version_tuple = ReadVersionFile()
-  if not version_tuple:
+def GetSemanticSDKVersion():
+  version = ReadVersionFile()
+  if not version:
     return None
 
-  (channel, major, minor, build, patch) = version_tuple
-  revision = GetSVNRevision()
-  user = GetUserName()
-  # We don't add username to release builds (or any builds on the bots)
-  if user == 'chrome-bot':
-    user = ''
+  if version.channel == 'be':
+    postfix = '-edge.%s' % GetSVNRevision()
+  elif version.channel == 'dev':
+    postfix = '-dev.%s.%s' % (version.prerelease, version.prerelease_patch)
+  else:
+    assert version.channel == 'stable'
+    postfix = ''
 
-  user_string = ''
-  revision_string = ''
-  if user:
-    user_string = '_%s' % user
-  if revision:
-    revision_string = '_r%s' % revision
+  return '%s.%s.%s%s' % (version.major, version.minor, version.patch, postfix)
 
-  # TODO(kustermann/ricow): Add the channel to the version string.
-  return ("%s.%s.%s.%s%s%s" %
-          (major, minor, build, patch, revision_string, user_string))
+def GetEclipseVersionQualifier():
+  def pad(number, num_digits):
+    number_str = str(number)
+    return '0' * max(0, num_digits - len(number_str)) + number_str
+
+  version = ReadVersionFile()
+  if version.channel == 'be':
+    return 'edge_%s' % pad(GetSVNRevision(), 6)
+  elif version.channel == 'dev':
+    return 'dev_%s_%s' % (pad(version.prerelease, 2),
+                          pad(version.prerelease_patch, 2))
+  else:
+    return 'release'
+
+def GetVersion():
+  return GetSemanticSDKVersion()
 
 def GetChannel():
-  (channel, _, _, _, _) = ReadVersionFile()
-  return channel
+  version = ReadVersionFile()
+  return version.channel
 
 def GetUserName():
   key = 'USER'
@@ -273,6 +289,12 @@ def GetUserName():
   return os.environ.get(key, '')
 
 def ReadVersionFile():
+  def match_against(pattern, content):
+    match = re.search(pattern, content, flags=re.MULTILINE)
+    if match:
+      return match.group(1)
+    return None
+
   version_file = os.path.join(DART_DIR, 'tools', 'VERSION')
   try:
     fd = open(version_file)
@@ -281,19 +303,17 @@ def ReadVersionFile():
   except:
     print "Warning: Couldn't read VERSION file (%s)" % version_file
     return None
-  channel_match = re.search(
-      '^CHANNEL ([A-Za-z0-9]+)$', content, flags=re.MULTILINE)
-  major_match = re.search('^MAJOR (\d+)$', content, flags=re.MULTILINE)
-  minor_match = re.search('^MINOR (\d+)$', content, flags=re.MULTILINE)
-  build_match = re.search('^BUILD (\d+)$', content, flags=re.MULTILINE)
-  patch_match = re.search('^PATCH (\d+)$', content, flags=re.MULTILINE)
-  if (channel_match and
-      major_match and
-      minor_match and
-      build_match and
-      patch_match):
-    return (channel_match.group(1), major_match.group(1), minor_match.group(1),
-            build_match.group(1), patch_match.group(1))
+
+  channel = match_against('^CHANNEL ([A-Za-z0-9]+)$', content)
+  major = match_against('^MAJOR (\d+)$', content)
+  minor = match_against('^MINOR (\d+)$', content)
+  patch = match_against('^PATCH (\d+)$', content)
+  prerelease = match_against('^PRERELEASE (\d+)$', content)
+  prerelease_patch = match_against('^PRERELEASE_PATCH (\d+)$', content)
+
+  if channel and major and minor and prerelease and prerelease_patch:
+    return Version(
+        channel, major, minor, patch, prerelease, prerelease_patch)
   else:
     print "Warning: VERSION file (%s) has wrong format" % version_file
     return None
