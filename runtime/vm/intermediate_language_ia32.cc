@@ -1494,7 +1494,24 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!ok_is_fall_through) {
       __ jmp(&ok);
     }
+
+    if (deopt == NULL) {
+      ASSERT(!compiler->is_optimizing());
+      __ Bind(fail);
+
+      __ cmpl(FieldAddress(field_reg, Field::guarded_cid_offset()),
+              Immediate(kDynamicCid));
+      __ j(EQUAL, &ok);
+
+      __ pushl(field_reg);
+      __ pushl(value_reg);
+      __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
+      __ Drop(2);  // Drop the field and the value.
+    }
   } else {
+    ASSERT(compiler->is_optimizing());
+    ASSERT(deopt != NULL);
+    ASSERT(ok_is_fall_through);
     // Field guard class has been initialized and is known.
     if (field_reg != kNoRegister) {
       __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
@@ -1537,18 +1554,11 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             Immediate(reinterpret_cast<intptr_t>(Object::null()));
         __ cmpl(value_reg, raw_null);
       }
-
-      if (ok_is_fall_through) {
-        __ j(NOT_EQUAL, fail);
-      } else {
-        __ j(EQUAL, &ok);
-      }
+      __ j(NOT_EQUAL, fail);
     } else {
       // Both value's and field's class id is known.
       if ((value_cid != field_cid) && (value_cid != nullability)) {
-        if (ok_is_fall_through) {
-          __ jmp(fail);
-        }
+        __ jmp(fail);
       } else if (field_has_length && (value_cid == field_cid)) {
         ASSERT(value_cid_reg != kNoRegister);
         if ((field_cid == kArrayCid) || (field_cid == kImmutableArrayCid)) {
@@ -1561,31 +1571,12 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                   FieldAddress(value_reg, TypedData::length_offset()));
         }
         __ cmpl(value_cid_reg, Immediate(Smi::RawValue(field_length)));
-        if (ok_is_fall_through) {
-          __ j(NOT_EQUAL, fail);
-        }
+        __ j(NOT_EQUAL, fail);
       } else {
-        // Nothing to emit.
-        ASSERT(!compiler->is_optimizing());
-        return;
+        UNREACHABLE();
       }
     }
   }
-
-  if (deopt == NULL) {
-    ASSERT(!compiler->is_optimizing());
-    __ Bind(fail);
-
-    __ cmpl(FieldAddress(field_reg, Field::guarded_cid_offset()),
-            Immediate(kDynamicCid));
-    __ j(EQUAL, &ok);
-
-    __ pushl(field_reg);
-    __ pushl(value_reg);
-    __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
-    __ Drop(2);  // Drop the field and the value.
-  }
-
   __ Bind(&ok);
 }
 
