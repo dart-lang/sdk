@@ -69,7 +69,6 @@ mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
 mirrors/reflected_type_test: RuntimeError # Issue 12607
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Issue 14670
-mirrors/removed_api_test: RuntimeError # Issue 14878
 mirrors/static_members_test: CompileTimeError # Issue 14633, Issue 12164
 mirrors/symbol_validation_test: RuntimeError # Issue 13597
 mirrors/toplevel_members_test: CompileTimeError # Issue 14633, Issue 12164
