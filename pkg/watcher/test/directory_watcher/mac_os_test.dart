@@ -11,6 +11,7 @@ import '../utils.dart';
 
 main() {
   initConfig();
+  MacOSDirectoryWatcher.logDebugInfo = true;
 
   watcherFactory = (dir) => new MacOSDirectoryWatcher(dir);
 
