@@ -9,6 +9,7 @@ description: >
 dependencies:
   crypto: ">=0.9.0 <0.10.0"
   path: ">=0.9.0 <0.10.0"
+  stack_trace: ">=0.9.0 <0.10.0"
 dev_dependencies:
   scheduled_test: ">=0.9.0 <0.10.0"
   unittest: ">=0.9.0 <0.10.0"

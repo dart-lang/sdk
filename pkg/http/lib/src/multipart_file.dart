@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 
 import 'byte_stream.dart';
 import 'utils.dart';
@@ -93,8 +94,8 @@ class MultipartFile {
       {String filename, ContentType contentType}) {
     if (filename == null) filename = path.basename(filePath);
     var file = new File(filePath);
-    return file.length().then((length) {
-      var stream = new ByteStream(file.openRead());
+    return Chain.track(file.length()).then((length) {
+      var stream = new ByteStream(Chain.track(file.openRead()));
       return new MultipartFile(field, stream, length,
           filename: filename,
           contentType: contentType);

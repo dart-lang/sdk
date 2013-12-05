@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'byte_stream.dart';
 
 /// Converts a URL query string (or `application/x-www-form-urlencoded` body)
@@ -213,3 +215,6 @@ Future forEachFuture(Iterable input, Future fn(element)) {
   }
   return nextElement(null);
 }
+
+/// Like [Future.sync], but wraps the Future in [Chain.track] as well.
+Future syncFuture(callback()) => Chain.track(new Future.sync(callback));

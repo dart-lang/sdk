@@ -73,7 +73,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         _files = new PathSet(directory) {
     _startWatch();
 
-    _listen(new Directory(directory).list(recursive: true),
+    _listen(Chain.track(new Directory(directory).list(recursive: true)),
         (entity) {
       if (entity is! Directory) _files.add(entity.path);
     },
@@ -109,7 +109,8 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
             continue;
           }
 
-          _listen(new Directory(path).list(recursive: true), (entity) {
+          _listen(Chain.track(new Directory(path).list(recursive: true)),
+              (entity) {
             if (entity is Directory) return;
             _emitEvent(ChangeType.ADD, entity.path);
             _files.add(entity.path);
@@ -314,8 +315,9 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// Start or restart the underlying [Directory.watch] stream.
   void _startWatch() {
     // Batch the FSEvent changes together so that we can dedup events.
-    var innerStream = new Directory(directory).watch(recursive: true).transform(
-        new BatchedStreamTransformer<FileSystemEvent>());
+    var innerStream =
+        Chain.track(new Directory(directory).watch(recursive: true))
+        .transform(new BatchedStreamTransformer<FileSystemEvent>());
     _watchSubscription = innerStream.listen(_onBatch,
         onError: _eventsController.addError,
         onDone: _onDone);

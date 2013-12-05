@@ -5,6 +5,7 @@ homepage: https://pub.dartlang.org/packages/http
 description: A composable, Future-based API for making HTTP requests.
 dependencies:
   path: ">=0.9.0 <0.10.0"
+  stack_trace: ">=0.9.0 <0.10.0"
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"
 environment:
