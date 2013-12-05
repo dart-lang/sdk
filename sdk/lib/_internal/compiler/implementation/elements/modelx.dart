@@ -1773,11 +1773,10 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   bool get isUnnamedMixinApplication => false;
 
-  // TODO(johnniwinther): Add [thisType] getter similar to [rawType].
-  InterfaceType computeType(Compiler compiler) {
+  void computeThisAndRawType(Compiler compiler, Link<DartType> typeVariables) {
     if (thisType == null) {
       if (origin == null) {
-        Link<DartType> parameters = computeTypeParameters(compiler);
+        Link<DartType> parameters = typeVariables;
         thisType = new InterfaceType(this, parameters);
         if (parameters.isEmpty) {
           rawTypeCache = thisType;
@@ -1793,6 +1792,13 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         thisType = origin.computeType(compiler);
         rawTypeCache = origin.rawType;
       }
+    }
+  }
+
+  // TODO(johnniwinther): Add [thisType] getter similar to [rawType].
+  InterfaceType computeType(Compiler compiler) {
+    if (thisType == null) {
+      computeThisAndRawType(compiler, computeTypeParameters(compiler));
     }
     return thisType;
   }
@@ -2276,7 +2282,11 @@ class MixinApplicationElementX extends BaseClassElementX
 
   Link<DartType> computeTypeParameters(Compiler compiler) {
     NamedMixinApplication named = node.asNamedMixinApplication();
-    if (named == null) return const Link<DartType>();
+    if (named == null) {
+      throw new SpannableAssertionFailure(node,
+          "Type variables on unnamed mixin applications must be set on "
+          "creation.");
+    }
     return TypeDeclarationElementX.createTypeVariables(
         this, named.typeParameters);
   }
@@ -2357,7 +2367,7 @@ class TypeVariableElementX extends ElementX implements TypeVariableElement {
   TypeVariableType type;
   DartType bound;
 
-  TypeVariableElementX(name, Element enclosing, this.cachedNode,
+  TypeVariableElementX(String name, Element enclosing, this.cachedNode,
                        [this.type, this.bound])
     : super(name, ElementKind.TYPE_VARIABLE, enclosing);
 

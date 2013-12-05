@@ -3822,8 +3822,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         DartType supertype = resolveSupertype(element, superMixin.superclass);
         Link<Node> link = superMixin.mixins.nodes;
         while (!link.isEmpty) {
-          supertype = applyMixin(
-              supertype, checkMixinType(link.head), link.head);
+          supertype = applyMixin(supertype,
+                                 checkMixinType(link.head), link.head);
           link = link.tail;
         }
         element.supertype = supertype;
@@ -3919,16 +3919,45 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   DartType applyMixin(DartType supertype, DartType mixinType, Node node) {
     String superName = supertype.name;
     String mixinName = mixinType.name;
-    ClassElement mixinApplication = new MixinApplicationElementX(
+    MixinApplicationElementX mixinApplication = new MixinApplicationElementX(
         "${superName}+${mixinName}",
         element.getCompilationUnit(),
         compiler.getNextFreeClassId(),
         node,
         Modifiers.EMPTY);  // TODO(kasperl): Should this be abstract?
+    // Create synthetic type variables for the mixin application.
+    LinkBuilder<DartType> typeVariablesBuilder = new LinkBuilder<DartType>();
+    element.typeVariables.forEach((TypeVariableType type) {
+      TypeVariableElementX typeVariableElement = new TypeVariableElementX(
+          type.name, mixinApplication, type.element.parseNode(compiler));
+      TypeVariableType typeVariable = new TypeVariableType(typeVariableElement);
+      typeVariablesBuilder.addLast(typeVariable);
+    });
+    Link<DartType> typeVariables = typeVariablesBuilder.toLink();
+    // Setup bounds on the synthetic type variables.
+    Link<DartType> link = typeVariables;
+    element.typeVariables.forEach((TypeVariableType type) {
+      TypeVariableType typeVariable = link.head;
+      TypeVariableElement typeVariableElement = typeVariable.element;
+      typeVariableElement.type = typeVariable;
+      typeVariableElement.bound =
+          type.element.bound.subst(typeVariables, element.typeVariables);
+      link = link.tail;
+    });
+    // Setup this and raw type for the mixin application.
+    mixinApplication.computeThisAndRawType(compiler, typeVariables);
+    // Substitute in synthetic type variables in super and mixin types.
+    supertype = supertype.subst(typeVariables, element.typeVariables);
+    mixinType = mixinType.subst(typeVariables, element.typeVariables);
+
     doApplyMixinTo(mixinApplication, supertype, mixinType);
     mixinApplication.resolutionState = STATE_DONE;
     mixinApplication.supertypeLoadState = STATE_DONE;
-    return mixinApplication.computeType(compiler);
+    // Replace the synthetic type variables by the original type variables in
+    // the returned type (which should be the type actually extended).
+    InterfaceType mixinThisType = mixinApplication.computeType(compiler);
+    return mixinThisType.subst(element.typeVariables,
+                               mixinThisType.typeArguments);
   }
 
   bool isDefaultConstructor(FunctionElement constructor) {
@@ -4125,7 +4154,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       cls.allSupertypesAndSelf =
           new OrderedTypeSet.singleton(cls.computeType(compiler));
     }
- }
+  }
 
   /**
    * Adds [type] and all supertypes of [type] to [allSupertypes] while

@@ -22,7 +22,9 @@ GenericType instantiate(TypeDeclarationElement element,
 class TypeEnvironment {
   final MockCompiler compiler;
 
-  static Future<TypeEnvironment> create(String source) {
+  static Future<TypeEnvironment> create(
+      String source, {bool expectNoErrors: false,
+                      bool expectNoWarningsOrErrors: false}) {
     var uri = new Uri(scheme: 'source');
     MockCompiler compiler = compilerFor('''
         main() {}
@@ -31,6 +33,14 @@ class TypeEnvironment {
         analyzeAll: true,
         analyzeOnly: true);
     return compiler.runCompiler(uri).then((_) {
+      if (expectNoErrors || expectNoWarningsOrErrors) {
+        Expect.isTrue(compiler.errors.isEmpty,
+            'Unexpected errors: ${compiler.errors}');
+      }
+      if (expectNoWarningsOrErrors) {
+        Expect.isTrue(compiler.warnings.isEmpty,
+            'Unexpected warnings: ${compiler.warnings}');
+      }
       return new TypeEnvironment._(compiler);
     });
   }
