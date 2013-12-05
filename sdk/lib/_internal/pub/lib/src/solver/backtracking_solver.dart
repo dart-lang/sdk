@@ -36,6 +36,7 @@ library pub.solver.backtracking_solver;
 import 'dart:async';
 import 'dart:collection' show Queue;
 
+import '../barback.dart' as barback;
 import '../lock_file.dart';
 import '../log.dart' as log;
 import '../package.dart';
@@ -594,9 +595,24 @@ class Traverser {
   /// Gets the combined [VersionConstraint] currently being placed on package
   /// [name].
   VersionConstraint _getConstraint(String name) {
-    return _getDependencies(name)
+    var constraint = _getDependencies(name)
         .map((dep) => dep.dep.constraint)
         .fold(VersionConstraint.any, (a, b) => a.intersect(b));
+
+    // If the package is barback, pub has an implicit version constraint on it
+    // since pub itself uses barback too. Note that we don't check for the
+    // hosted source here because we still want to do this even when people on
+    // the Dart team are on the bleeding edge and have a path dependency on the
+    // tip version of barback in the Dart repo.
+    if (name == "barback") {
+      var range = new VersionRange(
+          min: barback.supportedVersion, includeMin: true,
+          max: barback.supportedVersion.nextMinor, includeMax: false);
+      constraint = constraint.intersect(range);
+      _solver.logSolve('add implicit $range constraint to barback');
+    }
+
+    return constraint;
   }
 
   /// Gets the package [name] that's currently contained in the lockfile if it

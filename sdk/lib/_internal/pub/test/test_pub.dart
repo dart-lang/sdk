@@ -32,6 +32,7 @@ import '../lib/src/lock_file.dart';
 import '../lib/src/log.dart' as log;
 import '../lib/src/package.dart';
 import '../lib/src/safe_http_server.dart';
+import '../lib/src/source/hosted.dart';
 import '../lib/src/source/path.dart';
 import '../lib/src/source_registry.dart';
 import '../lib/src/system_cache.dart';
@@ -398,7 +399,7 @@ void schedulePub({List args, Pattern output, Pattern error, outputJson,
 
     if (outputJson == null) {
       _validateOutput(failures, 'stdout', output, results[0]);
-      return;
+      return null;
     }
 
     // Allow the expected JSON to contain futures.
@@ -611,12 +612,15 @@ void ensureGit() {
 
 /// Create a lock file for [package] without running `pub get`.
 ///
-/// This creates a lock file with only path dependencies. [sandbox] is a list of
-/// dependencies to be found in the sandbox directory. [pkg] is a list of
-/// packages in the Dart repo's "pkg" directory; each package listed here and
-/// all its dependencies will be linked to the version in the Dart repo.
+/// [sandbox] is a list of path dependencies to be found in the sandbox
+/// directory. [pkg] is a list of packages in the Dart repo's "pkg" directory;
+/// each package listed here and all its dependencies will be linked to the
+/// version in the Dart repo.
+///
+/// [hosted] is a list of package names to version strings for dependencies on
+/// hosted packages.
 void createLockFile(String package, {Iterable<String> sandbox,
-    Iterable<String> pkg}) {
+    Iterable<String> pkg, Map<String, Version> hosted}) {
   var dependencies = {};
 
   if (sandbox != null) {
@@ -653,8 +657,16 @@ void createLockFile(String package, {Iterable<String> sandbox,
     lockFile.packages[name] = id;
   });
 
-  var sources = new SourceRegistry()
-    ..register(new PathSource());
+  if (hosted != null) {
+    hosted.forEach((name, version) {
+      var id = new PackageId(name, 'hosted', new Version.parse(version), name);
+      lockFile.packages[name] = id;
+    });
+  }
+
+  var sources = new SourceRegistry();
+  sources.register(new HostedSource());
+  sources.register(new PathSource());
 
   d.file(path.join(package, 'pubspec.lock'),
       lockFile.serialize(null, sources)).create();
