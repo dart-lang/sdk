@@ -456,7 +456,8 @@ class Dart2JsMirrorSystem extends MirrorSystem {
   Map<Uri, LibraryMirror> get libraries {
     _ensureLibraries();
     return new FilteredImmutableMap<Uri, LibraryMirror>(_libraries,
-        (library) => !library._element.isInternalLibrary);
+        (library) => new bool.fromEnvironment("list_all_libraries") ||
+                     !library._element.isInternalLibrary);
   }
 
   Dart2JsLibraryMirror _getLibrary(LibraryElement element) =>
