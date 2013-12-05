@@ -41,16 +41,6 @@ sharedTests() {
     schedule(() {
       completer = new Completer();
       subscription = watcher.events.listen(wrapAsync((event) {
-        // TODO(nweiz): Remove this when either issue 14373 or 14793 is fixed.
-        // Issue 14373 means that the new [Directory.watch] will emit an event
-        // for "unwatched.txt" being created, and issue 14793 means we have to
-        // check the filesystem, which leads us to assume that the file has been
-        // modified.
-        if (Platform.isMacOS && event.path.endsWith("unwatched.txt")) {
-          expect(event, isWatchEvent(ChangeType.MODIFY, "unwatched.txt"));
-          return;
-        }
-
         // We should get an event for the third file, not the one added while
         // we weren't subscribed.
         expect(event, isWatchEvent(ChangeType.ADD, "added.txt"));
