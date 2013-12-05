@@ -156,7 +156,7 @@ class _Random implements Random {
     _nextState();
     int bits26 = _lo & ((1 << 26) - 1);
     _nextState();
-    unt bits27 = _lo & ((1 << 27) - 1);
+    int bits27 = _lo & ((1 << 27) - 1);
     return (bits26 * _POW2_27_D + bits27) / _POW2_53_D;
   }
 
