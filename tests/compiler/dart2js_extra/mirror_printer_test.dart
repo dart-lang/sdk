@@ -56,12 +56,14 @@ class MirrorPrinter {
       return '$reflectee';
     }
     StringBuffer buffer = new StringBuffer();
-    Map<Symbol, VariableMirror> variables = mirror.type.variables;
+    Map<Symbol, DeclarationMirror> declarations = mirror.type.declarations;
     buffer
         ..write(n(mirror.type.simpleName))
         ..write('(');
     bool first = true;
-    variables.forEach((Symbol name, VariableMirror variable) {
+    declarations.forEach((Symbol name, DeclarationMirror declaration) {
+      if (declaration is! VariableMirror) return;
+      VariableMirror variable = declaration;
       if (variable.isStatic) return;
       // TODO(ahe): Include superclasses.
       if (first) {
@@ -130,7 +132,7 @@ class MirrorPrinter {
     w(' {');
     bool first = true;
     indented(() {
-      for (DeclarationMirror declaration in mirror.members.values) {
+      for (DeclarationMirror declaration in mirror.declarations.values) {
         if (first) {
           first = false;
         } else {
@@ -165,7 +167,9 @@ class MirrorPrinter {
 
   writeLibrary(LibraryMirror library) {
     w('library ${n(library.simpleName)};\n\n');
-    library.members.values.forEach(writeDeclaration);
+    library.declarations.values
+        .where((d)=> d is! TypeMirror)
+        .forEach(writeDeclaration);
     w('\n');
   }
 
