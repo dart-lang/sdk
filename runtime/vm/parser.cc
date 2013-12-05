@@ -932,7 +932,7 @@ RawArray* Parser::EvaluateMetadata() {
                    ident->ToCString(),
                    cls.ToCString());
         }
-        expr = GenerateStaticFieldLookup(field, TokenPos());
+        expr = GenerateStaticFieldLookup(field, ident_pos);
       }
     }
     if (expr->EvalConstExpr() == NULL) {
@@ -1067,6 +1067,7 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
   AddFormalParamsToScope(&params, current_block_->scope);
 
   // Move forward to the start of the initializer expression.
+  intptr_t ident_pos = TokenPos();
   ExpectIdentifier("identifier expected");
   ExpectToken(Token::kASSIGN);
   intptr_t token_pos = TokenPos();
@@ -1112,7 +1113,7 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
   AstNode* compare_transition_sentinel = new ComparisonNode(
       token_pos,
       Token::kEQ_STRICT,
-      new LoadStaticFieldNode(token_pos, field),
+      new LoadStaticFieldNode(ident_pos, field),
       new LiteralNode(field.token_pos(), Object::transition_sentinel()));
 
   SequenceNode* store_null = new SequenceNode(token_pos, NULL);
@@ -2000,9 +2001,9 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
 }
 
 
-AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
+AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
+                                       intptr_t field_pos) {
   TRACE_PARSER("ParseSuperFieldAccess");
-  const intptr_t field_pos = TokenPos();
   const Class& super_class = Class::ZoneHandle(current_class().SuperClass());
   if (super_class.IsNull()) {
     ErrorMsg("class '%s' does not have a superclass",
@@ -7792,6 +7793,28 @@ LetNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
 }
 
 
+// Check whether the syntax of expression expr is a grammatically legal
+// assignable expression. This check is used to detect situations where
+// the expression itself is assignable, but the source is grammatically
+// wrong. The AST representation of an expression cannot distinguish
+// between x = 0 and (x) = 0. The latter is illegal.
+// A syntactically legal assignable expression always ends with an
+// identifier token or a ] token. We rewind the token iterator and
+// check whether the token before end_pos is an identifier or ].
+bool Parser::IsLegalAssignableSyntax(AstNode* expr, intptr_t end_pos) {
+  ASSERT(expr->token_pos() >= 0);
+  ASSERT(expr->token_pos() < end_pos);
+  SetPosition(expr->token_pos());
+  Token::Kind token = Token::kILLEGAL;
+  while (TokenPos() < end_pos) {
+    token = CurrentToken();
+    ConsumeToken();
+  }
+  ASSERT(TokenPos() == end_pos);
+  return Token::IsIdentifier(token) || (token == Token::kRBRACK);
+}
+
+
 AstNode* Parser::CreateAssignmentNode(AstNode* original,
                                       AstNode* rhs,
                                       const String* left_ident,
@@ -7932,6 +7955,9 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     return expr;
   }
   // Assignment expressions.
+  if (!IsLegalAssignableSyntax(expr, TokenPos())) {
+    ErrorMsg(expr_pos, "expression is not assignable");
+  }
   const Token::Kind assignment_op = CurrentToken();
   const intptr_t assignment_pos = TokenPos();
   ConsumeToken();
@@ -8010,6 +8036,9 @@ AstNode* Parser::ParseUnaryExpr() {
         Token::IsIdentifier(CurrentToken()) ? CurrentLiteral() : NULL;
     const intptr_t expr_pos = TokenPos();
     expr = ParseUnaryExpr();
+    if (!IsLegalAssignableSyntax(expr, TokenPos())) {
+      ErrorMsg(expr_pos, "expression is not assignable");
+    }
     // Is prefix.
     LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
     Token::Kind binary_op =
@@ -8172,7 +8201,7 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
                                            intptr_t ident_pos) {
   // If the static field has an initializer, initialize the field at compile
   // time, which is only possible if the field is const.
-  AstNode* initializing_getter = RunStaticFieldInitializer(field);
+  AstNode* initializing_getter = RunStaticFieldInitializer(field, ident_pos);
   if (initializing_getter != NULL) {
     // The field is not yet initialized and could not be initialized at compile
     // time. The getter will initialize the field.
@@ -8205,7 +8234,6 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                         bool consume_cascades) {
   TRACE_PARSER("ParseStaticFieldAccess");
   AstNode* access = NULL;
-  const intptr_t call_pos = TokenPos();
   const Field& field = Field::ZoneHandle(cls.LookupStaticField(field_name));
   Function& func = Function::ZoneHandle();
   if (field.IsNull()) {
@@ -8222,14 +8250,14 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       // there is a function of the same name.
       func = cls.LookupStaticFunction(field_name);
       if (!func.IsNull()) {
-        access = CreateImplicitClosureNode(func, call_pos, NULL);
+        access = CreateImplicitClosureNode(func, ident_pos, NULL);
       } else {
         // No function to closurize found found.
         // This field access may turn out to be a call to the setter.
         // Create a getter call, which may later be turned into
         // a setter call, or else the backend will generate
         // a throw NoSuchMethodError().
-        access = new StaticGetterNode(call_pos,
+        access = new StaticGetterNode(ident_pos,
                                       NULL,
                                       false,
                                       Class::ZoneHandle(cls.raw()),
@@ -8237,14 +8265,14 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       }
     } else {
       ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
-      access = new StaticGetterNode(call_pos,
+      access = new StaticGetterNode(ident_pos,
                                     NULL,
                                     false,
                                     Class::ZoneHandle(cls.raw()),
                                     field_name);
     }
   } else {
-    access = GenerateStaticFieldLookup(field, TokenPos());
+    access = GenerateStaticFieldLookup(field, ident_pos);
   }
   return access;
 }
@@ -8547,6 +8575,9 @@ AstNode* Parser::ParsePostfixExpr() {
   expr = ParseSelectors(expr, false);
   if (IsIncrementOperator(CurrentToken())) {
     TRACE_PARSER("IncrementOperator");
+    if (!IsLegalAssignableSyntax(expr, TokenPos())) {
+      ErrorMsg(expr_pos, "expression is not assignable");
+    }
     Token::Kind incr_op = CurrentToken();
     ConsumeToken();
     // Not prefix.
@@ -8753,7 +8784,8 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
 // If the field is already initialized, return no ast (NULL).
 // Otherwise, if the field is constant, initialize the field and return no ast.
 // If the field is not initialized and not const, return the ast for the getter.
-AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
+AstNode* Parser::RunStaticFieldInitializer(const Field& field,
+                                           intptr_t field_ref_pos) {
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(field.owner());
   const String& field_name = String::ZoneHandle(field.name());
@@ -8767,7 +8799,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
                field_name.ToCString());
     } else {
       // The implicit static getter will throw the exception if necessary.
-      return new StaticGetterNode(TokenPos(),
+      return new StaticGetterNode(field_ref_pos,
                                   NULL,
                                   false,
                                   field_owner,
@@ -8799,7 +8831,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
           field.set_value(Object::null_instance());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
-          AppendErrorMsg(error, TokenPos(),
+          AppendErrorMsg(error, field_ref_pos,
                          "error initializing const field '%s'",
                          String::Handle(field.name()).ToCString());
         } else {
@@ -8809,11 +8841,11 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       ASSERT(const_value.IsNull() || const_value.IsInstance());
       Instance& instance = Instance::Handle();
       instance ^= const_value.raw();
-      instance = TryCanonicalize(instance, TokenPos());
+      instance = TryCanonicalize(instance, field_ref_pos);
       field.set_value(instance);
       return NULL;   // Constant
     } else {
-      return new StaticGetterNode(TokenPos(),
+      return new StaticGetterNode(field_ref_pos,
                                   NULL,
                                   false,
                                   field_owner,
@@ -8825,7 +8857,11 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
     return NULL;
   }
   ASSERT(getter.kind() == RawFunction::kImplicitGetter);
-  return new StaticGetterNode(TokenPos(), NULL, false, field_owner, field_name);
+  return new StaticGetterNode(field_ref_pos,
+                              NULL,
+                              false,
+                              field_owner,
+                              field_name);
 }
 
 
@@ -10341,11 +10377,12 @@ AstNode* Parser::ParsePrimary() {
     ConsumeToken();
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
+      const intptr_t ident_pos = TokenPos();
       const String& ident = *ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kLPAREN) {
         primary = ParseSuperCall(ident);
       } else {
-        primary = ParseSuperFieldAccess(ident);
+        primary = ParseSuperFieldAccess(ident, ident_pos);
       }
     } else if ((CurrentToken() == Token::kLBRACK) ||
         Token::CanBeOverloaded(CurrentToken()) ||
