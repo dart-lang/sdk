@@ -277,7 +277,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
 
   List<JsMethodMirror> get _methods => _functionMirrors;
 
-  Map<Symbol, ClassMirror> get __classes {
+  Map<Symbol, ClassMirror> get classes {
     if (_cachedClasses != null) return _cachedClasses;
     var result = new Map();
     for (String className in _classes) {
@@ -297,8 +297,8 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   InstanceMirror setField(Symbol fieldName, Object arg) {
     String name = n(fieldName);
     if (name.endsWith('=')) throw new ArgumentError('');
-    var mirror = __functions[s('$name=')];
-    if (mirror == null) mirror = __variables[fieldName];
+    var mirror = functions[s('$name=')];
+    if (mirror == null) mirror = variables[fieldName];
     if (mirror == null) {
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(this, setterSymbol(fieldName), [arg], null);
@@ -308,7 +308,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   }
 
   InstanceMirror getField(Symbol fieldName) {
-    JsMirror mirror = __members[fieldName];
+    JsMirror mirror = members[fieldName];
     if (mirror == null) {
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(this, fieldName, [], null);
@@ -322,7 +322,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented.');
     }
-    JsDeclarationMirror mirror = __members[memberName];
+    JsDeclarationMirror mirror = members[memberName];
     if (mirror == null) {
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(
@@ -390,7 +390,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     return _cachedFields = result;
   }
 
-  Map<Symbol, MethodMirror> get __functions {
+  Map<Symbol, MethodMirror> get functions {
     if (_cachedFunctions != null) return _cachedFunctions;
     var result = new Map();
     for (JsMethodMirror mirror in _functionMirrors) {
@@ -400,7 +400,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
         new UnmodifiableMapView<Symbol, MethodMirror>(result);
   }
 
-  Map<Symbol, MethodMirror> get __getters {
+  Map<Symbol, MethodMirror> get getters {
     if (_cachedGetters != null) return _cachedGetters;
     var result = new Map();
     // TODO(ahe): Implement this.
@@ -408,7 +408,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
         new UnmodifiableMapView<Symbol, MethodMirror>(result);
   }
 
-  Map<Symbol, MethodMirror> get __setters {
+  Map<Symbol, MethodMirror> get setters {
     if (_cachedSetters != null) return _cachedSetters;
     var result = new Map();
     // TODO(ahe): Implement this.
@@ -416,7 +416,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
         new UnmodifiableMapView<Symbol, MethodMirror>(result);
   }
 
-  Map<Symbol, VariableMirror> get __variables {
+  Map<Symbol, VariableMirror> get variables {
     if (_cachedVariables != null) return _cachedVariables;
     var result = new Map();
     for (JsVariableMirror mirror in _fields) {
@@ -426,16 +426,16 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
         new UnmodifiableMapView<Symbol, VariableMirror>(result);
   }
 
-  Map<Symbol, Mirror> get __members {
+  Map<Symbol, Mirror> get members {
     if (_cachedMembers !=  null) return _cachedMembers;
-    Map<Symbol, Mirror> result = new Map.from(__classes);
+    Map<Symbol, Mirror> result = new Map.from(classes);
     addToResult(Symbol key, Mirror value) {
       result[key] = value;
     }
-    __functions.forEach(addToResult);
-    __getters.forEach(addToResult);
-    __setters.forEach(addToResult);
-    __variables.forEach(addToResult);
+    functions.forEach(addToResult);
+    getters.forEach(addToResult);
+    setters.forEach(addToResult);
+    variables.forEach(addToResult);
     return _cachedMembers = new UnmodifiableMapView<Symbol, Mirror>(result);
   }
 
@@ -445,7 +445,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     addToResult(Symbol key, Mirror value) {
       result[key] = value;
     }
-    __members.forEach(addToResult);
+    members.forEach(addToResult);
     return _cachedDeclarations =
         new UnmodifiableMapView<Symbol, DeclarationMirror>(result);
   }
@@ -688,15 +688,15 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   // TODO(ahe): Remove this method, only here to silence warning.
   get _mixin => mixin;
 
-  Map<Symbol, Mirror> get __members => _mixin.__members;
+  Map<Symbol, Mirror> get members => _mixin.members;
 
-  Map<Symbol, MethodMirror> get __methods => _mixin.__methods;
+  Map<Symbol, MethodMirror> get methods => _mixin.methods;
 
-  Map<Symbol, MethodMirror> get __getters => _mixin.__getters;
+  Map<Symbol, MethodMirror> get getters => _mixin.getters;
 
-  Map<Symbol, MethodMirror> get __setters => _mixin.__setters;
+  Map<Symbol, MethodMirror> get setters => _mixin.setters;
 
-  Map<Symbol, VariableMirror> get __variables => _mixin.__variables;
+  Map<Symbol, VariableMirror> get variables => _mixin.variables;
 
   Map<Symbol, DeclarationMirror> get declarations => mixin.declarations;
 
@@ -721,7 +721,7 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   List<ClassMirror> get superinterfaces => [mixin];
 
-  Map<Symbol, MethodMirror> get __constructors => _mixin.__constructors;
+  Map<Symbol, MethodMirror> get constructors => _mixin.constructors;
 
   InstanceMirror newInstance(
       Symbol constructorName,
@@ -1006,32 +1006,32 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
     return _cachedMethods =_class._getMethodsWithOwner(this);
   }
 
-  Map<Symbol, MethodMirror> get __methods {
+  Map<Symbol, MethodMirror> get methods {
     if (_cachedMethodsMap != null) return _cachedMethodsMap;
     return _cachedMethodsMap = new UnmodifiableMapView<Symbol, MethodMirror>(
         filterMethods(_methods));
   }
 
-  Map<Symbol, MethodMirror> get __constructors {
+  Map<Symbol, MethodMirror> get constructors {
     if (_cachedConstructors != null) return _cachedConstructors;
     return _cachedConstructors =
         new UnmodifiableMapView<Symbol, MethodMirror>(
             filterConstructors(_methods));
   }
 
-  Map<Symbol, MethodMirror> get __getters {
+  Map<Symbol, MethodMirror> get getters {
     if (_cachedGetters != null) return _cachedGetters;
     return _cachedGetters = new UnmodifiableMapView<Symbol, MethodMirror>(
-        filterGetters(_methods, __variables));
+        filterGetters(_methods, variables));
   }
 
-  Map<Symbol, MethodMirror> get __setters {
+  Map<Symbol, MethodMirror> get setters {
     if (_cachedSetters != null) return _cachedSetters;
     return _cachedSetters = new UnmodifiableMapView<Symbol, MethodMirror>(
-        filterSetters(_methods, __variables));
+        filterSetters(_methods, variables));
   }
 
-  Map<Symbol, VariableMirror> get __variables {
+  Map<Symbol, VariableMirror> get variables {
     if (_cachedVariables != null) return _cachedVariables;
     var result = new Map();
     for (JsVariableMirror mirror in  _class._getFieldsWithOwner(this)) {
@@ -1041,18 +1041,18 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
         new UnmodifiableMapView<Symbol, VariableMirror>(result);
   }
 
-  Map<Symbol, DeclarationMirror> get __members {
+  Map<Symbol, DeclarationMirror> get members {
     if (_cachedMembers != null) return _cachedMembers;
     return _cachedMembers = new UnmodifiableMapView<Symbol, DeclarationMirror>(
-        filterMembers(_methods, __variables));
+        filterMembers(_methods, variables));
   }
 
   Map<Symbol, DeclarationMirror> get declarations {
     if (_cachedDeclarations != null) return _cachedDeclarations;
     Map<Symbol, DeclarationMirror> result =
         new Map<Symbol, DeclarationMirror>();
-    result.addAll(__members);
-    result.addAll(__constructors);
+    result.addAll(members);
+    result.addAll(constructors);
     typeVariables.forEach((tv) => result[tv.simpleName] = tv);
     return _cachedDeclarations =
         new UnmodifiableMapView<Symbol, DeclarationMirror>(result);
@@ -1173,7 +1173,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     }
   }
 
-  Map<Symbol, MethodMirror> get __constructors {
+  Map<Symbol, MethodMirror> get constructors {
     if (_cachedConstructors != null) return _cachedConstructors;
     return _cachedConstructors =
         new UnmodifiableMapView<Symbol, MethodMirror>(
@@ -1261,25 +1261,25 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     return _cachedFields = _getFieldsWithOwner(this);
   }
 
-  Map<Symbol, MethodMirror> get __methods {
+  Map<Symbol, MethodMirror> get methods {
     if (_cachedMethodsMap != null) return _cachedMethodsMap;
     return _cachedMethodsMap =
         new UnmodifiableMapView<Symbol, MethodMirror>(filterMethods(_methods));
   }
 
-  Map<Symbol, MethodMirror> get __getters {
+  Map<Symbol, MethodMirror> get getters {
     if (_cachedGetters != null) return _cachedGetters;
     return _cachedGetters = new UnmodifiableMapView<Symbol, MethodMirror>(
-        filterGetters(_methods, __variables));
+        filterGetters(_methods, variables));
   }
 
-  Map<Symbol, MethodMirror> get __setters {
+  Map<Symbol, MethodMirror> get setters {
     if (_cachedSetters != null) return _cachedSetters;
     return _cachedSetters = new UnmodifiableMapView<Symbol, MethodMirror>(
-        filterSetters(_methods, __variables));
+        filterSetters(_methods, variables));
   }
 
-  Map<Symbol, VariableMirror> get __variables {
+  Map<Symbol, VariableMirror> get variables {
     if (_cachedVariables != null) return _cachedVariables;
     var result = new Map();
     for (JsVariableMirror mirror in _fields) {
@@ -1289,10 +1289,10 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
         new UnmodifiableMapView<Symbol, VariableMirror>(result);
   }
 
-  Map<Symbol, Mirror> get __members {
+  Map<Symbol, Mirror> get members {
     if (_cachedMembers != null) return _cachedMembers;
     return _cachedMembers = new UnmodifiableMapView<Symbol, Mirror>(
-        filterMembers(_methods, __variables));
+        filterMembers(_methods, variables));
   }
 
   Map<Symbol, DeclarationMirror> get declarations {
@@ -1301,15 +1301,15 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     addToResult(Symbol key, Mirror value) {
       result[key] = value;
     }
-    __members.forEach(addToResult);
-    __constructors.forEach(addToResult);
+    members.forEach(addToResult);
+    constructors.forEach(addToResult);
     typeVariables.forEach((tv) => result[tv.simpleName] = tv);
     return _cachedDeclarations =
         new UnmodifiableMapView<Symbol, DeclarationMirror>(result);
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
-    JsVariableMirror mirror = __variables[fieldName];
+    JsVariableMirror mirror = variables[fieldName];
     if (mirror != null && mirror.isStatic && !mirror.isFinal) {
       // '$' (JS_CURRENT_ISOLATE()) stores state which is stored directly, so
       // we shouldn't use [JsLibraryMirror._globalObject] here.
@@ -1325,7 +1325,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   }
 
   InstanceMirror getField(Symbol fieldName) {
-    JsVariableMirror mirror = __variables[fieldName];
+    JsVariableMirror mirror = variables[fieldName];
     if (mirror != null && mirror.isStatic) {
       String jsName = mirror._jsName;
       // '$' (JS_CURRENT_ISOLATE()) stores state which is read directly, so
@@ -1353,7 +1353,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     JsMethodMirror mirror =
         JsCache.fetch(_jsConstructorCache, n(constructorName));
     if (mirror == null) {
-      mirror = __constructors.values.firstWhere(
+      mirror = constructors.values.firstWhere(
           (m) => m.constructorName == constructorName,
           orElse: () {
             // TODO(ahe): What receiver to use?
@@ -1375,7 +1375,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
             // This will set _owner field on all clasess as a side
             // effect.  This gives us a fast path to reflect on a
             // class without parsing reflection data.
-            library.__classes;
+            library.classes;
           }
         }
       }
@@ -1431,7 +1431,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented.');
     }
-    JsMethodMirror mirror = __methods[memberName];
+    JsMethodMirror mirror = methods[memberName];
     if (mirror == null || !mirror.isStatic) {
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(
