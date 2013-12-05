@@ -10374,6 +10374,7 @@ AstNode* Parser::ParsePrimary() {
                      current_function().origin()).Name()).ToCString());
       }
     }
+    const intptr_t super_pos = TokenPos();
     ConsumeToken();
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
@@ -10389,7 +10390,7 @@ AstNode* Parser::ParsePrimary() {
         (CurrentToken() == Token::kNE)) {
       primary = ParseSuperOperator();
     } else {
-      primary = new PrimaryNode(TokenPos(), Symbols::Super());
+      primary = new PrimaryNode(super_pos, Symbols::Super());
     }
   } else {
     UnexpectedToken();
