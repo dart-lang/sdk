@@ -13,6 +13,7 @@
 #include <string.h>  // NOLINT
 #include <sys/epoll.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
+#include <sys/timerfd.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
 
@@ -29,7 +30,6 @@ namespace dart {
 namespace bin {
 
 static const int kInterruptMessageSize = sizeof(InterruptMessage);
-static const int kInfinityTimeout = -1;
 static const int kTimerId = -1;
 static const int kShutdownId = -2;
 
@@ -134,11 +134,27 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (status == -1) {
     FATAL("Failed adding interrupt fd to epoll instance");
   }
+  timer_fd_ = TEMP_FAILURE_RETRY(timerfd_create(CLOCK_REALTIME,
+                                                TFD_NONBLOCK | TFD_CLOEXEC));
+  if (epoll_fd_ == -1) {
+    FATAL("Failed creating timerfd file descriptor");
+  }
+  // Register the timer_fd_ with the epoll instance.
+  event.events = EPOLLIN;
+  event.data.fd = timer_fd_;
+  status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
+                                        EPOLL_CTL_ADD,
+                                        timer_fd_,
+                                        &event));
+  if (status == -1) {
+    FATAL("Failed adding timerfd fd to epoll instance");
+  }
 }
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
   TEMP_FAILURE_RETRY(close(epoll_fd_));
+  TEMP_FAILURE_RETRY(close(timer_fd_));
   TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
   TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
@@ -191,6 +207,14 @@ void EventHandlerImplementation::HandleInterruptFd() {
   for (ssize_t i = 0; i < bytes / kInterruptMessageSize; i++) {
     if (msg[i].id == kTimerId) {
       timeout_queue_.UpdateTimeout(msg[i].dart_port, msg[i].data);
+      struct itimerspec it;
+      memset(&it, 0, sizeof(it));
+      if (timeout_queue_.HasTimeout()) {
+        int64_t millis = timeout_queue_.CurrentTimeout();
+        it.it_value.tv_sec = millis / 1000;
+        it.it_value.tv_nsec = (millis % 1000) * 1000000;
+      }
+      timerfd_settime(timer_fd_, TFD_TIMER_ABSTIME, &it, NULL);
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
@@ -338,6 +362,13 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
   for (int i = 0; i < size; i++) {
     if (events[i].data.ptr == NULL) {
       interrupt_seen = true;
+    } else if (events[i].data.fd == timer_fd_) {
+      int64_t val;
+      VOID_TEMP_FAILURE_RETRY(read(timer_fd_, &val, sizeof(val)));
+      if (timeout_queue_.HasTimeout()) {
+        DartUtils::PostNull(timeout_queue_.CurrentPort());
+        timeout_queue_.RemoveCurrent();
+      }
     } else {
       SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
       intptr_t event_mask = GetPollEvents(events[i].events, sd);
@@ -359,29 +390,6 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
 }
 
 
-int64_t EventHandlerImplementation::GetTimeout() {
-  if (!timeout_queue_.HasTimeout()) {
-    return kInfinityTimeout;
-  }
-  int64_t millis = timeout_queue_.CurrentTimeout() -
-      TimerUtils::GetCurrentTimeMilliseconds();
-  return (millis < 0) ? 0 : millis;
-}
-
-
-void EventHandlerImplementation::HandleTimeout() {
-  if (timeout_queue_.HasTimeout()) {
-    int64_t millis = timeout_queue_.CurrentTimeout() -
-        TimerUtils::GetCurrentTimeMilliseconds();
-    if (millis <= 0) {
-      DartUtils::PostNull(timeout_queue_.CurrentPort());
-      // Remove current from queue.
-      timeout_queue_.RemoveCurrent();
-    }
-  }
-}
-
-
 void EventHandlerImplementation::Poll(uword args) {
   static const intptr_t kMaxEvents = 16;
   struct epoll_event events[kMaxEvents];
@@ -389,20 +397,15 @@ void EventHandlerImplementation::Poll(uword args) {
   EventHandlerImplementation* handler_impl = &handler->delegate_;
   ASSERT(handler_impl != NULL);
   while (!handler_impl->shutdown_) {
-    int64_t millis = handler_impl->GetTimeout();
-    ASSERT(millis == kInfinityTimeout || millis >= 0);
-    if (millis > kMaxInt32) millis = kMaxInt32;
     intptr_t result = TEMP_FAILURE_RETRY(epoll_wait(handler_impl->epoll_fd_,
                                                     events,
                                                     kMaxEvents,
-                                                    millis));
+                                                    -1));
     ASSERT(EAGAIN == EWOULDBLOCK);
-    if (result == -1) {
+    if (result <= 0) {
       if (errno != EWOULDBLOCK) {
         perror("Poll failed");
       }
-    } else if (result == 0) {
-      handler_impl->HandleTimeout();
     } else {
       handler_impl->HandleEvents(events, result);
     }
