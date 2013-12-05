@@ -8,6 +8,11 @@
 #include <stddef.h>
 #include <string.h>
 
+// Map from Blink to Dart VM.
+#if defined(_DEBUG)
+#define DEBUG
+#endif
+
 #include "platform/assert.h"
 
 
