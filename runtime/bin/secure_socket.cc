@@ -585,13 +585,38 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
       ThrowPRException("TlsException",
                        "Failed NSS_SetDomesticPolicy call.");
     }
-    // Enable TLS, as well as SSL3 and SSL2.
-    status = SSL_OptionSetDefault(SSL_ENABLE_TLS, PR_TRUE);
-    if (status != SECSuccess) {
-      mutex_->Unlock();  // MutexLocker destructor not called when throwing.
-      ThrowPRException("TlsException",
-                       "Failed SSL_OptionSetDefault enable TLS call.");
+
+    // Enable the same additional ciphers that Chromium does.
+    // See NSSSSLInitSingleton() in Chromium's net/socket/nss_ssl_util.cc.
+    // Explicitly enable exactly those ciphers with keys of at least 80 bits.
+    const PRUint16* const ssl_ciphers = SSL_GetImplementedCiphers();
+    const PRUint16 num_ciphers = SSL_GetNumImplementedCiphers();
+    for (int i = 0; i < num_ciphers; i++) {
+      SSLCipherSuiteInfo info;
+      if (SSL_GetCipherSuiteInfo(ssl_ciphers[i], &info, sizeof(info)) ==
+          SECSuccess) {
+        bool enabled = (info.effectiveKeyBits >= 80);
+        // Trim the list of cipher suites in order to keep the size of the
+        // ClientHello down. DSS, ECDH, CAMELLIA, SEED, ECC+3DES, and
+        // HMAC-SHA256 cipher suites are disabled.
+        if (info.symCipher == ssl_calg_camellia ||
+            info.symCipher == ssl_calg_seed ||
+            (info.symCipher == ssl_calg_3des && info.keaType != ssl_kea_rsa) ||
+            info.authAlgorithm == ssl_auth_dsa ||
+            info.macAlgorithm == ssl_hmac_sha256 ||
+            info.nonStandard ||
+            strcmp(info.keaTypeName, "ECDH") == 0) {
+          enabled = false;
+        }
+
+        if (ssl_ciphers[i] == TLS_DHE_DSS_WITH_AES_128_CBC_SHA) {
+          // Enabled to allow servers with only a DSA certificate to function.
+          enabled = true;
+        }
+        SSL_CipherPrefSetDefault(ssl_ciphers[i], enabled);
+      }
     }
+
     status = SSL_ConfigServerSessionIDCache(0, 0, 0, NULL);
     if (status != SECSuccess) {
       mutex_->Unlock();  // MutexLocker destructor not called when throwing.
@@ -658,7 +683,7 @@ void SSLFilter::Connect(const char* host_name,
 
   SSLVersionRange vrange;
   vrange.min = SSL_LIBRARY_VERSION_3_0;
-  vrange.max = SSL_LIBRARY_VERSION_TLS_1_1;
+  vrange.max = SSL_LIBRARY_VERSION_TLS_1_2;
   SSL_VersionRangeSet(filter_, &vrange);
 
   SECStatus status;
