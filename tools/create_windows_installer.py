@@ -83,29 +83,24 @@ def GetInputDirectory(options, temp_dir):
 # In addition to that, the limits on the size are:
 # Major: 256
 # Minor: 256
-# Patch: 65536
+# Build: 65536
 # To circumvent this we create the version like this:
 #   Major.Minor.X
-# from "major.minor.patch-prerelease.prerelease_patch"
-# where X is "patch<<10 + prerelease<<5 + prerelease_patch"
-# Example version 1.2.4-dev.2.3 will go to 1.2.4163
+# where X is Build<<9 + Patch
+# Example version 1.2.4.14 will go to 1.2.2062
 def GetMicrosoftProductVersion(version):
   version_parts = version.split('.')
-  if len(version_parts) is not 5:
+  if len(version_parts) is not 4:
     raise Exception(
       "Version string (%s) does not follow specification" % version)
-  (major, minor, patch, prerelease, prerelease_patch) = map(int, version_parts)
+  (major, minor, build, patch) = map(int, version_parts)
 
+  if build > 127 or patch > 511:
+    raise Exception('Build/Patch can not be above 127/511')
   if major > 255 or minor > 255:
     raise Exception('Major/Minor can not be above 256')
-  if patch > 63:
-    raise Exception('Patch can not be above 63')
-  if prerelease > 31:
-    raise Exception('Prerelease can not be above 31')
-  if prerelease_patch > 31:
-    raise Exception('PrereleasePatch can not be above 31')
 
-  combined = (patch << 10) + (prerelease << 5) + prerelease_patch
+  combined = (build << 9) + patch
   return '%s.%s.%s' % (major, minor, combined)
 
 # Append using the current indentation level

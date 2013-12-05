@@ -1,31 +1,5 @@
-# This file is used by tools/utils.py to generate version strings.
-# The numbers are changed as follows:
-#
-#  * New release cycle has begun (i.e. stable release was just made):
-#     - increase MINOR by 1
-#     - set "PATCH 0"
-#     - set "PRERELEASE 0"
-#     - set "PRERELEASE_PATCH 0"
-#
-#  * Doing a push-to-trunk from bleeding_edge:
-#    (The first push-to-trunk in the release cycle will set PRERELEASE to 1)
-#     - increase PRERELEASE by 1
-#     - set "PRERELEASE_PATCH 0"
-#
-#  * Doing a cherry-pick to trunk:
-#     - increase PRERELEASE_PATCH by 1
-#
-#  * Making a stable release (i.e. new stable branch):
-#     - set "PRERELEASE 0"
-#     - set "PRERELEASE_PATCH 0"
-#    The new stable release version will sort higher than the prereleases.
-#
-#  * Making cherry-picks to stable channel
-#     - increase PATCH by 1
-#
 CHANNEL be
-MAJOR 1
+MAJOR 0
 MINOR 1
+BUILD 2
 PATCH 0
-PRERELEASE 0
-PRERELEASE_PATCH 0

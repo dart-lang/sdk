@@ -794,6 +794,12 @@ sdkConstraint() {
     'foo': '2.0.0',
     'bar': '2.0.0'
   }, maxTries: 3);
+
+  testResolve('ignores SDK constraints on bleeding edge', {
+    'myapp 0.0.0': {'sdk': badVersion }
+  }, result: {
+    'myapp from root': '0.0.0'
+  }, useBleedingEdgeSdkVersion: true);
 }
 
 void prerelease() {
@@ -983,24 +989,27 @@ void override() {
 
 testResolve(String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
-    int maxTries}) {
+    int maxTries, bool useBleedingEdgeSdkVersion}) {
   _testResolve(test, description, packages, lockfile: lockfile,
-      overrides: overrides, result: result, error: error, maxTries: maxTries);
+      overrides: overrides, result: result, error: error, maxTries: maxTries,
+      useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
 }
 
 solo_testResolve(String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
-    int maxTries}) {
+    int maxTries, bool useBleedingEdgeSdkVersion}) {
   log.showSolver();
   _testResolve(solo_test, description, packages, lockfile: lockfile,
-      overrides: overrides, result: result, error: error, maxTries: maxTries);
+      overrides: overrides, result: result, error: error, maxTries: maxTries,
+      useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
 }
 
 _testResolve(void testFn(String description, Function body),
     String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
-    int maxTries}) {
+    int maxTries, bool useBleedingEdgeSdkVersion}) {
   if (maxTries == null) maxTries = 1;
+  if (useBleedingEdgeSdkVersion == null) useBleedingEdgeSdkVersion = false;
 
   testFn(description, () {
     var cache = new SystemCache('.');
@@ -1047,6 +1056,12 @@ _testResolve(void testFn(String description, Function body),
       });
     }
 
+    // Make a version number like the continuous build's version.
+    var previousVersion = sdk.version;
+    if (useBleedingEdgeSdkVersion) {
+      sdk.version = new Version(0, 1, 2, build: '0_r12345_juser');
+    }
+
     // Resolve the versions.
     var future = resolveVersions(cache.sources, root, lockFile: realLockFile);
 
@@ -1056,6 +1071,12 @@ _testResolve(void testFn(String description, Function body),
     } else if (error != null) {
       matcher = error(maxTries);
     }
+
+    future = future.whenComplete(() {
+      if (useBleedingEdgeSdkVersion) {
+        sdk.version = previousVersion;
+      }
+    });
 
     expect(future, completion(matcher));
   });
