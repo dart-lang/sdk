@@ -123,7 +123,9 @@ void main() {
 
 const MEMORY_SOURCE_FILES = const <String, String> {
   'main.dart': """
-@MirrorsUsed(targets: const [Foo], override: '*')
+// The repeated constant value for symbols and targets used to crash dart2js in
+// host-checked mode, and could potentially lead to other problems.
+@MirrorsUsed(symbols: 'Foo', targets: 'Foo', override: '*')
 import 'dart:mirrors';
 
 import 'library.dart';
