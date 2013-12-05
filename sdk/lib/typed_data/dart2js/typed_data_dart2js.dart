@@ -1125,7 +1125,8 @@ class Uint8List
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
+abstract class Int64List extends TypedData
+                         implements JavaScriptIndexingBehavior, List<int> {
   /**
    * Creates an [Int64List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1170,7 +1171,8 @@ class Int64List extends TypedData implements JavaScriptIndexingBehavior, List<in
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
+abstract class Uint64List extends TypedData
+                          implements JavaScriptIndexingBehavior, List<int> {
   /**
    * Creates a [Uint64List] of the specified length (in elements), all
    * of whose elements are initially zero.
