@@ -124,9 +124,9 @@ abstract class num implements Comparable<num> {
  /**
    * Returns the remainder of the truncating division of `this` by [other].
    *
-   * The result `r` of this operation satisfies: `this == this ~/ other + r`.
-   * As a consequence the remainder `r` has the same sign as the dividend
-   * `this`.
+   * The result `r` of this operation satisfies:
+   * `this == (this ~/ other) * other + r`.
+   * As a consequence the remainder `r` has the same sign as the divider `this`.
    */
   num remainder(num other);
 
