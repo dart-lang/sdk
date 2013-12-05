@@ -21,21 +21,38 @@ import 'io.dart';
 import 'sdk.dart' as sdk;
 import 'utils.dart';
 
-/// Returns [entrypoint] compiled to JavaScript (or to Dart if [toDart] is
-/// true).
+/// Interface to communicate with dart2js.
+///
+/// This is basically an amalgamation of dart2js's
+/// [compiler.CompilerInputProvider], [compiler.CompilerOutputProvider], and
+/// [compiler.DiagnosticHandler] function types so that we can provide them
+/// as a single unit.
+abstract class CompilerProvider {
+  /// Given [uri], responds with a future that completes to the contents of
+  /// the input file at that URI.
+  ///
+  /// The future can complete to a string or a list of bytes.
+  Future/*<String | List<int>>*/ provideInput(Uri uri);
+
+  /// Reports a diagnostic message from dart2js to the user.
+  void handleDiagnostic(Uri uri, int begin, int end, String message,
+                        compiler.Diagnostic kind);
+
+  /// Given a [name] (which will be "" for the entrypoint) and a file extension,
+  /// returns an [EventSink] that dart2js can write to to emit an output file.
+  EventSink<String> provideOutput(String name, String extension);
+}
+
+/// Compiles [entrypoint] to JavaScript (or to Dart if [toDart] is true) as
+/// well as any ancillary outputs dart2js creates.
+///
+/// Uses [provider] to communcate between dart2js and the caller. Returns a
+/// future that completes when compilation is done.
 ///
 /// By default, the package root is assumed to be adjacent to [entrypoint], but
 /// if [packageRoot] is passed that will be used instead.
-///
-/// If [inputProvider] and [diagnosticHandler] are omitted, uses a default
-/// [compiler.CompilerInputProvider] that loads directly from the filesystem.
-/// If either is provided, both must be.
-Future<String> compile(String entrypoint, {
-    String packageRoot,
-    bool toDart: false,
-    bool minify: true,
-    compiler.CompilerInputProvider inputProvider,
-    compiler.DiagnosticHandler diagnosticHandler}) {
+Future compile(String entrypoint, CompilerProvider provider, {
+    String packageRoot, bool toDart: false, bool minify: true}) {
   return new Future.sync(() {
     var options = <String>['--categories=Client,Server'];
     if (toDart) options.add('--output-type=dart');
@@ -45,27 +62,14 @@ Future<String> compile(String entrypoint, {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
     }
 
-    // Must either pass both of these or neither.
-    if ((inputProvider == null) != (diagnosticHandler == null)) {
-      throw new ArgumentError("If either inputProvider or diagnosticHandler "
-          "is passed, then both must be.");
-    }
-
-    if (inputProvider == null) {
-      var provider = new CompilerSourceFileProvider();
-      inputProvider = provider.readStringFromUri;
-      diagnosticHandler = new FormattingDiagnosticHandler(provider)
-          .diagnosticHandler;
-    }
-
     return compiler.compile(
         path.toUri(entrypoint),
         path.toUri(appendSlash(_libPath)),
         path.toUri(appendSlash(packageRoot)),
-        inputProvider, diagnosticHandler, options).then((js) {
-      if (js == null) throw new CompilerException(entrypoint);
-      return js;
-    });
+        provider.provideInput,
+        provider.handleDiagnostic,
+        options,
+        provider.provideOutput);
   });
 }
 
@@ -174,10 +178,4 @@ class CrossIsolateException implements Exception {
   }
 
   String toString() => "$message\n$stackTrace";
-}
-
-/// An exception thrown when dart2js generates compiler errors.
-class CompilerException extends ApplicationException {
-  CompilerException(String entrypoint)
-      : super('Failed to compile "$entrypoint".');
 }

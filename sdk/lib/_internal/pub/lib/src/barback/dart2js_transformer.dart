@@ -5,6 +5,7 @@
 library pub.dart2js_transformer;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
@@ -84,7 +85,7 @@ class Dart2JSTransformer extends Transformer {
         return null;
       }
 
-      var provider = new _BarbackInputProvider(_graph, transform);
+      var provider = new _BarbackCompilerProvider(_graph, transform);
 
       // Create a "path" to the entrypoint script. The entrypoint may not
       // actually be on disk, but this gives dart2js a root to resolve
@@ -100,22 +101,11 @@ class Dart2JSTransformer extends Transformer {
       // Need to report compile errors to the user in an easily visible way.
       // Need to make sure paths in errors are mapped to the original source
       // path so they can understand them.
-      return dart.compile(entrypoint,
+      return dart.compile(entrypoint, provider,
           packageRoot: packageRoot,
-          minify: _mode == BarbackMode.RELEASE,
-          inputProvider: provider.readStringFromUri,
-          diagnosticHandler: provider.handleDiagnostic).then((js) {
-        var id = transform.primaryInput.id.changeExtension(".dart.js");
-        transform.addOutput(new Asset.fromString(id, js));
-
+          minify: _mode == BarbackMode.RELEASE).then((_) {
         stopwatch.stop();
-        transform.logger.info("Generated $id (${js.length} characters) in "
-            "${stopwatch.elapsed}");
-      }).catchError((error) {
-        // The compile failed and errors have been reported through the
-        // diagnostic handler, so just do nothing here.
-        if (error is dart.CompilerException) return;
-        throw error;
+        transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
       });
     }).whenComplete(() {
       completer.complete();
@@ -124,14 +114,13 @@ class Dart2JSTransformer extends Transformer {
   }
 }
 
-/// Defines methods implementig [CompilerInputProvider] and [DiagnosticHandler]
-/// for dart2js to use to load files from Barback and report errors.
+/// Defines an interface for dart2js to communicate with barback and pub.
 ///
 /// Note that most of the implementation of diagnostic handling here was
 /// copied from [FormattingDiagnosticHandler] in dart2js. The primary
 /// difference is that it uses barback's logging code and, more importantly, it
 /// handles missing source files more gracefully.
-class _BarbackInputProvider {
+class _BarbackCompilerProvider implements dart.CompilerProvider {
   final PackageGraph _graph;
   final Transform _transform;
 
@@ -166,10 +155,10 @@ class _BarbackInputProvider {
       compiler.Diagnostic.INFO.ordinal |
       compiler.Diagnostic.VERBOSE_INFO.ordinal;
 
-  _BarbackInputProvider(this._graph, this._transform);
+  _BarbackCompilerProvider(this._graph, this._transform);
 
   /// A [CompilerInputProvider] for dart2js.
-  Future<String> readStringFromUri(Uri resourceUri) {
+  Future<String> provideInput(Uri resourceUri) {
     // We only expect to get absolute "file:" URLs from dart2js.
     assert(resourceUri.isAbsolute);
     assert(resourceUri.scheme == "file");
@@ -180,6 +169,29 @@ class _BarbackInputProvider {
           new StringSourceFile(path.relative(sourcePath), source);
       return source;
     });
+  }
+
+  /// A [CompilerOutputProvider] for dart2js.
+  EventSink<String> provideOutput(String name, String extension) {
+    // Dart2js uses an empty string for the name of the entrypoint library.
+    // We only expect to get output files associated with that right now. For
+    // other files, we'd need some logic to determine the right relative path
+    // for it.
+    assert(name == "");
+
+    var primaryId = _transform.primaryInput.id;
+    var id = new AssetId(primaryId.package, "${primaryId.path}.$extension");
+
+    // Make a sink that dart2js can write to.
+    var sink = new StreamController<String>();
+
+    // dart2js gives us strings, but stream assets expect byte lists.
+    var stream = UTF8.encoder.bind(sink.stream);
+
+    // And give it to barback as a stream it can read from.
+    _transform.addOutput(new Asset.fromStream(id, stream));
+
+    return sink;
   }
 
   /// A [DiagnosticHandler] for dart2js, loosely based on

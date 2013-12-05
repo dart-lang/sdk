@@ -29,16 +29,20 @@ main() {
     // TODO(rnystrom): If we flesh out the command-line output, validate that
     // here.
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built 2 files!"),
+        output: new RegExp(r"Built 6 files!"),
         exitCode: 0);
 
     d.dir(appPath, [
       d.dir('build', [
         d.matcherFile('file.dart.js', isNot(isEmpty)),
+        d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
+        d.matcherFile('file.dart.js.map', isNot(isEmpty)),
         d.nothing('file.dart'),
         d.nothing('lib.dart'),
         d.dir('subdir', [
           d.matcherFile('subfile.dart.js', isNot(isEmpty)),
+          d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
+          d.matcherFile('subfile.dart.js.map', isNot(isEmpty)),
           d.nothing('subfile.dart')
         ])
       ])
