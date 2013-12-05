@@ -10,9 +10,6 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  // TODO(rnystrom): Should also add tests that other transformers work
-  // (#14556).
-
   integration("compiles Dart entrypoints to JS", () {
     // Dart2js can take a long time to compile dart code, so we increase the
     // timeout to cope with that.
