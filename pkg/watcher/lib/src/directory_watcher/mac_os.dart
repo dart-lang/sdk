@@ -7,6 +7,8 @@ library watcher.directory_watcher.mac_os;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import '../constructable_file_system_event.dart';
 import '../path_set.dart';
 import '../utils.dart';
