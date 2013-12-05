@@ -466,7 +466,7 @@ class SourceVisitor implements ASTVisitor {
 
   visitCatchClause(CatchClause node) {
 
-    token(node.onKeyword, precededBy: space, followedBy: space);
+    token(node.onKeyword, followedBy: space);
     visit(node.exceptionType);
 
     if (node.catchKeyword != null) {

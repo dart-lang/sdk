@@ -836,6 +836,18 @@ main() {
         '  print(e);\n'
         '}'
       );
+      expectStmtFormatsTo(
+          'try{\n'
+          'doSomething();\n'
+          '}on Exception catch (e){\n'
+          'print(e);\n'
+          '}',
+          'try {\n'
+          '  doSomething();\n'
+          '} on Exception catch (e) {\n'
+          '  print(e);\n'
+          '}'
+      );
     });
 
     test('stmt (binary/ternary ops)', () {
