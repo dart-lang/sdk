@@ -66,6 +66,9 @@ Map<String, Indexable> entityMap = new Map<String, Indexable>();
 /// This is set from the command line arguments flag --include-private
 bool _includePrivate = false;
 
+/// This is set from the command line flag --include-dependent-packages
+bool _includeDependentPackages = false;
+
 /// Library names to explicitly exclude.
 ///
 ///   Set from the command line option
@@ -90,10 +93,12 @@ Map _mdn;
 Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
     bool parseSdk: false, bool append: false, String introduction: '',
-    out: DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries}) {
+    out: DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries,
+    bool includeDependentPackages}) {
   _excluded = excludeLibraries;
   _includePrivate = includePrivate;
   _outputDirectory = out;
+  _includeDependentPackages = includeDependentPackages;
   if (!append) {
     var dir = new Directory(_outputDirectory);
     if (dir.existsSync()) dir.deleteSync(recursive: true);
@@ -109,6 +114,9 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     }
   }
   logger.info('Package Root: ${packageRoot}');
+  if (_includeDependentPackages) {
+    files.addAll(allDependentPackageDirs(files.first));
+  }
   var requestedLibraries = _listLibraries(files);
   var allLibraries = []..addAll(requestedLibraries);
   if (includeSdk) {
@@ -140,6 +148,17 @@ Future<bool> docgen(List<String> files, {String packageRoot,
           introduction: introduction);
       return true;
     });
+}
+
+/// All of the directories for our dependent packages
+List<String> allDependentPackageDirs(String packageDirectory) {
+  var dependentsJson = Process.runSync('pub', ['list-package-dirs'],
+      workingDirectory: packageDirectory, runInShell: true);
+  if (dependentsJson.exitCode != 0) {
+    print(dependentsJson.stderr);
+  }
+  var dependents = JSON.decode(dependentsJson.stdout)['packages'];
+  return dependents.values.toList();
 }
 
 /// For a library's [mirror], determine the name of the package (if any) we
