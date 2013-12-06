@@ -232,7 +232,7 @@ class _IsolateContext implements IsolateContext {
 
   /** Holds isolate globals (statics and top-level properties). */
   // native object containing all globals of an isolate.
-  final var isolateStatics = JS_CREATE_ISOLATE();
+  final isolateStatics = JS_CREATE_ISOLATE();
 
   /**
    * Run [code] in the context of the isolate represented by [this].
