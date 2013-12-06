@@ -649,7 +649,7 @@ class LocalsHandler {
     // Remove locals that are not in all handlers.
     directLocals = new Map<Element, HInstruction>();
     joinedLocals.forEach((element, instruction) {
-      if (instruction is HPhi
+      if (element != closureData.thisElement
           && instruction.inputs.length != localsHandlers.length) {
         joinBlock.removePhi(instruction);
       } else {
