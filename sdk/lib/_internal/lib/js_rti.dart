@@ -382,7 +382,7 @@ bool isSupertypeOfNull(var type) {
  * See the comment in the beginning of this file for a description of type
  * representations.
  */
-bool checkSubtypeOfRuntimeType(o, t) {
+bool checkSubtypeOfRuntimeType(Object o, var t) {
   if (isNull(o)) return isSupertypeOfNull(t);
   if (isNull(t)) return true;
   // Get the runtime type information from the object here, because we may

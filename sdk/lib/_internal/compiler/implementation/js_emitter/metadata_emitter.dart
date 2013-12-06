@@ -42,9 +42,9 @@ class MetadataEmitter extends CodeEmitterHelper {
     });
   }
 
-  List<int> reifyDefaultArguments(FunctionElement function) {
+  jsAst.Node reifyDefaultArguments(FunctionElement function) {
     FunctionSignature signature = function.computeSignature(compiler);
-    if (signature.optionalParameterCount == 0) return const [];
+    if (signature.optionalParameterCount == 0) return null;
     List<int> defaultValues = <int>[];
     for (Element element in signature.orderedOptionalParameters) {
       Constant value =
@@ -55,7 +55,7 @@ class MetadataEmitter extends CodeEmitterHelper {
               .getText();
       defaultValues.add(addGlobalMetadata(stringRepresentation));
     }
-    return defaultValues;
+    return js.toExpression(defaultValues);
   }
 
   int reifyMetadata(MetadataAnnotation annotation) {
@@ -118,10 +118,21 @@ class MetadataEmitter extends CodeEmitterHelper {
     buffer.write('];$n');
   }
 
-  List<int> computeMetadata(FunctionElement element) {
+  jsAst.Fun extendWithMetadata(FunctionElement element, jsAst.Fun code) {
+    if (!backend.retainMetadataOf(element)) return code;
     return compiler.withCurrentElement(element, () {
-      if (!backend.retainMetadataOf(element)) return const <int>[];
       List<int> metadata = <int>[];
+      FunctionSignature signature = element.functionSignature;
+      if (element.isConstructor()) {
+        metadata.add(reifyType(element.getEnclosingClass().thisType));
+      } else {
+        metadata.add(reifyType(signature.returnType));
+      }
+      signature.forEachParameter((Element parameter) {
+        metadata
+            ..add(reifyName(parameter.name))
+            ..add(reifyType(parameter.computeType(compiler)));
+      });
       Link link = element.metadata;
       // TODO(ahe): Why is metadata sometimes null?
       if (link != null) {
@@ -129,7 +140,8 @@ class MetadataEmitter extends CodeEmitterHelper {
           metadata.add(reifyMetadata(link.head));
         }
       }
-      return metadata;
+      code.body.statements.add(js.string(metadata.join(',')).toStatement());
+      return code;
     });
   }
 }

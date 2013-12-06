@@ -811,11 +811,6 @@ class JavaScriptBackend extends Backend {
         enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
       }
     }
-    if (cls == compiler.closureClass) {
-      enqueue(enqueuer,
-              compiler.findHelper('closureFromTearOff'),
-              elements);
-    }
     ClassElement result = null;
     if (cls == compiler.stringClass || cls == jsStringClass) {
       addInterceptors(jsStringClass, enqueuer, elements);
@@ -996,7 +991,6 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerIsCheck(DartType type, Enqueuer world, TreeElements elements) {
-    enqueueInResolution(getThrowRuntimeError(), elements);
     type = type.unalias(compiler);
     enqueueClass(world, compiler.boolClass, elements);
     bool inCheckedMode = compiler.enableTypeAssertions;
@@ -1054,7 +1048,6 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerAsCheck(DartType type, Enqueuer world, TreeElements elements) {
-    enqueueInResolution(getThrowRuntimeError(), elements);
     type = type.unalias(compiler);
     if (!world.isResolutionQueue) {
       // All helpers are added to resolution queue in enqueueHelpers. These
@@ -1743,8 +1736,6 @@ class JavaScriptBackend extends Backend {
    * system.
    */
   bool isAccessibleByReflection(Element element) {
-    // TODO(ahe): This isn't sufficient: simply importing dart:mirrors
-    // causes hasInsufficientMirrorsUsed to become true.
     if (hasInsufficientMirrorsUsed) return true;
     return isNeededForReflection(element);
   }

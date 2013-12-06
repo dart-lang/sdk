@@ -25,7 +25,7 @@ readFoo() {
 
 main() {
   Expect.throws(() { foo('a'); }, isNoSuchMethodError);
-  Expect.throws(readFoo, isNoSuchMethodError);
+  Expect.isNull(readFoo());
   int counter = 0;
   asyncStart();
   lazy.load().then((bool didLoad) {
@@ -48,5 +48,5 @@ main() {
   });
   Expect.equals(0, counter);
   Expect.throws(() { foo('a'); }, isNoSuchMethodError);
-  Expect.throws(readFoo, isNoSuchMethodError);
+  Expect.isNull(readFoo());
 }

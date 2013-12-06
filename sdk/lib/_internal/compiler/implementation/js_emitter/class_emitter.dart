@@ -108,6 +108,7 @@ class ClassEmitter extends CodeEmitterHelper {
       throw new SpannableAssertionFailure(
           element, 'Must be a ClassElement or a LibraryElement');
     }
+    StringBuffer buffer = new StringBuffer();
     if (emitStatics) {
       assert(invariant(element, superName == null, message: superName));
     } else {
@@ -115,13 +116,16 @@ class ClassEmitter extends CodeEmitterHelper {
       String nativeName =
           namer.getPrimitiveInterceptorRuntimeName(element);
       if (nativeName != null) {
-        builder.nativeName = nativeName;
+        buffer.write('$nativeName/');
       }
-      builder.superName = superName;
+      buffer.write('$superName;');
     }
+    int bufferClassLength = buffer.length;
+
+    String separator = '';
+
     var fieldMetadata = [];
     bool hasMetadata = false;
-    bool fieldsAdded = false;
 
     if (!onlyForRti) {
       visitFields(element, emitStatics,
@@ -138,6 +142,8 @@ class ClassEmitter extends CodeEmitterHelper {
         // constructors, so we don't need the fields unless we are generating
         // accessors at runtime.
         if (!classIsNative || needsAccessor) {
+          buffer.write(separator);
+          separator = ',';
           var metadata = task.metadataEmitter.buildMetadataFunction(field);
           if (metadata != null) {
             hasMetadata = true;
@@ -146,17 +152,16 @@ class ClassEmitter extends CodeEmitterHelper {
           }
           fieldMetadata.add(metadata);
           recordMangledField(field, accessorName, field.name);
-          String fieldName = name;
-          String fieldCode = '';
-          String reflectionMarker = '';
           if (!needsAccessor) {
             // Emit field for constructor generation.
             assert(!classIsNative);
+            buffer.write(name);
           } else {
             // Emit (possibly renaming) field name so we can add accessors at
             // runtime.
+            buffer.write(accessorName);
             if (name != accessorName) {
-              fieldName = '$accessorName:$name';
+              buffer.write(':$name');
             }
 
             int getterCode = 0;
@@ -203,25 +208,28 @@ class ClassEmitter extends CodeEmitterHelper {
               compiler.reportInternalError(
                   field, 'Internal error: code is 0 ($element/$field)');
             } else {
-              fieldCode = FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE];
+              buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
             }
           }
           if (backend.isAccessibleByReflection(field)) {
-            reflectionMarker = '-';
+            buffer.write('-');
             if (backend.isNeededForReflection(field)) {
               DartType type = field.computeType(compiler);
-              reflectionMarker = '-${task.metadataEmitter.reifyType(type)}';
+              buffer.write('${task.metadataEmitter.reifyType(type)}');
             }
           }
-          builder.addField('$fieldName$fieldCode$reflectionMarker');
-          fieldsAdded = true;
         }
       });
     }
 
+    bool fieldsAdded = buffer.length > bufferClassLength;
+    String compactClassData = buffer.toString();
+    jsAst.Expression classDataNode = js.string(compactClassData);
     if (hasMetadata) {
-      builder.fieldMetadata = fieldMetadata;
+      fieldMetadata.insert(0, classDataNode);
+      classDataNode = new jsAst.ArrayInitializer.from(fieldMetadata);
     }
+    builder.addProperty('', classDataNode);
     return fieldsAdded;
   }
 
@@ -313,7 +321,7 @@ class ClassEmitter extends CodeEmitterHelper {
     List<jsAst.Property> statics = new List<jsAst.Property>();
     ClassBuilder staticsBuilder = new ClassBuilder();
     if (emitFields(classElement, staticsBuilder, null, emitStatics: true)) {
-      statics.add(staticsBuilder.toObjectInitializer().properties.single);
+      statics.add(staticsBuilder.properties.single);
     }
 
     Map<String, ClassBuilder> classPropertyLists =
