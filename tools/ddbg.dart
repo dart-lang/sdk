@@ -121,7 +121,7 @@ List<Command> commandList =
       new ShowCommand() ];
 
 
-Command matchCommand(String commandName, bool exactMatchWins) {
+List<Command> matchCommand(String commandName, bool exactMatchWins) {
   List matches = [];
   for (var command in commandList) {
     if (command.name.startsWith(commandName)) {
