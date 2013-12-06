@@ -1533,12 +1533,24 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   SsaLoadElimination(this.compiler);
 
-  visitGraph(HGraph graph) {
+  void visitGraph(HGraph graph) {
     memories = new List<MemorySet>(graph.blocks.length);
-    visitDominatorTree(graph);
+    List<HBasicBlock> blocks = graph.blocks;
+    for (int i = 0; i < blocks.length; i++) {
+      HBasicBlock block = blocks[i];
+      visitBasicBlock(block);
+      if (block.successors.isNotEmpty && block.successors[0].isLoopHeader()) {
+        // We've reached the ending block of a loop. Iterate over the
+        // blocks of the loop again to take values that flow from that
+        // ending block into account.
+        for (int j = block.successors[0].id; j <= block.id; j++) {
+          visitBasicBlock(blocks[j]);
+        }
+      }
+    }
   }
 
-  visitBasicBlock(HBasicBlock block) {
+  void visitBasicBlock(HBasicBlock block) {
     if (block.predecessors.length == 0) {
       // Entry block.
       memorySet = new MemorySet(compiler);
@@ -1550,9 +1562,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
       // `block.predecessors[0]` again, we can just re-use its
       // [memorySet].
       memorySet = memories[block.predecessors[0].id];
-    } else if (block.isLoopHeader()) {
-      // We currently do not handle loops.
-      memorySet = new MemorySet(compiler);
     } else if (block.predecessors.length == 1) {
       // Clone the memorySet of the predecessor, because it is also used
       // by other successors of it.
@@ -1565,6 +1574,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
           memories[block.predecessors[i].id], block, i);
       }
     }
+
     memories[block.id] = memorySet;
     HInstruction instruction = block.first;
     while (instruction != null) {
@@ -1880,6 +1890,8 @@ class MemorySet {
                             HBasicBlock block,
                             int predecessorIndex) {
     MemorySet result = new MemorySet(compiler);
+    if (other == null) return result;
+
     fieldValues.forEach((element, values) {
       var otherValues = other.fieldValues[element];
       if (otherValues == null) return;
