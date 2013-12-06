@@ -966,6 +966,7 @@ Future<TargetScript> getTargetScript(Map location) {
   if (script != null) {
     return new Future.value(script);
   }
+  script = new TargetScript();
 
   // Ask the vm for the source and line number table.
   var sourceCmd = {
@@ -997,7 +998,6 @@ Future<TargetScript> getTargetScript(Map location) {
       script.tokenToLine = parseLineNumberTable(result['lines']);
     });
 
-  script = new TargetScript();
   return Future.wait([sourceResponse, lineNumberResponse]).then((_) {
       // When both commands complete, cache the result.
       isolate.scripts[url] = script;
