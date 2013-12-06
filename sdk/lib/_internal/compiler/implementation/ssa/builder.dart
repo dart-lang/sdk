@@ -2073,27 +2073,16 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, typeVariable);
     } else if (type.kind == TypeKind.FUNCTION) {
-      if (backend.rti.isSimpleFunctionType(type)) {
-        return original.convertType(compiler, type, kind);
-      }
-      TypeMask subtype = original.instructionType;
-      if (type.containsTypeVariables) {
-        bool contextIsTypeArguments = false;
-        HInstruction context;
-        if (!currentElement.enclosingElement.isClosure()
-            && currentElement.isInstanceMember()) {
-          context = localsHandler.readThis();
-        } else {
-          ClassElement contextClass = Types.getClassContext(type);
-          context = buildTypeVariableList(contextClass);
-          add(context);
-          contextIsTypeArguments = true;
-        }
-        return new HTypeConversion.withContext(type, kind, subtype,
-            original, context, contextIsTypeArguments: contextIsTypeArguments);
-      } else {
-        return new HTypeConversion(type, kind, subtype, original);
-      }
+      String name = kind == HTypeConversion.CAST_TYPE_CHECK
+          ? '_asCheck' : '_assertCheck';
+
+      List arguments = [buildFunctionType(type), original];
+      pushInvokeDynamic(
+          null,
+          new Selector.call(name, compiler.jsHelperLibrary, 1),
+          arguments);
+
+      return new HTypeConversion(type, kind, original.instructionType, pop());
     } else {
       return original.convertType(compiler, type, kind);
     }
@@ -2165,7 +2154,9 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
   }
 
   HInstruction attachPosition(HInstruction target, Node node) {
-    target.sourcePosition = sourceFileLocationForBeginToken(node);
+    if (node != null) {
+      target.sourcePosition = sourceFileLocationForBeginToken(node);
+    }
     return target;
   }
 
@@ -3058,61 +3049,14 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     push(instruction);
   }
 
-  HLiteralList buildTypeVariableList(ClassElement contextClass) {
-    List<HInstruction> inputs = <HInstruction>[];
-    for (Link<DartType> link = contextClass.typeVariables;
-        !link.isEmpty;
-        link = link.tail) {
-      inputs.add(addTypeVariableReference(link.head));
-    }
-    return buildLiteralList(inputs);
-  }
-
   HInstruction buildIsNode(Node node, DartType type, HInstruction expression) {
     type = type.unalias(compiler);
     if (type.kind == TypeKind.FUNCTION) {
-      if (backend.rti.isSimpleFunctionType(type)) {
-        // TODO(johnniwinther): Avoid interceptor if unneeded.
-        return new HIs.raw(
-            type, expression, invokeInterceptor(expression), backend.boolType);
-      }
-      Element checkFunctionSubtype = backend.getCheckFunctionSubtype();
-
-      HInstruction signatureName = graph.addConstantString(
-          new DartString.literal(backend.namer.getFunctionTypeName(type)),
-          compiler);
-
-      HInstruction contextName;
-      HInstruction context;
-      HInstruction typeArguments;
-      if (type.containsTypeVariables) {
-        ClassElement contextClass = Types.getClassContext(type);
-        contextName = graph.addConstantString(
-            new DartString.literal(backend.namer.getNameOfClass(contextClass)),
-            compiler);
-        if (!currentElement.enclosingElement.isClosure()
-            && currentElement.isInstanceMember()) {
-          context = localsHandler.readThis();
-          typeArguments = graph.addConstantNull(compiler);
-        } else {
-          context = graph.addConstantNull(compiler);
-          typeArguments = buildTypeVariableList(contextClass);
-          add(typeArguments);
-        }
-      } else {
-        contextName = graph.addConstantNull(compiler);
-        context = graph.addConstantNull(compiler);
-        typeArguments = graph.addConstantNull(compiler);
-      }
-
-      List<HInstruction> inputs = <HInstruction>[expression,
-                                                 signatureName,
-                                                 contextName,
-                                                 context,
-                                                 typeArguments];
-      pushInvokeStatic(node, checkFunctionSubtype, inputs, backend.boolType);
-      HInstruction call = pop();
-      return new HIs.compound(type, expression, call, backend.boolType);
+      List arguments = [buildFunctionType(type), expression];
+      pushInvokeDynamic(
+          node, new Selector.call('_isTest', compiler.jsHelperLibrary, 1),
+          arguments);
+      return new HIs.compound(type, expression, pop(), backend.boolType);
     } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       HInstruction runtimeType = addTypeVariableReference(type);
       Element helper = backend.getCheckSubtypeOfRuntimeType();
@@ -3152,6 +3096,11 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       return new HIs.raw(
           type, expression, invokeInterceptor(expression), backend.boolType);
     }
+  }
+
+  HInstruction buildFunctionType(FunctionType type) {
+    type.accept(new TypeBuilder(), this);
+    return pop();
   }
 
   void addDynamicSendArgumentsToList(Send node, List<HInstruction> list) {
@@ -5952,5 +5901,98 @@ class SsaBranchBuilder {
     HIf branch = conditionGraph.end.last;
     assert(branch is HIf);
     branch.blockInformation = conditionStartBlock.blockFlow;
+  }
+}
+
+class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
+  void visitType(DartType type, _) {
+    throw 'Internal error $type';
+  }
+
+  void visitVoidType(VoidType type, SsaBuilder builder) {
+    ClassElement cls = builder.compiler.findHelper('VoidRuntimeType');
+    builder.push(new HVoidType(type, new TypeMask.exact(cls)));
+  }
+
+  void visitTypeVariableType(TypeVariableType type,
+                             SsaBuilder builder) {
+    ClassElement cls = builder.compiler.findHelper('RuntimeType');
+    TypeMask instructionType = new TypeMask.subclass(cls);
+    if (!builder.currentElement.enclosingElement.isClosure() &&
+        builder.currentElement.isInstanceMember()) {
+      HInstruction receiver = builder.localsHandler.readThis();
+      builder.push(new HReadTypeVariable(type, receiver, instructionType));
+    } else {
+      builder.push(
+          new HReadTypeVariable.noReceiver(
+              type, builder.addTypeVariableReference(type), instructionType));
+    }
+  }
+
+  void visitFunctionType(FunctionType type, SsaBuilder builder) {
+    type.returnType.accept(this, builder);
+    HInstruction returnType = builder.pop();
+    List<HInstruction> inputs = <HInstruction>[returnType];
+
+    for (DartType parameter in type.parameterTypes) {
+      parameter.accept(this, builder);
+      inputs.add(builder.pop());
+    }
+
+    for (DartType parameter in type.optionalParameterTypes) {
+      parameter.accept(this, builder);
+      inputs.add(builder.pop());
+    }
+
+    Link<DartType> namedParameterTypes = type.namedParameterTypes;
+    for (String name in type.namedParameters) {
+      DartString dartString = new DartString.literal(name);
+      inputs.add(
+          builder.graph.addConstantString(dartString, builder.compiler));
+      namedParameterTypes.head.accept(this, builder);
+      inputs.add(builder.pop());
+      namedParameterTypes = namedParameterTypes.tail;
+    }
+
+    ClassElement cls = builder.compiler.findHelper('RuntimeFunctionType');
+    builder.push(new HFunctionType(inputs, type, new TypeMask.exact(cls)));
+  }
+
+  void visitMalformedType(MalformedType type, SsaBuilder builder) {
+    visitDynamicType(builder.compiler.types.dynamicType, builder);
+  }
+
+  void visitStatementType(StatementType type, SsaBuilder builder) {
+    throw 'not implemented visitStatementType($type)';
+  }
+
+  void visitGenericType(GenericType type, SsaBuilder builder) {
+    throw 'not implemented visitGenericType($type)';
+  }
+
+  void visitInterfaceType(InterfaceType type, SsaBuilder builder) {
+    List<HInstruction> inputs = <HInstruction>[];
+    for (DartType typeArgument in type.typeArguments) {
+      typeArgument.accept(this, builder);
+      inputs.add(builder.pop());
+    }
+    ClassElement cls;
+    if (type.typeArguments.isEmpty) {
+      cls = builder.compiler.findHelper('RuntimeTypePlain');
+    } else {
+      cls = builder.compiler.findHelper('RuntimeTypeGeneric');
+    }
+    builder.push(new HInterfaceType(inputs, type, new TypeMask.exact(cls)));
+  }
+
+  void visitTypedefType(TypedefType type, SsaBuilder builder) {
+    DartType unaliased = type.unalias(builder.compiler);
+    if (unaliased is TypedefType) throw 'unable to unalias $type';
+    unaliased.accept(this, builder);
+  }
+
+  void visitDynamicType(DynamicType type, SsaBuilder builder) {
+    ClassElement cls = builder.compiler.findHelper('DynamicRuntimeType');
+    builder.push(new HDynamicType(type, new TypeMask.exact(cls)));
   }
 }

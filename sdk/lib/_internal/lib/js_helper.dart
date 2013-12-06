@@ -33,6 +33,7 @@ import 'dart:_collection-dev' as _symbol_dev;
 import 'dart:_collection-dev' show MappedIterable;
 
 import 'dart:_js_names' show
+    extractKeys,
     mangledNames,
     unmangleGlobalNameIfPreservedAnyways;
 
@@ -2026,4 +2027,377 @@ class RuntimeError extends Error {
   final message;
   RuntimeError(this.message);
   String toString() => "RuntimeError: $message";
+}
+
+abstract class RuntimeType {
+  const RuntimeType();
+
+  toRti();
+}
+
+class RuntimeFunctionType extends RuntimeType {
+  final RuntimeType returnType;
+  final List<RuntimeType> parameterTypes;
+  final List<RuntimeType> optionalParameterTypes;
+  final namedParameters;
+
+  static var /* bool */ inAssert = false;
+
+  RuntimeFunctionType(this.returnType,
+                      this.parameterTypes,
+                      this.optionalParameterTypes,
+                      this.namedParameters);
+
+  bool get isVoid => returnType is VoidRuntimeType;
+
+  /// Called from generated code. [expression] is a Dart object and this method
+  /// returns true if [this] is a supertype of [expression].
+  @NoInline() @NoSideEffects()
+  bool _isTest(expression) {
+    var functionTypeObject = _extractFunctionTypeObjectFrom(expression);
+    return functionTypeObject == null
+        ? false
+        : isFunctionSubtype(functionTypeObject, toRti());
+  }
+
+  @NoInline() @NoSideEffects()
+  _asCheck(expression) {
+    // Type inferrer doesn't think this is called with dynamic arguments.
+    return _check(JS('', '#', expression), true);
+  }
+
+  @NoInline() @NoSideEffects()
+  _assertCheck(expression) {
+    if (inAssert) return;
+    inAssert = true; // Don't try to check this library itself.
+    try {
+      // Type inferrer don't think this is called with dynamic arguments.
+      return _check(JS('', '#', expression), false);
+    } finally {
+      inAssert = false;
+    }
+  }
+
+  _check(expression, bool isCast) {
+    if (expression == null) return null;
+    if (_isTest(expression)) return expression;
+
+    var self = new FunctionTypeInfoDecoderRing(toRti()).toString();
+    if (isCast) {
+      var functionTypeObject = _extractFunctionTypeObjectFrom(expression);
+      var pretty;
+      if (functionTypeObject != null) {
+        pretty = new FunctionTypeInfoDecoderRing(functionTypeObject).toString();
+      } else {
+        pretty = Primitives.objectTypeName(expression);
+      }
+      throw new CastErrorImplementation(pretty, self);
+    } else {
+      // TODO(ahe): Pass "pretty" function-type to TypeErrorImplementation?
+      throw new TypeErrorImplementation(expression, self);
+    }
+  }
+
+  _extractFunctionTypeObjectFrom(o) {
+    var interceptor = getInterceptor(o);
+    return JS('bool', '# in #', JS_SIGNATURE_NAME(), interceptor)
+        ? JS('', '#[#]()', interceptor, JS_SIGNATURE_NAME())
+        : null;
+  }
+
+  toRti() {
+    var result = JS('=Object', '{ #: "dynafunc" }', JS_FUNCTION_TYPE_TAG());
+    if (isVoid) {
+      JS('', '#[#] = true', result, JS_FUNCTION_TYPE_VOID_RETURN_TAG());
+    } else {
+      if (returnType is! DynamicRuntimeType) {
+        JS('', '#[#] = #', result, JS_FUNCTION_TYPE_RETURN_TYPE_TAG(),
+           returnType.toRti());
+      }
+    }
+    if (parameterTypes != null && !parameterTypes.isEmpty) {
+      JS('', '#[#] = #', result, JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG(),
+         listToRti(parameterTypes));
+    }
+
+    if (optionalParameterTypes != null && !optionalParameterTypes.isEmpty) {
+      JS('', '#[#] = #', result, JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG(),
+         listToRti(optionalParameterTypes));
+    }
+
+    if (namedParameters != null) {
+      var namedRti = JS('=Object', '{}');
+      var keys = extractKeys(namedParameters);
+      for (var i = 0; i < keys.length; i++) {
+        var name = keys[i];
+        var rti = JS('', '#[#]', namedParameters, name).toRti();
+        JS('', '#[#] = #', namedRti, name, rti);
+      }
+      JS('', '#[#] = #', result, JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG(),
+         namedRti);
+    }
+
+    return result;
+  }
+
+  static listToRti(list) {
+    list = JS('JSFixedArray', '#', list);
+    var result = JS('JSExtendableArray', '[]');
+    for (var i = 0; i < list.length; i++) {
+      JS('', '#.push(#)', result, list[i].toRti());
+    }
+    return result;
+  }
+
+  String toString() {
+    String result = '(';
+    bool needsComma = false;
+    if (parameterTypes != null) {
+      for (var i = 0; i < parameterTypes.length; i++) {
+        RuntimeType type = parameterTypes[i];
+        if (needsComma) result += ', ';
+        result += '$type';
+        needsComma = true;
+      }
+    }
+    if (optionalParameterTypes != null && !optionalParameterTypes.isEmpty) {
+      if (needsComma) result += ', ';
+      needsComma = false;
+      result += '[';
+      for (var i = 0; i < optionalParameterTypes.length; i++) {
+        RuntimeType type = optionalParameterTypes[i];
+        if (needsComma) result += ', ';
+        result += '$type';
+        needsComma = true;
+      }
+      result += ']';
+    } else if (namedParameters != null) {
+      if (needsComma) result += ', ';
+      needsComma = false;
+      result += '{';
+      var keys = extractKeys(namedParameters);
+      for (var i = 0; i < keys.length; i++) {
+        var name = keys[i];
+        if (needsComma) result += ', ';
+        var rti = JS('', '#[#]', namedParameters, name).toRti();
+        result += '$rti ${JS("String", "#", name)}';
+        needsComma = true;
+      }
+      result += '}';
+    }
+
+    result += ') -> $returnType';
+    return result;
+  }
+}
+
+RuntimeFunctionType buildFunctionType(returnType,
+                                      parameterTypes,
+                                      optionalParameterTypes) {
+  return new RuntimeFunctionType(
+      returnType,
+      parameterTypes,
+      optionalParameterTypes,
+      null);
+}
+
+RuntimeFunctionType buildNamedFunctionType(returnType,
+                                           parameterTypes,
+                                           namedParameters) {
+  return new RuntimeFunctionType(
+      returnType,
+      parameterTypes,
+      null,
+      namedParameters);
+}
+
+RuntimeType buildInterfaceType(rti, typeArguments) {
+  String name = JS('String|Null', r'#.name', rti);
+  if (typeArguments == null || typeArguments.isEmpty) {
+    return new RuntimeTypePlain(name);
+  }
+  return new RuntimeTypeGeneric(name, typeArguments, null);
+}
+
+class DynamicRuntimeType extends RuntimeType {
+  const DynamicRuntimeType();
+
+  String toString() => 'dynamic';
+
+  toRti() => null;
+}
+
+RuntimeType getDynamicRuntimeType() => const DynamicRuntimeType();
+
+class VoidRuntimeType extends RuntimeType {
+  const VoidRuntimeType();
+
+  String toString() => 'void';
+
+  toRti() => throw 'internal error';
+}
+
+RuntimeType getVoidRuntimeType() => const VoidRuntimeType();
+
+/**
+ * Meta helper for function type tests.
+ *
+ * A "meta helper" is a helper function that is never called but simulates how
+ * generated code behaves as far as resolution and type inference is concerned.
+ */
+functionTypeTestMetaHelper() {
+  var dyn = JS('', 'x');
+  var dyn2 = JS('', 'x');
+  List fixedListOrNull = JS('JSFixedArray|Null', 'x');
+  List fixedListOrNull2 = JS('JSFixedArray|Null', 'x');
+  List fixedList = JS('JSFixedArray', 'x');
+  // TODO(ahe): Can we use [UnknownJavaScriptObject] below?
+  var /* UnknownJavaScriptObject */ jsObject = JS('=Object', 'x');
+
+  buildFunctionType(dyn, fixedListOrNull, fixedListOrNull2);
+  buildNamedFunctionType(dyn, fixedList, jsObject);
+  buildInterfaceType(dyn, fixedListOrNull);
+  getDynamicRuntimeType();
+  getVoidRuntimeType();
+  convertRtiToRuntimeType(dyn);
+  dyn._isTest(dyn2);
+  dyn._asCheck(dyn2);
+  dyn._assertCheck(dyn2);
+}
+
+RuntimeType convertRtiToRuntimeType(rti) {
+  if (rti == null) {
+    return getDynamicRuntimeType();
+  } else if (JS('bool', 'typeof # == "function"', rti)) {
+    return new RuntimeTypePlain(JS('String', r'rti.name'));
+  } else if (JS('bool', '#.constructor == Array', rti)) {
+    List list = JS('JSFixedArray', '#', rti);
+    String name = JS('String', r'#.name', list[0]);
+    List arguments = [];
+    for (int i = 1; i < list.length; i++) {
+      arguments.add(convertRtiToRuntimeType(list[i]));
+    }
+    return new RuntimeTypeGeneric(name, arguments, rti);
+  } else if (JS('bool', '"func" in #', rti)) {
+    return new FunctionTypeInfoDecoderRing(rti).toRuntimeType();
+  } else {
+    throw new RuntimeError(
+        "Cannot convert "
+        "'${JS('String', 'JSON.stringify(#)', rti)}' to RuntimeType.");
+  }
+}
+
+class RuntimeTypePlain extends RuntimeType {
+  final String name;
+
+  RuntimeTypePlain(this.name);
+
+  toRti() {
+    var rti = JS('', 'init.allClasses[#]', name);
+    if (rti == null) throw "no type for '$name'";
+    return rti;
+  }
+
+  String toString() => name;
+}
+
+class RuntimeTypeGeneric extends RuntimeType {
+  final String name;
+  final List<RuntimeType> arguments;
+  var rti;
+
+  RuntimeTypeGeneric(this.name, this.arguments, this.rti);
+
+  toRti() {
+    if (rti != null) return rti;
+    var result = JS('JSExtendableArray', '[init.allClasses[#]]', name);
+    if (result[0] == null) {
+      throw "no type for '$name<...>'";
+    }
+    for (RuntimeType argument in arguments) {
+      JS('', '#.push(#)', result, argument.toRti());
+    }
+    return rti = result;
+  }
+
+  String toString() => '$name<${arguments.join(", ")}>';
+}
+
+class FunctionTypeInfoDecoderRing {
+  final _typeData;
+  String _cachedToString;
+
+  FunctionTypeInfoDecoderRing(this._typeData);
+
+  bool get _hasReturnType => JS('bool', '"ret" in #', _typeData);
+  get _returnType => JS('', '#.ret', _typeData);
+
+  bool get _isVoid => JS('bool', '!!#.void', _typeData);
+
+  bool get _hasArguments => JS('bool', '"args" in #', _typeData);
+  List get _arguments => JS('JSExtendableArray', '#.args', _typeData);
+
+  bool get _hasOptionalArguments => JS('bool', '"opt" in #', _typeData);
+  List get _optionalArguments => JS('JSExtendableArray', '#.opt', _typeData);
+
+  bool get _hasNamedArguments => JS('bool', '"named" in #', _typeData);
+  get _namedArguments => JS('=Object', '#.named', _typeData);
+
+  RuntimeType toRuntimeType() {
+    // TODO(ahe): Implement this (and update return type).
+    return const DynamicRuntimeType();
+  }
+
+  String _convert(type) {
+    String result = runtimeTypeToString(type);
+    if (result != null) return result;
+    if (JS('bool', '"func" in #', type)) {
+      return new FunctionTypeInfoDecoderRing(type).toString();
+    } else {
+      throw 'bad type';
+    }
+  }
+
+  String toString() {
+    if (_cachedToString != null) return _cachedToString;
+    var s = "(";
+    var sep = '';
+    if (_hasArguments) {
+      for (var argument in _arguments) {
+        s += sep;
+        s += _convert(argument);
+        sep = ', ';
+      }
+    }
+    if (_hasOptionalArguments) {
+      s += '$sep[';
+      sep = '';
+      for (var argument in _optionalArguments) {
+        s += sep;
+        s += _convert(argument);
+        sep = ', ';
+      }
+      s += ']';
+    }
+    if (_hasNamedArguments) {
+      s += '$sep{';
+      sep = '';
+      for (var name in extractKeys(_namedArguments)) {
+        s += sep;
+        s += '$name: ';
+        s += _convert(JS('', '#[#]', _namedArguments, name));
+        sep = ', ';
+      }
+      s += '}';
+    }
+    s += ') -> ';
+    if (_isVoid) {
+      s += 'void';
+    } else if (_hasReturnType) {
+      s += _convert(_returnType);
+    } else {
+      s += 'dynamic';
+    }
+    return _cachedToString = "$s";
+  }
 }

@@ -92,6 +92,7 @@ mixin_mixin5_test: Fail # Issue 12605.
 mixin_mixin6_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
+function_type_alias9_test/00: Crash
 malformed_test/none: RuntimeError # Issue 12695
 branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
@@ -313,3 +314,6 @@ stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 
 [ $runtime == ie9 ]
 stack_trace_test: Fail, OK # Stack traces not available in IE9.
+
+[ $compiler == dart2js && $host_checked ]
+const_factory_with_body_test/01: Crash

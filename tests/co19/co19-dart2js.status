@@ -115,6 +115,8 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TOD
 Language/15_Types/2_Dynamic_Type_System_A01_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/15_Types/8_Parameterized_Types_A03_t07: RuntimeError # co19-roll r607: Please triage this failure
 Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r623: Please triage this failure
+LibTest/core/Map/Map_class_A01_t04: Slow, Pass
+LibTest/core/Uri/Uri_A06_t03: Slow, Pass
 
 [ $compiler == dart2js ]
 LibTest/core/int/operator_GT_A01_t01: RuntimeError, OK # co19 issue 200

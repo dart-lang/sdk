@@ -89,36 +89,6 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
   }
 }
 
-class FunctionTypeCheckedModeHelper extends CheckedModeHelper {
-  const FunctionTypeCheckedModeHelper(String name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
-    String signatureName = codegen.backend.namer.getFunctionTypeName(type);
-    arguments.add(js.string(signatureName));
-
-    if (type.containsTypeVariables) {
-      ClassElement contextClass = Types.getClassContext(type);
-      // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
-      // string concatenation in the implementation), and may prevent
-      // segmentation of '$'.
-      String contextName = codegen.backend.namer.getNameForRti(contextClass);
-      arguments.add(js.string(contextName));
-
-      if (node.contextIsTypeArguments) {
-        arguments.add(new jsAst.LiteralNull());
-        codegen.use(node.context);
-        arguments.add(codegen.pop());
-      } else {
-        codegen.use(node.context);
-        arguments.add(codegen.pop());
-      }
-    }
-  }
-}
-
 /*
  * Invariants:
  *   canInline(function) implies canInline(function, insideLoop:true)
@@ -397,8 +367,6 @@ class JavaScriptBackend extends Backend {
       const SubtypeCheckedModeHelper('assertSubtype'),
       const TypeVariableCheckedModeHelper('subtypeOfRuntimeTypeCast'),
       const TypeVariableCheckedModeHelper('assertSubtypeOfRuntimeType'),
-      const FunctionTypeCheckedModeHelper('functionSubtypeCast'),
-      const FunctionTypeCheckedModeHelper('assertFunctionSubtype'),
       const PropertyCheckedModeHelper('propertyTypeCast'),
       const PropertyCheckedModeHelper('propertyTypeCheck') ];
 
@@ -1066,7 +1034,8 @@ class JavaScriptBackend extends Backend {
       enqueueClass(world, compiler.listClass, elements);
     }
     if (type is FunctionType) {
-      enqueueInResolution(getCheckFunctionSubtype(), elements);
+      enqueueInResolution(
+          compiler.findHelper('functionTypeTestMetaHelper'), elements);
     }
     if (type.element.isNative()) {
       // We will neeed to add the "$is" and "$as" properties on the
@@ -1484,9 +1453,7 @@ class JavaScriptBackend extends Backend {
               ? 'subtypeOfRuntimeTypeCast'
               : 'assertSubtypeOfRuntimeType';
         } else if (type.kind == TypeKind.FUNCTION) {
-          return typeCast
-              ? 'functionSubtypeCast'
-              : 'assertFunctionSubtype';
+          return null;
         } else {
           if (nativeCheck) {
             // TODO(karlklose): can we get rid of this branch when we use
@@ -1619,10 +1586,6 @@ class JavaScriptBackend extends Backend {
 
   Element getAssertSubtypeOfRuntimeType() {
     return compiler.findHelper('assertSubtypeOfRuntimeType');
-  }
-
-  Element getCheckFunctionSubtype() {
-    return compiler.findHelper('checkFunctionSubtype');
   }
 
   Element getThrowNoSuchMethod() {

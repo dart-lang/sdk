@@ -322,17 +322,12 @@ class ContainerBuilder extends CodeEmitterHelper {
         closureBuilder.addProperty(operatorSignature, encoding);
       }
 
-      void emitIsFunctionTypeTest(FunctionType functionType) {
-        String operator = namer.operatorIsType(functionType);
-        closureBuilder.addProperty(operator, js('true'));
-      }
-
       FunctionType methodType = element.computeType(compiler);
       Map<FunctionType, bool> functionTypeChecks =
           task.typeTestEmitter.getFunctionTypeChecksOn(methodType);
       task.typeTestEmitter.generateFunctionTypeTests(
           element, methodType, functionTypeChecks,
-          emitFunctionTypeSignature, emitIsFunctionTypeTest);
+          emitFunctionTypeSignature);
 
       closureClassElement =
           addClosureIfNew(closureBuilder, closureClassElement, fieldNames);
@@ -456,19 +451,13 @@ class ContainerBuilder extends CodeEmitterHelper {
       boundClosureBuilder.addProperty(operatorSignature, encoding);
     }
 
-    void emitIsFunctionTypeTest(FunctionType functionType) {
-      String operator = namer.operatorIsType(functionType);
-      boundClosureBuilder.addProperty(operator,
-          new jsAst.LiteralBool(true));
-    }
-
     DartType memberType = member.computeType(compiler);
     Map<FunctionType, bool> functionTypeChecks =
         task.typeTestEmitter.getFunctionTypeChecksOn(memberType);
 
     task.typeTestEmitter.generateFunctionTypeTests(
         member, memberType, functionTypeChecks,
-        emitFunctionTypeSignature, emitIsFunctionTypeTest);
+        emitFunctionTypeSignature);
 
     closureClassElement =
         addClosureIfNew(boundClosureBuilder, closureClassElement, fieldNames);

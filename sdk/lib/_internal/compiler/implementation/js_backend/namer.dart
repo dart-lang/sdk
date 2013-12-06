@@ -472,6 +472,10 @@ class Namer implements ClosureNamer {
     return getMappedInstanceName(proposedName);
   }
 
+  String readTypeVariableName(TypeVariableElement element) {
+    return '\$tv_${instanceFieldAccessorName(element)}';
+  }
+
   /**
    * Returns name of the JavaScript property used to store an instance field.
    */

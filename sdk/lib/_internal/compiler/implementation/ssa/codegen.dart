@@ -2524,7 +2524,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerIsCheck(type, work.resolutionTree);
 
     CheckedModeHelper helper;
-    FunctionElement helperElement;
     if (node.isBooleanConversionCheck) {
       helper =
           const CheckedModeHelper('boolConversionCheck');
@@ -2533,12 +2532,120 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           backend.getCheckedModeHelper(type, typeCast: node.isCastTypeCheck);
     }
 
-    push(helper.generateCall(this, node));
+    if (helper == null) {
+      assert(type.kind == TypeKind.FUNCTION);
+      use(node.inputs[0]);
+    } else {
+      push(helper.generateCall(this, node));
+    }
   }
 
   void visitTypeKnown(HTypeKnown node) {
     // [HTypeKnown] instructions are removed before generating code.
     assert(false);
+  }
+
+  void visitFunctionType(HFunctionType node) {
+    FunctionType type = node.dartType;
+    int inputCount = 0;
+    use(node.inputs[inputCount++]);
+    js.Expression returnType = pop();
+
+    List<js.Expression> parameterTypes = <js.Expression>[];
+    for (var _ in type.parameterTypes) {
+      use(node.inputs[inputCount++]);
+      parameterTypes.add(pop());
+    }
+
+    List<js.Expression> optionalParameterTypes = <js.Expression>[];
+    for (var _ in type.optionalParameterTypes) {
+      use(node.inputs[inputCount++]);
+      optionalParameterTypes.add(pop());
+    }
+
+    List<js.Property> namedParameters = <js.Property>[];
+    for (var _ in type.namedParameters) {
+      use(node.inputs[inputCount++]);
+      js.Expression name = pop();
+      use(node.inputs[inputCount++]);
+      namedParameters.add(new js.Property(name, pop()));
+    }
+
+    if (namedParameters.isEmpty) {
+      var arguments = [returnType];
+      if (!parameterTypes.isEmpty || !optionalParameterTypes.isEmpty) {
+        arguments.add(new js.ArrayInitializer.from(parameterTypes));
+      }
+      if (!optionalParameterTypes.isEmpty) {
+        arguments.add(new js.ArrayInitializer.from(optionalParameterTypes));
+      }
+      push(accessHelper('buildFunctionType')(arguments));
+    } else {
+      var arguments = [
+          returnType,
+          new js.ArrayInitializer.from(parameterTypes),
+          new js.ObjectInitializer(namedParameters)];
+      push(accessHelper('buildNamedFunctionType')(arguments));
+    }
+  }
+
+  void visitReadTypeVariable(HReadTypeVariable node) {
+    TypeVariableElement element = node.dartType.element;
+    Element helperElement = compiler.findHelper('convertRtiToRuntimeType');
+    world.registerStaticUse(helperElement);
+
+    use(node.inputs[0]);
+    if (node.hasReceiver) {
+      if (backend.isInterceptorClass(element.getEnclosingClass())) {
+        int index = RuntimeTypes.getTypeVariableIndex(element);
+        js.Expression receiver = pop();
+        js.Expression helper = backend.namer.elementAccess(helperElement);
+        push(helper(js.js(r'#.$builtinTypeInfo && #.$builtinTypeInfo[#]',
+                          [receiver, receiver, js.js.toExpression(index)])));
+      } else {
+        backend.emitter.registerReadTypeVariable(element);
+        push(
+            js.js('#.${backend.namer.readTypeVariableName(element)}()', pop()));
+      }
+    } else {
+      push(
+          backend.namer.elementAccess(
+              compiler.findHelper('convertRtiToRuntimeType'))(pop()));
+    }
+  }
+
+  void visitInterfaceType(HInterfaceType node) {
+    List<js.Expression> typeArguments = <js.Expression>[];
+    for (HInstruction type in node.inputs) {
+      use(type);
+      typeArguments.add(pop());
+    }
+
+    ClassElement cls = node.dartType.element;
+    var arguments = [
+        backend.namer.elementAccess(backend.getImplementationClass(cls))];
+    if (!typeArguments.isEmpty) {
+      arguments.add(new js.ArrayInitializer.from(typeArguments));
+    }
+    push(accessHelper('buildInterfaceType')(arguments));
+  }
+
+  void visitVoidType(HVoidType node) {
+    push(accessHelper('getVoidRuntimeType')());
+  }
+
+  void visitDynamicType(HDynamicType node) {
+    push(accessHelper('getDynamicRuntimeType')());
+  }
+
+  js.PropertyAccess accessHelper(String name) {
+    Element helper = compiler.findHelper(name);
+    if (helper == null) {
+      // For mocked-up tests.
+      return js.js('(void 0).$name');
+    }
+    world.registerStaticUse(helper);
+    return backend.namer.elementAccess(helper);
   }
 }
 

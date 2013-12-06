@@ -31,6 +31,9 @@ collection_helpers/test/equality_test/05: Fail # Issue 1533
 collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
 collection_helpers/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
+[ $compiler == dart2js && $checked ]
+crypto/test/base64_test: Slow, Pass
+
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 

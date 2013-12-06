@@ -177,6 +177,7 @@ String runtimeTypeToString(var type , {String onTypeVariable(int i)}) {
       return onTypeVariable(type);
     }
   } else {
+    // TODO(ahe): Handle function types, and be sure to always return a string.
     return null;
   }
 }
@@ -355,73 +356,6 @@ bool areSubtypes(var s, var t) {
   return true;
 }
 
-Object functionSubtypeCast(Object object, String signatureName,
-                           String contextName, var context,
-                           var typeArguments) {
-  if (!checkFunctionSubtype(object, signatureName,
-                            contextName, context, typeArguments)) {
-    String actualType = Primitives.objectTypeName(object);
-    // TODO(johnniwinther): Provide better function type naming.
-    String typeName = signatureName;
-    throw new CastErrorImplementation(actualType, typeName);
-  }
-  return object;
-}
-
-Object assertFunctionSubtype(Object object, String signatureName,
-                             String contextName, var context,
-                             var typeArguments) {
-  if (!checkFunctionSubtype(object, signatureName,
-      contextName, context, typeArguments)) {
-    // TODO(johnniwinther): Provide better function type naming.
-    String typeName = signatureName;
-    throw new TypeErrorImplementation(object, typeName);
-  }
-  return object;
-}
-
-/**
- * Checks that the type of [target] is a subtype of the function type denoted by
- * [signatureName]. If the type contains type variables, [contextName] holds the
- * name of the class where these were declared and either [context] holds the
- * object in which the runtime values of these can be found or [typeArguments]
- * contains these values as a list of runtime type information.
- */
-bool checkFunctionSubtype(var target, String signatureName,
-                          String contextName, var context,
-                          var typeArguments) {
-  if (isNull(target)) return true;
-  var interceptor = getInterceptor(target);
-  if (hasField(interceptor, '${JS_OPERATOR_IS_PREFIX()}_$signatureName')) {
-    return true;
-  }
-  var signatureLocation = JS_CURRENT_ISOLATE();
-  if (isNotNull(contextName)) {
-    signatureLocation = getField(JS('=Object', 'init.allClasses'), contextName);
-  }
-  var typeSignature =
-      getField(signatureLocation, '${JS_SIGNATURE_NAME()}_$signatureName');
-  if (isNull(typeSignature)) {
-    // All checks can be determined statically so the type signature has not
-    // been computed.
-    return false;
-  }
-  var targetSignatureFunction = getField(interceptor, '${JS_SIGNATURE_NAME()}');
-  if (isNull(targetSignatureFunction)) return false;
-  var targetSignature = invokeOn(targetSignatureFunction, interceptor, null);
-  if (isJsFunction(typeSignature)) {
-    if (isNotNull(typeArguments)) {
-      typeSignature = invoke(typeSignature, typeArguments);
-    } else if (isNotNull(context)) {
-      typeSignature =
-          invoke(typeSignature, getRuntimeTypeArguments(context, contextName));
-    } else {
-      typeSignature = invoke(typeSignature, null);
-    }
-  }
-  return isFunctionSubtype(targetSignature, typeSignature);
-}
-
 /**
  * Computes the signature by applying the type arguments of [context] as an
  * instance of [contextName] to the signature function [signature].
@@ -529,11 +463,11 @@ bool isSubtype(var s, var t) {
   var typeOfT = isJsArray(t) ? getIndex(t, 0) : t;
   // Check for a subtyping flag.
   var name = runtimeTypeToString(typeOfT);
-  var test = '${JS_OPERATOR_IS_PREFIX()}${name}';
-  if (hasNoField(typeOfS, test)) return false;
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
+    var test = '${JS_OPERATOR_IS_PREFIX()}${name}';
+    if (hasNoField(typeOfS, test)) return false;
     var field = '${JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}';
     substitution = getField(typeOfS, field);
   }

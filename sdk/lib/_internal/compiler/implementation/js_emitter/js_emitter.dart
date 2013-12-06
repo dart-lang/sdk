@@ -18,6 +18,9 @@ import '../closure.dart' show
 import '../dart2jslib.dart' show
     CodeBuffer;
 
+import '../elements/elements.dart' show
+    TypeVariableElement;
+
 import '../elements/modelx.dart' show
     FunctionElementX;
 

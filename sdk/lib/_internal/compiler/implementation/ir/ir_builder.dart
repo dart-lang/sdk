@@ -116,7 +116,8 @@ class IrBuilderTask extends CompilerTask {
 
   void unlinkTreeAndToken(element) {
     element.beginToken.next = null;
-    element.cachedNode = null;
+    // TODO(lry): Mark [element] so that parseNode will fail an assertion.
+    // element.cachedNode = null;
   }
 
   SourceFile elementSourceFile(Element element) {

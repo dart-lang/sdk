@@ -42,6 +42,10 @@ class CodeEmitterTask extends CompilerTask {
   final Map<ClassElement, Map<String, jsAst.Expression>> additionalProperties =
       new Map<ClassElement, Map<String, jsAst.Expression>>();
 
+  /// Records if a type variable is read dynamically for type tests.
+  final Set<TypeVariableElement> readTypeVariables =
+      new Set<TypeVariableElement>();
+
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
 
@@ -744,8 +748,10 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void generateClass(ClassElement classElement, ClassBuilder properties) {
-    classEmitter.generateClass(
-        classElement, properties, additionalProperties[classElement]);
+    compiler.withCurrentElement(classElement, () {
+      classEmitter.generateClass(
+          classElement, properties, additionalProperties[classElement]);
+    });
   }
 
   /**
@@ -1591,5 +1597,9 @@ if (typeof $printHelperName === "function") {
 
   bool get areAnyElementsDeferred {
     return compiler.deferredLoadTask.areAnyElementsDeferred;
+  }
+
+  void registerReadTypeVariable(TypeVariableElement element) {
+    readTypeVariables.add(element);
   }
 }

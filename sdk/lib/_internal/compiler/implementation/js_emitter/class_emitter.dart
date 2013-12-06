@@ -47,6 +47,8 @@ class ClassEmitter extends CodeEmitterHelper {
       additionalProperties.forEach(builder.addProperty);
     }
 
+    emitTypeVariableReaders(classElement, builder);
+
     emitClassBuilderWithReflectionData(
         className, classElement, builder, properties);
   }
@@ -562,5 +564,46 @@ class ClassEmitter extends CodeEmitterHelper {
           js(backend.isAccessibleByReflection(member) ? '1' : '0');
       builder.addProperty('+$reflectionName', reflectable);
     }
+  }
+
+  void emitTypeVariableReaders(ClassElement cls, ClassBuilder builder) {
+    List typeVariables = [];
+    ClassElement superclass = cls;
+    while (superclass != null) {
+      for (TypeVariableType parameter in superclass.typeVariables) {
+        if (task.readTypeVariables.contains(parameter.element)) {
+          emitTypeVariableReader(cls, builder, parameter.element);
+        }
+      }
+      superclass = superclass.superclass;
+    }
+  }
+
+  void emitTypeVariableReader(ClassElement cls,
+                              ClassBuilder builder,
+                              TypeVariableElement element) {
+    String name = namer.readTypeVariableName(element);
+    jsAst.Expression index =
+        js.toExpression(RuntimeTypes.getTypeVariableIndex(element));
+    jsAst.Expression computeTypeVariable;
+
+    Substitution substitution =
+        backend.rti.computeSubstitution(
+            cls, element.enclosingElement, alwaysGenerateFunction: true);
+    if (substitution != null) {
+      jsAst.Expression typeArguments =
+          substitution.getCode(backend.rti, true)['apply'](
+              ['null', r'this.$builtinTypeInfo']);
+      computeTypeVariable = typeArguments[index];
+    } else {
+      // TODO(ahe): These can be generated dynamically.
+      computeTypeVariable =
+          js(r'this.$builtinTypeInfo && this.$builtinTypeInfo[#]', index);
+    }
+    jsAst.Expression convertRtiToRuntimeType =
+        namer.elementAccess(compiler.findHelper('convertRtiToRuntimeType'));
+    builder.addProperty(
+        name, js.fun(
+            [], [js.return_(convertRtiToRuntimeType(computeTypeVariable))]));
   }
 }

@@ -131,6 +131,11 @@ async/stream_timeout_test: Fail # Timer interface not supported: dartbug.com/772
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
 
+[ $compiler == dart2js ]
+convert/chunked_conversion_utf88_test: Slow, Pass
+convert/utf85_test: Slow, Pass
+
+
 [ $compiler == dart2js && $browser ]
 async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                          # implement timer (currently only in d8)
