@@ -10,9 +10,9 @@ import 'utilities_general.dart';
 import 'instrumentation.dart';
 import 'error.dart';
 import 'source.dart';
-import 'scanner.dart' show Token, Scanner, CharSequenceReader;
+import 'scanner.dart' show Token, Scanner, CharSequenceReader, CharacterReader, IncrementalScanner;
 import 'ast.dart';
-import 'parser.dart' show Parser;
+import 'parser.dart' show Parser, IncrementalParser;
 import 'sdk.dart' show DartSdk;
 import 'element.dart';
 import 'resolver.dart';
@@ -691,6 +691,13 @@ class AnalysisException extends JavaException {
  */
 abstract class AnalysisOptions {
   /**
+   * Return `true` if analysis is to parse and analyze function bodies.
+   *
+   * @return `true` if analysis is to parse and analyzer function bodies
+   */
+  bool get analyzeFunctionBodies;
+
+  /**
    * Return the maximum number of sources for which AST structures should be kept in the cache.
    *
    * @return the maximum number of sources for which AST structures should be kept in the cache
@@ -711,6 +718,20 @@ abstract class AnalysisOptions {
    * @return `true` if analysis is to generate hint results
    */
   bool get hint;
+
+  /**
+   * Return `true` if incremental analysis should be used.
+   *
+   * @return `true` if incremental analysis should be used
+   */
+  bool get incremental;
+
+  /**
+   * Return `true` if analysis is to parse comments.
+   *
+   * @return `true` if analysis is to parse comments
+   */
+  bool get preserveComments;
 }
 
 /**
@@ -3663,7 +3684,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   void set analysisOptions(AnalysisOptions options) {
     {
-      bool needsRecompute = this._options.dart2jsHint != options.dart2jsHint || (this._options.hint && !options.hint);
+      bool needsRecompute = this._options.analyzeFunctionBodies != options.analyzeFunctionBodies || this._options.dart2jsHint != options.dart2jsHint || (this._options.hint && !options.hint) || this._options.preserveComments != options.preserveComments;
       int cacheSize = options.cacheSize;
       if (this._options.cacheSize != cacheSize) {
         this._options.cacheSize = cacheSize;
@@ -3675,8 +3696,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           _priorityOrder = newPriorityOrder;
         }
       }
+      this._options.analyzeFunctionBodies = options.analyzeFunctionBodies;
       this._options.dart2jsHint = options.dart2jsHint;
       this._options.hint = options.hint;
+      this._options.incremental = options.incremental;
+      this._options.preserveComments = options.preserveComments;
       if (needsRecompute) {
         invalidateAllResolutionInformation();
       }
@@ -3707,7 +3731,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       String originalContents = _sourceFactory.setContents(source, contents);
       if (contents != null) {
         if (contents != originalContents) {
-          _incrementalAnalysisCache = IncrementalAnalysisCache.update(_incrementalAnalysisCache, source, originalContents, contents, offset, oldLength, newLength, getReadableSourceEntry(source));
+          if (_options.incremental) {
+            _incrementalAnalysisCache = IncrementalAnalysisCache.update(_incrementalAnalysisCache, source, originalContents, contents, offset, oldLength, newLength, getReadableSourceEntry(source));
+          }
           sourceChanged(source);
         }
       } else if (originalContents != null) {
@@ -4214,6 +4240,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (_incrementalAnalysisCache != null && _incrementalAnalysisCache.hasWork()) {
         AnalysisTask task = new IncrementalAnalysisTask(this, _incrementalAnalysisCache);
         _incrementalAnalysisCache = null;
+        return task;
       }
       for (Source source in _priorityOrder) {
         AnalysisTask task = getNextTaskAnalysisTask2(source, _cache.get(source), true, hintsEnabled);
@@ -5326,6 +5353,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   int _cacheSize = DEFAULT_CACHE_SIZE;
 
   /**
+   * A flag indicating whether analysis is to parse and analyze function bodies.
+   */
+  bool _analyzeFunctionBodies = true;
+
+  /**
    * A flag indicating whether analysis is to generate dart2js related hint results.
    */
   bool _dart2jsHint = true;
@@ -5335,6 +5367,16 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * information and pub best practices).
    */
   bool _hint = true;
+
+  /**
+   * A flag indicating whether incremental analysis should be used.
+   */
+  bool _incremental = false;
+
+  /**
+   * flag indicating whether analysis is to parse comments.
+   */
+  bool _preserveComments = true;
 
   /**
    * Initialize a newly created set of analysis options to have their default values.
@@ -5351,13 +5393,29 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _cacheSize = options.cacheSize;
     _dart2jsHint = options.dart2jsHint;
     _hint = options.hint;
+    _incremental = options.incremental;
   }
+
+  bool get analyzeFunctionBodies => _analyzeFunctionBodies;
 
   int get cacheSize => _cacheSize;
 
   bool get dart2jsHint => _dart2jsHint;
 
   bool get hint => _hint;
+
+  bool get incremental => _incremental;
+
+  bool get preserveComments => _preserveComments;
+
+  /**
+   * Set whether analysis is to parse and analyze function bodies.
+   *
+   * @param analyzeFunctionBodies `true` if analysis is to parse and analyze function bodies
+   */
+  void set analyzeFunctionBodies(bool analyzeFunctionBodies) {
+    this._analyzeFunctionBodies = analyzeFunctionBodies;
+  }
 
   /**
    * Set the maximum number of sources for which AST structures should be kept in the cache to the
@@ -5387,6 +5445,24 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   void set hint(bool hint) {
     this._hint = hint;
+  }
+
+  /**
+   * Set whether incremental analysis should be used.
+   *
+   * @param incremental `true` if incremental analysis should be used
+   */
+  void set incremental(bool incremental) {
+    this._incremental = incremental;
+  }
+
+  /**
+   * Set whether analysis is to parse comments.
+   *
+   * @param preserveComments `true` if analysis is to parse comments
+   */
+  void set preserveComments(bool preserveComments) {
+    this._preserveComments = preserveComments;
   }
 }
 
@@ -7202,7 +7278,19 @@ class IncrementalAnalysisTask extends AnalysisTask {
     if (cache == null) {
       return;
     }
-    compilationUnit = cache.resolvedUnit;
+    if (cache.oldLength > 0 || cache.newLength > 30) {
+      return;
+    }
+    CharacterReader reader = new CharSequenceReader(new CharSequence(cache.newContents));
+    BooleanErrorListener errorListener = new BooleanErrorListener();
+    IncrementalScanner scanner = new IncrementalScanner(cache.source, reader, errorListener);
+    Token oldTokens = cache.resolvedUnit.beginToken;
+    Token newTokens = scanner.rescan(oldTokens, cache.offset, cache.oldLength, cache.newLength);
+    if (errorListener.errorReported) {
+      return;
+    }
+    IncrementalParser parser = new IncrementalParser(cache.source, scanner.tokenMap, AnalysisErrorListener.NULL_LISTENER);
+    compilationUnit = parser.reparse(cache.resolvedUnit, scanner.leftToken, scanner.rightToken, cache.offset, cache.offset + cache.oldLength);
   }
 }
 
@@ -7337,6 +7425,7 @@ class ParseDartTask extends AnalysisTask {
     TimeCounter_TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
     try {
       Parser parser = new Parser(source, errorListener);
+      parser.parseFunctionBodies = context.analysisOptions.analyzeFunctionBodies;
       compilationUnit = parser.parseCompilationUnit(token[0]);
       errors = errorListener.getErrors2(source);
       for (Directive directive in compilationUnit.directives) {
@@ -7418,15 +7507,17 @@ class Source_ContentReceiver_11 implements Source_ContentReceiver {
   Source_ContentReceiver_11(this.ParseDartTask_this, this.errorListener, this.token);
 
   void accept(CharBuffer contents, int modificationTime) {
-    ParseDartTask_this.modificationTime = modificationTime;
-    Scanner scanner = new Scanner(ParseDartTask_this.source, new CharSequenceReader(contents), errorListener);
-    token[0] = scanner.tokenize();
-    ParseDartTask_this.lineInfo = new LineInfo(scanner.lineStarts);
+    doScan(contents, modificationTime);
   }
 
   void accept2(String contents, int modificationTime) {
+    doScan(new CharSequence(contents), modificationTime);
+  }
+
+  void doScan(CharSequence contents, int modificationTime) {
     ParseDartTask_this.modificationTime = modificationTime;
-    Scanner scanner = new Scanner(ParseDartTask_this.source, new CharSequenceReader(new CharSequence(contents)), errorListener);
+    Scanner scanner = new Scanner(ParseDartTask_this.source, new CharSequenceReader(contents), errorListener);
+    scanner.preserveComments = ParseDartTask_this.context.analysisOptions.preserveComments;
     token[0] = scanner.tokenize();
     ParseDartTask_this.lineInfo = new LineInfo(scanner.lineStarts);
   }

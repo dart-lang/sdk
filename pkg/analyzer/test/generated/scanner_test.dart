@@ -361,6 +361,14 @@ class ScannerTest extends JUnitTestCase {
     assertToken(TokenType.COMMA, ",");
   }
 
+  void test_comment_disabled_multi() {
+    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence("/* comment */ ")), AnalysisErrorListener.NULL_LISTENER);
+    scanner.preserveComments = false;
+    Token token = scanner.tokenize();
+    JUnitTestCase.assertNotNull(token);
+    JUnitTestCase.assertNull(token.precedingComments);
+  }
+
   void test_comment_multi() {
     assertComment(TokenType.MULTI_LINE_COMMENT, "/* comment */");
   }
@@ -1261,6 +1269,10 @@ class ScannerTest extends JUnitTestCase {
       _ut.test('test_comma', () {
         final __test = new ScannerTest();
         runJUnitTest(__test, __test.test_comma);
+      });
+      _ut.test('test_comment_disabled_multi', () {
+        final __test = new ScannerTest();
+        runJUnitTest(__test, __test.test_comment_disabled_multi);
       });
       _ut.test('test_comment_multi', () {
         final __test = new ScannerTest();

@@ -1247,6 +1247,19 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_constConstructorWithNonConstSuper_explicit() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  const A();",
+        "}",
+        "class B extends A {",
+        "  const B(): super();",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_constConstructorWithNonConstSuper_redirectingFactory() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -1260,6 +1273,19 @@ class NonErrorResolverTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_constConstructorWithNonConstSuper_unresolved() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  A.a();",
+        "}",
+        "class B extends A {",
+        "  const B(): super();",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -4244,6 +4270,27 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_uriDoesNotExist_dll() {
+    addSource2("/lib.dll", "");
+    Source source = addSource(EngineTestCase.createSource(["import 'dart-ext:lib';"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  void test_uriDoesNotExist_dylib() {
+    addSource2("/lib.dylib", "");
+    Source source = addSource(EngineTestCase.createSource(["import 'dart-ext:lib';"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  void test_uriDoesNotExist_so() {
+    addSource2("/lib.so", "");
+    Source source = addSource(EngineTestCase.createSource(["import 'dart-ext:lib';"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
   void test_wrongNumberOfParametersForOperator_index() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  operator []=(a, b) {}", "}"]));
     resolve(source);
@@ -4403,9 +4450,17 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_conflictingStaticSetterAndInstanceMember_thisClass_method);
       });
+      _ut.test('test_constConstructorWithNonConstSuper_explicit', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_constConstructorWithNonConstSuper_explicit);
+      });
       _ut.test('test_constConstructorWithNonConstSuper_redirectingFactory', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_constConstructorWithNonConstSuper_redirectingFactory);
+      });
+      _ut.test('test_constConstructorWithNonConstSuper_unresolved', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_constConstructorWithNonConstSuper_unresolved);
       });
       _ut.test('test_constConstructorWithNonFinalField_finalInstanceVar', () {
         final __test = new NonErrorResolverTest();
@@ -5458,6 +5513,18 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_unqualifiedReferenceToNonLocalStaticMember_fromComment_new);
+      });
+      _ut.test('test_uriDoesNotExist_dll', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_uriDoesNotExist_dll);
+      });
+      _ut.test('test_uriDoesNotExist_dylib', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_uriDoesNotExist_dylib);
+      });
+      _ut.test('test_uriDoesNotExist_so', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_uriDoesNotExist_so);
       });
       _ut.test('test_wrongNumberOfParametersForOperator1', () {
         final __test = new NonErrorResolverTest();
@@ -12694,6 +12761,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
+  void test_uriDoesNotExist_nativeLibrary() {
+    Source source = addSource(EngineTestCase.createSource(["import 'dart-ext:lib';"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+  }
+
   void test_uriDoesNotExist_part() {
     Source source = addSource(EngineTestCase.createSource(["part 'unknown.dart';"]));
     resolve(source);
@@ -14103,6 +14176,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_uriDoesNotExist_import', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_uriDoesNotExist_import);
+      });
+      _ut.test('test_uriDoesNotExist_nativeLibrary', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_uriDoesNotExist_nativeLibrary);
       });
       _ut.test('test_uriDoesNotExist_part', () {
         final __test = new CompileTimeErrorCodeTest();

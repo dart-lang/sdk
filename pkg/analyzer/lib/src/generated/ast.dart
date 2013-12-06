@@ -17307,8 +17307,9 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
    * @param visitor the visitor to be used to visit the elements of this list
    */
   accept(ASTVisitor visitor) {
-    for (E element in _elements) {
-      element.accept(visitor);
+    var length = _elements.length;
+    for (var i = 0; i < length; i++) {
+      _elements[i].accept(visitor);
     }
   }
   void add(E node) {
@@ -17323,25 +17324,15 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
     if (length == 0) {
       _elements = <E> [node];
     } else {
-      List<E> newElements = new List<E>(length + 1);
-      JavaSystem.arraycopy(_elements, 0, newElements, 0, index);
-      newElements[index] = node;
-      JavaSystem.arraycopy(_elements, index, newElements, index + 1, length - index);
-      _elements = newElements;
+      _elements.insert(index, node);
     }
   }
   bool addAll(Iterable<E> nodes) {
     if (nodes != null && !nodes.isEmpty) {
-      int oldCount = _elements.length;
-      int newCount = nodes.length;
-      List<E> newElements = new List<E>(oldCount + newCount);
-      JavaSystem.arraycopy(_elements, 0, newElements, 0, oldCount);
-      int index = oldCount;
+      _elements.addAll(nodes);
       for (E node in nodes) {
         owner.becomeParentOf(node);
-        newElements[index++] = node;
       }
-      _elements = newElements;
       return true;
     }
     return false;
@@ -17386,17 +17377,13 @@ class NodeList<E extends ASTNode> extends Object with ListMixin<E> {
       _elements = ASTNode.EMPTY_ARRAY;
       return removedNode;
     }
-    List<E> newElements = new List<E>(length - 1);
-    JavaSystem.arraycopy(_elements, 0, newElements, 0, index);
-    JavaSystem.arraycopy(_elements, index + 1, newElements, index, length - index - 1);
-    _elements = newElements;
+    _elements.removeAt(index);
     return removedNode;
   }
   void operator[]=(int index, E node) {
     if (index < 0 || index >= _elements.length) {
       throw new RangeError("Index: ${index}, Size: ${_elements.length}");
     }
-    _elements[index] as E;
     owner.becomeParentOf(node);
     _elements[index] = node;
   }

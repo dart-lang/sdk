@@ -1494,6 +1494,13 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertSize(0, unit.declarations);
   }
 
+  void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
+    ParserTestCase._parseFunctionBodies = false;
+    CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "f() { '\${n}'; }", []);
+    JUnitTestCase.assertNull(unit.scriptTag);
+    EngineTestCase.assertSize(1, unit.declarations);
+  }
+
   void test_parseCompilationUnit_topLevelDeclaration() {
     CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "class A {}", []);
     JUnitTestCase.assertNull(unit.scriptTag);
@@ -2509,6 +2516,24 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(functionBody.nativeToken);
     JUnitTestCase.assertNotNull(functionBody.stringLiteral);
     JUnitTestCase.assertNotNull(functionBody.semicolon);
+  }
+
+  void test_parseFunctionBody_skip_block() {
+    ParserTestCase._parseFunctionBodies = false;
+    FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "{}");
+    EngineTestCase.assertInstanceOf(EmptyFunctionBody, functionBody);
+  }
+
+  void test_parseFunctionBody_skip_blocks() {
+    ParserTestCase._parseFunctionBodies = false;
+    FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "{ {} }");
+    EngineTestCase.assertInstanceOf(EmptyFunctionBody, functionBody);
+  }
+
+  void test_parseFunctionBody_skip_expression() {
+    ParserTestCase._parseFunctionBodies = false;
+    FunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "=> y;");
+    EngineTestCase.assertInstanceOf(EmptyFunctionBody, functionBody);
   }
 
   void test_parseFunctionDeclaration_function() {
@@ -5329,6 +5354,10 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCompilationUnit_script);
       });
+      _ut.test('test_parseCompilationUnit_skipFunctionBody_withInterpolation', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCompilationUnit_skipFunctionBody_withInterpolation);
+      });
       _ut.test('test_parseCompilationUnit_topLevelDeclaration', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCompilationUnit_topLevelDeclaration);
@@ -5688,6 +5717,18 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseFunctionBody_nativeFunctionBody', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseFunctionBody_nativeFunctionBody);
+      });
+      _ut.test('test_parseFunctionBody_skip_block', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseFunctionBody_skip_block);
+      });
+      _ut.test('test_parseFunctionBody_skip_blocks', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseFunctionBody_skip_blocks);
+      });
+      _ut.test('test_parseFunctionBody_skip_expression', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseFunctionBody_skip_expression);
       });
       _ut.test('test_parseFunctionDeclarationStatement', () {
         final __test = new SimpleParserTest();
@@ -7203,6 +7244,11 @@ class ParserTestCase extends EngineTestCase {
   static List<Object> _EMPTY_ARGUMENTS = new List<Object>(0);
 
   /**
+   * A flag indicating whether parser is to parse function bodies.
+   */
+  static bool _parseFunctionBodies = true;
+
+  /**
    * Invoke a parse method in [Parser]. The method is assumed to have the given number and
    * type of parameters and will be invoked with the given arguments.
    *
@@ -7387,6 +7433,7 @@ class ParserTestCase extends EngineTestCase {
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Parser parser = new Parser(null, listener);
+    parser.parseFunctionBodies = _parseFunctionBodies;
     Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     if (!listener.hasErrors()) {
       JUnitTestCase.assertNotNull(result);
@@ -7431,6 +7478,11 @@ class ParserTestCase extends EngineTestCase {
    * @return an empty CommentAndMetadata object that can be used for testing
    */
   CommentAndMetadata emptyCommentAndMetadata() => new CommentAndMetadata(null, new List<Annotation>());
+
+  void setUp() {
+    super.setUp();
+    _parseFunctionBodies = true;
+  }
 
   static dartSuite() {
     _ut.group('ParserTestCase', () {
@@ -11433,6 +11485,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'isSwitchMember_0': new MethodTrampoline(0, (Parser target) => target.isSwitchMember()),
   'isTypedIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.isTypedIdentifier(arg0)),
   'lexicallyFirst_1': new MethodTrampoline(1, (Parser target, arg0) => target.lexicallyFirst(arg0)),
+  'lockErrorListener_0': new MethodTrampoline(0, (Parser target) => target.lockErrorListener()),
   'matches_1': new MethodTrampoline(1, (Parser target, arg0) => target.matches(arg0)),
   'matches_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.matches3(arg0, arg1)),
   'matchesAny_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.matchesAny(arg0, arg1)),
@@ -11523,8 +11576,10 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseWhileStatement_0': new MethodTrampoline(0, (Parser target) => target.parseWhileStatement()),
   'peek_0': new MethodTrampoline(0, (Parser target) => target.peek()),
   'peek_1': new MethodTrampoline(1, (Parser target, arg0) => target.peek2(arg0)),
-  'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError(arg0, arg1, arg2)),
-  'reportError_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportError9(arg0, arg1)),
+  'reportError_1': new MethodTrampoline(1, (Parser target, arg0) => target.reportError(arg0)),
+  'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError9(arg0, arg1, arg2)),
+  'reportError_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportError10(arg0, arg1)),
+  'skipBlock_0': new MethodTrampoline(0, (Parser target) => target.skipBlock()),
   'skipFinalConstVarOrType_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFinalConstVarOrType(arg0)),
   'skipFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFormalParameterList(arg0)),
   'skipPastMatchingToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipPastMatchingToken(arg0)),
@@ -11537,6 +11592,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'skipTypeName_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipTypeName(arg0)),
   'skipTypeParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipTypeParameterList(arg0)),
   'translateCharacter_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.translateCharacter(arg0, arg1, arg2)),
+  'unlockErrorListener_0': new MethodTrampoline(0, (Parser target) => target.unlockErrorListener()),
   'validateFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateFormalParameterList(arg0)),
   'validateModifiersForClass_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForClass(arg0)),
   'validateModifiersForConstructor_1': new MethodTrampoline(1, (Parser target, arg0) => target.validateModifiersForConstructor(arg0)),

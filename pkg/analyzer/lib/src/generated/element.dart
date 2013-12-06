@@ -3892,13 +3892,6 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
   static List<FunctionElement> EMPTY_ARRAY = new List<FunctionElement>(0);
 
   /**
-   * Initialize a newly created synthetic function element.
-   */
-  FunctionElementImpl() : super.con2("", -1) {
-    synthetic = true;
-  }
-
-  /**
    * Initialize a newly created function element to have the given name.
    *
    * @param name the name of this element
@@ -3915,45 +3908,6 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
   FunctionElementImpl.con2(int nameOffset) : super.con2("", nameOffset);
 
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
-
-  /**
-   * Treating the set of arrays defined in [ExecutableElementImpl] as one long array, this
-   * returns the index position of the passed child in this [FunctionElement]. This gives a
-   * unique integer for each element, this is provided primarily for function elements that do not
-   * have a name (closures), which cannot use [Element#getNameOffset]. If there is no such
-   * element, `-1` is returned.
-   *
-   * @param element the element to find and return an integer for, if there is no such element,
-   *          `-1` is returned
-   */
-  int getIndexPosition(Element element) {
-    List<FunctionElement> functions = this.functions;
-    List<LabelElement> labels = this.labels;
-    List<LocalVariableElement> localVariables = this.localVariables;
-    List<ParameterElement> parameters = this.parameters;
-    int count = 0;
-    for (int i = 0; i < functions.length; i++, count++) {
-      if (identical(element, functions[i])) {
-        return count;
-      }
-    }
-    for (int i = 0; i < labels.length; i++, count++) {
-      if (identical(element, labels[i])) {
-        return count;
-      }
-    }
-    for (int i = 0; i < localVariables.length; i++, count++) {
-      if (identical(element, localVariables[i])) {
-        return count;
-      }
-    }
-    for (int i = 0; i < parameters.length; i++, count++) {
-      if (identical(element, parameters[i])) {
-        return count;
-      }
-    }
-    return -1;
-  }
 
   ElementKind get kind => ElementKind.FUNCTION;
 

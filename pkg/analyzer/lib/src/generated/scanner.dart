@@ -728,6 +728,11 @@ class Scanner {
   AnalysisErrorListener _errorListener;
 
   /**
+   * The flag specifying if documentation comments should be parsed.
+   */
+  bool _preserveComments = true;
+
+  /**
    * The token pointing to the head of the linked list of tokens.
    */
   Token _tokens;
@@ -804,6 +809,15 @@ class Scanner {
    * @return `true` if any unmatched groups were found during the parse
    */
   bool hasUnmatchedGroups() => _hasUnmatchedGroups2;
+
+  /**
+   * Set whether documentation tokens should be scanned.
+   *
+   * @param preserveComments `true` if documentation tokens should be scanned
+   */
+  void set preserveComments(bool preserveComments) {
+    this._preserveComments = preserveComments;
+  }
 
   /**
    * Record that the source begins on the given line and column at the current offset as given by
@@ -1030,6 +1044,9 @@ class Scanner {
   }
 
   void appendCommentToken(TokenType type, String value) {
+    if (!_preserveComments) {
+      return;
+    }
     if (_firstComment == null) {
       _firstComment = new StringToken(type, value, _tokenStart);
       _lastComment = _firstComment;

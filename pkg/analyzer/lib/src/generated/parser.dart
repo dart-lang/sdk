@@ -1305,6 +1305,16 @@ class Parser {
   AnalysisErrorListener _errorListener;
 
   /**
+   * An [errorListener] lock, if more than `0`, then errors are not reported.
+   */
+  int _errorListenerLock = 0;
+
+  /**
+   * A flag indicating whether parser is to parse function bodies.
+   */
+  bool _parseFunctionBodies = true;
+
+  /**
    * The next token to be parsed.
    */
   Token _currentToken;
@@ -1409,6 +1419,15 @@ class Parser {
   }
 
   /**
+   * Set whether parser is to parse function bodies.
+   *
+   * @param parseFunctionBodies `true` if parser is to parse function bodies
+   */
+  void set parseFunctionBodies(bool parseFunctionBodies) {
+    this._parseFunctionBodies = parseFunctionBodies;
+  }
+
+  /**
    * Parse an annotation.
    *
    * <pre>
@@ -1485,7 +1504,7 @@ class Parser {
       arguments.add(argument);
       if (foundNamedArgument) {
         if (!generatedError && argument is! NamedExpression) {
-          reportError9(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
+          reportError10(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
           generatedError = true;
         }
       } else if (argument is NamedExpression) {
@@ -1541,7 +1560,7 @@ class Parser {
         statements.add(statement);
       }
       if (identical(_currentToken, statementStart)) {
-        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError11(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       statementStart = _currentToken;
@@ -1586,7 +1605,7 @@ class Parser {
       } else {
         if (matchesIdentifier()) {
           if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
-            reportError(ParserErrorCode.VOID_VARIABLE, returnType, []);
+            reportError9(ParserErrorCode.VOID_VARIABLE, returnType, []);
             return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), returnType);
           }
         }
@@ -1594,7 +1613,7 @@ class Parser {
           validateModifiersForOperator(modifiers);
           return parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType);
         }
-        reportError10(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+        reportError11(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
         return null;
       }
     } else if (matches(Keyword.GET) && matchesIdentifier2(peek())) {
@@ -1611,7 +1630,7 @@ class Parser {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
       }
-      reportError10(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
+      reportError11(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
       return null;
     } else if (matches4(peek(), TokenType.PERIOD) && matchesIdentifier2(peek2(2)) && matches4(peek2(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(commentAndMetadata, modifiers.externalKeyword, validateModifiersForConstructor(modifiers), modifiers.factoryKeyword, parseSimpleIdentifier(), andAdvance, parseSimpleIdentifier(), parseFormalParameterList());
@@ -1626,7 +1645,7 @@ class Parser {
       return parseMethodDeclaration2(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, null, methodName, parameters);
     } else if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       if (modifiers.constKeyword == null && modifiers.finalKeyword == null && modifiers.varKeyword == null) {
-        reportError9(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportError10(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
       return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), null);
     }
@@ -1648,13 +1667,18 @@ class Parser {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, type);
       }
-      reportError10(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
-      return null;
+      reportError11(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
+      try {
+        lockErrorListener();
+        return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), type);
+      } finally {
+        unlockErrorListener();
+      }
     } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
       SimpleIdentifier methodName = parseSimpleIdentifier();
       FormalParameterList parameters = parseFormalParameterList();
       if (methodName.name == className) {
-        reportError(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, type, []);
+        reportError9(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, type, []);
         return parseConstructor(commentAndMetadata, modifiers.externalKeyword, validateModifiersForConstructor(modifiers), modifiers.factoryKeyword, methodName, null, null, parameters);
       }
       validateModifiersForGetterOrSetterOrMethod(modifiers);
@@ -1704,15 +1728,15 @@ class Parser {
       if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART)) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT) && !matches4(peek(), TokenType.OPEN_PAREN)) {
         Directive directive = parseDirective(commentAndMetadata);
         if (declarations.length > 0 && !directiveFoundAfterDeclaration) {
-          reportError9(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, []);
+          reportError10(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, []);
           directiveFoundAfterDeclaration = true;
         }
         if (directive is LibraryDirective) {
           if (libraryDirectiveFound) {
-            reportError9(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, []);
+            reportError10(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, []);
           } else {
             if (directives.length > 0) {
-              reportError9(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, []);
+              reportError10(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, []);
             }
             libraryDirectiveFound = true;
           }
@@ -1720,29 +1744,29 @@ class Parser {
           partDirectiveFound = true;
         } else if (partDirectiveFound) {
           if (directive is ExportDirective) {
-            reportError10(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, (directive as NamespaceDirective).keyword, []);
+            reportError11(ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, (directive as NamespaceDirective).keyword, []);
           } else if (directive is ImportDirective) {
-            reportError10(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, (directive as NamespaceDirective).keyword, []);
+            reportError11(ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, (directive as NamespaceDirective).keyword, []);
           }
         }
         if (directive is PartOfDirective) {
           if (partOfDirectiveFound) {
-            reportError9(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, []);
+            reportError10(ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, []);
           } else {
             int directiveCount = directives.length;
             for (int i = 0; i < directiveCount; i++) {
-              reportError10(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directives[i].keyword, []);
+              reportError11(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directives[i].keyword, []);
             }
             partOfDirectiveFound = true;
           }
         } else {
           if (partOfDirectiveFound) {
-            reportError10(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.keyword, []);
+            reportError11(ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, directive.keyword, []);
           }
         }
         directives.add(directive);
       } else if (matches5(TokenType.SEMICOLON)) {
-        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError11(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       } else {
         CompilationUnitMember member = parseCompilationUnitMember(commentAndMetadata);
@@ -1751,7 +1775,7 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError11(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
         while (!matches5(TokenType.EOF) && !couldBeStartOfCompilationUnitMember()) {
           advance();
@@ -1937,9 +1961,9 @@ class Parser {
         firstParameter = false;
       } else if (!optional(TokenType.COMMA)) {
         if (getEndToken(leftParenthesis) != null) {
-          reportError9(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
+          reportError10(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
         } else {
-          reportError10(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, _currentToken.previous, []);
+          reportError11(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, _currentToken.previous, []);
           break;
         }
       }
@@ -1947,11 +1971,11 @@ class Parser {
       if (matches5(TokenType.OPEN_SQUARE_BRACKET)) {
         wasOptionalParameter = true;
         if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
-          reportError9(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, []);
+          reportError10(ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, []);
           reportedMuliplePositionalGroups = true;
         }
         if (leftCurlyBracket != null && !reportedMixedGroups) {
-          reportError9(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
+          reportError10(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
           reportedMixedGroups = true;
         }
         leftSquareBracket = andAdvance;
@@ -1960,11 +1984,11 @@ class Parser {
       } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
         wasOptionalParameter = true;
         if (leftCurlyBracket != null && !reportedMulipleNamedGroups) {
-          reportError9(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, []);
+          reportError10(ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, []);
           reportedMulipleNamedGroups = true;
         }
         if (leftSquareBracket != null && !reportedMixedGroups) {
-          reportError9(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
+          reportError10(ParserErrorCode.MIXED_PARAMETER_GROUPS, []);
           reportedMixedGroups = true;
         }
         leftCurlyBracket = andAdvance;
@@ -1975,18 +1999,18 @@ class Parser {
       parameters.add(parameter);
       currentParameters.add(parameter);
       if (identical(kind, ParameterKind.REQUIRED) && wasOptionalParameter) {
-        reportError(ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter, []);
+        reportError9(ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter, []);
       }
       if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
         rightSquareBracket = andAdvance;
         currentParameters = normalParameters;
         if (leftSquareBracket == null) {
           if (leftCurlyBracket != null) {
-            reportError9(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+            reportError10(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
             rightCurlyBracket = rightSquareBracket;
             rightSquareBracket = null;
           } else {
-            reportError9(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["["]);
+            reportError10(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["["]);
           }
         }
         kind = ParameterKind.REQUIRED;
@@ -1995,11 +2019,11 @@ class Parser {
         currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
           if (leftSquareBracket != null) {
-            reportError9(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+            reportError10(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
             rightSquareBracket = rightCurlyBracket;
             rightCurlyBracket = null;
           } else {
-            reportError9(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["{"]);
+            reportError10(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, ["{"]);
           }
         }
         kind = ParameterKind.REQUIRED;
@@ -2007,10 +2031,10 @@ class Parser {
     } while (!matches5(TokenType.CLOSE_PAREN) && initialToken != _currentToken);
     Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
     if (leftSquareBracket != null && rightSquareBracket == null) {
-      reportError9(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+      reportError10(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
     }
     if (leftCurlyBracket != null && rightCurlyBracket == null) {
-      reportError9(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+      reportError10(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
     }
     if (leftSquareBracket == null) {
       leftSquareBracket = leftCurlyBracket;
@@ -2166,7 +2190,7 @@ class Parser {
       FormalParameterList parameters = parseFormalParameterList();
       if (thisKeyword == null) {
         if (holder.keyword != null) {
-          reportError10(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
+          reportError11(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
         }
         return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
       } else {
@@ -2176,9 +2200,9 @@ class Parser {
     TypeName type = holder.type;
     if (type != null) {
       if (matches3(type.name.beginToken, Keyword.VOID)) {
-        reportError10(ParserErrorCode.VOID_PARAMETER, type.name.beginToken, []);
+        reportError11(ParserErrorCode.VOID_PARAMETER, type.name.beginToken, []);
       } else if (holder.keyword != null && matches3(holder.keyword, Keyword.VAR)) {
-        reportError10(ParserErrorCode.VAR_AND_TYPE, holder.keyword, []);
+        reportError11(ParserErrorCode.VAR_AND_TYPE, holder.keyword, []);
       }
     }
     if (thisKeyword != null) {
@@ -2240,7 +2264,7 @@ class Parser {
     if (matchesIdentifier()) {
       return new SimpleIdentifier.full(andAdvance);
     }
-    reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
+    reportError10(ParserErrorCode.MISSING_IDENTIFIER, []);
     return createSyntheticIdentifier();
   }
 
@@ -2288,7 +2312,7 @@ class Parser {
       }
     }
     if (strings.length < 1) {
-      reportError9(ParserErrorCode.EXPECTED_STRING_LITERAL, []);
+      reportError10(ParserErrorCode.EXPECTED_STRING_LITERAL, []);
       return createSyntheticStringLiteral();
     } else if (strings.length == 1) {
       return strings[0];
@@ -2334,13 +2358,13 @@ class Parser {
   TypeName parseTypeName() {
     Identifier typeName;
     if (matches(Keyword.VAR)) {
-      reportError9(ParserErrorCode.VAR_AS_TYPE_NAME, []);
+      reportError10(ParserErrorCode.VAR_AS_TYPE_NAME, []);
       typeName = new SimpleIdentifier.full(andAdvance);
     } else if (matchesIdentifier()) {
       typeName = parsePrefixedIdentifier();
     } else {
       typeName = createSyntheticIdentifier();
-      reportError9(ParserErrorCode.EXPECTED_TYPE_NAME, []);
+      reportError10(ParserErrorCode.EXPECTED_TYPE_NAME, []);
     }
     TypeArgumentList typeArguments = null;
     if (matches5(TokenType.LT)) {
@@ -2435,7 +2459,7 @@ class Parser {
    */
   void appendScalarValue(JavaStringBuilder builder, String escapeSequence, int scalarValue, int startIndex, int endIndex) {
     if (scalarValue < 0 || scalarValue > Character.MAX_CODE_POINT || (scalarValue >= 0xD800 && scalarValue <= 0xDFFF)) {
-      reportError9(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
+      reportError10(ParserErrorCode.INVALID_CODE_POINT, [escapeSequence]);
       return;
     }
     if (scalarValue < Character.MAX_VALUE) {
@@ -2586,7 +2610,7 @@ class Parser {
    */
   void ensureAssignable(Expression expression) {
     if (expression != null && !expression.isAssignable) {
-      reportError9(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, []);
+      reportError10(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, []);
     }
   }
 
@@ -2601,7 +2625,7 @@ class Parser {
     if (matches(keyword)) {
       return andAdvance;
     }
-    reportError9(ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
+    reportError10(ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
     return _currentToken;
   }
 
@@ -2617,9 +2641,9 @@ class Parser {
       return andAdvance;
     }
     if (identical(type, TokenType.SEMICOLON)) {
-      reportError10(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [type.lexeme]);
+      reportError11(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [type.lexeme]);
     } else {
-      reportError9(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
+      reportError10(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
     }
     return _currentToken;
   }
@@ -2962,6 +2986,14 @@ class Parser {
   }
 
   /**
+   * Increments the error reporting lock level. If level is more than `0`, then
+   * [reportError] wont report any error.
+   */
+  void lockErrorListener() {
+    _errorListenerLock++;
+  }
+
+  /**
    * Return `true` if the current token matches the given keyword.
    *
    * @param keyword the keyword that can optionally appear in the current location
@@ -3130,7 +3162,7 @@ class Parser {
   ArgumentDefinitionTest parseArgumentDefinitionTest() {
     Token question = expect2(TokenType.QUESTION);
     SimpleIdentifier identifier = parseSimpleIdentifier();
-    reportError10(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question, []);
+    reportError11(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question, []);
     return new ArgumentDefinitionTest.full(question, identifier);
   }
 
@@ -3149,13 +3181,13 @@ class Parser {
     Token leftParen = expect2(TokenType.OPEN_PAREN);
     Expression expression = parseExpression2();
     if (expression is AssignmentExpression) {
-      reportError(ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT, expression, []);
+      reportError9(ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT, expression, []);
     } else if (expression is CascadeExpression) {
-      reportError(ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE, expression, []);
+      reportError9(ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE, expression, []);
     } else if (expression is ThrowExpression) {
-      reportError(ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW, expression, []);
+      reportError9(ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW, expression, []);
     } else if (expression is RethrowExpression) {
-      reportError(ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression, []);
+      reportError9(ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression, []);
     }
     Token rightParen = expect2(TokenType.CLOSE_PAREN);
     Token semicolon = expect2(TokenType.SEMICOLON);
@@ -3237,7 +3269,7 @@ class Parser {
       return new PropertyAccess.full(prefix, period, parseSimpleIdentifier());
     } else {
       if (!optional) {
-        reportError9(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
+        reportError10(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
       }
       return prefix;
     }
@@ -3310,7 +3342,7 @@ class Parser {
       label = parseSimpleIdentifier();
     }
     if (!_inLoop && !_inSwitch && label == null) {
-      reportError10(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword, []);
+      reportError11(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword, []);
     }
     Token semicolon = expect2(TokenType.SEMICOLON);
     return new BreakStatement.full(breakKeyword, label, semicolon);
@@ -3346,7 +3378,7 @@ class Parser {
       expression = new IndexExpression.forCascade_full(period, leftBracket, index, rightBracket);
       period = null;
     } else {
-      reportError10(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [_currentToken.lexeme]);
+      reportError11(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [_currentToken.lexeme]);
       functionName = createSyntheticIdentifier();
     }
     if (identical(_currentToken.type, TokenType.OPEN_PAREN)) {
@@ -3432,29 +3464,29 @@ class Parser {
         if (extendsClause == null) {
           extendsClause = parseExtendsClause();
           if (withClause != null) {
-            reportError10(ParserErrorCode.WITH_BEFORE_EXTENDS, withClause.withKeyword, []);
+            reportError11(ParserErrorCode.WITH_BEFORE_EXTENDS, withClause.withKeyword, []);
           } else if (implementsClause != null) {
-            reportError10(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.keyword, []);
+            reportError11(ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, implementsClause.keyword, []);
           }
         } else {
-          reportError10(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.keyword, []);
+          reportError11(ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, extendsClause.keyword, []);
           parseExtendsClause();
         }
       } else if (matches(Keyword.WITH)) {
         if (withClause == null) {
           withClause = parseWithClause();
           if (implementsClause != null) {
-            reportError10(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, implementsClause.keyword, []);
+            reportError11(ParserErrorCode.IMPLEMENTS_BEFORE_WITH, implementsClause.keyword, []);
           }
         } else {
-          reportError10(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.withKeyword, []);
+          reportError11(ParserErrorCode.MULTIPLE_WITH_CLAUSES, withClause.withKeyword, []);
           parseWithClause();
         }
       } else if (matches(Keyword.IMPLEMENTS)) {
         if (implementsClause == null) {
           implementsClause = parseImplementsClause();
         } else {
-          reportError10(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.keyword, []);
+          reportError11(ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, implementsClause.keyword, []);
           parseImplementsClause();
         }
       } else {
@@ -3462,7 +3494,7 @@ class Parser {
       }
     }
     if (withClause != null && extendsClause == null) {
-      reportError10(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
+      reportError11(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
     }
     NativeClause nativeClause = null;
     if (matches2(_NATIVE) && matches4(peek(), TokenType.STRING)) {
@@ -3478,7 +3510,7 @@ class Parser {
     } else {
       leftBracket = createSyntheticToken2(TokenType.OPEN_CURLY_BRACKET);
       rightBracket = createSyntheticToken2(TokenType.CLOSE_CURLY_BRACKET);
-      reportError9(ParserErrorCode.MISSING_CLASS_BODY, []);
+      reportError10(ParserErrorCode.MISSING_CLASS_BODY, []);
     }
     ClassDeclaration classDeclaration = new ClassDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, abstractKeyword, keyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
     classDeclaration.nativeClause = nativeClause;
@@ -3503,7 +3535,7 @@ class Parser {
     Token memberStart = _currentToken;
     while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && (closingBracket != null || (!matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)))) {
       if (matches5(TokenType.SEMICOLON)) {
-        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError11(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       } else {
         ClassMember member = parseClassMember(className);
@@ -3512,7 +3544,7 @@ class Parser {
         }
       }
       if (identical(_currentToken, memberStart)) {
-        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError11(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       memberStart = _currentToken;
@@ -3560,12 +3592,12 @@ class Parser {
       semicolon = andAdvance;
     } else {
       if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
-        reportError9(ParserErrorCode.EXPECTED_TOKEN, [TokenType.SEMICOLON.lexeme]);
+        reportError10(ParserErrorCode.EXPECTED_TOKEN, [TokenType.SEMICOLON.lexeme]);
         Token leftBracket = andAdvance;
         parseClassMembers(className.name, getEndToken(leftBracket));
         expect2(TokenType.CLOSE_CURLY_BRACKET);
       } else {
-        reportError10(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [TokenType.SEMICOLON.lexeme]);
+        reportError11(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [TokenType.SEMICOLON.lexeme]);
       }
       semicolon = createSyntheticToken2(TokenType.SEMICOLON);
     }
@@ -3759,7 +3791,7 @@ class Parser {
         validateModifiersForTopLevelFunction(modifiers);
         return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
       } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-        reportError10(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+        reportError11(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
         return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType));
       } else if (matchesIdentifier() && matchesAny(peek(), [
           TokenType.OPEN_PAREN,
@@ -3770,28 +3802,28 @@ class Parser {
       } else {
         if (matchesIdentifier()) {
           if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
-            reportError(ParserErrorCode.VOID_VARIABLE, returnType, []);
+            reportError9(ParserErrorCode.VOID_VARIABLE, returnType, []);
             return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
           }
         }
-        reportError10(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+        reportError11(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
         return null;
       }
     } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-      reportError10(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+      reportError11(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, null));
     } else if (!matchesIdentifier()) {
-      reportError10(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+      reportError11(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       return null;
     } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       if (modifiers.constKeyword == null && modifiers.finalKeyword == null && modifiers.varKeyword == null) {
-        reportError9(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportError10(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
       return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
     }
@@ -3800,12 +3832,12 @@ class Parser {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
     } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
-      reportError10(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+      reportError11(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType));
     } else if (matches5(TokenType.AT)) {
       return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
     } else if (!matchesIdentifier()) {
-      reportError10(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
+      reportError11(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       Token semicolon;
       if (matches5(TokenType.SEMICOLON)) {
         semicolon = andAdvance;
@@ -3882,21 +3914,21 @@ class Parser {
       redirectedConstructor = parseConstructorName();
       body = new EmptyFunctionBody.full(expect2(TokenType.SEMICOLON));
       if (factoryKeyword == null) {
-        reportError(ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR, redirectedConstructor, []);
+        reportError9(ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR, redirectedConstructor, []);
       }
     } else {
       body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
       if (constKeyword != null && factoryKeyword != null && externalKeyword == null) {
-        reportError10(ParserErrorCode.CONST_FACTORY, factoryKeyword, []);
+        reportError11(ParserErrorCode.CONST_FACTORY, factoryKeyword, []);
       } else if (body is EmptyFunctionBody) {
         if (factoryKeyword != null && externalKeyword == null) {
-          reportError10(ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword, []);
+          reportError11(ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword, []);
         }
       } else {
         if (constKeyword != null) {
-          reportError(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body, []);
+          reportError9(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body, []);
         } else if (!bodyAllowed) {
-          reportError(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, body, []);
+          reportError9(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, body, []);
         }
       }
     }
@@ -3951,14 +3983,14 @@ class Parser {
   Statement parseContinueStatement() {
     Token continueKeyword = expect(Keyword.CONTINUE);
     if (!_inLoop && !_inSwitch) {
-      reportError10(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword, []);
+      reportError11(ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword, []);
     }
     SimpleIdentifier label = null;
     if (matchesIdentifier()) {
       label = parseSimpleIdentifier();
     }
     if (_inSwitch && !_inLoop && label == null) {
-      reportError10(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword, []);
+      reportError11(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword, []);
     }
     Token semicolon = expect2(TokenType.SEMICOLON);
     return new ContinueStatement.full(continueKeyword, label, semicolon);
@@ -4091,7 +4123,7 @@ class Parser {
     while (_currentToken.type.isEqualityOperator) {
       Token operator = andAdvance;
       if (leftEqualityExpression) {
-        reportError(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, expression, []);
+        reportError9(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, expression, []);
       }
       expression = new BinaryExpression.full(expression, operator, parseRelationalExpression());
       leftEqualityExpression = true;
@@ -4165,7 +4197,7 @@ class Parser {
       if (isTypedIdentifier(_currentToken)) {
         type = parseReturnType();
       } else if (!optional) {
-        reportError9(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
+        reportError10(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
     }
     return new FinalConstVarOrType(keyword, type);
@@ -4193,18 +4225,18 @@ class Parser {
       Token seperator = andAdvance;
       Expression defaultValue = parseExpression2();
       if (identical(kind, ParameterKind.NAMED)) {
-        reportError10(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator, []);
+        reportError11(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
-        reportError(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter, []);
+        reportError9(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
       return new DefaultFormalParameter.full(parameter, kind, seperator, defaultValue);
     } else if (matches5(TokenType.COLON)) {
       Token seperator = andAdvance;
       Expression defaultValue = parseExpression2();
       if (identical(kind, ParameterKind.POSITIONAL)) {
-        reportError10(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator, []);
+        reportError11(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
-        reportError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter, []);
+        reportError9(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
       return new DefaultFormalParameter.full(parameter, kind, seperator, defaultValue);
     } else if (kind != ParameterKind.REQUIRED) {
@@ -4256,15 +4288,15 @@ class Parser {
           DeclaredIdentifier loopVariable = null;
           SimpleIdentifier identifier = null;
           if (variableList == null) {
-            reportError9(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
+            reportError10(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
           } else {
             NodeList<VariableDeclaration> variables = variableList.variables;
             if (variables.length > 1) {
-              reportError9(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables.length.toString()]);
+              reportError10(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables.length.toString()]);
             }
             VariableDeclaration variable = variables[0];
             if (variable.initializer != null) {
-              reportError9(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
+              reportError10(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
             }
             Token keyword = variableList.keyword;
             TypeName type = variableList.type;
@@ -4318,7 +4350,7 @@ class Parser {
    * </pre>
    *
    * @param mayBeEmpty `true` if the function body is allowed to be empty
-   * @param emptyErrorCode the error code to report if function body expecte, but not found
+   * @param emptyErrorCode the error code to report if function body expected, but not found
    * @param inExpression `true` if the function body is being parsed as part of an expression
    *          and therefore does not have a terminating semicolon
    * @return the function body that was parsed
@@ -4331,7 +4363,7 @@ class Parser {
     try {
       if (matches5(TokenType.SEMICOLON)) {
         if (!mayBeEmpty) {
-          reportError9(emptyErrorCode, []);
+          reportError10(emptyErrorCode, []);
         }
         return new EmptyFunctionBody.full(andAdvance);
       } else if (matches5(TokenType.FUNCTION)) {
@@ -4341,8 +4373,15 @@ class Parser {
         if (!inExpression) {
           semicolon = expect2(TokenType.SEMICOLON);
         }
+        if (!_parseFunctionBodies) {
+          return new EmptyFunctionBody.full(createSyntheticToken2(TokenType.SEMICOLON));
+        }
         return new ExpressionFunctionBody.full(functionDefinition, expression, semicolon);
       } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
+        if (!_parseFunctionBodies) {
+          skipBlock();
+          return new EmptyFunctionBody.full(createSyntheticToken2(TokenType.SEMICOLON));
+        }
         return new BlockFunctionBody.full(parseBlock());
       } else if (matches2(_NATIVE)) {
         Token nativeToken = andAdvance;
@@ -4352,7 +4391,7 @@ class Parser {
         }
         return new NativeFunctionBody.full(nativeToken, stringLiteral, expect2(TokenType.SEMICOLON));
       } else {
-        reportError9(emptyErrorCode, []);
+        reportError10(emptyErrorCode, []);
         return new EmptyFunctionBody.full(createSyntheticToken2(TokenType.SEMICOLON));
       }
     } finally {
@@ -4393,10 +4432,10 @@ class Parser {
         parameters = parseFormalParameterList();
         validateFormalParameterList(parameters);
       } else {
-        reportError9(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, []);
+        reportError10(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, []);
       }
     } else if (matches5(TokenType.OPEN_PAREN)) {
-      reportError9(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
+      reportError10(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
       parseFormalParameterList();
     }
     FunctionBody body;
@@ -4442,9 +4481,9 @@ class Parser {
     Token propertyKeyword = declaration.propertyKeyword;
     if (propertyKeyword != null) {
       if (identical((propertyKeyword as KeywordToken).keyword, Keyword.GET)) {
-        reportError10(ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword, []);
+        reportError11(ParserErrorCode.GETTER_IN_FUNCTION, propertyKeyword, []);
       } else {
-        reportError10(ParserErrorCode.SETTER_IN_FUNCTION, propertyKeyword, []);
+        reportError11(ParserErrorCode.SETTER_IN_FUNCTION, propertyKeyword, []);
       }
     }
     return new FunctionDeclarationStatement.full(declaration);
@@ -4476,12 +4515,12 @@ class Parser {
       typeParameters = parseTypeParameterList();
     }
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.EOF)) {
-      reportError9(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
+      reportError10(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
       FormalParameterList parameters = new FormalParameterList.full(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN));
       Token semicolon = expect2(TokenType.SEMICOLON);
       return new FunctionTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
     } else if (!matches5(TokenType.OPEN_PAREN)) {
-      reportError9(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
+      reportError10(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
       return new FunctionTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, new FormalParameterList.full(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN)), createSyntheticToken2(TokenType.SEMICOLON));
     }
     FormalParameterList parameters = parseFormalParameterList();
@@ -4513,13 +4552,13 @@ class Parser {
     Token propertyKeyword = expect(Keyword.GET);
     SimpleIdentifier name = parseSimpleIdentifier();
     if (matches5(TokenType.OPEN_PAREN) && matches4(peek(), TokenType.CLOSE_PAREN)) {
-      reportError9(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
+      reportError10(ParserErrorCode.GETTER_WITH_PARAMETERS, []);
       advance();
       advance();
     }
     FunctionBody body = parseFunctionBody(externalKeyword != null || staticKeyword == null, ParserErrorCode.STATIC_GETTER_WITHOUT_BODY, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError9(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, []);
+      reportError10(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, []);
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, null, body);
   }
@@ -4675,9 +4714,9 @@ class Parser {
       return parseLibraryIdentifier();
     } else if (matches5(TokenType.STRING)) {
       StringLiteral string = parseStringLiteral();
-      reportError(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, string, []);
+      reportError9(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, string, []);
     } else {
-      reportError10(missingNameError, missingNameToken, []);
+      reportError11(missingNameError, missingNameToken, []);
     }
     List<SimpleIdentifier> components = new List<SimpleIdentifier>();
     components.add(createSyntheticIdentifier());
@@ -4748,7 +4787,7 @@ class Parser {
     } else if (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.INDEX)) {
       return parseListLiteral(modifier, typeArguments);
     }
-    reportError9(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
+    reportError10(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
     return new ListLiteral.full(modifier, typeArguments, createSyntheticToken2(TokenType.OPEN_SQUARE_BRACKET), null, createSyntheticToken2(TokenType.CLOSE_SQUARE_BRACKET));
   }
 
@@ -4847,11 +4886,11 @@ class Parser {
     FunctionBody body = parseFunctionBody(externalKeyword != null || staticKeyword == null, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     if (externalKeyword != null) {
       if (body is! EmptyFunctionBody) {
-        reportError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, body, []);
+        reportError9(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, body, []);
       }
     } else if (staticKeyword != null) {
       if (body is EmptyFunctionBody) {
-        reportError(ParserErrorCode.ABSTRACT_STATIC_METHOD, body, []);
+        reportError9(ParserErrorCode.ABSTRACT_STATIC_METHOD, body, []);
       }
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, null, null, name, parameters, body);
@@ -4879,49 +4918,49 @@ class Parser {
       }
       if (matches(Keyword.ABSTRACT)) {
         if (modifiers.abstractKeyword != null) {
-          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError10(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.abstractKeyword = andAdvance;
         }
       } else if (matches(Keyword.CONST)) {
         if (modifiers.constKeyword != null) {
-          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError10(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.constKeyword = andAdvance;
         }
       } else if (matches(Keyword.EXTERNAL) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.externalKeyword != null) {
-          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError10(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.externalKeyword = andAdvance;
         }
       } else if (matches(Keyword.FACTORY) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.factoryKeyword != null) {
-          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError10(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.factoryKeyword = andAdvance;
         }
       } else if (matches(Keyword.FINAL)) {
         if (modifiers.finalKeyword != null) {
-          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError10(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.finalKeyword = andAdvance;
         }
       } else if (matches(Keyword.STATIC) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
         if (modifiers.staticKeyword != null) {
-          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError10(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.staticKeyword = andAdvance;
         }
       } else if (matches(Keyword.VAR)) {
         if (modifiers.varKeyword != null) {
-          reportError9(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+          reportError10(ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           advance();
         } else {
           modifiers.varKeyword = andAdvance;
@@ -5057,13 +5096,13 @@ class Parser {
         } else {
           if (matchesIdentifier()) {
             if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
-              reportError(ParserErrorCode.VOID_VARIABLE, returnType, []);
+              reportError9(ParserErrorCode.VOID_VARIABLE, returnType, []);
               return parseVariableDeclarationStatement(commentAndMetadata);
             }
           } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
             return parseVariableDeclarationStatement2(commentAndMetadata, null, returnType);
           }
-          reportError9(ParserErrorCode.MISSING_STATEMENT, []);
+          reportError10(ParserErrorCode.MISSING_STATEMENT, []);
           return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
         }
       } else if (identical(keyword, Keyword.CONST)) {
@@ -5085,7 +5124,7 @@ class Parser {
       } else if (identical(keyword, Keyword.NEW) || identical(keyword, Keyword.TRUE) || identical(keyword, Keyword.FALSE) || identical(keyword, Keyword.NULL) || identical(keyword, Keyword.SUPER) || identical(keyword, Keyword.THIS)) {
         return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
       } else {
-        reportError9(ParserErrorCode.MISSING_STATEMENT, []);
+        reportError10(ParserErrorCode.MISSING_STATEMENT, []);
         return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
       }
     } else if (matches5(TokenType.SEMICOLON)) {
@@ -5095,7 +5134,7 @@ class Parser {
     } else if (isFunctionDeclaration()) {
       return parseFunctionDeclarationStatement();
     } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
-      reportError9(ParserErrorCode.MISSING_STATEMENT, []);
+      reportError10(ParserErrorCode.MISSING_STATEMENT, []);
       return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
     } else {
       return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
@@ -5125,17 +5164,17 @@ class Parser {
     if (matches(Keyword.OPERATOR)) {
       operatorKeyword = andAdvance;
     } else {
-      reportError10(ParserErrorCode.MISSING_KEYWORD_OPERATOR, _currentToken, []);
+      reportError11(ParserErrorCode.MISSING_KEYWORD_OPERATOR, _currentToken, []);
       operatorKeyword = createSyntheticToken(Keyword.OPERATOR);
     }
     if (!_currentToken.isUserDefinableOperator) {
-      reportError9(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
+      reportError10(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
     SimpleIdentifier name = new SimpleIdentifier.full(andAdvance);
     if (matches5(TokenType.EQ)) {
       Token previous = _currentToken.previous;
       if ((matches4(previous, TokenType.EQ_EQ) || matches4(previous, TokenType.BANG_EQ)) && _currentToken.offset == previous.offset + 2) {
-        reportError9(ParserErrorCode.INVALID_OPERATOR, ["${previous.lexeme}${_currentToken.lexeme}"]);
+        reportError10(ParserErrorCode.INVALID_OPERATOR, ["${previous.lexeme}${_currentToken.lexeme}"]);
         advance();
       }
     }
@@ -5143,7 +5182,7 @@ class Parser {
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError9(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, []);
+      reportError10(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, []);
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, null, returnType, null, operatorKeyword, name, parameters, body);
   }
@@ -5228,7 +5267,7 @@ class Parser {
       return operand;
     }
     if (operand is Literal || operand is FunctionExpressionInvocation) {
-      reportError9(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
+      reportError10(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
     }
     Token operator = andAdvance;
     return new PostfixExpression.full(operand, operator);
@@ -5321,13 +5360,13 @@ class Parser {
     } else if (matches5(TokenType.QUESTION)) {
       return parseArgumentDefinitionTest();
     } else if (matches(Keyword.VOID)) {
-      reportError9(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
+      reportError10(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
       advance();
       return parsePrimaryExpression();
     } else if (matches5(TokenType.HASH)) {
       return parseSymbolLiteral();
     } else {
-      reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
+      reportError10(ParserErrorCode.MISSING_IDENTIFIER, []);
       return createSyntheticIdentifier();
     }
   }
@@ -5448,7 +5487,7 @@ class Parser {
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(externalKeyword != null || staticKeyword == null, ParserErrorCode.STATIC_SETTER_WITHOUT_BODY, false);
     if (externalKeyword != null && body is! EmptyFunctionBody) {
-      reportError9(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, []);
+      reportError10(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, []);
     }
     return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, parameters, body);
   }
@@ -5494,7 +5533,7 @@ class Parser {
     while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember()) {
       statements.add(parseStatement2());
       if (identical(_currentToken, statementStart)) {
-        reportError10(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
+        reportError11(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
       statementStart = _currentToken;
@@ -5592,7 +5631,7 @@ class Parser {
           SimpleIdentifier identifier = parseSimpleIdentifier();
           String label = identifier.token.lexeme;
           if (definedLabels.contains(label)) {
-            reportError10(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.token, [label]);
+            reportError11(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, identifier.token, [label]);
           } else {
             definedLabels.add(label);
           }
@@ -5605,17 +5644,17 @@ class Parser {
           Token colon = expect2(TokenType.COLON);
           members.add(new SwitchCase.full(labels, caseKeyword, caseExpression, colon, parseStatements2()));
           if (defaultKeyword != null) {
-            reportError10(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, caseKeyword, []);
+            reportError11(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, caseKeyword, []);
           }
         } else if (matches(Keyword.DEFAULT)) {
           if (defaultKeyword != null) {
-            reportError10(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, peek(), []);
+            reportError11(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, peek(), []);
           }
           defaultKeyword = andAdvance;
           Token colon = expect2(TokenType.COLON);
           members.add(new SwitchDefault.full(labels, defaultKeyword, colon, parseStatements2()));
         } else {
-          reportError9(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
+          reportError10(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
           while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !matches(Keyword.CASE) && !matches(Keyword.DEFAULT)) {
             advance();
           }
@@ -5648,7 +5687,7 @@ class Parser {
         if (matchesIdentifier()) {
           components.add(andAdvance);
         } else {
-          reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
+          reportError10(ParserErrorCode.MISSING_IDENTIFIER, []);
           components.add(createSyntheticToken2(TokenType.IDENTIFIER));
           break;
         }
@@ -5656,7 +5695,7 @@ class Parser {
     } else if (_currentToken.isOperator) {
       components.add(andAdvance);
     } else {
-      reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
+      reportError10(ParserErrorCode.MISSING_IDENTIFIER, []);
       components.add(createSyntheticToken2(TokenType.IDENTIFIER));
     }
     return new SymbolLiteral.full(poundSign, new List.from(components));
@@ -5675,7 +5714,7 @@ class Parser {
   Expression parseThrowExpression() {
     Token keyword = expect(Keyword.THROW);
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.CLOSE_PAREN)) {
-      reportError10(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
+      reportError11(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
       return new ThrowExpression.full(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpression2();
@@ -5695,7 +5734,7 @@ class Parser {
   Expression parseThrowExpressionWithoutCascade() {
     Token keyword = expect(Keyword.THROW);
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.CLOSE_PAREN)) {
-      reportError10(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
+      reportError11(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
       return new ThrowExpression.full(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpressionWithoutCascade();
@@ -5759,7 +5798,7 @@ class Parser {
       finallyClause = parseBlock();
     } else {
       if (catchClauses.isEmpty) {
-        reportError9(ParserErrorCode.MISSING_CATCH_OR_FINALLY, []);
+        reportError10(ParserErrorCode.MISSING_CATCH_OR_FINALLY, []);
       }
     }
     return new TryStatement.full(tryKeyword, body, catchClauses, finallyKeyword, finallyClause);
@@ -5800,12 +5839,12 @@ class Parser {
         next = skipTypeParameterList(next);
         if (next != null && matches4(next, TokenType.EQ)) {
           TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
-          reportError10(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
+          reportError11(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
           return typeAlias;
         }
       } else if (matches4(next, TokenType.EQ)) {
         TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
-        reportError10(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
+        reportError11(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
         return typeAlias;
       }
     }
@@ -5851,13 +5890,13 @@ class Parser {
           operator.previous.setNext(firstOperator);
           return new PrefixExpression.full(firstOperator, new PrefixExpression.full(secondOperator, new SuperExpression.full(andAdvance)));
         } else {
-          reportError9(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
+          reportError10(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
           return new PrefixExpression.full(operator, new SuperExpression.full(andAdvance));
         }
       }
       return new PrefixExpression.full(operator, parseAssignableExpression(false));
     } else if (matches5(TokenType.PLUS)) {
-      reportError9(ParserErrorCode.MISSING_IDENTIFIER, []);
+      reportError10(ParserErrorCode.MISSING_IDENTIFIER, []);
       return createSyntheticIdentifier();
     }
     return parsePostfixExpression();
@@ -5918,7 +5957,7 @@ class Parser {
    */
   VariableDeclarationList parseVariableDeclarationList2(CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
     if (type != null && keyword != null && matches3(keyword, Keyword.VAR)) {
-      reportError10(ParserErrorCode.VAR_AND_TYPE, keyword, []);
+      reportError11(ParserErrorCode.VAR_AND_TYPE, keyword, []);
     }
     List<VariableDeclaration> variables = new List<VariableDeclaration>();
     variables.add(parseVariableDeclaration());
@@ -6017,14 +6056,26 @@ class Parser {
   }
 
   /**
+   * Report the given [AnalysisError].
+   *
+   * @param error the error to be reported
+   */
+  void reportError(AnalysisError error) {
+    if (_errorListenerLock != 0) {
+      return;
+    }
+    _errorListener.onError(error);
+  }
+
+  /**
    * Report an error with the given error code and arguments.
    *
    * @param errorCode the error code of the error to be reported
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError(ParserErrorCode errorCode, ASTNode node, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(_source, node.offset, node.length, errorCode, arguments));
+  void reportError9(ParserErrorCode errorCode, ASTNode node, List<Object> arguments) {
+    reportError(new AnalysisError.con2(_source, node.offset, node.length, errorCode, arguments));
   }
 
   /**
@@ -6033,8 +6084,8 @@ class Parser {
    * @param errorCode the error code of the error to be reported
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError9(ParserErrorCode errorCode, List<Object> arguments) {
-    reportError10(errorCode, _currentToken, arguments);
+  void reportError10(ParserErrorCode errorCode, List<Object> arguments) {
+    reportError11(errorCode, _currentToken, arguments);
   }
 
   /**
@@ -6044,8 +6095,15 @@ class Parser {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError10(ParserErrorCode errorCode, Token token, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(_source, token.offset, token.length, errorCode, arguments));
+  void reportError11(ParserErrorCode errorCode, Token token, List<Object> arguments) {
+    reportError(new AnalysisError.con2(_source, token.offset, token.length, errorCode, arguments));
+  }
+
+  /**
+   * Skips a block with all containing blocks.
+   */
+  void skipBlock() {
+    _currentToken = (_currentToken as BeginToken).endToken.next;
   }
 
   /**
@@ -6486,13 +6544,13 @@ class Parser {
       builder.appendChar(0xB);
     } else if (currentChar == 0x78) {
       if (currentIndex + 2 >= length) {
-        reportError9(ParserErrorCode.INVALID_HEX_ESCAPE, []);
+        reportError10(ParserErrorCode.INVALID_HEX_ESCAPE, []);
         return length;
       }
       int firstDigit = lexeme.codeUnitAt(currentIndex + 1);
       int secondDigit = lexeme.codeUnitAt(currentIndex + 2);
       if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit)) {
-        reportError9(ParserErrorCode.INVALID_HEX_ESCAPE, []);
+        reportError10(ParserErrorCode.INVALID_HEX_ESCAPE, []);
       } else {
         builder.appendChar(((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) as int);
       }
@@ -6500,14 +6558,14 @@ class Parser {
     } else if (currentChar == 0x75) {
       currentIndex++;
       if (currentIndex >= length) {
-        reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+        reportError10(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         return length;
       }
       currentChar = lexeme.codeUnitAt(currentIndex);
       if (currentChar == 0x7B) {
         currentIndex++;
         if (currentIndex >= length) {
-          reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError10(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length;
         }
         currentChar = lexeme.codeUnitAt(currentIndex);
@@ -6515,7 +6573,7 @@ class Parser {
         int value = 0;
         while (currentChar != 0x7D) {
           if (!isHexDigit(currentChar)) {
-            reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            reportError10(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             currentIndex++;
             while (currentIndex < length && lexeme.codeUnitAt(currentIndex) != 0x7D) {
               currentIndex++;
@@ -6526,19 +6584,19 @@ class Parser {
           value = (value << 4) + Character.digit(currentChar, 16);
           currentIndex++;
           if (currentIndex >= length) {
-            reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+            reportError10(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             return length;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
         if (digitCount < 1 || digitCount > 6) {
-          reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError10(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         }
         appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length) {
-          reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError10(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length;
         }
         int firstDigit = currentChar;
@@ -6546,7 +6604,7 @@ class Parser {
         int thirdDigit = lexeme.codeUnitAt(currentIndex + 2);
         int fourthDigit = lexeme.codeUnitAt(currentIndex + 3);
         if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit) || !isHexDigit(thirdDigit) || !isHexDigit(fourthDigit)) {
-          reportError9(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
+          reportError10(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         } else {
           appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), (((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) << 4) + Character.digit(thirdDigit, 16)) << 4) + Character.digit(fourthDigit, 16), index, currentIndex + 3);
         }
@@ -6559,6 +6617,17 @@ class Parser {
   }
 
   /**
+   * Decrements the error reporting lock level. If level is more than `0`, then
+   * [reportError] wont report any error.
+   */
+  void unlockErrorListener() {
+    if (_errorListenerLock == 0) {
+      throw new IllegalStateException("Attempt to unlock not locked error listener.");
+    }
+    _errorListenerLock--;
+  }
+
+  /**
    * Validate that the given parameter list does not contain any field initializers.
    *
    * @param parameterList the parameter list to be validated
@@ -6566,7 +6635,7 @@ class Parser {
   void validateFormalParameterList(FormalParameterList parameterList) {
     for (FormalParameter parameter in parameterList.parameters) {
       if (parameter is FieldFormalParameter) {
-        reportError(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, (parameter as FieldFormalParameter).identifier, []);
+        reportError9(ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, (parameter as FieldFormalParameter).identifier, []);
       }
     }
   }
@@ -6580,16 +6649,16 @@ class Parser {
   Token validateModifiersForClass(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.constKeyword != null) {
-      reportError10(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
+      reportError11(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError10(ParserErrorCode.EXTERNAL_CLASS, modifiers.externalKeyword, []);
+      reportError11(ParserErrorCode.EXTERNAL_CLASS, modifiers.externalKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError10(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
+      reportError11(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError10(ParserErrorCode.VAR_CLASS, modifiers.varKeyword, []);
+      reportError11(ParserErrorCode.VAR_CLASS, modifiers.varKeyword, []);
     }
     return modifiers.abstractKeyword;
   }
@@ -6603,25 +6672,25 @@ class Parser {
    */
   Token validateModifiersForConstructor(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError9(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError10(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError10(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword, []);
+      reportError11(ParserErrorCode.FINAL_CONSTRUCTOR, modifiers.finalKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError10(ParserErrorCode.STATIC_CONSTRUCTOR, modifiers.staticKeyword, []);
+      reportError11(ParserErrorCode.STATIC_CONSTRUCTOR, modifiers.staticKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError10(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError11(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
     }
     Token externalKeyword = modifiers.externalKeyword;
     Token constKeyword = modifiers.constKeyword;
     Token factoryKeyword = modifiers.factoryKeyword;
     if (externalKeyword != null && constKeyword != null && constKeyword.offset < externalKeyword.offset) {
-      reportError10(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword, []);
+      reportError11(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword, []);
     }
     if (externalKeyword != null && factoryKeyword != null && factoryKeyword.offset < externalKeyword.offset) {
-      reportError10(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword, []);
+      reportError11(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword, []);
     }
     return constKeyword;
   }
@@ -6635,13 +6704,13 @@ class Parser {
    */
   Token validateModifiersForField(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError9(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError10(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError10(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
+      reportError11(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError10(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportError11(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     Token staticKeyword = modifiers.staticKeyword;
     Token constKeyword = modifiers.constKeyword;
@@ -6649,23 +6718,23 @@ class Parser {
     Token varKeyword = modifiers.varKeyword;
     if (constKeyword != null) {
       if (finalKeyword != null) {
-        reportError10(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
+        reportError11(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
       }
       if (varKeyword != null) {
-        reportError10(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
+        reportError11(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
       }
       if (staticKeyword != null && constKeyword.offset < staticKeyword.offset) {
-        reportError10(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword, []);
+        reportError11(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword, []);
       }
     } else if (finalKeyword != null) {
       if (varKeyword != null) {
-        reportError10(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
+        reportError11(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
       }
       if (staticKeyword != null && finalKeyword.offset < staticKeyword.offset) {
-        reportError10(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword, []);
+        reportError11(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword, []);
       }
     } else if (varKeyword != null && staticKeyword != null && varKeyword.offset < staticKeyword.offset) {
-      reportError10(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword, []);
+      reportError11(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword, []);
     }
     return lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
   }
@@ -6677,7 +6746,7 @@ class Parser {
    */
   void validateModifiersForFunctionDeclarationStatement(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null || modifiers.constKeyword != null || modifiers.externalKeyword != null || modifiers.factoryKeyword != null || modifiers.finalKeyword != null || modifiers.staticKeyword != null || modifiers.varKeyword != null) {
-      reportError9(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, []);
+      reportError10(ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER, []);
     }
   }
 
@@ -6688,24 +6757,24 @@ class Parser {
    */
   void validateModifiersForGetterOrSetterOrMethod(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError9(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError10(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError10(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
+      reportError11(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError10(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportError11(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError10(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
+      reportError11(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError10(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError11(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
     Token externalKeyword = modifiers.externalKeyword;
     Token staticKeyword = modifiers.staticKeyword;
     if (externalKeyword != null && staticKeyword != null && staticKeyword.offset < externalKeyword.offset) {
-      reportError10(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword, []);
+      reportError11(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword, []);
     }
   }
 
@@ -6716,22 +6785,22 @@ class Parser {
    */
   void validateModifiersForOperator(Modifiers modifiers) {
     if (modifiers.abstractKeyword != null) {
-      reportError9(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
+      reportError10(ParserErrorCode.ABSTRACT_CLASS_MEMBER, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError10(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
+      reportError11(ParserErrorCode.CONST_METHOD, modifiers.constKeyword, []);
     }
     if (modifiers.factoryKeyword != null) {
-      reportError10(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
+      reportError11(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError10(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
+      reportError11(ParserErrorCode.FINAL_METHOD, modifiers.finalKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError10(ParserErrorCode.STATIC_OPERATOR, modifiers.staticKeyword, []);
+      reportError11(ParserErrorCode.STATIC_OPERATOR, modifiers.staticKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError10(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError11(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
   }
 
@@ -6742,10 +6811,10 @@ class Parser {
    */
   void validateModifiersForTopLevelDeclaration(Modifiers modifiers) {
     if (modifiers.factoryKeyword != null) {
-      reportError10(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, modifiers.factoryKeyword, []);
+      reportError11(ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, modifiers.factoryKeyword, []);
     }
     if (modifiers.staticKeyword != null) {
-      reportError10(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, modifiers.staticKeyword, []);
+      reportError11(ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION, modifiers.staticKeyword, []);
     }
   }
 
@@ -6757,16 +6826,16 @@ class Parser {
   void validateModifiersForTopLevelFunction(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError9(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, []);
+      reportError10(ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError10(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
+      reportError11(ParserErrorCode.CONST_CLASS, modifiers.constKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError10(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
+      reportError11(ParserErrorCode.FINAL_CLASS, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError10(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
+      reportError11(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
   }
 
@@ -6780,24 +6849,24 @@ class Parser {
   Token validateModifiersForTopLevelVariable(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError9(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, []);
+      reportError10(ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError10(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
+      reportError11(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
     Token constKeyword = modifiers.constKeyword;
     Token finalKeyword = modifiers.finalKeyword;
     Token varKeyword = modifiers.varKeyword;
     if (constKeyword != null) {
       if (finalKeyword != null) {
-        reportError10(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
+        reportError11(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
       }
       if (varKeyword != null) {
-        reportError10(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
+        reportError11(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
       }
     } else if (finalKeyword != null) {
       if (varKeyword != null) {
-        reportError10(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
+        reportError11(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
       }
     }
     return lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
@@ -6812,19 +6881,19 @@ class Parser {
   void validateModifiersForTypedef(Modifiers modifiers) {
     validateModifiersForTopLevelDeclaration(modifiers);
     if (modifiers.abstractKeyword != null) {
-      reportError10(ParserErrorCode.ABSTRACT_TYPEDEF, modifiers.abstractKeyword, []);
+      reportError11(ParserErrorCode.ABSTRACT_TYPEDEF, modifiers.abstractKeyword, []);
     }
     if (modifiers.constKeyword != null) {
-      reportError10(ParserErrorCode.CONST_TYPEDEF, modifiers.constKeyword, []);
+      reportError11(ParserErrorCode.CONST_TYPEDEF, modifiers.constKeyword, []);
     }
     if (modifiers.externalKeyword != null) {
-      reportError10(ParserErrorCode.EXTERNAL_TYPEDEF, modifiers.externalKeyword, []);
+      reportError11(ParserErrorCode.EXTERNAL_TYPEDEF, modifiers.externalKeyword, []);
     }
     if (modifiers.finalKeyword != null) {
-      reportError10(ParserErrorCode.FINAL_TYPEDEF, modifiers.finalKeyword, []);
+      reportError11(ParserErrorCode.FINAL_TYPEDEF, modifiers.finalKeyword, []);
     }
     if (modifiers.varKeyword != null) {
-      reportError10(ParserErrorCode.VAR_TYPEDEF, modifiers.varKeyword, []);
+      reportError11(ParserErrorCode.VAR_TYPEDEF, modifiers.varKeyword, []);
     }
   }
 }

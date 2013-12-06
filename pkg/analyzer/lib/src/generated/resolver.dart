@@ -239,12 +239,6 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
 
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     ElementHolder holder = new ElementHolder();
-    visit(holder, node.defaultValue);
-    FunctionElementImpl initializer = new FunctionElementImpl();
-    initializer.functions = holder.functions;
-    initializer.labels = holder.labels;
-    initializer.localVariables = holder.localVariables;
-    initializer.parameters = holder.parameters;
     SimpleIdentifier parameterName = node.parameter.identifier;
     ParameterElementImpl parameter;
     if (node.parameter is FieldFormalParameter) {
@@ -254,10 +248,17 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
     }
     parameter.const3 = node.isConst;
     parameter.final2 = node.isFinal;
-    parameter.initializer = initializer;
     parameter.parameterKind = node.kind;
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null) {
+      visit(holder, defaultValue);
+      FunctionElementImpl initializer = new FunctionElementImpl.con2(defaultValue.beginToken.offset);
+      initializer.functions = holder.functions;
+      initializer.labels = holder.labels;
+      initializer.localVariables = holder.localVariables;
+      initializer.parameters = holder.parameters;
+      initializer.synthetic = true;
+      parameter.initializer = initializer;
       parameter.setDefaultValueRange(defaultValue.offset, defaultValue.length);
     }
     setParameterVisibleRange(node, parameter);
@@ -623,7 +624,7 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
       } finally {
         _inFieldContext = wasInFieldContext;
       }
-      FunctionElementImpl initializer = new FunctionElementImpl();
+      FunctionElementImpl initializer = new FunctionElementImpl.con2(node.initializer.beginToken.offset);
       initializer.functions = holder.functions;
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;
@@ -6619,6 +6620,11 @@ class Library {
   static List<Library> _EMPTY_ARRAY = new List<Library>(0);
 
   /**
+   * The prefix of a URI using the dart-ext scheme to reference a native code library.
+   */
+  static String _DART_EXT_SCHEME = "dart-ext:";
+
+  /**
    * Initialize a newly created data holder that can maintain the data associated with a library.
    *
    * @param analysisContext the analysis context in which this library is being analyzed
@@ -6773,6 +6779,20 @@ class Library {
     String uriContent = uriLiteral.stringValue.trim();
     _directiveUris[directive] = uriContent;
     uriContent = Uri.encodeFull(uriContent);
+    if (directive is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
+      String uriBase = uriContent.substring(_DART_EXT_SCHEME.length);
+      Source source = _analysisContext.sourceFactory.resolveUri(librarySource, "${uriBase}.dll");
+      if (source == null || !source.exists()) {
+        source = _analysisContext.sourceFactory.resolveUri(librarySource, "${uriBase}.so");
+        if (source == null || !source.exists()) {
+          source = _analysisContext.sourceFactory.resolveUri(librarySource, "${uriBase}.dylib");
+          if (source == null || !source.exists()) {
+            _errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
+          }
+        }
+      }
+      return null;
+    }
     try {
       parseUriWithException(uriContent);
       Source source = _analysisContext.sourceFactory.resolveUri(librarySource, uriContent);
@@ -16143,7 +16163,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       if (initializer is SuperConstructorInvocation) {
         SuperConstructorInvocation superInvocation = initializer as SuperConstructorInvocation;
         ConstructorElement element = superInvocation.staticElement;
-        if (element.isConst) {
+        if (element == null || element.isConst) {
           return false;
         }
         _errorReporter.reportError2(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, superInvocation, []);
