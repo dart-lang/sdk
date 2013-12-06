@@ -40,10 +40,12 @@ class RunningIsolates implements ServiceRequestRouter {
 
   Future route(ServiceRequest request) {
     if (request.pathSegments.length == 0) {
-      return null;
+      request.setErrorResponse('No path.');
+      return new Future.value(request);
     }
     if (request.pathSegments[0] != 'isolates') {
-      return null;
+      request.setErrorResponse('Path must begin with /isolates/.');
+      return new Future.value(request);
     }
     if (request.pathSegments.length == 1) {
       // Requesting list of running isolates.

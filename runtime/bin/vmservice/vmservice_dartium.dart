@@ -13,25 +13,20 @@ RawReceivePort _receivePort;
 RawReceivePort _requestPort;
 
 // The native method that is called to post the response back to DevTools.
-void postResponse(String response, int cookie) native "PostResponse";
+void postResponse(String response, int cookie) native "VMService_PostResponse";
 
 void handleRequest(service, String uri, cookie) {
   var serviceRequest = new ServiceRequest();
   var r = serviceRequest.parse(Uri.parse(uri));
-  if (!r) {
-    // Did not understand the request uri.
-    serviceRequest.setErrorResponse('Invalid request uri: ${uri}');
-  } else {
+  if (r) {
     var f = service.runningIsolates.route(serviceRequest);
-    if (f != null) {
-      f.then((_) {
-        postResponse(serviceRequest.response, cookie);
-      }).catchError((e) { });
-      return;
-    } else {
-      // Nothing responds to this type of request.
-      serviceRequest.setErrorResponse('No route for: $uri');
-    }
+    assert(f != null);
+    f.then((_) {
+      postResponse(serviceRequest.response, cookie);
+    }).catchError((e) {
+      // Error posting response back to Dartium.
+    });
+    return;
   }
   postResponse(serviceRequest.response, cookie);
 }

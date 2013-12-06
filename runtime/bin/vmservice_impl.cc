@@ -535,7 +535,7 @@ struct VmServiceNativeEntry {
 
 
 static VmServiceNativeEntry _VmServiceNativeEntries[] = {
-  {"SendServiceMessage", 3, SendServiceMessage}
+  {"VMService_SendServiceMessage", 3, SendServiceMessage}
 };
 
 

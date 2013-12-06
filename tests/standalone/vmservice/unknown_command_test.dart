@@ -11,7 +11,7 @@ class UnknownCommandTest extends VmServiceRequestHelper {
   UnknownCommandTest(port) : super('http://127.0.0.1:$port/badcommand');
 
   onRequestCompleted(Map reply) {
-    Expect.equals('error', reply['type']);
+    Expect.equals('Error', reply['type']);
   }
 }
 
