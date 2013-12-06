@@ -646,12 +646,6 @@ class Traverser {
 /// Ensures that if [pubspec] has an SDK constraint, then it is compatible
 /// with the current SDK. Throws a [SolveFailure] if not.
 void _validateSdkConstraint(Pubspec pubspec) {
-  // If the user is running a continouous build of the SDK, just disable SDK
-  // constraint checking entirely. The actual version number you get is
-  // impossibly old and not correct. We'll just assume users on continuous
-  // know what they're doing.
-  if (sdk.isBleedingEdge) return;
-
   if (pubspec.environment.sdkVersion.allows(sdk.version)) return;
 
   throw new BadSdkVersionException(pubspec.name,

@@ -94,15 +94,6 @@ class LishCommand extends PubCommand {
   }
 
   Future onRun() {
-    // Sanity check. Don't push to the production server when running tests or
-    // developing on pub.
-    if (sdk.isBleedingEdge &&
-        server.toString() == HostedSource.defaultUrl &&
-        !dryRun) {
-      log.error('Cannot publish to $server from bleeding edge pub!');
-      return null;
-    }
-
     if (force && dryRun) {
       log.error('Cannot use both --force and --dry-run.');
       this.printUsage();

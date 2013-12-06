@@ -187,14 +187,15 @@ def Main():
       join('third_party', 'bzip2', 'bzip2.jar'),
       '-Dbuild.out=' + OUTPUT,
       '-Dbuild.configs=' + buildConfig,
-      '-Dbuild.revision=' + utils.GetSVNRevision(),
-      '-Ddart.version.full=' + utils.GetVersion(),
       '-Dbuild.root=' + GetEclipseBuildRoot(),
       '-Dbuild.downloads=' + GetDownloadCache(),
       '-Dbuild.source=' + os.path.abspath('editor'),
       '-Dbuild.dart.sdk=' + GetSdkPath(),
       '-Dbuild.no.properties=true',
       '-Dbuild.channel=' + utils.GetChannel(),
+      '-Dbuild.revision=' + utils.GetSVNRevision(),
+      '-Dbuild.version.qualifier=' + utils.GetEclipseVersionQualifier(),
+      '-Ddart.version.full=' + utils.GetVersion(),
       '-buildfile',
       buildScript]
   print build_cmd
