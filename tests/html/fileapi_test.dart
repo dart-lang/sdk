@@ -92,12 +92,12 @@ main() {
 
   // Do the boilerplate to get several files and directories created to then
   // test the functions that use those items.
-  Future doDirSetup() {
+  Future doDirSetup(String testName) {
     return fs.root.createFile(
-      'file4')
+      'file_$testName')
         .then((FileEntry file) {
           return fs.root.createDirectory(
-              'directory3')
+              'dir_$testName')
             .then((DirectoryEntry dir) {
               return new Future.value(new FileAndDir(file, dir));
             });
@@ -109,7 +109,7 @@ main() {
       test('getFileSystem', getFileSystem);
 
       test('readEntries', () {
-        return doDirSetup()
+        return doDirSetup('readEntries')
           .then((fileAndDir) {
             var reader = fileAndDir.dir.createReader();
             return reader.readEntries();
@@ -125,7 +125,7 @@ main() {
       test('getFileSystem', getFileSystem);
 
       test('copyTo', () {
-        return doDirSetup()
+        return doDirSetup('copyTo')
           .then((fileAndDir) {
             return fileAndDir.file.copyTo(fileAndDir.dir, name: 'copiedFile');
           }).then((entry) {
@@ -135,7 +135,7 @@ main() {
       });
 
       test('getParent', () {
-        return doDirSetup()
+        return doDirSetup('getParent')
           .then((fileAndDir) {
              return fileAndDir.file.getParent();
           }).then((entry) {
@@ -145,12 +145,12 @@ main() {
       });
 
       test('moveTo', () {
-        return doDirSetup()
+        return doDirSetup('moveTo')
           .then((fileAndDir) {
             return fileAndDir.file.moveTo(fileAndDir.dir, name: 'movedFile');
           }).then((entry) {
             expect(entry.name, 'movedFile');
-            expect(entry.fullPath, '/directory3/movedFile');
+            expect(entry.fullPath, '/dir_moveTo/movedFile');
             return fs.root.getFile('file4');
           }).catchError((error) {
             expect(error.code, equals(FileError.NOT_FOUND_ERR));
@@ -158,7 +158,7 @@ main() {
       });
 
       test('remove', () {
-        return doDirSetup()
+        return doDirSetup('remove')
           .then((fileAndDir) {
             return fileAndDir.file.remove().then((_) {});
           });
@@ -171,7 +171,7 @@ main() {
       test('getFileSystem', getFileSystem);
 
       test('createWriter', () {
-        return doDirSetup()
+        return doDirSetup('createWriter')
           .then((fileAndDir) {
             return fileAndDir.file.createWriter();
           }).then((writer) {
@@ -182,7 +182,7 @@ main() {
       });
 
       test('file', () {
-        return doDirSetup()
+        return doDirSetup('file')
           .then((fileAndDir) {
             return fileAndDir.file.file()
               .then((fileObj) {
