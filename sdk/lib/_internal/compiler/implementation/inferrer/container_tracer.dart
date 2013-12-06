@@ -125,6 +125,48 @@ Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(
     'checkGrowable',
   ]);
 
+// A set of selectors we know do not escape the elements inside the
+// list.
+Set<String> doesNotEscapeElementSet = new Set<String>.from(
+  const <String>[
+    // From Object.
+    '==',
+    'hashCode',
+    'toString',
+    'noSuchMethod',
+    'runtimeType',
+
+    // From Iterable.
+    'isEmpty',
+    'isNotEmpty',
+    'length',
+    'any',
+    'contains',
+    'every',
+    'join',
+
+    // From List.
+    'add',
+    'addAll',
+    'clear',
+    'fillRange',
+    'indexOf',
+    'insert',
+    'insertAll',
+    'lastIndexOf',
+    'remove',
+    'removeRange',
+    'replaceRange',
+    'setAll',
+    'setRange',
+    'shuffle',
+    '[]=',
+
+    // From JSArray.
+    'checkMutable',
+    'checkGrowable',
+  ]);
+
 bool _VERBOSE = false;
 
 class ContainerTracerVisitor implements TypeInformationVisitor {
@@ -132,13 +174,17 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   final TypeGraphInferrerEngine inferrer;
   final Compiler compiler;
 
-  // The set of [TypeInformation] where the traced container could
-  // flow in, and operations done on them.
-  final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
 
   // Work list that gets populated with [TypeInformation] that could
   // contain the container.
   final List<TypeInformation> workList = <TypeInformation>[];
+
+  // Work list of containers to analyze after analyzing the users of a
+  // [TypeInformation] that may be [container]. We know [container]
+  // has been stored in these containers and we must check how
+  // [container] escapes from these containers.
+  final List<ContainerTypeInformation> containersToAnalyze =
+      <ContainerTypeInformation>[];
 
   // The current [TypeInformation] in the analysis.
   TypeInformation currentUser;
@@ -156,8 +202,8 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
       : this.inferrer = inferrer, this.compiler = inferrer.compiler;
 
   void addNewEscapeInformation(TypeInformation info) {
-    if (flowsInto.contains(info)) return;
-    flowsInto.add(info);
+    if (container.flowsInto.contains(info)) return;
+    container.flowsInto.add(info);
     workList.add(info);
   }
 
@@ -171,6 +217,9 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
         analyzedElements.add(info.owner);
         info.accept(this);
       });
+      while (!containersToAnalyze.isEmpty) {
+        analyzeStoredIntoContainer(containersToAnalyze.removeLast());
+      }
       if (!continueAnalyzing) break;
       if (analyzedElements.length > MAX_ANALYSIS_COUNT) {
         bailout('Too many users');
@@ -211,9 +260,7 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   }
 
   visitContainerTypeInformation(ContainerTypeInformation info) {
-    if (container != info) {
-      bailout('Stored in a container');
-    }
+    containersToAnalyze.add(info);
   }
 
   visitConcreteTypeInformation(ConcreteTypeInformation info) {}
@@ -230,6 +277,35 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
     if (inferrer.types.getInferredTypeOf(called) == currentUser) {
       addNewEscapeInformation(info);
     }
+  }
+
+  void analyzeStoredIntoContainer(ContainerTypeInformation container) {
+    inferrer.analyzeContainer(container);
+    if (container.bailedOut) {
+      bailout('Stored in a container that bailed out');
+    } else {
+      container.flowsInto.forEach((flow) {
+        flow.users.forEach((user) {
+          if (user is !DynamicCallSiteTypeInformation) return;
+          if (user.receiver != flow) return;
+          if (returnsElementTypeSet.contains(user.selector)) {
+            addNewEscapeInformation(user);
+          } else if (!doesNotEscapeElementSet.contains(user.selector.name)) {
+            bailout('Escape from a container');
+          }
+        });
+      });
+    }
+  }
+
+  bool isAddedToContainer(DynamicCallSiteTypeInformation info) {
+    var receiverType = info.receiver.type;
+    if (!receiverType.isContainer) return false;
+    String selectorName = info.selector.name;
+    List<TypeInformation> arguments = info.arguments.positional;
+    return (selectorName == '[]=' && currentUser == arguments[1])
+        || (selectorName == 'insert' && currentUser == arguments[0])
+        || (selectorName == 'add' && currentUser == arguments[0]);
   }
 
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
@@ -269,6 +345,18 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
                && !info.targets.every((element) => element.isFunction())) {
       bailout('Passed to a closure');
       return;
+    } else if (isAddedToContainer(info)) {
+      ContainerTypeMask mask = info.receiver.type;
+      if (mask.allocationNode != null) {
+        ContainerTypeInformation container =
+            inferrer.types.allocatedContainers[mask.allocationNode];
+        containersToAnalyze.add(container);
+      } else {
+        // The [ContainerTypeMask] is a union of two containers, and
+        // we lose track of where these containers have been allocated
+        // at this point.
+        bailout('Stored in too many containers');
+      }
     }
 
     if (info.targets
@@ -276,7 +364,6 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
             .any((other) => other == currentUser)) {
       addNewEscapeInformation(info);
     }
-
   }
 
   bool isClosure(Element element) {
@@ -285,12 +372,28 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
     return outermost.declaration != element.declaration;
   }
 
+  bool isParameterOfListAddingMethod(Element element) {
+    if (!element.isParameter()) return false;
+    if (element.getEnclosingClass() != compiler.backend.listImplementation) {
+      return false;
+    }
+    Element method = element.enclosingElement;
+    return (method.name == '[]=')
+        || (method.name == 'add')
+        || (method.name == 'insert');
+  }
+
   visitElementTypeInformation(ElementTypeInformation info) {
     if (isClosure(info.element)) {
       bailout('Returned from a closure');
     }
     if (compiler.backend.isNeededForReflection(info.element)) {
       bailout('Escape in reflection');
+    }
+    if (isParameterOfListAddingMethod(info.element)) {
+      // These elements are being handled in
+      // [visitDynamicCallSiteTypeInformation].
+      return;
     }
     addNewEscapeInformation(info);
   }

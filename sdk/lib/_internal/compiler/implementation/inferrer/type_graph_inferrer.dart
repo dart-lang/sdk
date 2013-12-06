@@ -416,13 +416,30 @@ class TypeGraphInferrerEngine
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
   /// inferencing on it and give it the dynamic type.
-  final int MAX_CHANGE_COUNT = 5;
+  final int MAX_CHANGE_COUNT = 6;
 
   int overallRefineCount = 0;
   int addedInGraph = 0;
 
   TypeGraphInferrerEngine(Compiler compiler, this.mainElement)
         : super(compiler, new TypeInformationSystem(compiler));
+
+  void analyzeContainer(ContainerTypeInformation info) {
+    if (info.analyzed) return;
+    info.analyzed = true;
+    ContainerTracerVisitor tracer = new ContainerTracerVisitor(info, this);
+    List<TypeInformation> newAssignments = tracer.run();
+    if (newAssignments == null) {
+      return;
+    }
+    info.bailedOut = false;
+    info.elementType.inferred = true;
+    TypeMask fixedListType = compiler.typesTask.fixedListType;
+    if (info.originalContainerType.forwardTo == fixedListType) {
+      info.checksGrowable = tracer.callsGrowableMethod;
+    }
+    newAssignments.forEach(info.elementType.addAssignment);
+  }
 
   void runOverAllElements() {
     if (compiler.disableTypeInference) return;
@@ -446,16 +463,8 @@ class TypeGraphInferrerEngine
     // Try to infer element types of lists.
     types.allocatedContainers.values.forEach((ContainerTypeInformation info) {
       if (info.elementType.inferred) return;
-      ContainerTracerVisitor tracer = new ContainerTracerVisitor(info, this);
-      List<TypeInformation> newAssignments = tracer.run();
-      if (newAssignments == null) return;
-
-      info.elementType.inferred = true;
-      TypeMask fixedListType = compiler.typesTask.fixedListType;
-      if (info.originalContainerType.forwardTo == fixedListType) {
-        info.checksGrowable = tracer.callsGrowableMethod;
-      }
-      newAssignments.forEach(info.elementType.addAssignment);
+      analyzeContainer(info);
+      if (info.bailedOut) return;
       workQueue.add(info);
       workQueue.add(info.elementType);
     });
@@ -493,12 +502,12 @@ class TypeGraphInferrerEngine
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-      var visitor;
-      if (compiler.irBuilder.hasIr(element)) {
-        visitor = new IrTypeInferrerVisitor(compiler, element, this);
-      } else {
-        visitor = new SimpleTypeInferrerVisitor(element, compiler, this);
-      }
+    var visitor;
+    if (compiler.irBuilder.hasIr(element)) {
+      visitor = new IrTypeInferrerVisitor(compiler, element, this);
+    } else {
+      visitor = new SimpleTypeInferrerVisitor(element, compiler, this);
+    }
     TypeInformation type;
     compiler.withCurrentElement(element, () {
       type = visitor.run();

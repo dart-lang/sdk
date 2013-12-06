@@ -837,6 +837,13 @@ class ContainerTypeInformation extends TypeInformation {
    */
   bool checksGrowable = true;
 
+  // The set of [TypeInformation] where the traced container could
+  // flow in.
+  final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
+
+  bool bailedOut = true;
+  bool analyzed = false;
+
   ContainerTypeInformation(this.originalContainerType,
                            this.elementType,
                            this.originalLength) {
