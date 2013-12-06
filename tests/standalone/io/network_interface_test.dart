@@ -33,7 +33,21 @@ void testListLinkLocal() {
 }
 
 
+void testListIndex() {
+  var set = new Set();
+  NetworkInterface.list(includeLoopback: true).then((list) {
+    for (var i in list) {
+      Expect.isNotNull(i.index);
+      Expect.isFalse(set.contains(i.index));
+      set.add(i.index);
+      Expect.isTrue(set.contains(i.index));
+    }
+  });
+}
+
+
 void main() {
   testListLoopback();
   testListLinkLocal();
+  testListIndex();
 }

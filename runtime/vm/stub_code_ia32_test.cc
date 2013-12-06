@@ -33,7 +33,7 @@ static Function* CreateFunction(const char* name) {
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, owner_class, 0));
+                    true, false, false, false, false, owner_class, 0));
   return &function;
 }
 

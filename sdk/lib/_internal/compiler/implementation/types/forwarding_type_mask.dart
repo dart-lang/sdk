@@ -42,10 +42,6 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.containsOnlyNum(compiler);
   }
 
-  bool containsOnlyNull(Compiler compiler) {
-    return forwardTo.containsOnlyNull(compiler);
-  }
-
   bool containsOnlyBool(Compiler compiler) {
     return forwardTo.containsOnlyBool(compiler);
   }
@@ -74,10 +70,6 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.singleClass(compiler);
   }
 
-  Iterable<ClassElement> containedClasses(Compiler compiler) {
-    return forwardTo.containedClasses(compiler);
-  }
-
   TypeMask union(other, Compiler compiler) {
     if (this == other) {
       return this;
@@ -91,10 +83,6 @@ abstract class ForwardingTypeMask implements TypeMask {
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
     return forwardTo.intersection(other, compiler);
-  }
-
-  bool understands(Selector selector, Compiler compiler) {
-    return forwardTo.understands(selector, compiler);
   }
 
   bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {

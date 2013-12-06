@@ -12,53 +12,56 @@
 namespace dart {
 namespace bin {
 
-static const int kWatcherNativeField = 0;
-
-
-void SetWatcherIdNativeField(Dart_Handle watcher, intptr_t id) {
-  ThrowIfError(Dart_SetNativeInstanceField(watcher, kWatcherNativeField, id));
-}
-
-
-void GetWatcherIdNativeField(Dart_Handle watcher, intptr_t* id) {
-  ThrowIfError(Dart_GetNativeInstanceField(watcher, kWatcherNativeField, id));
-}
-
 void FUNCTION_NAME(FileSystemWatcher_IsSupported)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewBoolean(FileSystemWatcher::IsSupported()));
 }
 
+
+void FUNCTION_NAME(FileSystemWatcher_InitWatcher)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, Dart_NewInteger(FileSystemWatcher::Init()));
+}
+
+
+void FUNCTION_NAME(FileSystemWatcher_CloseWatcher)(Dart_NativeArguments args) {
+  intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
+  FileSystemWatcher::Close(id);
+}
+
+
 void FUNCTION_NAME(FileSystemWatcher_WatchPath)(Dart_NativeArguments args) {
-  Dart_Handle watcher = Dart_GetNativeArgument(args, 0);
+  intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   const char* path = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
   int events = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   bool recursive = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
-  intptr_t id = FileSystemWatcher::WatchPath(path, events, recursive);
-  if (id == -1) {
+  intptr_t path_id = FileSystemWatcher::WatchPath(id, path, events, recursive);
+  if (path_id == -1) {
     Dart_ThrowException(DartUtils::NewDartOSError());
-  } else {
-    SetWatcherIdNativeField(watcher, id);
   }
-  intptr_t socket_id = FileSystemWatcher::GetSocketId(id);
-  Dart_SetReturnValue(args, Dart_NewInteger(socket_id));
+  Dart_SetReturnValue(args, Dart_NewInteger(path_id));
 }
 
 
 void FUNCTION_NAME(FileSystemWatcher_UnwatchPath)(Dart_NativeArguments args) {
-  Dart_Handle watcher = Dart_GetNativeArgument(args, 0);
-  intptr_t id;
-  GetWatcherIdNativeField(watcher, &id);
-  FileSystemWatcher::UnwatchPath(id);
+  intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
+  intptr_t path_id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
+  FileSystemWatcher::UnwatchPath(id, path_id);
 }
 
 
 void FUNCTION_NAME(FileSystemWatcher_ReadEvents)(Dart_NativeArguments args) {
-  Dart_Handle watcher = Dart_GetNativeArgument(args, 0);
-  intptr_t id;
-  GetWatcherIdNativeField(watcher, &id);
-  Dart_Handle handle = FileSystemWatcher::ReadEvents(id);
+  intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
+  intptr_t path_id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
+  Dart_Handle handle = FileSystemWatcher::ReadEvents(id, path_id);
   ThrowIfError(handle);
   Dart_SetReturnValue(args, handle);
+}
+
+
+void FUNCTION_NAME(FileSystemWatcher_GetSocketId)(Dart_NativeArguments args) {
+  intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
+  intptr_t path_id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
+  int socket_id = FileSystemWatcher::GetSocketId(id, path_id);
+  Dart_SetReturnValue(args, Dart_NewInteger(socket_id));
 }
 
 }  // namespace bin

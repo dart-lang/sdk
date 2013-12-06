@@ -155,7 +155,7 @@ library dart.core;
 import "dart:collection";
 import "dart:_collection-dev" hide Symbol;
 import "dart:_collection-dev" as _collection_dev;
-import "dart:convert" show UTF8, Encoding;
+import "dart:convert" show UTF8, LATIN1, Encoding;
 import "dart:math" show Random;  // Used by List.shuffle.
 
 part "annotations.dart";

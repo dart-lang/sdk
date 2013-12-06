@@ -14,14 +14,7 @@ main() {
 
   watcherFactory = (dir) => new LinuxDirectoryWatcher(dir);
 
-  setUp(() {
-    // Increase the timeout because closing a [Directory.watch] stream blocks
-    // the main isolate for a very long time on Goobuntu, as of kernel
-    // 3.2.5-gg1336 (see issue 14606).
-    currentSchedule.timeout *= 3;
-
-    createSandbox();
-  });
+  setUp(createSandbox);
 
   sharedTests();
 

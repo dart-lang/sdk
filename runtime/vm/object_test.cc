@@ -64,12 +64,12 @@ TEST_CASE(Class) {
   function_name = Symbols::New("foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      false, false, false, false, cls, 0);
+      false, false, false, false, false, cls, 0);
   functions.SetAt(0, function);
   function_name = Symbols::New("bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      false, false, false, false, cls, 0);
+      false, false, false, false, false, cls, 0);
 
   const int kNumFixedParameters = 2;
   const int kNumOptionalParameters = 3;
@@ -82,24 +82,24 @@ TEST_CASE(Class) {
   function_name = Symbols::New("baz");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      false, false, false, false, cls, 0);
+      false, false, false, false, false, cls, 0);
   functions.SetAt(2, function);
 
   function_name = Symbols::New("Foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, cls, 0);
+      true, false, false, false, false, cls, 0);
 
   functions.SetAt(3, function);
   function_name = Symbols::New("Bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, cls, 0);
+      true, false, false, false, false, cls, 0);
   functions.SetAt(4, function);
   function_name = Symbols::New("BaZ");
   function = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, cls, 0);
+      true, false, false, false, false, cls, 0);
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
@@ -2336,7 +2336,7 @@ TEST_CASE(Closure) {
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New("foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, cls, 0);
+                         false, false, false, false, false, cls, 0);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
 
@@ -2411,7 +2411,7 @@ static Function* CreateFunction(const char* name) {
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, owner_class, 0));
+                    true, false, false, false, false, owner_class, 0));
   return &function;
 }
 
@@ -2630,12 +2630,14 @@ static RawFunction* GetDummyTarget(const char* name) {
   const bool is_const = false;
   const bool is_abstract = false;
   const bool is_external = false;
+  const bool is_native = false;
   return Function::New(function_name,
                        RawFunction::kRegularFunction,
                        is_static,
                        is_const,
                        is_abstract,
                        is_external,
+                       is_native,
                        cls,
                        0);
 }

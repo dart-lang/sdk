@@ -2026,6 +2026,17 @@ void Debugger::Initialize(Isolate* isolate) {
 
 
 static RawFunction* GetOriginalFunction(const Function& func) {
+  if (func.IsClosureFunction()) {
+    // Local functions (closures) in mixin functions do not have
+    // an original function they were cloned from.
+    // Note: this is a problem when a breakpoint is set in a mixed-in
+    // closure. The breakpoint is linked to the closure attached to the
+    // mixin application class, not the mixin class. When the same
+    // closure is compiled for another mixin application class, we
+    // don't find the breakpoint since we'll be looking in the
+    // mixin class.
+    return func.raw();
+  }
   const Class& origin_class = Class::Handle(func.origin());
   if (origin_class.is_patch()) {
     // Patched functions from patch classes are removed from the
@@ -2073,8 +2084,11 @@ void Debugger::NotifyCompilation(const Function& func) {
   while (bpt != NULL) {
     if (lookup_function.raw() == bpt->function()) {
       // Check if the breakpoint is inside a closure or local function
-      // within the newly compiled function.
-      Class& owner = Class::Handle(lookup_function.Owner());
+      // within the newly compiled function. Note that we must look
+      // in the owner class of the function that just got compiled
+      // (i.e. func), not the owner class of the function we use to
+      // record the breakpoint (lookup_function).
+      Class& owner = Class::Handle(func.Owner());
       Function& closure =
           Function::Handle(owner.LookupClosureFunction(bpt->token_pos()));
       if (!closure.IsNull() && (closure.raw() != lookup_function.raw())) {

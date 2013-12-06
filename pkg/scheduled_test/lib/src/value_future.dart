@@ -35,6 +35,6 @@ class ValueFuture<T> implements Future<T> {
   Future then(onValue(T value), {Function onError}) =>
     _future.then(onValue, onError: onError);
   Future<T> whenComplete(action()) => _future.whenComplete(action);
-  Future timeout(Duration timeLimit, [void onTimeout()]) =>
-    _future.timeout(timeLimit, onTimeout);
+  Future timeout(Duration timeLimit, {void onTimeout()}) =>
+    _future.timeout(timeLimit, onTimeout: onTimeout);
 }

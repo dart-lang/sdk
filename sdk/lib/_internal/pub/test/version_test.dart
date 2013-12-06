@@ -11,10 +11,13 @@ import '../lib/src/version.dart';
 main() {
   initConfig();
 
-  final v123 = new Version.parse('1.2.3');
   final v114 = new Version.parse('1.1.4');
+  final v123 = new Version.parse('1.2.3');
   final v124 = new Version.parse('1.2.4');
+  final v130 = new Version.parse('1.3.0');
+  final v140 = new Version.parse('1.4.0');
   final v200 = new Version.parse('2.0.0');
+  final v201 = new Version.parse('2.0.1');
   final v234 = new Version.parse('2.3.4');
   final v250 = new Version.parse('2.5.0');
   final v300 = new Version.parse('3.0.0');
@@ -116,6 +119,46 @@ main() {
 
     test('isEmpty', () {
       expect(v123.isEmpty, isFalse);
+    });
+
+    test('nextMajor', () {
+      expect(v123.nextMajor, equals(v200));
+      expect(v114.nextMajor, equals(v200));
+      expect(v200.nextMajor, equals(v300));
+
+      // Ignores pre-release if not on a major version.
+      expect(new Version.parse('1.2.3-dev').nextMajor, equals(v200));
+
+      // Just removes it if on a major version.
+      expect(new Version.parse('2.0.0-dev').nextMajor, equals(v200));
+
+      // Strips build suffix.
+      expect(new Version.parse('1.2.3+patch').nextMajor, equals(v200));
+    });
+
+    test('nextMinor', () {
+      expect(v123.nextMinor, equals(v130));
+      expect(v130.nextMinor, equals(v140));
+
+      // Ignores pre-release if not on a minor version.
+      expect(new Version.parse('1.2.3-dev').nextMinor, equals(v130));
+
+      // Just removes it if on a minor version.
+      expect(new Version.parse('1.3.0-dev').nextMinor, equals(v130));
+
+      // Strips build suffix.
+      expect(new Version.parse('1.2.3+patch').nextMinor, equals(v130));
+    });
+
+    test('nextPatch', () {
+      expect(v123.nextPatch, equals(v124));
+      expect(v200.nextPatch, equals(v201));
+
+      // Just removes pre-release version if present.
+      expect(new Version.parse('1.2.4-dev').nextPatch, equals(v124));
+
+      // Strips build suffix.
+      expect(new Version.parse('1.2.3+patch').nextPatch, equals(v124));
     });
 
     test('parse()', () {

@@ -54,7 +54,7 @@ class Interceptor {
   get hashCode => throw 'Interceptor.hashCode not implemented.';
 }
 class JSIndexable {
-  get length;
+  get length {}
 }
 class JSMutableIndexable {}
 class JSArray<E> implements JSIndexable {

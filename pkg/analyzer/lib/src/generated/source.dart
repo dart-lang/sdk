@@ -8,6 +8,50 @@ import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext;
 
 /**
+ * Instances of interface `LocalSourcePredicate` are used to determine if the given
+ * [Source] is "local" in some sense, so can be updated.
+ *
+ * @coverage dart.engine.source
+ */
+abstract class LocalSourcePredicate {
+  /**
+   * Instance of [LocalSourcePredicate] that always returns `false`.
+   */
+  static final LocalSourcePredicate _FALSE = new LocalSourcePredicate_15();
+
+  /**
+   * Instance of [LocalSourcePredicate] that always returns `true`.
+   */
+  static final LocalSourcePredicate _TRUE = new LocalSourcePredicate_16();
+
+  /**
+   * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
+   * except of SDK.
+   */
+  static final LocalSourcePredicate _NOT_SDK = new LocalSourcePredicate_17();
+
+  /**
+   * Determines if the given [Source] is local.
+   *
+   * @param source the [Source] to analyze
+   * @return `true` if the given [Source] is local
+   */
+  bool isLocal(Source source);
+}
+
+class LocalSourcePredicate_15 implements LocalSourcePredicate {
+  bool isLocal(Source source) => false;
+}
+
+class LocalSourcePredicate_16 implements LocalSourcePredicate {
+  bool isLocal(Source source) => true;
+}
+
+class LocalSourcePredicate_17 implements LocalSourcePredicate {
+  bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
+}
+
+/**
  * Instances of the class `SourceFactory` resolve possibly relative URI's against an existing
  * [Source].
  *
@@ -20,14 +64,19 @@ class SourceFactory {
   AnalysisContext context;
 
   /**
+   * A cache of content used to override the default content of a source.
+   */
+  ContentCache contentCache;
+
+  /**
    * The resolvers used to resolve absolute URI's.
    */
   List<UriResolver> _resolvers;
 
   /**
-   * A cache of content used to override the default content of a source.
+   * The predicate to determine is [Source] is local.
    */
-  ContentCache contentCache;
+  LocalSourcePredicate _localSourcePredicate;
 
   /**
    * Initialize a newly created source factory.
@@ -38,6 +87,7 @@ class SourceFactory {
   SourceFactory.con1(ContentCache contentCache, List<UriResolver> resolvers) {
     this.contentCache = contentCache;
     this._resolvers = resolvers;
+    this._localSourcePredicate = LocalSourcePredicate._NOT_SDK;
   }
 
   /**
@@ -113,6 +163,14 @@ class SourceFactory {
   }
 
   /**
+   * Determines if the given [Source] is local.
+   *
+   * @param source the [Source] to analyze
+   * @return `true` if the given [Source] is local
+   */
+  bool isLocalSource(Source source) => _localSourcePredicate.isLocal(source);
+
+  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
    * `null` if either the contained URI is invalid or if it cannot be resolved against the
@@ -159,6 +217,15 @@ class SourceFactory {
    * @return the original cached contents or `null` if none
    */
   String setContents(Source source, String contents) => contentCache.setContents(source, contents);
+
+  /**
+   * Sets the [LocalSourcePredicate].
+   *
+   * @param localSourcePredicate the predicate to determine is [Source] is local
+   */
+  void set localSourcePredicate(LocalSourcePredicate localSourcePredicate) {
+    this._localSourcePredicate = localSourcePredicate;
+  }
 
   /**
    * Return the contents of the given source, or `null` if this factory does not override the
@@ -500,6 +567,11 @@ class UriKind extends Enum<UriKind> {
  * @coverage dart.engine.utilities
  */
 class SourceRange {
+  /**
+   * An empty [SourceRange] with offset `0` and length `0`.
+   */
+  static SourceRange EMPTY = new SourceRange(0, 0);
+
   /**
    * The 0-based index of the first character of the source code for this element, relative to the
    * source buffer in which this element is contained.

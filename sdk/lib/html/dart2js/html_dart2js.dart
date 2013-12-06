@@ -34418,10 +34418,8 @@ void _registerCustomElement(context, document, String tag, Type type,
 
   var options = JS('=Object', '{prototype: #}', proto);
 
-  if (baseClassName != 'HTMLElement') {
-    if (extendsTagName != null) {
-      JS('=Object', '#.extends = #', options, extendsTagName);
-    }
+  if (extendsTagName != null) {
+    JS('=Object', '#.extends = #', options, extendsTagName);
   }
 
   JS('void', '#.register(#, #)', document, tag, options);

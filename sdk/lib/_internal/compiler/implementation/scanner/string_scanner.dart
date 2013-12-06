@@ -51,4 +51,6 @@ class StringScanner extends ArrayBasedScanner {
         scanOffset + extraOffset, tokenStart, canonicalize: true);
     tail = tail.next;
   }
+
+  bool atEndOfFile() => scanOffset >= string.length - 1;
 }

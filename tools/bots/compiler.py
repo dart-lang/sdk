@@ -144,7 +144,8 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
                 '--time',
                 '--use-sdk',
                 '--report',
-                '--write-debug-log'])
+                '--write-debug-log',
+                '--write-test-outcome-log'])
 
     if user_test == 'yes':
       cmd.append('--progress=color')

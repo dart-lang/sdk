@@ -18,6 +18,12 @@ call_type_literal_test/01: fail
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 
+assignable_expression_test/02: Fail # Issue 15471
+assignable_expression_test/12: Fail # Issue 15471
+assignable_expression_test/22: Fail # Issue 15471
+assignable_expression_test/32: Fail # Issue 15471
+assignable_expression_test/42: Fail # Issue 15471
+
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #

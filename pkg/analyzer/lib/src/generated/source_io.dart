@@ -10,6 +10,50 @@ import 'engine.dart' show AnalysisContext, AnalysisEngine;
 export 'source.dart';
 
 /**
+ * Instances of interface `LocalSourcePredicate` are used to determine if the given
+ * [Source] is "local" in some sense, so can be updated.
+ *
+ * @coverage dart.engine.source
+ */
+abstract class LocalSourcePredicate {
+  /**
+   * Instance of [LocalSourcePredicate] that always returns `false`.
+   */
+  static final LocalSourcePredicate _FALSE = new LocalSourcePredicate_15();
+
+  /**
+   * Instance of [LocalSourcePredicate] that always returns `true`.
+   */
+  static final LocalSourcePredicate _TRUE = new LocalSourcePredicate_16();
+
+  /**
+   * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
+   * except of SDK.
+   */
+  static final LocalSourcePredicate _NOT_SDK = new LocalSourcePredicate_17();
+
+  /**
+   * Determines if the given [Source] is local.
+   *
+   * @param source the [Source] to analyze
+   * @return `true` if the given [Source] is local
+   */
+  bool isLocal(Source source);
+}
+
+class LocalSourcePredicate_15 implements LocalSourcePredicate {
+  bool isLocal(Source source) => false;
+}
+
+class LocalSourcePredicate_16 implements LocalSourcePredicate {
+  bool isLocal(Source source) => true;
+}
+
+class LocalSourcePredicate_17 implements LocalSourcePredicate {
+  bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
+}
+
+/**
  * Instances of the class `FileBasedSource` implement a source that represents a file.
  *
  * @coverage dart.engine.source

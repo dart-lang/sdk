@@ -56,14 +56,14 @@ main(List<String> arguments) {
 }
 
 jsonify(MirrorSystem mirrors) {
-  var map = {};
+  var map = <String, String>{};
 
   mirrors.libraries.forEach((_, LibraryMirror library) {
     BackDoor.compilationUnitsOf(library).forEach((compilationUnit) {
       Uri uri = compilationUnit.uri;
       String filename = relativize(sdkRoot, uri, false);
       SourceFile file = handler.provider.sourceFiles['$uri'];
-      map['sdk:/$filename'] = file.text;
+      map['sdk:/$filename'] = file.slowText();
     });
   });
 
@@ -73,7 +73,7 @@ jsonify(MirrorSystem mirrors) {
       Uri uri = sdkRoot.resolve('sdk/lib/$patch');
       String filename = relativize(sdkRoot, uri, false);
       SourceFile file = handler.provider.sourceFiles['$uri'];
-      map['sdk:/$filename'] = file.text;
+      map['sdk:/$filename'] = file.slowText();
     }
   });
 

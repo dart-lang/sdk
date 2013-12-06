@@ -102,6 +102,7 @@ websql_test: Skip # Issue 4941: stderr contains a backtrace.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
 websql_test: Fail, Pass # Issue 4941: stderr contains a backtrace.
+native_gc_test: Pass, Slow
 
 [ $compiler == dart2js && $runtime == drt && $system == macos]
 audiobuffersourcenode_test: Pass, Fail

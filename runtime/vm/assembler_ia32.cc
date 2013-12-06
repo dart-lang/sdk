@@ -1259,6 +1259,13 @@ void Assembler::fcos() {
 }
 
 
+void Assembler::fsincos() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xD9);
+  EmitUint8(0xFB);
+}
+
+
 void Assembler::fptan() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xD9);

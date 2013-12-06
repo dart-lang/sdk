@@ -7,6 +7,8 @@ library io_client;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'base_client.dart';
 import 'base_request.dart';
 import 'streamed_response.dart';
@@ -23,7 +25,8 @@ class IOClient extends BaseClient {
   Future<StreamedResponse> send(BaseRequest request) {
     var stream = request.finalize();
 
-    return _inner.openUrl(request.method, request.url).then((ioRequest) {
+    return Chain.track(_inner.openUrl(request.method, request.url))
+        .then((ioRequest) {
       ioRequest.followRedirects = request.followRedirects;
       ioRequest.maxRedirects = request.maxRedirects;
       ioRequest.contentLength = request.contentLength;
@@ -31,7 +34,7 @@ class IOClient extends BaseClient {
       request.headers.forEach((name, value) {
         ioRequest.headers.set(name, value);
       });
-      return stream.pipe(ioRequest);
+      return Chain.track(stream.pipe(ioRequest));
     }).then((response) {
       var headers = {};
       response.headers.forEach((key, values) {

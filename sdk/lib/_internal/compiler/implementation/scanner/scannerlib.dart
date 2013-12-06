@@ -16,6 +16,8 @@ import '../elements/modelx.dart'
          ClassElementX,
          MetadataAnnotationX,
          MixinApplicationElementX;
+import '../elements/visitor.dart'
+    show ElementVisitor;
 import '../dart2jslib.dart';
 import '../native_handler.dart' as native;
 import '../string_validator.dart';

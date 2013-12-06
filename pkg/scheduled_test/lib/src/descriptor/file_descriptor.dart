@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';
@@ -49,7 +50,8 @@ abstract class FileDescriptor extends Descriptor implements ReadableDescriptor {
 
   Future create([String parent]) => schedule(() {
     if (parent == null) parent = defaultRoot;
-    return new File(path.join(parent, name)).writeAsBytes(contents);
+    return Chain.track(new File(path.join(parent, name))
+        .writeAsBytes(contents));
   }, "creating file '$name'");
 
   Future validate([String parent]) =>
@@ -62,7 +64,7 @@ abstract class FileDescriptor extends Descriptor implements ReadableDescriptor {
       fail("File not found: '$fullPath'.");
     }
 
-    return new File(fullPath).readAsBytes().then(_validateNow);
+    return Chain.track(new File(fullPath).readAsBytes()).then(_validateNow);
   }
 
   // TODO(nweiz): rather than setting up an inheritance chain, just store a

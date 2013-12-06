@@ -10,9 +10,6 @@ import '../test_pub.dart';
 main() {
   initConfig();
 
-  // TODO(rnystrom): Should also add tests that other transformers work
-  // (#14556).
-
   integration("compiles Dart entrypoints to JS", () {
     // Dart2js can take a long time to compile dart code, so we increase the
     // timeout to cope with that.
@@ -32,16 +29,20 @@ main() {
     // TODO(rnystrom): If we flesh out the command-line output, validate that
     // here.
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built 2 files!"),
+        output: new RegExp(r"Built 6 files!"),
         exitCode: 0);
 
     d.dir(appPath, [
       d.dir('build', [
         d.matcherFile('file.dart.js', isNot(isEmpty)),
+        d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
+        d.matcherFile('file.dart.js.map', isNot(isEmpty)),
         d.nothing('file.dart'),
         d.nothing('lib.dart'),
         d.dir('subdir', [
           d.matcherFile('subfile.dart.js', isNot(isEmpty)),
+          d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
+          d.matcherFile('subfile.dart.js.map', isNot(isEmpty)),
           d.nothing('subfile.dart')
         ])
       ])

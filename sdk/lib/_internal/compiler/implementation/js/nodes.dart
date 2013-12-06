@@ -481,12 +481,6 @@ abstract class Expression extends Node {
     return callWith(arguments);
   }
 
-  Expression equals(expression) => binary('==', expression);
-
-  Expression strictEquals(expression) => binary('===', expression);
-
-  Expression notEquals(expression) => binary('!=', expression);
-
   Expression operator +(expression) => binary('+', expression);
 
   Expression operator -(expression) => binary('-', expression);
@@ -501,10 +495,6 @@ abstract class Expression extends Node {
 
   Expression binary(String operator, expression) {
     return new Binary(operator, this, js.toExpression(expression));
-  }
-
-  Expression assign(expression) {
-    return new Assignment(this, js.toExpression(expression));
   }
 
   Expression update(String operator, expression) {

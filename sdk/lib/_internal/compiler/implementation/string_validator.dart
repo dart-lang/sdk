@@ -18,18 +18,6 @@ class StringValidator {
 
   StringValidator(this.listener);
 
-  DartString validateQuotedString(Token token) {
-    String source = token.value;
-    StringQuoting quoting = quotingFromString(source);
-    int leftQuote = quoting.leftQuoteLength;
-    int rightQuote = quoting.rightQuoteLength;
-    String content = copyWithoutQuotes(source, leftQuote, rightQuote);
-    return validateString(token,
-                          token.charOffset + leftQuote,
-                          content,
-                          quoting);
-  }
-
   DartString validateInterpolationPart(Token token, StringQuoting quoting,
                                        {bool isFirst: false,
                                         bool isLast: false}) {

@@ -90,12 +90,6 @@ class JsBuilder {
     return new Fun(parameters.map(toParameter).toList(), block(body));
   }
 
-  Assignment assign(Expression leftHandSide, Expression value) {
-    return new Assignment(leftHandSide, value);
-  }
-
-  Expression undefined() => new Prefix('void', new LiteralNumber('0'));
-
   VariableDeclarationList defineVar(String name, [initializer]) {
     if (initializer != null) {
       initializer = toExpression(initializer);

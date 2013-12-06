@@ -1703,6 +1703,14 @@ double DartModulo(double left, double right) {
 }
 
 
+void SinCos(double arg, double* cos_res, double* sin_res) {
+  // The compiler may merge the calls to sincos, if supported. This
+  // typically occurs only when compiling for 64-bit targets.
+  *cos_res = cos(arg);
+  *sin_res = sin(arg);
+}
+
+
 // Update global type feedback recorded for a field recording the assignment
 // of the given value.
 //   Arg0: Field object;

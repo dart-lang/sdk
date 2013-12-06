@@ -681,7 +681,7 @@ class Uri {
 
     while (index < length) {
 
-      // Normalize percent encoding to uppercase and don't encode
+      // Normalize percent-encoding to uppercase and don't encode
       // unreserved characters.
       if (component.codeUnitAt(index) == _PERCENT) {
         if (length < index + 2) {
@@ -1114,11 +1114,23 @@ class Uri {
    * for encoding the posting of a HTML form as a query string
    * component.
    *
-   * Spaces will be replaced with plus and all characters except for
-   * uppercase and lowercase letters, decimal digits and the
-   * characters `-._~`. Note that the set of characters encoded is a
-   * superset of what HTML 4.01 says as it refers to RFC 1738 for
-   * reserved characters.
+   * Encode the string [component] according to the HTML 4.01 rules
+   * for encoding the posting of a HTML form as a query string
+   * component.
+
+   * The component is first encoded to bytes using [encoding].
+   * The default is to use [UTF8] encoding, which preserves all
+   * the characters that don't need encoding.
+
+   * Then the resulting bytes are "percent-encoded". This transforms
+   * spaces (U+0020) to a plus sign ('+') and all bytes that are not
+   * the ASCII decimal digits, letters or one of '-._~' are written as
+   * a percent sign '%' followed by the two-digit hexadecimal
+   * representation of the byte.
+
+   * Note that the set of characters which are percent-encoded is a
+   * superset of what HTML 4.01 requires, since it refers to RFC 1738
+   * for reserved characters.
    *
    * When manually encoding query components remember to encode each
    * part separately before building the query string.
@@ -1130,8 +1142,10 @@ class Uri {
    * See http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.2 for more
    * details.
    */
-  static String encodeQueryComponent(String component) {
-    return _uriEncode(_unreservedTable, component, spaceToPlus: true);
+  static String encodeQueryComponent(String component,
+                                     {Encoding encoding: UTF8}) {
+    return _uriEncode(
+        _unreservedTable, component, encoding: encoding, spaceToPlus: true);
   }
 
   /**
@@ -1353,6 +1367,7 @@ class Uri {
   }
 
   // Frequently used character codes.
+  static const int _SPACE = 0x20;
   static const int _DOUBLE_QUOTE = 0x22;
   static const int _PERCENT = 0x25;
   static const int _ASTERISK = 0x2A;
@@ -1382,36 +1397,29 @@ class Uri {
    * that appear in [canonicalTable], and returns the escaped string.
    */
   static String _uriEncode(List<int> canonicalTable,
-                    String text,
-                    {bool spaceToPlus: false}) {
-    byteToHex(int v) {
-      final String hex = '0123456789ABCDEF';
-      return '%${hex[v >> 4]}${hex[v & 0x0f]}';
+                           String text,
+                           {Encoding encoding: UTF8,
+                            bool spaceToPlus: false}) {
+    byteToHex(byte, buffer) {
+      const String hex = '0123456789ABCDEF';
+      buffer.writeCharCode(hex.codeUnitAt(byte >> 4));
+      buffer.writeCharCode(hex.codeUnitAt(byte & 0x0f));
     }
 
+    // Encode the string into bytes then generate an ASCII only string
+    // by percent encoding selected bytes.
     StringBuffer result = new StringBuffer();
-    for (int i = 0; i < text.length; i++) {
-      int ch = text.codeUnitAt(i);
-      if (ch < 128 && ((canonicalTable[ch >> 4] & (1 << (ch & 0x0f))) != 0)) {
-        result.write(text[i]);
-      } else if (spaceToPlus && text[i] == " ") {
-        result.write("+");
+    var bytes = encoding.encode(text);
+    for (int i = 0; i < bytes.length; i++) {
+      int byte = bytes[i];
+      if (byte < 128 &&
+          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
+        result.writeCharCode(byte);
+      } else if (spaceToPlus && byte == _SPACE) {
+        result.writeCharCode(_PLUS);
       } else {
-        if (ch >= 0xD800 && ch < 0xDC00) {
-          // Low surrogate. We expect a next char high surrogate.
-          ++i;
-          int nextCh = text.length == i ? 0 : text.codeUnitAt(i);
-          if (nextCh >= 0xDC00 && nextCh < 0xE000) {
-            // convert the pair to a U+10000 codepoint
-            ch = 0x10000 + ((ch - 0xD800) << 10) + (nextCh - 0xDC00);
-          } else {
-            throw new ArgumentError('Malformed URI');
-          }
-        }
-        // TODO(floitsch): don't allocate a new string.
-        for (int codepoint in UTF8.encode(new String.fromCharCode(ch))) {
-          result.write(byteToHex(codepoint));
-        }
+        result.writeCharCode(_PERCENT);
+        byteToHex(byte, result);
       }
     }
     return result.toString();
@@ -1455,32 +1463,40 @@ class Uri {
   static String _uriDecode(String text,
                            {bool plusToSpace: false,
                             Encoding encoding: UTF8}) {
-    StringBuffer result = new StringBuffer();
-    List<int> codepoints = new List<int>();
-    for (int i = 0; i < text.length;) {
-      int ch = text.codeUnitAt(i);
-      if (ch != _PERCENT) {
-        if (plusToSpace && ch == _PLUS) {
-          result.write(" ");
-        } else {
-          result.writeCharCode(ch);
-        }
-        i++;
+    // First check whether there is any characters which need special handling.
+    bool simple = true;
+    for (int i = 0; i < text.length && simple; i++) {
+      var codeUnit = text.codeUnitAt(i);
+      simple = codeUnit != _PERCENT && codeUnit != _PLUS;
+    }
+    List<int> bytes;
+    if (simple) {
+      if (encoding == UTF8 || encoding == LATIN1) {
+        return text;
       } else {
-        codepoints.clear();
-        while (ch == _PERCENT) {
-          if (++i > text.length - 2) {
+        bytes = text.codeUnits;
+      }
+    } else {
+      bytes = new List();
+      for (int i = 0; i < text.length; i++) {
+        var codeUnit = text.codeUnitAt(i);
+        if (codeUnit > 127) {
+          throw new ArgumentError("Illegal percent encoding in URI");
+        }
+        if (codeUnit == _PERCENT) {
+          if (i + 3 > text.length) {
             throw new ArgumentError('Truncated URI');
           }
-          codepoints.add(_hexCharPairToByte(text, i));
+          bytes.add(_hexCharPairToByte(text, i + 1));
           i += 2;
-          if (i == text.length) break;
-          ch = text.codeUnitAt(i);
+        } else if (plusToSpace && codeUnit == _PLUS) {
+          bytes.add(_SPACE);
+        } else {
+          bytes.add(codeUnit);
         }
-        result.write(encoding.decode(codepoints));
       }
     }
-    return result.toString();
+    return encoding.decode(bytes);
   }
 
   static bool _isAlphabeticCharacter(int codeUnit)

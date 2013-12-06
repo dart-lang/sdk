@@ -1782,6 +1782,12 @@ class TestUtils {
     return ".flaky.log";
   }
 
+  static String testOutcomeFileName() {
+    // If test.py was invoked with '--write-test-outcome-log it will write
+    // test outcomes to this file.
+    return ".test-outcome.log";
+  }
+
   static void ensureExists(String filename, Map configuration) {
     if (!configuration['list'] && !(new File(filename).existsSync())) {
       throw "Executable '$filename' does not exist";
@@ -1917,8 +1923,8 @@ class TestUtils {
    */
   static List<String> getExtraVmOptions(Map configuration) {
     var extraVmOptions = [];
-    if (configuration['vm-options'] != null) {
-      extraVmOptions = configuration['vm-options'].split(" ");
+    if (configuration['vm_options'] != null) {
+      extraVmOptions = configuration['vm_options'].split(" ");
       extraVmOptions.removeWhere((s) => s.trim() == "");
     }
     return extraVmOptions;

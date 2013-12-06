@@ -526,6 +526,24 @@ class CharSequenceReader implements CharacterReader {
 }
 
 /**
+ * Synthetic `StringToken` represent a token whose value is independent of it's type.
+ *
+ * @coverage dart.engine.parser
+ */
+class SyntheticStringToken extends StringToken {
+  /**
+   * Initialize a newly created token to represent a token of the given type with the given value.
+   *
+   * @param type the type of the token
+   * @param value the lexeme represented by this token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  SyntheticStringToken(TokenType type, String value, int offset) : super(type, value, offset);
+
+  bool get isSynthetic => true;
+}
+
+/**
  * Instances of the class `IncrementalScanner` implement a scanner that scans a subset of a
  * string and inserts the resulting tokens into the middle of an existing token stream.
  *
@@ -543,16 +561,23 @@ class IncrementalScanner extends Scanner {
   final TokenMap tokenMap = new TokenMap();
 
   /**
-   * The first token in the range of tokens that are different from the tokens in the original token
-   * stream.
+   * The token in the new token stream immediately to the left of the range of tokens that were
+   * inserted, or the token immediately to the left of the modified region if there were no new
+   * tokens.
    */
-  Token _firstToken;
+  Token leftToken;
 
   /**
-   * The last token in the range of tokens that are different from the tokens in the original token
-   * stream.
+   * The token in the new token stream immediately to the right of the range of tokens that were
+   * inserted, or the token immediately to the right of the modified region if there were no new
+   * tokens.
    */
-  Token lastToken;
+  Token rightToken;
+
+  /**
+   * A flag indicating whether there were any tokens changed as a result of the modification.
+   */
+  bool _hasNonWhitespaceChange2 = false;
 
   /**
    * Initialize a newly created scanner.
@@ -566,13 +591,12 @@ class IncrementalScanner extends Scanner {
   }
 
   /**
-   * Return the first token in the range of tokens that are different from the tokens in the
-   * original token stream or `null` if the new tokens are the same as the original tokens
-   * except for offset.
+   * Return `true` if there were any tokens either added or removed (or both) as a result of
+   * the modification.
    *
-   * @return the first token in the range of new tokens
+   * @return `true` if there were any tokens changed as a result of the modification
    */
-  Token get firstToken => _firstToken;
+  bool hasNonWhitespaceChange() => _hasNonWhitespaceChange2;
 
   /**
    * Given the stream of tokens scanned from the original source, the modified source (the result of
@@ -590,39 +614,64 @@ class IncrementalScanner extends Scanner {
     while (originalStream.type != TokenType.EOF && originalStream.end < index) {
       originalStream = copyAndAdvance(originalStream, 0);
     }
-    Token lastCopied = tail;
-    int modifiedEnd = index + insertedLength - 1;
-    if (originalStream.offset < index) {
-      modifiedEnd += originalStream.end - index - removedLength;
-    }
-    _reader.offset = Math.min(originalStream.offset, index) - 1;
-    int next = _reader.advance();
-    while (next != -1 && _reader.offset <= modifiedEnd) {
-      next = bigSwitch(next);
-    }
-    _firstToken = lastCopied.next;
-    lastToken = tail;
-    if (_firstToken == null || identical(_firstToken.type, TokenType.EOF)) {
-      _firstToken = null;
-      lastToken = null;
-    } else if (originalStream.end == index && _firstToken.end == index) {
-      tokenMap.put(originalStream, _firstToken);
-      if (identical(lastToken, _firstToken)) {
-        lastToken = lastToken.next;
-      }
-      _firstToken = _firstToken.next;
-    }
-    int removedEnd = index + removedLength - 1 + Math.max(0, tail.end - index - insertedLength);
-    while (originalStream.offset <= removedEnd) {
+    Token oldFirst = originalStream;
+    Token oldLeftToken = originalStream.previous;
+    leftToken = tail;
+    int removedEnd = index + (removedLength == 0 ? 0 : removedLength - 1);
+    while (originalStream.type != TokenType.EOF && originalStream.offset <= removedEnd) {
       originalStream = originalStream.next;
     }
-    int delta = insertedLength - removedLength;
-    while (originalStream.type != TokenType.EOF) {
-      originalStream = copyAndAdvance(originalStream, delta);
+    Token oldLast;
+    Token oldRightToken;
+    if (originalStream.type != TokenType.EOF && removedEnd + 1 == originalStream.offset) {
+      oldLast = originalStream;
+      originalStream = originalStream.next;
+      oldRightToken = originalStream;
+    } else {
+      oldLast = originalStream.previous;
+      oldRightToken = originalStream;
     }
-    Token eof = copyAndAdvance(originalStream, delta);
-    eof.setNextWithoutSettingPrevious(eof);
-    return super.firstToken;
+    int delta = insertedLength - removedLength;
+    int scanStart = Math.min(oldFirst.offset, index);
+    int oldEnd = oldLast.end + delta - 1;
+    int newEnd = index + insertedLength - 1;
+    int scanEnd = Math.max(newEnd, oldEnd);
+    _reader.offset = scanStart - 1;
+    int next = _reader.advance();
+    while (next != -1 && _reader.offset <= scanEnd) {
+      next = bigSwitch(next);
+    }
+    if (identical(originalStream.type, TokenType.EOF)) {
+      copyAndAdvance(originalStream, delta);
+      rightToken = tail;
+      rightToken.setNextWithoutSettingPrevious(rightToken);
+    } else {
+      originalStream = copyAndAdvance(originalStream, delta);
+      rightToken = tail;
+      while (originalStream.type != TokenType.EOF) {
+        originalStream = copyAndAdvance(originalStream, delta);
+      }
+      Token eof = copyAndAdvance(originalStream, delta);
+      eof.setNextWithoutSettingPrevious(eof);
+    }
+    Token newFirst = leftToken.next;
+    while (newFirst != rightToken && oldFirst != oldRightToken && newFirst.type != TokenType.EOF && equals3(oldFirst, newFirst)) {
+      tokenMap.put(oldFirst, newFirst);
+      oldLeftToken = oldFirst;
+      oldFirst = oldFirst.next;
+      leftToken = newFirst;
+      newFirst = newFirst.next;
+    }
+    Token newLast = rightToken.previous;
+    while (newLast != leftToken && oldLast != oldLeftToken && newLast.type != TokenType.EOF && equals3(oldLast, newLast)) {
+      tokenMap.put(oldLast, newLast);
+      oldRightToken = oldLast;
+      oldLast = oldLast.previous;
+      rightToken = newLast;
+      newLast = newLast.previous;
+    }
+    _hasNonWhitespaceChange2 = leftToken.next != rightToken || oldLeftToken.next != oldRightToken;
+    return firstToken;
   }
 
   Token copyAndAdvance(Token originalToken, int delta) {
@@ -639,6 +688,16 @@ class IncrementalScanner extends Scanner {
     }
     return originalToken.next;
   }
+
+  /**
+   * Return `true` if the two tokens are equal to each other. For the purposes of the
+   * incremental scanner, two tokens are equal if they have the same type and lexeme.
+   *
+   * @param oldToken the token from the old stream that is being compared
+   * @param newToken the token from the new stream that is being compared
+   * @return `true` if the two tokens are equal to each other
+   */
+  bool equals3(Token oldToken, Token newToken) => identical(oldToken.type, newToken.type) && oldToken.length == newToken.length && oldToken.lexeme == newToken.lexeme;
 }
 
 /**
@@ -1823,8 +1882,7 @@ class Token {
 
   /**
    * Return `true` if this token is a synthetic token. A synthetic token is a token that was
-   * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
-   * have a length of zero (`0`).
+   * introduced by the parser in order to recover from an error in the code.
    *
    * @return `true` if this token is a synthetic token
    */
@@ -2065,17 +2123,17 @@ class TokenClass extends Enum<TokenClass> {
   /**
    * A value used to indicate that the token type is a bitwise-and operator.
    */
-  static final TokenClass BITWISE_AND_OPERATOR = new TokenClass.con2('BITWISE_AND_OPERATOR', 3, 8);
+  static final TokenClass BITWISE_AND_OPERATOR = new TokenClass.con2('BITWISE_AND_OPERATOR', 3, 10);
 
   /**
    * A value used to indicate that the token type is a bitwise-or operator.
    */
-  static final TokenClass BITWISE_OR_OPERATOR = new TokenClass.con2('BITWISE_OR_OPERATOR', 4, 6);
+  static final TokenClass BITWISE_OR_OPERATOR = new TokenClass.con2('BITWISE_OR_OPERATOR', 4, 8);
 
   /**
    * A value used to indicate that the token type is a bitwise-xor operator.
    */
-  static final TokenClass BITWISE_XOR_OPERATOR = new TokenClass.con2('BITWISE_XOR_OPERATOR', 5, 7);
+  static final TokenClass BITWISE_XOR_OPERATOR = new TokenClass.con2('BITWISE_XOR_OPERATOR', 5, 9);
 
   /**
    * A value used to indicate that the token type is a cascade operator.
@@ -2090,7 +2148,7 @@ class TokenClass extends Enum<TokenClass> {
   /**
    * A value used to indicate that the token type is an equality operator.
    */
-  static final TokenClass EQUALITY_OPERATOR = new TokenClass.con2('EQUALITY_OPERATOR', 8, 9);
+  static final TokenClass EQUALITY_OPERATOR = new TokenClass.con2('EQUALITY_OPERATOR', 8, 6);
 
   /**
    * A value used to indicate that the token type is a logical-and operator.
@@ -2110,7 +2168,7 @@ class TokenClass extends Enum<TokenClass> {
   /**
    * A value used to indicate that the token type is a relational operator.
    */
-  static final TokenClass RELATIONAL_OPERATOR = new TokenClass.con2('RELATIONAL_OPERATOR', 12, 10);
+  static final TokenClass RELATIONAL_OPERATOR = new TokenClass.con2('RELATIONAL_OPERATOR', 12, 7);
 
   /**
    * A value used to indicate that the token type is a shift operator.

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';
@@ -26,7 +27,8 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
   Future create([String parent]) => schedule(() {
     if (parent == null) parent = defaultRoot;
     var fullPath = path.join(parent, name);
-    return new Directory(fullPath).create(recursive: true).then((_) {
+    return Chain.track(new Directory(fullPath).create(recursive: true))
+        .then((_) {
       return Future.wait(
           contents.map((entry) => entry.create(fullPath)).toList());
     });
@@ -43,7 +45,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
     }
 
     return Future.wait(contents.map((entry) {
-      return new Future.sync(() => entry.validateNow(fullPath))
+      return syncFuture(() => entry.validateNow(fullPath))
           .then((_) => null)
           .catchError((e) => e);
     })).then((results) {
@@ -54,7 +56,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
   }
 
   Stream<List<int>> load(String pathToLoad) {
-    return futureStream(new Future.value().then((_) {
+    return futureStream(syncFuture(() {
       if (path.posix.isAbsolute(pathToLoad)) {
         throw new ArgumentError("Can't load absolute path '$pathToLoad'.");
       }

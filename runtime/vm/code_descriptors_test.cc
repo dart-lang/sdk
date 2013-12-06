@@ -28,7 +28,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   cls = Class::New(function_name, script, Scanner::kDummyTokenIndex);
   const Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, cls, 0));
+                    true, false, false, false, false, cls, 0));
   function.set_result_type(Type::Handle(Type::DynamicType()));
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function);

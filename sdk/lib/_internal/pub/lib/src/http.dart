@@ -5,7 +5,7 @@
 /// Helpers for dealing with HTTP.
 library pub.http;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 

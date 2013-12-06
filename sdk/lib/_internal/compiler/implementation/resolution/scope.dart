@@ -34,11 +34,6 @@ abstract class NestedScope extends Scope {
   }
 
   Element localLookup(String name);
-
-  static Scope buildEnclosingScope(Element element) {
-    return element.enclosingElement != null
-        ? element.enclosingElement.buildScope() : element.buildScope();
-  }
 }
 
 class VariableDefinitionScope extends NestedScope {

@@ -649,7 +649,7 @@ abstract class Stream<T> {
    * as [test] returns [:true:] for the event data. The stream is done
    * when either this stream is done, or when this stream first provides
    * a value that [test] doesn't accept.
-   * 
+   *
    * Stops listening to the stream after the accepted elements.
    *
    * Internally the method cancels its subscription after these elements. This
@@ -959,6 +959,88 @@ abstract class Stream<T> {
       },
       cancelOnError: true);
     return future;
+  }
+
+  /**
+   * Creates a new stream with the same events as this stream.
+   *
+   * Whenever more than [timeLimit] passes between two events from this stream,
+   * the [onTimeout] function is called.
+   *
+   * The countdown doesn't start until the returned stream is listened to.
+   * The countdown is reset every time an event is forwarded from this stream,
+   * or when the stream is paused and resumed.
+   *
+   * The [onTimeout] function is called with one argument: an
+   * [EventSink] that allows putting events into the returned stream.
+   * This `EventSink` is only valid during the call to `onTimeout`.
+   *
+   * If `onTimeout` is omitted, a timeout will just put a [TimeoutException]
+   * into the error channel of the returned stream.
+   */
+  Stream timeout(Duration timeLimit, {void onTimeout(EventSink sink)}) {
+    StreamSubscription<T> subscription;
+    _StreamController controller;
+    // The following variables are set on listen.
+    Timer timer;
+    Zone zone;
+    Function timeout;
+
+    void onData(T event) {
+      timer.cancel();
+      controller.add(event);
+      timer = zone.createTimer(timeLimit, timeout);
+    }
+    void onError(error, StackTrace stackTrace) {
+      timer.cancel();
+      controller.addError(error, stackTrace);
+      timer = zone.createTimer(timeLimit, timeout);
+    }
+    void onDone() {
+      timer.cancel();
+      controller.close();
+    }
+    controller = new _SyncStreamController(
+        () {
+          // This is the onListen callback for of controller.
+          // It runs in the same zone that the subscription was created in.
+          // Use that zone for creating timers and running the onTimeout
+          // callback.
+          zone = Zone.current;
+          if (onTimeout == null) {
+            timeout = () {
+              controller.addError(new TimeoutException("No stream event",
+                                                       timeLimit));
+            };
+          } else {
+            onTimeout = zone.registerUnaryCallback(onTimeout);
+            _ControllerEventSinkWrapper wrapper =
+                new _ControllerEventSinkWrapper(null);
+            timeout = () {
+              wrapper._sink = controller;  // Only valid during call.
+              zone.runUnaryGuarded(onTimeout, wrapper);
+              wrapper._sink = null;
+            };
+          }
+
+          subscription = this.listen(onData, onError: onError, onDone: onDone);
+          timer = zone.createTimer(timeLimit, timeout);
+        },
+        () {
+          timer.cancel();
+          subscription.pause();
+        },
+        () {
+          subscription.resume();
+          timer = zone.createTimer(timeLimit, timeout);
+        },
+        () {
+          timer.cancel();
+          Future result = subscription.cancel();
+          subscription = null;
+          return result;
+        });
+    return controller.stream;
   }
 }
 
@@ -1281,4 +1363,19 @@ abstract class StreamIterator<T> {
    * Otherwise returns `null`.
    */
   Future cancel();
+}
+
+
+/**
+ * Wraps an [_EventSink] so it exposes only the [EventSink] interface.
+ */
+class _ControllerEventSinkWrapper<T> implements EventSink<T> {
+  EventSink _sink;
+  _ControllerEventSinkWrapper(this._sink);
+
+  void add(T data) { _sink.add(data); }
+  void addError(error, [StackTrace stackTrace]) {
+    _sink.addError(error, stackTrace);
+  }
+  void close() { _sink.close(); }
 }

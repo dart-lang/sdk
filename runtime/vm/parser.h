@@ -318,7 +318,8 @@ class Parser : public ValueObject {
   void CheckRecursiveInvocation();
 
   const Instance& EvaluateConstExpr(intptr_t expr_pos, AstNode* expr);
-  AstNode* RunStaticFieldInitializer(const Field& field);
+  AstNode* RunStaticFieldInitializer(const Field& field,
+                                     intptr_t field_ref_pos);
   RawObject* EvaluateConstConstructorCall(
       const Class& type_class,
       const AbstractTypeArguments& type_arguments,
@@ -421,7 +422,7 @@ class Parser : public ValueObject {
                                 bool resolve_getter,
                                 bool* is_no_such_method);
   AstNode* ParseSuperCall(const String& function_name);
-  AstNode* ParseSuperFieldAccess(const String& field_name);
+  AstNode* ParseSuperFieldAccess(const String& field_name, intptr_t field_pos);
   AstNode* ParseSuperOperator();
   AstNode* BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super);
 
@@ -639,6 +640,7 @@ class Parser : public ValueObject {
 
   void EnsureExpressionTemp();
   void EnsureSavedCurrentContext();
+  bool IsLegalAssignableSyntax(AstNode* expr, intptr_t end_pos);
   AstNode* CreateAssignmentNode(AstNode* original,
                                 AstNode* rhs,
                                 const String* left_ident,

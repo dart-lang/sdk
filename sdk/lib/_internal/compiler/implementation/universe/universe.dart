@@ -92,14 +92,6 @@ class Universe {
     return hasMatchingSelector(invokedSetters[member.name], member, compiler);
   }
 
-  bool hasFieldGetter(Element member, Compiler compiler) {
-    return fieldGetters.contains(member);
-  }
-
-  bool hasFieldSetter(Element member, Compiler compiler) {
-    return fieldSetters.contains(member);
-  }
-
   DartType registerIsCheck(DartType type, Compiler compiler) {
     type = type.unalias(compiler);
     // Even in checked mode, type annotations for return type and argument
@@ -278,7 +270,6 @@ class Selector {
 
   bool isOperator() => identical(kind, SelectorKind.OPERATOR);
   bool isUnaryOperator() => isOperator() && argumentCount == 0;
-  bool isBinaryOperator() => isOperator() && argumentCount == 1;
 
   /** Check whether this is a call to 'assert'. */
   bool isAssert() => isCall() && identical(name, "assert");

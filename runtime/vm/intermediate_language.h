@@ -6667,6 +6667,8 @@ class MergedMathInstr : public Definition {
   static intptr_t InputCountFor(MergedMathInstr::Kind kind) {
     if (kind == kTruncDivMod) {
       return 2;
+    } else if (kind == kSinCos) {
+      return 1;
     } else {
       UNIMPLEMENTED();
       return -1;
@@ -6687,6 +6689,8 @@ class MergedMathInstr : public Definition {
   virtual bool CanDeoptimize() const {
     if (kind_ == kTruncDivMod) {
       return true;
+    } else if (kind_ == kSinCos) {
+      return false;
     } else {
       UNIMPLEMENTED();
       return false;
@@ -6696,6 +6700,8 @@ class MergedMathInstr : public Definition {
   virtual Representation representation() const {
     if (kind_ == kTruncDivMod) {
       return kTagged;
+    } else if (kind_ == kSinCos) {
+      return kTagged;
     } else {
       UNIMPLEMENTED();
       return kTagged;
@@ -6703,9 +6709,11 @@ class MergedMathInstr : public Definition {
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((0 <= idx) && (idx < InputCount()));
     if (kind_ == kTruncDivMod) {
-      ASSERT((0 <= idx) && (idx < InputCount()));
       return kTagged;
+    } else if (kind_ == kSinCos) {
+      return kUnboxedDouble;
     } else {
       UNIMPLEMENTED();
       return kTagged;
@@ -6713,6 +6721,10 @@ class MergedMathInstr : public Definition {
   }
 
   virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  // Returns the result index for one of the merged instructjons
+  static intptr_t ResultIndexOf(MethodRecognizer::Kind kind);
+  static intptr_t ResultIndexOf(Token::Kind token);
 
   DECLARE_INSTRUCTION(MergedMath)
 
@@ -6737,6 +6749,7 @@ class MergedMathInstr : public Definition {
 
   static const char* KindToCString(MergedMathInstr::Kind kind) {
     if (kind == kTruncDivMod) return "TruncDivMod";
+    if (kind == kSinCos) return "SinCos";
     UNIMPLEMENTED();
     return "";
   }

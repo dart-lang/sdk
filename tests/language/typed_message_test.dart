@@ -8,6 +8,7 @@
 library TypedMessageTest;
 import "dart:async";
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 import "dart:isolate";
 
 void logMessages(SendPort replyTo) {
@@ -29,6 +30,7 @@ void logMessages(SendPort replyTo) {
 }
 
 main() {
+  asyncStart();
   ReceivePort receivePort = new ReceivePort();
   Future<Isolate> remote = Isolate.spawn(logMessages, receivePort.sendPort);
   List<int> msg = new List<int>(5);
@@ -43,5 +45,6 @@ main() {
   }).then((b) {
     Expect.equals(1, iterator.current);
     receivePort.close();
+    asyncEnd();
   });
 }

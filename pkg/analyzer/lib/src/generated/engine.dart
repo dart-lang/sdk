@@ -16,7 +16,7 @@ import 'parser.dart' show Parser;
 import 'sdk.dart' show DartSdk;
 import 'element.dart';
 import 'resolver.dart';
-import 'html.dart' show XmlTagNode, XmlAttributeNode, RecursiveXmlVisitor, HtmlScanner, HtmlScanResult, HtmlParser, HtmlParseResult, HtmlUnit;
+import 'html.dart' show XmlTagNode, XmlAttributeNode, RecursiveXmlVisitor, HtmlScanner, HtmlScanResult, HtmlParser, HtmlParseResult, HtmlScriptTagNode, HtmlUnit;
 
 /**
  * The unique instance of the class `AnalysisEngine` serves as the entry point for the
@@ -711,14 +711,6 @@ abstract class AnalysisOptions {
    * @return `true` if analysis is to generate hint results
    */
   bool get hint;
-
-  /**
-   * Return `true` if analysis is to use strict mode. In strict mode, error reporting is based
-   * exclusively on the static type information.
-   *
-   * @return `true` if analysis is to use strict mode
-   */
-  bool get strictMode;
 }
 
 /**
@@ -2365,7 +2357,12 @@ abstract class HtmlEntry implements SourceEntry {
   /**
    * The data descriptor representing the hints resulting from auditing the source.
    */
-  static final DataDescriptor<List<AnalysisError>> HINTS = new DataDescriptor<List<AnalysisError>>("DartEntry.HINTS");
+  static final DataDescriptor<List<AnalysisError>> HINTS = new DataDescriptor<List<AnalysisError>>("HtmlEntry.HINTS");
+
+  /**
+   * The data descriptor representing the errors resulting from parsing the source.
+   */
+  static final DataDescriptor<List<AnalysisError>> PARSE_ERRORS = new DataDescriptor<List<AnalysisError>>("HtmlEntry.PARSE_ERRORS");
 
   /**
    * The data descriptor representing the parsed AST structure.
@@ -2409,13 +2406,24 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   HtmlUnit _parsedUnit;
 
   /**
+   * The state of the cached parse errors.
+   */
+  CacheState _parseErrorsState = CacheState.INVALID;
+
+  /**
+   * The errors produced while scanning and parsing the HTML, or `null` if the errors are not
+   * currently cached.
+   */
+  List<AnalysisError> _parseErrors = AnalysisError.NO_ERRORS;
+
+  /**
    * The state of the cached resolution errors.
    */
   CacheState _resolutionErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while resolving the compilation unit, or `null` if the errors are not
-   * currently cached.
+   * The errors produced while resolving the HTML, or `null` if the errors are not currently
+   * cached.
    */
   List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
 
@@ -2453,6 +2461,9 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
   List<AnalysisError> get allErrors {
     List<AnalysisError> errors = new List<AnalysisError>();
+    for (AnalysisError error in _parseErrors) {
+      errors.add(error);
+    }
     for (AnalysisError error in _resolutionErrors) {
       errors.add(error);
     }
@@ -2470,6 +2481,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   CacheState getState(DataDescriptor descriptor) {
     if (identical(descriptor, HtmlEntry.ELEMENT)) {
       return _elementState;
+    } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
+      return _parseErrorsState;
     } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
       return _parsedUnitState;
     } else if (identical(descriptor, HtmlEntry.REFERENCED_LIBRARIES)) {
@@ -2485,6 +2498,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   Object getValue(DataDescriptor descriptor) {
     if (identical(descriptor, HtmlEntry.ELEMENT)) {
       return _element as Object;
+    } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
+      return _parseErrors as Object;
     } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
       return _parsedUnit as Object;
     } else if (identical(descriptor, HtmlEntry.REFERENCED_LIBRARIES)) {
@@ -2508,6 +2523,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    */
   void invalidateAllInformation() {
     setState(SourceEntry.LINE_INFO, CacheState.INVALID);
+    _parseErrors = AnalysisError.NO_ERRORS;
+    _parseErrorsState = CacheState.INVALID;
     _parsedUnit = null;
     _parsedUnitState = CacheState.INVALID;
     _referencedLibraries = Source.EMPTY_ARRAY;
@@ -2533,6 +2550,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    */
   void recordParseError() {
     setState(SourceEntry.LINE_INFO, CacheState.ERROR);
+    setState(HtmlEntry.PARSE_ERRORS, CacheState.ERROR);
     setState(HtmlEntry.PARSED_UNIT, CacheState.ERROR);
     setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.ERROR);
     recordResolutionError();
@@ -2552,6 +2570,9 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     if (identical(descriptor, HtmlEntry.ELEMENT)) {
       _element = updatedValue(state, _element, null);
       _elementState = state;
+    } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
+      _parseErrors = updatedValue(state, _parseErrors, null);
+      _parseErrorsState = state;
     } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
       _parsedUnit = updatedValue(state, _parsedUnit, null);
       _parsedUnitState = state;
@@ -2573,6 +2594,9 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     if (identical(descriptor, HtmlEntry.ELEMENT)) {
       _element = value as HtmlElement;
       _elementState = CacheState.VALID;
+    } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
+      _parseErrors = value as List<AnalysisError>;
+      _parseErrorsState = CacheState.VALID;
     } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
       _parsedUnit = value as HtmlUnit;
       _parsedUnitState = CacheState.VALID;
@@ -2593,6 +2617,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   void copyFrom(SourceEntryImpl entry) {
     super.copyFrom(entry);
     HtmlEntryImpl other = entry as HtmlEntryImpl;
+    _parseErrorsState = other._parseErrorsState;
+    _parseErrors = other._parseErrors;
     _parsedUnitState = other._parsedUnitState;
     _parsedUnit = other._parsedUnit;
     _referencedLibrariesState = other._referencedLibrariesState;
@@ -2608,6 +2634,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   void writeOn(JavaStringBuilder builder) {
     builder.append("Html: ");
     super.writeOn(builder);
+    builder.append("; parseErrors = ");
+    builder.append(_parseErrorsState);
     builder.append("; parsedUnit = ");
     builder.append(_parsedUnitState);
     builder.append("; resolutionErrors = ");
@@ -2900,7 +2928,7 @@ class AnalysisContentStatisticsImpl implements AnalysisContentStatistics {
     if (identical(state, CacheState.ERROR)) {
       AnalysisException exception = dartEntry.exception;
       if (exception != null) {
-        javaSetAdd(_exceptions, exception);
+        _exceptions.add(exception);
       }
     }
   }
@@ -3649,7 +3677,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       this._options.dart2jsHint = options.dart2jsHint;
       this._options.hint = options.hint;
-      this._options.strictMode = options.strictMode;
       if (needsRecompute) {
         invalidateAllResolutionInformation();
       }
@@ -3678,16 +3705,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   void setChangedContents(Source source, String contents, int offset, int oldLength, int newLength) {
     {
       String originalContents = _sourceFactory.setContents(source, contents);
-      if (originalContents == null) {
-        if (contents != null) {
+      if (contents != null) {
+        if (contents != originalContents) {
           _incrementalAnalysisCache = IncrementalAnalysisCache.update(_incrementalAnalysisCache, source, originalContents, contents, offset, oldLength, newLength, getReadableSourceEntry(source));
           sourceChanged(source);
         }
-      } else if (originalContents != contents) {
-        _incrementalAnalysisCache = IncrementalAnalysisCache.update(_incrementalAnalysisCache, source, originalContents, contents, offset, oldLength, newLength, getReadableSourceEntry(source));
-        sourceChanged(source);
-      } else if (contents == null) {
+      } else if (originalContents != null) {
         _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
+        sourceChanged(source);
       }
     }
   }
@@ -3695,14 +3720,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     {
       String originalContents = _sourceFactory.setContents(source, contents);
-      if (originalContents == null) {
-        if (contents != null) {
+      if (contents != null) {
+        if (contents != originalContents) {
+          _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
           sourceChanged(source);
         }
-      } else if (originalContents != contents) {
+      } else if (originalContents != null) {
+        _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
         sourceChanged(source);
       }
-      _incrementalAnalysisCache = IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
     }
   }
 
@@ -4427,13 +4453,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       DartEntry dartEntry = sourceEntry as DartEntry;
       CacheState parseErrorsState = dartEntry.getState(DartEntry.PARSE_ERRORS);
       if (identical(parseErrorsState, CacheState.INVALID) || (isPriority && identical(parseErrorsState, CacheState.FLUSHED))) {
-        javaSetAdd(sources, source);
+        sources.add(source);
         return;
       }
       if (isPriority) {
         CompilationUnit parseUnit = dartEntry.anyParsedCompilationUnit;
         if (parseUnit == null) {
-          javaSetAdd(sources, source);
+          sources.add(source);
           return;
         }
       }
@@ -4442,14 +4468,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (libraryEntry is DartEntry) {
           CacheState elementState = libraryEntry.getState(DartEntry.ELEMENT);
           if (identical(elementState, CacheState.INVALID) || (isPriority && identical(elementState, CacheState.FLUSHED))) {
-            javaSetAdd(sources, source);
+            sources.add(source);
             return;
           }
           CacheState resolvedUnitState = dartEntry.getState2(DartEntry.RESOLVED_UNIT, librarySource);
           if (identical(resolvedUnitState, CacheState.INVALID) || (isPriority && identical(resolvedUnitState, CacheState.FLUSHED))) {
             LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
             if (libraryElement != null) {
-              javaSetAdd(sources, source);
+              sources.add(source);
               return;
             }
           }
@@ -4457,7 +4483,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           if (identical(verificationErrorsState, CacheState.INVALID) || (isPriority && identical(verificationErrorsState, CacheState.FLUSHED))) {
             LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
             if (libraryElement != null) {
-              javaSetAdd(sources, source);
+              sources.add(source);
               return;
             }
           }
@@ -4466,7 +4492,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             if (identical(hintsState, CacheState.INVALID) || (isPriority && identical(hintsState, CacheState.FLUSHED))) {
               LibraryElement libraryElement = libraryEntry.getValue(DartEntry.ELEMENT);
               if (libraryElement != null) {
-                javaSetAdd(sources, source);
+                sources.add(source);
                 return;
               }
             }
@@ -4477,12 +4503,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       HtmlEntry htmlEntry = sourceEntry as HtmlEntry;
       CacheState parsedUnitState = htmlEntry.getState(HtmlEntry.PARSED_UNIT);
       if (identical(parsedUnitState, CacheState.INVALID) || (isPriority && identical(parsedUnitState, CacheState.FLUSHED))) {
-        javaSetAdd(sources, source);
+        sources.add(source);
         return;
       }
       CacheState elementState = htmlEntry.getState(HtmlEntry.ELEMENT);
       if (identical(elementState, CacheState.INVALID) || (isPriority && identical(elementState, CacheState.FLUSHED))) {
-        javaSetAdd(sources, source);
+        sources.add(source);
         return;
       }
     }
@@ -4550,7 +4576,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (library.source == htmlSource) {
       return true;
     }
-    javaSetAdd(visitedLibraries, library);
+    visitedLibraries.add(library);
     for (LibraryElement imported in library.importedLibraries) {
       if (isClient(imported, htmlSource, visitedLibraries)) {
         return true;
@@ -4852,6 +4878,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           HtmlUnit unit = task.htmlUnit;
           htmlCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
           htmlCopy.setValue(HtmlEntry.PARSED_UNIT, unit);
+          htmlCopy.setValue(HtmlEntry.PARSE_ERRORS, task.errors);
           htmlCopy.setValue(HtmlEntry.REFERENCED_LIBRARIES, task.referencedLibraries);
           ChangeNoticeImpl notice = getNotice(source);
           notice.setErrors(htmlEntry.allErrors, lineInfo);
@@ -5154,9 +5181,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       List<Source> containingLibraries = getLibrariesContaining(source);
       Set<Source> librariesToInvalidate = new Set<Source>();
       for (Source containingLibrary in containingLibraries) {
-        javaSetAdd(librariesToInvalidate, containingLibrary);
+        librariesToInvalidate.add(containingLibrary);
         for (Source dependentLibrary in getLibrariesDependingOn(containingLibrary)) {
-          javaSetAdd(librariesToInvalidate, dependentLibrary);
+          librariesToInvalidate.add(dependentLibrary);
         }
       }
       for (Source library in librariesToInvalidate) {
@@ -5179,9 +5206,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceEntry is DartEntry) {
       Set<Source> libraries = new Set<Source>();
       for (Source librarySource in getLibrariesContaining(source)) {
-        javaSetAdd(libraries, librarySource);
+        libraries.add(librarySource);
         for (Source dependentLibrary in getLibrariesDependingOn(librarySource)) {
-          javaSetAdd(libraries, dependentLibrary);
+          libraries.add(dependentLibrary);
         }
       }
       for (Source librarySource in libraries) {
@@ -5310,12 +5337,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool _hint = true;
 
   /**
-   * A flag indicating whether analysis is to use strict mode. In strict mode, error reporting is
-   * based exclusively on the static type information.
-   */
-  bool _strictMode = true;
-
-  /**
    * Initialize a newly created set of analysis options to have their default values.
    */
   AnalysisOptionsImpl();
@@ -5330,7 +5351,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _cacheSize = options.cacheSize;
     _dart2jsHint = options.dart2jsHint;
     _hint = options.hint;
-    _strictMode = options.strictMode;
   }
 
   int get cacheSize => _cacheSize;
@@ -5338,14 +5358,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool get dart2jsHint => _dart2jsHint;
 
   bool get hint => _hint;
-
-  /**
-   * Return `true` if analysis is to use strict mode. In strict mode, error reporting is based
-   * exclusively on the static type information.
-   *
-   * @return `true` if analysis is to use strict mode
-   */
-  bool get strictMode => _strictMode;
 
   /**
    * Set the maximum number of sources for which AST structures should be kept in the cache to the
@@ -5375,16 +5387,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   void set hint(bool hint) {
     this._hint = hint;
-  }
-
-  /**
-   * Set whether analysis is to use strict mode to the given value. In strict mode, error reporting
-   * is based exclusively on the static type information.
-   *
-   * @param isStrict `true` if analysis is to use strict mode
-   */
-  void set strictMode(bool isStrict) {
-    _strictMode = isStrict;
   }
 }
 
@@ -5818,7 +5820,7 @@ class IncrementalAnalysisCache {
    *
    * @param cache the prior cache or `null` if none
    * @param source the source being updated (not `null`)
-   * @param oldContents the original source contents prior to this update (not `null`)
+   * @param oldContents the original source contents prior to this update (may be `null`)
    * @param newContents the new contents after this incremental change (not `null`)
    * @param offset the offset at which the change occurred
    * @param oldLength the length of the text being replaced
@@ -5878,7 +5880,7 @@ class IncrementalAnalysisCache {
    */
   static IncrementalAnalysisCache verifyStructure(IncrementalAnalysisCache cache, Source source, CompilationUnit unit) {
     if (cache != null && unit != null && cache.source == source) {
-      if (!ASTComparator.equals3(cache.resolvedUnit, unit)) {
+      if (!ASTComparator.equals4(cache.resolvedUnit, unit)) {
         return null;
       }
     }
@@ -6685,7 +6687,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
       errorsForSource = new Set<AnalysisError>();
       _errors[source] = errorsForSource;
     }
-    javaSetAdd(errorsForSource, error);
+    errorsForSource.add(error);
   }
 }
 
@@ -7322,7 +7324,7 @@ class ParseDartTask extends AnalysisTask {
     List<Token> token = [null];
     TimeCounter_TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
     try {
-      Source_ContentReceiver receiver = new Source_ContentReceiver_12(this, errorListener, token);
+      Source_ContentReceiver receiver = new Source_ContentReceiver_11(this, errorListener, token);
       try {
         source.getContents(receiver);
       } on JavaException catch (exception) {
@@ -7341,19 +7343,19 @@ class ParseDartTask extends AnalysisTask {
         if (directive is ExportDirective) {
           Source exportSource = resolveSource(source, directive as ExportDirective);
           if (exportSource != null) {
-            javaSetAdd(_exportedSources, exportSource);
+            _exportedSources.add(exportSource);
           }
         } else if (directive is ImportDirective) {
           Source importSource = resolveSource(source, directive as ImportDirective);
           if (importSource != null) {
-            javaSetAdd(_importedSources, importSource);
+            _importedSources.add(importSource);
           }
         } else if (directive is LibraryDirective) {
           _hasLibraryDirective2 = true;
         } else if (directive is PartDirective) {
           Source partSource = resolveSource(source, directive as PartDirective);
           if (partSource != null) {
-            javaSetAdd(_includedSources, partSource);
+            _includedSources.add(partSource);
           }
         } else if (directive is PartOfDirective) {
           _hasPartOfDirective2 = true;
@@ -7406,14 +7408,14 @@ class ParseDartTask extends AnalysisTask {
   }
 }
 
-class Source_ContentReceiver_12 implements Source_ContentReceiver {
+class Source_ContentReceiver_11 implements Source_ContentReceiver {
   final ParseDartTask ParseDartTask_this;
 
   RecordingErrorListener errorListener;
 
   List<Token> token;
 
-  Source_ContentReceiver_12(this.ParseDartTask_this, this.errorListener, this.token);
+  Source_ContentReceiver_11(this.ParseDartTask_this, this.errorListener, this.token);
 
   void accept(CharBuffer contents, int modificationTime) {
     ParseDartTask_this.modificationTime = modificationTime;
@@ -7453,6 +7455,11 @@ class ParseHtmlTask extends AnalysisTask {
    * The HTML unit that was produced by parsing the source.
    */
   HtmlUnit htmlUnit;
+
+  /**
+   * The errors that were produced by scanning and parsing the source.
+   */
+  List<AnalysisError> errors = AnalysisError.NO_ERRORS;
 
   /**
    * An array containing the sources of the libraries that are referenced within the HTML.
@@ -7509,8 +7516,10 @@ class ParseHtmlTask extends AnalysisTask {
     HtmlScanResult scannerResult = scanner.result;
     modificationTime = scannerResult.modificationTime;
     lineInfo = new LineInfo(scannerResult.lineStarts);
-    HtmlParseResult result = new HtmlParser(source).parse(scannerResult);
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    HtmlParseResult result = new HtmlParser(source, errorListener).parse(scannerResult);
     htmlUnit = result.htmlUnit;
+    errors = errorListener.getErrors2(source);
     referencedLibraries = librarySources;
   }
 
@@ -7521,7 +7530,7 @@ class ParseHtmlTask extends AnalysisTask {
    */
   List<Source> get librarySources {
     List<Source> libraries = new List<Source>();
-    htmlUnit.accept(new RecursiveXmlVisitor_13(this, libraries));
+    htmlUnit.accept(new RecursiveXmlVisitor_12(this, libraries));
     if (libraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
@@ -7529,39 +7538,32 @@ class ParseHtmlTask extends AnalysisTask {
   }
 }
 
-class RecursiveXmlVisitor_13 extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_12 extends RecursiveXmlVisitor<Object> {
   final ParseHtmlTask ParseHtmlTask_this;
 
   List<Source> libraries;
 
-  RecursiveXmlVisitor_13(this.ParseHtmlTask_this, this.libraries) : super();
+  RecursiveXmlVisitor_12(this.ParseHtmlTask_this, this.libraries) : super();
 
-  Object visitXmlTagNode(XmlTagNode node) {
-    if (javaStringEqualsIgnoreCase(node.tag.lexeme, ParseHtmlTask._TAG_SCRIPT)) {
-      bool isDartScript = false;
-      XmlAttributeNode scriptAttribute = null;
-      for (XmlAttributeNode attribute in node.attributes) {
-        if (javaStringEqualsIgnoreCase(attribute.name.lexeme, ParseHtmlTask._ATTRIBUTE_SRC)) {
-          scriptAttribute = attribute;
-        } else if (javaStringEqualsIgnoreCase(attribute.name.lexeme, ParseHtmlTask._ATTRIBUTE_TYPE)) {
-          if (javaStringEqualsIgnoreCase(attribute.text, ParseHtmlTask._TYPE_DART)) {
-            isDartScript = true;
-          }
-        }
-      }
-      if (isDartScript && scriptAttribute != null) {
-        try {
-          Uri uri = new Uri(path: scriptAttribute.text);
-          String fileName = uri.path;
-          Source librarySource = ParseHtmlTask_this.context.sourceFactory.resolveUri(ParseHtmlTask_this.source, fileName);
-          if (librarySource != null && librarySource.exists()) {
-            libraries.add(librarySource);
-          }
-        } on URISyntaxException catch (e) {
-        }
+  Object visitHtmlScriptTagNode(HtmlScriptTagNode node) {
+    XmlAttributeNode scriptAttribute = null;
+    for (XmlAttributeNode attribute in node.attributes) {
+      if (javaStringEqualsIgnoreCase(attribute.name.lexeme, ParseHtmlTask._ATTRIBUTE_SRC)) {
+        scriptAttribute = attribute;
       }
     }
-    return super.visitXmlTagNode(node);
+    if (scriptAttribute != null) {
+      try {
+        Uri uri = new Uri(path: scriptAttribute.text);
+        String fileName = uri.path;
+        Source librarySource = ParseHtmlTask_this.context.sourceFactory.resolveUri(ParseHtmlTask_this.source, fileName);
+        if (librarySource != null && librarySource.exists()) {
+          libraries.add(librarySource);
+        }
+      } on URISyntaxException catch (e) {
+      }
+    }
+    return super.visitHtmlScriptTagNode(node);
   }
 }
 

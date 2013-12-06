@@ -528,12 +528,6 @@ class ResolverTask extends CompilerTask {
     return new ResolverVisitor(compiler, element, mapping);
   }
 
-  void visitBody(ResolverVisitor visitor, Statement body) {
-    if (!compiler.analyzeSignaturesOnly) {
-      visitor.visit(body);
-    }
-  }
-
   TreeElements resolveField(VariableElement element) {
     Node tree = element.parseNode(compiler);
     if(element.modifiers.isStatic() && element.variables.isTopLevel()) {
@@ -914,6 +908,25 @@ class ResolverTask extends CompilerTask {
       for (Element field in nonFinalInstanceFields) {
         compiler.reportInfo(field,
             MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD);
+      }
+    }
+
+    if (!cls.isAbstract) {
+      for (DartType supertype in cls.allSupertypes) {
+        // This must have been reported elsewhere.
+        if (!supertype.element.isClass()) continue;
+        ClassElement superclass = supertype.element;
+        superclass.forEachMember((ClassElement holder, Element member) {
+          if (member.isAbstract) {
+            Element mine = cls.lookupMember(member.name);
+            if (mine == null || mine.isAbstract) {
+              compiler.reportWarningCode(
+                  cls, MessageKind.UNIMPLEMENTED_METHOD,
+                  {'class_name': cls.name, 'member_name': member.name});
+              compiler.reportHint(member, MessageKind.THIS_IS_THE_METHOD, {});
+            }
+          }
+        });
       }
     }
   }
@@ -1424,16 +1437,6 @@ class InitializerResolver {
     }
   }
 
-  FunctionElement resolveRedirection(FunctionElement constructor,
-                                     FunctionExpression functionNode) {
-    if (functionNode.initializers == null) return null;
-    Link<Node> link = functionNode.initializers.nodes;
-    if (!link.isEmpty && Initializers.isConstructorRedirect(link.head)) {
-      return resolveSuperOrThisForSend(constructor, functionNode, link.head);
-    }
-    return null;
-  }
-
   /**
    * Resolve all initializers of this constructor. In the case of a redirecting
    * constructor, the resolved constructor's function element is returned.
@@ -1528,18 +1531,10 @@ class CommonResolverVisitor<R> extends Visitor<R> {
     compiler.reportFatalError(node, kind, arguments);
   }
 
-  void dualError(Node node, DualKind kind, [Map arguments = const {}]) {
-    error(node, kind.error, arguments);
-  }
-
   void warning(Node node, MessageKind kind, [Map arguments = const {}]) {
     ResolutionWarning message =
         new ResolutionWarning(kind, arguments, compiler.terseDiagnostics);
     compiler.reportWarning(node, message);
-  }
-
-  void dualWarning(Node node, DualKind kind, [Map arguments = const {}]) {
-    warning(node, kind.warning, arguments);
   }
 
   void cancel(Node node, String message) {
@@ -2332,11 +2327,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     doInPromotionScope(node.thenPart,
         () => visitIn(node.thenPart, new BlockScope(scope)));
     visitIn(node.elsePart, new BlockScope(scope));
-  }
-
-  static bool isLogicalOperator(Identifier op) {
-    String str = op.source;
-    return (identical(str, '&&') || str == '||' || str == '!');
   }
 
   Element resolveSend(Send node) {
@@ -3832,8 +3822,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         DartType supertype = resolveSupertype(element, superMixin.superclass);
         Link<Node> link = superMixin.mixins.nodes;
         while (!link.isEmpty) {
-          supertype = applyMixin(
-              supertype, checkMixinType(link.head), link.head);
+          supertype = applyMixin(supertype,
+                                 checkMixinType(link.head), link.head);
           link = link.tail;
         }
         element.supertype = supertype;
@@ -3929,16 +3919,45 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   DartType applyMixin(DartType supertype, DartType mixinType, Node node) {
     String superName = supertype.name;
     String mixinName = mixinType.name;
-    ClassElement mixinApplication = new MixinApplicationElementX(
+    MixinApplicationElementX mixinApplication = new MixinApplicationElementX(
         "${superName}+${mixinName}",
         element.getCompilationUnit(),
         compiler.getNextFreeClassId(),
         node,
         Modifiers.EMPTY);  // TODO(kasperl): Should this be abstract?
+    // Create synthetic type variables for the mixin application.
+    LinkBuilder<DartType> typeVariablesBuilder = new LinkBuilder<DartType>();
+    element.typeVariables.forEach((TypeVariableType type) {
+      TypeVariableElementX typeVariableElement = new TypeVariableElementX(
+          type.name, mixinApplication, type.element.parseNode(compiler));
+      TypeVariableType typeVariable = new TypeVariableType(typeVariableElement);
+      typeVariablesBuilder.addLast(typeVariable);
+    });
+    Link<DartType> typeVariables = typeVariablesBuilder.toLink();
+    // Setup bounds on the synthetic type variables.
+    Link<DartType> link = typeVariables;
+    element.typeVariables.forEach((TypeVariableType type) {
+      TypeVariableType typeVariable = link.head;
+      TypeVariableElement typeVariableElement = typeVariable.element;
+      typeVariableElement.type = typeVariable;
+      typeVariableElement.bound =
+          type.element.bound.subst(typeVariables, element.typeVariables);
+      link = link.tail;
+    });
+    // Setup this and raw type for the mixin application.
+    mixinApplication.computeThisAndRawType(compiler, typeVariables);
+    // Substitute in synthetic type variables in super and mixin types.
+    supertype = supertype.subst(typeVariables, element.typeVariables);
+    mixinType = mixinType.subst(typeVariables, element.typeVariables);
+
     doApplyMixinTo(mixinApplication, supertype, mixinType);
     mixinApplication.resolutionState = STATE_DONE;
     mixinApplication.supertypeLoadState = STATE_DONE;
-    return mixinApplication.computeType(compiler);
+    // Replace the synthetic type variables by the original type variables in
+    // the returned type (which should be the type actually extended).
+    InterfaceType mixinThisType = mixinApplication.computeType(compiler);
+    return mixinThisType.subst(element.typeVariables,
+                               mixinThisType.typeArguments);
   }
 
   bool isDefaultConstructor(FunctionElement constructor) {
@@ -4135,7 +4154,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       cls.allSupertypesAndSelf =
           new OrderedTypeSet.singleton(cls.computeType(compiler));
     }
- }
+  }
 
   /**
    * Adds [type] and all supertypes of [type] to [allSupertypes] while

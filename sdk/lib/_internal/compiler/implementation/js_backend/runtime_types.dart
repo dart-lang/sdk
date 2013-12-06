@@ -498,7 +498,6 @@ class RuntimeTypes {
     // Unnamed mixin application classes do not need substitutions, because they
     // are never instantiated and their checks are overwritten by the class that
     // they are mixed into.
-    if (cls.isUnnamedMixinApplication) return null;
     InterfaceType type = cls.computeType(compiler);
     InterfaceType target = type.asInstanceOf(check);
     Link<DartType> typeVariables = cls.typeVariables;

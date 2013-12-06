@@ -1079,11 +1079,18 @@ main() => A.A = 1;
       "a class.");
 
   static const MessageKind STATIC_FUNCTION_BLOAT = const MessageKind(
-      "Hint: Using '#{class}.#{name}' may result in larger output.");
+      "Hint: Using '#{class}.#{name}' may lead to unnecessarily large "
+      "generated code.",
+      howToFix:
+          "Try adding '@MirrorsUsed(...)' as described at "
+          "https://goo.gl/Akrrog.");
 
-  static const MessageKind NON_CONST_BLOAT = const MessageKind('''
-Hint: Using "new #{name}' may result in larger output.
-Use 'const #{name}' if possible.''');
+  static const MessageKind NON_CONST_BLOAT = const MessageKind(
+      "Hint: Using 'new #{name}' may lead to unnecessarily large generated "
+      "code.",
+      howToFix:
+          "Try using 'const #{name}' or adding '@MirrorsUsed(...)' as "
+          "described at https://goo.gl/Akrrog.");
 
   static const MessageKind STRING_EXPECTED = const MessageKind(
       "Error: Expected a 'String', but got an instance of '#{type}'.");
@@ -1331,6 +1338,13 @@ main() {}
   static const MessageKind MIRROR_IMPORT = const MessageKind(
       "Info: Import of 'dart:mirrors'.");
 
+  static const MessageKind MIRROR_IMPORT_NO_USAGE = const MessageKind(
+      "Info: This import is not annotated with @MirrorsUsed, which may lead to "
+      "unnecessarily large generated code.",
+      howToFix:
+          "Try adding '@MirrorsUsed(...)' as described at "
+          "https://goo.gl/Akrrog.");
+
   static const MessageKind WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT =
       const MessageKind(
       "Error: Argument for 'JS_INTERCEPTOR_CONSTANT' must be a type constant.");
@@ -1340,6 +1354,46 @@ main() {}
           "Error: '#{keyword}' is a reserved word and can't be used here.",
           howToFix: "Try using a different name.",
           examples: const ["do() {} main() {}"]);
+
+  static const MessageKind UNUSED_METHOD = const MessageKind(
+      "Hint: The method '#{method_name}' is never called.",
+      howToFix: "Consider deleting it.",
+      examples: const ["deadCode() {} main() {}"]);
+
+  static const MessageKind UNIMPLEMENTED_METHOD = const MessageKind(
+      "Warning: '#{class_name}' doesn't implement '#{member_name}'.",
+      howToFix: "Try adding an implementation of '#{member_name}'.",
+      examples: const ["""
+abstract class I {
+  m();
+}
+
+class C implements I {}
+
+class D implements I {
+  m() {}
+}
+
+main() {
+ new D().m();
+ new C();
+}
+""", """
+abstract class I {
+  m();
+}
+
+class C extends I {}
+
+class D extends I {
+  m() {}
+}
+
+main() {
+ new D().m();
+ new C();
+}
+"""]);
 
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
@@ -1393,6 +1447,17 @@ Please include the following information:
       "Hint: Variable '#{variableName}' is not shown to have type "
       "'#{shownType}' because '#{shownType}' is not more specific than the "
       "known type '#{knownType}' of '#{variableName}'.");
+
+  static const MessageKind NOT_MORE_SPECIFIC_SUBTYPE = const MessageKind(
+      "Hint: Variable '#{variableName}' is not shown to have type "
+      "'#{shownType}' because '#{shownType}' is not a subtype of the "
+      "known type '#{knownType}' of '#{variableName}'.");
+
+  static const MessageKind NOT_MORE_SPECIFIC_SUGGESTION = const MessageKind(
+      "Hint: Variable '#{variableName}' is not shown to have type "
+      "'#{shownType}' because '#{shownType}' is not more specific than the "
+      "known type '#{knownType}' of '#{variableName}'.",
+      howToFix: "Try replacing '#{shownType}' with '#{shownTypeSuggestion}'.");
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.

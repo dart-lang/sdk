@@ -703,7 +703,7 @@ class IsolateNatives {
  ********************************************************/
 
 /** Common functionality to all send ports. */
-class _BaseSendPort implements SendPort {
+abstract class _BaseSendPort implements SendPort {
   /** Id for the destination isolate. */
   final int _isolateId;
 
@@ -1216,6 +1216,7 @@ class _Copier extends _MessageTraverser {
     return copy;
   }
 
+  visitSendPort(SendPort x) => throw new UnimplementedError();
 }
 
 /** Visitor that serializes a message as a JSON array. */
@@ -1257,6 +1258,8 @@ class _Serializer extends _MessageTraverser {
     }
     return result;
   }
+
+  visitSendPort(SendPort x) => throw new UnimplementedError();
 }
 
 /** Deserializes arrays created with [_Serializer]. */

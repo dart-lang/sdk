@@ -157,12 +157,6 @@ null_test/none: RuntimeError  # Issue 12482
 [ $compiler == dart2js || $compiler == dart2dart ]
 
 function_type_alias9_test/00: Crash # Issue 15237
-string_interpolation9_test/11: Crash # Issue 15237
-string_interpolation9_test/12: Crash # Issue 15237
-string_interpolation9_test/13: Crash # Issue 15237
-string_interpolation9_test/16: Crash # Issue 15237
-string_interpolation9_test/17: Crash # Issue 15237
-string_interpolation9_test/18: Crash # Issue 15237
 mixin_invalid_inheritance2_test/03: Crash # Issue 15237
 
 [ ($compiler == dart2js || $compiler == dart2dart) && $checked ]

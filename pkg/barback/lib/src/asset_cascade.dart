@@ -122,7 +122,7 @@ class AssetCascade {
     // Keep track of logged errors so we can know that the build failed.
     onLog.listen((entry) {
       if (entry.level == LogLevel.ERROR) {
-        // TODO(nweiz): keep track of stack trace.
+        // TODO(nweiz): keep track of stack chain.
         _accumulatedErrors.add(
             new TransformerException(entry.transform, entry.message, null));
       }

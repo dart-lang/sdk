@@ -748,20 +748,6 @@ class CodeEmitterTask extends CompilerTask {
         classElement, properties, additionalProperties[classElement]);
   }
 
-  int _selectorRank(Selector selector) {
-    int arity = selector.argumentCount * 3;
-    if (selector.isGetter()) return arity + 2;
-    if (selector.isSetter()) return arity + 1;
-    return arity;
-  }
-
-  int _compareSelectorNames(Selector selector1, Selector selector2) {
-    String name1 = selector1.name.toString();
-    String name2 = selector2.name.toString();
-    if (name1 != name2) return Comparable.compare(name1, name2);
-    return _selectorRank(selector1) - _selectorRank(selector2);
-  }
-
   /**
    * Return a function that returns true if its argument is a class
    * that needs to be emitted.

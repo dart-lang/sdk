@@ -197,9 +197,10 @@ class _InternetAddress implements InternetAddress {
 
 class _NetworkInterface implements NetworkInterface {
   final String name;
-  final List<InternetAddress> addresses;
+  final int index;
+  final List<InternetAddress> addresses = [];
 
-  _NetworkInterface(String this.name, List<InternetAddress> this.addresses);
+  _NetworkInterface(this.name, this.index);
 
   String toString() {
     return "NetworkInterface('$name', $addresses)";
@@ -305,23 +306,21 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           if (isErrorResponse(response)) {
             throw createError(response, "Failed listing interfaces");
           } else {
-            var list = new List<NetworkInterface>();
             var map = response.skip(1)
-                .fold(new Map<String, List<InternetAddress>>(), (map, result) {
+                .fold(new Map<String, NetworkInterface>(), (map, result) {
                   var type = new InternetAddressType._from(result[0]);
                   var name = result[3];
+                  var index = result[4];
                   var address = new _InternetAddress(
                       type, result[1], "", result[2]);
                   if (!includeLinkLocal && address.isLinkLocal) return map;
                   if (!includeLoopback && address.isLoopback) return map;
-                  map.putIfAbsent(name, () => new List<InternetAddress>());
-                  map[name].add(address);
+                  map.putIfAbsent(
+                      name, () => new _NetworkInterface(name, index));
+                  map[name].addresses.add(address);
                   return map;
-                })
-                .forEach((name, addresses) {
-                  list.add(new _NetworkInterface(name, addresses));
                 });
-            return list;
+            return map.values.toList();
           }
         });
   }
@@ -465,7 +464,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     var result =
         nativeWrite(bufferAndStart.buffer, bufferAndStart.start, bytes);
     if (result is OSError) {
-      reportError(result, "Write failed");
+      scheduleMicrotask(() => reportError(result, "Write failed"));
       result = 0;
     }
     return result;
@@ -501,6 +500,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     canActivateEvents = false;
     for (int i = FIRST_EVENT; i <= LAST_EVENT; i++) {
       if (((events & (1 << i)) != 0)) {
+        if ((i == CLOSED_EVENT || i == READ_EVENT) && isClosedRead) continue;
         if (i == CLOSED_EVENT &&
             typeFlags != TYPE_LISTENING_SOCKET &&
             !isClosing &&
@@ -737,6 +737,7 @@ class _RawServerSocket extends Stream<RawSocket>
   }
 
   _RawServerSocket(this._socket) {
+    var zone = Zone.current;
     _controller = new StreamController(sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
@@ -744,14 +745,14 @@ class _RawServerSocket extends Stream<RawSocket>
         onResume: _onPauseStateChange);
     _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
-      read: () {
+      read: zone.bindCallback(() {
         var socket = _socket.accept();
         if (socket != null) _controller.add(new _RawSocket(socket));
-      },
-      error: (e) {
+      }),
+      error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
         _controller.close();
-      }
+      })
     );
   }
 
@@ -814,6 +815,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   _RawSocket(this._socket) {
+    var zone = Zone.current;
     _controller = new StreamController(sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
@@ -830,10 +832,10 @@ class _RawSocket extends Stream<RawSocketEvent>
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
       destroyed: () => _controller.add(RawSocketEvent.CLOSED),
-      error: (e) {
+      error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
         close();
-      }
+      })
     );
   }
 

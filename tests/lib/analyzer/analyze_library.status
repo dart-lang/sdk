@@ -16,7 +16,6 @@ lib/indexed_db/dart2js/indexed_db_dart2js: CompileTimeError
 lib/indexed_db/dartium/indexed_db_dartium: CompileTimeError
 lib/_internal/compiler/samples/compile_loop/compile_loop: CompileTimeError
 lib/_internal/compiler/samples/darttags/darttags: CompileTimeError
-lib/_internal/compiler/samples/jsonify/jsonify: CompileTimeError
 lib/_internal/compiler/samples/leap/leap: CompileTimeError
 lib/_internal/compiler/samples/leap/leap_leg: CompileTimeError
 lib/_internal/compiler/samples/leap/request_cache: CompileTimeError

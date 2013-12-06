@@ -17,8 +17,30 @@ import 'barback/sources.dart';
 import 'log.dart' as log;
 import 'package_graph.dart';
 import 'utils.dart';
+import 'version.dart';
 
 export 'barback/sources.dart' show WatcherType;
+
+/// The currently supported version of the Barback package that this version of
+/// pub works with.
+///
+/// Pub implicitly constrains barback to this version or later patch versions.
+///
+/// Barback is in a unique position. Pub imports it, so a copy of Barback is
+/// physically included in the SDK. Packages also depend on Barback (from
+/// pub.dartlang.org) when they implement their own transformers. Pub's plug-in
+/// API dynamically loads transformers into their own isolate.
+///
+/// This includes a string literal of Dart code ([_TRANSFORMER_ISOLATE] in
+/// load_transformers.dart). That code imports "package:barback/barback.dart".
+/// This string is included in the SDK, but that import is resolved using the
+/// application’s version of Barback. That means it must tightly control which
+/// version of Barback the application is using so that it's one that pub
+/// supports.
+///
+/// Whenever a new non-patch version of barback is published, this *must* be
+/// incremented to synchronize with that.
+final supportedVersion = new Version(0, 10, 0);
 
 /// An identifier for a transformer and the configuration that will be passed to
 /// it.

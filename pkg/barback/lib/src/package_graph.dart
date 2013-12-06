@@ -66,6 +66,9 @@ class PackageGraph {
   /// [Future] returned by [getAllAssets].
   var _lastUnexpectedError;
 
+  /// The stack trace for [_lastUnexpectedError].
+  StackTrace _lastUnexpectedErrorTrace;
+
   // TODO(nweiz): Allow transformers to declare themselves as "lightweight" or
   // "heavyweight" and adjust their restrictions appropriately. Simple
   // transformers may be very efficient to run in parallel, whereas dart2js uses
@@ -114,8 +117,9 @@ class PackageGraph {
         // errors, the result will automatically be considered a success.
         _resultsController.add(
             new BuildResult.aggregate(_cascadeResults.values));
-      }, onError: (error, [stackTrace]) {
+      }, onError: (error, stackTrace) {
         _lastUnexpectedError = error;
+        _lastUnexpectedErrorTrace = stackTrace;
         _resultsController.addError(error, stackTrace);
       });
     }
@@ -152,7 +156,7 @@ class PackageGraph {
     if (_lastUnexpectedError != null) {
       var error = _lastUnexpectedError;
       _lastUnexpectedError = null;
-      return new Future.error(error);
+      return new Future.error(error, _lastUnexpectedErrorTrace);
     }
 
     // If the build completed with an error, complete the future with it.

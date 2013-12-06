@@ -329,7 +329,8 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
          u != NULL; u = u->Next) {
       addresses->SetAt(i, new InterfaceSocketAddress(
           u->Address.lpSockaddr,
-          StringUtils::WideToUtf8(a->FriendlyName)));
+          StringUtils::WideToUtf8(a->FriendlyName),
+          a->Ipv6IfIndex));
       i++;
     }
   }

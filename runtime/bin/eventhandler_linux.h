@@ -102,9 +102,7 @@ class EventHandlerImplementation {
   void Shutdown();
 
  private:
-  int64_t GetTimeout();
   void HandleEvents(struct epoll_event* events, int size);
-  void HandleTimeout();
   static void Poll(uword args);
   void WakeupHandler(intptr_t id, Dart_Port dart_port, int64_t data);
   void HandleInterruptFd();
@@ -118,6 +116,7 @@ class EventHandlerImplementation {
   bool shutdown_;
   int interrupt_fds_[2];
   int epoll_fd_;
+  int timer_fd_;
 };
 
 }  // namespace bin

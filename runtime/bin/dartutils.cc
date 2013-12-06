@@ -26,7 +26,9 @@ const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* DartUtils::kAsyncLibURL = "dart:async";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
+const char* DartUtils::kCollectionDevLibURL = "dart:_collection-dev";
 const char* DartUtils::kCoreLibURL = "dart:core";
+const char* DartUtils::kIsolateLibURL = "dart:isolate";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
 const char* DartUtils::kUriLibURL = "dart:uri";
@@ -678,18 +680,19 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                                Dart_Handle builtin_lib) {
   // Setup the internal library's 'internalPrint' function.
-  Dart_Handle internal_lib =
-      Dart_LookupLibrary(NewString("dart:_collection-dev"));
-  DART_CHECK_VALID(internal_lib);
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
-  Dart_Handle result = Dart_SetField(internal_lib,
+  Dart_Handle url = NewString(kCollectionDevLibURL);
+  DART_CHECK_VALID(url);
+  Dart_Handle collection_dev_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(collection_dev_lib);
+  Dart_Handle result = Dart_SetField(collection_dev_lib,
                                      NewString("_printClosure"),
                                      print);
   DART_CHECK_VALID(result);
 
   // Setup the 'timer' factory.
-  Dart_Handle url = NewString(kAsyncLibURL);
+  url = NewString(kAsyncLibURL);
   DART_CHECK_VALID(url);
   Dart_Handle async_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(async_lib);
@@ -701,8 +704,22 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   DART_CHECK_VALID(Dart_Invoke(
       async_lib, NewString("_setTimerFactoryClosure"), 1, args));
 
+  // Setup the 'scheduleImmediate' closure.
+  url = NewString(kIsolateLibURL);
+  DART_CHECK_VALID(url);
+  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(isolate_lib);
+  Dart_Handle schedule_immediate_closure =
+      Dart_Invoke(isolate_lib, NewString("_getIsolateScheduleImmediateClosure"),
+                  0, NULL);
+  args[0] = schedule_immediate_closure;
+  DART_CHECK_VALID(Dart_Invoke(
+      async_lib, NewString("_setScheduleImmediateClosure"), 1, args));
+
   // Setup the corelib 'Uri.base' getter.
-  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
+  url = NewString(kCoreLibURL);
+  DART_CHECK_VALID(url);
+  Dart_Handle corelib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(corelib);
   Dart_Handle uri_base = Dart_Invoke(
       builtin_lib, NewString("_getUriBaseClosure"), 0, NULL);

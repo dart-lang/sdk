@@ -432,6 +432,17 @@ class ArithmeticTest {
     var b = -1;
     for (var i = 0; i < 10; i++) Expect.equals(0x40000000, divMod(a, b));
   }
+  
+  static double sinCosSub(double a) => sin(a) - cos(a);
+  
+  static void testSinCos() {
+    var e = sin(1.234) - cos(1.234);
+    for (var i = 0; i < 20; i++) {
+      Expect.approxEquals(e, sinCosSub(1.234));
+    }
+    Expect.approxEquals(1.0, sinCosSub(3.14159265));
+    Expect.approxEquals(1.0, sinCosSub(3.14159265 / 2.0));
+  }
 
   static mySqrt(var x) => sqrt(x);
 
@@ -460,6 +471,7 @@ class ArithmeticTest {
       testSmiDivModDeopt();
       testSqrtDeopt();
       testDoubleEquality();
+      testSinCos();
     }
   }
 }

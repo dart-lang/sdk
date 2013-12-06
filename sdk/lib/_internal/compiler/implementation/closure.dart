@@ -11,6 +11,7 @@ import "scanner/scannerlib.dart" show Token;
 import "tree/tree.dart";
 import "util/util.dart";
 import "elements/modelx.dart" show ElementX, FunctionElementX, ClassElementX;
+import "elements/visitor.dart" show ElementVisitor;
 
 class ClosureNamer {
   String getClosureVariableName(String name, int id) {
@@ -98,6 +99,8 @@ class ClosureFieldElement extends ElementX implements VariableElement {
   }
 
   String toString() => "ClosureFieldElement($name)";
+
+  accept(ElementVisitor visitor) => visitor.visitClosureFieldElement(this);
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to
@@ -142,6 +145,8 @@ class ClosureClassElement extends ClassElementX {
    * The most outer method this closure is declared into.
    */
   final Element methodElement;
+
+  accept(ElementVisitor visitor) => visitor.visitClosureClassElement(this);
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to
@@ -152,6 +157,8 @@ class BoxElement extends ElementX {
       : super(name, ElementKind.VARIABLE_LIST, enclosingElement);
 
   DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+
+  accept(ElementVisitor visitor) => visitor.visitBoxElement(this);
 }
 
 // TODO(ngeoffray, ahe): These classes continuously cause problems.  We need to
@@ -168,6 +175,8 @@ class BoxFieldElement extends ElementX {
   }
 
   final Element variableElement;
+
+  accept(ElementVisitor visitor) => visitor.visitBoxFieldElement(this);
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to
@@ -184,21 +193,8 @@ class ThisElement extends ElementX {
   // Since there is no declaration corresponding to 'this', use the position of
   // the enclosing method.
   Token position() => enclosingElement.position();
-}
 
-// TODO(ahe): These classes continuously cause problems.  We need to
-// move these classes to elements/modelx.dart or see if we can find a
-// more general solution.
-class CheckVariableElement extends ElementX {
-  Element parameter;
-  CheckVariableElement(String name, this.parameter, Element enclosing)
-      : super(name, ElementKind.VARIABLE, enclosing);
-
-  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
-
-  // Since there is no declaration for the synthetic 'check' variable, use
-  // parameter.
-  Token position() => parameter.position();
+  accept(ElementVisitor visitor) => visitor.visitThisElement(this);
 }
 
 // The box-element for a scope, and the captured variables that need to be
@@ -258,11 +254,6 @@ class ClosureClassMap {
 
   bool isClosure() => closureElement != null;
 
-  bool isVariableCaptured(Element element) {
-    return freeVariableMapping.containsKey(element)
-        || capturingScopesBox(element);
-  }
-
   bool capturingScopesBox(Element element) {
     return capturingScopes.values.any((scope) {
       return scope.boxedLoopVariables.contains(element);
@@ -292,14 +283,6 @@ class ClosureClassMap {
     });
     capturingScopes.values.forEach((scope) {
       scope.capturedVariableMapping.forEach(f);
-    });
-  }
-
-  void forEachNonBoxedCapturedVariable(void f(Element local, Element field)) {
-    freeVariableMapping.forEach((variable, copy) {
-      if (variable is BoxElement) return;
-      if (isVariableBoxed(variable)) return;
-      f(variable, copy);
     });
   }
 }

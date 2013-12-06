@@ -538,13 +538,14 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  Future timeout(Duration timeLimit, [void onTimeout()]) {
+  Future timeout(Duration timeLimit, {void onTimeout()}) {
     if (_isComplete) return new _Future.immediate(this);
     _Future result = new _Future();
     Timer timer;
     if (onTimeout == null) {
       timer = new Timer(timeLimit, () {
-        result._completeError(new TimeoutException(timeLimit));
+        result._completeError(new TimeoutException("Future not completed",
+                                                   timeLimit));
       });
     } else {
       Zone zone = Zone.current;

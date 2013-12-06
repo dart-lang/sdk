@@ -220,6 +220,9 @@ Future compile(List<String> argv) {
         case 'c':
           passThrough('--enable-checked-mode');
           break;
+        case 'm':
+          passThrough('--minify');
+          break;
         default:
           throw 'Internal error: "$shortOption" did not match';
       }
@@ -239,7 +242,7 @@ Future compile(List<String> argv) {
 
   List<String> arguments = <String>[];
   List<OptionHandler> handlers = <OptionHandler>[
-    new OptionHandler('-[chv?]+', handleShortOptions),
+    new OptionHandler('-[chvm?]+', handleShortOptions),
     new OptionHandler('--throw-on-error',
                       (_) => diagnosticHandler.throwOnError = true),
     new OptionHandler('--suppress-warnings',
@@ -252,7 +255,7 @@ Future compile(List<String> argv) {
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('--allow-mock-compilation', passThrough),
-    new OptionHandler('--minify', passThrough),
+    new OptionHandler('--minify|-m', passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler('--disable-diagnostic-colors',
                       (_) => diagnosticHandler.enableColors = false),
@@ -473,6 +476,7 @@ Compiles Dart to JavaScript.
 Common options:
   -o <file> Generate the output into <file>.
   -c        Insert runtime type checks and enable assertions (checked mode).
+  -m        Generate minified output.
   -h        Display this message (add -v for information about all options).''');
 }
 
@@ -488,6 +492,9 @@ Supported options:
 
   -c, --enable-checked-mode, --checked
     Insert runtime type checks and enable assertions (checked mode).
+
+  -m, --minify
+    Generate minified output.
 
   -h, /h, /?, --help
     Display this message (add -v for information about all options).
@@ -516,9 +523,6 @@ Supported options:
   --analyze-signatures-only
     Skip analysis of method bodies and field initializers. This option implies
     --analyze-only.
-
-  --minify
-    Generate minified output.
 
   --suppress-warnings
     Do not display any warnings.

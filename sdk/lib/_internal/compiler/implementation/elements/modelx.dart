@@ -31,7 +31,9 @@ import '../scanner/scannerlib.dart' show Token, EOF_TOKEN;
 
 import '../ordered_typeset.dart' show OrderedTypeSet;
 
-class ElementX implements Element {
+import 'visitor.dart' show ElementVisitor;
+
+abstract class ElementX implements Element {
   static int elementHashCode = 0;
 
   final String name;
@@ -285,8 +287,6 @@ class ElementX implements Element {
 
   FunctionElement asFunctionElement() => null;
 
-  static bool isInvalid(Element e) => e == null || e.isErroneous();
-
   bool get isAbstract => modifiers.isAbstract();
   bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
 
@@ -356,6 +356,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   String get message => '${messageKind.message(messageArguments)}';
 
   String toString() => '<$name: $message>';
+
+  accept(ElementVisitor visitor) => visitor.visitErroneousElement(this);
 }
 
 /// A message attached to a [WarnOnUseElementX].
@@ -416,6 +418,8 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
     }
     return unwrapped;
   }
+
+  accept(ElementVisitor visitor) => visitor.visitWarnOnUseElement(this);
 }
 
 /**
@@ -483,6 +487,8 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
       });
     }
   }
+
+  accept(ElementVisitor visitor) => visitor.visitAmbiguousElement(this);
 }
 
 class ScopeX {
@@ -637,6 +643,8 @@ class CompilationUnitElementX extends ElementX
     if (this == other) return 0;
     return '${script.uri}'.compareTo('${other.script.uri}');
   }
+
+  accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
 }
 
 class Importers {
@@ -975,7 +983,9 @@ class LibraryElementX extends ElementX implements LibraryElement {
 
   Scope buildScope() => new LibraryScope(this);
 
-  bool get isPlatformLibrary => canonicalUri.scheme == "dart";
+  bool get isPlatformLibrary => canonicalUri.scheme == 'dart';
+
+  bool get isPackageLibrary => canonicalUri.scheme == 'package';
 
   bool get isInternalLibrary =>
       isPlatformLibrary && canonicalUri.path.startsWith('_');
@@ -994,6 +1004,8 @@ class LibraryElementX extends ElementX implements LibraryElement {
     if (this == other) return 0;
     return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
   }
+
+  accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
 }
 
 class PrefixElementX extends ElementX implements PrefixElement {
@@ -1013,6 +1025,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
   void addImport(Element element, Import import, DiagnosticListener listener) {
     importScope.addImport(this, element, import, listener);
   }
+
+  accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
 }
 
 class TypedefElementX extends ElementX implements TypedefElement {
@@ -1096,6 +1110,8 @@ class TypedefElementX extends ElementX implements TypedefElement {
     computeType(compiler).accept(visitor, null);
     hasBeenCheckedForCycles = true;
   }
+
+  accept(ElementVisitor visitor) => visitor.visitTypedefElement(this);
 }
 
 class VariableElementX extends ElementX implements VariableElement {
@@ -1110,6 +1126,12 @@ class VariableElementX extends ElementX implements VariableElement {
                    this.cachedNode)
     : this.variables = variables,
       super(name, kind, variables.enclosingElement);
+
+  VariableElementX.synthetic(String name,
+      ElementKind kind,
+      Element enclosing) :
+        variables = null,
+        super(name, kind, enclosing);
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
@@ -1133,13 +1155,13 @@ class VariableElementX extends ElementX implements VariableElement {
     return variables.computeType(compiler);
   }
 
-  DartType get type => variables.type;
-
   bool isInstanceMember() => variables.isInstanceMember();
 
   // Note: cachedNode.getBeginToken() will not be correct in all
   // cases, for example, for function typed parameters.
   Token position() => findMyName(variables.position());
+
+  accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
 }
 
 /**
@@ -1163,6 +1185,8 @@ class FieldParameterElementX extends VariableElementX
     }
     return super.computeType(compiler);
   }
+
+  accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
 }
 
 // This element represents a list of variable or field declaration.
@@ -1231,6 +1255,8 @@ class VariableListElementX extends ElementX implements VariableListElement {
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
   }
+
+  accept(ElementVisitor visitor) => visitor.visitVariableListElement(this);
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
@@ -1281,6 +1307,13 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 
   bool isInstanceMember() {
     return isMember() && !modifiers.isStatic();
+  }
+
+  accept(ElementVisitor visitor) => visitor.visitAbstractFieldElement(this);
+
+  bool get isAbstract {
+    return getter != null && getter.isAbstract
+        || setter != null && setter.isAbstract;
   }
 }
 
@@ -1549,6 +1582,8 @@ class FunctionElementX extends ElementX implements FunctionElement {
            (isFunction() || isAccessor()) &&
            _hasNoBody;
   }
+
+  accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
 }
 
 class ConstructorBodyElementX extends FunctionElementX
@@ -1578,6 +1613,8 @@ class ConstructorBodyElementX extends FunctionElementX
   }
 
   Token position() => constructor.position();
+
+  accept(ElementVisitor visitor) => visitor.visitConstructorBodyElement(this);
 }
 
 /**
@@ -1626,15 +1663,21 @@ class SynthesizedConstructorElementX extends FunctionElementX {
   get declaration => this;
   get implementation => this;
   get defaultImplementation => this;
+
+  accept(ElementVisitor visitor) {
+    return visitor.visitFunctionElement(this);
+  }
 }
 
-class VoidElementX extends ElementX {
+class VoidElementX extends ElementX implements VoidElement {
   VoidElementX(Element enclosing) : super('void', ElementKind.VOID, enclosing);
   DartType computeType(compiler) => compiler.types.voidType;
   Node parseNode(_) {
     throw 'internal error: parseNode on void';
   }
   bool impliesType() => true;
+
+  accept(ElementVisitor visitor) => visitor.visitVoidElement(this);
 }
 
 class TypeDeclarationElementX {
@@ -1730,11 +1773,10 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   bool get isUnnamedMixinApplication => false;
 
-  // TODO(johnniwinther): Add [thisType] getter similar to [rawType].
-  InterfaceType computeType(Compiler compiler) {
+  void computeThisAndRawType(Compiler compiler, Link<DartType> typeVariables) {
     if (thisType == null) {
       if (origin == null) {
-        Link<DartType> parameters = computeTypeParameters(compiler);
+        Link<DartType> parameters = typeVariables;
         thisType = new InterfaceType(this, parameters);
         if (parameters.isEmpty) {
           rawTypeCache = thisType;
@@ -1750,6 +1792,13 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         thisType = origin.computeType(compiler);
         rawTypeCache = origin.rawType;
       }
+    }
+  }
+
+  // TODO(johnniwinther): Add [thisType] getter similar to [rawType].
+  InterfaceType computeType(Compiler compiler) {
+    if (thisType == null) {
+      computeThisAndRawType(compiler, computeTypeParameters(compiler));
     }
     return thisType;
   }
@@ -1825,22 +1874,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
       if (isPrivate && !identical(library, s.getLibrary())) continue;
       Element e = s.lookupLocalMember(memberName);
       if (e == null) continue;
-      // Static members are not inherited.
-      if (e.modifiers.isStatic()) continue;
-      return e;
-    }
-    return null;
-  }
-
-  Element lookupSuperInterfaceMember(String memberName,
-                                     LibraryElement fromLibrary) {
-    bool isPrivate = isPrivateName(memberName);
-    for (InterfaceType t in interfaces) {
-      ClassElement cls = t.element;
-      Element e = cls.lookupLocalMember(memberName);
-      if (e == null) continue;
-      // Private members from a different library are not visible.
-      if (isPrivate && !identical(fromLibrary, e.getLibrary())) continue;
       // Static members are not inherited.
       if (e.modifiers.isStatic()) continue;
       return e;
@@ -1965,13 +1998,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   // callers of this method would benefit from using the noMatch method.
   Element lookupConstructor(Selector selector, [Element noMatch(Element)]) {
     Element result = localLookup(selector.name);
-    return validateConstructorLookupResults(selector, result, noMatch);
-  }
-
-  Element lookupFactoryConstructor(Selector selector,
-                                   [Element noMatch(Element)]) {
-    String constructorName = selector.name;
-    Element result = localLookup(constructorName);
     return validateConstructorLookupResults(selector, result, noMatch);
   }
 
@@ -2256,10 +2282,16 @@ class MixinApplicationElementX extends BaseClassElementX
 
   Link<DartType> computeTypeParameters(Compiler compiler) {
     NamedMixinApplication named = node.asNamedMixinApplication();
-    if (named == null) return const Link<DartType>();
+    if (named == null) {
+      throw new SpannableAssertionFailure(node,
+          "Type variables on unnamed mixin applications must be set on "
+          "creation.");
+    }
     return TypeDeclarationElementX.createTypeVariables(
         this, named.typeParameters);
   }
+
+  accept(ElementVisitor visitor) => visitor.visitMixinApplicationElement(this);
 }
 
 class LabelElementX extends ElementX implements LabelElement {
@@ -2296,6 +2328,8 @@ class LabelElementX extends ElementX implements LabelElement {
 
   Token position() => label.getBeginToken();
   String toString() => "${labelName}:";
+
+  accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
 }
 
 // Represents a reference to a statement or switch-case, either by label or the
@@ -2324,6 +2358,8 @@ class TargetElementX extends ElementX implements TargetElement {
 
   Token position() => statement.getBeginToken();
   String toString() => statement.toString();
+
+  accept(ElementVisitor visitor) => visitor.visitTargetElement(this);
 }
 
 class TypeVariableElementX extends ElementX implements TypeVariableElement {
@@ -2331,7 +2367,7 @@ class TypeVariableElementX extends ElementX implements TypeVariableElement {
   TypeVariableType type;
   DartType bound;
 
-  TypeVariableElementX(name, Element enclosing, this.cachedNode,
+  TypeVariableElementX(String name, Element enclosing, this.cachedNode,
                        [this.type, this.bound])
     : super(name, ElementKind.TYPE_VARIABLE, enclosing);
 
@@ -2342,6 +2378,8 @@ class TypeVariableElementX extends ElementX implements TypeVariableElement {
   String toString() => "${enclosingElement.toString()}.${name}";
 
   Token position() => cachedNode.getBeginToken();
+
+  accept(ElementVisitor visitor) => visitor.visitTypeVariableElement(this);
 }
 
 /**

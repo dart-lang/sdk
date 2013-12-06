@@ -62,12 +62,14 @@ main() {
     pubGet();
 
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built 8 files!"),
+        output: new RegExp(r"Built 12 files!"),
         exitCode: 0);
 
     d.dir(appPath, [
       d.dir('build', [
         d.matcherFile('file.dart.js', isNot(isEmpty)),
+        d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
+        d.matcherFile('file.dart.js.map', isNot(isEmpty)),
         d.dir('packages', [d.dir('browser', [
           d.file('dart.js', 'contents of dart.js'),
           d.file('interop.js', 'contents of interop.js')
@@ -77,7 +79,9 @@ main() {
             d.file('dart.js', 'contents of dart.js'),
             d.file('interop.js', 'contents of interop.js')
           ])]),
-          d.matcherFile('subfile.dart.js', isNot(isEmpty))
+          d.matcherFile('subfile.dart.js', isNot(isEmpty)),
+          d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
+          d.matcherFile('subfile.dart.js.map', isNot(isEmpty))
         ])
       ])
     ]).validate();

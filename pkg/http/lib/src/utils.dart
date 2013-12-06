@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'byte_stream.dart';
 
 /// Converts a URL query string (or `application/x-www-form-urlencoded` body)
@@ -36,30 +38,9 @@ Map<String, String> queryToMap(String queryList, {Encoding encoding}) {
 String mapToQuery(Map<String, String> map, {Encoding encoding}) {
   var pairs = <List<String>>[];
   map.forEach((key, value) =>
-      pairs.add([urlEncode(key, encoding: encoding),
-                 urlEncode(value, encoding: encoding)]));
+      pairs.add([Uri.encodeQueryComponent(key, encoding: encoding),
+                 Uri.encodeQueryComponent(value, encoding: encoding)]));
   return pairs.map((pair) => "${pair[0]}=${pair[1]}").join("&");
-}
-
-// TODO(nweiz): get rid of this when issue 12780 is fixed.
-/// URL-encodes [source] using [encoding].
-String urlEncode(String source, {Encoding encoding}) {
-  if (encoding == null) encoding = UTF8;
-  return encoding.encode(source).map((byte) {
-    // Convert spaces to +, like encodeQueryComponent.
-    if (byte == 0x20) return '+';
-    // Pass through digits.
-    if ((byte >= 0x30 && byte < 0x3A) ||
-        // Pass through uppercase letters.
-        (byte >= 0x41 && byte < 0x5B) ||
-        // Pass through lowercase letters.
-        (byte >= 0x61 && byte < 0x7B) ||
-        // Pass through `-._~`.
-        (byte == 0x2D || byte == 0x2E || byte == 0x5F || byte == 0x7E)) {
-      return new String.fromCharCode(byte);
-    }
-    return '%' + byte.toRadixString(16).toUpperCase();
-  }).join();
 }
 
 /// Like [String.split], but only splits on the first occurrence of the pattern.
@@ -234,3 +215,6 @@ Future forEachFuture(Iterable input, Future fn(element)) {
   }
   return nextElement(null);
 }
+
+/// Like [Future.sync], but wraps the Future in [Chain.track] as well.
+Future syncFuture(callback()) => Chain.track(new Future.sync(callback));

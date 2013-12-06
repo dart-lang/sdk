@@ -32,8 +32,8 @@ class CancelableFuture<T> implements Future<T> {
   Future then(onValue(T value), {Function onError}) =>
     _completer.future.then(onValue, onError: onError);
   Future<T> whenComplete(action()) => _completer.future.whenComplete(action);
-  Future timeout(Duration timeLimit, [void onTimeout()]) =>
-    _completer.future.timeout(timeLimit, onTimeout);
+  Future timeout(Duration timeLimit, {void onTimeout()}) =>
+    _completer.future.timeout(timeLimit, onTimeout: onTimeout);
   /// Cancels this future.
   void cancel() {
     _canceled = true;

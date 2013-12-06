@@ -4379,7 +4379,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme, bool first, bool last) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_25();
+    AnalysisErrorListener listener = new AnalysisErrorListener_26();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme, first, last], null) as String;
   }
@@ -6633,9 +6633,24 @@ class SimpleParserTest extends ParserTestCase {
   }
 }
 
-class AnalysisErrorListener_25 implements AnalysisErrorListener {
+class AnalysisErrorListener_26 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
+  }
+}
+
+class NonErrorParserTest extends ParserTestCase {
+  void test_constFactory_external() {
+    ParserTestCase.parse("parseClassMember", <Object> ["C"], "external const factory C();");
+  }
+
+  static dartSuite() {
+    _ut.group('NonErrorParserTest', () {
+      _ut.test('test_constFactory_external', () {
+        final __test = new NonErrorParserTest();
+        runJUnitTest(__test, __test.test_constFactory_external);
+      });
+    });
   }
 }
 
@@ -9076,24 +9091,12 @@ class RecoveryParserTest extends ParserTestCase {
 }
 
 class IncrementalParserTest extends EngineTestCase {
-  void fail_delete_identifier_beginning() {
+  void fail_delete_everything() {
+    assertParse("", "f() => a + b;", "", "");
+  }
+
+  void test_delete_identifier_beginning() {
     assertParse("f() => ", "ab", "", "s + b;");
-  }
-
-  void fail_delete_mergeTokens() {
-    assertParse("f() => a", " + b + ", "", "c;");
-  }
-
-  void fail_insert_convertOneFunctionToTwo() {
-    assertParse("f()", "", " => 0; g()", " {}");
-  }
-
-  void fail_insert_period_betweenIdentifiers1() {
-    assertParse("f() => a", "", ".", " b;");
-  }
-
-  void fail_replace_multiple_partialFirstAndLast() {
-    assertParse("f() => a", "a + b", "b * a", "b;");
   }
 
   void test_delete_identifier_end() {
@@ -9102,6 +9105,10 @@ class IncrementalParserTest extends EngineTestCase {
 
   void test_delete_identifier_middle() {
     assertParse("f() => a", "b", "", "s + b;");
+  }
+
+  void test_delete_mergeTokens() {
+    assertParse("f() => a", " + b + ", "", "c;");
   }
 
   void test_insert_afterIdentifier1() {
@@ -9120,6 +9127,18 @@ class IncrementalParserTest extends EngineTestCase {
     assertParse("f() => a + ", "", "x", "b;");
   }
 
+  void test_insert_convertOneFunctionToTwo() {
+    assertParse("f()", "", " => 0; g()", " {}");
+  }
+
+  void test_insert_end() {
+    assertParse("class A {}", "", " class B {}", "");
+  }
+
+  void test_insert_insideIdentifier() {
+    assertParse("f() => co", "", "w.", "b;");
+  }
+
   void test_insert_newIdentifier1() {
     assertParse("f() => a;", "", " b", " c;");
   }
@@ -9130,6 +9149,10 @@ class IncrementalParserTest extends EngineTestCase {
 
   void test_insert_period() {
     assertParse("f() => a + b", "", ".", ";");
+  }
+
+  void test_insert_period_betweenIdentifiers1() {
+    assertParse("f() => a", "", ".", " b;");
   }
 
   void test_insert_period_betweenIdentifiers2() {
@@ -9170,6 +9193,10 @@ class IncrementalParserTest extends EngineTestCase {
 
   void test_replace_identifier_middle() {
     assertParse("f() => f", "ir", "ro", "st + b;");
+  }
+
+  void test_replace_multiple_partialFirstAndLast() {
+    assertParse("f() => a", "a + b", "b * a", "b;");
   }
 
   void test_replace_operator_oneForMany() {
@@ -9213,13 +9240,17 @@ class IncrementalParserTest extends EngineTestCase {
     Token incrementalTokens = incrementalScanner.rescan(originalTokens, replaceStart, removed.length, added.length);
     JUnitTestCase.assertNotNull(incrementalTokens);
     IncrementalParser incrementalParser = new IncrementalParser(source, incrementalScanner.tokenMap, incrementalListener);
-    CompilationUnit incrementalUnit = incrementalParser.reparse(originalUnit, incrementalScanner.firstToken, incrementalScanner.lastToken, replaceStart, prefix.length + removed.length);
+    CompilationUnit incrementalUnit = incrementalParser.reparse(originalUnit, incrementalScanner.leftToken, incrementalScanner.rightToken, replaceStart, prefix.length + removed.length);
     JUnitTestCase.assertNotNull(incrementalUnit);
-    JUnitTestCase.assertTrue(ASTComparator.equals3(modifiedUnit, incrementalUnit));
+    JUnitTestCase.assertTrue(ASTComparator.equals4(modifiedUnit, incrementalUnit));
   }
 
   static dartSuite() {
     _ut.group('IncrementalParserTest', () {
+      _ut.test('test_delete_identifier_beginning', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_delete_identifier_beginning);
+      });
       _ut.test('test_delete_identifier_end', () {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_delete_identifier_end);
@@ -9227,6 +9258,10 @@ class IncrementalParserTest extends EngineTestCase {
       _ut.test('test_delete_identifier_middle', () {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_delete_identifier_middle);
+      });
+      _ut.test('test_delete_mergeTokens', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_delete_mergeTokens);
       });
       _ut.test('test_insert_afterIdentifier1', () {
         final __test = new IncrementalParserTest();
@@ -9244,6 +9279,18 @@ class IncrementalParserTest extends EngineTestCase {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_insert_beforeIdentifier2);
       });
+      _ut.test('test_insert_convertOneFunctionToTwo', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_convertOneFunctionToTwo);
+      });
+      _ut.test('test_insert_end', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_end);
+      });
+      _ut.test('test_insert_insideIdentifier', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_insideIdentifier);
+      });
       _ut.test('test_insert_newIdentifier1', () {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_insert_newIdentifier1);
@@ -9259,6 +9306,10 @@ class IncrementalParserTest extends EngineTestCase {
       _ut.test('test_insert_periodAndIdentifier', () {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_insert_periodAndIdentifier);
+      });
+      _ut.test('test_insert_period_betweenIdentifiers1', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_period_betweenIdentifiers1);
       });
       _ut.test('test_insert_period_betweenIdentifiers2', () {
         final __test = new IncrementalParserTest();
@@ -9295,6 +9346,10 @@ class IncrementalParserTest extends EngineTestCase {
       _ut.test('test_replace_identifier_middle', () {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_replace_identifier_middle);
+      });
+      _ut.test('test_replace_multiple_partialFirstAndLast', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_replace_multiple_partialFirstAndLast);
       });
       _ut.test('test_replace_operator_oneForMany', () {
         final __test = new IncrementalParserTest();
@@ -11314,6 +11369,7 @@ main() {
   ComplexParserTest.dartSuite();
   ErrorParserTest.dartSuite();
   IncrementalParserTest.dartSuite();
+  NonErrorParserTest.dartSuite();
   RecoveryParserTest.dartSuite();
   ResolutionCopierTest.dartSuite();
   SimpleParserTest.dartSuite();
@@ -11364,10 +11420,10 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'ensureAssignable_1': new MethodTrampoline(1, (Parser target, arg0) => target.ensureAssignable(arg0)),
   'expect_1': new MethodTrampoline(1, (Parser target, arg0) => target.expect(arg0)),
   'findRange_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.findRange(arg0, arg1)),
-  'gatherTodoComments_1': new MethodTrampoline(1, (Parser target, arg0) => target.gatherTodoComments(arg0)),
   'getCodeBlockRanges_1': new MethodTrampoline(1, (Parser target, arg0) => target.getCodeBlockRanges(arg0)),
   'getEndToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.getEndToken(arg0)),
   'hasReturnTypeInTypeAlias_0': new MethodTrampoline(0, (Parser target) => target.hasReturnTypeInTypeAlias()),
+  'injectToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.injectToken(arg0)),
   'isFunctionDeclaration_0': new MethodTrampoline(0, (Parser target) => target.isFunctionDeclaration()),
   'isFunctionExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.isFunctionExpression(arg0)),
   'isHexDigit_1': new MethodTrampoline(1, (Parser target, arg0) => target.isHexDigit(arg0)),
@@ -11469,7 +11525,6 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'peek_1': new MethodTrampoline(1, (Parser target, arg0) => target.peek2(arg0)),
   'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError(arg0, arg1, arg2)),
   'reportError_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportError9(arg0, arg1)),
-  'scrapeTodoComment_1': new MethodTrampoline(1, (Parser target, arg0) => target.scrapeTodoComment(arg0)),
   'skipFinalConstVarOrType_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFinalConstVarOrType(arg0)),
   'skipFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFormalParameterList(arg0)),
   'skipPastMatchingToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipPastMatchingToken(arg0)),

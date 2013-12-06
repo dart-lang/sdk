@@ -144,17 +144,17 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
   void onData(void handleData(T event)) {
     if (handleData == null) handleData = _nullDataHandler;
-    _onData = Zone.current.registerUnaryCallback(handleData);
+    _onData = _zone.registerUnaryCallback(handleData);
   }
 
   void onError(Function handleError) {
     if (handleError == null) handleError = _nullErrorHandler;
-    _onError = _registerErrorHandler(handleError, Zone.current);
+    _onError = _registerErrorHandler(handleError, _zone);
   }
 
   void onDone(void handleDone()) {
     if (handleDone == null) handleDone = _nullDoneHandler;
-    _onDone = Zone.current.registerCallback(handleDone);
+    _onDone = _zone.registerCallback(handleDone);
   }
 
   void pause([Future resumeSignal]) {

@@ -43,7 +43,7 @@ Future<String> compile(source) {
     }
   }
   return compiler.compile(
-      new Uri('memory:/main.dart'),
+      Uri.parse('memory:/main.dart'),
       Uri.parse('sdk:/sdk/'),
       null,
       inputProvider,

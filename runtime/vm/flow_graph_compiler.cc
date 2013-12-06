@@ -508,7 +508,6 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
       ASSERT(index >= 0);
       it.SetCurrentLocation(Location::StackSlot(index));
     } else if (loc.IsFpuRegister()) {
-      assembler()->Comment("You betcha!");
       intptr_t index = fpu_reg_slots[loc.fpu_reg()];
       ASSERT(index >= 0);
       Value* value = it.CurrentValue();

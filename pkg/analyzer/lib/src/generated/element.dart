@@ -182,6 +182,13 @@ abstract class ClassElement implements Element {
   bool get isAbstract;
 
   /**
+   * Return `true` if this element has an annotation of the form '@proxy'.
+   *
+   * @return `true` if this element defines a proxy
+   */
+  bool get isProxy;
+
+  /**
    * Return `true` if this class is defined by a typedef construct.
    *
    * @return `true` if this class is defined by a typedef construct
@@ -408,6 +415,11 @@ abstract class ConstructorElement implements ClassMemberElement, ExecutableEleme
  */
 abstract class Element {
   /**
+   * An Unicode right arrow.
+   */
+  static final String RIGHT_ARROW = " \u2192 ";
+
+  /**
    * A comparator that can be used to sort elements by their name offset. Elements with a smaller
    * offset will be sorted to be before elements with a larger name offset.
    */
@@ -574,6 +586,31 @@ abstract class ElementAnnotation {
    * @return the field, variable, or constructor being used as an annotation
    */
   Element get element;
+
+  /**
+   * Return `true` if this annotation marks the associated element as being deprecated.
+   *
+   * @return `true` if this annotation marks the associated element as being deprecated
+   */
+  bool get isDeprecated;
+
+  /**
+   * Return `true` if this annotation marks the associated method as being expected to
+   * override an inherited method.
+   *
+   * @return `true` if this annotation marks the associated method as overriding another
+   *         method
+   */
+  bool get isOverride;
+
+  /**
+   * Return `true` if this annotation marks the associated class as implementing a proxy
+   * object.
+   *
+   * @return `true` if this annotation marks the associated class as implementing a proxy
+   *         object
+   */
+  bool get isProxy;
 }
 
 /**
@@ -2102,7 +2139,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     classesToVisit.add(this);
     while (!classesToVisit.isEmpty) {
       ClassElement currentElement = classesToVisit.removeAt(0);
-      if (javaSetAdd(visitedClasses, currentElement)) {
+      if (visitedClasses.add(currentElement)) {
         for (FieldElement field in currentElement.fields) {
           if (!field.isFinal && !field.isConst && !field.isStatic && !field.isSynthetic) {
             return true;
@@ -2128,6 +2165,15 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
+  bool get isProxy {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isProxy) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool get isTypedef => hasModifier(Modifier.TYPEDEF);
 
   bool get isValidMixin => hasModifier(Modifier.MIXIN);
@@ -2136,7 +2182,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
     ClassElement currentElement = this;
     while (currentElement != null && !visitedClasses.contains(currentElement)) {
-      javaSetAdd(visitedClasses, currentElement);
+      visitedClasses.add(currentElement);
       PropertyAccessorElement element = currentElement.getGetter(getterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -2163,7 +2209,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
     ClassElement currentElement = this;
     while (currentElement != null && !visitedClasses.contains(currentElement)) {
-      javaSetAdd(visitedClasses, currentElement);
+      visitedClasses.add(currentElement);
       MethodElement element = currentElement.getMethod(methodName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -2190,7 +2236,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
     ClassElement currentElement = this;
     while (currentElement != null && !visitedClasses.contains(currentElement)) {
-      javaSetAdd(visitedClasses, currentElement);
+      visitedClasses.add(currentElement);
       PropertyAccessorElement element = currentElement.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -2886,6 +2932,27 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static List<ElementAnnotationImpl> EMPTY_ARRAY = new List<ElementAnnotationImpl>(0);
 
   /**
+   * The name of the class used to mark an element as being deprecated.
+   */
+  static String _DEPRECATED_CLASS_NAME = "Deprecated";
+
+  /**
+   * The name of the top-level variable used to mark an element as being deprecated.
+   */
+  static String _DEPRECATED_VARIABLE_NAME = "deprecated";
+
+  /**
+   * The name of the top-level variable used to mark a method as being expected to override an
+   * inherited method.
+   */
+  static String _OVERRIDE_VARIABLE_NAME = "override";
+
+  /**
+   * The name of the top-level variable used to mark a class as implementing a proxy object.
+   */
+  static String _PROXY_VARIABLE_NAME = "proxy";
+
+  /**
    * Initialize a newly created annotation.
    *
    * @param element the element representing the field, variable, or constructor being used as an
@@ -2896,6 +2963,47 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   Element get element => _element;
+
+  bool get isDeprecated {
+    if (_element != null) {
+      LibraryElement library = _element.library;
+      if (library != null && library.isDartCore) {
+        if (_element is ConstructorElement) {
+          ConstructorElement constructorElement = _element as ConstructorElement;
+          if (constructorElement.enclosingElement.name == _DEPRECATED_CLASS_NAME) {
+            return true;
+          }
+        } else if (_element is PropertyAccessorElement && _element.name == _DEPRECATED_VARIABLE_NAME) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool get isOverride {
+    if (_element != null) {
+      LibraryElement library = _element.library;
+      if (library != null && library.isDartCore) {
+        if (_element is PropertyAccessorElement && _element.name == _OVERRIDE_VARIABLE_NAME) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool get isProxy {
+    if (_element != null) {
+      LibraryElement library = _element.library;
+      if (library != null && library.isDartCore) {
+        if (_element is PropertyAccessorElement && _element.name == _PROXY_VARIABLE_NAME) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   String toString() => "@${_element.toString()}";
 }
@@ -3037,19 +3145,8 @@ abstract class ElementImpl implements Element {
 
   bool get isDeprecated {
     for (ElementAnnotation annotation in _metadata) {
-      Element element = annotation.element;
-      if (element != null) {
-        LibraryElement lib = element.library;
-        if (lib != null && lib.isDartCore) {
-          if (element is ConstructorElement) {
-            ConstructorElement constructorElement = element as ConstructorElement;
-            if (constructorElement.enclosingElement.name == "Deprecated") {
-              return true;
-            }
-          } else if (element is PropertyAccessorElement && element.name == "deprecated") {
-            return true;
-          }
-        }
+      if (annotation.isDeprecated) {
+        return true;
       }
     }
     return false;
@@ -3578,7 +3675,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     }
     builder.append(")");
     if (_type != null) {
-      builder.append(" -> ");
+      builder.append(Element.RIGHT_ARROW);
       builder.append(_type.returnType);
     }
   }
@@ -3819,6 +3916,45 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
 
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
 
+  /**
+   * Treating the set of arrays defined in [ExecutableElementImpl] as one long array, this
+   * returns the index position of the passed child in this [FunctionElement]. This gives a
+   * unique integer for each element, this is provided primarily for function elements that do not
+   * have a name (closures), which cannot use [Element#getNameOffset]. If there is no such
+   * element, `-1` is returned.
+   *
+   * @param element the element to find and return an integer for, if there is no such element,
+   *          `-1` is returned
+   */
+  int getIndexPosition(Element element) {
+    List<FunctionElement> functions = this.functions;
+    List<LabelElement> labels = this.labels;
+    List<LocalVariableElement> localVariables = this.localVariables;
+    List<ParameterElement> parameters = this.parameters;
+    int count = 0;
+    for (int i = 0; i < functions.length; i++, count++) {
+      if (identical(element, functions[i])) {
+        return count;
+      }
+    }
+    for (int i = 0; i < labels.length; i++, count++) {
+      if (identical(element, labels[i])) {
+        return count;
+      }
+    }
+    for (int i = 0; i < localVariables.length; i++, count++) {
+      if (identical(element, localVariables[i])) {
+        return count;
+      }
+    }
+    for (int i = 0; i < parameters.length; i++, count++) {
+      if (identical(element, parameters[i])) {
+        return count;
+      }
+    }
+    return -1;
+  }
+
   ElementKind get kind => ElementKind.FUNCTION;
 
   SourceRange get visibleRange {
@@ -4017,7 +4153,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
     }
     builder.append(")");
     if (_type != null) {
-      builder.append(" -> ");
+      builder.append(Element.RIGHT_ARROW);
       builder.append(_type.returnType);
     }
   }
@@ -4371,7 +4507,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   static bool isUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
     if (!visitedLibraries.contains(library)) {
-      javaSetAdd(visitedLibraries, library);
+      visitedLibraries.add(library);
       if (timeStamp < library.definingCompilationUnit.source.modificationStamp) {
         return false;
       }
@@ -4472,7 +4608,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (ExportElement element in _exports) {
       LibraryElement library = element.exportedLibrary;
       if (library != null) {
-        javaSetAdd(libraries, library);
+        libraries.add(library);
       }
     }
     return new List.from(libraries);
@@ -4485,7 +4621,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (ImportElement element in _imports) {
       LibraryElement library = element.importedLibrary;
       if (library != null) {
-        javaSetAdd(libraries, library);
+        libraries.add(library);
       }
     }
     return new List.from(libraries);
@@ -4504,7 +4640,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (ImportElement element in _imports) {
       PrefixElement prefix = element.prefix;
       if (prefix != null) {
-        javaSetAdd(prefixes, prefix);
+        prefixes.add(prefix);
       }
     }
     return new List.from(prefixes);
@@ -4896,10 +5032,10 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   static void add(Set<Element> elements, Element element) {
     if (element is MultiplyDefinedElementImpl) {
       for (Element conflictingElement in (element as MultiplyDefinedElementImpl)._conflictingElements) {
-        javaSetAdd(elements, conflictingElement);
+        elements.add(conflictingElement);
       }
     } else {
-      javaSetAdd(elements, element);
+      elements.add(element);
     }
   }
 
@@ -5806,7 +5942,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     }
     builder.append(")");
     if (type != null) {
-      builder.append(" -> ");
+      builder.append(Element.RIGHT_ARROW);
       builder.append(type.returnType);
     }
     return builder.toString();
@@ -5870,6 +6006,24 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     safelyVisitChildren(baseElement.localVariables, visitor);
     safelyVisitChildren(parameters, visitor);
   }
+}
+
+/**
+ * Instances of the class `FieldFormalParameterMember` represent a parameter element defined
+ * in a parameterized type where the values of the type parameters are known.
+ */
+class FieldFormalParameterMember extends ParameterMember implements FieldFormalParameterElement {
+  /**
+   * Initialize a newly created element to represent a parameter of the given parameterized type.
+   *
+   * @param baseElement the element on which the parameterized element was created
+   * @param definingType the type in which the element is defined
+   */
+  FieldFormalParameterMember(FieldFormalParameterElement baseElement, ParameterizedType definingType) : super(baseElement, definingType);
+
+  accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
+
+  FieldElement get field => (baseElement as FieldFormalParameterElement).field;
 }
 
 /**
@@ -6119,7 +6273,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
     }
     builder.append(")");
     if (type != null) {
-      builder.append(" -> ");
+      builder.append(Element.RIGHT_ARROW);
       builder.append(type.returnType);
     }
     return builder.toString();
@@ -6146,7 +6300,8 @@ class ParameterMember extends VariableMember implements ParameterElement {
     if (baseParameter == null || definingType.typeArguments.length == 0) {
       return baseParameter;
     }
-    if (baseParameter is! FieldFormalParameterElement) {
+    bool isFieldFormal = baseParameter is FieldFormalParameterElement;
+    if (!isFieldFormal) {
       Type2 baseType = baseParameter.type;
       List<Type2> argumentTypes = definingType.typeArguments;
       List<Type2> parameterTypes = TypeParameterTypeImpl.getTypes(definingType.typeParameters);
@@ -6154,6 +6309,9 @@ class ParameterMember extends VariableMember implements ParameterElement {
       if (baseType == substitutedType) {
         return baseParameter;
       }
+    }
+    if (isFieldFormal) {
+      return new FieldFormalParameterMember(baseParameter as FieldFormalParameterElement, definingType);
     }
     return new ParameterMember(baseParameter, definingType);
   }
@@ -6324,7 +6482,7 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     }
     builder.append(")");
     if (type != null) {
-      builder.append(" -> ");
+      builder.append(Element.RIGHT_ARROW);
       builder.append(type.returnType);
     }
     return builder.toString();
@@ -6386,13 +6544,13 @@ class BottomTypeImpl extends TypeImpl {
 
   bool get isBottom => true;
 
-  bool isMoreSpecificThan3(Type2 type, bool withDynamic) => true;
-
-  bool isSubtypeOf(Type2 type) => true;
-
   bool isSupertypeOf(Type2 type) => false;
 
   BottomTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
+
+  bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => true;
+
+  bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
 }
 
 /**
@@ -6417,15 +6575,6 @@ class DynamicTypeImpl extends TypeImpl {
 
   bool get isDynamic => true;
 
-  bool isMoreSpecificThan3(Type2 type, bool withDynamic) {
-    if (identical(this, type)) {
-      return true;
-    }
-    return withDynamic;
-  }
-
-  bool isSubtypeOf(Type2 type) => true;
-
   bool isSupertypeOf(Type2 type) => true;
 
   Type2 substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) {
@@ -6437,6 +6586,15 @@ class DynamicTypeImpl extends TypeImpl {
     }
     return this;
   }
+
+  bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    if (identical(this, type)) {
+      return true;
+    }
+    return withDynamic;
+  }
+
+  bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => true;
 }
 
 /**
@@ -6557,7 +6715,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         builder.append("}");
         needsComma = true;
       }
-      builder.append(") -> ");
+      builder.append(")");
+      builder.append(Element.RIGHT_ARROW);
       if (returnType == null) {
         builder.append("null");
       } else {
@@ -6656,9 +6815,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return element.hashCode;
   }
 
-  bool isAssignableTo(Type2 type) => this.isSubtypeOf(type);
-
-  bool isMoreSpecificThan3(Type2 type, bool withDynamic) {
+  bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     if (type == null) {
       return false;
     } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
@@ -6682,7 +6839,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         return false;
       } else if (t.normalParameterTypes.length > 0) {
         for (int i = 0; i < tTypes.length; i++) {
-          if (!tTypes[i].isMoreSpecificThan3(sTypes[i], withDynamic)) {
+          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan3(sTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
@@ -6699,7 +6856,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         if (typeT == null) {
           return false;
         }
-        if (!typeT.isMoreSpecificThan3(entryS.getValue(), withDynamic)) {
+        if (!(typeT as TypeImpl).isMoreSpecificThan3(entryS.getValue(), withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -6713,7 +6870,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
         for (int i = 0; i < sTypes.length; i++) {
-          if (!tTypes[i].isMoreSpecificThan3(sTypes[i], withDynamic)) {
+          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan3(sTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
@@ -6733,7 +6890,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
           sAllTypes[i] = sOpTypes[j];
         }
         for (int i = 0; i < sAllTypes.length; i++) {
-          if (!tAllTypes[i].isMoreSpecificThan3(sAllTypes[i], withDynamic)) {
+          if (!(tAllTypes[i] as TypeImpl).isMoreSpecificThan3(sAllTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
@@ -6741,94 +6898,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     Type2 tRetType = t.returnType;
     Type2 sRetType = s.returnType;
-    return sRetType.isVoid || tRetType.isMoreSpecificThan3(sRetType, withDynamic);
+    return sRetType.isVoid || (tRetType as TypeImpl).isMoreSpecificThan3(sRetType, withDynamic, visitedTypePairs);
   }
 
-  bool isSubtypeOf(Type2 type) {
-    if (type == null) {
-      return false;
-    } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
-      return true;
-    } else if (type is! FunctionType) {
-      return false;
-    } else if (this == type) {
-      return true;
-    }
-    FunctionType t = this;
-    FunctionType s = type as FunctionType;
-    List<Type2> tTypes = t.normalParameterTypes;
-    List<Type2> tOpTypes = t.optionalParameterTypes;
-    List<Type2> sTypes = s.normalParameterTypes;
-    List<Type2> sOpTypes = s.optionalParameterTypes;
-    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) || (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
-      return false;
-    }
-    if (t.namedParameterTypes.length > 0) {
-      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
-        return false;
-      } else if (t.normalParameterTypes.length > 0) {
-        for (int i = 0; i < tTypes.length; i++) {
-          if (!tTypes[i].isAssignableTo(sTypes[i])) {
-            return false;
-          }
-        }
-      }
-      Map<String, Type2> namedTypesT = t.namedParameterTypes;
-      Map<String, Type2> namedTypesS = s.namedParameterTypes;
-      if (namedTypesT.length < namedTypesS.length) {
-        return false;
-      }
-      JavaIterator<MapEntry<String, Type2>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
-      while (iteratorS.hasNext) {
-        MapEntry<String, Type2> entryS = iteratorS.next();
-        Type2 typeT = namedTypesT[entryS.getKey()];
-        if (typeT == null) {
-          return false;
-        }
-        if (!typeT.isAssignableTo(entryS.getValue())) {
-          return false;
-        }
-      }
-    } else if (s.namedParameterTypes.length > 0) {
-      return false;
-    } else {
-      int tArgLength = tTypes.length + tOpTypes.length;
-      int sArgLength = sTypes.length + sOpTypes.length;
-      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
-        return false;
-      }
-      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
-        for (int i = 0; i < sTypes.length; i++) {
-          if (!tTypes[i].isAssignableTo(sTypes[i])) {
-            return false;
-          }
-        }
-      } else {
-        List<Type2> tAllTypes = new List<Type2>(sArgLength);
-        for (int i = 0; i < tTypes.length; i++) {
-          tAllTypes[i] = tTypes[i];
-        }
-        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
-          tAllTypes[i] = tOpTypes[j];
-        }
-        List<Type2> sAllTypes = new List<Type2>(sArgLength);
-        for (int i = 0; i < sTypes.length; i++) {
-          sAllTypes[i] = sTypes[i];
-        }
-        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
-          sAllTypes[i] = sOpTypes[j];
-        }
-        for (int i = 0; i < sAllTypes.length; i++) {
-          if (!tAllTypes[i].isAssignableTo(sAllTypes[i])) {
-            return false;
-          }
-        }
-      }
-    }
-    Type2 tRetType = t.returnType;
-    Type2 sRetType = s.returnType;
-    return sRetType.isVoid || tRetType.isAssignableTo(sRetType);
-  }
+  bool isAssignableTo(Type2 type) => isSubtypeOf3(type, new Set<TypeImpl_TypePair>());
 
   /**
    * Set the actual types of the type arguments to the given types.
@@ -6907,7 +6980,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       builder.append("}");
       needsComma = true;
     }
-    builder.append(") -> ");
+    builder.append(")");
+    builder.append(Element.RIGHT_ARROW);
     if (returnType == null) {
       builder.append("null");
     } else {
@@ -6925,6 +6999,92 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else {
       return (element as FunctionTypeAliasElement).parameters;
     }
+  }
+
+  bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    if (type == null) {
+      return false;
+    } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
+      return true;
+    } else if (type is! FunctionType) {
+      return false;
+    } else if (this == type) {
+      return true;
+    }
+    FunctionType t = this;
+    FunctionType s = type as FunctionType;
+    List<Type2> tTypes = t.normalParameterTypes;
+    List<Type2> tOpTypes = t.optionalParameterTypes;
+    List<Type2> sTypes = s.normalParameterTypes;
+    List<Type2> sOpTypes = s.optionalParameterTypes;
+    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) || (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
+      return false;
+    }
+    if (t.namedParameterTypes.length > 0) {
+      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
+        return false;
+      } else if (t.normalParameterTypes.length > 0) {
+        for (int i = 0; i < tTypes.length; i++) {
+          if (!(tTypes[i] as TypeImpl).isAssignableTo2(sTypes[i], visitedTypePairs)) {
+            return false;
+          }
+        }
+      }
+      Map<String, Type2> namedTypesT = t.namedParameterTypes;
+      Map<String, Type2> namedTypesS = s.namedParameterTypes;
+      if (namedTypesT.length < namedTypesS.length) {
+        return false;
+      }
+      JavaIterator<MapEntry<String, Type2>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
+      while (iteratorS.hasNext) {
+        MapEntry<String, Type2> entryS = iteratorS.next();
+        Type2 typeT = namedTypesT[entryS.getKey()];
+        if (typeT == null) {
+          return false;
+        }
+        if (!(typeT as TypeImpl).isAssignableTo2(entryS.getValue(), visitedTypePairs)) {
+          return false;
+        }
+      }
+    } else if (s.namedParameterTypes.length > 0) {
+      return false;
+    } else {
+      int tArgLength = tTypes.length + tOpTypes.length;
+      int sArgLength = sTypes.length + sOpTypes.length;
+      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
+        return false;
+      }
+      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        for (int i = 0; i < sTypes.length; i++) {
+          if (!(tTypes[i] as TypeImpl).isAssignableTo2(sTypes[i], visitedTypePairs)) {
+            return false;
+          }
+        }
+      } else {
+        List<Type2> tAllTypes = new List<Type2>(sArgLength);
+        for (int i = 0; i < tTypes.length; i++) {
+          tAllTypes[i] = tTypes[i];
+        }
+        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+          tAllTypes[i] = tOpTypes[j];
+        }
+        List<Type2> sAllTypes = new List<Type2>(sArgLength);
+        for (int i = 0; i < sTypes.length; i++) {
+          sAllTypes[i] = sTypes[i];
+        }
+        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+          sAllTypes[i] = sOpTypes[j];
+        }
+        for (int i = 0; i < sAllTypes.length; i++) {
+          if (!(tAllTypes[i] as TypeImpl).isAssignableTo2(sAllTypes[i], visitedTypePairs)) {
+            return false;
+          }
+        }
+      }
+    }
+    Type2 tRetType = t.returnType;
+    Type2 sRetType = s.returnType;
+    return sRetType.isVoid || (tRetType as TypeImpl).isAssignableTo2(sRetType, visitedTypePairs);
   }
 
   /**
@@ -6994,7 +7154,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     int longestPath = 1;
     try {
-      javaSetAdd(visitedClasses, classElement);
+      visitedClasses.add(classElement);
       List<InterfaceType> superinterfaces = classElement.interfaces;
       int pathLength;
       if (superinterfaces.length > 0) {
@@ -7032,13 +7192,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       ClassElement classElement = element as ClassElement;
       List<InterfaceType> superinterfaces = classElement.interfaces;
       for (InterfaceType superinterface in superinterfaces) {
-        if (javaSetAdd(set, superinterface)) {
+        if (set.add(superinterface)) {
           computeSuperinterfaceSet2(superinterface, set);
         }
       }
       InterfaceType supertype = classElement.supertype;
       if (supertype != null) {
-        if (javaSetAdd(set, supertype)) {
+        if (set.add(supertype)) {
           computeSuperinterfaceSet2(supertype, set);
         }
       }
@@ -7066,7 +7226,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (InterfaceType secondType in second) {
       InterfaceType firstType = firstMap[secondType.element];
       if (firstType != null) {
-        javaSetAdd(result, leastUpperBound(firstType, secondType));
+        result.add(leastUpperBound(firstType, secondType));
       }
     }
     return new List.from(result);
@@ -7205,8 +7365,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     InterfaceType j = type as InterfaceType;
     Set<InterfaceType> si = computeSuperinterfaceSet(i);
     Set<InterfaceType> sj = computeSuperinterfaceSet(j);
-    javaSetAdd(si, i);
-    javaSetAdd(sj, j);
+    si.add(i);
+    sj.add(j);
     List<InterfaceType> s = intersection(si, sj);
     List<int> depths = new List<int>.filled(s.length, 0);
     int maxDepth = 0;
@@ -7319,36 +7479,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return false;
   }
 
-  bool isMoreSpecificThan3(Type2 type, bool withDynamic) {
-    if (identical(type, DynamicTypeImpl.instance)) {
-      return true;
-    } else if (type is! InterfaceType) {
-      return false;
-    }
-    return isMoreSpecificThan2(type as InterfaceType, new Set<ClassElement>(), withDynamic);
-  }
-
   bool get isObject => element.supertype == null;
-
-  bool isSubtypeOf(Type2 type) {
-    if (identical(type, DynamicTypeImpl.instance)) {
-      return true;
-    } else if (type is TypeParameterType) {
-      return true;
-    } else if (type is FunctionType) {
-      ClassElement element = this.element;
-      MethodElement callMethod = element.lookUpMethod("call", element.library);
-      if (callMethod != null) {
-        return callMethod.type.isSubtypeOf(type);
-      }
-      return false;
-    } else if (type is! InterfaceType) {
-      return false;
-    } else if (this == type) {
-      return true;
-    }
-    return isSubtypeOf2(type as InterfaceType, new Set<ClassElement>());
-  }
 
   ConstructorElement lookUpConstructor(String constructorName, LibraryElement library) {
     ConstructorElement constructorElement;
@@ -7382,7 +7513,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype == null ? null : supertype.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
-      javaSetAdd(visitedClasses, supertypeElement);
+      visitedClasses.add(supertypeElement);
       PropertyAccessorElement element = supertype.getGetter(getterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -7418,7 +7549,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype == null ? null : supertype.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
-      javaSetAdd(visitedClasses, supertypeElement);
+      visitedClasses.add(supertypeElement);
       MethodElement element = supertype.getMethod(methodName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -7454,7 +7585,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     InterfaceType supertype = superclass;
     ClassElement supertypeElement = supertype == null ? null : supertype.element;
     while (supertype != null && !visitedClasses.contains(supertypeElement)) {
-      javaSetAdd(visitedClasses, supertypeElement);
+      visitedClasses.add(supertypeElement);
       PropertyAccessorElement element = supertype.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
@@ -7513,7 +7644,36 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
-  bool isMoreSpecificThan2(InterfaceType s, Set<ClassElement> visitedClasses, bool withDynamic) {
+  bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    if (identical(type, DynamicTypeImpl.instance)) {
+      return true;
+    } else if (type is! InterfaceType) {
+      return false;
+    }
+    return isMoreSpecificThan2(type as InterfaceType, new Set<ClassElement>(), withDynamic, visitedTypePairs);
+  }
+
+  bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    if (identical(type, DynamicTypeImpl.instance)) {
+      return true;
+    } else if (type is TypeParameterType) {
+      return true;
+    } else if (type is FunctionType) {
+      ClassElement element = this.element;
+      MethodElement callMethod = element.lookUpMethod("call", element.library);
+      if (callMethod != null) {
+        return callMethod.type.isSubtypeOf(type);
+      }
+      return false;
+    } else if (type is! InterfaceType) {
+      return false;
+    } else if (this == type) {
+      return true;
+    }
+    return isSubtypeOf2(type as InterfaceType, new Set<ClassElement>(), visitedTypePairs);
+  }
+
+  bool isMoreSpecificThan2(InterfaceType s, Set<ClassElement> visitedClasses, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     if (this == s) {
       return true;
     }
@@ -7529,7 +7689,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return false;
       }
       for (int i = 0; i < tArguments.length; i++) {
-        if (!tArguments[i].isMoreSpecificThan3(sArguments[i], withDynamic)) {
+        if (!(tArguments[i] as TypeImpl).isMoreSpecificThan3(sArguments[i], withDynamic, visitedTypePairs)) {
           return false;
         }
       }
@@ -7539,32 +7699,32 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (element == null || visitedClasses.contains(element)) {
       return false;
     }
-    javaSetAdd(visitedClasses, element);
+    visitedClasses.add(element);
     InterfaceType supertype = superclass;
-    if (supertype != null && (supertype as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic)) {
+    if (supertype != null && (supertype as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic, visitedTypePairs)) {
       return true;
     }
     for (InterfaceType interfaceType in interfaces) {
-      if ((interfaceType as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic)) {
+      if ((interfaceType as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic, visitedTypePairs)) {
         return true;
       }
     }
     for (InterfaceType mixinType in mixins) {
-      if ((mixinType as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic)) {
+      if ((mixinType as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic, visitedTypePairs)) {
         return true;
       }
     }
     return false;
   }
 
-  bool isSubtypeOf2(InterfaceType type, Set<ClassElement> visitedClasses) {
+  bool isSubtypeOf2(InterfaceType type, Set<ClassElement> visitedClasses, Set<TypeImpl_TypePair> visitedTypePairs) {
     InterfaceType typeT = this;
     InterfaceType typeS = type;
     ClassElement elementT = element;
     if (elementT == null || visitedClasses.contains(elementT)) {
       return false;
     }
-    javaSetAdd(visitedClasses, elementT);
+    visitedClasses.add(elementT);
     if (typeT == typeS) {
       return true;
     } else if (elementT == typeS.element) {
@@ -7574,7 +7734,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return false;
       }
       for (int i = 0; i < typeTArgs.length; i++) {
-        if (!typeTArgs[i].isSubtypeOf(typeSArgs[i])) {
+        if (!(typeTArgs[i] as TypeImpl).isSubtypeOf3(typeSArgs[i], visitedTypePairs)) {
           return false;
         }
       }
@@ -7583,18 +7743,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     InterfaceType supertype = superclass;
-    if (supertype != null && (supertype as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses)) {
+    if (supertype != null && (supertype as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses, visitedTypePairs)) {
       return true;
     }
     List<InterfaceType> interfaceTypes = interfaces;
     for (InterfaceType interfaceType in interfaceTypes) {
-      if ((interfaceType as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses)) {
+      if ((interfaceType as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses, visitedTypePairs)) {
         return true;
       }
     }
     List<InterfaceType> mixinTypes = mixins;
     for (InterfaceType mixinType in mixinTypes) {
-      if ((mixinType as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses)) {
+      if ((mixinType as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses, visitedTypePairs)) {
         return true;
       }
     }
@@ -7665,7 +7825,22 @@ abstract class TypeImpl implements Type2 {
 
   String get name => _name;
 
-  bool isAssignableTo(Type2 type) => this.isSubtypeOf(type) || type.isSubtypeOf(this);
+  bool isAssignableTo(Type2 type) => isAssignableTo2(type, new Set<TypeImpl_TypePair>());
+
+  /**
+   * Return `true` if this type is assignable to the given type. A type <i>T</i> may be
+   * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
+   * or <i>S</i> <: <i>T</i>.
+   *
+   * The given set of pairs of types (T1, T2), where each pair indicates that we invoked this method
+   * because we are in the process of answering the question of whether T1 is a subtype of T2, is
+   * used to prevent infinite loops.
+   *
+   * @param type the type being compared with this type
+   * @param visitedPairs the set of pairs of types used to prevent infinite loops
+   * @return `true` if this type is assignable to the given type
+   */
+  bool isAssignableTo2(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf3(type, visitedTypePairs) || (type as TypeImpl).isSubtypeOf3(this, visitedTypePairs);
 
   bool get isBottom => false;
 
@@ -7673,11 +7848,54 @@ abstract class TypeImpl implements Type2 {
 
   bool get isDynamic => false;
 
-  bool isMoreSpecificThan(Type2 type) => isMoreSpecificThan3(type, false);
+  bool isMoreSpecificThan(Type2 type) => isMoreSpecificThan3(type, false, new Set<TypeImpl_TypePair>());
 
-  bool isMoreSpecificThan3(Type2 type, bool withDynamic) => false;
+  /**
+   * Return `true` if this type is more specific than the given type.
+   *
+   * The given set of pairs of types (T1, T2), where each pair indicates that we invoked this method
+   * because we are in the process of answering the question of whether T1 is a subtype of T2, is
+   * used to prevent infinite loops.
+   *
+   * @param type the type being compared with this type
+   * @param withDynamic `true` if "dynamic" should be considered as a subtype of any type
+   * @param visitedPairs the set of pairs of types used to prevent infinite loops
+   * @return `true` if this type is more specific than the given type
+   */
+  bool isMoreSpecificThan3(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
+    if (!visitedTypePairs.add(typePair)) {
+      return false;
+    }
+    bool result = internalIsMoreSpecificThan(type, withDynamic, visitedTypePairs);
+    visitedTypePairs.remove(typePair);
+    return result;
+  }
 
   bool get isObject => false;
+
+  bool isSubtypeOf(Type2 type) => isSubtypeOf3(type, new Set<TypeImpl_TypePair>());
+
+  /**
+   * Return `true` if this type is a subtype of the given type.
+   *
+   * The given set of pairs of types (T1, T2), where each pair indicates that we invoked this method
+   * because we are in the process of answering the question of whether T1 is a subtype of T2, is
+   * used to prevent infinite loops.
+   *
+   * @param type the type being compared with this type
+   * @param visitedPairs the set of pairs of types used to prevent infinite loops
+   * @return `true` if this type is a subtype of the given type
+   */
+  bool isSubtypeOf3(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
+    if (!visitedTypePairs.add(typePair)) {
+      return false;
+    }
+    bool result = internalIsSubtypeOf(type, visitedTypePairs);
+    visitedTypePairs.remove(typePair);
+    return result;
+  }
 
   bool isSupertypeOf(Type2 type) => type.isSubtypeOf(this);
 
@@ -7700,6 +7918,44 @@ abstract class TypeImpl implements Type2 {
     } else {
       builder.append(_name);
     }
+  }
+
+  bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs);
+
+  bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs);
+}
+
+class TypeImpl_TypePair {
+  Type2 _firstType;
+
+  Type2 _secondType;
+
+  TypeImpl_TypePair(Type2 firstType, Type2 secondType) {
+    this._firstType = firstType;
+    this._secondType = secondType;
+  }
+
+  bool operator ==(Object object) {
+    if (identical(object, this)) {
+      return true;
+    }
+    if (object is TypeImpl_TypePair) {
+      TypeImpl_TypePair typePair = object as TypeImpl_TypePair;
+      return _firstType == typePair._firstType && _secondType != null && _secondType == typePair._secondType;
+    }
+    return false;
+  }
+
+  int get hashCode {
+    int firstHashCode = 0;
+    if (_firstType != null) {
+      firstHashCode = _firstType.element == null ? 0 : _firstType.element.hashCode;
+    }
+    int secondHashCode = 0;
+    if (_secondType != null) {
+      secondHashCode = _secondType.element == null ? 0 : _secondType.element.hashCode;
+    }
+    return firstHashCode + secondHashCode;
   }
 }
 
@@ -7749,21 +8005,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   int get hashCode => element.hashCode;
 
-  bool isMoreSpecificThan3(Type2 s, bool withDynamic) {
-    if (this == s) {
-      return true;
-    }
-    if (s.isBottom) {
-      return true;
-    }
-    if (s.isDynamic) {
-      return true;
-    }
-    return isMoreSpecificThan4(s, new Set<Type2>(), withDynamic);
-  }
-
-  bool isSubtypeOf(Type2 s) => isMoreSpecificThan3(s, true);
-
   Type2 substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
@@ -7774,7 +8015,22 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return this;
   }
 
-  bool isMoreSpecificThan4(Type2 s, Set<Type2> visitedTypes, bool withDynamic) {
+  bool internalIsMoreSpecificThan(Type2 s, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    if (this == s) {
+      return true;
+    }
+    if (s.isBottom) {
+      return true;
+    }
+    if (s.isDynamic) {
+      return true;
+    }
+    return isMoreSpecificThan4(s, new Set<Type2>(), withDynamic, visitedTypePairs);
+  }
+
+  bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan3(type, true, new Set<TypeImpl_TypePair>());
+
+  bool isMoreSpecificThan4(Type2 s, Set<Type2> visitedTypes, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     Type2 bound = element.bound;
     if (s == bound) {
       return true;
@@ -7790,10 +8046,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       if (visitedTypes.contains(bound)) {
         return false;
       }
-      javaSetAdd(visitedTypes, bound);
-      return boundTypeParameter.isMoreSpecificThan4(s, visitedTypes, withDynamic);
+      visitedTypes.add(bound);
+      return boundTypeParameter.isMoreSpecificThan4(s, visitedTypes, withDynamic, visitedTypePairs);
     }
-    return bound.isMoreSpecificThan3(s, withDynamic);
+    return (bound as TypeImpl).isMoreSpecificThan3(s, withDynamic, visitedTypePairs);
   }
 }
 
@@ -7815,13 +8071,13 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   bool operator ==(Object object) => identical(object, this);
 
-  bool isMoreSpecificThan3(Type2 type, bool withDynamic) => isSubtypeOf(type);
-
-  bool isSubtypeOf(Type2 type) => identical(type, this) || identical(type, DynamicTypeImpl.instance);
-
   bool get isVoid => true;
 
   VoidTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
+
+  bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf(type);
+
+  bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => identical(type, this) || identical(type, DynamicTypeImpl.instance);
 }
 
 /**
@@ -8373,15 +8629,6 @@ abstract class Type2 {
    * @return `true` if this type is more specific than the given type
    */
   bool isMoreSpecificThan(Type2 type);
-
-  /**
-   * Return `true` if this type is more specific than the given type.
-   *
-   * @param type the type being compared with this type
-   * @param withDynamic `true` if "dynamic" should be considered as a subtype of any type
-   * @return `true` if this type is more specific than the given type
-   */
-  bool isMoreSpecificThan3(Type2 type, bool withDynamic);
 
   /**
    * Return `true` if this type represents the type 'Object'.

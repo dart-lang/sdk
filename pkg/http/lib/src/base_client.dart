@@ -128,7 +128,7 @@ abstract class BaseClient implements Client {
   /// Sends a non-streaming [Request] and returns a non-streaming [Response].
   Future<Response> _sendUnstreamed(String method, url,
       Map<String, String> headers, [body, Encoding encoding]) {
-    return new Future.sync(() {
+    return syncFuture(() {
       if (url is String) url = Uri.parse(url);
       var request = new Request(method, url);
 

@@ -151,7 +151,7 @@ void AssemblerTest::Assemble() {
   cls.set_library(lib);
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, cls, 0));
+                    true, false, false, false, false, cls, 0));
   code_ = Code::FinalizeCode(function, assembler_);
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
@@ -179,7 +179,7 @@ CodeGenTest::CodeGenTest(const char* name)
        Class::New(function_name, Script::Handle(), Scanner::kDummyTokenIndex));
   function_ = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, cls, 0);
+      true, false, false, false, false, cls, 0);
   function_.set_result_type(Type::Handle(Type::DynamicType()));
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function_);

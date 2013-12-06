@@ -536,6 +536,40 @@ main() {
         );
     });
 
+    test('CU - comments (8)', () {
+      expectCUFormatsTo(
+          'var x /* X */, y;\n',
+          'var x /* X */, y;\n'
+      );
+    });
+
+    test('CU - comments (9)', () {
+      expectCUFormatsTo(
+          'main() {\n'
+          '  foo(1 /* bang */, 2);\n'
+          '}\n'
+          'foo(x, y) => null;\n',
+          'main() {\n'
+          '  foo(1 /* bang */, 2);\n'
+          '}\n'
+          'foo(x, y) => null;\n'
+      );
+    });
+
+    test('CU - comments (10)', () {
+      expectCUFormatsTo(
+          'var l = [1 /* bang */, 2];\n',
+          'var l = [1 /* bang */, 2];\n'
+      );
+    });
+
+    test('CU - comments (11)', () {
+      expectCUFormatsTo(
+          'var m = {1: 2 /* bang */, 3: 4};\n',
+          'var m = {1: 2 /* bang */, 3: 4};\n'
+      );
+    });
+
     test('CU - EOF nl', () {
       expectCUFormatsTo(
           'var x = 1;',
@@ -711,6 +745,20 @@ main() {
       );
     });
 
+    test('stmt (empty while body)', () {
+      expectStmtFormatsTo(
+        'while (true);',
+        'while (true);'
+      );
+    });
+
+    test('stmt (empty for body)', () {
+      expectStmtFormatsTo(
+        'for ( ; ; );',
+        'for ( ; ; );'
+      );
+    });
+
     test('stmt (cascades)', () {
       expectStmtFormatsTo(
         '"foo"\n'
@@ -734,6 +782,16 @@ main() {
         'var l = [1,2,3,4];',
         'var l = [1, 2, 3, 4];'
       );
+      expectStmtFormatsTo(
+        'var l = [\n'
+        '1,\n'
+        '2,\n'
+        '];',
+        'var l = [\n'
+        '  1,\n'
+        '  2,\n'
+        '];'
+      );
       //Dangling ','
       expectStmtFormatsTo(
         'var l = [1,];',
@@ -745,6 +803,17 @@ main() {
       expectStmtFormatsTo(
         'var map = const {"foo": "bar", "fuz": null};',
         'var map = const {"foo": "bar", "fuz": null};'
+      );
+
+      expectStmtFormatsTo(
+          'var map = {\n'
+          '"foo": "bar",\n'
+          '"bar": "baz"'
+          '};',
+          'var map = {\n'
+          '  "foo": "bar",\n'
+          '  "bar": "baz"'
+          '};'
       );
 
       //Dangling ','
@@ -766,6 +835,18 @@ main() {
         '} catch (e) {\n'
         '  print(e);\n'
         '}'
+      );
+      expectStmtFormatsTo(
+          'try{\n'
+          'doSomething();\n'
+          '}on Exception catch (e){\n'
+          'print(e);\n'
+          '}',
+          'try {\n'
+          '  doSomething();\n'
+          '} on Exception catch (e) {\n'
+          '  print(e);\n'
+          '}'
       );
     });
 

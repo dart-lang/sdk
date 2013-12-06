@@ -5,10 +5,7 @@
 patch class _AsyncRun {
   /* patch */ static void _scheduleImmediate(void callback()) {
     if (_ScheduleImmediate._closure == null) {
-      // TODO(9001): don't default to using the Timer to enqueue the immediate
-      //             callback.
-      _createTimer(Duration.ZERO, callback);
-      return;
+      throw new UnsupportedError("Microtasks are not supported");
     }
     _ScheduleImmediate._closure(callback);
   }

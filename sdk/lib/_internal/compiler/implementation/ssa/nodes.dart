@@ -795,11 +795,6 @@ abstract class HInstruction implements Spannable {
   void setUseGvn() { _useGvn = true; }
   void clearUseGvn() { _useGvn = false; }
 
-  void updateInput(int i, HInstruction insn) {
-    assert(insn != null);
-    inputs[i] = insn;
-  }
-
   /**
    * A pure instruction is an instruction that does not have any side
    * effect, nor any dependency. They can be moved anywhere in the
@@ -980,23 +975,6 @@ abstract class HInstruction implements Spannable {
   bool onlyThrowsNSM() => false;
 
   bool isInBasicBlock() => block != null;
-
-  String inputsToString() {
-    void addAsCommaSeparated(StringBuffer buffer, List<HInstruction> list) {
-      for (int i = 0; i < list.length; i++) {
-        if (i != 0) buffer.write(', ');
-        buffer.write("@${list[i].id}");
-      }
-    }
-
-    StringBuffer buffer = new StringBuffer();
-    buffer.write('(');
-    addAsCommaSeparated(buffer, inputs);
-    buffer.write(') - used at [');
-    addAsCommaSeparated(buffer, usedBy);
-    buffer.write(']');
-    return buffer.toString();
-  }
 
   bool gvnEquals(HInstruction other) {
     assert(useGvn() && other.useGvn());
@@ -1386,13 +1364,6 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
 
   String toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
-
-  bool isIndexOperatorOnIndexablePrimitive(Compiler compiler) {
-    return isInterceptedCall
-        && selector.kind == SelectorKind.INDEX
-        && selector.name == '[]'
-        && inputs[1].isIndexablePrimitive(compiler);
-  }
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
@@ -1904,27 +1875,6 @@ class HLoopBranch extends HConditionalBranch {
       : super(<HInstruction>[condition]);
   toString() => 'loop-branch';
   accept(HVisitor visitor) => visitor.visitLoopBranch(this);
-
-  bool isDoWhile() {
-    return identical(kind, DO_WHILE_LOOP);
-  }
-
-  HBasicBlock computeLoopHeader() {
-    HBasicBlock result;
-    if (isDoWhile()) {
-      // In case of a do/while, the successor is a block that avoids
-      // a critical edge and branchs to the loop header.
-      result = block.successors[0].successors[0];
-    } else {
-      // For other loops, the loop header might be up the dominator
-      // tree if the loop condition has control flow.
-      result = block;
-      while (!result.isLoopHeader()) result = result.dominator;
-    }
-
-    assert(result.isLoopHeader());
-    return result;
-  }
 }
 
 class HConstant extends HInstruction {
@@ -2022,15 +1972,6 @@ class HPhi extends HInstruction {
     inputs.add(input);
     assert(inputs.length <= block.predecessors.length);
     input.usedBy.add(this);
-  }
-
-  bool isLogicalOperator() => logicalOperatorType != IS_NOT_LOGICAL_OPERATOR;
-
-  String logicalOperator() {
-    assert(isLogicalOperator());
-    if (logicalOperatorType == IS_AND) return "&&";
-    assert(logicalOperatorType == IS_OR);
-    return "||";
   }
 
   toString() => 'phi';
@@ -2550,19 +2491,6 @@ class HLoopInformation {
       workQueue.addAll(block.predecessors);
     }
   }
-
-  HBasicBlock getLastBackEdge() {
-    int maxId = -1;
-    HBasicBlock result = null;
-    for (int i = 0, length = backEdges.length; i < length; i++) {
-      HBasicBlock current = backEdges[i];
-      if (current.id > maxId) {
-        maxId = current.id;
-        result = current;
-      }
-    }
-    return result;
-  }
 }
 
 
@@ -2645,7 +2573,6 @@ class HSubGraphBlockInformation implements HStatementInformation {
     visitor.visitSubGraphInfo(this);
 }
 
-
 /**
  * Generic class wrapping a [SubExpression] as a block-information until
  * expressions structures are handled properly.
@@ -2663,7 +2590,6 @@ class HSubExpressionBlockInformation implements HExpressionInformation {
     visitor.visitSubExpressionInfo(this);
 }
 
-
 /** A sequence of separate statements. */
 class HStatementSequenceInformation implements HStatementInformation {
   final List<HStatementInformation> statements;
@@ -2675,7 +2601,6 @@ class HStatementSequenceInformation implements HStatementInformation {
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitSequenceInfo(this);
 }
-
 
 class HLabeledBlockInformation implements HStatementInformation {
   final HStatementInformation body;
@@ -2765,8 +2690,6 @@ class HLoopBlockInformation implements HStatementInformation {
   static int loopType(Node node) {
     return node.accept(const LoopTypeVisitor());
   }
-
-  bool isDoWhile() => kind == DO_WHILE_LOOP;
 
   bool accept(HStatementInformationVisitor visitor) =>
     visitor.visitLoopInfo(this);

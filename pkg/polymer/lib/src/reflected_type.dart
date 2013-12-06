@@ -25,7 +25,7 @@ final LibraryMirror _jsHelper =
 
 final Symbol _mangledNameField = () {
   var jsClassMirrorMirror = reflect(reflectClass(ClassMirror)).type;
-  for (var name in jsClassMirrorMirror.variables.keys) {
+  for (var name in jsClassMirrorMirror.declarations.keys) {
     if (MirrorSystem.getName(name) == '_mangledName') return name;
   }
 }();

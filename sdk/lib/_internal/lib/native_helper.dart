@@ -442,7 +442,12 @@ applyHooksTransformer(transformer, hooks) {
 
 const _baseHooks = const JS_CONST(r'''
 function() {
-  function typeNameInChrome(obj) { return obj.constructor.name; }
+  function typeNameInChrome(o) {
+    var name = o.constructor.name;
+    if (name) return name;
+    var s = Object.prototype.toString.call(o);
+    return s.substring(8, s.length - 1);
+  }
   function getUnknownTag(object, tag) {
     // This code really belongs in [getUnknownTagGenericBrowser] but having it
     // here allows [getUnknownTag] to be tested on d8.

@@ -6,7 +6,7 @@
 library pub.log;
 
 import 'dart:io';
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 
 import 'io.dart';
 import 'utils.dart';

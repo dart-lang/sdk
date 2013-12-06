@@ -60,6 +60,57 @@ void testListenOn() {
   });
 }
 
+
+void testHttpServerZone() {
+  asyncStart();
+  Expect.equals(Zone.ROOT, Zone.current);
+  runZoned(() {
+    Expect.notEquals(Zone.ROOT, Zone.current);
+    HttpServer.bind("127.0.0.1", 0).then((server) {
+      Expect.notEquals(Zone.ROOT, Zone.current);
+      server.listen((request) {
+        Expect.notEquals(Zone.ROOT, Zone.current);
+        request.response.close();
+        server.close();
+      });
+      new HttpClient().get("127.0.0.1", server.port, '/')
+        .then((request) => request.close())
+        .then((response) => response.drain())
+        .then((_) => asyncEnd());
+    });
+  });
+}
+
+
+void testHttpServerZoneError() {
+  asyncStart();
+  Expect.equals(Zone.ROOT, Zone.current);
+  runZoned(() {
+    Expect.notEquals(Zone.ROOT, Zone.current);
+    HttpServer.bind("127.0.0.1", 0).then((server) {
+      Expect.notEquals(Zone.ROOT, Zone.current);
+      server.listen((request) {
+        Expect.notEquals(Zone.ROOT, Zone.current);
+        request.listen((_) {}, onError: (error) {
+          Expect.notEquals(Zone.ROOT, Zone.current);
+          server.close();
+          throw error;
+        });
+      });
+      Socket.connect("127.0.0.1", server.port).then((socket) {
+        socket.write('GET / HTTP/1.1\r\nContent-Length: 100\r\n\r\n');
+        socket.write('some body');
+        socket.close();
+      });
+    });
+  }, onError: (e) {
+    asyncEnd();
+  });
+}
+
+
 void main() {
   testListenOn();
+  testHttpServerZone();
+  testHttpServerZoneError();
 }

@@ -6,8 +6,6 @@ library scheduled_future_matchers;
 
 import 'dart:async';
 
-import 'package:stack_trace/stack_trace.dart';
-
 import '../scheduled_test.dart';
 
 /// Matches a [Future] that completes successfully with a value. Note that this
@@ -62,11 +60,9 @@ class _ScheduledCompletes extends Matcher {
       }
     }
 
-    var outerTrace = new Trace.current();
     currentSchedule.wrapFuture(item.then((value) {
       if (_matcher == null) return;
 
-      // TODO(floitsch): we cannot switch traces anymore.
       // If expect throws we might want to be able to switch to the outer trace
       // instead.
       expect(value, _matcher);

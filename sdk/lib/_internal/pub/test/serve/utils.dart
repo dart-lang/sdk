@@ -114,11 +114,13 @@ ScheduledProcess startPubServe([Iterable<String> args]) {
 /// Schedules starting the "pub serve" process and records its port number for
 /// future requests.
 ///
-/// If [shouldGetFirst] is `true`, validates that pub get is run first.
+/// If [shouldGetFirst] is `true`, validates that pub get is run first. In that
+/// case, you can also pass [numDownloads] to specify how many packages should
+/// be downloaded during the get.
 ///
 /// Returns the `pub serve` process.
 ScheduledProcess pubServe({bool shouldGetFirst: false,
-    Iterable<String> args}) {
+    Iterable<String> args, int numDownloads: 0}) {
   _pubServer = startPubServe(args);
 
   currentSchedule.onComplete.schedule(() {
@@ -133,9 +135,16 @@ ScheduledProcess pubServe({bool shouldGetFirst: false,
     expect(_pubServer.nextLine(),
         completion(anyOf(
              startsWith("Your pubspec has changed"),
-             startsWith("You don't have a lockfile"))));
+             startsWith("You don't have a lockfile"),
+             startsWith("You are missing some dependencies"))));
     expect(_pubServer.nextLine(),
         completion(startsWith("Resolving dependencies...")));
+
+    for (var i = 0; i < numDownloads; i++) {
+      expect(_pubServer.nextLine(),
+          completion(startsWith("Downloading")));
+    }
+
     expect(_pubServer.nextLine(),
         completion(equals("Got dependencies!")));
   }

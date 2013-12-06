@@ -2989,6 +2989,25 @@ MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
   deopt_id_ = original_deopt_id;
 }
 
+
+intptr_t MergedMathInstr::ResultIndexOf(MethodRecognizer::Kind kind) {
+  switch (kind) {
+    case MethodRecognizer::kMathSin: return 0;
+    case MethodRecognizer::kMathCos: return 1;
+    default: UNIMPLEMENTED(); return -1;
+  }
+}
+
+
+intptr_t MergedMathInstr::ResultIndexOf(Token::Kind token) {
+  switch (token) {
+    case Token::kTRUNCDIV: return 0;
+    case Token::kMOD: return 1;
+    default: UNIMPLEMENTED(); return -1;
+  }
+}
+
+
 #undef __
 
 }  // namespace dart

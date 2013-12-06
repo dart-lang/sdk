@@ -184,8 +184,9 @@ class Command {
 class FrameMatcher extends Command {
   int frameIndex;
   List<String> functionNames;
+  bool exactMatch;
 
-  FrameMatcher(this.frameIndex, this.functionNames) {
+  FrameMatcher(this.frameIndex, this.functionNames, this.exactMatch) {
     template = {"id": 0, "command": "getStackTrace", "params": {"isolateId": 0}};
   }
 
@@ -211,7 +212,9 @@ class FrameMatcher extends Command {
       var idx = i + frameIndex;
       var name = frames[idx]["functionName"];
       assert(name != null);
-      if (name != functionNames[i]) {
+      bool isMatch = exactMatch ? name == functionNames[i]
+                                : name.contains(functionNames[i]);
+      if (!isMatch) {
         debugger.error("Error: call frame $idx: "
           "expected function name '${functionNames[i]}' but found '$name'");
         return;
@@ -221,12 +224,12 @@ class FrameMatcher extends Command {
 }
 
 
-MatchFrame(int frameIndex, String functionName) {
-  return new FrameMatcher(frameIndex, [ functionName ]);
+MatchFrame(int frameIndex, String functionName, {exactMatch: false}) {
+  return new FrameMatcher(frameIndex, [functionName], exactMatch);
 }
 
-MatchFrames(List<String> functionNames) {
-  return new FrameMatcher(0, functionNames);
+MatchFrames(List<String> functionNames, {exactMatch: false}) {
+  return new FrameMatcher(0, functionNames, exactMatch);
 }
 
 

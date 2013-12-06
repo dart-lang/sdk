@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';
+import '../utils.dart';
 
 /// A descriptor that validates that no file exists with the given name.
 /// Creating this descriptor is a no-op and loading from it is invalid.
@@ -23,7 +24,7 @@ class NothingDescriptor extends Descriptor {
   Future validate([String parent]) => schedule(() => validateNow(parent),
       "validating '$name' doesn't exist");
 
-  Future validateNow([String parent]) => new Future.sync(() {
+  Future validateNow([String parent]) => syncFuture(() {
     if (parent == null) parent = defaultRoot;
     var fullPath = path.join(parent, name);
     if (new File(fullPath).existsSync()) {

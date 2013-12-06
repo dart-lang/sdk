@@ -1021,6 +1021,20 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertFalse(0 == typeA.hashCode);
   }
 
+  void test_isAssignableTo_typeVariables() {
+    ClassElement classA = ElementFactory.classElement2("A", ["E"]);
+    ClassElement classB = ElementFactory.classElement2("B", ["F", "G"]);
+    InterfaceTypeImpl typeAF = new InterfaceTypeImpl.con1(classA);
+    typeAF.typeArguments = <Type2> [classB.typeParameters[0].type];
+    InterfaceTypeImpl typeAG = new InterfaceTypeImpl.con1(classA);
+    typeAG.typeArguments = <Type2> [classB.typeParameters[1].type];
+    JUnitTestCase.assertFalse(typeAG.isAssignableTo(typeAF));
+  }
+
+  void test_isAssignableTo_void() {
+    JUnitTestCase.assertFalse(VoidTypeImpl.instance.isAssignableTo(_typeProvider.intType));
+  }
+
   void test_isDirectSupertypeOf_extends() {
     ClassElement classA = ElementFactory.classElement2("A", []);
     ClassElement classB = ElementFactory.classElement("B", classA.type, []);
@@ -1736,6 +1750,14 @@ class InterfaceTypeImplTest extends EngineTestCase {
       _ut.test('test_hashCode', () {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_hashCode);
+      });
+      _ut.test('test_isAssignableTo_typeVariables', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_isAssignableTo_typeVariables);
+      });
+      _ut.test('test_isAssignableTo_void', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_isAssignableTo_void);
       });
       _ut.test('test_isDirectSupertypeOf_extends', () {
         final __test = new InterfaceTypeImplTest();
@@ -2791,7 +2813,7 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
-    InterfaceTypeImpl functionType = new InterfaceTypeImpl_24(functionElement);
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl_25(functionElement);
     FunctionType f = ElementFactory.functionElement("f").type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(functionType));
   }
@@ -3290,8 +3312,8 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 }
 
-class InterfaceTypeImpl_24 extends InterfaceTypeImpl {
-  InterfaceTypeImpl_24(ClassElement arg0) : super.con1(arg0);
+class InterfaceTypeImpl_25 extends InterfaceTypeImpl {
+  InterfaceTypeImpl_25(ClassElement arg0) : super.con1(arg0);
 
   bool get isDartCoreFunction => true;
 }

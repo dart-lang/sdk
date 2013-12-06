@@ -1249,9 +1249,23 @@ class Types {
                  this.moreSpecificVisitor, this.subtypeVisitor,
                  this.potentialSubtypeVisitor);
 
-  /** Returns true if t is more specific than s */
+  /** Returns true if [t] is more specific than [s]. */
   bool isMoreSpecific(DartType t, DartType s) {
     return moreSpecificVisitor.isMoreSpecific(t, s);
+  }
+
+  /**
+   * Returns the most specific type of [t] and [s] or `null` if neither is more
+   * specific than the other.
+   */
+  DartType getMostSpecific(DartType t, DartType s) {
+    if (isMoreSpecific(t, s)) {
+      return t;
+    } else if (isMoreSpecific(s, t)) {
+      return s;
+    } else {
+      return null;
+    }
   }
 
   /** Returns true if t is a subtype of s */
@@ -1650,5 +1664,99 @@ class PotentialSubtypeVisitor extends SubtypeVisitor {
       return true;
     }
     return super.isSubtype(t, s);
+  }
+}
+
+/// Visitor used to compute an instantiation of a generic type that is more
+/// specific than a given type.
+///
+/// The visitor tries to compute constraints for all type variables in the
+/// visited type by structurally matching it with the argument type. If the
+/// constraints are too complex or the two types are too different, `false`
+/// is returned. Otherwise, the [constraintMap] holds the valid constraints.
+class MoreSpecificSubtypeVisitor extends DartTypeVisitor<bool, DartType> {
+  final Compiler compiler;
+  Map<TypeVariableType, DartType> constraintMap;
+
+  MoreSpecificSubtypeVisitor(Compiler this.compiler);
+
+  /// Compute an instance of [element] which is more specific than [supertype].
+  /// If no instance is found, `null` is returned.
+  ///
+  /// Note that this computation is a heuristic. It does not find a suggestion
+  /// in all possible cases.
+  InterfaceType computeMoreSpecific(ClassElement element,
+                                    InterfaceType supertype) {
+    InterfaceType supertypeInstance =
+        element.thisType.asInstanceOf(supertype.element);
+    if (supertypeInstance == null) return null;
+
+    constraintMap = new Map<TypeVariableType, DartType>();
+    element.typeVariables.forEach((TypeVariableType typeVariable) {
+      constraintMap[typeVariable] = compiler.types.dynamicType;
+    });
+    if (supertypeInstance.accept(this, supertype)) {
+      LinkBuilder<DartType> typeArguments = new LinkBuilder<DartType>();
+      element.typeVariables.forEach((TypeVariableType typeVariable) {
+        typeArguments.addLast(constraintMap[typeVariable]);
+      });
+      return element.thisType._createType(typeArguments.toLink());
+    }
+    return null;
+  }
+
+  bool visitType(DartType type, DartType argument) {
+    return compiler.types.isMoreSpecific(type, argument);
+  }
+
+  bool visitTypes(Link<DartType> a, Link<DartType> b) {
+    while (!a.isEmpty && !b.isEmpty) {
+      if (!a.head.accept(this, b.head)) return false;
+      a = a.tail;
+      b = b.tail;
+    }
+    return a.isEmpty && b.isEmpty;
+  }
+
+  bool visitTypeVariableType(TypeVariableType type, DartType argument) {
+    DartType constraint =
+        compiler.types.getMostSpecific(constraintMap[type], argument);
+    constraintMap[type] = constraint;
+    return constraint != null;
+  }
+
+  bool visitFunctionType(FunctionType type, DartType argument) {
+    if (argument is FunctionType) {
+      if (type.parameterTypes.slowLength() !=
+          argument.parameterTypes.slowLength()) {
+        return false;
+      }
+      if (type.optionalParameterTypes.slowLength() !=
+          argument.optionalParameterTypes.slowLength()) {
+        return false;
+      }
+      if (type.namedParameters != argument.namedParameters) {
+        return false;
+      }
+
+      if (!type.returnType.accept(this, argument.returnType)) return false;
+      if (visitTypes(type.parameterTypes, argument.parameterTypes)) {
+        return false;
+      }
+      if (visitTypes(type.optionalParameterTypes,
+                     argument.optionalParameterTypes)) {
+        return false;
+      }
+      return visitTypes(type.namedParameterTypes, argument.namedParameterTypes);
+    }
+    return false;
+  }
+
+  bool visitGenericType(GenericType type, DartType argument) {
+    if (argument is GenericType) {
+      if (type.element != argument.element) return false;
+      return visitTypes(type.typeArguments, argument.typeArguments);
+    }
+    return false;
   }
 }

@@ -57,7 +57,6 @@ abstract class TypeMask {
   bool containsOnlyInt(Compiler compiler);
   bool containsOnlyDouble(Compiler compiler);
   bool containsOnlyNum(Compiler compiler);
-  bool containsOnlyNull(Compiler compiler);
   bool containsOnlyBool(Compiler compiler);
   bool containsOnlyString(Compiler compiler);
   bool containsOnly(ClassElement element);
@@ -94,11 +93,6 @@ abstract class TypeMask {
   ClassElement singleClass(Compiler compiler);
 
   /**
-   * Returns the classes this type mask can be.
-   */
-  Iterable<ClassElement> containedClasses(Compiler compiler);
-
-  /**
    * Returns a type mask representing the union of [this] and [other].
    */
   TypeMask union(TypeMask other, Compiler compiler);
@@ -107,11 +101,6 @@ abstract class TypeMask {
    * Returns a type mask representing the intersection of [this] and [other].
    */
   TypeMask intersection(TypeMask other, Compiler compiler);
-
-  /**
-   * Returns whether this [TypeMask] understands [selector].
-   */
-  bool understands(Selector selector, Compiler compiler);
 
   /**
    * Returns whether this [TypeMask] applied to [selector] can hit a

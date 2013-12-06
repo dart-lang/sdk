@@ -4,7 +4,7 @@
 
 library pub.source.path;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 
 import 'package:path/path.dart' as path;
 
@@ -111,6 +111,16 @@ class PathSource extends Source {
       };
     }
     return description;
+  }
+
+  /// Converts a parsed relative path to its original relative form.
+  String formatDescription(String containingPath, description) {
+    var sourcePath = description["path"];
+    if (description["relative"]) {
+      sourcePath = path.relative(description['path'], from: containingPath);
+    }
+
+    return sourcePath;
   }
 
   /// Ensures that [description] is a valid path description and returns a

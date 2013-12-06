@@ -64,7 +64,7 @@ class Version implements Comparable<Version>, VersionConstraint {
 
   Version._(this.major, this.minor, this.patch, String preRelease, String build,
             this._text)
-      : preRelease = preRelease == null ? [] : _splitParts(preRelease), 
+      : preRelease = preRelease == null ? [] : _splitParts(preRelease),
         build = build == null ? [] : _splitParts(build) {
     if (major < 0) throw new ArgumentError(
         'Major version must be non-negative.');
@@ -153,6 +153,45 @@ class Version implements Comparable<Version>, VersionConstraint {
 
   /// Whether or not this is a pre-release version.
   bool get isPreRelease => preRelease.isNotEmpty;
+
+  /// Gets the next major version number that follows this one.
+  ///
+  /// If this version is a pre-release of a major version release (i.e. the
+  /// minor and patch versions are zero), then it just strips the pre-release
+  /// suffix. Otherwise, it increments the major version and resets the minor
+  /// and patch.
+  Version get nextMajor {
+    if (isPreRelease && minor == 0 && patch == 0) {
+      return new Version(major, minor, patch);
+    }
+
+    return new Version(major + 1, 0, 0);
+  }
+
+  /// Gets the next minor version number that follows this one.
+  ///
+  /// If this version is a pre-release of a minor version release (i.e. the
+  /// patch version is zero), then it just strips the pre-release suffix.
+  /// Otherwise, it increments the minor version and resets the patch.
+  Version get nextMinor {
+    if (isPreRelease && patch == 0) {
+      return new Version(major, minor, patch);
+    }
+
+    return new Version(major, minor + 1, 0);
+  }
+
+  /// Gets the next patch version number that follows this one.
+  ///
+  /// If this version is a pre-release, then it just strips the pre-release
+  /// suffix. Otherwise, it increments the patch version.
+  Version get nextPatch {
+    if (isPreRelease) {
+      return new Version(major, minor, patch);
+    }
+
+    return new Version(major, minor, patch + 1);
+  }
 
   /// Tests if [other] matches this version exactly.
   bool allows(Version other) => this == other;

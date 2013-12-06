@@ -167,6 +167,7 @@ mutation_observer: Skip
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
+unittest/test/mirror_matchers_test: Fail # Issue 15405
 
 [ $compiler == dart2js && $browser ]
 stack_trace/test/vm_test: Fail, OK # VM-specific traces
@@ -347,9 +348,3 @@ watcher/test/*/linux_test: Skip
 
 [ $runtime == vm && ($system == windows || $system == linux) ]
 watcher/test/*/mac_os_test: Skip
-
-[ $runtime == vm && $system == linux ]
-watcher/test/*/linux_test: Pass, Slow # Issue 14606
-
-[ $runtime == vm && $system == macos ]
-watcher/test/directory_watcher/mac_os_test: Pass, Fail  # Issue 15024

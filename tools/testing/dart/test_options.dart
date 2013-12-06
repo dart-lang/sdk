@@ -301,6 +301,15 @@ Note: currently only implemented for dart2js.''',
               'bool'
               ),
           new _TestOptionSpecification(
+              'write_test_outcome_log',
+              'Write the outcome of all tests executed to a '
+              '"${TestUtils.flakyFileName()}" file.',
+              ['--write-test-outcome-log'],
+              [],
+              false,
+              'bool'
+          ),
+          new _TestOptionSpecification(
               'clear_safari_cache',
               'Clear the safari cache (i.e., delete it).',
               ['--clear_safari_cache'],
@@ -358,7 +367,7 @@ Note: currently only implemented for dart2js.''',
               [],
               null),
           new _TestOptionSpecification(
-              'vm-options',
+              'vm_options',
               'Extra options to send to the vm when running',
               ['--vm-options'],
               [],

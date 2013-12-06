@@ -195,6 +195,10 @@ Future testExitCodes(String marker, Map<String,int> expectedExitCodes) {
 }
 
 void main() {
+  bool isCheckedMode = false;
+  assert(isCheckedMode = true);
+  Expect.isTrue(isCheckedMode, 'This test must be run in checked mode.');
+
   const beforeRun = const {
     '': 0,
     'NoSuchMethodError': 253,

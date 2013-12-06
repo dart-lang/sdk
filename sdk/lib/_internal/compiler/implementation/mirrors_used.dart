@@ -105,11 +105,11 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
   void analyzeUsage(LibraryElement mainApp) {
     if (compiler.mirrorsLibrary == null) return;
     measure(analyzer.run);
-    List /*<String|Element>*/ symbols = analyzer.mergedMirrorUsage.symbols;
+    List<String> symbols = analyzer.mergedMirrorUsage.symbols;
     List<Element> targets = analyzer.mergedMirrorUsage.targets;
     List<Element> metaTargets = analyzer.mergedMirrorUsage.metaTargets;
     compiler.backend.registerMirrorUsage(
-        symbols == null ? null : new Set/*<String|Element>*/.from(symbols),
+        symbols == null ? null : new Set<String>.from(symbols),
         targets == null ? null : new Set<Element>.from(targets),
         metaTargets == null ? null : new Set<Element>.from(metaTargets));
     librariesWithUsage = analyzer.librariesWithUsage;
@@ -146,17 +146,17 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
               value, mapper.constantToNodeMap);
 
       if (named.name.source == 'symbols') {
-        analyzer.cachedValues[value] =
+        analyzer.cachedStrings[value] =
             builder.convertToListOfStrings(
                 builder.convertConstantToUsageList(value, onlyStrings: true));
       } else if (named.name.source == 'targets') {
-        analyzer.cachedValues[value] =
+        analyzer.cachedElements[value] =
             builder.resolveUsageList(builder.convertConstantToUsageList(value));
       } else if (named.name.source == 'metaTargets') {
-        analyzer.cachedValues[value] =
+        analyzer.cachedElements[value] =
             builder.resolveUsageList(builder.convertConstantToUsageList(value));
       } else if (named.name.source == 'override') {
-        analyzer.cachedValues[value] =
+        analyzer.cachedElements[value] =
             builder.resolveUsageList(builder.convertConstantToUsageList(value));
       }
     }
@@ -168,13 +168,15 @@ class MirrorUsageAnalyzer {
   final MirrorUsageAnalyzerTask task;
   List<LibraryElement> wildcard;
   final Set<LibraryElement> librariesWithUsage;
-  final Map<Constant, List> cachedValues;
+  final Map<Constant, List<String>> cachedStrings;
+  final Map<Constant, List<Element>> cachedElements;
   MirrorUsage mergedMirrorUsage;
 
   MirrorUsageAnalyzer(Compiler compiler, this.task)
       : compiler = compiler,
         librariesWithUsage = new Set<LibraryElement>(),
-        cachedValues = new Map<Constant, List>();
+        cachedStrings = new Map<Constant, List<String>>(),
+        cachedElements = new Map<Constant, List<Element>>();
 
   /// Collect and merge all @MirrorsUsed annotations. As a side-effect, also
   /// compute which libraries have the annotation (which is used by
@@ -304,7 +306,7 @@ class MirrorUsageAnalyzer {
       return a;
     }
     // TODO(ahe): Test the following cases.
-    List /*<String|Element>*/ symbols = a.symbols;
+    List<String> symbols = a.symbols;
     if (symbols == null) {
       symbols = b.symbols;
     } else if (b.symbols != null) {
@@ -340,16 +342,16 @@ class MirrorUsageAnalyzer {
         'override');
 
     return new MirrorUsage(
-        cachedValues[fields[symbolsField]],
-        cachedValues[fields[targetsField]],
-        cachedValues[fields[metaTargetsField]],
-        cachedValues[fields[overrideField]]);
+        cachedStrings[fields[symbolsField]],
+        cachedElements[fields[targetsField]],
+        cachedElements[fields[metaTargetsField]],
+        cachedElements[fields[overrideField]]);
   }
 }
 
 /// Used to represent a resolved MirrorsUsed constant.
 class MirrorUsage {
-  final List /* <String|Element> */ symbols;
+  final List<String> symbols;
   final List<Element> targets;
   final List<Element> metaTargets;
   final List<Element> override;

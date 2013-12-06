@@ -87,12 +87,6 @@ abstract class Backend {
 
   void initializeHelperClasses() {}
 
-  void enqueueAllTopLevelFunctions(LibraryElement lib, Enqueuer world) {
-    lib.forEachExport((Element e) {
-      if (e.isFunction()) world.addToWorkList(e);
-    });
-  }
-
   void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements);
   void codegen(CodegenWorkItem work);
 
@@ -1088,7 +1082,14 @@ abstract class Compiler implements DiagnosticListener {
     enqueuer.resolution.logSummary(log);
 
     if (compilationFailed) return;
-    if (analyzeOnly) return;
+    if (analyzeOnly) {
+      if (!analyzeAll) {
+        // No point in reporting unused code when [analyzeAll] is true: all
+        // code is artificially used.
+        reportUnusedCode();
+      }
+      return;
+    }
     assert(main != null);
     phase = PHASE_DONE_RESOLVING;
 
@@ -1517,6 +1518,28 @@ abstract class Compiler implements DiagnosticListener {
       currentToken = currentToken.next;
     }
     return firstToken;
+  }
+
+  void reportUnusedCode() {
+    void checkLive(member) {
+      if (member.isFunction()) {
+        if (!enqueuer.resolution.isLive(member)) {
+          reportHint(member, MessageKind.UNUSED_METHOD,
+                     {'method_name': member.name});
+        }
+      } else if (member.isClass() && !member.isMixinApplication) {
+        member.forEachLocalMember(checkLive);
+      }
+    }
+    libraries.forEach((_, library) {
+      // TODO(ahe): Implement better heuristics to discover entry points of
+      // packages and use that to discover unused implementation details in
+      // packages.
+      if (library.isPlatformLibrary || library.isPackageLibrary) return;
+      library.compilationUnits.forEach((unit) {
+        unit.forEachLocalMember(checkLive);
+      });
+    });
   }
 }
 

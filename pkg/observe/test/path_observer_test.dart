@@ -315,7 +315,9 @@ class NoSuchMethodModel {
   var _foo = 42;
   List log = [];
 
-  noSuchMethod(Invocation invocation) {
+  // TODO(ahe): Remove @reflectable from here (once either of
+  // http://dartbug.com/15408 or http://dartbug.com/15409 are fixed).
+  @reflectable noSuchMethod(Invocation invocation) {
     final name = invocation.memberName;
     log.add(name);
     if (name == #foo && invocation.isGetter) return _foo;

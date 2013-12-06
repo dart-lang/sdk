@@ -1490,6 +1490,21 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_deprecatedMemberUse_hide() {
+    Source source = addSource(EngineTestCase.createSource([
+        "library lib;",
+        "import 'lib1.dart' hide B;",
+        "A a = new A();"]));
+    addSource2("/lib1.dart", EngineTestCase.createSource([
+        "library lib1;",
+        "class A {}",
+        "@deprecated",
+        "class B {}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_duplicateDefinition_emptyName() {
     Source source = addSource(EngineTestCase.createSource([
         "Map _globalMap = {",
@@ -4131,6 +4146,18 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_undefinedIdentifier_synthetic_whenExpression() {
+    Source source = addSource(EngineTestCase.createSource(["print(x) {}", "main() {", "  print(is String);", "}"]));
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+
+  void test_undefinedIdentifier_synthetic_whenMethodName() {
+    Source source = addSource(EngineTestCase.createSource(["print(x) {}", "main(int p) {", "  p.();", "}"]));
+    resolve(source);
+    assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+
   void test_undefinedMethod_functionExpression_callMethod() {
     Source source = addSource(EngineTestCase.createSource(["main() {", "  (() => null).call();", "}"]));
     resolve(source);
@@ -4459,6 +4486,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_defaultValueInFunctionTypedParameter_optional', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_defaultValueInFunctionTypedParameter_optional);
+      });
+      _ut.test('test_deprecatedMemberUse_hide', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_deprecatedMemberUse_hide);
       });
       _ut.test('test_duplicateDefinition_emptyName', () {
         final __test = new NonErrorResolverTest();
@@ -5387,6 +5418,14 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_undefinedIdentifier_show', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_undefinedIdentifier_show);
+      });
+      _ut.test('test_undefinedIdentifier_synthetic_whenExpression', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_undefinedIdentifier_synthetic_whenExpression);
+      });
+      _ut.test('test_undefinedIdentifier_synthetic_whenMethodName', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_undefinedIdentifier_synthetic_whenMethodName);
       });
       _ut.test('test_undefinedMethod_functionExpression_callMethod', () {
         final __test = new NonErrorResolverTest();
@@ -12454,6 +12493,21 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_typeAliasCannotReferenceItself_11987() {
+    Source source = addSource(EngineTestCase.createSource([
+        "typedef void F(List<G> l);",
+        "typedef void G(List<F> l);",
+        "main() {",
+        "  F foo(G g) => g;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+    verify([source]);
+  }
+
   void test_typeAliasCannotReferenceItself_parameterType_named() {
     Source source = addSource(EngineTestCase.createSource(["typedef A({A a});"]));
     resolve(source);
@@ -13962,6 +14016,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_superInRedirectingConstructor_superRedirection);
       });
+      _ut.test('test_typeAliasCannotReferenceItself_11987', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_11987);
+      });
       _ut.test('test_typeAliasCannotReferenceItself_parameterType_named', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_parameterType_named);
@@ -14312,7 +14370,6 @@ class StrictModeTest extends ResolverTestCase {
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.strictMode = true;
     options.hint = false;
     analysisContext.analysisOptions = options;
   }
@@ -21272,7 +21329,7 @@ class NonHintCodeTest extends ResolverTestCase {
 class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_22(errorListener2);
+    Scope rootScope = new Scope_23(errorListener2);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -21283,7 +21340,7 @@ class EnclosedScopeTest extends ResolverTestCase {
 
   void test_define_normal() {
     GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_23(errorListener3);
+    Scope rootScope = new Scope_24(errorListener3);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -21307,20 +21364,20 @@ class EnclosedScopeTest extends ResolverTestCase {
   }
 }
 
-class Scope_22 extends Scope {
+class Scope_23 extends Scope {
   GatheringErrorListener errorListener2;
 
-  Scope_22(this.errorListener2) : super();
+  Scope_23(this.errorListener2) : super();
 
   AnalysisErrorListener get errorListener => errorListener2;
 
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
 
-class Scope_23 extends Scope {
+class Scope_24 extends Scope {
   GatheringErrorListener errorListener3;
 
-  Scope_23(this.errorListener3) : super();
+  Scope_24(this.errorListener3) : super();
 
   AnalysisErrorListener get errorListener => errorListener3;
 
@@ -22043,6 +22100,22 @@ class SimpleResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_localVariable_types_invoked() {
+    Source source = addSource(EngineTestCase.createSource([
+        "const A = null;",
+        "main() {",
+        "  var myVar = (int p) => 'foo';",
+        "  myVar(42);",
+        "}"]));
+    LibraryElement library = resolve(source);
+    JUnitTestCase.assertNotNull(library);
+    CompilationUnit unit = analysisContext.getResolvedCompilationUnit(source, library);
+    JUnitTestCase.assertNotNull(unit);
+    List<bool> found = [false];
+    unit.accept(new RecursiveASTVisitor_27(this, found));
+    JUnitTestCase.assertTrue(found[0]);
+  }
+
   void test_metadata_class() {
     Source source = addSource(EngineTestCase.createSource(["const A = null;", "@A class C {}"]));
     LibraryElement library = resolve(source);
@@ -22380,6 +22453,10 @@ class SimpleResolverTest extends ResolverTestCase {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_labels_switch);
       });
+      _ut.test('test_localVariable_types_invoked', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_localVariable_types_invoked);
+      });
       _ut.test('test_metadata_class', () {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_metadata_class);
@@ -22425,6 +22502,25 @@ class SimpleResolverTest extends ResolverTestCase {
         runJUnitTest(__test, __test.test_setter_static);
       });
     });
+  }
+}
+
+class RecursiveASTVisitor_27 extends RecursiveASTVisitor<Object> {
+  final SimpleResolverTest SimpleResolverTest_this;
+
+  List<bool> found;
+
+  RecursiveASTVisitor_27(this.SimpleResolverTest_this, this.found) : super();
+
+  Object visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.name == "myVar" && node.parent is MethodInvocation) {
+      found[0] = true;
+      Type2 staticType = node.staticType;
+      JUnitTestCase.assertSame(SimpleResolverTest_this.typeProvider.dynamicType, staticType);
+      FunctionType propagatedType = node.propagatedType as FunctionType;
+      JUnitTestCase.assertEquals(SimpleResolverTest_this.typeProvider.stringType, propagatedType.returnType);
+    }
+    return null;
   }
 }
 

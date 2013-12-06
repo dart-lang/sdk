@@ -37,10 +37,15 @@ class FileSystemWatcher {
   };
 
   static bool IsSupported();
-  static intptr_t WatchPath(const char* path, int events, bool recursive);
-  static void UnwatchPath(intptr_t id);
-  static intptr_t GetSocketId(intptr_t id);
-  static Dart_Handle ReadEvents(intptr_t id);
+  static intptr_t Init();
+  static void Close(intptr_t id);
+  static intptr_t WatchPath(intptr_t id,
+                            const char* path,
+                            int events,
+                            bool recursive);
+  static void UnwatchPath(intptr_t id, intptr_t path_id);
+  static intptr_t GetSocketId(intptr_t id, intptr_t path_id);
+  static Dart_Handle ReadEvents(intptr_t id, intptr_t path_id);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FileSystemWatcher);

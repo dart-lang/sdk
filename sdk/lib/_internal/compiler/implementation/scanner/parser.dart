@@ -431,16 +431,6 @@ class Parser {
     return token;
   }
 
-  bool isDefaultKeyword(Token token) {
-    String value = token.stringValue;
-    if (identical(value, 'default')) return true;
-    if (identical(value, 'factory')) {
-      listener.recoverableError("expected 'default'", token: token);
-      return true;
-    }
-    return false;
-  }
-
   Token skipBlock(Token token) {
     if (!optional('{', token)) {
       return listener.expectedBlockToSkip(token);
@@ -1778,8 +1768,11 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
-    var begin = (token as BeginGroupToken);
+    // We expect [begin] to be of type [BeginGroupToken], but we don't know for
+    // sure until after calling expect.
+    var begin = token;
     token = expect('(', token);
+    // [begin] is now known to have type [BeginGroupToken].
     token = parseExpression(token);
     if (!identical(begin.endGroup, token)) {
       listener.unexpected(token);

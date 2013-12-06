@@ -189,19 +189,6 @@ class ConstantHandler extends CompilerTask {
     });
   }
 
-  /**
-   * Returns an [Iterable] of static const fields that need to be initialized.
-   * The fields must be evaluated in order since they might depend on each
-   * other.
-   */
-  Iterable<VariableElement> getStaticFinalFieldsForEmission() {
-    return initialVariableValues.keys.where((element) {
-      return element.kind == ElementKind.FIELD
-          && !element.isInstanceMember()
-          && element.modifiers.isFinal();
-    });
-  }
-
   List<VariableElement> getLazilyInitializedFieldsForEmission() {
     return new List<VariableElement>.from(lazyStatics);
   }

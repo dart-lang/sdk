@@ -4,7 +4,7 @@
 
 library pub.command.lish;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 
 import 'package:http/http.dart' as http;
 

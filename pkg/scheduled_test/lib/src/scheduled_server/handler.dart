@@ -53,7 +53,7 @@ class Handler {
         // between a test failing while waiting for a handler and a test failing
         // while executing a handler.
         chainToCompleter(schedule(() {
-          return new Future.sync(() {
+          return syncFuture(() {
             if (request.method != method || request.uri.path != path) {
               fail("'${server.description}' expected $method $path, "
                    "but got ${request.method} ${request.uri.path}.");
@@ -71,7 +71,7 @@ class Handler {
   /// completing. Otherwise, completes immediately.
   Future _waitForTask() {
     return pumpEventQueue().then((_) {
-      if (currentSchedule.currentTask != _taskBefore) return;
+      if (currentSchedule.currentTask != _taskBefore) return null;
       // If we're one task before the handler was scheduled, wait for that
       // task to complete and pump the event queue so that [ready] will be
       // set.

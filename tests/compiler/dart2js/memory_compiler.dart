@@ -74,6 +74,9 @@ DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
   return handler;
 }
 
+Expando<MemorySourceFileProvider> expando =
+    new Expando<MemorySourceFileProvider>();
+
 Compiler compilerFor(Map<String,String> memorySourceFiles,
                      {DiagnosticHandler diagnosticHandler,
                       List<String> options: const [],
@@ -83,7 +86,24 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  var provider = new MemorySourceFileProvider(memorySourceFiles);
+  MemorySourceFileProvider provider;
+  var readStringFromUri;
+  if (cachedCompiler == null) {
+    provider = new MemorySourceFileProvider(memorySourceFiles);
+    readStringFromUri = provider.readStringFromUri;
+    // Saving the provider in case we need it later for a cached compiler.
+    expando[readStringFromUri] = provider;
+  } else {
+    // When using a cached compiler, it has read a number of files from disk
+    // already (and will not attemp to read them again due to caching). These
+    // files must be available to the new diagnostic handler.
+    provider = expando[cachedCompiler.provider];
+    readStringFromUri = cachedCompiler.provider;
+    provider.memorySourceFiles.clear();
+    memorySourceFiles.forEach((key, value) {
+      provider.memorySourceFiles[key] = value;
+    });
+  }
   var handler =
       createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);
 
@@ -92,7 +112,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     return new NullSink('$name.$extension');
   }
 
-  Compiler compiler = new Compiler(provider.readStringFromUri,
+  Compiler compiler = new Compiler(readStringFromUri,
                                    outputProvider,
                                    handler,
                                    libraryRoot,

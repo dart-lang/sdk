@@ -99,9 +99,12 @@ void testConfigurations(List<Map> configurations) {
   }
 
   if (!firstConf['append_logs'])  {
-    var file = new File(TestUtils.flakyFileName());
-    if (file.existsSync()) {
-      file.deleteSync();
+    var files = [new File(TestUtils.flakyFileName()),
+                 new File(TestUtils.testOutcomeFileName())];
+    for (var file in files) {
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
     }
   }
 
@@ -239,6 +242,9 @@ void testConfigurations(List<Map> configurations) {
     }
     eventListener.add(new SkippedCompilationsPrinter());
     eventListener.add(new LeftOverTempDirPrinter());
+  }
+  if (firstConf['write_test_outcome_log']) {
+    eventListener.add(new TestOutcomeLogWriter());
   }
   eventListener.add(new ExitCodeSetter());
 

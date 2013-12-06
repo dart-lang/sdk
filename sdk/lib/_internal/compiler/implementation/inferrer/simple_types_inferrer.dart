@@ -238,11 +238,6 @@ abstract class InferrerEngine<T, V extends TypeSystem>
                           bool inLoop);
 
   /**
-   * Returns the callers of [elements].
-   */
-  Iterable<Element> getCallersOf(Element element);
-
-  /**
    * Notifies to the inferrer that [analyzedElement] can have return
    * type [newType]. [currentType] is the type the [InferrerVisitor]
    * currently found.

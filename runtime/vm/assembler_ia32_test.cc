@@ -2016,6 +2016,31 @@ ASSEMBLER_TEST_RUN(Cosine, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(SinCos, assembler) {
+  __ fldl(Address(ESP, kWordSize));
+  __ fsincos();
+  __ subl(ESP, Immediate(2 * kWordSize));
+  __ fstpl(Address(ESP, 0));  // cos result.
+  __ movsd(XMM0, Address(ESP, 0));
+  __ fstpl(Address(ESP, 0));  // sin result.
+  __ movsd(XMM1, Address(ESP, 0));
+  __ subsd(XMM1, XMM0);  // sin - cos.
+  __ movsd(Address(ESP, 0), XMM1);
+  __ fldl(Address(ESP, 0));
+  __ addl(ESP, Immediate(2 * kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SinCos, test) {
+  typedef double (*SinCosCode)(double d);
+  const double arg = 1.2345;
+  const double expected = sin(arg) - cos(arg);
+  double res = reinterpret_cast<SinCosCode>(test->entry())(arg);
+  EXPECT_FLOAT_EQ(expected, res, 0.000001);
+}
+
+
 ASSEMBLER_TEST_GENERATE(Tangent, assembler) {
   __ fldl(Address(ESP, kWordSize));
   __ fptan();

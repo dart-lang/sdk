@@ -6,6 +6,7 @@
 // VMOptions=--optimization_counter_threshold=10
 
 import "package:expect/expect.dart";
+import "dart:typed_data";
 
 class A {
   var foo;
@@ -52,6 +53,24 @@ test_stacktrace() {
 }
 
 
+class D {
+  final List f;
+  final Uint8List g;
+  D(this.f, this.g);
+  D.named(this.f, this.g);
+}
+
+
+test_guarded_length() {
+  var a = new D(new List(5), new Uint8List(5));
+  var b = new D.named(new List(5), new Uint8List(5));
+  Expect.equals(5, a.f.length);
+  Expect.equals(5, b.f.length);
+  Expect.equals(5, a.g.length);
+  Expect.equals(5, b.g.length);
+}
+
+
 main() {
   var a = new A();
   var b = new B();
@@ -76,4 +95,7 @@ main() {
 
   // Regression test for fields initialized in native code (Error._stackTrace).
   test_stacktrace();
+
+  // Test guarded list length.
+  for (var i = 0; i < 20; i++) test_guarded_length();
 }

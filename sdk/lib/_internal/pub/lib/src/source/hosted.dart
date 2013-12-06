@@ -4,7 +4,7 @@
 
 library pub.source.hosted;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 import 'dart:io' as io;
 import "dart:convert";
 
@@ -30,10 +30,7 @@ class HostedSource extends Source {
   /// Gets the default URL for the package server for hosted dependencies.
   static String get defaultUrl {
     var url = io.Platform.environment["PUB_HOSTED_URL"];
-    if (url != null) {
-      log.fine("Got server $url from PUB_HOSTED_URL.");
-      return url;
-    }
+    if (url != null) return url;
 
     return "https://pub.dartlang.org";
   }
@@ -86,7 +83,7 @@ class HostedSource extends Source {
           "$server/packages/$package/versions/$version.tar.gz");
       log.io("Get package from $url.");
 
-      log.message('Downloading $id...');
+      log.message('Downloading ${id.name} ${id.version}...');
 
       // Download and extract the archive to a temp directory.
       var tempDir = systemCache.createTempDir();

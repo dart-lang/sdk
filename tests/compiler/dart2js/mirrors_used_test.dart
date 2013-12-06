@@ -58,7 +58,7 @@ void main() {
     // 2. Some code was refactored, and there are more methods.
     // Either situation could be problematic, but in situation 2, it is often
     // acceptable to increase [expectedMethodCount] a little.
-    int expectedMethodCount = 344;
+    int expectedMethodCount = 346;
     Expect.isTrue(
         generatedCode.length <= expectedMethodCount,
         'Too many compiled methods: '
@@ -123,7 +123,9 @@ void main() {
 
 const MEMORY_SOURCE_FILES = const <String, String> {
   'main.dart': """
-@MirrorsUsed(targets: const [Foo], override: '*')
+// The repeated constant value for symbols and targets used to crash dart2js in
+// host-checked mode, and could potentially lead to other problems.
+@MirrorsUsed(symbols: 'Foo', targets: 'Foo', override: '*')
 import 'dart:mirrors';
 
 import 'library.dart';

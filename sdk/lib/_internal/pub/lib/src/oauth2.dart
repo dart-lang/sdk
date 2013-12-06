@@ -4,7 +4,7 @@
 
 library pub.oauth2;
 
-import 'dart:async' hide TimeoutException;
+import 'dart:async';
 import 'dart:io';
 
 import 'package:oauth2/oauth2.dart';

@@ -1045,17 +1045,6 @@ String checkForNativeClass(ElementListener listener) {
   return nativeTagInfo;
 }
 
-bool isOverriddenMethod(FunctionElement element,
-                        ClassElement cls,
-                        NativeEmitter nativeEmitter) {
-  List<ClassElement> subtypes = nativeEmitter.subtypes[cls];
-  if (subtypes == null) return false;
-  for (ClassElement subtype in subtypes) {
-    if (subtype.lookupLocalMember(element.name) != null) return true;
-  }
-  return false;
-}
-
 final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 
 void handleSsaNative(SsaBuilder builder, Expression nativeBody) {

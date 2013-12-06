@@ -28,7 +28,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const String& function_name = String::Handle(Symbols::New("callerFunction"));
   const Function& function = Function::Handle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, owner_class, 0));
+                    true, false, false, false, false, owner_class, 0));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
   const Array& args_descriptor =

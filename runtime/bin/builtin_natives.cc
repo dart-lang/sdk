@@ -60,9 +60,12 @@ namespace bin {
   V(File_GetStdioHandleType, 1)                                                \
   V(File_GetType, 2)                                                           \
   V(File_AreIdentical, 2)                                                      \
+  V(FileSystemWatcher_CloseWatcher, 1)                                         \
+  V(FileSystemWatcher_GetSocketId, 2)                                          \
+  V(FileSystemWatcher_InitWatcher, 0)                                          \
   V(FileSystemWatcher_IsSupported, 0)                                          \
-  V(FileSystemWatcher_ReadEvents, 1)                                           \
-  V(FileSystemWatcher_UnwatchPath, 1)                                          \
+  V(FileSystemWatcher_ReadEvents, 2)                                           \
+  V(FileSystemWatcher_UnwatchPath, 2)                                          \
   V(FileSystemWatcher_WatchPath, 4)                                            \
   V(Logger_PrintString, 1)
 

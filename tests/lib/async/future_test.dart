@@ -808,8 +808,8 @@ class CustomFuture<T> implements Future<T> {
   Future catchError(Function onError, {bool test(e)}) =>
       _realFuture.catchError(onError, test: test);
   Future whenComplete(action()) => _realFuture.whenComplete(action);
-  Future timeout(Duration timeLimit, [void onTimeout()]) =>
-      _realFuture.timeout(timeLimit, onTimeout);
+  Future timeout(Duration timeLimit, {void onTimeout()}) =>
+      _realFuture.timeout(timeLimit, onTimeout: onTimeout);
   Stream asStream() => _realFuture.asStream();
   String toString() => "CustomFuture@${_realFuture.hashCode}";
   int get hashCode => _realFuture.hashCode;

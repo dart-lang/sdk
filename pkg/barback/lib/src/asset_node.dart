@@ -10,6 +10,7 @@ import 'asset.dart';
 import 'asset_id.dart';
 import 'errors.dart';
 import 'transform_node.dart';
+import 'utils.dart';
 
 /// Describes the current state of an asset as part of a transformation graph.
 ///
@@ -125,7 +126,7 @@ class AssetNode {
   /// The return value of [callback] is piped to the returned Future.
   Future _waitForState(bool test(AssetState state),
       callback(AssetState state)) {
-    if (test(state)) return new Future.sync(() => callback(state));
+    if (test(state)) return syncFuture(() => callback(state));
     return onStateChange.firstWhere(test).then((_) => callback(state));
   }
 

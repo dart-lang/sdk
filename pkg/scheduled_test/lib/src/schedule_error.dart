@@ -4,8 +4,6 @@
 
 library schedule_error;
 
-import 'dart:async';
-
 import 'package:stack_trace/stack_trace.dart';
 
 import 'schedule.dart';
@@ -18,7 +16,7 @@ class ScheduleError {
   final error;
 
   /// The stack trace that was attached to the error. Can be `null`.
-  final stackTrace;
+  final StackTrace stackTrace;
 
   /// The schedule during which this error occurred.
   final Schedule schedule;
@@ -53,16 +51,12 @@ class ScheduleError {
       stackTrace = error.stackTrace;
     }
 
-    if (stackTrace == null) stackTrace = new Trace.current();
+    if (stackTrace == null) stackTrace = new Chain.current();
     return new ScheduleError(schedule, error, stackTrace);
   }
 
-  // TODO(floitsch): restore StackTrace type when it has been integrated into
-  // the core libraries.
-  ScheduleError(Schedule schedule, error, var stackTrace)
-      : error = error,
-        stackTrace = stackTrace,
-        schedule = schedule,
+  ScheduleError(Schedule schedule, this.error, this.stackTrace)
+      : schedule = schedule,
         task = schedule.currentTask,
         queue = schedule.currentQueue,
         pendingCallbacks = schedule.currentQueue == null ? <PendingCallback>[]
@@ -86,7 +80,7 @@ class ScheduleError {
     }
 
     if (stackTrace != null) {
-      result.write('Stack trace:\n');
+      result.write('Stack chain:\n');
       result.write(prefixLines(terseTraceString(stackTrace)));
       result.write("\n\n");
     }

@@ -30,6 +30,8 @@ import '../scanner/scannerlib.dart' show Token,
 
 import '../ordered_typeset.dart' show OrderedTypeSet;
 
+import 'visitor.dart' show ElementVisitor;
+
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;
 const int STATE_DONE = 2;
@@ -257,6 +259,8 @@ abstract class Element implements Spannable {
   FunctionElement get targetConstructor;
 
   void diagnose(Element context, DiagnosticListener listener);
+
+  accept(ElementVisitor visitor);
 }
 
 class Elements {
@@ -580,13 +584,6 @@ class Elements {
     return false;
   }
 
-  static bool switchStatementHasDefault(SwitchStatement node) {
-    for (SwitchCase switchCase in node.cases) {
-      if (switchCase.isDefaultCase) return true;
-    }
-    return false;
-  }
-
   static bool isUnusedLabel(LabeledStatement node, TreeElements elements) {
     Node body = node.statement;
     TargetElement element = elements[body];
@@ -657,10 +654,16 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
   Link<Element> get exports;
 
   /**
-   * [:true:] if this library is part of the platform, that is its canonical
+   * [:true:] if this library is part of the platform, that is, its canonical
    * uri has the scheme 'dart'.
    */
   bool get isPlatformLibrary;
+
+  /**
+   * [:true:] if this library is from a package, that is, its canonical uri has
+   * the scheme 'package'.
+   */
+  bool get isPackageLibrary;
 
   /**
    * [:true:] if this library is a platform library whose path starts with
@@ -905,16 +908,11 @@ abstract class ClassElement extends TypeDeclarationElement
   Element lookupSuperMemberInLibrary(String memberName,
                                      LibraryElement library);
 
-  Element lookupSuperInterfaceMember(String memberName,
-                                     LibraryElement fromLibrary);
-
   Element validateConstructorLookupResults(Selector selector,
                                            Element result,
                                            Element noMatch(Element));
 
   Element lookupConstructor(Selector selector, [Element noMatch(Element)]);
-  Element lookupFactoryConstructor(Selector selector,
-                                   [Element noMatch(Element)]);
 
   void forEachMember(void f(ClassElement enclosingClass, Element member),
                      {bool includeBackendMembers: false,
@@ -990,3 +988,5 @@ abstract class MetadataAnnotation implements Spannable {
 
   MetadataAnnotation ensureResolved(Compiler compiler);
 }
+
+abstract class VoidElement extends Element {}

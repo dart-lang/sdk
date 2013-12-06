@@ -7,6 +7,9 @@ library watcher.directory_watcher.mac_os;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+import 'package:stack_trace/stack_trace.dart';
+
 import '../constructable_file_system_event.dart';
 import '../path_set.dart';
 import '../utils.dart';
@@ -21,14 +24,22 @@ import 'resubscribable.dart';
 /// succession, it won't report them in the order they occurred. See issue
 /// 14373.
 ///
-/// This also works around issues 14793, 14806, and 14849 in the implementation
-/// of [Directory.watch].
+/// This also works around issues 15458 and 14849 in the implementation of
+/// [Directory.watch].
 class MacOSDirectoryWatcher extends ResubscribableDirectoryWatcher {
+  // TODO(nweiz): remove these when issue 15042 is fixed.
+  static var logDebugInfo = false;
+  static var _count = 0;
+
   MacOSDirectoryWatcher(String directory)
-      : super(directory, () => new _MacOSDirectoryWatcher(directory));
+      : super(directory, () => new _MacOSDirectoryWatcher(directory, _count++));
 }
 
 class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
+  // TODO(nweiz): remove these when issue 15042 is fixed.
+  static var _count = 0;
+  final String _id;
+
   final String directory;
 
   Stream<WatchEvent> get events => _eventsController.stream;
@@ -68,21 +79,33 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// watcher is closed. This does not include [_watchSubscription].
   final _subscriptions = new Set<StreamSubscription>();
 
-  _MacOSDirectoryWatcher(String directory)
+  _MacOSDirectoryWatcher(String directory, int parentId)
       : directory = directory,
-        _files = new PathSet(directory) {
+        _files = new PathSet(directory),
+        _id = "$parentId/${_count++}" {
     _startWatch();
 
-    _listen(new Directory(directory).list(recursive: true),
+    _listen(Chain.track(new Directory(directory).list(recursive: true)),
         (entity) {
       if (entity is! Directory) _files.add(entity.path);
     },
         onError: _emitError,
-        onDone: _readyCompleter.complete,
+        onDone: () {
+      if (MacOSDirectoryWatcher.logDebugInfo) {
+        print("[$_id] watcher is ready, known files:");
+        for (var file in _files.toSet()) {
+          print("[$_id]   ${p.relative(file, from: directory)}");
+        }
+      }
+      _readyCompleter.complete();
+    },
         cancelOnError: true);
   }
 
   void close() {
+    if (MacOSDirectoryWatcher.logDebugInfo) {
+      print("[$_id] watcher is closed");
+    }
     for (var subscription in _subscriptions) {
       subscription.cancel();
     }
@@ -94,26 +117,65 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
   /// The callback that's run when [Directory.watch] emits a batch of events.
   void _onBatch(List<FileSystemEvent> batch) {
+    if (MacOSDirectoryWatcher.logDebugInfo) {
+      print("[$_id] ======== batch:");
+      for (var event in batch) {
+        print("[$_id]   ${_formatEvent(event)}");
+      }
+
+      print("[$_id] known files:");
+      for (var file in _files.toSet()) {
+        print("[$_id]   ${p.relative(file, from: directory)}");
+      }
+    }
+
     batches++;
 
     _sortEvents(batch).forEach((path, events) {
+      var relativePath = p.relative(path, from: directory);
+      if (MacOSDirectoryWatcher.logDebugInfo) {
+        print("[$_id] events for $relativePath:\n");
+        for (var event in events) {
+          print("[$_id]   ${_formatEvent(event)}");
+        }
+      }
+
       var canonicalEvent = _canonicalEvent(events);
       events = canonicalEvent == null ?
           _eventsBasedOnFileSystem(path) : [canonicalEvent];
+      if (MacOSDirectoryWatcher.logDebugInfo) {
+        print("[$_id] canonical event for $relativePath: "
+            "${_formatEvent(canonicalEvent)}");
+        print("[$_id] actionable events for $relativePath: "
+            "${events.map(_formatEvent)}");
+      }
 
       for (var event in events) {
         if (event is FileSystemCreateEvent) {
           if (!event.isDirectory) {
+            // Don't emit ADD events for files or directories that we already
+            // know about. Such an event comes from FSEvents reporting an add
+            // that happened prior to the watch beginning.
+            if (_files.contains(path)) continue;
+
             _emitEvent(ChangeType.ADD, path);
             _files.add(path);
             continue;
           }
 
-          _listen(new Directory(path).list(recursive: true), (entity) {
+          if (_files.containsDir(path)) continue;
+
+          _listen(Chain.track(new Directory(path).list(recursive: true)),
+              (entity) {
             if (entity is Directory) return;
             _emitEvent(ChangeType.ADD, entity.path);
             _files.add(entity.path);
-          }, onError: _emitError, cancelOnError: true);
+          }, onError: (e, stackTrace) {
+            if (MacOSDirectoryWatcher.logDebugInfo) {
+              print("[$_id] got error listing $relativePath: $e");
+            }
+            _emitError(e, stackTrace);
+          }, cancelOnError: true);
         } else if (event is FileSystemModifyEvent) {
           assert(!event.isDirectory);
           _emitEvent(ChangeType.MODIFY, path);
@@ -125,6 +187,10 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         }
       }
     });
+
+    if (MacOSDirectoryWatcher.logDebugInfo) {
+      print("[$_id] ======== batch complete");
+    }
   }
 
   /// Sort all the events in a batch into sets based on their path.
@@ -161,32 +227,10 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       set.add(event);
     }
 
-    for (var event in batch.where((event) => event is! FileSystemMoveEvent)) {
+    for (var event in batch) {
+      // The Mac OS watcher doesn't emit move events. See issue 14806.
+      assert(event is! FileSystemMoveEvent);
       addEvent(event.path, event);
-    }
-
-    // Issue 14806 means that move events can be misleading if they're in the
-    // same batch as another modification of a related file. If they are, we
-    // make the event set empty to ensure we check the state of the filesystem.
-    // Otherwise, treat them as a DELETE followed by an ADD.
-    for (var event in batch.where((event) => event is FileSystemMoveEvent)) {
-      if (eventsForPaths.containsKey(event.path) ||
-          eventsForPaths.containsKey(event.destination)) {
-
-        if (!isInModifiedDirectory(event.path)) {
-          eventsForPaths[event.path] = new Set();
-        }
-        if (!isInModifiedDirectory(event.destination)) {
-          eventsForPaths[event.destination] = new Set();
-        }
-
-        continue;
-      }
-
-      addEvent(event.path, new ConstructableFileSystemDeleteEvent(
-          event.path, event.isDirectory));
-      addEvent(event.destination, new ConstructableFileSystemCreateEvent(
-          event.path, event.isDirectory));
     }
 
     return eventsForPaths;
@@ -209,6 +253,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
     var type = batch.first.type;
     var isDir = batch.first.isDirectory;
+    var hadModifyEvent = false;
 
     for (var event in batch.skip(1)) {
       // If one event reports that the file is a directory and another event
@@ -219,7 +264,10 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       // safely assume the file was modified after a CREATE or before the
       // REMOVE; otherwise there will also be a REMOVE or CREATE event
       // (respectively) that will be contradictory.
-      if (event is FileSystemModifyEvent) continue;
+      if (event is FileSystemModifyEvent) {
+        hadModifyEvent = true;
+        continue;
+      }
       assert(event is FileSystemCreateEvent || event is FileSystemDeleteEvent);
 
       // If we previously thought this was a MODIFY, we now consider it to be a
@@ -234,13 +282,23 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       if (type != event.type) return null;
     }
 
+    // If we got a CREATE event for a file we already knew about, that comes
+    // from FSEvents reporting an add that happened prior to the watch
+    // beginning. If we also received a MODIFY event, we want to report that,
+    // but not the CREATE.
+    if (type == FileSystemEvent.CREATE && hadModifyEvent &&
+        _files.contains(batch.first.path)) {
+      type = FileSystemEvent.MODIFY;
+    }
+
     switch (type) {
       case FileSystemEvent.CREATE:
-        // Issue 14793 means that CREATE events can actually mean DELETE, so we
-        // should always check the filesystem for them.
-        return null;
+        return new ConstructableFileSystemCreateEvent(batch.first.path, isDir);
       case FileSystemEvent.DELETE:
-        return new ConstructableFileSystemDeleteEvent(batch.first.path, isDir);
+        // Issue 15458 means that DELETE events for directories can actually
+        // mean CREATE, so we always check the filesystem for them.
+        if (isDir) return null;
+        return new ConstructableFileSystemCreateEvent(batch.first.path, false);
       case FileSystemEvent.MODIFY:
         return new ConstructableFileSystemModifyEvent(
             batch.first.path, isDir, false);
@@ -260,6 +318,13 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     var dirExisted = _files.containsDir(path);
     var fileExists = new File(path).existsSync();
     var dirExists = new Directory(path).existsSync();
+
+    if (MacOSDirectoryWatcher.logDebugInfo) {
+      print("[$_id] file existed: $fileExisted");
+      print("[$_id] dir existed: $dirExisted");
+      print("[$_id] file exists: $fileExists");
+      print("[$_id] dir exists: $dirExists");
+    }
 
     var events = [];
     if (fileExisted) {
@@ -314,8 +379,9 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// Start or restart the underlying [Directory.watch] stream.
   void _startWatch() {
     // Batch the FSEvent changes together so that we can dedup events.
-    var innerStream = new Directory(directory).watch(recursive: true).transform(
-        new BatchedStreamTransformer<FileSystemEvent>());
+    var innerStream =
+        Chain.track(new Directory(directory).watch(recursive: true))
+        .transform(new BatchedStreamTransformer<FileSystemEvent>());
     _watchSubscription = innerStream.listen(_onBatch,
         onError: _eventsController.addError,
         onDone: _onDone);
@@ -325,10 +391,9 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   void _emitEvent(ChangeType type, String path) {
     if (!isReady) return;
 
-    // Don't emit ADD events for files that we already know about. Such an event
-    // probably comes from FSEvents reporting an add that happened prior to the
-    // watch beginning.
-    if (type == ChangeType.ADD && _files.contains(path)) return;
+    if (MacOSDirectoryWatcher.logDebugInfo) {
+      print("[$_id] emitting $type ${p.relative(path, from: directory)}");
+    }
 
     _eventsController.add(new WatchEvent(type, path));
   }
@@ -349,5 +414,24 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       if (onDone != null) onDone();
     }, cancelOnError: cancelOnError);
     _subscriptions.add(subscription);
+  }
+
+  // TODO(nweiz): remove this when issue 15042 is fixed.
+  /// Return a human-friendly string representation of [event].
+  String _formatEvent(FileSystemEvent event) {
+    if (event == null) return 'null';
+
+    var path = p.relative(event.path, from: directory);
+    var type = event.isDirectory ? 'directory' : 'file';
+    if (event is FileSystemCreateEvent) {
+      return "create $type $path";
+    } else if (event is FileSystemDeleteEvent) {
+      return "delete $type $path";
+    } else if (event is FileSystemModifyEvent) {
+      return "modify $type $path";
+    } else if (event is FileSystemMoveEvent) {
+      return "move $type $path to "
+          "${p.relative(event.destination, from: directory)}";
+    }
   }
 }

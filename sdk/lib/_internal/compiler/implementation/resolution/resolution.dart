@@ -22,6 +22,7 @@ import '../elements/modelx.dart'
          LabelElementX,
          TargetElementX,
          MixinApplicationElementX,
+         TypeVariableElementX,
          TypedefElementX,
          SynthesizedConstructorElementX;
 import '../util/util.dart';

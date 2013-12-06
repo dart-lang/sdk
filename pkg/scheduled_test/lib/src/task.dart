@@ -61,7 +61,7 @@ class Task {
   Future get result => _resultCompleter.future;
   final _resultCompleter = new Completer();
 
-  final Trace stackTrace;
+  final Chain stackChain;
 
   Task(fn(), String description, TaskQueue queue)
     : this._(fn, description, queue, null, queue.contents.length);
@@ -71,7 +71,7 @@ class Task {
 
   Task._(fn(), this.description, TaskQueue queue, this.parent, this._id)
       : queue = queue,
-        stackTrace = new Trace.current() {
+        stackChain = new Chain.current() {
     this.fn = () {
       if (state != TaskState.WAITING) {
         throw new StateError("Can't run $state task '$this'.");
@@ -123,12 +123,8 @@ class Task {
   String toString() => description == null ? "#$_id" : description;
 
   String toStringWithStackTrace() {
-    var result = toString();
-    if (stackTrace != null) {
-      var stackString = prefixLines(terseTraceString(stackTrace));
-      result += "\n\nStack trace:\n$stackString";
-    }
-    return result;
+    var stackString = prefixLines(terseTraceString(stackChain));
+    return "$this\n\nStack chain:\n$stackString";
   }
 
   /// Returns a detailed representation of [queue] with this task highlighted.

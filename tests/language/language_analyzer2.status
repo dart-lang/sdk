@@ -9,11 +9,10 @@ closure_call_wrong_argument_count_negative_test: skip
 # Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
 built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 
-# TBD: these look like bad tests, no issue number
+# Issue 15315
 class_literal_test: fail
 constructor_call_as_function_test/01: fail
-
-function_type_alias9_test/00: crash # Issue 11987
+call_type_literal_test/01: fail
 
 # TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/03: fail
@@ -153,8 +152,22 @@ mixin_illegal_syntax_test/none: fail
 # test issue 14736, It is a static warning if a class C declares an instance method named n and has a setter named n=.
 setter4_test: StaticWarning
 
-
-
+# test issue 15060
+least_upper_bound_test/23: StaticWarning # Issue 15060
+least_upper_bound_test/24: StaticWarning # Issue 15060
+least_upper_bound_test/25: MissingStaticWarning # Issue 15060
+least_upper_bound_test/26: MissingStaticWarning # Issue 15060
+least_upper_bound_test/29: StaticWarning # Issue 15060
+least_upper_bound_test/30: StaticWarning # Issue 15060
+least_upper_bound_test/31: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/02: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/04: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/05: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/06: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/08: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/10: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/11: MissingStaticWarning # Issue 15060
+least_upper_bound_expansive_test/12: MissingStaticWarning # Issue 15060
 
 abstract_exact_selector_test: StaticWarning
 abstract_getter_test: StaticWarning

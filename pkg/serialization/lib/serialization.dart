@@ -20,12 +20,11 @@
  *      address.street = 'N 34th';
  *      address.city = 'Seattle';
  *      var serialization = new Serialization()
- *          ..addRuleFor(address);
+ *          ..addRuleFor(Address);
  *      Map output = serialization.write(address);
  *
- * This creates a new serialization and adds a rule for address objects. Right
- * now it has to be passed an address instance because of limitations using
- * Address as a literal. Then we ask the [Serialization] to write the address
+ * This creates a new serialization and adds a rule for address objects.
+ * Then we ask the [Serialization] to write the address
  * and we get back a Map which is a [json]able representation of the state of
  * the address and related objects. Note that while the output in this case
  * is a [Map], the type will vary depending on which output format we've told
@@ -35,7 +34,7 @@
  * fields of the address object. We can also specify those fields explicitly.
  *
  *      var serialization = new Serialization()
- *        ..addRuleFor(address,
+ *        ..addRuleFor(Address,
  *            constructor: "create",
  *            constructorFields: ["number", "street"],
  *            fields: ["city"]);
@@ -47,7 +46,7 @@
  * serialized.
  *
  *      var serialization = new Serialization()
- *        ..addRuleFor(address,
+ *        ..addRuleFor(Address,
  *            constructor: "",
  *            excludeFields: ["other", "stuff"]);
  *
@@ -189,7 +188,7 @@
  * [Reader] or [Writer] respectively.
  *
  *     new Serialization()
- *       ..addRuleFor(new Person(), constructorFields: ["name"])
+ *       ..addRuleFor(Person, constructorFields: ["name"])
  *       ..namedObjects['Person'] = reflect(new Person()).type;
  */
 library serialization;
