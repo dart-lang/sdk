@@ -68,7 +68,11 @@ abstract class RequestManager extends Observable {
       request(requestString).then((responseString) {
         parseResponses(responseString);
       }).catchError((e) {
-        setResponseError(e.target);
+        if (e is FormatException) {
+          setResponseError(e.message);
+        } else {
+          setResponseError(e.target);
+        }
       });
     }
   }
@@ -100,5 +104,46 @@ abstract class RequestManager extends Observable {
 class HttpRequestManager extends RequestManager {
   Future<String> request(String requestString) {
     return HttpRequest.getString(prefix + requestString);
+  }
+}
+
+class PostMessageRequestManager extends RequestManager {
+  final Map _outstandingRequests = new Map();
+  int _requestSerial = 0;
+  PostMessageRequestManager() {
+    window.onMessage.listen(_messageHandler);
+  }
+
+  void _messageHandler(msg) {
+    var id = msg.data['id'];
+    var name = msg.data['name'];
+    var data = msg.data['data'];
+    if (name != 'observatoryData') {
+      return;
+    }
+    print('Got reply $id $data');
+    var completer = _outstandingRequests[id];
+    if (completer != null) {
+      _outstandingRequests.remove(id);
+      print('Completing $id');
+      completer.complete(data);
+    } else {
+      print('Could not find completer for $id');
+    }
+  }
+
+  Future<String> request(String requestString) {
+    var idString = '$_requestSerial';
+    Map message = {};
+    message['id'] = idString;
+    message['method'] = 'observatoryQuery';
+    message['query'] = requestString;
+    _requestSerial++;
+
+    var completer = new Completer();
+    _outstandingRequests[idString] = completer;
+
+    window.parent.postMessage(JSON.encode(message), '*');
+    return completer.future;
   }
 }

@@ -4,8 +4,8 @@
 
 library library_view_element;
 
-import 'observatory_element.dart';
 import 'package:polymer/polymer.dart';
+import 'observatory_element.dart';
 
 @CustomTag('library-view')
 class LibraryViewElement extends ObservatoryElement {

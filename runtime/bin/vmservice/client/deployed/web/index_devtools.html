@@ -1,0 +1,539 @@
+<!DOCTYPE html><html><head><script src="packages/shadow_dom/shadow_dom.debug.js"></script>
+<script src="packages/custom_element/custom-elements.debug.js"></script>
+<script src="packages/browser/interop.js"></script>
+
+  <title>Dart VM Observatory</title>
+  <meta charset="utf-8">
+  <link type="text/css" rel="stylesheet" href="bootstrap_css/css/bootstrap.min.css">
+  
+  <script src="index_devtools.html_bootstrap.dart.js"></script>
+  
+</head>
+<body><polymer-element name="observatory-element">
+  
+</polymer-element><polymer-element name="error-view" extends="observatory-element">
+  <template>
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-danger">
+        <div class="panel-heading">Error</div>
+        <div class="panel-body">
+          <template if="{{ (error_obj == null) || (error_obj['type'] != 'LanguageError') }}">
+            <p>{{ error }}</p>
+          </template>
+          <template if="{{ (error_obj != null) &amp;&amp; (error_obj['type'] == 'LanguageError') }}">
+            <pre>{{ error_obj['error_msg'] }}</pre>
+          </template>
+        </div>
+      </div>
+    </div>
+    </div>
+  </template>
+  
+</polymer-element><polymer-element name="class-view" extends="observatory-element">
+  <template>
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+          {{ cls['user_name'] }} ({{ cls['name'] }}) 
+          <template if="{{ cls['super']['type'] != 'Null' }}">
+            extends
+            <a href="{{ app.locationManager.currentIsolateClassLink(cls['super']['id'])}}">
+              {{ cls['super']['user_name'] }}
+            </a> 
+          </template>
+          <a class="pull-right" href="{{ app.locationManager.currentIsolateObjectLink(cls['library']['id'])}}">
+            {{ cls['library']['name'] }}
+          </a>
+        </div>
+        <div class="panel-body">
+          <table class="table table-hover">
+            <tbody>
+              <tr>
+                <td>Abstract</td><td>{{ cls['abstract'] }}</td>
+              </tr>
+              <tr>
+                <td>Const</td><td>{{ cls['const'] }}</td>
+              </tr>
+              <tr>
+                <td>Finalized</td><td>{{ cls['const'] }}</td>
+              </tr>
+              <tr>
+                <td>Implemented</td><td>{{ cls['implemented'] }}</td>
+              </tr>
+              <tr>
+                <td>Patch</td><td>{{ cls['patch'] }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <template if="{{ cls['error'] == null }}">
+            <blockquote><strong>Fields</strong></blockquote>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>User Name</th>
+                  <th>VM Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr template="" repeat="{{ field in cls['fields'] }}">
+                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['user_name'] }}</a></td>
+                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['name'] }}</a></td>
+                </tr>
+              </tbody>
+            </table>
+            <blockquote><strong>Functions</strong></blockquote>
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>User Name</th>
+                  <th>VM Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr template="" repeat="{{ function in cls['functions'] }}">
+                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['user_name'] }}</a></td>
+                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['name'] }}</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+          <template if="{{ cls['error'] != null }}">
+            <error-view error_obj="{{ cls['error'] }}"></error-view>
+          </template>
+        </div>
+      </div>
+    </div>
+    </div>
+  </template>
+  
+</polymer-element>
+<polymer-element name="disassembly-entry" extends="observatory-element">
+  <template>
+  <div class="row">
+    <template if="{{ instruction['type'] == 'DisassembledInstructionComment' }}">
+      <div class="col-md-2"></div>
+      <div class="col-md-2"></div>
+      <div class="col-md-4"><code>{{ instruction['comment'] }}</code></div>
+    </template>
+    <template if="{{ instruction['type'] == 'DisassembledInstruction' }}">
+      <div class="col-md-2"></div>
+      <div class="col-md-2">{{ instruction['pc'] }}</div>
+      <div class="col-md-4">
+        <code>{{ instruction['hex'] }} {{ instruction['human'] }}</code>
+      </div>
+    </template>
+  </div>
+  </template>
+  
+</polymer-element><polymer-element name="code-view" extends="observatory-element">
+  <template>
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="{{ cssPanelClass }}">
+        <div class="panel-heading">
+          <a href="{{ app.locationManager.currentIsolateObjectLink(code['function']['id'])}}">
+            {{ code['function']['user_name'] }} ({{ code['function']['name'] }})
+          </a>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+              <div class="col-md-2"><strong>Samples</strong></div>
+              <div class="col-md-2"><strong>Address</strong></div>
+              <div><strong>Instruction</strong></div>
+          </div>
+          <template repeat="{{ instruction in code['disassembly'] }}">
+            <disassembly-entry instruction="{{ instruction }}">
+            </disassembly-entry>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  
+</polymer-element><polymer-element name="collapsible-content" extends="observatory-element">
+  <template>
+    <div class="well row">
+      <a on-click="toggleDisplay" class="btn muted unselectable">
+           Raw message... <i class="{{ iconClass }}"></i>
+      </a>
+      <div style="display: {{ displayValue }}" class="well">
+        <content></content>
+      </div>
+    </div>
+  </template>
+  
+</polymer-element><polymer-element name="field-view" extends="observatory-element">
+  <template>
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+          <template if="{{ field['static'] }}">static</template>
+          <template if="{{ field['final'] }}">final</template>
+          <template if="{{ field['const'] }}">const</template>
+          {{ field['user_name'] }} ({{ field['name'] }}) 
+          <a class="pull-right" href="{{ app.locationManager.currentIsolateClassLink(field['class']['id'])}}">
+            {{ field['class']['user_name'] }}
+          </a>
+        </div>
+        <div class="panel-body">
+        <template if="{{ field['guard_class'] == 'dynamic'}}">
+          <div class="alert alert-danger">
+            Field has been assigned multiple types. If a field is only ever
+            assigned a single type, performance may improve.
+          </div>
+        </template>
+        <template if="{{ field['guard_class'] != 'dynamic'}}">
+          <div class="alert alert-success">Field has monomorphic type</div>
+          <template if="{{ (field['guard_class'] != 'dynamic') &amp;&amp; 
+                        field['guard_nullable'] }}">
+            <div class="alert alert-info">
+              Field has been assigned null. If a field is never assigned null,
+              performance may improve.
+            </div>
+          </template>
+          <blockquote>
+            <a href="{{ app.locationManager.currentIsolateClassLink(field['guard_class']['id'])}}">
+            {{ field['guard_class']['user_name'] }}
+          </a>
+          </blockquote>
+        </template>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  
+</polymer-element><polymer-element name="function-view" extends="observatory-element">
+  <template>
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">
+        <div class="panel-heading">
+          {{ function['user_name'] }} ({{ function['name'] }}) 
+          <a class="pull-right" href="{{ app.locationManager.currentIsolateClassLink(function['class']['id'])}}">
+            {{ function['class']['name'] }}
+          </a>
+        </div>
+        <div class="panel-body">
+          <div>
+          <a class="btn btn-primary" href="{{ app.locationManager.currentIsolateObjectLink(function['code']['id'])}}">Current Code</a>
+          <a class="btn btn-info" href="{{ app.locationManager.currentIsolateObjectLink(function['unoptimized_code']['id'])}}">Unoptimized Code</a>
+          </div>
+          <table class="table table-hover">
+            <tbody>
+              <tr>
+                <td>static</td><td>{{ function['is_static'] }}</td>
+              </tr>
+              <tr>
+                <td>Const</td><td>{{ function['is_const'] }}</td>
+              </tr>
+              <tr>
+                <td>Optimizable</td><td>{{ function['is_optimizable'] }}</td>
+              </tr>
+              <tr>
+                <td>Inlinable</td><td>{{ function['is_inlinable'] }}</td>
+              </tr>
+              <tr>
+                <td>Kind</td><td>{{ function['kind'] }}</td>
+              </tr>
+              <tr>
+                <td>Usage Count</td><td>{{ function['usage_counter'] }}</td>
+              </tr>
+              <tr>
+                <td>Optimized Call Site Count</td><td>{{ function['optimized_call_site_count'] }}</td>
+              </tr>
+              <tr>
+                <td>Deoptimizations</td><td>{{ function['deoptimizations'] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  </template>
+  
+</polymer-element><polymer-element name="isolate-summary" extends="observatory-element">
+  <template>
+  	<div class="row">
+  	  <div class="col-md-1">
+  	  	<img src="img/isolate_icon.png" class="img-polaroid">	
+  	  </div>
+  	  <div class="col-md-1">{{ isolate }}</div>
+  	  <div class="col-md-10">{{ name }}</div>
+  	</div>
+  	<div class="row">
+  	  <div class="col-md-2"></div>
+  	  <div class="col-md-1">
+  	  	<a href="{{ app.locationManager.relativeLink(isolate, 'stacktrace') }}">Stacktrace</a>
+  	  </div>
+      <div class="col-md-1">
+        <a href="{{ app.locationManager.relativeLink(isolate, 'library') }}">Library</a>
+      </div>
+  	  <div class="col-md-8"></div>
+    </div>
+  </template>
+  
+</polymer-element><polymer-element name="isolate-list" extends="observatory-element">
+  <template>
+      <ul class="list-group">
+      <template repeat="{{ isolate in app.isolateManager.isolates.values }}">
+      	<li class="list-group-item">
+        <isolate-summary app="{{ app }}" isolate="{{ isolate.id }}" name="{{ isolate.name }}"></isolate-summary>
+        </li>
+      </template>
+      </ul>
+  </template>
+  
+</polymer-element><polymer-element name="json-view" extends="observatory-element">
+  <template>
+    <template bind="" if="{{ valueType == 'Primitive' }}">
+      <span>{{primitiveString}}</span>
+    </template>
+    <template bind="" if="{{ valueType == 'List' }}">
+      <table class="table table-condensed table-bordered">
+        <caption class="text-left">List, {{list.length}}</caption>
+        <tbody>
+          <tr template="" repeat="{{item in list)}}">
+            <th>{{counter}}</th>
+            <td><json-view json="{{item}}"></json-view></td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
+    <template if="{{ valueType == 'Map' }}">
+      <table class="table table-condensed table-bordered">
+        <caption class="text-left">Map, {{keys.length}}</caption>
+        <tbody>
+          <tr template="" repeat="{{key in keys}}">
+            <th>{{key}}</th>
+            <td><json-view json="{{value(key)}}"></json-view></td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
+  </template>
+  
+</polymer-element>
+<polymer-element name="library-view" extends="observatory-element">
+  <template>
+  <div class="alert alert-success">Library {{ library['name'] }}</div>
+  <div class="alert alert-info">Scripts</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template="" repeat="{{ script in library['scripts']}}">
+        <td>
+          {{ script['kind'] }}
+        </td>
+        <td>
+          <a href="{{ app.locationManager.currentIsolateScriptLink(script['id'], script['name']) }}">{{ script['name'] }}</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Imported Libraries</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template="" repeat="{{ lib in library['libraries'] }}">
+        <td>
+          <a href="{{ app.locationManager.currentIsolateObjectLink(lib['id'])}}">
+            {{ lib['url'] }}
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Variables</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template="" repeat="{{ variable in library['variables'] }}">
+        <td>
+          <template if="{{ variable['final'] }}">
+            final
+          </template>
+          <template if="{{ variable['const'] }}">
+            const
+          </template>
+          <template if="{{ (variable['declared_type']['name'] == 'dynamic' &amp;&amp; !variable['final'] &amp;&amp; !variable['const']) }}">
+            var
+          </template>
+          <template if="{{ (variable['declared_type']['name'] != 'dynamic') }}">
+            <a href="{{ app.locationManager.currentIsolateClassLink(variable['declared_type']['id']) }}">
+              {{ variable['declared_type']['user_name'] }}
+            </a>
+          </template>
+          <a href="{{ app.locationManager.currentIsolateObjectLink(variable['id'])}}">
+            {{ variable['user_name'] }}
+          </a>
+        </td>
+        <td>
+          <template if="{{ (variable['value']['type'] == 'null') }}">
+            {{ "null" }}
+          </template>
+          <template if="{{ (variable['value']['type'] != 'null') }}">
+            <a href="{{ app.locationManager.currentIsolateObjectLink(variable['value']['id'])}}">
+              {{ variable['value']['preview'] }}
+            </a>
+          </template>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Functions</div>
+  <table class="table table-hover">
+    <tbody>
+      <tr template="" repeat="{{ func in library['functions'] }}">
+        <td>
+          <a href="{{ app.locationManager.currentIsolateObjectLink(func['id'])}}">
+            {{ func['user_name'] }}
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="alert alert-info">Classes</div>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Internal Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr template="" repeat="{{ cls in library['classes'] }}">
+        <td>
+          <a href="{{ app.locationManager.currentIsolateClassLink(cls['id']) }}">
+            {{ cls['user_name'] }}
+          </a>
+        </td>
+        <td>
+          <a href="{{ app.locationManager.currentIsolateClassLink(cls['id']) }}">
+            {{ cls['name'] }}
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  </template>
+  
+</polymer-element><polymer-element name="source-view" extends="observatory-element">
+  <template>
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel-heading">{{ source.url }}</div>
+      <div class="panel-body">
+        <div class="row">
+          <div><strong>Source</strong></div>
+        </div>
+        <pre>        <template repeat="{{ line in source.lines }}">{{line.paddedLine}} {{line.src}}
+        </template>
+        </pre>
+      </div>
+    </div>
+  </div>
+  </template>
+  
+</polymer-element><polymer-element name="script-view" extends="observatory-element">
+  <template>
+    <source-view app="{{ app }}" source="{{ script['source'] }}"></source-view>
+  </template>
+  
+</polymer-element><polymer-element name="stack-trace" extends="observatory-element">
+  <template>
+  <div class="alert alert-info">Stack Trace</div>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Depth</th>
+        <th>Function</th>
+        <th>Url</th>
+        <th>Line</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr template="" repeat="{{ frame in trace['members'] }}">
+        <td>{{$index}}</td>
+        <td><a href="{{app.locationManager.currentIsolateObjectLink(frame['function']['id'])}}">{{ frame['name'] }}</a></td>
+        <td>{{ frame['url'] }}</td>
+        <td>{{ frame['line'] }}</td>
+      </tr>
+    </tbody>
+  </table>
+  </template>
+  
+</polymer-element><polymer-element name="message-viewer" extends="observatory-element">
+  <!--
+    This is a big switch statement which instantiates the custom element
+    designated to display the message type.
+  -->
+  <template>
+  	<!-- If the message type is an IsolateList -->
+    <template if="{{ messageType == 'IsolateList' }}">
+      <isolate-list app="{{ app }}"></isolate-list>
+    </template>
+    <!-- If the message type is a StackTrace -->
+    <template if="{{ messageType == 'StackTrace' }}">
+      <stack-trace app="{{ app }}" trace="{{ message }}"></stack-trace>
+    </template>
+    <!-- If the message type is a RequestError -->
+    <template if="{{ messageType == 'RequestError' }}">
+      <error-view app="{{ app }}" error="{{ message['error'] }}"></error-view>
+    </template>
+    <template if="{{ messageType == 'Library' }}">
+      <library-view app="{{ app }}" library="{{ message }}"></library-view>
+    </template>
+    <template if="{{ messageType == 'Class' }}">
+      <class-view app="{{ app }}" cls="{{ message }}"></class-view>
+    </template>
+    <template if="{{ messageType == 'Field' }}">
+      <field-view app="{{ app }}" field="{{ message }}"></field-view>
+    </template>
+    <template if="{{ messageType == 'Function' }}">
+      <function-view app="{{ app }}" function="{{ message }}"></function-view>
+    </template>
+    <template if="{{ messageType == 'Code' }}">
+      <code-view app="{{ app }}" code="{{ message }}"></code-view>
+    </template>
+    <template if="{{ messageType == 'Script' }}">
+      <script-view app="{{ app }}" script="{{ message }}"></script-view>
+    </template>
+    <!-- Add new views and message types in the future here. -->
+  </template>
+  
+</polymer-element><polymer-element name="navigation-bar" extends="observatory-element">
+  <template>
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="">Observatory</a>
+      </div>
+      <div class="collapse navbar-collapse navbar-ex1-collapse">
+        <input class="span2 pull-right navbar-form" placeholder="VM Address" type="text" value="{{ app.requestManager.prefix }}">
+      </div>
+    </nav>
+  </template>
+  
+</polymer-element><polymer-element name="response-viewer" extends="observatory-element">
+  <template>
+    <template repeat="{{ message in app.requestManager.responses }}">
+      <message-viewer app="{{ app }}" message="{{ message }}"></message-viewer>
+      <collapsible-content>
+        <!-- <json-view json="{{ message }}"></json-view> -->
+      </collapsible-content>
+    </template>
+  </template>
+  
+</polymer-element><polymer-element name="observatory-application" extends="observatory-element">
+  <template>
+    <navigation-bar app="{{ app }}"></navigation-bar>
+    <response-viewer app="{{ app }}"></response-viewer>
+  </template>
+  
+</polymer-element>
+  <observatory-application devtools="true"></observatory-application>
+
+</body></html>
