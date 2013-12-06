@@ -17,6 +17,8 @@ class TemplateBindExtension extends _ElementExtension {
   DocumentFragment _content;
   bool _templateIsDecorated;
 
+  HtmlDocument _stagingDocument;
+
   var _bindingMap;
 
   TemplateBindExtension._(Element node) : super(node);
@@ -118,9 +120,8 @@ class TemplateBindExtension extends _ElementExtension {
       ref._bindingMap = map;
     }
 
-    var instance = map.hasSubTemplate
-        ? _deepCloneIgnoreTemplateContent(content)
-        : content.clone(true);
+    var staging = _getTemplateStagingDocument();
+    var instance = _deepCloneIgnoreTemplateContent(content, staging);
 
     _addMapBindings(instance, map, model, delegate, bound);
     // TODO(rafaelw): We can do this more lazily, but setting a sentinel
@@ -138,12 +139,12 @@ class TemplateBindExtension extends _ElementExtension {
     _ensureSetModelScheduled();
   }
 
-  static Node _deepCloneIgnoreTemplateContent(Node node) {
-    var clone = node.clone(false); // Shallow clone.
+  static Node _deepCloneIgnoreTemplateContent(Node node, stagingDocument) {
+    var clone = stagingDocument.importNode(node, false);
     if (isSemanticTemplate(clone)) return clone;
 
     for (var c = node.firstChild; c != null; c = c.nextNode) {
-      clone.append(_deepCloneIgnoreTemplateContent(c));
+      clone.append(_deepCloneIgnoreTemplateContent(c, stagingDocument));
     }
     return clone;
   }
@@ -241,8 +242,7 @@ class TemplateBindExtension extends _ElementExtension {
      }
 
     if (!isNative) {
-      var doc = _getTemplateContentsOwner(
-          templateElementExt._node.ownerDocument);
+      var doc = _getOrCreateTemplateContentsOwner(templateElementExt._node);
       templateElementExt._content = doc.createDocumentFragment();
     }
 
@@ -260,12 +260,13 @@ class TemplateBindExtension extends _ElementExtension {
   }
 
   static final _contentsOwner = new Expando();
+  static final _ownerStagingDocument = new Expando();
 
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
-  static Document _getTemplateContentsOwner(HtmlDocument doc) {
-    if (doc.window == null) {
-      return doc;
-    }
+  static HtmlDocument _getOrCreateTemplateContentsOwner(Element template) {
+    var doc = template.ownerDocument;
+    if (doc.window == null) return doc;
+
     var d = _contentsOwner[doc];
     if (d == null) {
       // TODO(arv): This should either be a Document or HTMLDocument depending
@@ -277,6 +278,19 @@ class TemplateBindExtension extends _ElementExtension {
       _contentsOwner[doc] = d;
     }
     return d;
+  }
+
+  HtmlDocument _getTemplateStagingDocument() {
+    if (_stagingDocument == null) {
+      var owner = _node.ownerDocument;
+      var doc = _ownerStagingDocument[owner];
+      if (doc == null) {
+        doc = owner.implementation.createHtmlDocument('');
+        _ownerStagingDocument[owner] = doc;
+      }
+      _stagingDocument = doc;
+    }
+    return _stagingDocument;
   }
 
   // For non-template browsers, the parser will disallow <template> in certain

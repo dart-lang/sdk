@@ -25,23 +25,16 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-window.CustomElements = {flags:{}};
-// SideTable is a weak map where possible. If WeakMap is not available the
-// association is stored as an expando property.
-var SideTable;
-// TODO(arv): WeakMap does not allow for Node etc to be keys in Firefox
-if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 0) {
-  SideTable = WeakMap;
-} else {
+if (typeof WeakMap === 'undefined') {
   (function() {
     var defineProperty = Object.defineProperty;
     var counter = Date.now() % 1e9;
 
-    SideTable = function() {
+    var WeakMap = function() {
       this.name = '__st' + (Math.random() * 1e9 >>> 0) + (counter++ + '__');
     };
 
-    SideTable.prototype = {
+    WeakMap.prototype = {
       set: function(key, value) {
         var entry = key[this.name];
         if (entry && entry[0] === key)
@@ -57,13 +50,15 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
       delete: function(key) {
         this.set(key, undefined);
       }
-    }
+    };
+
+    window.WeakMap = WeakMap;
   })();
 }
 
 (function(global) {
 
-  var registrationsTable = new SideTable();
+  var registrationsTable = new WeakMap();
 
   // We use setImmediate or postMessage for our future callback.
   var setImmediate = window.msSetImmediate;
@@ -596,17 +591,17 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
 
   global.JsMutationObserver = JsMutationObserver;
 
+  // Provide unprefixed MutationObserver with native or JS implementation
+  if (!global.MutationObserver && global.WebKitMutationObserver)
+    global.MutationObserver = global.WebKitMutationObserver;
+
+  if (!global.MutationObserver)
+    global.MutationObserver = JsMutationObserver;
+
+
 })(this);
 
-if (!window.MutationObserver) {
-  window.MutationObserver =
-      window.WebKitMutationObserver ||
-      window.JsMutationObserver;
-  if (!MutationObserver) {
-    throw new Error("no mutation observer support");
-  }
-}
-
+window.CustomElements = window.CustomElements || {flags:{}};
 (function(scope){
 
 var logFlags = window.logFlags || {};
@@ -782,7 +777,6 @@ function removedNode(node) {
   });
 }
 
-
 function removed(element) {
   if (hasPolyfillMutations) {
     deferMutation(function() {
@@ -793,7 +787,7 @@ function removed(element) {
   }
 }
 
-function removed(element) {
+function _removed(element) {
   // TODO(sjmiles): temporary: do work on all custom elements so we can track
   // behavior even when callbacks not defined
   if (element.leftViewCallback || (element.__upgraded__ && logFlags.dom)) {
@@ -846,16 +840,6 @@ function watchRoot(root) {
   }
 }
 
-function filter(inNode) {
-  switch (inNode.localName) {
-    case 'style':
-    case 'script':
-    case 'template':
-    case undefined:
-      return true;
-  }
-}
-
 function handler(mutations) {
   //
   if (logFlags.dom) {
@@ -878,7 +862,7 @@ function handler(mutations) {
     if (mx.type === 'childList') {
       forEach(mx.addedNodes, function(n) {
         //logFlags.dom && console.log(n.localName);
-        if (filter(n)) {
+        if (!n.localName) {
           return;
         }
         // nodes added may need lifecycle management
@@ -887,7 +871,7 @@ function handler(mutations) {
       // removed nodes may need lifecycle management
       forEach(mx.removedNodes, function(n) {
         //logFlags.dom && console.log(n.localName);
-        if (filter(n)) {
+        if (!n.localName) {
           return;
         }
         removedNode(n);
@@ -1031,8 +1015,10 @@ if (useNative) {
       // offer guidance)
       throw new Error('document.register: first argument (\'name\') must contain a dash (\'-\'). Argument provided was \'' + String(name) + '\'.');
     }
-    // record name
-    definition.name = name;
+    // elements may only be registered once
+    if (getRegisteredDefinition(name)) {
+      throw new Error('DuplicateDefinitionError: a type with name \'' + String(name) + '\' is already registered');
+    }
     // must have a prototype, default to an extension of HTMLElement
     // TODO(sjmiles): probably should throw if no prototype, check spec
     if (!definition.prototype) {
@@ -1040,6 +1026,8 @@ if (useNative) {
       // offer guidance)
       throw new Error('Options missing required prototype property');
     }
+    // record name
+    definition.name = name.toLowerCase();
     // ensure a lifecycle object so we don't have to null test it
     definition.lifecycle = definition.lifecycle || {};
     // build a list of ancestral custom elements (for native base detection)
@@ -1055,7 +1043,7 @@ if (useNative) {
     // overrides to implement attributeChanged callback
     overrideAttributeApi(definition.prototype);
     // 7.1.5: Register the DEFINITION with DOCUMENT
-    registerDefinition(name, definition);
+    registerDefinition(definition.name, definition);
     // 7.1.7. Run custom element constructor generation algorithm with PROTOTYPE
     // 7.1.8. Return the output of the previous step.
     definition.ctor = generateConstructor(definition);
@@ -1071,7 +1059,7 @@ if (useNative) {
   }
 
   function ancestry(extnds) {
-    var extendee = registry[extnds];
+    var extendee = getRegisteredDefinition(extnds);
     if (extendee) {
       return ancestry(extendee.extends).concat([extendee]);
     }
@@ -1139,6 +1127,8 @@ if (useNative) {
     if (definition.is) {
       element.setAttribute('is', definition.is);
     }
+    // remove 'unresolved' attr, which is a standin for :unresolved.
+    element.removeAttribute('unresolved');
     // make 'element' implement definition.prototype
     implement(element, definition);
     // flag as upgraded
@@ -1176,7 +1166,7 @@ if (useNative) {
     // HTMLElement.prototype, so we add a test
     // the idea is to avoid mixing in native prototypes, so adding
     // the second test is WLOG
-    while (p && p !== inNative && p !== HTMLUnknownElement.prototype) {
+    while (p !== inNative && p !== HTMLUnknownElement.prototype) {
       var keys = Object.getOwnPropertyNames(p);
       for (var i=0, k; k=keys[i]; i++) {
         if (!used[k]) {
@@ -1202,6 +1192,9 @@ if (useNative) {
     // overrides to implement callbacks
     // TODO(sjmiles): should support access via .attributes NamedNodeMap
     // TODO(sjmiles): preserves user defined overrides, if any
+    if (prototype.setAttribute._polyfilled) {
+      return;
+    }
     var setAttribute = prototype.setAttribute;
     prototype.setAttribute = function(name, value) {
       changeAttribute.call(this, name, value, setAttribute);
@@ -1210,14 +1203,18 @@ if (useNative) {
     prototype.removeAttribute = function(name) {
       changeAttribute.call(this, name, null, removeAttribute);
     }
+    prototype.setAttribute._polyfilled = true;
   }
 
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/
+  // index.html#dfn-attribute-changed-callback
   function changeAttribute(name, value, operation) {
     var oldValue = this.getAttribute(name);
     operation.apply(this, arguments);
+    var newValue = this.getAttribute(name);
     if (this.attributeChangedCallback
-        && (this.getAttribute(name) !== oldValue)) {
-      this.attributeChangedCallback(name, oldValue, value);
+        && (newValue !== oldValue)) {
+      this.attributeChangedCallback(name, oldValue, newValue);
     }
   }
 
@@ -1225,9 +1222,15 @@ if (useNative) {
 
   var registry = {};
 
+  function getRegisteredDefinition(name) {
+    if (name) {
+      return registry[name.toLowerCase()];
+    }
+  }
+
   function registerDefinition(name, definition) {
     if (registry[name]) {
-      throw new Error('Cannot register a tag more than once');
+      throw new Error('a type with that name is already registered.');
     }
     registry[name] = definition;
   }
@@ -1239,7 +1242,9 @@ if (useNative) {
   }
 
   function createElement(tag, typeExtension) {
-    var definition = registry[typeExtension || tag];
+    // TODO(sjmiles): ignore 'tag' when using 'typeExtension', we could
+    // error check it, or perhaps there should only ever be one argument
+    var definition = getRegisteredDefinition(typeExtension || tag);
     if (definition) {
       if (tag == definition.tag && typeExtension == definition.is) {
         return new definition.ctor();
@@ -1377,7 +1382,7 @@ var forEach = Array.prototype.forEach.call.bind(Array.prototype.forEach);
 CustomElements.parser = parser;
 
 })();
-(function(){
+(function(scope){
 
 // bootstrap parsing
 function bootstrap() {
@@ -1409,21 +1414,31 @@ function bootstrap() {
 // CustomEvent shim for IE
 if (typeof window.CustomEvent !== 'function') {
   window.CustomEvent = function(inType) {
-     var e = document.createEvent('HTMLEvents');
-     e.initEvent(inType, true, true);
-     return e;
+    var e = document.createEvent('HTMLEvents');
+    e.initEvent(inType, true, true);
+    return e;
   };
 }
 
-if (document.readyState === 'complete') {
+// When loading at readyState complete time (or via flag), boot custom elements
+// immediately.
+// If relevant, HTMLImports must already be loaded.
+if (document.readyState === 'complete' || scope.flags.eager) {
   bootstrap();
+// When loading at readyState interactive time, bootstrap only if HTMLImports
+// are not pending. Also avoid IE as the semantics of this state are unreliable.
+} else if (document.readyState === 'interactive' && !window.attachEvent &&
+    (!window.HTMLImports || window.HTMLImports.ready)) {
+  bootstrap();
+// When loading at other readyStates, wait for the appropriate DOM event to
+// bootstrap.
 } else {
   var loadEvent = window.HTMLImports ? 'HTMLImportsLoaded' :
       document.readyState == 'loading' ? 'DOMContentLoaded' : 'load';
   window.addEventListener(loadEvent, bootstrap);
 }
 
-})();
+})(window.CustomElements);
 
 (function() {
 // Patch to allow custom element and shadow dom to work together, from:
@@ -1440,13 +1455,8 @@ if (HTMLElement.prototype.createShadowRoot) {
 
 
 // Patch to allow custom elements and shadow dom to work together, from:
-// https://github.com/Polymer/platform/blob/master/src/patches-custom-elements.js
+// https://github.com/Polymer/platform-dev/blob/2bb9c56d90f9ac19c2e65cdad368668aff514f14/src/patches-custom-elements.js
 if (window.ShadowDOMPolyfill) {
-  function nop() {};
-
-  // disable shadow dom watching
-  CustomElements.watchShadow = nop;
-  CustomElements.watchAllShadows = nop;
 
   // ensure wrapped inputs for these functions
   var fns = ['upgradeAll', 'upgradeSubtree', 'observeDocument',
@@ -1461,9 +1471,21 @@ if (window.ShadowDOMPolyfill) {
   // override
   fns.forEach(function(fn) {
     CustomElements[fn] = function(inNode) {
-      return original[fn](ShadowDOMPolyfill.wrapIfNeeded(inNode));
+      return original[fn](window.ShadowDOMPolyfill.wrapIfNeeded(inNode));
     };
   });
+
+}
+
+// Patch to make importNode work.
+// https://github.com/Polymer/platform-dev/blob/64a92f273462f04a84abbe2f054294f2b62dbcd6/src/patches-mdv.js
+if (window.CustomElements && !CustomElements.useNative) {
+  var originalImportNode = Document.prototype.importNode;
+  Document.prototype.importNode = function(node, deep) {
+    var imported = originalImportNode.call(this, node, deep);
+    CustomElements.upgradeAll(imported);
+    return imported;
+  }
 }
 
 })();

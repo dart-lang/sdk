@@ -18,7 +18,6 @@ custom/template_wrappers_test: Pass, Fail # Test is for Dartium GC issues
 
 [ $compiler == dart2js && $runtime != drt && $browser ]
 custom/document_register_type_extensions_test/namespaces: Fail # Polyfill does not support createElementNS
-custom/document_register_basic_test: Fail # Polyfill is not case-sensitive
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 
