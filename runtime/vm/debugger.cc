@@ -239,7 +239,7 @@ RawScript* ActivationFrame::SourceScript() {
 
 
 RawLibrary* ActivationFrame::Library() {
-  const Class& cls = Class::Handle(function().Owner());
+  const Class& cls = Class::Handle(function().origin());
   return cls.library();
 }
 
