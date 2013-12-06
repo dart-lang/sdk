@@ -5,7 +5,6 @@
 // Patch file for the dart:isolate library.
 
 import 'dart:_isolate_helper' show IsolateNatives,
-                                   lazyPort,
                                    ReceivePortImpl,
                                    RawReceivePortImpl,
                                    CloseToken,

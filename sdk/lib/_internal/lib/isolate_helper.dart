@@ -20,7 +20,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    IsolateContext;
 import 'dart:_interceptors' show JSExtendableArray;
 
-ReceivePort lazyPort;
+ReceivePort controlPort;
 
 /**
  * Called by the compiler to support switching
@@ -222,19 +222,17 @@ class _Manager {
 /** Context information tracked for each isolate. */
 class _IsolateContext implements IsolateContext {
   /** Current isolate id. */
-  int id;
+  final int id = _globalState.nextIsolateId++;
 
   /** Registry of receive ports currently active on this isolate. */
-  Map<int, RawReceivePortImpl> ports;
+  final Map<int, RawReceivePortImpl> ports = new Map<int, RawReceivePortImpl>();
+
+  /** Registry of weak receive ports currently active on this isolate. */
+  final Set<int> weakPorts = new Set<int>();
 
   /** Holds isolate globals (statics and top-level properties). */
-  var isolateStatics; // native object containing all globals of an isolate.
-
-  _IsolateContext() {
-    id = _globalState.nextIsolateId++;
-    ports = new Map<int, RawReceivePortImpl>();
-    isolateStatics = JS_CREATE_ISOLATE();
-  }
+  // native object containing all globals of an isolate.
+  final var isolateStatics = JS_CREATE_ISOLATE();
 
   /**
    * Run [code] in the context of the isolate represented by [this].
@@ -257,24 +255,41 @@ class _IsolateContext implements IsolateContext {
     JS_SET_CURRENT_ISOLATE(isolateStatics);
   }
 
-  /** Lookup a port registered for this isolate. */
+  /** Looks up a port registered for this isolate. */
   RawReceivePortImpl lookup(int portId) => ports[portId];
 
-  /** Register a port on this isolate. */
+  /** Registers a port on this isolate. */
   void register(int portId, RawReceivePortImpl port)  {
     if (ports.containsKey(portId)) {
       throw new Exception("Registry: ports must be registered only once.");
     }
     ports[portId] = port;
-    _globalState.isolates[id] = this; // indicate this isolate is active
+    _updateGlobalState();
+  }
+
+  /**
+   * Registers a weak port on this isolate.
+   *
+   * The port does not keep the isolate active.
+   */
+  void registerWeak(int portId, RawReceivePortImpl port)  {
+    weakPorts.add(portId);
+    // 'register' updates the global state.
+    register(portId, port);
+  }
+
+  _updateGlobalState() {
+    if (ports.length - weakPorts.length > 0) {
+      _globalState.isolates[id] = this; // indicate this isolate is active
+    } else {
+      _globalState.isolates.remove(id); // indicate this isolate is not active
+    }
   }
 
   /** Unregister a port on this isolate. */
   void unregister(int portId) {
     ports.remove(portId);
-    if (ports.isEmpty) {
-      _globalState.isolates.remove(id); // indicate this isolate is not active
-    }
+    _updateGlobalState();
   }
 }
 
@@ -650,8 +665,9 @@ class IsolateNatives {
                             SendPort replyTo) {
     _IsolateContext context = JS_CURRENT_ISOLATE_CONTEXT();
     Primitives.initializeStatics(context.id);
-    lazyPort = new ReceivePort();
-    replyTo.send([_SPAWNED_SIGNAL, lazyPort.sendPort]);
+    // The isolate's port does not keep the isolate open.
+    controlPort = new ReceivePortImpl.weak();
+    replyTo.send([_SPAWNED_SIGNAL, controlPort.sendPort]);
     if (!isSpawnUri) {
       topLevel(message);
     } else if (topLevel is _MainFunctionArgsMessage) {
@@ -870,6 +886,10 @@ class RawReceivePortImpl implements RawReceivePort {
     _globalState.currentContext.register(_id, this);
   }
 
+  RawReceivePortImpl.weak(this._handler) {
+    _globalState.currentContext.registerWeak(_id, this);
+  }
+
   void set handler(Function newHandler) {
     _handler = newHandler;
   }
@@ -896,6 +916,9 @@ class ReceivePortImpl extends Stream implements ReceivePort {
   StreamController _controller;
 
   ReceivePortImpl() : this.fromRawReceivePort(new RawReceivePortImpl(null));
+
+  ReceivePortImpl.weak()
+      : this.fromRawReceivePort(new RawReceivePortImpl.weak(null));
 
   ReceivePortImpl.fromRawReceivePort(this._rawPort) {
     _controller = new StreamController(onCancel: close, sync: true);
