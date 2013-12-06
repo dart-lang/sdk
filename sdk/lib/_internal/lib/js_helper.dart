@@ -180,12 +180,32 @@ class JSInvocationMirror implements Invocation {
     } else {
       interceptor = null;
     }
+    bool isCatchAll = false;
     var method = JS('var', '#[#]', receiver, name);
-    if (JS('String', 'typeof #', method) == 'function') {
+    if (JS('bool', 'typeof # != "function"', method) ) {
+      String baseName = _symbol_dev.Symbol.getName(memberName);
+      method = JS('', '#[# + "*"]', receiver, baseName);
+      if (method == null) {
+        interceptor = getInterceptor(object);
+        method = JS('', '#[# + "*"]', interceptor, baseName);
+        if (method != null) {
+          isIntercepted = true;
+          receiver = interceptor;
+        } else {
+          interceptor = null;
+        }
+      }
+      isCatchAll = true;
+    }
+    if (JS('bool', 'typeof # == "function"', method)) {
       if (!hasReflectableProperty(method)) {
         throwInvalidReflectionError(_symbol_dev.Symbol.getName(memberName));
       }
-      return new CachedInvocation(method, isIntercepted, interceptor);
+      if (isCatchAll) {
+        return new CachedCatchAllInvocation(method, isIntercepted, interceptor);
+      } else {
+        return new CachedInvocation(method, isIntercepted, interceptor);
+      }
     } else {
       // In this case, receiver doesn't implement name.  So we should
       // invoke noSuchMethod instead (which will often throw a
@@ -224,7 +244,7 @@ class CachedInvocation {
 
   bool get isNoSuchMethod => false;
 
-  /// Applies [jsFunction] to object with [arguments].
+  /// Applies [jsFunction] to [victim] with [arguments].
   /// Users of this class must take care to check the arguments first.
   invokeOn(Object victim, List arguments) {
     var receiver = victim;
@@ -233,6 +253,49 @@ class CachedInvocation {
     } else {
       arguments = [victim]..addAll(arguments);
       if (cachedInterceptor != null) receiver = cachedInterceptor;
+    }
+    return JS("var", "#.apply(#, #)", jsFunction, receiver, arguments);
+  }
+}
+
+class CachedCatchAllInvocation extends CachedInvocation {
+  final ReflectionInfo info;
+
+  CachedCatchAllInvocation(jsFunction,
+                           bool isIntercepted,
+                           Interceptor cachedInterceptor)
+      : info = new ReflectionInfo(jsFunction),
+        super(jsFunction, isIntercepted, cachedInterceptor);
+
+  invokeOn(Object victim, List arguments) {
+    var receiver = victim;
+    int providedArgumentCount;
+    if (!isIntercepted) {
+      if (arguments is! JSArray) arguments = new List.from(arguments);
+      providedArgumentCount = arguments.length;
+    } else {
+      arguments = [victim]..addAll(arguments);
+      if (cachedInterceptor != null) receiver = cachedInterceptor;
+      providedArgumentCount = arguments.length - 1;
+    }
+    int fullParameterCount =
+        info.requiredParameterCount + info.optionalParameterCount;
+    if (info.areOptionalParametersNamed &&
+        (providedArgumentCount > info.requiredParameterCount)) {
+      throw new UnimplementedNoSuchMethodError(
+          "Invocation of unstubbed method '${info.reflectionName}'"
+          " with ${arguments.length} arguments.");
+    } else if (providedArgumentCount < info.requiredParameterCount) {
+      throw new UnimplementedNoSuchMethodError(
+          "Invocation of unstubbed method '${info.reflectionName}'"
+          " with $providedArgumentCount arguments (too few).");
+    } else if (providedArgumentCount > fullParameterCount) {
+      throw new UnimplementedNoSuchMethodError(
+          "Invocation of unstubbed method '${info.reflectionName}'"
+          " with $providedArgumentCount arguments (too many).");
+    }
+    for (int i = providedArgumentCount; i < fullParameterCount; i++) {
+      arguments.add(getMetadata(info.defaultValue(i)));
     }
     return JS("var", "#.apply(#, #)", jsFunction, receiver, arguments);
   }
@@ -252,6 +315,96 @@ class CachedNoSuchMethodInvocation {
     return receiver.noSuchMethod(invocation);
   }
 }
+
+class ReflectionInfo {
+  static const int REQUIRED_PARAMETERS_INFO = 0;
+  static const int OPTIONAL_PARAMETERS_INFO = 1;
+  static const int FUNCTION_TYPE_INDEX = 2;
+  static const int FIRST_DEFAULT_ARGUMENT = 3;
+
+  /// A JavaScript function object.
+  final jsFunction;
+
+  /// Raw reflection information.
+  final List data;
+
+  /// Is this a getter or a setter.
+  final bool isAccessor;
+
+  /// Number of required parameters.
+  final int requiredParameterCount;
+
+  /// Number of optional parameters.
+  final int optionalParameterCount;
+
+  /// Are optional parameters named.
+  final bool areOptionalParametersNamed;
+
+  /// Either an index to the function type in [:init.metadata:] or a JavaScript
+  /// function object which can compute such a type (presumably due to free
+  /// type variables).
+  final functionType;
+
+  ReflectionInfo.internal(this.jsFunction,
+                          this.data,
+                          this.isAccessor,
+                          this.requiredParameterCount,
+                          this.optionalParameterCount,
+                          this.areOptionalParametersNamed,
+                          this.functionType);
+
+  factory ReflectionInfo(jsFunction) {
+    List data = JS('JSExtendableArray|Null', r'#.$reflectionInfo', jsFunction);
+    if (data == null) return null;
+    data = JSArray.markFixedList(data);
+
+    int requiredParametersInfo =
+        JS('int', '#[#]', data, REQUIRED_PARAMETERS_INFO);
+    int requiredParameterCount = JS('int', '# >> 1', requiredParametersInfo);
+    bool isAccessor = (requiredParametersInfo & 1) == 1;
+
+    int optionalParametersInfo =
+        JS('int', '#[#]', data, OPTIONAL_PARAMETERS_INFO);
+    int optionalParameterCount = JS('int', '# >> 1', optionalParametersInfo);
+    bool areOptionalParametersNamed = (optionalParametersInfo & 1) == 1;
+
+    var functionType = JS('', '#[#]', data, FUNCTION_TYPE_INDEX);
+    return new ReflectionInfo.internal(
+        jsFunction, data, isAccessor, requiredParameterCount,
+        optionalParameterCount, areOptionalParametersNamed, functionType);
+  }
+
+  String parameterName(int parameter) {
+    int metadataIndex = JS('int', '#[# + # + #]', data, parameter,
+                           optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    return JS('String', 'init.metadata[#]', metadataIndex);
+  }
+
+  int defaultValue(int parameter) {
+    if (parameter < requiredParameterCount) return null;
+    return JS('int', '#[# + # - #]', data,
+              FIRST_DEFAULT_ARGUMENT, parameter, requiredParameterCount);
+  }
+
+  @NoInline
+  computeFunctionRti(jsConstructor) {
+    if (JS('bool', 'typeof # == "number"', functionType)) {
+      return getMetadata(functionType);
+    } else if (JS('bool', 'typeof # == "function"', functionType)) {
+      var fakeInstance = JS('', 'new #()', jsConstructor);
+      setRuntimeTypeInfo(
+          fakeInstance, JS('JSExtendableArray', '#["<>"]', fakeInstance));
+      return JS('=Object|Null', r'#.apply({$receiver:#})',
+                functionType, fakeInstance);
+    } else {
+      throw new RuntimeError('Unexpected function type');
+    }
+  }
+
+  String get reflectionName => JS('String', r'#.$reflectionName', jsFunction);
+}
+
+getMetadata(int index) => JS('', 'init.metadata[#]', index);
 
 class Primitives {
   /// Isolate-unique ID for caching [JsClosureMirror.function].
@@ -680,11 +833,93 @@ class Primitives {
     JS('void', '#[#] = #', object, key, value);
   }
 
+  static functionNoSuchMethod(function,
+                              List positionalArguments,
+                              Map<String, dynamic> namedArguments) {
+    int argumentCount = 0;
+    List arguments = [];
+    List namedArgumentList = [];
+
+    if (positionalArguments != null) {
+      argumentCount += positionalArguments.length;
+      arguments.addAll(positionalArguments);
+    }
+
+    String names = '';
+    if (namedArguments != null && !namedArguments.isEmpty) {
+      namedArguments.forEach((String name, argument) {
+        names = '$names\$$name';
+        namedArgumentList.add(name);
+        arguments.add(argument);
+        argumentCount++;
+      });
+    }
+
+    String selectorName = 'call\$$argumentCount$names';
+
+    return function.noSuchMethod(
+        createUnmangledInvocationMirror(
+            #call,
+            selectorName,
+            JSInvocationMirror.METHOD,
+            arguments,
+            namedArgumentList));
+  }
+
   static applyFunction(Function function,
                        List positionalArguments,
                        Map<String, dynamic> namedArguments) {
+    if (namedArguments != null && !namedArguments.isEmpty) {
+      // TODO(ahe): The following code can be shared with
+      // JsInstanceMirror.invoke.
+      var interceptor = getInterceptor(function);
+      var jsFunction = JS('', '#["call*"]', interceptor);
+
+      if (jsFunction == null) {
+        return functionNoSuchMethod(
+            function, positionalArguments, namedArguments);
+      }
+      ReflectionInfo info = new ReflectionInfo(jsFunction);
+      if (info == null || !info.areOptionalParametersNamed) {
+        return functionNoSuchMethod(
+            function, positionalArguments, namedArguments);
+      }
+
+      if (positionalArguments != null) {
+        positionalArguments = new List.from(positionalArguments);
+      } else {
+        positionalArguments = [];
+      }
+      // Check the number of positional arguments is valid.
+      if (info.requiredParameterCount != positionalArguments.length) {
+        return functionNoSuchMethod(
+            function, positionalArguments, namedArguments);
+      }
+      var defaultArguments = new Map();
+      for (int i = 0; i < info.optionalParameterCount; i++) {
+        var parameterName = info.parameterName(i + info.requiredParameterCount);
+        var defaultValue =
+            getMetadata(info.defaultValue(i + info.requiredParameterCount));
+        defaultArguments[parameterName] = defaultValue;
+      }
+      bool bad = false;
+      namedArguments.forEach((String parameter, value) {
+        if (defaultArguments.containsKey(parameter)) {
+          defaultArguments[parameter] = value;
+        } else {
+          // Extraneous named argument.
+          bad = true;
+        }
+      });
+      if (bad) {
+        return functionNoSuchMethod(
+            function, positionalArguments, namedArguments);
+      }
+      positionalArguments.addAll(defaultArguments.values);
+      return JS('', '#.apply(#, #)', jsFunction, function, positionalArguments);
+    }
+
     int argumentCount = 0;
-    StringBuffer buffer = new StringBuffer();
     List arguments = [];
 
     if (positionalArguments != null) {
@@ -692,50 +927,15 @@ class Primitives {
       arguments.addAll(positionalArguments);
     }
 
-    if (JS('bool', r'# in #', JS_GET_NAME('CALL_CATCH_ALL'), function)) {
-      // We expect the closure to have a "call$catchAll" (the value of
-      // JS_GET_NAME('CALL_CATCH_ALL')) function that returns all the expected
-      // named parameters as a (new) JavaScript object literal.  The keys in
-      // the object literal correspond to the argument names, and the values
-      // are the default values. The compiler emits the properties sorted by
-      // keys, and this order is preserved in JavaScript, so we don't need to
-      // sort the keys. Since a new object is returned each time we call
-      // call$catchAll, we can simply overwrite default entries with the
-      // provided named arguments. If there are incorrectly named arguments in
-      // [namedArguments], noSuchMethod will be called as expected.
-      var allNamedArguments =
-          JS('var', r'#[#]()', function, JS_GET_NAME('CALL_CATCH_ALL'));
-      if (namedArguments != null && !namedArguments.isEmpty) {
-        namedArguments.forEach((String key, argument) {
-          JS('void', '#[#] = #', allNamedArguments, key, argument);
-        });
-      }
-      List<String> listOfNamedArguments =
-          JS('List', 'Object.getOwnPropertyNames(#)', allNamedArguments);
-      argumentCount += listOfNamedArguments.length;
-      listOfNamedArguments.forEach((String name) {
-        buffer.write('\$$name');
-        arguments.add(JS('', '#[#]', allNamedArguments, name));
-      });
-    } else {
-      if (namedArguments != null && !namedArguments.isEmpty) {
-        namedArguments.forEach((String name, argument) {
-          buffer.write('\$$name');
-          arguments.add(argument);
-          argumentCount++;
-        });
-      }
-    }
-
-    String selectorName = 'call\$$argumentCount$buffer';
+    String selectorName = 'call\$$argumentCount';
     var jsFunction = JS('var', '#[#]', function, selectorName);
     if (jsFunction == null) {
-      return function.noSuchMethod(createUnmangledInvocationMirror(
-          const Symbol('call'),
-          selectorName,
-          JSInvocationMirror.METHOD,
-          arguments,
-          namedArguments == null ? [] : namedArguments.keys.toList()));
+
+      // TODO(ahe): This might occur for optional arguments if there is no call
+      // selector with that many arguments.
+
+      return
+          functionNoSuchMethod(function, positionalArguments, namedArguments);
     }
     // We bound 'this' to [function] because of how we compile
     // closures: escaped local variables are stored and accessed through
@@ -1531,13 +1731,149 @@ convertDartClosureToJS(closure, int arity) {
 /**
  * Super class for Dart closures.
  */
-class Closure implements Function {
+abstract class Closure implements Function {
+  // TODO(ahe): These constants must be in sync with
+  // reflection_data_parser.dart.
+  static const FUNCTION_INDEX = 0;
+  static const NAME_INDEX = 1;
+  static const CALL_NAME_INDEX = 2;
+  static const REQUIRED_PARAMETER_INDEX = 3;
+  static const OPTIONAL_PARAMETER_INDEX = 4;
+  static const DEFAULT_ARGUMENTS_INDEX = 5;
+
+  Closure();
+
+  /**
+   * Creates a closure for use by implicit getters associated with a method.
+   *
+   * In other words, creates a tear-off closure.
+   *
+   * Called from [closureFromTearOff] as well as from reflection when tearing
+   * of a method via [:getField:].
+   *
+   * This method assumes that [functions] was created by the JavaScript function
+   * `addStubs` in `reflection_data_parser.dart`. That is, a list of JavaScript
+   * function objects with properties `$stubName` and `$callName`.
+   *
+   * Further assumes that [reflectionInfo] is the end of the array created by
+   * [dart2js.js_emitter.ContainerBuilder.addMemberMethod] starting with
+   * required parameter count.
+   *
+   * Caution: this function may be called when building constants.
+   * TODO(ahe): Don't call this function when building constants.
+   */
+  factory Closure.fromTearOff(receiver,
+                              List functions,
+                              List reflectionInfo,
+                              bool isStatic,
+                              jsArguments,
+                              String propertyName) {
+    // TODO(ahe): All the place below using \$ should be rewritten to go
+    // through the namer.
+    var function = JS('', '#[#]', functions, 0);
+    // TODO(ahe): Try fetching the property directly instead of using "in".
+    if (isStatic && JS('bool', '"\$tearOff" in #', function)) {
+      // The implicit closure of a static function is always the same.
+      return JS('Closure', '#.\$tearOff', function);
+    }
+
+    String name = JS('String|Null', '#.\$stubName', function);
+    String callName = JS('String|Null', '#.\$callName', function);
+
+    JS('', r'#.$reflectionInfo = #', function, reflectionInfo);
+    ReflectionInfo info = new ReflectionInfo(function);
+
+    var functionType = info.functionType;
+
+    // Create a closure and "monkey" patch it with call stubs.
+    Closure closure;
+    var trampoline = function;
+    if (!isStatic) {
+      if (JS('bool', '#.length == 1', jsArguments)) {
+        // Intercepted call.
+        var argument = JS('', '#[0]', jsArguments);
+        trampoline = forwardInterceptedCallTo(argument, receiver, function);
+        closure = new BoundClosure(receiver, function, argument, name);
+      } else {
+        trampoline = forwardTo(receiver, function);
+        closure = new BoundClosure(receiver, function, null, name);
+      }
+    } else {
+      closure = new TearOffClosure();
+      JS('', '#.\$tearOff = #', function, closure);
+      JS('', r'#.$name = #', closure, propertyName);
+    }
+
+    var signatureFunction;
+    if (JS('bool', 'typeof # == "number"', functionType)) {
+      signatureFunction =
+          JS('', '(function(s){return function(){return init.metadata[s]}})(#)',
+             functionType);
+    } else if (!isStatic
+               && JS('bool', 'typeof # == "function"', functionType)) {
+      signatureFunction = functionType;
+      JS('', r'#.$receiver = #', closure, receiver);
+    } else {
+      throw 'Error in reflectionInfo.';
+    }
+
+    JS('', '#.\$signature = #', closure, signatureFunction);
+
+    JS('', '#[#] = #', closure, callName, trampoline);
+    for (int i = 1; i < functions.length; i++) {
+      var stub = functions[i];
+      var stubCallName = JS('String|Null', '#.\$callName', stub);
+      // TODO(ahe): Support interceptors here.
+      JS('', '#[#] = #', closure, stubCallName,
+         isStatic ? stub : forwardTo(receiver, stub));
+    }
+
+    JS('', '#["call*"] = #', closure, function);
+
+    return closure;
+  }
+
+  static forwardTo(receiver, function) {
+    return JS(
+        '',
+        'function(r,f){return function(){return f.apply(r,arguments)}}(#,#)',
+        receiver, function);
+  }
+
+  static forwardInterceptedCallTo(self, interceptor, function) {
+    return JS(
+        '',
+        'function(i,s,f){return function(){'
+        'return f.call.bind(f,i,s).apply(i,arguments)}}(#,#,#)',
+        interceptor, self, function);
+  }
+
   String toString() => "Closure";
+}
+
+/// Called from implicit method getter (aka tear-off).
+Closure closureFromTearOff(receiver,
+                           functions,
+                           reflectionInfo,
+                           isStatic,
+                           jsArguments,
+                           name) {
+  return new Closure.fromTearOff(
+      receiver,
+      JSArray.markFixedList(functions),
+      JSArray.markFixedList(reflectionInfo),
+      JS('bool', '!!#', isStatic),
+      jsArguments,
+      JS('String', '#', name));
+}
+
+/// Represents an implicit closure of a function.
+class TearOffClosure extends Closure {
 }
 
 /// Represents a 'tear-off' closure, that is an instance method bound
 /// to a specific receiver (instance).
-class BoundClosure extends Closure {
+class BoundClosure extends TearOffClosure {
   /// The receiver or interceptor.
   // TODO(ahe): This could just be the interceptor, we always know if
   // we need the interceptor when generating the call method.
@@ -1551,6 +1887,8 @@ class BoundClosure extends Closure {
 
   /// The name of the function. Only used by the mirror system.
   final String _name;
+
+  BoundClosure(this._self, this._target, this._receiver, this._name);
 
   bool operator==(other) {
     if (identical(this, other)) return true;
@@ -2400,4 +2738,14 @@ class FunctionTypeInfoDecoderRing {
     }
     return _cachedToString = "$s";
   }
+}
+
+// TODO(ahe): Remove this class and call noSuchMethod instead.
+class UnimplementedNoSuchMethodError extends Error
+    implements NoSuchMethodError {
+  final String _message;
+
+  UnimplementedNoSuchMethodError(this._message);
+
+  String toString() => "Unsupported operation: $_message";
 }

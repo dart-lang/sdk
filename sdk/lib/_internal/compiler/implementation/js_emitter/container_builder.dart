@@ -25,7 +25,7 @@ class ContainerBuilder extends CodeEmitterHelper {
    */
   void addParameterStub(FunctionElement member,
                         Selector selector,
-                        DefineStubFunction defineStub,
+                        AddStubFunction addStub,
                         Set<String> alreadyGenerated) {
     FunctionSignature parameters = member.computeSignature(compiler);
     int positionalArgumentCount = selector.positionalArgumentCount;
@@ -81,10 +81,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     int parameterIndex = 0;
     parameters.orderedForEachParameter((Element element) {
-      // Use generic names for closures to facilitate code sharing.
-      String jsName = member is ClosureInvocationElement
-          ? 'p${parameterIndex++}'
-          : backend.namer.safeName(element.name);
+      String jsName = backend.namer.safeName(element.name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
         parametersBuffer[count] = new jsAst.Parameter(jsName);
@@ -121,25 +118,30 @@ class ContainerBuilder extends CodeEmitterHelper {
           member, isInterceptedMethod, invocationName,
           parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
-    } else {
+    } else if (member.isInstanceMember()) {
       body = [js.return_(
           js('this')[namer.getNameOfInstanceMember(member)](argumentsBuffer))];
+    } else {
+      body = [js.return_(namer.elementAccess(member)(argumentsBuffer))];
     }
 
     jsAst.Fun function = js.fun(parametersBuffer, body);
 
-    defineStub(invocationName, function);
-
-    String reflectionName = task.getReflectionName(selector, invocationName);
-    if (reflectionName != null) {
-      var reflectable =
-          js(backend.isAccessibleByReflection(member) ? '1' : '0');
-      defineStub('+$reflectionName', reflectable);
-    }
+    addStub(selector, function);
   }
 
-  void addParameterStubs(FunctionElement member,
-                         DefineStubFunction defineStub) {
+  void addParameterStubs(FunctionElement member, AddStubFunction defineStub,
+                         [bool canTearOff = false]) {
+    if (member.enclosingElement.isClosure()) {
+      ClosureClassElement cls = member.enclosingElement;
+      if (cls.supertype.element == compiler.boundClosureClass) {
+        compiler.internalErrorOnElement(cls.methodElement, 'Bound closure1.');
+      }
+      if (cls.methodElement.isInstanceMember()) {
+        compiler.internalErrorOnElement(cls.methodElement, 'Bound closure2.');
+      }
+    }
+
     // We fill the lists depending on the selector. For example,
     // take method foo:
     //    foo(a, b, {c, d});
@@ -165,329 +167,57 @@ class ContainerBuilder extends CodeEmitterHelper {
     // (4) No stub generated, call is direct.
     // (5) No stub generated, call is direct.
 
-    // Keep a cache of which stubs have already been generated, to
-    // avoid duplicates. Note that even if selectors are
-    // canonicalized, we would still need this cache: a typed selector
-    // on A and a typed selector on B could yield the same stub.
-    Set<String> generatedStubNames = new Set<String>();
-    bool isClosureInvocation =
-        member.name == namer.closureInvocationSelectorName;
-    if (backend.isNeededForReflection(member) ||
-        (compiler.enabledFunctionApply && isClosureInvocation)) {
-      // If [Function.apply] is called, we pessimistically compile all
-      // possible stubs for this closure.
-      FunctionSignature signature = member.computeSignature(compiler);
-      Set<Selector> selectors = signature.optionalParametersAreNamed
-          ? computeSeenNamedSelectors(member)
-          : computeOptionalSelectors(signature, member);
-      for (Selector selector in selectors) {
-        addParameterStub(member, selector, defineStub, generatedStubNames);
-      }
-      if (signature.optionalParametersAreNamed && isClosureInvocation) {
-        addCatchAllParameterStub(member, signature, defineStub);
-      }
-    } else {
-      Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
+    Set<Selector> selectors = member.isInstanceMember()
+        ? compiler.codegenWorld.invokedNames[member.name]
+        : null; // No stubs needed for static methods.
+
+    /// Returns all closure call selectors renamed to match this member.
+    Set<Selector> callSelectorsAsNamed() {
+      if (!canTearOff) return null;
+      Set<Selector> callSelectors = compiler.codegenWorld.invokedNames[
+          namer.closureInvocationSelectorName];
+      if (callSelectors == null) return null;
+      return callSelectors.map((Selector callSelector) {
+        return new Selector.call(
+            member.name, member.getLibrary(),
+            callSelector.argumentCount, callSelector.namedArguments);
+      }).toSet();
+    }
+    if (selectors == null) {
+      selectors = callSelectorsAsNamed();
       if (selectors == null) return;
-      for (Selector selector in selectors) {
-        if (!selector.applies(member, compiler)) continue;
-        addParameterStub(member, selector, defineStub, generatedStubNames);
-      }
-    }
-  }
-
-  Set<Selector> computeSeenNamedSelectors(FunctionElement element) {
-    Set<Selector> selectors = compiler.codegenWorld.invokedNames[element.name];
-    Set<Selector> result = new Set<Selector>();
-    if (selectors == null) return result;
-    for (Selector selector in selectors) {
-      if (!selector.applies(element, compiler)) continue;
-      result.add(selector);
-    }
-    return result;
-  }
-
-  void addCatchAllParameterStub(FunctionElement member,
-                                FunctionSignature signature,
-                                DefineStubFunction defineStub) {
-    // See Primities.applyFunction in js_helper.dart for details.
-    List<jsAst.Property> properties = <jsAst.Property>[];
-    for (Element element in signature.orderedOptionalParameters) {
-      String jsName = backend.namer.safeName(element.name);
-      Constant value = compiler.constantHandler.initialVariableValues[element];
-      jsAst.Expression reference = null;
-      if (value == null) {
-        reference = new jsAst.LiteralNull();
-      } else {
-        reference = task.constantReference(value);
-      }
-      properties.add(new jsAst.Property(js.string(jsName), reference));
-    }
-    defineStub(
-        backend.namer.callCatchAllName,
-        js.fun([], js.return_(new jsAst.ObjectInitializer(properties))));
-  }
-
-  /**
-   * Compute the set of possible selectors in the presence of optional
-   * non-named parameters.
-   */
-  Set<Selector> computeOptionalSelectors(FunctionSignature signature,
-                                         FunctionElement element) {
-    Set<Selector> selectors = new Set<Selector>();
-    // Add the selector that does not have any optional argument.
-    selectors.add(new Selector(SelectorKind.CALL,
-                               element.name,
-                               element.getLibrary(),
-                               signature.requiredParameterCount,
-                               <String>[]));
-
-    // For each optional parameter, we increment the number of passed
-    // argument.
-    for (int i = 1; i <= signature.optionalParameterCount; i++) {
-      selectors.add(new Selector(SelectorKind.CALL,
-                                 element.name,
-                                 element.getLibrary(),
-                                 signature.requiredParameterCount + i,
-                                 <String>[]));
-    }
-    return selectors;
-  }
-
-  void emitStaticFunctionGetters(CodeBuffer eagerBuffer) {
-    task.addComment('Static function getters', task.mainBuffer);
-    for (FunctionElement element in
-             Elements.sortedByPosition(staticGetters.keys)) {
-      Element closure = staticGetters[element];
-      CodeBuffer buffer =
-          task.isDeferred(element) ? task.deferredConstants : eagerBuffer;
-      String closureClass = namer.isolateAccess(closure);
-      String name = namer.getStaticClosureName(element);
-
-      String closureName = namer.getStaticClosureName(element);
-      jsAst.Node assignment = js(
-          'init.globalFunctions["$closureName"] ='
-          ' ${namer.globalObjectFor(element)}.$name ='
-          ' new $closureClass(#, "$closureName")',
-          namer.elementAccess(element));
-      buffer.write(jsAst.prettyPrint(assignment, compiler));
-      buffer.write('$N');
-    }
-  }
-
-  void emitStaticFunctionClosures() {
-    Set<FunctionElement> functionsNeedingGetter =
-        compiler.codegenWorld.staticFunctionsNeedingGetter;
-    for (FunctionElement element in
-             Elements.sortedByPosition(functionsNeedingGetter)) {
-      String superName = namer.getNameOfClass(compiler.closureClass);
-      int parameterCount = element.functionSignature.parameterCount;
-      String name = 'Closure\$$parameterCount';
-      assert(task.instantiatedClasses.contains(compiler.closureClass));
-
-      ClassElement closureClassElement = new ClosureClassElement(
-          null, name, compiler, element,
-          element.getCompilationUnit());
-      // Now add the methods on the closure class. The instance method does not
-      // have the correct name. Since [addParameterStubs] use the name to create
-      // its stubs we simply create a fake element with the correct name.
-      // Note: the callElement will not have any enclosingElement.
-      FunctionElement callElement =
-          new ClosureInvocationElement(namer.closureInvocationSelectorName,
-                                       element);
-
-      String invocationName = namer.instanceMethodName(callElement);
-      String mangledName = namer.getNameOfClass(closureClassElement);
-
-      // Define the constructor with a name so that Object.toString can
-      // find the class name of the closure class.
-      ClassBuilder closureBuilder = new ClassBuilder();
-      // If a static function is used as a closure we need to add its name
-      // in case it is used in spawnFunction.
-      String methodName = namer.STATIC_CLOSURE_NAME_NAME;
-      List<String> fieldNames = <String>[invocationName, methodName];
-      closureBuilder.addProperty('',
-          js.string("$superName;${fieldNames.join(',')}"));
-
-      addParameterStubs(callElement, closureBuilder.addProperty);
-
-      void emitFunctionTypeSignature(Element method, FunctionType methodType) {
-        RuntimeTypes rti = backend.rti;
-        // [:() => null:] is dummy encoding of [this] which is never needed for
-        // the encoding of the type of the static [method].
-        jsAst.Expression encoding =
-            rti.getSignatureEncoding(methodType, js('null'));
-        String operatorSignature = namer.operatorSignature();
-        // TODO(johnniwinther): Make MiniJsParser support function expressions.
-        closureBuilder.addProperty(operatorSignature, encoding);
-      }
-
-      FunctionType methodType = element.computeType(compiler);
-      Map<FunctionType, bool> functionTypeChecks =
-          task.typeTestEmitter.getFunctionTypeChecksOn(methodType);
-      task.typeTestEmitter.generateFunctionTypeTests(
-          element, methodType, functionTypeChecks,
-          emitFunctionTypeSignature);
-
-      closureClassElement =
-          addClosureIfNew(closureBuilder, closureClassElement, fieldNames);
-      staticGetters[element] = closureClassElement;
-
-    }
-  }
-
-  ClassElement addClosureIfNew(ClassBuilder builder,
-                               ClassElement closure,
-                               List<String> fieldNames) {
-    String key =
-        jsAst.prettyPrint(builder.toObjectInitializer(), compiler).getText();
-    return methodClosures.putIfAbsent(key, () {
-      String mangledName = namer.getNameOfClass(closure);
-      emitClosureInPrecompiledFunction(mangledName, fieldNames);
-      return closure;
-    });
-  }
-
-  void emitClosureInPrecompiledFunction(String mangledName,
-                                        List<String> fieldNames) {
-    List<String> fields = fieldNames;
-    String constructorName = mangledName;
-    task.precompiledFunction.add(new jsAst.FunctionDeclaration(
-        new jsAst.VariableDeclaration(constructorName),
-        js.fun(fields, fields.map(
-            (name) => js('this.$name = $name')).toList())));
-    task.precompiledFunction.addAll([
-        js('$constructorName.builtin\$cls = "$constructorName"'),
-        js('\$desc=\$collectedClasses.$constructorName'),
-        js.if_('\$desc instanceof Array', js('\$desc = \$desc[1]')),
-        js('$constructorName.prototype = \$desc'),
-    ]);
-
-    task.precompiledConstructorNames.add(js(constructorName));
-  }
-
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [member] must be a declaration element.
-   */
-  void emitDynamicFunctionGetter(FunctionElement member,
-                                 DefineStubFunction defineStub) {
-    assert(invariant(member, member.isDeclaration));
-    assert(task.instantiatedClasses.contains(compiler.boundClosureClass));
-    // For every method that has the same name as a property-get we create a
-    // getter that returns a bound closure. Say we have a class 'A' with method
-    // 'foo' and somewhere in the code there is a dynamic property get of
-    // 'foo'. Then we generate the following code (in pseudo Dart/JavaScript):
-    //
-    // class A {
-    //    foo(x, y, z) { ... } // Original function.
-    //    get foo { return new BoundClosure499(this, "foo"); }
-    // }
-    // class BoundClosure499 extends BoundClosure {
-    //   BoundClosure499(this.self, this.name);
-    //   $call3(x, y, z) { return self[name](x, y, z); }
-    // }
-
-    bool hasOptionalParameters = member.optionalParameterCount(compiler) != 0;
-    int parameterCount = member.parameterCount(compiler);
-
-    // Intercepted methods take an extra parameter, which is the
-    // receiver of the call.
-    bool inInterceptor = backend.isInterceptedMethod(member);
-    List<String> fieldNames = <String>[];
-    compiler.boundClosureClass.forEachInstanceField((_, Element field) {
-      fieldNames.add(namer.instanceFieldPropertyName(field));
-    });
-
-    ClassElement classElement = member.getEnclosingClass();
-    String name = inInterceptor
-        ? 'BoundClosure\$i${parameterCount}'
-        : 'BoundClosure\$${parameterCount}';
-
-    ClassElement closureClassElement = new ClosureClassElement(
-        null, name, compiler, member,
-        member.getCompilationUnit());
-    String superName = namer.getNameOfClass(closureClassElement.superclass);
-
-    // Define the constructor with a name so that Object.toString can
-    // find the class name of the closure class.
-    ClassBuilder boundClosureBuilder = new ClassBuilder();
-    boundClosureBuilder.addProperty('',
-        js.string("$superName;${fieldNames.join(',')}"));
-    // Now add the methods on the closure class. The instance method does not
-    // have the correct name. Since [addParameterStubs] use the name to create
-    // its stubs we simply create a fake element with the correct name.
-    // Note: the callElement will not have any enclosingElement.
-    FunctionElement callElement = new ClosureInvocationElement(
-        namer.closureInvocationSelectorName, member);
-
-    String invocationName = namer.instanceMethodName(callElement);
-
-    List<String> parameters = <String>[];
-    List<jsAst.Expression> arguments =
-        <jsAst.Expression>[js('this')[fieldNames[0]]];
-    if (inInterceptor) {
-      arguments.add(js('this')[fieldNames[2]]);
-    }
-    for (int i = 0; i < parameterCount; i++) {
-      String name = 'p$i';
-      parameters.add(name);
-      arguments.add(js(name));
-    }
-
-    jsAst.Expression fun = js.fun(
-        parameters,
-        js.return_(
-            js('this')[fieldNames[1]]['call'](arguments)));
-    boundClosureBuilder.addProperty(invocationName, fun);
-
-    addParameterStubs(callElement, boundClosureBuilder.addProperty);
-
-    void emitFunctionTypeSignature(Element method, FunctionType methodType) {
-      jsAst.Expression encoding = backend.rti.getSignatureEncoding(
-          methodType, js('this')[fieldNames[0]]);
-      String operatorSignature = namer.operatorSignature();
-      boundClosureBuilder.addProperty(operatorSignature, encoding);
-    }
-
-    DartType memberType = member.computeType(compiler);
-    Map<FunctionType, bool> functionTypeChecks =
-        task.typeTestEmitter.getFunctionTypeChecksOn(memberType);
-
-    task.typeTestEmitter.generateFunctionTypeTests(
-        member, memberType, functionTypeChecks,
-        emitFunctionTypeSignature);
-
-    closureClassElement =
-        addClosureIfNew(boundClosureBuilder, closureClassElement, fieldNames);
-
-    String closureClass = namer.isolateAccess(closureClassElement);
-
-    // And finally the getter.
-    String getterName = namer.getterName(member);
-    String targetName = namer.instanceMethodName(member);
-
-    parameters = <String>[];
-    jsAst.PropertyAccess method =
-        backend.namer.elementAccess(classElement)['prototype'][targetName];
-    arguments = <jsAst.Expression>[js('this'), method];
-
-    if (inInterceptor) {
-      String receiverArg = fieldNames[2];
-      parameters.add(receiverArg);
-      arguments.add(js(receiverArg));
     } else {
-      // Put null in the intercepted receiver field.
-      arguments.add(new jsAst.LiteralNull());
+      Set<Selector> callSelectors = callSelectorsAsNamed();
+      if (callSelectors != null) {
+        selectors = selectors.union(callSelectors);
+      }
     }
-
-    arguments.add(js.string(targetName));
-
-    jsAst.Expression getterFunction = js.fun(
-        parameters, js.return_(js(closureClass).newWith(arguments)));
-
-    defineStub(getterName, getterFunction);
+    Set<Selector> untypedSelectors = new Set<Selector>();
+    if (selectors != null) {
+      for (Selector selector in selectors) {
+        if (!selector.appliesUnnamed(member, compiler)) continue;
+        if (untypedSelectors.add(selector.asUntyped)) {
+          // TODO(ahe): Is the last argument to [addParameterStub] needed?
+          addParameterStub(member, selector, defineStub, new Set<String>());
+        }
+      }
+    }
+    if (canTearOff) {
+      selectors = compiler.codegenWorld.invokedNames[
+          namer.closureInvocationSelectorName];
+      if (selectors != null) {
+        for (Selector selector in selectors) {
+          selector = new Selector.call(
+              member.name, member.getLibrary(),
+              selector.argumentCount, selector.namedArguments);
+          if (!selector.appliesUnnamed(member, compiler)) continue;
+          if (untypedSelectors.add(selector)) {
+            // TODO(ahe): Is the last argument to [addParameterStub] needed?
+            addParameterStub(member, selector, defineStub, new Set<String>());
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -497,7 +227,7 @@ class ContainerBuilder extends CodeEmitterHelper {
    */
   void emitCallStubForGetter(Element member,
                              Set<Selector> selectors,
-                             DefineStubFunction defineStub) {
+                             AddPropertyFunction addProperty) {
     assert(invariant(member, member.isDeclaration));
     LibraryElement memberLibrary = member.getLibrary();
     // If the method is intercepted, the stub gets the
@@ -549,7 +279,7 @@ class ContainerBuilder extends CodeEmitterHelper {
             parameters,
             js.return_(buildGetter()[closureCallName](arguments)));
 
-        defineStub(invocationName, function);
+        addProperty(invocationName, function);
       }
     }
   }
@@ -565,10 +295,6 @@ class ContainerBuilder extends CodeEmitterHelper {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
       if (selectors != null && !selectors.isEmpty) {
         emitCallStubForGetter(member, selectors, builder.addProperty);
-      }
-    } else if (member.isFunction()) {
-      if (compiler.codegenWorld.hasInvokedGetter(member, compiler)) {
-        emitDynamicFunctionGetter(member, builder.addProperty);
       }
     }
   }
@@ -595,30 +321,182 @@ class ContainerBuilder extends CodeEmitterHelper {
     jsAst.Expression code = backend.generatedCode[member];
     if (code == null) return;
     String name = namer.getNameOfMember(member);
-    if (backend.isInterceptedMethod(member)) {
-      task.interceptorEmitter.interceptorInvocationNames.add(name);
-    }
-    code = task.metadataEmitter.extendWithMetadata(member, code);
-    builder.addProperty(name, code);
-    String reflectionName = task.getReflectionName(member, name);
-    if (reflectionName != null) {
-      var reflectable =
-          js(backend.isAccessibleByReflection(member) ? '1' : '0');
-      builder.addProperty('+$reflectionName', reflectable);
-      jsAst.Node defaultValues =
-          task.metadataEmitter.reifyDefaultArguments(member);
-      if (defaultValues != null) {
-        String unmangledName = member.name;
-        builder.addProperty('*$unmangledName', defaultValues);
+    task.interceptorEmitter.recordMangledNameOfMemberMethod(member, name);
+    FunctionSignature parameters = member.computeSignature(compiler);
+    bool needsStubs = !parameters.optionalParameters.isEmpty;
+    bool canTearOff = false;
+    bool isClosure = false;
+    String tearOffName;
+    if (!member.isFunction() || member.isConstructor() || member.isAccessor()) {
+      canTearOff = false;
+    } else if (member.isInstanceMember()) {
+      if (member.getEnclosingClass().isClosure()) {
+        canTearOff = false;
+        isClosure = true;
+      } else {
+        // Careful with operators.
+        canTearOff = compiler.codegenWorld.hasInvokedGetter(member, compiler);
+        tearOffName = namer.getterName(member);
       }
+    } else {
+      canTearOff =
+          compiler.codegenWorld.staticFunctionsNeedingGetter.contains(member);
+      tearOffName = namer.getStaticClosureName(member);
     }
-    if (member.isInstanceMember()) {
-      // TODO(ahe): Where is this done for static/top-level methods?
-      FunctionSignature parameters = member.computeSignature(compiler);
-      if (!parameters.optionalParameters.isEmpty) {
-        addParameterStubs(member, builder.addProperty);
+
+    bool canBeReflected = backend.isAccessibleByReflection(member);
+    bool needStructuredInfo =
+        canTearOff || canBeReflected || compiler.enabledFunctionApply;
+    if (!needStructuredInfo) {
+      builder.addProperty(name, code);
+      if (needsStubs) {
+        addParameterStubs(
+            member,
+            (Selector selector, jsAst.Fun function) {
+              builder.addProperty(namer.invocationName(selector), function);
+            });
       }
+      return;
     }
+
+    if (canTearOff) {
+      assert(invariant(member, !member.isGenerativeConstructor()));
+      assert(invariant(member, !member.isGenerativeConstructorBody()));
+      assert(invariant(member, !member.isConstructor()));
+    }
+
+    // This element is needed for reflection or needs additional stubs. So we
+    // need to retain additional information.
+
+    // The information is stored in an array with this format:
+    //
+    // 1.   The JS function for this member.
+    // 2.   First stub.
+    // 3.   Name of first stub.
+    // ...
+    // M.   Call name of this member.
+    // M+1. Call name of first stub.
+    // ...
+    // N.   Getter name for tearOff.
+    // N+1. (Required parameter count << 1) + (member.isAccessor() ? 1 : 0).
+    // N+2. (Optional parameter count << 1) +
+    //                      (parameters.optionalParametersAreNamed ? 1 : 0).
+    // N+3. Index to function type in constant pool.
+    // N+4. First default argument.
+    // ...
+    // O.   First parameter name (if needed for reflection or Function.apply).
+    // ...
+    // P.   Unmangled name (if reflectable).
+    // P+1. First metadata (if reflectable).
+    // ...
+
+    List expressions = [];
+
+    String callSelectorString = 'null';
+    if (member.isFunction()) {
+      Selector callSelector =
+          new Selector.fromElement(member, compiler).toCallSelector();
+      callSelectorString = '"${namer.invocationName(callSelector)}"';
+    }
+
+    // On [requiredParameterCount], the lower bit is set if this method can be
+    // called reflectively.
+    int requiredParameterCount = parameters.requiredParameterCount << 1;
+    if (member.isAccessor()) requiredParameterCount++;
+
+    int optionalParameterCount = parameters.optionalParameterCount << 1;
+    if (parameters.optionalParametersAreNamed) optionalParameterCount++;
+
+    expressions.add(code);
+
+    // TODO(ahe): Remove comments from output.
+    List tearOffInfo =
+        [new jsAst.LiteralString('$callSelectorString /* tearOffInfo */')];
+
+    if (needsStubs || canTearOff) {
+      addParameterStubs(member, (Selector selector, jsAst.Fun function) {
+        expressions.add(function);
+        if (member.isInstanceMember()) {
+          Set invokedSelectors =
+              compiler.codegenWorld.invokedNames[member.name];
+          if (invokedSelectors != null && invokedSelectors.contains(selector)) {
+            expressions.add(js.string(namer.invocationName(selector)));
+          } else {
+            // Don't add a stub for calling this as a regular instance method,
+            // we only need the "call" stub for implicit closures of this
+            // method.
+            expressions.add("null");
+          }
+        } else {
+          // Static methods don't need "named" stubs as the default arguments
+          // are inlined at call sites. But static methods might need "call"
+          // stubs for implicit closures.
+          expressions.add("null");
+          // TOOD(ahe): Since we know when reading static data versus instance
+          // data, we can eliminate this element.
+        }
+        Set<Selector> callSelectors = compiler.codegenWorld.invokedNames[
+            namer.closureInvocationSelectorName];
+        Selector callSelector = selector.toCallSelector();
+        String callSelectorString = 'null';
+        if (canTearOff && callSelectors != null &&
+            callSelectors.contains(callSelector)) {
+          callSelectorString = '"${namer.invocationName(callSelector)}"';
+        }
+        tearOffInfo.add(
+            new jsAst.LiteralString('$callSelectorString /* tearOffInfo */'));
+      }, canTearOff);
+    }
+
+    jsAst.Expression memberTypeExpression;
+    if ((canTearOff || canBeReflected) &&
+        !member.isGenerativeConstructorBody()) {
+      DartType memberType = member.computeType(compiler);
+      if (memberType.containsTypeVariables) {
+        jsAst.Expression thisAccess = js(r'this.$receiver');
+        memberTypeExpression =
+            backend.rti.getSignatureEncoding(memberType, thisAccess);
+      } else {
+        memberTypeExpression =
+            js.toExpression(task.metadataEmitter.reifyType(memberType));
+      }
+    } else {
+      memberTypeExpression = js('null');
+    }
+
+    expressions
+        ..addAll(tearOffInfo)
+        ..add((tearOffName == null || member.isAccessor())
+              ? js("null") : js.string(tearOffName))
+        ..add(requiredParameterCount)
+        ..add(optionalParameterCount)
+        ..add(memberTypeExpression)
+        ..addAll(task.metadataEmitter.reifyDefaultArguments(member));
+
+    if (canBeReflected || compiler.enabledFunctionApply) {
+      parameters.orderedForEachParameter((Element parameter) {
+        expressions.add(task.metadataEmitter.reifyName(parameter.name));
+      });
+    }
+    if (canBeReflected) {
+      jsAst.LiteralString reflectionName;
+      if (member.isConstructor()) {
+        String reflectionNameString = task.getReflectionName(member, name);
+        reflectionName =
+            new jsAst.LiteralString(
+                '"new ${Elements.reconstructConstructorName(member)}"'
+                ' /* $reflectionNameString */');
+      } else {
+        reflectionName = js.string(member.name);
+      }
+      expressions
+          ..add(reflectionName)
+          ..addAll(task.metadataEmitter.computeMetadata(member));
+    } else if (isClosure && compiler.enabledFunctionApply) {
+      expressions.add(js.string(member.name));
+    }
+
+    builder.addProperty(name, js.toExpression(expressions));
   }
 
   void addMemberField(VariableElement member, ClassBuilder builder) {

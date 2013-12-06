@@ -8,9 +8,13 @@ part of dart2js.js_emitter;
  * A data structure for collecting fragments of a class definition.
  */
 class ClassBuilder {
-  // TODO (sigurdm) this is just a bag of properties, rename this class
-
   final List<jsAst.Property> properties = <jsAst.Property>[];
+  final List<String> fields = <String>[];
+
+  String superName;
+  String nativeName;
+  String functionType;
+  List<jsAst.Node> fieldMetadata;
 
   /// Set to true by user if class is indistinguishable from its superclass.
   bool isTrivial = false;
@@ -20,8 +24,35 @@ class ClassBuilder {
     properties.add(new jsAst.Property(js.string(name), value));
   }
 
-  jsAst.Expression toObjectInitializer() {
-    return new jsAst.ObjectInitializer(properties, isOneLiner: false);
+  void addField(String field) {
+    fields.add(field);
+  }
+
+  jsAst.ObjectInitializer toObjectInitializer() {
+    StringBuffer buffer = new StringBuffer();
+    if (superName != null) {
+      if (nativeName != null) {
+        buffer.write('$nativeName/');
+      }
+      buffer.write('$superName');
+      if (functionType != null) {
+        buffer.write(':$functionType');
+      }
+      buffer.write(';');
+    }
+    buffer.writeAll(fields, ',');
+    var classData = js.string('$buffer');
+    if (fieldMetadata != null) {
+      // If we need to store fieldMetadata, classData is turned into an array,
+      // and the field metadata is appended. So if classData is just a string,
+      // there is no field metadata.
+      classData =
+          new jsAst.ArrayInitializer.from([classData]..addAll(fieldMetadata));
+    }
+    var fieldsAndProperties =
+        [new jsAst.Property(js.string(''), classData)]
+        ..addAll(properties);
+    return new jsAst.ObjectInitializer(fieldsAndProperties, isOneLiner: false);
   }
 
 }

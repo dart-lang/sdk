@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection' show Queue, HashMap;
 import 'dart:isolate';
 import 'dart:_js_helper' show
+    Closure,
     Null,
     Primitives,
     convertDartClosureToJS;
@@ -563,7 +564,7 @@ class IsolateNatives {
   }
 
   static _getJSFunctionFromName(String functionName) {
-    return JS("", "init.globalFunctions[#]", functionName);
+    return JS("", "init.globalFunctions[#]()", functionName);
   }
 
   /**
@@ -572,7 +573,7 @@ class IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f) {
-    return JS("String|Null", r"(#['$name'] || #)", f, null);
+    return (f is Closure) ? JS("String|Null", r'#.$name', f) : null;
   }
 
   /** Create a new JavaScript object instance given its constructor. */
