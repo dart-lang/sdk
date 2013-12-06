@@ -8,7 +8,6 @@ LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # c
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 LibTest/core/Uri/encodeComponent_A01_t02: Skip
-LibTest/core/Uri/encodeComponent_A01_t02: Skip
 LibTest/core/Uri/encodeFull_A01_t02: Skip
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Skip
 
