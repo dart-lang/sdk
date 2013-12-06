@@ -3727,6 +3727,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     type.typeArguments.forEach((DartType argument) {
       inputs.add(analyzeTypeArgument(argument));
     });
+    // TODO(15489): Register at codegen.
+    compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
     return callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
@@ -3878,10 +3880,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
               code, backend.nullType, [stack.last], canThrow: true));
       }
     } else if (isGrowableListConstructorCall) {
-      js.Expression code = js.js.parseForeignJS('Array()');
-      var behavior = new native.NativeBehavior();
-      behavior.typesReturned.add(expectedType);
-      push(new HForeign(code, elementType, inputs, nativeBehavior: behavior));
+      push(buildLiteralList(<HInstruction>[]));
     } else {
       ClassElement cls = constructor.getEnclosingClass();
       if (cls.isAbstract && constructor.isGenerativeConstructor()) {
@@ -4673,6 +4672,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     for (DartType argument in type.typeArguments) {
       arguments.add(analyzeTypeArgument(argument));
     }
+    // TODO(15489): Register at codegen.
     compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
     return callSetRuntimeTypeInfo(type.element, arguments, object);
   }
