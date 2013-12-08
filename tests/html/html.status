@@ -81,6 +81,9 @@ audiobuffersourcenode_test/supported: Pass, Timeout # Issue 12772
 postmessage_structured_test/typed_arrays: Fail # Issue 10097
 postmessage_structured_test/primitives: Fail # Issue 10097
 
+[ $compiler == dart2js && $runtime == chrome ]
+selectelement_test: Skip # http://dartbug.com/15516
+
 [ $runtime == chrome ]
 canvasrenderingcontext2d_test/drawImage_video_element: Pass,Fail # Issue 11836
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11836

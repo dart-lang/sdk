@@ -3,8 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
-convert/ascii_test: Skip
-convert/streamed_conversion_json_utf8_encode_test: Skip
+convert/ascii_test: Skip # http://dartbug.com/15498
+convert/streamed_conversion_json_utf8_encode_test: Skip # http://dartbug.com/15498
+convert/streamed_conversion_utf8_encode_test: Skip # http://dartbug.com/15498
 
 [ $csp ]
 mirrors/delegate_test: RuntimeError # Issue 13864

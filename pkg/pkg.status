@@ -302,6 +302,9 @@ unittest/test/unitttest_group_name_test: Fail # 13921
 polymer/test/custom_event_test: Pass, Crash # 14360
 polymer/example/canonicalization/test/canonicalization_deploy_test: Fail, OK # tests deploy only behavior
 
+[ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]
+polymer/test/custom_event_test: Skip # http://dartbug.com/15517
+
 # Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
 custom_element: Skip
