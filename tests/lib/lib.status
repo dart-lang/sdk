@@ -58,7 +58,6 @@ mirrors/metadata_allowed_values_test/13: MissingCompileTimeError # Issue 14548
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError # Issue 14548
 mirrors/method_mirror_name_test: RuntimeError # Issue 6335
 mirrors/method_mirror_properties_test: RuntimeError # Issue 11861
-mirrors/method_mirror_returntype_test : RuntimeError # Issue 11928
 mirrors/method_mirror_source_test : RuntimeError # Issue 6490
 mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this.
 mirrors/mixin_test: RuntimeError # Issue 12464

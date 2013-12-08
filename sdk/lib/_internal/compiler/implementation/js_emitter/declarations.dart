@@ -8,9 +8,14 @@ part of dart2js.js_emitter;
 const DEBUG_FAST_OBJECTS = false;
 
 /**
- * A convenient type alias for some functions that emit keyed values.
+ * Call-back for adding stub [function] for [selector].
  */
-typedef void DefineStubFunction(String invocationName, jsAst.Expression value);
+typedef void AddStubFunction(Selector selector, jsAst.Fun function);
+
+/**
+ * Call-back for adding property with [name] and [value].
+ */
+typedef void AddPropertyFunction(String name, jsAst.Expression value);
 
 /**
  * [member] is a field (instance, static, or top level).

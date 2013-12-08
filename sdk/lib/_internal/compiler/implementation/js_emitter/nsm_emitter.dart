@@ -18,7 +18,7 @@ class NsmEmitter extends CodeEmitterHelper {
 
   static const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
 
-  void emitNoSuchMethodHandlers(DefineStubFunction defineStub) {
+  void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
     // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty) return;
 
@@ -55,8 +55,8 @@ class NsmEmitter extends CodeEmitterHelper {
     compiler.codegenWorld.invokedSetters.forEach(addNoSuchMethodHandlers);
 
     // Set flag used by generateMethod helper below.  If we have very few
-    // handlers we use defineStub for them all, rather than try to generate them
-    // at runtime.
+    // handlers we use addProperty for them all, rather than try to generate
+    // them at runtime.
     bool haveVeryFewNoSuchMemberHandlers =
         (addedJsNames.length < VERY_FEW_NO_SUCH_METHOD_HANDLERS);
 
@@ -104,12 +104,12 @@ class NsmEmitter extends CodeEmitterHelper {
       Selector selector = addedJsNames[jsName];
       jsAst.Expression method = generateMethod(jsName, selector);
       if (method != null) {
-        defineStub(jsName, method);
+        addProperty(jsName, method);
         String reflectionName = task.getReflectionName(selector, jsName);
         if (reflectionName != null) {
           bool accessible = compiler.world.allFunctions.filter(selector).any(
               (Element e) => backend.isAccessibleByReflection(e));
-          defineStub('+$reflectionName', js(accessible ? '1' : '0'));
+          addProperty('+$reflectionName', js(accessible ? '1' : '0'));
         }
       }
     }

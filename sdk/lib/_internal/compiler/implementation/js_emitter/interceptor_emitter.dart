@@ -7,6 +7,12 @@ part of dart2js.js_emitter;
 class InterceptorEmitter extends CodeEmitterHelper {
   final Set<String> interceptorInvocationNames = new Set<String>();
 
+  void recordMangledNameOfMemberMethod(FunctionElement member, String name) {
+    if (backend.isInterceptedMethod(member)) {
+      interceptorInvocationNames.add(name);
+    }
+  }
+
   Set<ClassElement> interceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
     ConstantHandler handler = compiler.constantHandler;

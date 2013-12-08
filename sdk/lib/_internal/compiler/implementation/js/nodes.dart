@@ -453,8 +453,6 @@ abstract class Expression extends Node {
 
   Call callWith(List<Expression> arguments) => new Call(this, arguments);
 
-  New newWith(List<Expression> arguments) => new New(this, arguments);
-
   PropertyAccess operator [](expression) {
     if (expression is Expression) {
       return new PropertyAccess(this, expression);
