@@ -423,4 +423,18 @@ void runDateTests(Function subsetFunc) {
     var aDate = new DateTime(2012, 4, 27, 13, 58, 59, 012);
     expect(f.format(aDate), "118");
   });
+
+  // There are some very odd off-by-one bugs when parsing dates. Put in
+  // some very basic tests to try and get more information.
+  test('Simple Date Creation', () {
+    var format = new DateFormat(DateFormat.NUM_MONTH);
+    var first = format.parse("7");
+    var second = format.parse("7");
+    var basic = new DateTime(1970, 7);
+    var basicAgain = new DateTime(1970, 7);
+    expect(first, second);
+    expect(first, basic);
+    expect(basic, basicAgain);
+    expect(first.month, 7);
+  });
 }
