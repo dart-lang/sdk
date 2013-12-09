@@ -79,6 +79,12 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
   // enqueued in order and notified in FIFO order.
   void _addTimerToList() {
     _Timer entry = _timers.isEmpty ? null : _timers.first;
+    // If timer is last, add to end.
+    if (entry == null || _timers.last._wakeupTime <= _wakeupTime) {
+      _timers.add(this);
+      return;
+    }
+    // Otherwise scan through and find the right position.
     while (entry != null) {
       if (_wakeupTime < entry._wakeupTime) {
         entry.insertBefore(this);
