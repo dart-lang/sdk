@@ -24,8 +24,12 @@ class _Timer extends LinkedListEntry<_Timer> implements Timer {
     _Timer timer = new _Timer._internal();
     timer._callback = callback;
     if (milliSeconds > 0) {
+      // Add one because DateTime.now() is assumed to round down
+      // to nearest millisecond, not up, so that time + duration is before
+      // duration milliseconds from now. Using micosecond timers like
+      // Stopwatch allows detecting that the timer fires early.
       timer._wakeupTime =
-          new DateTime.now().millisecondsSinceEpoch + milliSeconds;
+          new DateTime.now().millisecondsSinceEpoch + 1 + milliSeconds;
     }
     timer._milliSeconds = repeating ? milliSeconds : -1;
     timer._addTimerToList();
