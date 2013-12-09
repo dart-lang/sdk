@@ -66,6 +66,8 @@ LibTest/core/double/floor_A01_t04: FAIL, OK # co19 issue 389
 LibTest/core/double/round_A01_t02: FAIL, OK # co19 issue 389
 LibTest/core/double/round_A01_t04: FAIL, OK # co19 issue 389
 
+LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
+
 LibTest/async/Stream/Stream.periodic_A01_t01: TIMEOUT, PASS, FAIL, OK # co19 issue 538
 
 LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493
@@ -85,7 +87,6 @@ LibTest/async/Timer/Timer_A01_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/Timer_A02_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/Timer.periodic_A01_t01: PASS, FAIL, OK # co19 issue 537
 LibTest/async/Timer/Timer.periodic_A02_t01: PASS, FAIL, OK # co19 issue 538
-LibTest/async/Future/Future.delayed_A01_t02: PASS, FAIL, OK # co19 issue 536
 
 LibTest/isolate/IsolateStream/contains_A02_t01: PASS, FAIL, OK # co19 issue 540
 
