@@ -15,12 +15,6 @@ LibTest/core/Stopwatch/start_A01_t01: PASS, FAIL, OK # co19 issue 657
 LibTest/core/Stopwatch/start_A01_t02: PASS, FAIL, OK # co19 issue 657
 LibTest/core/Stopwatch/elapsedTicks_A01_t01: PASS, FAIL, OK # co19 issue 657
 
-LibTest/isolate/Isolate/spawnFunction_A02_t01: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnFunction_A03_t01: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnFunction_A04_t01: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnFunction_A04_t02: Fail, OK # co19 issue 639
-LibTest/isolate/Isolate/spawnFunction_A04_t03: Fail, OK # co19 issue 639
-
 [ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail, pass, ok # co19 issue 649
 
