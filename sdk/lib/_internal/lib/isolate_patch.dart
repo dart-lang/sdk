@@ -12,8 +12,8 @@ import 'dart:_isolate_helper' show IsolateNatives,
 
 patch class Isolate {
   patch static Future<Isolate> spawn(void entryPoint(message), var message) {
-    SendPort controlPort = IsolateNatives.spawnFunction(entryPoint, message);
-    return new Future<Isolate>.value(new Isolate._fromControlPort(controlPort));
+    return IsolateNatives.spawnFunction(entryPoint, message)
+        .then((controlPort) => new Isolate._fromControlPort(controlPort));
   }
 
   patch static Future<Isolate> spawnUri(
@@ -27,8 +27,8 @@ patch class Isolate {
     } else if (args != null) {
       throw new ArgumentError("Args must be a list of Strings $args");
     }
-    SendPort controlPort = IsolateNatives.spawnUri(uri, args, message);
-    return new Future<Isolate>.value(new Isolate._fromControlPort(controlPort));
+    return IsolateNatives.spawnUri(uri, args, message)
+        .then((controlPort) => new Isolate._fromControlPort(controlPort));
   }
 }
 
