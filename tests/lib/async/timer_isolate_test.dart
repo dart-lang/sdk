@@ -13,7 +13,7 @@ const Duration TIMEOUT = const Duration(milliseconds: 100);
 // Some browsers (Firefox and IE so far) can trigger too early. Add a safety
 // margin. We use identical(1, 1.0) as an easy way to know if the test is
 // compiled by dart2js.
-int get safetyMargin => identical(1, 1.0) ? 100 : 0;
+int get safetyMargin => identical(1, 1.0) ? 100 : 1;
 
 createTimer(replyTo) {
   new Timer(TIMEOUT, () {
