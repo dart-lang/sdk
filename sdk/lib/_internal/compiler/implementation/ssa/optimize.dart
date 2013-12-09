@@ -1448,9 +1448,13 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
       }
       if (!canBeMoved) continue;
 
-      // This is safe because we are running after GVN.
-      // TODO(ngeoffray): ensure GVN has been run.
-      set_.add(current);
+      HInstruction existing = set_.lookup(current);
+      if (existing == null) {
+        set_.add(current);
+      } else {
+        block.rewriteWithBetterUser(current, existing);
+        block.remove(current);
+      }
     }
   }
 }

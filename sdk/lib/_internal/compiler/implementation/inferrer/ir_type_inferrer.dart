@@ -11,12 +11,14 @@ import '../elements/elements.dart' show
     Element, FunctionElement, FunctionSignature;
 import '../dart2jslib.dart' show Compiler, Constant, ConstantSystem;
 import 'type_graph_inferrer.dart' show TypeInformation;
+import '../universe/universe.dart' show SideEffects;
 
 class IrTypeInferrerVisitor extends IrNodesVisitor {
   final Compiler compiler;
   final Element analyzedElement;
   final TypeSystem<TypeInformation> types;
   final InferrerEngine<TypeInformation, TypeSystem<TypeInformation>> inferrer;
+  final SideEffects sideEffects = new SideEffects.empty();
 
   IrTypeInferrerVisitor(this.compiler,
                         this.analyzedElement,
@@ -55,6 +57,7 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
     }
 
     visitAll(node.statements);
+    compiler.world.registerSideEffects(analyzedElement, sideEffects);
     return returnType;
   }
 
