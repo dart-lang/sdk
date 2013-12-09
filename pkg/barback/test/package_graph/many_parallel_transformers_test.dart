@@ -13,6 +13,7 @@ main() {
   initConfig();
 
   test("handles many parallel transformers", () {
+    currentSchedule.timeout *= 3;
     var files = new List.generate(100, (i) => "app|$i.txt");
     var rewrite = new RewriteTransformer("txt", "out");
     initGraph(files, {"app": [[rewrite]]});
