@@ -3962,6 +3962,10 @@ class Instance : public Object {
   // error object if evaluating the expression fails.
   RawObject* Evaluate(const String& expr) const;
 
+  // Returns a string representation of this instance in a form
+  // that is suitable for an end user.
+  virtual const char* ToUserCString(intptr_t maxLen = 40) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
@@ -4894,6 +4898,9 @@ class String : public Instance {
                           void* peer,
                           Dart_PeerFinalizer cback) const;
 
+  // Produces a quoted, escaped, (possibly) truncated string.
+  const char* ToUserCString(intptr_t maxLen = 40) const;
+
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).
@@ -5017,6 +5024,9 @@ class String : public Instance {
                            intptr_t tags,
                            CallbackType new_symbol,
                            Snapshot::Kind kind);
+
+  intptr_t EscapedString(char* buffer, int maxLen) const;
+  intptr_t EscapedStringLen(intptr_t tooLong) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 

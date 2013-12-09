@@ -11393,12 +11393,23 @@ const char* Instance::ToCString() const {
     }
     const Type& type =
         Type::Handle(Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
-    const String& type_name = String::Handle(type.Name());
+    const String& type_name = String::Handle(type.UserVisibleName());
     // Calculate the size of the string.
     intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, kFormat, type_name.ToCString());
     return chars;
+  }
+}
+
+
+const char* Instance::ToUserCString(intptr_t maxLen) const {
+  if (raw() == Object::sentinel().raw()) {
+    return "<not initialized>";
+  } else if (raw() == Object::transition_sentinel().raw()) {
+    return "<being initialized>";
+  } else {
+    return ToCString();
   }
 }
 
@@ -14224,6 +14235,98 @@ const char* String::ToCString() const {
 }
 
 
+static bool IsAsciiPrintChar(intptr_t codePoint) {
+  return codePoint >= ' ' && codePoint <= '~';
+}
+
+
+// Does not null-terminate.
+intptr_t String::EscapedString(char* buffer, int maxLen) const {
+  int pos = 0;
+
+  CodePointIterator cpi(*this);
+  while (cpi.Next()) {
+    int32_t codePoint = cpi.Current();
+    if (IsSpecialCharacter(codePoint)) {
+      if (pos + 2 > maxLen) {
+        return pos;
+      }
+      buffer[pos++] = '\\';
+      buffer[pos++] = SpecialCharacter(codePoint);
+    } else if (IsAsciiPrintChar(codePoint)) {
+      buffer[pos++] = codePoint;
+    } else {
+      if (pos + 6 > maxLen) {
+        return pos;
+      }
+      pos += OS::SNPrint((buffer + pos), (maxLen - pos), "\\u%04x", codePoint);
+    }
+    if (pos == maxLen) {
+      return pos;
+    }
+  }
+  return pos;
+}
+
+
+intptr_t String::EscapedStringLen(intptr_t tooLong) const {
+  intptr_t len = 0;
+
+  CodePointIterator cpi(*this);
+  while (cpi.Next()) {
+    int32_t codePoint = cpi.Current();
+    if (IsSpecialCharacter(codePoint)) {
+      len += 2;  // e.g. "\n"
+    } else if (IsAsciiPrintChar(codePoint)) {
+      len += 1;
+    } else {
+      len += 6;  // e.g. "\u0000".
+    }
+    if (len > tooLong) {
+      // No point going further.
+      break;
+    }
+  }
+  return len;
+}
+
+
+const char* String::ToUserCString(intptr_t maxLen) const {
+  // Compute the needed length for the buffer.
+  const intptr_t escapedLen = EscapedStringLen(maxLen);
+  intptr_t printLen = escapedLen;
+  intptr_t bufferLen = escapedLen + 2;  // +2 for quotes.
+  if (bufferLen > maxLen) {
+    bufferLen = maxLen;     // Truncate.
+    printLen = maxLen - 5;  // -2 for quotes, -3 for elipsis.
+  }
+
+  // Allocate the buffer.
+  Zone* zone = Isolate::Current()->current_zone();
+  char* buffer = zone->Alloc<char>(bufferLen + 1);
+
+  // Leading quote.
+  intptr_t pos = 0;
+  buffer[pos++] = '\"';
+
+  // Print escaped string.
+  pos += EscapedString((buffer + pos), printLen);
+
+  // Trailing quote.
+  buffer[pos++] = '\"';
+
+  if (printLen < escapedLen) {
+    buffer[pos++] = '.';
+    buffer[pos++] = '.';
+    buffer[pos++] = '.';
+  }
+  ASSERT(pos <= bufferLen);
+  buffer[pos++] = '\0';
+
+  return buffer;
+}
+
+
 void String::PrintToJSONStream(JSONStream* stream, bool ref) const {
   Instance::PrintToJSONStream(stream, ref);
 }
@@ -15272,7 +15375,7 @@ const char* GrowableObjectArray::ToCString() const {
   if (IsNull()) {
     return "_GrowableList NULL";
   }
-  const char* format = "_GrowableList len:%" Pd "";
+  const char* format = "Instance(length:%" Pd ") of '_GrowableList'";
   intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
