@@ -37,7 +37,7 @@ part of dart.core;
  * You can use these constants to improve code readibility:
  *
  *     DateTime berlinWallFell = new DateTime(1989, DateTime.NOVEMBER, 9);
- *     assert(berlinWallFell.month == DateTime.SATURDAY);
+ *     assert(berlinWallFell.weekday == DateTime.THURSDAY);
  *
  * Day and month values begin at 1, and the week starts on Monday.
  * That is, the constants [JANUARY] and [MONDAY] are both 1.
@@ -79,8 +79,8 @@ part of dart.core;
  * To find out how much time is between two DateTime objects use
  * [difference], which returns a [Duration] object:
  *
- *     Duration difference = berlinWallFell.difference(dDay);
- *     assert(difference.inDays == 16592);
+ *     Duration difference = berlinWallFell.difference(moonLanding)
+ *     assert(difference.inDays == 7416);
  *
  * ## Other resources
  *
