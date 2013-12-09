@@ -37039,33 +37039,36 @@ final _pureIsolateUriBaseClosure = () {
                                "is not supported in the browser");
 };
 
- class _Timer implements Timer {
-  var _canceler;
+class _Timer implements Timer {
+  const int _STATE_TIMEOUT = 0;
+  const int _STATE_INTERVAL = 1;
+  var _state;
 
   _Timer(int milliSeconds, void callback(Timer timer), bool repeating) {
-
     if (repeating) {
-      int id = window._setInterval(() {
+      _state = window._setInterval(() {
         callback(this);
-      }, milliSeconds);
-      _canceler = () => window._clearInterval(id);
+      }, milliSeconds) * 2 + _STATE_INTERVAL;
     } else {
-      int id = window._setTimeout(() {
-        _canceler = null;
+      _state = window._setTimeout(() {
+        _state = null;
         callback(this);
-      }, milliSeconds);
-      _canceler = () => window._clearTimeout(id);
+      }, milliSeconds) * 2 + _STATE_TIMEOUT;
     }
   }
 
   void cancel() {
-    if (_canceler != null) {
-      _canceler();
+    if (_state == null) return;
+    int id = _state ~/ 2;
+    if ((_state & 1) == _STATE_TIMEOUT) {
+      window._clearTimeout(id);
+    } else {
+      window._clearInterval(id);
     }
-    _canceler = null;
+    _state = null;
   }
 
-  bool get isActive => _canceler != null;
+  bool get isActive => _state != null;
 }
 
 get _timerFactoryClosure =>
