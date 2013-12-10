@@ -220,7 +220,6 @@ class _ElementSummary {
 class _LinterVisitor extends TreeVisitor {
   TransformLogger _logger;
   bool _inPolymerElement = false;
-  bool _dartJSSeen = false;
   bool _dartTagSeen = false;
   bool _isEntrypoint;
   Map<String, _ElementSummary> _elements;
@@ -367,11 +366,6 @@ class _LinterVisitor extends TreeVisitor {
 
     if (src == 'packages/polymer/boot.js') {
       _logger.warning(BOOT_JS_DEPRECATED, span: node.sourceSpan);
-      return;
-    }
-    if (src == 'packages/browser/dart.js' ||
-        src == 'packages/unittest/test_controller.js') {
-      _dartJSSeen = true;
       return;
     }
 
