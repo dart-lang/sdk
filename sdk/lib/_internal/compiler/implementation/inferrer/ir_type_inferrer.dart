@@ -5,56 +5,61 @@
 library dart2js.ir_type_inferrer;
 
 import '../ir/ir_nodes.dart';
-import 'inferrer_visitor.dart' show TypeSystem;
+import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import 'simple_types_inferrer.dart' show InferrerEngine;
 import '../elements/elements.dart' show
-    Element, FunctionElement, FunctionSignature;
+    Elements, Element, FunctionElement, FunctionSignature;
 import '../dart2jslib.dart' show Compiler, Constant, ConstantSystem;
 import 'type_graph_inferrer.dart' show TypeInformation;
-import '../universe/universe.dart' show SideEffects;
+import '../universe/universe.dart' show Selector, SideEffects;
+
 
 class IrTypeInferrerVisitor extends IrNodesVisitor {
   final Compiler compiler;
   final Element analyzedElement;
-  final TypeSystem<TypeInformation> types;
+  final Element outermostElement;
   final InferrerEngine<TypeInformation, TypeSystem<TypeInformation>> inferrer;
-  final SideEffects sideEffects = new SideEffects.empty();
+  final TypeSystem<TypeInformation> types;
 
   IrTypeInferrerVisitor(this.compiler,
-                        this.analyzedElement,
+                        Element analyzedElement,
                         InferrerEngine<TypeInformation,
                         TypeSystem<TypeInformation>> inferrer)
-    : inferrer = inferrer,
+    : this.analyzedElement = analyzedElement,
+      outermostElement = _outermostElement(analyzedElement),
+      this.inferrer = inferrer,
       types = inferrer.types;
+
+  final SideEffects sideEffects = new SideEffects.empty();
+  bool inLoop = false;
+
+  static Element _outermostElement(Element analyzedElememnt) {
+    Element outermostElement =
+        analyzedElememnt.getOutermostEnclosingMemberOrTopLevel().implementation;
+    assert(outermostElement != null);
+    return outermostElement;
+  }
 
   final Map<IrNode, TypeInformation> analyzed = <IrNode, TypeInformation>{};
 
   TypeInformation returnType;
 
   TypeInformation run() {
-    if (analyzedElement.isField()) {
-      // TODO(lry): handle fields.
-      throw "Type infer from IR for field $analyzedElement";
-    }
+    // TODO(lry): handle fields.
+    assert(!analyzedElement.isField());
+
     FunctionElement function = analyzedElement;
     FunctionSignature signature = function.computeSignature(compiler);
     IrFunction node = compiler.irBuilder.getIr(function);
+
     // TODO(lry): handle parameters.
-
-    if (function.isNative()) {
-      // TODO(lry): handle native.
-      throw "Type infer from IR for native $analyzedElement";
-    }
-
-    if (analyzedElement.isGenerativeConstructor()) {
-      // TODO(lry): handle constructors.
-      throw "Type infer from IR for constructor $analyzedElement";
-    }
-
-    if (analyzedElement.isSynthesized) {
-      // TODO(lry): handle synthethics.
-      throw "Type infer from IR for synthetic $analyzedElement";
-    }
+    assert(function.computeSignature(compiler).parameterCount == 0);
+    // TODO(lry): handle native.
+    assert(!function.isNative());
+    // TODO(lry): handle constructors.
+    assert(!analyzedElement.isGenerativeConstructor());
+    // TODO(lry): handle synthethics.
+    assert(!analyzedElement.isSynthesized);
 
     visitAll(node.statements);
     compiler.world.registerSideEffects(analyzedElement, sideEffects);
@@ -63,6 +68,25 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
 
   TypeInformation typeOfConstant(Constant constant) {
     return inferrer.types.getConcreteTypeFor(constant.computeMask(compiler));
+  }
+
+  TypeInformation handleStaticSend(IrNode node,
+                                   Selector selector,
+                                   Element element,
+                                   ArgumentsTypes arguments) {
+    return inferrer.registerCalledElement(
+        node, selector, outermostElement, element, arguments,
+        sideEffects, inLoop);
+  }
+
+  ArgumentsTypes<TypeInformation> analyzeArguments(
+      Selector selector, List<IrNode> arguments) {
+    // TODO(lry): support named arguments, necessary information should be
+    // in [selector].
+    assert(selector.namedArgumentCount == 0);
+    List<TypeInformation> positional =
+        arguments.map((e) => analyzed[e]).toList(growable: false);
+    return new ArgumentsTypes<TypeInformation>(positional, null);
   }
 
   void visitIrConstant(IrConstant node) {
@@ -74,7 +98,22 @@ class IrTypeInferrerVisitor extends IrNodesVisitor {
     returnType = inferrer.addReturnTypeFor(analyzedElement, returnType, type);
   }
 
-  void visitNode(IrNode node) {
+  void visitIrInvokeStatic(IrInvokeStatic node) {
+    FunctionElement element = node.target;
+    Selector selector = node.selector;
+    // TODO(lry): handle foreign functions.
+    assert(!element.isForeign(compiler));
+    // In erroneous code the number of arguments in the selector might not
+    // match the function element.
+    if (!selector.applies(element, compiler)) {
+      analyzed[node] = types.dynamicType;
+    } else {
+      ArgumentsTypes arguments = analyzeArguments(selector, node.arguments);
+      analyzed[node] = handleStaticSend(node, selector, element, arguments);
+    }
+  }
+
+  void visitIrNode(IrNode node) {
     compiler.internalError('Unexpected IrNode $node');
   }
 }

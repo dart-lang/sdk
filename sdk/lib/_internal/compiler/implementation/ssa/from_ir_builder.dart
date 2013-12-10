@@ -42,28 +42,34 @@ class SsaFromIrBuilderTask extends CompilerTask {
 }
 
 /**
- * This builder generates SSA nodes for elements that have an IR representation.
- * It mixes in [SsaGraphBuilderMixin] to share functionality with the
- * [SsaBuilder] that creates SSA nodes from trees.
+ * This class contains code that is shared between [SsaFromIrBuilder] and
+ * [SsaFromIrInliner].
  */
-class SsaFromIrBuilder
-    extends IrNodesVisitor<HInstruction> with SsaGraphBuilderMixin {
-  final Compiler compiler;
-
-  final Element sourceElement;
-
-  SsaFromIrBuilder(this.compiler, this.sourceElement);
-
+abstract class SsaFromIrMixin {
   /**
-   * Maps IR nodes ot the generated [HInstruction]. Because the IR is itself
+   * Maps IR expressions to the generated [HInstruction]. Because the IR is
    * in an SSA form, the arguments of an [IrNode] have already been visited
    * prior to the node. This map is used to obtain the corresponding generated
    * SSA node.
    */
-  final Map<IrNode, HInstruction> generated = new Map<IrNode, HInstruction>();
+  final Map<IrExpression, HInstruction> emitted =
+      new Map<IrExpression, HInstruction>();
 
-  HInstruction recordGenerated(IrNode irNode, HInstruction ssaNode) {
-    return generated[irNode] = ssaNode;
+  Compiler get compiler;
+
+  Element get sourceElement;
+
+  HGraph get graph;
+
+  HBasicBlock get current;
+
+  bool get isReachable;
+
+  void emitReturn(HInstruction value, IrReturn node);
+
+  HInstruction addExpression(IrExpression irNode, HInstruction ssaNode) {
+    current.add(emitted[irNode] = ssaNode);
+    return ssaNode;
   }
 
   HInstruction attachPosition(HInstruction target, IrNode node) {
@@ -91,6 +97,63 @@ class SsaFromIrBuilder
     return location;
   }
 
+  List<HInstruction> toInstructionList(List<IrNode> nodes) {
+    return nodes.map((e) => emitted[e]).toList(growable: false);
+  }
+
+  HInstruction createInvokeStatic(IrNode node,
+                                  Element element,
+                                  List<HInstruction> arguments,
+                                  [TypeMask type]) {
+    if (type == null) {
+      type = TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
+    }
+    bool targetCanThrow = !compiler.world.getCannotThrow(element);
+    HInvokeStatic instruction = new HInvokeStatic(
+        element.declaration, arguments, type, targetCanThrow: targetCanThrow);
+    instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
+    return attachPosition(instruction, node);
+  }
+
+  void visitIrConstant(IrConstant node) {
+    emitted[node] = graph.addConstant(node.value, compiler);
+  }
+
+  void visitIrInvokeStatic(IrInvokeStatic node) {
+    Element element = node.target;
+    assert(element.isFunction());
+    List<HInstruction> arguments = toInstructionList(node.arguments);
+    // Note: the AST to SSA builder attempts to inline here.
+    HInstruction instruction = createInvokeStatic(node, element, arguments);
+    addExpression(node, instruction);
+  }
+
+  void visitIrNode(IrNode node) {
+    compiler.internalError('Cannot build SSA from IR for $node');
+  }
+
+  void visitIrReturn(IrReturn node) {
+    assert(isReachable);
+    HInstruction value = emitted[node.value];
+    // TODO(lry): add code for dynamic type check.
+    // value = potentiallyCheckType(value, returnType);
+    emitReturn(value, node);
+  }
+}
+
+/**
+ * This builder generates SSA nodes for elements that have an IR representation.
+ * It mixes in [SsaGraphBuilderMixin] to share functionality with the
+ * [SsaBuilder] that creates SSA nodes from trees.
+ */
+class SsaFromIrBuilder
+    extends IrNodesVisitor with SsaFromIrMixin, SsaGraphBuilderMixin {
+  final Compiler compiler;
+
+  final Element sourceElement;
+
+  SsaFromIrBuilder(this.compiler, this.sourceElement);
+
   HGraph buildMethod() {
     graph.calledInLoop = compiler.world.isCalledInLoop(sourceElement);
 
@@ -106,23 +169,7 @@ class SsaFromIrBuilder
     return graph;
   }
 
-  HInstruction visitIrConstant(IrConstant node) {
-    return recordGenerated(node, graph.addConstant(node.value, compiler));
-  }
-
-  HInstruction visitIrReturn(IrReturn node) {
-    assert(isReachable);
-    HInstruction value = generated[node.value];
-    // TODO(lry): add code for dynamic type check.
-    // value = potentiallyCheckType(value, returnType);
+  void emitReturn(HInstruction value, IrReturn node) {
     closeAndGotoExit(attachPosition(new HReturn(value), node));
-  }
-
-  HInstruction visitNode(IrNode node) {
-    abort(node);
-  }
-
-  void abort(IrNode node) {
-    throw 'Cannot build SSA from IR for $node';
   }
 }

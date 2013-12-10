@@ -124,7 +124,7 @@ class Selector {
   // The numbers of arguments of the selector. Includes named arguments.
   final int argumentCount;
   final List<String> namedArguments;
-  final List<String> orderedNamedArguments;
+  final List<String> _orderedNamedArguments;
   final int hashCode;
 
   static const String INDEX_NAME ="[]";
@@ -136,7 +136,7 @@ class Selector {
                     this.library,
                     this.argumentCount,
                     this.namedArguments,
-                    this.orderedNamedArguments,
+                    this._orderedNamedArguments,
                     this.hashCode) {
     assert(kind == SelectorKind.INDEX
            || (name != INDEX_NAME && name != INDEX_SET_NAME));
@@ -572,13 +572,13 @@ class Selector {
 
   List<String> getOrderedNamedArguments() {
     if (namedArguments.isEmpty) return namedArguments;
-    if (!orderedNamedArguments.isEmpty) return orderedNamedArguments;
+    if (!_orderedNamedArguments.isEmpty) return _orderedNamedArguments;
 
-    orderedNamedArguments.addAll(namedArguments);
-    orderedNamedArguments.sort((String first, String second) {
+    _orderedNamedArguments.addAll(namedArguments);
+    _orderedNamedArguments.sort((String first, String second) {
       return first.compareTo(second);
     });
-    return orderedNamedArguments;
+    return _orderedNamedArguments;
   }
 
   String namedArgumentsToString() {
@@ -620,7 +620,7 @@ class TypedSelector extends Selector {
                        selector.library,
                        selector.argumentCount,
                        selector.namedArguments,
-                       selector.orderedNamedArguments,
+                       selector._orderedNamedArguments,
                        hashCode) {
     assert(mask != null);
     assert(asUntyped.mask == null);

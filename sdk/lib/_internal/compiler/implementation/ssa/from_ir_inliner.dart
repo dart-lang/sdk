@@ -4,27 +4,23 @@
 
 part of ssa;
 
-class SsaFromIrInliner extends IrNodesVisitor {
-
+class SsaFromIrInliner extends IrNodesVisitor with SsaFromIrMixin {
   final SsaBuilder builder;
 
   SsaFromIrInliner(this.builder);
 
-  final Map<IrNode, HInstruction> emitted = new Map<IrNode, HInstruction>();
-
   Compiler get compiler => builder.compiler;
 
-  void visitIrReturn(IrReturn node) {
-    HInstruction hValue = emitted[node.value];
-    builder.localsHandler.updateLocal(builder.returnElement, hValue);
-  }
+  Element get sourceElement => builder.sourceElementStack.last;
 
-  void visitIrConstant(IrConstant node) {
-    emitted[node] = builder.graph.addConstant(node.value, compiler);
-  }
+  HGraph get graph => builder.graph;
 
-  void visitNode(IrNode node) {
-    compiler.internalError('Unexpected IrNode $node');
+  HBasicBlock get current => builder.current;
+
+  bool get isReachable => builder.isReachable;
+
+  void emitReturn(HInstruction value, IrReturn node) {
+    builder.localsHandler.updateLocal(builder.returnElement, value);
   }
 }
 
@@ -57,7 +53,7 @@ class IrInlineWeeder extends IrNodesVisitor {
     }
   }
 
-  void visitNode(IrNode node) {
+  void visitIrNode(IrNode node) {
     if (!registerNode()) return;
     if (seenReturn) {
       tooDifficult = true;
@@ -65,12 +61,11 @@ class IrInlineWeeder extends IrNodesVisitor {
   }
 
   void visitIrReturn(IrReturn node) {
-    visitNode(node);
+    visitIrNode(node);
     seenReturn = true;
   }
 
   void visitIrFunction(IrFunction node) {
     tooDifficult = true;
   }
-
 }

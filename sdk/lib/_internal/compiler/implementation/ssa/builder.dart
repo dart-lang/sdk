@@ -4003,6 +4003,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       return;
     }
     if (element.isErroneous()) {
+      // An erroneous element indicates that the funciton could not be resolved
+      // (a warning has been issued).
       generateThrowNoSuchMethod(node,
                                 getTargetName(element),
                                 argumentNodes: node.arguments);

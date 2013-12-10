@@ -8,6 +8,7 @@ import 'dart:collection' show Queue, IterableBase;
 import '../dart_types.dart' show DartType, InterfaceType, TypeKind;
 import '../elements/elements.dart';
 import '../tree/tree.dart' show LiteralList, Node;
+import '../ir/ir_nodes.dart' show IrNode;
 import '../types/types.dart' show TypeMask, ContainerTypeMask, TypesInferrer;
 import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
 import '../dart2jslib.dart' show Compiler, TreeElementMapping;
@@ -855,7 +856,7 @@ class TypeGraphInferrerEngine
       throw new UnsupportedError(
           "Cannot query the type inferrer when type inference is disabled.");
     }
-    return types.getInferredTypeOf(element).callers.keys;
+    return types.getInferredTypeOf(element).callers;
   }
 
   /**
@@ -971,14 +972,8 @@ class TypeGraphInferrer implements TypesInferrer {
 
   bool isCalledOnce(Element element) {
     if (compiler.disableTypeInference) return false;
-
-    int count = 0;
     ElementTypeInformation info = inferrer.types.getInferredTypeOf(element);
-    for (var set in info.callers.values) {
-      count += set.length;
-      if (count > 1) return false;
-    }
-    return count == 1;
+    return info.isCalledOnce();
   }
 
   void clear() {

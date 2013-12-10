@@ -208,8 +208,16 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  */
 class ElementTypeInformation extends TypeInformation {
   final Element element;
-  final Map<Element, Setlet<Spannable>> callers =
-      new Map<Element, Setlet<Spannable>>();
+
+  /**
+   * This map contains the callers of [element]. It stores all unique call sites
+   * to enable counting the global number of call sites of [element].
+   *
+   * A call site is either an AST [Node], an [IrNode] or in the case of
+   * synthesized calls, an [Element] (see uses of [synthesizeForwardingCall]
+   * in [SimpleTypeInferrerVisitor]).
+   */
+  final Map<Element, Setlet<Spannable>> _callers = new Map<Element, Setlet>();
 
   ElementTypeInformation.internal(this.element, assignments)
       : super(null, assignments);
@@ -224,16 +232,28 @@ class ElementTypeInformation extends TypeInformation {
   }
 
   void addCall(Element caller, Spannable node) {
-    callers.putIfAbsent(caller, () => new Setlet<Spannable>()).add(node);
+    assert(node is Node || node is IrNode || node is Element);
+    _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
-  void removeCall(Element caller, Spannable node) {
-    Setlet<Spannable> calls = callers[caller];
+  void removeCall(Element caller, node) {
+    Setlet calls = _callers[caller];
     if (calls == null) return;
     calls.remove(node);
     if (calls.isEmpty) {
-      callers.remove(caller);
+      _callers.remove(caller);
     }
+  }
+
+  Iterable<Element> get callers => _callers.keys;
+
+  bool isCalledOnce() {
+    int count = 0;
+    for (var set in _callers.values) {
+      count += set.length;
+      if (count > 1) return false;
+    }
+    return count == 1;
   }
 
   TypeMask handleSpecialCases(TypeGraphInferrerEngine inferrer) {

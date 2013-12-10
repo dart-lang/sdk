@@ -10,6 +10,7 @@ import '../dart_types.dart'
 import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
+import '../ir/ir_nodes.dart' show IrNode;
 import '../util/util.dart' show Link, Spannable, Setlet;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
@@ -341,9 +342,15 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     return returnType;
   }
 
-  void updateSelectorInTree(Element owner, Node node, Selector selector) {
+  void updateSelectorInTree(
+      Element owner, Spannable node, Selector selector) {
+    if (node is IrNode) {
+      // TODO(lry): update selector for IrInvokeDynamic.
+      throw "updateSelector for IR node $node";
+    }
+    Node astNode = node;
     var elements = compiler.enqueuer.resolution.getCachedElements(owner);
-    if (node.asSendSet() != null) {
+    if (astNode.asSendSet() != null) {
       if (selector.isSetter() || selector.isIndexSet()) {
         elements.setSelector(node, selector);
       } else if (selector.isGetter() || selector.isIndex()) {
@@ -352,10 +359,10 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         assert(selector.isOperator());
         elements.setOperatorSelectorInComplexSendSet(node, selector);
       }
-    } else if (node.asSend() != null) {
+    } else if (astNode.asSend() != null) {
       elements.setSelector(node, selector);
     } else {
-      assert(node.asForIn() != null);
+      assert(astNode.asForIn() != null);
       if (selector.asUntyped == compiler.iteratorSelector) {
         elements.setIteratorSelector(node, selector);
       } else if (selector.asUntyped == compiler.currentSelector) {
@@ -904,6 +911,8 @@ class SimpleTypeInferrerVisitor<T>
     }
     Selector selector = elements.getSelector(node);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    // In erroneous code the number of arguments in the selector might not
+    // match the function element.
     if (!selector.applies(element, compiler)) return types.dynamicType;
 
     T returnType = handleStaticSend(node, selector, element, arguments);
@@ -1028,6 +1037,7 @@ class SimpleTypeInferrerVisitor<T>
                      Selector selector,
                      Element element,
                      ArgumentsTypes arguments) {
+    // Erroneous elements may be unresolved, for example missing getters.
     if (Elements.isUnresolved(element)) return types.dynamicType;
     return inferrer.registerCalledElement(
         node, selector, outermostElement, element, arguments,

@@ -400,7 +400,6 @@ class TypesTask extends CompilerTask {
 
   /**
    * Return the (inferred) guaranteed type of [selector] or null.
-   * [node] must be an AST node of [owner].
    */
   TypeMask getGuaranteedTypeOfSelector(Selector selector) {
     return measure(() {

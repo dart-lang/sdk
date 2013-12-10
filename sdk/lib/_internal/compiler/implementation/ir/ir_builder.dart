@@ -6,12 +6,13 @@ library dart2js.ir_builder;
 
 import 'ir_nodes.dart';
 import '../elements/elements.dart';
+import '../elements/modelx.dart' show FunctionElementX;
 import '../dart2jslib.dart';
 import '../source_file.dart';
 import '../tree/tree.dart';
 import '../scanner/scannerlib.dart' show Token;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import 'ir_pickler.dart' show Unpickler;
+import 'ir_pickler.dart' show Unpickler, IrConstantPool;
 
 /**
  * This task iterates through all resolved elements and builds [IrNode]s. The
@@ -72,8 +73,10 @@ class IrBuilderTask extends CompilerTask {
           if (irNode != null) {
             assert(() {
               // In host-checked mode, serialize and de-serialize the IrNode.
-              List<int> data = irNode.pickle();
-              irNode = new Unpickler(compiler).unpickle(data);
+              LibraryElement library = element.declaration.getLibrary();
+              IrConstantPool constantPool = IrConstantPool.forLibrary(library);
+              List<int> data = irNode.pickle(constantPool);
+              irNode = new Unpickler(compiler, constantPool).unpickle(data);
               return true;
             });
             nodes[element] = irNode;
@@ -115,6 +118,8 @@ class IrBuilderTask extends CompilerTask {
   }
 
   void unlinkTreeAndToken(element) {
+    // Ensure the funciton signature has been computed (requires the AST).
+    assert(element is !FunctionElementX || element.functionSignature != null);
     element.beginToken.next = null;
     // TODO(lry): Mark [element] so that parseNode will fail an assertion.
     // element.cachedNode = null;
@@ -212,9 +217,9 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
 
   IrNode visitReturn(Return node) {
     assert(!blockReturns);
-    IrNode value;
+    IrExpression value;
     // TODO(lry): support native returns.
-    if (node.beginToken.value == 'native') return giveup();
+    if (node.beginToken.value == 'native') giveup();
     if (node.expression == null) {
       value = builder.addConstant(constantSystem.createNull(), node);
     } else {
@@ -252,35 +257,63 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
 //  IrNode visitLiteralSymbol(LiteralSymbol node) => visitExpression(node);
 
   IrNode visitAssert(Send node) {
-    return giveup();
+    giveup();
   }
 
   IrNode visitClosureSend(Send node) {
-    return giveup();
+    giveup();
   }
 
   IrNode visitDynamicSend(Send node) {
-    return giveup();
+    giveup();
   }
 
   IrNode visitGetterSend(Send node) {
-    return giveup();
+    giveup();
   }
 
   IrNode visitOperatorSend(Send node) {
-    return giveup();
+    giveup();
   }
 
   IrNode visitStaticSend(Send node) {
-    return giveup();
+    Selector selector = elements.getSelector(node);
+    Element element = elements[node];
+
+    // TODO(lry): support static fields. (separate IR instruction?)
+    if (element.isField() || element.isGetter()) giveup();
+    // TODO(lry): support constructors / factory calls.
+    if (element.isConstructor()) giveup();
+    // TODO(lry): support foreign functions.
+    if (element.isForeign(compiler)) giveup();
+    // TODO(lry): for elements that could not be resolved emit code to throw a
+    // [NoSuchMethodError].
+    if (element.isErroneous()) giveup();
+    // TODO(lry): support named arguments
+    if (selector.namedArgumentCount != 0) giveup();
+
+    List<IrExpression> arguments = <IrExpression>[];
+    // TODO(lry): support default arguments, need support for locals.
+    bool succeeded = selector.addArgumentsToList(
+        node.arguments, arguments, element.implementation,
+        (node) => node.accept(this), (node) => giveup(), compiler);
+    if (!succeeded) {
+      // TODO(lry): generate code to throw a [WrongArgumentCountError].
+      giveup();
+    }
+    // TODO(lry): generate IR for object identicality.
+    if (element == compiler.identicalFunction) giveup();
+    IrInvokeStatic result = builder.addStatement(
+        new IrInvokeStatic(nodePosition(node), element, selector, arguments));
+    return result;
   }
 
   IrNode visitSuperSend(Send node) {
-    return giveup();
+    giveup();
   }
 
   IrNode visitTypeReferenceSend(Send node) {
-    return giveup();
+    giveup();
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
