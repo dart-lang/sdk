@@ -154,6 +154,7 @@ json/json_test: Fail                            # Issue 10961
 
 [ $compiler == dart2js && $minified ]
 mirrors/typedef_test/01: Fail # http://dartbug.com/6490
+mirrors/list_constructor_test/none: Fail # http://dartbug.com/15555
 
 [ $runtime == ff ]
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
