@@ -531,26 +531,26 @@ final _pureIsolateUriBaseClosure = () {
 };
 
 class _Timer implements Timer {
-  const int _STATE_TIMEOUT = 0;
-  const int _STATE_INTERVAL = 1;
-  var _state;
+  static const int _STATE_TIMEOUT = 0;
+  static const int _STATE_INTERVAL = 1;
+  int _state;
 
   _Timer(int milliSeconds, void callback(Timer timer), bool repeating) {
     if (repeating) {
-      _state = window._setInterval(() {
+      _state = (window._setInterval(() {
         callback(this);
-      }, milliSeconds) * 2 + _STATE_INTERVAL;
+      }, milliSeconds) << 1) | _STATE_INTERVAL;
     } else {
-      _state = window._setTimeout(() {
+      _state = (window._setTimeout(() {
         _state = null;
         callback(this);
-      }, milliSeconds) * 2 + _STATE_TIMEOUT;
+      }, milliSeconds) << 1) | _STATE_TIMEOUT;
     }
   }
 
   void cancel() {
     if (_state == null) return;
-    int id = _state ~/ 2;
+    int id = _state >> 1;
     if ((_state & 1) == _STATE_TIMEOUT) {
       window._clearTimeout(id);
     } else {
