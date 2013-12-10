@@ -62,9 +62,7 @@ void FlowGraphOptimizer::ApplyICData() {
 }
 
 
-// Optimize instance calls using cid. This is called after the optimizer which
-// converts instance calls to instructions has been run. Any remaining
-// instance calls probably do not have IC data.
+// Optimize instance calls using cid.
 // Attempts to convert an instance call (IC call) using propagated class-ids,
 // e.g., receiver class id, guarded-cid.
 void FlowGraphOptimizer::ApplyClassIds() {
@@ -98,53 +96,21 @@ void FlowGraphOptimizer::ApplyClassIds() {
 }
 
 
-// TODO(srdjan): write tests for others.
-static bool IsNumberCid(intptr_t cid) {
-  return (cid == kSmiCid) || (cid == kDoubleCid);
-}
-
-static bool NoneIsDynamic(const GrowableArray<intptr_t>& cids) {
-  for (intptr_t i = 0; i < cids.length(); i++) {
-    if (cids[i] == kDynamicCid) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
 // Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfChecks() > 0) {
-    // This occurs when an instance call has too many checks, will be
-    // converted to megamorphic calls.
+    // This occurs when an instance call has too many checks.
+    // TODO(srdjan): Replace IC call with megamorphic call.
     return false;
   }
-  // Empty IC data.
   GrowableArray<intptr_t> class_ids(call->ic_data()->num_args_tested());
   ASSERT(call->ic_data()->num_args_tested() <= call->ArgumentCount());
   for (intptr_t i = 0; i < call->ic_data()->num_args_tested(); i++) {
-    const intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
+    intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
     class_ids.Add(cid);
   }
-  // We guess that comparison and binary operations typically
-  // have both arguments of the same cid. If only one argument's cid is known,
-  // assume the other argument has the same cid.
-  const Token::Kind op_kind = call->token_kind();
-  if (Token::IsRelationalOperator(op_kind) ||
-      Token::IsEqualityOperator(op_kind) ||
-      Token::IsBinaryOperator(op_kind)) {
-    // If left or right is a number -> make the other a number as well.
-    const intptr_t cid_0 = class_ids[0];
-    const intptr_t cid_1 = class_ids[1];
-    if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
-      class_ids[0] = cid_1;
-    } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
-      class_ids[1] = cid_0;
-    }
-  }
-  if (NoneIsDynamic(class_ids)) {
+  if (class_ids[0] != kDynamicCid) {
     ArgumentsDescriptor args_desc(
         Array::Handle(ArgumentsDescriptor::New(call->ArgumentCount(),
                                                call->argument_names())));
@@ -158,7 +124,10 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     if (function.IsNull()) {
       return false;
     }
-
+    // Create new ICData, do not modify the one attached to the instruction
+    // since it is attached to the assembly instruction itself.
+    // TODO(srdjan): Prevent modification of ICData object that is
+    // referenced in assembly code.
     ICData& ic_data = ICData::ZoneHandle(ICData::New(
         flow_graph_->parsed_function().function(),
         call->function_name(),
@@ -6937,17 +6906,20 @@ void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitBinaryMintOp(BinaryMintOpInstr* instr) {
+void ConstantPropagator::VisitBinaryMintOp(
+    BinaryMintOpInstr* instr) {
   HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
-void ConstantPropagator::VisitShiftMintOp(ShiftMintOpInstr* instr) {
+void ConstantPropagator::VisitShiftMintOp(
+    ShiftMintOpInstr* instr) {
   HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
-void ConstantPropagator::VisitUnaryMintOp(UnaryMintOpInstr* instr) {
+void ConstantPropagator::VisitUnaryMintOp(
+    UnaryMintOpInstr* instr) {
   // TODO(kmillikin): Handle unary operations.
   SetValue(instr, non_constant_);
 }

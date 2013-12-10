@@ -1011,12 +1011,12 @@ CompileType ConstraintInstr::ComputeType() const {
 
 
 CompileType BinaryMintOpInstr::ComputeType() const {
-  return CompileType::FromCid(kMintCid);
+  return CompileType::Int();
 }
 
 
 CompileType ShiftMintOpInstr::ComputeType() const {
-  return CompileType::FromCid(kMintCid);
+  return CompileType::Int();
 }
 
 
