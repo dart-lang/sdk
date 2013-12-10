@@ -6894,11 +6894,9 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
   Entry getAsEntry() native "DataTransferItem_webkitGetAsEntry_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
@@ -6948,6 +6946,11 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   void remove(int index) native "DataTransferItemList_remove_Callback";
+
+
+  DataTransferItem operator[] (int index) {
+    return __getter__(index);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

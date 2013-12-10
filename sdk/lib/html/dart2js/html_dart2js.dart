@@ -6473,7 +6473,7 @@ class DataTransferItem extends Interceptor native "DataTransferItem" {
   @Experimental()
   Entry getAsEntry() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6517,6 +6517,12 @@ class DataTransferItemList extends Interceptor native "DataTransferItemList" {
   @DocsEditable()
   @Experimental() // untriaged
   void remove(int index) native;
+
+
+  DataTransferItem operator[] (int index) {
+    return JS('DataTransferItem', '#[#]', this, index);
+  }
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
