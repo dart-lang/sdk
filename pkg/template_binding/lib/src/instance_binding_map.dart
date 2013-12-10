@@ -6,30 +6,39 @@ part of template_binding;
 
 class _InstanceBindingMap {
   final List bindings;
-  final List<_InstanceBindingMap> children;
+  final Map<int, _InstanceBindingMap> children;
   final Node templateRef;
 
-  _InstanceBindingMap._(this.bindings, this.children, this.templateRef);
+  // Workaround for:
+  // https://github.com/Polymer/TemplateBinding/issues/150
+  final int numChildren;
 
-  factory _InstanceBindingMap(Node node, BindingDelegate delegate) {
-    var bindings = _getBindings(node, delegate);
-    Node templateRef = null;
-
-    if (isSemanticTemplate(node)) templateRef = node;
-
-    List children = null;
-    for (var c = node.firstChild, i = 0; c != null; c = c.nextNode, i++) {
-      var childMap = new _InstanceBindingMap(c, delegate);
-      if (childMap == null) continue;
-
-      if (children == null) children = new List(node.nodes.length);
-      children[i] = childMap;
-    }
-
-    return new _InstanceBindingMap._(bindings, children, templateRef);
-  }
+  _InstanceBindingMap._(this.bindings, this.children, this.templateRef,
+      this.numChildren);
 }
 
+_InstanceBindingMap _createInstanceBindingMap(Node node,
+    BindingDelegate delegate) {
+
+  var bindings = _getBindings(node, delegate);
+  Node templateRef = null;
+
+  if (isSemanticTemplate(node)) templateRef = node;
+
+  Map children = null;
+  int i = 0;
+  for (var c = node.firstChild; c != null; c = c.nextNode, i++) {
+    var childMap = _createInstanceBindingMap(c, delegate);
+    if (childMap == null) continue;
+
+    if (children == null) children = new HashMap();
+    children[i] = childMap;
+  }
+
+  if (bindings == null && children == null && templateRef == null) return null;
+
+  return new _InstanceBindingMap._(bindings, children, templateRef, i);
+}
 
 void _addMapBindings(Node node, _InstanceBindingMap map, model,
     BindingDelegate delegate, List bound) {
@@ -48,8 +57,15 @@ void _addMapBindings(Node node, _InstanceBindingMap map, model,
 
   if (map.children == null) return;
 
-  int i = 0;
-  for (var c = node.firstChild; c != null; c = c.nextNode) {
-    _addMapBindings(c, map.children[i++], model, delegate, bound);
+  // To workaround https://github.com/Polymer/TemplateBinding/issues/150,
+  // we try and detect cases where creating a custom element resulted in extra
+  // children compared to what we expected. We assume these new children are all
+  // at the beginning, because _deepCloneIgnoreTemplateContent creates the
+  // element then appends the template content's children to the end.
+
+  int i = map.numChildren - node.nodes.length;
+  for (var c = node.firstChild; c != null; c = c.nextNode, i++) {
+    if (i < 0) continue;
+    _addMapBindings(c, map.children[i], model, delegate, bound);
   }
 }

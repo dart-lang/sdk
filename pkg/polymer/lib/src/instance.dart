@@ -745,8 +745,6 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
    * the bound path at event execution time.
    */
   // from src/instance/event.js#prepareBinding
-  // Dart note: template_binding doesn't have the notion of prepareBinding, so
-  // we implement this by wrapping/overriding getBinding instead.
   // TODO(sorvell): we're patching the syntax while evaluating
   // event bindings. we'll move this to a better spot when that's done
   static PrepareBindingFunction prepareBinding(String path, String name, node,

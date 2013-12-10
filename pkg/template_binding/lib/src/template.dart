@@ -116,7 +116,7 @@ class TemplateBindExtension extends _ElementExtension {
     if (map == null) {
       // TODO(rafaelw): Setup a MutationObserver on content to detect
       // when the instanceMap is invalid.
-      map = new _InstanceBindingMap(content, delegate);
+      map = _createInstanceBindingMap(content, delegate);
       ref._bindingMap = map;
     }
 
