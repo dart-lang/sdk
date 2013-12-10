@@ -394,7 +394,7 @@ class JavaScriptBackend extends Backend {
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
-    fromIrBuilder = new SsaFromIrBuilderTask(compiler);
+    fromIrBuilder = new SsaFromIrBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
     typeVariableHandler = new TypeVariableHandler(this);

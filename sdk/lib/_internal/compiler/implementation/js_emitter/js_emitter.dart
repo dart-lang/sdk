@@ -21,9 +21,6 @@ import '../dart2jslib.dart' show
 import '../elements/elements.dart' show
     TypeVariableElement;
 
-import '../elements/modelx.dart' show
-    FunctionElementX;
-
 import '../js/js.dart' show
     js;
 

@@ -5,14 +5,19 @@
 part of ssa;
 
 class SsaFromIrBuilderTask extends CompilerTask {
-  SsaFromIrBuilderTask(Compiler compiler) : super(compiler);
+  final JavaScriptBackend backend;
+
+  SsaFromIrBuilderTask(JavaScriptBackend backend)
+    : this.backend = backend,
+      super(backend.compiler);
 
   HGraph build(CodegenWorkItem work) {
     return measure(() {
       Element element = work.element.implementation;
       return compiler.withCurrentElement(element, () {
         HInstruction.idCounter = 0;
-        SsaFromIrBuilder builder = new SsaFromIrBuilder(compiler, element);
+
+        SsaFromIrBuilder builder = new SsaFromIrBuilder(backend, work);
 
         HGraph graph;
         ElementKind kind = element.kind;
@@ -45,7 +50,7 @@ class SsaFromIrBuilderTask extends CompilerTask {
  * This class contains code that is shared between [SsaFromIrBuilder] and
  * [SsaFromIrInliner].
  */
-abstract class SsaFromIrMixin {
+abstract class SsaFromIrMixin implements SsaGraphBuilderMixin<IrNode> {
   /**
    * Maps IR expressions to the generated [HInstruction]. Because the IR is
    * in an SSA form, the arguments of an [IrNode] have already been visited
@@ -56,14 +61,6 @@ abstract class SsaFromIrMixin {
       new Map<IrExpression, HInstruction>();
 
   Compiler get compiler;
-
-  Element get sourceElement;
-
-  HGraph get graph;
-
-  HBasicBlock get current;
-
-  bool get isReachable;
 
   void emitReturn(HInstruction value, IrReturn node);
 
@@ -78,23 +75,21 @@ abstract class SsaFromIrMixin {
   }
 
   SourceFileLocation sourceFileLocation(IrNode node) {
-    Element element = sourceElement;
-    // TODO(johnniwinther): remove the 'element.patch' hack.
-    if (element is FunctionElement) {
-      FunctionElement functionElement = element;
-      if (functionElement.patch != null) element = functionElement.patch;
-    }
-    Script script = element.getCompilationUnit().script;
-    SourceFile sourceFile = script.file;
+    SourceFile sourceFile = currentSourceFile();
     SourceFileLocation location =
         new OffsetSourceFileLocation(sourceFile, node.offset, node.sourceName);
-    if (!location.isValid()) {
-      throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
-          {'offset': node.offset,
-           'fileName': sourceFile.filename,
-           'length': sourceFile.length});
-    }
+    checkValidSourceFileLocation(location, sourceFile, node.offset);
     return location;
+  }
+
+  void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
+    // TODO(lry): in checked mode, generate code for parameter type checks.
+    assert(!compiler.enableTypeAssertions);
+  }
+
+  bool providedArgumentsKnownToBeComplete(IrNode currentNode) {
+    // See comment in [SsaBuilder.providedArgumentsKnownToBeComplete].
+    return false;
   }
 
   List<HInstruction> toInstructionList(List<IrNode> nodes) {
@@ -105,6 +100,10 @@ abstract class SsaFromIrMixin {
                                   Element element,
                                   List<HInstruction> arguments,
                                   [TypeMask type]) {
+//    TODO(lry): enable inlining when building from IR.
+//    if (tryInlineMethod(element, null, arguments, node)) {
+//      return emitted[node];
+//    }
     if (type == null) {
       type = TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
     }
@@ -123,7 +122,6 @@ abstract class SsaFromIrMixin {
     Element element = node.target;
     assert(element.isFunction());
     List<HInstruction> arguments = toInstructionList(node.arguments);
-    // Note: the AST to SSA builder attempts to inline here.
     HInstruction instruction = createInvokeStatic(node, element, arguments);
     addExpression(node, instruction);
   }
@@ -146,23 +144,30 @@ abstract class SsaFromIrMixin {
  * It mixes in [SsaGraphBuilderMixin] to share functionality with the
  * [SsaBuilder] that creates SSA nodes from trees.
  */
-class SsaFromIrBuilder
-    extends IrNodesVisitor with SsaFromIrMixin, SsaGraphBuilderMixin {
+class SsaFromIrBuilder extends IrNodesVisitor with
+    SsaGraphBuilderMixin<IrNode>,
+    SsaFromIrMixin,
+    SsaGraphBuilderFields<IrNode> {
   final Compiler compiler;
 
-  final Element sourceElement;
+  final JavaScriptBackend backend;
 
-  SsaFromIrBuilder(this.compiler, this.sourceElement);
+  SsaFromIrBuilder(JavaScriptBackend backend, CodegenWorkItem work)
+   : this.backend = backend,
+     this.compiler = backend.compiler {
+    sourceElementStack.add(work.element);
+  }
 
   HGraph buildMethod() {
-    graph.calledInLoop = compiler.world.isCalledInLoop(sourceElement);
+    FunctionElement functionElement = sourceElement.implementation;
+    graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
 
     open(graph.entry);
     HBasicBlock block = graph.addNewBlock();
     close(new HGoto()).addSuccessor(block);
     open(block);
 
-    IrFunction function = compiler.irBuilder.getIr(sourceElement);
+    IrFunction function = compiler.irBuilder.getIr(functionElement);
     visitAll(function.statements);
     if (!isAborted()) closeAndGotoExit(new HGoto());
     graph.finalize();
@@ -171,5 +176,21 @@ class SsaFromIrBuilder
 
   void emitReturn(HInstruction value, IrReturn node) {
     closeAndGotoExit(attachPosition(new HReturn(value), node));
+  }
+
+  void setupInliningState(FunctionElement function,
+                          List<HInstruction> compiledArguments) {
+    // TODO(lry): inlining when building from IR.
+    throw "setup inlining for $function";
+  }
+
+  void leaveInlinedMethod() {
+    // TODO(lry): inlining when building from IR.
+    throw "leave inlining in ir";
+  }
+
+  void doInline(Element element) {
+    // TODO(lry): inlining when building from IR.
+    throw "inline ir in ir for $element";
   }
 }
