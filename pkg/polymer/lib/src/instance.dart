@@ -935,7 +935,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     } else {
       // find the shadow root that contains this element
       var n = this;
-      while (n.parentNode) {
+      while (n.parentNode != null) {
         n = n.parentNode;
       }
       return identical(n, document) ? document.head : n;
