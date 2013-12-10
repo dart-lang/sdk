@@ -23,7 +23,7 @@ description: >
   Runs transforms asynchronously and in parallel when possible to maximize
   responsiveness.
 dependencies:
-  path: ">=0.9.0 <0.10.0"
+  path: ">=0.9.0 <2.0.0"
   source_maps: ">=0.9.0 <0.10.0"
   stack_trace: ">=0.9.1 <0.10.0"
 dev_dependencies:
