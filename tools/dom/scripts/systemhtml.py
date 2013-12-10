@@ -1081,7 +1081,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         '\n'
         '  $TYPE $NAME($PARAMS);\n',
         TYPE=self.SecureOutputType(info.type_name, False, True),
-        NAME=info.name,
+        NAME=html_name,
         PARAMS=info.ParametersDeclaration(self._NarrowInputType))
 
 

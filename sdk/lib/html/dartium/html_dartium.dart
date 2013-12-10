@@ -25766,6 +25766,10 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
 class Storage extends NativeFieldWrapperClass2
     implements Map<String, String>  {
 
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
+
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => values.any((e) => e == value);
 
@@ -30353,22 +30357,22 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DomName('WorkerGlobalScope.clearInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearInterval(int handle) native "WorkerGlobalScope_clearInterval_Callback";
+  void _clearInterval(int handle) native "WorkerGlobalScope_clearInterval_Callback";
 
   @DomName('WorkerGlobalScope.clearTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearTimeout(int handle) native "WorkerGlobalScope_clearTimeout_Callback";
+  void _clearTimeout(int handle) native "WorkerGlobalScope_clearTimeout_Callback";
 
   @DomName('WorkerGlobalScope.setInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  int setInterval(Object handler, int timeout) native "WorkerGlobalScope_setInterval_Callback";
+  int _setInterval(Object handler, int timeout) native "WorkerGlobalScope_setInterval_Callback";
 
   @DomName('WorkerGlobalScope.setTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int setTimeout(Object handler, int timeout) native "WorkerGlobalScope_setTimeout_Callback";
+  int _setTimeout(Object handler, int timeout) native "WorkerGlobalScope_setTimeout_Callback";
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   @DomName('WorkerGlobalScope.onerror')
@@ -32189,22 +32193,22 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
   @DomName('WindowTimers.clearInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearInterval(int handle) native "WindowTimers_clearInterval_Callback";
+  void _clearInterval(int handle) native "WindowTimers_clearInterval_Callback";
 
   @DomName('WindowTimers.clearTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearTimeout(int handle) native "WindowTimers_clearTimeout_Callback";
+  void _clearTimeout(int handle) native "WindowTimers_clearTimeout_Callback";
 
   @DomName('WindowTimers.setInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  int setInterval(Object handler, int timeout) native "WindowTimers_setInterval_Callback";
+  int _setInterval(Object handler, int timeout) native "WindowTimers_setInterval_Callback";
 
   @DomName('WindowTimers.setTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int setTimeout(Object handler, int timeout) native "WindowTimers_setTimeout_Callback";
+  int _setTimeout(Object handler, int timeout) native "WindowTimers_setTimeout_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32311,6 +32315,10 @@ abstract class _AttributeMap implements Map<String, String> {
   final Element _element;
 
   _AttributeMap(this._element);
+
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
 
   bool containsValue(String value) {
     for (var v in this.values) {
@@ -32467,6 +32475,10 @@ class _DataAttributeMap implements Map<String, String> {
   _DataAttributeMap(this._attributes);
 
   // interface Map
+
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(String value) => values.any((v) => v == value);

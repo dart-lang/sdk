@@ -20,29 +20,6 @@ import "package:async_helper/async_helper.dart";
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String, List<String>> WHITE_LIST = const {
-  // The following notices go away when bugs 15417 is fixed.
-  "sdk/lib/core/map.dart": const [
-      "Info: This is the method declaration."],
-
-  // Bug 15417.
-  "sdk/lib/html/dart2js/html_dart2js.dart": const ["""
-Warning: '_DataAttributeMap' doesn't implement 'addAll'.
-Try adding an implementation of 'addAll'.""", """
-Warning: '_NamespacedAttributeMap' doesn't implement 'addAll'.
-Try adding an implementation of 'addAll'.""", """
-Warning: '_ElementAttributeMap' doesn't implement 'addAll'.
-Try adding an implementation of 'addAll'.""", """
-Warning: 'Window' doesn't implement 'clearInterval'.
-Try adding an implementation of 'clearInterval'.""", """
-Warning: 'Window' doesn't implement 'clearTimeout'.
-Try adding an implementation of 'clearTimeout'.""", """
-Warning: 'Window' doesn't implement 'setInterval'.
-Try adding an implementation of 'setInterval'.""", """
-Warning: 'Window' doesn't implement 'setTimeout'.
-Try adding an implementation of 'setTimeout'.""", """
-Warning: 'Storage' doesn't implement 'addAll'.
-Try adding an implementation of 'addAll'.""",
-"Info: This is the method declaration."],
 };
 
 void main() {
