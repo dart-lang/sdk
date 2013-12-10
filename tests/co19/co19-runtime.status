@@ -18,8 +18,6 @@ LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-LibTest/async/Timer/Timer.periodic_A02_t01: Pass, Fail # co19 issue 537
-
 Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
 Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
 Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
@@ -32,9 +30,8 @@ LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
 
 # All isolate are being ignored at the moment as the library will go through some changes.
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/contains_A02_t01: fail, pass # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
-LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 
 LibTest/isolate/Isolate/spawnUri_A02_t02: Timeout # co19-roll r672: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A02_t03: Timeout # co19-roll r672: Please triage this failure
@@ -43,7 +40,6 @@ LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r6
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/typed_data/Float32x4/clamp_A01_t01: Pass, Fail # co19 issue 636
 LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
@@ -56,7 +52,6 @@ LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13398
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13398
 
 [ $compiler == none && $runtime == vm && $checked ]
-LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
 
 # Passing for the wrong reasons:
@@ -68,7 +63,6 @@ LibTest/async/Future/catchError_A01_t02: Pass # No AsyncError anymore. Issue 407
 #end [ $compiler == none && $runtime == vm && $checked ]
 
 [ $compiler == none && $runtime == vm && $mode == debug ]
-LibTest/async/Stream/Stream.periodic_A03_t01: Fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t01: Pass, Slow
 LibTest/core/List/List_class_A01_t01: Pass, Slow
@@ -85,10 +79,6 @@ LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this
 
 [ $compiler == none && $checked && ($runtime == vm || $runtime == dartium) ]
 Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please triage this failure
-
-[ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
-Language/15_Types/4_Interface_Types_A11_t01: pass, timeout # Issue 13349
-Language/15_Types/4_Interface_Types_A11_t02: pass, timeout # Issue 13349
 
 [ $runtime == vm ]
 LibTest/isolate/Isolate/spawn_A02_t01: Timeout # co19-roll r672: Please triage this failure

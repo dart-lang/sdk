@@ -72,7 +72,7 @@ LibTest/isolate/ReceivePort/toSendPort_A01_t03: Fail
 LibTest/isolate/SendPort/call_A01_t01: Fail
 LibTest/isolate/SendPort/hashCode_A01_t01: Fail
 LibTest/isolate/SendPort/operator_equality_A01_t01: Fail
-LibTest/isolate/SendPort/send_A01_t01: Pass
+LibTest/isolate/SendPort/send_A01_t01: StaticWarning
 LibTest/isolate/SendPort/send_A02_t01: Fail
 LibTest/isolate/SendPort/send_A02_t04: Fail
 LibTest/isolate/SendPort/send_A02_t05: Fail
@@ -83,7 +83,6 @@ LibTest/isolate/IsolateStream/any_A02_t01: Fail
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
 LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail
-LibTest/isolate/SendPort/send_A01_t01: Fail
 LibTest/isolate/SendPort/send_A02_t02: Fail
 LibTest/isolate/SendPort/send_A02_t03: Fail
 

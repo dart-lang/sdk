@@ -246,7 +246,7 @@ not_enough_positional_arguments_test/02: Fail # Issue 12839
 not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
-const_var_test: Pass, Fail # Issue 12794
+const_var_test: CompileTimeError # Issue 12794
 map_literal3_test: Fail # Issue 12794
 external_test/13: Fail # Issue 12888
 built_in_identifier_test/01: Fail # Issue 13022

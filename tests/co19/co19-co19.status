@@ -18,9 +18,6 @@ LibTest/core/Stopwatch/elapsedTicks_A01_t01: PASS, FAIL, OK # co19 issue 657
 [ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail, pass, ok # co19 issue 649
 
-Language/05_Variables/05_Variables_A06_t01: fail, pass, ok # co19 issue 624
-Language/05_Variables/05_Variables_A06_t02: fail, pass, ok # co19 issue 624
-Language/05_Variables/05_Variables_A06_t03: fail, pass, ok # co19 issue 624
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
 
@@ -43,7 +40,7 @@ LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip, OK # co19 issue 661
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip, OK # co19 issue 661
 
-LibTest/isolate/Isolate/spawnUri_A02_t04: Timeout, Fail # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A02_t04: Fail # co19-roll r672: Please triage this failure
 
 [ $runtime == vm || $runtime == dartium || $compiler == dart2js ]
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
@@ -62,7 +59,7 @@ LibTest/core/double/round_A01_t04: FAIL, OK # co19 issue 389
 
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
-LibTest/async/Stream/Stream.periodic_A01_t01: TIMEOUT, PASS, FAIL, OK # co19 issue 538
+LibTest/async/Stream/Stream.periodic_A01_t01: PASS, FAIL, OK # co19 issue 538
 
 LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493
 LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495
@@ -82,7 +79,7 @@ LibTest/async/Timer/Timer_A02_t01: PASS, FAIL, OK # co19 issue 538
 LibTest/async/Timer/Timer.periodic_A01_t01: PASS, FAIL, OK # co19 issue 537
 LibTest/async/Timer/Timer.periodic_A02_t01: PASS, FAIL, OK # co19 issue 538
 
-LibTest/isolate/IsolateStream/contains_A02_t01: PASS, FAIL, OK # co19 issue 540
+LibTest/isolate/IsolateStream/contains_A02_t01: FAIL, OK # co19 issue 540
 
 
 [ $runtime == vm || $compiler == none || $compiler == dart2js ]
@@ -126,7 +123,3 @@ Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: MissingRuntimeError, OK # c
 Language/13_Statements/09_Switch_A09_t01: PASS, FAIL, OK # co19 issue 633
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
-
-[ ($runtime == vm || $compiler == dart2js) && $checked]
-Language/14_Libraries_and_Scripts/1_Imports_A03_t46: PASS, FAIL, OK # co19 issue 560
-Language/14_Libraries_and_Scripts/1_Imports_A03_t66: PASS, FAIL, OK # co19 issue 560

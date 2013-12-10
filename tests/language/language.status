@@ -83,5 +83,3 @@ issue13474_test: Pass, Fail # Issue 14651.
 typed_message_test: Crash, Fail # Issue 13921, 14400
 vm/optimized_guarded_field_isolates_test: Fail # Issue 13921.
 
-[ $arch == simarm || $arch == simmips ]
-vm/optimized_identical_test: Pass, Crash # http://dartbug.com/15235

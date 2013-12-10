@@ -66,8 +66,8 @@ LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/ByteData/ByteData_A02_t01: fail # co19-roll r576: Please triage this failure
 
 [ $compiler == dart2js && $runtime == jsshell ]
-LibTest/isolate/SendPort/send_A02_t05: Fail, Pass # TODO(ahe): Please triage this failure.
-LibTest/isolate/SendPort/send_A02_t06: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/SendPort/send_A02_t05: RuntimeError # TODO(ahe): Please triage this failure.
+LibTest/isolate/SendPort/send_A02_t06: RuntimeError # TODO(ahe): Please triage this failure.
 LibTest/core/Uri/Uri_A06_t03: Pass, Slow
 
 [ $compiler == dart2js ]
@@ -77,8 +77,6 @@ LibTest/core/List/removeAt_A02_t01: RuntimeError # Issue 1533
 LibTest/isolate/ReceivePort/receive_A01_t02: RuntimeError # Issue 6750
 
 [ $compiler == dart2js && $runtime == ie9 ]
-LibTest/async/Completer/completeError_A02_t01: Pass, Fail # Issue 8920
-LibTest/async/Stream/listen_A04_t01: Pass, Timeout # Issue: 8920
 LibTest/core/double/round_A01_t01: Fail # Issue: 8920
 LibTest/core/double/toStringAsExponential_A01_t04: Fail # Issue: 8920
 LibTest/core/double/toStringAsPrecision_A01_t04: Fail # Issue: 8920
@@ -95,15 +93,13 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # I
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue: 8920
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue: 8920
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue: 8920
-LibTest/isolate/ReceivePort/toSendPort_A01_t01: Pass, Fail # Issue: 8920
-LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue: 8920
+LibTest/isolate/ReceivePort/toSendPort_A01_t01: RuntimeError # Issue: 8920
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # http://dartbug.com/12635
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Timeout # co19-roll r651: Please triage this failure
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
 LibTest/core/double/round_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
-LibTest/core/int/operator_truncating_division_A01_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # TODO(ngeoaffray): Please triage these failure.
 
 [ $compiler == dart2js && $checked ]
@@ -127,7 +123,7 @@ LibTest/core/List/getRange_A03_t01: RuntimeError, OK # Tests that fail because t
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: RuntimeError, OK # These tests need to be updated for new optional parameter syntax and semantics, co19 issue 258:
 
-LibTest/isolate/SendPort/send_A02_t04: RuntimeError, Pass, OK # co19 issue 293 Passes on IE
+LibTest/isolate/SendPort/send_A02_t04: RuntimeError, OK # co19 issue 293 Passes on IE
 
 LibTest/core/RegExp/firstMatch_A01_t01: RuntimeError, OK # co19 issue 294
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK # co19 issue 294
@@ -238,7 +234,6 @@ LibTest/core/int/isEven_A01_t01: RuntimeError, OK # Not in API.
 LibTest/core/int/isOdd_A01_t01: RuntimeError, OK # Not in API.
 LibTest/core/int/operator_left_shift_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/operator_remainder_A01_t03: RuntimeError, OK # Leg only has double.
-LibTest/core/int/operator_truncating_division_A01_t01: Fail, Pass # Requires big int unless type inference fools us.
 LibTest/core/int/operator_truncating_division_A01_t02: RuntimeError, OK # Leg only has double.
 LibTest/core/int/remainder_A01_t01: RuntimeError, OK # Requires big int.
 LibTest/core/int/remainder_A01_t03: RuntimeError, OK # Leg only has double.
@@ -249,11 +244,8 @@ LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/add_A01_t01: Pass, Timeout  # co19-roll r607: Please triage this failure
-LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # Issue 13511
+LibTest/core/Uri/Uri_A06_t03: Timeout # Issue 13511
 LibTest/math/cos_A01_t01: Fail # co19 issue 44
-
-[ $compiler == dart2js && $runtime == ie9 && $checked ]
-LibTest/async/Future/catchError_A03_t05: Pass, RuntimeError # Issue 14712
 
 #
 # The following tests are failing. Please add the error message
@@ -534,7 +526,7 @@ LibTest/typed_data/Float64List/hashCode_A01_t01: fail # co19-roll r559: Please t
 LibTest/typed_data/Float64List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/Int16List.view_A06_t01: fail # co19-roll r587: Please triage this failure
-LibTest/typed_data/Int16List/toList_A01_t01: pass, fail # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int16List/toList_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int16List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/Int32List.view_A06_t01: fail # co19-roll r587: Please triage this failure

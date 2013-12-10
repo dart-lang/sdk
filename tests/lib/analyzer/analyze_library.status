@@ -11,7 +11,6 @@ lib/html/dart2js/html_dart2js: CompileTimeError
 lib/html/dartium/html_dartium: CompileTimeError
 lib/html/html_common/html_common: CompileTimeError
 lib/html/html_common/html_common_dart2js: CompileTimeError
-lib/html/html_common/lists: Pass, CompileTimeError
 lib/indexed_db/dart2js/indexed_db_dart2js: CompileTimeError
 lib/indexed_db/dartium/indexed_db_dartium: CompileTimeError
 lib/_internal/compiler/samples/compile_loop/compile_loop: CompileTimeError
@@ -27,18 +26,7 @@ lib/_internal/dartdoc/lib/src/client/dropdown: CompileTimeError
 lib/_internal/dartdoc/lib/src/client/search: CompileTimeError
 lib/_internal/dartdoc/lib/universe_serializer: CompileTimeError
 lib/_internal/pub/lib/src/barback: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for src/barback.dart)
-lib/_internal/pub/lib/src/barback/dart2js_transformer: CompileTimeError
-lib/_internal/pub/lib/src/barback/dart_forwarding_transformer: CompileTimeError
-lib/_internal/pub/lib/src/barback/load_all_transformers: CompileTimeError
-lib/_internal/pub/lib/src/barback/load_transformers: CompileTimeError
-lib/_internal/pub/lib/src/barback/pub_package_provider: CompileTimeError
-lib/_internal/pub/lib/src/barback/server: CompileTimeError
-lib/_internal/pub/lib/src/barback/sources: CompileTimeError
-lib/_internal/pub/lib/src/command/build: CompileTimeError
-lib/_internal/pub/lib/src/command/lish: CompileTimeError
-lib/_internal/pub/lib/src/command/list_package_dirs: CompileTimeError
 lib/_internal/pub/lib/src/command: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for src/command.dart)
-lib/_internal/pub/lib/src/command/uploader: CompileTimeError
 lib/_internal/pub/test/descriptor: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for test/descriptor.dart)
 lib/_internal/pub/test/lish/utils: CompileTimeError
 lib/_internal/pub/test/oauth2/utils: CompileTimeError

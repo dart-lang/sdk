@@ -50,9 +50,6 @@ mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
 [ $compiler == dart2dart ]
 *: Skip # Issue 12629
 
-[ $compiler == dart2js && $runtime == ff && ($system == windows || $system == linux) ]
-mandel_isolate_test: Pass, Fail, Timeout # Issue 7952
-
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome ) ]
 isolate_stress_test: Pass, Slow # Issue 10697
 

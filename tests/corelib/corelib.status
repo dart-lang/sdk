@@ -47,8 +47,10 @@ unicode_test: Fail        # Bug 6706
 compare_to2_test: Fail    # Bug 4018
 
 symbol_test/01: Fail, Pass # bug 11669
-symbol_test/02: Fail, Pass # bug 11669
-symbol_test/03: Fail, Pass # bug 11669
+
+[ $compiler == none && $runtime != dartium ]
+symbol_test/02: MissingCompileTimeError # bug 11669
+symbol_test/03: MissingCompileTimeError # bug 11669
 
 [ $compiler == none || $compiler == dart2dart ]
 symbol_test/none: Fail # bug 11669
@@ -122,23 +124,11 @@ list_insert_test: fail
 list_removeat_test: fail
 symbol_test/01: fail # test issue 13730; It is static type warning if "const" instance creation argument type is not compatible with parameter type
 
-[ $arch == arm ]
-collection_to_string_test: Pass, Crash # Issue: 11207
-
-[ $arch == simarm && $mode == debug ]
-collection_to_string_test: Pass, Crash # Issue: 11207
-
 [ $arch == simmips ]
 int_parse_radix_test: Skip # Timeout
 
-[ $arch == simmips && $checked ]
-collection_length_test: Pass, Timeout
-
 [ $arch == simarm && $checked ]
 num_parse_test: Pass, Timeout
-
-[ $arch == simmips && $mode == debug ]
-collection_to_string_test: Pass, Crash # Issue: 11207
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
