@@ -110,10 +110,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
     class_ids.Add(cid);
   }
-  // TODO(srdjan): Test for number of arguments checked greater than 1.
-  if (class_ids.length() != 1) {
-    return false;
-  }
   if (class_ids[0] != kDynamicCid) {
     ArgumentsDescriptor args_desc(
         Array::Handle(ArgumentsDescriptor::New(call->ArgumentCount(),
@@ -138,7 +134,12 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
         Object::empty_array(),  // Dummy argument descriptor.
         call->deopt_id(),
         class_ids.length()));
-    ic_data.AddReceiverCheck(class_ids[0], function);
+    if (class_ids.length() > 1) {
+      ic_data.AddCheck(class_ids, function);
+    } else {
+      ASSERT(class_ids.length() == 1);
+      ic_data.AddReceiverCheck(class_ids[0], function);
+    }
     call->set_ic_data(&ic_data);
     return true;
   }
