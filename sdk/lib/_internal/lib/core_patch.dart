@@ -186,11 +186,16 @@ patch class Stopwatch {
   patch static int _now() => Primitives.numMicroseconds();
 }
 
+class _ListConstructorSentinel extends JSInt {
+  const _ListConstructorSentinel();
+}
 
 // Patch for List implementation.
 patch class List<E> {
-  patch factory List([int length]) {
-    if (length == null) return new JSArray<E>.emptyGrowable();
+  patch factory List([int length = const _ListConstructorSentinel()]) {
+    if (length == const _ListConstructorSentinel()) {
+      return new JSArray<E>.emptyGrowable();
+    }
     return new JSArray<E>.fixed(length);
   }
 
