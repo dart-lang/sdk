@@ -155,8 +155,7 @@ void Debugger::SignalIsolateEvent(EventType type) {
   if (event_handler_ != NULL) {
     Debugger* debugger = Isolate::Current()->debugger();
     ASSERT(debugger != NULL);
-    DebuggerEvent event;
-    event.type = type;
+    DebuggerEvent event(type);
     event.isolate_id = debugger->GetIsolateId();
     ASSERT(event.isolate_id != ILLEGAL_ISOLATE_ID);
     if (type == kIsolateInterrupted) {
@@ -1044,8 +1043,7 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
 
 void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
   if (event_handler_ != NULL) {
-    DebuggerEvent event;
-    event.type = kBreakpointResolved;
+    DebuggerEvent event(kBreakpointResolved);
     event.breakpoint = bpt;
     (*event_handler_)(&event);
   }
@@ -1390,8 +1388,7 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   ASSERT(obj_cache_ == NULL);
   in_event_notification_ = true;
   obj_cache_ = new RemoteObjectCache(64);
-  DebuggerEvent event;
-  event.type = kExceptionThrown;
+  DebuggerEvent event(kExceptionThrown);
   event.exception = &exc;
   (*event_handler_)(&event);
   in_event_notification_ = false;
@@ -1883,16 +1880,17 @@ bool Debugger::IsDebuggable(const Function& func) {
 }
 
 
-void Debugger::SignalPausedEvent(ActivationFrame* top_frame) {
+void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
+                                 SourceBreakpoint* bpt) {
   resume_action_ = kContinue;
   isolate_->set_single_step(false);
   ASSERT(!in_event_notification_);
   ASSERT(obj_cache_ == NULL);
   in_event_notification_ = true;
   obj_cache_ = new RemoteObjectCache(64);
-  DebuggerEvent event;
-  event.type = kBreakpointReached;
+  DebuggerEvent event(kBreakpointReached);
   event.top_frame = top_frame;
+  event.breakpoint = bpt;
   (*event_handler_)(&event);
   in_event_notification_ = false;
   obj_cache_ = NULL;  // Remote object cache is zone allocated.
@@ -1929,7 +1927,7 @@ void Debugger::SingleStepCallback() {
   }
 
   stack_trace_ = CollectStackTrace();
-  SignalPausedEvent(frame);
+  SignalPausedEvent(frame, NULL);
 
   RemoveInternalBreakpoints();
   if (resume_action_ == kStepOver) {
@@ -1975,7 +1973,7 @@ void Debugger::SignalBpReached() {
 
   if (report_bp && (event_handler_ != NULL)) {
     stack_trace_ = stack_trace;
-    SignalPausedEvent(top_frame);
+    SignalPausedEvent(top_frame, bpt->src_bpt_);
     stack_trace_ = NULL;
   }
 

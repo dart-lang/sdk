@@ -389,6 +389,7 @@ static void SaveStackTrace(Dart_StackTrace trace) {
 
 
 static void InspectOptimizedStack_Breakpoint(Dart_IsolateId isolate_id,
+                                             intptr_t bp_id,
                                              const Dart_CodeLocation& loc) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -583,6 +584,7 @@ TEST_CASE(Debug_InspectStackWithClosure_Optimized) {
 
 
 void TestStepOutHandler(Dart_IsolateId isolate_id,
+                        intptr_t bp_id,
                         const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -647,6 +649,7 @@ TEST_CASE(Debug_StepOut) {
 
 
 void TestStepIntoHandler(Dart_IsolateId isolate_id,
+                         intptr_t bp_id,
                          const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -728,6 +731,7 @@ TEST_CASE(Debug_StepInto) {
 
 
 static void StepIntoHandler(Dart_IsolateId isolate_id,
+                            intptr_t bp_id,
                             const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -810,6 +814,7 @@ TEST_CASE(Debug_DeoptimizeFunction) {
 
 
 void TestSingleStepHandler(Dart_IsolateId isolate_id,
+                           intptr_t bp_id,
                            const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -869,6 +874,7 @@ TEST_CASE(Debug_SingleStep) {
 
 
 static void ClosureBreakpointHandler(Dart_IsolateId isolate_id,
+                                     intptr_t bp_id,
                                      const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -923,6 +929,7 @@ TEST_CASE(Debug_ClosureBreakpoint) {
 
 
 static void ExprClosureBreakpointHandler(Dart_IsolateId isolate_id,
+                                         intptr_t bp_id,
                                          const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -971,6 +978,7 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
 static intptr_t bp_id_to_be_deleted;
 
 static void DeleteBreakpointHandler(Dart_IsolateId isolate_id,
+                                    intptr_t bp_id,
                                     const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -997,7 +1005,8 @@ static void DeleteBreakpointHandler(Dart_IsolateId isolate_id,
   // Remove the breakpoint after we've hit it twice
   if (breakpoint_hit_counter == 2) {
     if (verbose) OS::Print("uninstalling breakpoint\n");
-    Dart_Handle res = Dart_RemoveBreakpoint(bp_id_to_be_deleted);
+    EXPECT_EQ(bp_id_to_be_deleted, bp_id);
+    Dart_Handle res = Dart_RemoveBreakpoint(bp_id);
     EXPECT_VALID(res);
   }
 }
@@ -1041,6 +1050,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
 
 
 static void InspectStaticFieldHandler(Dart_IsolateId isolate_id,
+                                      intptr_t bp_id,
                                       const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -1419,6 +1429,7 @@ TEST_CASE(Debug_InterruptIsolate) {
 
 static void StackTraceDump1BreakpointHandler(
                 Dart_IsolateId isolate_id,
+                intptr_t bp_id,
                 const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
@@ -1736,6 +1747,7 @@ TEST_CASE(Debug_StackTraceDump2) {
 
 
 void TestEvaluateHandler(Dart_IsolateId isolate_id,
+                         intptr_t bp_id,
                          const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);

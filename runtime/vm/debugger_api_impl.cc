@@ -127,7 +127,12 @@ static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
       const Library& lib = Library::Handle(top_frame->Library());
       location.library_id = lib.index();
       location.token_pos = top_frame->TokenPos();
-      (*paused_event_handler)(isolate_id, location);
+      intptr_t bp_id = 0;
+      if (event->breakpoint != NULL) {
+        ASSERT(event->breakpoint->id() != ILLEGAL_BREAKPOINT_ID);
+        bp_id = event->breakpoint->id();
+      }
+      (*paused_event_handler)(isolate_id, bp_id, location);
     }
   } else if (event->type == Debugger::kBreakpointResolved) {
     if (bp_resolved_handler != NULL) {

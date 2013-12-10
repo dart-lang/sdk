@@ -254,13 +254,22 @@ class Debugger {
     kIsolateInterrupted = 6,
   };
   struct DebuggerEvent {
+    explicit DebuggerEvent(EventType event_type)
+        : type(event_type) {
+      top_frame = NULL;
+      breakpoint = NULL;
+      exception = NULL;
+      isolate_id = 0;
+    }
     EventType type;
-    union {
-      ActivationFrame* top_frame;
-      SourceBreakpoint* breakpoint;
-      const Object* exception;
-      Dart_Port isolate_id;
-    };
+    // type == kBreakpointReached.
+    ActivationFrame* top_frame;
+    // type == kBreakpointResolved, kBreakpointReached.
+    SourceBreakpoint* breakpoint;
+    // type == kExceptionThrown.
+    const Object* exception;
+    // type == kIsolate(Created|Shutdown|Interrupted).
+    Dart_Port isolate_id;
   };
   typedef void EventHandler(DebuggerEvent *event);
 
@@ -391,7 +400,8 @@ class Debugger {
                                      const Code& code);
   static DebuggerStackTrace* CollectStackTraceNew();
   void SignalBpResolved(SourceBreakpoint *bpt);
-  void SignalPausedEvent(ActivationFrame* top_frame);
+  void SignalPausedEvent(ActivationFrame* top_frame,
+                         SourceBreakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }
 

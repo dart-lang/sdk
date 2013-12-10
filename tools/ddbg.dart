@@ -47,7 +47,6 @@ var vmSubscription;
 int seqNum = 0;
 
 bool isDebugging = false;
-bool stepMode = false;
 Process targetProcess = null;
 bool suppressNextExitCode = false;
 
@@ -511,7 +510,6 @@ HandlerType showPromptAfter(void handler(Map response)) {
 }
 
 void processCommand(String cmdLine) {
-  
   void huh() {
     print("'$cmdLine' not understood, try 'help' for help.");
   }
@@ -529,8 +527,6 @@ void processCommand(String cmdLine) {
       { 'r':'resume', 's':'stepOver', 'si':'stepInto', 'so':'stepOut'};
   if (resume_commands[command] != null) {
     if (!checkPaused()) return;
-    // TODO(turnidge): step mode isn't quite right yet.
-    stepMode = (command != 'r');
     var cmd = { "id": seqNum,
                 "command": resume_commands[command],
                 "params": { "isolateId" : currentIsolate.id } };
@@ -1033,9 +1029,10 @@ Future handlePausedEvent(msg) {
   assert(location != null);
   isolate.pausedLocation = location;
   if (reason == "breakpoint") {
-    return printLocation((stepMode ? null : "Breakpoint"), location);
+    var bpId = (msg["params"]["breakpointId"]);
+    var label = (bpId != null) ? "Breakpoint $bpId" : null;
+    return printLocation(label, location);
   } else if (reason == "interrupted") {
-    stepMode = false;
     return printLocation("Interrupted", location);
   } else {
     assert(reason == "exception");
@@ -1140,7 +1137,7 @@ bool haveGarbageVmData() {
   }
   if (i >= vmData.length) {
     return false;
-  } else { 
+  } else {
     return char != "{";
   }
 }
@@ -1328,7 +1325,6 @@ Future retryOpenVmSocket(error, int attempt) {
     print('Timed out waiting for debugger to start.\nError: $e');
     return closeVmSocket();
   }
-      
   // Wait and retry.
   return new Future.delayed(delay, () {
       openVmSocket(attempt + 1);
@@ -1361,7 +1357,6 @@ Future closeVmSocket() {
   vmSubscription = null;
   vmSock = null;
   outstandingCommands = null;
-  
   return Future.wait(cleanupFutures);
 }
 
