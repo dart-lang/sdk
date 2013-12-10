@@ -440,6 +440,9 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement stackTraceClass;
   ClassElement typedDataClass;
 
+  /// The constant for the [proxy] variable defined in dart:core.
+  Constant proxyConstant;
+
   // Initialized after symbolClass has been resolved.
   FunctionElement symbolConstructor;
 
@@ -916,6 +919,9 @@ abstract class Compiler implements DiagnosticListener {
     backend.initializeHelperClasses();
 
     dynamicClass.ensureResolved(this);
+
+    proxyConstant = constantHandler.compileVariable(
+        coreLibrary.find('proxy'), isConst: true);
   }
 
   Element _unnamedListConstructor;

@@ -174,7 +174,8 @@ const String CORELIB = r'''
   class Type {}
   class StackTrace {}
   class Dynamic_ {}
-  bool identical(Object a, Object b) {}''';
+  bool identical(Object a, Object b) {}
+  const proxy = 0;''';
 
 Future<AnalysisResult> analyze(String code, {int maxConcreteTypeSize: 1000}) {
   Uri uri = new Uri(scheme: 'source');

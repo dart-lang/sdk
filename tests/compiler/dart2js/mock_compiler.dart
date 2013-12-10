@@ -207,7 +207,8 @@ const String DEFAULT_CORELIB = r'''
     DateTime.utc(year);
   }
   abstract class Pattern {}
-  bool identical(Object a, Object b) { return true; }''';
+  bool identical(Object a, Object b) { return true; }
+  const proxy = 0;''';
 
 const String DEFAULT_ISOLATE_HELPERLIB = r'''
   var startRootIsolate;

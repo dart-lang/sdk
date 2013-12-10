@@ -887,6 +887,9 @@ abstract class ClassElement extends TypeDeclarationElement
   bool implementsInterface(ClassElement intrface);
   bool hasFieldShadowedBy(Element fieldMember);
 
+  /// Returns `true` if this class has a @proxy annotation.
+  bool get isProxy;
+
   ClassElement ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);

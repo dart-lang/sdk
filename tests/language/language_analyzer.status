@@ -172,6 +172,10 @@ least_upper_bound_expansive_test/10: MissingStaticWarning # Issue 15060
 least_upper_bound_expansive_test/11: MissingStaticWarning # Issue 15060
 least_upper_bound_expansive_test/12: MissingStaticWarning # Issue 15060
 
+# test issue 15467
+proxy_test/05: StaticWarning # Issue 15467
+proxy_test/06: StaticWarning # Issue 15467
+
 abstract_exact_selector_test: StaticWarning
 abstract_getter_test: StaticWarning
 abstract_object_method_test: StaticWarning

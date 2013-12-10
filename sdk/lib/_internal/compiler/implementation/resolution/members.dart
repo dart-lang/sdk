@@ -761,6 +761,9 @@ class ResolverTask extends CompilerTask {
     }
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
+      if (!element.isProxy && metadata.value == compiler.proxyConstant) {
+        element.isProxy = true;
+      }
     }
 
     // Force resolution of metadata on non-instance members since they may be

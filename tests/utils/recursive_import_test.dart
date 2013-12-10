@@ -12,7 +12,7 @@ import '../../sdk/lib/_internal/compiler/compiler.dart';
 const CORE_LIB = """
 library core;
 class Object {
-  Object();
+  const Object();
   operator==(other) {}
 }
 class bool {}
@@ -35,6 +35,8 @@ setRuntimeTypeInfo(o, i) {}
 eqNull(a) {}
 eqNullB(a) {}
 class JSInvocationMirror {}  // Should be in helper.
+class _Proxy { const _Proxy(); }
+const proxy = const _Proxy();
 """;
 
 const INTERCEPTORS_LIB = """
