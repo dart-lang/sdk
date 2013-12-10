@@ -40,7 +40,7 @@ class Instrumentation {
   /**
    * A builder that will silently ignore all data and logging requests.
    */
-  static final InstrumentationBuilder nullBuilder = new InstrumentationBuilder_18();
+  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_18();
 
   /**
    * An instrumentation logger that can be used when no other instrumentation logger has been
@@ -73,6 +73,13 @@ class Instrumentation {
    * Get the currently active instrumentation logger
    */
   static InstrumentationLogger get logger => _CURRENT_LOGGER;
+
+  /**
+   * Return a builder that will silently ignore all data and logging requests.
+   *
+   * @return the builder (not `null`)
+   */
+  static InstrumentationBuilder get nullBuilder => _NULL_INSTRUMENTATION_BUILDER;
 
   /**
    * Is this instrumentation system currently configured to drop instrumentation data provided to
@@ -121,7 +128,7 @@ class InstrumentationBuilder_18 implements InstrumentationBuilder {
 }
 
 class InstrumentationLogger_19 implements InstrumentationLogger {
-  InstrumentationBuilder createBuilder(String name) => Instrumentation.nullBuilder;
+  InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }
 
 /**

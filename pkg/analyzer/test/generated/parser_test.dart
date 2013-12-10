@@ -499,7 +499,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseAssignableSelector_none() {
-    SimpleIdentifier selector = ParserTestCase.parse("parseAssignableSelector", <Object> [new SimpleIdentifier.full(null), true], ";");
+    SimpleIdentifier selector = ParserTestCase.parse("parseAssignableSelector", <Object> [new SimpleIdentifier(null), true], ";");
     JUnitTestCase.assertNotNull(selector);
   }
 
@@ -2538,7 +2538,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseFunctionDeclaration_function() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "f() {}");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
     JUnitTestCase.assertEquals(returnType, declaration.returnType);
@@ -2552,7 +2552,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseFunctionDeclaration_getter() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "get p => 0;");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
     JUnitTestCase.assertEquals(returnType, declaration.returnType);
@@ -2566,7 +2566,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseFunctionDeclaration_setter() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = ParserTestCase.parse("parseFunctionDeclaration", <Object> [commentAndMetadata(comment, []), null, returnType], "set p(v) {}");
     JUnitTestCase.assertEquals(comment, declaration.documentationComment);
     JUnitTestCase.assertEquals(returnType, declaration.returnType);
@@ -2598,7 +2598,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseGetter_nonStatic() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseGetter", <Object> [commentAndMetadata(comment, []), null, null, returnType], "get a;");
     JUnitTestCase.assertNotNull(method.body);
     JUnitTestCase.assertEquals(comment, method.documentationComment);
@@ -2614,7 +2614,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseGetter_static() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.token(Keyword.STATIC);
-    TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseGetter", <Object> [
         commentAndMetadata(comment, []),
         null,
@@ -2760,7 +2760,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseInitializedIdentifierList_type() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.token(Keyword.STATIC);
-    TypeName type = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName type = new TypeName(new SimpleIdentifier(null), null);
     FieldDeclaration declaration = ParserTestCase.parse("parseInitializedIdentifierList", <Object> [
         commentAndMetadata(comment, []),
         staticKeyword,
@@ -3295,7 +3295,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseOperator() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseOperator", <Object> [commentAndMetadata(comment, []), null, returnType], "operator +(A a);");
     JUnitTestCase.assertNotNull(method.body);
     JUnitTestCase.assertEquals(comment, method.documentationComment);
@@ -3582,7 +3582,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseSetter_nonStatic() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
-    TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseSetter", <Object> [commentAndMetadata(comment, []), null, null, returnType], "set a(var x);");
     JUnitTestCase.assertNotNull(method.body);
     JUnitTestCase.assertEquals(comment, method.documentationComment);
@@ -3598,7 +3598,7 @@ class SimpleParserTest extends ParserTestCase {
   void test_parseSetter_static() {
     Comment comment = Comment.createDocumentationComment(new List<Token>(0));
     Token staticKeyword = TokenFactory.token(Keyword.STATIC);
-    TypeName returnType = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     MethodDeclaration method = ParserTestCase.parse("parseSetter", <Object> [
         commentAndMetadata(comment, []),
         null,
@@ -4234,7 +4234,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseVariableDeclarationList2_type() {
-    TypeName type = new TypeName.full(new SimpleIdentifier.full(null), null);
+    TypeName type = new TypeName(new SimpleIdentifier(null), null);
     VariableDeclarationList declarationList = ParserTestCase.parse("parseVariableDeclarationList", <Object> [emptyCommentAndMetadata(), null, type], "a");
     JUnitTestCase.assertNull(declarationList.keyword);
     JUnitTestCase.assertEquals(type, declarationList.type);
@@ -4404,7 +4404,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme, bool first, bool last) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_26();
+    AnalysisErrorListener listener = new AnalysisErrorListener_27();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme, first, last], null) as String;
   }
@@ -6674,7 +6674,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 }
 
-class AnalysisErrorListener_26 implements AnalysisErrorListener {
+class AnalysisErrorListener_27 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -9143,7 +9143,7 @@ class RecoveryParserTest extends ParserTestCase {
 }
 
 class IncrementalParserTest extends EngineTestCase {
-  void fail_delete_everything() {
+  void test_delete_everything() {
     assertParse("", "f() => a + b;", "", "");
   }
 
@@ -9199,6 +9199,14 @@ class IncrementalParserTest extends EngineTestCase {
     assertParse("f() => a;", "", "b", "  c;");
   }
 
+  void test_insert_newIdentifier3() {
+    assertParse("/** A simple function. */ f() => a;", "", " b", " c;");
+  }
+
+  void test_insert_newIdentifier4() {
+    assertParse("/** An [A]. */ class A {} class B { m() { return 1", "", " + 2", "; } }");
+  }
+
   void test_insert_period() {
     assertParse("f() => a + b", "", ".", ";");
   }
@@ -9221,6 +9229,10 @@ class IncrementalParserTest extends EngineTestCase {
 
   void test_insert_periodAndIdentifier() {
     assertParse("f() => a + b", "", ".x", ";");
+  }
+
+  void test_insert_simpleToComplexExression() {
+    assertParse("/** An [A]. */ class A {} class B { m() => 1", "", " + 2", "; }");
   }
 
   void test_insert_whitespace_end() {
@@ -9299,6 +9311,10 @@ class IncrementalParserTest extends EngineTestCase {
 
   static dartSuite() {
     _ut.group('IncrementalParserTest', () {
+      _ut.test('test_delete_everything', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_delete_everything);
+      });
       _ut.test('test_delete_identifier_beginning', () {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_delete_identifier_beginning);
@@ -9351,6 +9367,14 @@ class IncrementalParserTest extends EngineTestCase {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_insert_newIdentifier2);
       });
+      _ut.test('test_insert_newIdentifier3', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_newIdentifier3);
+      });
+      _ut.test('test_insert_newIdentifier4', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_newIdentifier4);
+      });
       _ut.test('test_insert_period', () {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_insert_period);
@@ -9374,6 +9398,10 @@ class IncrementalParserTest extends EngineTestCase {
       _ut.test('test_insert_period_insideExistingIdentifier', () {
         final __test = new IncrementalParserTest();
         runJUnitTest(__test, __test.test_insert_period_insideExistingIdentifier);
+      });
+      _ut.test('test_insert_simpleToComplexExression', () {
+        final __test = new IncrementalParserTest();
+        runJUnitTest(__test, __test.test_insert_simpleToComplexExression);
       });
       _ut.test('test_insert_whitespace_end', () {
         final __test = new IncrementalParserTest();

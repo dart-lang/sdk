@@ -8810,12 +8810,12 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * The source factory used to create [Source].
    */
-  SourceFactory sourceFactory;
+  SourceFactory _sourceFactory;
 
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
-  AnalysisContextImpl analysisContext;
+  AnalysisContextImpl _analysisContext;
 
   void setUp() {
     reset();
@@ -8840,7 +8840,7 @@ class ResolverTestCase extends EngineTestCase {
     Source source = cacheSource(filePath, contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
-    analysisContext.applyChanges(changeSet);
+    _analysisContext.applyChanges(changeSet);
     return source;
   }
 
@@ -8857,7 +8857,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   void assertErrors(Source source, List<ErrorCode> expectedErrorCodes) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
-    for (AnalysisError error in analysisContext.computeErrors(source)) {
+    for (AnalysisError error in _analysisContext.computeErrors(source)) {
       errorListener.onError(error);
     }
     errorListener.assertErrors2(expectedErrorCodes);
@@ -8883,8 +8883,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the cached file
    */
   Source cacheSource(String filePath, String contents) {
-    Source source = new FileBasedSource.con1(sourceFactory.contentCache, FileUtilities2.createFile(filePath));
-    sourceFactory.setContents(source, contents);
+    Source source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(filePath));
+    _sourceFactory.setContents(source, contents);
     return source;
   }
 
@@ -8924,24 +8924,25 @@ class ResolverTestCase extends EngineTestCase {
     return library;
   }
 
+  AnalysisContext get analysisContext => _analysisContext;
+
+  SourceFactory get sourceFactory => _sourceFactory;
+
   /**
    * Return a type provider that can be used to test the results of resolution.
    *
    * @return a type provider
+   * @throws AnalysisException if dart:core cannot be resolved
    */
-  TypeProvider get typeProvider {
-    Source coreSource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
-    LibraryElement coreElement = analysisContext.getLibraryElement(coreSource);
-    return new TypeProviderImpl(coreElement);
-  }
+  TypeProvider get typeProvider => _analysisContext.typeProvider;
 
   /**
    * In the rare cases we want to group several tests into single "test_" method, so need a way to
    * reset test instance to reuse it.
    */
   void reset() {
-    analysisContext = AnalysisContextFactory.contextWithCore();
-    sourceFactory = analysisContext.sourceFactory;
+    _analysisContext = AnalysisContextFactory.contextWithCore();
+    _sourceFactory = _analysisContext.sourceFactory;
   }
 
   /**
@@ -8953,7 +8954,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the element representing the resolved library
    * @throws AnalysisException if the analysis could not be performed
    */
-  LibraryElement resolve(Source librarySource) => analysisContext.computeLibraryElement(librarySource);
+  LibraryElement resolve(Source librarySource) => _analysisContext.computeLibraryElement(librarySource);
 
   /**
    * Return the resolved compilation unit corresponding to the given source in the given library.
@@ -8963,7 +8964,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the resolved compilation unit
    * @throws Exception if the compilation unit could not be resolved
    */
-  CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => analysisContext.resolveCompilationUnit(source, library);
+  CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) => _analysisContext.resolveCompilationUnit(source, library);
 
   /**
    * Verify that all of the identifiers in the compilation units associated with the given sources
@@ -8977,7 +8978,7 @@ class ResolverTestCase extends EngineTestCase {
   void verify(List<Source> sources) {
     ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source in sources) {
-      analysisContext.parseCompilationUnit(source).accept(verifier);
+      _analysisContext.parseCompilationUnit(source).accept(verifier);
     }
     verifier.assertResolved();
   }
@@ -8989,8 +8990,8 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source that was created
    */
   FileBasedSource createSource2(String fileName) {
-    FileBasedSource source = new FileBasedSource.con1(sourceFactory.contentCache, FileUtilities2.createFile(fileName));
-    sourceFactory.setContents(source, "");
+    FileBasedSource source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(fileName));
+    _sourceFactory.setContents(source, "");
     return source;
   }
 
@@ -18953,7 +18954,15 @@ class AnalysisContextFactory {
    *
    * @return the analysis context that was created
    */
-  static AnalysisContextImpl contextWithCore() {
+  static AnalysisContextImpl contextWithCore() => initContextWithCore(new DelegatingAnalysisContextImpl());
+
+  /**
+   * Initialize the given analysis context with a fake core library already resolved.
+   *
+   * @param context the context to be initialized (not `null`)
+   * @return the analysis context that was created
+   */
+  static AnalysisContextImpl initContextWithCore(AnalysisContextImpl context) {
     AnalysisContext sdkContext = DirectoryBasedDartSdk.defaultSdk.context;
     SourceFactory sourceFactory = sdkContext.sourceFactory;
     TestTypeProvider provider = new TestTypeProvider();
@@ -19016,7 +19025,6 @@ class AnalysisContextFactory {
     elementMap[coreSource] = coreLibrary;
     elementMap[htmlSource] = htmlLibrary;
     (sdkContext as AnalysisContextImpl).recordLibraryElements(elementMap);
-    AnalysisContextImpl context = new DelegatingAnalysisContextImpl();
     sourceFactory = new SourceFactory.con2([
         new DartUriResolver(sdkContext.sourceFactory.dartSdk),
         new FileUriResolver()]);
@@ -21406,7 +21414,7 @@ class NonHintCodeTest extends ResolverTestCase {
 class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_23(errorListener2);
+    Scope rootScope = new Scope_24(errorListener2);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -21417,7 +21425,7 @@ class EnclosedScopeTest extends ResolverTestCase {
 
   void test_define_normal() {
     GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_24(errorListener3);
+    Scope rootScope = new Scope_25(errorListener3);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -21441,20 +21449,20 @@ class EnclosedScopeTest extends ResolverTestCase {
   }
 }
 
-class Scope_23 extends Scope {
+class Scope_24 extends Scope {
   GatheringErrorListener errorListener2;
 
-  Scope_23(this.errorListener2) : super();
+  Scope_24(this.errorListener2) : super();
 
   AnalysisErrorListener get errorListener => errorListener2;
 
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
 
-class Scope_24 extends Scope {
+class Scope_25 extends Scope {
   GatheringErrorListener errorListener3;
 
-  Scope_24(this.errorListener3) : super();
+  Scope_25(this.errorListener3) : super();
 
   AnalysisErrorListener get errorListener => errorListener3;
 
@@ -21725,13 +21733,9 @@ class ScopeTest_TestScope extends Scope {
   /**
    * The listener that is to be informed when an error is encountered.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener errorListener;
 
-  ScopeTest_TestScope(AnalysisErrorListener errorListener) {
-    this._errorListener = errorListener;
-  }
-
-  AnalysisErrorListener get errorListener => _errorListener;
+  ScopeTest_TestScope(this.errorListener);
 
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => localLookup(name, referencingLibrary);
 }
@@ -22189,7 +22193,11 @@ class SimpleResolverTest extends ResolverTestCase {
     CompilationUnit unit = analysisContext.getResolvedCompilationUnit(source, library);
     JUnitTestCase.assertNotNull(unit);
     List<bool> found = [false];
-    unit.accept(new RecursiveASTVisitor_27(this, found));
+    List<AnalysisException> thrownException = new List<AnalysisException>(1);
+    unit.accept(new RecursiveASTVisitor_28(this, found, thrownException));
+    if (thrownException[0] != null) {
+      throw new AnalysisException.con3(thrownException[0]);
+    }
     JUnitTestCase.assertTrue(found[0]);
   }
 
@@ -22582,20 +22590,26 @@ class SimpleResolverTest extends ResolverTestCase {
   }
 }
 
-class RecursiveASTVisitor_27 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_28 extends RecursiveASTVisitor<Object> {
   final SimpleResolverTest SimpleResolverTest_this;
 
   List<bool> found;
 
-  RecursiveASTVisitor_27(this.SimpleResolverTest_this, this.found) : super();
+  List<AnalysisException> thrownException;
+
+  RecursiveASTVisitor_28(this.SimpleResolverTest_this, this.found, this.thrownException) : super();
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "myVar" && node.parent is MethodInvocation) {
-      found[0] = true;
-      Type2 staticType = node.staticType;
-      JUnitTestCase.assertSame(SimpleResolverTest_this.typeProvider.dynamicType, staticType);
-      FunctionType propagatedType = node.propagatedType as FunctionType;
-      JUnitTestCase.assertEquals(SimpleResolverTest_this.typeProvider.stringType, propagatedType.returnType);
+      try {
+        found[0] = true;
+        Type2 staticType = node.staticType;
+        JUnitTestCase.assertSame(SimpleResolverTest_this.typeProvider.dynamicType, staticType);
+        FunctionType propagatedType = node.propagatedType as FunctionType;
+        JUnitTestCase.assertEquals(SimpleResolverTest_this.typeProvider.stringType, propagatedType.returnType);
+      } on AnalysisException catch (e) {
+        thrownException[0] = e;
+      }
     }
     return null;
   }

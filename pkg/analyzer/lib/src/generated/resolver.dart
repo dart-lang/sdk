@@ -1120,7 +1120,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
   /**
    * The error listener to which errors will be reported.
    */
-  RecordingErrorListener errorListener;
+  RecordingErrorListener _errorListener;
 
   /**
    * The modification time of the source for which an element is being built.
@@ -1151,7 +1151,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
   /**
    * A set of the libraries that were resolved while resolving the HTML unit.
    */
-  final Set<Library> resolvedLibraries = new Set<Library>();
+  Set<Library> _resolvedLibraries = new Set<Library>();
 
   /**
    * Initialize a newly created HTML unit builder.
@@ -1160,7 +1160,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    */
   HtmlUnitBuilder(InternalAnalysisContext context) {
     this._context = context;
-    this.errorListener = new RecordingErrorListener();
+    this._errorListener = new RecordingErrorListener();
   }
 
   /**
@@ -1193,6 +1193,20 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
     return result;
   }
 
+  /**
+   * Return the listener to which analysis errors will be reported.
+   *
+   * @return the listener to which analysis errors will be reported
+   */
+  RecordingErrorListener get errorListener => _errorListener;
+
+  /**
+   * Return an array containing information about all of the libraries that were resolved.
+   *
+   * @return an array containing the libraries that were resolved
+   */
+  Set<Library> get resolvedLibraries => _resolvedLibraries;
+
   Object visitHtmlScriptTagNode(ht.HtmlScriptTagNode node) {
     if (_parentNodes.contains(node)) {
       return reportCircularity(node);
@@ -1208,8 +1222,8 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
           LibraryResolver resolver = new LibraryResolver(_context);
           LibraryElementImpl library = resolver.resolveEmbeddedLibrary(htmlSource, _modificationStamp, node.script, true) as LibraryElementImpl;
           script.scriptLibrary = library;
-          resolvedLibraries.addAll(resolver.resolvedLibraries);
-          errorListener.addAll(resolver.errorListener);
+          _resolvedLibraries.addAll(resolver.resolvedLibraries);
+          _errorListener.addAll(resolver.errorListener);
         } on AnalysisException catch (exception) {
           AnalysisEngine.instance.logger.logError3(exception);
         }
@@ -1323,7 +1337,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    * @param arguments the arguments used to compose the error message
    */
   void reportError(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
-    errorListener.onError(new AnalysisError.con2(_htmlElement.source, offset, length, errorCode, arguments));
+    _errorListener.onError(new AnalysisError.con2(_htmlElement.source, offset, length, errorCode, arguments));
   }
 
   /**
@@ -2535,6 +2549,55 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
       }
     }
     return null;
+  }
+}
+
+/**
+ * Instances of the class `ReturnDetector` determine whether the visited AST node is
+ * guaranteed (modulo exceptions) to terminate by executing a return statement.
+ */
+class ReturnDetector extends UnifyingASTVisitor<bool> {
+  bool visitBlock(Block node) => visitStatements(node.statements);
+
+  bool visitBlockFunctionBody(BlockFunctionBody node) => node.block.accept(this);
+
+  bool visitIfStatement(IfStatement node) {
+    Statement thenStatement = node.thenStatement;
+    Statement elseStatement = node.elseStatement;
+    if (thenStatement == null || elseStatement == null) {
+      return false;
+    }
+    return thenStatement.accept(this) && elseStatement.accept(this);
+  }
+
+  bool visitNode(ASTNode node) => false;
+
+  bool visitReturnStatement(ReturnStatement node) => true;
+
+  bool visitSwitchCase(SwitchCase node) => visitStatements(node.statements);
+
+  bool visitSwitchDefault(SwitchDefault node) => visitStatements(node.statements);
+
+  bool visitSwitchStatement(SwitchStatement node) {
+    bool hasDefault = false;
+    for (SwitchMember member in node.members) {
+      if (!member.accept(this)) {
+        return false;
+      }
+      if (member is SwitchDefault) {
+        hasDefault = true;
+      }
+    }
+    return hasDefault;
+  }
+
+  bool visitStatements(NodeList<Statement> statements) {
+    for (int i = statements.length - 1; i >= 0; i--) {
+      if (statements[i].accept(this)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
@@ -5867,16 +5930,14 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
   /**
    * The name of the synthetic identifier.
    */
-  String _name;
+  final String name;
 
   /**
    * Initialize a newly created synthetic identifier to have the given name.
    *
    * @param name the name of the synthetic identifier
    */
-  ElementResolver_SyntheticIdentifier(String name) {
-    this._name = name;
-  }
+  ElementResolver_SyntheticIdentifier(this.name);
 
   accept(ASTVisitor visitor) => null;
 
@@ -5885,8 +5946,6 @@ class ElementResolver_SyntheticIdentifier extends Identifier {
   Element get bestElement => null;
 
   sc.Token get endToken => null;
-
-  String get name => _name;
 
   int get precedence => 16;
 
@@ -6576,7 +6635,7 @@ class Library {
   /**
    * The source specifying the defining compilation unit of this library.
    */
-  Source librarySource;
+  final Source librarySource;
 
   /**
    * The library element representing this library.
@@ -6586,7 +6645,7 @@ class Library {
   /**
    * A list containing all of the libraries that are imported into this library.
    */
-  List<Library> imports = _EMPTY_ARRAY;
+  List<Library> _importedLibraries = _EMPTY_ARRAY;
 
   /**
    * A table mapping URI-based directive to the actual URI value.
@@ -6601,7 +6660,7 @@ class Library {
   /**
    * A list containing all of the libraries that are exported from this library.
    */
-  List<Library> exports = _EMPTY_ARRAY;
+  List<Library> _exportedLibraries = _EMPTY_ARRAY;
 
   /**
    * A table mapping the sources for the compilation units in this library to their corresponding
@@ -6631,10 +6690,9 @@ class Library {
    * @param errorListener the listener to which analysis errors will be reported
    * @param librarySource the source specifying the defining compilation unit of this library
    */
-  Library(InternalAnalysisContext analysisContext, AnalysisErrorListener errorListener, Source librarySource) {
+  Library(InternalAnalysisContext analysisContext, AnalysisErrorListener errorListener, this.librarySource) {
     this._analysisContext = analysisContext;
     this._errorListener = errorListener;
-    this.librarySource = librarySource;
     this._libraryElement = analysisContext.getLibraryElement(librarySource) as LibraryElementImpl;
   }
 
@@ -6690,6 +6748,20 @@ class Library {
   CompilationUnit get definingCompilationUnit => getAST(librarySource);
 
   /**
+   * Return an array containing the libraries that are exported from this library.
+   *
+   * @return an array containing the libraries that are exported from this library
+   */
+  List<Library> get exports => _exportedLibraries;
+
+  /**
+   * Return an array containing the libraries that are imported into this library.
+   *
+   * @return an array containing the libraries that are imported into this library
+   */
+  List<Library> get imports => _importedLibraries;
+
+  /**
    * Return an array containing the libraries that are either imported or exported from this
    * library.
    *
@@ -6697,10 +6769,10 @@ class Library {
    */
   List<Library> get importsAndExports {
     Set<Library> libraries = new Set<Library>();
-    for (Library library in imports) {
+    for (Library library in _importedLibraries) {
       libraries.add(library);
     }
-    for (Library library in exports) {
+    for (Library library in _exportedLibraries) {
       libraries.add(library);
     }
     return new List.from(libraries);
@@ -6829,7 +6901,7 @@ class Library {
    * @param exportedLibraries the libraries that are exported by this library
    */
   void set exportedLibraries(List<Library> exportedLibraries) {
-    this.exports = exportedLibraries;
+    this._exportedLibraries = exportedLibraries;
   }
 
   /**
@@ -6838,7 +6910,7 @@ class Library {
    * @param importedLibraries the libraries that are imported into this library
    */
   void set importedLibraries(List<Library> importedLibraries) {
-    this.imports = importedLibraries;
+    this._importedLibraries = importedLibraries;
   }
 
   /**
@@ -7054,14 +7126,14 @@ class LibraryResolver {
   /**
    * The analysis context in which the libraries are being analyzed.
    */
-  InternalAnalysisContext analysisContext;
+  final InternalAnalysisContext analysisContext;
 
   /**
    * The listener to which analysis errors will be reported, this error listener is either
    * references [recordingErrorListener], or it unions the passed
    * [AnalysisErrorListener] with the [recordingErrorListener].
    */
-  RecordingErrorListener errorListener;
+  RecordingErrorListener _errorListener;
 
   /**
    * A source object representing the core library (dart:core).
@@ -7086,18 +7158,31 @@ class LibraryResolver {
   /**
    * A collection containing the libraries that are being resolved together.
    */
-  Set<Library> resolvedLibraries;
+  Set<Library> _librariesInCycles;
 
   /**
    * Initialize a newly created library resolver to resolve libraries within the given context.
    *
    * @param analysisContext the analysis context in which the library is being analyzed
    */
-  LibraryResolver(InternalAnalysisContext analysisContext) {
-    this.analysisContext = analysisContext;
-    this.errorListener = new RecordingErrorListener();
+  LibraryResolver(this.analysisContext) {
+    this._errorListener = new RecordingErrorListener();
     _coreLibrarySource = analysisContext.sourceFactory.forUri(DartSdk.DART_CORE);
   }
+
+  /**
+   * Return the listener to which analysis errors will be reported.
+   *
+   * @return the listener to which analysis errors will be reported
+   */
+  RecordingErrorListener get errorListener => _errorListener;
+
+  /**
+   * Return an array containing information about all of the libraries that were resolved.
+   *
+   * @return an array containing the libraries that were resolved
+   */
+  Set<Library> get resolvedLibraries => _librariesInCycles;
 
   /**
    * Resolve the library specified by the given source in the given context. The library is assumed
@@ -7124,7 +7209,7 @@ class LibraryResolver {
       }
       instrumentation.metric3("createLibrary", "complete");
       computeLibraryDependencies2(targetLibrary, unit);
-      resolvedLibraries = computeLibrariesInCycles(targetLibrary);
+      _librariesInCycles = computeLibrariesInCycles(targetLibrary);
       buildElementModels();
       instrumentation.metric3("buildElementModels", "complete");
       LibraryElement coreElement = _coreLibrary.libraryElement;
@@ -7174,7 +7259,7 @@ class LibraryResolver {
       }
       instrumentation.metric3("createLibrary", "complete");
       computeLibraryDependencies(targetLibrary);
-      resolvedLibraries = computeLibrariesInCycles(targetLibrary);
+      _librariesInCycles = computeLibrariesInCycles(targetLibrary);
       buildElementModels();
       instrumentation.metric3("buildElementModels", "complete");
       LibraryElement coreElement = _coreLibrary.libraryElement;
@@ -7190,8 +7275,8 @@ class LibraryResolver {
       instrumentation.metric3("resolveReferencesAndTypes", "complete");
       performConstantEvaluation();
       instrumentation.metric3("performConstantEvaluation", "complete");
-      instrumentation.metric2("librariesInCycles", resolvedLibraries.length);
-      for (Library lib in resolvedLibraries) {
+      instrumentation.metric2("librariesInCycles", _librariesInCycles.length);
+      for (Library lib in _librariesInCycles) {
         instrumentation.metric2("librariesInCycles-CompilationUnitSources-Size", lib.compilationUnitSources.length);
       }
       return targetLibrary.libraryElement;
@@ -7290,7 +7375,7 @@ class LibraryResolver {
    *           be accessed
    */
   void buildDirectiveModels() {
-    for (Library library in resolvedLibraries) {
+    for (Library library in _librariesInCycles) {
       Map<String, PrefixElementImpl> nameToPrefixMap = new Map<String, PrefixElementImpl>();
       List<ImportElement> imports = new List<ImportElement>();
       List<ExportElement> exports = new List<ExportElement>();
@@ -7328,7 +7413,7 @@ class LibraryResolver {
               directive.element = importElement;
               imports.add(importElement);
               if (analysisContext.computeKindOf(importedSource) != SourceKind.LIBRARY) {
-                errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
               }
             }
           }
@@ -7349,7 +7434,7 @@ class LibraryResolver {
               exports.add(exportElement);
               if (analysisContext.computeKindOf(exportedSource) != SourceKind.LIBRARY) {
                 StringLiteral uriLiteral = exportDirective.uri;
-                errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
+                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
               }
             }
           }
@@ -7374,7 +7459,7 @@ class LibraryResolver {
    * @throws AnalysisException if any of the element models cannot be built
    */
   void buildElementModels() {
-    for (Library library in resolvedLibraries) {
+    for (Library library in _librariesInCycles) {
       LibraryElementBuilder builder = new LibraryElementBuilder(this);
       LibraryElementImpl libraryElement = builder.buildLibrary(library);
       library.libraryElement = libraryElement;
@@ -7390,7 +7475,7 @@ class LibraryResolver {
   void buildTypeHierarchies() {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     try {
-      for (Library library in resolvedLibraries) {
+      for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
           TypeResolverVisitor visitor = new TypeResolverVisitor.con1(library, source, _typeProvider);
           library.getAST(source).accept(visitor);
@@ -7535,7 +7620,7 @@ class LibraryResolver {
    * @throws AnalysisException if the library source is not valid
    */
   Library createLibrary(Source librarySource) {
-    Library library = new Library(analysisContext, errorListener, librarySource);
+    Library library = new Library(analysisContext, _errorListener, librarySource);
     library.definingCompilationUnit;
     _libraryMap[librarySource] = library;
     return library;
@@ -7553,7 +7638,7 @@ class LibraryResolver {
    * @throws AnalysisException if the library source is not valid
    */
   Library createLibrary2(Source librarySource, int modificationStamp, CompilationUnit unit) {
-    Library library = new Library(analysisContext, errorListener, librarySource);
+    Library library = new Library(analysisContext, _errorListener, librarySource);
     library.setDefiningCompilationUnit(modificationStamp, unit);
     _libraryMap[librarySource] = library;
     return library;
@@ -7571,7 +7656,7 @@ class LibraryResolver {
     if (!librarySource.exists()) {
       return null;
     }
-    Library library = new Library(analysisContext, errorListener, librarySource);
+    Library library = new Library(analysisContext, _errorListener, librarySource);
     _libraryMap[librarySource] = library;
     return library;
   }
@@ -7598,7 +7683,7 @@ class LibraryResolver {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     try {
       ConstantValueComputer computer = new ConstantValueComputer();
-      for (Library library in resolvedLibraries) {
+      for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
           try {
             CompilationUnit unit = library.getAST(source);
@@ -7623,7 +7708,7 @@ class LibraryResolver {
    *           libraries could not have their types analyzed
    */
   void resolveReferencesAndTypes() {
-    for (Library library in resolvedLibraries) {
+    for (Library library in _librariesInCycles) {
       resolveReferencesAndTypes2(library);
     }
   }
@@ -7684,7 +7769,7 @@ class MemberMap {
   /**
    * The current size of this map.
    */
-  int size = 0;
+  int _size = 0;
 
   /**
    * The array of keys.
@@ -7714,12 +7799,12 @@ class MemberMap {
    * Copy constructor.
    */
   MemberMap.con2(MemberMap memberMap) {
-    initArrays(memberMap.size + 5);
-    for (int i = 0; i < memberMap.size; i++) {
+    initArrays(memberMap._size + 5);
+    for (int i = 0; i < memberMap._size; i++) {
       _keys[i] = memberMap._keys[i];
       _values[i] = memberMap._values[i];
     }
-    size = memberMap.size;
+    _size = memberMap._size;
   }
 
   /**
@@ -7731,7 +7816,7 @@ class MemberMap {
    *         map, `null` is returned
    */
   ExecutableElement get(String key) {
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < _size; i++) {
       if (_keys[i] != null && _keys[i] == key) {
         return _values[i];
       }
@@ -7749,6 +7834,13 @@ class MemberMap {
    *        zero or greater than or equal to the capacity of the arrays
    */
   String getKey(int i) => _keys[i];
+
+  /**
+   * The size of the map.
+   *
+   * @return the size of the map.
+   */
+  int get size => _size;
 
   /**
    * Get and return the ExecutableElement at the specified location. If the key/value pair has been
@@ -7769,28 +7861,28 @@ class MemberMap {
    * @param value the ExecutableElement value to store in the map
    */
   void put(String key, ExecutableElement value) {
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < _size; i++) {
       if (_keys[i] != null && _keys[i] == key) {
         _values[i] = value;
         return;
       }
     }
-    if (size == _keys.length) {
-      int newArrayLength = size * 2;
+    if (_size == _keys.length) {
+      int newArrayLength = _size * 2;
       List<String> keys_new_array = new List<String>(newArrayLength);
       List<ExecutableElement> values_new_array = new List<ExecutableElement>(newArrayLength);
-      for (int i = 0; i < size; i++) {
+      for (int i = 0; i < _size; i++) {
         keys_new_array[i] = _keys[i];
       }
-      for (int i = 0; i < size; i++) {
+      for (int i = 0; i < _size; i++) {
         values_new_array[i] = _values[i];
       }
       _keys = keys_new_array;
       _values = values_new_array;
     }
-    _keys[size] = key;
-    _values[size] = value;
-    size++;
+    _keys[_size] = key;
+    _values[_size] = value;
+    _size++;
   }
 
   /**
@@ -7801,7 +7893,7 @@ class MemberMap {
    * @param key the key of the key/value pair to remove from the map
    */
   void remove(String key) {
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < _size; i++) {
       if (_keys[i] == key) {
         _keys[i] = null;
         _values[i] = null;
@@ -7856,7 +7948,7 @@ class ProxyConditionalAnalysisError {
   /**
    * The conditional analysis error.
    */
-  AnalysisError analysisError;
+  final AnalysisError analysisError;
 
   /**
    * Instantiate a new ProxyConditionalErrorCode with some enclosing element and the conditional
@@ -7865,9 +7957,8 @@ class ProxyConditionalAnalysisError {
    * @param enclosingElement the enclosing element
    * @param analysisError the conditional analysis error
    */
-  ProxyConditionalAnalysisError(Element enclosingElement, AnalysisError analysisError) {
+  ProxyConditionalAnalysisError(Element enclosingElement, this.analysisError) {
     this._enclosingElement = enclosingElement;
-    this.analysisError = analysisError;
   }
 
   /**
@@ -7904,28 +7995,28 @@ class ResolverVisitor extends ScopedVisitor {
    * The class element representing the class containing the current node, or `null` if the
    * current node is not contained in a class.
    */
-  ClassElement enclosingClass = null;
+  ClassElement _enclosingClass = null;
 
   /**
    * The element representing the function containing the current node, or `null` if the
    * current node is not contained in a function.
    */
-  ExecutableElement enclosingFunction = null;
+  ExecutableElement _enclosingFunction = null;
 
   /**
    * The object keeping track of which elements have had their types overridden.
    */
-  final TypeOverrideManager overrideManager = new TypeOverrideManager();
+  TypeOverrideManager _overrideManager = new TypeOverrideManager();
 
   /**
    * The object keeping track of which elements have had their types promoted.
    */
-  final TypePromotionManager promoteManager = new TypePromotionManager();
+  TypePromotionManager _promoteManager = new TypePromotionManager();
 
   /**
    * Proxy conditional error codes.
    */
-  final List<ProxyConditionalAnalysisError> proxyConditionalAnalysisErrors = new List<ProxyConditionalAnalysisError>();
+  List<ProxyConditionalAnalysisError> _proxyConditionalAnalysisErrors = new List<ProxyConditionalAnalysisError>();
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -7972,6 +8063,22 @@ class ResolverVisitor extends ScopedVisitor {
     this._typeAnalyzer = new StaticTypeAnalyzer(this);
   }
 
+  /**
+   * Return the object keeping track of which elements have had their types overridden.
+   *
+   * @return the object keeping track of which elements have had their types overridden
+   */
+  TypeOverrideManager get overrideManager => _overrideManager;
+
+  /**
+   * Return the object keeping track of which elements have had their types promoted.
+   *
+   * @return the object keeping track of which elements have had their types promoted
+   */
+  TypePromotionManager get promoteManager => _promoteManager;
+
+  List<ProxyConditionalAnalysisError> get proxyConditionalAnalysisErrors => _proxyConditionalAnalysisErrors;
+
   Object visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
     override(node.expression, node.type.type);
@@ -7992,8 +8099,8 @@ class ResolverVisitor extends ScopedVisitor {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
         try {
-          overrideManager.enterScope();
-          promoteManager.enterScope();
+          _overrideManager.enterScope();
+          _promoteManager.enterScope();
           propagateTrueState(leftOperand);
           promoteTypes(leftOperand);
           clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
@@ -8001,19 +8108,19 @@ class ResolverVisitor extends ScopedVisitor {
           clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(rightOperand);
           rightOperand.accept(this);
         } finally {
-          overrideManager.exitScope();
-          promoteManager.exitScope();
+          _overrideManager.exitScope();
+          _promoteManager.exitScope();
         }
       }
     } else if (identical(operatorType, sc.TokenType.BAR_BAR)) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
         try {
-          overrideManager.enterScope();
+          _overrideManager.enterScope();
           propagateFalseState(leftOperand);
           rightOperand.accept(this);
         } finally {
-          overrideManager.exitScope();
+          _overrideManager.exitScope();
         }
       }
     } else {
@@ -8027,10 +8134,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       super.visitBlockFunctionBody(node);
     } finally {
-      overrideManager.exitScope();
+      _overrideManager.exitScope();
     }
     return null;
   }
@@ -8042,14 +8149,14 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   Object visitClassDeclaration(ClassDeclaration node) {
-    ClassElement outerType = enclosingClass;
+    ClassElement outerType = _enclosingClass;
     try {
-      enclosingClass = node.element;
-      _typeAnalyzer.thisType = enclosingClass == null ? null : enclosingClass.type;
+      _enclosingClass = node.element;
+      _typeAnalyzer.thisType = _enclosingClass == null ? null : _enclosingClass.type;
       super.visitClassDeclaration(node);
     } finally {
       _typeAnalyzer.thisType = outerType == null ? null : outerType.type;
-      enclosingClass = outerType;
+      _enclosingClass = outerType;
     }
     return null;
   }
@@ -8062,7 +8169,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   Object visitCompilationUnit(CompilationUnit node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       NodeList<Directive> directives = node.directives;
       int directiveCount = directives.length;
       for (int i = 0; i < directiveCount; i++) {
@@ -8083,7 +8190,7 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
     } finally {
-      overrideManager.exitScope();
+      _overrideManager.exitScope();
     }
     node.accept(_elementResolver);
     node.accept(_typeAnalyzer);
@@ -8096,26 +8203,26 @@ class ResolverVisitor extends ScopedVisitor {
     Expression thenExpression = node.thenExpression;
     if (thenExpression != null) {
       try {
-        overrideManager.enterScope();
-        promoteManager.enterScope();
+        _overrideManager.enterScope();
+        _promoteManager.enterScope();
         propagateTrueState(condition);
         promoteTypes(condition);
         clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
         clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenExpression);
         thenExpression.accept(this);
       } finally {
-        overrideManager.exitScope();
-        promoteManager.exitScope();
+        _overrideManager.exitScope();
+        _promoteManager.exitScope();
       }
     }
     Expression elseExpression = node.elseExpression;
     if (elseExpression != null) {
       try {
-        overrideManager.enterScope();
+        _overrideManager.enterScope();
         propagateFalseState(condition);
         elseExpression.accept(this);
       } finally {
-        overrideManager.exitScope();
+        _overrideManager.exitScope();
       }
     }
     node.accept(_elementResolver);
@@ -8133,12 +8240,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    ExecutableElement outerFunction = enclosingFunction;
+    ExecutableElement outerFunction = _enclosingFunction;
     try {
-      enclosingFunction = node.element;
+      _enclosingFunction = node.element;
       super.visitConstructorDeclaration(node);
     } finally {
-      enclosingFunction = outerFunction;
+      _enclosingFunction = outerFunction;
     }
     return null;
   }
@@ -8164,77 +8271,77 @@ class ResolverVisitor extends ScopedVisitor {
 
   Object visitDoStatement(DoStatement node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       super.visitDoStatement(node);
     } finally {
-      overrideManager.exitScope();
+      _overrideManager.exitScope();
     }
     return null;
   }
 
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       super.visitExpressionFunctionBody(node);
     } finally {
-      overrideManager.exitScope();
+      _overrideManager.exitScope();
     }
     return null;
   }
 
   Object visitFieldDeclaration(FieldDeclaration node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       super.visitFieldDeclaration(node);
     } finally {
-      Map<Element, Type2> overrides = overrideManager.captureOverrides(node.fields);
-      overrideManager.exitScope();
-      overrideManager.applyOverrides(overrides);
+      Map<Element, Type2> overrides = _overrideManager.captureOverrides(node.fields);
+      _overrideManager.exitScope();
+      _overrideManager.applyOverrides(overrides);
     }
     return null;
   }
 
   Object visitForEachStatement(ForEachStatement node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       super.visitForEachStatement(node);
     } finally {
-      overrideManager.exitScope();
+      _overrideManager.exitScope();
     }
     return null;
   }
 
   Object visitForStatement(ForStatement node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       super.visitForStatement(node);
     } finally {
-      overrideManager.exitScope();
+      _overrideManager.exitScope();
     }
     return null;
   }
 
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement outerFunction = enclosingFunction;
+    ExecutableElement outerFunction = _enclosingFunction;
     try {
       SimpleIdentifier functionName = node.name;
-      enclosingFunction = functionName.staticElement as ExecutableElement;
+      _enclosingFunction = functionName.staticElement as ExecutableElement;
       super.visitFunctionDeclaration(node);
     } finally {
-      enclosingFunction = outerFunction;
+      _enclosingFunction = outerFunction;
     }
     return null;
   }
 
   Object visitFunctionExpression(FunctionExpression node) {
-    ExecutableElement outerFunction = enclosingFunction;
+    ExecutableElement outerFunction = _enclosingFunction;
     try {
-      enclosingFunction = node.element;
-      overrideManager.enterScope();
+      _enclosingFunction = node.element;
+      _overrideManager.enterScope();
       super.visitFunctionExpression(node);
     } finally {
-      overrideManager.exitScope();
-      enclosingFunction = outerFunction;
+      _overrideManager.exitScope();
+      _enclosingFunction = outerFunction;
     }
     return null;
   }
@@ -8257,29 +8364,29 @@ class ResolverVisitor extends ScopedVisitor {
     Statement thenStatement = node.thenStatement;
     if (thenStatement != null) {
       try {
-        overrideManager.enterScope();
-        promoteManager.enterScope();
+        _overrideManager.enterScope();
+        _promoteManager.enterScope();
         propagateTrueState(condition);
         promoteTypes(condition);
         clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
         clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(thenStatement);
         visitStatementInScope(thenStatement);
       } finally {
-        thenOverrides = overrideManager.captureLocalOverrides();
-        overrideManager.exitScope();
-        promoteManager.exitScope();
+        thenOverrides = _overrideManager.captureLocalOverrides();
+        _overrideManager.exitScope();
+        _promoteManager.exitScope();
       }
     }
     Map<Element, Type2> elseOverrides = null;
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
       try {
-        overrideManager.enterScope();
+        _overrideManager.enterScope();
         propagateFalseState(condition);
         visitStatementInScope(elseStatement);
       } finally {
-        elseOverrides = overrideManager.captureLocalOverrides();
-        overrideManager.exitScope();
+        elseOverrides = _overrideManager.captureLocalOverrides();
+        _overrideManager.exitScope();
       }
     }
     node.accept(_elementResolver);
@@ -8289,12 +8396,12 @@ class ResolverVisitor extends ScopedVisitor {
     if (elseIsAbrupt && !thenIsAbrupt) {
       propagateTrueState(condition);
       if (thenOverrides != null) {
-        overrideManager.applyOverrides(thenOverrides);
+        _overrideManager.applyOverrides(thenOverrides);
       }
     } else if (thenIsAbrupt && !elseIsAbrupt) {
       propagateFalseState(condition);
       if (elseOverrides != null) {
-        overrideManager.applyOverrides(elseOverrides);
+        _overrideManager.applyOverrides(elseOverrides);
       }
     }
     return null;
@@ -8305,12 +8412,12 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitLibraryIdentifier(LibraryIdentifier node) => null;
 
   Object visitMethodDeclaration(MethodDeclaration node) {
-    ExecutableElement outerFunction = enclosingFunction;
+    ExecutableElement outerFunction = _enclosingFunction;
     try {
-      enclosingFunction = node.element;
+      _enclosingFunction = node.element;
       super.visitMethodDeclaration(node);
     } finally {
-      enclosingFunction = outerFunction;
+      _enclosingFunction = outerFunction;
     }
     return null;
   }
@@ -8363,32 +8470,32 @@ class ResolverVisitor extends ScopedVisitor {
 
   Object visitSwitchCase(SwitchCase node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       super.visitSwitchCase(node);
     } finally {
-      overrideManager.exitScope();
+      _overrideManager.exitScope();
     }
     return null;
   }
 
   Object visitSwitchDefault(SwitchDefault node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       super.visitSwitchDefault(node);
     } finally {
-      overrideManager.exitScope();
+      _overrideManager.exitScope();
     }
     return null;
   }
 
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     try {
-      overrideManager.enterScope();
+      _overrideManager.enterScope();
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      Map<Element, Type2> overrides = overrideManager.captureOverrides(node.variables);
-      overrideManager.exitScope();
-      overrideManager.applyOverrides(overrides);
+      Map<Element, Type2> overrides = _overrideManager.captureOverrides(node.variables);
+      _overrideManager.exitScope();
+      _overrideManager.applyOverrides(overrides);
     }
     return null;
   }
@@ -8401,17 +8508,33 @@ class ResolverVisitor extends ScopedVisitor {
     Statement body = node.body;
     if (body != null) {
       try {
-        overrideManager.enterScope();
+        _overrideManager.enterScope();
         propagateTrueState(condition);
         visitStatementInScope(body);
       } finally {
-        overrideManager.exitScope();
+        _overrideManager.exitScope();
       }
     }
     node.accept(_elementResolver);
     node.accept(_typeAnalyzer);
     return null;
   }
+
+  /**
+   * Return the class element representing the class containing the current node, or `null` if
+   * the current node is not contained in a class.
+   *
+   * @return the class element representing the class containing the current node
+   */
+  ClassElement get enclosingClass => _enclosingClass;
+
+  /**
+   * Return the element representing the function containing the current node, or `null` if
+   * the current node is not contained in a function.
+   *
+   * @return the element representing the function containing the current node
+   */
+  ExecutableElement get enclosingFunction => _enclosingFunction;
 
   /**
    * Return the propagated element associated with the given expression whose type can be
@@ -8526,7 +8649,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     Type2 currentType = getBestType(element);
     if (currentType == null || !currentType.isMoreSpecificThan(potentialType)) {
-      overrideManager.setType(element, potentialType);
+      _overrideManager.setType(element, potentialType);
     }
   }
 
@@ -8539,7 +8662,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportErrorProxyConditionalAnalysisError(Element enclosingElement, ErrorCode errorCode, ASTNode node, List<Object> arguments) {
-    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments)));
+    _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, node.offset, node.length, errorCode, arguments)));
   }
 
   /**
@@ -8552,7 +8675,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportErrorProxyConditionalAnalysisError2(Element enclosingElement, ErrorCode errorCode, int offset, int length, List<Object> arguments) {
-    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, offset, length, errorCode, arguments)));
+    _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, offset, length, errorCode, arguments)));
   }
 
   /**
@@ -8564,7 +8687,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportErrorProxyConditionalAnalysisError3(Element enclosingElement, ErrorCode errorCode, sc.Token token, List<Object> arguments) {
-    proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments)));
+    _proxyConditionalAnalysisErrors.add(new ProxyConditionalAnalysisError(enclosingElement, new AnalysisError.con2(source, token.offset, token.length, errorCode, arguments)));
   }
 
   void visitForEachStatementInScope(ForEachStatement node) {
@@ -8577,7 +8700,7 @@ class ResolverVisitor extends ScopedVisitor {
     Statement body = node.body;
     if (body != null) {
       try {
-        overrideManager.enterScope();
+        _overrideManager.enterScope();
         if (loopVariable != null && iterator != null) {
           LocalVariableElement loopElement = loopVariable.element;
           if (loopElement != null) {
@@ -8595,7 +8718,7 @@ class ResolverVisitor extends ScopedVisitor {
         }
         visitStatementInScope(body);
       } finally {
-        overrideManager.exitScope();
+        _overrideManager.exitScope();
       }
     }
     node.accept(_elementResolver);
@@ -8606,13 +8729,13 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.variables);
     safelyVisit(node.initialization);
     safelyVisit(node.condition);
-    overrideManager.enterScope();
+    _overrideManager.enterScope();
     try {
       propagateTrueState(node.condition);
       visitStatementInScope(node.body);
       node.updaters.accept(this);
     } finally {
-      overrideManager.exitScope();
+      _overrideManager.exitScope();
     }
   }
 
@@ -8624,10 +8747,10 @@ class ResolverVisitor extends ScopedVisitor {
    * <i>v</i> is not potentially mutated anywhere in the scope of <i>v</i>.
    */
   void clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(ASTNode target) {
-    for (Element element in promoteManager.promotedElements) {
+    for (Element element in _promoteManager.promotedElements) {
       if ((element as VariableElementImpl).isPotentiallyMutatedInScope) {
         if (isVariableAccessedInClosure(element, target)) {
-          promoteManager.setType(element, null);
+          _promoteManager.setType(element, null);
         }
       }
     }
@@ -8640,9 +8763,9 @@ class ResolverVisitor extends ScopedVisitor {
    * <i>v</i> is not potentially mutated in <i>s<sub>1</sub></i> or within a closure.
    */
   void clearTypePromotionsIfPotentiallyMutatedIn(ASTNode target) {
-    for (Element element in promoteManager.promotedElements) {
+    for (Element element in _promoteManager.promotedElements) {
       if (isVariablePotentiallyMutatedIn(element, target)) {
-        promoteManager.setType(element, null);
+        _promoteManager.setType(element, null);
       }
     }
   }
@@ -8655,7 +8778,7 @@ class ResolverVisitor extends ScopedVisitor {
    * @return the best type information available for the given element
    */
   Type2 getBestType(Element element) {
-    Type2 bestType = overrideManager.getType(element);
+    Type2 bestType = _overrideManager.getType(element);
     if (bestType == null) {
       if (element is LocalVariableElement) {
         bestType = (element as LocalVariableElement).type;
@@ -8717,7 +8840,7 @@ class ResolverVisitor extends ScopedVisitor {
       Type2 currentType = getBestType(element);
       Type2 expectedType = expectedParameters[i].type;
       if (currentType == null || expectedType.isMoreSpecificThan(currentType)) {
-        overrideManager.setType(element, expectedType);
+        _overrideManager.setType(element, expectedType);
       }
     }
   }
@@ -8818,7 +8941,7 @@ class ResolverVisitor extends ScopedVisitor {
       if ((element as VariableElementImpl).isPotentiallyMutatedInClosure) {
         return;
       }
-      Type2 type = promoteManager.getType(element);
+      Type2 type = _promoteManager.getType(element);
       if (type == null) {
         type = expression.staticType;
       }
@@ -8831,7 +8954,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (!potentialType.isMoreSpecificThan(type)) {
         return;
       }
-      promoteManager.setType(element, potentialType);
+      _promoteManager.setType(element, potentialType);
     }
   }
 
@@ -8939,21 +9062,21 @@ class ResolverVisitor extends ScopedVisitor {
 
   set elementResolver_J2DAccessor(__v) => _elementResolver = __v;
 
-  get labelScope_J2DAccessor => labelScope;
+  get labelScope_J2DAccessor => _labelScope;
 
-  set labelScope_J2DAccessor(__v) => labelScope = __v;
+  set labelScope_J2DAccessor(__v) => _labelScope = __v;
 
-  get nameScope_J2DAccessor => nameScope;
+  get nameScope_J2DAccessor => _nameScope;
 
-  set nameScope_J2DAccessor(__v) => nameScope = __v;
+  set nameScope_J2DAccessor(__v) => _nameScope = __v;
 
   get typeAnalyzer_J2DAccessor => _typeAnalyzer;
 
   set typeAnalyzer_J2DAccessor(__v) => _typeAnalyzer = __v;
 
-  get enclosingClass_J2DAccessor => enclosingClass;
+  get enclosingClass_J2DAccessor => _enclosingClass;
 
-  set enclosingClass_J2DAccessor(__v) => enclosingClass = __v;
+  set enclosingClass_J2DAccessor(__v) => _enclosingClass = __v;
 }
 
 class RecursiveASTVisitor_8 extends RecursiveASTVisitor<Object> {
@@ -9016,12 +9139,12 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
   /**
    * The element for the library containing the compilation unit being visited.
    */
-  LibraryElement definingLibrary;
+  LibraryElement _definingLibrary;
 
   /**
    * The source representing the compilation unit being visited.
    */
-  Source source;
+  final Source source;
 
   /**
    * The error listener that will be informed of any errors that are found during resolution.
@@ -9031,18 +9154,18 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
   /**
    * The scope used to resolve identifiers.
    */
-  Scope nameScope;
+  Scope _nameScope;
 
   /**
    * The object used to access the types from the core library.
    */
-  TypeProvider typeProvider;
+  final TypeProvider typeProvider;
 
   /**
    * The scope used to resolve labels for `break` and `continue` statements, or
    * `null` if no labels have been defined in the current context.
    */
-  LabelScope labelScope;
+  LabelScope _labelScope;
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -9051,13 +9174,11 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
    * @param source the source representing the compilation unit being visited
    * @param typeProvider the object used to access the types from the core library
    */
-  ScopedVisitor.con1(Library library, Source source, TypeProvider typeProvider) {
-    this.definingLibrary = library.libraryElement;
-    this.source = source;
+  ScopedVisitor.con1(Library library, this.source, this.typeProvider) {
+    this._definingLibrary = library.libraryElement;
     LibraryScope libraryScope = library.libraryScope;
     this._errorListener = libraryScope.errorListener;
-    this.nameScope = libraryScope;
-    this.typeProvider = typeProvider;
+    this._nameScope = libraryScope;
   }
 
   /**
@@ -9070,12 +9191,10 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
    */
-  ScopedVisitor.con2(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, AnalysisErrorListener errorListener) {
-    this.definingLibrary = definingLibrary;
-    this.source = source;
+  ScopedVisitor.con2(LibraryElement definingLibrary, this.source, this.typeProvider, AnalysisErrorListener errorListener) {
+    this._definingLibrary = definingLibrary;
     this._errorListener = errorListener;
-    this.nameScope = new LibraryScope(definingLibrary, errorListener);
-    this.typeProvider = typeProvider;
+    this._nameScope = new LibraryScope(definingLibrary, errorListener);
   }
 
   /**
@@ -9089,13 +9208,18 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
    * @param errorListener the error listener that will be informed of any errors that are found
    *          during resolution
    */
-  ScopedVisitor.con3(LibraryElement definingLibrary, Source source, TypeProvider typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
-    this.definingLibrary = definingLibrary;
-    this.source = source;
+  ScopedVisitor.con3(LibraryElement definingLibrary, this.source, this.typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
+    this._definingLibrary = definingLibrary;
     this._errorListener = errorListener;
-    this.nameScope = nameScope;
-    this.typeProvider = typeProvider;
+    this._nameScope = nameScope;
   }
+
+  /**
+   * Return the library element for the library containing the compilation unit being resolved.
+   *
+   * @return the library element for the library containing the compilation unit being resolved
+   */
+  LibraryElement get definingLibrary => _definingLibrary;
 
   /**
    * Report an error with the given analysis error.
@@ -9107,14 +9231,14 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
   }
 
   Object visitBlock(Block node) {
-    Scope outerScope = nameScope;
+    Scope outerScope = _nameScope;
     try {
-      EnclosedScope enclosedScope = new EnclosedScope(nameScope);
+      EnclosedScope enclosedScope = new EnclosedScope(_nameScope);
       hideNamesDefinedInBlock(enclosedScope, node);
-      nameScope = enclosedScope;
+      _nameScope = enclosedScope;
       super.visitBlock(node);
     } finally {
-      nameScope = outerScope;
+      _nameScope = outerScope;
     }
     return null;
   }
@@ -9122,17 +9246,17 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exception = node.exceptionParameter;
     if (exception != null) {
-      Scope outerScope = nameScope;
+      Scope outerScope = _nameScope;
       try {
-        nameScope = new EnclosedScope(nameScope);
-        nameScope.define(exception.staticElement);
+        _nameScope = new EnclosedScope(_nameScope);
+        _nameScope.define(exception.staticElement);
         SimpleIdentifier stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
-          nameScope.define(stackTrace.staticElement);
+          _nameScope.define(stackTrace.staticElement);
         }
         super.visitCatchClause(node);
       } finally {
-        nameScope = outerScope;
+        _nameScope = outerScope;
       }
     } else {
       super.visitCatchClause(node);
@@ -9141,34 +9265,34 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
   }
 
   Object visitClassDeclaration(ClassDeclaration node) {
-    Scope outerScope = nameScope;
+    Scope outerScope = _nameScope;
     try {
-      nameScope = new ClassScope(nameScope, node.element);
+      _nameScope = new ClassScope(_nameScope, node.element);
       super.visitClassDeclaration(node);
     } finally {
-      nameScope = outerScope;
+      _nameScope = outerScope;
     }
     return null;
   }
 
   Object visitClassTypeAlias(ClassTypeAlias node) {
-    Scope outerScope = nameScope;
+    Scope outerScope = _nameScope;
     try {
-      nameScope = new ClassScope(nameScope, node.element);
+      _nameScope = new ClassScope(_nameScope, node.element);
       super.visitClassTypeAlias(node);
     } finally {
-      nameScope = outerScope;
+      _nameScope = outerScope;
     }
     return null;
   }
 
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    Scope outerScope = nameScope;
+    Scope outerScope = _nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, node.element);
+      _nameScope = new FunctionScope(_nameScope, node.element);
       super.visitConstructorDeclaration(node);
     } finally {
-      nameScope = outerScope;
+      _nameScope = outerScope;
     }
     return null;
   }
@@ -9176,74 +9300,74 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     VariableElement element = node.element;
     if (element != null) {
-      nameScope.define(element);
+      _nameScope.define(element);
     }
     super.visitDeclaredIdentifier(node);
     return null;
   }
 
   Object visitDoStatement(DoStatement node) {
-    LabelScope outerLabelScope = labelScope;
+    LabelScope outerLabelScope = _labelScope;
     try {
-      labelScope = new LabelScope.con1(labelScope, false, false);
+      _labelScope = new LabelScope.con1(_labelScope, false, false);
       visitStatementInScope(node.body);
       safelyVisit(node.condition);
     } finally {
-      labelScope = outerLabelScope;
+      _labelScope = outerLabelScope;
     }
     return null;
   }
 
   Object visitForEachStatement(ForEachStatement node) {
-    Scope outerNameScope = nameScope;
-    LabelScope outerLabelScope = labelScope;
+    Scope outerNameScope = _nameScope;
+    LabelScope outerLabelScope = _labelScope;
     try {
-      nameScope = new EnclosedScope(nameScope);
-      labelScope = new LabelScope.con1(outerLabelScope, false, false);
+      _nameScope = new EnclosedScope(_nameScope);
+      _labelScope = new LabelScope.con1(outerLabelScope, false, false);
       visitForEachStatementInScope(node);
     } finally {
-      labelScope = outerLabelScope;
-      nameScope = outerNameScope;
+      _labelScope = outerLabelScope;
+      _nameScope = outerNameScope;
     }
     return null;
   }
 
   Object visitFormalParameterList(FormalParameterList node) {
     super.visitFormalParameterList(node);
-    if (nameScope is FunctionScope) {
-      (nameScope as FunctionScope).defineParameters();
+    if (_nameScope is FunctionScope) {
+      (_nameScope as FunctionScope).defineParameters();
     }
-    if (nameScope is FunctionTypeScope) {
-      (nameScope as FunctionTypeScope).defineParameters();
+    if (_nameScope is FunctionTypeScope) {
+      (_nameScope as FunctionTypeScope).defineParameters();
     }
     return null;
   }
 
   Object visitForStatement(ForStatement node) {
-    Scope outerNameScope = nameScope;
-    LabelScope outerLabelScope = labelScope;
+    Scope outerNameScope = _nameScope;
+    LabelScope outerLabelScope = _labelScope;
     try {
-      nameScope = new EnclosedScope(nameScope);
-      labelScope = new LabelScope.con1(outerLabelScope, false, false);
+      _nameScope = new EnclosedScope(_nameScope);
+      _labelScope = new LabelScope.con1(outerLabelScope, false, false);
       visitForStatementInScope(node);
     } finally {
-      labelScope = outerLabelScope;
-      nameScope = outerNameScope;
+      _labelScope = outerLabelScope;
+      _nameScope = outerNameScope;
     }
     return null;
   }
 
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement function = node.element;
-    Scope outerScope = nameScope;
+    Scope outerScope = _nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, function);
+      _nameScope = new FunctionScope(_nameScope, function);
       super.visitFunctionDeclaration(node);
     } finally {
-      nameScope = outerScope;
+      _nameScope = outerScope;
     }
     if (function.enclosingElement is! CompilationUnitElement) {
-      nameScope.define(function);
+      _nameScope.define(function);
     }
     return null;
   }
@@ -9252,28 +9376,28 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
     if (node.parent is FunctionDeclaration) {
       super.visitFunctionExpression(node);
     } else {
-      Scope outerScope = nameScope;
+      Scope outerScope = _nameScope;
       try {
         ExecutableElement functionElement = node.element;
         if (functionElement == null) {
         } else {
-          nameScope = new FunctionScope(nameScope, functionElement);
+          _nameScope = new FunctionScope(_nameScope, functionElement);
         }
         super.visitFunctionExpression(node);
       } finally {
-        nameScope = outerScope;
+        _nameScope = outerScope;
       }
     }
     return null;
   }
 
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    Scope outerScope = nameScope;
+    Scope outerScope = _nameScope;
     try {
-      nameScope = new FunctionTypeScope(nameScope, node.element);
+      _nameScope = new FunctionTypeScope(_nameScope, node.element);
       super.visitFunctionTypeAlias(node);
     } finally {
-      nameScope = outerScope;
+      _nameScope = outerScope;
     }
     return null;
   }
@@ -9290,59 +9414,59 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
     try {
       super.visitLabeledStatement(node);
     } finally {
-      labelScope = outerScope;
+      _labelScope = outerScope;
     }
     return null;
   }
 
   Object visitMethodDeclaration(MethodDeclaration node) {
-    Scope outerScope = nameScope;
+    Scope outerScope = _nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, node.element);
+      _nameScope = new FunctionScope(_nameScope, node.element);
       super.visitMethodDeclaration(node);
     } finally {
-      nameScope = outerScope;
+      _nameScope = outerScope;
     }
     return null;
   }
 
   Object visitSwitchCase(SwitchCase node) {
     node.expression.accept(this);
-    Scope outerNameScope = nameScope;
+    Scope outerNameScope = _nameScope;
     try {
-      nameScope = new EnclosedScope(nameScope);
+      _nameScope = new EnclosedScope(_nameScope);
       node.statements.accept(this);
     } finally {
-      nameScope = outerNameScope;
+      _nameScope = outerNameScope;
     }
     return null;
   }
 
   Object visitSwitchDefault(SwitchDefault node) {
-    Scope outerNameScope = nameScope;
+    Scope outerNameScope = _nameScope;
     try {
-      nameScope = new EnclosedScope(nameScope);
+      _nameScope = new EnclosedScope(_nameScope);
       node.statements.accept(this);
     } finally {
-      nameScope = outerNameScope;
+      _nameScope = outerNameScope;
     }
     return null;
   }
 
   Object visitSwitchStatement(SwitchStatement node) {
-    LabelScope outerScope = labelScope;
+    LabelScope outerScope = _labelScope;
     try {
-      labelScope = new LabelScope.con1(outerScope, true, false);
+      _labelScope = new LabelScope.con1(outerScope, true, false);
       for (SwitchMember member in node.members) {
         for (Label label in member.labels) {
           SimpleIdentifier labelName = label.label;
           LabelElement labelElement = labelName.staticElement as LabelElement;
-          labelScope = new LabelScope.con2(labelScope, labelName.name, labelElement);
+          _labelScope = new LabelScope.con2(_labelScope, labelName.name, labelElement);
         }
       }
       super.visitSwitchStatement(node);
     } finally {
-      labelScope = outerScope;
+      _labelScope = outerScope;
     }
     return null;
   }
@@ -9352,23 +9476,37 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
     if (node.parent.parent is! TopLevelVariableDeclaration && node.parent.parent is! FieldDeclaration) {
       VariableElement element = node.element;
       if (element != null) {
-        nameScope.define(element);
+        _nameScope.define(element);
       }
     }
     return null;
   }
 
   Object visitWhileStatement(WhileStatement node) {
-    LabelScope outerScope = labelScope;
+    LabelScope outerScope = _labelScope;
     try {
-      labelScope = new LabelScope.con1(outerScope, false, false);
+      _labelScope = new LabelScope.con1(outerScope, false, false);
       safelyVisit(node.condition);
       visitStatementInScope(node.body);
     } finally {
-      labelScope = outerScope;
+      _labelScope = outerScope;
     }
     return null;
   }
+
+  /**
+   * Return the label scope in which the current node is being resolved.
+   *
+   * @return the label scope in which the current node is being resolved
+   */
+  LabelScope get labelScope => _labelScope;
+
+  /**
+   * Return the name scope in which the current node is being resolved.
+   *
+   * @return the name scope in which the current node is being resolved
+   */
+  Scope get nameScope => _nameScope;
 
   /**
    * Report an error with the given error code and arguments.
@@ -9454,12 +9592,12 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
     if (node is Block) {
       visitBlock(node as Block);
     } else if (node != null) {
-      Scope outerNameScope = nameScope;
+      Scope outerNameScope = _nameScope;
       try {
-        nameScope = new EnclosedScope(nameScope);
+        _nameScope = new EnclosedScope(_nameScope);
         node.accept(this);
       } finally {
-        nameScope = outerNameScope;
+        _nameScope = outerNameScope;
       }
     }
   }
@@ -9471,12 +9609,12 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
    * @return the scope that was in effect before the new scopes were added
    */
   LabelScope addScopesFor(NodeList<Label> labels) {
-    LabelScope outerScope = labelScope;
+    LabelScope outerScope = _labelScope;
     for (Label label in labels) {
       SimpleIdentifier labelNameNode = label.label;
       String labelName = labelNameNode.name;
       LabelElement labelElement = labelNameNode.staticElement as LabelElement;
-      labelScope = new LabelScope.con2(labelScope, labelName, labelElement);
+      _labelScope = new LabelScope.con2(_labelScope, labelName, labelElement);
     }
     return outerScope;
   }
@@ -12965,7 +13103,7 @@ class EnclosedScope extends Scope {
   /**
    * The scope in which this scope is lexically enclosed.
    */
-  Scope _enclosingScope;
+  final Scope enclosingScope;
 
   /**
    * A table mapping names that will be defined in this scope, but right now are not initialized.
@@ -12975,17 +13113,18 @@ class EnclosedScope extends Scope {
   Map<String, Element> _hiddenElements = new Map<String, Element>();
 
   /**
+   * A flag indicating whether there are any names defined in this scope.
+   */
+  bool _hasHiddenName = false;
+
+  /**
    * Initialize a newly created scope enclosed within another scope.
    *
    * @param enclosingScope the scope in which this scope is lexically enclosed
    */
-  EnclosedScope(Scope enclosingScope) {
-    this._enclosingScope = enclosingScope;
-  }
+  EnclosedScope(this.enclosingScope);
 
-  Scope get enclosingScope => _enclosingScope;
-
-  AnalysisErrorListener get errorListener => _enclosingScope.errorListener;
+  AnalysisErrorListener get errorListener => enclosingScope.errorListener;
 
   /**
    * Record that given element is declared in this scope, but hasn't been initialized yet, so it is
@@ -12999,6 +13138,7 @@ class EnclosedScope extends Scope {
       String name = element.name;
       if (name != null && !name.isEmpty) {
         _hiddenElements[name] = element;
+        _hasHiddenName = true;
       }
     }
   }
@@ -13008,12 +13148,14 @@ class EnclosedScope extends Scope {
     if (element != null) {
       return element;
     }
-    Element hiddenElement = _hiddenElements[name];
-    if (hiddenElement != null) {
-      errorListener.onError(new AnalysisError.con2(getSource(identifier), identifier.offset, identifier.length, CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, []));
-      return hiddenElement;
+    if (_hasHiddenName) {
+      Element hiddenElement = _hiddenElements[name];
+      if (hiddenElement != null) {
+        errorListener.onError(new AnalysisError.con2(getSource(identifier), identifier.offset, identifier.length, CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, []));
+        return hiddenElement;
+      }
     }
-    return _enclosingScope.lookup3(identifier, name, referencingLibrary);
+    return enclosingScope.lookup3(identifier, name, referencingLibrary);
   }
 }
 
@@ -13140,7 +13282,7 @@ class LabelScope {
    * The label element returned for scopes that can be the target of an unlabeled `break` or
    * `continue`.
    */
-  static SimpleIdentifier _EMPTY_LABEL_IDENTIFIER = new SimpleIdentifier.full(new sc.StringToken(sc.TokenType.IDENTIFIER, "", 0));
+  static SimpleIdentifier _EMPTY_LABEL_IDENTIFIER = new SimpleIdentifier(new sc.StringToken(sc.TokenType.IDENTIFIER, "", 0));
 
   /**
    * Initialize a newly created scope to represent the potential target of an unlabeled
@@ -13208,7 +13350,7 @@ class LibraryImportScope extends Scope {
   /**
    * The listener that is to be informed when an error is encountered.
    */
-  AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener errorListener;
 
   /**
    * A list of the namespaces representing the names that are available in this scope from imported
@@ -13223,9 +13365,8 @@ class LibraryImportScope extends Scope {
    *          this scope
    * @param errorListener the listener that is to be informed when an error is encountered
    */
-  LibraryImportScope(LibraryElement definingLibrary, AnalysisErrorListener errorListener) {
+  LibraryImportScope(LibraryElement definingLibrary, this.errorListener) {
     this._definingLibrary = definingLibrary;
-    this._errorListener = errorListener;
     createImportedNamespaces(definingLibrary);
   }
 
@@ -13234,8 +13375,6 @@ class LibraryImportScope extends Scope {
       super.define(element);
     }
   }
-
-  AnalysisErrorListener get errorListener => _errorListener;
 
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) {
     Element foundElement = localLookup(name, referencingLibrary);
@@ -13260,7 +13399,7 @@ class LibraryImportScope extends Scope {
       List<Element> conflictingMembers = (foundElement as MultiplyDefinedElementImpl).conflictingElements;
       String libName1 = getLibraryName(conflictingMembers[0], "");
       String libName2 = getLibraryName(conflictingMembers[1], "");
-      _errorListener.onError(new AnalysisError.con2(getSource(identifier), identifier.offset, identifier.length, StaticWarningCode.AMBIGUOUS_IMPORT, [foundEltName, libName1, libName2]));
+      errorListener.onError(new AnalysisError.con2(getSource(identifier), identifier.offset, identifier.length, StaticWarningCode.AMBIGUOUS_IMPORT, [foundEltName, libName1, libName2]));
       return foundElement;
     }
     if (foundElement != null) {
@@ -13329,7 +13468,7 @@ class LibraryImportScope extends Scope {
     if (sdkElement != null && to > 0) {
       String sdkLibName = getLibraryName(sdkElement, "");
       String otherLibName = getLibraryName(conflictingMembers[0], "");
-      _errorListener.onError(new AnalysisError.con2(getSource(identifier), identifier.offset, identifier.length, StaticWarningCode.CONFLICTING_DART_IMPORT, [name, sdkLibName, otherLibName]));
+      errorListener.onError(new AnalysisError.con2(getSource(identifier), identifier.offset, identifier.length, StaticWarningCode.CONFLICTING_DART_IMPORT, [name, sdkLibName, otherLibName]));
     }
     if (to == length) {
       return foundElement;
@@ -13725,6 +13864,11 @@ abstract class Scope {
   Map<String, Element> _definedNames = new Map<String, Element>();
 
   /**
+   * A flag indicating whether there are any names defined in this scope.
+   */
+  bool _hasName = false;
+
+  /**
    * Add the given element to this scope. If there is already an element with the given name defined
    * in this scope, then an error will be generated and the original element will continue to be
    * mapped to the name. If there is an element with the given name in an enclosing scope, then a
@@ -13739,6 +13883,7 @@ abstract class Scope {
         errorListener.onError(getErrorForDuplicate(_definedNames[name], element));
       } else {
         _definedNames[name] = element;
+        _hasName = true;
       }
     }
   }
@@ -13768,6 +13913,7 @@ abstract class Scope {
    */
   void defineWithoutChecking(Element element) {
     _definedNames[getName(element)] = element;
+    _hasName = true;
   }
 
   /**
@@ -13778,6 +13924,7 @@ abstract class Scope {
    */
   void defineWithoutChecking2(String name, Element element) {
     _definedNames[name] = element;
+    _hasName = true;
   }
 
   /**
@@ -13828,7 +13975,12 @@ abstract class Scope {
    *          implement library-level privacy
    * @return the element with which the given name is associated
    */
-  Element localLookup(String name, LibraryElement referencingLibrary) => _definedNames[name];
+  Element localLookup(String name, LibraryElement referencingLibrary) {
+    if (_hasName) {
+      return _definedNames[name];
+    }
+    return null;
+  }
 
   /**
    * Return the element with which the given name is associated, or `null` if the name is not
@@ -18722,12 +18874,12 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
   /**
    * The type of this error.
    */
-  ErrorType _type;
+  final ErrorType type;
 
   /**
    * The template used to create the message to be displayed for this error.
    */
-  String _message;
+  final String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -18741,10 +18893,7 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
    * @param type the type of this error
    * @param message the message template used to create the message to be displayed for the error
    */
-  ResolverErrorCode.con1(String name, int ordinal, ErrorType type, String message) : super(name, ordinal) {
-    this._type = type;
-    this._message = message;
-  }
+  ResolverErrorCode.con1(String name, int ordinal, this.type, this.message) : super(name, ordinal);
 
   /**
    * Initialize a newly created error code to have the given type, message and correction.
@@ -18753,17 +18902,11 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  ResolverErrorCode.con2(String name, int ordinal, ErrorType type, String message, String correction) : super(name, ordinal) {
-    this._type = type;
-    this._message = message;
+  ResolverErrorCode.con2(String name, int ordinal, this.type, this.message, String correction) : super(name, ordinal) {
     this.correction9 = correction;
   }
 
   String get correction => correction9;
 
-  ErrorSeverity get errorSeverity => _type.severity;
-
-  String get message => _message;
-
-  ErrorType get type => _type;
+  ErrorSeverity get errorSeverity => type.severity;
 }

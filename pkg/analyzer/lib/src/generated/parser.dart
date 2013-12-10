@@ -24,12 +24,12 @@ class CommentAndMetadata {
   /**
    * The documentation comment that was parsed, or `null` if none was given.
    */
-  Comment comment;
+  final Comment comment;
 
   /**
    * The metadata that was parsed.
    */
-  List<Annotation> metadata;
+  final List<Annotation> metadata;
 
   /**
    * Initialize a newly created holder with the given data.
@@ -37,10 +37,7 @@ class CommentAndMetadata {
    * @param comment the documentation comment that was parsed
    * @param metadata the metadata that was parsed
    */
-  CommentAndMetadata(Comment comment, List<Annotation> metadata) {
-    this.comment = comment;
-    this.metadata = metadata;
-  }
+  CommentAndMetadata(this.comment, this.metadata);
 }
 
 /**
@@ -53,12 +50,12 @@ class FinalConstVarOrType {
   /**
    * The 'final', 'const' or 'var' keyword, or `null` if none was given.
    */
-  Token keyword;
+  final Token keyword;
 
   /**
    * The type, of `null` if no type was specified.
    */
-  TypeName type;
+  final TypeName type;
 
   /**
    * Initialize a newly created holder with the given data.
@@ -66,10 +63,7 @@ class FinalConstVarOrType {
    * @param keyword the 'final', 'const' or 'var' keyword
    * @param type the type
    */
-  FinalConstVarOrType(Token keyword, TypeName type) {
-    this.keyword = keyword;
-    this.type = type;
-  }
+  FinalConstVarOrType(this.keyword, this.type);
 }
 
 /**
@@ -1148,6 +1142,11 @@ class IncrementalParser {
   AnalysisErrorListener _errorListener;
 
   /**
+   * The node in the AST structure that contains the revised content.
+   */
+  ASTNode _updatedNode;
+
+  /**
    * Initialize a newly created incremental parser to parse a portion of the content of the given
    * source.
    *
@@ -1161,6 +1160,13 @@ class IncrementalParser {
     this._tokenMap = tokenMap;
     this._errorListener = errorListener;
   }
+
+  /**
+   * Return the node in the AST structure that contains the revised content.
+   *
+   * @return the updated node
+   */
+  ASTNode get updatedNode => _updatedNode;
 
   /**
    * Given a range of tokens that were re-scanned, re-parse the minimum number of tokens to produce
@@ -1221,6 +1227,7 @@ class IncrementalParser {
         parser.currentToken = parseToken;
       }
     }
+    _updatedNode = newNode;
     if (identical(oldNode, originalStructure)) {
       ResolutionCopier.copyResolutionData(oldNode, newNode);
       return newNode as ASTNode;
@@ -1255,10 +1262,7 @@ class IncrementalParser {
     while (firstToken.offset > offset && firstToken.type != TokenType.EOF) {
       firstToken = firstToken.previous;
     }
-    if (firstToken.offset == offset) {
-      return firstToken;
-    }
-    return null;
+    return firstToken;
   }
 }
 
@@ -1450,7 +1454,7 @@ class Parser {
     if (matches5(TokenType.OPEN_PAREN)) {
       arguments = parseArgumentList();
     }
-    return new Annotation.full(atSign, name, period, constructorName, arguments);
+    return new Annotation(atSign, name, period, constructorName, arguments);
   }
 
   /**
@@ -1469,7 +1473,7 @@ class Parser {
    */
   Expression parseArgument() {
     if (matchesIdentifier() && matches4(peek(), TokenType.COLON)) {
-      return new NamedExpression.full(parseLabel(), parseExpression2());
+      return new NamedExpression(parseLabel(), parseExpression2());
     } else {
       return parseExpression2();
     }
@@ -1493,7 +1497,7 @@ class Parser {
     Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
     List<Expression> arguments = new List<Expression>();
     if (matches5(TokenType.CLOSE_PAREN)) {
-      return new ArgumentList.full(leftParenthesis, arguments, andAdvance);
+      return new ArgumentList(leftParenthesis, arguments, andAdvance);
     }
     Expression argument = parseArgument();
     arguments.add(argument);
@@ -1512,7 +1516,7 @@ class Parser {
       }
     }
     Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
-    return new ArgumentList.full(leftParenthesis, arguments, rightParenthesis);
+    return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
   }
 
   /**
@@ -1529,13 +1533,13 @@ class Parser {
   Expression parseBitwiseOrExpression() {
     Expression expression;
     if (matches(Keyword.SUPER) && matches4(peek(), TokenType.BAR)) {
-      expression = new SuperExpression.full(andAdvance);
+      expression = new SuperExpression(andAdvance);
     } else {
       expression = parseBitwiseXorExpression();
     }
     while (matches5(TokenType.BAR)) {
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseBitwiseXorExpression());
+      expression = new BinaryExpression(expression, operator, parseBitwiseXorExpression());
     }
     return expression;
   }
@@ -1566,7 +1570,7 @@ class Parser {
       statementStart = _currentToken;
     }
     Token rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
-    return new Block.full(leftBracket, statements, rightBracket);
+    return new Block(leftBracket, statements, rightBracket);
   }
 
   /**
@@ -1714,7 +1718,7 @@ class Parser {
     Token firstToken = _currentToken;
     ScriptTag scriptTag = null;
     if (matches5(TokenType.SCRIPT_TAG)) {
-      scriptTag = new ScriptTag.full(andAdvance);
+      scriptTag = new ScriptTag(andAdvance);
     }
     bool libraryDirectiveFound = false;
     bool partOfDirectiveFound = false;
@@ -1783,7 +1787,7 @@ class Parser {
       }
       memberStart = _currentToken;
     }
-    return new CompilationUnit.full(firstToken, scriptTag, directives, declarations, _currentToken);
+    return new CompilationUnit(firstToken, scriptTag, directives, declarations, _currentToken);
   }
 
   /**
@@ -1805,7 +1809,7 @@ class Parser {
     Expression thenExpression = parseExpressionWithoutCascade();
     Token colon = expect2(TokenType.COLON);
     Expression elseExpression = parseExpressionWithoutCascade();
-    return new ConditionalExpression.full(condition, question, thenExpression, colon, elseExpression);
+    return new ConditionalExpression(condition, question, thenExpression, colon, elseExpression);
   }
 
   /**
@@ -1826,7 +1830,7 @@ class Parser {
       period = andAdvance;
       name = parseSimpleIdentifier();
     }
-    return new ConstructorName.full(type, period, name);
+    return new ConstructorName(type, period, name);
   }
 
   /**
@@ -1858,11 +1862,11 @@ class Parser {
         }
         tokenType = _currentToken.type;
       }
-      return new CascadeExpression.full(expression, cascadeSections);
+      return new CascadeExpression(expression, cascadeSections);
     } else if (tokenType.isAssignmentOperator) {
       Token operator = andAdvance;
       ensureAssignable(expression);
-      return new AssignmentExpression.full(expression, operator, parseExpression2());
+      return new AssignmentExpression(expression, operator, parseExpression2());
     }
     return expression;
   }
@@ -1889,7 +1893,7 @@ class Parser {
     if (_currentToken.type.isAssignmentOperator) {
       Token operator = andAdvance;
       ensureAssignable(expression);
-      expression = new AssignmentExpression.full(expression, operator, parseExpressionWithoutCascade());
+      expression = new AssignmentExpression(expression, operator, parseExpressionWithoutCascade());
     }
     return expression;
   }
@@ -1907,7 +1911,7 @@ class Parser {
   ExtendsClause parseExtendsClause() {
     Token keyword = expect(Keyword.EXTENDS);
     TypeName superclass = parseTypeName();
-    return new ExtendsClause.full(keyword, superclass);
+    return new ExtendsClause(keyword, superclass);
   }
 
   /**
@@ -1938,7 +1942,7 @@ class Parser {
   FormalParameterList parseFormalParameterList() {
     Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
     if (matches5(TokenType.CLOSE_PAREN)) {
-      return new FormalParameterList.full(leftParenthesis, null, null, null, andAdvance);
+      return new FormalParameterList(leftParenthesis, null, null, null, andAdvance);
     }
     List<FormalParameter> parameters = new List<FormalParameter>();
     List<FormalParameter> normalParameters = new List<FormalParameter>();
@@ -2042,7 +2046,7 @@ class Parser {
     if (rightSquareBracket == null) {
       rightSquareBracket = rightCurlyBracket;
     }
-    return new FormalParameterList.full(leftParenthesis, parameters, leftSquareBracket, rightSquareBracket, rightParenthesis);
+    return new FormalParameterList(leftParenthesis, parameters, leftSquareBracket, rightSquareBracket, rightParenthesis);
   }
 
   /**
@@ -2059,7 +2063,7 @@ class Parser {
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
-    return new FunctionExpression.full(parameters, body);
+    return new FunctionExpression(parameters, body);
   }
 
   /**
@@ -2079,7 +2083,7 @@ class Parser {
     while (optional(TokenType.COMMA)) {
       interfaces.add(parseTypeName());
     }
-    return new ImplementsClause.full(keyword, interfaces);
+    return new ImplementsClause(keyword, interfaces);
   }
 
   /**
@@ -2095,7 +2099,7 @@ class Parser {
   Label parseLabel() {
     SimpleIdentifier label = parseSimpleIdentifier();
     Token colon = expect2(TokenType.COLON);
-    return new Label.full(label, colon);
+    return new Label(label, colon);
   }
 
   /**
@@ -2115,7 +2119,7 @@ class Parser {
       advance();
       components.add(parseSimpleIdentifier());
     }
-    return new LibraryIdentifier.full(components);
+    return new LibraryIdentifier(components);
   }
 
   /**
@@ -2132,7 +2136,7 @@ class Parser {
     Expression expression = parseLogicalAndExpression();
     while (matches5(TokenType.BAR_BAR)) {
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseLogicalAndExpression());
+      expression = new BinaryExpression(expression, operator, parseLogicalAndExpression());
     }
     return expression;
   }
@@ -2151,7 +2155,7 @@ class Parser {
     Expression key = parseExpression2();
     Token separator = expect2(TokenType.COLON);
     Expression value = parseExpression2();
-    return new MapLiteralEntry.full(key, separator, value);
+    return new MapLiteralEntry(key, separator, value);
   }
 
   /**
@@ -2192,9 +2196,9 @@ class Parser {
         if (holder.keyword != null) {
           reportError11(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword, []);
         }
-        return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
+        return new FunctionTypedFormalParameter(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
       } else {
-        return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier, parameters);
+        return new FieldFormalParameter(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier, parameters);
       }
     }
     TypeName type = holder.type;
@@ -2206,9 +2210,9 @@ class Parser {
       }
     }
     if (thisKeyword != null) {
-      return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier, null);
+      return new FieldFormalParameter(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier, null);
     }
-    return new SimpleFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, identifier);
+    return new SimpleFormalParameter(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, identifier);
   }
 
   /**
@@ -2228,7 +2232,7 @@ class Parser {
     }
     Token period = andAdvance;
     SimpleIdentifier qualified = parseSimpleIdentifier();
-    return new PrefixedIdentifier.full(qualifier, period, qualified);
+    return new PrefixedIdentifier(qualifier, period, qualified);
   }
 
   /**
@@ -2244,7 +2248,7 @@ class Parser {
    */
   TypeName parseReturnType() {
     if (matches(Keyword.VOID)) {
-      return new TypeName.full(new SimpleIdentifier.full(andAdvance), null);
+      return new TypeName(new SimpleIdentifier(andAdvance), null);
     } else {
       return parseTypeName();
     }
@@ -2262,7 +2266,7 @@ class Parser {
    */
   SimpleIdentifier parseSimpleIdentifier() {
     if (matchesIdentifier()) {
-      return new SimpleIdentifier.full(andAdvance);
+      return new SimpleIdentifier(andAdvance);
     }
     reportError10(ParserErrorCode.MISSING_IDENTIFIER, []);
     return createSyntheticIdentifier();
@@ -2287,7 +2291,7 @@ class Parser {
     if (labels.isEmpty) {
       return statement;
     }
-    return new LabeledStatement.full(labels, statement);
+    return new LabeledStatement(labels, statement);
   }
 
   /**
@@ -2308,7 +2312,7 @@ class Parser {
       if (matches5(TokenType.STRING_INTERPOLATION_EXPRESSION) || matches5(TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
         strings.add(parseStringInterpolation(string));
       } else {
-        strings.add(new SimpleStringLiteral.full(string, computeStringValue(string.lexeme, true, true)));
+        strings.add(new SimpleStringLiteral(string, computeStringValue(string.lexeme, true, true)));
       }
     }
     if (strings.length < 1) {
@@ -2317,7 +2321,7 @@ class Parser {
     } else if (strings.length == 1) {
       return strings[0];
     } else {
-      return new AdjacentStrings.full(strings);
+      return new AdjacentStrings(strings);
     }
   }
 
@@ -2342,7 +2346,7 @@ class Parser {
       arguments.add(parseTypeName());
     }
     Token rightBracket = expect2(TokenType.GT);
-    return new TypeArgumentList.full(leftBracket, arguments, rightBracket);
+    return new TypeArgumentList(leftBracket, arguments, rightBracket);
   }
 
   /**
@@ -2359,7 +2363,7 @@ class Parser {
     Identifier typeName;
     if (matches(Keyword.VAR)) {
       reportError10(ParserErrorCode.VAR_AS_TYPE_NAME, []);
-      typeName = new SimpleIdentifier.full(andAdvance);
+      typeName = new SimpleIdentifier(andAdvance);
     } else if (matchesIdentifier()) {
       typeName = parsePrefixedIdentifier();
     } else {
@@ -2370,7 +2374,7 @@ class Parser {
     if (matches5(TokenType.LT)) {
       typeArguments = parseTypeArgumentList();
     }
-    return new TypeName.full(typeName, typeArguments);
+    return new TypeName(typeName, typeArguments);
   }
 
   /**
@@ -2389,9 +2393,9 @@ class Parser {
     if (matches(Keyword.EXTENDS)) {
       Token keyword = andAdvance;
       TypeName bound = parseTypeName();
-      return new TypeParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, name, keyword, bound);
+      return new TypeParameter(commentAndMetadata.comment, commentAndMetadata.metadata, name, keyword, bound);
     }
-    return new TypeParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, name, null, null);
+    return new TypeParameter(commentAndMetadata.comment, commentAndMetadata.metadata, name, null, null);
   }
 
   /**
@@ -2412,7 +2416,7 @@ class Parser {
       typeParameters.add(parseTypeParameter());
     }
     Token rightBracket = expect2(TokenType.GT);
-    return new TypeParameterList.full(leftBracket, typeParameters, rightBracket);
+    return new TypeParameterList(leftBracket, typeParameters, rightBracket);
   }
 
   /**
@@ -2432,7 +2436,7 @@ class Parser {
     while (optional(TokenType.COMMA)) {
       types.add(parseTypeName());
     }
-    return new WithClause.full(with2, types);
+    return new WithClause(with2, types);
   }
 
   void set currentToken(Token currentToken) {
@@ -2523,7 +2527,7 @@ class Parser {
    * @return the function declaration that most closely captures the components of the given method
    *         declaration
    */
-  FunctionDeclaration convertToFunctionDeclaration(MethodDeclaration method) => new FunctionDeclaration.full(method.documentationComment, method.metadata, method.externalKeyword, method.returnType, method.propertyKeyword, method.name, new FunctionExpression.full(method.parameters, method.body));
+  FunctionDeclaration convertToFunctionDeclaration(MethodDeclaration method) => new FunctionDeclaration(method.documentationComment, method.metadata, method.externalKeyword, method.returnType, method.propertyKeyword, method.name, new FunctionExpression(method.parameters, method.body));
 
   /**
    * Return `true` if the current token could be the start of a compilation unit member. This
@@ -2568,7 +2572,7 @@ class Parser {
     } else {
       syntheticToken = createSyntheticToken2(TokenType.IDENTIFIER);
     }
-    return new SimpleIdentifier.full(syntheticToken);
+    return new SimpleIdentifier(syntheticToken);
   }
 
   /**
@@ -2576,7 +2580,7 @@ class Parser {
    *
    * @return the synthetic string literal that was created
    */
-  SimpleStringLiteral createSyntheticStringLiteral() => new SimpleStringLiteral.full(createSyntheticToken2(TokenType.STRING), "");
+  SimpleStringLiteral createSyntheticStringLiteral() => new SimpleStringLiteral(createSyntheticToken2(TokenType.STRING), "");
 
   /**
    * Create a synthetic token representing the given keyword.
@@ -3138,13 +3142,13 @@ class Parser {
   Expression parseAdditiveExpression() {
     Expression expression;
     if (matches(Keyword.SUPER) && _currentToken.next.type.isAdditiveOperator) {
-      expression = new SuperExpression.full(andAdvance);
+      expression = new SuperExpression(andAdvance);
     } else {
       expression = parseMultiplicativeExpression();
     }
     while (_currentToken.type.isAdditiveOperator) {
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseMultiplicativeExpression());
+      expression = new BinaryExpression(expression, operator, parseMultiplicativeExpression());
     }
     return expression;
   }
@@ -3163,7 +3167,7 @@ class Parser {
     Token question = expect2(TokenType.QUESTION);
     SimpleIdentifier identifier = parseSimpleIdentifier();
     reportError11(ParserErrorCode.DEPRECATED_ARGUMENT_DEFINITION_TEST, question, []);
-    return new ArgumentDefinitionTest.full(question, identifier);
+    return new ArgumentDefinitionTest(question, identifier);
   }
 
   /**
@@ -3191,7 +3195,7 @@ class Parser {
     }
     Token rightParen = expect2(TokenType.CLOSE_PAREN);
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new AssertStatement.full(keyword, leftParen, expression, rightParen, semicolon);
+    return new AssertStatement(keyword, leftParen, expression, rightParen, semicolon);
   }
 
   /**
@@ -3210,7 +3214,7 @@ class Parser {
    */
   Expression parseAssignableExpression(bool primaryAllowed) {
     if (matches(Keyword.SUPER)) {
-      return parseAssignableSelector(new SuperExpression.full(andAdvance), false);
+      return parseAssignableSelector(new SuperExpression(andAdvance), false);
     }
     Expression expression = parsePrimaryExpression();
     bool isOptional = primaryAllowed || expression is SimpleIdentifier;
@@ -3218,15 +3222,15 @@ class Parser {
       while (matches5(TokenType.OPEN_PAREN)) {
         ArgumentList argumentList = parseArgumentList();
         if (expression is SimpleIdentifier) {
-          expression = new MethodInvocation.full(null, null, expression as SimpleIdentifier, argumentList);
+          expression = new MethodInvocation(null, null, expression as SimpleIdentifier, argumentList);
         } else if (expression is PrefixedIdentifier) {
           PrefixedIdentifier identifier = expression as PrefixedIdentifier;
-          expression = new MethodInvocation.full(identifier.prefix, identifier.period, identifier.identifier, argumentList);
+          expression = new MethodInvocation(identifier.prefix, identifier.period, identifier.identifier, argumentList);
         } else if (expression is PropertyAccess) {
           PropertyAccess access = expression as PropertyAccess;
-          expression = new MethodInvocation.full(access.target, access.operator, access.propertyName, argumentList);
+          expression = new MethodInvocation(access.target, access.operator, access.propertyName, argumentList);
         } else {
-          expression = new FunctionExpressionInvocation.full(expression, argumentList);
+          expression = new FunctionExpressionInvocation(expression, argumentList);
         }
         if (!primaryAllowed) {
           isOptional = false;
@@ -3236,7 +3240,7 @@ class Parser {
       if (identical(selectorExpression, expression)) {
         if (!isOptional && (expression is PrefixedIdentifier)) {
           PrefixedIdentifier identifier = expression as PrefixedIdentifier;
-          expression = new PropertyAccess.full(identifier.prefix, identifier.period, identifier.identifier);
+          expression = new PropertyAccess(identifier.prefix, identifier.period, identifier.identifier);
         }
         return expression;
       }
@@ -3263,10 +3267,10 @@ class Parser {
       Token leftBracket = andAdvance;
       Expression index = parseExpression2();
       Token rightBracket = expect2(TokenType.CLOSE_SQUARE_BRACKET);
-      return new IndexExpression.forTarget_full(prefix, leftBracket, index, rightBracket);
+      return new IndexExpression.forTarget(prefix, leftBracket, index, rightBracket);
     } else if (matches5(TokenType.PERIOD)) {
       Token period = andAdvance;
-      return new PropertyAccess.full(prefix, period, parseSimpleIdentifier());
+      return new PropertyAccess(prefix, period, parseSimpleIdentifier());
     } else {
       if (!optional) {
         reportError10(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
@@ -3289,13 +3293,13 @@ class Parser {
   Expression parseBitwiseAndExpression() {
     Expression expression;
     if (matches(Keyword.SUPER) && matches4(peek(), TokenType.AMPERSAND)) {
-      expression = new SuperExpression.full(andAdvance);
+      expression = new SuperExpression(andAdvance);
     } else {
       expression = parseShiftExpression();
     }
     while (matches5(TokenType.AMPERSAND)) {
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseShiftExpression());
+      expression = new BinaryExpression(expression, operator, parseShiftExpression());
     }
     return expression;
   }
@@ -3314,13 +3318,13 @@ class Parser {
   Expression parseBitwiseXorExpression() {
     Expression expression;
     if (matches(Keyword.SUPER) && matches4(peek(), TokenType.CARET)) {
-      expression = new SuperExpression.full(andAdvance);
+      expression = new SuperExpression(andAdvance);
     } else {
       expression = parseBitwiseAndExpression();
     }
     while (matches5(TokenType.CARET)) {
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseBitwiseAndExpression());
+      expression = new BinaryExpression(expression, operator, parseBitwiseAndExpression());
     }
     return expression;
   }
@@ -3345,7 +3349,7 @@ class Parser {
       reportError11(ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, breakKeyword, []);
     }
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new BreakStatement.full(breakKeyword, label, semicolon);
+    return new BreakStatement(breakKeyword, label, semicolon);
   }
 
   /**
@@ -3375,7 +3379,7 @@ class Parser {
       Token leftBracket = andAdvance;
       Expression index = parseExpression2();
       Token rightBracket = expect2(TokenType.CLOSE_SQUARE_BRACKET);
-      expression = new IndexExpression.forCascade_full(period, leftBracket, index, rightBracket);
+      expression = new IndexExpression.forCascade(period, leftBracket, index, rightBracket);
       period = null;
     } else {
       reportError11(ParserErrorCode.MISSING_IDENTIFIER, _currentToken, [_currentToken.lexeme]);
@@ -3384,17 +3388,17 @@ class Parser {
     if (identical(_currentToken.type, TokenType.OPEN_PAREN)) {
       while (identical(_currentToken.type, TokenType.OPEN_PAREN)) {
         if (functionName != null) {
-          expression = new MethodInvocation.full(expression, period, functionName, parseArgumentList());
+          expression = new MethodInvocation(expression, period, functionName, parseArgumentList());
           period = null;
           functionName = null;
         } else if (expression == null) {
-          expression = new MethodInvocation.full(expression, period, createSyntheticIdentifier(), parseArgumentList());
+          expression = new MethodInvocation(expression, period, createSyntheticIdentifier(), parseArgumentList());
         } else {
-          expression = new FunctionExpressionInvocation.full(expression, parseArgumentList());
+          expression = new FunctionExpressionInvocation(expression, parseArgumentList());
         }
       }
     } else if (functionName != null) {
-      expression = new PropertyAccess.full(expression, period, functionName);
+      expression = new PropertyAccess(expression, period, functionName);
       period = null;
     }
     bool progress = true;
@@ -3407,9 +3411,9 @@ class Parser {
         while (identical(_currentToken.type, TokenType.OPEN_PAREN)) {
           if (expression is PropertyAccess) {
             PropertyAccess propertyAccess = expression as PropertyAccess;
-            expression = new MethodInvocation.full(propertyAccess.target, propertyAccess.operator, propertyAccess.propertyName, parseArgumentList());
+            expression = new MethodInvocation(propertyAccess.target, propertyAccess.operator, propertyAccess.propertyName, parseArgumentList());
           } else {
-            expression = new FunctionExpressionInvocation.full(expression, parseArgumentList());
+            expression = new FunctionExpressionInvocation(expression, parseArgumentList());
           }
         }
       }
@@ -3417,7 +3421,7 @@ class Parser {
     if (_currentToken.type.isAssignmentOperator) {
       Token operator = andAdvance;
       ensureAssignable(expression);
-      expression = new AssignmentExpression.full(expression, operator, parseExpressionWithoutCascade());
+      expression = new AssignmentExpression(expression, operator, parseExpressionWithoutCascade());
     }
     return expression;
   }
@@ -3512,7 +3516,7 @@ class Parser {
       rightBracket = createSyntheticToken2(TokenType.CLOSE_CURLY_BRACKET);
       reportError10(ParserErrorCode.MISSING_CLASS_BODY, []);
     }
-    ClassDeclaration classDeclaration = new ClassDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, abstractKeyword, keyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
+    ClassDeclaration classDeclaration = new ClassDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, abstractKeyword, keyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
     classDeclaration.nativeClause = nativeClause;
     return classDeclaration;
   }
@@ -3601,7 +3605,7 @@ class Parser {
       }
       semicolon = createSyntheticToken2(TokenType.SEMICOLON);
     }
-    return new ClassTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, className, typeParameters, equals, abstractKeyword, superclass, withClause, implementsClause, semicolon);
+    return new ClassTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, className, typeParameters, equals, abstractKeyword, superclass, withClause, implementsClause, semicolon);
   }
 
   /**
@@ -3621,10 +3625,10 @@ class Parser {
       Token keyword = expect2(TokenType.IDENTIFIER);
       if (keyword.lexeme == _SHOW) {
         List<SimpleIdentifier> shownNames = parseIdentifierList();
-        combinators.add(new ShowCombinator.full(keyword, shownNames));
+        combinators.add(new ShowCombinator(keyword, shownNames));
       } else {
         List<SimpleIdentifier> hiddenNames = parseIdentifierList();
-        combinators.add(new HideCombinator.full(keyword, hiddenNames));
+        combinators.add(new HideCombinator(keyword, hiddenNames));
       }
     }
     return combinators;
@@ -3691,16 +3695,16 @@ class Parser {
         Token nextToken;
         Identifier identifier;
         if (matches4(secondToken, TokenType.PERIOD) && matchesIdentifier2(thirdToken)) {
-          identifier = new PrefixedIdentifier.full(new SimpleIdentifier.full(firstToken), secondToken, new SimpleIdentifier.full(thirdToken));
+          identifier = new PrefixedIdentifier(new SimpleIdentifier(firstToken), secondToken, new SimpleIdentifier(thirdToken));
           nextToken = thirdToken.next;
         } else {
-          identifier = new SimpleIdentifier.full(firstToken);
+          identifier = new SimpleIdentifier(firstToken);
           nextToken = firstToken.next;
         }
         if (nextToken.type != TokenType.EOF) {
           return null;
         }
-        return new CommentReference.full(newKeyword, identifier);
+        return new CommentReference(newKeyword, identifier);
       } else if (matches3(firstToken, Keyword.THIS) || matches3(firstToken, Keyword.NULL) || matches3(firstToken, Keyword.TRUE) || matches3(firstToken, Keyword.FALSE)) {
         return null;
       }
@@ -3803,7 +3807,7 @@ class Parser {
         if (matchesIdentifier()) {
           if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
             reportError9(ParserErrorCode.VOID_VARIABLE, returnType, []);
-            return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
+            return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
           }
         }
         reportError11(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
@@ -3825,7 +3829,7 @@ class Parser {
       if (modifiers.constKeyword == null && modifiers.finalKeyword == null && modifiers.varKeyword == null) {
         reportError10(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, []);
       }
-      return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
+      return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
     }
     TypeName returnType = parseReturnType();
     if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
@@ -3835,7 +3839,7 @@ class Parser {
       reportError11(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType));
     } else if (matches5(TokenType.AT)) {
-      return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
+      return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
     } else if (!matchesIdentifier()) {
       reportError11(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       Token semicolon;
@@ -3845,8 +3849,8 @@ class Parser {
         semicolon = createSyntheticToken2(TokenType.SEMICOLON);
       }
       List<VariableDeclaration> variables = new List<VariableDeclaration>();
-      variables.add(new VariableDeclaration.full(null, null, createSyntheticIdentifier(), null, null));
-      return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, new VariableDeclarationList.full(null, null, null, returnType, variables), semicolon);
+      variables.add(new VariableDeclaration(null, null, createSyntheticIdentifier(), null, null));
+      return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, new VariableDeclarationList(null, null, null, returnType, variables), semicolon);
     }
     if (matchesAny(peek(), [
         TokenType.OPEN_PAREN,
@@ -3855,7 +3859,7 @@ class Parser {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
     }
-    return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
+    return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
   }
 
   /**
@@ -3912,7 +3916,7 @@ class Parser {
     if (matches5(TokenType.EQ)) {
       separator = andAdvance;
       redirectedConstructor = parseConstructorName();
-      body = new EmptyFunctionBody.full(expect2(TokenType.SEMICOLON));
+      body = new EmptyFunctionBody(expect2(TokenType.SEMICOLON));
       if (factoryKeyword == null) {
         reportError9(ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR, redirectedConstructor, []);
       }
@@ -3932,7 +3936,7 @@ class Parser {
         }
       }
     }
-    return new ConstructorDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, constKeyword, factoryKeyword, returnType, period, name, parameters, separator, initializers, redirectedConstructor, body);
+    return new ConstructorDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, constKeyword, factoryKeyword, returnType, period, name, parameters, separator, initializers, redirectedConstructor, body);
   }
 
   /**
@@ -3965,9 +3969,9 @@ class Parser {
         }
         tokenType = _currentToken.type;
       }
-      expression = new CascadeExpression.full(expression, cascadeSections);
+      expression = new CascadeExpression(expression, cascadeSections);
     }
-    return new ConstructorFieldInitializer.full(keyword, period, fieldName, equals, expression);
+    return new ConstructorFieldInitializer(keyword, period, fieldName, equals, expression);
   }
 
   /**
@@ -3993,7 +3997,7 @@ class Parser {
       reportError11(ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE, continueKeyword, []);
     }
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new ContinueStatement.full(continueKeyword, label, semicolon);
+    return new ContinueStatement(continueKeyword, label, semicolon);
   }
 
   /**
@@ -4083,7 +4087,7 @@ class Parser {
       Expression condition = parseExpression2();
       Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
       Token semicolon = expect2(TokenType.SEMICOLON);
-      return new DoStatement.full(doKeyword, body, whileKeyword, leftParenthesis, condition, rightParenthesis, semicolon);
+      return new DoStatement(doKeyword, body, whileKeyword, leftParenthesis, condition, rightParenthesis, semicolon);
     } finally {
       _inLoop = wasInLoop;
     }
@@ -4099,7 +4103,7 @@ class Parser {
    *
    * @return the empty statement that was parsed
    */
-  Statement parseEmptyStatement() => new EmptyStatement.full(andAdvance);
+  Statement parseEmptyStatement() => new EmptyStatement(andAdvance);
 
   /**
    * Parse an equality expression.
@@ -4115,7 +4119,7 @@ class Parser {
   Expression parseEqualityExpression() {
     Expression expression;
     if (matches(Keyword.SUPER) && _currentToken.next.type.isEqualityOperator) {
-      expression = new SuperExpression.full(andAdvance);
+      expression = new SuperExpression(andAdvance);
     } else {
       expression = parseRelationalExpression();
     }
@@ -4125,7 +4129,7 @@ class Parser {
       if (leftEqualityExpression) {
         reportError9(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, expression, []);
       }
-      expression = new BinaryExpression.full(expression, operator, parseRelationalExpression());
+      expression = new BinaryExpression(expression, operator, parseRelationalExpression());
       leftEqualityExpression = true;
     }
     return expression;
@@ -4147,7 +4151,7 @@ class Parser {
     StringLiteral libraryUri = parseStringLiteral();
     List<Combinator> combinators = parseCombinators();
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new ExportDirective.full(commentAndMetadata.comment, commentAndMetadata.metadata, exportKeyword, libraryUri, combinators, semicolon);
+    return new ExportDirective(commentAndMetadata.comment, commentAndMetadata.metadata, exportKeyword, libraryUri, combinators, semicolon);
   }
 
   /**
@@ -4229,7 +4233,7 @@ class Parser {
       } else if (identical(kind, ParameterKind.REQUIRED)) {
         reportError9(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
-      return new DefaultFormalParameter.full(parameter, kind, seperator, defaultValue);
+      return new DefaultFormalParameter(parameter, kind, seperator, defaultValue);
     } else if (matches5(TokenType.COLON)) {
       Token seperator = andAdvance;
       Expression defaultValue = parseExpression2();
@@ -4238,9 +4242,9 @@ class Parser {
       } else if (identical(kind, ParameterKind.REQUIRED)) {
         reportError9(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter, []);
       }
-      return new DefaultFormalParameter.full(parameter, kind, seperator, defaultValue);
+      return new DefaultFormalParameter(parameter, kind, seperator, defaultValue);
     } else if (kind != ParameterKind.REQUIRED) {
-      return new DefaultFormalParameter.full(parameter, kind, null, null);
+      return new DefaultFormalParameter(parameter, kind, null, null);
     }
     return parameter;
   }
@@ -4277,8 +4281,8 @@ class Parser {
         if (matchesIdentifier() && matches3(peek(), Keyword.IN)) {
           List<VariableDeclaration> variables = new List<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier();
-          variables.add(new VariableDeclaration.full(null, null, variableName, null, null));
-          variableList = new VariableDeclarationList.full(commentAndMetadata.comment, commentAndMetadata.metadata, null, null, variables);
+          variables.add(new VariableDeclaration(null, null, variableName, null, null));
+          variableList = new VariableDeclarationList(commentAndMetadata.comment, commentAndMetadata.metadata, null, null, variables);
         } else if (isInitializedVariableDeclaration()) {
           variableList = parseVariableDeclarationList(commentAndMetadata);
         } else {
@@ -4301,7 +4305,7 @@ class Parser {
             Token keyword = variableList.keyword;
             TypeName type = variableList.type;
             if (keyword != null || type != null) {
-              loopVariable = new DeclaredIdentifier.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, type, variable.name);
+              loopVariable = new DeclaredIdentifier(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, type, variable.name);
             } else {
               if (!commentAndMetadata.metadata.isEmpty) {
               }
@@ -4313,9 +4317,9 @@ class Parser {
           Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
           Statement body = parseStatement2();
           if (loopVariable == null) {
-            return new ForEachStatement.con2_full(forKeyword, leftParenthesis, identifier, inKeyword, iterator, rightParenthesis, body);
+            return new ForEachStatement.con2(forKeyword, leftParenthesis, identifier, inKeyword, iterator, rightParenthesis, body);
           }
-          return new ForEachStatement.con1_full(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
+          return new ForEachStatement.con1(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
         }
       }
       Token leftSeparator = expect2(TokenType.SEMICOLON);
@@ -4330,7 +4334,7 @@ class Parser {
       }
       Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
-      return new ForStatement.full(forKeyword, leftParenthesis, variableList, initialization, leftSeparator, condition, rightSeparator, updaters, rightParenthesis, body);
+      return new ForStatement(forKeyword, leftParenthesis, variableList, initialization, leftSeparator, condition, rightSeparator, updaters, rightParenthesis, body);
     } finally {
       _inLoop = wasInLoop;
     }
@@ -4365,7 +4369,7 @@ class Parser {
         if (!mayBeEmpty) {
           reportError10(emptyErrorCode, []);
         }
-        return new EmptyFunctionBody.full(andAdvance);
+        return new EmptyFunctionBody(andAdvance);
       } else if (matches5(TokenType.FUNCTION)) {
         Token functionDefinition = andAdvance;
         Expression expression = parseExpression2();
@@ -4374,25 +4378,25 @@ class Parser {
           semicolon = expect2(TokenType.SEMICOLON);
         }
         if (!_parseFunctionBodies) {
-          return new EmptyFunctionBody.full(createSyntheticToken2(TokenType.SEMICOLON));
+          return new EmptyFunctionBody(createSyntheticToken2(TokenType.SEMICOLON));
         }
-        return new ExpressionFunctionBody.full(functionDefinition, expression, semicolon);
+        return new ExpressionFunctionBody(functionDefinition, expression, semicolon);
       } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
         if (!_parseFunctionBodies) {
           skipBlock();
-          return new EmptyFunctionBody.full(createSyntheticToken2(TokenType.SEMICOLON));
+          return new EmptyFunctionBody(createSyntheticToken2(TokenType.SEMICOLON));
         }
-        return new BlockFunctionBody.full(parseBlock());
+        return new BlockFunctionBody(parseBlock());
       } else if (matches2(_NATIVE)) {
         Token nativeToken = andAdvance;
         StringLiteral stringLiteral = null;
         if (matches5(TokenType.STRING)) {
           stringLiteral = parseStringLiteral();
         }
-        return new NativeFunctionBody.full(nativeToken, stringLiteral, expect2(TokenType.SEMICOLON));
+        return new NativeFunctionBody(nativeToken, stringLiteral, expect2(TokenType.SEMICOLON));
       } else {
         reportError10(emptyErrorCode, []);
-        return new EmptyFunctionBody.full(createSyntheticToken2(TokenType.SEMICOLON));
+        return new EmptyFunctionBody(createSyntheticToken2(TokenType.SEMICOLON));
       }
     } finally {
       _inLoop = wasInLoop;
@@ -4442,9 +4446,9 @@ class Parser {
     if (externalKeyword == null) {
       body = parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, false);
     } else {
-      body = new EmptyFunctionBody.full(expect2(TokenType.SEMICOLON));
+      body = new EmptyFunctionBody(expect2(TokenType.SEMICOLON));
     }
-    return new FunctionDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, returnType, keyword, name, new FunctionExpression.full(parameters, body));
+    return new FunctionDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, returnType, keyword, name, new FunctionExpression(parameters, body));
   }
 
   /**
@@ -4486,7 +4490,7 @@ class Parser {
         reportError11(ParserErrorCode.SETTER_IN_FUNCTION, propertyKeyword, []);
       }
     }
-    return new FunctionDeclarationStatement.full(declaration);
+    return new FunctionDeclarationStatement(declaration);
   }
 
   /**
@@ -4516,17 +4520,17 @@ class Parser {
     }
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.EOF)) {
       reportError10(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
-      FormalParameterList parameters = new FormalParameterList.full(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN));
+      FormalParameterList parameters = new FormalParameterList(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN));
       Token semicolon = expect2(TokenType.SEMICOLON);
-      return new FunctionTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
+      return new FunctionTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
     } else if (!matches5(TokenType.OPEN_PAREN)) {
       reportError10(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
-      return new FunctionTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, new FormalParameterList.full(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN)), createSyntheticToken2(TokenType.SEMICOLON));
+      return new FunctionTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, new FormalParameterList(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN)), createSyntheticToken2(TokenType.SEMICOLON));
     }
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new FunctionTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
+    return new FunctionTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
   }
 
   /**
@@ -4560,7 +4564,7 @@ class Parser {
     if (externalKeyword != null && body is! EmptyFunctionBody) {
       reportError10(ParserErrorCode.EXTERNAL_GETTER_WITH_BODY, []);
     }
-    return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, null, body);
+    return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, null, body);
   }
 
   /**
@@ -4605,7 +4609,7 @@ class Parser {
       elseKeyword = andAdvance;
       elseStatement = parseStatement2();
     }
-    return new IfStatement.full(ifKeyword, leftParenthesis, condition, rightParenthesis, thenStatement, elseKeyword, elseStatement);
+    return new IfStatement(ifKeyword, leftParenthesis, condition, rightParenthesis, thenStatement, elseKeyword, elseStatement);
   }
 
   /**
@@ -4630,7 +4634,7 @@ class Parser {
     }
     List<Combinator> combinators = parseCombinators();
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new ImportDirective.full(commentAndMetadata.comment, commentAndMetadata.metadata, importKeyword, libraryUri, asToken, prefix, combinators, semicolon);
+    return new ImportDirective(commentAndMetadata.comment, commentAndMetadata.metadata, importKeyword, libraryUri, asToken, prefix, combinators, semicolon);
   }
 
   /**
@@ -4658,7 +4662,7 @@ class Parser {
    */
   FieldDeclaration parseInitializedIdentifierList(CommentAndMetadata commentAndMetadata, Token staticKeyword, Token keyword, TypeName type) {
     VariableDeclarationList fieldList = parseVariableDeclarationList2(null, keyword, type);
-    return new FieldDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, staticKeyword, fieldList, expect2(TokenType.SEMICOLON));
+    return new FieldDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, staticKeyword, fieldList, expect2(TokenType.SEMICOLON));
   }
 
   /**
@@ -4675,7 +4679,7 @@ class Parser {
   InstanceCreationExpression parseInstanceCreationExpression(Token keyword) {
     ConstructorName constructorName = parseConstructorName();
     ArgumentList argumentList = parseArgumentList();
-    return new InstanceCreationExpression.full(keyword, constructorName, argumentList);
+    return new InstanceCreationExpression(keyword, constructorName, argumentList);
   }
 
   /**
@@ -4693,7 +4697,7 @@ class Parser {
     Token keyword = expect(Keyword.LIBRARY);
     LibraryIdentifier libraryName = parseLibraryName(ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE, keyword);
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new LibraryDirective.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, libraryName, semicolon);
+    return new LibraryDirective(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, libraryName, semicolon);
   }
 
   /**
@@ -4720,7 +4724,7 @@ class Parser {
     }
     List<SimpleIdentifier> components = new List<SimpleIdentifier>();
     components.add(createSyntheticIdentifier());
-    return new LibraryIdentifier.full(components);
+    return new LibraryIdentifier(components);
   }
 
   /**
@@ -4746,22 +4750,22 @@ class Parser {
       leftBracket.setNext(rightBracket);
       _currentToken.previous.setNext(leftBracket);
       _currentToken = _currentToken.next;
-      return new ListLiteral.full(modifier, typeArguments, leftBracket, null, rightBracket);
+      return new ListLiteral(modifier, typeArguments, leftBracket, null, rightBracket);
     }
     Token leftBracket = expect2(TokenType.OPEN_SQUARE_BRACKET);
     if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
-      return new ListLiteral.full(modifier, typeArguments, leftBracket, null, andAdvance);
+      return new ListLiteral(modifier, typeArguments, leftBracket, null, andAdvance);
     }
     List<Expression> elements = new List<Expression>();
     elements.add(parseExpression2());
     while (optional(TokenType.COMMA)) {
       if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
-        return new ListLiteral.full(modifier, typeArguments, leftBracket, elements, andAdvance);
+        return new ListLiteral(modifier, typeArguments, leftBracket, elements, andAdvance);
       }
       elements.add(parseExpression2());
     }
     Token rightBracket = expect2(TokenType.CLOSE_SQUARE_BRACKET);
-    return new ListLiteral.full(modifier, typeArguments, leftBracket, elements, rightBracket);
+    return new ListLiteral(modifier, typeArguments, leftBracket, elements, rightBracket);
   }
 
   /**
@@ -4788,7 +4792,7 @@ class Parser {
       return parseListLiteral(modifier, typeArguments);
     }
     reportError10(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
-    return new ListLiteral.full(modifier, typeArguments, createSyntheticToken2(TokenType.OPEN_SQUARE_BRACKET), null, createSyntheticToken2(TokenType.CLOSE_SQUARE_BRACKET));
+    return new ListLiteral(modifier, typeArguments, createSyntheticToken2(TokenType.OPEN_SQUARE_BRACKET), null, createSyntheticToken2(TokenType.CLOSE_SQUARE_BRACKET));
   }
 
   /**
@@ -4805,7 +4809,7 @@ class Parser {
     Expression expression = parseEqualityExpression();
     while (matches5(TokenType.AMPERSAND_AMPERSAND)) {
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseEqualityExpression());
+      expression = new BinaryExpression(expression, operator, parseEqualityExpression());
     }
     return expression;
   }
@@ -4828,17 +4832,17 @@ class Parser {
     Token leftBracket = expect2(TokenType.OPEN_CURLY_BRACKET);
     List<MapLiteralEntry> entries = new List<MapLiteralEntry>();
     if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
-      return new MapLiteral.full(modifier, typeArguments, leftBracket, entries, andAdvance);
+      return new MapLiteral(modifier, typeArguments, leftBracket, entries, andAdvance);
     }
     entries.add(parseMapLiteralEntry());
     while (optional(TokenType.COMMA)) {
       if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
-        return new MapLiteral.full(modifier, typeArguments, leftBracket, entries, andAdvance);
+        return new MapLiteral(modifier, typeArguments, leftBracket, entries, andAdvance);
       }
       entries.add(parseMapLiteralEntry());
     }
     Token rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
-    return new MapLiteral.full(modifier, typeArguments, leftBracket, entries, rightBracket);
+    return new MapLiteral(modifier, typeArguments, leftBracket, entries, rightBracket);
   }
 
   /**
@@ -4893,7 +4897,7 @@ class Parser {
         reportError9(ParserErrorCode.ABSTRACT_STATIC_METHOD, body, []);
       }
     }
-    return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, null, null, name, parameters, body);
+    return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, null, null, name, parameters, body);
   }
 
   /**
@@ -4986,13 +4990,13 @@ class Parser {
   Expression parseMultiplicativeExpression() {
     Expression expression;
     if (matches(Keyword.SUPER) && _currentToken.next.type.isMultiplicativeOperator) {
-      expression = new SuperExpression.full(andAdvance);
+      expression = new SuperExpression(andAdvance);
     } else {
       expression = parseUnaryExpression();
     }
     while (_currentToken.type.isMultiplicativeOperator) {
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseUnaryExpression());
+      expression = new BinaryExpression(expression, operator, parseUnaryExpression());
     }
     return expression;
   }
@@ -5010,7 +5014,7 @@ class Parser {
   NativeClause parseNativeClause() {
     Token keyword = andAdvance;
     StringLiteral name = parseStringLiteral();
-    return new NativeClause.full(keyword, name);
+    return new NativeClause(keyword, name);
   }
 
   /**
@@ -5054,7 +5058,7 @@ class Parser {
       if (matches4(peek(), TokenType.STRING)) {
         Token afterString = skipStringLiteral(_currentToken.next);
         if (afterString != null && identical(afterString.type, TokenType.COLON)) {
-          return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
+          return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
         }
       }
       return parseBlock();
@@ -5073,13 +5077,13 @@ class Parser {
       } else if (identical(keyword, Keyword.IF)) {
         return parseIfStatement();
       } else if (identical(keyword, Keyword.RETHROW)) {
-        return new ExpressionStatement.full(parseRethrowExpression(), expect2(TokenType.SEMICOLON));
+        return new ExpressionStatement(parseRethrowExpression(), expect2(TokenType.SEMICOLON));
       } else if (identical(keyword, Keyword.RETURN)) {
         return parseReturnStatement();
       } else if (identical(keyword, Keyword.SWITCH)) {
         return parseSwitchStatement();
       } else if (identical(keyword, Keyword.THROW)) {
-        return new ExpressionStatement.full(parseThrowExpression(), expect2(TokenType.SEMICOLON));
+        return new ExpressionStatement(parseThrowExpression(), expect2(TokenType.SEMICOLON));
       } else if (identical(keyword, Keyword.TRY)) {
         return parseTryStatement();
       } else if (identical(keyword, Keyword.WHILE)) {
@@ -5103,7 +5107,7 @@ class Parser {
             return parseVariableDeclarationStatement2(commentAndMetadata, null, returnType);
           }
           reportError10(ParserErrorCode.MISSING_STATEMENT, []);
-          return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
+          return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
         }
       } else if (identical(keyword, Keyword.CONST)) {
         if (matchesAny(peek(), [
@@ -5111,21 +5115,21 @@ class Parser {
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.OPEN_SQUARE_BRACKET,
             TokenType.INDEX])) {
-          return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
+          return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
         } else if (matches4(peek(), TokenType.IDENTIFIER)) {
           Token afterType = skipTypeName(peek());
           if (afterType != null) {
             if (matches4(afterType, TokenType.OPEN_PAREN) || (matches4(afterType, TokenType.PERIOD) && matches4(afterType.next, TokenType.IDENTIFIER) && matches4(afterType.next.next, TokenType.OPEN_PAREN))) {
-              return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
+              return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
             }
           }
         }
         return parseVariableDeclarationStatement(commentAndMetadata);
       } else if (identical(keyword, Keyword.NEW) || identical(keyword, Keyword.TRUE) || identical(keyword, Keyword.FALSE) || identical(keyword, Keyword.NULL) || identical(keyword, Keyword.SUPER) || identical(keyword, Keyword.THIS)) {
-        return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
+        return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
       } else {
         reportError10(ParserErrorCode.MISSING_STATEMENT, []);
-        return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
+        return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
       }
     } else if (matches5(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
@@ -5135,9 +5139,9 @@ class Parser {
       return parseFunctionDeclarationStatement();
     } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
       reportError10(ParserErrorCode.MISSING_STATEMENT, []);
-      return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
+      return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
     } else {
-      return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
+      return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
     }
   }
 
@@ -5170,7 +5174,7 @@ class Parser {
     if (!_currentToken.isUserDefinableOperator) {
       reportError10(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
-    SimpleIdentifier name = new SimpleIdentifier.full(andAdvance);
+    SimpleIdentifier name = new SimpleIdentifier(andAdvance);
     if (matches5(TokenType.EQ)) {
       Token previous = _currentToken.previous;
       if ((matches4(previous, TokenType.EQ_EQ) || matches4(previous, TokenType.BANG_EQ)) && _currentToken.offset == previous.offset + 2) {
@@ -5184,7 +5188,7 @@ class Parser {
     if (externalKeyword != null && body is! EmptyFunctionBody) {
       reportError10(ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY, []);
     }
-    return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, null, returnType, null, operatorKeyword, name, parameters, body);
+    return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, null, returnType, null, operatorKeyword, name, parameters, body);
   }
 
   /**
@@ -5223,11 +5227,11 @@ class Parser {
       Token ofKeyword = andAdvance;
       LibraryIdentifier libraryName = parseLibraryName(ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE, ofKeyword);
       Token semicolon = expect2(TokenType.SEMICOLON);
-      return new PartOfDirective.full(commentAndMetadata.comment, commentAndMetadata.metadata, partKeyword, ofKeyword, libraryName, semicolon);
+      return new PartOfDirective(commentAndMetadata.comment, commentAndMetadata.metadata, partKeyword, ofKeyword, libraryName, semicolon);
     }
     StringLiteral partUri = parseStringLiteral();
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new PartDirective.full(commentAndMetadata.comment, commentAndMetadata.metadata, partKeyword, partUri, semicolon);
+    return new PartDirective(commentAndMetadata.comment, commentAndMetadata.metadata, partKeyword, partUri, semicolon);
   }
 
   /**
@@ -5253,9 +5257,9 @@ class Parser {
           ArgumentList argumentList = parseArgumentList();
           if (operand is PropertyAccess) {
             PropertyAccess access = operand as PropertyAccess;
-            operand = new MethodInvocation.full(access.target, access.operator, access.propertyName, argumentList);
+            operand = new MethodInvocation(access.target, access.operator, access.propertyName, argumentList);
           } else {
-            operand = new FunctionExpressionInvocation.full(operand, argumentList);
+            operand = new FunctionExpressionInvocation(operand, argumentList);
           }
         } else {
           operand = parseAssignableSelector(operand, true);
@@ -5270,7 +5274,7 @@ class Parser {
       reportError10(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
     }
     Token operator = andAdvance;
-    return new PostfixExpression.full(operand, operator);
+    return new PostfixExpression(operand, operator);
   }
 
   /**
@@ -5302,15 +5306,15 @@ class Parser {
    */
   Expression parsePrimaryExpression() {
     if (matches(Keyword.THIS)) {
-      return new ThisExpression.full(andAdvance);
+      return new ThisExpression(andAdvance);
     } else if (matches(Keyword.SUPER)) {
-      return parseAssignableSelector(new SuperExpression.full(andAdvance), false);
+      return parseAssignableSelector(new SuperExpression(andAdvance), false);
     } else if (matches(Keyword.NULL)) {
-      return new NullLiteral.full(andAdvance);
+      return new NullLiteral(andAdvance);
     } else if (matches(Keyword.FALSE)) {
-      return new BooleanLiteral.full(andAdvance, false);
+      return new BooleanLiteral(andAdvance, false);
     } else if (matches(Keyword.TRUE)) {
-      return new BooleanLiteral.full(andAdvance, true);
+      return new BooleanLiteral(andAdvance, true);
     } else if (matches5(TokenType.DOUBLE)) {
       Token token = andAdvance;
       double value = 0.0;
@@ -5318,7 +5322,7 @@ class Parser {
         value = double.parse(token.lexeme);
       } on FormatException catch (exception) {
       }
-      return new DoubleLiteral.full(token, value);
+      return new DoubleLiteral(token, value);
     } else if (matches5(TokenType.HEXADECIMAL)) {
       Token token = andAdvance;
       int value = null;
@@ -5326,7 +5330,7 @@ class Parser {
         value = int.parse(token.lexeme.substring(2), radix: 16);
       } on FormatException catch (exception) {
       }
-      return new IntegerLiteral.full(token, value);
+      return new IntegerLiteral(token, value);
     } else if (matches5(TokenType.INT)) {
       Token token = andAdvance;
       int value = null;
@@ -5334,7 +5338,7 @@ class Parser {
         value = int.parse(token.lexeme);
       } on FormatException catch (exception) {
       }
-      return new IntegerLiteral.full(token, value);
+      return new IntegerLiteral(token, value);
     } else if (matches5(TokenType.STRING)) {
       return parseStringLiteral();
     } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
@@ -5354,7 +5358,7 @@ class Parser {
       Token leftParenthesis = andAdvance;
       Expression expression = parseExpression2();
       Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
-      return new ParenthesizedExpression.full(leftParenthesis, expression, rightParenthesis);
+      return new ParenthesizedExpression(leftParenthesis, expression, rightParenthesis);
     } else if (matches5(TokenType.LT)) {
       return parseListOrMapLiteral(null);
     } else if (matches5(TokenType.QUESTION)) {
@@ -5390,7 +5394,7 @@ class Parser {
       constructorName = parseSimpleIdentifier();
     }
     ArgumentList argumentList = parseArgumentList();
-    return new RedirectingConstructorInvocation.full(keyword, period, constructorName, argumentList);
+    return new RedirectingConstructorInvocation(keyword, period, constructorName, argumentList);
   }
 
   /**
@@ -5406,25 +5410,25 @@ class Parser {
    */
   Expression parseRelationalExpression() {
     if (matches(Keyword.SUPER) && _currentToken.next.type.isRelationalOperator) {
-      Expression expression = new SuperExpression.full(andAdvance);
+      Expression expression = new SuperExpression(andAdvance);
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseBitwiseOrExpression());
+      expression = new BinaryExpression(expression, operator, parseBitwiseOrExpression());
       return expression;
     }
     Expression expression = parseBitwiseOrExpression();
     if (matches(Keyword.AS)) {
       Token asOperator = andAdvance;
-      expression = new AsExpression.full(expression, asOperator, parseTypeName());
+      expression = new AsExpression(expression, asOperator, parseTypeName());
     } else if (matches(Keyword.IS)) {
       Token isOperator = andAdvance;
       Token notOperator = null;
       if (matches5(TokenType.BANG)) {
         notOperator = andAdvance;
       }
-      expression = new IsExpression.full(expression, isOperator, notOperator, parseTypeName());
+      expression = new IsExpression(expression, isOperator, notOperator, parseTypeName());
     } else if (_currentToken.type.isRelationalOperator) {
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseBitwiseOrExpression());
+      expression = new BinaryExpression(expression, operator, parseBitwiseOrExpression());
     }
     return expression;
   }
@@ -5439,7 +5443,7 @@ class Parser {
    *
    * @return the rethrow expression that was parsed
    */
-  Expression parseRethrowExpression() => new RethrowExpression.full(expect(Keyword.RETHROW));
+  Expression parseRethrowExpression() => new RethrowExpression(expect(Keyword.RETHROW));
 
   /**
    * Parse a return statement.
@@ -5454,11 +5458,11 @@ class Parser {
   Statement parseReturnStatement() {
     Token returnKeyword = expect(Keyword.RETURN);
     if (matches5(TokenType.SEMICOLON)) {
-      return new ReturnStatement.full(returnKeyword, null, andAdvance);
+      return new ReturnStatement(returnKeyword, null, andAdvance);
     }
     Expression expression = parseExpression2();
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new ReturnStatement.full(returnKeyword, expression, semicolon);
+    return new ReturnStatement(returnKeyword, expression, semicolon);
   }
 
   /**
@@ -5489,7 +5493,7 @@ class Parser {
     if (externalKeyword != null && body is! EmptyFunctionBody) {
       reportError10(ParserErrorCode.EXTERNAL_SETTER_WITH_BODY, []);
     }
-    return new MethodDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, parameters, body);
+    return new MethodDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType, propertyKeyword, null, name, parameters, body);
   }
 
   /**
@@ -5506,13 +5510,13 @@ class Parser {
   Expression parseShiftExpression() {
     Expression expression;
     if (matches(Keyword.SUPER) && _currentToken.next.type.isShiftOperator) {
-      expression = new SuperExpression.full(andAdvance);
+      expression = new SuperExpression(andAdvance);
     } else {
       expression = parseAdditiveExpression();
     }
     while (_currentToken.type.isShiftOperator) {
       Token operator = andAdvance;
-      expression = new BinaryExpression.full(expression, operator, parseAdditiveExpression());
+      expression = new BinaryExpression(expression, operator, parseAdditiveExpression());
     }
     return expression;
   }
@@ -5549,30 +5553,30 @@ class Parser {
   StringInterpolation parseStringInterpolation(Token string) {
     List<InterpolationElement> elements = new List<InterpolationElement>();
     bool hasMore = matches5(TokenType.STRING_INTERPOLATION_EXPRESSION) || matches5(TokenType.STRING_INTERPOLATION_IDENTIFIER);
-    elements.add(new InterpolationString.full(string, computeStringValue(string.lexeme, true, !hasMore)));
+    elements.add(new InterpolationString(string, computeStringValue(string.lexeme, true, !hasMore)));
     while (hasMore) {
       if (matches5(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         Token openToken = andAdvance;
         Expression expression = parseExpression2();
         Token rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
-        elements.add(new InterpolationExpression.full(openToken, expression, rightBracket));
+        elements.add(new InterpolationExpression(openToken, expression, rightBracket));
       } else {
         Token openToken = andAdvance;
         Expression expression = null;
         if (matches(Keyword.THIS)) {
-          expression = new ThisExpression.full(andAdvance);
+          expression = new ThisExpression(andAdvance);
         } else {
           expression = parseSimpleIdentifier();
         }
-        elements.add(new InterpolationExpression.full(openToken, expression, null));
+        elements.add(new InterpolationExpression(openToken, expression, null));
       }
       if (matches5(TokenType.STRING)) {
         string = andAdvance;
         hasMore = matches5(TokenType.STRING_INTERPOLATION_EXPRESSION) || matches5(TokenType.STRING_INTERPOLATION_IDENTIFIER);
-        elements.add(new InterpolationString.full(string, computeStringValue(string.lexeme, false, !hasMore)));
+        elements.add(new InterpolationString(string, computeStringValue(string.lexeme, false, !hasMore)));
       }
     }
-    return new StringInterpolation.full(elements);
+    return new StringInterpolation(elements);
   }
 
   /**
@@ -5594,7 +5598,7 @@ class Parser {
       constructorName = parseSimpleIdentifier();
     }
     ArgumentList argumentList = parseArgumentList();
-    return new SuperConstructorInvocation.full(keyword, period, constructorName, argumentList);
+    return new SuperConstructorInvocation(keyword, period, constructorName, argumentList);
   }
 
   /**
@@ -5636,13 +5640,13 @@ class Parser {
             definedLabels.add(label);
           }
           Token colon = expect2(TokenType.COLON);
-          labels.add(new Label.full(identifier, colon));
+          labels.add(new Label(identifier, colon));
         }
         if (matches(Keyword.CASE)) {
           Token caseKeyword = andAdvance;
           Expression caseExpression = parseExpression2();
           Token colon = expect2(TokenType.COLON);
-          members.add(new SwitchCase.full(labels, caseKeyword, caseExpression, colon, parseStatements2()));
+          members.add(new SwitchCase(labels, caseKeyword, caseExpression, colon, parseStatements2()));
           if (defaultKeyword != null) {
             reportError11(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, caseKeyword, []);
           }
@@ -5652,7 +5656,7 @@ class Parser {
           }
           defaultKeyword = andAdvance;
           Token colon = expect2(TokenType.COLON);
-          members.add(new SwitchDefault.full(labels, defaultKeyword, colon, parseStatements2()));
+          members.add(new SwitchDefault(labels, defaultKeyword, colon, parseStatements2()));
         } else {
           reportError10(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
           while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !matches(Keyword.CASE) && !matches(Keyword.DEFAULT)) {
@@ -5661,7 +5665,7 @@ class Parser {
         }
       }
       Token rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
-      return new SwitchStatement.full(keyword, leftParenthesis, expression, rightParenthesis, leftBracket, members, rightBracket);
+      return new SwitchStatement(keyword, leftParenthesis, expression, rightParenthesis, leftBracket, members, rightBracket);
     } finally {
       _inSwitch = wasInSwitch;
     }
@@ -5698,7 +5702,7 @@ class Parser {
       reportError10(ParserErrorCode.MISSING_IDENTIFIER, []);
       components.add(createSyntheticToken2(TokenType.IDENTIFIER));
     }
-    return new SymbolLiteral.full(poundSign, new List.from(components));
+    return new SymbolLiteral(poundSign, new List.from(components));
   }
 
   /**
@@ -5715,10 +5719,10 @@ class Parser {
     Token keyword = expect(Keyword.THROW);
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.CLOSE_PAREN)) {
       reportError11(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
-      return new ThrowExpression.full(keyword, createSyntheticIdentifier());
+      return new ThrowExpression(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpression2();
-    return new ThrowExpression.full(keyword, expression);
+    return new ThrowExpression(keyword, expression);
   }
 
   /**
@@ -5735,10 +5739,10 @@ class Parser {
     Token keyword = expect(Keyword.THROW);
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.CLOSE_PAREN)) {
       reportError11(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
-      return new ThrowExpression.full(keyword, createSyntheticIdentifier());
+      return new ThrowExpression(keyword, createSyntheticIdentifier());
     }
     Expression expression = parseExpressionWithoutCascade();
-    return new ThrowExpression.full(keyword, expression);
+    return new ThrowExpression(keyword, expression);
   }
 
   /**
@@ -5790,7 +5794,7 @@ class Parser {
         rightParenthesis = expect2(TokenType.CLOSE_PAREN);
       }
       Block catchBody = parseBlock();
-      catchClauses.add(new CatchClause.full(onKeyword, exceptionType, catchKeyword, leftParenthesis, exceptionParameter, comma, stackTraceParameter, rightParenthesis, catchBody));
+      catchClauses.add(new CatchClause(onKeyword, exceptionType, catchKeyword, leftParenthesis, exceptionParameter, comma, stackTraceParameter, rightParenthesis, catchBody));
     }
     Token finallyKeyword = null;
     if (matches(Keyword.FINALLY)) {
@@ -5801,7 +5805,7 @@ class Parser {
         reportError10(ParserErrorCode.MISSING_CATCH_OR_FINALLY, []);
       }
     }
-    return new TryStatement.full(tryKeyword, body, catchClauses, finallyKeyword, finallyClause);
+    return new TryStatement(tryKeyword, body, catchClauses, finallyKeyword, finallyClause);
   }
 
   /**
@@ -5870,16 +5874,16 @@ class Parser {
       Token operator = andAdvance;
       if (matches(Keyword.SUPER)) {
         if (matches4(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches4(peek(), TokenType.PERIOD)) {
-          return new PrefixExpression.full(operator, parseUnaryExpression());
+          return new PrefixExpression(operator, parseUnaryExpression());
         }
-        return new PrefixExpression.full(operator, new SuperExpression.full(andAdvance));
+        return new PrefixExpression(operator, new SuperExpression(andAdvance));
       }
-      return new PrefixExpression.full(operator, parseUnaryExpression());
+      return new PrefixExpression(operator, parseUnaryExpression());
     } else if (_currentToken.type.isIncrementOperator) {
       Token operator = andAdvance;
       if (matches(Keyword.SUPER)) {
         if (matches4(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches4(peek(), TokenType.PERIOD)) {
-          return new PrefixExpression.full(operator, parseUnaryExpression());
+          return new PrefixExpression(operator, parseUnaryExpression());
         }
         if (identical(operator.type, TokenType.MINUS_MINUS)) {
           int offset = operator.offset;
@@ -5888,13 +5892,13 @@ class Parser {
           secondOperator.setNext(_currentToken);
           firstOperator.setNext(secondOperator);
           operator.previous.setNext(firstOperator);
-          return new PrefixExpression.full(firstOperator, new PrefixExpression.full(secondOperator, new SuperExpression.full(andAdvance)));
+          return new PrefixExpression(firstOperator, new PrefixExpression(secondOperator, new SuperExpression(andAdvance)));
         } else {
           reportError10(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
-          return new PrefixExpression.full(operator, new SuperExpression.full(andAdvance));
+          return new PrefixExpression(operator, new SuperExpression(andAdvance));
         }
       }
-      return new PrefixExpression.full(operator, parseAssignableExpression(false));
+      return new PrefixExpression(operator, parseAssignableExpression(false));
     } else if (matches5(TokenType.PLUS)) {
       reportError10(ParserErrorCode.MISSING_IDENTIFIER, []);
       return createSyntheticIdentifier();
@@ -5921,7 +5925,7 @@ class Parser {
       equals = andAdvance;
       initializer = parseExpression2();
     }
-    return new VariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, name, equals, initializer);
+    return new VariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, name, equals, initializer);
   }
 
   /**
@@ -5965,7 +5969,7 @@ class Parser {
       advance();
       variables.add(parseVariableDeclaration());
     }
-    return new VariableDeclarationList.full(commentAndMetadata != null ? commentAndMetadata.comment : null, commentAndMetadata != null ? commentAndMetadata.metadata : null, keyword, type, variables);
+    return new VariableDeclarationList(commentAndMetadata != null ? commentAndMetadata.comment : null, commentAndMetadata != null ? commentAndMetadata.metadata : null, keyword, type, variables);
   }
 
   /**
@@ -5983,7 +5987,7 @@ class Parser {
   VariableDeclarationStatement parseVariableDeclarationStatement(CommentAndMetadata commentAndMetadata) {
     VariableDeclarationList variableList = parseVariableDeclarationList(commentAndMetadata);
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new VariableDeclarationStatement.full(variableList, semicolon);
+    return new VariableDeclarationStatement(variableList, semicolon);
   }
 
   /**
@@ -6004,7 +6008,7 @@ class Parser {
   VariableDeclarationStatement parseVariableDeclarationStatement2(CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
     VariableDeclarationList variableList = parseVariableDeclarationList2(commentAndMetadata, keyword, type);
     Token semicolon = expect2(TokenType.SEMICOLON);
-    return new VariableDeclarationStatement.full(variableList, semicolon);
+    return new VariableDeclarationStatement(variableList, semicolon);
   }
 
   /**
@@ -6026,7 +6030,7 @@ class Parser {
       Expression condition = parseExpression2();
       Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
-      return new WhileStatement.full(keyword, leftParenthesis, condition, rightParenthesis, body);
+      return new WhileStatement(keyword, leftParenthesis, condition, rightParenthesis, body);
     } finally {
       _inLoop = wasInLoop;
     }

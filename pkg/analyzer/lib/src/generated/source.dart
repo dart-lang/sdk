@@ -66,7 +66,7 @@ class SourceFactory {
   /**
    * A cache of content used to override the default content of a source.
    */
-  ContentCache contentCache;
+  ContentCache _contentCache;
 
   /**
    * The resolvers used to resolve absolute URI's.
@@ -85,7 +85,7 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con1(ContentCache contentCache, List<UriResolver> resolvers) {
-    this.contentCache = contentCache;
+    this._contentCache = contentCache;
     this._resolvers = resolvers;
     this._localSourcePredicate = LocalSourcePredicate.NOT_SDK;
   }
@@ -134,7 +134,7 @@ class SourceFactory {
     try {
       Uri uri = parseUriWithException(encoding.substring(1));
       for (UriResolver resolver in _resolvers) {
-        Source result = resolver.fromEncoding(contentCache, kind, uri);
+        Source result = resolver.fromEncoding(_contentCache, kind, uri);
         if (result != null) {
           return result;
         }
@@ -144,6 +144,13 @@ class SourceFactory {
       throw new IllegalArgumentException("Invalid URI in encoding");
     }
   }
+
+  /**
+   * Return a cache of content used to override the default content of a source.
+   *
+   * @return a cache of content used to override the default content of a source
+   */
+  ContentCache get contentCache => _contentCache;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
@@ -216,7 +223,7 @@ class SourceFactory {
    * @param contents the new contents of the source
    * @return the original cached contents or `null` if none
    */
-  String setContents(Source source, String contents) => contentCache.setContents(source, contents);
+  String setContents(Source source, String contents) => _contentCache.setContents(source, contents);
 
   /**
    * Sets the [LocalSourcePredicate].
@@ -237,7 +244,7 @@ class SourceFactory {
    * @param source the source whose content is to be returned
    * @return the contents of the given source
    */
-  String getContents(Source source) => contentCache.getContents(source);
+  String getContents(Source source) => _contentCache.getContents(source);
 
   /**
    * Return the modification stamp of the given source, or `null` if this factory does not
@@ -249,7 +256,7 @@ class SourceFactory {
    * @param source the source whose modification stamp is to be returned
    * @return the modification stamp of the given source
    */
-  int getModificationStamp(Source source) => contentCache.getModificationStamp(source);
+  int getModificationStamp(Source source) => _contentCache.getModificationStamp(source);
 
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
@@ -264,7 +271,7 @@ class SourceFactory {
   Source resolveUri2(Source containingSource, Uri containedUri) {
     if (containedUri.isAbsolute) {
       for (UriResolver resolver in _resolvers) {
-        Source result = resolver.resolveAbsolute(contentCache, containedUri);
+        Source result = resolver.resolveAbsolute(_contentCache, containedUri);
         if (result != null) {
           return result;
         }
@@ -549,16 +556,14 @@ class UriKind extends Enum<UriKind> {
   /**
    * The single character encoding used to identify this kind of URI.
    */
-  int encoding = 0;
+  final int encoding;
 
   /**
    * Initialize a newly created URI kind to have the given encoding.
    *
    * @param encoding the single character encoding used to identify this kind of URI.
    */
-  UriKind(String name, int ordinal, int encoding) : super(name, ordinal) {
-    this.encoding = encoding;
-  }
+  UriKind(String name, int ordinal, this.encoding) : super(name, ordinal);
 }
 
 /**
@@ -576,13 +581,13 @@ class SourceRange {
    * The 0-based index of the first character of the source code for this element, relative to the
    * source buffer in which this element is contained.
    */
-  int offset = 0;
+  final int offset;
 
   /**
    * The number of characters of the source code for this element, relative to the source buffer in
    * which this element is contained.
    */
-  int length = 0;
+  final int length;
 
   /**
    * Initialize a newly created source range using the given offset and the given length.
@@ -590,10 +595,7 @@ class SourceRange {
    * @param offset the given offset
    * @param length the given length
    */
-  SourceRange(int offset, int length) {
-    this.offset = offset;
-    this.length = length;
-  }
+  SourceRange(this.offset, this.length);
 
   /**
    * @return `true` if <code>x</code> is in [offset, offset + length) interval.
@@ -715,7 +717,7 @@ class DartUriResolver extends UriResolver {
   /**
    * The Dart SDK against which URI's are to be resolved.
    */
-  DartSdk dartSdk;
+  DartSdk _sdk;
 
   /**
    * The name of the `dart` scheme.
@@ -737,21 +739,28 @@ class DartUriResolver extends UriResolver {
    * @param sdk the Dart SDK against which URI's are to be resolved
    */
   DartUriResolver(DartSdk sdk) {
-    this.dartSdk = sdk;
+    this._sdk = sdk;
   }
 
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
     if (identical(kind, UriKind.DART_URI)) {
-      return dartSdk.fromEncoding(contentCache, kind, uri);
+      return _sdk.fromEncoding(contentCache, kind, uri);
     }
     return null;
   }
+
+  /**
+   * Return the [DartSdk] against which URIs are to be resolved.
+   *
+   * @return the [DartSdk] against which URIs are to be resolved.
+   */
+  DartSdk get dartSdk => _sdk;
 
   Source resolveAbsolute(ContentCache contentCache, Uri uri) {
     if (!isDartUri(uri)) {
       return null;
     }
-    return dartSdk.mapDartUri(uri.toString());
+    return _sdk.mapDartUri(uri.toString());
   }
 }
 
@@ -807,12 +816,12 @@ class LineInfo_Location {
   /**
    * The one-based index of the line containing the character.
    */
-  int lineNumber = 0;
+  final int lineNumber;
 
   /**
    * The one-based index of the column containing the character.
    */
-  int columnNumber = 0;
+  final int columnNumber;
 
   /**
    * Initialize a newly created location to represent the location of the character at the given
@@ -821,10 +830,7 @@ class LineInfo_Location {
    * @param lineNumber the one-based index of the line containing the character
    * @param columnNumber the one-based index of the column containing the character
    */
-  LineInfo_Location(int lineNumber, int columnNumber) {
-    this.lineNumber = lineNumber;
-    this.columnNumber = columnNumber;
-  }
+  LineInfo_Location(this.lineNumber, this.columnNumber);
 }
 
 /**
@@ -884,7 +890,11 @@ class ContentCache {
       _stampMap.remove(source);
       return _contentMap.remove(source);
     } else {
-      _stampMap[source] = JavaSystem.currentTimeMillis();
+      int newStamp = JavaSystem.currentTimeMillis();
+      int oldStamp = javaMapPut(_stampMap, source, newStamp);
+      if (newStamp == oldStamp) {
+        _stampMap[source] = newStamp + 1;
+      }
       return javaMapPut(_contentMap, source, contents);
     }
   }

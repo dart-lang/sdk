@@ -43,12 +43,12 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
   /**
    * The name of the severity used when producing machine output.
    */
-  String machineCode;
+  final String machineCode;
 
   /**
    * The name of the severity used when producing readable output.
    */
-  String displayName;
+  final String displayName;
 
   /**
    * Initialize a newly created severity with the given names.
@@ -56,10 +56,7 @@ class ErrorSeverity extends Enum<ErrorSeverity> {
    * @param machineCode the name of the severity used when producing machine output
    * @param displayName the name of the severity used when producing readable output
    */
-  ErrorSeverity(String name, int ordinal, String machineCode, String displayName) : super(name, ordinal) {
-    this.machineCode = machineCode;
-    this.displayName = displayName;
-  }
+  ErrorSeverity(String name, int ordinal, this.machineCode, this.displayName) : super(name, ordinal);
 
   /**
    * Return the severity constant that represents the greatest severity.
@@ -122,10 +119,17 @@ class BooleanErrorListener implements AnalysisErrorListener {
   /**
    * A flag indicating whether an error has been reported to this listener.
    */
-  bool errorReported = false;
+  bool _errorReported = false;
+
+  /**
+   * Return `true` if an error has been reported to this listener.
+   *
+   * @return `true` if an error has been reported to this listener
+   */
+  bool get errorReported => _errorReported;
 
   void onError(AnalysisError error) {
-    errorReported = true;
+    _errorReported = true;
   }
 }
 
@@ -282,18 +286,18 @@ class AnalysisError {
   /**
    * The error code associated with the error.
    */
-  ErrorCode errorCode;
+  final ErrorCode errorCode;
 
   /**
    * The localized error message.
    */
-  String message;
+  String _message;
 
   /**
    * The correction to be displayed for this error, or `null` if there is no correction
    * information for this error.
    */
-  String correction;
+  String _correction;
 
   /**
    * The source in which the error occurred, or `null` if unknown.
@@ -303,13 +307,13 @@ class AnalysisError {
   /**
    * The character offset from the beginning of the source (zero based) where the error occurred.
    */
-  int offset = 0;
+  int _offset = 0;
 
   /**
    * The number of characters from the offset to the end of the source which encompasses the
    * compilation error.
    */
-  int length = 0;
+  int _length = 0;
 
   /**
    * A flag indicating whether this error can be shown to be a non-issue because of the result of
@@ -325,10 +329,8 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con1(Source source, ErrorCode errorCode, List<Object> arguments) {
-    this.source = source;
-    this.errorCode = errorCode;
-    this.message = JavaString.format(errorCode.message, arguments);
+  AnalysisError.con1(this.source, this.errorCode, List<Object> arguments) {
+    this._message = JavaString.format(errorCode.message, arguments);
   }
 
   /**
@@ -340,15 +342,13 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con2(Source source, int offset, int length, ErrorCode errorCode, List<Object> arguments) {
-    this.source = source;
-    this.offset = offset;
-    this.length = length;
-    this.errorCode = errorCode;
-    this.message = JavaString.format(errorCode.message, arguments);
+  AnalysisError.con2(this.source, int offset, int length, this.errorCode, List<Object> arguments) {
+    this._offset = offset;
+    this._length = length;
+    this._message = JavaString.format(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
-      this.correction = JavaString.format(correctionTemplate, arguments);
+      this._correction = JavaString.format(correctionTemplate, arguments);
     }
   }
 
@@ -363,13 +363,13 @@ class AnalysisError {
     if (errorCode != other.errorCode) {
       return false;
     }
-    if (offset != other.offset || length != other.length) {
+    if (_offset != other._offset || _length != other._length) {
       return false;
     }
     if (isStaticOnly != other.isStaticOnly) {
       return false;
     }
-    if (message != other.message) {
+    if (_message != other._message) {
       return false;
     }
     if (source != other.source) {
@@ -377,6 +377,38 @@ class AnalysisError {
     }
     return true;
   }
+
+  /**
+   * Return the correction to be displayed for this error, or `null` if there is no correction
+   * information for this error. The correction should indicate how the user can fix the error.
+   *
+   * @return the template used to create the correction to be displayed for this error
+   */
+  String get correction => _correction;
+
+  /**
+   * Return the number of characters from the offset to the end of the source which encompasses the
+   * compilation error.
+   *
+   * @return the length of the error location
+   */
+  int get length => _length;
+
+  /**
+   * Return the message to be displayed for this error. The message should indicate what is wrong
+   * and why it is wrong.
+   *
+   * @return the message to be displayed for this error
+   */
+  String get message => _message;
+
+  /**
+   * Return the character offset from the beginning of the source (zero based) where the error
+   * occurred.
+   *
+   * @return the offset to the start of the error location
+   */
+  int get offset => _offset;
 
   /**
    * Return the value of the given property, or `null` if the given property is not defined
@@ -388,8 +420,8 @@ class AnalysisError {
   Object getProperty(ErrorProperty property) => null;
 
   int get hashCode {
-    int hashCode = offset;
-    hashCode ^= (message != null) ? message.hashCode : 0;
+    int hashCode = _offset;
+    hashCode ^= (_message != null) ? _message.hashCode : 0;
     hashCode ^= (source != null) ? source.hashCode : 0;
     return hashCode;
   }
@@ -398,11 +430,11 @@ class AnalysisError {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append((source != null) ? source.fullName : "<unknown source>");
     builder.append("(");
-    builder.append(offset);
+    builder.append(_offset);
     builder.append("..");
-    builder.append(offset + length - 1);
+    builder.append(_offset + _length - 1);
     builder.append("): ");
-    builder.append(message);
+    builder.append(_message);
     return builder.toString();
   }
 }
@@ -642,7 +674,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  String _message;
+  final String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -655,9 +687,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  HintCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
-    this._message = message;
-  }
+  HintCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -665,16 +695,13 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  HintCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
-    this._message = message;
+  HintCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
     this.correction3 = correction;
   }
 
   String get correction => correction3;
 
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;
-
-  String get message => _message;
 
   ErrorType get type => ErrorType.HINT;
 }
@@ -780,16 +807,14 @@ class ErrorType extends Enum<ErrorType> {
   /**
    * The severity of this type of error.
    */
-  ErrorSeverity severity;
+  final ErrorSeverity severity;
 
   /**
    * Initialize a newly created error type to have the given severity.
    *
    * @param severity the severity of this type of error
    */
-  ErrorType(String name, int ordinal, ErrorSeverity severity) : super(name, ordinal) {
-    this.severity = severity;
-  }
+  ErrorType(String name, int ordinal, this.severity) : super(name, ordinal);
 
   String get displayName => name.toLowerCase().replaceAll('_', ' ');
 }
@@ -2113,7 +2138,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
   /**
    * The template used to create the message to be displayed for this error.
    */
-  String _message;
+  final String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -2126,9 +2151,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  CompileTimeErrorCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
-    this._message = message;
-  }
+  CompileTimeErrorCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -2136,16 +2159,13 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  CompileTimeErrorCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
-    this._message = message;
+  CompileTimeErrorCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
     this.correction2 = correction;
   }
 
   String get correction => correction2;
 
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
-
-  String get message => _message;
 
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
@@ -2188,7 +2208,7 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  String _message;
+  final String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -2201,9 +2221,7 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  PubSuggestionCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
-    this._message = message;
-  }
+  PubSuggestionCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -2211,16 +2229,13 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  PubSuggestionCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
-    this._message = message;
+  PubSuggestionCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
     this.correction5 = correction;
   }
 
   String get correction => correction5;
 
   ErrorSeverity get errorSeverity => ErrorType.PUB_SUGGESTION.severity;
-
-  String get message => _message;
 
   ErrorType get type => ErrorType.PUB_SUGGESTION;
 }
@@ -3083,7 +3098,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  String _message;
+  final String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -3096,9 +3111,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  StaticWarningCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
-    this._message = message;
-  }
+  StaticWarningCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -3106,16 +3119,13 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  StaticWarningCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
-    this._message = message;
+  StaticWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
     this.correction7 = correction;
   }
 
   String get correction => correction7;
 
   ErrorSeverity get errorSeverity => ErrorType.STATIC_WARNING.severity;
-
-  String get message => _message;
 
   ErrorType get type => ErrorType.STATIC_WARNING;
 }
@@ -3175,7 +3185,7 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  String _message;
+  final String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -3188,9 +3198,7 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  HtmlWarningCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
-    this._message = message;
-  }
+  HtmlWarningCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -3198,16 +3206,13 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  HtmlWarningCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
-    this._message = message;
+  HtmlWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
     this.correction4 = correction;
   }
 
   String get correction => correction4;
 
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
-
-  String get message => _message;
 
   ErrorType get type => ErrorType.STATIC_WARNING;
 }
@@ -3507,7 +3512,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
   /**
    * The template used to create the message to be displayed for this error.
    */
-  String _message;
+  final String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -3520,9 +3525,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  StaticTypeWarningCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
-    this._message = message;
-  }
+  StaticTypeWarningCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -3530,16 +3533,13 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  StaticTypeWarningCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
-    this._message = message;
+  StaticTypeWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
     this.correction6 = correction;
   }
 
   String get correction => correction6;
 
   ErrorSeverity get errorSeverity => ErrorType.STATIC_TYPE_WARNING.severity;
-
-  String get message => _message;
 
   ErrorType get type => ErrorType.STATIC_TYPE_WARNING;
 }

@@ -163,7 +163,7 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
   /**
    * The template used to create the message to be displayed for this error.
    */
-  String _message;
+  final String message;
 
   /**
    * The template used to create the correction to be displayed for this error, or `null` if
@@ -176,9 +176,7 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
    *
    * @param message the message template used to create the message to be displayed for this error
    */
-  ScannerErrorCode.con1(String name, int ordinal, String message) : super(name, ordinal) {
-    this._message = message;
-  }
+  ScannerErrorCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
 
   /**
    * Initialize a newly created error code to have the given message and correction.
@@ -186,16 +184,13 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
    * @param message the template used to create the message to be displayed for the error
    * @param correction the template used to create the correction to be displayed for the error
    */
-  ScannerErrorCode.con2(String name, int ordinal, String message, String correction) : super(name, ordinal) {
-    this._message = message;
+  ScannerErrorCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
     this.correction10 = correction;
   }
 
   String get correction => correction10;
 
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
-
-  String get message => _message;
 
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 }
@@ -424,13 +419,13 @@ class Keyword extends Enum<Keyword> {
   /**
    * The lexeme for the keyword.
    */
-  String syntax;
+  String _syntax;
 
   /**
    * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords can be used as
    * identifiers.
    */
-  bool isPseudoKeyword = false;
+  bool _isPseudoKeyword2 = false;
 
   /**
    * A table mapping the lexemes of keywords to the corresponding keyword.
@@ -445,7 +440,7 @@ class Keyword extends Enum<Keyword> {
   static Map<String, Keyword> createKeywordMap() {
     LinkedHashMap<String, Keyword> result = new LinkedHashMap<String, Keyword>();
     for (Keyword keyword in values) {
-      result[keyword.syntax] = keyword;
+      result[keyword._syntax] = keyword;
     }
     return result;
   }
@@ -466,9 +461,24 @@ class Keyword extends Enum<Keyword> {
    * @param isPseudoKeyword `true` if this keyword is a pseudo-keyword
    */
   Keyword.con2(String name, int ordinal, String syntax, bool isPseudoKeyword) : super(name, ordinal) {
-    this.syntax = syntax;
-    this.isPseudoKeyword = isPseudoKeyword;
+    this._syntax = syntax;
+    this._isPseudoKeyword2 = isPseudoKeyword;
   }
+
+  /**
+   * Return the lexeme for the keyword.
+   *
+   * @return the lexeme for the keyword
+   */
+  String get syntax => _syntax;
+
+  /**
+   * Return `true` if this keyword is a pseudo-keyword. Pseudo keywords can be used as
+   * identifiers.
+   *
+   * @return `true` if this keyword is a pseudo-keyword
+   */
+  bool get isPseudoKeyword => _isPseudoKeyword2;
 }
 
 /**
@@ -558,21 +568,21 @@ class IncrementalScanner extends Scanner {
   /**
    * A map from tokens that were copied to the copies of the tokens.
    */
-  final TokenMap tokenMap = new TokenMap();
+  TokenMap _tokenMap = new TokenMap();
 
   /**
    * The token in the new token stream immediately to the left of the range of tokens that were
    * inserted, or the token immediately to the left of the modified region if there were no new
    * tokens.
    */
-  Token leftToken;
+  Token _leftToken;
 
   /**
    * The token in the new token stream immediately to the right of the range of tokens that were
    * inserted, or the token immediately to the right of the modified region if there were no new
    * tokens.
    */
-  Token rightToken;
+  Token _rightToken;
 
   /**
    * A flag indicating whether there were any tokens changed as a result of the modification.
@@ -589,6 +599,31 @@ class IncrementalScanner extends Scanner {
   IncrementalScanner(Source source, CharacterReader reader, AnalysisErrorListener errorListener) : super(source, reader, errorListener) {
     this._reader = reader;
   }
+
+  /**
+   * Return the token in the new token stream immediately to the left of the range of tokens that
+   * were inserted, or the token immediately to the left of the modified region if there were no new
+   * tokens.
+   *
+   * @return the token to the left of the inserted tokens
+   */
+  Token get leftToken => _leftToken;
+
+  /**
+   * Return the token in the new token stream immediately to the right of the range of tokens that
+   * were inserted, or the token immediately to the right of the modified region if there were no
+   * new tokens.
+   *
+   * @return the token to the right of the inserted tokens
+   */
+  Token get rightToken => _rightToken;
+
+  /**
+   * Return a map from tokens that were copied to the copies of the tokens.
+   *
+   * @return a map from tokens that were copied to the copies of the tokens
+   */
+  TokenMap get tokenMap => _tokenMap;
 
   /**
    * Return `true` if there were any tokens either added or removed (or both) as a result of
@@ -616,7 +651,7 @@ class IncrementalScanner extends Scanner {
     }
     Token oldFirst = originalStream;
     Token oldLeftToken = originalStream.previous;
-    leftToken = tail;
+    _leftToken = tail;
     int removedEnd = index + (removedLength == 0 ? 0 : removedLength - 1);
     while (originalStream.type != TokenType.EOF && originalStream.offset <= removedEnd) {
       originalStream = originalStream.next;
@@ -643,46 +678,46 @@ class IncrementalScanner extends Scanner {
     }
     if (identical(originalStream.type, TokenType.EOF)) {
       copyAndAdvance(originalStream, delta);
-      rightToken = tail;
-      rightToken.setNextWithoutSettingPrevious(rightToken);
+      _rightToken = tail;
+      _rightToken.setNextWithoutSettingPrevious(_rightToken);
     } else {
       originalStream = copyAndAdvance(originalStream, delta);
-      rightToken = tail;
+      _rightToken = tail;
       while (originalStream.type != TokenType.EOF) {
         originalStream = copyAndAdvance(originalStream, delta);
       }
       Token eof = copyAndAdvance(originalStream, delta);
       eof.setNextWithoutSettingPrevious(eof);
     }
-    Token newFirst = leftToken.next;
-    while (newFirst != rightToken && oldFirst != oldRightToken && newFirst.type != TokenType.EOF && equals3(oldFirst, newFirst)) {
-      tokenMap.put(oldFirst, newFirst);
+    Token newFirst = _leftToken.next;
+    while (newFirst != _rightToken && oldFirst != oldRightToken && newFirst.type != TokenType.EOF && equals3(oldFirst, newFirst)) {
+      _tokenMap.put(oldFirst, newFirst);
       oldLeftToken = oldFirst;
       oldFirst = oldFirst.next;
-      leftToken = newFirst;
+      _leftToken = newFirst;
       newFirst = newFirst.next;
     }
-    Token newLast = rightToken.previous;
-    while (newLast != leftToken && oldLast != oldLeftToken && newLast.type != TokenType.EOF && equals3(oldLast, newLast)) {
-      tokenMap.put(oldLast, newLast);
+    Token newLast = _rightToken.previous;
+    while (newLast != _leftToken && oldLast != oldLeftToken && newLast.type != TokenType.EOF && equals3(oldLast, newLast)) {
+      _tokenMap.put(oldLast, newLast);
       oldRightToken = oldLast;
       oldLast = oldLast.previous;
-      rightToken = newLast;
+      _rightToken = newLast;
       newLast = newLast.previous;
     }
-    _hasNonWhitespaceChange2 = leftToken.next != rightToken || oldLeftToken.next != oldRightToken;
+    _hasNonWhitespaceChange2 = _leftToken.next != _rightToken || oldLeftToken.next != oldRightToken;
     return firstToken;
   }
 
   Token copyAndAdvance(Token originalToken, int delta) {
     Token copiedToken = originalToken.copy();
-    tokenMap.put(originalToken, copiedToken);
+    _tokenMap.put(originalToken, copiedToken);
     copiedToken.applyDelta(delta);
     appendToken(copiedToken);
     Token originalComment = originalToken.precedingComments;
     Token copiedComment = originalToken.precedingComments;
     while (originalComment != null) {
-      tokenMap.put(originalComment, copiedComment);
+      _tokenMap.put(originalComment, copiedComment);
       originalComment = originalComment.next;
       copiedComment = copiedComment.next;
     }
@@ -715,7 +750,7 @@ class Scanner {
   /**
    * The source being scanned.
    */
-  Source source;
+  final Source source;
 
   /**
    * The reader used to access the characters in the source.
@@ -740,7 +775,7 @@ class Scanner {
   /**
    * The last token that was scanned.
    */
-  Token tail;
+  Token _tail;
 
   /**
    * The first token in the list of comment tokens found since the last non-comment token.
@@ -785,13 +820,12 @@ class Scanner {
    * @param reader the character reader used to read the characters in the source
    * @param errorListener the error listener that will be informed of any errors that are found
    */
-  Scanner(Source source, CharacterReader reader, AnalysisErrorListener errorListener) {
-    this.source = source;
+  Scanner(this.source, CharacterReader reader, AnalysisErrorListener errorListener) {
     this._reader = reader;
     this._errorListener = errorListener;
     _tokens = new Token(TokenType.EOF, -1);
     _tokens.setNext(_tokens);
-    tail = _tokens;
+    _tail = _tokens;
     _tokenStart = -1;
     _lineStarts.add(0);
   }
@@ -871,7 +905,7 @@ class Scanner {
    * @param token the token to be appended
    */
   void appendToken(Token token) {
-    tail = tail.setNext(token);
+    _tail = _tail.setNext(token);
   }
 
   int bigSwitch(int next) {
@@ -1023,6 +1057,13 @@ class Scanner {
   Token get firstToken => _tokens.next;
 
   /**
+   * Return the last token that was scanned.
+   *
+   * @return the last token that was scanned
+   */
+  Token get tail => _tail;
+
+  /**
    * Record the fact that we are at the beginning of a new line in the source.
    */
   void recordStartOfLine() {
@@ -1038,7 +1079,7 @@ class Scanner {
       _firstComment = null;
       _lastComment = null;
     }
-    tail = tail.setNext(token);
+    _tail = _tail.setNext(token);
     _groupingStack.add(token);
     _stackEnd++;
   }
@@ -1064,7 +1105,7 @@ class Scanner {
       _firstComment = null;
       _lastComment = null;
     }
-    tail = tail.setNext(token);
+    _tail = _tail.setNext(token);
     if (_stackEnd >= 0) {
       BeginToken begin = _groupingStack[_stackEnd];
       if (identical(begin.type, beginType)) {
@@ -1084,7 +1125,7 @@ class Scanner {
       _lastComment = null;
     }
     eofToken.setNext(eofToken);
-    tail = tail.setNext(eofToken);
+    _tail = _tail.setNext(eofToken);
     if (_stackEnd >= 0) {
       _hasUnmatchedGroups2 = true;
     }
@@ -1092,9 +1133,9 @@ class Scanner {
 
   void appendKeywordToken(Keyword keyword) {
     if (_firstComment == null) {
-      tail = tail.setNext(new KeywordToken(keyword, _tokenStart));
+      _tail = _tail.setNext(new KeywordToken(keyword, _tokenStart));
     } else {
-      tail = tail.setNext(new KeywordTokenWithComment(keyword, _tokenStart, _firstComment));
+      _tail = _tail.setNext(new KeywordTokenWithComment(keyword, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -1102,9 +1143,9 @@ class Scanner {
 
   void appendStringToken(TokenType type, String value) {
     if (_firstComment == null) {
-      tail = tail.setNext(new StringToken(type, value, _tokenStart));
+      _tail = _tail.setNext(new StringToken(type, value, _tokenStart));
     } else {
-      tail = tail.setNext(new StringTokenWithComment(type, value, _tokenStart, _firstComment));
+      _tail = _tail.setNext(new StringTokenWithComment(type, value, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -1112,9 +1153,9 @@ class Scanner {
 
   void appendStringToken2(TokenType type, String value, int offset) {
     if (_firstComment == null) {
-      tail = tail.setNext(new StringToken(type, value, _tokenStart + offset));
+      _tail = _tail.setNext(new StringToken(type, value, _tokenStart + offset));
     } else {
-      tail = tail.setNext(new StringTokenWithComment(type, value, _tokenStart + offset, _firstComment));
+      _tail = _tail.setNext(new StringTokenWithComment(type, value, _tokenStart + offset, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -1122,9 +1163,9 @@ class Scanner {
 
   void appendToken2(TokenType type) {
     if (_firstComment == null) {
-      tail = tail.setNext(new Token(type, _tokenStart));
+      _tail = _tail.setNext(new Token(type, _tokenStart));
     } else {
-      tail = tail.setNext(new TokenWithComment(type, _tokenStart, _firstComment));
+      _tail = _tail.setNext(new TokenWithComment(type, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -1132,9 +1173,9 @@ class Scanner {
 
   void appendToken3(TokenType type, int offset) {
     if (_firstComment == null) {
-      tail = tail.setNext(new Token(type, offset));
+      _tail = _tail.setNext(new Token(type, offset));
     } else {
-      tail = tail.setNext(new TokenWithComment(type, offset, _firstComment));
+      _tail = _tail.setNext(new TokenWithComment(type, offset, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -1822,7 +1863,7 @@ class Token {
   /**
    * The type of the token.
    */
-  TokenType type;
+  final TokenType type;
 
   /**
    * The offset from the beginning of the file to the first character in the token.
@@ -1837,7 +1878,7 @@ class Token {
   /**
    * The next token in the token stream.
    */
-  Token next;
+  Token _next;
 
   /**
    * Initialize a newly created token to have the given type and offset.
@@ -1845,8 +1886,7 @@ class Token {
    * @param type the type of the token
    * @param offset the offset from the beginning of the file to the first character in the token
    */
-  Token(TokenType type, int offset) {
-    this.type = type;
+  Token(this.type, int offset) {
     this.offset = offset;
   }
 
@@ -1880,6 +1920,13 @@ class Token {
    * @return the lexeme that represents this token
    */
   String get lexeme => type.lexeme;
+
+  /**
+   * Return the next token in the token stream.
+   *
+   * @return the next token in the token stream
+   */
+  Token get next => _next;
 
   /**
    * Return the first comment in the list of comments that precede this token, or `null` if
@@ -1920,7 +1967,7 @@ class Token {
    * @return the token that was passed in
    */
   Token setNext(Token token) {
-    next = token;
+    _next = token;
     token.previous = this;
     return token;
   }
@@ -1933,7 +1980,7 @@ class Token {
    * @return the token that was passed in
    */
   Token setNextWithoutSettingPrevious(Token token) {
-    next = token;
+    _next = token;
     return token;
   }
 
@@ -2072,7 +2119,7 @@ class KeywordToken extends Token {
   /**
    * The keyword being represented by this token.
    */
-  Keyword keyword;
+  final Keyword keyword;
 
   /**
    * Initialize a newly created token to represent the given keyword.
@@ -2080,9 +2127,7 @@ class KeywordToken extends Token {
    * @param keyword the keyword being represented by this token
    * @param offset the offset from the beginning of the file to the first character in the token
    */
-  KeywordToken(Keyword keyword, int offset) : super(TokenType.KEYWORD, offset) {
-    this.keyword = keyword;
-  }
+  KeywordToken(this.keyword, int offset) : super(TokenType.KEYWORD, offset);
 
   Token copy() => new KeywordToken(keyword, offset);
 
@@ -2224,13 +2269,21 @@ class TokenClass extends Enum<TokenClass> {
    * The precedence of tokens of this class, or `0` if the such tokens do not represent an
    * operator.
    */
-  int precedence = 0;
+  int _precedence = 0;
 
   TokenClass.con1(String name, int ordinal) : this.con2(name, ordinal, 0);
 
   TokenClass.con2(String name, int ordinal, int precedence) : super(name, ordinal) {
-    this.precedence = precedence;
+    this._precedence = precedence;
   }
+
+  /**
+   * Return the precedence of tokens of this class, or `0` if the such tokens do not represent
+   * an operator.
+   *
+   * @return the precedence of tokens of this class
+   */
+  int get precedence => _precedence;
 }
 
 /**
@@ -2496,14 +2549,22 @@ class TokenType extends Enum<TokenType> {
    * The lexeme that defines this type of token, or `null` if there is more than one possible
    * lexeme for this type of token.
    */
-  String lexeme;
+  String _lexeme;
 
   TokenType.con1(String name, int ordinal) : this.con2(name, ordinal, TokenClass.NO_CLASS, null);
 
   TokenType.con2(String name, int ordinal, TokenClass tokenClass, String lexeme) : super(name, ordinal) {
     this._tokenClass = tokenClass == null ? TokenClass.NO_CLASS : tokenClass;
-    this.lexeme = lexeme;
+    this._lexeme = lexeme;
   }
+
+  /**
+   * Return the lexeme that defines this type of token, or `null` if there is more than one
+   * possible lexeme for this type of token.
+   *
+   * @return the lexeme that defines this type of token
+   */
+  String get lexeme => _lexeme;
 
   /**
    * Return the precedence of the token, or `0` if the token does not represent an operator.
@@ -2552,7 +2613,7 @@ class TokenType extends Enum<TokenType> {
    *
    * @return `true` if this type of token represents an increment operator
    */
-  bool get isIncrementOperator => identical(lexeme, "++") || identical(lexeme, "--");
+  bool get isIncrementOperator => identical(_lexeme, "++") || identical(_lexeme, "--");
 
   /**
    * Return `true` if this type of token represents a multiplicative operator.
@@ -2601,7 +2662,7 @@ class TokenType extends Enum<TokenType> {
    *
    * @return `true` if this token type represents an operator that can be defined by users
    */
-  bool get isUserDefinableOperator => identical(lexeme, "==") || identical(lexeme, "~") || identical(lexeme, "[]") || identical(lexeme, "[]=") || identical(lexeme, "*") || identical(lexeme, "/") || identical(lexeme, "%") || identical(lexeme, "~/") || identical(lexeme, "+") || identical(lexeme, "-") || identical(lexeme, "<<") || identical(lexeme, ">>") || identical(lexeme, ">=") || identical(lexeme, ">") || identical(lexeme, "<=") || identical(lexeme, "<") || identical(lexeme, "&") || identical(lexeme, "^") || identical(lexeme, "|");
+  bool get isUserDefinableOperator => identical(_lexeme, "==") || identical(_lexeme, "~") || identical(_lexeme, "[]") || identical(_lexeme, "[]=") || identical(_lexeme, "*") || identical(_lexeme, "/") || identical(_lexeme, "%") || identical(_lexeme, "~/") || identical(_lexeme, "+") || identical(_lexeme, "-") || identical(_lexeme, "<<") || identical(_lexeme, ">>") || identical(_lexeme, ">=") || identical(_lexeme, ">") || identical(_lexeme, "<=") || identical(_lexeme, "<") || identical(_lexeme, "&") || identical(_lexeme, "^") || identical(_lexeme, "|");
 }
 
 class TokenType_EOF extends TokenType {

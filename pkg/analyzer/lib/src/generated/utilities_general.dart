@@ -9,7 +9,12 @@ import 'java_core.dart';
  * Helper for measuring how much time is spent doing some operation.
  */
 class TimeCounter {
-  int result = 0;
+  int _result = 0;
+
+  /**
+   * @return the number of milliseconds spent between [start] and [stop].
+   */
+  int get result => _result;
 
   /**
    * Starts counting time.
@@ -34,7 +39,7 @@ class TimeCounter_TimeCounterHandle {
    */
   void stop() {
     {
-      TimeCounter_this.result += JavaSystem.currentTimeMillis() - _startTime;
+      TimeCounter_this._result += JavaSystem.currentTimeMillis() - _startTime;
     }
   }
 }

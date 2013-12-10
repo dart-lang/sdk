@@ -485,33 +485,33 @@ class AdjacentStrings extends StringLiteral {
   /**
    * The strings that are implicitly concatenated.
    */
-  NodeList<StringLiteral> strings;
+  NodeList<StringLiteral> _strings;
 
   /**
    * Initialize a newly created list of adjacent strings.
    *
    * @param strings the strings that are implicitly concatenated
    */
-  AdjacentStrings.full(List<StringLiteral> strings) {
-    this.strings = new NodeList<StringLiteral>(this);
-    this.strings.addAll(strings);
+  AdjacentStrings(List<StringLiteral> strings) {
+    this._strings = new NodeList<StringLiteral>(this);
+    this._strings.addAll(strings);
   }
-
-  /**
-   * Initialize a newly created list of adjacent strings.
-   *
-   * @param strings the strings that are implicitly concatenated
-   */
-  AdjacentStrings({List<StringLiteral> strings}) : this.full(strings);
 
   accept(ASTVisitor visitor) => visitor.visitAdjacentStrings(this);
 
-  Token get beginToken => strings.beginToken;
+  Token get beginToken => _strings.beginToken;
 
-  Token get endToken => strings.endToken;
+  Token get endToken => _strings.endToken;
+
+  /**
+   * Return the strings that are implicitly concatenated.
+   *
+   * @return the strings that are implicitly concatenated
+   */
+  NodeList<StringLiteral> get strings => _strings;
 
   void visitChildren(ASTVisitor visitor) {
-    strings.accept(visitor);
+    _strings.accept(visitor);
   }
 
   void appendStringValue(JavaStringBuilder builder) {
@@ -545,19 +545,11 @@ abstract class AnnotatedNode extends ASTNode {
    * @param comment the documentation comment associated with this node
    * @param metadata the annotations associated with this node
    */
-  AnnotatedNode.full(Comment comment, List<Annotation> metadata) {
+  AnnotatedNode(Comment comment, List<Annotation> metadata) {
     this._metadata = new NodeList<Annotation>(this);
     this._comment = becomeParentOf(comment);
     this._metadata.addAll(metadata);
   }
-
-  /**
-   * Initialize a newly created node.
-   *
-   * @param comment the documentation comment associated with this node
-   * @param metadata the annotations associated with this node
-   */
-  AnnotatedNode({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
 
   Token get beginToken {
     if (_comment == null) {
@@ -722,28 +714,11 @@ class Annotation extends ASTNode {
    * @param arguments the arguments to the constructor being invoked, or `null` if this
    *          annotation is not the invocation of a constructor
    */
-  Annotation.full(Token atSign, Identifier name, Token period, SimpleIdentifier constructorName, ArgumentList arguments) {
-    this.atSign = atSign;
+  Annotation(this.atSign, Identifier name, this.period, SimpleIdentifier constructorName, ArgumentList arguments) {
     this._name = becomeParentOf(name);
-    this.period = period;
     this._constructorName = becomeParentOf(constructorName);
     this._arguments = becomeParentOf(arguments);
   }
-
-  /**
-   * Initialize a newly created annotation.
-   *
-   * @param atSign the at sign that introduced the annotation
-   * @param name the name of the class defining the constructor that is being invoked or the name of
-   *          the field that is being referenced
-   * @param period the period before the constructor name, or `null` if this annotation is not
-   *          the invocation of a named constructor
-   * @param constructorName the name of the constructor being invoked, or `null` if this
-   *          annotation is not the invocation of a named constructor
-   * @param arguments the arguments to the constructor being invoked, or `null` if this
-   *          annotation is not the invocation of a constructor
-   */
-  Annotation({Token atSign, Identifier name, Token period, SimpleIdentifier constructorName, ArgumentList arguments}) : this.full(atSign, name, period, constructorName, arguments);
 
   accept(ASTVisitor visitor) => visitor.visitAnnotation(this);
 
@@ -869,18 +844,9 @@ class ArgumentDefinitionTest extends Expression {
    * @param question the token representing the question mark
    * @param identifier the identifier representing the argument being tested
    */
-  ArgumentDefinitionTest.full(Token question, SimpleIdentifier identifier) {
-    this.question = question;
+  ArgumentDefinitionTest(this.question, SimpleIdentifier identifier) {
     this._identifier = becomeParentOf(identifier);
   }
-
-  /**
-   * Initialize a newly created argument definition test.
-   *
-   * @param question the token representing the question mark
-   * @param identifier the identifier representing the argument being tested
-   */
-  ArgumentDefinitionTest({Token question, SimpleIdentifier identifier}) : this.full(question, identifier);
 
   accept(ASTVisitor visitor) => visitor.visitArgumentDefinitionTest(this);
 
@@ -935,7 +901,7 @@ class ArgumentList extends ASTNode {
   /**
    * The expressions producing the values of the arguments.
    */
-  NodeList<Expression> arguments;
+  NodeList<Expression> _arguments;
 
   /**
    * The right parenthesis.
@@ -967,23 +933,23 @@ class ArgumentList extends ASTNode {
    * @param arguments the expressions producing the values of the arguments
    * @param rightParenthesis the right parenthesis
    */
-  ArgumentList.full(Token leftParenthesis, List<Expression> arguments, Token rightParenthesis) {
-    this.arguments = new NodeList<Expression>(this);
+  ArgumentList(Token leftParenthesis, List<Expression> arguments, Token rightParenthesis) {
+    this._arguments = new NodeList<Expression>(this);
     this._leftParenthesis = leftParenthesis;
-    this.arguments.addAll(arguments);
+    this._arguments.addAll(arguments);
     this._rightParenthesis = rightParenthesis;
   }
 
-  /**
-   * Initialize a newly created list of arguments.
-   *
-   * @param leftParenthesis the left parenthesis
-   * @param arguments the expressions producing the values of the arguments
-   * @param rightParenthesis the right parenthesis
-   */
-  ArgumentList({Token leftParenthesis, List<Expression> arguments, Token rightParenthesis}) : this.full(leftParenthesis, arguments, rightParenthesis);
-
   accept(ASTVisitor visitor) => visitor.visitArgumentList(this);
+
+  /**
+   * Return the expressions producing the values of the arguments. Although the language requires
+   * that positional arguments appear before named arguments, this class allows them to be
+   * intermixed.
+   *
+   * @return the expressions producing the values of the arguments
+   */
+  NodeList<Expression> get arguments => _arguments;
 
   Token get beginToken => _leftParenthesis;
 
@@ -1012,8 +978,8 @@ class ArgumentList extends ASTNode {
    * @param parameters the parameter elements corresponding to the arguments
    */
   void set correspondingPropagatedParameters(List<ParameterElement> parameters) {
-    if (parameters.length != arguments.length) {
-      throw new IllegalArgumentException("Expected ${arguments.length} parameters, not ${parameters.length}");
+    if (parameters.length != _arguments.length) {
+      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
     }
     _correspondingPropagatedParameters = parameters;
   }
@@ -1027,8 +993,8 @@ class ArgumentList extends ASTNode {
    * @param parameters the parameter elements corresponding to the arguments
    */
   void set correspondingStaticParameters(List<ParameterElement> parameters) {
-    if (parameters.length != arguments.length) {
-      throw new IllegalArgumentException("Expected ${arguments.length} parameters, not ${parameters.length}");
+    if (parameters.length != _arguments.length) {
+      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
     }
     _correspondingStaticParameters = parameters;
   }
@@ -1052,7 +1018,7 @@ class ArgumentList extends ASTNode {
   }
 
   void visitChildren(ASTVisitor visitor) {
-    arguments.accept(visitor);
+    _arguments.accept(visitor);
   }
 
   /**
@@ -1072,7 +1038,7 @@ class ArgumentList extends ASTNode {
     if (_correspondingPropagatedParameters == null) {
       return null;
     }
-    int index = arguments.indexOf(expression);
+    int index = _arguments.indexOf(expression);
     if (index < 0) {
       return null;
     }
@@ -1096,7 +1062,7 @@ class ArgumentList extends ASTNode {
     if (_correspondingStaticParameters == null) {
       return null;
     }
-    int index = arguments.indexOf(expression);
+    int index = _arguments.indexOf(expression);
     if (index < 0) {
       return null;
     }
@@ -1137,20 +1103,11 @@ class AsExpression extends Expression {
    * @param isOperator the is operator
    * @param type the name of the type being cast to
    */
-  AsExpression.full(Expression expression, Token isOperator, TypeName type) {
+  AsExpression(Expression expression, Token isOperator, TypeName type) {
     this._expression = becomeParentOf(expression);
     this.asOperator = isOperator;
     this._type = becomeParentOf(type);
   }
-
-  /**
-   * Initialize a newly created as expression.
-   *
-   * @param expression the expression used to compute the value being cast
-   * @param isOperator the is operator
-   * @param type the name of the type being cast to
-   */
-  AsExpression({Expression expression, Token isOperator, TypeName type}) : this.full(expression, isOperator, type);
 
   accept(ASTVisitor visitor) => visitor.visitAsExpression(this);
 
@@ -1243,24 +1200,9 @@ class AssertStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param semicolon the semicolon terminating the statement
    */
-  AssertStatement.full(Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon) {
-    this.keyword = keyword;
-    this.leftParenthesis = leftParenthesis;
+  AssertStatement(this.keyword, this.leftParenthesis, Expression condition, this.rightParenthesis, this.semicolon) {
     this._condition = becomeParentOf(condition);
-    this.rightParenthesis = rightParenthesis;
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created assert statement.
-   *
-   * @param keyword the token representing the 'assert' keyword
-   * @param leftParenthesis the left parenthesis
-   * @param condition the condition that is being asserted to be `true`
-   * @param rightParenthesis the right parenthesis
-   * @param semicolon the semicolon terminating the statement
-   */
-  AssertStatement({Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon}) : this.full(keyword, leftParenthesis, condition, rightParenthesis, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitAssertStatement(this);
 
@@ -1336,20 +1278,10 @@ class AssignmentExpression extends Expression {
    * @param operator the assignment operator being applied
    * @param rightHandSide the expression used to compute the right hand side
    */
-  AssignmentExpression.full(Expression leftHandSide, Token operator, Expression rightHandSide) {
+  AssignmentExpression(Expression leftHandSide, this.operator, Expression rightHandSide) {
     this._leftHandSide = becomeParentOf(leftHandSide);
-    this.operator = operator;
     this._rightHandSide = becomeParentOf(rightHandSide);
   }
-
-  /**
-   * Initialize a newly created assignment expression.
-   *
-   * @param leftHandSide the expression used to compute the left hand side
-   * @param operator the assignment operator being applied
-   * @param rightHandSide the expression used to compute the right hand side
-   */
-  AssignmentExpression({Expression leftHandSide, Token operator, Expression rightHandSide}) : this.full(leftHandSide, operator, rightHandSide);
 
   accept(ASTVisitor visitor) => visitor.visitAssignmentExpression(this);
 
@@ -1542,20 +1474,10 @@ class BinaryExpression extends Expression {
    * @param operator the binary operator being applied
    * @param rightOperand the expression used to compute the right operand
    */
-  BinaryExpression.full(Expression leftOperand, Token operator, Expression rightOperand) {
+  BinaryExpression(Expression leftOperand, this.operator, Expression rightOperand) {
     this._leftOperand = becomeParentOf(leftOperand);
-    this.operator = operator;
     this._rightOperand = becomeParentOf(rightOperand);
   }
-
-  /**
-   * Initialize a newly created binary expression.
-   *
-   * @param leftOperand the expression used to compute the left operand
-   * @param operator the binary operator being applied
-   * @param rightOperand the expression used to compute the right operand
-   */
-  BinaryExpression({Expression leftOperand, Token operator, Expression rightOperand}) : this.full(leftOperand, operator, rightOperand);
 
   accept(ASTVisitor visitor) => visitor.visitBinaryExpression(this);
 
@@ -1720,7 +1642,7 @@ class Block extends Statement {
   /**
    * The statements contained in the block.
    */
-  NodeList<Statement> statements;
+  NodeList<Statement> _statements;
 
   /**
    * The right curly bracket.
@@ -1734,21 +1656,10 @@ class Block extends Statement {
    * @param statements the statements contained in the block
    * @param rightBracket the right curly bracket
    */
-  Block.full(Token leftBracket, List<Statement> statements, Token rightBracket) {
-    this.statements = new NodeList<Statement>(this);
-    this.leftBracket = leftBracket;
-    this.statements.addAll(statements);
-    this.rightBracket = rightBracket;
+  Block(this.leftBracket, List<Statement> statements, this.rightBracket) {
+    this._statements = new NodeList<Statement>(this);
+    this._statements.addAll(statements);
   }
-
-  /**
-   * Initialize a newly created block of code.
-   *
-   * @param leftBracket the left curly bracket
-   * @param statements the statements contained in the block
-   * @param rightBracket the right curly bracket
-   */
-  Block({Token leftBracket, List<Statement> statements, Token rightBracket}) : this.full(leftBracket, statements, rightBracket);
 
   accept(ASTVisitor visitor) => visitor.visitBlock(this);
 
@@ -1756,8 +1667,15 @@ class Block extends Statement {
 
   Token get endToken => rightBracket;
 
+  /**
+   * Return the statements contained in the block.
+   *
+   * @return the statements contained in the block
+   */
+  NodeList<Statement> get statements => _statements;
+
   void visitChildren(ASTVisitor visitor) {
-    statements.accept(visitor);
+    _statements.accept(visitor);
   }
 }
 
@@ -1783,16 +1701,9 @@ class BlockFunctionBody extends FunctionBody {
    *
    * @param block the block representing the body of the function
    */
-  BlockFunctionBody.full(Block block) {
+  BlockFunctionBody(Block block) {
     this._block = becomeParentOf(block);
   }
-
-  /**
-   * Initialize a newly created function body consisting of a block of statements.
-   *
-   * @param block the block representing the body of the function
-   */
-  BlockFunctionBody({Block block}) : this.full(block);
 
   accept(ASTVisitor visitor) => visitor.visitBlockFunctionBody(this);
 
@@ -1848,18 +1759,7 @@ class BooleanLiteral extends Literal {
    * @param literal the token representing the literal
    * @param value the value of the literal
    */
-  BooleanLiteral.full(Token literal, bool value) {
-    this.literal = literal;
-    this.value = value;
-  }
-
-  /**
-   * Initialize a newly created boolean literal.
-   *
-   * @param literal the token representing the literal
-   * @param value the value of the literal
-   */
-  BooleanLiteral({Token literal, bool value}) : this.full(literal, value);
+  BooleanLiteral(this.literal, this.value);
 
   accept(ASTVisitor visitor) => visitor.visitBooleanLiteral(this);
 
@@ -1906,20 +1806,9 @@ class BreakStatement extends Statement {
    * @param label the label associated with the statement
    * @param semicolon the semicolon terminating the statement
    */
-  BreakStatement.full(Token keyword, SimpleIdentifier label, Token semicolon) {
-    this.keyword = keyword;
+  BreakStatement(this.keyword, SimpleIdentifier label, this.semicolon) {
     this._label = becomeParentOf(label);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created break statement.
-   *
-   * @param keyword the token representing the 'break' keyword
-   * @param label the label associated with the statement
-   * @param semicolon the semicolon terminating the statement
-   */
-  BreakStatement({Token keyword, SimpleIdentifier label, Token semicolon}) : this.full(keyword, label, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitBreakStatement(this);
 
@@ -1977,7 +1866,7 @@ class CascadeExpression extends Expression {
   /**
    * The cascade sections sharing the common target.
    */
-  NodeList<Expression> cascadeSections;
+  NodeList<Expression> _cascadeSections;
 
   /**
    * Initialize a newly created cascade expression.
@@ -1985,25 +1874,24 @@ class CascadeExpression extends Expression {
    * @param target the target of the cascade sections
    * @param cascadeSections the cascade sections sharing the common target
    */
-  CascadeExpression.full(Expression target, List<Expression> cascadeSections) {
-    this.cascadeSections = new NodeList<Expression>(this);
+  CascadeExpression(Expression target, List<Expression> cascadeSections) {
+    this._cascadeSections = new NodeList<Expression>(this);
     this._target = becomeParentOf(target);
-    this.cascadeSections.addAll(cascadeSections);
+    this._cascadeSections.addAll(cascadeSections);
   }
-
-  /**
-   * Initialize a newly created cascade expression.
-   *
-   * @param target the target of the cascade sections
-   * @param cascadeSections the cascade sections sharing the common target
-   */
-  CascadeExpression({Expression target, List<Expression> cascadeSections}) : this.full(target, cascadeSections);
 
   accept(ASTVisitor visitor) => visitor.visitCascadeExpression(this);
 
   Token get beginToken => _target.beginToken;
 
-  Token get endToken => cascadeSections.endToken;
+  /**
+   * Return the cascade sections sharing the common target.
+   *
+   * @return the cascade sections sharing the common target
+   */
+  NodeList<Expression> get cascadeSections => _cascadeSections;
+
+  Token get endToken => _cascadeSections.endToken;
 
   int get precedence => 2;
 
@@ -2025,7 +1913,7 @@ class CascadeExpression extends Expression {
 
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_target, visitor);
-    cascadeSections.accept(visitor);
+    _cascadeSections.accept(visitor);
   }
 }
 
@@ -2105,32 +1993,14 @@ class CatchClause extends ASTNode {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the catch block
    */
-  CatchClause.full(Token onKeyword, TypeName exceptionType, Token catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, Token comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body) {
-    this.onKeyword = onKeyword;
+  CatchClause(this.onKeyword, TypeName exceptionType, this.catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, this.comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body) {
     this.exceptionType = becomeParentOf(exceptionType);
-    this.catchKeyword = catchKeyword;
     this._leftParenthesis = leftParenthesis;
     this._exceptionParameter = becomeParentOf(exceptionParameter);
-    this.comma = comma;
     this._stackTraceParameter = becomeParentOf(stackTraceParameter);
     this._rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
-
-  /**
-   * Initialize a newly created catch clause.
-   *
-   * @param onKeyword the token representing the 'on' keyword
-   * @param exceptionType the type of exceptions caught by this catch clause
-   * @param leftParenthesis the left parenthesis
-   * @param exceptionParameter the parameter whose value will be the exception that was thrown
-   * @param comma the comma separating the exception parameter from the stack trace parameter
-   * @param stackTraceParameter the parameter whose value will be the stack trace associated with
-   *          the exception
-   * @param rightParenthesis the right parenthesis
-   * @param body the body of the catch block
-   */
-  CatchClause({Token onKeyword, TypeName exceptionType, Token catchKeyword, Token leftParenthesis, SimpleIdentifier exceptionParameter, Token comma, SimpleIdentifier stackTraceParameter, Token rightParenthesis, Block body}) : this.full(onKeyword, exceptionType, catchKeyword, leftParenthesis, exceptionParameter, comma, stackTraceParameter, rightParenthesis, body);
 
   accept(ASTVisitor visitor) => visitor.visitCatchClause(this);
 
@@ -2298,7 +2168,7 @@ class ClassDeclaration extends CompilationUnitMember {
   /**
    * The members defined by the class.
    */
-  NodeList<ClassMember> members;
+  NodeList<ClassMember> _members;
 
   /**
    * The right curly bracket.
@@ -2321,37 +2191,15 @@ class ClassDeclaration extends CompilationUnitMember {
    * @param members the members defined by the class
    * @param rightBracket the right curly bracket
    */
-  ClassDeclaration.full(Comment comment, List<Annotation> metadata, Token abstractKeyword, Token classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, Token leftBracket, List<ClassMember> members, Token rightBracket) : super.full(comment, metadata) {
-    this.members = new NodeList<ClassMember>(this);
-    this.abstractKeyword = abstractKeyword;
-    this.classKeyword = classKeyword;
+  ClassDeclaration(Comment comment, List<Annotation> metadata, this.abstractKeyword, this.classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, this.leftBracket, List<ClassMember> members, this.rightBracket) : super(comment, metadata) {
+    this._members = new NodeList<ClassMember>(this);
     this._name = becomeParentOf(name);
     this.typeParameters = becomeParentOf(typeParameters);
     this._extendsClause = becomeParentOf(extendsClause);
     this._withClause = becomeParentOf(withClause);
     this._implementsClause = becomeParentOf(implementsClause);
-    this.leftBracket = leftBracket;
-    this.members.addAll(members);
-    this.rightBracket = rightBracket;
+    this._members.addAll(members);
   }
-
-  /**
-   * Initialize a newly created class declaration.
-   *
-   * @param comment the documentation comment associated with this class
-   * @param metadata the annotations associated with this class
-   * @param abstractKeyword the 'abstract' keyword, or `null` if the keyword was absent
-   * @param classKeyword the token representing the 'class' keyword
-   * @param name the name of the class being declared
-   * @param typeParameters the type parameters for the class
-   * @param extendsClause the extends clause for the class
-   * @param withClause the with clause for the class
-   * @param implementsClause the implements clause for the class
-   * @param leftBracket the left curly bracket
-   * @param members the members defined by the class
-   * @param rightBracket the right curly bracket
-   */
-  ClassDeclaration({Comment comment, List<Annotation> metadata, Token abstractKeyword, Token classKeyword, SimpleIdentifier name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, Token leftBracket, List<ClassMember> members, Token rightBracket}) : this.full(comment, metadata, abstractKeyword, classKeyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
 
   accept(ASTVisitor visitor) => visitor.visitClassDeclaration(this);
 
@@ -2368,12 +2216,41 @@ class ClassDeclaration extends CompilationUnitMember {
   ExtendsClause get extendsClause => _extendsClause;
 
   /**
+   * Return the field declared in the class with the given name.
+   *
+   * @param name the name of the field to find
+   * @return the found field or `null` if not found
+   */
+  VariableDeclaration getField(String name) {
+    for (ClassMember classMember in _members) {
+      if (classMember is FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = classMember as FieldDeclaration;
+        NodeList<VariableDeclaration> fields = fieldDeclaration.fields.variables;
+        for (VariableDeclaration field in fields) {
+          SimpleIdentifier fieldName = field.name;
+          if (fieldName != null && name == fieldName.name) {
+            return field;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return the implements clause for the class, or `null` if the class does not implement any
    * interfaces.
    *
    * @return the implements clause for the class
    */
   ImplementsClause get implementsClause => _implementsClause;
+
+  /**
+   * Return the members defined by the class.
+   *
+   * @return the members defined by the class
+   */
+  NodeList<ClassMember> get members => _members;
 
   /**
    * Return the name of the class being declared.
@@ -2457,15 +2334,7 @@ abstract class ClassMember extends Declaration {
    * @param comment the documentation comment associated with this member
    * @param metadata the annotations associated with this member
    */
-  ClassMember.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata);
-
-  /**
-   * Initialize a newly created member of a class.
-   *
-   * @param comment the documentation comment associated with this member
-   * @param metadata the annotations associated with this member
-   */
-  ClassMember({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
+  ClassMember(Comment comment, List<Annotation> metadata) : super(comment, metadata);
 }
 
 /**
@@ -2534,32 +2403,13 @@ class ClassTypeAlias extends TypeAlias {
    * @param implementsClause the implements clause for this class
    * @param semicolon the semicolon terminating the declaration
    */
-  ClassTypeAlias.full(Comment comment, List<Annotation> metadata, Token keyword, SimpleIdentifier name, TypeParameterList typeParameters, Token equals, Token abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon) : super.full(comment, metadata, keyword, semicolon) {
+  ClassTypeAlias(Comment comment, List<Annotation> metadata, Token keyword, SimpleIdentifier name, TypeParameterList typeParameters, this.equals, this.abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon) : super(comment, metadata, keyword, semicolon) {
     this._name = becomeParentOf(name);
     this._typeParameters = becomeParentOf(typeParameters);
-    this.equals = equals;
-    this.abstractKeyword = abstractKeyword;
     this._superclass = becomeParentOf(superclass);
     this._withClause = becomeParentOf(withClause);
     this._implementsClause = becomeParentOf(implementsClause);
   }
-
-  /**
-   * Initialize a newly created class type alias.
-   *
-   * @param comment the documentation comment associated with this type alias
-   * @param metadata the annotations associated with this type alias
-   * @param keyword the token representing the 'typedef' keyword
-   * @param name the name of the class being declared
-   * @param typeParameters the type parameters for the class
-   * @param equals the token for the '=' separating the name from the definition
-   * @param abstractKeyword the token for the 'abstract' keyword
-   * @param superclass the name of the superclass of the class being declared
-   * @param withClause the with clause for this class
-   * @param implementsClause the implements clause for this class
-   * @param semicolon the semicolon terminating the declaration
-   */
-  ClassTypeAlias({Comment comment, List<Annotation> metadata, Token keyword, SimpleIdentifier name, TypeParameterList typeParameters, Token equals, Token abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause, Token semicolon}) : this.full(comment, metadata, keyword, name, typeParameters, equals, abstractKeyword, superclass, withClause, implementsClause, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitClassTypeAlias(this);
 
@@ -2680,17 +2530,7 @@ abstract class Combinator extends ASTNode {
    * @param keyword the keyword specifying what kind of processing is to be done on the imported
    *          names
    */
-  Combinator.full(Token keyword) {
-    this.keyword = keyword;
-  }
-
-  /**
-   * Initialize a newly created import combinator.
-   *
-   * @param keyword the keyword specifying what kind of processing is to be done on the imported
-   *          names
-   */
-  Combinator({Token keyword}) : this.full(keyword);
+  Combinator(this.keyword);
 
   Token get beginToken => keyword;
 }
@@ -2724,7 +2564,7 @@ class Comment extends ASTNode {
    * @param tokens the tokens representing the comment
    * @return the block comment that was created
    */
-  static Comment createBlockComment(List<Token> tokens) => new Comment.full(tokens, CommentType.BLOCK, null);
+  static Comment createBlockComment(List<Token> tokens) => new Comment(tokens, CommentType.BLOCK, null);
 
   /**
    * Create a documentation comment.
@@ -2732,7 +2572,7 @@ class Comment extends ASTNode {
    * @param tokens the tokens representing the comment
    * @return the documentation comment that was created
    */
-  static Comment createDocumentationComment(List<Token> tokens) => new Comment.full(tokens, CommentType.DOCUMENTATION, new List<CommentReference>());
+  static Comment createDocumentationComment(List<Token> tokens) => new Comment(tokens, CommentType.DOCUMENTATION, new List<CommentReference>());
 
   /**
    * Create a documentation comment.
@@ -2741,7 +2581,7 @@ class Comment extends ASTNode {
    * @param references the references embedded within the documentation comment
    * @return the documentation comment that was created
    */
-  static Comment createDocumentationComment2(List<Token> tokens, List<CommentReference> references) => new Comment.full(tokens, CommentType.DOCUMENTATION, references);
+  static Comment createDocumentationComment2(List<Token> tokens, List<CommentReference> references) => new Comment(tokens, CommentType.DOCUMENTATION, references);
 
   /**
    * Create an end-of-line comment.
@@ -2749,12 +2589,12 @@ class Comment extends ASTNode {
    * @param tokens the tokens representing the comment
    * @return the end-of-line comment that was created
    */
-  static Comment createEndOfLineComment(List<Token> tokens) => new Comment.full(tokens, CommentType.END_OF_LINE, null);
+  static Comment createEndOfLineComment(List<Token> tokens) => new Comment(tokens, CommentType.END_OF_LINE, null);
 
   /**
    * The tokens representing the comment.
    */
-  List<Token> tokens;
+  final List<Token> tokens;
 
   /**
    * The type of the comment.
@@ -2765,7 +2605,7 @@ class Comment extends ASTNode {
    * The references embedded within the documentation comment. This list will be empty unless this
    * is a documentation comment that has references embedded within it.
    */
-  NodeList<CommentReference> references;
+  NodeList<CommentReference> _references;
 
   /**
    * Initialize a newly created comment.
@@ -2774,27 +2614,24 @@ class Comment extends ASTNode {
    * @param type the type of the comment
    * @param references the references embedded within the documentation comment
    */
-  Comment.full(List<Token> tokens, CommentType type, List<CommentReference> references) {
-    this.references = new NodeList<CommentReference>(this);
-    this.tokens = tokens;
+  Comment(this.tokens, CommentType type, List<CommentReference> references) {
+    this._references = new NodeList<CommentReference>(this);
     this._type = type;
-    this.references.addAll(references);
+    this._references.addAll(references);
   }
-
-  /**
-   * Initialize a newly created comment.
-   *
-   * @param tokens the tokens representing the comment
-   * @param type the type of the comment
-   * @param references the references embedded within the documentation comment
-   */
-  Comment({List<Token> tokens, CommentType type, List<CommentReference> references}) : this.full(tokens, type, references);
 
   accept(ASTVisitor visitor) => visitor.visitComment(this);
 
   Token get beginToken => tokens[0];
 
   Token get endToken => tokens[tokens.length - 1];
+
+  /**
+   * Return the references embedded within the documentation comment.
+   *
+   * @return the references embedded within the documentation comment
+   */
+  NodeList<CommentReference> get references => _references;
 
   /**
    * Return `true` if this is a block comment.
@@ -2818,7 +2655,7 @@ class Comment extends ASTNode {
   bool get isEndOfLine => identical(_type, CommentType.END_OF_LINE);
 
   void visitChildren(ASTVisitor visitor) {
-    references.accept(visitor);
+    _references.accept(visitor);
   }
 }
 
@@ -2875,18 +2712,9 @@ class CommentReference extends ASTNode {
    * @param newKeyword the token representing the 'new' keyword
    * @param identifier the identifier being referenced
    */
-  CommentReference.full(Token newKeyword, Identifier identifier) {
-    this.newKeyword = newKeyword;
+  CommentReference(this.newKeyword, Identifier identifier) {
     this._identifier = becomeParentOf(identifier);
   }
-
-  /**
-   * Initialize a newly created reference to a Dart element.
-   *
-   * @param newKeyword the token representing the 'new' keyword
-   * @param identifier the identifier being referenced
-   */
-  CommentReference({Token newKeyword, Identifier identifier}) : this.full(newKeyword, identifier);
 
   accept(ASTVisitor visitor) => visitor.visitCommentReference(this);
 
@@ -2945,7 +2773,7 @@ class CompilationUnit extends ASTNode {
   /**
    * The first token in the token stream that was parsed to form this compilation unit.
    */
-  Token _beginToken;
+  final Token beginToken;
 
   /**
    * The script tag at the beginning of the compilation unit, or `null` if there is no script
@@ -2956,18 +2784,18 @@ class CompilationUnit extends ASTNode {
   /**
    * The directives contained in this compilation unit.
    */
-  NodeList<Directive> directives;
+  NodeList<Directive> _directives;
 
   /**
    * The declarations contained in this compilation unit.
    */
-  NodeList<CompilationUnitMember> declarations;
+  NodeList<CompilationUnitMember> _declarations;
 
   /**
    * The last token in the token stream that was parsed to form this compilation unit. This token
    * should always have a type of [TokenType.EOF].
    */
-  Token _endToken;
+  final Token endToken;
 
   /**
    * The element associated with this compilation unit, or `null` if the AST structure has not
@@ -2989,32 +2817,29 @@ class CompilationUnit extends ASTNode {
    * @param declarations the declarations contained in this compilation unit
    * @param endToken the last token in the token stream
    */
-  CompilationUnit.full(Token beginToken, ScriptTag scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations, Token endToken) {
-    this.directives = new NodeList<Directive>(this);
-    this.declarations = new NodeList<CompilationUnitMember>(this);
-    this._beginToken = beginToken;
+  CompilationUnit(this.beginToken, ScriptTag scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations, this.endToken) {
+    this._directives = new NodeList<Directive>(this);
+    this._declarations = new NodeList<CompilationUnitMember>(this);
     this._scriptTag = becomeParentOf(scriptTag);
-    this.directives.addAll(directives);
-    this.declarations.addAll(declarations);
-    this._endToken = endToken;
+    this._directives.addAll(directives);
+    this._declarations.addAll(declarations);
   }
-
-  /**
-   * Initialize a newly created compilation unit to have the given directives and declarations.
-   *
-   * @param beginToken the first token in the token stream
-   * @param scriptTag the script tag at the beginning of the compilation unit
-   * @param directives the directives contained in this compilation unit
-   * @param declarations the declarations contained in this compilation unit
-   * @param endToken the last token in the token stream
-   */
-  CompilationUnit({Token beginToken, ScriptTag scriptTag, List<Directive> directives, List<CompilationUnitMember> declarations, Token endToken}) : this.full(beginToken, scriptTag, directives, declarations, endToken);
 
   accept(ASTVisitor visitor) => visitor.visitCompilationUnit(this);
 
-  Token get beginToken => _beginToken;
+  /**
+   * Return the declarations contained in this compilation unit.
+   *
+   * @return the declarations contained in this compilation unit
+   */
+  NodeList<CompilationUnitMember> get declarations => _declarations;
 
-  Token get endToken => _endToken;
+  /**
+   * Return the directives contained in this compilation unit.
+   *
+   * @return the directives contained in this compilation unit
+   */
+  NodeList<Directive> get directives => _directives;
 
   int get length {
     Token endToken = this.endToken;
@@ -3046,8 +2871,8 @@ class CompilationUnit extends ASTNode {
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_scriptTag, visitor);
     if (directivesAreBeforeDeclarations()) {
-      directives.accept(visitor);
-      declarations.accept(visitor);
+      _directives.accept(visitor);
+      _declarations.accept(visitor);
     } else {
       for (ASTNode child in sortedDirectivesAndDeclarations) {
         child.accept(visitor);
@@ -3061,11 +2886,11 @@ class CompilationUnit extends ASTNode {
    * @return `true` if all of the directives are lexically before any declarations
    */
   bool directivesAreBeforeDeclarations() {
-    if (directives.isEmpty || declarations.isEmpty) {
+    if (_directives.isEmpty || _declarations.isEmpty) {
       return true;
     }
-    Directive lastDirective = directives[directives.length - 1];
-    CompilationUnitMember firstDeclaration = declarations[0];
+    Directive lastDirective = _directives[_directives.length - 1];
+    CompilationUnitMember firstDeclaration = _declarations[0];
     return lastDirective.offset < firstDeclaration.offset;
   }
 
@@ -3078,8 +2903,8 @@ class CompilationUnit extends ASTNode {
    */
   List<ASTNode> get sortedDirectivesAndDeclarations {
     List<ASTNode> childList = new List<ASTNode>();
-    childList.addAll(directives);
-    childList.addAll(declarations);
+    childList.addAll(_directives);
+    childList.addAll(_declarations);
     List<ASTNode> children = new List.from(childList);
     children.sort(ASTNode.LEXICAL_ORDER);
     return children;
@@ -3109,15 +2934,7 @@ abstract class CompilationUnitMember extends Declaration {
    * @param comment the documentation comment associated with this member
    * @param metadata the annotations associated with this member
    */
-  CompilationUnitMember.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata);
-
-  /**
-   * Initialize a newly created generic compilation unit member.
-   *
-   * @param comment the documentation comment associated with this member
-   * @param metadata the annotations associated with this member
-   */
-  CompilationUnitMember({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
+  CompilationUnitMember(Comment comment, List<Annotation> metadata) : super(comment, metadata);
 }
 
 /**
@@ -3167,26 +2984,11 @@ class ConditionalExpression extends Expression {
    * @param elseExpression the expression that is executed if the condition evaluates to
    *          `false`
    */
-  ConditionalExpression.full(Expression condition, Token question, Expression thenExpression, Token colon, Expression elseExpression) {
+  ConditionalExpression(Expression condition, this.question, Expression thenExpression, this.colon, Expression elseExpression) {
     this._condition = becomeParentOf(condition);
-    this.question = question;
     this._thenExpression = becomeParentOf(thenExpression);
-    this.colon = colon;
     this._elseExpression = becomeParentOf(elseExpression);
   }
-
-  /**
-   * Initialize a newly created conditional expression.
-   *
-   * @param condition the condition used to determine which expression is executed next
-   * @param question the token used to separate the condition from the then expression
-   * @param thenExpression the expression that is executed if the condition evaluates to
-   *          `true`
-   * @param colon the token used to separate the then expression from the else expression
-   * @param elseExpression the expression that is executed if the condition evaluates to
-   *          `false`
-   */
-  ConditionalExpression({Expression condition, Token question, Expression thenExpression, Token colon, Expression elseExpression}) : this.full(condition, question, thenExpression, colon, elseExpression);
 
   accept(ASTVisitor visitor) => visitor.visitConditionalExpression(this);
 
@@ -3328,7 +3130,7 @@ class ConstructorDeclaration extends ClassMember {
   /**
    * The initializers associated with the constructor.
    */
-  NodeList<ConstructorInitializer> initializers;
+  NodeList<ConstructorInitializer> _initializers;
 
   /**
    * The name of the constructor to which this constructor will be redirected, or `null` if
@@ -3345,7 +3147,7 @@ class ConstructorDeclaration extends ClassMember {
    * The element associated with this constructor, or `null` if the AST structure has not been
    * resolved or if this constructor could not be resolved.
    */
-  ConstructorElement _element;
+  ConstructorElement element;
 
   /**
    * Initialize a newly created constructor declaration.
@@ -3365,40 +3167,15 @@ class ConstructorDeclaration extends ClassMember {
    *          redirected
    * @param body the body of the constructor
    */
-  ConstructorDeclaration.full(Comment comment, List<Annotation> metadata, Token externalKeyword, Token constKeyword, Token factoryKeyword, Identifier returnType, Token period, SimpleIdentifier name, FormalParameterList parameters, Token separator, List<ConstructorInitializer> initializers, ConstructorName redirectedConstructor, FunctionBody body) : super.full(comment, metadata) {
-    this.initializers = new NodeList<ConstructorInitializer>(this);
-    this.externalKeyword = externalKeyword;
-    this.constKeyword = constKeyword;
-    this.factoryKeyword = factoryKeyword;
+  ConstructorDeclaration(Comment comment, List<Annotation> metadata, this.externalKeyword, this.constKeyword, this.factoryKeyword, Identifier returnType, this.period, SimpleIdentifier name, FormalParameterList parameters, this.separator, List<ConstructorInitializer> initializers, ConstructorName redirectedConstructor, FunctionBody body) : super(comment, metadata) {
+    this._initializers = new NodeList<ConstructorInitializer>(this);
     this._returnType = becomeParentOf(returnType);
-    this.period = period;
     this._name = becomeParentOf(name);
     this._parameters = becomeParentOf(parameters);
-    this.separator = separator;
-    this.initializers.addAll(initializers);
+    this._initializers.addAll(initializers);
     this._redirectedConstructor = becomeParentOf(redirectedConstructor);
     this._body = becomeParentOf(body);
   }
-
-  /**
-   * Initialize a newly created constructor declaration.
-   *
-   * @param externalKeyword the token for the 'external' keyword
-   * @param comment the documentation comment associated with this constructor
-   * @param metadata the annotations associated with this constructor
-   * @param constKeyword the token for the 'const' keyword
-   * @param factoryKeyword the token for the 'factory' keyword
-   * @param returnType the return type of the constructor
-   * @param period the token for the period before the constructor name
-   * @param name the name of the constructor
-   * @param parameters the parameters associated with the constructor
-   * @param separator the token for the colon or equals before the initializers
-   * @param initializers the initializers associated with the constructor
-   * @param redirectedConstructor the name of the constructor to which this constructor will be
-   *          redirected
-   * @param body the body of the constructor
-   */
-  ConstructorDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, Token constKeyword, Token factoryKeyword, Identifier returnType, Token period, SimpleIdentifier name, FormalParameterList parameters, Token separator, List<ConstructorInitializer> initializers, ConstructorName redirectedConstructor, FunctionBody body}) : this.full(comment, metadata, externalKeyword, constKeyword, factoryKeyword, returnType, period, name, parameters, separator, initializers, redirectedConstructor, body);
 
   accept(ASTVisitor visitor) => visitor.visitConstructorDeclaration(this);
 
@@ -3409,16 +3186,21 @@ class ConstructorDeclaration extends ClassMember {
    */
   FunctionBody get body => _body;
 
-  ConstructorElement get element => _element;
-
   Token get endToken {
     if (_body != null) {
       return _body.endToken;
-    } else if (!initializers.isEmpty) {
-      return initializers.endToken;
+    } else if (!_initializers.isEmpty) {
+      return _initializers.endToken;
     }
     return _parameters.endToken;
   }
+
+  /**
+   * Return the initializers associated with the constructor.
+   *
+   * @return the initializers associated with the constructor
+   */
+  NodeList<ConstructorInitializer> get initializers => _initializers;
 
   /**
    * Return the name of the constructor, or `null` if the constructor being declared is
@@ -3459,15 +3241,6 @@ class ConstructorDeclaration extends ClassMember {
    */
   void set body(FunctionBody functionBody) {
     _body = becomeParentOf(functionBody);
-  }
-
-  /**
-   * Set the element associated with this constructor to the given element.
-   *
-   * @param element the element associated with this constructor
-   */
-  void set element(ConstructorElement element) {
-    this._element = element;
   }
 
   /**
@@ -3513,7 +3286,7 @@ class ConstructorDeclaration extends ClassMember {
     safelyVisitChild(_returnType, visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_parameters, visitor);
-    initializers.accept(visitor);
+    _initializers.accept(visitor);
     safelyVisitChild(_redirectedConstructor, visitor);
     safelyVisitChild(_body, visitor);
   }
@@ -3593,25 +3366,10 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
    * @param equals the token for the equal sign between the field name and the expression
    * @param expression the expression computing the value to which the field will be initialized
    */
-  ConstructorFieldInitializer.full(Token keyword, Token period, SimpleIdentifier fieldName, Token equals, Expression expression) {
-    this.keyword = keyword;
-    this.period = period;
+  ConstructorFieldInitializer(this.keyword, this.period, SimpleIdentifier fieldName, this.equals, Expression expression) {
     this._fieldName = becomeParentOf(fieldName);
-    this.equals = equals;
     this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Initialize a newly created field initializer to initialize the field with the given name to the
-   * value of the given expression.
-   *
-   * @param keyword the token for the 'this' keyword
-   * @param period the token for the period after the 'this' keyword
-   * @param fieldName the name of the field being initialized
-   * @param equals the token for the equal sign between the field name and the expression
-   * @param expression the expression computing the value to which the field will be initialized
-   */
-  ConstructorFieldInitializer({Token keyword, Token period, SimpleIdentifier fieldName, Token equals, Expression expression}) : this.full(keyword, period, fieldName, equals, expression);
 
   accept(ASTVisitor visitor) => visitor.visitConstructorFieldInitializer(this);
 
@@ -3720,20 +3478,10 @@ class ConstructorName extends ASTNode {
    * @param period the token for the period before the constructor name
    * @param name the name of the constructor
    */
-  ConstructorName.full(TypeName type, Token period, SimpleIdentifier name) {
+  ConstructorName(TypeName type, this.period, SimpleIdentifier name) {
     this._type = becomeParentOf(type);
-    this.period = period;
     this._name = becomeParentOf(name);
   }
-
-  /**
-   * Initialize a newly created constructor name.
-   *
-   * @param type the name of the type defining the constructor
-   * @param period the token for the period before the constructor name
-   * @param name the name of the constructor
-   */
-  ConstructorName({TypeName type, Token period, SimpleIdentifier name}) : this.full(type, period, name);
 
   accept(ASTVisitor visitor) => visitor.visitConstructorName(this);
 
@@ -3837,20 +3585,9 @@ class ContinueStatement extends Statement {
    * @param label the label associated with the statement
    * @param semicolon the semicolon terminating the statement
    */
-  ContinueStatement.full(Token keyword, SimpleIdentifier label, Token semicolon) {
-    this.keyword = keyword;
+  ContinueStatement(this.keyword, SimpleIdentifier label, this.semicolon) {
     this._label = becomeParentOf(label);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created continue statement.
-   *
-   * @param keyword the token representing the 'continue' keyword
-   * @param label the label associated with the statement
-   * @param semicolon the semicolon terminating the statement
-   */
-  ContinueStatement({Token keyword, SimpleIdentifier label, Token semicolon}) : this.full(keyword, label, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitContinueStatement(this);
 
@@ -3892,15 +3629,7 @@ abstract class Declaration extends AnnotatedNode {
    * @param comment the documentation comment associated with this declaration
    * @param metadata the annotations associated with this declaration
    */
-  Declaration.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata);
-
-  /**
-   * Initialize a newly created declaration.
-   *
-   * @param comment the documentation comment associated with this declaration
-   * @param metadata the annotations associated with this declaration
-   */
-  Declaration({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
+  Declaration(Comment comment, List<Annotation> metadata) : super(comment, metadata);
 
   /**
    * Return the element associated with this declaration, or `null` if either this node
@@ -3938,7 +3667,7 @@ class DeclaredIdentifier extends Declaration {
   /**
    * The name of the variable being declared.
    */
-  SimpleIdentifier identifier;
+  SimpleIdentifier _identifier;
 
   /**
    * Initialize a newly created formal parameter.
@@ -3949,22 +3678,10 @@ class DeclaredIdentifier extends Declaration {
    * @param type the name of the declared type of the parameter
    * @param identifier the name of the parameter being declared
    */
-  DeclaredIdentifier.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier) : super.full(comment, metadata) {
-    this.keyword = keyword;
+  DeclaredIdentifier(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, SimpleIdentifier identifier) : super(comment, metadata) {
     this._type = becomeParentOf(type);
-    this.identifier = becomeParentOf(identifier);
+    this._identifier = becomeParentOf(identifier);
   }
-
-  /**
-   * Initialize a newly created formal parameter.
-   *
-   * @param comment the documentation comment associated with this parameter
-   * @param metadata the annotations associated with this parameter
-   * @param keyword the token representing either the 'final', 'const' or 'var' keyword
-   * @param type the name of the declared type of the parameter
-   * @param identifier the name of the parameter being declared
-   */
-  DeclaredIdentifier({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier}) : this.full(comment, metadata, keyword, type, identifier);
 
   accept(ASTVisitor visitor) => visitor.visitDeclaredIdentifier(this);
 
@@ -3976,7 +3693,14 @@ class DeclaredIdentifier extends Declaration {
     return identifier.staticElement as LocalVariableElement;
   }
 
-  Token get endToken => identifier.endToken;
+  Token get endToken => _identifier.endToken;
+
+  /**
+   * Return the name of the variable being declared.
+   *
+   * @return the name of the variable being declared
+   */
+  SimpleIdentifier get identifier => _identifier;
 
   /**
    * Return the name of the declared type of the parameter, or `null` if the parameter does
@@ -4014,7 +3738,7 @@ class DeclaredIdentifier extends Declaration {
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(_type, visitor);
-    safelyVisitChild(identifier, visitor);
+    safelyVisitChild(_identifier, visitor);
   }
 
   Token get firstTokenAfterCommentAndMetadata {
@@ -4023,7 +3747,7 @@ class DeclaredIdentifier extends Declaration {
     } else if (_type != null) {
       return _type.beginToken;
     }
-    return identifier.beginToken;
+    return _identifier.beginToken;
   }
 }
 
@@ -4051,7 +3775,7 @@ class DefaultFormalParameter extends FormalParameter {
   /**
    * The kind of this parameter.
    */
-  ParameterKind _kind;
+  ParameterKind kind;
 
   /**
    * The token separating the parameter from the default value, or `null` if there is no
@@ -4073,22 +3797,10 @@ class DefaultFormalParameter extends FormalParameter {
    * @param separator the token separating the parameter from the default value
    * @param defaultValue the expression computing the default value for the parameter
    */
-  DefaultFormalParameter.full(NormalFormalParameter parameter, ParameterKind kind, Token separator, Expression defaultValue) {
+  DefaultFormalParameter(NormalFormalParameter parameter, this.kind, this.separator, Expression defaultValue) {
     this._parameter = becomeParentOf(parameter);
-    this._kind = kind;
-    this.separator = separator;
     this._defaultValue = becomeParentOf(defaultValue);
   }
-
-  /**
-   * Initialize a newly created default formal parameter.
-   *
-   * @param parameter the formal parameter with which the default value is associated
-   * @param kind the kind of this parameter
-   * @param separator the token separating the parameter from the default value
-   * @param defaultValue the expression computing the default value for the parameter
-   */
-  DefaultFormalParameter({NormalFormalParameter parameter, ParameterKind kind, Token separator, Expression defaultValue}) : this.full(parameter, kind, separator, defaultValue);
 
   accept(ASTVisitor visitor) => visitor.visitDefaultFormalParameter(this);
 
@@ -4111,8 +3823,6 @@ class DefaultFormalParameter extends FormalParameter {
 
   SimpleIdentifier get identifier => _parameter.identifier;
 
-  ParameterKind get kind => _kind;
-
   /**
    * Return the formal parameter with which the default value is associated.
    *
@@ -4131,15 +3841,6 @@ class DefaultFormalParameter extends FormalParameter {
    */
   void set defaultValue(Expression expression) {
     _defaultValue = becomeParentOf(expression);
-  }
-
-  /**
-   * Set the kind of this parameter to the given kind.
-   *
-   * @param kind the kind of this parameter
-   */
-  void set kind(ParameterKind kind) {
-    this._kind = kind;
   }
 
   /**
@@ -4185,15 +3886,7 @@ abstract class Directive extends AnnotatedNode {
    * @param comment the documentation comment associated with this directive
    * @param metadata the annotations associated with the directive
    */
-  Directive.full(Comment comment, List<Annotation> metadata) : super.full(comment, metadata);
-
-  /**
-   * Initialize a newly create directive.
-   *
-   * @param comment the documentation comment associated with this directive
-   * @param metadata the annotations associated with the directive
-   */
-  Directive({Comment comment, List<Annotation> metadata}) : this.full(comment, metadata);
+  Directive(Comment comment, List<Annotation> metadata) : super(comment, metadata);
 
   /**
    * Return the element associated with this directive, or `null` if the AST structure has not
@@ -4279,28 +3972,12 @@ class DoStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param semicolon the semicolon terminating the statement
    */
-  DoStatement.full(Token doKeyword, Statement body, Token whileKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon) {
-    this.doKeyword = doKeyword;
+  DoStatement(this.doKeyword, Statement body, this.whileKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, this.semicolon) {
     this._body = becomeParentOf(body);
-    this.whileKeyword = whileKeyword;
     this._leftParenthesis = leftParenthesis;
     this._condition = becomeParentOf(condition);
     this._rightParenthesis = rightParenthesis;
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created do loop.
-   *
-   * @param doKeyword the token representing the 'do' keyword
-   * @param body the body of the loop
-   * @param whileKeyword the token representing the 'while' keyword
-   * @param leftParenthesis the left parenthesis
-   * @param condition the condition that determines when the loop will terminate
-   * @param rightParenthesis the right parenthesis
-   * @param semicolon the semicolon terminating the statement
-   */
-  DoStatement({Token doKeyword, Statement body, Token whileKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Token semicolon}) : this.full(doKeyword, body, whileKeyword, leftParenthesis, condition, rightParenthesis, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitDoStatement(this);
 
@@ -4409,18 +4086,7 @@ class DoubleLiteral extends Literal {
    * @param literal the token representing the literal
    * @param value the value of the literal
    */
-  DoubleLiteral.full(Token literal, double value) {
-    this.literal = literal;
-    this.value = value;
-  }
-
-  /**
-   * Initialize a newly created floating point literal.
-   *
-   * @param literal the token representing the literal
-   * @param value the value of the literal
-   */
-  DoubleLiteral({Token literal, double value}) : this.full(literal, value);
+  DoubleLiteral(this.literal, this.value);
 
   accept(ASTVisitor visitor) => visitor.visitDoubleLiteral(this);
 
@@ -4454,16 +4120,7 @@ class EmptyFunctionBody extends FunctionBody {
    *
    * @param semicolon the token representing the semicolon that marks the end of the function body
    */
-  EmptyFunctionBody.full(Token semicolon) {
-    this.semicolon = semicolon;
-  }
-
-  /**
-   * Initialize a newly created function body.
-   *
-   * @param semicolon the token representing the semicolon that marks the end of the function body
-   */
-  EmptyFunctionBody({Token semicolon}) : this.full(semicolon);
+  EmptyFunctionBody(this.semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitEmptyFunctionBody(this);
 
@@ -4496,16 +4153,7 @@ class EmptyStatement extends Statement {
    *
    * @param semicolon the semicolon terminating the statement
    */
-  EmptyStatement.full(Token semicolon) {
-    this.semicolon = semicolon;
-  }
-
-  /**
-   * Initialize a newly created empty statement.
-   *
-   * @param semicolon the semicolon terminating the statement
-   */
-  EmptyStatement({Token semicolon}) : this.full(semicolon);
+  EmptyStatement(this.semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitEmptyStatement(this);
 
@@ -4523,11 +4171,9 @@ class EmptyStatement extends Statement {
  * @coverage dart.engine.ast
  */
 class EphemeralIdentifier extends SimpleIdentifier {
-  EphemeralIdentifier.full(ASTNode parent, int location) : super.full(new StringToken(TokenType.IDENTIFIER, "", location)) {
+  EphemeralIdentifier(ASTNode parent, int location) : super(new StringToken(TokenType.IDENTIFIER, "", location)) {
     parent.becomeParentOf(this);
   }
-
-  EphemeralIdentifier({ASTNode parent, int location}) : this.full(parent, location);
 }
 
 /**
@@ -4551,19 +4197,7 @@ class ExportDirective extends NamespaceDirective {
    * @param combinators the combinators used to control which names are exported
    * @param semicolon the semicolon terminating the directive
    */
-  ExportDirective.full(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) : super.full(comment, metadata, keyword, libraryUri, combinators, semicolon);
-
-  /**
-   * Initialize a newly created export directive.
-   *
-   * @param comment the documentation comment associated with this directive
-   * @param metadata the annotations associated with the directive
-   * @param keyword the token representing the 'export' keyword
-   * @param libraryUri the URI of the library being exported
-   * @param combinators the combinators used to control which names are exported
-   * @param semicolon the semicolon terminating the directive
-   */
-  ExportDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, combinators, semicolon);
+  ExportDirective(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) : super(comment, metadata, keyword, libraryUri, combinators, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitExportDirective(this);
 
@@ -4770,21 +4404,9 @@ class ExpressionFunctionBody extends FunctionBody {
    * @param expression the expression representing the body of the function
    * @param semicolon the semicolon terminating the statement
    */
-  ExpressionFunctionBody.full(Token functionDefinition, Expression expression, Token semicolon) {
-    this.functionDefinition = functionDefinition;
+  ExpressionFunctionBody(this.functionDefinition, Expression expression, this.semicolon) {
     this._expression = becomeParentOf(expression);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created function body consisting of a block of statements.
-   *
-   * @param functionDefinition the token introducing the expression that represents the body of the
-   *          function
-   * @param expression the expression representing the body of the function
-   * @param semicolon the semicolon terminating the statement
-   */
-  ExpressionFunctionBody({Token functionDefinition, Expression expression, Token semicolon}) : this.full(functionDefinition, expression, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitExpressionFunctionBody(this);
 
@@ -4846,18 +4468,9 @@ class ExpressionStatement extends Statement {
    * @param expression the expression that comprises the statement
    * @param semicolon the semicolon terminating the statement
    */
-  ExpressionStatement.full(Expression expression, Token semicolon) {
+  ExpressionStatement(Expression expression, this.semicolon) {
     this._expression = becomeParentOf(expression);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created expression statement.
-   *
-   * @param expression the expression that comprises the statement
-   * @param semicolon the semicolon terminating the statement
-   */
-  ExpressionStatement({Expression expression, Token semicolon}) : this.full(expression, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitExpressionStatement(this);
 
@@ -4921,18 +4534,9 @@ class ExtendsClause extends ASTNode {
    * @param keyword the token representing the 'extends' keyword
    * @param superclass the name of the class that is being extended
    */
-  ExtendsClause.full(Token keyword, TypeName superclass) {
-    this.keyword = keyword;
+  ExtendsClause(this.keyword, TypeName superclass) {
     this._superclass = becomeParentOf(superclass);
   }
-
-  /**
-   * Initialize a newly created extends clause.
-   *
-   * @param keyword the token representing the 'extends' keyword
-   * @param superclass the name of the class that is being extended
-   */
-  ExtendsClause({Token keyword, TypeName superclass}) : this.full(keyword, superclass);
 
   accept(ASTVisitor visitor) => visitor.visitExtendsClause(this);
 
@@ -4997,22 +4601,9 @@ class FieldDeclaration extends ClassMember {
    * @param fieldList the fields being declared
    * @param semicolon the semicolon terminating the declaration
    */
-  FieldDeclaration.full(Comment comment, List<Annotation> metadata, Token staticKeyword, VariableDeclarationList fieldList, Token semicolon) : super.full(comment, metadata) {
-    this.staticKeyword = staticKeyword;
+  FieldDeclaration(Comment comment, List<Annotation> metadata, this.staticKeyword, VariableDeclarationList fieldList, this.semicolon) : super(comment, metadata) {
     this._fieldList = becomeParentOf(fieldList);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created field declaration.
-   *
-   * @param comment the documentation comment associated with this field
-   * @param metadata the annotations associated with this field
-   * @param staticKeyword the token representing the 'static' keyword
-   * @param fieldList the fields being declared
-   * @param semicolon the semicolon terminating the declaration
-   */
-  FieldDeclaration({Comment comment, List<Annotation> metadata, Token staticKeyword, VariableDeclarationList fieldList, Token semicolon}) : this.full(comment, metadata, staticKeyword, fieldList, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitFieldDeclaration(this);
 
@@ -5108,28 +4699,10 @@ class FieldFormalParameter extends NormalFormalParameter {
    * @param parameters the parameters of the function-typed parameter, or `null` if this is
    *          not a function-typed field formal parameter
    */
-  FieldFormalParameter.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier, FormalParameterList parameters) : super.full(comment, metadata, identifier) {
-    this.keyword = keyword;
+  FieldFormalParameter(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, this.thisToken, this.period, SimpleIdentifier identifier, FormalParameterList parameters) : super(comment, metadata, identifier) {
     this._type = becomeParentOf(type);
-    this.thisToken = thisToken;
-    this.period = period;
     this._parameters = becomeParentOf(parameters);
   }
-
-  /**
-   * Initialize a newly created formal parameter.
-   *
-   * @param comment the documentation comment associated with this parameter
-   * @param metadata the annotations associated with this parameter
-   * @param keyword the token representing either the 'final', 'const' or 'var' keyword
-   * @param type the name of the declared type of the parameter
-   * @param thisToken the token representing the 'this' keyword
-   * @param period the token representing the period
-   * @param identifier the name of the parameter being declared
-   * @param parameters the parameters of the function-typed parameter, or `null` if this is
-   *          not a function-typed field formal parameter
-   */
-  FieldFormalParameter({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, Token thisToken, Token period, SimpleIdentifier identifier, FormalParameterList parameters}) : this.full(comment, metadata, keyword, type, thisToken, period, identifier, parameters);
 
   accept(ASTVisitor visitor) => visitor.visitFieldFormalParameter(this);
 
@@ -5254,27 +4827,11 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement.con1_full(Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
-    this.forKeyword = forKeyword;
-    this.leftParenthesis = leftParenthesis;
+  ForEachStatement.con1(this.forKeyword, this.leftParenthesis, DeclaredIdentifier loopVariable, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
     this._loopVariable = becomeParentOf(loopVariable);
-    this.inKeyword = inKeyword;
     this._iterator = becomeParentOf(iterator);
-    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
-
-  /**
-   * Initialize a newly created for-each statement.
-   *
-   * @param forKeyword the token representing the 'for' keyword
-   * @param leftParenthesis the left parenthesis
-   * @param loopVariable the declaration of the loop variable
-   * @param iterator the expression evaluated to produce the iterator
-   * @param rightParenthesis the right parenthesis
-   * @param body the body of the loop
-   */
-  ForEachStatement.con1({Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.con1_full(forKeyword, leftParenthesis, loopVariable, inKeyword, iterator, rightParenthesis, body);
 
   /**
    * Initialize a newly created for-each statement.
@@ -5286,27 +4843,11 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement.con2_full(Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
-    this.forKeyword = forKeyword;
-    this.leftParenthesis = leftParenthesis;
+  ForEachStatement.con2(this.forKeyword, this.leftParenthesis, SimpleIdentifier identifier, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
     this._identifier = becomeParentOf(identifier);
-    this.inKeyword = inKeyword;
     this._iterator = becomeParentOf(iterator);
-    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
-
-  /**
-   * Initialize a newly created for-each statement.
-   *
-   * @param forKeyword the token representing the 'for' keyword
-   * @param leftParenthesis the left parenthesis
-   * @param identifier the loop variable
-   * @param iterator the expression evaluated to produce the iterator
-   * @param rightParenthesis the right parenthesis
-   * @param body the body of the loop
-   */
-  ForEachStatement.con2({Token forKeyword, Token leftParenthesis, SimpleIdentifier identifier, Token inKeyword, Expression iterator, Token rightParenthesis, Statement body}) : this.con2_full(forKeyword, leftParenthesis, identifier, inKeyword, iterator, rightParenthesis, body);
 
   accept(ASTVisitor visitor) => visitor.visitForEachStatement(this);
 
@@ -5448,7 +4989,7 @@ class ForStatement extends Statement {
   /**
    * The list of expressions run after each execution of the loop body.
    */
-  NodeList<Expression> updaters;
+  NodeList<Expression> _updaters;
 
   /**
    * The right parenthesis.
@@ -5474,35 +5015,14 @@ class ForStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForStatement.full(Token forKeyword, Token leftParenthesis, VariableDeclarationList variableList, Expression initialization, Token leftSeparator, Expression condition, Token rightSeparator, List<Expression> updaters, Token rightParenthesis, Statement body) {
-    this.updaters = new NodeList<Expression>(this);
-    this.forKeyword = forKeyword;
-    this.leftParenthesis = leftParenthesis;
+  ForStatement(this.forKeyword, this.leftParenthesis, VariableDeclarationList variableList, Expression initialization, this.leftSeparator, Expression condition, this.rightSeparator, List<Expression> updaters, this.rightParenthesis, Statement body) {
+    this._updaters = new NodeList<Expression>(this);
     this._variableList = becomeParentOf(variableList);
     this._initialization = becomeParentOf(initialization);
-    this.leftSeparator = leftSeparator;
     this._condition = becomeParentOf(condition);
-    this.rightSeparator = rightSeparator;
-    this.updaters.addAll(updaters);
-    this.rightParenthesis = rightParenthesis;
+    this._updaters.addAll(updaters);
     this._body = becomeParentOf(body);
   }
-
-  /**
-   * Initialize a newly created for statement.
-   *
-   * @param forKeyword the token representing the 'for' keyword
-   * @param leftParenthesis the left parenthesis
-   * @param variableList the declaration of the loop variables
-   * @param initialization the initialization expression
-   * @param leftSeparator the semicolon separating the initializer and the condition
-   * @param condition the condition used to determine when to terminate the loop
-   * @param rightSeparator the semicolon separating the condition and the updater
-   * @param updaters the list of expressions run after each execution of the loop body
-   * @param rightParenthesis the right parenthesis
-   * @param body the body of the loop
-   */
-  ForStatement({Token forKeyword, Token leftParenthesis, VariableDeclarationList variableList, Expression initialization, Token leftSeparator, Expression condition, Token rightSeparator, List<Expression> updaters, Token rightParenthesis, Statement body}) : this.full(forKeyword, leftParenthesis, variableList, initialization, leftSeparator, condition, rightSeparator, updaters, rightParenthesis, body);
 
   accept(ASTVisitor visitor) => visitor.visitForStatement(this);
 
@@ -5531,6 +5051,13 @@ class ForStatement extends Statement {
    * @return the initialization expression
    */
   Expression get initialization => _initialization;
+
+  /**
+   * Return the list of expressions run after each execution of the loop body.
+   *
+   * @return the list of expressions run after each execution of the loop body
+   */
+  NodeList<Expression> get updaters => _updaters;
 
   /**
    * Return the declaration of the loop variables, or `null` if there are no variables.
@@ -5579,7 +5106,7 @@ class ForStatement extends Statement {
     safelyVisitChild(_variableList, visitor);
     safelyVisitChild(_initialization, visitor);
     safelyVisitChild(_condition, visitor);
-    updaters.accept(visitor);
+    _updaters.accept(visitor);
     safelyVisitChild(_body, visitor);
   }
 }
@@ -5683,7 +5210,7 @@ class FormalParameterList extends ASTNode {
   /**
    * The parameters associated with the method.
    */
-  NodeList<FormalParameter> parameters;
+  NodeList<FormalParameter> _parameters;
 
   /**
    * The left square bracket ('[') or left curly brace ('{') introducing the optional parameters, or
@@ -5711,25 +5238,14 @@ class FormalParameterList extends ASTNode {
    * @param rightDelimiter the right delimiter introducing the optional parameters
    * @param rightParenthesis the right parenthesis
    */
-  FormalParameterList.full(Token leftParenthesis, List<FormalParameter> parameters, Token leftDelimiter, Token rightDelimiter, Token rightParenthesis) {
-    this.parameters = new NodeList<FormalParameter>(this);
+  FormalParameterList(Token leftParenthesis, List<FormalParameter> parameters, Token leftDelimiter, Token rightDelimiter, Token rightParenthesis) {
+    this._parameters = new NodeList<FormalParameter>(this);
     this._leftParenthesis = leftParenthesis;
-    this.parameters.addAll(parameters);
+    this._parameters.addAll(parameters);
     this._leftDelimiter = leftDelimiter;
     this._rightDelimiter = rightDelimiter;
     this._rightParenthesis = rightParenthesis;
   }
-
-  /**
-   * Initialize a newly created parameter list.
-   *
-   * @param leftParenthesis the left parenthesis
-   * @param parameters the parameters associated with the method
-   * @param leftDelimiter the left delimiter introducing the optional parameters
-   * @param rightDelimiter the right delimiter introducing the optional parameters
-   * @param rightParenthesis the right parenthesis
-   */
-  FormalParameterList({Token leftParenthesis, List<FormalParameter> parameters, Token leftDelimiter, Token rightDelimiter, Token rightParenthesis}) : this.full(leftParenthesis, parameters, leftDelimiter, rightDelimiter, rightParenthesis);
 
   accept(ASTVisitor visitor) => visitor.visitFormalParameterList(this);
 
@@ -5760,13 +5276,20 @@ class FormalParameterList extends ASTNode {
    * @return the elements representing the parameters in this list
    */
   List<ParameterElement> get parameterElements {
-    int count = parameters.length;
+    int count = _parameters.length;
     List<ParameterElement> types = new List<ParameterElement>(count);
     for (int i = 0; i < count; i++) {
-      types[i] = parameters[i].element;
+      types[i] = _parameters[i].element;
     }
     return types;
   }
+
+  /**
+   * Return the parameters associated with the method.
+   *
+   * @return the parameters associated with the method
+   */
+  NodeList<FormalParameter> get parameters => _parameters;
 
   /**
    * Return the right square bracket (']') or right curly brace ('}') introducing the optional
@@ -5823,7 +5346,7 @@ class FormalParameterList extends ASTNode {
   }
 
   void visitChildren(ASTVisitor visitor) {
-    parameters.accept(visitor);
+    _parameters.accept(visitor);
   }
 }
 
@@ -5896,26 +5419,11 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @param name the name of the function
    * @param functionExpression the function expression being wrapped
    */
-  FunctionDeclaration.full(Comment comment, List<Annotation> metadata, Token externalKeyword, TypeName returnType, Token propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression) : super.full(comment, metadata) {
-    this.externalKeyword = externalKeyword;
+  FunctionDeclaration(Comment comment, List<Annotation> metadata, this.externalKeyword, TypeName returnType, this.propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression) : super(comment, metadata) {
     this._returnType = becomeParentOf(returnType);
-    this.propertyKeyword = propertyKeyword;
     this._name = becomeParentOf(name);
     this._functionExpression = becomeParentOf(functionExpression);
   }
-
-  /**
-   * Initialize a newly created function declaration.
-   *
-   * @param comment the documentation comment associated with this function
-   * @param metadata the annotations associated with this function
-   * @param externalKeyword the token representing the 'external' keyword
-   * @param returnType the return type of the function
-   * @param propertyKeyword the token representing the 'get' or 'set' keyword
-   * @param name the name of the function
-   * @param functionExpression the function expression being wrapped
-   */
-  FunctionDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, TypeName returnType, Token propertyKeyword, SimpleIdentifier name, FunctionExpression functionExpression}) : this.full(comment, metadata, externalKeyword, returnType, propertyKeyword, name, functionExpression);
 
   accept(ASTVisitor visitor) => visitor.visitFunctionDeclaration(this);
 
@@ -6017,29 +5525,29 @@ class FunctionDeclarationStatement extends Statement {
   /**
    * The function declaration being wrapped.
    */
-  FunctionDeclaration functionDeclaration;
+  FunctionDeclaration _functionDeclaration;
 
   /**
    * Initialize a newly created function declaration statement.
    *
    * @param functionDeclaration the the function declaration being wrapped
    */
-  FunctionDeclarationStatement.full(FunctionDeclaration functionDeclaration) {
-    this.functionDeclaration = becomeParentOf(functionDeclaration);
+  FunctionDeclarationStatement(FunctionDeclaration functionDeclaration) {
+    this._functionDeclaration = becomeParentOf(functionDeclaration);
   }
-
-  /**
-   * Initialize a newly created function declaration statement.
-   *
-   * @param functionDeclaration the the function declaration being wrapped
-   */
-  FunctionDeclarationStatement({FunctionDeclaration functionDeclaration}) : this.full(functionDeclaration);
 
   accept(ASTVisitor visitor) => visitor.visitFunctionDeclarationStatement(this);
 
-  Token get beginToken => functionDeclaration.beginToken;
+  Token get beginToken => _functionDeclaration.beginToken;
 
-  Token get endToken => functionDeclaration.endToken;
+  Token get endToken => _functionDeclaration.endToken;
+
+  /**
+   * Return the function declaration being wrapped.
+   *
+   * @return the function declaration being wrapped
+   */
+  FunctionDeclaration get functionDeclaration => _functionDeclaration;
 
   /**
    * Set the function declaration being wrapped to the given function declaration.
@@ -6047,11 +5555,11 @@ class FunctionDeclarationStatement extends Statement {
    * @param functionDeclaration the function declaration being wrapped
    */
   void set functionExpression(FunctionDeclaration functionDeclaration) {
-    this.functionDeclaration = becomeParentOf(functionDeclaration);
+    this._functionDeclaration = becomeParentOf(functionDeclaration);
   }
 
   void visitChildren(ASTVisitor visitor) {
-    safelyVisitChild(functionDeclaration, visitor);
+    safelyVisitChild(_functionDeclaration, visitor);
   }
 }
 
@@ -6088,18 +5596,10 @@ class FunctionExpression extends Expression {
    * @param parameters the parameters associated with the function
    * @param body the body of the function
    */
-  FunctionExpression.full(FormalParameterList parameters, FunctionBody body) {
+  FunctionExpression(FormalParameterList parameters, FunctionBody body) {
     this._parameters = becomeParentOf(parameters);
     this._body = becomeParentOf(body);
   }
-
-  /**
-   * Initialize a newly created function declaration.
-   *
-   * @param parameters the parameters associated with the function
-   * @param body the body of the function
-   */
-  FunctionExpression({FormalParameterList parameters, FunctionBody body}) : this.full(parameters, body);
 
   accept(ASTVisitor visitor) => visitor.visitFunctionExpression(this);
 
@@ -6204,18 +5704,10 @@ class FunctionExpressionInvocation extends Expression {
    * @param function the expression producing the function being invoked
    * @param argumentList the list of arguments to the method
    */
-  FunctionExpressionInvocation.full(Expression function, ArgumentList argumentList) {
+  FunctionExpressionInvocation(Expression function, ArgumentList argumentList) {
     this._function = becomeParentOf(function);
     this._argumentList = becomeParentOf(argumentList);
   }
-
-  /**
-   * Initialize a newly created function expression invocation.
-   *
-   * @param function the expression producing the function being invoked
-   * @param argumentList the list of arguments to the method
-   */
-  FunctionExpressionInvocation({Expression function, ArgumentList argumentList}) : this.full(function, argumentList);
 
   accept(ASTVisitor visitor) => visitor.visitFunctionExpressionInvocation(this);
 
@@ -6347,26 +5839,12 @@ class FunctionTypeAlias extends TypeAlias {
    * @param parameters the parameters associated with the function
    * @param semicolon the semicolon terminating the declaration
    */
-  FunctionTypeAlias.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType, SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon) : super.full(comment, metadata, keyword, semicolon) {
+  FunctionTypeAlias(Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType, SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon) : super(comment, metadata, keyword, semicolon) {
     this._returnType = becomeParentOf(returnType);
     this._name = becomeParentOf(name);
     this._typeParameters = becomeParentOf(typeParameters);
     this._parameters = becomeParentOf(parameters);
   }
-
-  /**
-   * Initialize a newly created function type alias.
-   *
-   * @param comment the documentation comment associated with this type alias
-   * @param metadata the annotations associated with this type alias
-   * @param keyword the token representing the 'typedef' keyword
-   * @param returnType the name of the return type of the function type being defined
-   * @param name the name of the type being declared
-   * @param typeParameters the type parameters for the type
-   * @param parameters the parameters associated with the function
-   * @param semicolon the semicolon terminating the declaration
-   */
-  FunctionTypeAlias({Comment comment, List<Annotation> metadata, Token keyword, TypeName returnType, SimpleIdentifier name, TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon}) : this.full(comment, metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitFunctionTypeAlias(this);
 
@@ -6479,22 +5957,10 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * @param identifier the name of the function-typed parameter
    * @param parameters the parameters of the function-typed parameter
    */
-  FunctionTypedFormalParameter.full(Comment comment, List<Annotation> metadata, TypeName returnType, SimpleIdentifier identifier, FormalParameterList parameters) : super.full(comment, metadata, identifier) {
+  FunctionTypedFormalParameter(Comment comment, List<Annotation> metadata, TypeName returnType, SimpleIdentifier identifier, FormalParameterList parameters) : super(comment, metadata, identifier) {
     this._returnType = becomeParentOf(returnType);
     this._parameters = becomeParentOf(parameters);
   }
-
-  /**
-   * Initialize a newly created formal parameter.
-   *
-   * @param comment the documentation comment associated with this parameter
-   * @param metadata the annotations associated with this parameter
-   * @param returnType the return type of the function, or `null` if the function does not
-   *          have a return type
-   * @param identifier the name of the function-typed parameter
-   * @param parameters the parameters of the function-typed parameter
-   */
-  FunctionTypedFormalParameter({Comment comment, List<Annotation> metadata, TypeName returnType, SimpleIdentifier identifier, FormalParameterList parameters}) : this.full(comment, metadata, returnType, identifier, parameters);
 
   accept(ASTVisitor visitor) => visitor.visitFunctionTypedFormalParameter(this);
 
@@ -6567,7 +6033,7 @@ class HideCombinator extends Combinator {
   /**
    * The list of names from the library that are hidden by this combinator.
    */
-  NodeList<SimpleIdentifier> hiddenNames;
+  NodeList<SimpleIdentifier> _hiddenNames;
 
   /**
    * Initialize a newly created import show combinator.
@@ -6575,25 +6041,24 @@ class HideCombinator extends Combinator {
    * @param keyword the comma introducing the combinator
    * @param hiddenNames the list of names from the library that are hidden by this combinator
    */
-  HideCombinator.full(Token keyword, List<SimpleIdentifier> hiddenNames) : super.full(keyword) {
-    this.hiddenNames = new NodeList<SimpleIdentifier>(this);
-    this.hiddenNames.addAll(hiddenNames);
+  HideCombinator(Token keyword, List<SimpleIdentifier> hiddenNames) : super(keyword) {
+    this._hiddenNames = new NodeList<SimpleIdentifier>(this);
+    this._hiddenNames.addAll(hiddenNames);
   }
-
-  /**
-   * Initialize a newly created import show combinator.
-   *
-   * @param keyword the comma introducing the combinator
-   * @param hiddenNames the list of names from the library that are hidden by this combinator
-   */
-  HideCombinator({Token keyword, List<SimpleIdentifier> hiddenNames}) : this.full(keyword, hiddenNames);
 
   accept(ASTVisitor visitor) => visitor.visitHideCombinator(this);
 
-  Token get endToken => hiddenNames.endToken;
+  Token get endToken => _hiddenNames.endToken;
+
+  /**
+   * Return the list of names from the library that are hidden by this combinator.
+   *
+   * @return the list of names from the library that are hidden by this combinator
+   */
+  NodeList<SimpleIdentifier> get hiddenNames => _hiddenNames;
 
   void visitChildren(ASTVisitor visitor) {
-    hiddenNames.accept(visitor);
+    _hiddenNames.accept(visitor);
   }
 }
 
@@ -6717,28 +6182,11 @@ class IfStatement extends Statement {
    * @param elseKeyword the token representing the 'else' keyword
    * @param elseStatement the statement that is executed if the condition evaluates to `false`
    */
-  IfStatement.full(Token ifKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement thenStatement, Token elseKeyword, Statement elseStatement) {
-    this.ifKeyword = ifKeyword;
-    this.leftParenthesis = leftParenthesis;
+  IfStatement(this.ifKeyword, this.leftParenthesis, Expression condition, this.rightParenthesis, Statement thenStatement, this.elseKeyword, Statement elseStatement) {
     this._condition = becomeParentOf(condition);
-    this.rightParenthesis = rightParenthesis;
     this._thenStatement = becomeParentOf(thenStatement);
-    this.elseKeyword = elseKeyword;
     this._elseStatement = becomeParentOf(elseStatement);
   }
-
-  /**
-   * Initialize a newly created if statement.
-   *
-   * @param ifKeyword the token representing the 'if' keyword
-   * @param leftParenthesis the left parenthesis
-   * @param condition the condition used to determine which of the statements is executed next
-   * @param rightParenthesis the right parenthesis
-   * @param thenStatement the statement that is executed if the condition evaluates to `true`
-   * @param elseKeyword the token representing the 'else' keyword
-   * @param elseStatement the statement that is executed if the condition evaluates to `false`
-   */
-  IfStatement({Token ifKeyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement thenStatement, Token elseKeyword, Statement elseStatement}) : this.full(ifKeyword, leftParenthesis, condition, rightParenthesis, thenStatement, elseKeyword, elseStatement);
 
   accept(ASTVisitor visitor) => visitor.visitIfStatement(this);
 
@@ -6830,7 +6278,7 @@ class ImplementsClause extends ASTNode {
   /**
    * The interfaces that are being implemented.
    */
-  NodeList<TypeName> interfaces;
+  NodeList<TypeName> _interfaces;
 
   /**
    * Initialize a newly created implements clause.
@@ -6838,28 +6286,26 @@ class ImplementsClause extends ASTNode {
    * @param keyword the token representing the 'implements' keyword
    * @param interfaces the interfaces that are being implemented
    */
-  ImplementsClause.full(Token keyword, List<TypeName> interfaces) {
-    this.interfaces = new NodeList<TypeName>(this);
-    this.keyword = keyword;
-    this.interfaces.addAll(interfaces);
+  ImplementsClause(this.keyword, List<TypeName> interfaces) {
+    this._interfaces = new NodeList<TypeName>(this);
+    this._interfaces.addAll(interfaces);
   }
-
-  /**
-   * Initialize a newly created implements clause.
-   *
-   * @param keyword the token representing the 'implements' keyword
-   * @param interfaces the interfaces that are being implemented
-   */
-  ImplementsClause({Token keyword, List<TypeName> interfaces}) : this.full(keyword, interfaces);
 
   accept(ASTVisitor visitor) => visitor.visitImplementsClause(this);
 
   Token get beginToken => keyword;
 
-  Token get endToken => interfaces.endToken;
+  Token get endToken => _interfaces.endToken;
+
+  /**
+   * Return the list of the interfaces that are being implemented.
+   *
+   * @return the list of the interfaces that are being implemented
+   */
+  NodeList<TypeName> get interfaces => _interfaces;
 
   void visitChildren(ASTVisitor visitor) {
-    interfaces.accept(visitor);
+    _interfaces.accept(visitor);
   }
 }
 
@@ -6977,24 +6423,9 @@ class ImportDirective extends NamespaceDirective {
    * @param combinators the combinators used to control how names are imported
    * @param semicolon the semicolon terminating the directive
    */
-  ImportDirective.full(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, Token asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) : super.full(comment, metadata, keyword, libraryUri, combinators, semicolon) {
-    this.asToken = asToken;
+  ImportDirective(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, this.asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon) : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
     this._prefix = becomeParentOf(prefix);
   }
-
-  /**
-   * Initialize a newly created import directive.
-   *
-   * @param comment the documentation comment associated with this directive
-   * @param metadata the annotations associated with the directive
-   * @param keyword the token representing the 'import' keyword
-   * @param libraryUri the URI of the library being imported
-   * @param asToken the token representing the 'as' token
-   * @param prefix the prefix to be used with the imported names
-   * @param combinators the combinators used to control how names are imported
-   * @param semicolon the semicolon terminating the directive
-   */
-  ImportDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, Token asToken, SimpleIdentifier prefix, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, asToken, prefix, combinators, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitImportDirective(this);
 
@@ -7099,7 +6530,7 @@ class IndexExpression extends Expression {
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  IndexExpression.forTarget_full(Expression target, Token leftBracket, Expression index, Token rightBracket) {
+  IndexExpression.forTarget(Expression target, Token leftBracket, Expression index, Token rightBracket) {
     this._target = becomeParentOf(target);
     this._leftBracket = leftBracket;
     this._index = becomeParentOf(index);
@@ -7109,37 +6540,16 @@ class IndexExpression extends Expression {
   /**
    * Initialize a newly created index expression.
    *
-   * @param target the expression used to compute the object being indexed
-   * @param leftBracket the left square bracket
-   * @param index the expression used to compute the index
-   * @param rightBracket the right square bracket
-   */
-  IndexExpression.forTarget({Expression target, Token leftBracket, Expression index, Token rightBracket}) : this.forTarget_full(target, leftBracket, index, rightBracket);
-
-  /**
-   * Initialize a newly created index expression.
-   *
    * @param period the period ("..") before a cascaded index expression
    * @param leftBracket the left square bracket
    * @param index the expression used to compute the index
    * @param rightBracket the right square bracket
    */
-  IndexExpression.forCascade_full(Token period, Token leftBracket, Expression index, Token rightBracket) {
-    this.period = period;
+  IndexExpression.forCascade(this.period, Token leftBracket, Expression index, Token rightBracket) {
     this._leftBracket = leftBracket;
     this._index = becomeParentOf(index);
     this._rightBracket = rightBracket;
   }
-
-  /**
-   * Initialize a newly created index expression.
-   *
-   * @param period the period ("..") before a cascaded index expression
-   * @param leftBracket the left square bracket
-   * @param index the expression used to compute the index
-   * @param rightBracket the right square bracket
-   */
-  IndexExpression.forCascade({Token period, Token leftBracket, Expression index, Token rightBracket}) : this.forCascade_full(period, leftBracket, index, rightBracket);
 
   accept(ASTVisitor visitor) => visitor.visitIndexExpression(this);
 
@@ -7440,20 +6850,10 @@ class InstanceCreationExpression extends Expression {
    * @param constructorName the name of the constructor to be invoked
    * @param argumentList the list of arguments to the constructor
    */
-  InstanceCreationExpression.full(Token keyword, ConstructorName constructorName, ArgumentList argumentList) {
-    this.keyword = keyword;
+  InstanceCreationExpression(this.keyword, ConstructorName constructorName, ArgumentList argumentList) {
     this.constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
-
-  /**
-   * Initialize a newly created instance creation expression.
-   *
-   * @param keyword the keyword used to indicate how an object should be created
-   * @param constructorName the name of the constructor to be invoked
-   * @param argumentList the list of arguments to the constructor
-   */
-  InstanceCreationExpression({Token keyword, ConstructorName constructorName, ArgumentList argumentList}) : this.full(keyword, constructorName, argumentList);
 
   accept(ASTVisitor visitor) => visitor.visitInstanceCreationExpression(this);
 
@@ -7527,18 +6927,7 @@ class IntegerLiteral extends Literal {
    * @param literal the token representing the literal
    * @param value the value of the literal
    */
-  IntegerLiteral.full(Token literal, int value) {
-    this.literal = literal;
-    this.value = value;
-  }
-
-  /**
-   * Initialize a newly created integer literal.
-   *
-   * @param literal the token representing the literal
-   * @param value the value of the literal
-   */
-  IntegerLiteral({Token literal, int value}) : this.full(literal, value);
+  IntegerLiteral(this.literal, this.value);
 
   accept(ASTVisitor visitor) => visitor.visitIntegerLiteral(this);
 
@@ -7601,20 +6990,9 @@ class InterpolationExpression extends InterpolationElement {
    * @param expression the expression to be evaluated for the value to be converted into a string
    * @param rightBracket the right curly bracket
    */
-  InterpolationExpression.full(Token leftBracket, Expression expression, Token rightBracket) {
-    this.leftBracket = leftBracket;
+  InterpolationExpression(this.leftBracket, Expression expression, this.rightBracket) {
     this._expression = becomeParentOf(expression);
-    this.rightBracket = rightBracket;
   }
-
-  /**
-   * Initialize a newly created interpolation expression.
-   *
-   * @param leftBracket the left curly bracket
-   * @param expression the expression to be evaluated for the value to be converted into a string
-   * @param rightBracket the right curly bracket
-   */
-  InterpolationExpression({Token leftBracket, Expression expression, Token rightBracket}) : this.full(leftBracket, expression, rightBracket);
 
   accept(ASTVisitor visitor) => visitor.visitInterpolationExpression(this);
 
@@ -7677,18 +7055,10 @@ class InterpolationString extends InterpolationElement {
    * @param the characters that will be added to the string
    * @param value the value of the literal
    */
-  InterpolationString.full(Token contents, String value) {
+  InterpolationString(Token contents, String value) {
     this._contents = contents;
     this._value = value;
   }
-
-  /**
-   * Initialize a newly created string of characters that are part of a string interpolation.
-   *
-   * @param the characters that will be added to the string
-   * @param value the value of the literal
-   */
-  InterpolationString({Token contents, String value}) : this.full(contents, value);
 
   accept(ASTVisitor visitor) => visitor.visitInterpolationString(this);
 
@@ -7771,22 +7141,10 @@ class IsExpression extends Expression {
    * @param notOperator the not operator, or `null` if the sense of the test is not negated
    * @param type the name of the type being tested for
    */
-  IsExpression.full(Expression expression, Token isOperator, Token notOperator, TypeName type) {
+  IsExpression(Expression expression, this.isOperator, this.notOperator, TypeName type) {
     this._expression = becomeParentOf(expression);
-    this.isOperator = isOperator;
-    this.notOperator = notOperator;
     this._type = becomeParentOf(type);
   }
-
-  /**
-   * Initialize a newly created is expression.
-   *
-   * @param expression the expression used to compute the value whose type is being tested
-   * @param isOperator the is operator
-   * @param notOperator the not operator, or `null` if the sense of the test is not negated
-   * @param type the name of the type being tested for
-   */
-  IsExpression({Expression expression, Token isOperator, Token notOperator, TypeName type}) : this.full(expression, isOperator, notOperator, type);
 
   accept(ASTVisitor visitor) => visitor.visitIsExpression(this);
 
@@ -7862,18 +7220,9 @@ class Label extends ASTNode {
    * @param label the label being applied
    * @param colon the colon that separates the label from whatever follows
    */
-  Label.full(SimpleIdentifier label, Token colon) {
+  Label(SimpleIdentifier label, this.colon) {
     this._label = becomeParentOf(label);
-    this.colon = colon;
   }
-
-  /**
-   * Initialize a newly created label.
-   *
-   * @param label the label being applied
-   * @param colon the colon that separates the label from whatever follows
-   */
-  Label({SimpleIdentifier label, Token colon}) : this.full(label, colon);
 
   accept(ASTVisitor visitor) => visitor.visitLabel(this);
 
@@ -7917,7 +7266,7 @@ class LabeledStatement extends Statement {
   /**
    * The labels being associated with the statement.
    */
-  NodeList<Label> labels;
+  NodeList<Label> _labels;
 
   /**
    * The statement with which the labels are being associated.
@@ -7930,30 +7279,29 @@ class LabeledStatement extends Statement {
    * @param labels the labels being associated with the statement
    * @param statement the statement with which the labels are being associated
    */
-  LabeledStatement.full(List<Label> labels, Statement statement) {
-    this.labels = new NodeList<Label>(this);
-    this.labels.addAll(labels);
+  LabeledStatement(List<Label> labels, Statement statement) {
+    this._labels = new NodeList<Label>(this);
+    this._labels.addAll(labels);
     this._statement = becomeParentOf(statement);
   }
-
-  /**
-   * Initialize a newly created labeled statement.
-   *
-   * @param labels the labels being associated with the statement
-   * @param statement the statement with which the labels are being associated
-   */
-  LabeledStatement({List<Label> labels, Statement statement}) : this.full(labels, statement);
 
   accept(ASTVisitor visitor) => visitor.visitLabeledStatement(this);
 
   Token get beginToken {
-    if (!labels.isEmpty) {
-      return labels.beginToken;
+    if (!_labels.isEmpty) {
+      return _labels.beginToken;
     }
     return _statement.beginToken;
   }
 
   Token get endToken => _statement.endToken;
+
+  /**
+   * Return the labels being associated with the statement.
+   *
+   * @return the labels being associated with the statement
+   */
+  NodeList<Label> get labels => _labels;
 
   /**
    * Return the statement with which the labels are being associated.
@@ -7972,7 +7320,7 @@ class LabeledStatement extends Statement {
   }
 
   void visitChildren(ASTVisitor visitor) {
-    labels.accept(visitor);
+    _labels.accept(visitor);
     safelyVisitChild(_statement, visitor);
   }
 }
@@ -8012,22 +7360,9 @@ class LibraryDirective extends Directive {
    * @param name the name of the library being defined
    * @param semicolon the semicolon terminating the directive
    */
-  LibraryDirective.full(Comment comment, List<Annotation> metadata, Token libraryToken, LibraryIdentifier name, Token semicolon) : super.full(comment, metadata) {
-    this.libraryToken = libraryToken;
+  LibraryDirective(Comment comment, List<Annotation> metadata, this.libraryToken, LibraryIdentifier name, this.semicolon) : super(comment, metadata) {
     this._name = becomeParentOf(name);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created library directive.
-   *
-   * @param comment the documentation comment associated with this directive
-   * @param metadata the annotations associated with the directive
-   * @param libraryToken the token representing the 'library' token
-   * @param name the name of the library being defined
-   * @param semicolon the semicolon terminating the directive
-   */
-  LibraryDirective({Comment comment, List<Annotation> metadata, Token libraryToken, LibraryIdentifier name, Token semicolon}) : this.full(comment, metadata, libraryToken, name, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitLibraryDirective(this);
 
@@ -8073,37 +7408,37 @@ class LibraryIdentifier extends Identifier {
   /**
    * The components of the identifier.
    */
-  NodeList<SimpleIdentifier> components;
+  NodeList<SimpleIdentifier> _components;
 
   /**
    * Initialize a newly created prefixed identifier.
    *
    * @param components the components of the identifier
    */
-  LibraryIdentifier.full(List<SimpleIdentifier> components) {
-    this.components = new NodeList<SimpleIdentifier>(this);
-    this.components.addAll(components);
+  LibraryIdentifier(List<SimpleIdentifier> components) {
+    this._components = new NodeList<SimpleIdentifier>(this);
+    this._components.addAll(components);
   }
-
-  /**
-   * Initialize a newly created prefixed identifier.
-   *
-   * @param components the components of the identifier
-   */
-  LibraryIdentifier({List<SimpleIdentifier> components}) : this.full(components);
 
   accept(ASTVisitor visitor) => visitor.visitLibraryIdentifier(this);
 
-  Token get beginToken => components.beginToken;
+  Token get beginToken => _components.beginToken;
 
   Element get bestElement => staticElement;
 
-  Token get endToken => components.endToken;
+  /**
+   * Return the components of the identifier.
+   *
+   * @return the components of the identifier
+   */
+  NodeList<SimpleIdentifier> get components => _components;
+
+  Token get endToken => _components.endToken;
 
   String get name {
     JavaStringBuilder builder = new JavaStringBuilder();
     bool needsPeriod = false;
-    for (SimpleIdentifier identifier in components) {
+    for (SimpleIdentifier identifier in _components) {
       if (needsPeriod) {
         builder.append(".");
       } else {
@@ -8121,7 +7456,7 @@ class LibraryIdentifier extends Identifier {
   Element get staticElement => null;
 
   void visitChildren(ASTVisitor visitor) {
-    components.accept(visitor);
+    _components.accept(visitor);
   }
 }
 
@@ -8144,7 +7479,7 @@ class ListLiteral extends TypedLiteral {
   /**
    * The expressions used to compute the elements of the list.
    */
-  NodeList<Expression> elements;
+  NodeList<Expression> _elements;
 
   /**
    * The right square bracket.
@@ -8161,24 +7496,12 @@ class ListLiteral extends TypedLiteral {
    * @param elements the expressions used to compute the elements of the list
    * @param rightBracket the right square bracket
    */
-  ListLiteral.full(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<Expression> elements, Token rightBracket) : super.full(constKeyword, typeArguments) {
-    this.elements = new NodeList<Expression>(this);
+  ListLiteral(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<Expression> elements, Token rightBracket) : super(constKeyword, typeArguments) {
+    this._elements = new NodeList<Expression>(this);
     this._leftBracket = leftBracket;
-    this.elements.addAll(elements);
+    this._elements.addAll(elements);
     this._rightBracket = rightBracket;
   }
-
-  /**
-   * Initialize a newly created list literal.
-   *
-   * @param constKeyword the token representing the 'const' keyword
-   * @param typeArguments the type argument associated with this literal, or `null` if no type
-   *          arguments were declared
-   * @param leftBracket the left square bracket
-   * @param elements the expressions used to compute the elements of the list
-   * @param rightBracket the right square bracket
-   */
-  ListLiteral({Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<Expression> elements, Token rightBracket}) : this.full(constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   accept(ASTVisitor visitor) => visitor.visitListLiteral(this);
 
@@ -8193,6 +7516,13 @@ class ListLiteral extends TypedLiteral {
     }
     return _leftBracket;
   }
+
+  /**
+   * Return the expressions used to compute the elements of the list.
+   *
+   * @return the expressions used to compute the elements of the list
+   */
+  NodeList<Expression> get elements => _elements;
 
   Token get endToken => _rightBracket;
 
@@ -8230,7 +7560,7 @@ class ListLiteral extends TypedLiteral {
 
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
-    elements.accept(visitor);
+    _elements.accept(visitor);
   }
 }
 
@@ -8274,7 +7604,7 @@ class MapLiteral extends TypedLiteral {
   /**
    * The entries in the map.
    */
-  NodeList<MapLiteralEntry> entries;
+  NodeList<MapLiteralEntry> _entries;
 
   /**
    * The right curly bracket.
@@ -8291,24 +7621,12 @@ class MapLiteral extends TypedLiteral {
    * @param entries the entries in the map
    * @param rightBracket the right curly bracket
    */
-  MapLiteral.full(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket) : super.full(constKeyword, typeArguments) {
-    this.entries = new NodeList<MapLiteralEntry>(this);
+  MapLiteral(Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket) : super(constKeyword, typeArguments) {
+    this._entries = new NodeList<MapLiteralEntry>(this);
     this._leftBracket = leftBracket;
-    this.entries.addAll(entries);
+    this._entries.addAll(entries);
     this._rightBracket = rightBracket;
   }
-
-  /**
-   * Initialize a newly created map literal.
-   *
-   * @param constKeyword the token representing the 'const' keyword
-   * @param typeArguments the type argument associated with this literal, or `null` if no type
-   *          arguments were declared
-   * @param leftBracket the left curly bracket
-   * @param entries the entries in the map
-   * @param rightBracket the right curly bracket
-   */
-  MapLiteral({Token constKeyword, TypeArgumentList typeArguments, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket}) : this.full(constKeyword, typeArguments, leftBracket, entries, rightBracket);
 
   accept(ASTVisitor visitor) => visitor.visitMapLiteral(this);
 
@@ -8325,6 +7643,13 @@ class MapLiteral extends TypedLiteral {
   }
 
   Token get endToken => _rightBracket;
+
+  /**
+   * Return the entries in the map.
+   *
+   * @return the entries in the map
+   */
+  NodeList<MapLiteralEntry> get entries => _entries;
 
   /**
    * Return the left curly bracket.
@@ -8360,7 +7685,7 @@ class MapLiteral extends TypedLiteral {
 
   void visitChildren(ASTVisitor visitor) {
     super.visitChildren(visitor);
-    entries.accept(visitor);
+    _entries.accept(visitor);
   }
 }
 
@@ -8398,20 +7723,10 @@ class MapLiteralEntry extends ASTNode {
    * @param separator the colon that separates the key from the value
    * @param value the expression computing the value that will be associated with the key
    */
-  MapLiteralEntry.full(Expression key, Token separator, Expression value) {
+  MapLiteralEntry(Expression key, this.separator, Expression value) {
     this._key = becomeParentOf(key);
-    this.separator = separator;
     this._value = becomeParentOf(value);
   }
-
-  /**
-   * Initialize a newly created map literal entry.
-   *
-   * @param key the expression computing the key with which the value will be associated
-   * @param separator the colon that separates the key from the value
-   * @param value the expression computing the value that will be associated with the key
-   */
-  MapLiteralEntry({Expression key, Token separator, Expression value}) : this.full(key, separator, value);
 
   accept(ASTVisitor visitor) => visitor.visitMapLiteralEntry(this);
 
@@ -8536,33 +7851,12 @@ class MethodDeclaration extends ClassMember {
    *          declares a getter
    * @param body the body of the method
    */
-  MethodDeclaration.full(Comment comment, List<Annotation> metadata, Token externalKeyword, Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) : super.full(comment, metadata) {
-    this.externalKeyword = externalKeyword;
-    this.modifierKeyword = modifierKeyword;
+  MethodDeclaration(Comment comment, List<Annotation> metadata, this.externalKeyword, this.modifierKeyword, TypeName returnType, this.propertyKeyword, this.operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) : super(comment, metadata) {
     this._returnType = becomeParentOf(returnType);
-    this.propertyKeyword = propertyKeyword;
-    this.operatorKeyword = operatorKeyword;
     this._name = becomeParentOf(name);
     this._parameters = becomeParentOf(parameters);
     this._body = becomeParentOf(body);
   }
-
-  /**
-   * Initialize a newly created method declaration.
-   *
-   * @param externalKeyword the token for the 'external' keyword
-   * @param comment the documentation comment associated with this method
-   * @param metadata the annotations associated with this method
-   * @param modifierKeyword the token representing the 'abstract' or 'static' keyword
-   * @param returnType the return type of the method
-   * @param propertyKeyword the token representing the 'get' or 'set' keyword
-   * @param operatorKeyword the token representing the 'operator' keyword
-   * @param name the name of the method
-   * @param parameters the parameters associated with the method, or `null` if this method
-   *          declares a getter
-   * @param body the body of the method
-   */
-  MethodDeclaration({Comment comment, List<Annotation> metadata, Token externalKeyword, Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body}) : this.full(comment, metadata, externalKeyword, modifierKeyword, returnType, propertyKeyword, operatorKeyword, name, parameters, body);
 
   accept(ASTVisitor visitor) => visitor.visitMethodDeclaration(this);
 
@@ -8745,22 +8039,11 @@ class MethodInvocation extends Expression {
    * @param methodName the name of the method being invoked
    * @param argumentList the list of arguments to the method
    */
-  MethodInvocation.full(Expression target, Token period, SimpleIdentifier methodName, ArgumentList argumentList) {
+  MethodInvocation(Expression target, this.period, SimpleIdentifier methodName, ArgumentList argumentList) {
     this._target = becomeParentOf(target);
-    this.period = period;
     this._methodName = becomeParentOf(methodName);
     this._argumentList = becomeParentOf(argumentList);
   }
-
-  /**
-   * Initialize a newly created method invocation.
-   *
-   * @param target the expression producing the object on which the method is defined
-   * @param period the period that separates the target from the method name
-   * @param methodName the name of the method being invoked
-   * @param argumentList the list of arguments to the method
-   */
-  MethodInvocation({Expression target, Token period, SimpleIdentifier methodName, ArgumentList argumentList}) : this.full(target, period, methodName, argumentList);
 
   accept(ASTVisitor visitor) => visitor.visitMethodInvocation(this);
 
@@ -8895,18 +8178,10 @@ class NamedExpression extends Expression {
    * @param name the name associated with the expression
    * @param expression the expression with which the name is associated
    */
-  NamedExpression.full(Label name, Expression expression) {
+  NamedExpression(Label name, Expression expression) {
     this._name = becomeParentOf(name);
     this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Initialize a newly created named expression.
-   *
-   * @param name the name associated with the expression
-   * @param expression the expression with which the name is associated
-   */
-  NamedExpression({Label name, Expression expression}) : this.full(name, expression);
 
   accept(ASTVisitor visitor) => visitor.visitNamedExpression(this);
 
@@ -8985,12 +8260,12 @@ abstract class NamespaceDirective extends UriBasedDirective {
   /**
    * The token representing the 'import' or 'export' keyword.
    */
-  Token _keyword;
+  Token keyword;
 
   /**
    * The combinators used to control which names are imported or exported.
    */
-  NodeList<Combinator> combinators;
+  NodeList<Combinator> _combinators;
 
   /**
    * The semicolon terminating the directive.
@@ -9007,41 +8282,23 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * @param combinators the combinators used to control which names are imported or exported
    * @param semicolon the semicolon terminating the directive
    */
-  NamespaceDirective.full(Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) : super.full(comment, metadata, libraryUri) {
-    this.combinators = new NodeList<Combinator>(this);
-    this._keyword = keyword;
-    this.combinators.addAll(combinators);
-    this.semicolon = semicolon;
+  NamespaceDirective(Comment comment, List<Annotation> metadata, this.keyword, StringLiteral libraryUri, List<Combinator> combinators, this.semicolon) : super(comment, metadata, libraryUri) {
+    this._combinators = new NodeList<Combinator>(this);
+    this._combinators.addAll(combinators);
   }
 
   /**
-   * Initialize a newly created namespace directive.
+   * Return the combinators used to control how names are imported or exported.
    *
-   * @param comment the documentation comment associated with this directive
-   * @param metadata the annotations associated with the directive
-   * @param keyword the token representing the 'import' or 'export' keyword
-   * @param libraryUri the URI of the library being imported or exported
-   * @param combinators the combinators used to control which names are imported or exported
-   * @param semicolon the semicolon terminating the directive
+   * @return the combinators used to control how names are imported or exported
    */
-  NamespaceDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, combinators, semicolon);
+  NodeList<Combinator> get combinators => _combinators;
 
   Token get endToken => semicolon;
 
-  Token get keyword => _keyword;
-
   LibraryElement get uriElement;
 
-  /**
-   * Set the token representing the 'import' or 'export' keyword to the given token.
-   *
-   * @param exportToken the token representing the 'import' or 'export' keyword
-   */
-  void set keyword(Token exportToken) {
-    this._keyword = exportToken;
-  }
-
-  Token get firstTokenAfterCommentAndMetadata => _keyword;
+  Token get firstTokenAfterCommentAndMetadata => keyword;
 }
 
 /**
@@ -9072,18 +8329,7 @@ class NativeClause extends ASTNode {
    * @param keyword the token representing the 'native' keyword
    * @param name the name of the native object that implements the class.
    */
-  NativeClause.full(Token keyword, StringLiteral name) {
-    this.keyword = keyword;
-    this.name = name;
-  }
-
-  /**
-   * Initialize a newly created native clause.
-   *
-   * @param keyword the token representing the 'native' keyword
-   * @param name the name of the native object that implements the class.
-   */
-  NativeClause({Token keyword, StringLiteral name}) : this.full(keyword, name);
+  NativeClause(this.keyword, this.name);
 
   accept(ASTVisitor visitor) => visitor.visitNativeClause(this);
 
@@ -9111,17 +8357,17 @@ class NativeFunctionBody extends FunctionBody {
   /**
    * The token representing 'native' that marks the start of the function body.
    */
-  Token nativeToken;
+  final Token nativeToken;
 
   /**
    * The string literal, after the 'native' token.
    */
-  StringLiteral stringLiteral;
+  StringLiteral _stringLiteral;
 
   /**
    * The token representing the semicolon that marks the end of the function body.
    */
-  Token semicolon;
+  final Token semicolon;
 
   /**
    * Initialize a newly created function body consisting of the 'native' token, a string literal,
@@ -9131,21 +8377,9 @@ class NativeFunctionBody extends FunctionBody {
    * @param stringLiteral the string literal
    * @param semicolon the token representing the semicolon that marks the end of the function body
    */
-  NativeFunctionBody.full(Token nativeToken, StringLiteral stringLiteral, Token semicolon) {
-    this.nativeToken = nativeToken;
-    this.stringLiteral = becomeParentOf(stringLiteral);
-    this.semicolon = semicolon;
+  NativeFunctionBody(this.nativeToken, StringLiteral stringLiteral, this.semicolon) {
+    this._stringLiteral = becomeParentOf(stringLiteral);
   }
-
-  /**
-   * Initialize a newly created function body consisting of the 'native' token, a string literal,
-   * and a semicolon.
-   *
-   * @param nativeToken the token representing 'native' that marks the start of the function body
-   * @param stringLiteral the string literal
-   * @param semicolon the token representing the semicolon that marks the end of the function body
-   */
-  NativeFunctionBody({Token nativeToken, StringLiteral stringLiteral, Token semicolon}) : this.full(nativeToken, stringLiteral, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitNativeFunctionBody(this);
 
@@ -9153,8 +8387,15 @@ class NativeFunctionBody extends FunctionBody {
 
   Token get endToken => semicolon;
 
+  /**
+   * Return the string literal representing the string after the 'native' token.
+   *
+   * @return the string literal representing the string after the 'native' token
+   */
+  StringLiteral get stringLiteral => _stringLiteral;
+
   void visitChildren(ASTVisitor visitor) {
-    safelyVisitChild(stringLiteral, visitor);
+    safelyVisitChild(_stringLiteral, visitor);
   }
 }
 
@@ -9181,7 +8422,7 @@ abstract class NormalFormalParameter extends FormalParameter {
   /**
    * The annotations associated with this parameter.
    */
-  NodeList<Annotation> metadata;
+  NodeList<Annotation> _metadata;
 
   /**
    * The name of the parameter being declared.
@@ -9195,21 +8436,12 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @param metadata the annotations associated with this parameter
    * @param identifier the name of the parameter being declared
    */
-  NormalFormalParameter.full(Comment comment, List<Annotation> metadata, SimpleIdentifier identifier) {
-    this.metadata = new NodeList<Annotation>(this);
+  NormalFormalParameter(Comment comment, List<Annotation> metadata, SimpleIdentifier identifier) {
+    this._metadata = new NodeList<Annotation>(this);
     this._comment = becomeParentOf(comment);
-    this.metadata.addAll(metadata);
+    this._metadata.addAll(metadata);
     this._identifier = becomeParentOf(identifier);
   }
-
-  /**
-   * Initialize a newly created formal parameter.
-   *
-   * @param comment the documentation comment associated with this parameter
-   * @param metadata the annotations associated with this parameter
-   * @param identifier the name of the parameter being declared
-   */
-  NormalFormalParameter({Comment comment, List<Annotation> metadata, SimpleIdentifier identifier}) : this.full(comment, metadata, identifier);
 
   /**
    * Return the documentation comment associated with this parameter, or `null` if this
@@ -9228,6 +8460,13 @@ abstract class NormalFormalParameter extends FormalParameter {
     }
     return ParameterKind.REQUIRED;
   }
+
+  /**
+   * Return the annotations associated with this parameter.
+   *
+   * @return the annotations associated with this parameter
+   */
+  NodeList<Annotation> get metadata => _metadata;
 
   /**
    * Set the documentation comment associated with this parameter to the given comment
@@ -9250,7 +8489,7 @@ abstract class NormalFormalParameter extends FormalParameter {
   void visitChildren(ASTVisitor visitor) {
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(_comment, visitor);
-      metadata.accept(visitor);
+      _metadata.accept(visitor);
     } else {
       for (ASTNode child in sortedCommentAndAnnotations) {
         child.accept(visitor);
@@ -9264,10 +8503,10 @@ abstract class NormalFormalParameter extends FormalParameter {
    * @return `true` if the comment is lexically before any annotations
    */
   bool commentIsBeforeAnnotations() {
-    if (_comment == null || metadata.isEmpty) {
+    if (_comment == null || _metadata.isEmpty) {
       return true;
     }
-    Annotation firstAnnotation = metadata[0];
+    Annotation firstAnnotation = _metadata[0];
     return _comment.offset < firstAnnotation.offset;
   }
 
@@ -9281,7 +8520,7 @@ abstract class NormalFormalParameter extends FormalParameter {
   List<ASTNode> get sortedCommentAndAnnotations {
     List<ASTNode> childList = new List<ASTNode>();
     childList.add(_comment);
-    childList.addAll(metadata);
+    childList.addAll(_metadata);
     List<ASTNode> children = new List.from(childList);
     children.sort(ASTNode.LEXICAL_ORDER);
     return children;
@@ -9309,16 +8548,9 @@ class NullLiteral extends Literal {
    *
    * @param token the token representing the literal
    */
-  NullLiteral.full(Token token) {
+  NullLiteral(Token token) {
     this.literal = token;
   }
-
-  /**
-   * Initialize a newly created null literal.
-   *
-   * @param token the token representing the literal
-   */
-  NullLiteral({Token token}) : this.full(token);
 
   accept(ASTVisitor visitor) => visitor.visitNullLiteral(this);
 
@@ -9363,20 +8595,11 @@ class ParenthesizedExpression extends Expression {
    * @param expression the expression within the parentheses
    * @param rightParenthesis the right parenthesis
    */
-  ParenthesizedExpression.full(Token leftParenthesis, Expression expression, Token rightParenthesis) {
+  ParenthesizedExpression(Token leftParenthesis, Expression expression, Token rightParenthesis) {
     this._leftParenthesis = leftParenthesis;
     this._expression = becomeParentOf(expression);
     this._rightParenthesis = rightParenthesis;
   }
-
-  /**
-   * Initialize a newly created parenthesized expression.
-   *
-   * @param leftParenthesis the left parenthesis
-   * @param expression the expression within the parentheses
-   * @param rightParenthesis the right parenthesis
-   */
-  ParenthesizedExpression({Token leftParenthesis, Expression expression, Token rightParenthesis}) : this.full(leftParenthesis, expression, rightParenthesis);
 
   accept(ASTVisitor visitor) => visitor.visitParenthesizedExpression(this);
 
@@ -9469,21 +8692,7 @@ class PartDirective extends UriBasedDirective {
    * @param partUri the URI of the part being included
    * @param semicolon the semicolon terminating the directive
    */
-  PartDirective.full(Comment comment, List<Annotation> metadata, Token partToken, StringLiteral partUri, Token semicolon) : super.full(comment, metadata, partUri) {
-    this.partToken = partToken;
-    this.semicolon = semicolon;
-  }
-
-  /**
-   * Initialize a newly created part directive.
-   *
-   * @param comment the documentation comment associated with this directive
-   * @param metadata the annotations associated with the directive
-   * @param partToken the token representing the 'part' token
-   * @param partUri the URI of the part being included
-   * @param semicolon the semicolon terminating the directive
-   */
-  PartDirective({Comment comment, List<Annotation> metadata, Token partToken, StringLiteral partUri, Token semicolon}) : this.full(comment, metadata, partToken, partUri, semicolon);
+  PartDirective(Comment comment, List<Annotation> metadata, this.partToken, StringLiteral partUri, this.semicolon) : super(comment, metadata, partUri);
 
   accept(ASTVisitor visitor) => visitor.visitPartDirective(this);
 
@@ -9537,24 +8746,9 @@ class PartOfDirective extends Directive {
    * @param libraryName the name of the library that the containing compilation unit is part of
    * @param semicolon the semicolon terminating the directive
    */
-  PartOfDirective.full(Comment comment, List<Annotation> metadata, Token partToken, Token ofToken, LibraryIdentifier libraryName, Token semicolon) : super.full(comment, metadata) {
-    this.partToken = partToken;
-    this.ofToken = ofToken;
+  PartOfDirective(Comment comment, List<Annotation> metadata, this.partToken, this.ofToken, LibraryIdentifier libraryName, this.semicolon) : super(comment, metadata) {
     this._libraryName = becomeParentOf(libraryName);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created part-of directive.
-   *
-   * @param comment the documentation comment associated with this directive
-   * @param metadata the annotations associated with the directive
-   * @param partToken the token representing the 'part' token
-   * @param ofToken the token representing the 'of' token
-   * @param libraryName the name of the library that the containing compilation unit is part of
-   * @param semicolon the semicolon terminating the directive
-   */
-  PartOfDirective({Comment comment, List<Annotation> metadata, Token partToken, Token ofToken, LibraryIdentifier libraryName, Token semicolon}) : this.full(comment, metadata, partToken, ofToken, libraryName, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitPartOfDirective(this);
 
@@ -9627,18 +8821,9 @@ class PostfixExpression extends Expression {
    * @param operand the expression computing the operand for the operator
    * @param operator the postfix operator being applied to the operand
    */
-  PostfixExpression.full(Expression operand, Token operator) {
+  PostfixExpression(Expression operand, this.operator) {
     this._operand = becomeParentOf(operand);
-    this.operator = operator;
   }
-
-  /**
-   * Initialize a newly created postfix expression.
-   *
-   * @param operand the expression computing the operand for the operator
-   * @param operator the postfix operator being applied to the operand
-   */
-  PostfixExpression({Expression operand, Token operator}) : this.full(operand, operator);
 
   accept(ASTVisitor visitor) => visitor.visitPostfixExpression(this);
 
@@ -9808,18 +8993,9 @@ class PrefixExpression extends Expression {
    * @param operator the prefix operator being applied to the operand
    * @param operand the expression computing the operand for the operator
    */
-  PrefixExpression.full(Token operator, Expression operand) {
-    this.operator = operator;
+  PrefixExpression(this.operator, Expression operand) {
     this._operand = becomeParentOf(operand);
   }
-
-  /**
-   * Initialize a newly created prefix expression.
-   *
-   * @param operator the prefix operator being applied to the operand
-   * @param operand the expression computing the operand for the operator
-   */
-  PrefixExpression({Token operator, Expression operand}) : this.full(operator, operand);
 
   accept(ASTVisitor visitor) => visitor.visitPrefixExpression(this);
 
@@ -9983,20 +9159,10 @@ class PrefixedIdentifier extends Identifier {
    * @param period the period used to separate the prefix from the identifier
    * @param identifier the prefix associated with the library in which the identifier is defined
    */
-  PrefixedIdentifier.full(SimpleIdentifier prefix, Token period, SimpleIdentifier identifier) {
+  PrefixedIdentifier(SimpleIdentifier prefix, this.period, SimpleIdentifier identifier) {
     this._prefix = becomeParentOf(prefix);
-    this.period = period;
     this._identifier = becomeParentOf(identifier);
   }
-
-  /**
-   * Initialize a newly created prefixed identifier.
-   *
-   * @param prefix the identifier being prefixed
-   * @param period the period used to separate the prefix from the identifier
-   * @param identifier the prefix associated with the library in which the identifier is defined
-   */
-  PrefixedIdentifier({SimpleIdentifier prefix, Token period, SimpleIdentifier identifier}) : this.full(prefix, period, identifier);
 
   accept(ASTVisitor visitor) => visitor.visitPrefixedIdentifier(this);
 
@@ -10105,20 +9271,10 @@ class PropertyAccess extends Expression {
    * @param operator the property access operator
    * @param propertyName the name of the property being accessed
    */
-  PropertyAccess.full(Expression target, Token operator, SimpleIdentifier propertyName) {
+  PropertyAccess(Expression target, this.operator, SimpleIdentifier propertyName) {
     this._target = becomeParentOf(target);
-    this.operator = operator;
     this._propertyName = becomeParentOf(propertyName);
   }
-
-  /**
-   * Initialize a newly created property access expression.
-   *
-   * @param target the expression computing the object defining the property being accessed
-   * @param operator the property access operator
-   * @param propertyName the name of the property being accessed
-   */
-  PropertyAccess({Expression target, Token operator, SimpleIdentifier propertyName}) : this.full(target, operator, propertyName);
 
   accept(ASTVisitor visitor) => visitor.visitPropertyAccess(this);
 
@@ -10257,23 +9413,10 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
    * @param constructorName the name of the constructor that is being invoked
    * @param argumentList the list of arguments to the constructor
    */
-  RedirectingConstructorInvocation.full(Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList) {
-    this.keyword = keyword;
-    this.period = period;
+  RedirectingConstructorInvocation(this.keyword, this.period, SimpleIdentifier constructorName, ArgumentList argumentList) {
     this._constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
-
-  /**
-   * Initialize a newly created redirecting invocation to invoke the constructor with the given name
-   * with the given arguments.
-   *
-   * @param keyword the token for the 'this' keyword
-   * @param period the token for the period before the name of the constructor that is being invoked
-   * @param constructorName the name of the constructor that is being invoked
-   * @param argumentList the list of arguments to the constructor
-   */
-  RedirectingConstructorInvocation({Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList}) : this.full(keyword, period, constructorName, argumentList);
 
   accept(ASTVisitor visitor) => visitor.visitRedirectingConstructorInvocation(this);
 
@@ -10341,16 +9484,7 @@ class RethrowExpression extends Expression {
    *
    * @param keyword the token representing the 'rethrow' keyword
    */
-  RethrowExpression.full(Token keyword) {
-    this.keyword = keyword;
-  }
-
-  /**
-   * Initialize a newly created rethrow expression.
-   *
-   * @param keyword the token representing the 'rethrow' keyword
-   */
-  RethrowExpression({Token keyword}) : this.full(keyword);
+  RethrowExpression(this.keyword);
 
   accept(ASTVisitor visitor) => visitor.visitRethrowExpression(this);
 
@@ -10398,20 +9532,9 @@ class ReturnStatement extends Statement {
    * @param expression the expression computing the value to be returned
    * @param semicolon the semicolon terminating the statement
    */
-  ReturnStatement.full(Token keyword, Expression expression, Token semicolon) {
-    this.keyword = keyword;
+  ReturnStatement(this.keyword, Expression expression, this.semicolon) {
     this._expression = becomeParentOf(expression);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created return statement.
-   *
-   * @param keyword the token representing the 'return' keyword
-   * @param expression the expression computing the value to be returned
-   * @param semicolon the semicolon terminating the statement
-   */
-  ReturnStatement({Token keyword, Expression expression, Token semicolon}) : this.full(keyword, expression, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitReturnStatement(this);
 
@@ -10463,16 +9586,7 @@ class ScriptTag extends ASTNode {
    *
    * @param scriptTag the token representing this script tag
    */
-  ScriptTag.full(Token scriptTag) {
-    this.scriptTag = scriptTag;
-  }
-
-  /**
-   * Initialize a newly created script tag.
-   *
-   * @param scriptTag the token representing this script tag
-   */
-  ScriptTag({Token scriptTag}) : this.full(scriptTag);
+  ScriptTag(this.scriptTag);
 
   accept(ASTVisitor visitor) => visitor.visitScriptTag(this);
 
@@ -10499,7 +9613,7 @@ class ShowCombinator extends Combinator {
   /**
    * The list of names from the library that are made visible by this combinator.
    */
-  NodeList<SimpleIdentifier> shownNames;
+  NodeList<SimpleIdentifier> _shownNames;
 
   /**
    * Initialize a newly created import show combinator.
@@ -10507,25 +9621,24 @@ class ShowCombinator extends Combinator {
    * @param keyword the comma introducing the combinator
    * @param shownNames the list of names from the library that are made visible by this combinator
    */
-  ShowCombinator.full(Token keyword, List<SimpleIdentifier> shownNames) : super.full(keyword) {
-    this.shownNames = new NodeList<SimpleIdentifier>(this);
-    this.shownNames.addAll(shownNames);
+  ShowCombinator(Token keyword, List<SimpleIdentifier> shownNames) : super(keyword) {
+    this._shownNames = new NodeList<SimpleIdentifier>(this);
+    this._shownNames.addAll(shownNames);
   }
-
-  /**
-   * Initialize a newly created import show combinator.
-   *
-   * @param keyword the comma introducing the combinator
-   * @param shownNames the list of names from the library that are made visible by this combinator
-   */
-  ShowCombinator({Token keyword, List<SimpleIdentifier> shownNames}) : this.full(keyword, shownNames);
 
   accept(ASTVisitor visitor) => visitor.visitShowCombinator(this);
 
-  Token get endToken => shownNames.endToken;
+  Token get endToken => _shownNames.endToken;
+
+  /**
+   * Return the list of names from the library that are made visible by this combinator.
+   *
+   * @return the list of names from the library that are made visible by this combinator
+   */
+  NodeList<SimpleIdentifier> get shownNames => _shownNames;
 
   void visitChildren(ASTVisitor visitor) {
-    shownNames.accept(visitor);
+    _shownNames.accept(visitor);
   }
 }
 
@@ -10561,21 +9674,9 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * @param type the name of the declared type of the parameter
    * @param identifier the name of the parameter being declared
    */
-  SimpleFormalParameter.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier) : super.full(comment, metadata, identifier) {
-    this.keyword = keyword;
+  SimpleFormalParameter(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, SimpleIdentifier identifier) : super(comment, metadata, identifier) {
     this._type = becomeParentOf(type);
   }
-
-  /**
-   * Initialize a newly created formal parameter.
-   *
-   * @param comment the documentation comment associated with this parameter
-   * @param metadata the annotations associated with this parameter
-   * @param keyword the token representing either the 'final', 'const' or 'var' keyword
-   * @param type the name of the declared type of the parameter
-   * @param identifier the name of the parameter being declared
-   */
-  SimpleFormalParameter({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier}) : this.full(comment, metadata, keyword, type, identifier);
 
   accept(ASTVisitor visitor) => visitor.visitSimpleFormalParameter(this);
 
@@ -10663,16 +9764,7 @@ class SimpleIdentifier extends Identifier {
    *
    * @param token the token representing the identifier
    */
-  SimpleIdentifier.full(Token token) {
-    this.token = token;
-  }
-
-  /**
-   * Initialize a newly created identifier.
-   *
-   * @param token the token representing the identifier
-   */
-  SimpleIdentifier({Token token}) : this.full(token);
+  SimpleIdentifier(this.token);
 
   accept(ASTVisitor visitor) => visitor.visitSimpleIdentifier(this);
 
@@ -10926,18 +10018,9 @@ class SimpleStringLiteral extends StringLiteral {
    * @param literal the token representing the literal
    * @param value the value of the literal
    */
-  SimpleStringLiteral.full(Token literal, String value) {
-    this.literal = literal;
+  SimpleStringLiteral(this.literal, String value) {
     this._value = StringUtilities.intern(value);
   }
-
-  /**
-   * Initialize a newly created simple string literal.
-   *
-   * @param literal the token representing the literal
-   * @param value the value of the literal
-   */
-  SimpleStringLiteral({Token literal, String value}) : this.full(literal, value);
 
   accept(ASTVisitor visitor) => visitor.visitSimpleStringLiteral(this);
 
@@ -11032,33 +10115,33 @@ class StringInterpolation extends StringLiteral {
   /**
    * The elements that will be composed to produce the resulting string.
    */
-  NodeList<InterpolationElement> elements;
+  NodeList<InterpolationElement> _elements;
 
   /**
    * Initialize a newly created string interpolation expression.
    *
    * @param elements the elements that will be composed to produce the resulting string
    */
-  StringInterpolation.full(List<InterpolationElement> elements) {
-    this.elements = new NodeList<InterpolationElement>(this);
-    this.elements.addAll(elements);
+  StringInterpolation(List<InterpolationElement> elements) {
+    this._elements = new NodeList<InterpolationElement>(this);
+    this._elements.addAll(elements);
   }
-
-  /**
-   * Initialize a newly created string interpolation expression.
-   *
-   * @param elements the elements that will be composed to produce the resulting string
-   */
-  StringInterpolation({List<InterpolationElement> elements}) : this.full(elements);
 
   accept(ASTVisitor visitor) => visitor.visitStringInterpolation(this);
 
-  Token get beginToken => elements.beginToken;
+  Token get beginToken => _elements.beginToken;
 
-  Token get endToken => elements.endToken;
+  /**
+   * Return the elements that will be composed to produce the resulting string.
+   *
+   * @return the elements that will be composed to produce the resulting string
+   */
+  NodeList<InterpolationElement> get elements => _elements;
+
+  Token get endToken => _elements.endToken;
 
   void visitChildren(ASTVisitor visitor) {
-    elements.accept(visitor);
+    _elements.accept(visitor);
   }
 
   void appendStringValue(JavaStringBuilder builder) {
@@ -11154,23 +10237,10 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * @param constructorName the name of the constructor that is being invoked
    * @param argumentList the list of arguments to the constructor
    */
-  SuperConstructorInvocation.full(Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList) {
-    this.keyword = keyword;
-    this.period = period;
+  SuperConstructorInvocation(this.keyword, this.period, SimpleIdentifier constructorName, ArgumentList argumentList) {
     this._constructorName = becomeParentOf(constructorName);
     this._argumentList = becomeParentOf(argumentList);
   }
-
-  /**
-   * Initialize a newly created super invocation to invoke the inherited constructor with the given
-   * name with the given arguments.
-   *
-   * @param keyword the token for the 'super' keyword
-   * @param period the token for the period before the name of the constructor that is being invoked
-   * @param constructorName the name of the constructor that is being invoked
-   * @param argumentList the list of arguments to the constructor
-   */
-  SuperConstructorInvocation({Token keyword, Token period, SimpleIdentifier constructorName, ArgumentList argumentList}) : this.full(keyword, period, constructorName, argumentList);
 
   accept(ASTVisitor visitor) => visitor.visitSuperConstructorInvocation(this);
 
@@ -11238,16 +10308,7 @@ class SuperExpression extends Expression {
    *
    * @param keyword the token representing the keyword
    */
-  SuperExpression.full(Token keyword) {
-    this.keyword = keyword;
-  }
-
-  /**
-   * Initialize a newly created super expression.
-   *
-   * @param keyword the token representing the keyword
-   */
-  SuperExpression({Token keyword}) : this.full(keyword);
+  SuperExpression(this.keyword);
 
   accept(ASTVisitor visitor) => visitor.visitSuperExpression(this);
 
@@ -11286,20 +10347,9 @@ class SwitchCase extends SwitchMember {
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  SwitchCase.full(List<Label> labels, Token keyword, Expression expression, Token colon, List<Statement> statements) : super.full(labels, keyword, colon, statements) {
+  SwitchCase(List<Label> labels, Token keyword, Expression expression, Token colon, List<Statement> statements) : super(labels, keyword, colon, statements) {
     this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Initialize a newly created switch case.
-   *
-   * @param labels the labels associated with the switch member
-   * @param keyword the token representing the 'case' or 'default' keyword
-   * @param expression the expression controlling whether the statements will be executed
-   * @param colon the colon separating the keyword or the expression from the statements
-   * @param statements the statements that will be executed if this switch member is selected
-   */
-  SwitchCase({List<Label> labels, Token keyword, Expression expression, Token colon, List<Statement> statements}) : this.full(labels, keyword, expression, colon, statements);
 
   accept(ASTVisitor visitor) => visitor.visitSwitchCase(this);
 
@@ -11345,17 +10395,7 @@ class SwitchDefault extends SwitchMember {
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  SwitchDefault.full(List<Label> labels, Token keyword, Token colon, List<Statement> statements) : super.full(labels, keyword, colon, statements);
-
-  /**
-   * Initialize a newly created switch default.
-   *
-   * @param labels the labels associated with the switch member
-   * @param keyword the token representing the 'case' or 'default' keyword
-   * @param colon the colon separating the keyword or the expression from the statements
-   * @param statements the statements that will be executed if this switch member is selected
-   */
-  SwitchDefault({List<Label> labels, Token keyword, Token colon, List<Statement> statements}) : this.full(labels, keyword, colon, statements);
+  SwitchDefault(List<Label> labels, Token keyword, Token colon, List<Statement> statements) : super(labels, keyword, colon, statements);
 
   accept(ASTVisitor visitor) => visitor.visitSwitchDefault(this);
 
@@ -11381,7 +10421,7 @@ abstract class SwitchMember extends ASTNode {
   /**
    * The labels associated with the switch member.
    */
-  NodeList<Label> labels;
+  NodeList<Label> _labels;
 
   /**
    * The token representing the 'case' or 'default' keyword.
@@ -11396,7 +10436,7 @@ abstract class SwitchMember extends ASTNode {
   /**
    * The statements that will be executed if this switch member is selected.
    */
-  NodeList<Statement> statements;
+  NodeList<Statement> _statements;
 
   /**
    * Initialize a newly created switch member.
@@ -11406,38 +10446,40 @@ abstract class SwitchMember extends ASTNode {
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  SwitchMember.full(List<Label> labels, Token keyword, Token colon, List<Statement> statements) {
-    this.labels = new NodeList<Label>(this);
-    this.statements = new NodeList<Statement>(this);
-    this.labels.addAll(labels);
-    this.keyword = keyword;
-    this.colon = colon;
-    this.statements.addAll(statements);
+  SwitchMember(List<Label> labels, this.keyword, this.colon, List<Statement> statements) {
+    this._labels = new NodeList<Label>(this);
+    this._statements = new NodeList<Statement>(this);
+    this._labels.addAll(labels);
+    this._statements.addAll(statements);
   }
 
-  /**
-   * Initialize a newly created switch member.
-   *
-   * @param labels the labels associated with the switch member
-   * @param keyword the token representing the 'case' or 'default' keyword
-   * @param colon the colon separating the keyword or the expression from the statements
-   * @param statements the statements that will be executed if this switch member is selected
-   */
-  SwitchMember({List<Label> labels, Token keyword, Token colon, List<Statement> statements}) : this.full(labels, keyword, colon, statements);
-
   Token get beginToken {
-    if (!labels.isEmpty) {
-      return labels.beginToken;
+    if (!_labels.isEmpty) {
+      return _labels.beginToken;
     }
     return keyword;
   }
 
   Token get endToken {
-    if (!statements.isEmpty) {
-      return statements.endToken;
+    if (!_statements.isEmpty) {
+      return _statements.endToken;
     }
     return colon;
   }
+
+  /**
+   * Return the labels associated with the switch member.
+   *
+   * @return the labels associated with the switch member
+   */
+  NodeList<Label> get labels => _labels;
+
+  /**
+   * Return the statements that will be executed if this switch member is selected.
+   *
+   * @return the statements that will be executed if this switch member is selected
+   */
+  NodeList<Statement> get statements => _statements;
 }
 
 /**
@@ -11479,7 +10521,7 @@ class SwitchStatement extends Statement {
   /**
    * The switch members that can be selected by the expression.
    */
-  NodeList<SwitchMember> members;
+  NodeList<SwitchMember> _members;
 
   /**
    * The right curly bracket.
@@ -11497,29 +10539,11 @@ class SwitchStatement extends Statement {
    * @param members the switch members that can be selected by the expression
    * @param rightBracket the right curly bracket
    */
-  SwitchStatement.full(Token keyword, Token leftParenthesis, Expression expression, Token rightParenthesis, Token leftBracket, List<SwitchMember> members, Token rightBracket) {
-    this.members = new NodeList<SwitchMember>(this);
-    this.keyword = keyword;
-    this.leftParenthesis = leftParenthesis;
+  SwitchStatement(this.keyword, this.leftParenthesis, Expression expression, this.rightParenthesis, this.leftBracket, List<SwitchMember> members, this.rightBracket) {
+    this._members = new NodeList<SwitchMember>(this);
     this._expression = becomeParentOf(expression);
-    this.rightParenthesis = rightParenthesis;
-    this.leftBracket = leftBracket;
-    this.members.addAll(members);
-    this.rightBracket = rightBracket;
+    this._members.addAll(members);
   }
-
-  /**
-   * Initialize a newly created switch statement.
-   *
-   * @param keyword the token representing the 'switch' keyword
-   * @param leftParenthesis the left parenthesis
-   * @param expression the expression used to determine which of the switch members will be selected
-   * @param rightParenthesis the right parenthesis
-   * @param leftBracket the left curly bracket
-   * @param members the switch members that can be selected by the expression
-   * @param rightBracket the right curly bracket
-   */
-  SwitchStatement({Token keyword, Token leftParenthesis, Expression expression, Token rightParenthesis, Token leftBracket, List<SwitchMember> members, Token rightBracket}) : this.full(keyword, leftParenthesis, expression, rightParenthesis, leftBracket, members, rightBracket);
 
   accept(ASTVisitor visitor) => visitor.visitSwitchStatement(this);
 
@@ -11535,6 +10559,13 @@ class SwitchStatement extends Statement {
   Expression get expression => _expression;
 
   /**
+   * Return the switch members that can be selected by the expression.
+   *
+   * @return the switch members that can be selected by the expression
+   */
+  NodeList<SwitchMember> get members => _members;
+
+  /**
    * Set the expression used to determine which of the switch members will be selected to the given
    * expression.
    *
@@ -11546,7 +10577,7 @@ class SwitchStatement extends Statement {
 
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_expression, visitor);
-    members.accept(visitor);
+    _members.accept(visitor);
   }
 }
 
@@ -11569,7 +10600,7 @@ class SymbolLiteral extends Literal {
   /**
    * The components of the literal.
    */
-  List<Token> components;
+  final List<Token> components;
 
   /**
    * Initialize a newly created symbol literal.
@@ -11577,18 +10608,7 @@ class SymbolLiteral extends Literal {
    * @param poundSign the token introducing the literal
    * @param components the components of the literal
    */
-  SymbolLiteral.full(Token poundSign, List<Token> components) {
-    this.poundSign = poundSign;
-    this.components = components;
-  }
-
-  /**
-   * Initialize a newly created symbol literal.
-   *
-   * @param poundSign the token introducing the literal
-   * @param components the components of the literal
-   */
-  SymbolLiteral({Token poundSign, List<Token> components}) : this.full(poundSign, components);
+  SymbolLiteral(this.poundSign, this.components);
 
   accept(ASTVisitor visitor) => visitor.visitSymbolLiteral(this);
 
@@ -11621,16 +10641,7 @@ class ThisExpression extends Expression {
    *
    * @param keyword the token representing the keyword
    */
-  ThisExpression.full(Token keyword) {
-    this.keyword = keyword;
-  }
-
-  /**
-   * Initialize a newly created this expression.
-   *
-   * @param keyword the token representing the keyword
-   */
-  ThisExpression({Token keyword}) : this.full(keyword);
+  ThisExpression(this.keyword);
 
   accept(ASTVisitor visitor) => visitor.visitThisExpression(this);
 
@@ -11671,18 +10682,9 @@ class ThrowExpression extends Expression {
    * @param keyword the token representing the 'throw' keyword
    * @param expression the expression computing the exception to be thrown
    */
-  ThrowExpression.full(Token keyword, Expression expression) {
-    this.keyword = keyword;
+  ThrowExpression(this.keyword, Expression expression) {
     this._expression = becomeParentOf(expression);
   }
-
-  /**
-   * Initialize a newly created throw expression.
-   *
-   * @param keyword the token representing the 'throw' keyword
-   * @param expression the expression computing the exception to be thrown
-   */
-  ThrowExpression({Token keyword, Expression expression}) : this.full(keyword, expression);
 
   accept(ASTVisitor visitor) => visitor.visitThrowExpression(this);
 
@@ -11749,20 +10751,9 @@ class TopLevelVariableDeclaration extends CompilationUnitMember {
    * @param variableList the top-level variables being declared
    * @param semicolon the semicolon terminating the declaration
    */
-  TopLevelVariableDeclaration.full(Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, Token semicolon) : super.full(comment, metadata) {
+  TopLevelVariableDeclaration(Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, this.semicolon) : super(comment, metadata) {
     this._variableList = becomeParentOf(variableList);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created top-level variable declaration.
-   *
-   * @param comment the documentation comment associated with this variable
-   * @param metadata the annotations associated with this variable
-   * @param variableList the top-level variables being declared
-   * @param semicolon the semicolon terminating the declaration
-   */
-  TopLevelVariableDeclaration({Comment comment, List<Annotation> metadata, VariableDeclarationList variableList, Token semicolon}) : this.full(comment, metadata, variableList, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitTopLevelVariableDeclaration(this);
 
@@ -11821,7 +10812,7 @@ class TryStatement extends Statement {
   /**
    * The catch clauses contained in the try statement.
    */
-  NodeList<CatchClause> catchClauses;
+  NodeList<CatchClause> _catchClauses;
 
   /**
    * The token representing the 'finally' keyword, or `null` if the statement does not contain
@@ -11844,25 +10835,12 @@ class TryStatement extends Statement {
    * @param finallyKeyword the token representing the 'finally' keyword
    * @param finallyBlock the finally block contained in the try statement
    */
-  TryStatement.full(Token tryKeyword, Block body, List<CatchClause> catchClauses, Token finallyKeyword, Block finallyBlock) {
-    this.catchClauses = new NodeList<CatchClause>(this);
-    this.tryKeyword = tryKeyword;
+  TryStatement(this.tryKeyword, Block body, List<CatchClause> catchClauses, this.finallyKeyword, Block finallyBlock) {
+    this._catchClauses = new NodeList<CatchClause>(this);
     this._body = becomeParentOf(body);
-    this.catchClauses.addAll(catchClauses);
-    this.finallyKeyword = finallyKeyword;
+    this._catchClauses.addAll(catchClauses);
     this._finallyBlock = becomeParentOf(finallyBlock);
   }
-
-  /**
-   * Initialize a newly created try statement.
-   *
-   * @param tryKeyword the token representing the 'try' keyword
-   * @param body the body of the statement
-   * @param catchClauses the catch clauses contained in the try statement
-   * @param finallyKeyword the token representing the 'finally' keyword
-   * @param finallyBlock the finally block contained in the try statement
-   */
-  TryStatement({Token tryKeyword, Block body, List<CatchClause> catchClauses, Token finallyKeyword, Block finallyBlock}) : this.full(tryKeyword, body, catchClauses, finallyKeyword, finallyBlock);
 
   accept(ASTVisitor visitor) => visitor.visitTryStatement(this);
 
@@ -11875,13 +10853,20 @@ class TryStatement extends Statement {
    */
   Block get body => _body;
 
+  /**
+   * Return the catch clauses contained in the try statement.
+   *
+   * @return the catch clauses contained in the try statement
+   */
+  NodeList<CatchClause> get catchClauses => _catchClauses;
+
   Token get endToken {
     if (_finallyBlock != null) {
       return _finallyBlock.endToken;
     } else if (finallyKeyword != null) {
       return finallyKeyword;
-    } else if (!catchClauses.isEmpty) {
-      return catchClauses.endToken;
+    } else if (!_catchClauses.isEmpty) {
+      return _catchClauses.endToken;
     }
     return _body.endToken;
   }
@@ -11914,7 +10899,7 @@ class TryStatement extends Statement {
 
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_body, visitor);
-    catchClauses.accept(visitor);
+    _catchClauses.accept(visitor);
     safelyVisitChild(_finallyBlock, visitor);
   }
 }
@@ -11952,20 +10937,7 @@ abstract class TypeAlias extends CompilationUnitMember {
    * @param keyword the token representing the 'typedef' keyword
    * @param semicolon the semicolon terminating the declaration
    */
-  TypeAlias.full(Comment comment, List<Annotation> metadata, Token keyword, Token semicolon) : super.full(comment, metadata) {
-    this.keyword = keyword;
-    this.semicolon = semicolon;
-  }
-
-  /**
-   * Initialize a newly created type alias.
-   *
-   * @param comment the documentation comment associated with this type alias
-   * @param metadata the annotations associated with this type alias
-   * @param keyword the token representing the 'typedef' keyword
-   * @param semicolon the semicolon terminating the declaration
-   */
-  TypeAlias({Comment comment, List<Annotation> metadata, Token keyword, Token semicolon}) : this.full(comment, metadata, keyword, semicolon);
+  TypeAlias(Comment comment, List<Annotation> metadata, this.keyword, this.semicolon) : super(comment, metadata);
 
   Token get endToken => semicolon;
 
@@ -11991,7 +10963,7 @@ class TypeArgumentList extends ASTNode {
   /**
    * The type arguments associated with the type.
    */
-  NodeList<TypeName> arguments;
+  NodeList<TypeName> _arguments;
 
   /**
    * The right bracket.
@@ -12005,30 +10977,26 @@ class TypeArgumentList extends ASTNode {
    * @param arguments the type arguments associated with the type
    * @param rightBracket the right bracket
    */
-  TypeArgumentList.full(Token leftBracket, List<TypeName> arguments, Token rightBracket) {
-    this.arguments = new NodeList<TypeName>(this);
-    this.leftBracket = leftBracket;
-    this.arguments.addAll(arguments);
-    this.rightBracket = rightBracket;
+  TypeArgumentList(this.leftBracket, List<TypeName> arguments, this.rightBracket) {
+    this._arguments = new NodeList<TypeName>(this);
+    this._arguments.addAll(arguments);
   }
 
-  /**
-   * Initialize a newly created list of type arguments.
-   *
-   * @param leftBracket the left bracket
-   * @param arguments the type arguments associated with the type
-   * @param rightBracket the right bracket
-   */
-  TypeArgumentList({Token leftBracket, List<TypeName> arguments, Token rightBracket}) : this.full(leftBracket, arguments, rightBracket);
-
   accept(ASTVisitor visitor) => visitor.visitTypeArgumentList(this);
+
+  /**
+   * Return the type arguments associated with the type.
+   *
+   * @return the type arguments associated with the type
+   */
+  NodeList<TypeName> get arguments => _arguments;
 
   Token get beginToken => leftBracket;
 
   Token get endToken => rightBracket;
 
   void visitChildren(ASTVisitor visitor) {
-    arguments.accept(visitor);
+    _arguments.accept(visitor);
   }
 }
 
@@ -12066,19 +11034,10 @@ class TypeName extends ASTNode {
    * @param typeArguments the type arguments associated with the type, or `null` if there are
    *          no type arguments
    */
-  TypeName.full(Identifier name, TypeArgumentList typeArguments) {
+  TypeName(Identifier name, TypeArgumentList typeArguments) {
     this._name = becomeParentOf(name);
     this._typeArguments = becomeParentOf(typeArguments);
   }
-
-  /**
-   * Initialize a newly created type name.
-   *
-   * @param name the name of the type
-   * @param typeArguments the type arguments associated with the type, or `null` if there are
-   *          no type arguments
-   */
-  TypeName({Identifier name, TypeArgumentList typeArguments}) : this.full(name, typeArguments);
 
   accept(ASTVisitor visitor) => visitor.visitTypeName(this);
 
@@ -12169,22 +11128,10 @@ class TypeParameter extends Declaration {
    * @param keyword the token representing the 'extends' keyword
    * @param bound the name of the upper bound for legal arguments
    */
-  TypeParameter.full(Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token keyword, TypeName bound) : super.full(comment, metadata) {
+  TypeParameter(Comment comment, List<Annotation> metadata, SimpleIdentifier name, this.keyword, TypeName bound) : super(comment, metadata) {
     this._name = becomeParentOf(name);
-    this.keyword = keyword;
     this._bound = becomeParentOf(bound);
   }
-
-  /**
-   * Initialize a newly created type parameter.
-   *
-   * @param comment the documentation comment associated with the type parameter
-   * @param metadata the annotations associated with the type parameter
-   * @param name the name of the type parameter
-   * @param keyword the token representing the 'extends' keyword
-   * @param bound the name of the upper bound for legal arguments
-   */
-  TypeParameter({Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token keyword, TypeName bound}) : this.full(comment, metadata, name, keyword, bound);
 
   accept(ASTVisitor visitor) => visitor.visitTypeParameter(this);
 
@@ -12253,17 +11200,17 @@ class TypeParameterList extends ASTNode {
   /**
    * The left angle bracket.
    */
-  Token leftBracket;
+  final Token leftBracket;
 
   /**
    * The type parameters in the list.
    */
-  NodeList<TypeParameter> typeParameters;
+  NodeList<TypeParameter> _typeParameters;
 
   /**
    * The right angle bracket.
    */
-  Token rightBracket;
+  final Token rightBracket;
 
   /**
    * Initialize a newly created list of type parameters.
@@ -12272,21 +11219,10 @@ class TypeParameterList extends ASTNode {
    * @param typeParameters the type parameters in the list
    * @param rightBracket the right angle bracket
    */
-  TypeParameterList.full(Token leftBracket, List<TypeParameter> typeParameters, Token rightBracket) {
-    this.typeParameters = new NodeList<TypeParameter>(this);
-    this.leftBracket = leftBracket;
-    this.typeParameters.addAll(typeParameters);
-    this.rightBracket = rightBracket;
+  TypeParameterList(this.leftBracket, List<TypeParameter> typeParameters, this.rightBracket) {
+    this._typeParameters = new NodeList<TypeParameter>(this);
+    this._typeParameters.addAll(typeParameters);
   }
-
-  /**
-   * Initialize a newly created list of type parameters.
-   *
-   * @param leftBracket the left angle bracket
-   * @param typeParameters the type parameters in the list
-   * @param rightBracket the right angle bracket
-   */
-  TypeParameterList({Token leftBracket, List<TypeParameter> typeParameters, Token rightBracket}) : this.full(leftBracket, typeParameters, rightBracket);
 
   accept(ASTVisitor visitor) => visitor.visitTypeParameterList(this);
 
@@ -12294,8 +11230,15 @@ class TypeParameterList extends ASTNode {
 
   Token get endToken => rightBracket;
 
+  /**
+   * Return the type parameters for the type.
+   *
+   * @return the type parameters for the type
+   */
+  NodeList<TypeParameter> get typeParameters => _typeParameters;
+
   void visitChildren(ASTVisitor visitor) {
-    typeParameters.accept(visitor);
+    _typeParameters.accept(visitor);
   }
 }
 
@@ -12330,19 +11273,9 @@ abstract class TypedLiteral extends Literal {
    * @param typeArguments the type argument associated with this literal, or `null` if no type
    *          arguments were declared
    */
-  TypedLiteral.full(Token constKeyword, TypeArgumentList typeArguments) {
-    this.constKeyword = constKeyword;
+  TypedLiteral(this.constKeyword, TypeArgumentList typeArguments) {
     this.typeArguments = becomeParentOf(typeArguments);
   }
-
-  /**
-   * Initialize a newly created typed literal.
-   *
-   * @param constKeyword the token representing the 'const' keyword
-   * @param typeArguments the type argument associated with this literal, or `null` if no type
-   *          arguments were declared
-   */
-  TypedLiteral({Token constKeyword, TypeArgumentList typeArguments}) : this.full(constKeyword, typeArguments);
 
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(typeArguments, visitor);
@@ -12375,18 +11308,9 @@ abstract class UriBasedDirective extends Directive {
    * @param metadata the annotations associated with the directive
    * @param uri the URI referenced by this directive
    */
-  UriBasedDirective.full(Comment comment, List<Annotation> metadata, StringLiteral uri) : super.full(comment, metadata) {
+  UriBasedDirective(Comment comment, List<Annotation> metadata, StringLiteral uri) : super(comment, metadata) {
     this._uri = becomeParentOf(uri);
   }
-
-  /**
-   * Initialize a newly create URI-based directive.
-   *
-   * @param comment the documentation comment associated with this directive
-   * @param metadata the annotations associated with the directive
-   * @param uri the URI referenced by this directive
-   */
-  UriBasedDirective({Comment comment, List<Annotation> metadata, StringLiteral uri}) : this.full(comment, metadata, uri);
 
   /**
    * Return the URI referenced by this directive.
@@ -12458,22 +11382,10 @@ class VariableDeclaration extends Declaration {
    * @param equals the equal sign separating the variable name from the initial value
    * @param initializer the expression used to compute the initial value for the variable
    */
-  VariableDeclaration.full(Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token equals, Expression initializer) : super.full(comment, metadata) {
+  VariableDeclaration(Comment comment, List<Annotation> metadata, SimpleIdentifier name, this.equals, Expression initializer) : super(comment, metadata) {
     this._name = becomeParentOf(name);
-    this.equals = equals;
     this._initializer = becomeParentOf(initializer);
   }
-
-  /**
-   * Initialize a newly created variable declaration.
-   *
-   * @param comment the documentation comment associated with this declaration
-   * @param metadata the annotations associated with this member
-   * @param name the name of the variable being declared
-   * @param equals the equal sign separating the variable name from the initial value
-   * @param initializer the expression used to compute the initial value for the variable
-   */
-  VariableDeclaration({Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token equals, Expression initializer}) : this.full(comment, metadata, name, equals, initializer);
 
   accept(ASTVisitor visitor) => visitor.visitVariableDeclaration(this);
 
@@ -12599,7 +11511,7 @@ class VariableDeclarationList extends AnnotatedNode {
   /**
    * A list containing the individual variables being declared.
    */
-  NodeList<VariableDeclaration> variables;
+  NodeList<VariableDeclaration> _variables;
 
   /**
    * Initialize a newly created variable declaration list.
@@ -12610,27 +11522,15 @@ class VariableDeclarationList extends AnnotatedNode {
    * @param type the type of the variables being declared
    * @param variables a list containing the individual variables being declared
    */
-  VariableDeclarationList.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, List<VariableDeclaration> variables) : super.full(comment, metadata) {
-    this.variables = new NodeList<VariableDeclaration>(this);
-    this.keyword = keyword;
+  VariableDeclarationList(Comment comment, List<Annotation> metadata, this.keyword, TypeName type, List<VariableDeclaration> variables) : super(comment, metadata) {
+    this._variables = new NodeList<VariableDeclaration>(this);
     this._type = becomeParentOf(type);
-    this.variables.addAll(variables);
+    this._variables.addAll(variables);
   }
-
-  /**
-   * Initialize a newly created variable declaration list.
-   *
-   * @param comment the documentation comment associated with this declaration list
-   * @param metadata the annotations associated with this declaration list
-   * @param keyword the token representing the 'final', 'const' or 'var' keyword
-   * @param type the type of the variables being declared
-   * @param variables a list containing the individual variables being declared
-   */
-  VariableDeclarationList({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, List<VariableDeclaration> variables}) : this.full(comment, metadata, keyword, type, variables);
 
   accept(ASTVisitor visitor) => visitor.visitVariableDeclarationList(this);
 
-  Token get endToken => variables.endToken;
+  Token get endToken => _variables.endToken;
 
   /**
    * Return the type of the variables being declared, or `null` if no type was provided.
@@ -12638,6 +11538,13 @@ class VariableDeclarationList extends AnnotatedNode {
    * @return the type of the variables being declared
    */
   TypeName get type => _type;
+
+  /**
+   * Return a list containing the individual variables being declared.
+   *
+   * @return a list containing the individual variables being declared
+   */
+  NodeList<VariableDeclaration> get variables => _variables;
 
   /**
    * Return `true` if the variables in this list were declared with the 'const' modifier.
@@ -12666,7 +11573,7 @@ class VariableDeclarationList extends AnnotatedNode {
 
   void visitChildren(ASTVisitor visitor) {
     safelyVisitChild(_type, visitor);
-    variables.accept(visitor);
+    _variables.accept(visitor);
   }
 
   Token get firstTokenAfterCommentAndMetadata {
@@ -12675,7 +11582,7 @@ class VariableDeclarationList extends AnnotatedNode {
     } else if (_type != null) {
       return _type.beginToken;
     }
-    return variables.beginToken;
+    return _variables.beginToken;
   }
 }
 
@@ -12707,18 +11614,9 @@ class VariableDeclarationStatement extends Statement {
    * @param variableList the fields being declared
    * @param semicolon the semicolon terminating the statement
    */
-  VariableDeclarationStatement.full(VariableDeclarationList variableList, Token semicolon) {
+  VariableDeclarationStatement(VariableDeclarationList variableList, this.semicolon) {
     this._variableList = becomeParentOf(variableList);
-    this.semicolon = semicolon;
   }
-
-  /**
-   * Initialize a newly created variable declaration statement.
-   *
-   * @param variableList the fields being declared
-   * @param semicolon the semicolon terminating the statement
-   */
-  VariableDeclarationStatement({VariableDeclarationList variableList, Token semicolon}) : this.full(variableList, semicolon);
 
   accept(ASTVisitor visitor) => visitor.visitVariableDeclarationStatement(this);
 
@@ -12792,24 +11690,10 @@ class WhileStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  WhileStatement.full(Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement body) {
-    this.keyword = keyword;
-    this.leftParenthesis = leftParenthesis;
+  WhileStatement(this.keyword, this.leftParenthesis, Expression condition, this.rightParenthesis, Statement body) {
     this._condition = becomeParentOf(condition);
-    this.rightParenthesis = rightParenthesis;
     this._body = becomeParentOf(body);
   }
-
-  /**
-   * Initialize a newly created while statement.
-   *
-   * @param keyword the token representing the 'while' keyword
-   * @param leftParenthesis the left parenthesis
-   * @param condition the expression used to determine whether to execute the body of the loop
-   * @param rightParenthesis the right parenthesis
-   * @param body the body of the loop
-   */
-  WhileStatement({Token keyword, Token leftParenthesis, Expression condition, Token rightParenthesis, Statement body}) : this.full(keyword, leftParenthesis, condition, rightParenthesis, body);
 
   accept(ASTVisitor visitor) => visitor.visitWhileStatement(this);
 
@@ -12870,12 +11754,12 @@ class WithClause extends ASTNode {
   /**
    * The token representing the 'with' keyword.
    */
-  Token withKeyword;
+  Token _withKeyword;
 
   /**
    * The names of the mixins that were specified.
    */
-  NodeList<TypeName> mixinTypes;
+  NodeList<TypeName> _mixinTypes;
 
   /**
    * Initialize a newly created with clause.
@@ -12883,25 +11767,31 @@ class WithClause extends ASTNode {
    * @param withKeyword the token representing the 'with' keyword
    * @param mixinTypes the names of the mixins that were specified
    */
-  WithClause.full(Token withKeyword, List<TypeName> mixinTypes) {
-    this.mixinTypes = new NodeList<TypeName>(this);
-    this.withKeyword = withKeyword;
-    this.mixinTypes.addAll(mixinTypes);
+  WithClause(Token withKeyword, List<TypeName> mixinTypes) {
+    this._mixinTypes = new NodeList<TypeName>(this);
+    this._withKeyword = withKeyword;
+    this._mixinTypes.addAll(mixinTypes);
   }
-
-  /**
-   * Initialize a newly created with clause.
-   *
-   * @param withKeyword the token representing the 'with' keyword
-   * @param mixinTypes the names of the mixins that were specified
-   */
-  WithClause({Token withKeyword, List<TypeName> mixinTypes}) : this.full(withKeyword, mixinTypes);
 
   accept(ASTVisitor visitor) => visitor.visitWithClause(this);
 
-  Token get beginToken => withKeyword;
+  Token get beginToken => _withKeyword;
 
-  Token get endToken => mixinTypes.endToken;
+  Token get endToken => _mixinTypes.endToken;
+
+  /**
+   * Return the names of the mixins that were specified.
+   *
+   * @return the names of the mixins that were specified
+   */
+  NodeList<TypeName> get mixinTypes => _mixinTypes;
+
+  /**
+   * Return the token representing the 'with' keyword.
+   *
+   * @return the token representing the 'with' keyword
+   */
+  Token get withKeyword => _withKeyword;
 
   /**
    * Set the token representing the 'with' keyword to the given token.
@@ -12909,11 +11799,11 @@ class WithClause extends ASTNode {
    * @param withKeyword the token representing the 'with' keyword
    */
   void set mixinKeyword(Token withKeyword) {
-    this.withKeyword = withKeyword;
+    this._withKeyword = withKeyword;
   }
 
   void visitChildren(ASTVisitor visitor) {
-    mixinTypes.accept(visitor);
+    _mixinTypes.accept(visitor);
   }
 }
 
@@ -13691,7 +12581,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
    * The element that was found that corresponds to the given source range, or `null` if there
    * is no such element.
    */
-  ASTNode foundNode;
+  ASTNode _foundNode;
 
   /**
    * Initialize a newly created locator to locate one or more [ASTNode] by locating
@@ -13715,6 +12605,14 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
   }
 
   /**
+   * Return the node that was found that corresponds to the given source range, or `null` if
+   * there is no such node.
+   *
+   * @return the node that was found
+   */
+  ASTNode get foundNode => _foundNode;
+
+  /**
    * Search within the given AST node for an identifier representing a [DartElement] in the specified source range. Return the element that was found, or `null` if
    * no element was found.
    *
@@ -13732,7 +12630,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
       AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset (${_startOffset} - ${_endOffset})", exception);
       return null;
     }
-    return foundNode;
+    return _foundNode;
   }
 
   Object visitNode(ASTNode node) {
@@ -13752,7 +12650,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
       AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
     }
     if (start <= _startOffset && _endOffset <= end) {
-      foundNode = node;
+      _foundNode = node;
       throw new NodeLocator_NodeFoundException();
     }
     return null;
@@ -15708,41 +14606,41 @@ class UnifyingASTVisitor<R> implements ASTVisitor<R> {
  * results or properties associated with the nodes.
  */
 class ASTCloner implements ASTVisitor<ASTNode> {
-  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings.full(clone3(node.strings));
+  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(clone3(node.strings));
 
-  Annotation visitAnnotation(Annotation node) => new Annotation.full(node.atSign, clone2(node.name), node.period, clone2(node.constructorName), clone2(node.arguments));
+  Annotation visitAnnotation(Annotation node) => new Annotation(node.atSign, clone2(node.name), node.period, clone2(node.constructorName), clone2(node.arguments));
 
-  ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) => new ArgumentDefinitionTest.full(node.question, clone2(node.identifier));
+  ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) => new ArgumentDefinitionTest(node.question, clone2(node.identifier));
 
-  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList.full(node.leftParenthesis, clone3(node.arguments), node.rightParenthesis);
+  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(node.leftParenthesis, clone3(node.arguments), node.rightParenthesis);
 
-  AsExpression visitAsExpression(AsExpression node) => new AsExpression.full(clone2(node.expression), node.asOperator, clone2(node.type));
+  AsExpression visitAsExpression(AsExpression node) => new AsExpression(clone2(node.expression), node.asOperator, clone2(node.type));
 
-  ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement.full(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
+  ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
 
-  AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression.full(clone2(node.leftHandSide), node.operator, clone2(node.rightHandSide));
+  AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression(clone2(node.leftHandSide), node.operator, clone2(node.rightHandSide));
 
-  BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression.full(clone2(node.leftOperand), node.operator, clone2(node.rightOperand));
+  BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression(clone2(node.leftOperand), node.operator, clone2(node.rightOperand));
 
-  Block visitBlock(Block node) => new Block.full(node.leftBracket, clone3(node.statements), node.rightBracket);
+  Block visitBlock(Block node) => new Block(node.leftBracket, clone3(node.statements), node.rightBracket);
 
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody.full(clone2(node.block));
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(clone2(node.block));
 
-  BooleanLiteral visitBooleanLiteral(BooleanLiteral node) => new BooleanLiteral.full(node.literal, node.value);
+  BooleanLiteral visitBooleanLiteral(BooleanLiteral node) => new BooleanLiteral(node.literal, node.value);
 
-  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement.full(node.keyword, clone2(node.label), node.semicolon);
+  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(node.keyword, clone2(node.label), node.semicolon);
 
-  CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression.full(clone2(node.target), clone3(node.cascadeSections));
+  CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression(clone2(node.target), clone3(node.cascadeSections));
 
-  CatchClause visitCatchClause(CatchClause node) => new CatchClause.full(node.onKeyword, clone2(node.exceptionType), node.catchKeyword, node.leftParenthesis, clone2(node.exceptionParameter), node.comma, clone2(node.stackTraceParameter), node.rightParenthesis, clone2(node.body));
+  CatchClause visitCatchClause(CatchClause node) => new CatchClause(node.onKeyword, clone2(node.exceptionType), node.catchKeyword, node.leftParenthesis, clone2(node.exceptionParameter), node.comma, clone2(node.stackTraceParameter), node.rightParenthesis, clone2(node.body));
 
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
-    ClassDeclaration copy = new ClassDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.abstractKeyword, node.classKeyword, clone2(node.name), clone2(node.typeParameters), clone2(node.extendsClause), clone2(node.withClause), clone2(node.implementsClause), node.leftBracket, clone3(node.members), node.rightBracket);
+    ClassDeclaration copy = new ClassDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.abstractKeyword, node.classKeyword, clone2(node.name), clone2(node.typeParameters), clone2(node.extendsClause), clone2(node.withClause), clone2(node.implementsClause), node.leftBracket, clone3(node.members), node.rightBracket);
     copy.nativeClause = clone2(node.nativeClause);
     return copy;
   }
 
-  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.name), clone2(node.typeParameters), node.equals, node.abstractKeyword, clone2(node.superclass), clone2(node.withClause), clone2(node.implementsClause), node.semicolon);
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.name), clone2(node.typeParameters), node.equals, node.abstractKeyword, clone2(node.superclass), clone2(node.withClause), clone2(node.implementsClause), node.semicolon);
 
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
@@ -15753,194 +14651,194 @@ class ASTCloner implements ASTVisitor<ASTNode> {
     return Comment.createEndOfLineComment(node.tokens);
   }
 
-  CommentReference visitCommentReference(CommentReference node) => new CommentReference.full(node.newKeyword, clone2(node.identifier));
+  CommentReference visitCommentReference(CommentReference node) => new CommentReference(node.newKeyword, clone2(node.identifier));
 
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit clone = new CompilationUnit.full(node.beginToken, clone2(node.scriptTag), clone3(node.directives), clone3(node.declarations), node.endToken);
+    CompilationUnit clone = new CompilationUnit(node.beginToken, clone2(node.scriptTag), clone3(node.directives), clone3(node.declarations), node.endToken);
     clone.lineInfo = node.lineInfo;
     return clone;
   }
 
-  ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression.full(clone2(node.condition), node.question, clone2(node.thenExpression), node.colon, clone2(node.elseExpression));
+  ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression(clone2(node.condition), node.question, clone2(node.thenExpression), node.colon, clone2(node.elseExpression));
 
-  ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) => new ConstructorDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.constKeyword, node.factoryKeyword, clone2(node.returnType), node.period, clone2(node.name), clone2(node.parameters), node.separator, clone3(node.initializers), clone2(node.redirectedConstructor), clone2(node.body));
+  ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) => new ConstructorDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.constKeyword, node.factoryKeyword, clone2(node.returnType), node.period, clone2(node.name), clone2(node.parameters), node.separator, clone3(node.initializers), clone2(node.redirectedConstructor), clone2(node.body));
 
-  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer.full(node.keyword, node.period, clone2(node.fieldName), node.equals, clone2(node.expression));
+  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer(node.keyword, node.period, clone2(node.fieldName), node.equals, clone2(node.expression));
 
-  ConstructorName visitConstructorName(ConstructorName node) => new ConstructorName.full(clone2(node.type), node.period, clone2(node.name));
+  ConstructorName visitConstructorName(ConstructorName node) => new ConstructorName(clone2(node.type), node.period, clone2(node.name));
 
-  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement.full(node.keyword, clone2(node.label), node.semicolon);
+  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement(node.keyword, clone2(node.label), node.semicolon);
 
-  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
+  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
 
-  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter.full(clone2(node.parameter), node.kind, node.separator, clone2(node.defaultValue));
+  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter(clone2(node.parameter), node.kind, node.separator, clone2(node.defaultValue));
 
-  DoStatement visitDoStatement(DoStatement node) => new DoStatement.full(node.doKeyword, clone2(node.body), node.whileKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
+  DoStatement visitDoStatement(DoStatement node) => new DoStatement(node.doKeyword, clone2(node.body), node.whileKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
 
-  DoubleLiteral visitDoubleLiteral(DoubleLiteral node) => new DoubleLiteral.full(node.literal, node.value);
+  DoubleLiteral visitDoubleLiteral(DoubleLiteral node) => new DoubleLiteral(node.literal, node.value);
 
-  EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody.full(node.semicolon);
+  EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody(node.semicolon);
 
-  EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement.full(node.semicolon);
+  EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement(node.semicolon);
 
-  ExportDirective visitExportDirective(ExportDirective node) => new ExportDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), clone3(node.combinators), node.semicolon);
+  ExportDirective visitExportDirective(ExportDirective node) => new ExportDirective(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), clone3(node.combinators), node.semicolon);
 
-  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody.full(node.functionDefinition, clone2(node.expression), node.semicolon);
+  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(node.functionDefinition, clone2(node.expression), node.semicolon);
 
-  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement.full(clone2(node.expression), node.semicolon);
+  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(clone2(node.expression), node.semicolon);
 
-  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(node.keyword, clone2(node.superclass));
+  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(node.keyword, clone2(node.superclass));
 
-  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.staticKeyword, clone2(node.fields), node.semicolon);
+  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.staticKeyword, clone2(node.fields), node.semicolon);
 
-  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), node.thisToken, node.period, clone2(node.identifier), clone2(node.parameters));
+  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), node.thisToken, node.period, clone2(node.identifier), clone2(node.parameters));
 
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2_full(node.forKeyword, node.leftParenthesis, clone2(node.identifier), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+      return new ForEachStatement.con2(node.forKeyword, node.leftParenthesis, clone2(node.identifier), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
     }
-    return new ForEachStatement.con1_full(node.forKeyword, node.leftParenthesis, clone2(loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+    return new ForEachStatement.con1(node.forKeyword, node.leftParenthesis, clone2(loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
   }
 
-  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(node.leftParenthesis, clone3(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
+  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList(node.leftParenthesis, clone3(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
 
-  ForStatement visitForStatement(ForStatement node) => new ForStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.variables), clone2(node.initialization), node.leftSeparator, clone2(node.condition), node.rightSeparator, clone3(node.updaters), node.rightParenthesis, clone2(node.body));
+  ForStatement visitForStatement(ForStatement node) => new ForStatement(node.forKeyword, node.leftParenthesis, clone2(node.variables), clone2(node.initialization), node.leftSeparator, clone2(node.condition), node.rightSeparator, clone3(node.updaters), node.rightParenthesis, clone2(node.body));
 
-  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, clone2(node.returnType), node.propertyKeyword, clone2(node.name), clone2(node.functionExpression));
+  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, clone2(node.returnType), node.propertyKeyword, clone2(node.name), clone2(node.functionExpression));
 
-  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement.full(clone2(node.functionDeclaration));
+  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement(clone2(node.functionDeclaration));
 
-  FunctionExpression visitFunctionExpression(FunctionExpression node) => new FunctionExpression.full(clone2(node.parameters), clone2(node.body));
+  FunctionExpression visitFunctionExpression(FunctionExpression node) => new FunctionExpression(clone2(node.parameters), clone2(node.body));
 
-  FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => new FunctionExpressionInvocation.full(clone2(node.function), clone2(node.argumentList));
+  FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => new FunctionExpressionInvocation(clone2(node.function), clone2(node.argumentList));
 
-  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.returnType), clone2(node.name), clone2(node.typeParameters), clone2(node.parameters), node.semicolon);
+  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.returnType), clone2(node.name), clone2(node.typeParameters), clone2(node.parameters), node.semicolon);
 
-  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.returnType), clone2(node.identifier), clone2(node.parameters));
+  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(clone2(node.documentationComment), clone3(node.metadata), clone2(node.returnType), clone2(node.identifier), clone2(node.parameters));
 
-  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator.full(node.keyword, clone3(node.hiddenNames));
+  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(node.keyword, clone3(node.hiddenNames));
 
-  IfStatement visitIfStatement(IfStatement node) => new IfStatement.full(node.ifKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.thenStatement), node.elseKeyword, clone2(node.elseStatement));
+  IfStatement visitIfStatement(IfStatement node) => new IfStatement(node.ifKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.thenStatement), node.elseKeyword, clone2(node.elseStatement));
 
-  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause.full(node.keyword, clone3(node.interfaces));
+  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(node.keyword, clone3(node.interfaces));
 
-  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), node.asToken, clone2(node.prefix), clone3(node.combinators), node.semicolon);
+  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), node.asToken, clone2(node.prefix), clone3(node.combinators), node.semicolon);
 
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = node.period;
     if (period == null) {
-      return new IndexExpression.forTarget_full(clone2(node.target), node.leftBracket, clone2(node.index), node.rightBracket);
+      return new IndexExpression.forTarget(clone2(node.target), node.leftBracket, clone2(node.index), node.rightBracket);
     } else {
-      return new IndexExpression.forCascade_full(period, node.leftBracket, clone2(node.index), node.rightBracket);
+      return new IndexExpression.forCascade(period, node.leftBracket, clone2(node.index), node.rightBracket);
     }
   }
 
-  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression.full(node.keyword, clone2(node.constructorName), clone2(node.argumentList));
+  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression(node.keyword, clone2(node.constructorName), clone2(node.argumentList));
 
-  IntegerLiteral visitIntegerLiteral(IntegerLiteral node) => new IntegerLiteral.full(node.literal, node.value);
+  IntegerLiteral visitIntegerLiteral(IntegerLiteral node) => new IntegerLiteral(node.literal, node.value);
 
-  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression.full(node.leftBracket, clone2(node.expression), node.rightBracket);
+  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression(node.leftBracket, clone2(node.expression), node.rightBracket);
 
-  InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString.full(node.contents, node.value);
+  InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString(node.contents, node.value);
 
-  IsExpression visitIsExpression(IsExpression node) => new IsExpression.full(clone2(node.expression), node.isOperator, node.notOperator, clone2(node.type));
+  IsExpression visitIsExpression(IsExpression node) => new IsExpression(clone2(node.expression), node.isOperator, node.notOperator, clone2(node.type));
 
-  Label visitLabel(Label node) => new Label.full(clone2(node.label), node.colon);
+  Label visitLabel(Label node) => new Label(clone2(node.label), node.colon);
 
-  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement.full(clone3(node.labels), clone2(node.statement));
+  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement(clone3(node.labels), clone2(node.statement));
 
-  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.libraryToken, clone2(node.name), node.semicolon);
+  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective(clone2(node.documentationComment), clone3(node.metadata), node.libraryToken, clone2(node.name), node.semicolon);
 
-  LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier.full(clone3(node.components));
+  LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier(clone3(node.components));
 
-  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral.full(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.elements), node.rightBracket);
+  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.elements), node.rightBracket);
 
-  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral.full(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.entries), node.rightBracket);
+  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral(node.constKeyword, clone2(node.typeArguments), node.leftBracket, clone3(node.entries), node.rightBracket);
 
-  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry.full(clone2(node.key), node.separator, clone2(node.value));
+  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry(clone2(node.key), node.separator, clone2(node.value));
 
-  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.modifierKeyword, clone2(node.returnType), node.propertyKeyword, node.operatorKeyword, clone2(node.name), clone2(node.parameters), clone2(node.body));
+  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.modifierKeyword, clone2(node.returnType), node.propertyKeyword, node.operatorKeyword, clone2(node.name), clone2(node.parameters), clone2(node.body));
 
-  MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation.full(clone2(node.target), node.period, clone2(node.methodName), clone2(node.argumentList));
+  MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation(clone2(node.target), node.period, clone2(node.methodName), clone2(node.argumentList));
 
-  NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression.full(clone2(node.name), clone2(node.expression));
+  NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression(clone2(node.name), clone2(node.expression));
 
-  ASTNode visitNativeClause(NativeClause node) => new NativeClause.full(node.keyword, clone2(node.name));
+  ASTNode visitNativeClause(NativeClause node) => new NativeClause(node.keyword, clone2(node.name));
 
-  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody.full(node.nativeToken, clone2(node.stringLiteral), node.semicolon);
+  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(node.nativeToken, clone2(node.stringLiteral), node.semicolon);
 
-  NullLiteral visitNullLiteral(NullLiteral node) => new NullLiteral.full(node.literal);
+  NullLiteral visitNullLiteral(NullLiteral node) => new NullLiteral(node.literal);
 
-  ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression.full(node.leftParenthesis, clone2(node.expression), node.rightParenthesis);
+  ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression(node.leftParenthesis, clone2(node.expression), node.rightParenthesis);
 
-  PartDirective visitPartDirective(PartDirective node) => new PartDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.partToken, clone2(node.uri), node.semicolon);
+  PartDirective visitPartDirective(PartDirective node) => new PartDirective(clone2(node.documentationComment), clone3(node.metadata), node.partToken, clone2(node.uri), node.semicolon);
 
-  PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.partToken, node.ofToken, clone2(node.libraryName), node.semicolon);
+  PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective(clone2(node.documentationComment), clone3(node.metadata), node.partToken, node.ofToken, clone2(node.libraryName), node.semicolon);
 
-  PostfixExpression visitPostfixExpression(PostfixExpression node) => new PostfixExpression.full(clone2(node.operand), node.operator);
+  PostfixExpression visitPostfixExpression(PostfixExpression node) => new PostfixExpression(clone2(node.operand), node.operator);
 
-  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) => new PrefixedIdentifier.full(clone2(node.prefix), node.period, clone2(node.identifier));
+  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) => new PrefixedIdentifier(clone2(node.prefix), node.period, clone2(node.identifier));
 
-  PrefixExpression visitPrefixExpression(PrefixExpression node) => new PrefixExpression.full(node.operator, clone2(node.operand));
+  PrefixExpression visitPrefixExpression(PrefixExpression node) => new PrefixExpression(node.operator, clone2(node.operand));
 
-  PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess.full(clone2(node.target), node.operator, clone2(node.propertyName));
+  PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess(clone2(node.target), node.operator, clone2(node.propertyName));
 
-  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => new RedirectingConstructorInvocation.full(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
+  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => new RedirectingConstructorInvocation(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
 
-  RethrowExpression visitRethrowExpression(RethrowExpression node) => new RethrowExpression.full(node.keyword);
+  RethrowExpression visitRethrowExpression(RethrowExpression node) => new RethrowExpression(node.keyword);
 
-  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement.full(node.keyword, clone2(node.expression), node.semicolon);
+  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement(node.keyword, clone2(node.expression), node.semicolon);
 
-  ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag.full(node.scriptTag);
+  ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag(node.scriptTag);
 
-  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator.full(node.keyword, clone3(node.shownNames));
+  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(node.keyword, clone3(node.shownNames));
 
-  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
+  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
 
-  SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) => new SimpleIdentifier.full(node.token);
+  SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) => new SimpleIdentifier(node.token);
 
-  SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) => new SimpleStringLiteral.full(node.literal, node.value);
+  SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) => new SimpleStringLiteral(node.literal, node.value);
 
-  StringInterpolation visitStringInterpolation(StringInterpolation node) => new StringInterpolation.full(clone3(node.elements));
+  StringInterpolation visitStringInterpolation(StringInterpolation node) => new StringInterpolation(clone3(node.elements));
 
-  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) => new SuperConstructorInvocation.full(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
+  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) => new SuperConstructorInvocation(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
 
-  SuperExpression visitSuperExpression(SuperExpression node) => new SuperExpression.full(node.keyword);
+  SuperExpression visitSuperExpression(SuperExpression node) => new SuperExpression(node.keyword);
 
-  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase.full(clone3(node.labels), node.keyword, clone2(node.expression), node.colon, clone3(node.statements));
+  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(clone3(node.labels), node.keyword, clone2(node.expression), node.colon, clone3(node.statements));
 
-  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault.full(clone3(node.labels), node.keyword, node.colon, clone3(node.statements));
+  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(clone3(node.labels), node.keyword, node.colon, clone3(node.statements));
 
-  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement.full(node.keyword, node.leftParenthesis, clone2(node.expression), node.rightParenthesis, node.leftBracket, clone3(node.members), node.rightBracket);
+  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(node.keyword, node.leftParenthesis, clone2(node.expression), node.rightParenthesis, node.leftBracket, clone3(node.members), node.rightBracket);
 
-  ASTNode visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral.full(node.poundSign, node.components);
+  ASTNode visitSymbolLiteral(SymbolLiteral node) => new SymbolLiteral(node.poundSign, node.components);
 
-  ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression.full(node.keyword);
+  ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression(node.keyword);
 
-  ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression.full(node.keyword, clone2(node.expression));
+  ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression(node.keyword, clone2(node.expression));
 
-  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.variables), node.semicolon);
+  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(clone2(node.documentationComment), clone3(node.metadata), clone2(node.variables), node.semicolon);
 
-  TryStatement visitTryStatement(TryStatement node) => new TryStatement.full(node.tryKeyword, clone2(node.body), clone3(node.catchClauses), node.finallyKeyword, clone2(node.finallyBlock));
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement(node.tryKeyword, clone2(node.body), clone3(node.catchClauses), node.finallyKeyword, clone2(node.finallyBlock));
 
-  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList.full(node.leftBracket, clone3(node.arguments), node.rightBracket);
+  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList(node.leftBracket, clone3(node.arguments), node.rightBracket);
 
-  TypeName visitTypeName(TypeName node) => new TypeName.full(clone2(node.name), clone2(node.typeArguments));
+  TypeName visitTypeName(TypeName node) => new TypeName(clone2(node.name), clone2(node.typeArguments));
 
-  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.name), node.keyword, clone2(node.bound));
+  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(clone2(node.documentationComment), clone3(node.metadata), clone2(node.name), node.keyword, clone2(node.bound));
 
-  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList.full(node.leftBracket, clone3(node.typeParameters), node.rightBracket);
+  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList(node.leftBracket, clone3(node.typeParameters), node.rightBracket);
 
-  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration.full(null, clone3(node.metadata), clone2(node.name), node.equals, clone2(node.initializer));
+  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration(null, clone3(node.metadata), clone2(node.name), node.equals, clone2(node.initializer));
 
-  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList.full(null, clone3(node.metadata), node.keyword, clone2(node.type), clone3(node.variables));
+  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList(null, clone3(node.metadata), node.keyword, clone2(node.type), clone3(node.variables));
 
-  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement.full(clone2(node.variables), node.semicolon);
+  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement(clone2(node.variables), node.semicolon);
 
-  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement.full(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.body));
+  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.body));
 
-  WithClause visitWithClause(WithClause node) => new WithClause.full(node.withKeyword, clone3(node.mixinTypes));
+  WithClause visitWithClause(WithClause node) => new WithClause(node.withKeyword, clone3(node.mixinTypes));
 
   ASTNode clone2(ASTNode node) {
     if (node == null) {
@@ -16618,34 +15516,34 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     this._tokenMap = tokenMap;
   }
 
-  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings.full(clone5(node.strings));
+  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings(clone5(node.strings));
 
   Annotation visitAnnotation(Annotation node) {
-    Annotation copy = new Annotation.full(map(node.atSign), clone4(node.name), map(node.period), clone4(node.constructorName), clone4(node.arguments));
+    Annotation copy = new Annotation(map(node.atSign), clone4(node.name), map(node.period), clone4(node.constructorName), clone4(node.arguments));
     copy.element = node.element;
     return copy;
   }
 
   ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    ArgumentDefinitionTest copy = new ArgumentDefinitionTest.full(map(node.question), clone4(node.identifier));
+    ArgumentDefinitionTest copy = new ArgumentDefinitionTest(map(node.question), clone4(node.identifier));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList.full(map(node.leftParenthesis), clone5(node.arguments), map(node.rightParenthesis));
+  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList(map(node.leftParenthesis), clone5(node.arguments), map(node.rightParenthesis));
 
   AsExpression visitAsExpression(AsExpression node) {
-    AsExpression copy = new AsExpression.full(clone4(node.expression), map(node.asOperator), clone4(node.type));
+    AsExpression copy = new AsExpression(clone4(node.expression), map(node.asOperator), clone4(node.type));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement.full(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
+  ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
 
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) {
-    AssignmentExpression copy = new AssignmentExpression.full(clone4(node.leftHandSide), map(node.operator), clone4(node.rightHandSide));
+    AssignmentExpression copy = new AssignmentExpression(clone4(node.leftHandSide), map(node.operator), clone4(node.rightHandSide));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -16654,7 +15552,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   BinaryExpression visitBinaryExpression(BinaryExpression node) {
-    BinaryExpression copy = new BinaryExpression.full(clone4(node.leftOperand), map(node.operator), clone4(node.rightOperand));
+    BinaryExpression copy = new BinaryExpression(clone4(node.leftOperand), map(node.operator), clone4(node.rightOperand));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -16662,35 +15560,35 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     return copy;
   }
 
-  Block visitBlock(Block node) => new Block.full(map(node.leftBracket), clone5(node.statements), map(node.rightBracket));
+  Block visitBlock(Block node) => new Block(map(node.leftBracket), clone5(node.statements), map(node.rightBracket));
 
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody.full(clone4(node.block));
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(clone4(node.block));
 
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) {
-    BooleanLiteral copy = new BooleanLiteral.full(map(node.literal), node.value);
+    BooleanLiteral copy = new BooleanLiteral(map(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement.full(map(node.keyword), clone4(node.label), map(node.semicolon));
+  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement(map(node.keyword), clone4(node.label), map(node.semicolon));
 
   CascadeExpression visitCascadeExpression(CascadeExpression node) {
-    CascadeExpression copy = new CascadeExpression.full(clone4(node.target), clone5(node.cascadeSections));
+    CascadeExpression copy = new CascadeExpression(clone4(node.target), clone5(node.cascadeSections));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  CatchClause visitCatchClause(CatchClause node) => new CatchClause.full(map(node.onKeyword), clone4(node.exceptionType), map(node.catchKeyword), map(node.leftParenthesis), clone4(node.exceptionParameter), map(node.comma), clone4(node.stackTraceParameter), map(node.rightParenthesis), clone4(node.body));
+  CatchClause visitCatchClause(CatchClause node) => new CatchClause(map(node.onKeyword), clone4(node.exceptionType), map(node.catchKeyword), map(node.leftParenthesis), clone4(node.exceptionParameter), map(node.comma), clone4(node.stackTraceParameter), map(node.rightParenthesis), clone4(node.body));
 
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) {
-    ClassDeclaration copy = new ClassDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.abstractKeyword), map(node.classKeyword), clone4(node.name), clone4(node.typeParameters), clone4(node.extendsClause), clone4(node.withClause), clone4(node.implementsClause), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
+    ClassDeclaration copy = new ClassDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.abstractKeyword), map(node.classKeyword), clone4(node.name), clone4(node.typeParameters), clone4(node.extendsClause), clone4(node.withClause), clone4(node.implementsClause), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
     copy.nativeClause = clone4(node.nativeClause);
     return copy;
   }
 
-  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.name), clone4(node.typeParameters), map(node.equals), map(node.abstractKeyword), clone4(node.superclass), clone4(node.withClause), clone4(node.implementsClause), map(node.semicolon));
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.name), clone4(node.typeParameters), map(node.equals), map(node.abstractKeyword), clone4(node.superclass), clone4(node.withClause), clone4(node.implementsClause), map(node.semicolon));
 
   Comment visitComment(Comment node) {
     if (node.isDocumentation) {
@@ -16701,89 +15599,89 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     return Comment.createEndOfLineComment(map2(node.tokens));
   }
 
-  CommentReference visitCommentReference(CommentReference node) => new CommentReference.full(map(node.newKeyword), clone4(node.identifier));
+  CommentReference visitCommentReference(CommentReference node) => new CommentReference(map(node.newKeyword), clone4(node.identifier));
 
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit copy = new CompilationUnit.full(map(node.beginToken), clone4(node.scriptTag), clone5(node.directives), clone5(node.declarations), map(node.endToken));
+    CompilationUnit copy = new CompilationUnit(map(node.beginToken), clone4(node.scriptTag), clone5(node.directives), clone5(node.declarations), map(node.endToken));
     copy.lineInfo = node.lineInfo;
     copy.element = node.element;
     return copy;
   }
 
   ConditionalExpression visitConditionalExpression(ConditionalExpression node) {
-    ConditionalExpression copy = new ConditionalExpression.full(clone4(node.condition), map(node.question), clone4(node.thenExpression), map(node.colon), clone4(node.elseExpression));
+    ConditionalExpression copy = new ConditionalExpression(clone4(node.condition), map(node.question), clone4(node.thenExpression), map(node.colon), clone4(node.elseExpression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorDeclaration copy = new ConstructorDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.constKeyword), map(node.factoryKeyword), clone4(node.returnType), map(node.period), clone4(node.name), clone4(node.parameters), map(node.separator), clone5(node.initializers), clone4(node.redirectedConstructor), clone4(node.body));
+    ConstructorDeclaration copy = new ConstructorDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.constKeyword), map(node.factoryKeyword), clone4(node.returnType), map(node.period), clone4(node.name), clone4(node.parameters), map(node.separator), clone5(node.initializers), clone4(node.redirectedConstructor), clone4(node.body));
     copy.element = node.element;
     return copy;
   }
 
-  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer.full(map(node.keyword), map(node.period), clone4(node.fieldName), map(node.equals), clone4(node.expression));
+  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer(map(node.keyword), map(node.period), clone4(node.fieldName), map(node.equals), clone4(node.expression));
 
   ConstructorName visitConstructorName(ConstructorName node) {
-    ConstructorName copy = new ConstructorName.full(clone4(node.type), map(node.period), clone4(node.name));
+    ConstructorName copy = new ConstructorName(clone4(node.type), map(node.period), clone4(node.name));
     copy.staticElement = node.staticElement;
     return copy;
   }
 
-  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement.full(map(node.keyword), clone4(node.label), map(node.semicolon));
+  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement(map(node.keyword), clone4(node.label), map(node.semicolon));
 
-  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
+  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
 
-  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter.full(clone4(node.parameter), node.kind, map(node.separator), clone4(node.defaultValue));
+  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter(clone4(node.parameter), node.kind, map(node.separator), clone4(node.defaultValue));
 
-  DoStatement visitDoStatement(DoStatement node) => new DoStatement.full(map(node.doKeyword), clone4(node.body), map(node.whileKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
+  DoStatement visitDoStatement(DoStatement node) => new DoStatement(map(node.doKeyword), clone4(node.body), map(node.whileKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), map(node.semicolon));
 
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) {
-    DoubleLiteral copy = new DoubleLiteral.full(map(node.literal), node.value);
+    DoubleLiteral copy = new DoubleLiteral(map(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody.full(map(node.semicolon));
+  EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody(map(node.semicolon));
 
-  EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement.full(map(node.semicolon));
+  EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement(map(node.semicolon));
 
   ExportDirective visitExportDirective(ExportDirective node) {
-    ExportDirective copy = new ExportDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), clone5(node.combinators), map(node.semicolon));
+    ExportDirective copy = new ExportDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), clone5(node.combinators), map(node.semicolon));
     copy.element = node.element;
     return copy;
   }
 
-  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody.full(map(node.functionDefinition), clone4(node.expression), map(node.semicolon));
+  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(map(node.functionDefinition), clone4(node.expression), map(node.semicolon));
 
-  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement.full(clone4(node.expression), map(node.semicolon));
+  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(clone4(node.expression), map(node.semicolon));
 
-  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(map(node.keyword), clone4(node.superclass));
+  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause(map(node.keyword), clone4(node.superclass));
 
-  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.staticKeyword), clone4(node.fields), map(node.semicolon));
+  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.staticKeyword), clone4(node.fields), map(node.semicolon));
 
-  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), map(node.thisToken), map(node.period), clone4(node.identifier), clone4(node.parameters));
+  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), map(node.thisToken), map(node.period), clone4(node.identifier), clone4(node.parameters));
 
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2_full(map(node.forKeyword), map(node.leftParenthesis), clone4(node.identifier), map(node.inKeyword), clone4(node.iterator), map(node.rightParenthesis), clone4(node.body));
+      return new ForEachStatement.con2(map(node.forKeyword), map(node.leftParenthesis), clone4(node.identifier), map(node.inKeyword), clone4(node.iterator), map(node.rightParenthesis), clone4(node.body));
     }
-    return new ForEachStatement.con1_full(map(node.forKeyword), map(node.leftParenthesis), clone4(loopVariable), map(node.inKeyword), clone4(node.iterator), map(node.rightParenthesis), clone4(node.body));
+    return new ForEachStatement.con1(map(node.forKeyword), map(node.leftParenthesis), clone4(loopVariable), map(node.inKeyword), clone4(node.iterator), map(node.rightParenthesis), clone4(node.body));
   }
 
-  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(map(node.leftParenthesis), clone5(node.parameters), map(node.leftDelimiter), map(node.rightDelimiter), map(node.rightParenthesis));
+  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList(map(node.leftParenthesis), clone5(node.parameters), map(node.leftDelimiter), map(node.rightDelimiter), map(node.rightParenthesis));
 
-  ForStatement visitForStatement(ForStatement node) => new ForStatement.full(map(node.forKeyword), map(node.leftParenthesis), clone4(node.variables), clone4(node.initialization), map(node.leftSeparator), clone4(node.condition), map(node.rightSeparator), clone5(node.updaters), map(node.rightParenthesis), clone4(node.body));
+  ForStatement visitForStatement(ForStatement node) => new ForStatement(map(node.forKeyword), map(node.leftParenthesis), clone4(node.variables), clone4(node.initialization), map(node.leftSeparator), clone4(node.condition), map(node.rightSeparator), clone5(node.updaters), map(node.rightParenthesis), clone4(node.body));
 
-  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), clone4(node.returnType), map(node.propertyKeyword), clone4(node.name), clone4(node.functionExpression));
+  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), clone4(node.returnType), map(node.propertyKeyword), clone4(node.name), clone4(node.functionExpression));
 
-  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement.full(clone4(node.functionDeclaration));
+  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement(clone4(node.functionDeclaration));
 
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
-    FunctionExpression copy = new FunctionExpression.full(clone4(node.parameters), clone4(node.body));
+    FunctionExpression copy = new FunctionExpression(clone4(node.parameters), clone4(node.body));
     copy.element = node.element;
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -16791,7 +15689,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    FunctionExpressionInvocation copy = new FunctionExpressionInvocation.full(clone4(node.function), clone4(node.argumentList));
+    FunctionExpressionInvocation copy = new FunctionExpressionInvocation(clone4(node.function), clone4(node.argumentList));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -16799,25 +15697,25 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
     return copy;
   }
 
-  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.returnType), clone4(node.name), clone4(node.typeParameters), clone4(node.parameters), map(node.semicolon));
+  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.returnType), clone4(node.name), clone4(node.typeParameters), clone4(node.parameters), map(node.semicolon));
 
-  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter.full(clone4(node.documentationComment), clone5(node.metadata), clone4(node.returnType), clone4(node.identifier), clone4(node.parameters));
+  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(clone4(node.documentationComment), clone5(node.metadata), clone4(node.returnType), clone4(node.identifier), clone4(node.parameters));
 
-  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator.full(map(node.keyword), clone5(node.hiddenNames));
+  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(map(node.keyword), clone5(node.hiddenNames));
 
-  IfStatement visitIfStatement(IfStatement node) => new IfStatement.full(map(node.ifKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.thenStatement), map(node.elseKeyword), clone4(node.elseStatement));
+  IfStatement visitIfStatement(IfStatement node) => new IfStatement(map(node.ifKeyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.thenStatement), map(node.elseKeyword), clone4(node.elseStatement));
 
-  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause.full(map(node.keyword), clone5(node.interfaces));
+  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause(map(node.keyword), clone5(node.interfaces));
 
-  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), map(node.asToken), clone4(node.prefix), clone5(node.combinators), map(node.semicolon));
+  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.uri), map(node.asToken), clone4(node.prefix), clone5(node.combinators), map(node.semicolon));
 
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period = map(node.period);
     IndexExpression copy;
     if (period == null) {
-      copy = new IndexExpression.forTarget_full(clone4(node.target), map(node.leftBracket), clone4(node.index), map(node.rightBracket));
+      copy = new IndexExpression.forTarget(clone4(node.target), map(node.leftBracket), clone4(node.index), map(node.rightBracket));
     } else {
-      copy = new IndexExpression.forCascade_full(period, map(node.leftBracket), clone4(node.index), map(node.rightBracket));
+      copy = new IndexExpression.forCascade(period, map(node.leftBracket), clone4(node.index), map(node.rightBracket));
     }
     copy.auxiliaryElements = node.auxiliaryElements;
     copy.propagatedElement = node.propagatedElement;
@@ -16828,7 +15726,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) {
-    InstanceCreationExpression copy = new InstanceCreationExpression.full(map(node.keyword), clone4(node.constructorName), clone4(node.argumentList));
+    InstanceCreationExpression copy = new InstanceCreationExpression(map(node.keyword), clone4(node.constructorName), clone4(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
     copy.staticType = node.staticType;
@@ -16836,100 +15734,100 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   IntegerLiteral visitIntegerLiteral(IntegerLiteral node) {
-    IntegerLiteral copy = new IntegerLiteral.full(map(node.literal), node.value);
+    IntegerLiteral copy = new IntegerLiteral(map(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression.full(map(node.leftBracket), clone4(node.expression), map(node.rightBracket));
+  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression(map(node.leftBracket), clone4(node.expression), map(node.rightBracket));
 
-  InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString.full(map(node.contents), node.value);
+  InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString(map(node.contents), node.value);
 
   IsExpression visitIsExpression(IsExpression node) {
-    IsExpression copy = new IsExpression.full(clone4(node.expression), map(node.isOperator), map(node.notOperator), clone4(node.type));
+    IsExpression copy = new IsExpression(clone4(node.expression), map(node.isOperator), map(node.notOperator), clone4(node.type));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  Label visitLabel(Label node) => new Label.full(clone4(node.label), map(node.colon));
+  Label visitLabel(Label node) => new Label(clone4(node.label), map(node.colon));
 
-  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement.full(clone5(node.labels), clone4(node.statement));
+  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement(clone5(node.labels), clone4(node.statement));
 
-  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.libraryToken), clone4(node.name), map(node.semicolon));
+  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.libraryToken), clone4(node.name), map(node.semicolon));
 
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) {
-    LibraryIdentifier copy = new LibraryIdentifier.full(clone5(node.components));
+    LibraryIdentifier copy = new LibraryIdentifier(clone5(node.components));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ListLiteral visitListLiteral(ListLiteral node) {
-    ListLiteral copy = new ListLiteral.full(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.elements), map(node.rightBracket));
+    ListLiteral copy = new ListLiteral(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.elements), map(node.rightBracket));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   MapLiteral visitMapLiteral(MapLiteral node) {
-    MapLiteral copy = new MapLiteral.full(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.entries), map(node.rightBracket));
+    MapLiteral copy = new MapLiteral(map(node.constKeyword), clone4(node.typeArguments), map(node.leftBracket), clone5(node.entries), map(node.rightBracket));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry.full(clone4(node.key), map(node.separator), clone4(node.value));
+  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry(clone4(node.key), map(node.separator), clone4(node.value));
 
-  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.modifierKeyword), clone4(node.returnType), map(node.propertyKeyword), map(node.operatorKeyword), clone4(node.name), clone4(node.parameters), clone4(node.body));
+  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration(clone4(node.documentationComment), clone5(node.metadata), map(node.externalKeyword), map(node.modifierKeyword), clone4(node.returnType), map(node.propertyKeyword), map(node.operatorKeyword), clone4(node.name), clone4(node.parameters), clone4(node.body));
 
   MethodInvocation visitMethodInvocation(MethodInvocation node) {
-    MethodInvocation copy = new MethodInvocation.full(clone4(node.target), map(node.period), clone4(node.methodName), clone4(node.argumentList));
+    MethodInvocation copy = new MethodInvocation(clone4(node.target), map(node.period), clone4(node.methodName), clone4(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   NamedExpression visitNamedExpression(NamedExpression node) {
-    NamedExpression copy = new NamedExpression.full(clone4(node.name), clone4(node.expression));
+    NamedExpression copy = new NamedExpression(clone4(node.name), clone4(node.expression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  ASTNode visitNativeClause(NativeClause node) => new NativeClause.full(map(node.keyword), clone4(node.name));
+  ASTNode visitNativeClause(NativeClause node) => new NativeClause(map(node.keyword), clone4(node.name));
 
-  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody.full(map(node.nativeToken), clone4(node.stringLiteral), map(node.semicolon));
+  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody(map(node.nativeToken), clone4(node.stringLiteral), map(node.semicolon));
 
   NullLiteral visitNullLiteral(NullLiteral node) {
-    NullLiteral copy = new NullLiteral.full(map(node.literal));
+    NullLiteral copy = new NullLiteral(map(node.literal));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) {
-    ParenthesizedExpression copy = new ParenthesizedExpression.full(map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis));
+    ParenthesizedExpression copy = new ParenthesizedExpression(map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   PartDirective visitPartDirective(PartDirective node) {
-    PartDirective copy = new PartDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), clone4(node.uri), map(node.semicolon));
+    PartDirective copy = new PartDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), clone4(node.uri), map(node.semicolon));
     copy.element = node.element;
     return copy;
   }
 
   PartOfDirective visitPartOfDirective(PartOfDirective node) {
-    PartOfDirective copy = new PartOfDirective.full(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), map(node.ofToken), clone4(node.libraryName), map(node.semicolon));
+    PartOfDirective copy = new PartOfDirective(clone4(node.documentationComment), clone5(node.metadata), map(node.partToken), map(node.ofToken), clone4(node.libraryName), map(node.semicolon));
     copy.element = node.element;
     return copy;
   }
 
   PostfixExpression visitPostfixExpression(PostfixExpression node) {
-    PostfixExpression copy = new PostfixExpression.full(clone4(node.operand), map(node.operator));
+    PostfixExpression copy = new PostfixExpression(clone4(node.operand), map(node.operator));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -16938,14 +15836,14 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
-    PrefixedIdentifier copy = new PrefixedIdentifier.full(clone4(node.prefix), map(node.period), clone4(node.identifier));
+    PrefixedIdentifier copy = new PrefixedIdentifier(clone4(node.prefix), map(node.period), clone4(node.identifier));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   PrefixExpression visitPrefixExpression(PrefixExpression node) {
-    PrefixExpression copy = new PrefixExpression.full(map(node.operator), clone4(node.operand));
+    PrefixExpression copy = new PrefixExpression(map(node.operator), clone4(node.operand));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -16954,35 +15852,39 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   PropertyAccess visitPropertyAccess(PropertyAccess node) {
-    PropertyAccess copy = new PropertyAccess.full(clone4(node.target), map(node.operator), clone4(node.propertyName));
+    PropertyAccess copy = new PropertyAccess(clone4(node.target), map(node.operator), clone4(node.propertyName));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
-    RedirectingConstructorInvocation copy = new RedirectingConstructorInvocation.full(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
+    RedirectingConstructorInvocation copy = new RedirectingConstructorInvocation(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
     copy.staticElement = node.staticElement;
     return copy;
   }
 
   RethrowExpression visitRethrowExpression(RethrowExpression node) {
-    RethrowExpression copy = new RethrowExpression.full(map(node.keyword));
+    RethrowExpression copy = new RethrowExpression(map(node.keyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement.full(map(node.keyword), clone4(node.expression), map(node.semicolon));
+  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement(map(node.keyword), clone4(node.expression), map(node.semicolon));
 
-  ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag.full(map(node.scriptTag));
+  ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag(map(node.scriptTag));
 
-  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator.full(map(node.keyword), clone5(node.shownNames));
+  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator(map(node.keyword), clone5(node.shownNames));
 
-  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter.full(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
+  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter(clone4(node.documentationComment), clone5(node.metadata), map(node.keyword), clone4(node.type), clone4(node.identifier));
 
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifier copy = new SimpleIdentifier.full(map(node.token));
+    Token mappedToken = map(node.token);
+    if (mappedToken == null) {
+      mappedToken = node.token;
+    }
+    SimpleIdentifier copy = new SimpleIdentifier(mappedToken);
     copy.auxiliaryElements = node.auxiliaryElements;
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
@@ -16992,84 +15894,84 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   }
 
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) {
-    SimpleStringLiteral copy = new SimpleStringLiteral.full(map(node.literal), node.value);
+    SimpleStringLiteral copy = new SimpleStringLiteral(map(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   StringInterpolation visitStringInterpolation(StringInterpolation node) {
-    StringInterpolation copy = new StringInterpolation.full(clone5(node.elements));
+    StringInterpolation copy = new StringInterpolation(clone5(node.elements));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    SuperConstructorInvocation copy = new SuperConstructorInvocation.full(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
+    SuperConstructorInvocation copy = new SuperConstructorInvocation(map(node.keyword), map(node.period), clone4(node.constructorName), clone4(node.argumentList));
     copy.staticElement = node.staticElement;
     return copy;
   }
 
   SuperExpression visitSuperExpression(SuperExpression node) {
-    SuperExpression copy = new SuperExpression.full(map(node.keyword));
+    SuperExpression copy = new SuperExpression(map(node.keyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase.full(clone5(node.labels), map(node.keyword), clone4(node.expression), map(node.colon), clone5(node.statements));
+  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase(clone5(node.labels), map(node.keyword), clone4(node.expression), map(node.colon), clone5(node.statements));
 
-  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault.full(clone5(node.labels), map(node.keyword), map(node.colon), clone5(node.statements));
+  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault(clone5(node.labels), map(node.keyword), map(node.colon), clone5(node.statements));
 
-  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement.full(map(node.keyword), map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
+  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement(map(node.keyword), map(node.leftParenthesis), clone4(node.expression), map(node.rightParenthesis), map(node.leftBracket), clone5(node.members), map(node.rightBracket));
 
   ASTNode visitSymbolLiteral(SymbolLiteral node) {
-    SymbolLiteral copy = new SymbolLiteral.full(map(node.poundSign), map2(node.components));
+    SymbolLiteral copy = new SymbolLiteral(map(node.poundSign), map2(node.components));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ThisExpression visitThisExpression(ThisExpression node) {
-    ThisExpression copy = new ThisExpression.full(map(node.keyword));
+    ThisExpression copy = new ThisExpression(map(node.keyword));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
   ThrowExpression visitThrowExpression(ThrowExpression node) {
-    ThrowExpression copy = new ThrowExpression.full(map(node.keyword), clone4(node.expression));
+    ThrowExpression copy = new ThrowExpression(map(node.keyword), clone4(node.expression));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
   }
 
-  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration.full(clone4(node.documentationComment), clone5(node.metadata), clone4(node.variables), map(node.semicolon));
+  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration(clone4(node.documentationComment), clone5(node.metadata), clone4(node.variables), map(node.semicolon));
 
-  TryStatement visitTryStatement(TryStatement node) => new TryStatement.full(map(node.tryKeyword), clone4(node.body), clone5(node.catchClauses), map(node.finallyKeyword), clone4(node.finallyBlock));
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement(map(node.tryKeyword), clone4(node.body), clone5(node.catchClauses), map(node.finallyKeyword), clone4(node.finallyBlock));
 
-  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList.full(map(node.leftBracket), clone5(node.arguments), map(node.rightBracket));
+  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList(map(node.leftBracket), clone5(node.arguments), map(node.rightBracket));
 
   TypeName visitTypeName(TypeName node) {
-    TypeName copy = new TypeName.full(clone4(node.name), clone4(node.typeArguments));
+    TypeName copy = new TypeName(clone4(node.name), clone4(node.typeArguments));
     copy.type = node.type;
     return copy;
   }
 
-  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter.full(clone4(node.documentationComment), clone5(node.metadata), clone4(node.name), map(node.keyword), clone4(node.bound));
+  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter(clone4(node.documentationComment), clone5(node.metadata), clone4(node.name), map(node.keyword), clone4(node.bound));
 
-  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList.full(map(node.leftBracket), clone5(node.typeParameters), map(node.rightBracket));
+  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList(map(node.leftBracket), clone5(node.typeParameters), map(node.rightBracket));
 
-  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration.full(null, clone5(node.metadata), clone4(node.name), map(node.equals), clone4(node.initializer));
+  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration(null, clone5(node.metadata), clone4(node.name), map(node.equals), clone4(node.initializer));
 
-  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList.full(null, clone5(node.metadata), map(node.keyword), clone4(node.type), clone5(node.variables));
+  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList(null, clone5(node.metadata), map(node.keyword), clone4(node.type), clone5(node.variables));
 
-  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement.full(clone4(node.variables), map(node.semicolon));
+  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement(clone4(node.variables), map(node.semicolon));
 
-  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement.full(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.body));
+  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement(map(node.keyword), map(node.leftParenthesis), clone4(node.condition), map(node.rightParenthesis), clone4(node.body));
 
-  WithClause visitWithClause(WithClause node) => new WithClause.full(map(node.withKeyword), clone5(node.mixinTypes));
+  WithClause visitWithClause(WithClause node) => new WithClause(map(node.withKeyword), clone5(node.mixinTypes));
 
   ASTNode clone4(ASTNode node) {
     if (node == null) {
@@ -17116,11 +16018,11 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
  * @coverage com.google.dart.engine.services.completion
  */
 class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
-  Declaration declaration;
+  Declaration _declarationNode;
 
   ASTNode _immediateChild;
 
-  final Map<String, SimpleIdentifier> locals = new Map<String, SimpleIdentifier>();
+  Map<String, SimpleIdentifier> _locals = new Map<String, SimpleIdentifier>();
 
   int _position = 0;
 
@@ -17129,6 +16031,10 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
   ScopedNameFinder(int position) {
     this._position = position;
   }
+
+  Declaration get declaration => _declarationNode;
+
+  Map<String, SimpleIdentifier> get locals => _locals;
 
   Object visitBlock(Block node) {
     checkStatements(node.statements);
@@ -17145,12 +16051,12 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
     if (_immediateChild != node.parameters) {
       addParameters(node.parameters.parameters);
     }
-    declaration = node;
+    _declarationNode = node;
     return null;
   }
 
   Object visitFieldDeclaration(FieldDeclaration node) {
-    declaration = node;
+    _declarationNode = node;
     return null;
   }
 
@@ -17171,7 +16077,7 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
 
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.parent is! FunctionDeclarationStatement) {
-      declaration = node;
+      _declarationNode = node;
       return null;
     }
     return super.visitFunctionDeclaration(node);
@@ -17190,7 +16096,7 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
   }
 
   Object visitMethodDeclaration(MethodDeclaration node) {
-    declaration = node;
+    _declarationNode = node;
     if (node.parameters == null) {
       return null;
     }
@@ -17215,12 +16121,12 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
   }
 
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    declaration = node;
+    _declarationNode = node;
     return null;
   }
 
   Object visitTypeAlias(TypeAlias node) {
-    declaration = node;
+    _declarationNode = node;
     return null;
   }
 
@@ -17233,8 +16139,8 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
   void addToScope(SimpleIdentifier identifier) {
     if (identifier != null && isInRange(identifier)) {
       String name = identifier.name;
-      if (!locals.containsKey(name)) {
-        locals[name] = identifier;
+      if (!_locals.containsKey(name)) {
+        _locals[name] = identifier;
       }
     }
   }

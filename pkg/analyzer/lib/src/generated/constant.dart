@@ -105,7 +105,7 @@ class EvaluationResult {
   /**
    * The value of the expression.
    */
-  Object value;
+  final Object value;
 
   /**
    * The errors that should be reported for the expression(s) that were evaluated.
@@ -119,8 +119,7 @@ class EvaluationResult {
    * @param value the value of the expression
    * @param errors the errors that should be reported for the expression(s) that were evaluated
    */
-  EvaluationResult(Object value, List<AnalysisError> errors) {
-    this.value = value;
+  EvaluationResult(this.value, List<AnalysisError> errors) {
     this._errors = errors;
   }
 
@@ -739,7 +738,7 @@ class ErrorResult extends EvaluationResultImpl {
   /**
    * The errors that prevent the expression from being a valid compile time constant.
    */
-  final List<ErrorResult_ErrorData> errorData = new List<ErrorResult_ErrorData>();
+  List<ErrorResult_ErrorData> _errors = new List<ErrorResult_ErrorData>();
 
   /**
    * Initialize a newly created result representing the error with the given code reported against
@@ -749,7 +748,7 @@ class ErrorResult extends EvaluationResultImpl {
    * @param errorCode the error code for the error to be generated
    */
   ErrorResult.con1(ASTNode node, ErrorCode errorCode) {
-    errorData.add(new ErrorResult_ErrorData(node, errorCode));
+    _errors.add(new ErrorResult_ErrorData(node, errorCode));
   }
 
   /**
@@ -760,8 +759,8 @@ class ErrorResult extends EvaluationResultImpl {
    * @param secondResult the second set of results being merged
    */
   ErrorResult.con2(ErrorResult firstResult, ErrorResult secondResult) {
-    errorData.addAll(firstResult.errorData);
-    errorData.addAll(secondResult.errorData);
+    _errors.addAll(firstResult._errors);
+    _errors.addAll(secondResult._errors);
   }
 
   EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToError(node, this);
@@ -783,6 +782,8 @@ class ErrorResult extends EvaluationResultImpl {
   EvaluationResultImpl equalEqual(Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualError(node, this);
 
   bool equalValues(EvaluationResultImpl result) => false;
+
+  List<ErrorResult_ErrorData> get errorData => _errors;
 
   EvaluationResultImpl greaterThan(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanError(node, this);
 
@@ -901,12 +902,12 @@ class ErrorResult_ErrorData {
   /**
    * The node against which the error should be reported.
    */
-  ASTNode node;
+  final ASTNode node;
 
   /**
    * The error code for the error to be generated.
    */
-  ErrorCode errorCode;
+  final ErrorCode errorCode;
 
   /**
    * Initialize a newly created data holder to represent the error with the given code reported
@@ -915,10 +916,7 @@ class ErrorResult_ErrorData {
    * @param node the node against which the error should be reported
    * @param errorCode the error code for the error to be generated
    */
-  ErrorResult_ErrorData(ASTNode node, ErrorCode errorCode) {
-    this.node = node;
-    this.errorCode = errorCode;
-  }
+  ErrorResult_ErrorData(this.node, this.errorCode);
 }
 
 /**
@@ -1174,16 +1172,14 @@ class ValidResult extends EvaluationResultImpl {
   /**
    * The value of the expression.
    */
-  Object value;
+  final Object value;
 
   /**
    * Initialize a newly created result to represent the given value.
    *
    * @param value the value of the expression
    */
-  ValidResult(Object value) {
-    this.value = value;
-  }
+  ValidResult(this.value);
 
   EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToValid(node, this);
 

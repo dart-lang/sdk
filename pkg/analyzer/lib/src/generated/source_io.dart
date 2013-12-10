@@ -68,7 +68,7 @@ class FileBasedSource implements Source {
   /**
    * The file represented by this source.
    */
-  JavaFile file;
+  JavaFile _file;
 
   /**
    * The cached encoding for this source.
@@ -98,13 +98,13 @@ class FileBasedSource implements Source {
    */
   FileBasedSource.con2(ContentCache contentCache, JavaFile file, UriKind uriKind) {
     this._contentCache = contentCache;
-    this.file = file;
+    this._file = file;
     this._uriKind = uriKind;
   }
 
-  bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && file == (object as FileBasedSource).file;
+  bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == (object as FileBasedSource)._file;
 
-  bool exists() => _contentCache.getContents(this) != null || (file.exists() && !file.isDirectory());
+  bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
 
   void getContents(Source_ContentReceiver receiver) {
     String contents = _contentCache.getContents(this);
@@ -117,26 +117,26 @@ class FileBasedSource implements Source {
 
   String get encoding {
     if (_encoding == null) {
-      _encoding = "${_uriKind.encoding}${file.toURI().toString()}";
+      _encoding = "${_uriKind.encoding}${_file.toURI().toString()}";
     }
     return _encoding;
   }
 
-  String get fullName => file.getAbsolutePath();
+  String get fullName => _file.getAbsolutePath();
 
   int get modificationStamp {
     int stamp = _contentCache.getModificationStamp(this);
     if (stamp != null) {
       return stamp;
     }
-    return file.lastModified();
+    return _file.lastModified();
   }
 
-  String get shortName => file.getName();
+  String get shortName => _file.getName();
 
   UriKind get uriKind => _uriKind;
 
-  int get hashCode => file.hashCode;
+  int get hashCode => _file.hashCode;
 
   bool get isInSystemLibrary => identical(_uriKind, UriKind.DART_URI);
 
@@ -150,10 +150,10 @@ class FileBasedSource implements Source {
   }
 
   String toString() {
-    if (file == null) {
+    if (_file == null) {
       return "<unknown source>";
     }
-    return file.getAbsolutePath();
+    return _file.getAbsolutePath();
   }
 
   /**
@@ -171,6 +171,14 @@ class FileBasedSource implements Source {
     }
     receiver.accept2(file.readAsStringSync(), file.lastModified());
   }
+
+  /**
+   * Return the file represented by this source. This is an internal method that is only intended to
+   * be used by [UriResolver].
+   *
+   * @return the file represented by this source
+   */
+  JavaFile get file => _file;
 }
 
 /**
@@ -347,7 +355,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
   /**
    * The container's path (not `null`).
    */
-  String path;
+  String _path;
 
   /**
    * Construct a container representing the specified directory and containing any sources whose
@@ -366,16 +374,23 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @param path the path (not `null` and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path) {
-    this.path = appendFileSeparator(path);
+    this._path = appendFileSeparator(path);
   }
 
-  bool contains(Source source) => source.fullName.startsWith(path);
+  bool contains(Source source) => source.fullName.startsWith(_path);
 
   bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && (obj as DirectoryBasedSourceContainer).path == path;
 
-  int get hashCode => path.hashCode;
+  /**
+   * Answer the receiver's path, used to determine if a source is contained in the receiver.
+   *
+   * @return the path (not `null`, not empty)
+   */
+  String get path => _path;
 
-  String toString() => "SourceContainer[${path}]";
+  int get hashCode => _path.hashCode;
+
+  String toString() => "SourceContainer[${_path}]";
 }
 
 /**
