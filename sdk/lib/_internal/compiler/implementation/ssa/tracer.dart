@@ -478,6 +478,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return "ThrowExpression ${temporaryId(node.inputs[0])}";
   }
 
+  String visitTruncatingDivide(HTruncatingDivide node) {
+    return handleInvokeBinary(node, '~/');
+  }
+
   String visitExitTry(HExitTry node) {
     return "Exit try";
   }

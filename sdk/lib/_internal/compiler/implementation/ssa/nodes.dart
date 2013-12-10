@@ -65,6 +65,7 @@ abstract class HVisitor<R> {
   R visitThis(HThis node);
   R visitThrow(HThrow node);
   R visitThrowExpression(HThrowExpression node);
+  R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitTypeConversion(HTypeConversion node);
   R visitTypeKnown(HTypeKnown node);
@@ -331,6 +332,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitThrowExpression(HThrowExpression node) => visitInstruction(node);
+  visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTry(HTry node) => visitControlFlow(node);
   visitIs(HIs node) => visitInstruction(node);
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
@@ -798,6 +800,7 @@ abstract class HInstruction implements Spannable {
   static const int VOID_TYPE_TYPECODE = 33;
   static const int INTERFACE_TYPE_TYPECODE = 34;
   static const int DYNAMIC_TYPE_TYPECODE = 35;
+  static const int TRUNCATING_DIVIDE_TYPECODE = 36;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++, usedBy = <HInstruction>[] {
@@ -1676,6 +1679,18 @@ class HSubtract extends HBinaryArithmetic {
       => constantSystem.subtract;
   int typeCode() => HInstruction.SUBTRACT_TYPECODE;
   bool typeEquals(other) => other is HSubtract;
+  bool dataEquals(HInstruction other) => true;
+}
+
+class HTruncatingDivide extends HBinaryArithmetic {
+  HTruncatingDivide(left, right, selector, type)
+      : super(left, right, selector, type);
+  accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
+
+  BinaryOperation operation(ConstantSystem constantSystem)
+      => constantSystem.truncatingDivide;
+  int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
+  bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;
 }
 

@@ -131,12 +131,15 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator-() => (this is JSInt) ? 42 : 42.2;
     operator +(other) => (this is JSInt) ? 42 : 42.2;
     operator -(other) => (this is JSInt) ? 42 : 42.2;
-    operator ~/(other) => 42;
+    operator ~/(other) => _tdivFast(other);
     operator /(other) => (this is JSInt) ? 42 : 42.2;
     operator *(other) => (this is JSInt) ? 42 : 42.2;
     operator %(other) => (this is JSInt) ? 42 : 42.2;
-    operator <<(other) => 42;
-    operator >>(other) => 42;
+    operator <<(other) => _shlPositive(other);
+    operator >>(other) {
+      return _shrBothPositive(other) + _shrReceiverPositive(other) +
+        _shrOtherPositive(other);
+    }
     operator |(other) => 42;
     operator &(other) => 42;
     operator ^(other) => 42;
@@ -147,6 +150,12 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator <=(other) => true;
     operator ==(other) => true;
     get hashCode => throw "JSNumber.hashCode not implemented.";
+
+    _tdivFast(other) => 42;
+    _shlPositive(other) => 42;
+    _shrBothPositive(other) => 42;
+    _shrReceiverPositive(other) => 42;
+    _shrOtherPositive(other) => 42;
 
     abs() => (this is JSInt) ? 42 : 42.2;
     remainder(other) => (this is JSInt) ? 42 : 42.2;
