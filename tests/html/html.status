@@ -6,9 +6,6 @@ event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
 
-[ $compiler == dart2js && $csp && $runtime == drt ]
-mutationobserver_test: Skip # http://dartbug.com/15497
-
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
 
