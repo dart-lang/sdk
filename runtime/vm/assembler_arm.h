@@ -323,6 +323,11 @@ class Assembler : public ValueObject {
     return FLAG_use_far_branches || use_far_branches_;
   }
 
+  void set_use_far_branches(bool b) {
+    ASSERT(buffer_.Size() == 0);
+    use_far_branches_ = b;
+  }
+
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
   }
@@ -750,7 +755,7 @@ class Assembler : public ValueObject {
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
   int32_t prologue_offset_;
 
-  const bool use_far_branches_;
+  bool use_far_branches_;
 
   int32_t AddObject(const Object& obj);
   int32_t AddExternalLabel(const ExternalLabel* label);

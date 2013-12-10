@@ -185,7 +185,7 @@ void Assembler::EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
     const int32_t dest =
         label->Position() - (buffer_.Size() + Instr::kInstrSize);
     if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
-      EmitFarBranch(b, rs, rt, label->Position());
+      EmitFarBranch(OppositeBranchOpcode(b), rs, rt, label->Position());
     } else {
       const uint16_t dest_off = EncodeBranchOffset(dest, 0);
       EmitIType(b, rs, rt, dest_off);
@@ -210,7 +210,7 @@ void Assembler::EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
     const int32_t dest =
         label->Position() - (buffer_.Size() + Instr::kInstrSize);
     if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
-      EmitFarRegImmBranch(b, rs, label->Position());
+      EmitFarRegImmBranch(OppositeBranchNoLink(b), rs, label->Position());
     } else {
       const uint16_t dest_off = EncodeBranchOffset(dest, 0);
       EmitRegImmType(REGIMM, rs, b, dest_off);
