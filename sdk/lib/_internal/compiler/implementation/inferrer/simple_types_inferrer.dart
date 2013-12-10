@@ -100,11 +100,15 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
       => new TypeMask.nonNullExact(type.declaration);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
-  TypeMask allocateContainer(TypeMask type,
-                             Node node,
-                             Element enclosing,
-                             [TypeMask elementType, int length]) {
+  TypeMask allocateList(TypeMask type,
+                        Node node,
+                        Element enclosing,
+                        [TypeMask elementType, int length]) {
     return new ContainerTypeMask(type, node, enclosing, elementType, length);
+  }
+
+  TypeMask allocateMap(TypeMask keys, TypeMask values, TypeMask type) {
+    return type;
   }
 
   Selector newTypedSelector(TypeMask receiver, Selector selector) {
@@ -602,13 +606,37 @@ class SimpleTypeInferrerVisitor<T>
       T containerType = node.isConst()
           ? types.constListType
           : types.growableListType;
-      return types.allocateContainer(
+      return types.allocateList(
           containerType,
           node,
           outermostElement,
           elementType,
           length);
     });
+  }
+
+  T visitLiteralMap(LiteralMap node) {
+    NodeList entries = node.entries;
+    T keyType;
+    T valueType;
+    if (entries.isEmpty) {
+      keyType = types.nonNullEmpty();
+      valueType = types.nonNullEmpty();
+    } else {
+      for (LiteralMapEntry entry in entries) {
+        T key = visit(entry.key);
+        keyType = keyType == null
+            ? types.allocatePhi(null, null, key)
+            : types.addPhiInput(null, keyType, key);
+
+        T value = visit(entry.value);
+        valueType = valueType == null
+            ? types.allocatePhi(null, null, value)
+            : types.addPhiInput(null, valueType, value);
+      }
+    }
+    T type = node.isConst() ? types.constMapType : types.mapType;
+    return types.allocateMap(keyType, valueType, type);
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
@@ -918,7 +946,7 @@ class SimpleTypeInferrerVisitor<T>
     T returnType = handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
-          node, () => types.allocateContainer(
+          node, () => types.allocateList(
               types.growableListType, node, outermostElement,
               types.nonNullEmpty(), 0));
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)
@@ -931,7 +959,7 @@ class SimpleTypeInferrerVisitor<T>
               : arguments.positional[1];
 
       return inferrer.concreteTypes.putIfAbsent(
-          node, () => types.allocateContainer(
+          node, () => types.allocateList(
               types.fixedListType, node, outermostElement,
               elementType, length));
     } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
@@ -939,7 +967,7 @@ class SimpleTypeInferrerVisitor<T>
       T elementType = inferrer.returnTypeOfElement(
           element.getEnclosingClass().lookupMember('[]'));
       return inferrer.concreteTypes.putIfAbsent(
-        node, () => types.allocateContainer(
+        node, () => types.allocateList(
           types.nonNullExact(element.getEnclosingClass()), node,
           outermostElement, elementType, length));
     } else if (element.isFunction() || element.isConstructor()) {

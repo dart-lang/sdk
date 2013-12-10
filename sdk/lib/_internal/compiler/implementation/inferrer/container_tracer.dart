@@ -170,7 +170,7 @@ Set<String> doesNotEscapeElementSet = new Set<String>.from(
 bool _VERBOSE = false;
 
 class ContainerTracerVisitor implements TypeInformationVisitor {
-  final ContainerTypeInformation container;
+  final ListTypeInformation container;
   final TypeGraphInferrerEngine inferrer;
   final Compiler compiler;
 
@@ -183,8 +183,8 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   // [TypeInformation] that may be [container]. We know [container]
   // has been stored in these containers and we must check how
   // [container] escapes from these containers.
-  final List<ContainerTypeInformation> containersToAnalyze =
-      <ContainerTypeInformation>[];
+  final List<ListTypeInformation> containersToAnalyze =
+      <ListTypeInformation>[];
 
   // The current [TypeInformation] in the analysis.
   TypeInformation currentUser;
@@ -259,8 +259,12 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
     addNewEscapeInformation(info);
   }
 
-  visitContainerTypeInformation(ContainerTypeInformation info) {
+  visitListTypeInformation(ListTypeInformation info) {
     containersToAnalyze.add(info);
+  }
+
+  visitMapTypeInformation(MapTypeInformation info) {
+    bailout('Stored in a map');
   }
 
   visitConcreteTypeInformation(ConcreteTypeInformation info) {}
@@ -279,7 +283,7 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
     }
   }
 
-  void analyzeStoredIntoContainer(ContainerTypeInformation container) {
+  void analyzeStoredIntoContainer(ListTypeInformation container) {
     inferrer.analyzeContainer(container);
     if (container.bailedOut) {
       bailout('Stored in a container that bailed out');
@@ -348,8 +352,8 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
     } else if (isAddedToContainer(info)) {
       ContainerTypeMask mask = info.receiver.type;
       if (mask.allocationNode != null) {
-        ContainerTypeInformation container =
-            inferrer.types.allocatedContainers[mask.allocationNode];
+        ListTypeInformation container =
+            inferrer.types.allocatedLists[mask.allocationNode];
         containersToAnalyze.add(container);
       } else {
         // The [ContainerTypeMask] is a union of two containers, and

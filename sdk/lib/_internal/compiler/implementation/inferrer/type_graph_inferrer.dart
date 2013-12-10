@@ -51,8 +51,8 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Map<Element, TypeInformation> typeInformations =
       new Map<Element, TypeInformation>();
 
-  /// [ContainerTypeInformation] for allocated containers.
-  final Map<Node, TypeInformation> allocatedContainers =
+  /// [ListTypeInformation] for allocated lists.
+  final Map<Node, TypeInformation> allocatedLists =
       new Map<Node, TypeInformation>();
 
   /// Cache of [ConcreteTypeInformation].
@@ -271,10 +271,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return type == nullType;
   }
 
-  TypeInformation allocateContainer(TypeInformation type,
-                                    Node node,
-                                    Element enclosing,
-                                    [TypeInformation elementType, int length]) {
+  TypeInformation allocateList(TypeInformation type,
+                               Node node,
+                               Element enclosing,
+                               [TypeInformation elementType, int length]) {
     bool isTypedArray = (compiler.typedDataClass != null)
         && type.type.satisfies(compiler.typedDataClass, compiler);
     bool isConst = (type.type == compiler.typesTask.constListType);
@@ -294,8 +294,17 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     element.inferred = isElementInferred;
 
     allocatedTypes.add(element);
-    return allocatedContainers[node] =
-        new ContainerTypeInformation(mask, element, length);
+    return allocatedLists[node] =
+        new ListTypeInformation(mask, element, length);
+  }
+
+  TypeInformation allocateMap(TypeInformation keyType,
+                              TypeInformation valueType,
+                              ConcreteTypeInformation type) {
+    MapTypeInformation map =
+        new MapTypeInformation(keyType, valueType, type.type);
+    allocatedTypes.add(map);
+    return map;
   }
 
   Selector newTypedSelector(TypeInformation info, Selector selector) {
@@ -425,7 +434,7 @@ class TypeGraphInferrerEngine
   TypeGraphInferrerEngine(Compiler compiler, this.mainElement)
         : super(compiler, new TypeInformationSystem(compiler));
 
-  void analyzeContainer(ContainerTypeInformation info) {
+  void analyzeContainer(ListTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
     ContainerTracerVisitor tracer = new ContainerTracerVisitor(info, this);
@@ -462,7 +471,7 @@ class TypeGraphInferrerEngine
     refine();
 
     // Try to infer element types of lists.
-    types.allocatedContainers.values.forEach((ContainerTypeInformation info) {
+    types.allocatedLists.values.forEach((ListTypeInformation info) {
       if (info.elementType.inferred) return;
       analyzeContainer(info);
       if (info.bailedOut) return;
@@ -486,7 +495,7 @@ class TypeGraphInferrerEngine
     refine();
 
     if (_VERBOSE) {
-      types.allocatedContainers.values.forEach((ContainerTypeInformation info) {
+      types.allocatedLists.values.forEach((ListTypeInformation info) {
         print('${info.type} '
               'for ${info.originalContainerType.allocationNode} '
               'at ${info.originalContainerType.allocationElement}');
@@ -521,7 +530,7 @@ class TypeGraphInferrerEngine
         // If [element] is final and has an initializer, we record
         // the inferred type.
         if (node.asSendSet() != null) {
-          if (type is! ContainerTypeInformation) {
+          if (type is! ListTypeInformation) {
             // For non-container types, the constant handler does
             // constant folding that could give more precise results.
             Constant value =
@@ -921,12 +930,12 @@ class TypeGraphInferrer implements TypesInferrer {
 
   TypeMask getTypeOfNode(Element owner, Node node) {
     if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
-    return inferrer.types.allocatedContainers[node].type;
+    return inferrer.types.allocatedLists[node].type;
   }
 
   bool isFixedArrayCheckedForGrowable(Node node) {
     if (compiler.disableTypeInference) return true;
-    ContainerTypeInformation info = inferrer.types.allocatedContainers[node];
+    ListTypeInformation info = inferrer.types.allocatedLists[node];
     return info.checksGrowable;
   }
 
@@ -952,14 +961,6 @@ class TypeGraphInferrer implements TypesInferrer {
       result = result.union(type, compiler);
     }
     return result;
-  }
-
-  Iterable<TypeMask> get containerTypes {
-    if (compiler.disableTypeInference) {
-      throw new UnsupportedError(
-          "Cannot query the type inferrer when type inference is disabled.");
-    }
-    return inferrer.types.allocatedContainers.values.map((info) => info.type);
   }
 
   Iterable<Element> getCallersOf(Element element) {

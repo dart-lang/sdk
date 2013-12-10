@@ -28,7 +28,6 @@ abstract class TypesInferrer {
   TypeMask getTypeOfElement(Element element);
   TypeMask getTypeOfNode(Element owner, Node node);
   TypeMask getTypeOfSelector(Selector selector);
-  Iterable<TypeMask> get containerTypes;
   void clear();
   bool isCalledOnce(Element element);
   bool isFixedArrayCheckedForGrowable(Node node);

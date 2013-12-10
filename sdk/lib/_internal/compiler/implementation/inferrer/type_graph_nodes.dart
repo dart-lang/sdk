@@ -836,10 +836,10 @@ class NarrowTypeInformation extends TypeInformation {
 }
 
 /**
- * A [ContainerTypeInformation] is a [TypeInformation] created
+ * A [ListTypeInformation] is a [TypeInformation] created
  * for each `List` instantiations.
  */
-class ContainerTypeInformation extends TypeInformation {
+class ListTypeInformation extends TypeInformation {
   final ElementInContainerTypeInformation elementType;
 
   /** The container type before it is inferred. */
@@ -852,7 +852,7 @@ class ContainerTypeInformation extends TypeInformation {
   int inferredLength;
 
   /**
-   * Whether this container goes through a growable check.
+   * Whether this list goes through a growable check.
    * We conservatively assume it does.
    */
   bool checksGrowable = true;
@@ -864,18 +864,18 @@ class ContainerTypeInformation extends TypeInformation {
   bool bailedOut = true;
   bool analyzed = false;
 
-  ContainerTypeInformation(this.originalContainerType,
-                           this.elementType,
-                           this.originalLength) {
+  ListTypeInformation(this.originalContainerType,
+                      this.elementType,
+                      this.originalLength) {
     type = originalContainerType;
     inferredLength = originalContainerType.length;
     elementType.addUser(this);
   }
 
-  String toString() => 'Container type $type';
+  String toString() => 'List type $type';
 
   accept(TypeInformationVisitor visitor) {
-    return visitor.visitContainerTypeInformation(this);
+    return visitor.visitListTypeInformation(this);
   }
 
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
@@ -899,7 +899,7 @@ class ContainerTypeInformation extends TypeInformation {
 
 /**
  * An [ElementInContainerTypeInformation] holds the common type of the
- * elements in a [ContainerTypeInformation].
+ * elements in a [ListTypeInformation].
  */
 class ElementInContainerTypeInformation extends TypeInformation {
   /** Whether the element type in that container has been inferred. */
@@ -925,6 +925,32 @@ class ElementInContainerTypeInformation extends TypeInformation {
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
     return inferred && super.hasStableType(inferrer);
   }
+}
+
+/**
+ * A [MapTypeInformation] is a [TypeInformation] created
+ * for maps.
+ */
+class MapTypeInformation extends TypeInformation {
+  final TypeInformation keyType;
+  final TypeInformation valueType;
+  final TypeMask initialType;
+
+  MapTypeInformation(this.keyType, this.valueType, this.initialType) {
+    keyType.addUser(this);
+    valueType.addUser(this);
+    type = initialType;
+  }
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitMapTypeInformation(this);
+  }
+
+  TypeMask refine(TypeGraphInferrerEngine inferrer) {
+    return initialType;
+  }
+
+  String toString() => 'Map $type';
 }
 
 /**
@@ -954,7 +980,8 @@ abstract class TypeInformationVisitor<T> {
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
   T visitElementInContainerTypeInformation(
       ElementInContainerTypeInformation info);
-  T visitContainerTypeInformation(ContainerTypeInformation info);
+  T visitListTypeInformation(ListTypeInformation info);
+  T visitMapTypeInformation(MapTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);
   T visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info);
   T visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info);

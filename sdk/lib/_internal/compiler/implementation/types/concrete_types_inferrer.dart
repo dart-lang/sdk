@@ -1026,10 +1026,6 @@ class ConcreteTypesInferrer extends TypesInferrer {
     return result == const DynamicTypeMask() ? null : result;
   }
 
-  Iterable<TypeMask> get containerTypes {
-    throw new UnsupportedError("");
-  }
-
   void clear() {}
 
   bool isCalledOnce(Element element) {
