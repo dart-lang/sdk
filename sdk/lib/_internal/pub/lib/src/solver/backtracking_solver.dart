@@ -477,7 +477,7 @@ class Traverser {
 
         // See if it's possible for a package to match that constraint.
         if (constraint.isEmpty) {
-          _solver.logSolve('disjoint constraints on ${dep.name}}');
+          _solver.logSolve('disjoint constraints on ${dep.name}');
           throw new DisjointConstraintException(depender, dependencies);
         }
 
