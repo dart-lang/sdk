@@ -25,7 +25,7 @@
  * [pub]: http://pub.dartlang.org
  * [pkg]: http://pub.dartlang.org/packages/mirror_matchers
  */
-library mirror_matchers;
+library unittest.mirror_matchers;
 
 import 'dart:mirrors';
 

@@ -12,7 +12,7 @@
  * Note: this unit test configuration will not work with the debugger (the tests
  * are executed in a separate IFrame).
  */
-library unittest_interactive_html_config;
+library unittest.interactive_html_config;
 
 // TODO(gram) - add options for: remove IFrame on done/keep
 // IFrame for failed tests/keep IFrame for all tests.

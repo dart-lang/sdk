@@ -12,7 +12,7 @@
  * start of your set sequence. Important constraint: your group descriptions
  * MUST NOT contain spaces.
  */
-library unittest_html_individual_config;
+library unittest.html_individual_config;
 
 import 'dart:html';
 import 'unittest.dart' as unittest;
