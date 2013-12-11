@@ -5084,6 +5084,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     return super.name;
   }
 
+  int get hashCode => ObjectUtilities.combineHashCodes(super.hashCode, isGetter ? 1 : 2);
+
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
   bool get isGetter => hasModifier(Modifier.GETTER);
@@ -6091,6 +6093,8 @@ class BottomTypeImpl extends TypeImpl {
 
   bool operator ==(Object object) => identical(object, this);
 
+  int get hashCode => 0;
+
   bool get isBottom => true;
 
   bool isSupertypeOf(Type2 type) => false;
@@ -6127,7 +6131,9 @@ class DynamicTypeImpl extends TypeImpl {
     (element as DynamicElementImpl).type = this;
   }
 
-  bool operator ==(Object object) => object is DynamicTypeImpl;
+  bool operator ==(Object object) => identical(object, this);
+
+  int get hashCode => 1;
 
   bool get isDynamic => true;
 
@@ -7608,6 +7614,8 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   VoidTypeImpl() : super(null, Keyword.VOID.syntax);
 
   bool operator ==(Object object) => identical(object, this);
+
+  int get hashCode => 2;
 
   bool get isVoid => true;
 
