@@ -423,7 +423,7 @@ class DartiumBackend(HtmlDartGenerator):
         '            return Dart_Null();\n'
         '        DartDOMData* domData = DartDOMData::current();\n'
         '        Dart_WeakPersistentHandle result =\n'
-        '            DartDOMWrapper::lookupWrapper(domData, isNode, value);\n'
+        '            DartDOMWrapper::lookupWrapper<Dart$(INTERFACE)>(domData, value);\n'
         '        if (result)\n'
         '            return Dart_HandleFromWeakPersistent(result);\n'
         '        return createWrapper(domData, value);\n'
@@ -435,14 +435,14 @@ class DartiumBackend(HtmlDartGenerator):
         '            DartDOMData* domData = static_cast<DartDOMData*>(\n'
         '                Dart_GetNativeIsolateData(args));\n'
         '            Dart_WeakPersistentHandle result =\n'
-        '                DartDOMWrapper::lookupWrapper(domData, isNode, value);\n'
+        '                DartDOMWrapper::lookupWrapper<Dart$(INTERFACE)>(domData, value);\n'
         '            if (result)\n'
         '                Dart_SetWeakHandleReturnValue(args, result);\n'
         '            else\n'
         '                Dart_SetReturnValue(args, createWrapper(domData, value));\n'
         '        }\n'
         '    }\n',
-        )
+        INTERFACE=self._interface.id)
 
     if ('CustomToV8' in ext_attrs or
         'PureInterface' in ext_attrs or
