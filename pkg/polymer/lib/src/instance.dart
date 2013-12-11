@@ -763,10 +763,9 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       var translated = _eventTranslations[eventName];
       eventName = translated != null ? translated : eventName;
 
-      // TODO(jmesserly): returning a StreamSubscription as the model is quite
-      // strange. package:template_binding doesn't have any cleanup logic to
-      // handle that.
-      return node.on[eventName].listen((event) {
+      // TODO(jmesserly): we need a place to unregister this. See:
+      // https://code.google.com/p/dart/issues/detail?id=15574
+      node.on[eventName].listen((event) {
         var ctrlr = _findController(node);
         if (ctrlr is! Polymer) return;
         var obj = ctrlr;
@@ -779,6 +778,10 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
             (event as CustomEvent).detail : null;
         ctrlr.dispatchMethod(obj, method, [event, detail, node]);
       });
+
+      // TODO(jmesserly): this return value is bogus. Returning null here causes
+      // the wrong thing to happen in template_binding.
+      return new ObservableBox();
     };
   }
 

@@ -334,9 +334,12 @@ bool _hasMethod(ClassMirror type, Symbol name) {
 ClassMirror _safeSuperclass(ClassMirror type) {
   try {
     return type.superclass;
-  } on UnsupportedError catch (e) {
-    // TODO(jmesserly): dart2js throws this error when the type is not
+  } /*on UnsupportedError*/ catch (e) {
+    // Note: dart2js throws UnsupportedError when the type is not
     // reflectable.
+    // TODO(jmesserly): dart2js also throws a NoSuchMethodError if the `type` is
+    // a bound generic, because they are not fully implemented. See
+    // https://code.google.com/p/dart/issues/detail?id=15573
     return objectType;
   }
 }

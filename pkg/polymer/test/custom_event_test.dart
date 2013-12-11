@@ -7,6 +7,7 @@ library polymer.test.web.custom_event_test;
 import 'dart:async';
 import 'dart:html';
 import 'package:polymer/polymer.dart';
+import 'package:template_binding/template_binding.dart' show nodeBind;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
@@ -50,6 +51,13 @@ main() {
   test('custom event', () {
     final testComp = query('test-custom-event');
     final fooBar = testComp.fooBar;
+
+    final binding = nodeBind(fooBar).bindings['on-barbaz'];
+    expect(binding, isNotNull, reason: 'on-barbaz event should be bound');
+
+    expect(binding.model is! StreamSubscription, true,
+        reason: 'event bindings should not be a StreamSubscription');
+
     fooBar.fireFoo(123);
     fooBar.fireBarBaz(42);
     fooBar.fireFoo(777);
