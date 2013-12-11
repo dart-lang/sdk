@@ -25,6 +25,7 @@ import '../util/characters.dart';
 import '../util/util.dart';
 
 part 'backend.dart';
+part 'checked_mode_helpers.dart';
 part 'constant_emitter.dart';
 part 'constant_system_javascript.dart';
 part 'minify_namer.dart';
