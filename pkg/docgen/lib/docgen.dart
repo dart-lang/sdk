@@ -199,7 +199,7 @@ String _packageIntro(packageDir) {
           .startsWith('README'))).toList();
   if (readmes.isEmpty) return '';
   // If there are multiples, pick the shortest name.
-  readmes.sort((a, b) => a.length.compareTo(b.length));
+  readmes.sort((a, b) => a.path.length.compareTo(b.path.length));
   var readme = readmes.first;
   var linkResolver = (name) => fixReference(name, null, null, null);
   var contents = markdown.markdownToHtml(readme
@@ -1156,7 +1156,7 @@ class Class extends Indexable implements Comparable {
         // and tell them to update their links, given these other exported
         // names within the library.
         for (Exported member in library._exportedMembers.values) {
-          member.updateExports(library._exportedMembers.keys);
+          member.updateExports(library._exportedMembers);
         }
       }
     }
