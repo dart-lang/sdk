@@ -216,7 +216,10 @@ typed_data/setRange_2_test: Fail # Issue 15413
 typed_data/setRange_3_test: Fail # Issue 15413
 
 [ $compiler == none && ( $runtime == drt || $runtime == dartium ) ]
-async/timer_test: Fail, Pass # Issue 15487 (debug only?)
+async/timer_test: Fail, Pass # Issue 15487
+async/multiple_timer_test: Fail, Pass # Issue 15487
+async/stream_periodic3_test: Fail, Pass # Issue 15487
+async/timer_isolate_test: Fail, Pass # Issue 15487
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
