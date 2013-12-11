@@ -1326,6 +1326,39 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
   const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
 
+  if (function.IsNull()) {
+    // Didn't find a method: try to find a getter and invoke call on its result.
+    const String& getter_name =
+        String::Handle(Field::GetterName(function_name));
+    function = Resolver::ResolveDynamicAnyArgs(klass, getter_name);
+    if (!function.IsNull()) {
+      ASSERT(function.kind() != RawFunction::kMethodExtractor);
+      // Invoke the getter.
+      const int kNumArgs = 1;
+      const Array& getter_args = Array::Handle(Array::New(kNumArgs));
+      getter_args.SetAt(0, reflectee);
+      const Array& getter_args_descriptor =
+          Array::Handle(ArgumentsDescriptor::New(getter_args.Length()));
+      const Instance& getter_result = Instance::Handle(
+          InvokeDynamicFunction(reflectee,
+                                function,
+                                getter_name,
+                                getter_args,
+                                getter_args_descriptor));
+      // Replace the closure as the receiver in the arguments list.
+      args.SetAt(0, getter_result);
+      // Call the closure.
+      const Object& call_result =
+          Object::Handle(DartEntry::InvokeClosure(args, args_descriptor));
+      if (call_result.IsError()) {
+        ThrowInvokeError(Error::Cast(call_result));
+        UNREACHABLE();
+      }
+      return call_result.raw();
+    }
+  }
+
+  // Found an ordinary method.
   return InvokeDynamicFunction(reflectee,
                                function,
                                function_name,
@@ -1508,13 +1541,49 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
+  Function& function = Function::Handle(
+      klass.LookupStaticFunction(function_name));
+
+  if (function.IsNull()) {
+    // Didn't find a method: try to find a getter and invoke call on its result.
+    const String& getter_name =
+        String::Handle(Field::GetterName(function_name));
+    function = klass.LookupStaticFunction(getter_name);
+    if (!function.IsNull()) {
+      // Invoke the getter.
+      const Object& getter_result = Object::Handle(
+          DartEntry::InvokeFunction(function, Object::empty_array()));
+      if (getter_result.IsError()) {
+        ThrowInvokeError(Error::Cast(getter_result));
+        UNREACHABLE();
+      }
+      // Make room for the closure (receiver) in the argument list.
+      int numArgs = args.Length();
+      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
+      Object& temp = Object::Handle();
+      for (int i = 0; i < numArgs; i++) {
+        temp = args.At(i);
+        call_args.SetAt(i + 1, temp);
+      }
+      call_args.SetAt(0, getter_result);
+      const Array& call_args_descriptor_array =
+        Array::Handle(ArgumentsDescriptor::New(call_args.Length(), arg_names));
+      // Call the closure.
+      const Object& call_result = Object::Handle(
+          DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
+      if (call_result.IsError()) {
+        ThrowInvokeError(Error::Cast(call_result));
+        UNREACHABLE();
+      }
+      return call_result.raw();
+    }
+  }
+
   const Array& args_descriptor_array =
       Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
 
-  const Function& function = Function::Handle(
-      klass.LookupStaticFunction(function_name));
-
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
+
   if (function.IsNull() ||
       !function.AreValidArguments(args_descriptor, NULL) ||
       !function.is_visible()) {
@@ -1758,13 +1827,48 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
-  const Array& args_descriptor_array =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
-
-  const Function& function = Function::Handle(
+  Function& function = Function::Handle(
       library.LookupLocalFunction(function_name));
 
+  if (function.IsNull()) {
+    // Didn't find a method: try to find a getter and invoke call on its result.
+    const String& getter_name =
+        String::Handle(Field::GetterName(function_name));
+    function = library.LookupLocalFunction(getter_name);
+    if (!function.IsNull()) {
+      // Invoke getter.
+      const Object& getter_result = Object::Handle(
+          DartEntry::InvokeFunction(function, Object::empty_array()));
+      if (getter_result.IsError()) {
+        ThrowInvokeError(Error::Cast(getter_result));
+        UNREACHABLE();
+      }
+      // Make room for the closure (receiver) in arguments.
+      int numArgs = args.Length();
+      const Array& call_args = Array::Handle(Array::New(numArgs + 1));
+      Object& temp = Object::Handle();
+      for (int i = 0; i < numArgs; i++) {
+        temp = args.At(i);
+        call_args.SetAt(i + 1, temp);
+      }
+      call_args.SetAt(0, getter_result);
+      const Array& call_args_descriptor_array =
+        Array::Handle(ArgumentsDescriptor::New(call_args.Length(), arg_names));
+      // Call closure.
+      const Object& call_result = Object::Handle(
+          DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
+      if (call_result.IsError()) {
+        ThrowInvokeError(Error::Cast(call_result));
+        UNREACHABLE();
+      }
+      return call_result.raw();
+    }
+  }
+
+  const Array& args_descriptor_array =
+      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
+
   if (function.IsNull() ||
       !function.AreValidArguments(args_descriptor, NULL) ||
       !function.is_visible()) {

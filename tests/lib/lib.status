@@ -43,6 +43,7 @@ mirrors/instance_members_with_override_test: RuntimeError # Issue 14633
 mirrors/instance_members_unimplemented_interface_test: RuntimeError # Issue 14633
 mirrors/intercepted_superclass_test: RuntimeError # Issue 13644
 mirrors/invoke_test: RuntimeError # Issue 11954
+mirrors/invoke_call_through_getter_test: RuntimeError # Issue 15138
 mirrors/invoke_closurization_test: RuntimeError # Issue 13002
 mirrors/invoke_named_test/none: RuntimeError # Issue 12863
 mirrors/invoke_private_test: CompileTimeError # Issue 12164
