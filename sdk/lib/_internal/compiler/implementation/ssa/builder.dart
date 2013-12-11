@@ -4151,7 +4151,7 @@ class SsaBuilder extends ResolvedVisitor
                                 argumentNodes: node.arguments);
       return;
     }
-    compiler.ensure(!element.isGenerativeConstructor());
+    invariant(element, !element.isGenerativeConstructor());
     if (element.isFunction()) {
       var inputs = <HInstruction>[];
       // TODO(5347): Try to avoid the need for calling [implementation] before

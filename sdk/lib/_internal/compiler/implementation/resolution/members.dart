@@ -1913,7 +1913,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
 
   Element defineElement(Node node, Element element,
                         {bool doAddToScope: true}) {
-    compiler.ensure(element != null);
+    invariant(node, element != null);
     mapping[node] = element;
     if (doAddToScope) {
       Element existing = scope.add(element);
@@ -3810,8 +3810,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     : super(compiler, classElement, mapping);
 
   DartType visitClassNode(ClassNode node) {
-    compiler.ensure(element != null);
-    compiler.ensure(element.resolutionState == STATE_STARTED);
+    invariant(node, element != null);
+    invariant(element, element.resolutionState == STATE_STARTED,
+        message: () => 'cyclic resolution of class $element');
 
     InterfaceType type = element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
@@ -3896,8 +3897,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   DartType visitNamedMixinApplication(NamedMixinApplication node) {
-    compiler.ensure(element != null);
-    compiler.ensure(element.resolutionState == STATE_STARTED);
+    invariant(node, element != null);
+    invariant(element, element.resolutionState == STATE_STARTED,
+        message: () => 'cyclic resolution of class $element');
 
     if (identical(node.classKeyword.stringValue, 'typedef')) {
       // TODO(aprelev@gmail.com): Remove this deprecation diagnostic

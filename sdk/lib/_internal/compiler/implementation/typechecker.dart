@@ -1453,7 +1453,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     for (Link<Node> link = node.definitions.nodes; !link.isEmpty;
          link = link.tail) {
       Node definition = link.head;
-      compiler.ensure(definition is Identifier || definition is SendSet);
+      invariant(definition, definition is Identifier || definition is SendSet,
+          message: 'expected identifier or initialization');
       if (definition is SendSet) {
         SendSet initialization = definition;
         DartType initializer = analyzeNonVoid(initialization.arguments.head);

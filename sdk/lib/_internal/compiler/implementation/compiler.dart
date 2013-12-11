@@ -674,10 +674,6 @@ abstract class Compiler implements DiagnosticListener {
 
   int getNextFreeClassId() => nextFreeClassId++;
 
-  void ensure(bool condition) {
-    if (!condition) cancel('failed assertion in leg');
-  }
-
   void unimplemented(String methodName,
                      {Node node, Token token, HInstruction instruction,
                       Element element}) {
