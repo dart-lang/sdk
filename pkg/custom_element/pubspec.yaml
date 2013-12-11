@@ -1,6 +1,6 @@
 name: custom_element
-version: 0.9.1-dev
-author: "Web UI Team <web-ui-dev@dartlang.org>"
+version: 0.9.1
+author: "Polymer.dart Team <web-ui-dev@dartlang.org>"
 homepage: http://www.dartlang.org/
 description: >
   Custom Elements let authors define their own elements. Authors associate code
@@ -11,4 +11,4 @@ dependencies:
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: ">=1.0.0 <2.0.0"

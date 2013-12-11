@@ -1,6 +1,6 @@
 name: csslib
 version: 0.9.1
-author: "Web UI Team <web-ui-dev@dartlang.org>"
+author: "Polymer.dart Team <web-ui-dev@dartlang.org>"
 description: A library for parsing CSS.
 homepage: https://www.dartlang.org
 dependencies:
@@ -12,4 +12,4 @@ dev_dependencies:
   browser: ">=0.9.0 <0.10.0"
   unittest: ">=0.9.0 <0.10.0"
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: ">=1.0.0 <2.0.0"

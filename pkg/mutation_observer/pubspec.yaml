@@ -1,6 +1,6 @@
 name: mutation_observer
 version: 0.9.0
-author: "Web UI Team <web-ui-dev@dartlang.org>"
+author: "Polymer.dart Team <web-ui-dev@dartlang.org>"
 homepage: https://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/pkg/mutation_observer/
 documentation: https://api.dartlang.org/docs/releases/latest/dart_html/MutationObserver.html
 description: >
@@ -8,4 +8,4 @@ description: >
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: ">=1.0.0 <2.0.0"
