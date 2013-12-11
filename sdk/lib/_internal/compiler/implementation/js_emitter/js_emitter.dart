@@ -58,6 +58,8 @@ import '../util/characters.dart' show
 import '../util/uri_extras.dart' show
     relativize;
 
+import '../dump_info.dart' as dumpInfo;
+
 part 'class_builder.dart';
 part 'class_emitter.dart';
 part 'code_emitter_helper.dart';

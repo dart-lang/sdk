@@ -1179,6 +1179,7 @@ mainBuffer.add(r'''
 
       jsAst.ObjectInitializer initializers =
           descriptor.toObjectInitializer();
+      int sizeBefore = outputBuffers[outputUnit].length;
       outputBuffers[outputUnit]
           ..write('["${library.getLibraryName()}",$_')
           ..write('"${uri}",$_')
@@ -1190,6 +1191,9 @@ mainBuffer.add(r'''
           ..write(jsAst.prettyPrint(initializers, compiler))
           ..write(library == compiler.mainApp ? ',${n}1' : "")
           ..write('],$n');
+      int sizeAfter = outputBuffers[outputUnit].length;
+      compiler.dumpInfoTask.codeSizeCounter
+          .countCode(library, sizeAfter - sizeBefore);
     }
   }
 

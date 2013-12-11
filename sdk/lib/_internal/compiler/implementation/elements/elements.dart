@@ -627,6 +627,10 @@ abstract class ScopeContainerElement implements Element {
   void forEachLocalMember(f(Element element));
 }
 
+abstract class ClosureContainer implements Element {
+  List<FunctionElement> get nestedClosures;
+}
+
 abstract class CompilationUnitElement extends Element {
   Script get script;
   PartOf get partTag;
@@ -739,6 +743,9 @@ abstract class VariableElement extends Element {
   Expression get cachedNode;
 }
 
+abstract class FieldElement extends VariableElement
+    implements ClosureContainer {}
+
 abstract class FieldParameterElement extends VariableElement {
   VariableElement get fieldElement;
 }
@@ -785,7 +792,7 @@ abstract class FunctionSignature {
   bool isCompatibleWith(FunctionSignature constructorSignature);
 }
 
-abstract class FunctionElement extends Element {
+abstract class FunctionElement extends Element implements ClosureContainer {
   FunctionExpression get cachedNode;
   DartType get type;
   FunctionSignature get functionSignature;
@@ -921,7 +928,8 @@ abstract class ClassElement extends TypeDeclarationElement
                      {bool includeBackendMembers: false,
                       bool includeSuperAndInjectedMembers: false});
 
-  void forEachInstanceField(void f(ClassElement enclosingClass, Element field),
+  void forEachInstanceField(void f(ClassElement enclosingClass,
+                                   FieldElement field),
                             {bool includeSuperAndInjectedMembers: false});
 
   /// Similar to [forEachInstanceField] but visits static fields.

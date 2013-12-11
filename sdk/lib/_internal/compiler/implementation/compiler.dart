@@ -11,11 +11,6 @@ part of dart2js;
 const bool REPORT_EXCESS_RESOLUTION = false;
 
 /**
- * If true, dump the inferred types after compilation.
- */
-const bool DUMP_INFERRED_TYPES = false;
-
-/**
  * Contains backend-specific data that is used throughout the compilation of
  * one work item.
  */
@@ -85,6 +80,10 @@ abstract class Backend {
           [ConstantSystem constantSystem = DART_CONSTANT_SYSTEM])
       : this.constantSystem = constantSystem;
 
+  // Given a [FunctionElement], return a buffer with the code generated for it
+  // or null if no code was generated.
+  CodeBuffer codeOf(Element element) => null;
+
   void initializeHelperClasses() {}
 
   void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements);
@@ -103,9 +102,6 @@ abstract class Backend {
   List<CompilerTask> get tasks;
 
   void onResolutionComplete() {}
-
-  // TODO(ahe,karlklose): rename this?
-  void dumpInferredTypes() {}
 
   ItemCompilationContext createItemCompilationContext() {
     return new ItemCompilationContext();
@@ -362,6 +358,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool trustTypeAnnotations;
   final bool enableConcreteTypeInference;
   final bool disableTypeInferenceFlag;
+  final bool dumpInfo;
 
   /**
    * The maximum size of a concrete type before it widens to dynamic during
@@ -546,6 +543,7 @@ abstract class Compiler implements DiagnosticListener {
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
+  DumpInfoTask dumpInfoTask;
   String buildId;
 
   static const String MAIN = 'main';
@@ -619,6 +617,7 @@ abstract class Compiler implements DiagnosticListener {
             this.sourceMapUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
             this.terseDiagnostics: false,
+            this.dumpInfo: false,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
@@ -656,7 +655,8 @@ abstract class Compiler implements DiagnosticListener {
       constantHandler = new ConstantHandler(this, backend.constantSystem),
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
-      enqueuer = new EnqueueTask(this)];
+      enqueuer = new EnqueueTask(this),
+      dumpInfoTask = new DumpInfoTask(this)];
 
     tasks.addAll(backend.tasks);
   }
@@ -1132,6 +1132,10 @@ abstract class Compiler implements DiagnosticListener {
 
     backend.assembleProgram();
 
+    if (dumpInfo) {
+      dumpInfoTask.dumpInfo();
+    }
+
     checkQueues();
 
     if (compilationFailed) {
@@ -1191,9 +1195,6 @@ abstract class Compiler implements DiagnosticListener {
     world.queueIsClosed = true;
     if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
-    if (DUMP_INFERRED_TYPES && phase == PHASE_COMPILING) {
-      backend.dumpInferredTypes();
-    }
   }
 
   /**

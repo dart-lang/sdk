@@ -333,6 +333,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get patch => null;
   get origin => this;
   get defaultImplementation => unsupported();
+  get nestedClosures => unsupported();
 
   bool get isRedirectingFactory => unsupported();
 
@@ -1164,6 +1165,17 @@ class VariableElementX extends ElementX implements VariableElement {
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
 }
 
+class FieldElementX extends VariableElementX implements FieldElement {
+  List<FunctionElement> nestedClosures = new List<FunctionElement>();
+
+  FieldElementX(String name,
+                VariableListElement variables,
+                Expression cachedNode)
+    : super(name, variables, ElementKind.FIELD, cachedNode);
+
+  accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+}
+
 /**
  * Parameters in constructors that directly initialize fields. For example:
  * [:A(this.field):].
@@ -1419,6 +1431,8 @@ class FunctionElementX extends ElementX implements FunctionElement {
   FunctionExpression cachedNode;
   DartType type;
   final Modifiers modifiers;
+
+  List<FunctionElement> nestedClosures = new List<FunctionElement>();
 
   FunctionSignature functionSignature;
 
@@ -2068,7 +2082,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * When called on the implementation element both the fields declared in the
    * origin and in the patch are included.
    */
-  void forEachInstanceField(void f(ClassElement enclosingClass, Element field),
+  void forEachInstanceField(void f(ClassElement enclosingClass,
+                                   FieldElement field),
                             {bool includeSuperAndInjectedMembers: false}) {
     // Filters so that [f] is only invoked with instance fields.
     void fieldFilter(ClassElement enclosingClass, Element member) {

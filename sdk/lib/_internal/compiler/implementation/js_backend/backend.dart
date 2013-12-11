@@ -1805,6 +1805,12 @@ class JavaScriptBackend extends Backend {
           element, "@NoSideEffects() should always be combined with @NoInline");
     }
   }
+
+  CodeBuffer codeOf(Element element) {
+    return generatedCode.containsKey(element)
+        ? jsAst.prettyPrint(generatedCode[element], compiler)
+        : null;
+  }
 }
 
 /// Records that [constant] is used by [user.element].
