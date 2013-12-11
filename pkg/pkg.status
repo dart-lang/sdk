@@ -52,6 +52,7 @@ polymer/test/attr_mustache_test: Skip #uses dart:html
 polymer/test/bind_test: Skip # uses dart:html
 polymer/test/bind_mdv_test: Skip # uses dart:html
 polymer/test/custom_event_test: Skip # uses dart:html
+polymer/test/entered_view_test: Skip # uses dart:html
 polymer/test/event_handlers_test: Skip #uses dart:html
 polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
@@ -106,6 +107,7 @@ polymer/test/attr_mustache_test: Pass, Timeout # Issue 13260
 polymer/test/bind_test: Timeout # Issue 13260
 polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
 polymer/test/custom_event_test: Timeout # Issue 13260
+polymer/test/entered_view_test: Timeout # Issue 13260
 polymer/test/event_handlers_test: Timeout # Issue 13260
 polymer/test/event_path_declarative_test: Timeout # Issue 13260
 polymer/test/event_path_test: Timeout # Issue 13260
