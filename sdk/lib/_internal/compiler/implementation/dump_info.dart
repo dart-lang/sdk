@@ -193,8 +193,8 @@ class ProgramInfo {
   /// The time the compilation took place.
   final DateTime compilationMoment;
 
-  /// The time the compilation took to complite.
-  final int compilationDuration;
+  /// The time the compilation took to complete.
+  final Duration compilationDuration;
 
   /// The version of dart2js used to compile the program.
   final String dart2jsVersion;
@@ -436,7 +436,7 @@ class DumpInfoTask extends CompilerTask {
         .where((info) => info != null));
 
     return new ProgramInfo(
-        compilationDuration: compiler.totalCompileTime.elapsedTicks,
+        compilationDuration: compiler.totalCompileTime.elapsed,
         // TODO (sigurdm): Also count the size of deferred code
         size: compiler.assembledCode.length,
         libraries: libraryInfos,
@@ -468,7 +468,7 @@ class DumpInfoTask extends CompilerTask {
     buffer.writeln(h2('Compilation took place: '
                       '${info.compilationMoment}'));
     buffer.writeln(h2('Compilation took: '
-                      '${info.compilationDuration/1000000} seconds'));
+                      '${info.compilationDuration.inSeconds} seconds'));
     buffer.writeln(h2('Output size: ${info.size} bytes'));
     if (info.dart2jsVersion != null) {
       buffer.writeln(h2('Dart2js version: ${info.dart2jsVersion}'));
