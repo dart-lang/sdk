@@ -298,18 +298,22 @@ class BacktrackingSolver {
     // Generate a reverse dependency graph. For each package, create edges to
     // each package that depends on it.
     var dependers = new Map<String, Set<String>>();
+
+    addDependencies(name, deps) {
+      dependers.putIfAbsent(name, () => new Set<String>());
+      for (var dep in deps) {
+        dependers.putIfAbsent(dep.name, () => new Set<String>()).add(name);
+      }
+    }
+
     for (var i = 0; i < _selected.length; i++) {
       var id = _selected[i].current;
       var pubspec = cache.getCachedPubspec(id);
-      if (pubspec == null) continue;
-      dependers.putIfAbsent(id.name, () => new Set<String>());
-
-      for (var dep in pubspec.dependencies) {
-        var depender = dependers.putIfAbsent(dep.name,
-            () => new Set<String>());
-        depender.add(id.name);
-      }
+      if (pubspec != null) addDependencies(id.name, pubspec.dependencies);
     }
+
+    // Include the root package's dependencies.
+    addDependencies(root.name, root.immediateDependencies);
 
     // Now walk the depending graph to see which packages transitively depend
     // on [dependency].

@@ -402,6 +402,16 @@ unsolvable() {
       'a': '1.0.0'
     }
   }, error: couldNotSolve, maxTries: 4);
+
+  // This is a regression test for #15550.
+  testResolve('no version that matches while backtracking', {
+    'myapp 0.0.0': {
+      'a': 'any',
+      'b': '>1.0.0'
+    },
+    'a 1.0.0': {},
+    'b 1.0.0': {}
+  }, error: noVersion(['myapp']), maxTries: 1);
 }
 
 badSource() {
