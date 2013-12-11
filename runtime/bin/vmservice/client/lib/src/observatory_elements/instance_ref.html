@@ -1,0 +1,16 @@
+<head>
+<link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="instance-ref" extends="observatory-element">
+<template>
+<div>
+  <template if="{{ (instance['type'] == 'null') }}">
+    {{ "null" }}
+  </template>
+  <template if="{{ (instance['type'] != 'null') }}">
+  <a href="{{ app.locationManager.currentIsolateObjectLink(instance['id'])}}">
+    {{ instance['preview'] }}
+  </a>
+  </template>
+ </div>
+</template> <script type="application/dart" src="instance_ref.dart"></script> </polymer-element>

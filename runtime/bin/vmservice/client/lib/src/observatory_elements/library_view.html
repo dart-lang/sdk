@@ -1,5 +1,7 @@
 <head>
   <link rel="import" href="observatory_element.html">
+  <link rel="import" href="field_ref.html">
+  <link rel="import" href="instance_ref.html">
 </head>
 <polymer-element name="library-view" extends="observatory-element">
   <template>
@@ -33,35 +35,8 @@
   <table class="table table-hover">
     <tbody>
       <tr template repeat="{{ variable in library['variables'] }}">
-        <td>
-          <template if="{{ variable['final'] }}">
-            final
-          </template>
-          <template if="{{ variable['const'] }}">
-            const
-          </template>
-          <template if="{{ (variable['declared_type']['name'] == 'dynamic' && !variable['final'] && !variable['const']) }}">
-            var
-          </template>
-          <template if="{{ (variable['declared_type']['name'] != 'dynamic') }}">
-            <a href="{{ app.locationManager.currentIsolateClassLink(variable['declared_type']['id']) }}">
-              {{ variable['declared_type']['user_name'] }}
-            </a>
-          </template>
-          <a href="{{ app.locationManager.currentIsolateObjectLink(variable['id'])}}">
-            {{ variable['user_name'] }}
-          </a>
-        </td>
-        <td>
-          <template if="{{ (variable['value']['type'] == 'null') }}">
-            {{ "null" }}
-          </template>
-          <template if="{{ (variable['value']['type'] != 'null') }}">
-            <a href="{{ app.locationManager.currentIsolateObjectLink(variable['value']['id'])}}">
-              {{ variable['value']['preview'] }}
-            </a>
-          </template>
-        </td>
+        <td><field-ref app="{{ app }}" field="{{ variable }}"></field-ref></td>
+        <td><instance-ref app="{{ app }}" instance="{{ variable['value'] }}"></instance-ref></td>
       </tr>
     </tbody>
   </table>

@@ -5896,8 +5896,14 @@ const char* Field::ToCString() const {
   return chars;
 }
 
-
 void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  PrintToJSONStreamWithInstance(stream, Object::null_instance(), ref);
+}
+
+
+void Field::PrintToJSONStreamWithInstance(JSONStream* stream,
+                                          const Instance& instance,
+                                          bool ref) const {
   JSONObject jsobj(stream);
   const char* internal_field_name = String::Handle(name()).ToCString();
   const char* field_name = String::Handle(UserVisibleName()).ToCString();
@@ -5909,6 +5915,9 @@ void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("user_name", field_name);
   if (is_static()) {
     const Object& valueObj = Object::Handle(value());
+    jsobj.AddProperty("value", valueObj);
+  } else if (!instance.IsNull()) {
+    const Object& valueObj = Object::Handle(instance.GetField(*this));
     jsobj.AddProperty("value", valueObj);
   }
   Class& cls = Class::Handle(owner());
@@ -11422,15 +11431,35 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddProperty("id", id);
 
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+
   // Set the "preview" property for this instance.
   if (IsNull()) {
     jsobj.AddProperty("preview", "null");
-  } else if (raw() == Object::sentinel().raw() ||
-             raw() == Object::transition_sentinel().raw()) {
-    jsobj.AddProperty("preview", "<uninitialized>");
   } else {
-    // TODO(turnidge): Handle special characters?  Truncate?
-    jsobj.AddProperty("preview", ToCString());
+    jsobj.AddProperty("preview", ToUserCString(40));
+  }
+  if (ref) {
+    return;
+  }
+
+  // Walk the superclass chain, adding all instance fields.
+  {
+    JSONArray jsarr(&jsobj, "fields");
+    while (!cls.IsNull()) {
+      const Array& field_array = Array::Handle(cls.fields());
+      Field& field = Field::Handle();
+      if (!field_array.IsNull()) {
+        for (intptr_t i = 0; i < field_array.Length(); i++) {
+          field ^= field_array.At(i);
+          if (!field.is_static()) {
+            jsarr.AddValue(field, *this);
+          }
+        }
+      }
+      cls = cls.SuperClass();
+    }
   }
 }
 

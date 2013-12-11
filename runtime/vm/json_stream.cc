@@ -114,6 +114,14 @@ void JSONStream::PrintValue(const Object& o, bool ref) {
 }
 
 
+void JSONStream::PrintValue(const Field& field,
+                            const Instance& instance,
+                            bool ref) {
+  PrintCommaIfNeeded();
+  field.PrintToJSONStreamWithInstance(this, instance, ref);
+}
+
+
 void JSONStream::PrintPropertyBool(const char* name, bool b) {
   PrintPropertyName(name);
   PrintValueBool(b);
@@ -211,7 +219,7 @@ JSONObject::JSONObject(const JSONArray* arr) : stream_(arr->stream_) {
 
 
 void JSONObject::AddPropertyF(const char* name,
-                                      const char* format, ...) const {
+                              const char* format, ...) const {
   stream_->PrintPropertyName(name);
   va_list args;
   va_start(args, format);
@@ -247,4 +255,3 @@ void JSONArray::AddValueF(const char* format, ...) const {
 }
 
 }  // namespace dart
-

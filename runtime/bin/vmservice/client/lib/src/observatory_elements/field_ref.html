@@ -1,0 +1,19 @@
+<head>
+<link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="field-ref" extends="observatory-element">
+<template>
+<div>
+  <template if="{{ field['final'] }}"> final </template>
+  <template if="{{ field['const'] }}"> const </template>
+  <template if="{{ (field['declared_type']['name'] == 'dynamic' && !field['final'] && !field['const']) }}">
+  var
+  </template>
+  <template if="{{ (field['declared_type']['name'] != 'dynamic') }}">
+  <a href="{{ app.locationManager.currentIsolateClassLink(field['declared_type']['id']) }}">
+    {{ field['declared_type']['user_name'] }} </a>
+  </template>
+  <a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">
+    {{ field['user_name'] }} </a>
+</div>
+</template> <script type="application/dart" src="field_ref.dart"></script> </polymer-element>

@@ -2194,6 +2194,12 @@ class Field : public Object {
   static bool IsGetterName(const String& function_name);
   static bool IsSetterName(const String& function_name);
 
+  // When we print a field to a JSON stream, we want to make it appear
+  // that the value is a property of the field, so we allow the actual
+  // instance to be supplied here.
+  virtual void PrintToJSONStreamWithInstance(
+      JSONStream* stream, const Instance& instance, bool ref) const;
+
  private:
   enum {
     kConstBit = 1,
