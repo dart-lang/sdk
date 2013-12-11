@@ -61,6 +61,7 @@ class RawSmi;
 class RawStacktrace;
 class RawTokenStream;
 class RawType;
+class RawTypeRef;
 class RawTypeParameter;
 class RawTypeArguments;
 class RawTwoByteString;
@@ -256,6 +257,7 @@ class SnapshotReader : public BaseReader {
   RawDouble* NewDouble(double value);
   RawUnresolvedClass* NewUnresolvedClass();
   RawType* NewType();
+  RawTypeRef* NewTypeRef();
   RawTypeParameter* NewTypeParameter();
   RawBoundedType* NewBoundedType();
   RawMixinAppType* NewMixinAppType();
@@ -359,6 +361,7 @@ class SnapshotReader : public BaseReader {
   friend class Type;
   friend class TypeArguments;
   friend class TypeParameter;
+  friend class TypeRef;
   friend class UnresolvedClass;
   friend class WeakProperty;
   friend class MirrorReference;

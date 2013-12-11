@@ -336,6 +336,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
   ASSERT(!cls.IsDynamicClass() && !cls.IsVoidClass());
   ASSERT(!type.IsNull());
   ASSERT(type.IsFinalized());
+  ASSERT(!type.IsTypeRef());
 
   if (cls.IsSignatureClass()) {
     if (cls.IsCanonicalSignatureClass()) {
@@ -382,6 +383,7 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
+  ASSERT(!type.IsTypeRef());
   if (type.HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
     // Handle void and dynamic types.
@@ -1274,6 +1276,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   const intptr_t num_inherited_args = args.Length() - num_params;
   for (intptr_t i = 0; i < num_params; i++) {
     arg_type ^= args.TypeAt(i + num_inherited_args);
+    arg_type = arg_type.Canonicalize();  // Necessary for recursive types.
     type_mirror = CreateTypeMirror(arg_type);
     result.SetAt(i, type_mirror);
   }

@@ -204,7 +204,6 @@ mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ens
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
 mirrors/generic_local_function_test: RuntimeError # Issue 14913
-mirrors/generics_double_substitution_test/01: RuntimeError # Issue 14869
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 mirrors/synthetic_accessor_properties_test/none: RuntimeError # Issue 14632
 mirrors/toplevel_members_test: RuntimeError # Issue 14632

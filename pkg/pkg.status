@@ -254,7 +254,7 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 *: Skip  # Issue 13624
 
 [ $arch == simarm || $arch == simmips ]
-barback/test/too_many_open_files_test: Slow, RuntimeError # 14220
+barback/test/too_many_open_files_test: Skip # 14220
 third_party/html5lib/test/tokenizer_test: Pass, Slow
 
 # Skip serialization test that explicitly has no library declaration in the

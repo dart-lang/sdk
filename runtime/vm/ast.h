@@ -370,6 +370,10 @@ class TypeNode : public AstNode {
     ASSERT(type_.IsZoneHandle());
     ASSERT(!type_.IsNull());
     ASSERT(type_.IsFinalized());
+    // A wellformed literal Type must be canonical.
+    ASSERT(!type_.IsType() ||
+           type_.IsMalformedOrMalbounded() ||
+           type_.IsCanonical());
   }
 
   const AbstractType& type() const { return type_; }

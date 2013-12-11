@@ -33,19 +33,19 @@ class ClassFinalizer : public AllStatic {
     kIgnore,                   // Type is ignored and replaced by dynamic.
     kDoNotResolve,             // Type resolution is postponed.
     kResolveTypeParameters,    // Resolve type parameters only.
-    kFinalize,                 // Type resolution and type finalization are
-                               // required; replace a malformed type by dynamic.
+    kFinalize,                 // Type resolution and finalization are required.
     kCanonicalize,             // Same as kFinalize, but with canonicalization.
     kCanonicalizeWellFormed    // Error-free resolution, finalization, and
-                               // canonicalization are required; a malformed
-                               // type is marked as such.
+                               // canonicalization are required.
   };
 
   // Finalize given type while parsing class cls.
   // Also canonicalize type if applicable.
-  static RawAbstractType* FinalizeType(const Class& cls,
-                                       const AbstractType& type,
-                                       FinalizationKind finalization);
+  static RawAbstractType* FinalizeType(
+      const Class& cls,
+      const AbstractType& type,
+      FinalizationKind finalization,
+      GrowableObjectArray* pending_types = NULL);
 
   // Allocate, finalize, and return a new malformed type as if it was declared
   // in class cls at the given token position.
@@ -102,7 +102,8 @@ class ClassFinalizer : public AllStatic {
                                         const Function& factory);
 
   // Apply the mixin type to the mixin application class.
-  static void ApplyMixinType(const Class& mixin_app_class);
+  static void ApplyMixinType(const Class& mixin_app_class,
+                             GrowableObjectArray* pending_types = NULL);
 
  private:
   static bool IsSuperCycleFree(const Class& cls);
@@ -133,12 +134,14 @@ class ClassFinalizer : public AllStatic {
                                       const MixinAppType& mixin_app_type);
   static void ResolveSuperTypeAndInterfaces(const Class& cls,
                                             GrowableArray<intptr_t>* visited);
-  static void FinalizeTypeParameters(const Class& cls);
+  static void FinalizeTypeParameters(const Class& cls,
+                                     GrowableObjectArray* pending_types = NULL);
   static void FinalizeTypeArguments(const Class& cls,
                                     const AbstractTypeArguments& arguments,
                                     intptr_t num_uninitialized_arguments,
-                                    FinalizationKind finalization,
-                                    Error* bound_error);
+                                    Error* bound_error,
+                                    GrowableObjectArray* pending_types);
+  static void CheckTypeBounds(const Class& cls, const Type& type);
   static void CheckTypeArgumentBounds(const Class& cls,
                                       const AbstractTypeArguments& arguments,
                                       Error* bound_error);

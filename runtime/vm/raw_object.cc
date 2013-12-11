@@ -301,6 +301,13 @@ intptr_t RawType::VisitTypePointers(
 }
 
 
+intptr_t RawTypeRef::VisitTypeRefPointers(
+    RawTypeRef* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return TypeRef::InstanceSize();
+}
+
+
 intptr_t RawTypeParameter::VisitTypeParameterPointers(
     RawTypeParameter* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());

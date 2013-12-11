@@ -307,6 +307,54 @@ void RawType::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
+                              intptr_t object_id,
+                              intptr_t tags,
+                              Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  // Allocate type ref object.
+  TypeRef& type_ref = TypeRef::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(TypeRef));
+  reader->AddBackRef(object_id, &type_ref, kIsDeserialized);
+
+  // Set the object tags.
+  type_ref.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (type_ref.raw()->to() - type_ref.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    type_ref.StorePointer((type_ref.raw()->from() + i),
+                          reader->ObjectHandle()->raw());
+  }
+
+  type_ref.set_is_being_checked(false);
+
+  return type_ref.raw();
+}
+
+
+void RawTypeRef::WriteTo(SnapshotWriter* writer,
+                         intptr_t object_id,
+                         Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kTypeRefCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,

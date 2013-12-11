@@ -82,6 +82,7 @@ positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 
 [ $compiler == dart2js && $minified ]
+cyclic_type_test: Fail # Issue 12605.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
 mixin_generic_test: Fail # Issue 12605.
@@ -198,7 +199,6 @@ label_test: Skip
 [ $compiler == dart2dart ]
 regress_13494_test: Fail # Issue 13494
 malformed_test/none: CompileTimeError # Issue 12695
-mixin_regress_13688_test: RuntimeError # Issue 15244
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
 
@@ -266,7 +266,6 @@ malbounded_type_literal_test: Fail # Issue 13960
 constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
-f_bounded_equality_test: RuntimeError # Issue 14000
 
 # Minified mode failures.
 
@@ -297,6 +296,7 @@ malbounded_type_test_test/01: Fail # Issue 14131
 malbounded_instantiation_test/01: Fail # Issue 14132
 
 [ $compiler == dart2dart && $minified ]
+cyclic_type_test: Fail # Issue 12605.
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.

@@ -13,6 +13,10 @@ abstract class _AbstractType implements Type {
 class _Type extends _AbstractType {
 }
 
+// Equivalent of RawTypeRef.
+class _TypeRef extends _AbstractType {
+}
+
 // Equivalent of RawTypeParameter.
 class _TypeParameter extends _AbstractType {
 }

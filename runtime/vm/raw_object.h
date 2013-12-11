@@ -50,6 +50,7 @@ namespace dart {
   V(Instance)                                                                  \
     V(AbstractType)                                                            \
       V(Type)                                                                  \
+      V(TypeRef)                                                               \
       V(TypeParameter)                                                         \
       V(BoundedType)                                                           \
       V(MixinAppType)                                                          \
@@ -1178,6 +1179,21 @@ class RawType : public RawAbstractType {
 };
 
 
+class RawTypeRef : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_);
+  }
+  RawAbstractType* type_;  // The referenced type.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_);
+  }
+  bool is_being_checked_;  // Transient field, not snapshotted.
+};
+
+
 class RawTypeParameter : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
@@ -1208,7 +1224,7 @@ class RawBoundedType : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->type_parameter_);
   }
-  bool is_being_checked_;
+  bool is_being_checked_;  // Transient field, not snapshotted.
 };
 
 
