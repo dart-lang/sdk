@@ -1858,6 +1858,9 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   // Abstract methods are tree-shaken away.
   bool get isAbstract => false;
 
+  // TODO(ahe, 14633): This might not be true for all cases.
+  bool get isSynthetic => false;
+
   // TODO(ahe): Test this.
   bool get isRegularMethod => !isGetter && !isSetter && !isConstructor;
 

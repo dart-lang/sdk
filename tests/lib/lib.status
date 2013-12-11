@@ -73,9 +73,10 @@ mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
 mirrors/reflected_type_test: RuntimeError # Issue 12607
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Issue 14670
-mirrors/static_members_test: CompileTimeError # Issue 14633, Issue 12164
 mirrors/symbol_validation_test: RuntimeError # Issue 13597
-mirrors/toplevel_members_test: CompileTimeError # Issue 14633, Issue 12164
+mirrors/static_members_test: RuntimeError # Issue 14633, Issue 12164
+mirrors/synthetic_accessor_properties_test: RuntimeError # Issue 14633
+mirrors/toplevel_members_test: RuntimeError # Issue 14633, Issue 12164
 mirrors/typedef_test/none: RuntimeError # http://dartbug.com/6490
 mirrors/typedef_metadata_test: RuntimeError # Issue 12785
 mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
@@ -197,17 +198,11 @@ mirrors/mixin_application_test/01: Fail, OK # TODO(ahe): Slight broken test to e
 mirrors/intercepted_object_test: Fail, OK # TODO(ahe): Slight broken test to ensure test coverage on dart2js.
 mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 
-mirrors/generics_double_substitution_test/01: RuntimeError # Issue 14869
-
 mirrors/generic_local_function_test: RuntimeError # Issue 14913
-
+mirrors/generics_double_substitution_test/01: RuntimeError # Issue 14869
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
-
-mirrors/static_members_test: RuntimeError # Issue 14632
+mirrors/synthetic_accessor_properties_test/none: RuntimeError # Issue 14632
 mirrors/toplevel_members_test: RuntimeError # Issue 14632
-mirrors/instance_members_test: RuntimeError # Issue 14632
-mirrors/instance_members_with_override_test: RuntimeError # Issue 14632
-mirrors/instance_members_unimplemented_interface_test: RuntimeError # Issue 14632
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 

@@ -106,6 +106,7 @@ stringifyMethod(MethodMirror method) {
   var buffer = new StringBuffer();
   writeDeclarationOn(method, buffer);
   if (method.isAbstract) buffer.write(', abstract');
+  if (method.isSynthetic) buffer.write(', synthetic');
   if (method.isStatic) buffer.write(', static');
   if (method.isGetter) buffer.write(', getter');
   if (method.isSetter) buffer.write(', setter');

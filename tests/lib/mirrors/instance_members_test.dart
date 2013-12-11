@@ -50,5 +50,5 @@ main() {
      const Symbol('inheritedInstanceVariable='),
      #mixinInstanceVariable,
      const Symbol('mixinInstanceVariable=')],
-    selectKeys(cm.instanceMembers, (dm) => dm.isSynthetic));
+    selectKeys(cm.instanceMembers, (dm) => !dm.isPrivate && dm.isSynthetic));
 }
