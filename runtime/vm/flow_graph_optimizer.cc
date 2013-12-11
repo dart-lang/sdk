@@ -101,7 +101,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfChecks() > 0) {
     // This occurs when an instance call has too many checks.
-    // TODO(srdjan): Replace IC call with megamorphic call.
     return false;
   }
   GrowableArray<intptr_t> class_ids(call->ic_data()->num_args_tested());
@@ -110,40 +109,45 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
     class_ids.Add(cid);
   }
-  if (class_ids[0] != kDynamicCid) {
-    ArgumentsDescriptor args_desc(
-        Array::Handle(ArgumentsDescriptor::New(call->ArgumentCount(),
-                                               call->argument_names())));
-    const Class& receiver_class = Class::Handle(
-        Isolate::Current()->class_table()->At(class_ids[0]));
-    const Function& function = Function::Handle(
-        Resolver::ResolveDynamicForReceiverClass(
-            receiver_class,
-            call->function_name(),
-            args_desc));
-    if (function.IsNull()) {
+
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    if (class_ids[i] == kDynamicCid) {
+      // Not all cid-s known.
       return false;
     }
-    // Create new ICData, do not modify the one attached to the instruction
-    // since it is attached to the assembly instruction itself.
-    // TODO(srdjan): Prevent modification of ICData object that is
-    // referenced in assembly code.
-    ICData& ic_data = ICData::ZoneHandle(ICData::New(
-        flow_graph_->parsed_function().function(),
-        call->function_name(),
-        Object::empty_array(),  // Dummy argument descriptor.
-        call->deopt_id(),
-        class_ids.length()));
-    if (class_ids.length() > 1) {
-      ic_data.AddCheck(class_ids, function);
-    } else {
-      ASSERT(class_ids.length() == 1);
-      ic_data.AddReceiverCheck(class_ids[0], function);
-    }
-    call->set_ic_data(&ic_data);
-    return true;
   }
-  return false;
+
+  ArgumentsDescriptor args_desc(
+      Array::Handle(ArgumentsDescriptor::New(call->ArgumentCount(),
+                                             call->argument_names())));
+  const Class& receiver_class = Class::Handle(
+      Isolate::Current()->class_table()->At(class_ids[0]));
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamicForReceiverClass(
+          receiver_class,
+          call->function_name(),
+          args_desc));
+  if (function.IsNull()) {
+    return false;
+  }
+  // Create new ICData, do not modify the one attached to the instruction
+  // since it is attached to the assembly instruction itself.
+  // TODO(srdjan): Prevent modification of ICData object that is
+  // referenced in assembly code.
+  ICData& ic_data = ICData::ZoneHandle(ICData::New(
+      flow_graph_->parsed_function().function(),
+      call->function_name(),
+      Object::empty_array(),  // Dummy argument descriptor.
+      call->deopt_id(),
+      class_ids.length()));
+  if (class_ids.length() > 1) {
+    ic_data.AddCheck(class_ids, function);
+  } else {
+    ASSERT(class_ids.length() == 1);
+    ic_data.AddReceiverCheck(class_ids[0], function);
+  }
+  call->set_ic_data(&ic_data);
+  return true;
 }
 
 
@@ -6906,20 +6910,17 @@ void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitBinaryMintOp(
-    BinaryMintOpInstr* instr) {
+void ConstantPropagator::VisitBinaryMintOp(BinaryMintOpInstr* instr) {
   HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
-void ConstantPropagator::VisitShiftMintOp(
-    ShiftMintOpInstr* instr) {
+void ConstantPropagator::VisitShiftMintOp(ShiftMintOpInstr* instr) {
   HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
-void ConstantPropagator::VisitUnaryMintOp(
-    UnaryMintOpInstr* instr) {
+void ConstantPropagator::VisitUnaryMintOp(UnaryMintOpInstr* instr) {
   // TODO(kmillikin): Handle unary operations.
   SetValue(instr, non_constant_);
 }
