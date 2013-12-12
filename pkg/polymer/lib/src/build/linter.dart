@@ -395,7 +395,7 @@ class _LinterVisitor extends TreeVisitor {
   void _validateNormalElement(Element node) {
     // Event handlers only allowed inside polymer-elements
     node.attributes.forEach((name, value) {
-      if (name.startsWith('on')) {
+      if (name is String && name.startsWith('on')) {
         _validateEventHandler(node, name, value);
       }
     });

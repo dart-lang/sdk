@@ -501,6 +501,12 @@ void main() {
             'forms are equivalent in HTML). (lib/test.html 1 28)'
       });
   });
+
+  _testLinter("namespaced attributes don't cause an internal error", {
+      'a|lib/test.html': '''<html><body>
+          <svg xmlns="http://www.w3.org/2000/svg" width="520" height="350">
+          '''.replaceAll('            ', ''),
+    }, {});
 }
 
 _testLinter(String name, Map inputFiles, Map outputMessages) {
