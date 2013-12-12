@@ -25,6 +25,13 @@ int Stdin::ReadByte() {
 }
 
 
+bool Stdin::GetEchoMode() {
+  struct termios term;
+  tcgetattr(fileno(stdin), &term);
+  return (term.c_lflag & ECHO) != 0;
+}
+
+
 void Stdin::SetEchoMode(bool enabled) {
   struct termios term;
   tcgetattr(fileno(stdin), &term);
@@ -34,6 +41,13 @@ void Stdin::SetEchoMode(bool enabled) {
     term.c_lflag &= ~(ECHO|ECHONL);
   }
   tcsetattr(fileno(stdin), TCSANOW, &term);
+}
+
+
+bool Stdin::GetLineMode() {
+  struct termios term;
+  tcgetattr(fileno(stdin), &term);
+  return (term.c_lflag & ICANON) != 0;
 }
 
 
