@@ -202,20 +202,20 @@ testSendReceive(InternetAddress bindAddress) {
     receiver.joinMulticast(bindAddress);
   }
 
-  UInt8List createDataPackage(int seq) {
+  Uint8List createDataPackage(int seq) {
     var data = new Uint8List(1000);
     (new ByteData.view(data.buffer, 0, 4)).setUint32(0, seq);
     return data;
   }
 
-  UInt8List createAckPackage(int seq) {
+  Uint8List createAckPackage(int seq) {
     var data = new Uint8List(4);
     new ByteData.view(data.buffer, 0, 4).setUint32(0, seq);
     return data;
   }
 
   int packageSeq(Datagram datagram) =>
-      new ByteData.view(datagram.data.buffer).getUint32(0);
+      new ByteData.view((datagram.data as Uint8List).buffer).getUint32(0);
 
   void sendData(int seq) {
     // Send a datagram acknowledging the received sequence.

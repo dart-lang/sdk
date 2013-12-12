@@ -33,7 +33,7 @@ io/directory_fuzz_test: Skip
 io/socket_many_connections_test: Skip
 # The UDP tests are currently skipped on Mac OS as multicast configuration
 # needs to be resolved.
-io/raw_datagram_socket_test: Skip # Issue XXX
+io/raw_datagram_socket_test: Skip # Issue 1975
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 typed_array_test: Fail # Issue 13921
