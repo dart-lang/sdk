@@ -323,6 +323,11 @@ class SocketOption {
    */
   static const SocketOption TCP_NODELAY = const SocketOption._(0);
 
+  static const SocketOption _IP_MULTICAST_LOOP = const SocketOption._(1);
+  static const SocketOption _IP_MULTICAST_HOPS = const SocketOption._(2);
+  static const SocketOption _IP_MULTICAST_IF = const SocketOption._(3);
+  static const SocketOption _IP_BROADCAST = const SocketOption._(4);
+
   const SocketOption._(this._value);
   final _value;
 }
@@ -503,6 +508,136 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * Returns the remote [InternetAddress] connected to by this socket.
    */
   InternetAddress get remoteAddress;
+}
+
+
+/**
+ * Datagram package. Data send to and received from datagram sockets
+ * contains the internet address and port of the destination or source
+ * togeter with the data.
+ */
+class Datagram {
+  List<int> data;
+  InternetAddress address;
+  int port;
+
+  Datagram(this.data, this.address, this.port);
+}
+
+
+/**
+ * The [RawDatagramSocket] is a low-level interface to an UDP socket,
+ * exposing the raw events signaled by the system. It's a [Stream] of
+ * [RawSocketEvent]s.
+ *
+ * Note that the event [RawSocketEvent.READ_CLOSED] will never be
+ * received as an UDP socket cannot be closed by a remote peer.
+ */
+abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
+  /**
+   * Creates a new raw datagram socket binding it to an address and
+   * port.
+   */
+  external static Future<RawDatagramSocket> bind(
+      host, int port, {bool reuseAddress: true});
+
+  /**
+   * Returns the port used by this socket.
+   */
+  int get port;
+
+  /**
+   * Returns the address used by this socket.
+   */
+  InternetAddress get address;
+
+  /**
+   * Close the datagram socket.
+   */
+  void close();
+
+  /**
+   * Send a datagram.
+   *
+   * Returns the number of bytes written. This will always be either
+   * the size of [buffer] or `0`.
+   */
+  int send(List<int> buffer, InternetAddress address, int port);
+
+  /**
+   * Receive a datagram. If there are no datagrams available `null` is
+   * returned.
+   */
+  Datagram receive();
+
+  /**
+   * Join a multicast group.
+   *
+   * If an error occur when trying to join the multicast group an
+   * exception is thrown.
+   */
+  void joinMulticast(InternetAddress group, {NetworkInterface interface});
+
+  /**
+   * Leave a multicast group.
+   *
+   * If an error occur when trying to join the multicase group an
+   * exception is thrown.
+   */
+  void leaveMulticast(InternetAddress group, {NetworkInterface interface});
+
+  /**
+   * Set or get, if the [RawDatagramSocket] should listen for
+   * [RawSocketEvent.READ] events. Default is [true].
+   */
+  bool readEventsEnabled;
+
+  /**
+   * Set or get, if the [RawDatagramSocket] should listen for
+   * [RawSocketEvent.WRITE] events. Default is [true].  This is a
+   * one-shot listener, and writeEventsEnabled must be set to true
+   * again to receive another write event.
+   */
+  bool writeEventsEnabled;
+
+  /**
+   * Set or get, whether multicast traffic is looped back to the host.
+   *
+   * By default multicast loopback is enabled.
+   */
+  bool multicastLoopback;
+
+  /**
+   * Set or get, the maximum network hops for multicast packages
+   * originating from this socket.
+   *
+   * For IPv4 this is referred to as TTL (time to live).
+   *
+   * By default this value is 1 causing multicast traffic to stay on
+   * the local network.
+   */
+  int multicastHops;
+
+  /**
+   * Set or get, the network interface used for outgoing multicast packages.
+   *
+   * A value of `null`indicate that the system chooses the network
+   * interface to use.
+   *
+   * By default this value is `null`
+   */
+  NetworkInterface multicastInterface;
+
+  /**
+   * Set or get, whether IPv4 broadcast is enabled.
+   *
+   * IPv4 broadcast needs to be enabled by the sender for sending IPv4
+   * broadcast packages. By default IPv4 broadcast is disabled.
+   *
+   * For IPv6 there is no general broadcast mechanism. Use multicast
+   * instead.
+   */
+  bool broadcastEnabled;
 }
 
 

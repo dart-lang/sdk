@@ -10,6 +10,7 @@
 #endif
 
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <mswsock.h>
 
 #include "bin/builtin.h"
@@ -40,11 +41,13 @@ struct InterruptMessage {
 // socket for the client.
 class OverlappedBuffer {
  public:
-  enum Operation { kAccept, kRead, kWrite, kDisconnect };
+  enum Operation { kAccept, kRead, kRecvFrom, kWrite, kSendTo, kDisconnect };
 
   static OverlappedBuffer* AllocateAcceptBuffer(int buffer_size);
   static OverlappedBuffer* AllocateReadBuffer(int buffer_size);
+  static OverlappedBuffer* AllocateRecvFromBuffer(int buffer_size);
   static OverlappedBuffer* AllocateWriteBuffer(int buffer_size);
+  static OverlappedBuffer* AllocateSendToBuffer(int buffer_size);
   static OverlappedBuffer* AllocateDisconnectBuffer();
   static void DisposeBuffer(OverlappedBuffer* buffer);
 
@@ -71,6 +74,9 @@ class OverlappedBuffer {
   SOCKET client() { return client_; }
   char* GetBufferStart() { return reinterpret_cast<char*>(&buffer_data_); }
   int GetBufferSize() { return buflen_; }
+  struct sockaddr* from() { return from_; }
+  socklen_t* from_len_addr() { return from_len_addr_; }
+  socklen_t from_len() { return from_ == NULL ? 0 : *from_len_addr_; }
 
   // Returns the address of the OVERLAPPED structure with all fields
   // initialized to zero.
@@ -92,6 +98,21 @@ class OverlappedBuffer {
   OverlappedBuffer(int buffer_size, Operation operation)
       : operation_(operation), buflen_(buffer_size) {
     memset(GetBufferStart(), 0, GetBufferSize());
+    if (operation == kRecvFrom) {
+      // Reserve part of the buffer for the length of source sockaddr
+      // and source sockaddr.
+      const int kAdditionalSize =
+          sizeof(struct sockaddr_storage) + sizeof(socklen_t);
+      ASSERT(buflen_ > kAdditionalSize);
+      buflen_ -= kAdditionalSize;
+      from_len_addr_ = reinterpret_cast<socklen_t*>(
+          GetBufferStart() + GetBufferSize());
+      *from_len_addr_ = sizeof(struct sockaddr_storage);
+      from_ = reinterpret_cast<struct sockaddr*>(from_len_addr_ + 1);
+    } else {
+      from_len_addr_ = NULL;
+      from_ = NULL;
+    }
     index_ = 0;
     data_length_ = 0;
     if (operation_ == kAccept) {
@@ -107,6 +128,9 @@ class OverlappedBuffer {
     free(buffer);
   }
 
+  // Allocate an overlapped buffer for thse specified amount of data and
+  // operation. Some operations need additional buffer space, which is
+  // handled by this method.
   static OverlappedBuffer* AllocateBuffer(int buffer_size,
                                           Operation operation);
 
@@ -119,6 +143,11 @@ class OverlappedBuffer {
   int data_length_;  // Length of the actual data in the buffer.
 
   WSABUF wbuf_;  // Structure for passing buffer to WSA functions.
+
+  // For the recvfrom operation additional storace is allocated for the
+  // source sockaddr.
+  socklen_t* from_len_addr_;  // Pointer to source sockaddr size storage.
+  struct sockaddr* from_;  // Pointer to source sockaddr storage.
 
   // Buffer for recv/send/AcceptEx. This must be at the end of the
   // object as the object is allocated larger than it's definition
@@ -136,7 +165,8 @@ class Handle {
     kStd,
     kDirectoryWatch,
     kClientSocket,
-    kListenSocket
+    kListenSocket,
+    kDatagramSocket
   };
 
   class ScopedLock {
@@ -158,14 +188,23 @@ class Handle {
   // Socket interface exposing normal socket operations.
   int Available();
   int Read(void* buffer, int num_bytes);
+  int RecvFrom(
+      void* buffer, int num_bytes, struct sockaddr* sa, socklen_t addr_len);
   virtual int Write(const void* buffer, int num_bytes);
+  virtual int SendTo(const void* buffer,
+                     int num_bytes,
+                     struct sockaddr* sa,
+                     socklen_t sa_len);
 
   // Internal interface used by the event handler.
   virtual bool IssueRead();
+  virtual bool IssueRecvFrom();
   virtual bool IssueWrite();
+  virtual bool IssueSendTo(struct sockaddr* sa, socklen_t sa_len);
   bool HasPendingRead();
   bool HasPendingWrite();
   void ReadComplete(OverlappedBuffer* buffer);
+  void RecvFromComplete(OverlappedBuffer* buffer);
   void WriteComplete(OverlappedBuffer* buffer);
 
   bool IsClosing() { return (flags_ & (1 << kClosing)) != 0; }
@@ -199,9 +238,12 @@ class Handle {
   }
   Type type() { return type_; }
   bool is_file() { return type_ == kFile; }
-  bool is_socket() { return type_ == kListenSocket || type_ == kClientSocket; }
+  bool is_socket() { return type_ == kListenSocket ||
+                            type_ == kClientSocket ||
+                            type_ == kDatagramSocket; }
   bool is_listen_socket() { return type_ == kListenSocket; }
   bool is_client_socket() { return type_ == kClientSocket; }
+  bool is_datagram_socket() { return type_ == kDatagramSocket; }
   void set_mask(intptr_t mask) { mask_ = mask; }
   intptr_t mask() { return mask_; }
 
@@ -416,6 +458,27 @@ class ClientSocket : public SocketHandle {
 };
 
 
+class DatagramSocket : public SocketHandle {
+ public:
+  explicit DatagramSocket(SOCKET s) : SocketHandle(s) {
+    type_ = kDatagramSocket;
+  }
+
+  virtual ~DatagramSocket() {
+    // Don't delete this object until all pending requests have been handled.
+    ASSERT(!HasPendingRead());
+    ASSERT(!HasPendingWrite());
+  };
+
+  // Internal interface used by the event handler.
+  virtual bool IssueRecvFrom();
+  virtual bool IssueSendTo(sockaddr* sa, socklen_t sa_len);
+
+  virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
+  virtual void DoClose();
+  virtual bool IsClosed();
+};
+
 // Event handler.
 class EventHandlerImplementation {
  public:
@@ -435,6 +498,7 @@ class EventHandlerImplementation {
   void HandleClosed(Handle* handle);
   void HandleError(Handle* handle);
   void HandleRead(Handle* handle, int bytes, OverlappedBuffer* buffer);
+  void HandleRecvFrom(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleWrite(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleDisconnect(ClientSocket* client_socket,
                         int bytes,

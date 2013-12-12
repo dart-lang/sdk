@@ -26,17 +26,27 @@ namespace bin {
 
 SocketAddress::SocketAddress(struct sockaddr* sa) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
+  if (!Socket::FormatNumericAddress(
+          reinterpret_cast<RawAddr*>(sa), as_string_, INET6_ADDRSTRLEN)) {
+    as_string_[0] = 0;
+  }
   socklen_t salen = GetAddrLength(reinterpret_cast<RawAddr*>(sa));
-  if (TEMP_FAILURE_RETRY(getnameinfo(sa,
+  memmove(reinterpret_cast<void *>(&addr_), sa, salen);
+}
+
+
+bool Socket::FormatNumericAddress(RawAddr* addr, char* address, int len) {
+  socklen_t salen = SocketAddress::GetAddrLength(addr);
+  if (TEMP_FAILURE_RETRY(getnameinfo(&addr->addr,
                                      salen,
-                                     as_string_,
-                                     INET6_ADDRSTRLEN,
+                                     address,
+                                     len,
                                      NULL,
                                      0,
                                      NI_NUMERICHOST)) != 0) {
-    as_string_[0] = 0;
+    return false;
   }
-  memmove(reinterpret_cast<void *>(&addr_), sa, salen);
+  return true;
 }
 
 
@@ -107,9 +117,42 @@ int Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 }
 
 
+int Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
+                     RawAddr* addr) {
+  ASSERT(fd >= 0);
+  socklen_t addr_len = sizeof(addr->ss);
+  ssize_t read_bytes =
+      TEMP_FAILURE_RETRY(
+          recvfrom(fd, buffer, num_bytes, 0, &addr->addr, &addr_len));
+  if (read_bytes == -1 && errno == EWOULDBLOCK) {
+    // If the read would block we need to retry and therefore return 0
+    // as the number of bytes written.
+    read_bytes = 0;
+  }
+  return read_bytes;
+}
+
+
 int Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
   ssize_t written_bytes = TEMP_FAILURE_RETRY(write(fd, buffer, num_bytes));
+  ASSERT(EAGAIN == EWOULDBLOCK);
+  if (written_bytes == -1 && errno == EWOULDBLOCK) {
+    // If the would block we need to retry and therefore return 0 as
+    // the number of bytes written.
+    written_bytes = 0;
+  }
+  return written_bytes;
+}
+
+
+int Socket::SendTo(intptr_t fd, const void* buffer, intptr_t num_bytes,
+                   RawAddr addr) {
+  ASSERT(fd >= 0);
+  ssize_t written_bytes =
+      TEMP_FAILURE_RETRY(
+          sendto(fd, buffer, num_bytes, 0,
+                 &addr.addr, SocketAddress::GetAddrLength(&addr)));
   ASSERT(EAGAIN == EWOULDBLOCK);
   if (written_bytes == -1 && errno == EWOULDBLOCK) {
     // If the would block we need to retry and therefore return 0 as
@@ -257,6 +300,36 @@ bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
 }
 
 
+intptr_t Socket::CreateBindDatagram(
+    RawAddr* addr, intptr_t port, bool reuseAddress) {
+  intptr_t fd;
+
+  fd = TEMP_FAILURE_RETRY(
+      socket(addr->addr.sa_family, SOCK_DGRAM, IPPROTO_UDP));
+  if (fd < 0) return -1;
+
+  FDUtils::SetCloseOnExec(fd);
+
+  if (reuseAddress) {
+    int optval = 1;
+    TEMP_FAILURE_RETRY(
+        setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
+  }
+
+  SocketAddress::SetAddrPort(addr, port);
+  if (TEMP_FAILURE_RETRY(
+          bind(fd,
+               &addr->addr,
+               SocketAddress::GetAddrLength(addr))) < 0) {
+    TEMP_FAILURE_RETRY(close(fd));
+    return -1;
+  }
+
+  Socket::SetNonBlocking(fd);
+  return fd;
+}
+
+
 static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
   if (ifa->ifa_addr == NULL) {
     // OpenVPN's virtual device tun0.
@@ -401,6 +474,21 @@ bool Socket::SetBlocking(intptr_t fd) {
 }
 
 
+bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
+  int on;
+  socklen_t len = sizeof(on);
+  int err = TEMP_FAILURE_RETRY(getsockopt(fd,
+                                          IPPROTO_TCP,
+                                          TCP_NODELAY,
+                                          reinterpret_cast<void *>(&on),
+                                          &len));
+  if (err == 0) {
+    *enabled = on == 1;
+  }
+  return err == 0;
+}
+
+
 bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
   int on = enabled ? 1 : 0;
   return TEMP_FAILURE_RETRY(setsockopt(fd,
@@ -408,6 +496,165 @@ bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
                                        TCP_NODELAY,
                                        reinterpret_cast<char *>(&on),
                                        sizeof(on))) == 0;
+}
+
+
+bool Socket::GetMulticastLoop(intptr_t fd, intptr_t protocol, bool* enabled) {
+  uint8_t on;
+  socklen_t len = sizeof(on);
+  int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
+  int optname = protocol == SocketAddress::TYPE_IPV4
+      ? IP_MULTICAST_LOOP : IPV6_MULTICAST_LOOP;
+  if (TEMP_FAILURE_RETRY(getsockopt(fd,
+                                     level,
+                                     optname,
+                                     reinterpret_cast<char *>(&on),
+                                    &len)) == 0) {
+    *enabled = (on == 1);
+    return true;
+  }
+  return false;
+}
+
+
+bool Socket::SetMulticastLoop(intptr_t fd, intptr_t protocol, bool enabled) {
+  u_int on = enabled ? 1 : 0;
+  int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
+  int optname = protocol == SocketAddress::TYPE_IPV4
+      ? IP_MULTICAST_LOOP : IPV6_MULTICAST_LOOP;
+  return TEMP_FAILURE_RETRY(setsockopt(fd,
+                                       level,
+                                       optname,
+                                       reinterpret_cast<char *>(&on),
+                                       sizeof(on))) == 0;
+}
+
+
+bool Socket::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
+  uint8_t v;
+  socklen_t len = sizeof(v);
+  int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
+  int optname = protocol == SocketAddress::TYPE_IPV4
+      ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
+  if (TEMP_FAILURE_RETRY(getsockopt(fd,
+                                    level,
+                                    optname,
+                                    reinterpret_cast<char *>(&v),
+                                    &len)) == 0) {
+    *value = v;
+    return true;
+  }
+  return false;
+}
+
+
+bool Socket::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
+  int v = value;
+  int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
+  int optname = protocol == SocketAddress::TYPE_IPV4
+      ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
+  return TEMP_FAILURE_RETRY(setsockopt(fd,
+                                       level,
+                                       optname,
+                                       reinterpret_cast<char *>(&v),
+                                       sizeof(v))) == 0;
+}
+
+
+bool Socket::GetBroadcast(intptr_t fd, bool* enabled) {
+  int on;
+  socklen_t len = sizeof(on);
+  int err = TEMP_FAILURE_RETRY(getsockopt(fd,
+                                          SOL_SOCKET,
+                                          SO_BROADCAST,
+                                          reinterpret_cast<char *>(&on),
+                                          &len));
+  if (err == 0) {
+    *enabled = on == 1;
+  }
+  return err == 0;
+}
+
+
+bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
+  int on = enabled ? 1 : 0;
+  return TEMP_FAILURE_RETRY(setsockopt(fd,
+                                       SOL_SOCKET,
+                                       SO_BROADCAST,
+                                       reinterpret_cast<char *>(&on),
+                                       sizeof(on))) == 0;
+}
+
+
+static bool JoinOrLeaveMulticast(intptr_t fd,
+                                 RawAddr* addr,
+                                 RawAddr* interface,
+                                 int interfaceIndex,
+                                 bool join) {
+  if (addr->addr.sa_family == AF_INET) {
+    ASSERT(interface->addr.sa_family == AF_INET);
+    struct ip_mreq mreq;
+    memmove(&mreq.imr_multiaddr,
+            &addr->in.sin_addr,
+            SocketAddress::GetAddrLength(addr));
+    memmove(&mreq.imr_interface,
+            &interface->in.sin_addr,
+            SocketAddress::GetAddrLength(interface));
+    if (join) {
+      return TEMP_FAILURE_RETRY(setsockopt(
+          fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))) == 0;
+    } else {
+      return TEMP_FAILURE_RETRY(setsockopt(
+          fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq))) == 0;
+    }
+  } else {
+    ASSERT(addr->addr.sa_family == AF_INET6);
+    struct ipv6_mreq mreq;
+    memmove(&mreq.ipv6mr_multiaddr,
+            &addr->in6.sin6_addr,
+            SocketAddress::GetAddrLength(addr));
+    mreq.ipv6mr_interface = interfaceIndex;
+    if (join) {
+      return TEMP_FAILURE_RETRY(setsockopt(
+          fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq))) == 0;
+    } else {
+      return TEMP_FAILURE_RETRY(setsockopt(
+          fd, IPPROTO_IPV6, IPV6_LEAVE_GROUP, &mreq, sizeof(mreq))) == 0;
+    }
+  }
+}
+
+bool Socket::JoinMulticast(
+  intptr_t fd, RawAddr* addr, RawAddr* interface, int interfaceIndex) {
+    return JoinOrLeaveMulticast(fd, addr, interface, interfaceIndex, true);
+  if (addr->addr.sa_family == AF_INET) {
+    ASSERT(interface->addr.sa_family == AF_INET);
+    struct ip_mreq mreq;
+    memmove(&mreq.imr_multiaddr,
+            &addr->in.sin_addr,
+            SocketAddress::GetAddrLength(addr));
+    memmove(&mreq.imr_interface,
+            &interface->in.sin_addr,
+            SocketAddress::GetAddrLength(interface));
+    return TEMP_FAILURE_RETRY(setsockopt(
+        fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))) == 0;
+  } else {
+    ASSERT(addr->addr.sa_family == AF_INET6);
+    ASSERT(interface->addr.sa_family == AF_INET6);
+    struct ipv6_mreq mreq;
+    memmove(&mreq.ipv6mr_multiaddr,
+            &addr->in6.sin6_addr,
+            SocketAddress::GetAddrLength(addr));
+    mreq.ipv6mr_interface = interfaceIndex;
+    return TEMP_FAILURE_RETRY(setsockopt(
+        fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq))) == 0;
+  }
+}
+
+
+bool Socket::LeaveMulticast(
+    intptr_t fd, RawAddr* addr, RawAddr* interface, int interfaceIndex) {
+  return JoinOrLeaveMulticast(fd, addr, interface, interfaceIndex, false);
 }
 
 }  // namespace bin

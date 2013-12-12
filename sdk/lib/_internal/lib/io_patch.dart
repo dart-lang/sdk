@@ -293,6 +293,13 @@ patch class SecureSocket {
   }
 }
 
+patch class RawDatagramSocket {
+  patch static Future<RawDatagramSocket> bind(
+      host, int port, {bool reuseAddress: true}) {
+    throw new UnsupportedError("RawDatagramSocket.bind");
+  }
+}
+
 patch class _SecureFilter {
   patch factory _SecureFilter() {
     throw new UnsupportedError("_SecureFilter._SecureFilter");

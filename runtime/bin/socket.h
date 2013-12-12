@@ -65,6 +65,7 @@ class SocketAddress {
   const RawAddr& addr() const { return addr_; }
 
   static intptr_t GetAddrLength(const RawAddr* addr) {
+    ASSERT(addr->ss.ss_family == AF_INET || addr->ss.ss_family == AF_INET6);
     return addr->ss.ss_family == AF_INET6 ?
         sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
   }
@@ -170,10 +171,16 @@ class Socket {
   static intptr_t Available(intptr_t fd);
   static int Read(intptr_t fd, void* buffer, intptr_t num_bytes);
   static int Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
+  static int SendTo(
+      intptr_t fd, const void* buffer, intptr_t num_bytes, RawAddr addr);
+  static int RecvFrom(
+      intptr_t fd, void* buffer, intptr_t num_bytes, RawAddr* addr);
   static intptr_t Create(RawAddr addr);
   static intptr_t Connect(intptr_t fd, RawAddr addr, const intptr_t port);
   static intptr_t CreateConnect(RawAddr addr,
                                 const intptr_t port);
+  static intptr_t CreateBindDatagram(
+      RawAddr* addr, intptr_t port, bool reuseAddress);
   static intptr_t GetPort(intptr_t fd);
   static SocketAddress* GetRemotePeer(intptr_t fd, intptr_t* port);
   static void GetError(intptr_t fd, OSError* os_error);
@@ -182,18 +189,31 @@ class Socket {
   static void Close(intptr_t fd);
   static bool SetNonBlocking(intptr_t fd);
   static bool SetBlocking(intptr_t fd);
+  static bool GetNoDelay(intptr_t fd, bool* enabled);
   static bool SetNoDelay(intptr_t fd, bool enabled);
+  static bool GetMulticastLoop(intptr_t fd, intptr_t protocol, bool* enabled);
+  static bool SetMulticastLoop(intptr_t fd, intptr_t protocol, bool enabled);
+  static bool GetMulticastHops(intptr_t fd, intptr_t protocol, int* value);
+  static bool SetMulticastHops(intptr_t fd, intptr_t protocol, int value);
+  static bool GetBroadcast(intptr_t fd, bool* value);
+  static bool SetBroadcast(intptr_t fd, bool value);
+  static bool JoinMulticast(
+      intptr_t fd, RawAddr* addr, RawAddr* interface, int interfaceIndex);
+  static bool LeaveMulticast(
+      intptr_t fd, RawAddr* addr, RawAddr* interface, int interfaceIndex);
 
   // Perform a hostname lookup. Returns a AddressList of SocketAddress's.
   static AddressList<SocketAddress>* LookupAddress(const char* host,
                                                    int type,
                                                    OSError** os_error);
+
   static bool ReverseLookup(RawAddr addr,
                             char* host,
                             intptr_t host_len,
                             OSError** os_error);
 
   static bool ParseAddress(int type, const char* address, RawAddr* addr);
+  static bool FormatNumericAddress(RawAddr* addr, char* address, int len);
 
   // List interfaces. Returns a AddressList of InterfaceSocketAddress's.
   static AddressList<InterfaceSocketAddress>* ListInterfaces(

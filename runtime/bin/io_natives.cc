@@ -59,15 +59,21 @@ namespace bin {
   V(ServerSocket_CreateBindListen, 5)                                          \
   V(ServerSocket_Accept, 2)                                                    \
   V(Socket_CreateConnect, 3)                                                   \
+  V(Socket_CreateBindDatagram, 4)                                              \
   V(Socket_Available, 1)                                                       \
   V(Socket_Read, 2)                                                            \
+  V(Socket_RecvFrom, 1)                                                        \
   V(Socket_WriteList, 4)                                                       \
+  V(Socket_SendTo, 6)                                                          \
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
   V(Socket_GetStdioHandle, 2)                                                  \
   V(Socket_GetType, 1)                                                         \
-  V(Socket_SetOption, 3)                                                       \
+  V(Socket_GetOption, 3)                                                       \
+  V(Socket_SetOption, 4)                                                       \
+  V(Socket_JoinMulticast, 4)                                                   \
+  V(Socket_LeaveMulticast, 4)                                                  \
   V(Socket_SetSocketId, 2)                                                     \
   V(Stdin_ReadByte, 1)                                                         \
   V(Stdin_SetEchoMode, 2)                                                      \
