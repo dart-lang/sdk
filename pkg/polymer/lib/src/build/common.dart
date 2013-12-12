@@ -112,6 +112,8 @@ abstract class PolymerTransformer {
 
   Future<bool> assetExists(AssetId id, Transform transform) =>
       transform.getInput(id).then((_) => true).catchError((_) => false);
+
+  String toString() => 'polymer ($runtimeType)';
 }
 
 /** Create an [AssetId] for a [url] seen in the [source] asset. */

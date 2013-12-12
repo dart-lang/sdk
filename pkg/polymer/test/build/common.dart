@@ -31,20 +31,27 @@ class TestHelper implements PackageProvider {
    */
   final Map<String, String> files;
   final Iterable<String> packages;
+  final List<String> messages;
+  int messagesSeen = 0;
+  bool errorSeen = false;
 
   Barback barback;
   var errorSubscription;
   var resultSubscription;
+  var logSubscription;
 
   Future<Asset> getAsset(AssetId id) =>
       new Future.value(new Asset.fromString(id, files[idToString(id)]));
-  TestHelper(List<List<Transformer>> transformers, Map<String, String> files)
+
+  TestHelper(List<List<Transformer>> transformers, Map<String, String> files,
+      this.messages)
       : files = files,
         packages = files.keys.map((s) => idFromString(s).package) {
     barback = new Barback(this);
     for (var p in packages) {
       barback.updateTransformers(p, transformers);
     }
+
     errorSubscription = barback.errors.listen((e) {
       var trace = null;
       if (e is Error) trace = e.stackTrace;
@@ -53,14 +60,30 @@ class TestHelper implements PackageProvider {
       }
       fail('error running barback: $e');
     });
+
     resultSubscription = barback.results.listen((result) {
-      expect(result.succeeded, isTrue, reason: "${result.errors}");
+      expect(result.succeeded, !errorSeen, reason: "${result.errors}");
+    });
+
+    logSubscription = barback.log.listen((entry) {
+      if (entry.level == LogLevel.ERROR) errorSeen = true;
+      // We only check messages when an expectation is provided.
+      if (messages == null) return;
+
+      var msg = '${entry.level.name.toLowerCase()}: ${entry.message}';
+      var span = entry.span;
+      var spanInfo = span == null ? '' :
+          ' (${span.sourceUrl} ${span.start.line} ${span.start.column})';
+      expect(messagesSeen, lessThan(messages.length),
+          reason: 'more messages than expected.\nMessage seen: $msg$spanInfo');
+      expect('$msg$spanInfo', messages[messagesSeen++]);
     });
   }
 
   void tearDown() {
     errorSubscription.cancel();
     resultSubscription.cancel();
+    logSubscription.cancel();
   }
 
   /**
@@ -90,14 +113,20 @@ class TestHelper implements PackageProvider {
     files.forEach((k, v) {
       futures.add(check(k, v));
     });
-    return Future.wait(futures);
+    return Future.wait(futures).then((_) {
+      // We only check messages when an expectation is provided.
+      if (messages == null) return;
+      expect(messages.length, messagesSeen,
+          reason: 'less messages than expected');
+    });
   }
 }
 
 testPhases(String testName, List<List<Transformer>> phases,
-    Map<String, String> inputFiles, Map<String, String> expectedFiles) {
+    Map<String, String> inputFiles, Map<String, String> expectedFiles,
+    [List<String> expectedMessages]) {
   test(testName, () {
-    var helper = new TestHelper(phases, inputFiles)..run();
+    var helper = new TestHelper(phases, inputFiles, expectedMessages)..run();
     return helper.checkAll(expectedFiles).then((_) => helper.tearDown());
   });
 }

@@ -42,8 +42,15 @@ class BarbackOptions {
   /** Directory where to generate code, if any. */
   final String outDir;
 
+  /**
+   * Whether to print error messages using a json-format that tools, such as the
+   * Dart Editor, can process.
+   */
+  final String machineFormat;
+
   BarbackOptions(this.phases, this.outDir, {currentPackage, packageDirs,
-      this.transformTests: false, this.transformPolymerDependencies: false})
+      this.transformTests: false, this.transformPolymerDependencies: false,
+      this.machineFormat: false})
       : currentPackage = (currentPackage != null
           ? currentPackage : readCurrentPackageFromPubspec()),
         packageDirs = (packageDirs != null
@@ -59,7 +66,7 @@ class BarbackOptions {
 Future<AssetSet> runBarback(BarbackOptions options) {
   var barback = new Barback(new _PolymerPackageProvider(options.packageDirs));
   _initBarback(barback, options);
-  _attachListeners(barback);
+  _attachListeners(barback, options);
   if (options.outDir == null) return barback.getAllAssets();
   return _emitAllFiles(barback, options);
 }
@@ -171,7 +178,7 @@ void _initBarback(Barback barback, BarbackOptions options) {
 }
 
 /** Attach error listeners on [barback] so we can report errors. */
-void _attachListeners(Barback barback) {
+void _attachListeners(Barback barback, BarbackOptions options) {
   // Listen for errors and results
   barback.errors.listen((e) {
     var trace = null;
@@ -187,6 +194,14 @@ void _attachListeners(Barback barback) {
     if (!result.succeeded) {
       print("build failed with errors: ${result.errors}");
       exit(1);
+    }
+  });
+
+  barback.log.listen((entry) {
+    if (options.machineFormat) {
+      print(_jsonFormatter(entry));
+    } else {
+      print(_consoleFormatter(entry));
     }
   });
 }
@@ -311,3 +326,54 @@ Future _writeAsset(String filepath, Asset asset) {
   _ensureDir(path.dirname(filepath));
   return asset.read().pipe(new File(filepath).openWrite());
 }
+
+String _kindFromEntry(LogEntry entry) {
+  var level = entry.level;
+  return level == LogLevel.ERROR ? 'error'
+      : (level == LogLevel.WARNING ? 'warning' : 'info');
+}
+
+/**
+ * Formatter that generates messages using a format that can be parsed
+ * by tools, such as the Dart Editor, for reporting error messages.
+ */
+String _jsonFormatter(LogEntry entry) {
+  var kind = _kindFromEntry(entry);
+  var span = entry.span;
+  return JSON.encode((span == null)
+      ? [{'method': kind, 'params': {'message': entry.message}}]
+      : [{'method': kind,
+          'params': {
+            'file': span.sourceUrl,
+            'message': entry.message,
+            'line': span.start.line + 1,
+            'charStart': span.start.offset,
+            'charEnd': span.end.offset,
+          }}]);
+}
+
+/**
+ * Formatter that generates messages that are easy to read on the console (used
+ * by default).
+ */
+String _consoleFormatter(LogEntry entry) {
+  var kind = _kindFromEntry(entry);
+  var useColors = stdioType(stdout) == StdioType.TERMINAL;
+  var levelColor = (kind == 'error') ? _RED_COLOR : _MAGENTA_COLOR;
+  var output = new StringBuffer();
+  if (useColors) output.write(levelColor);
+  output..write(kind)..write(' ');
+  if (useColors) output.write(_NO_COLOR);
+  if (entry.span == null) {
+    output.write(entry.message);
+  } else {
+    output.write(entry.span.getLocationMessage(entry.message,
+          useColors: useColors,
+          color: levelColor));
+  }
+  return output.toString();
+}
+
+const String _RED_COLOR = '\u001b[31m';
+const String _MAGENTA_COLOR = '\u001b[35m';
+const String _NO_COLOR = '\u001b[0m';
