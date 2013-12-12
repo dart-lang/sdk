@@ -1470,7 +1470,7 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
 
   Future close() => _socket.close().then((_) => this);
 
-  int send(List<data> buffer, InternetAddress address, int port) =>
+  int send(List<int> buffer, InternetAddress address, int port) =>
       _socket.send(buffer, 0, buffer.length, address, port);
 
   Datagram receive() {
