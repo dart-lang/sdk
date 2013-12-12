@@ -38,11 +38,13 @@ class BuildInfo(object):
   - test_set: Specification of a non standard test set or None.
   - csp: This is using csp when running
   - arch: The architecture to build on.
+  - dart2js_full: Boolean indicating whether this builder will run dart2js
+    on several different runtimes.
   """
   def __init__(self, compiler, runtime, mode, system, checked=False,
                host_checked=False, minified=False, shard_index=None,
                total_shards=None, is_buildbot=False, test_set=None,
-               csp=None, arch=None):
+               csp=None, arch=None, dart2js_full=False):
     self.compiler = compiler
     self.runtime = runtime
     self.mode = mode
@@ -55,6 +57,7 @@ class BuildInfo(object):
     self.is_buildbot = is_buildbot
     self.test_set = test_set
     self.csp = csp
+    self.dart2js_full = dart2js_full
     if (arch == None):
       self.arch = 'ia32'
     else:
