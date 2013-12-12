@@ -93,6 +93,7 @@ typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for Typed
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
+mirrors/invoke_subscript_test: RuntimeError, Timeout # Issue 15610
 
 [ $compiler == dart2js && $runtime != jsshell && $runtime != safari && $runtime != ff && $runtime != ie9 && $runtime != ie10]
 math/math_test: RuntimeError
