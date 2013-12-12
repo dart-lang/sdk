@@ -586,7 +586,8 @@ class _HttpOutboundConsumer implements StreamConsumer {
   }
 
   bool _ignoreError(error)
-    => error is SocketException && _outbound is HttpResponse;
+    => (error is SocketException || error is TlsException) &&
+       _outbound is HttpResponse;
 
   _ensureController() {
     if (_controller != null) return;
@@ -2055,7 +2056,13 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
           _HttpConnection connection = new _HttpConnection(socket, this);
           _connections.add(connection);
         },
-        onError: _controller.addError,
+        onError: (error) {
+          // Ignore HandshakeExceptions as they are bound to a single request,
+          // and are not fatal for the server.
+          if (error is! HandshakeException) {
+            _controller.addError(error);
+          }
+        },
         onDone: _controller.close);
     return _controller.stream.listen(onData,
                                      onError: onError,

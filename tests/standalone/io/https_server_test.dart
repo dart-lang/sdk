@@ -63,7 +63,39 @@ void InitializeSSL() {
                           password: 'dartdart');
 }
 
+void testEarlyClientClose() {
+  HttpServer.bindSecure(HOST_NAME,
+                        0,
+                        certificateName: 'localhost_cert').then((server) {
+    server.listen(
+      (request) {
+        String name = Platform.script.toFilePath();
+        new File(name).openRead().pipe(request.response)
+            .catchError((e) { /* ignore */ });
+      });
+
+    var count = 0;
+    makeRequest() {
+      Socket.connect("127.0.0.1", server.port).then((socket) {
+        var data = "Invalid TLS handshake";
+        socket.write(data);
+        socket.close();
+        socket.done.then((_) {
+          socket.destroy();
+          if (++count < 10) {
+            makeRequest();
+          } else {
+            server.close();
+          }
+        });
+      });
+    }
+    makeRequest();
+  });
+}
+
 void main() {
   InitializeSSL();
   testListenOn();
+  testEarlyClientClose();
 }
