@@ -69,13 +69,6 @@ class PackageGraph {
   /// The stack trace for [_lastUnexpectedError].
   StackTrace _lastUnexpectedErrorTrace;
 
-  // TODO(nweiz): Allow transformers to declare themselves as "lightweight" or
-  // "heavyweight" and adjust their restrictions appropriately. Simple
-  // transformers may be very efficient to run in parallel, whereas dart2js uses
-  // a lot of memory and should be run more sequentially.
-  /// A pool that controls how many transformers may be applied at once.
-  final Pool transformPool = new Pool(10);
-
   /// Creates a new [PackageGraph] that will transform assets in all packages
   /// made available by [provider].
   PackageGraph(this.provider) {

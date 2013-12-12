@@ -14,7 +14,7 @@ main() {
 
   test("handles many parallel transformers", () {
     currentSchedule.timeout *= 3;
-    var files = new List.generate(100, (i) => "app|$i.txt");
+    var files = new List.generate(1000, (i) => "app|$i.txt");
     var rewrite = new RewriteTransformer("txt", "out");
     initGraph(files, {"app": [[rewrite]]});
 
@@ -24,11 +24,9 @@ main() {
     schedule(pumpEventQueue);
     rewrite.resumeApply();
 
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 1000; i++) {
       expectAsset("app|$i.out", "$i.out");
     }
     buildShouldSucceed();
-
-    expect(rewrite.maxParallelRuns, completion(equals(10)));
   });
 }

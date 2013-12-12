@@ -7,8 +7,6 @@ library barback.pool;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:stack_trace/stack_trace.dart';
-
 import 'utils.dart';
 
 // TODO(nweiz): put this somewhere that it can be shared between packages.
