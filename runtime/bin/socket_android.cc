@@ -553,7 +553,8 @@ bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
 }
 
 
-bool Socket::JoinMulticast(intptr_t fd, RawAddr* addr, int interfaceIndex) {
+bool Socket::JoinMulticast(
+    intptr_t fd, RawAddr* addr, RawAddr*, int interfaceIndex) {
   int proto = addr->addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
@@ -563,7 +564,8 @@ bool Socket::JoinMulticast(intptr_t fd, RawAddr* addr, int interfaceIndex) {
 }
 
 
-bool Socket::LeaveMulticast(intptr_t fd, RawAddr* addr, int interfaceIndex) {
+bool Socket::LeaveMulticast(
+    intptr_t fd, RawAddr* addr, RawAddr*, int interfaceIndex) {
   int proto = addr->addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
