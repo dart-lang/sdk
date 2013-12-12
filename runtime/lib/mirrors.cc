@@ -1712,6 +1712,16 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
     UNREACHABLE();
   }
 
+  if (klass.is_abstract() && !lookup_constructor.IsFactory()) {
+    const Array& error_args = Array::Handle(Array::New(3));
+    error_args.SetAt(0, klass_name);
+    // 1 = script url
+    // 2 = token position
+    Exceptions::ThrowByType(Exceptions::kAbstractClassInstantiation,
+                            error_args);
+    UNREACHABLE();
+  }
+
   ASSERT(!type.IsNull());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(type.arguments());

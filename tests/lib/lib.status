@@ -41,6 +41,7 @@ mirrors/initializing_formals_test/03: CompileTimeError # Issue 12164
 mirrors/instance_members_test: RuntimeError # Issue 14633
 mirrors/instance_members_with_override_test: RuntimeError # Issue 14633
 mirrors/instance_members_unimplemented_interface_test: RuntimeError # Issue 14633
+mirrors/instantiate_abstract_class_test: RuntimeError # Issue 6490
 mirrors/intercepted_superclass_test: RuntimeError # Issue 13644
 mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_call_through_getter_test: RuntimeError # Issue 15138
