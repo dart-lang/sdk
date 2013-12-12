@@ -312,7 +312,7 @@ intptr_t Socket::CreateBindDatagram(
 
   if (reuseAddress) {
     int optval = 1;
-    TEMP_FAILURE_RETRY(
+    VOID_TEMP_FAILURE_RETRY(
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
   }
 
@@ -321,7 +321,7 @@ intptr_t Socket::CreateBindDatagram(
           bind(fd,
                &addr->addr,
                SocketAddress::GetAddrLength(addr))) < 0) {
-    TEMP_FAILURE_RETRY(close(fd));
+    VOID_TEMP_FAILURE_RETRY(close(fd));
     return -1;
   }
 
