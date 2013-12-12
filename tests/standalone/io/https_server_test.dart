@@ -76,7 +76,7 @@ void testEarlyClientClose() {
 
     var count = 0;
     makeRequest() {
-      Socket.connect("127.0.0.1", server.port).then((socket) {
+      Socket.connect(HOST_NAME, server.port).then((socket) {
         var data = "Invalid TLS handshake";
         socket.write(data);
         socket.close();
