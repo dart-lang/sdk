@@ -322,11 +322,6 @@ http/test/mock_client_test: StaticWarning
 http/test/multipart_test: StaticWarning
 http/test/request_test: StaticWarning
 http/test/streamed_request_test: StaticWarning
-intl/test/date_time_format_file_even_test: StaticWarning
-intl/test/date_time_format_file_odd_test: StaticWarning
-intl/test/date_time_format_http_request_test: StaticWarning
-intl/test/date_time_format_local_even_test: StaticWarning
-intl/test/date_time_format_local_odd_test: StaticWarning
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 unittest/test/mock_test: StaticWarning, OK # testing unimplemented members
 
