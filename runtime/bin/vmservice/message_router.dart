@@ -4,6 +4,6 @@
 
 part of vmservice;
 
-abstract class ServiceRequestRouter {
-  Future route(ServiceRequest request);
+abstract class MessageRouter {
+  Future<String> route(Message message);
 }

@@ -9,6 +9,47 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:expect/expect.dart';
 
+abstract class ServiceWebSocketRequestHelper {
+  final String url;
+  final Completer _completer = new Completer();
+  WebSocket _socket;
+
+  ServiceWebSocketRequestHelper(this.url);
+
+  // Returns [this] when connected.
+  Future connect() {
+    return WebSocket.connect(url).then((ws) {
+      _socket = ws;
+      _socket.listen((message) {
+        var map = JSON.decode(message);
+        var response = JSON.decode(map['response']);
+        onResponse(map['seq'], response);
+      });
+      return this;
+    });
+  }
+
+  void complete() {
+    _completer.complete(this);
+  }
+
+  Future get completed => _completer.future;
+
+  // Must call complete.
+  void onResponse(var seq, Map response);
+  void runTest();
+
+  Future sendMessage(var seq, List<String> path) {
+    var map = {
+      'seq': seq,
+      'path': path
+    };
+    var message = JSON.encode(map);
+    _socket.add(message);
+    return _completer.future;
+  }
+}
+
 abstract class VmServiceRequestHelper {
   final Uri uri;
   final HttpClient client;
@@ -99,7 +140,7 @@ class TestLauncher {
       var first = true;
       process.stdout.transform(UTF8.decoder)
                     .transform(new LineSplitter()).listen((line) {
-        if (line.startsWith('VmService listening on port ')) {
+        if (line.startsWith('VMService listening on port ')) {
           RegExp portExp = new RegExp(r"\d+");
           var port = portExp.stringMatch(line);
           portNumber = int.parse(port);

@@ -9,16 +9,21 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+part 'client.dart';
 part 'constants.dart';
 part 'resources.dart';
 part 'running_isolate.dart';
 part 'running_isolates.dart';
-part 'service_request.dart';
-part 'service_request_router.dart';
+part 'message.dart';
+part 'message_router.dart';
 
-class VMService {
+class VMService extends MessageRouter {
   static VMService _instance;
+  /// Collection of currently connected clients.
+  final Set<Client> clients = new Set<Client>();
+  /// Collection of currently running isolates.
   RunningIsolates runningIsolates = new RunningIsolates();
+  /// Isolate startup and shutdown messages are sent on this port.
   final RawReceivePort receivePort;
 
   void controlMessageHandler(int code, int port_id, SendPort sp, String name) {
@@ -30,6 +35,14 @@ class VMService {
         runningIsolates.isolateShutdown(port_id, sp);
       break;
     }
+  }
+
+  void _addClient(Client client) {
+    clients.add(client);
+  }
+
+  void _removeClient(Client client) {
+    clients.remove(client);
   }
 
   void messageHandler(message) {
@@ -49,6 +62,28 @@ class VMService {
       VMService._instance = new VMService._internal();
     }
     return _instance;
+  }
+
+  void _clientCollection(Message message) {
+    var members = [];
+    var result = {};
+    clients.forEach((client) {
+      members.add(client.toJson());
+    });
+    result['type'] = 'ClientList';
+    result['members'] = members;
+    message.setResponse(JSON.encode(result));
+  }
+
+  Future<String> route(Message message) {
+    if (message.completed) {
+      return message.response;
+    }
+    if ((message.path.length == 1) && (message.path[0] == 'clients')) {
+      _clientCollection(message);
+      return message.response;
+    }
+    return runningIsolates.route(message);
   }
 }
 

@@ -4,7 +4,7 @@
 
 part of vmservice;
 
-class RunningIsolates implements ServiceRequestRouter {
+class RunningIsolates implements MessageRouter {
   final Map<int, RunningIsolate> isolates = new Map<int, RunningIsolate>();
 
   RunningIsolates();
@@ -24,7 +24,7 @@ class RunningIsolates implements ServiceRequestRouter {
     isolates.remove(portId);
   }
 
-  void _isolateCollectionRequest(ServiceRequest request) {
+  void _isolateCollectionRequest(Message message) {
     var members = [];
     var result = {};
     isolates.forEach((portId, runningIsolate) {
@@ -35,42 +35,42 @@ class RunningIsolates implements ServiceRequestRouter {
     });
     result['type'] = 'IsolateList';
     result['members'] = members;
-    request.setResponse(JSON.encode(result));
+    message.setResponse(JSON.encode(result));
   }
 
-  Future route(ServiceRequest request) {
-    if (request.pathSegments.length == 0) {
-      request.setErrorResponse('No path.');
-      return new Future.value(request);
+  Future<String> route(Message message) {
+    if (message.path.length == 0) {
+      message.setErrorResponse('No path.');
+      return message.response;
     }
-    if (request.pathSegments[0] != 'isolates') {
-      request.setErrorResponse('Path must begin with /isolates/.');
-      return new Future.value(request);
+    if (message.path[0] != 'isolates') {
+      message.setErrorResponse('Path must begin with /isolates/.');
+      return message.response;
     }
-    if (request.pathSegments.length == 1) {
+    if (message.path.length == 1) {
       // Requesting list of running isolates.
-      _isolateCollectionRequest(request);
-      return new Future.value(request);
+      _isolateCollectionRequest(message);
+      return message.response;
     }
     var isolateId;
     try {
-      isolateId = int.parse(request.pathSegments[1]);
+      isolateId = int.parse(message.path[1]);
     } catch (e) {
-      request.setErrorResponse('Could not parse isolate id: $e');
-      return new Future.value(request);
+      message.setErrorResponse('Could not parse isolate id: $e');
+      return message.response;
     }
     var isolate = isolates[isolateId];
     if (isolate == null) {
-      request.setErrorResponse('Cannot find isolate id: $isolateId');
-      return new Future.value(request);
+      message.setErrorResponse('Cannot find isolate id: $isolateId');
+      return message.response;
     }
     // Consume '/isolates/isolateId'
-    request.pathSegments.removeRange(0, 2);
-    if (request.pathSegments.length == 0) {
-      // The request is now empty.
-      request.setErrorResponse('No request for isolate: /isolates/$isolateId');
-      return new Future.value(request);
+    message.path.removeRange(0, 2);
+    if (message.path.length == 0) {
+      // The message now has an empty path.
+      message.setErrorResponse('Empty path for isolate: /isolates/$isolateId');
+      return message.response;
     }
-    return isolate.route(request);
+    return isolate.route(message);
   }
 }
