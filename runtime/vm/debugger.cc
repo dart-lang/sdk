@@ -27,8 +27,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
-DEFINE_FLAG(bool, use_new_stacktrace, true,
-            "Use new stacktrace creation");
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -366,23 +364,7 @@ intptr_t ActivationFrame::ContextLevel() {
 }
 
 
-// Get the caller's context, or return ctx if the function does not
-// save the caller's context on entry.
-RawContext* ActivationFrame::GetSavedEntryContext(const Context& ctx) {
-  GetVarDescriptors();
-  intptr_t var_desc_len = var_descriptors_.Length();
-  for (intptr_t i = 0; i < var_desc_len; i++) {
-    RawLocalVarDescriptors::VarInfo var_info;
-    var_descriptors_.GetInfo(i, &var_info);
-    if (var_info.kind == RawLocalVarDescriptors::kSavedEntryContext) {
-      return GetLocalContextVar(var_info.index);
-    }
-  }
-  return ctx.raw();
-}
-
-
-RawContext* ActivationFrame::GetSavedEntryContextNew() {
+RawContext* ActivationFrame::GetSavedEntryContext() {
   if (ctx_.IsNull()) {
     // We have bailed on providing a context for this frame.  Bail for
     // the caller as well.
@@ -465,15 +447,6 @@ void ActivationFrame::GetDescIndices() {
     return;
   }
   GetVarDescriptors();
-
-  // We don't trust variable descriptors in optimized code.
-  // Rather than potentially displaying incorrect values, we
-  // pretend that there are no variables in the frame.
-  // We should be more clever about this in the future.
-  if (!FLAG_use_new_stacktrace && code().is_optimized()) {
-    vars_initialized_ = true;
-    return;
-  }
 
   intptr_t activation_token_pos = TokenPos();
   if (activation_token_pos < 0) {
@@ -598,28 +571,15 @@ void ActivationFrame::VariableAt(intptr_t i,
     ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
     // The context level at the PC/token index of this activation frame.
     intptr_t frame_ctx_level = ContextLevel();
-    if (ctx_.IsNull()) {
-      if (FLAG_use_new_stacktrace) {
-        UNREACHABLE();  // ctx_ should never be null.
-      }
-      *value = Symbols::New("<unknown>");
-      return;
-    }
+    ASSERT(!ctx_.IsNull());
+
     // The context level of the variable.
     intptr_t var_ctx_level = var_info.scope_id;
     intptr_t level_diff = frame_ctx_level - var_ctx_level;
     intptr_t ctx_slot = var_info.index;
     if (level_diff == 0) {
-      // TODO(12767) : Need to ensure that we end up with the correct context
-      // here so that this check can be an assert.
-      if ((ctx_slot < ctx_.num_variables()) && (ctx_slot >= 0)) {
-        *value = ctx_.At(ctx_slot);
-      } else {
-        if (FLAG_use_new_stacktrace) {
-          UNREACHABLE();  // ctx_ should be correct.
-        }
-        *value = Symbols::New("<unknown>");
-      }
+      ASSERT((ctx_slot >= 0) && (ctx_slot < ctx_.num_variables()));
+      *value = ctx_.At(ctx_slot);
     } else {
       ASSERT(level_diff > 0);
       Context& var_ctx = Context::Handle(ctx_.raw());
@@ -627,17 +587,9 @@ void ActivationFrame::VariableAt(intptr_t i,
         level_diff--;
         var_ctx = var_ctx.parent();
       }
-      // TODO(12767) : Need to ensure that we end up with the correct context
-      // here so that this check can be assert.
-      if (!var_ctx.IsNull() &&
-          ((ctx_slot < var_ctx.num_variables()) && (ctx_slot >= 0))) {
-        *value = var_ctx.At(ctx_slot);
-      } else {
-        if (FLAG_use_new_stacktrace) {
-          UNREACHABLE();  // var_ctx should be correct.
-        }
-        *value = Symbols::New("<unknown>");
-      }
+      ASSERT(!var_ctx.IsNull());
+      ASSERT((ctx_slot >= 0) && (ctx_slot < var_ctx.num_variables()));
+      *value = var_ctx.At(ctx_slot);
     }
   }
 }
@@ -1050,25 +1002,6 @@ void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
 }
 
 
-static void PrintStackTraceError(const char* message,
-                                 ActivationFrame* current_activation,
-                                 ActivationFrame* callee_activation) {
-  const Function& current = current_activation->function();
-  const Function& callee = callee_activation->function();
-  const Script& script =
-      Script::Handle(Class::Handle(current.Owner()).script());
-  intptr_t line, col;
-  script.GetTokenLocation(current_activation->TokenPos(), &line, &col);
-  OS::PrintErr("Error building stack trace: %s:"
-               "current function '%s' callee_function '%s' "
-               " line %" Pd " column %" Pd "\n",
-               message,
-               current.ToFullyQualifiedCString(),
-               callee.ToFullyQualifiedCString(),
-               line, col);
-}
-
-
 ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
                                             uword pc,
                                             StackFrame* frame,
@@ -1095,26 +1028,15 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
     // in the current frame before making the call.
     const Context& closure_call_ctx =
         Context::Handle(isolate, activation->GetSavedCurrentContext());
+    ASSERT(!closure_call_ctx.IsNull());
     activation->SetContext(closure_call_ctx);
-
-    // Sometimes there is no saved context. This is a bug.
-    // https://code.google.com/p/dart/issues/detail?id=12767
-    if ((FLAG_verbose_debug || FLAG_use_new_stacktrace) &&
-        closure_call_ctx.IsNull()) {
-      PrintStackTraceError(
-          "Expected to find saved context for call to closure function",
-          activation, callee_activation);
-      if (FLAG_use_new_stacktrace) {
-        UNREACHABLE();  // This bug should be fixed with new stack collection.
-      }
-    }
 
   } else {
     // Use the context provided by our callee.  This is either the
     // callee's context or a context that was saved in the callee's
     // frame.
     const Context& callee_ctx =
-        Context::Handle(isolate, callee_activation->GetSavedEntryContextNew());
+        Context::Handle(isolate, callee_activation->GetSavedEntryContext());
     activation->SetContext(callee_ctx);
   }
   return activation;
@@ -1144,7 +1066,7 @@ RawArray* Debugger::DeoptimizeToArray(Isolate* isolate,
 }
 
 
-DebuggerStackTrace* Debugger::CollectStackTraceNew() {
+DebuggerStackTrace* Debugger::CollectStackTrace() {
   Isolate* isolate = Isolate::Current();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   StackFrameIterator iterator(false);
@@ -1200,70 +1122,6 @@ DebuggerStackTrace* Debugger::CollectStackTraceNew() {
 }
 
 
-
-DebuggerStackTrace* Debugger::CollectStackTrace() {
-  if (FLAG_use_new_stacktrace) {
-    // Guard new stack trace generation under a flag in case there are
-    // problems rolling it out.
-    return CollectStackTraceNew();
-  }
-  Isolate* isolate = Isolate::Current();
-  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
-  Context& ctx = Context::Handle(isolate->top_context());
-  Code& code = Code::Handle(isolate);
-  StackFrameIterator iterator(false);
-  ActivationFrame* callee_activation = NULL;
-  bool optimized_frame_found = false;
-  for (StackFrame* frame = iterator.NextFrame();
-       frame != NULL;
-       frame = iterator.NextFrame()) {
-    ASSERT(frame->IsValid());
-    if (frame->IsDartFrame()) {
-      code = frame->LookupDartCode();
-      ActivationFrame* activation =
-          new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code,
-                              Object::null_array(), 0);
-      // If this activation frame called a closure, the function has
-      // saved its context before the call.
-      if ((callee_activation != NULL) &&
-          (callee_activation->function().IsClosureFunction())) {
-        ctx = activation->GetSavedCurrentContext();
-        if (FLAG_verbose_debug && ctx.IsNull()) {
-          const Function& caller = activation->function();
-          const Function& callee = callee_activation->function();
-          const Script& script =
-              Script::Handle(Class::Handle(caller.Owner()).script());
-          intptr_t line, col;
-          script.GetTokenLocation(activation->TokenPos(), &line, &col);
-          OS::Print("CollectStackTrace error: no saved context in function "
-              "'%s' which calls closure '%s' "
-              " in line %" Pd " column %" Pd "\n",
-              caller.ToFullyQualifiedCString(),
-              callee.ToFullyQualifiedCString(),
-              line, col);
-        }
-      }
-      if (optimized_frame_found || code.is_optimized()) {
-        // Set context to null, to avoid returning bad context variable values.
-        activation->SetContext(Context::Handle());
-        optimized_frame_found = true;
-      } else {
-        ASSERT(!ctx.IsNull());
-        activation->SetContext(ctx);
-      }
-      stack_trace->AddActivation(activation);
-      callee_activation = activation;
-      // Get caller's context if this function saved it on entry.
-      ctx = activation->GetSavedEntryContext(ctx);
-    } else if (frame->IsEntryFrame()) {
-      ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
-      callee_activation = NULL;
-    }
-  }
-  return stack_trace;
-}
-
-
 ActivationFrame* Debugger::TopDartFrame() const {
   StackFrameIterator iterator(false);
   StackFrame* frame = iterator.NextFrame();
@@ -1283,7 +1141,7 @@ DebuggerStackTrace* Debugger::StackTrace() {
 }
 
 DebuggerStackTrace* Debugger::CurrentStackTrace() {
-  return CollectStackTraceNew();
+  return CollectStackTrace();
 }
 
 DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {

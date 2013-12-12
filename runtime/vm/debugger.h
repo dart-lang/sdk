@@ -167,8 +167,7 @@ class ActivationFrame : public ZoneAllocated {
                   Instance* value);
 
   RawArray* GetLocalVariables();
-  RawContext* GetSavedEntryContext(const Context& ctx);
-  RawContext* GetSavedEntryContextNew();
+  RawContext* GetSavedEntryContext();
   RawContext* GetSavedCurrentContext();
 
  private:
@@ -386,7 +385,6 @@ class Debugger {
   void SyncBreakpoint(SourceBreakpoint* bpt);
 
   ActivationFrame* TopDartFrame() const;
-  static DebuggerStackTrace* CollectStackTrace();
   static ActivationFrame* CollectDartFrame(Isolate* isolate,
                                            uword pc,
                                            StackFrame* frame,
@@ -398,7 +396,7 @@ class Debugger {
   static RawArray* DeoptimizeToArray(Isolate* isolate,
                                      StackFrame* frame,
                                      const Code& code);
-  static DebuggerStackTrace* CollectStackTraceNew();
+  static DebuggerStackTrace* CollectStackTrace();
   void SignalBpResolved(SourceBreakpoint *bpt);
   void SignalPausedEvent(ActivationFrame* top_frame,
                          SourceBreakpoint* bpt);
