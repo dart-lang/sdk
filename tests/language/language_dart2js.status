@@ -137,6 +137,7 @@ mixin_mixin7_test: RuntimeError # Issue 13109.
 mixin_regress_13688_test: RuntimeError # Issue 13109.
 modulo_test: RuntimeError # Issue 15246
 truncdiv_test: RuntimeError # Issue 15246
+invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
 
 # Compilation errors.
 const_var_test: CompileTimeError # Issue 12793

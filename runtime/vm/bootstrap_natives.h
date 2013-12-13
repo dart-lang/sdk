@@ -25,7 +25,6 @@ namespace dart {
   V(Function_apply, 2)                                                         \
   V(FunctionImpl_equals, 2)                                                    \
   V(FunctionImpl_hashCode, 1)                                                  \
-  V(InvocationMirror_invoke, 4)                                                \
   V(AbstractType_toString, 1)                                                  \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \

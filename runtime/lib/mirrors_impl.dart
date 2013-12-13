@@ -262,8 +262,6 @@ abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
 
 class _LocalInstanceMirror extends _LocalObjectMirror
     implements InstanceMirror {
-  // TODO(ahe): This is a hack, see delegate below.
-  static Function _invokeOnClosure;
 
   _LocalInstanceMirror(reflectee) : super(reflectee);
 
@@ -283,17 +281,22 @@ class _LocalInstanceMirror extends _LocalObjectMirror
   get reflectee => _reflectee;
 
   delegate(Invocation invocation) {
-    if (_invokeOnClosure == null) {
-      // TODO(ahe): This is a total hack.  We're using the mirror
-      // system to access a private field in a different library.  For
-      // some reason, that works.  On the other hand, calling a
-      // private method does not work.
-      ClassMirror invocationImplClass = reflect(invocation).type;
-      Symbol fieldName = MirrorSystem.getSymbol('_invokeOnClosure',
-                                                invocationImplClass.owner);
-      _invokeOnClosure = invocationImplClass.getField(fieldName).reflectee;
+    if (invocation.isMethod) {
+      return this.invoke(invocation.memberName,
+                         invocation.positionalArguments,
+                         invocation.namedArguments).reflectee;
     }
-    return _invokeOnClosure(reflectee, invocation);
+    if (invocation.isGetter) {
+      return this.getField(invocation.memberName).reflectee;
+    }
+    if (invocation.isSetter) {
+      var unwrapped = _n(invocation.memberName);
+      var withoutEqual = _s(unwrapped.substring(0, unwrapped.length - 1));
+      var arg = invocation.positionalArguments[0];
+      this.setField(withoutEqual, arg).reflectee;
+      return arg;
+    }
+    throw "UNREACHABLE";
   }
 
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';

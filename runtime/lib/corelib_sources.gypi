@@ -32,7 +32,6 @@
     'integers.cc',
     'integers.dart',
     'integers_patch.dart',
-    'invocation_mirror.cc',
     'invocation_mirror.h',
     'invocation_mirror_patch.dart',
     'map_patch.dart',
