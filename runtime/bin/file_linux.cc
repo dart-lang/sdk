@@ -11,6 +11,7 @@
 #include <fcntl.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <sys/types.h>  // NOLINT
+#include <sys/sendfile.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #include <libgen.h>  // NOLINT
 
@@ -215,6 +216,47 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
     errno = EISDIR;
   } else {
     errno = EINVAL;
+  }
+  return false;
+}
+
+
+bool File::Copy(const char* old_path, const char* new_path) {
+  File::Type type = File::GetType(old_path, true);
+  if (type == kIsFile) {
+    struct stat64 st;
+    if (TEMP_FAILURE_RETRY(stat64(old_path, &st)) != 0) {
+      return false;
+    }
+    int old_fd = TEMP_FAILURE_RETRY(open64(old_path, O_RDONLY | O_CLOEXEC));
+    if (old_fd < 0) {
+      return false;
+    }
+    int new_fd = TEMP_FAILURE_RETRY(
+        open64(new_path, O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC, st.st_mode));
+    if (new_fd < 0) {
+      VOID_TEMP_FAILURE_RETRY(close(old_fd));
+      return false;
+    }
+    off64_t offset = 0;
+    int bytes = 1;
+    while (bytes > 0) {
+      // Loop to ensure we copy everything, and not only up to 2GB.
+      bytes = TEMP_FAILURE_RETRY(sendfile64(new_fd, old_fd, &offset, -1));
+    }
+    if (bytes < 0) {
+      int e = errno;
+      VOID_TEMP_FAILURE_RETRY(close(old_fd));
+      VOID_TEMP_FAILURE_RETRY(close(new_fd));
+      VOID_TEMP_FAILURE_RETRY(unlink(new_path));
+      errno = e;
+      return false;
+    }
+    return true;
+  } else if (type == kIsDirectory) {
+    errno = EISDIR;
+  } else {
+    errno = ENOENT;
   }
   return false;
 }

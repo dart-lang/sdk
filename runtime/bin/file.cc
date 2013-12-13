@@ -503,6 +503,22 @@ void FUNCTION_NAME(File_RenameLink)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_Copy)(Dart_NativeArguments args) {
+  const char* old_path =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  const char* new_path =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+  bool result = File::Copy(old_path, new_path);
+  if (result) {
+    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+}
+
+
 void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
   const char* str =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
@@ -699,6 +715,20 @@ CObject* File::RenameRequest(const CObjectArray& request) {
     CObjectString old_path(request[0]);
     CObjectString new_path(request[1]);
     bool completed = File::Rename(old_path.CString(), new_path.CString());
+    if (completed) return CObject::True();
+    return CObject::NewOSError();
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+CObject* File::CopyRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[0]->IsString() &&
+      request[1]->IsString()) {
+    CObjectString old_path(request[0]);
+    CObjectString new_path(request[1]);
+    bool completed = File::Copy(old_path.CString(), new_path.CString());
     if (completed) return CObject::True();
     return CObject::NewOSError();
   }

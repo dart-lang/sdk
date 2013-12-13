@@ -9,6 +9,7 @@
 
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
+#include <copyfile.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #include <libgen.h>  // NOLINT
@@ -216,6 +217,19 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
     errno = EISDIR;
   } else {
     errno = EINVAL;
+  }
+  return false;
+}
+
+
+bool File::Copy(const char* old_path, const char* new_path) {
+  File::Type type = File::GetType(old_path, true);
+  if (type == kIsFile) {
+    return copyfile(old_path, new_path, NULL, COPYFILE_ALL) == 0;
+  } else if (type == kIsDirectory) {
+    errno = EISDIR;
+  } else {
+    errno = ENOENT;
   }
   return false;
 }

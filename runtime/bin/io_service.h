@@ -18,40 +18,41 @@ namespace bin {
   V(File, Create, 1)                                                           \
   V(File, Delete, 2)                                                           \
   V(File, Rename, 3)                                                           \
-  V(File, Open, 4)                                                             \
-  V(File, ResolveSymbolicLinks, 5)                                             \
-  V(File, Close, 6)                                                            \
-  V(File, Position, 7)                                                         \
-  V(File, SetPosition, 8)                                                      \
-  V(File, Truncate, 9)                                                         \
-  V(File, Length, 10)                                                          \
-  V(File, LengthFromPath, 11)                                                  \
-  V(File, LastModified, 12)                                                    \
-  V(File, Flush, 13)                                                           \
-  V(File, ReadByte, 14)                                                        \
-  V(File, WriteByte, 15)                                                       \
-  V(File, Read, 16)                                                            \
-  V(File, ReadInto, 17)                                                        \
-  V(File, WriteFrom, 18)                                                       \
-  V(File, CreateLink, 19)                                                      \
-  V(File, DeleteLink, 20)                                                      \
-  V(File, RenameLink, 21)                                                      \
-  V(File, LinkTarget, 22)                                                      \
-  V(File, Type, 23)                                                            \
-  V(File, Identical, 24)                                                       \
-  V(File, Stat, 25)                                                            \
-  V(Socket, Lookup, 26)                                                        \
-  V(Socket, ListInterfaces, 27)                                                \
-  V(Socket, ReverseLookup, 28)                                                 \
-  V(Directory, Create, 29)                                                     \
-  V(Directory, Delete, 30)                                                     \
-  V(Directory, Exists, 31)                                                     \
-  V(Directory, CreateTemp, 32)                                                 \
-  V(Directory, ListStart, 33)                                                  \
-  V(Directory, ListNext, 34)                                                   \
-  V(Directory, ListStop, 35)                                                   \
-  V(Directory, Rename, 36)                                                     \
-  V(SSLFilter, ProcessFilter, 37)
+  V(File, Copy, 4)                                                             \
+  V(File, Open, 5)                                                             \
+  V(File, ResolveSymbolicLinks, 6)                                             \
+  V(File, Close, 7)                                                            \
+  V(File, Position, 8)                                                         \
+  V(File, SetPosition, 9)                                                      \
+  V(File, Truncate, 10)                                                        \
+  V(File, Length, 11)                                                          \
+  V(File, LengthFromPath, 12)                                                  \
+  V(File, LastModified, 13)                                                    \
+  V(File, Flush, 14)                                                           \
+  V(File, ReadByte, 15)                                                        \
+  V(File, WriteByte, 16)                                                       \
+  V(File, Read, 17)                                                            \
+  V(File, ReadInto, 18)                                                        \
+  V(File, WriteFrom, 19)                                                       \
+  V(File, CreateLink, 20)                                                      \
+  V(File, DeleteLink, 21)                                                      \
+  V(File, RenameLink, 22)                                                      \
+  V(File, LinkTarget, 23)                                                      \
+  V(File, Type, 24)                                                            \
+  V(File, Identical, 25)                                                       \
+  V(File, Stat, 26)                                                            \
+  V(Socket, Lookup, 27)                                                        \
+  V(Socket, ListInterfaces, 28)                                                \
+  V(Socket, ReverseLookup, 29)                                                 \
+  V(Directory, Create, 30)                                                     \
+  V(Directory, Delete, 31)                                                     \
+  V(Directory, Exists, 32)                                                     \
+  V(Directory, CreateTemp, 33)                                                 \
+  V(Directory, ListStart, 34)                                                  \
+  V(Directory, ListNext, 35)                                                   \
+  V(Directory, ListStop, 36)                                                   \
+  V(Directory, Rename, 37)                                                     \
+  V(SSLFilter, ProcessFilter, 38)
 
 #define DECLARE_REQUEST(type, method, id)                                      \
   k##type##method##Request = id,

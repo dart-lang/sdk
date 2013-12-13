@@ -107,6 +107,26 @@ abstract class File implements FileSystemEntity {
   File renameSync(String newPath);
 
   /**
+   * Copy this file. Returns a `Future<File>` that completes
+   * with a [File] instance for the copied file.
+   *
+   * If [newPath] identifies an existing file, that file is
+   * replaced. If [newPath] identifies an existing directory, the
+   * operation fails and the future completes with an exception.
+   */
+  Future<File> copy(String newPath);
+
+   /**
+   * Synchronously copy this file. Returns a [File]
+   * instance for the copied file.
+   *
+   * If [newPath] identifies an existing file, that file is
+   * replaced. If [newPath] identifies an existing directory the
+   * operation fails and an exception is thrown.
+   */
+  File copySync(String newPath);
+
+  /**
    * Get the length of the file. Returns a [:Future<int>:] that
    * completes with the length in bytes.
    */

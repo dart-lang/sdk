@@ -327,6 +327,24 @@ class _File extends FileSystemEntity implements File {
     return new File(newPath);
   }
 
+  Future<File> copy(String newPath) {
+    return _IOService.dispatch(_FILE_COPY, [path, newPath]).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(
+            response, "Cannot copy file to '$newPath'", path);
+      }
+      return new File(newPath);
+    });
+  }
+
+  external static _copy(String oldPath, String newPath);
+
+  File copySync(String newPath) {
+    var result = _copy(path, newPath);
+    throwIfError(result, "Cannot copy file to '$newPath'", path);
+    return new File(newPath);
+  }
+
   Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
