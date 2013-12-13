@@ -5,6 +5,9 @@ package. We will also note important changes to the polyfill packages if they
 impact polymer: custom_element, html_import, observe, shadow_dom,
 and template_binding.
 
+#### Pub version 0.9.3
+  * pub-build now runs the linter automatically
+
 #### Pub version 0.9.2+4
   * fix linter on SVG and MathML tags with XML namespaces
 
