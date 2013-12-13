@@ -23,17 +23,56 @@ UNIT_TEST_CASE(IsolateCurrent) {
 TEST_CASE(IsolateSpawn) {
   const char* kScriptChars =
       "import 'dart:isolate';\n"
+      // Ignores printed lines.
+      "var _nullPrintClosure = (String line) {};\n"
       "void entry(message) {}\n"
       "int testMain() {\n"
-      "  try {\n"
-      "    Isolate.spawn(entry, null);\n"
-      "  } catch (e) {\n"
-      "    rethrow;\n"
-      "  }\n"
-      "  return 0;\n"
+      "  Isolate.spawn(entry, null);\n"
+      // TODO(floitsch): the following code is only to bump the event loop
+      // so it executes asynchronous microtasks.
+      "  var rp = new RawReceivePort();\n"
+      "  rp.sendPort.send(null);\n"
+      "  rp.handler = (_) { rp.close(); };\n"
       "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+
+  Dart_Handle test_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Setup the internal library's 'internalPrint' function.
+  // Necessary because asynchronous errors use "print" to print their
+  // stack trace.
+  Dart_Handle url = NewString("dart:_collection-dev");
+  DART_CHECK_VALID(url);
+  Dart_Handle internal_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(internal_lib);
+  Dart_Handle print = Dart_GetField(test_lib, NewString("_nullPrintClosure"));
+  Dart_Handle result = Dart_SetField(internal_lib,
+                                     NewString("_printClosure"),
+                                     print);
+
+  DART_CHECK_VALID(result);
+
+  // Setup the 'scheduleImmediate' closure.
+  url = NewString("dart:isolate");
+  DART_CHECK_VALID(url);
+  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(isolate_lib);
+  Dart_Handle schedule_immediate_closure =
+      Dart_Invoke(isolate_lib, NewString("_getIsolateScheduleImmediateClosure"),
+                  0, NULL);
+  Dart_Handle args[1];
+  args[0] = schedule_immediate_closure;
+  url = NewString("dart:async");
+  DART_CHECK_VALID(url);
+  Dart_Handle async_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(async_lib);
+  DART_CHECK_VALID(Dart_Invoke(
+      async_lib, NewString("_setScheduleImmediateClosure"), 1, args));
+
+
+  result = Dart_Invoke(test_lib, NewString("testMain"), 0, NULL);
+  EXPECT(!Dart_IsError(result));
+  // Run until all ports to isolate are closed.
+  result = Dart_RunLoop();
   EXPECT_ERROR(result, "Null callback specified for isolate creation");
   EXPECT(Dart_ErrorHasException(result));
   Dart_Handle exception_result = Dart_ErrorGetException(result);

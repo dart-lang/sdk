@@ -12,23 +12,31 @@ import 'dart:_isolate_helper' show IsolateNatives,
 
 patch class Isolate {
   patch static Future<Isolate> spawn(void entryPoint(message), var message) {
-    return IsolateNatives.spawnFunction(entryPoint, message)
-        .then((controlPort) => new Isolate._fromControlPort(controlPort));
+    try {
+      return IsolateNatives.spawnFunction(entryPoint, message)
+          .then((controlPort) => new Isolate._fromControlPort(controlPort));
+    } catch (e, st) {
+      return new Future<Isolate>.error(e, st);
+    }
   }
 
   patch static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message) {
-    if (args is List<String>) {
-      for (int i = 0; i < args.length; i++) {
-        if (args[i] is! String) {
-          throw new ArgumentError("Args must be a list of Strings $args");
+    try {
+      if (args is List<String>) {
+        for (int i = 0; i < args.length; i++) {
+          if (args[i] is! String) {
+            throw new ArgumentError("Args must be a list of Strings $args");
+          }
         }
+      } else if (args != null) {
+        throw new ArgumentError("Args must be a list of Strings $args");
       }
-    } else if (args != null) {
-      throw new ArgumentError("Args must be a list of Strings $args");
+      return IsolateNatives.spawnUri(uri, args, message)
+          .then((controlPort) => new Isolate._fromControlPort(controlPort));
+    } catch (e, st) {
+      return new Future<Isolate>.error(e, st);
     }
-    return IsolateNatives.spawnUri(uri, args, message)
-        .then((controlPort) => new Isolate._fromControlPort(controlPort));
   }
 }
 

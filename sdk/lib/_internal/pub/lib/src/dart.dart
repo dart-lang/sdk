@@ -127,11 +127,9 @@ Future runInIsolate(String code, message) {
 /// Adding an additional isolate in the middle works around this.
 void _isolateBuffer(message) {
   var replyTo = message['replyTo'];
-  // TODO(floitsch): If we do it right we shouldn't need to capture synchronous
-  // errors.
-  new Future.sync(() {
-    return Isolate.spawnUri(Uri.parse(message['uri']), [], message['message']);
-  }).then((_) => replyTo.send({'type': 'success'})).catchError((e, stack) {
+  Isolate.spawnUri(Uri.parse(message['uri']), [], message['message'])
+      .then((_) => replyTo.send({'type': 'success'}))
+      .catchError((e, stack) {
     replyTo.send({
       'type': 'error',
       'error': CrossIsolateException.serialize(e, stack)

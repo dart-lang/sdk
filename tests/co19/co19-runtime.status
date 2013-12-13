@@ -33,8 +33,10 @@ LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage 
 LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
 
+LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15617
 LibTest/isolate/Isolate/spawnUri_A02_t02: Timeout # co19-roll r672: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A02_t03: Timeout # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
 
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure

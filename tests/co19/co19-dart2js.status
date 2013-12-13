@@ -62,6 +62,9 @@ LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
+LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15617
+LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
+
 [ $compiler == dart2js && $runtime != ie9 ]
 LibTest/typed_data/ByteData/ByteData_A02_t01: fail # co19-roll r576: Please triage this failure
 
@@ -648,8 +651,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t02: Fail # co19-roll r672: Please triage t
 LibTest/isolate/Isolate/spawnUri_A01_t03: Fail # co19-roll r672: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t04: Fail # co19-roll r672: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # co19-roll r672: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A02_t02: Fail # co19-roll r672: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A02_t03: Fail # co19-roll r672: Please triage this failure
 
 [ $compiler == dart2js ]
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
