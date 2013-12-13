@@ -8,7 +8,7 @@ name: barback
 # When the minor version of this is upgraded, you *must* update that version
 # number in pub to stay in sync with this. New patch versions are considered
 # backwards compatible, and pub will allow later patch versions automatically.
-version: 0.11.0 # Minor version bumped
+version: 0.11.0
 
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
