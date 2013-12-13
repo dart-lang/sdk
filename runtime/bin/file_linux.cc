@@ -242,7 +242,8 @@ bool File::Copy(const char* old_path, const char* new_path) {
     int bytes = 1;
     while (bytes > 0) {
       // Loop to ensure we copy everything, and not only up to 2GB.
-      bytes = TEMP_FAILURE_RETRY(sendfile64(new_fd, old_fd, &offset, -1));
+      bytes = TEMP_FAILURE_RETRY(
+          sendfile64(new_fd, old_fd, &offset, kMaxUint32));
     }
     if (bytes < 0) {
       int e = errno;
