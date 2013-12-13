@@ -237,7 +237,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
       VOID_TEMP_FAILURE_RETRY(close(old_fd));
       return false;
     }
-    off64_t offset = 0;
+    off_t offset = 0;
     int result = 1;
     while (result > 0) {
       // Loop to ensure we copy everything, and not only up to 2GB.
