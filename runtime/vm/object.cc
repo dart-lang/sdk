@@ -11434,7 +11434,7 @@ const char* Instance::ToCString() const {
 }
 
 
-const char* Instance::ToUserCString(intptr_t maxLen) const {
+const char* Instance::ToUserCString(intptr_t max_len, intptr_t nesting) const {
   if (raw() == Object::sentinel().raw()) {
     return "<not initialized>";
   } else if (raw() == Object::transition_sentinel().raw()) {
@@ -14433,33 +14433,34 @@ const char* String::ToCString() const {
 }
 
 
-static bool IsAsciiPrintChar(intptr_t codePoint) {
-  return codePoint >= ' ' && codePoint <= '~';
+static bool IsAsciiPrintChar(intptr_t code_point) {
+  return code_point >= ' ' && code_point <= '~';
 }
 
 
 // Does not null-terminate.
-intptr_t String::EscapedString(char* buffer, int maxLen) const {
+intptr_t String::EscapedString(char* buffer, int max_len) const {
   int pos = 0;
 
   CodePointIterator cpi(*this);
   while (cpi.Next()) {
-    int32_t codePoint = cpi.Current();
-    if (IsSpecialCharacter(codePoint)) {
-      if (pos + 2 > maxLen) {
+    int32_t code_point = cpi.Current();
+    if (IsSpecialCharacter(code_point)) {
+      if (pos + 2 > max_len) {
         return pos;
       }
       buffer[pos++] = '\\';
-      buffer[pos++] = SpecialCharacter(codePoint);
-    } else if (IsAsciiPrintChar(codePoint)) {
-      buffer[pos++] = codePoint;
+      buffer[pos++] = SpecialCharacter(code_point);
+    } else if (IsAsciiPrintChar(code_point)) {
+      buffer[pos++] = code_point;
     } else {
-      if (pos + 6 > maxLen) {
+      if (pos + 6 > max_len) {
         return pos;
       }
-      pos += OS::SNPrint((buffer + pos), (maxLen - pos), "\\u%04x", codePoint);
+      pos += OS::SNPrint((buffer + pos), (max_len - pos),
+                         "\\u%04x", code_point);
     }
-    if (pos == maxLen) {
+    if (pos == max_len) {
       return pos;
     }
   }
@@ -14467,20 +14468,20 @@ intptr_t String::EscapedString(char* buffer, int maxLen) const {
 }
 
 
-intptr_t String::EscapedStringLen(intptr_t tooLong) const {
+intptr_t String::EscapedStringLen(intptr_t too_long) const {
   intptr_t len = 0;
 
   CodePointIterator cpi(*this);
   while (cpi.Next()) {
-    int32_t codePoint = cpi.Current();
-    if (IsSpecialCharacter(codePoint)) {
+    int32_t code_point = cpi.Current();
+    if (IsSpecialCharacter(code_point)) {
       len += 2;  // e.g. "\n"
-    } else if (IsAsciiPrintChar(codePoint)) {
+    } else if (IsAsciiPrintChar(code_point)) {
       len += 1;
     } else {
       len += 6;  // e.g. "\u0000".
     }
-    if (len > tooLong) {
+    if (len > too_long) {
       // No point going further.
       break;
     }
@@ -14489,36 +14490,36 @@ intptr_t String::EscapedStringLen(intptr_t tooLong) const {
 }
 
 
-const char* String::ToUserCString(intptr_t maxLen) const {
+const char* String::ToUserCString(intptr_t max_len, intptr_t nesting) const {
   // Compute the needed length for the buffer.
-  const intptr_t escapedLen = EscapedStringLen(maxLen);
-  intptr_t printLen = escapedLen;
-  intptr_t bufferLen = escapedLen + 2;  // +2 for quotes.
-  if (bufferLen > maxLen) {
-    bufferLen = maxLen;     // Truncate.
-    printLen = maxLen - 5;  // -2 for quotes, -3 for elipsis.
+  const intptr_t escaped_len = EscapedStringLen(max_len);
+  intptr_t print_len = escaped_len;
+  intptr_t buffer_len = escaped_len + 2;  // +2 for quotes.
+  if (buffer_len > max_len) {
+    buffer_len = max_len;     // Truncate.
+    print_len = max_len - 5;  // -2 for quotes, -3 for elipsis.
   }
 
   // Allocate the buffer.
   Zone* zone = Isolate::Current()->current_zone();
-  char* buffer = zone->Alloc<char>(bufferLen + 1);
+  char* buffer = zone->Alloc<char>(buffer_len + 1);
 
   // Leading quote.
   intptr_t pos = 0;
   buffer[pos++] = '\"';
 
   // Print escaped string.
-  pos += EscapedString((buffer + pos), printLen);
+  pos += EscapedString((buffer + pos), print_len);
 
   // Trailing quote.
   buffer[pos++] = '\"';
 
-  if (printLen < escapedLen) {
+  if (print_len < escaped_len) {
     buffer[pos++] = '.';
     buffer[pos++] = '.';
     buffer[pos++] = '.';
   }
-  ASSERT(pos <= bufferLen);
+  ASSERT(pos <= buffer_len);
   buffer[pos++] = '\0';
 
   return buffer;
@@ -15578,6 +15579,107 @@ const char* GrowableObjectArray::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
   return chars;
+}
+
+
+const char* GrowableObjectArray::ToUserCString(intptr_t max_len,
+                                               intptr_t nesting) const {
+  if (Length() == 0) {
+    return "[]";
+  }
+  if (nesting > 3) {
+    return "[...]";
+  }
+
+  Isolate* isolate = Isolate::Current();
+  Zone* zone = isolate->current_zone();
+  Object& obj = Object::Handle(isolate);
+  Instance& element = Instance::Handle(isolate);
+
+  // Pre-print the suffix that we will use if the string is truncated.
+  // It is important to know the suffix length when deciding where to
+  // limit the list.
+  const intptr_t kMaxTruncSuffixLen = 16;
+  char trunc_suffix[kMaxTruncSuffixLen];
+  intptr_t trunc_suffix_len;
+  if (nesting == 0) {
+    trunc_suffix_len = OS::SNPrint(trunc_suffix, 16, "...](length:%" Pd ")",
+                                   Length());
+  } else {
+    trunc_suffix_len = OS::SNPrint(trunc_suffix, 16, "...]");
+  }
+  bool truncate = false;
+
+  const int kMaxPrintElements = 128;
+  const char* strings[kMaxPrintElements];
+  intptr_t print_len = 1;  // +1 for "["
+
+  // Figure out how many elements will fit in the string.
+  int i = 0;
+  while (i < Length()) {
+    if (i == kMaxPrintElements) {
+      if (i < Length()) {
+        truncate = true;
+      }
+      break;
+    }
+    obj = At(i);
+    if (!obj.IsInstance()) {
+      // Bail.
+      UNREACHABLE();
+      return "[<invalid list>]";
+    }
+    element ^= obj.raw();
+
+    // Choose max child length.  This is chosen so that it is small
+    // enough to maybe fit but not so small that we can't print
+    // anything.
+    int child_max_len = max_len - print_len;
+    if ((i + 1) < Length()) {
+      child_max_len -= (trunc_suffix_len + 1);  // 1 for ","
+    } else {
+      child_max_len -= 1;  // 1 for "]"
+    }
+    if (child_max_len < 8) {
+      child_max_len = 8;
+    }
+
+    strings[i] = element.ToUserCString(child_max_len,  nesting + 1);
+    print_len += strlen(strings[i]) + 1;  // +1 for "," or "]"
+    i++;
+    if (print_len > max_len) {
+      truncate = true;
+      break;
+    }
+  }
+  if (truncate) {
+    // Go backwards until there is enough room for the truncation suffix.
+    while (i >= 0 && (print_len + trunc_suffix_len) > max_len) {
+      i--;
+      print_len -= (strlen(strings[i]) + 1);  // +1 for ","
+    }
+  }
+
+  // Finally, allocate and print the string.
+  int num_to_print = i;
+  char* buffer = zone->Alloc<char>(print_len + 1);  // +1 for "\0"
+  intptr_t pos = 0;
+  buffer[pos++] = '[';
+  for (i = 0; i < num_to_print; i++) {
+    if ((i + 1) == Length()) {
+      pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos),
+                         "%s]", strings[i]);
+    } else {
+      pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos),
+                         "%s,", strings[i]);
+    }
+  }
+  if (i < Length()) {
+    pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos), "%s", trunc_suffix);
+  }
+  ASSERT(pos <= max_len);
+  buffer[pos] = '\0';
+  return buffer;
 }
 
 
