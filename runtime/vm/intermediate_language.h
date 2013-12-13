@@ -2663,7 +2663,6 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   DECLARE_INSTRUCTION(AssertAssignable)
   virtual CompileType* ComputeInitialType() const;
-  virtual bool RecomputeType();
 
   Value* value() const { return inputs_[0]; }
   Value* instantiator() const { return inputs_[1]; }

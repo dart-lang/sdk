@@ -62,9 +62,12 @@ void FlowGraphOptimizer::ApplyICData() {
 }
 
 
-// Optimize instance calls using cid.
+// Optimize instance calls using cid.  This is called after optimizer
+// converted instance calls to instructions. Any remaining
+// instance calls are either megamorphic calls, cannot be optimized or
+// have no runtime type feedback collected.
 // Attempts to convert an instance call (IC call) using propagated class-ids,
-// e.g., receiver class id, guarded-cid.
+// e.g., receiver class id, guarded-cid, or by guessing cid-s.
 void FlowGraphOptimizer::ApplyClassIds() {
   ASSERT(current_iterator_ == NULL);
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -96,18 +99,40 @@ void FlowGraphOptimizer::ApplyClassIds() {
 }
 
 
+// TODO(srdjan): Test/support other number types as well.
+static bool IsNumberCid(intptr_t cid) {
+  return (cid == kSmiCid) || (cid == kDoubleCid);
+}
+
+
 // Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfChecks() > 0) {
-    // This occurs when an instance call has too many checks.
+    // This occurs when an instance call has too many checks, will be converted
+    // to megamorphic call.
     return false;
   }
   GrowableArray<intptr_t> class_ids(call->ic_data()->num_args_tested());
   ASSERT(call->ic_data()->num_args_tested() <= call->ArgumentCount());
   for (intptr_t i = 0; i < call->ic_data()->num_args_tested(); i++) {
-    intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
+    const intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
     class_ids.Add(cid);
+  }
+
+  const Token::Kind op_kind = call->token_kind();
+  if (Token::IsRelationalOperator(op_kind) ||
+      Token::IsRelationalOperator(op_kind) ||
+      Token::IsBinaryOperator(op_kind)) {
+    // Guess cid: if one of the inputs is a number assume that the other
+    // is a number of same type.
+    const intptr_t cid_0 = class_ids[0];
+    const intptr_t cid_1 = class_ids[1];
+    if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
+      class_ids[0] = cid_1;
+    } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
+      class_ids[1] = cid_0;
+    }
   }
 
   for (intptr_t i = 0; i < class_ids.length(); i++) {

@@ -770,18 +770,6 @@ CompileType* AssertAssignableInstr::ComputeInitialType() const {
 }
 
 
-bool AssertAssignableInstr::RecomputeType() {
-  CompileType* value_type = value()->Type();
-  if (value_type == Type()) {
-    return false;
-  }
-
-  return UpdateType(value_type->IsMoreSpecificThan(dst_type())
-      ? *value_type
-      : CompileType::FromAbstractType(dst_type()));
-}
-
-
 CompileType AssertBooleanInstr::ComputeType() const {
   return CompileType::Bool();
 }
