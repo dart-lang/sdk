@@ -509,6 +509,26 @@ class Traverser {
         var dependencies = _getDependencies(dep.name);
         dependencies.add(new Dependency(depender, dep));
 
+        // If the package is barback, pub has an implicit version constraint on it
+        // since pub itself uses barback too. Note that we don't check for the
+        // hosted source here because we still want to do this even when people on
+        // the Dart team are on the bleeding edge and have a path dependency on the
+        // tip version of barback in the Dart repo.
+        if (dep.name == "barback" && dependencies.length == 1) {
+          var range = new VersionRange(
+              min: barback.supportedVersion, includeMin: true,
+              max: barback.supportedVersion.nextMinor, includeMax: false);
+          _solver.logSolve('add implicit $range pub dependency on barback');
+
+          // Use the same source and description as the explicit dependency.
+          // That way, this doesn't fail with a source/desc conflict if users
+          // (like Dart team members) use things like a path dependency to
+          // find barback.
+          var barbackDep = new PackageDep(dep.name, dep.source, range,
+              dep.description);
+          dependencies.add(new Dependency("pub", barbackDep));
+        }
+
         var constraint = _getConstraint(dep.name);
 
         // See if it's possible for a package to match that constraint.
@@ -638,19 +658,6 @@ class Traverser {
     var constraint = _getDependencies(name)
         .map((dep) => dep.dep.constraint)
         .fold(VersionConstraint.any, (a, b) => a.intersect(b));
-
-    // If the package is barback, pub has an implicit version constraint on it
-    // since pub itself uses barback too. Note that we don't check for the
-    // hosted source here because we still want to do this even when people on
-    // the Dart team are on the bleeding edge and have a path dependency on the
-    // tip version of barback in the Dart repo.
-    if (name == "barback") {
-      var range = new VersionRange(
-          min: barback.supportedVersion, includeMin: true,
-          max: barback.supportedVersion.nextMinor, includeMax: false);
-      constraint = constraint.intersect(range);
-      _solver.logSolve('add implicit $range constraint to barback');
-    }
 
     return constraint;
   }

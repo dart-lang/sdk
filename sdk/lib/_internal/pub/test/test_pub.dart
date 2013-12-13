@@ -147,6 +147,7 @@ Future _closeServer() {
   if (_server == null) return new Future.value();
   var future = _server.close();
   _server = null;
+  _hasServer = false;
   _portCompleterCache = null;
   return future;
 }

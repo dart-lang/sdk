@@ -10,16 +10,19 @@ import '../lib/src/version.dart';
 main() {
   initConfig();
 
-  var previousVersion = new Version(
-      barback.supportedVersion.major, barback.supportedVersion.minor - 1, 0);
+  var current = barback.supportedVersion.toString();
+  var previous = new Version(barback.supportedVersion.major,
+      barback.supportedVersion.minor - 1, 0).toString();
+  var nextPatch = barback.supportedVersion.nextPatch.toString();
+  var max = barback.supportedVersion.nextMinor.toString();
 
   forBothPubGetAndUpgrade((command) {
     integration("implicitly constrains barback to versions pub supports", () {
       servePackages([
-        packageMap("barback", previousVersion.toString()),
-        packageMap("barback", barback.supportedVersion.toString()),
-        packageMap("barback", barback.supportedVersion.nextPatch.toString()),
-        packageMap("barback", barback.supportedVersion.nextMinor.toString())
+        packageMap("barback", previous),
+        packageMap("barback", current),
+        packageMap("barback", nextPatch),
+        packageMap("barback", max)
       ]);
 
       d.appDir({
@@ -35,10 +38,10 @@ main() {
 
     integration("discovers transitive dependency on barback", () {
       servePackages([
-        packageMap("barback", previousVersion.toString()),
-        packageMap("barback", barback.supportedVersion.toString()),
-        packageMap("barback", barback.supportedVersion.nextPatch.toString()),
-        packageMap("barback", barback.supportedVersion.nextMinor.toString())
+        packageMap("barback", previous),
+        packageMap("barback", current),
+        packageMap("barback", nextPatch),
+        packageMap("barback", max)
       ]);
 
       d.dir("foo", [
@@ -55,30 +58,78 @@ main() {
       pubCommand(command);
 
       d.packagesDir({
-        "barback": barback.supportedVersion.nextPatch.toString(),
+        "barback": nextPatch,
         "foo": "0.0.1"
+      }).validate();
+    });
+
+    integration("pub's implicit constraint uses the same source and "
+        "description as the explicit one", () {
+      d.dir('barback', [
+        d.libDir('barback', 'barback $current'),
+        d.libPubspec('barback', current)
+      ]).create();
+
+      d.dir(appPath, [
+        d.appPubspec({
+          "barback": {"path": "../barback"}
+        })
+      ]).create();
+
+      pubCommand(command);
+
+      d.packagesDir({
+        "barback": current
       }).validate();
     });
   });
 
   integration("unlock if the locked version doesn't meet pub's constraint", () {
     servePackages([
-      packageMap("barback", previousVersion.toString()),
-      packageMap("barback", barback.supportedVersion.toString())
+      packageMap("barback", previous),
+      packageMap("barback", current)
     ]);
 
     d.appDir({"barback": "any"}).create();
 
     // Hand-create a lockfile to pin barback to an older version.
     createLockFile("myapp", hosted: {
-      "barback": previousVersion.toString()
+      "barback": previous
     });
 
     pubGet();
 
     // It should be upgraded.
     d.packagesDir({
-      "barback": barback.supportedVersion.toString()
+      "barback": current
     }).validate();
+  });
+
+  integration("include pub in the error if a solve failed because there "
+      "is no version available", () {
+    servePackages([
+      packageMap("barback", previous)
+    ]);
+
+    d.appDir({"barback": "any"}).create();
+
+    pubGet(error: """
+Package 'barback' has no versions that match >=$current <$max derived from:
+- 'myapp' depends on version any
+- 'pub' depends on version >=$current <$max""");
+  });
+
+  integration("include pub in the error if a solve failed because there "
+      "is a disjoint constraint", () {
+    servePackages([
+      packageMap("barback", current)
+    ]);
+
+    d.appDir({"barback": previous}).create();
+
+    pubGet(error: """
+Incompatible version constraints on 'myapp':
+- 'myapp' depends on version $previous
+- 'pub' depends on version >=$current <$max""");
   });
 }
