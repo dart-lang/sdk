@@ -35,10 +35,13 @@ Timer _progressTimer;
 /// progress is done, a single entry will be added to the log for it.
 String _progressMessage;
 
+final _cyan = getSpecial('\u001b[36m');
 final _green = getSpecial('\u001b[32m');
+final _magenta = getSpecial('\u001b[35m');
 final _red = getSpecial('\u001b[31m');
 final _yellow = getSpecial('\u001b[33m');
 final _none = getSpecial('\u001b[0m');
+final _bold = getSpecial('\u001b[1m');
 
 /// An enum type for defining the different logging levels. By default, [ERROR]
 /// and [WARNING] messages are printed to sterr. [MESSAGE] messages are printed
@@ -218,16 +221,42 @@ Future progress(String message, Future callback()) {
   return callback().whenComplete(_stopProgress);
 }
 
+/// Wraps [text] in the ANSI escape codes to make it bold when on a platform
+/// that supports that.
+///
+/// Use this to highlight the most important piece of a long chunk of text.
+String bold(text) => "$_bold$text$_none";
+
+/// Wraps [text] in the ANSI escape codes to color it cyan when on a platform
+/// that supports that.
+///
+/// Use this to highlight something interesting but neither good nor bad.
+String cyan(text) => "$_cyan$text$_none";
+
 /// Wraps [text] in the ANSI escape codes to color it green when on a platform
 /// that supports that.
+///
+/// Use this to highlight something successful or otherwise positive.
 String green(text) => "$_green$text$_none";
+
+/// Wraps [text] in the ANSI escape codes to color it magenta when on a
+/// platform that supports that.
+///
+/// Use this to highlight something risky that the user should be aware of but
+/// may intend to do.
+String magenta(text) => "$_magenta$text$_none";
 
 /// Wraps [text] in the ANSI escape codes to color it red when on a platform
 /// that supports that.
+///
+/// Use this to highlight unequivocal errors, problems, or failures.
 String red(text) => "$_red$text$_none";
 
 /// Wraps [text] in the ANSI escape codes to color it yellow when on a platform
 /// that supports that.
+///
+/// Use this to highlight warnings, cautions or other things that are bad but
+/// do not prevent the user's goal from being reached.
 String yellow(text) => "$_yellow$text$_none";
 
 /// Stops the running progress indicator, if currently running.

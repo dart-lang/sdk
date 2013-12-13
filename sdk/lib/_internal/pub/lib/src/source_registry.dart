@@ -43,6 +43,8 @@ class SourceRegistry {
 
   /// Returns the source named [name]. Throws an error if no such source has
   /// been registered. If [name] is null, returns the default source.
+  // TODO(rnystrom): Return a NullSource that does nothing safely so that
+  // calling code doesn't have to worry about it.
   Source operator[](String name) {
     if (name == null) {
       if (defaultSource != null) return defaultSource;

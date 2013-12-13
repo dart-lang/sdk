@@ -55,12 +55,18 @@ import 'version_solver.dart';
 class BacktrackingSolver {
   final SourceRegistry sources;
   final Package root;
+
+  /// The lockfile that was present before solving.
   final LockFile lockFile;
+
   final PubspecCache cache;
 
   /// The set of packages that are being explicitly upgraded. The solver will
   /// only allow the very latest version for each of these packages.
   final _forceLatest = new Set<String>();
+
+  /// If this is set, the contents of [lockFile] are ignored while solving.
+  final bool _upgradeAll;
 
   /// The set of packages whose dependecy is being overridden by the root
   /// package, keyed by the name of the package.
@@ -93,12 +99,12 @@ class BacktrackingSolver {
   var _attemptedSolutions = 1;
 
   BacktrackingSolver(SourceRegistry sources, this.root, this.lockFile,
-                     List<String> useLatest)
+                     List<String> useLatest, {bool upgradeAll: false})
       : sources = sources,
-        cache = new PubspecCache(sources) {
+        cache = new PubspecCache(sources),
+        _upgradeAll = upgradeAll {
     for (var package in useLatest) {
-      forceLatestVersion(package);
-      lockFile.packages.remove(package);
+      _forceLatest.add(package);
     }
 
     for (var override in root.dependencyOverrides) {
@@ -126,12 +132,14 @@ class BacktrackingSolver {
       _validateSdkConstraint(root.pubspec);
       return _traverseSolution();
     }).then((packages) {
-      return new SolveResult(packages, overrides, null, attemptedSolutions);
+      return new SolveResult.success(sources, root, lockFile, packages,
+          overrides, _getAvailableVersions(packages), attemptedSolutions);
     }).catchError((error) {
       if (error is! SolveFailure) throw error;
 
       // Wrap a failure in a result so we can attach some other data.
-      return new SolveResult(null, overrides, error, attemptedSolutions);
+      return new SolveResult.failure(sources, root, lockFile, overrides,
+          error, attemptedSolutions);
     }).whenComplete(() {
       // Gather some solving metrics.
       var buffer = new StringBuffer();
@@ -148,8 +156,30 @@ class BacktrackingSolver {
     });
   }
 
-  void forceLatestVersion(String package) {
-    _forceLatest.add(package);
+  /// Generates a map containing all of the known available versions for each
+  /// package in [packages].
+  ///
+  /// The version list may not always be complete. The the package is the root
+  /// root package, or its a package that we didn't unlock while solving
+  /// because we weren't trying to upgrade it, we will just know the current
+  /// version.
+  Map<String, List<Version>> _getAvailableVersions(List<PackageId> packages) {
+    var availableVersions = new Map<String, List<Version>>();
+    for (var package in packages) {
+      var cached = cache.getCachedVersions(package.toRef());
+      var versions;
+      if (cached != null) {
+        versions = cached.map((id) => id.version).toList();
+      } else {
+        // If the version list was never requested, just use the one known
+        // version.
+        versions = [package.version];
+      }
+
+      availableVersions[package.name] = versions;
+    }
+
+    return availableVersions;
   }
 
   /// Adds [versions], which is the list of all allowed versions of a given
@@ -179,7 +209,12 @@ class BacktrackingSolver {
 
   /// Gets the version of [package] currently locked in the lock file. Returns
   /// `null` if it isn't in the lockfile (or has been unlocked).
-  PackageId getLocked(String package) => lockFile.packages[package];
+  PackageId getLocked(String package) {
+    if (_upgradeAll) return null;
+    if (_forceLatest.contains(package)) return null;
+
+    return lockFile.packages[package];
+  }
 
   /// Traverses the root package's dependency graph using the current potential
   /// solution. If successful, completes to the solution. If not, backtracks
@@ -335,10 +370,11 @@ class BacktrackingSolver {
     buffer.writeln("Solving dependencies:");
     for (var package in root.dependencies) {
       buffer.write("- $package");
+      var locked = getLocked(package.name);
       if (_forceLatest.contains(package.name)) {
         buffer.write(" (use latest)");
-      } else if (lockFile.packages.containsKey(package.name)) {
-        var version = lockFile.packages[package.name].version;
+      } else if (locked != null) {
+        var version = locked.version;
         buffer.write(" (locked to $version)");
       }
       buffer.writeln();

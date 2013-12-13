@@ -17,7 +17,6 @@ import 'package_graph.dart';
 import 'solver/version_solver.dart';
 import 'system_cache.dart';
 import 'utils.dart';
-import 'version.dart';
 
 /// Pub operates over a directed graph of dependencies that starts at a root
 /// "entrypoint" package. This is typically the package where the current
@@ -109,60 +108,36 @@ class Entrypoint {
     return future;
   }
 
-  /// Gets all dependencies of the [root] package, respecting the [LockFile]
-  /// if present.
+  /// Gets all dependencies of the [root] package.
   ///
-  /// Returns a [Future] that completes when all dependencies are available.
-  Future getDependencies() {
-    return new Future.sync(() {
-      return resolveVersions(cache.sources, root, lockFile: loadLockFile());
-    }).then(_getDependencies);
-  }
-
-  /// Gets the latest available versions of all dependencies of the [root]
-  /// package, writing a new [LockFile].
+  /// [useLatest], if provided, defines a list of packages that will be
+  /// unlocked and forced to their latest versions. If [upgradeAll] is
+  /// true, the previous lockfile is ignored and all packages are re-resolved
+  /// from scratch. Otherwise, it will attempt to preserve the versions of all
+  /// previously locked packages.
   ///
-  /// Returns a [Future] that completes when all dependencies are available.
-  Future upgradeAllDependencies() {
-    return resolveVersions(cache.sources, root).then(_getDependencies);
-  }
-
-  /// Gets the latest available versions of [dependencies], while leaving
-  /// other dependencies as specified by the [LockFile] if possible.
+  /// If [useLatest] is non-empty or [upgradeAll] is true, displays a detailed
+  /// report of the changes made relative to the previous lockfile.
   ///
-  /// Returns a [Future] that completes when all dependencies are available.
-  Future upgradeDependencies(List<String> dependencies) {
-    return new Future.sync(() {
-      return resolveVersions(cache.sources, root,
-          lockFile: loadLockFile(), useLatest: dependencies);
-    }).then(_getDependencies);
-  }
+  /// Returns a [Future] that completes to the number of changed dependencies.
+  /// It completes when an up-to-date lockfile has been generated and all
+  /// dependencies are available.
+  Future<int> acquireDependencies({List<String> useLatest,
+      bool upgradeAll: false}) {
+    var numChanged = 0;
 
-  /// Removes the old packages directory, gets all dependencies listed in
-  /// [result], and writes a [LockFile].
-  Future _getDependencies(SolveResult result) {
     return new Future.sync(() {
+      return resolveVersions(cache.sources, root, lockFile: loadLockFile(),
+          useLatest: useLatest, upgradeAll: upgradeAll);
+    }).then((result) {
       if (!result.succeeded) throw result.error;
 
-      // Warn the user if any overrides were in effect.
-      if (result.overrides.isNotEmpty) {
-        var buffer = new StringBuffer();
-        buffer.write("Warning: You are using these overridden dependencies:");
-        for (var override in result.overrides) {
-          var source = cache.sources[override.source];
-          buffer.write("\n- ${override.name}");
-          if (override.constraint != VersionConstraint.any) {
-            buffer.write(" version ${override.constraint}");
-          }
-          if (source != cache.sources.defaultSource) {
-            var description = source.formatDescription(root.dir,
-                override.description);
-            buffer.write(" (from ${override.source} $description)");
-          }
-        }
-        log.warning(buffer);
-      }
+      // TODO(rnystrom): Should also show the report if there were changes.
+      // That way pub get/build/serve will show the report when relevant.
+      // https://code.google.com/p/dart/issues/detail?id=15587
+      numChanged = result.showReport(showAll: useLatest != null || upgradeAll);
 
+      // Install the packages.
       cleanDir(packagesDir);
       return Future.wait(result.packages.map((id) {
         if (id.isRoot) return new Future.value(id);
@@ -172,6 +147,8 @@ class Entrypoint {
       _saveLockFile(ids);
       _linkSelf();
       _linkSecondaryPackageDirs();
+
+      return numChanged;
     });
   }
 
@@ -265,7 +242,9 @@ class Entrypoint {
       });
     }).then((upToDate) {
       if (upToDate) return null;
-      return getDependencies().then((_) => log.message("Got dependencies!"));
+      return acquireDependencies().then((_) {
+        log.message("Got dependencies!");
+      });
     });
   }
 

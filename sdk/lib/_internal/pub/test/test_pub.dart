@@ -263,13 +263,13 @@ bool _abortScheduled = false;
 /// Enum identifying a pub command that can be run with a well-defined success
 /// output.
 class RunCommand {
-  static final get = new RunCommand('get', 'Got dependencies!');
-  static final upgrade = new RunCommand('upgrade', 'Dependencies upgraded!');
+  static final get = new RunCommand('get', new RegExp(r'Got dependencies!$'));
+  static final upgrade = new RunCommand('upgrade', new RegExp(
+      r'(No dependencies changed\.|Changed \d+ dependenc(y|ies)!)$'));
 
   final String name;
   final RegExp success;
-  RunCommand(this.name, String message)
-      : success = new RegExp("$message\$");
+  RunCommand(this.name, this.success);
 }
 
 /// Many tests validate behavior that is the same between pub get and
@@ -290,8 +290,8 @@ void forBothPubGetAndUpgrade(void callback(RunCommand command)) {
 /// [warning] to stderr. If [error] is given, it expects the command to *only*
 /// print [error] to stderr.
 // TODO(rnystrom): Clean up other tests to call this when possible.
-void pubCommand(RunCommand command, {Iterable<String> args, Pattern error,
-    Pattern warning}) {
+void pubCommand(RunCommand command,
+    {Iterable<String> args, Pattern output, Pattern error, Pattern warning}) {
   if (error != null && warning != null) {
     throw new ArgumentError("Cannot pass both 'error' and 'warning'.");
   }
@@ -299,7 +299,7 @@ void pubCommand(RunCommand command, {Iterable<String> args, Pattern error,
   var allArgs = [command.name];
   if (args != null) allArgs.addAll(args);
 
-  var output = command.success;
+  if (output == null) output = command.success;
 
   var exitCode = null;
   if (error != null) exitCode = 1;
@@ -316,9 +316,10 @@ void pubGet({Iterable<String> args, Pattern error,
   pubCommand(RunCommand.get, args: args, error: error, warning: warning);
 }
 
-void pubUpgrade({Iterable<String> args, Pattern error,
+void pubUpgrade({Iterable<String> args, Pattern output, Pattern error,
     Pattern warning}) {
-  pubCommand(RunCommand.upgrade, args: args, error: error, warning: warning);
+  pubCommand(RunCommand.upgrade, args: args, output: output, error: error,
+      warning: warning);
 }
 
 /// Defines an integration test. The [body] should schedule a series of

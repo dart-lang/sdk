@@ -15,6 +15,7 @@ import '../source_registry.dart';
 import '../version.dart';
 import '../utils.dart';
 import 'backtracking_solver.dart';
+import 'solve_report.dart' as solve_report;
 
 /// Attempts to select the best concrete versions for all of the transitive
 /// dependencies of [root] taking into account all of the [VersionConstraint]s
@@ -24,13 +25,16 @@ import 'backtracking_solver.dart';
 /// If [useLatest] is given, then only the latest versions of the referenced
 /// packages will be used. This is for forcing an upgrade to one or more
 /// packages.
+///
+/// If [upgradeAll] is true, the contents of [lockFile] are ignored.
 Future<SolveResult> resolveVersions(SourceRegistry sources, Package root,
-    {LockFile lockFile, List<String> useLatest}) {
+    {LockFile lockFile, List<String> useLatest, bool upgradeAll: false}) {
   if (lockFile == null) lockFile = new LockFile.empty();
   if (useLatest == null) useLatest = [];
 
   return log.progress('Resolving dependencies', () {
-    return new BacktrackingSolver(sources, root, lockFile, useLatest).solve();
+    return new BacktrackingSolver(sources, root, lockFile, useLatest,
+        upgradeAll: upgradeAll).solve();
   });
 }
 
@@ -46,6 +50,13 @@ class SolveResult {
   /// The dependency overrides that were used in the solution.
   final List<PackageDep> overrides;
 
+  /// The available versions of all selected packages from their source.
+  ///
+  /// Will be empty if the solve failed. An entry here may not include the full
+  /// list of versions available if the given package was locked and did not
+  /// need to be unlocked during the solve.
+  final Map<String, List<Version>> availableVersions;
+
   /// The error that prevented the solver from finding a solution or `null` if
   /// it was successful.
   final SolveFailure error;
@@ -56,8 +67,30 @@ class SolveResult {
   /// solution.
   final int attemptedSolutions;
 
-  SolveResult(this.packages, this.overrides, this.error,
-      this.attemptedSolutions);
+  final SourceRegistry _sources;
+  final Package _root;
+  final LockFile _previousLockFile;
+
+  SolveResult.success(this._sources, this._root, this._previousLockFile,
+      this.packages, this.overrides, this.availableVersions,
+      this.attemptedSolutions)
+      : error = null;
+
+  SolveResult.failure(this._sources, this._root, this._previousLockFile,
+      this.overrides, this.error, this.attemptedSolutions)
+      : this.packages = null,
+        this.availableVersions = {};
+
+  /// Displays a report of what changes were made to the lockfile.
+  ///
+  /// If [showAll] is true, displays all new and previous dependencies.
+  /// Otherwise, just shows a warning for any overrides in effect.
+  ///
+  /// Returns the number of changed (added, removed, or modified) dependencies.
+  int showReport({bool showAll: false}) {
+    return solve_report.show(_sources, _root, _previousLockFile, this,
+        showAll: showAll);
+  }
 
   String toString() {
     if (!succeeded) {
@@ -163,6 +196,10 @@ class PubspecCache {
       return ids;
     });
   }
+
+  /// Returns the previously cached list of versions for the package identified
+  /// by [package] or returns `null` if not in the cache.
+  List<PackageId> getCachedVersions(PackageRef package) => _versions[package];
 }
 
 /// A reference from a depending package to a package that it depends on.
