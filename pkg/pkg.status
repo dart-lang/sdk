@@ -101,8 +101,10 @@ collection_helpers/test/typed_buffers_test: RuntimeError
 
 [ $runtime == ie9 || $runtime == ie10 ]
 polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
-polymer/test/custom_event_test: RuntimeError # Issue 13260
 polymer/test/noscript_test: RuntimeError # Issue 13260
+
+[ ($runtime == ie9 || $runtime == ie10) && $checked ]
+polymer/test/take_attributes_test: RuntimeError # Issue 13260
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
