@@ -65,6 +65,10 @@ class DependencyQueue {
       }
     }
 
+    // Sort the selected/locked packages by name just to ensure the solver is
+    // deterministic.
+    presorted.sort((a, b) => a.name.compareTo(b.name));
+
     return new DependencyQueue._(solver, new Queue<PackageDep>.from(presorted),
         remaining);
   }

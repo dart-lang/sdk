@@ -4,6 +4,7 @@
   <link rel="import" href="error_view.html">
   <link rel="import" href="field_view.html">
   <link rel="import" href="function_view.html">
+  <link rel="import" href="instance_view.html">
   <link rel="import" href="isolate_list.html">
   <link rel="import" href="library_view.html">
   <link rel="import" href="observatory_element.html">
@@ -37,6 +38,24 @@
     </template>
     <template if="{{ messageType == 'Field' }}">
       <field-view app="{{ app }}" field="{{ message }}"></field-view>
+    </template>
+    <template if="{{ messageType == 'Instance' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Array' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'GrowableObjectArray' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'String' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Bool' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Smi' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
     </template>
     <template if="{{ messageType == 'Function' }}">
       <function-view app="{{ app }}" function="{{ message }}"></function-view>

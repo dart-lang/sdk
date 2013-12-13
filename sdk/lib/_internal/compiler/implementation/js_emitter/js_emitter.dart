@@ -18,8 +18,8 @@ import '../closure.dart' show
 import '../dart2jslib.dart' show
     CodeBuffer;
 
-import '../elements/modelx.dart' show
-    FunctionElementX;
+import '../elements/elements.dart' show
+    TypeVariableElement;
 
 import '../js/js.dart' show
     js;
@@ -58,9 +58,10 @@ import '../util/characters.dart' show
 import '../util/uri_extras.dart' show
     relativize;
 
+import '../dump_info.dart' as dumpInfo;
+
 part 'class_builder.dart';
 part 'class_emitter.dart';
-part 'closure_invocation_element.dart';
 part 'code_emitter_helper.dart';
 part 'code_emitter_task.dart';
 part 'container_builder.dart';

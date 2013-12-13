@@ -478,6 +478,49 @@ ASSEMBLER_TEST_RUN(ForwardBranch, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Loop2, assembler) {
+  Label loop_entry;
+  __ set_use_far_branches(true);
+  __ mov(R0, ShifterOperand(1));
+  __ mov(R1, ShifterOperand(2));
+  __ Bind(&loop_entry);
+  __ mov(R0, ShifterOperand(R0, LSL, 1));
+  __ movs(R1, ShifterOperand(R1, LSR, 1));
+  __ b(&loop_entry, NE);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(Loop2, test) {
+  EXPECT(test != NULL);
+  typedef int (*Loop)();
+  EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Loop, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Loop3, assembler) {
+  Label loop_entry;
+  __ set_use_far_branches(true);
+  __ mov(R0, ShifterOperand(1));
+  __ mov(R1, ShifterOperand(2));
+  __ Bind(&loop_entry);
+  for (int i = 0; i < (1 << 22); i++) {
+    __ nop();
+  }
+  __ mov(R0, ShifterOperand(R0, LSL, 1));
+  __ movs(R1, ShifterOperand(R1, LSR, 1));
+  __ b(&loop_entry, NE);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(Loop3, test) {
+  EXPECT(test != NULL);
+  typedef int (*Loop)();
+  EXPECT_EQ(4, EXECUTE_TEST_CODE_INT32(Loop, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(LoadStore, assembler) {
   __ mov(R1, ShifterOperand(123));
   __ Push(R1);

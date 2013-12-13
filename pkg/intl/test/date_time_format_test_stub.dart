@@ -53,7 +53,7 @@ void runWith(TestListFunc getSubset, String dir,
 
   setUp(() {
     if(initialized) {
-      return;
+      return null;
     }
     return initFunction("en_US", dir)
         .then((_) {

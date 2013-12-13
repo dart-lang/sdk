@@ -87,6 +87,8 @@ var listPassedAsOptionalParameter = $listAllocation;
 var listPassedAsNamedParameter = $listAllocation;
 var listSetInNonFinalField = $listAllocation;
 var listWithChangedLength = $listAllocation;
+var listStoredInList = $listAllocation;
+var listStoredInListButEscapes = $listAllocation;
 
 foo(list) {
   list[0] = aDouble;
@@ -175,6 +177,13 @@ main() {
 
   listWithChangedLength[0] = anInt;
   listWithChangedLength.length = 54;
+
+  a = [listStoredInList];
+  a[0][0] = 42;
+
+  a = [listStoredInListButEscapes];
+  a[0][0] = 42;
+  a.forEach((e) => print(e));
 }
 """;
 }
@@ -224,6 +233,8 @@ void doTest(String allocation, {bool nullify}) {
     checkType('listUsedWithNonOkSelector', typesTask.dynamicType);
     checkType('listPassedAsOptionalParameter', typesTask.numType);
     checkType('listPassedAsNamedParameter', typesTask.numType);
+    checkType('listStoredInList', typesTask.uint31Type);
+    checkType('listStoredInListButEscapes', typesTask.dynamicType);
 
     if (!allocation.contains('filled')) {
       checkType('listUnset', new TypeMask.nonNullEmpty());

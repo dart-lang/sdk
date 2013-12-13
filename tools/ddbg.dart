@@ -12,6 +12,18 @@ import "dart:math";
 
 import "ddbg/lib/commando.dart";
 
+class TargetScript {
+  // The text of a script.
+  String source = null;
+
+  // A mapping from line number to source text.
+  List<String> lineToSource = null;
+
+  // A mapping from token offset to line number.
+  Map<int,int> tokenToLine = null;
+}
+
+
 class TargetIsolate {
   int id;
   // The location of the last paused event.
@@ -19,6 +31,8 @@ class TargetIsolate {
 
   TargetIsolate(this.id);
   bool get isPaused => pausedLocation != null;
+
+  Map<String, TargetScript> scripts = {};
 }
 
 Map<int, TargetIsolate> targetIsolates= new Map<int, TargetIsolate>();
@@ -85,9 +99,13 @@ var validSettings = ['vm', 'vmargs', 'script', 'args'];
 // The current values for all settings.
 var settings = new Map();
 
-// Generates a string of 'count' spaces.
-String _spaces(int count) {
-  return new List.filled(count, ' ').join('');
+String _leftJustify(text, int width) {
+  StringBuffer buffer = new StringBuffer();
+  buffer.write(text);
+  while (buffer.length < width) {
+    buffer.write(' ');
+  }
+  return buffer.toString();
 }
 
 // TODO(turnidge): Move all commands here.
@@ -102,7 +120,7 @@ List<Command> commandList =
       new ShowCommand() ];
 
 
-Command matchCommand(String commandName, bool exactMatchWins) {
+List<Command> matchCommand(String commandName, bool exactMatchWins) {
   List matches = [];
   for (var command in commandList) {
     if (command.name.startsWith(commandName)) {
@@ -138,9 +156,7 @@ Usage:
     if (args.length == 1) {
       print("Debugger commands:\n");
       for (var command in commandList) {
-        const tabStop = 12;
-        var spaces = _spaces(max(1, (tabStop - command.name.length)));
-        print('  ${command.name}${spaces}${command.helpShort}');
+        print('  ${_leftJustify(command.name, 11)} ${command.helpShort}');
       }
 
       // TODO(turnidge): Convert all commands to use the Command class.
@@ -336,7 +352,7 @@ If <args> are provided to the run command, it is the same as typing
 
     isDebugging = true;
     cmdo.hide();
-    return Process.start(vm, processArgs).then((Process process) {
+    return Process.start(vm, processArgs).then((process) {
         print("Started process ${process.pid} '$vm ${processArgs.join(' ')}'");
         targetProcess = process;
         process.stdin.close();
@@ -494,7 +510,6 @@ HandlerType showPromptAfter(void handler(Map response)) {
 }
 
 void processCommand(String cmdLine) {
-  
   void huh() {
     print("'$cmdLine' not understood, try 'help' for help.");
   }
@@ -909,7 +924,7 @@ void handleStackTraceResponse(Map response) {
 void printStackFrame(frame_num, Map frame) {
   var fname = frame["functionName"];
   var loc = formatLocation(frame["location"]);
-  print("$frame_num  $fname ($loc)");
+  print("#${_leftJustify(frame_num,2)} $fname at $loc");
   List locals = frame["locals"];
   for (int i = 0; i < locals.length; i++) {
     printNamedObject(locals[i]);
@@ -924,7 +939,85 @@ void printStackTrace(List frames) {
 }
 
 
-void handlePausedEvent(msg) {
+Map<int, int> parseLineNumberTable(List<List<int>> table) {
+  Map tokenToLine = {};
+  for (var line in table) {
+    // Each entry begins with a line number...
+    var lineNumber = line[0];
+    for (var pos = 1; pos < line.length; pos += 2) {
+      // ...and is followed by (token offset, col number) pairs.
+      // We ignore the column numbers.
+      var tokenOffset = line[pos];
+      tokenToLine[tokenOffset] = lineNumber;
+    }
+  }
+  return tokenToLine;
+}
+
+
+Future<TargetScript> getTargetScript(Map location) {
+  var isolate = targetIsolates[currentIsolate.id];
+  var url = location['url'];
+  var script = isolate.scripts[url];
+  if (script != null) {
+    return new Future.value(script);
+  }
+  script = new TargetScript();
+
+  // Ask the vm for the source and line number table.
+  var sourceCmd = {
+    "id": seqNum++,
+    "command":  "getScriptSource",
+    "params": { "isolateId": currentIsolate.id,
+                "libraryId": location['libraryId'],
+                "url": url } };
+
+  var lineNumberCmd = {
+    "id": seqNum++,
+    "command":  "getLineNumberTable",
+    "params": { "isolateId": currentIsolate.id,
+                "libraryId": location['libraryId'],
+                "url": url } };
+
+  // Send the source command
+  var sourceResponse = sendCmd(sourceCmd).then((response) {
+      Map result = response["result"];
+      script.source = result['text'];
+      // Line numbers are 1-based so add a dummy for line 0.
+      script.lineToSource = [''];
+      script.lineToSource.addAll(script.source.split('\n'));
+    });
+
+  // Send the line numbers command
+  var lineNumberResponse = sendCmd(lineNumberCmd).then((response) {
+      Map result = response["result"];
+      script.tokenToLine = parseLineNumberTable(result['lines']);
+    });
+
+  return Future.wait([sourceResponse, lineNumberResponse]).then((_) {
+      // When both commands complete, cache the result.
+      isolate.scripts[url] = script;
+      return script;
+    });
+}
+
+
+Future printLocation(String label, Map location) {
+  // Figure out the line number.
+  return getTargetScript(location).then((script) {
+      var lineNumber = script.tokenToLine[location['tokenOffset']];
+      var text = script.lineToSource[lineNumber];
+      if (label != null) {
+        var fileName = location['url'].split("/").last;
+        print("$label \n"
+              "    at $fileName:$lineNumber");
+      }
+      print("${_leftJustify(lineNumber, 8)}$text");
+    });
+}
+
+
+Future handlePausedEvent(msg) {
   assert(msg["params"] != null);
   var reason = msg["params"]["reason"];
   int isolateId = msg["params"]["isolateId"];
@@ -936,16 +1029,17 @@ void handlePausedEvent(msg) {
   assert(location != null);
   isolate.pausedLocation = location;
   if (reason == "breakpoint") {
-    print("Isolate $isolateId paused on breakpoint");
-    print("location: ${formatLocation(location)}");
+    var bpId = (msg["params"]["breakpointId"]);
+    var label = (bpId != null) ? "Breakpoint $bpId" : null;
+    return printLocation(label, location);
   } else if (reason == "interrupted") {
-    print("Isolate $isolateId paused due to an interrupt");
-    print("location: ${formatLocation(location)}");
+    return printLocation("Interrupted", location);
   } else {
     assert(reason == "exception");
     var excObj = msg["params"]["exception"];
     print("Isolate $isolateId paused on exception");
     print(remoteObject(excObj));
+    return new Future.value();
   }
 }
 
@@ -1001,8 +1095,9 @@ void processVmMessage(String jsonString) {
   }
   if (event == "paused") {
     cmdo.hide();
-    handlePausedEvent(msg);
-    cmdo.show();
+    handlePausedEvent(msg).then((_) {
+        cmdo.show();
+      });
     return;
   }
   if (event == "breakpointResolved") {
@@ -1011,7 +1106,7 @@ void processVmMessage(String jsonString) {
     var isolateId = params["isolateId"];
     var location = formatLocation(params["location"]);
     cmdo.hide();
-    print("BP ${params["breakpointId"]} resolved in isolate $isolateId"
+    print("Breakpoint ${params["breakpointId"]} resolved in isolate $isolateId"
           " at $location.");
     cmdo.show();
     return;
@@ -1042,7 +1137,7 @@ bool haveGarbageVmData() {
   }
   if (i >= vmData.length) {
     return false;
-  } else { 
+  } else {
     return char != "{";
   }
 }
@@ -1230,7 +1325,6 @@ Future retryOpenVmSocket(error, int attempt) {
     print('Timed out waiting for debugger to start.\nError: $e');
     return closeVmSocket();
   }
-      
   // Wait and retry.
   return new Future.delayed(delay, () {
       openVmSocket(attempt + 1);
@@ -1263,8 +1357,13 @@ Future closeVmSocket() {
   vmSubscription = null;
   vmSock = null;
   outstandingCommands = null;
-  
   return Future.wait(cleanupFutures);
+}
+
+void debuggerError(self, parent, zone, error, StackTrace trace) {
+  print('\n--------\nExiting due to unexpected error:\n'
+        '  $error\n$trace\n');
+  debuggerQuit();
 }
 
 Future debuggerQuit() {
@@ -1299,10 +1398,16 @@ void parseArgs(List<String> args) {
 }
 
 void main(List<String> args) {
-  parseArgs(args);
+  // Setup a zone which will exit the debugger cleanly on any uncaught
+  // exception.
+  var zone = Zone.ROOT.fork(specification:new ZoneSpecification(
+      handleUncaughtError: debuggerError));
 
-  cmdo = new Commando(completer: debuggerCommandCompleter);
-  cmdSubscription = cmdo.commands.listen(processCommand,
-                                         onError: processError,
-                                         onDone: processDone);
+  zone.run(() {
+      parseArgs(args);
+      cmdo = new Commando(completer: debuggerCommandCompleter);
+      cmdSubscription = cmdo.commands.listen(processCommand,
+                                             onError: processError,
+                                             onDone: processDone);
+    });
 }

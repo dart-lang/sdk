@@ -6,12 +6,7 @@ part of test_suite;
 
 String getHtmlContents(String title,
                        String scriptType,
-                       Path sourceScript,
-                       {bool use_unittest_controller: false}) {
-  var testControllerJs = '/root_dart/tools/testing/dart/test_controller.js';
-  if (use_unittest_controller) {
-    testControllerJs = '/root_dart/pkg/unittest/lib/test_controller.js';
-  }
+                       Path sourceScript) {
   return """
 <!DOCTYPE html>
 <html>
@@ -29,7 +24,7 @@ String getHtmlContents(String title,
 <body>
   <h1> Running $title </h1>
   <script type="text/javascript"
-          src="$testControllerJs">
+          src="/root_dart/tools/testing/dart/test_controller.js">
   </script>
   <script type="$scriptType" src="$sourceScript"
           onerror="scriptTagOnErrorCallback(null)"

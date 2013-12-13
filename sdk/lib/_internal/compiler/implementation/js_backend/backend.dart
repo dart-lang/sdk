@@ -11,114 +11,6 @@ class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
 }
 
-class CheckedModeHelper {
-  final String name;
-
-  const CheckedModeHelper(String this.name);
-
-  Element getElement(Compiler compiler) => compiler.findHelper(name);
-
-  jsAst.Expression generateCall(SsaCodeGenerator codegen,
-                                HTypeConversion node) {
-    Element helperElement = getElement(codegen.compiler);
-    codegen.world.registerStaticUse(helperElement);
-    List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    codegen.use(node.checkedInput);
-    arguments.add(codegen.pop());
-    generateAdditionalArguments(codegen, node, arguments);
-    String helperName = codegen.backend.namer.isolateAccess(helperElement);
-    return new jsAst.Call(new jsAst.VariableUse(helperName), arguments);
-  }
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    // No additional arguments needed.
-  }
-}
-
-class MalformedCheckedModeHelper extends CheckedModeHelper {
-  const MalformedCheckedModeHelper(String name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    ErroneousElement element = node.typeExpression.element;
-    arguments.add(js.string(element.message));
-  }
-}
-
-class PropertyCheckedModeHelper extends CheckedModeHelper {
-  const PropertyCheckedModeHelper(String name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
-    String additionalArgument = codegen.backend.namer.operatorIsType(type);
-    arguments.add(js.string(additionalArgument));
-  }
-}
-
-class TypeVariableCheckedModeHelper extends CheckedModeHelper {
-  const TypeVariableCheckedModeHelper(String name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    assert(node.typeExpression.kind == TypeKind.TYPE_VARIABLE);
-    codegen.use(node.typeRepresentation);
-    arguments.add(codegen.pop());
-  }
-}
-
-class SubtypeCheckedModeHelper extends CheckedModeHelper {
-  const SubtypeCheckedModeHelper(String name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
-    Element element = type.element;
-    String isField = codegen.backend.namer.operatorIs(element);
-    arguments.add(js.string(isField));
-    codegen.use(node.typeRepresentation);
-    arguments.add(codegen.pop());
-    String asField = codegen.backend.namer.substitutionName(element);
-    arguments.add(js.string(asField));
-  }
-}
-
-class FunctionTypeCheckedModeHelper extends CheckedModeHelper {
-  const FunctionTypeCheckedModeHelper(String name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
-    String signatureName = codegen.backend.namer.getFunctionTypeName(type);
-    arguments.add(js.string(signatureName));
-
-    if (type.containsTypeVariables) {
-      ClassElement contextClass = Types.getClassContext(type);
-      // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
-      // string concatenation in the implementation), and may prevent
-      // segmentation of '$'.
-      String contextName = codegen.backend.namer.getNameForRti(contextClass);
-      arguments.add(js.string(contextName));
-
-      if (node.contextIsTypeArguments) {
-        arguments.add(new jsAst.LiteralNull());
-        codegen.use(node.context);
-        arguments.add(codegen.pop());
-      } else {
-        codegen.use(node.context);
-        arguments.add(codegen.pop());
-      }
-    }
-  }
-}
-
 /*
  * Invariants:
  *   canInline(function) implies canInline(function, insideLoop:true)
@@ -364,43 +256,7 @@ class JavaScriptBackend extends Backend {
   final Set<TypedefElement> typedefTypeLiterals = new Set<TypedefElement>();
 
   /// All the checked mode helpers.
-  static const checkedModeHelpers = const [
-      const MalformedCheckedModeHelper('checkMalformedType'),
-      const CheckedModeHelper('voidTypeCheck'),
-      const CheckedModeHelper('stringTypeCast'),
-      const CheckedModeHelper('stringTypeCheck'),
-      const CheckedModeHelper('doubleTypeCast'),
-      const CheckedModeHelper('doubleTypeCheck'),
-      const CheckedModeHelper('numTypeCast'),
-      const CheckedModeHelper('numTypeCheck'),
-      const CheckedModeHelper('boolTypeCast'),
-      const CheckedModeHelper('boolTypeCheck'),
-      const CheckedModeHelper('intTypeCast'),
-      const CheckedModeHelper('intTypeCheck'),
-      const PropertyCheckedModeHelper('numberOrStringSuperNativeTypeCast'),
-      const PropertyCheckedModeHelper('numberOrStringSuperNativeTypeCheck'),
-      const PropertyCheckedModeHelper('numberOrStringSuperTypeCast'),
-      const PropertyCheckedModeHelper('numberOrStringSuperTypeCheck'),
-      const PropertyCheckedModeHelper('stringSuperNativeTypeCast'),
-      const PropertyCheckedModeHelper('stringSuperNativeTypeCheck'),
-      const PropertyCheckedModeHelper('stringSuperTypeCast'),
-      const PropertyCheckedModeHelper('stringSuperTypeCheck'),
-      const CheckedModeHelper('listTypeCast'),
-      const CheckedModeHelper('listTypeCheck'),
-      const PropertyCheckedModeHelper('listSuperNativeTypeCast'),
-      const PropertyCheckedModeHelper('listSuperNativeTypeCheck'),
-      const PropertyCheckedModeHelper('listSuperTypeCast'),
-      const PropertyCheckedModeHelper('listSuperTypeCheck'),
-      const PropertyCheckedModeHelper('interceptedTypeCast'),
-      const PropertyCheckedModeHelper('interceptedTypeCheck'),
-      const SubtypeCheckedModeHelper('subtypeCast'),
-      const SubtypeCheckedModeHelper('assertSubtype'),
-      const TypeVariableCheckedModeHelper('subtypeOfRuntimeTypeCast'),
-      const TypeVariableCheckedModeHelper('assertSubtypeOfRuntimeType'),
-      const FunctionTypeCheckedModeHelper('functionSubtypeCast'),
-      const FunctionTypeCheckedModeHelper('assertFunctionSubtype'),
-      const PropertyCheckedModeHelper('propertyTypeCast'),
-      const PropertyCheckedModeHelper('propertyTypeCheck') ];
+  static const checkedModeHelpers = CheckedModeHelper.helpers;
 
   // Checked mode helpers indexed by name.
   Map<String, CheckedModeHelper> checkedModeHelperByName =
@@ -426,7 +282,7 @@ class JavaScriptBackend extends Backend {
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     builder = new SsaBuilderTask(this);
-    fromIrBuilder = new SsaFromIrBuilderTask(compiler);
+    fromIrBuilder = new SsaFromIrBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
     typeVariableHandler = new TypeVariableHandler(this);
@@ -843,6 +699,11 @@ class JavaScriptBackend extends Backend {
         enqueueClass(enqueuer, jsPlainJavaScriptObjectClass, elements);
       }
     }
+    if (cls == compiler.closureClass) {
+      enqueue(enqueuer,
+              compiler.findHelper('closureFromTearOff'),
+              elements);
+    }
     ClassElement result = null;
     if (cls == compiler.stringClass || cls == jsStringClass) {
       addInterceptors(jsStringClass, enqueuer, elements);
@@ -1023,6 +884,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerIsCheck(DartType type, Enqueuer world, TreeElements elements) {
+    enqueueInResolution(getThrowRuntimeError(), elements);
     type = type.unalias(compiler);
     enqueueClass(world, compiler.boolClass, elements);
     bool inCheckedMode = compiler.enableTypeAssertions;
@@ -1066,7 +928,8 @@ class JavaScriptBackend extends Backend {
       enqueueClass(world, compiler.listClass, elements);
     }
     if (type is FunctionType) {
-      enqueueInResolution(getCheckFunctionSubtype(), elements);
+      enqueueInResolution(
+          compiler.findHelper('functionTypeTestMetaHelper'), elements);
     }
     if (type.element.isNative()) {
       // We will neeed to add the "$is" and "$as" properties on the
@@ -1079,6 +942,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerAsCheck(DartType type, Enqueuer world, TreeElements elements) {
+    enqueueInResolution(getThrowRuntimeError(), elements);
     type = type.unalias(compiler);
     if (!world.isResolutionQueue) {
       // All helpers are added to resolution queue in enqueueHelpers. These
@@ -1484,9 +1348,7 @@ class JavaScriptBackend extends Backend {
               ? 'subtypeOfRuntimeTypeCast'
               : 'assertSubtypeOfRuntimeType';
         } else if (type.kind == TypeKind.FUNCTION) {
-          return typeCast
-              ? 'functionSubtypeCast'
-              : 'assertFunctionSubtype';
+          return null;
         } else {
           if (nativeCheck) {
             // TODO(karlklose): can we get rid of this branch when we use
@@ -1619,10 +1481,6 @@ class JavaScriptBackend extends Backend {
 
   Element getAssertSubtypeOfRuntimeType() {
     return compiler.findHelper('assertSubtypeOfRuntimeType');
-  }
-
-  Element getCheckFunctionSubtype() {
-    return compiler.findHelper('checkFunctionSubtype');
   }
 
   Element getThrowNoSuchMethod() {
@@ -1773,6 +1631,8 @@ class JavaScriptBackend extends Backend {
    * system.
    */
   bool isAccessibleByReflection(Element element) {
+    // TODO(ahe): This isn't sufficient: simply importing dart:mirrors
+    // causes hasInsufficientMirrorsUsed to become true.
     if (hasInsufficientMirrorsUsed) return true;
     return isNeededForReflection(element);
   }
@@ -1944,6 +1804,12 @@ class JavaScriptBackend extends Backend {
       compiler.internalErrorOnElement(
           element, "@NoSideEffects() should always be combined with @NoInline");
     }
+  }
+
+  CodeBuffer codeOf(Element element) {
+    return generatedCode.containsKey(element)
+        ? jsAst.prettyPrint(generatedCode[element], compiler)
+        : null;
   }
 }
 

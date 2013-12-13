@@ -23,6 +23,7 @@ const String DEFAULT_CORELIB_WITH_LIST = r'''
   class Map {}
   class StackTrace {}
   identical(a, b) => true;
+  const proxy = 0;
 ''';
 
 main() {

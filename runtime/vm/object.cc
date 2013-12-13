@@ -902,6 +902,9 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Type>();
   object_store->set_type_class(cls);
 
+  cls = Class::New<TypeRef>();
+  object_store->set_type_ref_class(cls);
+
   cls = Class::New<TypeParameter>();
   object_store->set_type_parameter_class(cls);
 
@@ -1031,6 +1034,10 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = object_store->type_class();
   RegisterPrivateClass(cls, Symbols::Type(), core_lib);
+  pending_classes.Add(cls);
+
+  cls = object_store->type_ref_class();
+  RegisterPrivateClass(cls, Symbols::TypeRef(), core_lib);
   pending_classes.Add(cls);
 
   cls = object_store->type_parameter_class();
@@ -1289,6 +1296,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<Type>();
   object_store->set_type_class(cls);
+
+  cls = Class::New<TypeRef>();
+  object_store->set_type_ref_class(cls);
 
   cls = Class::New<TypeParameter>();
   object_store->set_type_parameter_class(cls);
@@ -1991,6 +2001,7 @@ RawClass* Class::SuperClass() const {
 void Class::set_super_type(const AbstractType& value) const {
   ASSERT(value.IsNull() ||
          (value.IsType() && !value.IsDynamicType()) ||
+         value.IsTypeRef() ||
          value.IsBoundedType() ||
          value.IsMixinAppType());
   StorePointer(&raw_ptr()->super_type_, value.raw());
@@ -3513,9 +3524,6 @@ bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
         // the presence of a malformed bound in checked mode).
         continue;
       }
-      ASSERT((!raw_instantiated && type.IsTypeParameter()) ||
-             type.IsBoundedType() ||
-             type.IsMalformed());
       return false;
     }
     type_class = type.type_class();
@@ -3579,8 +3587,14 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 
 
 void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
-  ASSERT(!IsCanonical());
-  StorePointer(TypeAddr(index), value.raw());
+  const AbstractType& type_arg = AbstractType::Handle(TypeAt(index));
+  if (type_arg.IsTypeRef()) {
+    if (value.raw() != type_arg.raw()) {
+      TypeRef::Cast(type_arg).set_type(value);
+    }
+  } else {
+    StorePointer(TypeAddr(index), value.raw());
+  }
 }
 
 
@@ -3915,6 +3929,14 @@ RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
   TypeArguments& result = TypeArguments::Handle(isolate);
   result ^= table.At(index);
   if (result.IsNull()) {
+    // Canonicalize each type argument.
+    const intptr_t num_types = Length();
+    AbstractType& type = AbstractType::Handle(isolate);
+    for (intptr_t i = 0; i < num_types; i++) {
+      type = TypeAt(i);
+      type = type.Canonicalize();
+      SetTypeAt(i, type);
+    }
     // Make sure we have an old space object and add it to the table.
     if (this->IsNew()) {
       result ^= Object::Clone(*this, Heap::kOld);
@@ -5896,8 +5918,14 @@ const char* Field::ToCString() const {
   return chars;
 }
 
-
 void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  PrintToJSONStreamWithInstance(stream, Object::null_instance(), ref);
+}
+
+
+void Field::PrintToJSONStreamWithInstance(JSONStream* stream,
+                                          const Instance& instance,
+                                          bool ref) const {
   JSONObject jsobj(stream);
   const char* internal_field_name = String::Handle(name()).ToCString();
   const char* field_name = String::Handle(UserVisibleName()).ToCString();
@@ -5909,6 +5937,9 @@ void Field::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("user_name", field_name);
   if (is_static()) {
     const Object& valueObj = Object::Handle(value());
+    jsobj.AddProperty("value", valueObj);
+  } else if (!instance.IsNull()) {
+    const Object& valueObj = Object::Handle(instance.GetField(*this));
     jsobj.AddProperty("value", valueObj);
   }
   Class& cls = Class::Handle(owner());
@@ -11393,12 +11424,23 @@ const char* Instance::ToCString() const {
     }
     const Type& type =
         Type::Handle(Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
-    const String& type_name = String::Handle(type.Name());
+    const String& type_name = String::Handle(type.UserVisibleName());
     // Calculate the size of the string.
     intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, kFormat, type_name.ToCString());
     return chars;
+  }
+}
+
+
+const char* Instance::ToUserCString(intptr_t maxLen) const {
+  if (raw() == Object::sentinel().raw()) {
+    return "<not initialized>";
+  } else if (raw() == Object::transition_sentinel().raw()) {
+    return "<being initialized>";
+  } else {
+    return ToCString();
   }
 }
 
@@ -11411,15 +11453,35 @@ void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddProperty("id", id);
 
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+
   // Set the "preview" property for this instance.
   if (IsNull()) {
     jsobj.AddProperty("preview", "null");
-  } else if (raw() == Object::sentinel().raw() ||
-             raw() == Object::transition_sentinel().raw()) {
-    jsobj.AddProperty("preview", "<uninitialized>");
   } else {
-    // TODO(turnidge): Handle special characters?  Truncate?
-    jsobj.AddProperty("preview", ToCString());
+    jsobj.AddProperty("preview", ToUserCString(40));
+  }
+  if (ref) {
+    return;
+  }
+
+  // Walk the superclass chain, adding all instance fields.
+  {
+    JSONArray jsarr(&jsobj, "fields");
+    while (!cls.IsNull()) {
+      const Array& field_array = Array::Handle(cls.fields());
+      Field& field = Field::Handle();
+      if (!field_array.IsNull()) {
+        for (intptr_t i = 0; i < field_array.Length(); i++) {
+          field ^= field_array.At(i);
+          if (!field.is_static()) {
+            jsarr.AddValue(field, *this);
+          }
+        }
+      }
+      cls = cls.SuperClass();
+    }
   }
 }
 
@@ -11523,8 +11585,8 @@ void AbstractType::set_error(const LanguageError& value) const {
 
 bool AbstractType::Equals(const Instance& other) const {
   // AbstractType is an abstract class.
-  ASSERT(raw() == AbstractType::null());
-  return other.IsNull();
+  UNREACHABLE();
+  return false;
 }
 
 
@@ -11645,7 +11707,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     first_type_param_index = 0;
   }
   String& type_name = String::Handle();
-  if (num_type_params == 0) {
+  if ((num_type_params == 0) ||
+      args.IsRaw(first_type_param_index, num_type_params)) {
     type_name = class_name.raw();
   } else {
     const String& args_name = String::Handle(
@@ -12014,17 +12077,6 @@ RawUnresolvedClass* Type::unresolved_class() const {
 }
 
 
-RawString* Type::TypeClassName() const {
-  if (HasResolvedTypeClass()) {
-    const Class& cls = Class::Handle(type_class());
-    return cls.Name();
-  } else {
-    const UnresolvedClass& cls = UnresolvedClass::Handle(unresolved_class());
-    return cls.Name();
-  }
-}
-
-
 RawAbstractTypeArguments* Type::arguments() const {
   return raw_ptr()->arguments_;
 }
@@ -12046,7 +12098,7 @@ bool Type::IsInstantiated() const {
 RawAbstractType* Type::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
     Error* bound_error) const {
-  ASSERT(IsResolved());
+  ASSERT(IsFinalized() || IsBeingFinalized());
   ASSERT(!IsInstantiated());
   // Return the uninstantiated type unchanged if malformed. No copy needed.
   if (IsMalformed()) {
@@ -12075,6 +12127,10 @@ bool Type::Equals(const Instance& other) const {
   if (raw() == other.raw()) {
     return true;
   }
+  if (other.IsTypeRef()) {
+    // TODO(regis): Use trail. For now, we "unfold" the right hand type.
+    return Equals(AbstractType::Handle(TypeRef::Cast(other).type()));
+  }
   if (!other.IsType()) {
     return false;
   }
@@ -12093,13 +12149,17 @@ bool Type::Equals(const Instance& other) const {
     return true;
   }
   const Class& cls = Class::Handle(type_class());
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  if (num_type_params == 0) {
+    // Shortcut unnecessary handle allocation below.
+    return true;
+  }
+  const intptr_t num_type_args = cls.NumTypeArguments();
+  const intptr_t from_index = num_type_args - num_type_params;
   const AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(
       arguments());
   const AbstractTypeArguments& other_type_args = AbstractTypeArguments::Handle(
       other_type.arguments());
-  const intptr_t num_type_args = cls.NumTypeArguments();
-  const intptr_t num_type_params = cls.NumTypeParameters();
-  const intptr_t from_index = num_type_args - num_type_params;
   if (type_args.IsNull()) {
     return other_type_args.IsRaw(from_index, num_type_params);
   }
@@ -12306,6 +12366,135 @@ void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
+bool TypeRef::IsInstantiated() const {
+  if (is_being_checked()) {
+    return true;
+  }
+  set_is_being_checked(true);
+  const bool result = AbstractType::Handle(type()).IsInstantiated();
+  set_is_being_checked(false);
+  return result;
+}
+
+
+bool TypeRef::Equals(const Instance& other) const {
+  // TODO(regis): Use trail instead of mark bit.
+  if (raw() == other.raw()) {
+    return true;
+  }
+  if (is_being_checked()) {
+    return true;
+  }
+  set_is_being_checked(true);
+  const bool result = AbstractType::Handle(type()).Equals(other);
+  set_is_being_checked(false);
+  return result;
+}
+
+
+RawAbstractType* TypeRef::InstantiateFrom(
+    const AbstractTypeArguments& instantiator_type_arguments,
+    Error* bound_error) const {
+  const AbstractType& ref_type = AbstractType::Handle(type());
+  // TODO(regis): Use trail instead of mark bit plus temporary redirection,
+  // because it could be marked for another reason.
+  if (is_being_checked()) {
+    ASSERT(ref_type.IsTypeRef());
+    return ref_type.raw();
+  }
+  set_is_being_checked(true);
+  ASSERT(!ref_type.IsTypeRef());
+  const TypeRef& instantiated_type_ref = TypeRef::Handle(
+      TypeRef::New(ref_type));
+  // TODO(regis): instantiated_type_ref should be stored in the trail instead.
+  set_type(instantiated_type_ref);
+  const AbstractType& instantiated_ref_type = AbstractType::Handle(
+      ref_type.InstantiateFrom(instantiator_type_arguments, bound_error));
+  instantiated_type_ref.set_type(instantiated_ref_type);
+  set_type(ref_type);
+  set_is_being_checked(false);
+  return instantiated_type_ref.raw();
+}
+
+
+void TypeRef::set_type(const AbstractType& value) const {
+  ASSERT(value.HasResolvedTypeClass());
+  StorePointer(&raw_ptr()->type_, value.raw());
+}
+
+
+void TypeRef::set_is_being_checked(bool value) const {
+  raw_ptr()->is_being_checked_ = value;
+}
+
+
+// This function only canonicalizes the referenced type, but not the TypeRef
+// itself, since it cannot be canonical by definition.
+// Consider the type Derived, where class Derived extends Base<Derived>.
+// The first type argument of its flattened type argument vector is Derived,
+// i.e. itself, but pointer equality is not possible.
+RawAbstractType* TypeRef::Canonicalize() const {
+  // TODO(regis): Use trail, not mark bit.
+  if (is_being_checked()) {
+    return raw();
+  }
+  set_is_being_checked(true);
+  AbstractType& ref_type = AbstractType::Handle(type());
+  ASSERT(!ref_type.IsTypeRef());
+  ref_type = ref_type.Canonicalize();
+  set_type(ref_type);
+  // No need to call SetCanonical(), since a TypeRef cannot be canonical by
+  // definition.
+  set_is_being_checked(false);
+  // We return the referenced type instead of the TypeRef in order to provide
+  // pointer equality in simple cases, e.g. in language/f_bounded_equality_test.
+  return ref_type.raw();
+}
+
+
+intptr_t TypeRef::Hash() const {
+  // TODO(regis): Use trail and hash of referenced type.
+  // Do not calculate the hash of the referenced type to avoid cycles.
+  uword result = Class::Handle(AbstractType::Handle(type()).type_class()).id();
+  return FinalizeHash(result);
+}
+
+
+RawTypeRef* TypeRef::New() {
+  ASSERT(Isolate::Current()->object_store()->type_ref_class() != Class::null());
+  RawObject* raw = Object::Allocate(TypeRef::kClassId,
+                                    TypeRef::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawTypeRef*>(raw);
+}
+
+
+RawTypeRef* TypeRef::New(const AbstractType& type) {
+  const TypeRef& result = TypeRef::Handle(TypeRef::New());
+  result.set_type(type);
+  result.set_is_being_checked(false);
+  return result.raw();
+}
+
+
+const char* TypeRef::ToCString() const {
+  const char* format = "TypeRef: %s%s";
+  const char* type_cstr = String::Handle(Class::Handle(AbstractType::Handle(
+      type()).type_class()).Name()).ToCString();
+  const char* args_cstr = (AbstractType::Handle(
+      type()).arguments() == AbstractTypeArguments::null()) ? "" : "<...>";
+  intptr_t len = OS::SNPrint(NULL, 0, format, type_cstr, args_cstr) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, type_cstr, args_cstr);
+  return chars;
+}
+
+
+void TypeRef::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+}
+
+
 void TypeParameter::set_is_finalized() const {
   ASSERT(!IsFinalized());
   set_type_state(RawTypeParameter::kFinalizedUninstantiated);
@@ -12315,6 +12504,10 @@ void TypeParameter::set_is_finalized() const {
 bool TypeParameter::Equals(const Instance& other) const {
   if (raw() == other.raw()) {
     return true;
+  }
+  if (other.IsTypeRef()) {
+    // TODO(regis): Use trail. For now, we "unfold" the right hand type.
+    return Equals(AbstractType::Handle(TypeRef::Cast(other).type()));
   }
   if (!other.IsTypeParameter()) {
     return false;
@@ -12360,7 +12553,24 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
-  return instantiator_type_arguments.TypeAt(index());
+  const AbstractType& type_arg = AbstractType::Handle(
+      instantiator_type_arguments.TypeAt(index()));
+  // There is no need to canonicalize the instantiated type parameter, since all
+  // type arguments are canonicalized at type finalization time. It would be too
+  // early to canonicalize the returned type argument here, since instantiation
+  // not only happens at run time, but also during type finalization.
+  // However, if the type argument is a reference to a canonical type, we
+  // return the referenced canonical type instead of the type reference to
+  // provide pointer equality in some simple cases, e.g. in
+  // language/f_bounded_equality_test.
+  if (type_arg.IsTypeRef()) {
+    const AbstractType& ref_type = AbstractType::Handle(
+        TypeRef::Cast(type_arg).type());
+    if (ref_type.IsCanonical()) {
+      return ref_type.raw();
+    }
+  }
+  return type_arg.raw();
 }
 
 
@@ -12425,8 +12635,7 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
 
 intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
-  uword result = 0;
-  result += Class::Handle(parameterized_class()).id();
+  uword result = Class::Handle(parameterized_class()).id();
   // Do not include the hash of the bound, which could lead to cycles.
   result <<= index();
   return FinalizeHash(result);
@@ -12517,6 +12726,10 @@ bool BoundedType::Equals(const Instance& other) const {
   if (raw() == other.raw()) {
     return true;
   }
+  if (other.IsTypeRef()) {
+    // TODO(regis): Use trail. For now, we "unfold" the right hand type.
+    return Equals(AbstractType::Handle(TypeRef::Cast(other).type()));
+  }
   if (!other.IsBoundedType()) {
     return false;
   }
@@ -12540,7 +12753,7 @@ bool BoundedType::Equals(const Instance& other) const {
 
 
 void BoundedType::set_type(const AbstractType& value) const {
-  ASSERT(value.IsFinalized());
+  ASSERT(value.IsFinalized() || value.IsBeingFinalized());
   ASSERT(!value.IsMalformed());
   StorePointer(&raw_ptr()->type_, value.raw());
 }
@@ -12620,13 +12833,9 @@ RawAbstractType* BoundedType::CloneUnfinalized() const {
 
 
 intptr_t BoundedType::Hash() const {
-  uword result = 0;
-  result += AbstractType::Handle(type()).Hash();
+  uword result = AbstractType::Handle(type()).Hash();
   // Do not include the hash of the bound, which could lead to cycles.
-  TypeParameter& type_param = TypeParameter::Handle(type_parameter());
-  if (!type_param.IsNull()) {
-    result += type_param.Hash();
-  }
+  result += TypeParameter::Handle(type_parameter()).Hash();
 return FinalizeHash(result);
 }
 
@@ -14224,6 +14433,98 @@ const char* String::ToCString() const {
 }
 
 
+static bool IsAsciiPrintChar(intptr_t codePoint) {
+  return codePoint >= ' ' && codePoint <= '~';
+}
+
+
+// Does not null-terminate.
+intptr_t String::EscapedString(char* buffer, int maxLen) const {
+  int pos = 0;
+
+  CodePointIterator cpi(*this);
+  while (cpi.Next()) {
+    int32_t codePoint = cpi.Current();
+    if (IsSpecialCharacter(codePoint)) {
+      if (pos + 2 > maxLen) {
+        return pos;
+      }
+      buffer[pos++] = '\\';
+      buffer[pos++] = SpecialCharacter(codePoint);
+    } else if (IsAsciiPrintChar(codePoint)) {
+      buffer[pos++] = codePoint;
+    } else {
+      if (pos + 6 > maxLen) {
+        return pos;
+      }
+      pos += OS::SNPrint((buffer + pos), (maxLen - pos), "\\u%04x", codePoint);
+    }
+    if (pos == maxLen) {
+      return pos;
+    }
+  }
+  return pos;
+}
+
+
+intptr_t String::EscapedStringLen(intptr_t tooLong) const {
+  intptr_t len = 0;
+
+  CodePointIterator cpi(*this);
+  while (cpi.Next()) {
+    int32_t codePoint = cpi.Current();
+    if (IsSpecialCharacter(codePoint)) {
+      len += 2;  // e.g. "\n"
+    } else if (IsAsciiPrintChar(codePoint)) {
+      len += 1;
+    } else {
+      len += 6;  // e.g. "\u0000".
+    }
+    if (len > tooLong) {
+      // No point going further.
+      break;
+    }
+  }
+  return len;
+}
+
+
+const char* String::ToUserCString(intptr_t maxLen) const {
+  // Compute the needed length for the buffer.
+  const intptr_t escapedLen = EscapedStringLen(maxLen);
+  intptr_t printLen = escapedLen;
+  intptr_t bufferLen = escapedLen + 2;  // +2 for quotes.
+  if (bufferLen > maxLen) {
+    bufferLen = maxLen;     // Truncate.
+    printLen = maxLen - 5;  // -2 for quotes, -3 for elipsis.
+  }
+
+  // Allocate the buffer.
+  Zone* zone = Isolate::Current()->current_zone();
+  char* buffer = zone->Alloc<char>(bufferLen + 1);
+
+  // Leading quote.
+  intptr_t pos = 0;
+  buffer[pos++] = '\"';
+
+  // Print escaped string.
+  pos += EscapedString((buffer + pos), printLen);
+
+  // Trailing quote.
+  buffer[pos++] = '\"';
+
+  if (printLen < escapedLen) {
+    buffer[pos++] = '.';
+    buffer[pos++] = '.';
+    buffer[pos++] = '.';
+  }
+  ASSERT(pos <= bufferLen);
+  buffer[pos++] = '\0';
+
+  return buffer;
+}
+
+
 void String::PrintToJSONStream(JSONStream* stream, bool ref) const {
   Instance::PrintToJSONStream(stream, ref);
 }
@@ -15272,7 +15573,7 @@ const char* GrowableObjectArray::ToCString() const {
   if (IsNull()) {
     return "_GrowableList NULL";
   }
-  const char* format = "_GrowableList len:%" Pd "";
+  const char* format = "Instance(length:%" Pd ") of '_GrowableList'";
   intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());

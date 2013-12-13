@@ -39,6 +39,7 @@ class Math {
 }
 print(x) {}
 identical(a, b) => true;
+const proxy = 0;
 ''';
 
 const ioLib = r'''

@@ -30,18 +30,45 @@
     </div>
   </template>
   
-</polymer-element><polymer-element name="class-view" extends="observatory-element">
+</polymer-element><polymer-element name="field-ref" extends="observatory-element">
+<template>
+<div>
+  <template if="{{ field['final'] }}"> final </template>
+  <template if="{{ field['const'] }}"> const </template>
+  <template if="{{ (field['declared_type']['name'] == 'dynamic' &amp;&amp; !field['final'] &amp;&amp; !field['const']) }}">
+  var
+  </template>
+  <template if="{{ (field['declared_type']['name'] != 'dynamic') }}">
+  <a href="{{ app.locationManager.currentIsolateClassLink(field['declared_type']['id']) }}">
+    {{ field['declared_type']['user_name'] }} </a>
+  </template>
+  <a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">
+    {{ field['user_name'] }} </a>
+</div>
+</template>  </polymer-element><polymer-element name="instance-ref" extends="observatory-element">
+<template>
+<div>
+  <template if="{{ (instance['type'] == 'null') }}">
+    {{ "null" }}
+  </template>
+  <template if="{{ (instance['type'] != 'null') }}">
+  <a href="{{ app.locationManager.currentIsolateObjectLink(instance['id'])}}">
+    {{ instance['preview'] }}
+  </a>
+  </template>
+ </div>
+</template>  </polymer-element><polymer-element name="class-view" extends="observatory-element">
   <template>
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
         <div class="panel-heading">
-          {{ cls['user_name'] }} ({{ cls['name'] }}) 
+          class <strong>{{ cls['user_name'] }}</strong>
           <template if="{{ cls['super']['type'] != 'Null' }}">
             extends
             <a href="{{ app.locationManager.currentIsolateClassLink(cls['super']['id'])}}">
               {{ cls['super']['user_name'] }}
-            </a> 
+            </a>
           </template>
           <a class="pull-right" href="{{ app.locationManager.currentIsolateObjectLink(cls['library']['id'])}}">
             {{ cls['library']['name'] }}
@@ -65,21 +92,18 @@
               <tr>
                 <td>Patch</td><td>{{ cls['patch'] }}</td>
               </tr>
+              <tr>
+                <td>VM Name</td><td>{{ cls['name'] }}</td>
+              </tr>
             </tbody>
           </table>
           <template if="{{ cls['error'] == null }}">
             <blockquote><strong>Fields</strong></blockquote>
             <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>User Name</th>
-                  <th>VM Name</th>
-                </tr>
-              </thead>
-              <tbody>
+             <tbody>
                 <tr template="" repeat="{{ field in cls['fields'] }}">
-                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['user_name'] }}</a></td>
-                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['name'] }}</a></td>
+                  <td><field-ref app="{{ app }}" field="{{ field }}"></field-ref></td>
+                  <td><instance-ref app="{{ app }}" instance="{{ field['value'] }}"></instance-ref></td>                  
                 </tr>
               </tbody>
             </table>
@@ -108,8 +132,7 @@
     </div>
   </template>
   
-</polymer-element>
-<polymer-element name="disassembly-entry" extends="observatory-element">
+</polymer-element><polymer-element name="disassembly-entry" extends="observatory-element">
   <template>
   <div class="row">
     <template if="{{ instruction['type'] == 'DisassembledInstructionComment' }}">
@@ -261,7 +284,7 @@
   <template>
   	<div class="row">
   	  <div class="col-md-1">
-  	  	<img src="img/isolate_icon.png" class="img-polaroid">	
+  	  	<img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">	
   	  </div>
   	  <div class="col-md-1">{{ isolate }}</div>
   	  <div class="col-md-10">{{ name }}</div>
@@ -287,6 +310,45 @@
         </li>
       </template>
       </ul>
+  </template>
+  
+</polymer-element><polymer-element name="instance-view" extends="observatory-element">
+  <template>
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">   
+        <div class="panel-heading">
+         Instance of
+         <a href="{{ app.locationManager.currentIsolateClassLink(instance['class']['id'])}}">
+            {{ instance['class']['user_name'] }}
+         </a>
+        </div>
+        <div class="panel-body">
+          <template if="{{ instance['error'] == null }}">
+            <table class="table table-hover">
+              <tbody>
+                <tr>
+                  <td>Preview</td><td>{{ instance['preview'] }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <blockquote><strong>Fields</strong></blockquote>
+            <table class="table table-hover">
+             <tbody>
+                <tr template="" repeat="{{ field in instance['fields'] }}">
+                  <td><field-ref app="{{ app }}" field="{{ field }}"></field-ref></td>
+                  <td><instance-ref app="{{ app }}" instance="{{ field['value'] }}"></instance-ref></td>              
+                </tr>
+              </tbody>
+            </table>
+          </template>
+          <template if="{{ instance['error'] != null }}">
+            <error-view error_obj="{{ instance['error'] }}"></error-view>
+          </template>
+        </div>
+      </div>
+    </div>
+    </div>
   </template>
   
 </polymer-element><polymer-element name="json-view" extends="observatory-element">
@@ -318,8 +380,7 @@
     </template>
   </template>
   
-</polymer-element>
-<polymer-element name="library-view" extends="observatory-element">
+</polymer-element><polymer-element name="library-view" extends="observatory-element">
   <template>
   <div class="alert alert-success">Library {{ library['name'] }}</div>
   <div class="alert alert-info">Scripts</div>
@@ -351,35 +412,8 @@
   <table class="table table-hover">
     <tbody>
       <tr template="" repeat="{{ variable in library['variables'] }}">
-        <td>
-          <template if="{{ variable['final'] }}">
-            final
-          </template>
-          <template if="{{ variable['const'] }}">
-            const
-          </template>
-          <template if="{{ (variable['declared_type']['name'] == 'dynamic' &amp;&amp; !variable['final'] &amp;&amp; !variable['const']) }}">
-            var
-          </template>
-          <template if="{{ (variable['declared_type']['name'] != 'dynamic') }}">
-            <a href="{{ app.locationManager.currentIsolateClassLink(variable['declared_type']['id']) }}">
-              {{ variable['declared_type']['user_name'] }}
-            </a>
-          </template>
-          <a href="{{ app.locationManager.currentIsolateObjectLink(variable['id'])}}">
-            {{ variable['user_name'] }}
-          </a>
-        </td>
-        <td>
-          <template if="{{ (variable['value']['type'] == 'null') }}">
-            {{ "null" }}
-          </template>
-          <template if="{{ (variable['value']['type'] != 'null') }}">
-            <a href="{{ app.locationManager.currentIsolateObjectLink(variable['value']['id'])}}">
-              {{ variable['value']['preview'] }}
-            </a>
-          </template>
-        </td>
+        <td><field-ref app="{{ app }}" field="{{ variable }}"></field-ref></td>
+        <td><instance-ref app="{{ app }}" instance="{{ variable['value'] }}"></instance-ref></td>
       </tr>
     </tbody>
   </table>
@@ -492,6 +526,24 @@
     </template>
     <template if="{{ messageType == 'Field' }}">
       <field-view app="{{ app }}" field="{{ message }}"></field-view>
+    </template>
+    <template if="{{ messageType == 'Instance' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Array' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'GrowableObjectArray' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'String' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Bool' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
+    </template>
+    <template if="{{ messageType == 'Smi' }}">
+      <instance-view app="{{ app }}" instance="{{ message }}"></instance-view>
     </template>
     <template if="{{ messageType == 'Function' }}">
       <function-view app="{{ app }}" function="{{ message }}"></function-view>

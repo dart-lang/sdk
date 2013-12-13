@@ -34,7 +34,8 @@ void main(List<String> arguments) {
       append: results['append'] && new Directory(results['out']).existsSync(),
       introduction: introduction,
       out: results['out'],
-      excludeLibraries: excludedLibraries);
+      excludeLibraries: excludedLibraries,
+      includeDependentPackages: results['include-dependent-packages']);
 }
 
 /**
@@ -84,5 +85,10 @@ ArgParser _initArgParser() {
       help: 'Exclude the library by this name from the documentation',
       allowMultiple: true,
       callback: (libs) => excludedLibraries.addAll(libs));
+  parser.addFlag('include-dependent-packages',
+      help: 'Assumes we are documenting a single package and are running '
+        'in the directory with its pubspec. Includes documentation for all '
+        'of its dependent packages.',
+      defaultsTo: false, negatable: false);
   return parser;
 }

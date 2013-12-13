@@ -920,6 +920,15 @@ abstract class MethodMirror implements DeclarationMirror {
   bool get isAbstract;
 
   /**
+   * Returns true if the reflectee is synthetic, and returns false otherwise.
+   *
+   * A reflectee is synthetic if it is a getter or setter implicitly introduced
+   * for a field or Type, or if it is a constructor that was implicitly
+   * introduced as a default constructor or as part of a mixin application.
+   */
+  bool get isSynthetic;
+
+  /**
    * Is the reflectee a regular function or method?
    *
    * A function or method is regular if it is not a getter, setter, or

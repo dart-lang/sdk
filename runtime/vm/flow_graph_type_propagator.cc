@@ -1009,7 +1009,8 @@ CompileType ConstraintInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
 
-
+// Note that MintOp may produce Smi-s as result of an
+// appended BoxIntegerInstr node.
 CompileType BinaryMintOpInstr::ComputeType() const {
   return CompileType::Int();
 }

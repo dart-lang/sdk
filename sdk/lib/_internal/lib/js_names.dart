@@ -4,9 +4,13 @@
 
 library dart._js_names;
 
-import 'dart:_foreign_helper' show JS, JS_GET_NAME;
+import 'dart:_foreign_helper' show
+    JS,
+    JS_GET_NAME;
 
-import 'dart:_js_helper' show JsCache;
+import 'dart:_js_helper' show
+    JsCache,
+    NoInline;
 
 import 'dart:_interceptors' show JSArray;
 
@@ -65,6 +69,7 @@ Map<String, String> computeReflectiveNames(Map<String, String> map) {
   return result;
 }
 
+@NoInline()
 List extractKeys(victim) {
   var result = JS('', '''
 (function(victim, hasOwnProperty) {

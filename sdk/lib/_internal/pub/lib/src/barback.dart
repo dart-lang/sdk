@@ -40,7 +40,7 @@ export 'barback/sources.dart' show WatcherType;
 ///
 /// Whenever a new non-patch version of barback is published, this *must* be
 /// incremented to synchronize with that.
-final supportedVersion = new Version(0, 10, 0);
+final supportedVersion = new Version(0, 11, 0);
 
 /// An identifier for a transformer and the configuration that will be passed to
 /// it.

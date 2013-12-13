@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library utils;
+library unittest.utils;
 
 /**
  * Returns the name of the type of [x], or "Unknown" if the type name can't be

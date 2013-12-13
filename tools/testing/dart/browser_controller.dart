@@ -1273,7 +1273,7 @@ class BrowserTestingServer {
         // Until we have the next task we set the current_id to a specific
         // negative value.
         contactBrowserController(
-            'GET', '$nextTestPath/$browserId', newTaskHandler, "", false); 
+            'GET', '$nextTestPath/$browserId', newTaskHandler, "", false);
       }
 
       function run(url) {
@@ -1308,7 +1308,7 @@ class BrowserTestingServer {
           }
         }
         contactBrowserController(
-            'POST', '$errorReportingUrl?test=1', handleReady, msg, true); 
+            'POST', '$errorReportingUrl?test=1', handleReady, msg, true);
       }
 
       function reportMessage(msg, isFirstMessage, isStatusUpdate) {
@@ -1324,7 +1324,14 @@ class BrowserTestingServer {
               function() {}, msg, true);
         } else {
           var is_double_report = test_completed;
+          var retry = 0;
           test_completed = true;
+
+          function reportDoneMessage() {
+            contactBrowserController(
+                'POST', '$reportPath/${browserId}?id=' + current_id,
+                handleReady, msg, true);
+          }
 
           function handleReady() {
             if (this.readyState == this.DONE) {
@@ -1333,13 +1340,17 @@ class BrowserTestingServer {
                   getNextTask();
                 }
               } else {
-                reportError('Error sending result to server');
+                reportError('Error sending result to server. Status: ' +
+                            this.status + ' Retry: ' + retry);
+                retry++;
+                if (retry < 3) {
+                  setTimeout(reportDoneMessage, 1000);
+                }
               }
             }
           }
-          contactBrowserController(
-            'POST', '$reportPath/${browserId}?id=' + current_id, handleReady,
-            msg, true);
+
+          reportDoneMessage();
         }
       }
 
@@ -1354,7 +1365,7 @@ class BrowserTestingServer {
       function messageHandler(e) {
         var msg = e.data;
         if (typeof msg != 'string') return;
-        
+
         var parsedData = parseResult(msg);
         if (parsedData) {
           // Only if the JSON was valid, we'll post it back.

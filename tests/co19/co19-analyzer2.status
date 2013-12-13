@@ -130,13 +130,9 @@ Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18:
 
 Language/07_Classes/10_Superinterfaces_A07_t05: StaticWarning # co19-roll r667: Please triage this failure
 LibTest/convert/JsonEncoder/JsonEncoder_A01_t01: StaticWarning # co19-roll r667: Please triage this failure
-LibTest/isolate/Isolate/spawnFunction_A02_t02: CompileTimeError # co19-roll r667: Please triage this failure
 LibTest/async/Zone/operator_subscript_A01_t01: StaticWarning # co19-roll r672: Please triage this failure
 
 # co19 issue 656
-LibTest/typed_data/Uint32x4/*: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/Float32x4.fromUint32x4Bits_A01_t02: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656

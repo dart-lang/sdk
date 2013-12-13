@@ -53,11 +53,6 @@ class TypeTestEmitter extends CodeEmitterHelper {
       builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
-    void generateIsFunctionTypeTest(FunctionType type) {
-      String operator = namer.operatorIsType(type);
-      builder.addProperty(operator, new jsAst.LiteralBool(true));
-    }
-
     void generateFunctionTypeSignature(Element method, FunctionType type) {
       assert(method.isImplementation);
       jsAst.Expression thisAccess = new jsAst.This();
@@ -75,7 +70,11 @@ class TypeTestEmitter extends CodeEmitterHelper {
       RuntimeTypes rti = backend.rti;
       jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
       String operatorSignature = namer.operatorSignature();
-      builder.addProperty(operatorSignature, encoding);
+      if (!type.containsTypeVariables) {
+        builder.functionType = '${task.metadataEmitter.reifyType(type)}';
+      } else {
+        builder.addProperty(operatorSignature, encoding);
+      }
     }
 
     void generateSubstitution(ClassElement cls, {bool emitNull: false}) {
@@ -94,7 +93,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
     }
 
     generateIsTestsOn(classElement, generateIsTest,
-        generateIsFunctionTypeTest, generateFunctionTypeSignature,
+        generateFunctionTypeSignature,
         generateSubstitution);
   }
 
@@ -107,7 +106,6 @@ class TypeTestEmitter extends CodeEmitterHelper {
    */
   void generateIsTestsOn(ClassElement cls,
                          void emitIsTest(Element element),
-                         FunctionTypeTestEmitter emitIsFunctionTypeTest,
                          FunctionTypeSignatureEmitter emitFunctionTypeSignature,
                          SubstitutionEmitter emitSubstitution) {
     if (checkedClasses.contains(cls)) {
@@ -176,7 +174,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
             getFunctionTypeChecksOn(callType);
         generateFunctionTypeTests(
             call, callType, functionTypeChecks,
-            emitFunctionTypeSignature, emitIsFunctionTypeTest);
+            emitFunctionTypeSignature);
      }
     }
 
@@ -250,38 +248,14 @@ class TypeTestEmitter extends CodeEmitterHelper {
       Element method,
       FunctionType methodType,
       Map<FunctionType, bool> functionTypeChecks,
-      FunctionTypeSignatureEmitter emitFunctionTypeSignature,
-      FunctionTypeTestEmitter emitIsFunctionTypeTest) {
-    bool hasDynamicFunctionTypeCheck = false;
-    int neededPredicates = 0;
+      FunctionTypeSignatureEmitter emitFunctionTypeSignature) {
+
+    // TODO(ahe): We should be able to remove this forEach loop.
     functionTypeChecks.forEach((FunctionType functionType, bool knownSubtype) {
-      if (!knownSubtype) {
-        registerDynamicFunctionTypeCheck(functionType);
-        hasDynamicFunctionTypeCheck = true;
-      } else if (!backend.rti.isSimpleFunctionType(functionType)) {
-        // Simple function types are always checked using predicates and should
-        // not provoke generation of signatures.
-        neededPredicates++;
-      }
+      registerDynamicFunctionTypeCheck(functionType);
     });
-    bool alwaysUseSignature = false;
-    if (hasDynamicFunctionTypeCheck ||
-        neededPredicates > MAX_FUNCTION_TYPE_PREDICATES) {
-      emitFunctionTypeSignature(method, methodType);
-      alwaysUseSignature = true;
-    }
-    functionTypeChecks.forEach((FunctionType functionType, bool knownSubtype) {
-      if (knownSubtype) {
-        if (backend.rti.isSimpleFunctionType(functionType)) {
-          // Simple function types are always checked using predicates.
-          emitIsFunctionTypeTest(functionType);
-        } else if (alwaysUseSignature) {
-          registerDynamicFunctionTypeCheck(functionType);
-        } else {
-          emitIsFunctionTypeTest(functionType);
-        }
-      }
-    });
+
+    emitFunctionTypeSignature(method, methodType);
   }
 
   void registerDynamicFunctionTypeCheck(FunctionType functionType) {

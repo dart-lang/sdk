@@ -649,7 +649,7 @@ class LocalsHandler {
     // Remove locals that are not in all handlers.
     directLocals = new Map<Element, HInstruction>();
     joinedLocals.forEach((element, instruction) {
-      if (instruction is HPhi
+      if (element != closureData.thisElement
           && instruction.inputs.length != localsHandlers.length) {
         joinBlock.removePhi(instruction);
       } else {
@@ -884,37 +884,72 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 /**
  * This mixin implements functionality that is shared between the [SsaBuilder]
  * and the [SsaFromIrBuilder] classes.
+ *
+ * The type parameter [N] represents the node type from which the SSA form is
+ * built, either [IrNode] or [Node].
+ *
+ * This class does not define any fields because [SsaFromIrInliner], one of its
+ * subclasses, is implemented using delegation and does not need fields. The two
+ * other subclasses, [SsaBuilder] and [SsaFromIrBuilder], implement most of the
+ * properties as fields. To avoid copy-pasting these definitions, the mixin
+ * [SsaGraphBuilderFields] is inserted in between.
  */
-class SsaGraphBuilderMixin {
-  final HGraph graph = new HGraph();
+abstract class SsaGraphBuilderMixin<N> {
+  Compiler get compiler;
+
+  JavaScriptBackend get backend;
+
+  HGraph get graph;
 
   /**
    * The current block to add instructions to. Might be null, if we are
    * visiting dead code, but see [isReachable].
    */
-  HBasicBlock _current;
+  HBasicBlock get current;
+
+  void set current(HBasicBlock block);
 
   /**
-   * The most recently opened block. Has the same value as [_current] while
-   * the block is open, but unlike [_current], it isn't cleared when the
+   * The most recently opened block. Has the same value as [current] while
+   * the block is open, but unlike [current], it isn't cleared when the
    * current block is closed.
    */
-  HBasicBlock lastOpenedBlock;
+  HBasicBlock get lastOpenedBlock;
+
+  void set lastOpenedBlock(HBasicBlock block);
 
   /**
    * Indicates whether the current block is dead (because it has a throw or a
-   * return further up).  If this is false, then [_current] may be null.  If the
+   * return further up). If this is false, then [current] may be null. If the
    * block is dead then it may also be aborted, but for simplicity we only
-   * abort on statement boundaries, not in the middle of expressions.  See
+   * abort on statement boundaries, not in the middle of expressions. See
    * isAborted.
    */
-  bool isReachable = true;
+  bool get isReachable;
 
-  HBasicBlock get current => _current;
-  void set current(c) {
-    isReachable = c != null;
-    _current = c;
-  }
+  void set isReachable(bool value);
+
+  /**
+   * True if we are visiting the expression of a throw statement.
+   */
+  bool get inThrowExpression;
+
+  /**
+   * The loop nesting is consulted when inlining a function invocation in
+   * [tryInlineMethod]. The inlining heuristics take this information into
+   * account.
+   */
+  int get loopNesting;
+
+  List<InliningState> get inliningStack;
+
+  /**
+   * This stack contains declaration elements of the functions being built
+   * or inlined by this builder.
+   */
+  List<Element> get sourceElementStack;
+
+  Element get sourceElement => sourceElementStack.last;
 
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();
@@ -950,7 +985,7 @@ class SsaGraphBuilderMixin {
   }
 
   bool isAborted() {
-    return _current == null;
+    return current == null;
   }
 
   /**
@@ -967,9 +1002,349 @@ class SsaGraphBuilderMixin {
   void add(HInstruction instruction) {
     current.add(instruction);
   }
+
+  void addWithPosition(HInstruction instruction, N node) {
+    add(attachPosition(instruction, node));
+  }
+
+  HInstruction attachPosition(HInstruction instruction, N node);
+
+  SourceFile currentSourceFile() {
+    Element element = sourceElement;
+    // TODO(johnniwinther): remove the 'element.patch' hack.
+    if (element is FunctionElement) {
+      FunctionElement functionElement = element;
+      if (functionElement.patch != null) element = functionElement.patch;
+    }
+    Script script = element.getCompilationUnit().script;
+    return script.file;
+  }
+
+  void checkValidSourceFileLocation(
+      SourceFileLocation location, SourceFile sourceFile, int offset) {
+    if (!location.isValid()) {
+      throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
+          {'offset': offset,
+           'fileName': sourceFile.filename,
+           'length': sourceFile.length});
+    }
+  }
+
+  /**
+   * Prepares the state of the builder for inlining an invocaiton of [function].
+   */
+  void enterInlinedMethod(FunctionElement function,
+                          Selector selector,
+                          List<HInstruction> providedArguments,
+                          N currentNode) {
+    assert(invariant(function, function.isImplementation));
+    assert(providedArguments != null);
+
+    List<HInstruction> compiledArguments;
+    bool isInstanceMember = function.isInstanceMember();
+    // For static calls, [providedArguments] is complete, default arguments
+    // have been included if necessary, see [addStaticSendArgumentsToList].
+    if (!isInstanceMember
+        || currentNode == null // In erroneous code, currentNode can be null.
+        || providedArgumentsKnownToBeComplete(currentNode)
+        || function.isGenerativeConstructorBody()
+        || selector.isGetter()) {
+      // For these cases, the provided argument list is known to be complete.
+      compiledArguments = providedArguments;
+    } else {
+      compiledArguments = completeDynamicSendArgumentsList(
+          selector, function, providedArguments);
+    }
+    setupInliningState(function, compiledArguments);
+  }
+
+  /**
+   * Returns a complete argument list for a dynamic call of [function]. The
+   * initial argument list [providedArguments], created by
+   * [addDynamicSendArgumentsToList], does not include values for default
+   * arguments used in the call. The reason is that the target function (which
+   * defines the defaults) is not known.
+   *
+   * However, inlining can only be performed when the target function can be
+   * resolved statically. The defaults can therefore be included at this point.
+   *
+   * The [providedArguments] list contains first all positional arguments, then
+   * the provided named arguments (the named arguments that are defined in the
+   * [selector]) in a specific order (see [addDynamicSendArgumentsToList]).
+   */
+  List<HInstruction> completeDynamicSendArgumentsList(
+      Selector selector,
+      FunctionElement function,
+      List<HInstruction> providedArguments) {
+    assert(selector.applies(function, compiler));
+    FunctionSignature signature = function.computeSignature(compiler);
+    List<HInstruction> compiledArguments = new List<HInstruction>(
+        signature.parameterCount + 1); // Plus one for receiver.
+
+    compiledArguments[0] = providedArguments[0]; // Receiver.
+    int index = 1;
+    for (; index <= signature.requiredParameterCount; index++) {
+      compiledArguments[index] = providedArguments[index];
+    }
+    if (!signature.optionalParametersAreNamed) {
+      signature.forEachOptionalParameter((element) {
+        if (index < providedArguments.length) {
+          compiledArguments[index] = providedArguments[index];
+        } else {
+          compiledArguments[index] =
+              handleConstantForOptionalParameter(element);
+        }
+        index++;
+      });
+    } else {
+      /* Example:
+       *   void foo(a, {b, d, c})
+       *   foo(0, d = 1, b = 2)
+       *
+       * providedArguments = [0, 2, 1]
+       * selectorArgumentNames = [b, d]
+       * signature.orderedOptionalParameters = [b, c, d]
+       *
+       * For each parameter name in the signature, if the argument name matches
+       * we use the next provided argument, otherwise we get the default.
+       */
+      List<String> selectorArgumentNames = selector.getOrderedNamedArguments();
+      int namedArgumentIndex = 0;
+      int firstProvidedNamedArgument = index;
+      signature.orderedOptionalParameters.forEach((element) {
+        if (namedArgumentIndex < selectorArgumentNames.length &&
+            element.name == selectorArgumentNames[namedArgumentIndex]) {
+          // The named argument was provided in the function invocation.
+          compiledArguments[index] = providedArguments[
+              firstProvidedNamedArgument + namedArgumentIndex++];
+        } else {
+          compiledArguments[index] =
+              handleConstantForOptionalParameter(element);
+        }
+        index++;
+      });
+    }
+    return compiledArguments;
+  }
+
+  void setupInliningState(FunctionElement function,
+                          List<HInstruction> compiledArguments);
+
+  void leaveInlinedMethod();
+
+  /**
+   * Try to inline [element] within the currect context of the builder. The
+   * insertion point is the state of the builder.
+   */
+  bool tryInlineMethod(Element element,
+                       Selector selector,
+                       List<HInstruction> providedArguments,
+                       N currentNode) {
+    backend.registerStaticUse(element, compiler.enqueuer.codegen);
+
+    // Ensure that [element] is an implementation element.
+    element = element.implementation;
+    FunctionElement function = element;
+    bool hasIr = compiler.irBuilder.hasIr(function);
+
+    bool insideLoop = loopNesting > 0 || graph.calledInLoop;
+
+    // Bail out early if the inlining decision is in the cache and we can't
+    // inline (no need to check the hard constraints).
+    bool cachedCanBeInlined =
+        backend.inlineCache.canInline(function, insideLoop: insideLoop);
+    if (cachedCanBeInlined == false) return false;
+
+    bool meetsHardConstraints() {
+      // We cannot inline a method from a deferred library into a method
+      // which isn't deferred.
+      // TODO(ahe): But we should still inline into the same
+      // connected-component of the deferred library.
+      if (compiler.deferredLoadTask.isDeferred(element)) return false;
+      if (compiler.disableInlining) return false;
+
+      assert(selector != null
+             || Elements.isStaticOrTopLevel(element)
+             || element.isGenerativeConstructorBody());
+      if (selector != null && !selector.applies(function, compiler)) {
+        return false;
+      }
+
+      // Don't inline operator== methods if the parameter can be null.
+      if (element.name == '==') {
+        if (element.getEnclosingClass() != compiler.objectClass
+            && providedArguments[1].canBeNull()) {
+          return false;
+        }
+      }
+
+      // Generative constructors of native classes should not be called directly
+      // and have an extra argument that causes problems with inlining.
+      if (element.isGenerativeConstructor()
+          && Elements.isNativeOrExtendsNative(element.getEnclosingClass())) {
+        return false;
+      }
+
+      // A generative constructor body is not seen by global analysis,
+      // so we should not query for its type.
+      if (!element.isGenerativeConstructorBody()) {
+        // Don't inline if the return type was inferred to be non-null empty.
+        // This means that the function always throws an exception.
+        TypeMask returnType =
+            compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
+        if (returnType != null
+            && returnType.isEmpty
+            && !returnType.isNullable) {
+          isReachable = false;
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    bool heuristicSayGoodToGo() {
+      // Don't inline recursivly
+      if (inliningStack.any((entry) => entry.function == function)) {
+        return false;
+      }
+
+      if (element.isSynthesized) return true;
+
+      if (cachedCanBeInlined == true) return cachedCanBeInlined;
+
+      if (inThrowExpression) return false;
+
+      int numParameters = function.functionSignature.parameterCount;
+      int maxInliningNodes;
+      bool useMaxInliningNodes = true;
+      if (insideLoop) {
+        maxInliningNodes = InlineWeeder.INLINING_NODES_INSIDE_LOOP +
+            InlineWeeder.INLINING_NODES_INSIDE_LOOP_ARG_FACTOR * numParameters;
+      } else {
+        maxInliningNodes = InlineWeeder.INLINING_NODES_OUTSIDE_LOOP +
+            InlineWeeder.INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR * numParameters;
+      }
+
+      // If a method is called only once, and all the methods in the
+      // inlining stack are called only once as well, we know we will
+      // save on output size by inlining this method.
+      TypesInferrer inferrer = compiler.typesTask.typesInferrer;
+      if (inferrer.isCalledOnce(element)
+          && (inliningStack.every(
+                  (entry) => inferrer.isCalledOnce(entry.function)))) {
+        useMaxInliningNodes = false;
+      }
+      bool canInline;
+      if (hasIr) {
+        IrFunction irFunction = compiler.irBuilder.getIr(function);
+        canInline = IrInlineWeeder.canBeInlined(
+            irFunction, maxInliningNodes, useMaxInliningNodes);
+      } else {
+        FunctionExpression functionNode = function.parseNode(compiler);
+        canInline = InlineWeeder.canBeInlined(
+            functionNode, maxInliningNodes, useMaxInliningNodes);
+      }
+      if (canInline) {
+        backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
+      } else {
+        backend.inlineCache.markAsNonInlinable(element, insideLoop: insideLoop);
+      }
+      return canInline;
+    }
+
+    void doInlining() {
+      // Add an explicit null check on the receiver before doing the
+      // inlining. We use [element] to get the same name in the
+      // NoSuchMethodError message as if we had called it.
+      if (element.isInstanceMember()
+          && !element.isGenerativeConstructorBody()
+          && (selector.mask == null || selector.mask.isNullable)) {
+        addWithPosition(
+            new HFieldGet(null, providedArguments[0], backend.dynamicType,
+                          isAssignable: false),
+            currentNode);
+      }
+      enterInlinedMethod(function, selector, providedArguments, currentNode);
+      inlinedFrom(function, () {
+        potentiallyCheckInlinedParameterTypes(element);
+        doInline(function);
+      });
+      leaveInlinedMethod();
+    }
+
+    if (meetsHardConstraints() && heuristicSayGoodToGo()) {
+      doInlining();
+      return true;
+    }
+
+    return false;
+  }
+
+  void doInline(Element element);
+
+  inlinedFrom(Element element, f()) {
+    assert(element is FunctionElement || element is VariableElement);
+    return compiler.withCurrentElement(element, () {
+      // The [sourceElementStack] contains declaration elements.
+      sourceElementStack.add(element.declaration);
+      var result = f();
+      sourceElementStack.removeLast();
+      return result;
+    });
+  }
+
+  HInstruction handleConstantForOptionalParameter(Element parameter) {
+    Constant constant =
+        compiler.constantHandler.getConstantForVariable(parameter);
+    assert(invariant(parameter, constant != null,
+        message: 'No constant computed for $parameter'));
+    return graph.addConstant(constant, compiler);
+  }
+
+  /**
+   * In checked mode, generate type tests for the parameters of the inlined
+   * function.
+   */
+  void potentiallyCheckInlinedParameterTypes(FunctionElement function);
+
+  /**
+   * Some dynamic invocations are known to not use default arguments.
+   */
+  bool providedArgumentsKnownToBeComplete(N currentNode);
 }
 
-class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
+/**
+ * This class defines the abstract properties of [SsaGraphBuilderMixin] as
+ * fields. It is shared between the [SsaBuilder] and the [SsaFromIrBuilder].
+ */
+abstract class SsaGraphBuilderFields<N> implements SsaGraphBuilderMixin<N> {
+  final HGraph graph = new HGraph();
+
+  HBasicBlock _current;
+
+  HBasicBlock get current => _current;
+
+  void set current(c) {
+    isReachable = c != null;
+    _current = c;
+  }
+
+  HBasicBlock lastOpenedBlock;
+
+  bool isReachable = true;
+
+  bool inThrowExpression = false;
+
+  int loopNesting = 0;
+
+  final List<InliningState> inliningStack = <InliningState>[];
+
+  final List<Element> sourceElementStack = <Element>[];
+}
+
+class SsaBuilder extends ResolvedVisitor
+    with SsaGraphBuilderMixin<Node>, SsaGraphBuilderFields<Node> {
   final SsaBuilderTask builder;
   final JavaScriptBackend backend;
   final CodegenWorkItem work;
@@ -992,16 +1367,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
 
-  /**
-   * True if we are visiting the expression of a throw expression.
-   */
-  bool inThrowExpression = false;
-
-  final List<Element> sourceElementStack;
-
-  Element get currentElement => sourceElementStack.last.declaration;
   Element get currentNonClosureClass {
-    ClassElement cls = currentElement.getEnclosingClass();
+    ClassElement cls = sourceElement.getEnclosingClass();
     if (cls != null && cls.isClosure()) {
       var closureClass = cls;
       return closureClass.methodElement.getEnclosingClass();
@@ -1036,20 +1403,16 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       activationVariables = new Map<Element, HLocalValue>(),
       jumpTargets = new Map<TargetElement, JumpHandler>(),
       parameters = new Map<Element, HInstruction>(),
-      sourceElementStack = <Element>[work.element],
-      inliningStack = <InliningState>[],
       rti = builder.backend.rti,
       super(work.resolutionTree, builder.compiler) {
     localsHandler = new LocalsHandler(this);
+    sourceElementStack.add(work.element);
   }
-
-  List<InliningState> inliningStack;
 
   Element returnElement;
   DartType returnType;
 
   bool inTryStatement = false;
-  int loopNesting = 0;
 
   Constant getConstantForNode(Node node) {
     ConstantHandler handler = compiler.constantHandler;
@@ -1219,65 +1582,24 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     return result;
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   *
-   * Invariant: [function] must be an implementation element.
-   */
-  InliningState enterInlinedMethod(FunctionElement function,
-                                   Selector selector,
-                                   List<HInstruction> providedArguments,
-                                   Node currentNode) {
-    assert(invariant(function, function.isImplementation));
-
-    List<HInstruction> compiledArguments;
-    bool isInstanceMember = function.isInstanceMember();
-
-    if (currentNode == null
-        || currentNode.asForIn() != null
-        || !isInstanceMember
-        || function.isGenerativeConstructorBody()) {
-      // For these cases, the provided arguments must match the
-      // expected parameters.
-      assert(providedArguments != null);
-      compiledArguments = providedArguments;
-    } else {
-      Send send = currentNode.asSend();
-      assert(providedArguments != null);
-      compiledArguments = new List<HInstruction>();
-      compiledArguments.add(providedArguments[0]);
-      // [providedArguments] contains the arguments given in our
-      // internal order (see [addDynamicSendArgumentsToList]). So we
-      // call [Selector.addArgumentsToList] only for getting the
-      // default values of the optional parameters.
-      bool succeeded = selector.addArgumentsToList(
-          send.isPropertyAccess ? null : send.arguments,
-          compiledArguments,
-          function,
-          (node) => null,
-          handleConstantForOptionalParameter,
-          compiler);
-      int argumentIndex = 1; // Skip receiver.
-      // [compiledArguments] now only contains the default values of
-      // the optional parameters that were not provided by
-      // [argumentsNodes]. So we iterate over [providedArguments] to fill
-      // in all the arguments.
-      for (int i = 1; i < compiledArguments.length; i++) {
-        if (compiledArguments[i] == null) {
-          compiledArguments[i] = providedArguments[argumentIndex++];
-        }
-      }
-      // The caller of [enterInlinedMethod] has ensured the selector
-      // matches the element.
-      assert(succeeded);
+  addInlinedInstantiation(DartType type) {
+    if (type != null) {
+      currentInlinedInstantiations.add(type);
     }
+  }
 
-    // Create the inlining state after evaluating the arguments, that
-    // may have an impact on the state of the current method.
+  removeInlinedInstantiation(DartType type) {
+    if (type != null) {
+      currentInlinedInstantiations.removeLast();
+    }
+  }
+
+  void setupInliningState(FunctionElement function,
+                          List<HInstruction> compiledArguments) {
     InliningState state = new InliningState(
         function, returnElement, returnType, elements, stack,
         localsHandler, inTryStatement);
-    inTryStatement = false;
+    inTryStatement = false; // TODO(lry): why? Document.
     LocalsHandler newLocalsHandler = new LocalsHandler(this);
     if (compiler.irBuilder.hasIr(function)) {
       // TODO(lry): handle ir functions with nested closure definitions.
@@ -1288,8 +1610,9 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
           compiler.closureToClassMapper.computeClosureToClassMapping(
               function, function.parseNode(compiler), elements);
     }
+
     int argumentIndex = 0;
-    if (isInstanceMember) {
+    if (function.isInstanceMember()) {
       newLocalsHandler.updateLocal(newLocalsHandler.closureData.thisElement,
                                    compiledArguments[argumentIndex++]);
     }
@@ -1321,12 +1644,10 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     stack = <HInstruction>[];
     inliningStack.add(state);
     localsHandler = newLocalsHandler;
-    return state;
   }
 
-  void leaveInlinedMethod(InliningState state) {
-    InliningState poppedState = inliningStack.removeLast();
-    assert(state == poppedState);
+  void leaveInlinedMethod() {
+    InliningState state = inliningStack.removeLast();
     elements = state.oldElements;
     stack.add(localsHandler.readLocal(returnElement));
     returnElement = state.oldReturnElement;
@@ -1338,196 +1659,40 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     inTryStatement = state.inTryStatement;
   }
 
-  /**
-   * Try to inline [element] within the currect context of the
-   * builder. The insertion point is the state of the builder.
-   */
-  bool tryInlineMethod(Element element,
-                       Selector selector,
-                       List<HInstruction> providedArguments,
-                       Node currentNode,
-                       [DartType instantiatedType]) {
-    backend.registerStaticUse(element, compiler.enqueuer.codegen);
-
-    // Ensure that [element] is an implementation element.
-    element = element.implementation;
-    FunctionElement function = element;
-
-    bool insideLoop = loopNesting > 0 || graph.calledInLoop;
-
-    // Bail out early if the inlining decision is in the cache and we can't
-    // inline (no need to check the hard constraints).
-    bool cachedCanBeInlined =
-        backend.inlineCache.canInline(function, insideLoop: insideLoop);
-    if (cachedCanBeInlined == false) return false;
-
-    bool meetsHardConstraints() {
-      // We cannot inline a method from a deferred library into a method
-      // which isn't deferred.
-      // TODO(ahe): But we should still inline into the same
-      // connected-component of the deferred library.
-      if (compiler.deferredLoadTask.isDeferred(element)) return false;
-      if (compiler.disableInlining) return false;
-
-      assert(selector != null
-             || Elements.isStaticOrTopLevel(element)
-             || element.isGenerativeConstructorBody());
-      if (selector != null && !selector.applies(function, compiler)) {
-        return false;
-      }
-
-      // Don't inline operator== methods if the parameter can be null.
-      if (element.name == '==') {
-        if (element.getEnclosingClass() != compiler.objectClass
-            && providedArguments[1].canBeNull()) {
-          return false;
-        }
-      }
-
-      // Generative constructors of native classes should not be called directly
-      // and have an extra argument that causes problems with inlining.
-      if (element.isGenerativeConstructor()
-          && Elements.isNativeOrExtendsNative(element.getEnclosingClass())) {
-        return false;
-      }
-
-      // A generative constructor body is not seen by global analysis,
-      // so we should not query for its type.
-      if (!element.isGenerativeConstructorBody()) {
-        // Don't inline if the return type was inferred to be non-null empty.
-        // This means that the function always throws an exception.
-        TypeMask returnType =
-            compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
-        if (returnType != null
-            && returnType.isEmpty
-            && !returnType.isNullable) {
-          isReachable = false;
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    bool heuristicSayGoodToGo(bool canBeInlined(int maxNodes, bool useMax)) {
-      // Don't inline recursivly
-      if (inliningStack.any((entry) => entry.function == function)) {
-        return false;
-      }
-
-      if (element.isSynthesized) return true;
-
-      if (cachedCanBeInlined == true) return cachedCanBeInlined;
-
-      if (inThrowExpression) return false;
-
-      int numParameters = function.functionSignature.parameterCount;
-      int maxInliningNodes;
-      bool useMaxInliningNodes = true;
-      if (insideLoop) {
-        maxInliningNodes = InlineWeeder.INLINING_NODES_INSIDE_LOOP +
-            InlineWeeder.INLINING_NODES_INSIDE_LOOP_ARG_FACTOR * numParameters;
-      } else {
-        maxInliningNodes = InlineWeeder.INLINING_NODES_OUTSIDE_LOOP +
-            InlineWeeder.INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR * numParameters;
-      }
-
-      // If a method is called only once, and all the methods in the
-      // inlining stack are called only once as well, we know we will
-      // save on output size by inlining this method.
-      TypesInferrer inferrer = compiler.typesTask.typesInferrer;
-      if (inferrer.isCalledOnce(element)
-          && (inliningStack.every(
-                  (entry) => inferrer.isCalledOnce(entry.function)))) {
-        useMaxInliningNodes = false;
-      }
-      bool canInline = canBeInlined(maxInliningNodes, useMaxInliningNodes);
-      if (canInline) {
-        backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
-      } else {
-        backend.inlineCache.markAsNonInlinable(element, insideLoop: insideLoop);
-      }
-      return canInline;
-    }
-
-    void doInlining(void visitBody()) {
-      // Add an explicit null check on the receiver before doing the
-      // inlining. We use [element] to get the same name in the
-      // NoSuchMethodError message as if we had called it.
-      if (element.isInstanceMember()
-          && !element.isGenerativeConstructorBody()
-          && (selector.mask == null || selector.mask.isNullable)) {
-        addWithPosition(
-            new HFieldGet(null, providedArguments[0], backend.dynamicType,
-                          isAssignable: false),
-            currentNode);
-      }
-      InliningState state = enterInlinedMethod(
-          function, selector, providedArguments, currentNode);
-
-      inlinedFrom(element, () {
-        FunctionElement function = element;
-        FunctionSignature signature = function.computeSignature(compiler);
-        signature.orderedForEachParameter((Element parameter) {
-          HInstruction argument = localsHandler.readLocal(parameter);
-          potentiallyCheckType(argument, parameter.computeType(compiler));
-        });
-        addInlinedInstantiation(instantiatedType);
-        if (element.isGenerativeConstructor()) {
-          buildFactory(element);
-        } else {
-          visitBody();
-        }
-        removeInlinedInstantiation(instantiatedType);
-      });
-      leaveInlinedMethod(state);
-    }
-
-    if (meetsHardConstraints()) {
-      if (compiler.irBuilder.hasIr(function)) {
-        IrFunction irFunction = compiler.irBuilder.getIr(function);
-        bool canInline(int n, bool b) {
-          return IrInlineWeeder.canBeInlined(irFunction, n, b);
-        }
-        if (heuristicSayGoodToGo(canInline)) {
-          SsaFromIrInliner irInliner = new SsaFromIrInliner(this);
-          doInlining(() => irInliner.visitAll(irFunction.statements));
-          return true;
-        }
-      } else {
-        FunctionExpression functionNode = function.parseNode(compiler);
-        bool canInline(int n, bool b) {
-          return InlineWeeder.canBeInlined(functionNode, n, b);
-        }
-        if (heuristicSayGoodToGo(canInline)) {
-          doInlining(() => functionNode.body.accept(this));
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  addInlinedInstantiation(DartType type) {
-    if (type != null) {
-      currentInlinedInstantiations.add(type);
+  void doInline(FunctionElement function) {
+    if (function.isGenerativeConstructor()) {
+      // TODO(lry): inline constructors in IR.
+      assert(!compiler.irBuilder.hasIr(function));
+      buildFactory(function);
+    } else if (compiler.irBuilder.hasIr(function)) {
+      IrFunction irFunction = compiler.irBuilder.getIr(function);
+      SsaFromIrInliner irInliner = new SsaFromIrInliner(this);
+      irInliner.visitAll(irFunction.statements);
+      // The [IrInliner] does not push the final instruction on the [stack].
+      // In a way, this violates the invariant of the [SsaBuilder], however
+      // it works just fine because [leaveInlinedMethod] will restore the
+      // stack of the callee and push the value of the [returnElement].
+    } else {
+      FunctionExpression functionNode = function.parseNode(compiler);
+      functionNode.body.accept(this);
     }
   }
 
-  removeInlinedInstantiation(DartType type) {
-    if (type != null) {
-      currentInlinedInstantiations.removeLast();
-    }
+  bool providedArgumentsKnownToBeComplete(Node currentNode) {
+    /* When inlining the iterator methods generated for a [:for-in:] loop, the
+     * [currentNode] is the [ForIn] tree. The compiler-generated iterator
+     * invocations are known to have fully specified argument lists, no default
+     * arguments are used. See invocations of [pushInvokeDynamic] in
+     * [visitForIn].
+     */
+    return currentNode.asForIn() != null;
   }
 
-  inlinedFrom(Element element, f()) {
-    assert(element is FunctionElement || element is VariableElement);
-    return compiler.withCurrentElement(element, () {
-      sourceElementStack.add(element);
-      var result = f();
-      sourceElementStack.removeLast();
-      return result;
+  void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
+    FunctionSignature signature = function.computeSignature(compiler);
+    signature.orderedForEachParameter((Element parameter) {
+      HInstruction argument = localsHandler.readLocal(parameter);
+      potentiallyCheckType(argument, parameter.computeType(compiler));
     });
   }
 
@@ -2073,27 +2238,16 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, typeVariable);
     } else if (type.kind == TypeKind.FUNCTION) {
-      if (backend.rti.isSimpleFunctionType(type)) {
-        return original.convertType(compiler, type, kind);
-      }
-      TypeMask subtype = original.instructionType;
-      if (type.containsTypeVariables) {
-        bool contextIsTypeArguments = false;
-        HInstruction context;
-        if (!currentElement.enclosingElement.isClosure()
-            && currentElement.isInstanceMember()) {
-          context = localsHandler.readThis();
-        } else {
-          ClassElement contextClass = Types.getClassContext(type);
-          context = buildTypeVariableList(contextClass);
-          add(context);
-          contextIsTypeArguments = true;
-        }
-        return new HTypeConversion.withContext(type, kind, subtype,
-            original, context, contextIsTypeArguments: contextIsTypeArguments);
-      } else {
-        return new HTypeConversion(type, kind, subtype, original);
-      }
+      String name = kind == HTypeConversion.CAST_TYPE_CHECK
+          ? '_asCheck' : '_assertCheck';
+
+      List arguments = [buildFunctionType(type), original];
+      pushInvokeDynamic(
+          null,
+          new Selector.call(name, compiler.jsHelperLibrary, 1),
+          arguments);
+
+      return new HTypeConversion(type, kind, original.instructionType, pop());
     } else {
       return original.convertType(compiler, type, kind);
     }
@@ -2130,10 +2284,6 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     return graph;
   }
 
-  void addWithPosition(HInstruction instruction, Node node) {
-    add(attachPosition(instruction, node));
-  }
-
   void push(HInstruction instruction) {
     add(instruction);
     stack.add(instruction);
@@ -2165,7 +2315,9 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
   }
 
   HInstruction attachPosition(HInstruction target, Node node) {
-    target.sourcePosition = sourceFileLocationForBeginToken(node);
+    if (node != null) {
+      target.sourcePosition = sourceFileLocationForBeginToken(node);
+    }
     return target;
   }
 
@@ -2176,22 +2328,10 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       sourceFileLocationForToken(node, node.getEndToken());
 
   SourceFileLocation sourceFileLocationForToken(Node node, Token token) {
-    Element element = sourceElementStack.last;
-    // TODO(johnniwinther): remove the 'element.patch' hack.
-    if (element is FunctionElement) {
-      FunctionElement functionElement = element;
-      if (functionElement.patch != null) element = functionElement.patch;
-    }
-    Script script = element.getCompilationUnit().script;
-    SourceFile sourceFile = script.file;
+    SourceFile sourceFile = currentSourceFile();
     SourceFileLocation location =
         new TokenSourceFileLocation(sourceFile, token);
-    if (!location.isValid()) {
-      throw MessageKind.INVALID_SOURCE_FILE_LOCATION.message(
-          {'offset': token.charOffset,
-           'fileName': sourceFile.filename,
-           'length': sourceFile.length});
-    }
+    checkValidSourceFileLocation(location, sourceFile, token.charOffset);
     return location;
   }
 
@@ -3058,61 +3198,14 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     push(instruction);
   }
 
-  HLiteralList buildTypeVariableList(ClassElement contextClass) {
-    List<HInstruction> inputs = <HInstruction>[];
-    for (Link<DartType> link = contextClass.typeVariables;
-        !link.isEmpty;
-        link = link.tail) {
-      inputs.add(addTypeVariableReference(link.head));
-    }
-    return buildLiteralList(inputs);
-  }
-
   HInstruction buildIsNode(Node node, DartType type, HInstruction expression) {
     type = type.unalias(compiler);
     if (type.kind == TypeKind.FUNCTION) {
-      if (backend.rti.isSimpleFunctionType(type)) {
-        // TODO(johnniwinther): Avoid interceptor if unneeded.
-        return new HIs.raw(
-            type, expression, invokeInterceptor(expression), backend.boolType);
-      }
-      Element checkFunctionSubtype = backend.getCheckFunctionSubtype();
-
-      HInstruction signatureName = graph.addConstantString(
-          new DartString.literal(backend.namer.getFunctionTypeName(type)),
-          compiler);
-
-      HInstruction contextName;
-      HInstruction context;
-      HInstruction typeArguments;
-      if (type.containsTypeVariables) {
-        ClassElement contextClass = Types.getClassContext(type);
-        contextName = graph.addConstantString(
-            new DartString.literal(backend.namer.getNameOfClass(contextClass)),
-            compiler);
-        if (!currentElement.enclosingElement.isClosure()
-            && currentElement.isInstanceMember()) {
-          context = localsHandler.readThis();
-          typeArguments = graph.addConstantNull(compiler);
-        } else {
-          context = graph.addConstantNull(compiler);
-          typeArguments = buildTypeVariableList(contextClass);
-          add(typeArguments);
-        }
-      } else {
-        contextName = graph.addConstantNull(compiler);
-        context = graph.addConstantNull(compiler);
-        typeArguments = graph.addConstantNull(compiler);
-      }
-
-      List<HInstruction> inputs = <HInstruction>[expression,
-                                                 signatureName,
-                                                 contextName,
-                                                 context,
-                                                 typeArguments];
-      pushInvokeStatic(node, checkFunctionSubtype, inputs, backend.boolType);
-      HInstruction call = pop();
-      return new HIs.compound(type, expression, call, backend.boolType);
+      List arguments = [buildFunctionType(type), expression];
+      pushInvokeDynamic(
+          node, new Selector.call('_isTest', compiler.jsHelperLibrary, 1),
+          arguments);
+      return new HIs.compound(type, expression, pop(), backend.boolType);
     } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       HInstruction runtimeType = addTypeVariableReference(type);
       Element helper = backend.getCheckSubtypeOfRuntimeType();
@@ -3154,6 +3247,11 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     }
   }
 
+  HInstruction buildFunctionType(FunctionType type) {
+    type.accept(new TypeBuilder(), this);
+    return pop();
+  }
+
   void addDynamicSendArgumentsToList(Send node, List<HInstruction> list) {
     Selector selector = elements.getSelector(node);
     if (selector.namedArgumentCount == 0) {
@@ -3187,14 +3285,6 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
         list.add(instructions[name]);
       }
     }
-  }
-
-  HInstruction handleConstantForOptionalParameter(Element parameter) {
-    Constant constant =
-        compiler.constantHandler.getConstantForVariable(parameter);
-    assert(invariant(parameter, constant != null,
-        message: 'No constant computed for $parameter'));
-    return graph.addConstant(constant, compiler);
   }
 
   /**
@@ -3598,7 +3688,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
 
   visitSend(Send node) {
     Element element = elements[node];
-    if (element != null && identical(element, currentElement)) {
+    if (element != null && identical(element, sourceElement)) {
       graph.isRecursiveMethod = true;
     }
     super.visitSend(node);
@@ -3659,7 +3749,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
    */
   HInstruction readTypeVariable(ClassElement cls,
                                 TypeVariableElement variable) {
-    assert(currentElement.isInstanceMember());
+    assert(sourceElement.isInstanceMember());
 
     HInstruction target = localsHandler.readThis();
     HConstant index = graph.addConstantInt(
@@ -3697,7 +3787,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
    * Helper to create an instruction that gets the value of a type variable.
    */
   HInstruction addTypeVariableReference(TypeVariableType type) {
-    Element member = currentElement;
+    Element member = sourceElement;
     bool isClosure = member.enclosingElement.isClosure();
     if (isClosure) {
       ClosureClassElement closureClass = member.enclosingElement;
@@ -3778,6 +3868,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     type.typeArguments.forEach((DartType argument) {
       inputs.add(analyzeTypeArgument(argument));
     });
+    // TODO(15489): Register at codegen.
+    compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
     return callSetRuntimeTypeInfo(type.element, inputs, newObject);
   }
 
@@ -3823,13 +3915,13 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
                   originalElement, send, compiler)) {
         isFixedList = true;
         TypeMask inferred =
-            TypeMaskFactory.inferredForNode(currentElement, send, compiler);
+            TypeMaskFactory.inferredForNode(sourceElement, send, compiler);
         return inferred.containsAll(compiler)
             ? backend.fixedArrayType
             : inferred;
       } else if (isGrowableListConstructorCall) {
         TypeMask inferred =
-            TypeMaskFactory.inferredForNode(currentElement, send, compiler);
+            TypeMaskFactory.inferredForNode(sourceElement, send, compiler);
         return inferred.containsAll(compiler)
             ? backend.extendableArrayType
             : inferred;
@@ -3837,7 +3929,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
                     originalElement, compiler)) {
         isFixedList = true;
         TypeMask inferred =
-            TypeMaskFactory.inferredForNode(currentElement, send, compiler);
+            TypeMaskFactory.inferredForNode(sourceElement, send, compiler);
         ClassElement cls = element.getEnclosingClass();
         return inferred.containsAll(compiler)
             ? new TypeMask.nonNullExact(cls.thisType.element)
@@ -3929,10 +4021,8 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
               code, backend.nullType, [stack.last], canThrow: true));
       }
     } else if (isGrowableListConstructorCall) {
-      js.Expression code = js.js.parseForeignJS('Array()');
-      var behavior = new native.NativeBehavior();
-      behavior.typesReturned.add(expectedType);
-      push(new HForeign(code, elementType, inputs, nativeBehavior: behavior));
+      push(buildLiteralList(<HInstruction>[]));
+      stack.last.instructionType = elementType;
     } else {
       ClassElement cls = constructor.getEnclosingClass();
       if (cls.isAbstract && constructor.isGenerativeConstructor()) {
@@ -4054,12 +4144,14 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       return;
     }
     if (element.isErroneous()) {
+      // An erroneous element indicates that the funciton could not be resolved
+      // (a warning has been issued).
       generateThrowNoSuchMethod(node,
                                 getTargetName(element),
                                 argumentNodes: node.arguments);
       return;
     }
-    compiler.ensure(!element.isGenerativeConstructor());
+    invariant(element, !element.isGenerativeConstructor());
     if (element.isFunction()) {
       var inputs = <HInstruction>[];
       // TODO(5347): Try to avoid the need for calling [implementation] before
@@ -4636,7 +4728,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     HInstruction value;
     if (node.isRedirectingFactoryBody) {
       FunctionElement element = elements[node.expression].implementation;
-      FunctionElement function = currentElement;
+      FunctionElement function = sourceElement;
       List<HInstruction> inputs = <HInstruction>[];
       FunctionSignature calleeSignature = element.functionSignature;
       FunctionSignature callerSignature = function.functionSignature;
@@ -4724,6 +4816,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     for (DartType argument in type.typeArguments) {
       arguments.add(analyzeTypeArgument(argument));
     }
+    // TODO(15489): Register at codegen.
     compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
     return callSetRuntimeTypeInfo(type.element, arguments, object);
   }
@@ -4747,7 +4840,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
     }
 
     TypeMask type =
-        TypeMaskFactory.inferredForNode(currentElement, node, compiler);
+        TypeMaskFactory.inferredForNode(sourceElement, node, compiler);
     if (!type.containsAll(compiler)) instruction.instructionType = type;
     stack.add(instruction);
   }
@@ -5360,7 +5453,7 @@ class SsaBuilder extends ResolvedVisitor with SsaGraphBuilderMixin {
       // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
       // Note that the name of this element is irrelevant.
       Element element = new VariableElementX.synthetic('exception',
-          ElementKind.PARAMETER, currentElement);
+          ElementKind.PARAMETER, sourceElement);
       exception = new HLocalValue(element, backend.nonNullType);
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
@@ -5952,5 +6045,98 @@ class SsaBranchBuilder {
     HIf branch = conditionGraph.end.last;
     assert(branch is HIf);
     branch.blockInformation = conditionStartBlock.blockFlow;
+  }
+}
+
+class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
+  void visitType(DartType type, _) {
+    throw 'Internal error $type';
+  }
+
+  void visitVoidType(VoidType type, SsaBuilder builder) {
+    ClassElement cls = builder.compiler.findHelper('VoidRuntimeType');
+    builder.push(new HVoidType(type, new TypeMask.exact(cls)));
+  }
+
+  void visitTypeVariableType(TypeVariableType type,
+                             SsaBuilder builder) {
+    ClassElement cls = builder.compiler.findHelper('RuntimeType');
+    TypeMask instructionType = new TypeMask.subclass(cls);
+    if (!builder.sourceElement.enclosingElement.isClosure() &&
+        builder.sourceElement.isInstanceMember()) {
+      HInstruction receiver = builder.localsHandler.readThis();
+      builder.push(new HReadTypeVariable(type, receiver, instructionType));
+    } else {
+      builder.push(
+          new HReadTypeVariable.noReceiver(
+              type, builder.addTypeVariableReference(type), instructionType));
+    }
+  }
+
+  void visitFunctionType(FunctionType type, SsaBuilder builder) {
+    type.returnType.accept(this, builder);
+    HInstruction returnType = builder.pop();
+    List<HInstruction> inputs = <HInstruction>[returnType];
+
+    for (DartType parameter in type.parameterTypes) {
+      parameter.accept(this, builder);
+      inputs.add(builder.pop());
+    }
+
+    for (DartType parameter in type.optionalParameterTypes) {
+      parameter.accept(this, builder);
+      inputs.add(builder.pop());
+    }
+
+    Link<DartType> namedParameterTypes = type.namedParameterTypes;
+    for (String name in type.namedParameters) {
+      DartString dartString = new DartString.literal(name);
+      inputs.add(
+          builder.graph.addConstantString(dartString, builder.compiler));
+      namedParameterTypes.head.accept(this, builder);
+      inputs.add(builder.pop());
+      namedParameterTypes = namedParameterTypes.tail;
+    }
+
+    ClassElement cls = builder.compiler.findHelper('RuntimeFunctionType');
+    builder.push(new HFunctionType(inputs, type, new TypeMask.exact(cls)));
+  }
+
+  void visitMalformedType(MalformedType type, SsaBuilder builder) {
+    visitDynamicType(builder.compiler.types.dynamicType, builder);
+  }
+
+  void visitStatementType(StatementType type, SsaBuilder builder) {
+    throw 'not implemented visitStatementType($type)';
+  }
+
+  void visitGenericType(GenericType type, SsaBuilder builder) {
+    throw 'not implemented visitGenericType($type)';
+  }
+
+  void visitInterfaceType(InterfaceType type, SsaBuilder builder) {
+    List<HInstruction> inputs = <HInstruction>[];
+    for (DartType typeArgument in type.typeArguments) {
+      typeArgument.accept(this, builder);
+      inputs.add(builder.pop());
+    }
+    ClassElement cls;
+    if (type.typeArguments.isEmpty) {
+      cls = builder.compiler.findHelper('RuntimeTypePlain');
+    } else {
+      cls = builder.compiler.findHelper('RuntimeTypeGeneric');
+    }
+    builder.push(new HInterfaceType(inputs, type, new TypeMask.exact(cls)));
+  }
+
+  void visitTypedefType(TypedefType type, SsaBuilder builder) {
+    DartType unaliased = type.unalias(builder.compiler);
+    if (unaliased is TypedefType) throw 'unable to unalias $type';
+    unaliased.accept(this, builder);
+  }
+
+  void visitDynamicType(DynamicType type, SsaBuilder builder) {
+    ClassElement cls = builder.compiler.findHelper('DynamicRuntimeType');
+    builder.push(new HDynamicType(type, new TypeMask.exact(cls)));
   }
 }

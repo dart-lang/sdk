@@ -16,6 +16,7 @@ class ServiceRequest {
     var path = uri.path;
     var split = path.split('/');
     if (split.length == 0) {
+      setErrorResponse('Invalid request uri: ${request.uri}');
       return false;
     }
     for (int i = 0; i < split.length; i++) {
@@ -37,7 +38,7 @@ class ServiceRequest {
 
   void setErrorResponse(String error) {
     _response = JSON.encode({
-        'type': 'error',
+        'type': 'Error',
         'msg': error,
         'pathSegments': pathSegments,
         'parameters': parameters

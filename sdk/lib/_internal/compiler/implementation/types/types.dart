@@ -28,7 +28,6 @@ abstract class TypesInferrer {
   TypeMask getTypeOfElement(Element element);
   TypeMask getTypeOfNode(Element owner, Node node);
   TypeMask getTypeOfSelector(Selector selector);
-  Iterable<TypeMask> get containerTypes;
   void clear();
   bool isCalledOnce(Element element);
   bool isFixedArrayCheckedForGrowable(Node node);
@@ -400,7 +399,6 @@ class TypesTask extends CompilerTask {
 
   /**
    * Return the (inferred) guaranteed type of [selector] or null.
-   * [node] must be an AST node of [owner].
    */
   TypeMask getGuaranteedTypeOfSelector(Selector selector) {
     return measure(() {

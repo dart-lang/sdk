@@ -11,15 +11,26 @@ class ObservatoryApplication extends Observable {
   @observable final RequestManager requestManager;
   @observable final IsolateManager isolateManager;
 
-  ObservatoryApplication() :
-      locationManager = new LocationManager(),
-      requestManager = new HttpRequestManager(),
-      isolateManager = new IsolateManager() {
+  void _setup() {
     locationManager._application = this;
     requestManager._application = this;
     isolateManager._application = this;
     requestManager.interceptor = isolateManager._responseInterceptor;
     locationManager.init();
+  }
+
+  ObservatoryApplication.devtools() :
+      locationManager = new LocationManager(),
+      requestManager = new PostMessageRequestManager(),
+      isolateManager = new IsolateManager() {
+    _setup();
+  }
+
+  ObservatoryApplication() :
+      locationManager = new LocationManager(),
+      requestManager = new HttpRequestManager(),
+      isolateManager = new IsolateManager() {
+    _setup();
   }
 
   /// Return the [Isolate] with [id].

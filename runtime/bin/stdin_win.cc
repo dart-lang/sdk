@@ -23,6 +23,14 @@ int Stdin::ReadByte() {
 }
 
 
+bool Stdin::GetEchoMode() {
+  HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+  DWORD mode;
+  if (!GetConsoleMode(h, &mode)) return false;
+  return (mode & ENABLE_ECHO_INPUT) != 0;
+}
+
+
 void Stdin::SetEchoMode(bool enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
@@ -33,6 +41,14 @@ void Stdin::SetEchoMode(bool enabled) {
     mode &= ~ENABLE_ECHO_INPUT;
   }
   SetConsoleMode(h, mode);
+}
+
+
+bool Stdin::GetLineMode() {
+  HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+  DWORD mode;
+  if (!GetConsoleMode(h, &mode)) return false;
+  return (mode & ENABLE_LINE_INPUT) != 0;
 }
 
 

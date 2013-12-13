@@ -32,6 +32,10 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
     implements Map<String, String> $NATIVESPEC {
 
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
+
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => values.any((e) => e == value);
 

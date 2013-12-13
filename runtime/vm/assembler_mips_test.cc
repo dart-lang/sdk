@@ -693,6 +693,27 @@ ASSEMBLER_TEST_RUN(Beq_backward, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Beq_backward_far, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T1, 0);
+  __ LoadImmediate(T2, 1);
+  __ Bind(&l);
+  __ addiu(T1, T1, Immediate(1));
+  __ beq(T1, T2, &l);
+  __ ori(V0, T1, Immediate(0));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Beq_backward_far, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Beq_backward_delay, assembler) {
   Label l;
 
@@ -733,10 +754,12 @@ ASSEMBLER_TEST_RUN(Beq_forward_taken, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(Beq_forward_not_taken, assembler) {
+ASSEMBLER_TEST_GENERATE(Beq_forward_taken_far, assembler) {
   Label l;
 
-  __ LoadImmediate(T5, 0);
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 1);
   __ LoadImmediate(T6, 1);
 
   __ LoadImmediate(V0, 42);
@@ -747,7 +770,77 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_not_taken, assembler) {
 }
 
 
+ASSEMBLER_TEST_RUN(Beq_forward_taken_far, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Beq_forward_not_taken, assembler) {
+  Label l;
+
+  __ LoadImmediate(T5, 0);
+  __ LoadImmediate(T6, 1);
+
+  __ LoadImmediate(V0, 42);
+  __ beq(T5, T6, &l);
+  __ nop();
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
 ASSEMBLER_TEST_RUN(Beq_forward_not_taken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Beq_forward_not_taken_far, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 0);
+  __ LoadImmediate(T6, 1);
+
+  __ LoadImmediate(V0, 42);
+  __ beq(T5, T6, &l);
+  __ nop();
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Beq_forward_not_taken_far, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Beq_forward_not_taken_far2, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 0);
+  __ LoadImmediate(T6, 1);
+
+  __ LoadImmediate(V0, 42);
+  __ beq(T5, T6, &l);
+  __ nop();
+  for (int i = 0; i < (1 << 15); i++) {
+    __ nop();
+  }
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Beq_forward_not_taken_far2, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -770,6 +863,57 @@ ASSEMBLER_TEST_GENERATE(Beq_forward_taken2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Beq_forward_taken2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Beq_forward_taken_far2, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 1);
+  __ LoadImmediate(T6, 1);
+
+  __ LoadImmediate(V0, 42);
+  __ beq(T5, T6, &l);
+  __ nop();
+  __ nop();
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Beq_forward_taken_far2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Beq_forward_taken_far3, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 1);
+  __ LoadImmediate(T6, 1);
+
+  __ LoadImmediate(V0, 42);
+  __ beq(T5, T6, &l);
+  __ nop();
+  for (int i = 0; i < (1 << 15); i++) {
+    __ nop();
+  }
+  __ nop();
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Beq_forward_taken_far3, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -855,6 +999,145 @@ ASSEMBLER_TEST_RUN(Bgez, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Bgez_far, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 3);
+  __ Bind(&l);
+  __ bgez(T5, &l);
+  __ delay_slot()->addiu(T5, T5, Immediate(-1));
+  __ ori(V0, T5, Immediate(0));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Bgez_far, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Bgez_far2, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 3);
+  __ Bind(&l);
+  for (int i = 0; i < (1 << 15); i++) {
+    __ nop();
+  }
+  __ bgez(T5, &l);
+  __ delay_slot()->addiu(T5, T5, Immediate(-1));
+  __ ori(V0, T5, Immediate(0));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Bgez_far2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Bgez_taken_forward_far, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 1);
+
+  __ LoadImmediate(V0, 42);
+  __ bgez(T5, &l);
+  __ nop();
+  __ nop();
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Bgez_taken_forward_far, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Bgez_taken_forward_far2, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 1);
+
+  __ LoadImmediate(V0, 42);
+  __ bgez(T5, &l);
+  __ nop();
+  for (int i = 0; i < (1 << 15); i++) {
+    __ nop();
+  }
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Bgez_taken_forward_far2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Bgez_not_taken_forward_far, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, -1);
+
+  __ LoadImmediate(V0, 42);
+  __ bgez(T5, &l);
+  __ nop();
+  __ nop();
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Bgez_not_taken_forward_far, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Bgez_not_taken_forward_far2, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, -1);
+
+  __ LoadImmediate(V0, 42);
+  __ bgez(T5, &l);
+  __ nop();
+  for (int i = 0; i < (1 << 15); i++) {
+    __ nop();
+  }
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Bgez_not_taken_forward_far2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Bgezl, assembler) {
   Label l;
 
@@ -888,6 +1171,95 @@ ASSEMBLER_TEST_GENERATE(Blez, assembler) {
 ASSEMBLER_TEST_RUN(Blez, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Blez_far, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, -3);
+  __ Bind(&l);
+  __ blez(T5, &l);
+  __ delay_slot()->addiu(T5, T5, Immediate(1));
+  __ ori(V0, T5, Immediate(0));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Blez_far, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Blez_far2, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, -3);
+  __ Bind(&l);
+  for (int i = 0; i < (1 << 15); i++) {
+    __ nop();
+  }
+  __ blez(T5, &l);
+  __ delay_slot()->addiu(T5, T5, Immediate(1));
+  __ ori(V0, T5, Immediate(0));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Blez_far2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Blez_taken_forward_far, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, -1);
+
+  __ LoadImmediate(V0, 42);
+  __ blez(T5, &l);
+  __ nop();
+  __ nop();
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Blez_taken_forward_far, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Blez_not_taken_forward_far, assembler) {
+  Label l;
+
+  __ set_use_far_branches(true);
+
+  __ LoadImmediate(T5, 1);
+
+  __ LoadImmediate(V0, 42);
+  __ blez(T5, &l);
+  __ nop();
+  __ nop();
+  __ LoadImmediate(V0, 0);
+  __ Bind(&l);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Blez_not_taken_forward_far, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 

@@ -23,8 +23,18 @@ import bot
 DARTIUM_BUILDER = r'none-dartium-(linux|mac|windows)'
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?(-(x64))?-?(\d*)-?(\d*)')
+DART2JS_FULL_BUILDER = r'dart2js-full-(linux|mac|windows)(-checked)?(-minified)?-(\d+)-(\d+)'
 WEB_BUILDER = (
     r'dart2js-(ie9|ie10|ff|safari|chrome|chromeOnAndroid|opera|drt)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
+
+DART2JS_FULL_CONFIGURATIONS = {
+  'linux' : [ ],
+  'mac' : [ ],
+  'windows' : [
+    {'runtime' : 'ie9'},
+    {'runtime' : 'ie9', 'additional_flags' : ['--checked']},
+  ],
+}
 
 
 def GetBuildInfo(builder_name, is_buildbot):
@@ -43,8 +53,10 @@ def GetBuildInfo(builder_name, is_buildbot):
   test_set = None
   csp = None
   arch = None
+  dart2js_full = False
 
   dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
+  dart2js_full_pattern = re.match(DART2JS_FULL_BUILDER, builder_name)
   web_pattern = re.match(WEB_BUILDER, builder_name)
   dartium_pattern = re.match(DARTIUM_BUILDER, builder_name)
 
@@ -58,6 +70,17 @@ def GetBuildInfo(builder_name, is_buildbot):
       csp = True
     shard_index = web_pattern.group(8)
     total_shards = web_pattern.group(9)
+  elif dart2js_full_pattern:
+    mode = 'release'
+    compiler = 'dart2js'
+    dart2js_full = True
+    system = dart2js_full_pattern.group(1)
+    if dart2js_full_pattern.group(2):
+      checked = True
+    if dart2js_full_pattern.group(3):
+      minified = True
+    shard_index = dart2js_full_pattern.group(4)
+    total_shards = dart2js_full_pattern.group(5)
   elif dart2js_pattern:
     compiler = 'dart2js'
     system = dart2js_pattern.group(1)
@@ -107,7 +130,7 @@ def GetBuildInfo(builder_name, is_buildbot):
     return None
   return bot.BuildInfo(compiler, runtime, mode, system, checked, host_checked,
                        minified, shard_index, total_shards, is_buildbot,
-                       test_set, csp, arch)
+                       test_set, csp, arch, dart2js_full)
 
 
 def NeedsXterm(compiler, runtime):
@@ -170,8 +193,8 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags, arch):
     bot.RunProcess(cmd)
 
 
-def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set, arch,
-                 compiler=None):
+def TestCompiler(runtime, mode, system, flags, is_buildbot, arch,
+                 compiler=None, dart2js_full=False):
   """ test the compiler.
    Args:
      - runtime: either 'd8', 'jsshell', or one of the browsers, see GetBuildInfo
@@ -180,7 +203,6 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set, arch,
      - flags: extra flags to pass to test.dart
      - is_buildbot: true if we are running on a real buildbot instead of
        emulating one.
-     - test_set: Specification of a non standard test set, default None
      - arch: The architecture to run on.
      - compiler: The compiler to use for test.py (default is 'dart2js').
   """
@@ -298,31 +320,40 @@ def RunCompilerTests(build_info):
   if build_info.shard_index:
     test_flags = ['--shards=%s' % build_info.total_shards,
                   '--shard=%s' % build_info.shard_index]
-
   if build_info.checked: test_flags += ['--checked']
-
+  if build_info.minified: test_flags += ['--minified']
   if build_info.host_checked: test_flags += ['--host-checked']
 
-  if build_info.minified: test_flags += ['--minified']
+  if build_info.dart2js_full:
+    compiler = build_info.compiler
+    assert compiler == 'dart2js'
+    system = build_info.system
+    arch = build_info.arch
+    mode = build_info.mode
+    is_buildbot = build_info.is_buildbot
+    for configuration in DART2JS_FULL_CONFIGURATIONS[system]:
+      additional_flags = configuration.get('additional_flags', [])
+      TestCompiler(configuration['runtime'], mode, system,
+                   test_flags + additional_flags, is_buildbot, arch,
+                   compiler=compiler, dart2js_full=True)
+  else:
+    if build_info.csp: test_flags += ['--csp']
 
-  if build_info.csp: test_flags += ['--csp']
+    if build_info.runtime == 'chromeOnAndroid':
+      test_flags.append('--local_ip=%s' % GetLocalIPAddress())
+      # test.py expects the android tools directories to be in PATH
+      # (they contain for example 'adb')
+      AddAndroidToolsToPath()
 
-  if build_info.runtime == 'chromeOnAndroid':
-    test_flags.append('--local_ip=%s' % GetLocalIPAddress())
-    # test.py expects the android tools directories to be in PATH
-    # (they contain for example 'adb')
-    AddAndroidToolsToPath()
-
-  TestCompiler(build_info.runtime, build_info.mode, build_info.system,
-               list(test_flags), build_info.is_buildbot, build_info.test_set,
-               build_info.arch, compiler=build_info.compiler)
-
-  # See comment in GetHasHardCodedCheckedMode, this is a hack.
-  if (GetHasHardCodedCheckedMode(build_info)):
     TestCompiler(build_info.runtime, build_info.mode, build_info.system,
-                 test_flags + ['--checked'], build_info.is_buildbot,
-                 build_info.test_set, build_info.arch,
-                 compiler=build_info.compiler)
+                 list(test_flags), build_info.is_buildbot,
+                 build_info.arch, compiler=build_info.compiler)
+
+    # See comment in GetHasHardCodedCheckedMode, this is a hack.
+    if (GetHasHardCodedCheckedMode(build_info)):
+      TestCompiler(build_info.runtime, build_info.mode, build_info.system,
+                   test_flags + ['--checked'], build_info.is_buildbot,
+                   build_info.arch,  compiler=build_info.compiler)
 
 
 def BuildCompiler(build_info):
@@ -332,7 +363,7 @@ def BuildCompiler(build_info):
   - build_info: the buildInfo object, containing information about what sort of
       build and test to be run.
   """
-  with bot.BuildStep('Build SDK and d8'):
+  with bot.BuildStep('Build SDK'):
     args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
             '--arch=' + build_info.arch, 'dart2js_bot']
     print 'Build SDK and d8: %s' % (' '.join(args))

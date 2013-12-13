@@ -356,6 +356,8 @@
             'HAVE_LCHOWN=1',
             'HAVE_STRERROR=1',
             'HAVE_DLADDR=1',
+            'HAVE_SETPRIORITY=1',
+            'HAVE_SYSCALL=1',
             '_REENTRANT=1',
              'FORCE_PR_LOG',
             '_PR_PTHREADS',

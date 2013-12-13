@@ -82,6 +82,7 @@ positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 
 [ $compiler == dart2js && $minified ]
+cyclic_type_test: Fail # Issue 12605.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
 mixin_generic_test: Fail # Issue 12605.
@@ -92,6 +93,7 @@ mixin_mixin5_test: Fail # Issue 12605.
 mixin_mixin6_test: Fail # Issue 12605.
 
 [ $compiler == dart2js ]
+function_type_alias9_test/00: Crash
 malformed_test/none: RuntimeError # Issue 12695
 branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
@@ -197,7 +199,6 @@ label_test: Skip
 [ $compiler == dart2dart ]
 regress_13494_test: Fail # Issue 13494
 malformed_test/none: CompileTimeError # Issue 12695
-mixin_regress_13688_test: RuntimeError # Issue 15244
 mixin_super_constructor_named_test: Fail # Issue 12631
 mixin_super_constructor_positionals_test: Fail # Issue 12631
 
@@ -245,7 +246,7 @@ not_enough_positional_arguments_test/02: Fail # Issue 12839
 not_enough_positional_arguments_test/05: Fail # Issue 12839
 
 metadata_test: Fail # Issue 12762
-const_var_test: Pass, Fail # Issue 12794
+const_var_test: CompileTimeError # Issue 12794
 map_literal3_test: Fail # Issue 12794
 external_test/13: Fail # Issue 12888
 built_in_identifier_test/01: Fail # Issue 13022
@@ -265,7 +266,6 @@ malbounded_type_literal_test: Fail # Issue 13960
 constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
-f_bounded_equality_test: RuntimeError # Issue 14000
 
 # Minified mode failures.
 
@@ -296,6 +296,7 @@ malbounded_type_test_test/01: Fail # Issue 14131
 malbounded_instantiation_test/01: Fail # Issue 14132
 
 [ $compiler == dart2dart && $minified ]
+cyclic_type_test: Fail # Issue 12605.
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
@@ -313,3 +314,6 @@ stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 
 [ $runtime == ie9 ]
 stack_trace_test: Fail, OK # Stack traces not available in IE9.
+
+[ $compiler == dart2js && $host_checked ]
+const_factory_with_body_test/01: Crash

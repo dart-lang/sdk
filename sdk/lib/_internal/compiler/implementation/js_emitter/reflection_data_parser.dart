@@ -4,21 +4,140 @@
 
 part of dart2js.js_emitter;
 
+// TODO(ahe): Share these with js_helper.dart.
+const FUNCTION_INDEX = 0;
+const NAME_INDEX = 1;
+const CALL_NAME_INDEX = 2;
+const REQUIRED_PARAMETER_INDEX = 3;
+const OPTIONAL_PARAMETER_INDEX = 4;
+const DEFAULT_ARGUMENTS_INDEX = 5;
+
 // TODO(ahe): This code should be integrated in CodeEmitterTask.finishClasses.
-String getReflectionDataParser(String classesCollector, Namer namer) {
+String getReflectionDataParser(String classesCollector,
+                               JavaScriptBackend backend) {
+  Namer namer = backend.namer;
+  Compiler compiler = backend.compiler;
+  Element closureFromTearOff = compiler.findHelper('closureFromTearOff');
+  String tearOffAccess =
+      // Default value for mocked-up test libraries.
+      'function () { throw "Helper \'closureFromTearOff\' missing." }';
+  if (closureFromTearOff != null) {
+    tearOffAccess = namer.isolateAccess(closureFromTearOff);
+  }
   String metadataField = '"${namer.metadataField}"';
   String reflectableField = namer.reflectableField;
+
+  // TODO(ahe): Move this string constants to namer.
+  String reflectionInfoField = r'$reflectionInfo';
+  String reflectionNameField = r'$reflectionName';
+  String metadataIndexField = r'$metadataIndex';
+
   String defaultValuesField = namer.defaultValuesField;
   String methodsWithOptionalArgumentsField =
       namer.methodsWithOptionalArgumentsField;
-  return '''
+
+  String header = '''
 (function (reflectionData) {
+  "use strict";
 '''
 // [map] returns an object literal that V8 shouldn't try to optimize with a
 // hidden class. This prevents a potential performance problem where V8 tries
 // to build a hidden class for an object used as a hashMap.
 '''
   function map(x){x={x:x};delete x.x;return x}
+''';
+
+
+  /**
+   * See [dart2js.js_emitter.ContainerBuilder.addMemberMethod] for format of
+   * [array].
+   */
+  String addStubs = '''
+  function addStubs(descriptor, array, name, isStatic,''' // Break long line.
+                ''' originalDescriptor, functions) {
+    var f, funcs =''' // Break long line.
+    ''' [originalDescriptor[name] =''' // Break long line.
+    ''' descriptor[name] = f = ${readFunction("array", "$FUNCTION_INDEX")}];
+    f.\$stubName = name;
+    functions.push(name);
+    for (var index = $FUNCTION_INDEX; index < array.length; index += 2) {
+      f = array[index + 1];
+      if (typeof f != "function") break;
+      f.\$stubName = ${readString("array", "index + 2")};
+      funcs.push(f);
+      if (f.\$stubName) {
+        originalDescriptor[f.\$stubName] = descriptor[f.\$stubName] = f;
+        functions.push(f.\$stubName);
+      }
+    }
+    for (var i = 0; i < funcs.length; index++, i++) {
+      funcs[i].\$callName = ${readString("array", "index + 1")};
+    }
+    var getterStubName = ${readString("array", "++index")};
+    array = array.slice(++index);
+    var requiredParameterInfo = ${readInt("array", "0")};
+    var requiredParameterCount = requiredParameterInfo >> 1;
+    var isAccessor = (requiredParameterInfo & 1) === 1;
+    var isSetter = requiredParameterInfo === 3;
+    var isGetter = requiredParameterInfo === 1;
+    var optionalParameterInfo = ${readInt("array", "1")};
+    var optionalParameterCount = optionalParameterInfo >> 1;
+    var optionalParametersAreNamed = (optionalParameterInfo & 1) === 1;
+    var functionTypeIndex = ${readFunctionType("array", "2")};
+    var isReflectable =''' // Break long line.
+    ''' array.length > requiredParameterCount + optionalParameterCount + 3;
+    if (getterStubName) {
+      f = tearOff(funcs, array, isStatic, name);
+'''
+      /* Used to create an isolate using spawnFunction.*/
+'''
+      if (isStatic) init.globalFunctions[name] = f;
+      originalDescriptor[getterStubName] = descriptor[getterStubName] = f;
+      funcs.push(f);
+      if (getterStubName) functions.push(getterStubName);
+      f.\$stubName = getterStubName;
+      f.\$callName = null;
+    }
+    if (isReflectable) {
+      for (var i = 0; i < funcs.length; i++) {
+        funcs[i].$reflectableField = 1;
+        funcs[i].$reflectionInfoField = array;
+      }
+    }
+    if (isReflectable) {
+      var unmangledNameIndex =''' // Break long line.
+      ''' optionalParameterCount * 2 + requiredParameterCount + 3;
+      var unmangledName = ${readString("array", "unmangledNameIndex")};
+      var reflectionName =''' // Break long line.
+      ''' unmangledName + ":" + requiredParameterCount +''' // Break long line.
+      ''' ":" + optionalParameterCount;
+      if (isGetter) {
+        reflectionName = unmangledName;
+      } else if (isSetter) {
+        reflectionName = unmangledName + "=";
+      }
+      if (isStatic) {
+        init.mangledGlobalNames[name] = reflectionName;
+      } else {
+        init.mangledNames[name] = reflectionName;
+      }
+      funcs[0].$reflectionNameField = reflectionName;
+      funcs[0].$metadataIndexField = unmangledNameIndex + 1;
+      if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
+    }
+  }
+''';
+
+  String tearOff = '''
+  function tearOff(funcs, reflectionInfo, isStatic, name) {
+    return function() {
+      return $tearOffAccess(''' // Break long line.
+       '''this, funcs, reflectionInfo, isStatic, arguments, name);
+    }
+  }
+''';
+
+  String init = '''
   if (!init.libraries) init.libraries = [];
   if (!init.mangledNames) init.mangledNames = map();
   if (!init.mangledGlobalNames) init.mangledGlobalNames = map();
@@ -53,6 +172,9 @@ String getReflectionDataParser(String classesCollector, Namer namer) {
     var fields = descriptor && descriptor[""];
     var classes = [];
     var functions = [];
+''';
+
+  String processStatics = '''
     function processStatics(descriptor) {
       for (var property in descriptor) {
         if (!hasOwnProperty.call(descriptor, property)) continue;
@@ -63,9 +185,9 @@ String getReflectionDataParser(String classesCollector, Namer namer) {
         if (firstChar === "+") {
           mangledGlobalNames[previousProperty] = property.substring(1);
           if (descriptor[property] == 1) ''' // Break long line.
-'''descriptor[previousProperty].$reflectableField = 1;
+         '''descriptor[previousProperty].$reflectableField = 1;
           if (element && element.length) ''' // Break long line.
-'''init.typeInformation[previousProperty] = element;
+         '''init.typeInformation[previousProperty] = element;
         } else if (firstChar === "@") {
           property = property.substring(1);
           ${namer.currentIsolate}[property][$metadataField] = element;
@@ -80,6 +202,9 @@ String getReflectionDataParser(String classesCollector, Namer namer) {
           globalObject[previousProperty = property] = element;
           functions.push(property);
           init.globalFunctions[property] = element;
+        } else if (element.constructor === Array) {
+          addStubs(globalObject, element, property, ''' // Break long line.
+                '''true, descriptor, functions);
         } else {
           previousProperty = property;
           var newDesc = {};
@@ -92,7 +217,7 @@ String getReflectionDataParser(String classesCollector, Namer namer) {
             } else if (firstChar === "+") {
               mangledNames[previousProp] = prop.substring(1);
               if (element[prop] == 1) ''' // Break long line.
-'''element[previousProp].$reflectableField = 1;
+             '''element[previousProp].$reflectableField = 1;
             } else if (firstChar === "@" && prop !== "@") {
               newDesc[prop.substring(1)][$metadataField] = element[prop];
             } else if (firstChar === "*") {
@@ -103,7 +228,14 @@ String getReflectionDataParser(String classesCollector, Namer namer) {
               }
               optionalMethods[prop] = previousProp;
             } else {
-              newDesc[previousProp = prop] = element[prop];
+              var elem = element[prop];
+              if (prop && elem != null &&''' // Break long line.
+              ''' elem.constructor === Array &&''' // Break long line.
+              ''' prop !== "<>") {
+                addStubs(newDesc, elem, prop, false, element, []);
+              } else {
+                newDesc[previousProp = prop] = elem;
+              }
             }
           }
           $classesCollector[property] = [globalObject, newDesc];
@@ -111,9 +243,55 @@ String getReflectionDataParser(String classesCollector, Namer namer) {
         }
       }
     }
+''';
+
+String footer = '''
     processStatics(descriptor);
     libraries.push([name, uri, classes, functions, metadata, fields, isRoot,
                     globalObject]);
   }
-})''';
+})
+''';
+
+ return '$header$processStatics$addStubs$tearOff$init$footer';
+}
+
+String readString(String array, String index) {
+  return readChecked(
+      array, index, 'result != null && typeof result != "string"', 'string');
+}
+
+String readInt(String array, String index) {
+  return readChecked(
+      array, index,
+      'result != null && (typeof result != "number" || (result|0) !== result)',
+      'int');
+}
+
+String readFunction(String array, String index) {
+  return readChecked(
+      array, index, 'result != null && typeof result != "function"',
+      'function');
+}
+
+String readFunctionType(String array, String index) {
+  return readChecked(
+      array, index,
+      'result != null && '
+      '(typeof result != "number" || (result|0) !== result) && '
+      'typeof result != "function"',
+      'function or int');
+}
+
+String readChecked(String array, String index, String check, String type) {
+  return '''
+(function() {
+  var result = $array[$index];
+  if ($check) {
+    throw new Error(
+        name + ": expected value of type \'$type\' at index " + ($index) +
+        " but got " + (typeof result));
+  }
+  return result;
+})()''';
 }

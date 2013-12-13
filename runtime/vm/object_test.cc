@@ -3627,4 +3627,99 @@ TEST_CASE(SpecialClassesHaveEmptyArrays) {
   EXPECT(array.IsArray());
 }
 
+
+TEST_CASE(ToUserCString) {
+  const char* kScriptChars =
+      "var simple = 'simple';\n"
+      "var escapes = 'stuff\\n\\r\\f\\b\\t\\v\\'\"\\$stuff';\n"
+      "var uescapes = 'stuff\\u0001\\u0002stuff';\n"
+      "var toolong = "
+      "'01234567890123456789012345678901234567890123456789howdy';\n"
+      "var toolong2 = "
+      "'0123456789012345678901234567890123\\t567890123456789howdy';\n"
+      "var toolong3 = "
+      "'012345678901234567890123456789\\u0001567890123456789howdy';\n"
+      "\n"
+      "class _Cobra { }\n"
+      "var instance = new _Cobra();\n"
+      "\n"
+      "var simple_list = [1,2,'otter'];\n"
+      "\n"
+      "var simple_map = {1: 2, 2: 'otter'};\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Instance& obj = Instance::Handle();
+  Dart_Handle result;
+
+  // Simple string.
+  result = Dart_GetField(lib, NewString("simple"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("\"simple\"", obj.ToUserCString());
+
+  // Escaped chars.
+  result = Dart_GetField(lib, NewString("escapes"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("\"stuff\\n\\r\\f\\b\\t\\v'\\\"\\$stuff\"",
+               obj.ToUserCString());
+
+  // U-escaped chars.
+  result = Dart_GetField(lib, NewString("uescapes"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("\"stuff\\u0001\\u0002stuff\"", obj.ToUserCString());
+
+  // Truncation.
+  result = Dart_GetField(lib, NewString("toolong"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("\"01234567890123456789012345678901234\"...",
+               obj.ToUserCString());
+
+  // Truncation.  Custom limit.
+  result = Dart_GetField(lib, NewString("toolong"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("\"01234\"...", obj.ToUserCString(10));
+
+  // Truncation, limit is in escape.
+  result = Dart_GetField(lib, NewString("toolong2"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("\"0123456789012345678901234567890123\"...",
+               obj.ToUserCString());
+
+  // Truncation, limit is in u-escape
+  result = Dart_GetField(lib, NewString("toolong3"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("\"012345678901234567890123456789\"...",
+               obj.ToUserCString());
+
+  // Instance of a class.
+  result = Dart_GetField(lib, NewString("instance"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("Instance of '_Cobra'", obj.ToUserCString());
+
+  // Simple list.
+  //
+  // TODO(turnidge): Consider showing something like: [1, 2, 'otter'].
+  result = Dart_GetField(lib, NewString("simple_list"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("Instance(length:3) of '_GrowableList'",
+               obj.ToUserCString());
+
+  // Simple map.
+  //
+  // TODO(turnidge): Consider showing something like: {1: 2, 2: 'otter'}
+  result = Dart_GetField(lib, NewString("simple_map"));
+  EXPECT_VALID(result);
+  obj ^= Api::UnwrapHandle(result);
+  EXPECT_STREQ("Instance of '_LinkedHashMap'", obj.ToUserCString());
+}
+
 }  // namespace dart

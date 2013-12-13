@@ -6473,7 +6473,7 @@ class DataTransferItem extends Interceptor native "DataTransferItem" {
   @Experimental()
   Entry getAsEntry() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6517,6 +6517,12 @@ class DataTransferItemList extends Interceptor native "DataTransferItemList" {
   @DocsEditable()
   @Experimental() // untriaged
   void remove(int index) native;
+
+
+  DataTransferItem operator[] (int index) {
+    return JS('DataTransferItem', '#[#]', this, index);
+  }
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24079,6 +24085,10 @@ class SpeechSynthesisVoice extends Interceptor native "SpeechSynthesisVoice" {
 class Storage extends Interceptor
     implements Map<String, String>  native "Storage" {
 
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
+
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => values.any((e) => e == value);
 
@@ -28727,25 +28737,29 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
 
   // From WindowTimers
 
+  @JSName('clearInterval')
   @DomName('WorkerGlobalScope.clearInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearInterval(int handle) native;
+  void _clearInterval(int handle) native;
 
+  @JSName('clearTimeout')
   @DomName('WorkerGlobalScope.clearTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearTimeout(int handle) native;
+  void _clearTimeout(int handle) native;
 
+  @JSName('setInterval')
   @DomName('WorkerGlobalScope.setInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  int setInterval(Object handler, int timeout) native;
+  int _setInterval(Object handler, int timeout) native;
 
+  @JSName('setTimeout')
   @DomName('WorkerGlobalScope.setTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int setTimeout(Object handler, int timeout) native;
+  int _setTimeout(Object handler, int timeout) native;
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   @DomName('WorkerGlobalScope.onerror')
@@ -30375,13 +30389,13 @@ abstract class _WindowTimers extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
 
-  void clearInterval(int handle);
+  void _clearInterval(int handle);
 
-  void clearTimeout(int handle);
+  void _clearTimeout(int handle);
 
-  int setInterval(Object handler, int timeout);
+  int _setInterval(Object handler, int timeout);
 
-  int setTimeout(Object handler, int timeout);
+  int _setTimeout(Object handler, int timeout);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30434,6 +30448,10 @@ abstract class _AttributeMap implements Map<String, String> {
   final Element _element;
 
   _AttributeMap(this._element);
+
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
 
   bool containsValue(String value) {
     for (var v in this.values) {
@@ -30590,6 +30608,10 @@ class _DataAttributeMap implements Map<String, String> {
   _DataAttributeMap(this._attributes);
 
   // interface Map
+
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(String value) => values.any((v) => v == value);

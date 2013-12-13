@@ -7,16 +7,18 @@ part of dart2js.ir_pickler;
 class Unpickler {
   final Compiler compiler;
 
-  Unpickler(this.compiler);
+  final IrConstantPool constantPool;
+
+  Unpickler(this.compiler, this.constantPool);
 
   List<int> data;
 
   int offset;
 
-  /** For each element index, the corresponding unpickled element. */
+  /** For each entry index, the corresponding unpickled object. */
   List<Object> unpickled;
 
-  /** Counter for elements in [unpickled]. */
+  /** Counter for entries in [unpickled]. */
   int index;
 
   /**
@@ -30,10 +32,10 @@ class Unpickler {
   IrFunction unpickle(List<int> data) {
     this.data = data;
     offset = 0;
-    int numElements = readInt();
-    unpickled = new List<Object>(numElements);
+    int numEntries = readInt();
+    unpickled = new List<Object>(numEntries);
     index = 0;
-    return readElement();
+    return readEntry();
   }
 
   int readByte() {
@@ -69,43 +71,76 @@ class Unpickler {
     }
   }
 
+  Element readElement() {
+    int elementIndex = readInt();
+    return constantPool.get(elementIndex);
+  }
+
+  Selector readSelector() {
+    int elementIndex = readInt();
+    return constantPool.get(elementIndex);
+  }
+
   /**
-   * Read an element that might be a back reference, or that might be used
+   * Read an entry that might be a back reference, or that might be used
    * in a back reference.
    */
-  Object readElement() {
-    // Obtain the index of the element before reading its content to ensure
-    // that elements are placed in consecutive order in [unpickled].
-    int elementIndex = index++;
+  IrNode readEntry() {
     int tag = readByte();
-    if (tag == Pickles.BACK_REFERENCE) {
-      int backIndex = readInt();
-      assert(unpickled[backIndex] != null);
-      return unpickled[backIndex];
+    if (Pickles.isExpressionTag(tag)) {
+      return readExpressionEntry(tag);
+    } else if (tag == Pickles.NODE_RETURN) {
+      return readReturnNode();
+    } else {
+      compiler.internalError("Unexpected entry tag: $tag");
     }
-    Object result;
+  }
+
+  IrExpression readExpressionEntry(int tag) {
+    int entryIndex = index++;
+    IrExpression result;
     if (tag == Pickles.NODE_CONST) {
       result = readConstantNode();
     } else if (tag == Pickles.NODE_FUNCTION) {
       result = readFunctionNode();
-    } else if (tag == Pickles.NODE_RETURN) {
-      result = readReturnNode();
+    } else if (tag == Pickles.NODE_INVOKE_STATIC) {
+      result = readInvokeStaticNode();
     } else {
-      compiler.internalError("Unexpected element tag: $tag");
+      compiler.internalError("Unexpected expression entry tag: $tag");
     }
-    unpickled[elementIndex] = result;
+    return unpickled[entryIndex] = result;
+  }
+
+  IrExpression readBackReference() {
+    int indexDelta = readInt();
+    int entryIndex = index - indexDelta;
+    assert(unpickled[entryIndex] != null);
+    return unpickled[entryIndex];
+  }
+
+  List<IrExpression> readBackReferenceList() {
+    int length = readInt();
+    List<IrExpression> result = new List<IrExpression>(length);
+    for (int i = 0; i < length; i++) {
+      result[i] = readBackReference();
+    }
     return result;
+  }
+
+  List<IrNode> readNodeList() {
+    int length = readInt();
+    List nodes = new List<IrNode>(length);
+    for (int i = 0; i < length; i++) {
+      nodes[i] = readEntry();
+    }
+    return nodes;
   }
 
   IrFunction readFunctionNode() {
     var position = readPosition();
     int endOffset = readInt();
     int namePosition = readInt();
-    int numStatements = readInt();
-    List<IrNode> statements = new List<IrNode>(numStatements);
-    for (int i = 0; i < numStatements; i++) {
-      statements[i] = readElement();
-    }
+    List<IrNode> statements = readNodeList();
     return new IrFunction(position, endOffset, namePosition, statements);
   }
 
@@ -117,8 +152,16 @@ class Unpickler {
 
   IrReturn readReturnNode() {
     var position = readPosition();
-    IrNode value = readElement();
+    IrExpression value = readBackReference();
     return new IrReturn(position, value);
+  }
+
+  IrInvokeStatic readInvokeStaticNode() {
+    var position = readPosition();
+    FunctionElement functionElement = readElement();
+    Selector selector = readSelector();
+    List<IrExpression> arguments = readBackReferenceList();
+    return new IrInvokeStatic(position, functionElement, selector, arguments);
   }
 
   /* int | PositionWithIdentifierName */ readPosition() {

@@ -9,6 +9,10 @@ abstract class _AttributeMap implements Map<String, String> {
 
   _AttributeMap(this._element);
 
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
+
   bool containsValue(String value) {
     for (var v in this.values) {
       if (value == v) {
@@ -164,6 +168,10 @@ class _DataAttributeMap implements Map<String, String> {
   _DataAttributeMap(this._attributes);
 
   // interface Map
+
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(String value) => values.any((v) => v == value);

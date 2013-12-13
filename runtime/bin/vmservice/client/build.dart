@@ -11,23 +11,34 @@ main() {
     .then((_) => deploy()).then(compileToJs);
 }
 
-compileToJs(_) {
-  print("Running dart2js");
-  var dart_path = Platform.executable;
-  var dart2js_path = 'dart2js';
-  if (dart_path.lastIndexOf(Platform.pathSeparator) != -1) {
-    var bin_path = dart_path.substring(0, dart_path.lastIndexOf(Platform.pathSeparator));
-    dart2js_path = "$bin_path${Platform.pathSeparator}dart2js";
+String findDart2JS() {
+  var dartPath = Platform.executable;
+  var lastIndex = dartPath.lastIndexOf(Platform.pathSeparator);
+  if (lastIndex != -1) {
+    var binPath = dartPath.substring(0, lastIndex);
+    return '$binPath${Platform.pathSeparator}dart2js';
   }
+  return 'dart2js';
+}
+
+void runDart2JS(String input, String output) {
+  var dart2js_path = findDart2JS();
   var result =
     Process.runSync(dart2js_path,
-        [ '--minify', '-o', 'out/web/index.html_bootstrap.dart.js',
-        'out/web/index.html_bootstrap.dart'], runInShell: true);
+        [ '--minify', '-o', output, input], runInShell: true);
   print(result.stdout);
   print(result.stderr);
   if (result.exitCode != 0) {
     print("Running dart2js failed.");
     exit(result.exitCode);
   }
+}
+
+compileToJs(_) {
+  print("Running dart2js");
+  runDart2JS('out/web/index.html_bootstrap.dart',
+             'out/web/index.html_bootstrap.dart.js');
+  runDart2JS('out/web/index_devtools.html_bootstrap.dart',
+             'out/web/index_devtools.html_bootstrap.dart.js');
   print("Done");
 }

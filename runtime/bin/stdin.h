@@ -17,7 +17,11 @@ namespace bin {
 class Stdin {
  public:
   static int ReadByte();
+
+  static bool GetEchoMode();
   static void SetEchoMode(bool enabled);
+
+  static bool GetLineMode();
   static void SetLineMode(bool enabled);
 
  private:

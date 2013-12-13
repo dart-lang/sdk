@@ -12,13 +12,11 @@ const Duration TIMEOUT2 = const Duration(seconds: 2);
 const Duration TIMEOUT3 = const Duration(milliseconds: 500);
 const Duration TIMEOUT4 = const Duration(milliseconds: 1500);
 
-// The stopwatch is more precise than the Timer. It can happen that
-// the TIMEOUT triggers *slightly* too early on the VM. So we add a millisecond
-// as safetymargin.
+// The stopwatch is more precise than the Timer.
 // Some browsers (Firefox and IE so far) can trigger too early. So we add more
 // margin. We use identical(1, 1.0) as an easy way to know if the test is
 // compiled by dart2js.
-int get safetyMargin => identical(1, 1.0) ? 100 : 1;
+int get safetyMargin => identical(1, 1.0) ? 100 : 0;
 
 main() {
   test("multiple timer test", () {

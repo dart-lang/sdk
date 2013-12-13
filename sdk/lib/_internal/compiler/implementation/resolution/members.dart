@@ -324,7 +324,10 @@ class ResolverTask extends CompilerTask {
           originParameter.parseNode(compiler).toString();
       String patchParameterText =
           patchParameter.parseNode(compiler).toString();
-      if (originParameterText != patchParameterText) {
+      if (originParameterText != patchParameterText
+          // We special case the list constructor because of the
+          // optional parameter.
+          && origin != compiler.unnamedListConstructor) {
         compiler.reportError(
             originParameter.parseNode(compiler),
             MessageKind.PATCH_PARAMETER_MISMATCH,
@@ -758,6 +761,9 @@ class ResolverTask extends CompilerTask {
     }
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
+      if (!element.isProxy && metadata.value == compiler.proxyConstant) {
+        element.isProxy = true;
+      }
     }
 
     // Force resolution of metadata on non-instance members since they may be
@@ -1907,7 +1913,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
 
   Element defineElement(Node node, Element element,
                         {bool doAddToScope: true}) {
-    compiler.ensure(element != null);
+    invariant(node, element != null);
     mapping[node] = element;
     if (doAddToScope) {
       Element existing = scope.add(element);
@@ -3804,8 +3810,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     : super(compiler, classElement, mapping);
 
   DartType visitClassNode(ClassNode node) {
-    compiler.ensure(element != null);
-    compiler.ensure(element.resolutionState == STATE_STARTED);
+    invariant(node, element != null);
+    invariant(element, element.resolutionState == STATE_STARTED,
+        message: () => 'cyclic resolution of class $element');
 
     InterfaceType type = element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
@@ -3890,8 +3897,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 
   DartType visitNamedMixinApplication(NamedMixinApplication node) {
-    compiler.ensure(element != null);
-    compiler.ensure(element.resolutionState == STATE_STARTED);
+    invariant(node, element != null);
+    invariant(element, element.resolutionState == STATE_STARTED,
+        message: () => 'cyclic resolution of class $element');
 
     if (identical(node.classKeyword.stringValue, 'typedef')) {
       // TODO(aprelev@gmail.com): Remove this deprecation diagnostic

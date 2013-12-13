@@ -58,6 +58,7 @@ class Compiler extends leg.Compiler {
             verbose: hasOption(options, '--verbose'),
             sourceMapUri: extractSourceMapUri(options),
             terseDiagnostics: hasOption(options, '--terse'),
+            dumpInfo: hasOption(options, '--dump-info'),
             buildId: extractStringOption(
                 options, '--build-id=',
                 "build number could not be determined")) {

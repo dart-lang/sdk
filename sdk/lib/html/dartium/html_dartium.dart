@@ -6894,11 +6894,9 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
   Entry getAsEntry() native "DataTransferItem_webkitGetAsEntry_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
@@ -6948,6 +6946,11 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   void remove(int index) native "DataTransferItemList_remove_Callback";
+
+
+  DataTransferItem operator[] (int index) {
+    return __getter__(index);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25763,6 +25766,10 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
 class Storage extends NativeFieldWrapperClass2
     implements Map<String, String>  {
 
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
+
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => values.any((e) => e == value);
 
@@ -27945,13 +27952,13 @@ class Url extends NativeFieldWrapperClass2 {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -30350,22 +30357,22 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DomName('WorkerGlobalScope.clearInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearInterval(int handle) native "WorkerGlobalScope_clearInterval_Callback";
+  void _clearInterval(int handle) native "WorkerGlobalScope_clearInterval_Callback";
 
   @DomName('WorkerGlobalScope.clearTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearTimeout(int handle) native "WorkerGlobalScope_clearTimeout_Callback";
+  void _clearTimeout(int handle) native "WorkerGlobalScope_clearTimeout_Callback";
 
   @DomName('WorkerGlobalScope.setInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  int setInterval(Object handler, int timeout) native "WorkerGlobalScope_setInterval_Callback";
+  int _setInterval(Object handler, int timeout) native "WorkerGlobalScope_setInterval_Callback";
 
   @DomName('WorkerGlobalScope.setTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int setTimeout(Object handler, int timeout) native "WorkerGlobalScope_setTimeout_Callback";
+  int _setTimeout(Object handler, int timeout) native "WorkerGlobalScope_setTimeout_Callback";
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   @DomName('WorkerGlobalScope.onerror')
@@ -32186,22 +32193,22 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
   @DomName('WindowTimers.clearInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearInterval(int handle) native "WindowTimers_clearInterval_Callback";
+  void _clearInterval(int handle) native "WindowTimers_clearInterval_Callback";
 
   @DomName('WindowTimers.clearTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearTimeout(int handle) native "WindowTimers_clearTimeout_Callback";
+  void _clearTimeout(int handle) native "WindowTimers_clearTimeout_Callback";
 
   @DomName('WindowTimers.setInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  int setInterval(Object handler, int timeout) native "WindowTimers_setInterval_Callback";
+  int _setInterval(Object handler, int timeout) native "WindowTimers_setInterval_Callback";
 
   @DomName('WindowTimers.setTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int setTimeout(Object handler, int timeout) native "WindowTimers_setTimeout_Callback";
+  int _setTimeout(Object handler, int timeout) native "WindowTimers_setTimeout_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32308,6 +32315,10 @@ abstract class _AttributeMap implements Map<String, String> {
   final Element _element;
 
   _AttributeMap(this._element);
+
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
 
   bool containsValue(String value) {
     for (var v in this.values) {
@@ -32464,6 +32475,10 @@ class _DataAttributeMap implements Map<String, String> {
   _DataAttributeMap(this._attributes);
 
   // interface Map
+
+  void addAll(Map<String, String> other) {
+    other.forEach((k, v) { this[k] = v; });
+  }
 
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(String value) => values.any((v) => v == value);
@@ -37039,33 +37054,36 @@ final _pureIsolateUriBaseClosure = () {
                                "is not supported in the browser");
 };
 
- class _Timer implements Timer {
-  var _canceler;
+class _Timer implements Timer {
+  const int _STATE_TIMEOUT = 0;
+  const int _STATE_INTERVAL = 1;
+  var _state;
 
   _Timer(int milliSeconds, void callback(Timer timer), bool repeating) {
-
     if (repeating) {
-      int id = window._setInterval(() {
+      _state = window._setInterval(() {
         callback(this);
-      }, milliSeconds);
-      _canceler = () => window._clearInterval(id);
+      }, milliSeconds) * 2 + _STATE_INTERVAL;
     } else {
-      int id = window._setTimeout(() {
-        _canceler = null;
+      _state = window._setTimeout(() {
+        _state = null;
         callback(this);
-      }, milliSeconds);
-      _canceler = () => window._clearTimeout(id);
+      }, milliSeconds) * 2 + _STATE_TIMEOUT;
     }
   }
 
   void cancel() {
-    if (_canceler != null) {
-      _canceler();
+    if (_state == null) return;
+    int id = _state ~/ 2;
+    if ((_state & 1) == _STATE_TIMEOUT) {
+      window._clearTimeout(id);
+    } else {
+      window._clearInterval(id);
     }
-    _canceler = null;
+    _state = null;
   }
 
-  bool get isActive => _canceler != null;
+  bool get isActive => _state != null;
 }
 
 get _timerFactoryClosure =>

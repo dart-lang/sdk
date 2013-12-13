@@ -276,6 +276,7 @@ Future compile(List<String> argv) {
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler('--disable-type-inference', passThrough),
     new OptionHandler('--terse', passThrough),
+    new OptionHandler('--dump-info', passThrough),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
     new OptionHandler('-D.+=.*', addInEnvironment),
@@ -360,6 +361,9 @@ Future compile(List<String> argv) {
             " \"Content-Security-Policy: script-src 'self'\"");
       } else if (extension == 'js.map' || extension == 'dart.map') {
         uri = sourceMapOut;
+      } else if (extension == 'info.html') {
+        String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
+        uri = out.resolve('${outName}.$extension');
       } else {
         fail('Error: Unknown extension: $extension');
       }
@@ -566,6 +570,8 @@ be removed in a future version:
     unsupported category, for example, --categories=help.  To enable
     all categories, use --categories=all.
 
+  --dump-info
+    Generates an out.info.html file with information about the generated code.
 '''.trim());
 }
 

@@ -75,6 +75,7 @@ class ObjectPointerVisitor;
   V(Void, "void")                                                              \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
+  V(TypeRef, "_TypeRef")                                                       \
   V(TypeParameter, "_TypeParameter")                                           \
   V(BoundedType, "_BoundedType")                                               \
   V(MixinAppType, "_MixinAppType")                                             \

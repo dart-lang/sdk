@@ -1,9 +1,9 @@
 name: collection_helpers
-version: 0.9.2
-author: '"Dart Team <misc@dartlang.org>"'
+version: 0.9.1
+author: "Dart Team <misc@dartlang.org>"
 description: Utility functions and classes for working with collections.
 homepage: http://www.dartlang.org
 dev_dependencies:
   unittest: ">=0.9.0 <0.10.0"
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: ">=1.0.0 <2.0.0"

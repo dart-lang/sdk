@@ -369,6 +369,8 @@ class Namer implements ClosureNamer {
   }
 
   String instanceMethodName(FunctionElement element) {
+    // TODO(ahe): Could this be: return invocationName(new
+    // Selector.fromElement(element))?
     String elementName = element.name;
     String name = operatorNameToIdentifier(elementName);
     if (name != elementName) return getMappedOperatorName(name);
@@ -470,6 +472,10 @@ class Namer implements ClosureNamer {
   String instanceFieldAccessorName(Element element) {
     String proposedName = privateName(element.getLibrary(), element.name);
     return getMappedInstanceName(proposedName);
+  }
+
+  String readTypeVariableName(TypeVariableElement element) {
+    return '\$tv_${instanceFieldAccessorName(element)}';
   }
 
   /**
@@ -877,7 +883,7 @@ class Namer implements ClosureNamer {
   }
 
   String isolateStaticClosureAccess(Element element) {
-    return "${globalObjectFor(element)}.${getStaticClosureName(element)}";
+    return "${globalObjectFor(element)}.${getStaticClosureName(element)}()";
   }
 
   String globalObjectForConstant(Constant constant) => 'C';

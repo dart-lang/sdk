@@ -34,7 +34,7 @@ main() {
   Expect.equals(1, mirror.setField(const Symbol('foo'), 1).reflectee);
   Expect.equals(1, mirror.getField(const Symbol('foo')).reflectee);
   Expect.throws(() => mirror.setField(const Symbol('bar'),  2),
-                (e) => e is UnsupportedError);
+                (e) => e is NoSuchMethodError);
   Expect.throws(() => mirror.getField(const Symbol('bar')),
-                (e) => e is UnsupportedError);
+                (e) => e is NoSuchMethodError);
 }

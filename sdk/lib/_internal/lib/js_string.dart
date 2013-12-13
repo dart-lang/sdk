@@ -17,7 +17,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     if (index is !int) throw new ArgumentError(index);
     if (index < 0) throw new RangeError.value(index);
     if (index >= length) throw new RangeError.value(index);
-    return JS('int', r'#.charCodeAt(#)', this, index);
+    return JS('JSUInt31', r'#.charCodeAt(#)', this, index);
   }
 
   Iterable<Match> allMatches(String str) {

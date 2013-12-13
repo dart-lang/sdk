@@ -293,6 +293,13 @@ patch class SecureSocket {
   }
 }
 
+patch class RawDatagramSocket {
+  patch static Future<RawDatagramSocket> bind(
+      host, int port, {bool reuseAddress: true}) {
+    throw new UnsupportedError("RawDatagramSocket.bind");
+  }
+}
+
 patch class _SecureFilter {
   patch factory _SecureFilter() {
     throw new UnsupportedError("_SecureFilter._SecureFilter");
@@ -336,8 +343,14 @@ patch class Stdin {
   patch int readByteSync() {
     throw new UnsupportedError("Stdin.readByteSync");
   }
+  patch bool get echoMode {
+    throw new UnsupportedError("Stdin.echoMode");
+  }
   patch void set echoMode(bool enabled) {
     throw new UnsupportedError("Stdin.echoMode");
+  }
+  patch bool get lineMode {
+    throw new UnsupportedError("Stdin.lineMode");
   }
   patch void set lineMode(bool enabled) {
     throw new UnsupportedError("Stdin.lineMode");

@@ -1,6 +1,8 @@
 <head>
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="error_view.html">
+  <link rel="import" href="field_ref.html">
+  <link rel="import" href="instance_ref.html">
 </head>
 <polymer-element name="class-view" extends="observatory-element">
   <template>
@@ -8,12 +10,12 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
         <div class="panel-heading">
-          {{ cls['user_name'] }} ({{ cls['name'] }}) 
+          class <strong>{{ cls['user_name'] }}</strong>
           <template if="{{ cls['super']['type'] != 'Null' }}">
             extends
             <a href="{{ app.locationManager.currentIsolateClassLink(cls['super']['id'])}}">
               {{ cls['super']['user_name'] }}
-            </a> 
+            </a>
           </template>
           <a class="pull-right" href="{{ app.locationManager.currentIsolateObjectLink(cls['library']['id'])}}">
             {{ cls['library']['name'] }}
@@ -37,21 +39,18 @@
               <tr>
                 <td>Patch</td><td>{{ cls['patch'] }}</td>
               </tr>
+              <tr>
+                <td>VM Name</td><td>{{ cls['name'] }}</td>
+              </tr>
             </tbody>
           </table>
           <template if="{{ cls['error'] == null }}">
             <blockquote><strong>Fields</strong></blockquote>
             <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>User Name</th>
-                  <th>VM Name</th>
-                </tr>
-              </thead>
-              <tbody>
+             <tbody>
                 <tr template repeat="{{ field in cls['fields'] }}">
-                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['user_name'] }}</a></td>
-                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">{{ field['name'] }}</a></td>
+                  <td><field-ref app="{{ app }}" field="{{ field }}"></field-ref></td>
+                  <td><instance-ref app="{{ app }}" instance="{{ field['value'] }}"></instance-ref></td>                  
                 </tr>
               </tbody>
             </table>

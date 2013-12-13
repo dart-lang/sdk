@@ -478,6 +478,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return "ThrowExpression ${temporaryId(node.inputs[0])}";
   }
 
+  String visitTruncatingDivide(HTruncatingDivide node) {
+    return handleInvokeBinary(node, '~/');
+  }
+
   String visitExitTry(HExitTry node) {
     return "Exit try";
   }
@@ -520,5 +524,25 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitRangeConversion(HRangeConversion node) {
     return "RangeConversion: ${node.checkedInput}";
+  }
+
+  String visitReadTypeVariable(HReadTypeVariable node) {
+    return "ReadTypeVariable: ${node.dartType} ${node.hasReceiver}";
+  }
+
+  String visitFunctionType(HFunctionType node) {
+    return "FunctionType: ${node.dartType}";
+  }
+
+  String visitVoidType(HVoidType node) {
+    return "VoidType";
+  }
+
+  String visitInterfaceType(HInterfaceType node) {
+    return "InterfaceType: ${node.dartType}";
+  }
+
+  String visitDynamicType(HDynamicType node) {
+    return "DynamicType";
   }
 }

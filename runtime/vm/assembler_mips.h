@@ -175,6 +175,11 @@ class Assembler : public ValueObject {
     return FLAG_use_far_branches || use_far_branches_;
   }
 
+  void set_use_far_branches(bool b) {
+    ASSERT(buffer_.Size() == 0);
+    use_far_branches_ = b;
+  }
+
   void EnterFrame();
   void LeaveFrameAndReturn();
 
@@ -1163,7 +1168,7 @@ class Assembler : public ValueObject {
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
   intptr_t prologue_offset_;
 
-  const bool use_far_branches_;
+  bool use_far_branches_;
   bool delay_slot_available_;
   bool in_delay_slot_;
 

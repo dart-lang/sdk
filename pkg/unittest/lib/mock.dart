@@ -122,7 +122,7 @@
  * [pub]: http://pub.dartlang.org
  */
 
-library mock;
+library unittest.mock;
 
 import 'dart:mirrors';
 import 'dart:collection' show LinkedHashMap;

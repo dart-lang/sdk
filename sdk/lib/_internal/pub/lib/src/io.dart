@@ -187,17 +187,10 @@ String writeBinaryFile(String file, List<int> contents) {
 /// at that path. Completes when the file is done being written.
 Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
   // TODO(nweiz): remove extra logging when we figure out the windows bot issue.
-  log.io("Creating $file from stream (is the stream broadcast? "
-      "${stream.isBroadcast}).");
-
-  var pair = tee(stream);
-  pair.first.listen(
-      (data) => log.io("stream emitted ${data.length} bytes"),
-      onError: (error, st) => log.io("stream emitted $error\n$st"),
-      onDone: () => log.io("stream is done"));
+  log.io("Creating $file from stream.");
 
   return _descriptorPool.withResource(() {
-    return pair.last.pipe(new File(file).openWrite()).then((_) {
+    return stream.pipe(new File(file).openWrite()).then((_) {
       log.fine("Created $file from stream.");
       return file;
     });

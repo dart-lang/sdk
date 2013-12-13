@@ -35,6 +35,11 @@ Barback _barback;
 /// calls have already been made so later calls know which result to look for.
 int _nextBuildResult;
 
+/// Calls to [buildShouldLog] set expectations on successive log entries from
+/// [_barback]. This keeps track of how many calls have already been made so
+/// later calls know which result to look for.
+int _nextLog;
+
 void initConfig() {
   if (_configured) return;
   _configured = true;
@@ -88,6 +93,7 @@ void initGraph([assets,
   _provider = new MockProvider(assetMap);
   _barback = new Barback(_provider);
   _nextBuildResult = 0;
+  _nextLog = 0;
 
   transformers.forEach(_barback.updateTransformers);
 
@@ -216,9 +222,24 @@ void buildShouldFail(List matchers) {
   }), completes);
 }
 
+/// Expects that the nexted logged [LogEntry] matches [matcher] which may be
+/// either a [Matcher] or a string to match a literal string.
+void buildShouldLog(LogLevel level, matcher) {
+  expect(_getNextLog("build should log").then((log) {
+    expect(log.level, equals(level));
+    expect(log.message, matcher);
+  }), completes);
+}
+
 Future<BuildResult> _getNextBuildResult(String description) {
   var result = currentSchedule.wrapFuture(
       _barback.results.elementAt(_nextBuildResult++));
+  return schedule(() => result, description);
+}
+
+Future<LogEntry> _getNextLog(String description) {
+  var result = currentSchedule.wrapFuture(
+      _barback.log.elementAt(_nextLog++));
   return schedule(() => result, description);
 }
 

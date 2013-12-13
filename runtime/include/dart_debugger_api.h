@@ -25,6 +25,14 @@ typedef Dart_Port Dart_IsolateId;
  */
 #define ILLEGAL_ISOLATE_ID ILLEGAL_PORT
 
+
+/**
+ * Null value for breakpoint id. Guaranteed never to be associated
+ * with a valid breakpoint.
+ */
+#define ILLEGAL_BREAKPOINT_ID 0
+
+
 // DEPRECATED -- use Dart_PausedEventHandler
 typedef void Dart_BreakpointHandler(Dart_IsolateId isolate_id,
                                     Dart_Breakpoint breakpoint,
@@ -55,6 +63,7 @@ typedef void Dart_IsolateEventHandler(Dart_IsolateId isolate_id,
                                       Dart_IsolateEvent kind);
 
 typedef void Dart_PausedEventHandler(Dart_IsolateId isolate_id,
+                                     intptr_t bp_id,
                                      const Dart_CodeLocation& location);
 
 typedef void Dart_BreakpointResolvedHandler(Dart_IsolateId isolate_id,

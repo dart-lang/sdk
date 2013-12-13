@@ -402,6 +402,16 @@ unsolvable() {
       'a': '1.0.0'
     }
   }, error: couldNotSolve, maxTries: 4);
+
+  // This is a regression test for #15550.
+  testResolve('no version that matches while backtracking', {
+    'myapp 0.0.0': {
+      'a': 'any',
+      'b': '>1.0.0'
+    },
+    'a 1.0.0': {},
+    'b 1.0.0': {}
+  }, error: noVersion(['myapp']), maxTries: 1);
 }
 
 badSource() {
@@ -794,12 +804,6 @@ sdkConstraint() {
     'foo': '2.0.0',
     'bar': '2.0.0'
   }, maxTries: 3);
-
-  testResolve('ignores SDK constraints on bleeding edge', {
-    'myapp 0.0.0': {'sdk': badVersion }
-  }, result: {
-    'myapp from root': '0.0.0'
-  }, useBleedingEdgeSdkVersion: true);
 }
 
 void prerelease() {
@@ -989,27 +993,24 @@ void override() {
 
 testResolve(String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
-    int maxTries, bool useBleedingEdgeSdkVersion}) {
+    int maxTries}) {
   _testResolve(test, description, packages, lockfile: lockfile,
-      overrides: overrides, result: result, error: error, maxTries: maxTries,
-      useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
+      overrides: overrides, result: result, error: error, maxTries: maxTries);
 }
 
 solo_testResolve(String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
-    int maxTries, bool useBleedingEdgeSdkVersion}) {
+    int maxTries}) {
   log.showSolver();
   _testResolve(solo_test, description, packages, lockfile: lockfile,
-      overrides: overrides, result: result, error: error, maxTries: maxTries,
-      useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
+      overrides: overrides, result: result, error: error, maxTries: maxTries);
 }
 
 _testResolve(void testFn(String description, Function body),
     String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
-    int maxTries, bool useBleedingEdgeSdkVersion}) {
+    int maxTries}) {
   if (maxTries == null) maxTries = 1;
-  if (useBleedingEdgeSdkVersion == null) useBleedingEdgeSdkVersion = false;
 
   testFn(description, () {
     var cache = new SystemCache('.');
@@ -1056,12 +1057,6 @@ _testResolve(void testFn(String description, Function body),
       });
     }
 
-    // Make a version number like the continuous build's version.
-    var previousVersion = sdk.version;
-    if (useBleedingEdgeSdkVersion) {
-      sdk.version = new Version(0, 1, 2, build: '0_r12345_juser');
-    }
-
     // Resolve the versions.
     var future = resolveVersions(cache.sources, root, lockFile: realLockFile);
 
@@ -1071,12 +1066,6 @@ _testResolve(void testFn(String description, Function body),
     } else if (error != null) {
       matcher = error(maxTries);
     }
-
-    future = future.whenComplete(() {
-      if (useBleedingEdgeSdkVersion) {
-        sdk.version = previousVersion;
-      }
-    });
 
     expect(future, completion(matcher));
   });

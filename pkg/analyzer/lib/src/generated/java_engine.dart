@@ -37,6 +37,10 @@ class ArrayUtils {
   }
 }
 
+class ObjectUtilities {
+  static int combineHashCodes(int first, int second) => first * 31 + second;
+}
+
 class UUID {
   static int __nextId = 0;
   final String id;

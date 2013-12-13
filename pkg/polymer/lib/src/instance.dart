@@ -745,8 +745,6 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
    * the bound path at event execution time.
    */
   // from src/instance/event.js#prepareBinding
-  // Dart note: template_binding doesn't have the notion of prepareBinding, so
-  // we implement this by wrapping/overriding getBinding instead.
   // TODO(sorvell): we're patching the syntax while evaluating
   // event bindings. we'll move this to a better spot when that's done
   static PrepareBindingFunction prepareBinding(String path, String name, node,
@@ -765,10 +763,9 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       var translated = _eventTranslations[eventName];
       eventName = translated != null ? translated : eventName;
 
-      // TODO(jmesserly): returning a StreamSubscription as the model is quite
-      // strange. package:template_binding doesn't have any cleanup logic to
-      // handle that.
-      return node.on[eventName].listen((event) {
+      // TODO(jmesserly): we need a place to unregister this. See:
+      // https://code.google.com/p/dart/issues/detail?id=15574
+      node.on[eventName].listen((event) {
         var ctrlr = _findController(node);
         if (ctrlr is! Polymer) return;
         var obj = ctrlr;
@@ -781,6 +778,10 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
             (event as CustomEvent).detail : null;
         ctrlr.dispatchMethod(obj, method, [event, detail, node]);
       });
+
+      // TODO(jmesserly): this return value is bogus. Returning null here causes
+      // the wrong thing to happen in template_binding.
+      return new ObservableBox();
     };
   }
 
@@ -937,7 +938,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     } else {
       // find the shadow root that contains this element
       var n = this;
-      while (n.parentNode) {
+      while (n.parentNode != null) {
         n = n.parentNode;
       }
       return identical(n, document) ? document.head : n;

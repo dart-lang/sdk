@@ -22,17 +22,25 @@ void FUNCTION_NAME(Stdin_ReadByte)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Stdin_GetEchoMode)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, Dart_NewBoolean(Stdin::GetEchoMode()));
+}
+
+
 void FUNCTION_NAME(Stdin_SetEchoMode)(Dart_NativeArguments args) {
-  bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
+  bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 0));
   Stdin::SetEchoMode(enabled);
-  Dart_SetReturnValue(args, Dart_Null());
+}
+
+
+void FUNCTION_NAME(Stdin_GetLineMode)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, Dart_NewBoolean(Stdin::GetLineMode()));
 }
 
 
 void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
-  bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
+  bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 0));
   Stdin::SetLineMode(enabled);
-  Dart_SetReturnValue(args, Dart_Null());
 }
 
 }  // namespace bin

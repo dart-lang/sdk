@@ -42,6 +42,10 @@ class CodeEmitterTask extends CompilerTask {
   final Map<ClassElement, Map<String, jsAst.Expression>> additionalProperties =
       new Map<ClassElement, Map<String, jsAst.Expression>>();
 
+  /// Records if a type variable is read dynamically for type tests.
+  final Set<TypeVariableElement> readTypeVariables =
+      new Set<TypeVariableElement>();
+
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
 
@@ -349,6 +353,16 @@ class CodeEmitterTask extends CompilerTask {
           js('var s = fields.split(";")'),
           js('fields = s[1] == "" ? [] : s[1].split(",")'),
           js('supr = s[0]'),
+          js('split = supr.split(":")'),
+          js.if_('split.length == 2', [
+            js('supr = split[0]'),
+            js('var functionSignature = split[1]'),
+            js.if_('functionSignature',
+                js('desc.\$signature = #',
+                   js.fun('s',
+                       js.return_(js.fun([], js.return_('init.metadata[s]'))))(
+                           js('functionSignature'))))
+          ]),
 
           optional(needsMixinSupport, js.if_('supr && supr.indexOf("+") > 0', [
             js('s = supr.split("+")'),
@@ -744,8 +758,10 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void generateClass(ClassElement classElement, ClassBuilder properties) {
-    classEmitter.generateClass(
-        classElement, properties, additionalProperties[classElement]);
+    compiler.withCurrentElement(classElement, () {
+      classEmitter.generateClass(
+          classElement, properties, additionalProperties[classElement]);
+    });
   }
 
   /**
@@ -1163,6 +1179,7 @@ mainBuffer.add(r'''
 
       jsAst.ObjectInitializer initializers =
           descriptor.toObjectInitializer();
+      int sizeBefore = outputBuffers[outputUnit].length;
       outputBuffers[outputUnit]
           ..write('["${library.getLibraryName()}",$_')
           ..write('"${uri}",$_')
@@ -1174,6 +1191,9 @@ mainBuffer.add(r'''
           ..write(jsAst.prettyPrint(initializers, compiler))
           ..write(library == compiler.mainApp ? ',${n}1' : "")
           ..write('],$n');
+      int sizeAfter = outputBuffers[outputUnit].length;
+      compiler.dumpInfoTask.codeSizeCounter
+          .countCode(library, sizeAfter - sizeBefore);
     }
   }
 
@@ -1192,6 +1212,9 @@ mainBuffer.add(r'''
         mainBuffer.add('(function(${namer.currentIsolate})$_{$n');
       }
 
+      // Using a named function here produces easier to read stack traces in
+      // Chrome/V8.
+      mainBuffer.add('function dart() {}');
       for (String globalObject in Namer.reservedGlobalObjectNames) {
         // The global objects start as so-called "slow objects". For V8, this
         // means that it won't try to make map transitions as we add properties
@@ -1199,7 +1222,7 @@ mainBuffer.add(r'''
         // fast objects by calling "convertToFastObject" (see
         // [emitConvertToFastObjectFunction]).
         mainBuffer
-            ..write('var ${globalObject}$_=$_{}$N')
+            ..write('var ${globalObject}$_=${_}new dart$N')
             ..write('delete ${globalObject}.x$N');
       }
 
@@ -1246,25 +1269,11 @@ mainBuffer.add(r'''
       nativeEmitter.finishGenerateNativeClasses();
       nativeEmitter.assembleCode(nativeBuffer);
 
-      // Might create methodClosures.
       if (!deferredClasses.isEmpty) {
         for (ClassElement element in deferredClasses) {
           generateClass(element, getElementDecriptor(element));
         }
       }
-
-      containerBuilder.emitStaticFunctionClosures();
-
-      addComment('Method closures', mainBuffer);
-      // Now that we have emitted all classes, we know all the method
-      // closures that will be needed.
-      containerBuilder.methodClosures.forEach((String code, Element closure) {
-        // TODO(ahe): Some of these can be deferred.
-        String mangledName = namer.getNameOfClass(closure);
-        mainBuffer.add('$classesCollector.$mangledName$_=$_'
-             '[${namer.globalObjectFor(closure)},$_$code]');
-        mainBuffer.add("$N$n");
-      });
 
       // After this assignment we will produce invalid JavaScript code if we use
       // the classesCollector variable.
@@ -1286,7 +1295,7 @@ mainBuffer.add(r'''
             if (classEmitter.emitFields(
                     library, builder, null, emitStatics: true)) {
               getElementDescriptorForOutputUnit(library, "main")
-                  .properties.addAll(builder.properties);
+                  .properties.addAll(builder.toObjectInitializer().properties);
             }
           }
         }
@@ -1325,7 +1334,7 @@ mainBuffer.add(r'''
           }
         }
         mainBuffer
-            ..write(getReflectionDataParser(classesCollector, namer))
+            ..write(getReflectionDataParser(classesCollector, backend))
             ..write('([$n');
 
         List<Element> sortedElements =
@@ -1354,8 +1363,6 @@ mainBuffer.add(r'''
         emitFinishClassesInvocationIfNecessary(mainBuffer);
         classesCollector = oldClassesCollector;
       }
-
-      containerBuilder.emitStaticFunctionGetters(mainBuffer);
 
       typeTestEmitter.emitRuntimeTypeSupport(mainBuffer);
       interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
@@ -1531,7 +1538,7 @@ if (typeof $printHelperName === "function") {
                 '$_${namer.isolateName}.prototype$N$n'
                 // The classesCollector object ($$).
                 '$classesCollector$_=$_{};$n')
-        ..write(getReflectionDataParser(classesCollector, namer))
+        ..write(getReflectionDataParser(classesCollector, backend))
         ..write('([$n')
         ..addBuffer(deferredLibrariesBuffer)
         ..write('])$N');
@@ -1591,5 +1598,9 @@ if (typeof $printHelperName === "function") {
 
   bool get areAnyElementsDeferred {
     return compiler.deferredLoadTask.areAnyElementsDeferred;
+  }
+
+  void registerReadTypeVariable(TypeVariableElement element) {
+    readTypeVariables.add(element);
   }
 }

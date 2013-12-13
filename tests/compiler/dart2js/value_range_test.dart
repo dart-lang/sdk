@@ -279,7 +279,8 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   class Null {}
   class Dynamic_ {}
   class StackTrace {}
-  bool identical(Object a, Object b) {}''';
+  bool identical(Object a, Object b) {}
+  const proxy = 0;''';
 
 const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
   class Interceptor {

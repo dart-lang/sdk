@@ -18,7 +18,7 @@
  * [Unit Testing with Dart]
  * (http://www.dartlang.org/articles/dart-unit-tests/).
  */
-library matcher;
+library unittest.matcher;
 
 import 'dart:async';
 

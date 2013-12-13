@@ -160,6 +160,70 @@ class _InvocationTrampoline implements Function {
   }
 }
 
+class _SyntheticAccessor implements MethodMirror {
+  final DeclarationMirror owner;
+  final Symbol simpleName;
+  final bool isGetter;
+  final bool isStatic;
+  final bool isTopLevel;
+  final _target;
+
+  _SyntheticAccessor(this.owner,
+                     this.simpleName,
+                     this.isGetter,
+                     this.isStatic,
+                     this.isTopLevel,
+                     this._target);
+
+  bool get isSynthetic => true;
+  bool get isRegularMethod => false;
+  bool get isOperator => false;
+  bool get isConstructor => false;
+  bool get isConstConstructor => false;
+  bool get isGenerativeConstructor => false;
+  bool get isFactoryConstructor => false;
+  bool get isRedirectingConstructor => false;
+  bool get isAbstract => false;
+
+  bool get isSetter => !isGetter;
+  bool get isPrivate => _n(simpleName).startsWith('_');
+
+  Symbol get qualifiedName => _computeQualifiedName(owner, simpleName);
+  Symbol get constructorName => const Symbol('');
+
+  TypeMirror get returnType => _target.type;
+  List<ParameterMirror> get parameters {
+    if (isGetter) return emptyList;
+    return new UnmodifiableListView(
+        [new _SyntheticSetterParameter(this, this._target)]);
+  }
+
+  List<InstanceMirror> get metadata => emptyList;
+
+  String get source => null;
+}
+
+class _SyntheticSetterParameter implements ParameterMirror {
+  final DeclarationMirror owner;
+  final VariableMirror _target;
+
+  _SyntheticSetterParameter(this.owner, this._target);
+
+  Symbol get simpleName => _target.simpleName;
+  Symbol get qualifiedName => _computeQualifiedName(owner, simpleName);
+  TypeMirror get type => _target.type;
+
+  bool get isOptional => false;
+  bool get isNamed => false;
+  bool get isStatic => false;
+  bool get isTopLevel => false;
+  bool get isConst => false;
+  bool get isFinal => true;
+  bool get isPrivate => false;
+  bool get hasDefaultValue => false;
+  InstanceMirror get defaultValue => null;
+}
+
 abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
   final _reflectee; // May be a MirrorReference or an ordinary object.
 
@@ -490,6 +554,59 @@ class _LocalClassMirror extends _LocalObjectMirror
       }
     }
     return _mixin;
+  }
+
+  var _cachedStaticMembers;
+  Map<Symbol, MethodMirror> get staticMembers {
+    if (_cachedStaticMembers == null) {
+      var result = new Map<Symbol, MethodMirror>();
+      declarations.values.forEach((decl) {
+        if (decl is MethodMirror && decl.isStatic &&
+            !decl.isConstructor && !decl.isAbstract) {
+          result[decl.simpleName] = decl;
+        }
+        if (decl is VariableMirror && decl.isStatic) {
+          var getterName = decl.simpleName;
+          result[getterName] =
+              new _SyntheticAccessor(this, getterName, true, true, false, decl);
+          if (!decl.isFinal) {
+            var setterName = _asSetter(decl.simpleName, this.owner);
+            result[setterName] = new _SyntheticAccessor(
+                this, setterName, false, true, false, decl);
+          }
+        }
+      });
+      _cachedStaticMembers = result;
+    }
+    return _cachedStaticMembers;
+  }
+
+  var _cachedInstanceMembers;
+  Map<Symbol, MethodMirror> get instanceMembers {
+    if (_cachedInstanceMembers == null) {
+      var result = new Map<Symbol, MethodMirror>();
+      if (superclass != null) {
+        result.addAll(superclass.instanceMembers);
+      }
+      declarations.values.forEach((decl) {
+        if (decl is MethodMirror && !decl.isStatic &&
+            !decl.isConstructor && !decl.isAbstract) {
+          result[decl.simpleName] = decl;
+        }
+        if (decl is VariableMirror && !decl.isStatic) {
+          var getterName = decl.simpleName;
+          result[getterName] =
+              new _SyntheticAccessor(this, getterName, true, false, false, decl);
+          if (!decl.isFinal) {
+            var setterName = _asSetter(decl.simpleName, this.owner);
+            result[setterName] = new _SyntheticAccessor(
+                this, setterName, false, false, false, decl);
+          }
+        }
+      });
+      _cachedInstanceMembers = result;
+    }
+    return _cachedInstanceMembers;
   }
 
   Map<Symbol, DeclarationMirror> _declarations;
@@ -918,8 +1035,12 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
       native "TypedefMirror_declaration";
 }
 
-class _LocalLibraryMirror extends _LocalObjectMirror
-    implements LibraryMirror {
+Symbol _asSetter(Symbol getter, LibraryMirror library) {
+  var unwrapped = MirrorSystem.getName(getter);
+  return MirrorSystem.getSymbol('${unwrapped}=', library);
+}
+
+class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
   final Symbol simpleName;
   final Uri uri;
 
@@ -949,6 +1070,11 @@ class _LocalLibraryMirror extends _LocalObjectMirror
     if (_declarations != null) return _declarations;
     return _declarations =
         new _UnmodifiableMapView<Symbol, DeclarationMirror>(_members);
+  }
+
+  Map<Symbol, MethodMirror> get topLevelMembers {
+    throw new UnimplementedError(
+        'LibraryMirror.topLevelMembers is not implemented');
   }
 
   Map<Symbol, Mirror> _cachedMembers;
@@ -1050,6 +1176,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
                         _n(constructorName).startsWith('_');
 
   bool get isTopLevel => owner is LibraryMirror;
+  bool get isSynthetic => false;
 
   SourceLocation get location {
     throw new UnimplementedError('MethodMirror.location is not implemented');

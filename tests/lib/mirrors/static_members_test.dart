@@ -16,6 +16,7 @@ selectKeys(map, predicate) {
 
 main() {
   ClassMirror cm = reflectClass(declarations_model.Class);
+  LibraryMirror lm = cm.owner;
 
   Expect.setEquals(
     [#staticVariable,
@@ -23,17 +24,18 @@ main() {
      #staticGetter,
      const Symbol('staticSetter='),
      #staticMethod,
-     #_staticVariable,
-     const Symbol('_staticVariable='),
-     #_staticGetter,
-     const Symbol('_staticSetter='),
-     #_staticMethod],
+     MirrorSystem.getSymbol('_staticVariable', lm),
+     MirrorSystem.getSymbol('_staticVariable=', lm),
+     MirrorSystem.getSymbol('_staticGetter', lm),
+     MirrorSystem.getSymbol('_staticSetter=', lm),
+     MirrorSystem.getSymbol('_staticMethod', lm),
+     ],
     selectKeys(cm.staticMembers, (dm) => true));
 
   Expect.setEquals(
     [#staticVariable,
      const Symbol('staticVariable='),
-     #_staticVariable,
-     const Symbol('_staticVariable=')],
+     MirrorSystem.getSymbol('_staticVariable', lm),
+     MirrorSystem.getSymbol('_staticVariable=', lm)],
     selectKeys(cm.staticMembers, (dm) => dm.isSynthetic));
 }

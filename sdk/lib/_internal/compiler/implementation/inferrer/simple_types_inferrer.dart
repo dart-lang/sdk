@@ -10,6 +10,7 @@ import '../dart_types.dart'
 import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
+import '../ir/ir_nodes.dart' show IrNode;
 import '../util/util.dart' show Link, Spannable, Setlet;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
@@ -99,11 +100,15 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
       => new TypeMask.nonNullExact(type.declaration);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
 
-  TypeMask allocateContainer(TypeMask type,
-                             Node node,
-                             Element enclosing,
-                             [TypeMask elementType, int length]) {
+  TypeMask allocateList(TypeMask type,
+                        Node node,
+                        Element enclosing,
+                        [TypeMask elementType, int length]) {
     return new ContainerTypeMask(type, node, enclosing, elementType, length);
+  }
+
+  TypeMask allocateMap(TypeMask keys, TypeMask values, TypeMask type) {
+    return type;
   }
 
   Selector newTypedSelector(TypeMask receiver, Selector selector) {
@@ -341,9 +346,15 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     return returnType;
   }
 
-  void updateSelectorInTree(Element owner, Node node, Selector selector) {
+  void updateSelectorInTree(
+      Element owner, Spannable node, Selector selector) {
+    if (node is IrNode) {
+      // TODO(lry): update selector for IrInvokeDynamic.
+      throw "updateSelector for IR node $node";
+    }
+    Node astNode = node;
     var elements = compiler.enqueuer.resolution.getCachedElements(owner);
-    if (node.asSendSet() != null) {
+    if (astNode.asSendSet() != null) {
       if (selector.isSetter() || selector.isIndexSet()) {
         elements.setSelector(node, selector);
       } else if (selector.isGetter() || selector.isIndex()) {
@@ -352,10 +363,10 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         assert(selector.isOperator());
         elements.setOperatorSelectorInComplexSendSet(node, selector);
       }
-    } else if (node.asSend() != null) {
+    } else if (astNode.asSend() != null) {
       elements.setSelector(node, selector);
     } else {
-      assert(node.asForIn() != null);
+      assert(astNode.asForIn() != null);
       if (selector.asUntyped == compiler.iteratorSelector) {
         elements.setIteratorSelector(node, selector);
       } else if (selector.asUntyped == compiler.currentSelector) {
@@ -595,13 +606,37 @@ class SimpleTypeInferrerVisitor<T>
       T containerType = node.isConst()
           ? types.constListType
           : types.growableListType;
-      return types.allocateContainer(
+      return types.allocateList(
           containerType,
           node,
           outermostElement,
           elementType,
           length);
     });
+  }
+
+  T visitLiteralMap(LiteralMap node) {
+    NodeList entries = node.entries;
+    T keyType;
+    T valueType;
+    if (entries.isEmpty) {
+      keyType = types.nonNullEmpty();
+      valueType = types.nonNullEmpty();
+    } else {
+      for (LiteralMapEntry entry in entries) {
+        T key = visit(entry.key);
+        keyType = keyType == null
+            ? types.allocatePhi(null, null, key)
+            : types.addPhiInput(null, keyType, key);
+
+        T value = visit(entry.value);
+        valueType = valueType == null
+            ? types.allocatePhi(null, null, value)
+            : types.addPhiInput(null, valueType, value);
+      }
+    }
+    T type = node.isConst() ? types.constMapType : types.mapType;
+    return types.allocateMap(keyType, valueType, type);
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
@@ -904,12 +939,14 @@ class SimpleTypeInferrerVisitor<T>
     }
     Selector selector = elements.getSelector(node);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
+    // In erroneous code the number of arguments in the selector might not
+    // match the function element.
     if (!selector.applies(element, compiler)) return types.dynamicType;
 
     T returnType = handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
-          node, () => types.allocateContainer(
+          node, () => types.allocateList(
               types.growableListType, node, outermostElement,
               types.nonNullEmpty(), 0));
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)
@@ -922,7 +959,7 @@ class SimpleTypeInferrerVisitor<T>
               : arguments.positional[1];
 
       return inferrer.concreteTypes.putIfAbsent(
-          node, () => types.allocateContainer(
+          node, () => types.allocateList(
               types.fixedListType, node, outermostElement,
               elementType, length));
     } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
@@ -930,7 +967,7 @@ class SimpleTypeInferrerVisitor<T>
       T elementType = inferrer.returnTypeOfElement(
           element.getEnclosingClass().lookupMember('[]'));
       return inferrer.concreteTypes.putIfAbsent(
-        node, () => types.allocateContainer(
+        node, () => types.allocateList(
           types.nonNullExact(element.getEnclosingClass()), node,
           outermostElement, elementType, length));
     } else if (element.isFunction() || element.isConstructor()) {
@@ -1028,6 +1065,7 @@ class SimpleTypeInferrerVisitor<T>
                      Selector selector,
                      Element element,
                      ArgumentsTypes arguments) {
+    // Erroneous elements may be unresolved, for example missing getters.
     if (Elements.isUnresolved(element)) return types.dynamicType;
     return inferrer.registerCalledElement(
         node, selector, outermostElement, element, arguments,

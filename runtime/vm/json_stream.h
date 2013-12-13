@@ -10,9 +10,11 @@
 
 namespace dart {
 
-class Object;
-class JSONObject;
+class Field;
+class Instance;
 class JSONArray;
+class JSONObject;
+class Object;
 
 class JSONStream : ValueObject {
  public:
@@ -53,6 +55,7 @@ class JSONStream : ValueObject {
   void PrintValue(const char* s);
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
+  void PrintValue(const Field& f, const Instance& instance, bool ref = true);
 
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
@@ -144,6 +147,12 @@ class JSONArray : public ValueObject {
   void AddValue(const char* s) const { stream_->PrintValue(s); }
   void AddValue(const Object& obj, bool ref = true) const {
     stream_->PrintValue(obj, ref);
+  }
+  // Print a field bound to a value.  Value is looked up from 'instance'.
+  void AddValue(const Field& field,
+                const Instance& instance,
+                bool ref = true) const {
+    stream_->PrintValue(field, instance, ref);
   }
   void AddValueF(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 

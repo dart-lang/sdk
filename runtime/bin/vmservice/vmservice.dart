@@ -53,4 +53,4 @@ class VMService {
 }
 
 void sendServiceMessage(SendPort sp, ReceivePort rp, Object m)
-    native "SendServiceMessage";
+    native "VMService_SendServiceMessage";

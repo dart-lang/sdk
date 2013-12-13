@@ -4,8 +4,6 @@
 
 library barback.test.multiset_test;
 
-import 'dart:async';
-
 import 'package:barback/src/multiset.dart';
 import 'package:unittest/unittest.dart';
 

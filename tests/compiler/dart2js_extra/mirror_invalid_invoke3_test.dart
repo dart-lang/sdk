@@ -28,5 +28,5 @@ main() {
   var mirror = reflect(new C()).type; // Workaround bug 12799.
   Expect.equals(1, mirror.invoke(const Symbol('foo'), []).reflectee);
   Expect.throws(() => mirror.invoke(const Symbol('bar'),  []),
-                (e) => e is UnsupportedError);
+                (e) => e is NoSuchMethodError);
 }

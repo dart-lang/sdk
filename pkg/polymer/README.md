@@ -40,13 +40,14 @@ Add the polymer.dart package to your pubspec.yaml file:
 
 ```yaml
 dependencies:
-  polymer: any
+  polymer: ">=0.9.0 <0.10.0"
 ```
 
 Instead of using `any`, we recommend using version ranges to avoid getting your
 project broken on each release. Using a version range lets you upgrade your
 package at your own pace. You can find the latest version number at
 <https://pub.dartlang.org/packages/polymer>.
+
 
 Building and Deploying
 ----------------------

@@ -52,10 +52,6 @@ class SimpleConfiguration extends Configuration {
   // we do with this List.
   final _testLogBuffer = <Pair<String, StackTrace>>[];
 
-  /// How long a [TestCase] can run before it is considered an error.
-  /// A [timeout] value of [:null:] means that the limit is infinite.
-  Duration timeout = const Duration(minutes: 2);
-
   /**
    * The constructor sets up a failure handler for [expect] that redirects
    * [expect] failures to [onExpectFailure].

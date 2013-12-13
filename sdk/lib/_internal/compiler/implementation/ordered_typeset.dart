@@ -1,10 +1,10 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library resolution.ordered_typeset_builder;
+library ordered_typeset;
 
-import 'dart2jslib.dart' show Compiler, MessageKind;
+import 'dart2jslib.dart' show Compiler, MessageKind, invariant;
 import 'dart_types.dart';
 import 'elements/elements.dart' show ClassElement;
 import 'util/util.dart' show Link, LinkBuilder;
@@ -48,7 +48,9 @@ class OrderedTypeSet {
   /// class which this set represents. This is for instance used to create the
   /// type set for [ClosureClassElement] which extends [Closure].
   OrderedTypeSet extendClass(InterfaceType type) {
-    assert(type.treatAsRaw);
+    assert(invariant(type.element, types.head.treatAsRaw,
+        message: 'Cannot extend generic class ${types.head} using '
+                 'OrderedTypeSet.extendClass'));
     Link<DartType> extendedTypes =
         new LinkEntry<DartType>(type, types);
     List<Link<DartType>> list = new List<Link<DartType>>(levels + 1);

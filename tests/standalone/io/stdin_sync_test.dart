@@ -6,6 +6,7 @@ import "dart:convert";
 import "dart:io";
 
 import "package:path/path.dart";
+import "package:expect/expect.dart";
 
 void testReadByte() {
   void test(String line, List<String> expected) {
@@ -44,7 +45,10 @@ void testReadByte() {
 }
 
 void testEchoMode() {
+  stdin.echoMode = true;
+  Expect.isTrue(stdin.echoMode);
   stdin.echoMode = false;
+  Expect.isFalse(stdin.echoMode);
   var line;
   while ((line = stdin.readLineSync()) != null) {
     print("You typed: $line");
@@ -52,7 +56,10 @@ void testEchoMode() {
 }
 
 void testLineMode() {
+  stdin.lineMode = true;
+  Expect.isTrue(stdin.lineMode);
   stdin.lineMode = false;
+  Expect.isFalse(stdin.lineMode);
   var char;
   while ((char = stdin.readByteSync()) != -1) {
     print("You typed: $char");

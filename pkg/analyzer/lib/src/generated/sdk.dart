@@ -91,13 +91,13 @@ class SdkLibraryImpl implements SdkLibrary {
    * The path to the file defining the library. The path is relative to the `lib` directory
    * within the SDK.
    */
-  String _path = null;
+  String path = null;
 
   /**
    * The name of the category containing the library. Unless otherwise specified in the libraries
    * file all libraries are assumed to be shared between server and client.
    */
-  String _category = "Shared";
+  String category = "Shared";
 
   /**
    * A flag indicating whether the library is documented.
@@ -135,10 +135,6 @@ class SdkLibraryImpl implements SdkLibrary {
     this._shortName = name;
   }
 
-  String get category => _category;
-
-  String get path => _path;
-
   String get shortName => _shortName;
 
   bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
@@ -147,12 +143,12 @@ class SdkLibraryImpl implements SdkLibrary {
 
   bool get isImplementation => _implementation;
 
-  bool get isInternal => "Internal" == _category;
+  bool get isInternal => "Internal" == category;
 
   /**
    * Return `true` if library can be used for both client and server
    */
-  bool get isShared => _category == "Shared";
+  bool get isShared => category == "Shared";
 
   /**
    * Return `true` if this library can be run on the VM.
@@ -160,15 +156,6 @@ class SdkLibraryImpl implements SdkLibrary {
    * @return `true` if this library can be run on the VM
    */
   bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
-
-  /**
-   * Set the name of the category containing the library to the given name.
-   *
-   * @param category the name of the category containing the library
-   */
-  void set category(String category) {
-    this._category = category;
-  }
 
   /**
    * Record that this library can be compiled to JavaScript by dart2js.
@@ -193,16 +180,6 @@ class SdkLibraryImpl implements SdkLibrary {
    */
   void set implementation(bool implementation) {
     this._implementation = implementation;
-  }
-
-  /**
-   * Set the path to the file defining the library to the given path. The path is relative to the
-   * `lib` directory within the SDK.
-   *
-   * @param path the path to the file defining the library
-   */
-  void set path(String path) {
-    this._path = path;
   }
 
   /**

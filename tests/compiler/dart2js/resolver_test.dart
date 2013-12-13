@@ -839,7 +839,8 @@ testInitializers() {
          class StackTrace {}
          class Dynamic_ {}
          class Type {}
-         class Object { Object() : super(); }''';
+         class Object { Object() : super(); }
+         const proxy = 0;''';
   resolveConstructor(script, "Object o = new Object();", "Object", "", 1,
                      expectedWarnings: [],
                      expectedErrors: [MessageKind.SUPER_INITIALIZER_IN_OBJECT],

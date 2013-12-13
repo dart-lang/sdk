@@ -42,10 +42,12 @@ abstract class TypeSystem<T> {
   bool isNull(T type);
   Selector newTypedSelector(T receiver, Selector selector);
 
-  T allocateContainer(T type,
-                      Node node,
-                      Element enclosing,
-                      [T elementType, int length]);
+  T allocateList(T type,
+                 Node node,
+                 Element enclosing,
+                 [T elementType, int length]);
+
+  T allocateMap(T keyType, T valueType, T type);
 
   /**
    * Returns the least upper bound between [firstType] and

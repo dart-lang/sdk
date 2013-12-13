@@ -8,7 +8,7 @@
  * you should only see a couple lines in the terminal. If a test fails, the
  * failure is shown and the progress bar continues to be updated below it.
  */
-library compact_vm_config;
+library unittest.compact_vm_config;
 
 import 'dart:async';
 import 'dart:io';

@@ -98,7 +98,7 @@ class BytesBuilder {
   bool get isEmpty => _length == 0;
 
   /**
-   * Returns `true` if the buffer is empty.
+   * Returns `true` if the buffer is not empty.
    */
   bool get isNotEmpty => _length != 0;
 

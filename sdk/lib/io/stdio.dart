@@ -121,7 +121,12 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   }
 
   /**
-   * Enable or disable echo mode on the [Stdin].
+   * Check if echo mode is enabled on [stdin].
+   */
+  external bool get echoMode;
+
+  /**
+   * Enable or disable echo mode on [stdin].
    *
    * If disabled, input from to console will not be echoed.
    *
@@ -130,7 +135,12 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   external void set echoMode(bool enabled);
 
   /**
-   * Enable or disable line mode on the [Stdin].
+   * Check if line mode is enabled on [stdin].
+   */
+  external bool get lineMode;
+
+  /**
+   * Enable or disable line mode on [stdin].
    *
    * If enabled, characters are delayed until a new-line character is entered.
    * If disabled, characters will be available as typed.

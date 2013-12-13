@@ -2194,6 +2194,12 @@ class Field : public Object {
   static bool IsGetterName(const String& function_name);
   static bool IsSetterName(const String& function_name);
 
+  // When we print a field to a JSON stream, we want to make it appear
+  // that the value is a property of the field, so we allow the actual
+  // instance to be supplied here.
+  virtual void PrintToJSONStreamWithInstance(
+      JSONStream* stream, const Instance& instance, bool ref) const;
+
  private:
   enum {
     kConstBit = 1,
@@ -3962,6 +3968,10 @@ class Instance : public Object {
   // error object if evaluating the expression fails.
   RawObject* Evaluate(const String& expr) const;
 
+  // Returns a string representation of this instance in a form
+  // that is suitable for an end user.
+  virtual const char* ToUserCString(intptr_t maxLen = 40) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
   }
@@ -4158,7 +4168,6 @@ class Type : public AbstractType {
   virtual RawClass* type_class() const;
   void set_type_class(const Object& value) const;
   virtual RawUnresolvedClass* unresolved_class() const;
-  RawString* TypeClassName() const;
   virtual RawAbstractTypeArguments* arguments() const;
   void set_arguments(const AbstractTypeArguments& value) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
@@ -4236,6 +4245,67 @@ class Type : public AbstractType {
   static RawType* New(Heap::Space space = Heap::kOld);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
+  friend class Class;
+};
+
+
+// A TypeRef is used to break cycles in the representation of recursive types.
+// Its only field is the recursive AbstractType it refers to.
+// Note that the cycle always involves type arguments.
+class TypeRef : public AbstractType {
+ public:
+  virtual bool IsFinalized() const {
+    return AbstractType::Handle(type()).IsFinalized();
+  }
+  virtual bool IsBeingFinalized() const {
+    return AbstractType::Handle(type()).IsBeingFinalized();
+  }
+  virtual bool IsMalformed() const {
+    return AbstractType::Handle(type()).IsMalformed();
+  }
+  virtual bool IsMalbounded() const {
+    return AbstractType::Handle(type()).IsMalbounded();
+  }
+  virtual bool IsMalformedOrMalbounded() const {
+    return AbstractType::Handle(type()).IsMalformedOrMalbounded();
+  }
+  virtual bool IsResolved() const { return true; }
+  virtual bool HasResolvedTypeClass() const { return true; }
+  RawAbstractType* type() const { return raw_ptr()->type_; }
+  void set_type(const AbstractType& value) const;
+  virtual RawClass* type_class() const {
+    return AbstractType::Handle(type()).type_class();
+  }
+  virtual RawAbstractTypeArguments* arguments() const {
+    return AbstractType::Handle(type()).arguments();
+  }
+  virtual intptr_t token_pos() const {
+    return AbstractType::Handle(type()).token_pos();
+  }
+  virtual bool IsInstantiated() const;
+  virtual bool Equals(const Instance& other) const;
+  virtual RawAbstractType* InstantiateFrom(
+      const AbstractTypeArguments& instantiator_type_arguments,
+      Error* bound_error) const;
+  virtual RawAbstractType* Canonicalize() const;
+
+  virtual intptr_t Hash() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawTypeRef));
+  }
+
+  static RawTypeRef* New(const AbstractType& type);
+
+ private:
+  bool is_being_checked() const {
+    return raw_ptr()->is_being_checked_;
+  }
+  void set_is_being_checked(bool value) const;
+
+  static RawTypeRef* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeRef, AbstractType);
   friend class Class;
 };
 
@@ -4894,6 +4964,9 @@ class String : public Instance {
                           void* peer,
                           Dart_PeerFinalizer cback) const;
 
+  // Produces a quoted, escaped, (possibly) truncated string.
+  const char* ToUserCString(intptr_t maxLen = 40) const;
+
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).
@@ -5017,6 +5090,9 @@ class String : public Instance {
                            intptr_t tags,
                            CallbackType new_symbol,
                            Snapshot::Kind kind);
+
+  intptr_t EscapedString(char* buffer, int maxLen) const;
+  intptr_t EscapedStringLen(intptr_t tooLong) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 

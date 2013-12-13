@@ -44,7 +44,8 @@ identical(a, b) => true;
 getRuntimeTypeInfo(o) {}
 setRuntimeTypeInfo(o, i) {}
 eqNull(a) {}
-eqNullB(a) {}""";
+eqNullB(a) {}
+const proxy = 0;""";
     } else if (uri.path.endsWith('_patch.dart')) {
       source = '';
     } else if (uri.path.endsWith('interceptors.dart')) {

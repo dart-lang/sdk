@@ -1,0 +1,47 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="error_view.html">
+  <link rel="import" href="field_ref.html">
+  <link rel="import" href="instance_ref.html">
+</head>
+<polymer-element name="instance-view" extends="observatory-element">
+  <template>
+    <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-warning">   
+        <div class="panel-heading">
+         Instance of
+         <a href="{{ app.locationManager.currentIsolateClassLink(instance['class']['id'])}}">
+            {{ instance['class']['user_name'] }}
+         </a>
+        </div>
+        <div class="panel-body">
+          <template if="{{ instance['error'] == null }}">
+            <table class="table table-hover">
+              <tbody>
+                <tr>
+                  <td>Preview</td><td>{{ instance['preview'] }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <blockquote><strong>Fields</strong></blockquote>
+            <table class="table table-hover">
+             <tbody>
+                <tr template repeat="{{ field in instance['fields'] }}">
+                  <td><field-ref app="{{ app }}" field="{{ field }}"></field-ref></td>
+                  <td><instance-ref app="{{ app }}" instance="{{ field['value'] }}"></instance-ref></td>              
+                </tr>
+              </tbody>
+            </table>
+          </template>
+          <template if="{{ instance['error'] != null }}">
+            <error-view error_obj="{{ instance['error'] }}"></error-view>
+          </template>
+        </div>
+      </div>
+    </div>
+    </div>
+  </template>
+  <script type="application/dart" src="instance_view.dart"></script>
+</polymer-element>
+t>

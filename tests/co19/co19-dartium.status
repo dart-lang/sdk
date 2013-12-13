@@ -22,6 +22,7 @@ LibTest/isolate/Isolate/spawnUri_A01_t03: Timeout # co19-roll r672: Please triag
 LibTest/isolate/Isolate/spawnUri_A01_t04: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t05: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A02_t04: Pass, Timeout # Please triage this failure
 LibTest/isolate/RawReceivePort/RawReceivePort_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/isolate/RawReceivePort/RawReceivePort_A01_t02: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/isolate/RawReceivePort/close_A01_t01: RuntimeError # co19-roll r672: Please triage this failure

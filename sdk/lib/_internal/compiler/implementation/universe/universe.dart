@@ -124,7 +124,7 @@ class Selector {
   // The numbers of arguments of the selector. Includes named arguments.
   final int argumentCount;
   final List<String> namedArguments;
-  final List<String> orderedNamedArguments;
+  final List<String> _orderedNamedArguments;
   final int hashCode;
 
   static const String INDEX_NAME ="[]";
@@ -136,7 +136,7 @@ class Selector {
                     this.library,
                     this.argumentCount,
                     this.namedArguments,
-                    this.orderedNamedArguments,
+                    this._orderedNamedArguments,
                     this.hashCode) {
     assert(kind == SelectorKind.INDEX
            || (name != INDEX_NAME && name != INDEX_SET_NAME));
@@ -186,15 +186,27 @@ class Selector {
   factory Selector.fromElement(Element element, Compiler compiler) {
     String name = element.name;
     if (element.isFunction()) {
-      int arity = element.asFunctionElement().requiredParameterCount(compiler);
       if (name == '[]') {
         return new Selector.index();
       } else if (name == '[]=') {
         return new Selector.indexSet();
-      } else if (Elements.operatorNameToIdentifier(name) != name) {
-        return new Selector(SelectorKind.OPERATOR, name, null, arity);
+      }
+      FunctionSignature signature =
+          element.asFunctionElement().computeSignature(compiler);
+      int arity = signature.parameterCount;
+      List<String> namedArguments = null;
+      if (signature.optionalParametersAreNamed) {
+        namedArguments =
+            signature.orderedOptionalParameters.map((e) => e.name).toList();
+      }
+      if (Elements.operatorNameToIdentifier(name) != name) {
+        // Operators cannot have named arguments, however, that doesn't prevent
+        // a user from declaring such an operator.
+        return new Selector(
+            SelectorKind.OPERATOR, name, null, arity, namedArguments);
       } else {
-        return new Selector.call(name, element.getLibrary(), arity);
+        return new Selector.call(
+            name, element.getLibrary(), arity, namedArguments);
       }
     } else if (element.isSetter()) {
       return new Selector.setter(name, element.getLibrary());
@@ -202,6 +214,9 @@ class Selector {
       return new Selector.getter(name, element.getLibrary());
     } else if (element.isField()) {
       return new Selector.getter(name, element.getLibrary());
+    } else {
+      throw new SpannableAssertionFailure(
+          element, "Can't get selector from $element");
     }
   }
 
@@ -557,13 +572,13 @@ class Selector {
 
   List<String> getOrderedNamedArguments() {
     if (namedArguments.isEmpty) return namedArguments;
-    if (!orderedNamedArguments.isEmpty) return orderedNamedArguments;
+    if (!_orderedNamedArguments.isEmpty) return _orderedNamedArguments;
 
-    orderedNamedArguments.addAll(namedArguments);
-    orderedNamedArguments.sort((String first, String second) {
+    _orderedNamedArguments.addAll(namedArguments);
+    _orderedNamedArguments.sort((String first, String second) {
       return first.compareTo(second);
     });
-    return orderedNamedArguments;
+    return _orderedNamedArguments;
   }
 
   String namedArgumentsToString() {
@@ -590,6 +605,8 @@ class Selector {
   Selector extendIfReachesAll(Compiler compiler) {
     return new TypedSelector(compiler.typesTask.dynamicType, this);
   }
+
+  Selector toCallSelector() => new Selector.callClosureFrom(this);
 }
 
 class TypedSelector extends Selector {
@@ -603,7 +620,7 @@ class TypedSelector extends Selector {
                        selector.library,
                        selector.argumentCount,
                        selector.namedArguments,
-                       selector.orderedNamedArguments,
+                       selector._orderedNamedArguments,
                        hashCode) {
     assert(mask != null);
     assert(asUntyped.mask == null);

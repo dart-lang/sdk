@@ -7,27 +7,17 @@
  * message formatting and replacement, date and number formatting and parsing,
  * and utilities for working with Bidirectional text.
  *
- * ## Installing ##
- *
- * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
- * file.
- *
- *     dependencies:
- *       intl: any
- *
- * Then run `pub install`.
- *
- * For more information, see the
- * [intl package on pub.dartlang.org](http://pub.dartlang.org/packages/intl).
+ * This is part of the [intl package]
+ * (http://pub.dartlang.org/packages/intl).
  *
  * For things that require locale or other data, there are multiple different
  * ways of making that data available, which may require importing different
  * libraries. See the class comments for more details.
  *
  * There is also a simple example application that can be found in the
- * `example/basic` directory.
- *
- * [pub]: http://pub.dartlang.org
+ * [example/basic]
+ * (https://code.google.com/p/dart/source/browse/#svn%2Fbranches%2Fbleeding_edge%2Fdart%2Fpkg%2Fintl%2Fexample%2Fbasic)
+ *  directory.
  */
 library intl;
 
@@ -66,7 +56,7 @@ part 'number_format.dart';
  *          args: [date],
  *          desc: 'Indicate the current date',
  *          examples: {'date' : 'June 8, 2012'});
- *      print(today(new DateTime.now());
+ *      print(today(new DateTime.now().toString());
  *
  *      msg(num_people, place) => Intl.message(
  *           '''I see ${Intl.plural(num_people,
@@ -81,7 +71,6 @@ part 'number_format.dart';
  * Calling `msg(2, 'Athens');` would
  * produce "I see 2 other people in Athens." as output in the default locale.
  *
- * To use a locale other than the default, use the `withLocale` function.
  * You can set the default locale.
  *       Intl.defaultLocale = "pt_BR";
  *

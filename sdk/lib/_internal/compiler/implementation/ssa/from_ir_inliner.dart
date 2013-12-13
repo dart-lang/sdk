@@ -4,27 +4,65 @@
 
 part of ssa;
 
-class SsaFromIrInliner extends IrNodesVisitor {
-
+/**
+ * This class implements an [IrNodesVisitor] that inlines a function represented
+ * as IR into an [SsaBuilder].
+ */
+class SsaFromIrInliner
+    extends IrNodesVisitor with SsaGraphBuilderMixin<IrNode>, SsaFromIrMixin {
   final SsaBuilder builder;
 
   SsaFromIrInliner(this.builder);
 
-  final Map<IrNode, HInstruction> emitted = new Map<IrNode, HInstruction>();
-
   Compiler get compiler => builder.compiler;
 
-  void visitIrReturn(IrReturn node) {
-    HInstruction hValue = emitted[node.value];
-    builder.localsHandler.updateLocal(builder.returnElement, hValue);
+  JavaScriptBackend get backend => builder.backend;
+
+  Element get sourceElement => builder.sourceElementStack.last;
+
+  HGraph get graph => builder.graph;
+
+  HBasicBlock get current => builder.current;
+
+  void set current(HBasicBlock block) {
+    builder.current = block;
   }
 
-  void visitIrConstant(IrConstant node) {
-    emitted[node] = builder.graph.addConstant(node.value, compiler);
+  HBasicBlock get lastOpenedBlock => builder.lastOpenedBlock;
+
+  void set lastOpenedBlock(HBasicBlock block) {
+    builder.lastOpenedBlock = block;
   }
 
-  void visitNode(IrNode node) {
-    compiler.internalError('Unexpected IrNode $node');
+  bool get isReachable => builder.isReachable;
+
+  void set isReachable(bool value) {
+    builder.isReachable = value;
+  }
+
+  bool get inThrowExpression => builder.inThrowExpression;
+
+  int get loopNesting => builder.loopNesting;
+
+  List<InliningState> get inliningStack => builder.inliningStack;
+
+  List<Element> get sourceElementStack => builder.sourceElementStack;
+
+  void setupInliningState(FunctionElement function,
+                          List<HInstruction> compiledArguments) {
+    builder.setupInliningState(function, compiledArguments);
+  }
+
+  void leaveInlinedMethod() {
+    builder.leaveInlinedMethod();
+  }
+
+  void doInline(Element element) {
+    builder.doInline(element);
+  }
+
+  void emitReturn(HInstruction value, IrReturn node) {
+    builder.localsHandler.updateLocal(builder.returnElement, value);
   }
 }
 
@@ -57,7 +95,7 @@ class IrInlineWeeder extends IrNodesVisitor {
     }
   }
 
-  void visitNode(IrNode node) {
+  void visitIrNode(IrNode node) {
     if (!registerNode()) return;
     if (seenReturn) {
       tooDifficult = true;
@@ -65,12 +103,11 @@ class IrInlineWeeder extends IrNodesVisitor {
   }
 
   void visitIrReturn(IrReturn node) {
-    visitNode(node);
+    visitIrNode(node);
     seenReturn = true;
   }
 
   void visitIrFunction(IrFunction node) {
     tooDifficult = true;
   }
-
 }

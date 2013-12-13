@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection' show Queue, HashMap;
 import 'dart:isolate';
 import 'dart:_js_helper' show
+    Closure,
     Null,
     Primitives,
     convertDartClosureToJS;
@@ -20,7 +21,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    IsolateContext;
 import 'dart:_interceptors' show JSExtendableArray;
 
-ReceivePort lazyPort;
+ReceivePort controlPort;
 
 /**
  * Called by the compiler to support switching
@@ -222,19 +223,17 @@ class _Manager {
 /** Context information tracked for each isolate. */
 class _IsolateContext implements IsolateContext {
   /** Current isolate id. */
-  int id;
+  final int id = _globalState.nextIsolateId++;
 
   /** Registry of receive ports currently active on this isolate. */
-  Map<int, RawReceivePortImpl> ports;
+  final Map<int, RawReceivePortImpl> ports = new Map<int, RawReceivePortImpl>();
+
+  /** Registry of weak receive ports currently active on this isolate. */
+  final Set<int> weakPorts = new Set<int>();
 
   /** Holds isolate globals (statics and top-level properties). */
-  var isolateStatics; // native object containing all globals of an isolate.
-
-  _IsolateContext() {
-    id = _globalState.nextIsolateId++;
-    ports = new Map<int, RawReceivePortImpl>();
-    isolateStatics = JS_CREATE_ISOLATE();
-  }
+  // native object containing all globals of an isolate.
+  final isolateStatics = JS_CREATE_ISOLATE();
 
   /**
    * Run [code] in the context of the isolate represented by [this].
@@ -257,24 +256,41 @@ class _IsolateContext implements IsolateContext {
     JS_SET_CURRENT_ISOLATE(isolateStatics);
   }
 
-  /** Lookup a port registered for this isolate. */
+  /** Looks up a port registered for this isolate. */
   RawReceivePortImpl lookup(int portId) => ports[portId];
 
-  /** Register a port on this isolate. */
+  /** Registers a port on this isolate. */
   void register(int portId, RawReceivePortImpl port)  {
     if (ports.containsKey(portId)) {
       throw new Exception("Registry: ports must be registered only once.");
     }
     ports[portId] = port;
-    _globalState.isolates[id] = this; // indicate this isolate is active
+    _updateGlobalState();
+  }
+
+  /**
+   * Registers a weak port on this isolate.
+   *
+   * The port does not keep the isolate active.
+   */
+  void registerWeak(int portId, RawReceivePortImpl port)  {
+    weakPorts.add(portId);
+    // 'register' updates the global state.
+    register(portId, port);
+  }
+
+  _updateGlobalState() {
+    if (ports.length - weakPorts.length > 0) {
+      _globalState.isolates[id] = this; // indicate this isolate is active
+    } else {
+      _globalState.isolates.remove(id); // indicate this isolate is not active
+    }
   }
 
   /** Unregister a port on this isolate. */
   void unregister(int portId) {
     ports.remove(portId);
-    if (ports.isEmpty) {
-      _globalState.isolates.remove(id); // indicate this isolate is not active
-    }
+    _updateGlobalState();
   }
 }
 
@@ -548,7 +564,7 @@ class IsolateNatives {
   }
 
   static _getJSFunctionFromName(String functionName) {
-    return JS("", "init.globalFunctions[#]", functionName);
+    return JS("", "init.globalFunctions[#]()", functionName);
   }
 
   /**
@@ -557,7 +573,7 @@ class IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f) {
-    return JS("String|Null", r"(#['$name'] || #)", f, null);
+    return (f is Closure) ? JS("String|Null", r'#.$name', f) : null;
   }
 
   /** Create a new JavaScript object instance given its constructor. */
@@ -565,7 +581,8 @@ class IsolateNatives {
     return JS("", "new #()", ctor);
   }
 
-  static SendPort spawnFunction(void topLevelFunction(message), message) {
+  static Future<SendPort> spawnFunction(void topLevelFunction(message),
+                                        message) {
     final name = _getJSFunctionName(topLevelFunction);
     if (name == null) {
       throw new UnsupportedError(
@@ -574,27 +591,25 @@ class IsolateNatives {
     return spawn(name, null, null, message, false, false);
   }
 
-  static SendPort spawnUri(Uri uri, List<String> args, message) {
+  static Future<SendPort> spawnUri(Uri uri, List<String> args, message) {
     return spawn(null, uri.toString(), args, message, false, true);
   }
 
   // TODO(sigmund): clean up above, after we make the new API the default:
 
   /// If [uri] is `null` it is replaced with the current script.
-  static SendPort spawn(String functionName, String uri,
-                        List<String> args, message,
-                        bool isLight, bool isSpawnUri) {
+  static Future<SendPort> spawn(String functionName, String uri,
+                                List<String> args, message,
+                                bool isLight, bool isSpawnUri) {
     // Assume that the compiled version of the Dart file lives just next to the
     // dart file.
     // TODO(floitsch): support precompiled version of dart2js output.
     if (uri != null && uri.endsWith(".dart")) uri += ".js";
 
-    Completer<SendPort> completer = new Completer<SendPort>.sync();
     ReceivePort port = new ReceivePort();
-    port.listen((msg) {
-      port.close();
+    Future<SendPort> result = port.first.then((msg) {
       assert(msg[0] == _SPAWNED_SIGNAL);
-      completer.complete(msg[1]);
+      return msg[1];
     });
 
     SendPort signalReply = port.sendPort;
@@ -605,8 +620,7 @@ class IsolateNatives {
       _startNonWorker(
           functionName, uri, args, message, isSpawnUri, signalReply);
     }
-    return new _BufferingSendPort(
-        _globalState.currentContext.id, completer.future);
+    return result;
   }
 
   static void _startWorker(
@@ -650,8 +664,9 @@ class IsolateNatives {
                             SendPort replyTo) {
     _IsolateContext context = JS_CURRENT_ISOLATE_CONTEXT();
     Primitives.initializeStatics(context.id);
-    lazyPort = new ReceivePort();
-    replyTo.send([_SPAWNED_SIGNAL, lazyPort.sendPort]);
+    // The isolate's port does not keep the isolate open.
+    controlPort = new ReceivePortImpl.weak();
+    replyTo.send([_SPAWNED_SIGNAL, controlPort.sendPort]);
     if (!isSpawnUri) {
       topLevel(message);
     } else if (topLevel is _MainFunctionArgsMessage) {
@@ -712,8 +727,7 @@ abstract class _BaseSendPort implements SendPort {
   void _checkReplyTo(SendPort replyTo) {
     if (replyTo != null
         && replyTo is! _NativeJsSendPort
-        && replyTo is! _WorkerSendPort
-        && replyTo is! _BufferingSendPort) {
+        && replyTo is! _WorkerSendPort) {
       throw new Exception("SendPort.send: Illegal replyTo port type");
     }
   }
@@ -730,34 +744,32 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
   const _NativeJsSendPort(this._receivePort, int isolateId) : super(isolateId);
 
   void send(var message) {
-    _waitForPendingPorts(message, () {
-      // Check that the isolate still runs and the port is still open
-      final isolate = _globalState.isolates[_isolateId];
-      if (isolate == null) return;
-      if (_receivePort._isClosed) return;
+    // Check that the isolate still runs and the port is still open
+    final isolate = _globalState.isolates[_isolateId];
+    if (isolate == null) return;
+    if (_receivePort._isClosed) return;
 
-      // We force serialization/deserialization as a simple way to ensure
-      // isolate communication restrictions are respected between isolates that
-      // live in the same worker. [_NativeJsSendPort] delivers both messages
-      // from the same worker and messages from other workers. In particular,
-      // messages sent from a worker via a [_WorkerSendPort] are received at
-      // [_processWorkerMessage] and forwarded to a native port. In such cases,
-      // here we'll see [_globalState.currentContext == null].
-      final shouldSerialize = _globalState.currentContext != null
-          && _globalState.currentContext.id != _isolateId;
-      var msg = message;
-      if (shouldSerialize) {
-        msg = _serializeMessage(msg);
-      }
-      _globalState.topEventLoop.enqueue(isolate, () {
-        if (!_receivePort._isClosed) {
-          if (shouldSerialize) {
-            msg = _deserializeMessage(msg);
-          }
-          _receivePort._add(msg);
+    // We force serialization/deserialization as a simple way to ensure
+    // isolate communication restrictions are respected between isolates that
+    // live in the same worker. [_NativeJsSendPort] delivers both messages
+    // from the same worker and messages from other workers. In particular,
+    // messages sent from a worker via a [_WorkerSendPort] are received at
+    // [_processWorkerMessage] and forwarded to a native port. In such cases,
+    // here we'll see [_globalState.currentContext == null].
+    final shouldSerialize = _globalState.currentContext != null
+        && _globalState.currentContext.id != _isolateId;
+    var msg = message;
+    if (shouldSerialize) {
+      msg = _serializeMessage(msg);
+    }
+    _globalState.topEventLoop.enqueue(isolate, () {
+      if (!_receivePort._isClosed) {
+        if (shouldSerialize) {
+          msg = _deserializeMessage(msg);
         }
-      }, 'receive $message');
-    });
+        _receivePort._add(msg);
+      }
+    }, 'receive $message');
   }
 
   bool operator ==(var other) => (other is _NativeJsSendPort) &&
@@ -776,24 +788,22 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
       : super(isolateId);
 
   void send(var message) {
-    _waitForPendingPorts(message, () {
-      final workerMessage = _serializeMessage({
-          'command': 'message',
-          'port': this,
-          'msg': message});
+    final workerMessage = _serializeMessage({
+        'command': 'message',
+        'port': this,
+        'msg': message});
 
-      if (_globalState.isWorker) {
-        // Communication from one worker to another go through the
-        // main worker.
-        _globalState.mainManager.postMessage(workerMessage);
-      } else {
-        // Deliver the message only if the worker is still alive.
-        /* Worker */ var manager = _globalState.managers[_workerId];
-        if (manager != null) {
-          JS('void', '#.postMessage(#)', manager, workerMessage);
-        }
+    if (_globalState.isWorker) {
+      // Communication from one worker to another go through the
+      // main worker.
+      _globalState.mainManager.postMessage(workerMessage);
+    } else {
+      // Deliver the message only if the worker is still alive.
+      /* Worker */ var manager = _globalState.managers[_workerId];
+      if (manager != null) {
+        JS('void', '#.postMessage(#)', manager, workerMessage);
       }
-    });
+    }
   }
 
   bool operator ==(var other) {
@@ -809,56 +819,6 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
   }
 }
 
-/** A port that buffers messages until an underlying port gets resolved. */
-class _BufferingSendPort extends _BaseSendPort implements SendPort {
-  /** Internal counter to assign unique ids to each port. */
-  static int _idCount = 0;
-
-  /** For implementing equals and hashcode. */
-  final int _id;
-
-  /** Underlying port, when resolved. */
-  SendPort _port;
-
-  /**
-   * Future.sync the underlying port, so that we can detect when this port can be
-   * sent on messages.
-   */
-  Future<SendPort> _futurePort;
-
-  /** Pending messages (and reply ports). */
-  List pending;
-
-  _BufferingSendPort(isolateId, this._futurePort)
-      : super(isolateId), _id = _idCount, pending = [] {
-    _idCount++;
-    _futurePort.then((p) {
-      _port = p;
-      for (final item in pending) {
-        p.send(item);
-      }
-      pending = null;
-    });
-  }
-
-  _BufferingSendPort.fromPort(isolateId, this._port)
-      : super(isolateId), _id = _idCount {
-    _idCount++;
-  }
-
-  void send(var message) {
-    if (_port != null) {
-      _port.send(message);
-    } else {
-      pending.add(message);
-    }
-  }
-
-  bool operator ==(var other) =>
-      other is _BufferingSendPort && _id == other._id;
-  int get hashCode => _id;
-}
-
 class RawReceivePortImpl implements RawReceivePort {
   static int _nextFreeId = 1;
 
@@ -868,6 +828,10 @@ class RawReceivePortImpl implements RawReceivePort {
 
   RawReceivePortImpl(this._handler) {
     _globalState.currentContext.register(_id, this);
+  }
+
+  RawReceivePortImpl.weak(this._handler) {
+    _globalState.currentContext.registerWeak(_id, this);
   }
 
   void set handler(Function newHandler) {
@@ -897,6 +861,9 @@ class ReceivePortImpl extends Stream implements ReceivePort {
 
   ReceivePortImpl() : this.fromRawReceivePort(new RawReceivePortImpl(null));
 
+  ReceivePortImpl.weak()
+      : this.fromRawReceivePort(new RawReceivePortImpl.weak(null));
+
   ReceivePortImpl.fromRawReceivePort(this._rawPort) {
     _controller = new StreamController(onCancel: close, sync: true);
     _rawPort.handler = _controller.add;
@@ -918,45 +885,6 @@ class ReceivePortImpl extends Stream implements ReceivePort {
   SendPort get sendPort => _rawPort.sendPort;
 }
 
-
-/** Wait until all ports in a message are resolved. */
-_waitForPendingPorts(var message, void callback()) {
-  final finder = new _PendingSendPortFinder();
-  finder.traverse(message);
-  Future.wait(finder.ports).then((_) => callback());
-}
-
-
-/** Visitor that finds all unresolved [SendPort]s in a message. */
-class _PendingSendPortFinder extends _MessageTraverser {
-  List<Future<SendPort>> ports;
-  _PendingSendPortFinder() : super(), ports = [] {
-    _visited = new _JsVisitedMap();
-  }
-
-  visitPrimitive(x) {}
-
-  visitList(List list) {
-    final seen = _visited[list];
-    if (seen != null) return;
-    _visited[list] = true;
-    list.forEach(_dispatch);
-  }
-
-  visitMap(Map map) {
-    final seen = _visited[map];
-    if (seen != null) return;
-
-    _visited[map] = true;
-    map.values.forEach(_dispatch);
-  }
-
-  visitSendPort(var port) {
-    if (port is _BufferingSendPort && port._port == null) {
-      ports.add(port._futurePort);
-    }
-  }
-}
 
 /********************************************************
   Inserted from lib/isolate/dart2js/messages.dart
@@ -990,7 +918,6 @@ class _JsSerializer extends _Serializer {
   visitSendPort(SendPort x) {
     if (x is _NativeJsSendPort) return visitNativeJsSendPort(x);
     if (x is _WorkerSendPort) return visitWorkerSendPort(x);
-    if (x is _BufferingSendPort) return visitBufferingSendPort(x);
     throw "Illegal underlying port $x";
   }
 
@@ -1002,17 +929,6 @@ class _JsSerializer extends _Serializer {
   visitWorkerSendPort(_WorkerSendPort port) {
     return ['sendport', port._workerId, port._isolateId, port._receivePortId];
   }
-
-  visitBufferingSendPort(_BufferingSendPort port) {
-    if (port._port != null) {
-      return visitSendPort(port._port);
-    } else {
-      // TODO(floitsch): Use real exception (which one?).
-      throw
-          "internal error: must call _waitForPendingPorts to ensure all"
-          " ports are resolved at this point.";
-    }
-  }
 }
 
 
@@ -1023,7 +939,6 @@ class _JsCopier extends _Copier {
   visitSendPort(SendPort x) {
     if (x is _NativeJsSendPort) return visitNativeJsSendPort(x);
     if (x is _WorkerSendPort) return visitWorkerSendPort(x);
-    if (x is _BufferingSendPort) return visitBufferingSendPort(x);
     throw "Illegal underlying port $x";
   }
 
@@ -1034,17 +949,6 @@ class _JsCopier extends _Copier {
   SendPort visitWorkerSendPort(_WorkerSendPort port) {
     return new _WorkerSendPort(
         port._workerId, port._isolateId, port._receivePortId);
-  }
-
-  SendPort visitBufferingSendPort(_BufferingSendPort port) {
-    if (port._port != null) {
-      return visitSendPort(port._port);
-    } else {
-      // TODO(floitsch): Use real exception (which one?).
-      throw
-          "internal error: must call _waitForPendingPorts to ensure all"
-          " ports are resolved at this point.";
-    }
   }
 }
 

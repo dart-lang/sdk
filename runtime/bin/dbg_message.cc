@@ -1066,11 +1066,15 @@ void DbgMsgQueue::SendQueuedMsgs() {
 }
 
 
-void DbgMsgQueue::SendBreakpointEvent(const Dart_CodeLocation& location) {
+void DbgMsgQueue::SendBreakpointEvent(intptr_t bp_id,
+                                      const Dart_CodeLocation& location) {
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": { ");
   msg.Printf("\"reason\": \"breakpoint\", ");
   msg.Printf("\"isolateId\": %" Pd64 "", isolate_id_);
+  if (bp_id != ILLEGAL_BREAKPOINT_ID) {
+    msg.Printf(",\"breakpointId\": %" Pd "", bp_id);
+  }
   if (!Dart_IsNull(location.script_url)) {
     ASSERT(Dart_IsString(location.script_url));
     msg.Printf(",\"location\": { \"url\":");
@@ -1281,13 +1285,14 @@ void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
 
 
 void DbgMsgQueueList::PausedEventHandler(Dart_IsolateId isolate_id,
+                                         intptr_t bp_id,
                                          const Dart_CodeLocation& loc) {
   DebuggerConnectionHandler::WaitForConnection();
   Dart_EnterScope();
   DbgMsgQueue* msg_queue = GetIsolateMsgQueue(isolate_id);
   ASSERT(msg_queue != NULL);
   msg_queue->SendQueuedMsgs();
-  msg_queue->SendBreakpointEvent(loc);
+  msg_queue->SendBreakpointEvent(bp_id, loc);
   msg_queue->HandleMessages();
   Dart_ExitScope();
 }

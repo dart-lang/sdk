@@ -12,6 +12,7 @@ import '../elements/modelx.dart'
          FunctionElementX,
          TypedefElementX,
          VariableElementX,
+         FieldElementX,
          VariableListElementX,
          ClassElementX,
          MetadataAnnotationX,

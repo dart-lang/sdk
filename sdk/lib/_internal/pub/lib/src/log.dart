@@ -5,18 +5,28 @@
 /// Message logging.
 library pub.log;
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:collection';
+import 'dart:io';
 
 import 'io.dart';
+import 'transcript.dart';
 import 'utils.dart';
 
 typedef LogFn(Entry entry);
 final Map<Level, LogFn> _loggers = new Map<Level, LogFn>();
 
+/// In cases where there's a ton of log spew, make sure we don't eat infinite
+/// memory.
+///
+/// This can occur when the backtracking solver stumbles into a pathological
+/// dependency graph. It generally will find a solution, but it may log
+/// thousands and thousands of entries to get there.
+const _MAX_TRANSCRIPT = 10000;
+
 /// The list of recorded log messages. Will only be recorded if
 /// [recordTranscript()] is called.
-List<Entry> _transcript;
+Transcript<Entry> _transcript;
 
 /// The timer used to write "..." during a progress log.
 Timer _progressTimer;
@@ -176,7 +186,7 @@ void processResult(String executable, PubProcessResult result) {
 
 /// Enables recording of log entries.
 void recordTranscript() {
-  _transcript = <Entry>[];
+  _transcript = new Transcript<Entry>(_MAX_TRANSCRIPT);
 }
 
 /// If [recordTranscript()] was called, then prints the previously recorded log
@@ -185,9 +195,9 @@ void dumpTranscript() {
   if (_transcript == null) return;
 
   stderr.writeln('---- Log transcript ----');
-  for (var entry in _transcript) {
-    _logToStderrWithLabel(entry);
-  }
+  _transcript.forEach(_logToStderrWithLabel, (discarded) {
+    stderr.writeln('---- ($discarded discarded) ----');
+  });
   stderr.writeln('---- End log transcript ----');
 }
 

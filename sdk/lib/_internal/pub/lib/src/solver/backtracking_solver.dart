@@ -298,18 +298,22 @@ class BacktrackingSolver {
     // Generate a reverse dependency graph. For each package, create edges to
     // each package that depends on it.
     var dependers = new Map<String, Set<String>>();
+
+    addDependencies(name, deps) {
+      dependers.putIfAbsent(name, () => new Set<String>());
+      for (var dep in deps) {
+        dependers.putIfAbsent(dep.name, () => new Set<String>()).add(name);
+      }
+    }
+
     for (var i = 0; i < _selected.length; i++) {
       var id = _selected[i].current;
       var pubspec = cache.getCachedPubspec(id);
-      if (pubspec == null) continue;
-      dependers.putIfAbsent(id.name, () => new Set<String>());
-
-      for (var dep in pubspec.dependencies) {
-        var depender = dependers.putIfAbsent(dep.name,
-            () => new Set<String>());
-        depender.add(id.name);
-      }
+      if (pubspec != null) addDependencies(id.name, pubspec.dependencies);
     }
+
+    // Include the root package's dependencies.
+    addDependencies(root.name, root.immediateDependencies);
 
     // Now walk the depending graph to see which packages transitively depend
     // on [dependency].
@@ -473,7 +477,7 @@ class Traverser {
 
         // See if it's possible for a package to match that constraint.
         if (constraint.isEmpty) {
-          _solver.logSolve('disjoint constraints on ${dep.name}}');
+          _solver.logSolve('disjoint constraints on ${dep.name}');
           throw new DisjointConstraintException(depender, dependencies);
         }
 
@@ -646,12 +650,6 @@ class Traverser {
 /// Ensures that if [pubspec] has an SDK constraint, then it is compatible
 /// with the current SDK. Throws a [SolveFailure] if not.
 void _validateSdkConstraint(Pubspec pubspec) {
-  // If the user is running a continouous build of the SDK, just disable SDK
-  // constraint checking entirely. The actual version number you get is
-  // impossibly old and not correct. We'll just assume users on continuous
-  // know what they're doing.
-  if (sdk.isBleedingEdge) return;
-
   if (pubspec.environment.sdkVersion.allows(sdk.version)) return;
 
   throw new BadSdkVersionException(pubspec.name,

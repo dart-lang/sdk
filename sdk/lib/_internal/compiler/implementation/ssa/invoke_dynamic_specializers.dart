@@ -229,6 +229,18 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   }
 
   HInstruction newBuiltinVariant(HInvokeDynamic instruction, Compiler compiler);
+
+  Selector renameToOptimizedSelector(String name,
+                                     Selector selector,
+                                     Compiler compiler) {
+    if (selector.name == name) return selector;
+    return new TypedSelector(
+        selector.mask,
+        new Selector(SelectorKind.CALL,
+                     name,
+                     compiler.interceptorsLibrary,
+                     selector.argumentCount));
+  }
 }
 
 class AddSpecializer extends BinaryArithmeticSpecializer {
@@ -359,10 +371,38 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
     return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
+  bool isNotZero(HInstruction instruction, Compiler compiler) {
+    if (!instruction.isConstantInteger()) return false;
+    HConstant rightConstant = instruction;
+    IntConstant intConstant = rightConstant.constant;
+    int count = intConstant.value;
+    return count != 0;
+  }
+
+  HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
+                                   Compiler compiler) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    if (isBuiltin(instruction, compiler)) {
+      if (right.isPositiveInteger(compiler) && isNotZero(right, compiler)) {
+        if (left.isUInt31(compiler)) {
+          return newBuiltinVariant(instruction, compiler);
+        }
+        clearAllSideEffects(instruction);
+        // We can call _tdivFast because the rhs is a 32bit integer
+        // and not 0, nor -1.
+        instruction.selector = renameToOptimizedSelector(
+            '_tdivFast', instruction.selector, compiler);
+      }
+    }
+    return null;
+  }
+
   HInstruction newBuiltinVariant(HInvokeDynamic instruction,
                                  Compiler compiler) {
-    // Truncating divide does not have a JS equivalent.    
-    return null;
+    return new HTruncatingDivide(
+        instruction.inputs[1], instruction.inputs[2],
+        instruction.selector, computeTypeFromInputTypes(instruction, compiler));
   }
 }
 
@@ -415,6 +455,11 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
       // the instruction does not have any side effect, and that it
       // can be GVN'ed.
       clearAllSideEffects(instruction);
+      Selector selector = instruction.selector;
+      if (isPositive(right, compiler)) {
+        instruction.selector = renameToOptimizedSelector(
+            '_shlPositive', instruction.selector, compiler);
+      }
     }
     return null;
   }
@@ -452,6 +497,16 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
       // the instruction does not have any side effect, and that it
       // can be GVN'ed.
       clearAllSideEffects(instruction);
+      if (isPositive(right, compiler) && isPositive(left, compiler)) {
+        instruction.selector = renameToOptimizedSelector(
+            '_shrBothPositive', instruction.selector, compiler);
+      } else if (isPositive(left, compiler) && right.isNumber(compiler)) {
+        instruction.selector = renameToOptimizedSelector(
+            '_shrReceiverPositive', instruction.selector, compiler);
+      } else if (isPositive(right, compiler)) {
+        instruction.selector = renameToOptimizedSelector(
+            '_shrOtherPositive', instruction.selector, compiler);
+      }
     }
     return null;
   }

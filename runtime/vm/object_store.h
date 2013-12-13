@@ -72,6 +72,9 @@ class ObjectStore {
   RawClass* type_class() const { return type_class_; }
   void set_type_class(const Class& value) { type_class_ = value.raw(); }
 
+  RawClass* type_ref_class() const { return type_ref_class_; }
+  void set_type_ref_class(const Class& value) { type_ref_class_ = value.raw(); }
+
   RawClass* type_parameter_class() const { return type_parameter_class_; }
   void set_type_parameter_class(const Class& value) {
     type_parameter_class_ = value.raw();
@@ -421,6 +424,7 @@ class ObjectStore {
   RawType* function_type_;
   RawType* function_impl_type_;
   RawClass* type_class_;
+  RawClass* type_ref_class_;
   RawClass* type_parameter_class_;
   RawClass* bounded_type_class_;
   RawClass* mixin_app_type_class_;

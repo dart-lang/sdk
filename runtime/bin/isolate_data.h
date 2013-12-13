@@ -20,13 +20,16 @@ class EventHandler;
 // when the isolate shuts down.
 class IsolateData {
  public:
-  explicit IsolateData(const char* url) : script_url(strdup(url)) {
+  explicit IsolateData(const char* url)
+      : script_url(strdup(url)), udp_receive_buffer(NULL) {
   }
   ~IsolateData() {
     free(script_url);
+    free(udp_receive_buffer);
   }
 
   char* script_url;
+  uint8_t* udp_receive_buffer;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateData);

@@ -623,7 +623,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (receiverType.treatAsDynamic) {
       return const DynamicAccess();
     }
-    Member getMember(DartType type) {
+    InterfaceType computeInterfaceType(DartType type) {
       DartType originalType = type;
       while (identical(type.kind, TypeKind.TYPE_VARIABLE)) {
         TypeVariableType variable = type;
@@ -639,7 +639,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       }
       assert(invariant(node, type.kind == TypeKind.INTERFACE,
           message: "unexpected type kind ${type.kind}."));
-      InterfaceType interface = type;
+      return type;
+    }
+    Member getMember(DartType type) {
+      InterfaceType interface = computeInterfaceType(type);
       return interface.lookupMember(name,
           isSetter: identical(memberKind, MemberKind.SETTER));
     }
@@ -663,23 +666,26 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
       }
     }
-    switch (memberKind) {
-      case MemberKind.METHOD:
-        reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
-            {'className': receiverType.name, 'memberName': name});
-        break;
-      case MemberKind.OPERATOR:
-        reportTypeWarning(node, MessageKind.OPERATOR_NOT_FOUND,
-            {'className': receiverType.name, 'memberName': name});
-        break;
-      case MemberKind.GETTER:
-        reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND.warning,
-            {'className': receiverType.name, 'memberName': name});
-        break;
-      case MemberKind.SETTER:
-        reportTypeWarning(node, MessageKind.PROPERTY_NOT_FOUND,
-            {'className': receiverType.name, 'memberName': name});
-        break;
+    InterfaceType interface = computeInterfaceType(receiverType);
+    if (!interface.element.isProxy) {
+      switch (memberKind) {
+        case MemberKind.METHOD:
+          reportTypeWarning(node, MessageKind.METHOD_NOT_FOUND,
+              {'className': receiverType.name, 'memberName': name});
+          break;
+        case MemberKind.OPERATOR:
+          reportTypeWarning(node, MessageKind.OPERATOR_NOT_FOUND,
+              {'className': receiverType.name, 'memberName': name});
+          break;
+        case MemberKind.GETTER:
+          reportTypeWarning(node, MessageKind.MEMBER_NOT_FOUND.warning,
+              {'className': receiverType.name, 'memberName': name});
+          break;
+        case MemberKind.SETTER:
+          reportTypeWarning(node, MessageKind.PROPERTY_NOT_FOUND,
+              {'className': receiverType.name, 'memberName': name});
+          break;
+      }
     }
     return const DynamicAccess();
   }
@@ -1447,7 +1453,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     for (Link<Node> link = node.definitions.nodes; !link.isEmpty;
          link = link.tail) {
       Node definition = link.head;
-      compiler.ensure(definition is Identifier || definition is SendSet);
+      invariant(definition, definition is Identifier || definition is SendSet,
+          message: 'expected identifier or initialization');
       if (definition is SendSet) {
         SendSet initialization = definition;
         DartType initializer = analyzeNonVoid(initialization.arguments.head);

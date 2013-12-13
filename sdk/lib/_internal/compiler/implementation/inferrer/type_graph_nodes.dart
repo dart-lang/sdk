@@ -208,8 +208,16 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  */
 class ElementTypeInformation extends TypeInformation {
   final Element element;
-  final Map<Element, Setlet<Spannable>> callers =
-      new Map<Element, Setlet<Spannable>>();
+
+  /**
+   * This map contains the callers of [element]. It stores all unique call sites
+   * to enable counting the global number of call sites of [element].
+   *
+   * A call site is either an AST [Node], an [IrNode] or in the case of
+   * synthesized calls, an [Element] (see uses of [synthesizeForwardingCall]
+   * in [SimpleTypeInferrerVisitor]).
+   */
+  final Map<Element, Setlet<Spannable>> _callers = new Map<Element, Setlet>();
 
   ElementTypeInformation.internal(this.element, assignments)
       : super(null, assignments);
@@ -224,16 +232,28 @@ class ElementTypeInformation extends TypeInformation {
   }
 
   void addCall(Element caller, Spannable node) {
-    callers.putIfAbsent(caller, () => new Setlet<Spannable>()).add(node);
+    assert(node is Node || node is IrNode || node is Element);
+    _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
-  void removeCall(Element caller, Spannable node) {
-    Setlet<Spannable> calls = callers[caller];
+  void removeCall(Element caller, node) {
+    Setlet calls = _callers[caller];
     if (calls == null) return;
     calls.remove(node);
     if (calls.isEmpty) {
-      callers.remove(caller);
+      _callers.remove(caller);
     }
+  }
+
+  Iterable<Element> get callers => _callers.keys;
+
+  bool isCalledOnce() {
+    int count = 0;
+    for (var set in _callers.values) {
+      count += set.length;
+      if (count > 1) return false;
+    }
+    return count == 1;
   }
 
   TypeMask handleSpecialCases(TypeGraphInferrerEngine inferrer) {
@@ -816,10 +836,10 @@ class NarrowTypeInformation extends TypeInformation {
 }
 
 /**
- * A [ContainerTypeInformation] is a [TypeInformation] created
+ * A [ListTypeInformation] is a [TypeInformation] created
  * for each `List` instantiations.
  */
-class ContainerTypeInformation extends TypeInformation {
+class ListTypeInformation extends TypeInformation {
   final ElementInContainerTypeInformation elementType;
 
   /** The container type before it is inferred. */
@@ -832,23 +852,30 @@ class ContainerTypeInformation extends TypeInformation {
   int inferredLength;
 
   /**
-   * Whether this container goes through a growable check.
+   * Whether this list goes through a growable check.
    * We conservatively assume it does.
    */
   bool checksGrowable = true;
 
-  ContainerTypeInformation(this.originalContainerType,
-                           this.elementType,
-                           this.originalLength) {
+  // The set of [TypeInformation] where the traced container could
+  // flow in.
+  final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
+
+  bool bailedOut = true;
+  bool analyzed = false;
+
+  ListTypeInformation(this.originalContainerType,
+                      this.elementType,
+                      this.originalLength) {
     type = originalContainerType;
     inferredLength = originalContainerType.length;
     elementType.addUser(this);
   }
 
-  String toString() => 'Container type $type';
+  String toString() => 'List type $type';
 
   accept(TypeInformationVisitor visitor) {
-    return visitor.visitContainerTypeInformation(this);
+    return visitor.visitListTypeInformation(this);
   }
 
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
@@ -872,7 +899,7 @@ class ContainerTypeInformation extends TypeInformation {
 
 /**
  * An [ElementInContainerTypeInformation] holds the common type of the
- * elements in a [ContainerTypeInformation].
+ * elements in a [ListTypeInformation].
  */
 class ElementInContainerTypeInformation extends TypeInformation {
   /** Whether the element type in that container has been inferred. */
@@ -898,6 +925,32 @@ class ElementInContainerTypeInformation extends TypeInformation {
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
     return inferred && super.hasStableType(inferrer);
   }
+}
+
+/**
+ * A [MapTypeInformation] is a [TypeInformation] created
+ * for maps.
+ */
+class MapTypeInformation extends TypeInformation {
+  final TypeInformation keyType;
+  final TypeInformation valueType;
+  final TypeMask initialType;
+
+  MapTypeInformation(this.keyType, this.valueType, this.initialType) {
+    keyType.addUser(this);
+    valueType.addUser(this);
+    type = initialType;
+  }
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitMapTypeInformation(this);
+  }
+
+  TypeMask refine(TypeGraphInferrerEngine inferrer) {
+    return initialType;
+  }
+
+  String toString() => 'Map $type';
 }
 
 /**
@@ -927,7 +980,8 @@ abstract class TypeInformationVisitor<T> {
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
   T visitElementInContainerTypeInformation(
       ElementInContainerTypeInformation info);
-  T visitContainerTypeInformation(ContainerTypeInformation info);
+  T visitListTypeInformation(ListTypeInformation info);
+  T visitMapTypeInformation(MapTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);
   T visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info);
   T visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info);

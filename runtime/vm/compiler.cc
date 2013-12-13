@@ -385,6 +385,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         optimizer.ApplyClassIds();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
+        // Propagate types for potentially newly added instructions by
+        // ApplyClassIds(). Must occur before canonicalization.
+        FlowGraphTypePropagator::Propagate(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
         // Do optimizations that depend on the propagated type information.
         if (optimizer.Canonicalize()) {
           // Invoke Canonicalize twice in order to fully canonicalize patterns

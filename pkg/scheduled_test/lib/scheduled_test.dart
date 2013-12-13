@@ -174,7 +174,7 @@
 ///
 /// ## Timeouts
 ///
-/// `scheduled_test` has a built-in timeout of 30 seconds (configurable via
+/// `scheduled_test` has a built-in timeout of 5 seconds (configurable via
 /// [Schedule.timeout]). This timeout is aware of the structure of the schedule;
 /// this means that it will reset for each task in a queue, when moving between
 /// queues, or almost any other sort of interaction with [currentSchedule]. As

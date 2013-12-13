@@ -5,7 +5,7 @@
 /**
  * A simple unit test library for running tests in a browser.
  */
-library unittest_html_config;
+library unittest.html_config;
 
 import 'dart:async';
 import 'dart:convert';

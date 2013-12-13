@@ -12,6 +12,12 @@ class Server {
 
   Server(this.service, this.port);
 
+  void _sendResponse(HttpRequest request, String response) {
+    request.response..headers.contentType = jsonContentType
+                    ..write(response)
+                    ..close();
+  }
+
   void _requestHandler(HttpRequest request) {
     // Allow cross origin requests.
     request.response.headers.add('Access-Control-Allow-Origin', '*');
@@ -31,27 +37,17 @@ class Server {
 
     var serviceRequest = new ServiceRequest();
     var r = serviceRequest.parse(request.uri);
-    if (!r) {
-      // Did not understand the request uri.
-      serviceRequest.setErrorResponse('Invalid request uri: ${request.uri}');
-    } else {
+    if (r) {
       var f = service.runningIsolates.route(serviceRequest);
-      if (f != null) {
-        f.then((_) {
-          request.response.headers.contentType = jsonContentType;
-          request.response.write(serviceRequest.response);
-          request.response.close();
-        }).catchError((e) { });
-        return;
-      } else {
-        // Nothing responds to this type of request.
-        serviceRequest.setErrorResponse('No route for: $path');
-      }
+      assert(f != null);
+      f.then((_) {
+        _sendResponse(request, serviceRequest.response);
+      }).catchError((e) {
+        // Error replying over HTTP.
+      });
+      return;
     }
-
-    request.response.headers.contentType = jsonContentType;
-    request.response.write(serviceRequest.response);
-    request.response.close();
+    _sendResponse(request, serviceRequest.response);
   }
 
   Future startServer() {

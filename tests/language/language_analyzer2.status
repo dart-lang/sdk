@@ -18,6 +18,12 @@ call_type_literal_test/01: fail
 override_field_test/03: fail
 method_override7_test/03: Fail # Issue 11496
 
+assignable_expression_test/02: Fail # Issue 15471
+assignable_expression_test/12: Fail # Issue 15471
+assignable_expression_test/22: Fail # Issue 15471
+assignable_expression_test/32: Fail # Issue 15471
+assignable_expression_test/42: Fail # Issue 15471
+
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
@@ -143,9 +149,6 @@ malformed_test/06: fail # test issue 14079, it is not error, but warning to use 
 # test issue 14228
 black_listed_test/none: fail # test issue 14228, warnings are required but not expected
 
-# test issue 14363, "if ((a is B))" has the same effect as "if (a is B)", so no static warning expected
-type_promotion_parameter_test/53: Fail
-
 # test issue 14410, "typedef C = " is now really illegal syntax
 mixin_illegal_syntax_test/none: fail
 
@@ -168,6 +171,10 @@ least_upper_bound_expansive_test/08: MissingStaticWarning # Issue 15060
 least_upper_bound_expansive_test/10: MissingStaticWarning # Issue 15060
 least_upper_bound_expansive_test/11: MissingStaticWarning # Issue 15060
 least_upper_bound_expansive_test/12: MissingStaticWarning # Issue 15060
+
+# test issue 15467
+proxy_test/05: StaticWarning # Issue 15467
+proxy_test/06: StaticWarning # Issue 15467
 
 abstract_exact_selector_test: StaticWarning
 abstract_getter_test: StaticWarning
@@ -454,4 +461,3 @@ unresolved_top_level_method_negative_test: CompileTimeError
 vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
-

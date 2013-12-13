@@ -536,6 +536,11 @@ RawType* SnapshotReader::NewType() {
 }
 
 
+RawTypeRef* SnapshotReader::NewTypeRef() {
+  ALLOC_NEW_OBJECT(TypeRef, object_store()->type_ref_class());
+}
+
+
 RawTypeParameter* SnapshotReader::NewTypeParameter() {
   ALLOC_NEW_OBJECT(TypeParameter, object_store()->type_parameter_class());
 }

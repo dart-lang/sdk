@@ -7,7 +7,10 @@
 library dart2js.ir_nodes;
 
 import '../dart2jslib.dart' show Constant;
-import 'ir_pickler.dart' show Pickler;
+import '../elements/elements.dart' show FunctionElement, LibraryElement;
+import 'ir_pickler.dart' show Pickler, IrConstantPool;
+import '../universe/universe.dart' show Selector, SelectorKind;
+import '../util/util.dart' show Spannable;
 
 /**
  * A pair of source offset and an identifier name. Identifier names are used in
@@ -19,7 +22,7 @@ class PositionWithIdentifierName {
   PositionWithIdentifierName(this.offset, this.sourceName);
 }
 
-abstract class IrNode {
+abstract class IrNode implements Spannable {
   static int hashCount = 0;
   final int hashCode = hashCount = (hashCount + 1) & 0x3fffffff;
 
@@ -31,12 +34,18 @@ abstract class IrNode {
 
   String get sourceName => (position is int) ? null : position.sourceName;
 
-  List<int> pickle() => new Pickler().pickle(this);
+  List<int> pickle(IrConstantPool constantPool) {
+    return new Pickler(constantPool).pickle(this);
+  }
 
   accept(IrNodesVisitor visitor);
 }
 
-class IrFunction extends IrNode {
+abstract class IrExpression extends IrNode {
+  IrExpression(position) : super(position);
+}
+
+class IrFunction extends IrExpression {
   final List<IrNode> statements;
 
   final int endOffset;
@@ -49,19 +58,40 @@ class IrFunction extends IrNode {
 }
 
 class IrReturn extends IrNode {
-  final IrNode value;
+  final IrExpression value;
 
   IrReturn(position, this.value) : super(position);
 
   accept(IrNodesVisitor visitor) => visitor.visitIrReturn(this);
 }
 
-class IrConstant extends IrNode {
+class IrConstant extends IrExpression {
   final Constant value;
 
   IrConstant(position, this.value) : super(position);
 
   accept(IrNodesVisitor visitor) => visitor.visitIrConstant(this);
+}
+
+class IrInvokeStatic extends IrExpression {
+  final FunctionElement target;
+
+  final List<IrExpression> arguments;
+
+  /**
+   * The selector encodes how the function is invoked: number of positional
+   * arguments, names used in named arguments. This information is required
+   * to build the [StaticCallSiteTypeInformation] for the inference graph.
+   */
+  final Selector selector;
+
+  IrInvokeStatic(position, this.target, this.selector, this.arguments)
+    : super(position) {
+    assert(selector.kind == SelectorKind.CALL);
+    assert(selector.name == target.name);
+  }
+
+  accept(IrNodesVisitor visitor) => visitor.visitIrInvokeStatic(this);
 }
 
 
@@ -72,9 +102,11 @@ abstract class IrNodesVisitor<T> {
     for (IrNode n in nodes) visit(n);
   }
 
-  T visitNode(IrNode node);
+  T visitIrNode(IrNode node);
 
-  T visitIrFunction(IrFunction node) => visitNode(node);
-  T visitIrReturn(IrReturn node) => visitNode(node);
-  T visitIrConstant(IrConstant node) => visitNode(node);
+  T visitIrExpression(IrExpression node) => visitIrNode(node);
+  T visitIrFunction(IrFunction node) => visitIrExpression(node);
+  T visitIrReturn(IrReturn node) => visitIrNode(node);
+  T visitIrConstant(IrConstant node) => visitIrExpression(node);
+  T visitIrInvokeStatic(IrInvokeStatic node) => visitIrExpression(node);
 }

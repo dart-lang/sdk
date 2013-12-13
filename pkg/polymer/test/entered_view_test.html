@@ -1,0 +1,36 @@
+<!doctype html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+  <head>
+    <title>enteredView binding test</title>
+    <script src="/root_dart/tools/testing/dart/test_controller.js"></script>
+  </head>
+  <body>
+    This tests that elements inside the shadowRoot are properly upgraded and
+    enteredView is called on them. Essentially this is a Shadow DOM and Custom
+    Elements integration test.
+    <br>
+
+    <polymer-element name="x-inner">
+      <template>x-inner</template>
+    </polymer-element>
+    <polymer-element name="x-outer">
+      <template>
+        <template if="{{expand}}">
+          inner element:
+          <x-inner></x-inner>
+        </template>
+      </template>
+    </polymer-element>
+
+    outer element:
+    <x-outer></x-outer>
+
+    <script type="application/dart" src="entered_view_test.dart"></script>
+  </body>
+</html>

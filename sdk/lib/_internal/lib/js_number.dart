@@ -201,14 +201,21 @@ class JSNumber extends Interceptor implements num {
   bool _isInt32(value) => JS('bool', '(# | 0) === #', value, value);
 
   num operator ~/(num other) {
+    if (false) _tdivFast(other); // Ensure resolution.
     if (_isInt32(this) && _isInt32(other) && 0 != other && -1 != other) {
       return JS('num', r'(# / #) | 0', this, other);
     } else {
-      return _slowTdiv(other);
+      return _tdivSlow(other);
     }
   }
 
-  num _slowTdiv(num other) {
+  num _tdivFast(num other) {
+    return _isInt32(this)
+        ? JS('num', r'(# / #) | 0', this, other)
+        : (JS('num', r'# / #', this, other)).toInt();
+  }
+
+  num _tdivSlow(num other) {
     if (other is !num) throw new ArgumentError(other);
     return (JS('num', r'# / #', this, other)).toInt();
   }
@@ -221,30 +228,49 @@ class JSNumber extends Interceptor implements num {
   num operator <<(num other) {
     if (other is !num) throw new ArgumentError(other);
     if (JS('num', '#', other) < 0) throw new ArgumentError(other);
+    return _shlPositive(other);
+  }
+
+  num _shlPositive(num other) {
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
-    if (JS('bool', r'# > 31', other)) return 0;
-    return JS('JSUInt32', r'(# << #) >>> 0', this, other);
+    return JS('bool', r'# > 31', other)
+        ? 0
+        : JS('JSUInt32', r'(# << #) >>> 0', this, other);
   }
 
   num operator >>(num other) {
+    if (false) _shrReceiverPositive(other); 
     if (other is !num) throw new ArgumentError(other);
     if (JS('num', '#', other) < 0) throw new ArgumentError(other);
-    if (JS('num', '#', this) > 0) {
-      // JavaScript only looks at the last 5 bits of the shift-amount. In JS
-      // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
-      // computation when that happens.
-      if (JS('bool', r'# > 31', other)) return 0;
-      // Given that 'a' is positive we must not use '>>'. Otherwise a number
-      // that has the 31st bit set would be treated as negative and shift in
-      // ones.
-      return JS('JSUInt32', r'# >>> #', this, other);
-    }
-    // For negative numbers we just clamp the shift-by amount. 'a' could be
-    // negative but not have its 31st bit set. The ">>" would then shift in
-    // 0s instead of 1s. Therefore we cannot simply return 0xFFFFFFFF.
-    if (JS('num', '#', other) > 31) other = 31;
-    return JS('JSUInt32', r'(# >> #) >>> 0', this, other);
+    return _shrOtherPositive(other);
+  }
+
+  num _shrOtherPositive(num other) {
+    return JS('num', '#', this) > 0
+        ? _shrBothPositive(other)
+        // For negative numbers we just clamp the shift-by amount.
+        // `this` could be negative but not have its 31st bit set.
+        // The ">>" would then shift in 0s instead of 1s. Therefore
+        // we cannot simply return 0xFFFFFFFF.
+        : JS('JSUInt32', r'(# >> #) >>> 0', this, other > 31 ? 31 : other);
+  }
+
+  num _shrReceiverPositive(num other) {
+    if (JS('num', '#', other) < 0) throw new ArgumentError(other);
+    return _shrBothPositive(other);
+  }
+
+  num _shrBothPositive(num other) {
+    return JS('bool', r'# > 31', other)
+        // JavaScript only looks at the last 5 bits of the shift-amount. In JS
+        // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
+        // computation when that happens.
+        ? 0
+        // Given that `this` is positive we must not use '>>'. Otherwise a
+        // number that has the 31st bit set would be treated as negative and
+        // shift in ones.
+        : JS('JSUInt32', r'# >>> #', this, other);
   }
 
   num operator &(num other) {
