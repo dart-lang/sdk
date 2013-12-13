@@ -78,11 +78,27 @@ Future sendCmd(Map<String, dynamic> cmd) {
 
 
 bool checkCurrentIsolate() {
-  if (currentIsolate != null) {
-    return true;
+  if (vmSock == null) {
+    print("There is no active script.  Try 'help run'.");
+    return false;
   }
-  print("Need valid current isolate");
-  return false;
+  if (currentIsolate == null) {
+    print('There is no current isolate.');
+    return false;
+  }
+  return true;
+}
+
+
+void setCurrentIsolate(TargetIsolate isolate) {
+  if (isolate != currentIsolate) {
+    currentIsolate = isolate;
+    if (mainIsolate == null) {
+      print("Main isolate is ${isolate.id}");
+      mainIsolate = isolate;
+    }
+    print("Current isolate is now ${isolate.id}");
+  }
 }
 
 
@@ -526,22 +542,37 @@ void processCommand(String cmdLine) {
   var resume_commands =
       { 'r':'resume', 's':'stepOver', 'si':'stepInto', 'so':'stepOut'};
   if (resume_commands[command] != null) {
-    if (!checkPaused()) return;
+    if (!checkPaused()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": resume_commands[command],
                 "params": { "isolateId" : currentIsolate.id } };
     sendCmd(cmd).then(showPromptAfter(handleResumedResponse));
   } else if (command == "bt") {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "getStackTrace",
                 "params": { "isolateId" : currentIsolate.id } };
     sendCmd(cmd).then(showPromptAfter(handleStackTraceResponse));
   } else if (command == "ll") {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "getLibraries",
                 "params": { "isolateId" : currentIsolate.id } };
     sendCmd(cmd).then(showPromptAfter(handleGetLibraryResponse));
   } else if (command == "sbp" && args.length >= 2) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var url, line;
     if (args.length == 2 && currentIsolate.pausedLocation != null) {
       url = currentIsolate.pausedLocation["url"];
@@ -558,18 +589,30 @@ void processCommand(String cmdLine) {
                             "line": line }};
     sendCmd(cmd).then(showPromptAfter(handleSetBpResponse));
   } else if (command == "rbp" && args.length == 2) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "removeBreakpoint",
                 "params": { "isolateId" : currentIsolate.id,
                             "breakpointId": int.parse(args[1]) } };
     sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
   } else if (command == "ls" && args.length == 2) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "getScriptURLs",
                 "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]) } };
     sendCmd(cmd).then(showPromptAfter(handleGetScriptsResponse));
   } else if (command == "eval" && args.length > 3) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var expr = args.getRange(3, args.length).join(" ");
     var target = args[1];
     if (target == "obj") {
@@ -589,12 +632,20 @@ void processCommand(String cmdLine) {
                             "expression": expr } };
     sendCmd(cmd).then(showPromptAfter(handleEvalResponse));
   } else if (command == "po" && args.length == 2) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "getObjectProperties",
                 "params": { "isolateId" : currentIsolate.id,
                             "objectId": int.parse(args[1]) } };
     sendCmd(cmd).then(showPromptAfter(handleGetObjPropsResponse));
   } else if (command == "pl" && args.length >= 3) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd;
     if (args.length == 3) {
       cmd = { "id": seqNum,
@@ -612,18 +663,30 @@ void processCommand(String cmdLine) {
     }
     sendCmd(cmd).then(showPromptAfter(handleGetListResponse));
   } else if (command == "pc" && args.length == 2) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "getClassProperties",
                 "params": { "isolateId" : currentIsolate.id,
                             "classId": int.parse(args[1]) } };
     sendCmd(cmd).then(showPromptAfter(handleGetClassPropsResponse));
   } else if (command == "plib" && args.length == 2) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "getLibraryProperties",
                 "params": {"isolateId" : currentIsolate.id,
                            "libraryId": int.parse(args[1]) } };
     sendCmd(cmd).then(showPromptAfter(handleGetLibraryPropsResponse));
   } else if (command == "slib" && args.length == 3) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "setLibraryProperties",
                 "params": {"isolateId" : currentIsolate.id,
@@ -631,12 +694,20 @@ void processCommand(String cmdLine) {
                            "debuggingEnabled": args[2] } };
     sendCmd(cmd).then(showPromptAfter(handleSetLibraryPropsResponse));
   } else if (command == "pg" && args.length == 2) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command": "getGlobalVariables",
                 "params": { "isolateId" : currentIsolate.id,
                             "libraryId": int.parse(args[1]) } };
     sendCmd(cmd).then(showPromptAfter(handleGetGlobalVarsResponse));
   } else if (command == "gs" && args.length == 3) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command":  "getScriptSource",
                 "params": { "isolateId" : currentIsolate.id,
@@ -644,6 +715,10 @@ void processCommand(String cmdLine) {
                             "url": args[2] } };
     sendCmd(cmd).then(showPromptAfter(handleGetSourceResponse));
   } else if (command == "tok" && args.length == 3) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command":  "getLineNumberTable",
                 "params": { "isolateId" : currentIsolate.id,
@@ -651,19 +726,26 @@ void processCommand(String cmdLine) {
                             "url": args[2] } };
     sendCmd(cmd).then(showPromptAfter(handleGetLineTableResponse));
   } else if (command == "epi" && args.length == 2) {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum,
                 "command":  "setPauseOnException",
                 "params": { "isolateId" : currentIsolate.id,
                             "exceptions": args[1] } };
     sendCmd(cmd).then(showPromptAfter(handleGenericResponse));
   } else if (command == "li") {
+    if (!checkCurrentIsolate()) {
+      cmdo.show();
+      return;
+    }
     var cmd = { "id": seqNum, "command": "getIsolateIds" };
     sendCmd(cmd).then(showPromptAfter(handleGetIsolatesResponse));
   } else if (command == "sci" && args.length == 2) {
     var id = int.parse(args[1]);
     if (targetIsolates[id] != null) {
-      currentIsolate = targetIsolates[id];
-      print("Setting current target isolate to $id");
+      setCurrentIsolate(targetIsolates[id]);
     } else {
       print("$id is not a valid isolate id");
     }
@@ -1027,6 +1109,7 @@ Future handlePausedEvent(msg) {
   assert(!isolate.isPaused);
   var location = msg["params"]["location"];;
   assert(location != null);
+  setCurrentIsolate(isolate);
   isolate.pausedLocation = location;
   if (reason == "breakpoint") {
     var bpId = (msg["params"]["breakpointId"]);
@@ -1052,11 +1135,6 @@ void handleIsolateEvent(msg) {
     print("Isolate $isolateId has been created.");
     assert(targetIsolates[isolateId] == null);
     targetIsolates[isolateId] = new TargetIsolate(isolateId);
-    if (mainIsolate == null) {
-      mainIsolate = targetIsolates[isolateId];
-      currentIsolate = mainIsolate;
-      print("Current isolate set to ${currentIsolate.id}.");
-    }
   } else {
     assert(reason == "shutdown");
     var isolate = targetIsolates.remove(isolateId);
