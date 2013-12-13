@@ -239,13 +239,25 @@ bool File::Copy(const char* old_path, const char* new_path) {
       return false;
     }
     off64_t offset = 0;
-    int bytes = 1;
-    while (bytes > 0) {
+    int result = 1;
+    while (result > 0) {
       // Loop to ensure we copy everything, and not only up to 2GB.
-      bytes = TEMP_FAILURE_RETRY(
+      result = TEMP_FAILURE_RETRY(
           sendfile64(new_fd, old_fd, &offset, kMaxUint32));
     }
-    if (bytes < 0) {
+    if (result < 0 && (errno == EINVAL || errno == ENOSYS)) {
+      const intptr_t kBufferSize = 8 * 1024;
+      uint8_t buffer[kBufferSize];
+      while ((result = TEMP_FAILURE_RETRY(
+          read(old_fd, buffer, kBufferSize))) > 0) {
+        int wrote = TEMP_FAILURE_RETRY(write(new_fd, buffer, result));
+        if (wrote != result) {
+          result = -1;
+          break;
+        }
+      }
+    }
+    if (result < 0) {
       int e = errno;
       VOID_TEMP_FAILURE_RETRY(close(old_fd));
       VOID_TEMP_FAILURE_RETRY(close(new_fd));
