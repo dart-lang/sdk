@@ -538,6 +538,10 @@ testReturnNull6() {
   return a;
 }
 
+testReturnNotEquals() {
+  return new A() != 54;
+}
+
 testReturnInvokeDynamicGetter() => new A().myFactory();
 
 var topLevelConstList = const [42];
@@ -695,6 +699,7 @@ main() {
   testReturnNull4();
   testReturnNull5();
   testReturnNull6();
+  testReturnNotEquals();
 }
 """;
 
@@ -837,5 +842,6 @@ void main() {
     checkReturn('testReturnNull4', typesTask.nullType);
     checkReturn('testReturnNull5', typesTask.nullType);
     checkReturn('testReturnNull6', typesTask.dynamicType);
+    checkReturn('testReturnNotEquals', typesTask.boolType);
   }));
 }

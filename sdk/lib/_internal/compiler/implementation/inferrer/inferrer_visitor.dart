@@ -847,6 +847,9 @@ abstract class InferrerVisitor
                || '!==' == op.source) {
       node.visitChildren(this);
       return types.boolType;
+    } else if ('!=' == op.source) {
+      visitDynamicSend(node);
+      return types.boolType;
     } else {
       // Binary operator.
       return visitDynamicSend(node);
