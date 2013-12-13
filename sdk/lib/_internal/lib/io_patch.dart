@@ -83,6 +83,9 @@ patch class _File {
   patch static _renameLink(String oldPath, String newPath) {
     throw new UnsupportedError("File._renameLink");
   }
+  patch static _copy(String oldPath, String newPath) {
+    throw new UnsupportedError("File._copy");
+  }
   patch static _lengthFromPath(String path) {
     throw new UnsupportedError("File._lengthFromPath");
   }
