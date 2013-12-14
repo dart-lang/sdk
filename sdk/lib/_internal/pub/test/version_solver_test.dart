@@ -261,7 +261,7 @@ rootDependency() {
     'bar 1.0.0': {
       'myapp from mock2': '>=1.0.0'
     }
-  }, error: sourceMismatch('foo', 'bar'));
+  }, error: sourceMismatch('myapp', 'foo', 'bar'));
 
   testResolve('with wrong version', {
     'myapp 1.0.0': {
@@ -322,7 +322,7 @@ unsolvable() {
     },
     'foo 2.0.0': {},
     'foo 2.1.3': {}
-  }, error: noVersion(['myapp']));
+  }, error: noVersion(['myapp', 'foo']));
 
   testResolve('no version that matches combined constraint', {
     'myapp 0.0.0': {
@@ -337,7 +337,7 @@ unsolvable() {
     },
     'shared 2.5.0': {},
     'shared 3.5.0': {}
-  }, error: noVersion(['foo', 'bar']));
+  }, error: noVersion(['shared', 'foo', 'bar']));
 
   testResolve('disjoint constraints', {
     'myapp 0.0.0': {
@@ -352,7 +352,7 @@ unsolvable() {
     },
     'shared 2.0.0': {},
     'shared 4.0.0': {}
-  }, error: disjointConstraint(['foo', 'bar']));
+  }, error: disjointConstraint(['shared', 'foo', 'bar']));
 
   testResolve('mismatched descriptions', {
     'myapp 0.0.0': {
@@ -367,7 +367,7 @@ unsolvable() {
     },
     'shared-x 1.0.0': {},
     'shared-y 1.0.0': {}
-  }, error: descriptionMismatch('foo', 'bar'));
+  }, error: descriptionMismatch('shared', 'foo', 'bar'));
 
   testResolve('mismatched sources', {
     'myapp 0.0.0': {
@@ -382,7 +382,7 @@ unsolvable() {
     },
     'shared 1.0.0': {},
     'shared 1.0.0 from mock2': {}
-  }, error: sourceMismatch('foo', 'bar'));
+  }, error: sourceMismatch('shared', 'foo', 'bar'));
 
   testResolve('no valid solution', {
     'myapp 0.0.0': {
@@ -411,7 +411,7 @@ unsolvable() {
     },
     'a 1.0.0': {},
     'b 1.0.0': {}
-  }, error: noVersion(['myapp']), maxTries: 1);
+  }, error: noVersion(['myapp', 'b']), maxTries: 1);
 }
 
 badSource() {
@@ -632,7 +632,7 @@ backtracking() {
     'c 3.0.0': {},
     'c 4.0.0': {},
     'c 5.0.0': {},
-  }, error: sourceMismatch('myapp', 'b'), maxTries: 1);
+  }, error: sourceMismatch('a', 'myapp', 'b'), maxTries: 1);
 
   testResolve('backjump to conflicting description', {
     'myapp 0.0.0': {
@@ -650,7 +650,7 @@ backtracking() {
     'c 3.0.0': {},
     'c 4.0.0': {},
     'c 5.0.0': {},
-  }, error: descriptionMismatch('myapp', 'b'), maxTries: 1);
+  }, error: descriptionMismatch('a', 'myapp', 'b'), maxTries: 1);
 
   // Dependencies are ordered so that packages with fewer versions are tried
   // first. Here, there are two valid solutions (either a or b must be
@@ -1083,9 +1083,10 @@ FailMatcherBuilder disjointConstraint(List<String> packages) {
       DisjointConstraintException);
 }
 
-FailMatcherBuilder descriptionMismatch(String package1, String package2) {
-  return (maxTries) => new SolveFailMatcher([package1, package2], maxTries,
-      DescriptionMismatchException);
+FailMatcherBuilder descriptionMismatch(
+    String package, String depender1, String depender2) {
+  return (maxTries) => new SolveFailMatcher([package, depender1, depender2],
+      maxTries, DescriptionMismatchException);
 }
 
 // If no solution can be found, the solver just reports the last failure that
@@ -1094,9 +1095,10 @@ FailMatcherBuilder descriptionMismatch(String package1, String package2) {
 SolveFailMatcher couldNotSolve(maxTries) =>
     new SolveFailMatcher([], maxTries, null);
 
-FailMatcherBuilder sourceMismatch(String package1, String package2) {
-  return (maxTries) => new SolveFailMatcher([package1, package2], maxTries,
-      SourceMismatchException);
+FailMatcherBuilder sourceMismatch(
+    String package, String depender1, String depender2) {
+  return (maxTries) => new SolveFailMatcher([package, depender1, depender2],
+      maxTries, SourceMismatchException);
 }
 
 unknownSource(String depender, String dependency, String source) {

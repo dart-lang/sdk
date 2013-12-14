@@ -286,6 +286,15 @@ class BacktrackingSolver {
       // when that happens.
       var selected = _selected[i].current;
 
+      // If the failure is a disjoint version range, then no possible versions
+      // for that package can match and there's no reason to try them. Instead,
+      // just backjump past it.
+      if (failure is DisjointConstraintException &&
+          selected.name == failure.package) {
+        logSolve("skipping past disjoint selected ${selected.name}");
+        continue;
+      }
+
       // If we get to the package that failed, backtrack to here.
       if (selected.name == failure.package) {
         logSolve('backjump to failed package ${selected.name}');
@@ -509,11 +518,14 @@ class Traverser {
         var dependencies = _getDependencies(dep.name);
         dependencies.add(new Dependency(depender, dep));
 
-        // If the package is barback, pub has an implicit version constraint on it
-        // since pub itself uses barback too. Note that we don't check for the
-        // hosted source here because we still want to do this even when people on
-        // the Dart team are on the bleeding edge and have a path dependency on the
-        // tip version of barback in the Dart repo.
+        // If the package is barback, pub has an implicit version constraint on
+        // it since pub itself uses barback too. Note that we don't check for
+        // the hosted source here because we still want to do this even when
+        // people on the Dart team are on the bleeding edge and have a path
+        // dependency on the tip version of barback in the Dart repo.
+        //
+        // The length check here is to ensure we only add the barback
+        // dependency once.
         if (dep.name == "barback" && dependencies.length == 1) {
           var range = new VersionRange(
               min: barback.supportedVersion, includeMin: true,
@@ -526,7 +538,7 @@ class Traverser {
           // find barback.
           var barbackDep = new PackageDep(dep.name, dep.source, range,
               dep.description);
-          dependencies.add(new Dependency("pub", barbackDep));
+          dependencies.add(new Dependency("pub itself", barbackDep));
         }
 
         var constraint = _getConstraint(dep.name);
@@ -534,7 +546,7 @@ class Traverser {
         // See if it's possible for a package to match that constraint.
         if (constraint.isEmpty) {
           _solver.logSolve('disjoint constraints on ${dep.name}');
-          throw new DisjointConstraintException(depender, dependencies);
+          throw new DisjointConstraintException(dep.name, dependencies);
         }
 
         var selected = _validateSelected(dep, constraint);

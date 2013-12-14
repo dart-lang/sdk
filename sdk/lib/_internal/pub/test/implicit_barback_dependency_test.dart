@@ -105,7 +105,7 @@ main() {
     }).validate();
   });
 
-  integration("include pub in the error if a solve failed because there "
+  integration("includes pub in the error if a solve failed because there "
       "is no version available", () {
     servePackages([
       packageMap("barback", previous)
@@ -116,10 +116,10 @@ main() {
     pubGet(error: """
 Package 'barback' has no versions that match >=$current <$max derived from:
 - 'myapp' depends on version any
-- 'pub' depends on version >=$current <$max""");
+- pub itself depends on version >=$current <$max""");
   });
 
-  integration("include pub in the error if a solve failed because there "
+  integration("includes pub in the error if a solve failed because there "
       "is a disjoint constraint", () {
     servePackages([
       packageMap("barback", current)
@@ -128,8 +128,8 @@ Package 'barback' has no versions that match >=$current <$max derived from:
     d.appDir({"barback": previous}).create();
 
     pubGet(error: """
-Incompatible version constraints on 'myapp':
+Incompatible version constraints on 'barback':
 - 'myapp' depends on version $previous
-- 'pub' depends on version >=$current <$max""");
+- pub itself depends on version >=$current <$max""");
   });
 }
