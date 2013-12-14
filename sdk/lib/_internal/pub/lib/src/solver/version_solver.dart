@@ -235,7 +235,7 @@ abstract class SolveFailure implements ApplicationException {
     if (dependencies.isEmpty) return _message;
 
     var buffer = new StringBuffer();
-    buffer.writeln("$_message:");
+    buffer.write("$_message:");
 
     var map = {};
     for (var dep in dependencies) {
