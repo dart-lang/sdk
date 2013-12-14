@@ -18,16 +18,16 @@ rem Remove trailing backslash if there is one
 IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
 set PUB=%SDK_DIR%\lib\_internal\pub\bin\pub.dart
-set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
-set PACKAGES_DIR=%BUILD_DIR%\packages\
 set DART=%BIN_DIR%\dart
-set DART_IN_BUILT_SDK=%BUILD_DIR%\dart-sdk\bin\dart
 set SNAPSHOT=%BIN_DIR%\snapshots\pub.dart.snapshot
+set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
+set PACKAGES_DIR=%BUILD_DIR%\packages
+set DART_IN_BUILT_SDK=%BUILD_DIR%\dart-sdk\bin\dart
 
 if exist "%SNAPSHOT%" (
   "%DART%" "%SNAPSHOT%" %*
 ) else (
-  "%DART_IN_BUILT_SDK%" --package-root=%PACKAGES_DIR% "%PUB%" %*
+  "%DART_IN_BUILT_SDK%" --package-root="%PACKAGES_DIR%" "%PUB%" %*
 )
 
 endlocal
@@ -38,8 +38,8 @@ exit /b %errorlevel%
 setlocal
 for %%i in (%1) do set result=%%~fi
 set current=
-for /f "tokens=2 delims=[]" %%i in ('dir /a:l ^"%~dp1^" 2^>nul ^
-                                     ^| find ">     %~n1 ["') do (
+for /f "usebackq tokens=2 delims=[]" %%i in (`dir /a:l "%~dp1" 2^>nul ^
+                                             ^| find ">     %~n1 ["`) do (
   set current=%%i
 )
 if not "%current%"=="" call :follow_links "%current%", result
