@@ -970,15 +970,6 @@ main() => new C();"""]);
       error: const MessageKind("Error: Cannot resolve setter."),
       warning: const MessageKind("Warning: Cannot resolve setter."));
 
-  static const DualKind ASSIGNING_METHOD = const DualKind(
-      error: const MessageKind("Error: Cannot resolve setter."),
-      warning:
-        const MessageKind("Warning: Cannot assign a value to a method."));
-
-  static const DualKind ASSIGNING_TYPE = const DualKind(
-      error: const MessageKind("Error: Cannot resolve setter."),
-      warning: const MessageKind("Warning: Cannot assign a value to a type."));
-
   static const MessageKind VOID_NOT_ALLOWED = const MessageKind(
       "Error: Type 'void' can't be used here because it isn't a return type.",
       howToFix: "Try removing 'void' keyword or replace it with 'var', 'final',"
