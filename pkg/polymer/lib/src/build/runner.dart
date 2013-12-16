@@ -12,7 +12,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
@@ -46,7 +45,7 @@ class BarbackOptions {
    * Whether to print error messages using a json-format that tools, such as the
    * Dart Editor, can process.
    */
-  final String machineFormat;
+  final bool machineFormat;
 
   BarbackOptions(this.phases, this.outDir, {currentPackage, packageDirs,
       this.transformTests: false, this.transformPolymerDependencies: false,

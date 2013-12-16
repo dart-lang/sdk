@@ -5,6 +5,10 @@ package. We will also note important changes to the polyfill packages if they
 impact polymer: custom_element, html_import, observe, shadow_dom,
 and template_binding.
 
+#### Pub version 0.9.3+1
+  * Fix type error in runner.dart
+    [15649](https://code.google.com/p/dart/issues/detail?id=15649).
+
 #### Pub version 0.9.3
   * pub-build now runs the linter automatically
 
