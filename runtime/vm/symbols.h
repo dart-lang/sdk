@@ -184,8 +184,8 @@ class ObjectPointerVisitor;
   V(_Uint64ArrayFactory, "_Uint64Array.")                                      \
   V(_Float32x4Array, "_Float32x4Array")                                        \
   V(_Float32x4ArrayFactory, "_Float32x4Array.")                                \
-  V(_Int32x4Array, "_Int32x4Array")                                          \
-  V(_Int32x4ArrayFactory, "_Int32x4Array.")                                  \
+  V(_Int32x4Array, "_Int32x4Array")                                            \
+  V(_Int32x4ArrayFactory, "_Int32x4Array.")                                    \
   V(_Float32Array, "_Float32Array")                                            \
   V(_Float32ArrayFactory, "_Float32Array.")                                    \
   V(_Float64Array, "_Float64Array")                                            \
@@ -202,7 +202,7 @@ class ObjectPointerVisitor;
   V(_Float32ArrayView, "_Float32ArrayView")                                    \
   V(_Float64ArrayView, "_Float64ArrayView")                                    \
   V(_Float32x4ArrayView, "_Float32x4ArrayView")                                \
-  V(_Int32x4ArrayView, "_Int32x4ArrayView")                                  \
+  V(_Int32x4ArrayView, "_Int32x4ArrayView")                                    \
   V(_ExternalInt8Array, "_ExternalInt8Array")                                  \
   V(_ExternalUint8Array, "_ExternalUint8Array")                                \
   V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \
@@ -213,7 +213,7 @@ class ObjectPointerVisitor;
   V(_ExternalInt64Array, "_ExternalInt64Array")                                \
   V(_ExternalUint64Array, "_ExternalUint64Array")                              \
   V(_ExternalFloat32x4Array, "_ExternalFloat32x4Array")                        \
-  V(_ExternalInt32x4Array, "_ExternalInt32x4Array")                          \
+  V(_ExternalInt32x4Array, "_ExternalInt32x4Array")                            \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
   V(ByteData, "ByteData")                                                      \
@@ -240,7 +240,7 @@ class ObjectPointerVisitor;
   V(UnsupportedError, "UnsupportedError")                                      \
   V(StackOverflowError, "StackOverflowError")                                  \
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
-  V(InternalError, "InternalError")                                            \
+  V(InternalError, "_InternalError")                                           \
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
   V(IsolateUnhandledException, "_IsolateUnhandledException")                   \
