@@ -4398,9 +4398,12 @@ void LICM::Optimize() {
           }
           if (inputs_loop_invariant &&
               !current->IsAssertAssignable() &&
-              !current->IsAssertBoolean()) {
+              !current->IsAssertBoolean() &&
+              !current->IsGuardField()) {
             // TODO(fschneider): Enable hoisting of Assert-instructions
             // if it safe to do.
+            // TODO(15652): Hoisting guard-field instructions causes the
+            // optimizing compiler to crash.
             Hoist(&it, pre_header, current);
           } else if (current->IsCheckSmi() &&
                      current->InputAt(0)->definition()->IsPhi()) {
