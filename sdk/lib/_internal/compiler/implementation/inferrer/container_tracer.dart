@@ -169,16 +169,11 @@ Set<String> doesNotEscapeElementSet = new Set<String>.from(
 
 bool _VERBOSE = false;
 
-abstract class TracerVisitor implements TypeInformationVisitor {
-  final TypeInformation tracedType;
+class ContainerTracerVisitor implements TypeInformationVisitor {
+  final ListTypeInformation container;
   final TypeGraphInferrerEngine inferrer;
   final Compiler compiler;
 
-  static const int MAX_ANALYSIS_COUNT = 16;
-  final Setlet<Element> analyzedElements = new Setlet<Element>();
-
-  TracerVisitor(this.tracedType, inferrer)
-      : this.inferrer = inferrer, this.compiler = inferrer.compiler;
 
   // Work list that gets populated with [TypeInformation] that could
   // contain the container.
@@ -191,22 +186,31 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   final List<ListTypeInformation> containersToAnalyze =
       <ListTypeInformation>[];
 
-  final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
-
   // The current [TypeInformation] in the analysis.
   TypeInformation currentUser;
+
+  // The list of found assignments to the container.
+  final List<TypeInformation> assignments = <TypeInformation>[];
+
+  bool callsGrowableMethod = false;
   bool continueAnalyzing = true;
+  
+  static const int MAX_ANALYSIS_COUNT = 16;
+  final Setlet<Element> analyzedElements = new Setlet<Element>();
+
+  ContainerTracerVisitor(this.container, inferrer)
+      : this.inferrer = inferrer, this.compiler = inferrer.compiler;
 
   void addNewEscapeInformation(TypeInformation info) {
-    if (flowsInto.contains(info)) return;
-    flowsInto.add(info);
+    if (container.flowsInto.contains(info)) return;
+    container.flowsInto.add(info);
     workList.add(info);
   }
 
-  void analyze() {
+  List<TypeInformation> run() {
     // Collect the [TypeInformation] where the container can flow in,
     // as well as the operations done on all these [TypeInformation]s.
-    addNewEscapeInformation(tracedType);
+    addNewEscapeInformation(container);
     while (!workList.isEmpty) {
       currentUser = workList.removeLast();
       currentUser.users.forEach((TypeInformation info) {
@@ -222,24 +226,35 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         break;
       }
     }
+
+    if (continueAnalyzing) {
+      if (!callsGrowableMethod && container.inferredLength == null) {
+        container.inferredLength = container.originalLength;
+      }
+      return assignments;
+    }
+    return null;
   }
 
   void bailout(String reason) {
     if (_VERBOSE) {
-      print('Bailing out on $tracedType because: $reason');
+      ContainerTypeMask mask = container.type;
+      print('Bailing out on ${mask.allocationNode} ${mask.allocationElement} '
+            'because: $reason');
     }
     continueAnalyzing = false;
+    callsGrowableMethod = true;
   }
 
-  void visitNarrowTypeInformation(NarrowTypeInformation info) {
+  visitNarrowTypeInformation(NarrowTypeInformation info) {
     addNewEscapeInformation(info);
   }
 
-  void visitPhiElementTypeInformation(PhiElementTypeInformation info) {
+  visitPhiElementTypeInformation(PhiElementTypeInformation info) {
     addNewEscapeInformation(info);
   }
 
-  void visitElementInContainerTypeInformation(
+  visitElementInContainerTypeInformation(
       ElementInContainerTypeInformation info) {
     addNewEscapeInformation(info);
   }
@@ -248,15 +263,21 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     containersToAnalyze.add(info);
   }
 
-  void visitConcreteTypeInformation(ConcreteTypeInformation info) {}
+  visitMapTypeInformation(MapTypeInformation info) {
+    bailout('Stored in a map');
+  }
 
-  void visitClosureTypeInformation(ConcreteTypeInformation info) {}
+  visitConcreteTypeInformation(ConcreteTypeInformation info) {}
 
-  void visitClosureCallSiteTypeInformation(
-      ClosureCallSiteTypeInformation info) {}
+  visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
+    bailout('Passed to a closure');
+  }
 
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     Element called = info.calledElement;
+    if (called.isForeign(compiler) && called.name == 'JS') {
+      bailout('Used in JS ${info.call}');
+    }
     if (inferrer.types.getInferredTypeOf(called) == currentUser) {
       addNewEscapeInformation(info);
     }
@@ -282,7 +303,6 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   bool isAddedToContainer(DynamicCallSiteTypeInformation info) {
-    if (info.arguments == null) return false;
     var receiverType = info.receiver.type;
     if (!receiverType.isContainer) return false;
     String selectorName = info.selector.name;
@@ -292,91 +312,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         || (selectorName == 'add' && currentUser == arguments[0]);
   }
 
-  void visitDynamicCallSiteTypeInformation(
-      DynamicCallSiteTypeInformation info) {
-    if (isAddedToContainer(info)) {
-      ContainerTypeMask mask = info.receiver.type;
-      if (mask.allocationNode != null) {
-        ListTypeInformation container =
-            inferrer.types.allocatedLists[mask.allocationNode];
-        containersToAnalyze.add(container);
-      } else {
-        // The [ContainerTypeMask] is a union of two containers, and
-        // we lose track of where these containers have been allocated
-        // at this point.
-        bailout('Stored in too many containers');
-      }
-    }
-
-    Iterable<Element> inferredTargetTypes = info.targets.map((element) {
-      return inferrer.types.getInferredTypeOf(element);
-    });
-    if (inferredTargetTypes.any((user) => user == currentUser)) {
-      addNewEscapeInformation(info);
-    }
-  }
-
-  bool isParameterOfListAddingMethod(Element element) {
-    if (!element.isParameter()) return false;
-    if (element.getEnclosingClass() != compiler.backend.listImplementation) {
-      return false;
-    }
-    Element method = element.enclosingElement;
-    return (method.name == '[]=')
-        || (method.name == 'add')
-        || (method.name == 'insert');
-  }
-
-  void visitElementTypeInformation(ElementTypeInformation info) {
-    if (isParameterOfListAddingMethod(info.element)) {
-      // These elements are being handled in
-      // [visitDynamicCallSiteTypeInformation].
-      return;
-    }
-    addNewEscapeInformation(info);
-  }
-}
-
-class ContainerTracerVisitor extends TracerVisitor {
-  // The list of found assignments to the container.
-  final List<TypeInformation> assignments = <TypeInformation>[];
-  bool callsGrowableMethod = false;
-  
-  ContainerTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
-
-  List<TypeInformation> run() {
-    analyze();
-    ListTypeInformation container = tracedType;
-    if (continueAnalyzing) {
-      if (!callsGrowableMethod && container.inferredLength == null) {
-        container.inferredLength = container.originalLength;
-      }
-      container.flowsInto.addAll(flowsInto);
-      return assignments;
-    } else {
-      callsGrowableMethod = true;
-      return null;
-    }
-  }
-
-  visitMapTypeInformation(MapTypeInformation info) {
-    bailout('Stored in a map');
-  }
-
-  visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
-    bailout('Passed to a closure');
-  }
-
-  visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
-    super.visitStaticCallSiteTypeInformation(info);
-    Element called = info.calledElement;
-    if (called.isForeign(compiler) && called.name == 'JS') {
-      bailout('Used in JS ${info.call}');
-    }
-  }
-
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
-    super.visitDynamicCallSiteTypeInformation(info);
     Selector selector = info.selector;
     String selectorName = selector.name;
     if (currentUser == info.receiver) {
@@ -413,91 +349,24 @@ class ContainerTracerVisitor extends TracerVisitor {
                && !info.targets.every((element) => element.isFunction())) {
       bailout('Passed to a closure');
       return;
-    }
-  }
-
-  bool isClosure(Element element) {
-    if (!element.isFunction()) return false;
-    Element outermost = element.getOutermostEnclosingMemberOrTopLevel();
-    return outermost.declaration != element.declaration;
-  }
-
-  visitElementTypeInformation(ElementTypeInformation info) {
-    super.visitElementTypeInformation(info);
-    if (isClosure(info.element)) {
-      bailout('Returned from a closure');
-    }
-    if (compiler.backend.isNeededForReflection(info.element)) {
-      bailout('Escape in reflection');
-    }
-  }
-}
-
-class ClosureTracerVisitor extends TracerVisitor {
-  ClosureTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
-
-  void run() {
-    ClosureTypeInformation closure = tracedType;
-    FunctionElement element = closure.element;
-    element.functionSignature.forEachParameter((Element parameter) {
-      ElementTypeInformation info = inferrer.types.getInferredTypeOf(parameter);
-      info.abandonInferencing = false;
-    });
-    analyze();
-    element.functionSignature.forEachParameter((Element parameter) {
-      ElementTypeInformation info = inferrer.types.getInferredTypeOf(parameter);
-      if (continueAnalyzing) {
-        info.disableHandleSpecialCases = true;
+    } else if (isAddedToContainer(info)) {
+      ContainerTypeMask mask = info.receiver.type;
+      if (mask.allocationNode != null) {
+        ListTypeInformation container =
+            inferrer.types.allocatedLists[mask.allocationNode];
+        containersToAnalyze.add(container);
       } else {
-        info.giveUp(inferrer);
+        // The [ContainerTypeMask] is a union of two containers, and
+        // we lose track of where these containers have been allocated
+        // at this point.
+        bailout('Stored in too many containers');
       }
-    });
-  }
-
-  visitMapTypeInformation(MapTypeInformation info) {
-    bailout('Stored in a map');
-  }
-
-  void analyzeCall(CallSiteTypeInformation info) {
-    ClosureTypeInformation closure = tracedType;
-    FunctionElement element = closure.element;
-    Selector selector = info.selector;
-    if (!selector.signatureApplies(element, compiler)) return;
-    inferrer.updateParameterAssignments(
-        info, element, info.arguments, selector, remove: false,
-        addToQueue: false);
-  }
-
-  visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
-    super.visitClosureCallSiteTypeInformation(info);
-    if (info.closure == currentUser) {
-      analyzeCall(info);
-    } else {
-      bailout('Passed to a closure');
     }
-  }
 
-  visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
-    super.visitStaticCallSiteTypeInformation(info);
-    Element called = info.calledElement;
-    if (called.isForeign(compiler) && called.name == 'JS') {
-      bailout('Used in JS ${info.call}');
-    }
-  }
-
-  bool checkIfCurrentUser(element) {
-    return inferrer.types.getInferredTypeOf(element) == currentUser;
-  }
-
-  visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
-    super.visitDynamicCallSiteTypeInformation(info);
-    if (info.selector.isCall()) {
-      if (info.arguments.contains(currentUser)
-          && !info.targets.every((element) => element.isFunction())) {
-        bailout('Passed to a closure');
-      } else if (info.targets.any((element) => checkIfCurrentUser(element))) {
-        analyzeCall(info);
-      }
+    if (info.targets
+            .map((element) => inferrer.types.getInferredTypeOf(element))
+            .any((other) => other == currentUser)) {
+      addNewEscapeInformation(info);
     }
   }
 
@@ -507,13 +376,29 @@ class ClosureTracerVisitor extends TracerVisitor {
     return outermost.declaration != element.declaration;
   }
 
+  bool isParameterOfListAddingMethod(Element element) {
+    if (!element.isParameter()) return false;
+    if (element.getEnclosingClass() != compiler.backend.listImplementation) {
+      return false;
+    }
+    Element method = element.enclosingElement;
+    return (method.name == '[]=')
+        || (method.name == 'add')
+        || (method.name == 'insert');
+  }
+
   visitElementTypeInformation(ElementTypeInformation info) {
-    super.visitElementTypeInformation(info);
     if (isClosure(info.element)) {
       bailout('Returned from a closure');
     }
     if (compiler.backend.isNeededForReflection(info.element)) {
       bailout('Escape in reflection');
     }
+    if (isParameterOfListAddingMethod(info.element)) {
+      // These elements are being handled in
+      // [visitDynamicCallSiteTypeInformation].
+      return;
+    }
+    addNewEscapeInformation(info);
   }
 }

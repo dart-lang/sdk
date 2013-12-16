@@ -49,8 +49,6 @@ abstract class TypeSystem<T> {
 
   T allocateMap(T keyType, T valueType, T type);
 
-  T allocateClosure(Node node, Element element);
-
   /**
    * Returns the least upper bound between [firstType] and
    * [secondType].
@@ -272,10 +270,6 @@ class ArgumentsTypes<T> {
 
   bool every(bool f(T type)) {
     return positional.every(f) && named.values.every(f);
-  }
-
-  bool contains(T type) {
-    return positional.contains(type) || named.containsValue(type);
   }
 }
 
@@ -740,11 +734,6 @@ abstract class InferrerVisitor
       return thisType;
     } else if (node.isSuper()) {
       return superType;
-    } else {
-      Element element = elements[node];
-      if (Elements.isLocal(element)) {
-        return locals.use(element);
-      }
     }
   }
 

@@ -92,13 +92,13 @@ abstract class TypeInformation {
     return type;
   }
 
-  void giveUp(TypeGraphInferrerEngine inferrer, {bool clearAssignments: true}) {
+  void giveUp(TypeGraphInferrerEngine inferrer) {
     abandonInferencing = true;
     type = inferrer.types.dynamicType.type;
     // Do not remove [this] as a user of nodes in [assignments],
     // because our tracing analysis could be interested in tracing
     // this node.
-    if (clearAssignments) assignments = const <TypeInformation>[];
+    assignments = const <TypeInformation>[];
     // Do not remove users because our tracing analysis could be
     // interested in tracing the users of this node.
   }
@@ -209,10 +209,6 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
 class ElementTypeInformation extends TypeInformation {
   final Element element;
 
-  // Marker to disable [handleSpecialCases]. For example, parameters
-  // of closures that are traced can be inferred.
-  bool disableHandleSpecialCases = false;
-
   /**
    * This map contains the callers of [element]. It stores all unique call sites
    * to enable counting the global number of call sites of [element].
@@ -261,16 +257,14 @@ class ElementTypeInformation extends TypeInformation {
   }
 
   TypeMask handleSpecialCases(TypeGraphInferrerEngine inferrer) {
-    if (abandonInferencing) return type;
-    if (disableHandleSpecialCases) return null;
-
+    if (abandonInferencing) {
+      return type;
+    }
     if (element.isParameter()) {
       Element enclosing = element.enclosingElement;
       if (Elements.isLocal(enclosing)) {
-        // Do not infer types for parameters of closures. We do not
-        // clear the assignments in case the closure is successfully
-        // traced.
-        giveUp(inferrer, clearAssignments: false);
+        // Do not infer types for parameters of closures.
+        giveUp(inferrer);
         return type;
       } else if (enclosing.isInstanceMember()
                  && (enclosing.name == Compiler.NO_SUCH_METHOD
@@ -439,8 +433,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       arguments.forEach((info) => info.addUser(this));
     }
     inferrer.updateParameterAssignments(
-        this, calledElement, arguments, selector, remove: false,
-        addToQueue: false);
+        this, calledElement, arguments, selector, remove: false, init: true);
   }
 
   bool get isSynthesized {
@@ -509,8 +502,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       callee.addCall(caller, call);
       callee.addUser(this);
       inferrer.updateParameterAssignments(
-          this, element, arguments, typedSelector, remove: false,
-          addToQueue: false);
+          this, element, arguments, typedSelector, remove: false, init: true);
     }
   }
 
@@ -634,8 +626,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         callee.addCall(caller, call);
         callee.addUser(this);
         inferrer.updateParameterAssignments(
-            this, element, arguments, typedSelector, remove: false,
-            addToQueue: true);
+            this, element, arguments, typedSelector, remove: false);
       }
 
       // If [canReachAll] is true, then we are iterating over all
@@ -667,8 +658,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         callee.removeCall(caller, call);
         callee.removeUser(this);
         inferrer.updateParameterAssignments(
-            this, element, arguments, typedSelector, remove: true,
-            addToQueue: true);
+            this, element, arguments, typedSelector, remove: true);
       }
     });
 
@@ -685,8 +675,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
             inferrer.types.getInferredTypeOf(element);
         callee.addCall(caller, call);
         inferrer.updateParameterAssignments(
-            this, element, arguments, selector, remove: false,
-            addToQueue: true);
+            this, element, arguments, selector, remove: false);
       }
     }
     super.giveUp(inferrer);
@@ -731,7 +720,6 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 
   void addToGraph(TypeGraphInferrerEngine inferrer) {
     arguments.forEach((info) => info.addUser(this));
-    closure.addUser(this);
   }
 
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
@@ -987,27 +975,6 @@ class PhiElementTypeInformation extends TypeInformation {
   }
 }
 
-class ClosureTypeInformation extends TypeInformation {
-  final Node node;
-  final Element element;
-
-  ClosureTypeInformation(this.node, this.element);
-
-  TypeMask refine(TypeGraphInferrerEngine inferrer) {
-    return inferrer.types.functionType.type;
-  }
-
-  String toString() => 'Closure $element';
-
-  accept(TypeInformationVisitor visitor) {
-    return visitor.visitClosureTypeInformation(this);
-  }
-
-  bool hasStableType(TypeGraphInferrerEngine inferrer) {
-    return false;
-  }
-}
-
 abstract class TypeInformationVisitor<T> {
   T visitNarrowTypeInformation(NarrowTypeInformation info);
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
@@ -1020,5 +987,4 @@ abstract class TypeInformationVisitor<T> {
   T visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info);
   T visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info);
   T visitElementTypeInformation(ElementTypeInformation info);
-  T visitClosureTypeInformation(ClosureTypeInformation info);
 }
