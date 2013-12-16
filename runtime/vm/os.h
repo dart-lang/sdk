@@ -84,6 +84,9 @@ class OS {
   // Sleep the currently executing thread for millis ms.
   static void Sleep(int64_t millis);
 
+  // Sleep the currently executing thread for micros microseconds.
+  static void SleepMicros(int64_t micros);
+
   // Debug break.
   static void DebugBreak();
 

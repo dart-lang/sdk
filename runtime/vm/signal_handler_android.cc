@@ -29,18 +29,6 @@ void SignalHandler::Install(SignalAction action) {
 }
 
 
-ScopedSignalBlocker::ScopedSignalBlocker() {
-  sigset_t set;
-  sigemptyset(&set);
-  sigaddset(&set, SIGPROF);
-  pthread_sigmask(SIG_SETMASK, &set, &old_);
-}
-
-
-ScopedSignalBlocker::~ScopedSignalBlocker() {
-  pthread_sigmask(SIG_SETMASK, &old_, NULL);
-}
-
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)

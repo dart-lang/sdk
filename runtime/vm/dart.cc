@@ -21,6 +21,7 @@
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
@@ -97,7 +98,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   FreeListElement::InitOnce();
   Api::InitOnce();
   CodeObservers::InitOnce();
-  ProfilerManager::InitOnce();
+  Profiler::InitOnce();
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();
 #endif
@@ -172,7 +173,7 @@ const char* Dart::Cleanup() {
   vm_isolate_ = NULL;
 #endif
 
-  ProfilerManager::Shutdown();
+  Profiler::Shutdown();
   CodeObservers::DeleteAll();
 
   return NULL;

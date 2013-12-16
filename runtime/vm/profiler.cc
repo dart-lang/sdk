@@ -6,6 +6,7 @@
 
 #include "platform/utils.h"
 
+#include "vm/atomic.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/native_symbol.h"
@@ -13,346 +14,206 @@
 #include "vm/os.h"
 #include "vm/profiler.h"
 #include "vm/signal_handler.h"
+#include "vm/simulator.h"
 
 namespace dart {
 
-// Notes on locking and signal handling:
-//
-// The ProfilerManager has a single monitor (monitor_). This monitor guards
-// access to the schedule list of isolates (isolates_, isolates_size_, etc).
-//
-// Each isolate has a mutex (profiler_data_mutex_) which protects access
-// to the isolate's profiler data.
-//
-// Locks can be taken in this order:
-//   1. ProfilerManager::monitor_
-//   2. isolate->profiler_data_mutex_
-// In other words, it is not acceptable to take ProfilerManager::monitor_
-// after grabbing isolate->profiler_data_mutex_.
-//
-// ProfileManager::monitor_ taking entry points:
-//   InitOnce, Shutdown
-//       ProfilerManager::monitor_
-//   ScheduleIsolate, DescheduleIsolate.
-//       ProfilerManager::monitor_, isolate->profiler_data_mutex_
-//   ThreadMain
-// isolate->profiler_data_mutex_ taking entry points:
-//     SetupIsolateForProfiling, FreeIsolateForProfiling.
-//       ProfilerManager::monitor_, isolate->profiler_data_mutex_
-//     ScheduleIsolate, DescheduleIsolate.
-//       ProfilerManager::monitor_, isolate->profiler_data_mutex_
-//     ProfileSignalAction
-//       isolate->profiler_data_mutex_
-//       ProfilerManager::monitor_, isolate->profiler_data_mutex_
-//
-// Signal handling and locking:
-// On OSes with pthreads (Android, Linux, and Mac) we use signal delivery
-// to interrupt the isolate running thread for sampling. After a thread
-// is sent the SIGPROF, it is removed from the scheduled isolate list.
-// Inside the signal handler, after the sample is taken, the isolate is
-// added to the scheduled isolate list again. The side effect of this is
-// that the signal handler must be able to acquire the isolate profiler data
-// mutex and the profile manager monitor. When an isolate running thread
-// (potential signal target) calls into an entry point which acquires
-// ProfileManager::monitor_ signal delivery must be blocked. An example is
-// ProfileManager::ScheduleIsolate which blocks signal delivery while removing
-// the scheduling the isolate.
-//
 
 // Notes on stack frame walking:
 //
 // The sampling profiler will collect up to Sample::kNumStackFrames stack frames
 // The stack frame walking code uses the frame pointer to traverse the stack.
 // If the VM is compiled without frame pointers (which is the default on
-// recent GCC versions with optimizing enabled) the stack walking code will
+// recent GCC versions with optimizing enabled) the stack walking code may
 // fail (sometimes leading to a crash).
 //
 
-DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
+#if defined(USING_SIMULATOR) || defined(TARGET_OS_WINDOWS) || \
+    defined(TARGET_OS_MACOS) || defined(TARGET_OS_ANDROID)
+  DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
+#else
+  DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
+#endif
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
+DEFINE_FLAG(charp, profile_dir, NULL,
+            "Enable writing profile data into specified directory.");
 
-bool ProfilerManager::initialized_ = false;
-bool ProfilerManager::shutdown_ = false;
-bool ProfilerManager::thread_running_ = false;
-Monitor* ProfilerManager::monitor_ = NULL;
-Monitor* ProfilerManager::start_stop_monitor_ = NULL;
-Isolate** ProfilerManager::isolates_ = NULL;
-intptr_t ProfilerManager::isolates_capacity_ = 0;
-intptr_t ProfilerManager::isolates_size_ = 0;
+bool Profiler::initialized_ = false;
+Monitor* Profiler::monitor_ = NULL;
+SampleBuffer* Profiler::sample_buffer_ = NULL;
 
-
-void ProfilerManager::InitOnce() {
-#if defined(USING_SIMULATOR)
-  // Force disable of profiling on simulator.
-  FLAG_profile = false;
-#endif
-#if defined(TARGET_OS_WINDOWS)
-  // Force disable of profiling on Windows.
-  FLAG_profile = false;
-#endif
+void Profiler::InitOnce() {
   if (!FLAG_profile) {
     return;
   }
-  NativeSymbolResolver::InitOnce();
   ASSERT(!initialized_);
-  monitor_ = new Monitor();
-  start_stop_monitor_ = new Monitor();
   initialized_ = true;
-  ResizeIsolates(16);
-  if (FLAG_trace_profiled_isolates) {
-    OS::Print("ProfilerManager starting up.\n");
-  }
-  {
-    ScopedMonitor startup_lock(start_stop_monitor_);
-    Thread::Start(ThreadMain, 0);
-    while (!thread_running_) {
-      // Wait until profiler thread has started up.
-      startup_lock.Wait();
-    }
-  }
-  if (FLAG_trace_profiled_isolates) {
-    OS::Print("ProfilerManager running.\n");
-  }
+  monitor_ = new Monitor();
+  sample_buffer_ = new SampleBuffer();
+  NativeSymbolResolver::InitOnce();
+  ThreadInterrupter::InitOnce();
 }
 
 
-void ProfilerManager::Shutdown() {
+void Profiler::Shutdown() {
   if (!FLAG_profile) {
     return;
   }
   ASSERT(initialized_);
-  if (FLAG_trace_profiled_isolates) {
-    OS::Print("ProfilerManager shutting down.\n");
-  }
-  intptr_t size_at_shutdown = 0;
-  {
-    ScopedSignalBlocker ssb;
-    {
-      ScopedMonitor lock(monitor_);
-      shutdown_ = true;
-      size_at_shutdown = isolates_size_;
-      isolates_size_ = 0;
-      free(isolates_);
-      isolates_ = NULL;
-      lock.Notify();
-    }
-  }
+  ThreadInterrupter::Shutdown();
   NativeSymbolResolver::ShutdownOnce();
-  {
-    ScopedMonitor shutdown_lock(start_stop_monitor_);
-    while (thread_running_) {
-      // Wait until profiler thread has exited.
-      shutdown_lock.Wait();
-    }
-  }
-  if (FLAG_trace_profiled_isolates) {
-    OS::Print("ProfilerManager shut down (%" Pd ").\n", size_at_shutdown);
-  }
 }
 
 
-void ProfilerManager::SetupIsolateForProfiling(Isolate* isolate) {
+void Profiler::InitProfilingForIsolate(Isolate* isolate, bool shared_buffer) {
   if (!FLAG_profile) {
     return;
   }
   ASSERT(isolate != NULL);
+  ASSERT(sample_buffer_ != NULL);
+  MonitorLocker ml(monitor_);
   {
-    ScopedSignalBlocker ssb;
-    {
-      ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
-      SampleBuffer* sample_buffer = new SampleBuffer();
-      ASSERT(sample_buffer != NULL);
-      IsolateProfilerData* profiler_data =
-          new IsolateProfilerData(isolate, sample_buffer);
-      ASSERT(profiler_data != NULL);
-      profiler_data->set_sample_interval_micros(1000);
-      isolate->set_profiler_data(profiler_data);
-      if (FLAG_trace_profiled_isolates) {
-        OS::Print("ProfilerManager Setup Isolate %p %s %p\n",
-            isolate,
-            isolate->name(),
-            reinterpret_cast<void*>(Thread::GetCurrentThreadId()));
-      }
+    MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
+    SampleBuffer* sample_buffer = sample_buffer_;
+    if (!shared_buffer) {
+      sample_buffer = new SampleBuffer();
+    }
+    IsolateProfilerData* profiler_data =
+        new IsolateProfilerData(sample_buffer, !shared_buffer);
+    ASSERT(profiler_data != NULL);
+    isolate->set_profiler_data(profiler_data);
+    if (FLAG_trace_profiled_isolates) {
+      OS::Print("Profiler Setup %p %s\n", isolate, isolate->name());
     }
   }
 }
 
 
-void ProfilerManager::FreeIsolateProfilingData(Isolate* isolate) {
-  ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
-    // Already freed.
-    return;
-  }
-  isolate->set_profiler_data(NULL);
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  ASSERT(sample_buffer != NULL);
-  profiler_data->set_sample_buffer(NULL);
-  delete sample_buffer;
-  delete profiler_data;
-  if (FLAG_trace_profiled_isolates) {
-    OS::Print("ProfilerManager Shutdown Isolate %p %s %p\n",
-        isolate,
-        isolate->name(),
-        reinterpret_cast<void*>(Thread::GetCurrentThreadId()));
-  }
-}
-
-
-void ProfilerManager::ShutdownIsolateForProfiling(Isolate* isolate) {
+void Profiler::ShutdownProfilingForIsolate(Isolate* isolate) {
   ASSERT(isolate != NULL);
   if (!FLAG_profile) {
     return;
   }
+  // We do not have a current isolate.
+  ASSERT(Isolate::Current() == NULL);
+  MonitorLocker ml(monitor_);
   {
-    ScopedSignalBlocker ssb;
-    FreeIsolateProfilingData(isolate);
-  }
-}
-
-
-void ProfilerManager::ScheduleIsolateHelper(Isolate* isolate) {
-  ScopedMonitor lock(monitor_);
-  {
-    if (shutdown_) {
-      // Shutdown.
-      return;
-    }
-    ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
+    MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
     if (profiler_data == NULL) {
+      // Already freed.
       return;
     }
-    profiler_data->Scheduled(OS::GetCurrentTimeMicros(),
-                             Thread::GetCurrentThreadId());
+    isolate->set_profiler_data(NULL);
+    profiler_data->set_sample_buffer(NULL);
+    delete profiler_data;
+    if (FLAG_trace_profiled_isolates) {
+      OS::Print("Profiler Shutdown %p %s\n", isolate, isolate->name());
+    }
   }
-  intptr_t i = FindIsolate(isolate);
-  if (i >= 0) {
-    // Already scheduled.
-    return;
-  }
-  AddIsolate(isolate);
-  lock.Notify();
 }
 
 
-void ProfilerManager::ScheduleIsolate(Isolate* isolate, bool inside_signal) {
+void Profiler::BeginExecution(Isolate* isolate) {
+  if (isolate == NULL) {
+    return;
+  }
   if (!FLAG_profile) {
     return;
   }
   ASSERT(initialized_);
-  ASSERT(isolate != NULL);
-  if (!inside_signal) {
-    ScopedSignalBlocker ssb;
-    {
-      ScheduleIsolateHelper(isolate);
-    }
-  } else {
-    // Do not need a signal blocker inside a signal handler.
-    {
-      ScheduleIsolateHelper(isolate);
-    }
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
   }
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  if (sample_buffer == NULL) {
+    return;
+  }
+  Sample* sample = sample_buffer->ReserveSample();
+  sample->Init(Sample::kIsolateStart, isolate, OS::GetCurrentTimeMicros(),
+               Thread::GetCurrentThreadId());
+  ThreadInterrupter::Register(RecordSampleInterruptCallback, isolate);
 }
 
 
-void ProfilerManager::DescheduleIsolate(Isolate* isolate) {
+void Profiler::EndExecution(Isolate* isolate) {
+  if (isolate == NULL) {
+    return;
+  }
   if (!FLAG_profile) {
     return;
   }
   ASSERT(initialized_);
-  ASSERT(isolate != NULL);
-  {
-    ScopedSignalBlocker ssb;
-    {
-      ScopedMonitor lock(monitor_);
-      if (shutdown_) {
-        // Shutdown.
-        return;
-      }
-      intptr_t i = FindIsolate(isolate);
-      if (i < 0) {
-        // Not scheduled.
-        return;
-      }
-      {
-        ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
-        IsolateProfilerData* profiler_data = isolate->profiler_data();
-        if (profiler_data != NULL) {
-          profiler_data->Descheduled();
-        }
-      }
-      RemoveIsolate(i);
-      lock.Notify();
-    }
+  ThreadInterrupter::Unregister();
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
   }
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  if (sample_buffer == NULL) {
+    return;
+  }
+  Sample* sample = sample_buffer->ReserveSample();
+  sample->Init(Sample::kIsolateStop, isolate, OS::GetCurrentTimeMicros(),
+               Thread::GetCurrentThreadId());
 }
 
 
-void PrintToJSONStream(Isolate* isolate, JSONStream* stream) {
+void Profiler::RecordTickInterruptCallback(const InterruptedThreadState& state,
+                                           void* data) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(data);
+  if (isolate == NULL) {
+    return;
+  }
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
+  }
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  if (sample_buffer == NULL) {
+    return;
+  }
+  Sample* sample = sample_buffer->ReserveSample();
+  sample->Init(Sample::kIsolateSample, isolate, OS::GetCurrentTimeMicros(),
+               state.tid);
+}
+
+
+void Profiler::RecordSampleInterruptCallback(
+    const InterruptedThreadState& state,
+    void* data) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(data);
+  if (isolate == NULL) {
+    return;
+  }
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
+  }
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  if (sample_buffer == NULL) {
+    return;
+  }
+  Sample* sample = sample_buffer->ReserveSample();
+  sample->Init(Sample::kIsolateSample, isolate, OS::GetCurrentTimeMicros(),
+               state.tid);
+  uintptr_t stack_lower = 0;
+  uintptr_t stack_upper = 0;
+  isolate->GetStackBounds(&stack_lower, &stack_upper);
+  if ((stack_lower == 0) || (stack_upper == 0)) {
+    stack_lower = 0;
+    stack_upper = 0;
+  }
+  ProfilerSampleStackWalker stackWalker(sample, stack_lower, stack_upper,
+                                        state.pc, state.fp, state.sp);
+  stackWalker.walk();
+}
+
+
+void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream) {
   ASSERT(isolate == Isolate::Current());
-  {
-    // We can't get signals here.
-  }
   UNIMPLEMENTED();
-}
-
-
-void ProfilerManager::ResizeIsolates(intptr_t new_capacity) {
-  ASSERT(new_capacity < kMaxProfiledIsolates);
-  ASSERT(new_capacity > isolates_capacity_);
-  Isolate* isolate = NULL;
-  isolates_ = reinterpret_cast<Isolate**>(
-      realloc(isolates_, sizeof(isolate) * new_capacity));
-  isolates_capacity_ = new_capacity;
-}
-
-
-void ProfilerManager::AddIsolate(Isolate* isolate) {
-  // Must be called with monitor_ locked.
-  if (isolates_ == NULL) {
-    // We are shutting down.
-    return;
-  }
-  if (isolates_size_ == isolates_capacity_) {
-    ResizeIsolates(isolates_capacity_ == 0 ? 16 : isolates_capacity_ * 2);
-  }
-  isolates_[isolates_size_] = isolate;
-  isolates_size_++;
-}
-
-
-intptr_t ProfilerManager::FindIsolate(Isolate* isolate) {
-  // Must be called with monitor_ locked.
-  if (isolates_ == NULL) {
-    // We are shutting down.
-    return -1;
-  }
-  for (intptr_t i = 0; i < isolates_size_; i++) {
-    if (isolates_[i] == isolate) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-
-void ProfilerManager::RemoveIsolate(intptr_t i) {
-  // Must be called with monitor_ locked.
-  if (isolates_ == NULL) {
-    // We are shutting down.
-    return;
-  }
-  ASSERT(i < isolates_size_);
-  intptr_t last = isolates_size_ - 1;
-  if (i != last) {
-    isolates_[i] = isolates_[last];
-  }
-  // Mark last as NULL.
-  isolates_[last] = NULL;
-  // Pop.
-  isolates_size_--;
 }
 
 
@@ -362,6 +223,9 @@ static char* FindSymbolName(uintptr_t pc, bool* native_symbol) {
   ASSERT(native_symbol != NULL);
   const char* symbol_name = "Unknown";
   *native_symbol = false;
+  if (pc == 0) {
+    return const_cast<char*>(Sample::kNoFrame);
+  }
   const Code& code = Code::Handle(Code::LookupCode(pc));
   if (code.IsNull()) {
     // Possibly a native symbol.
@@ -383,203 +247,181 @@ static char* FindSymbolName(uintptr_t pc, bool* native_symbol) {
 }
 
 
-void ProfilerManager::WriteTracing(Isolate* isolate, const char* name,
-                                   Dart_Port port) {
-  ASSERT(isolate == Isolate::Current());
-  {
-    ScopedSignalBlocker ssb;
-    {
-      ScopedMutex profiler_data_lock(isolate->profiler_data_mutex());
-      IsolateProfilerData* profiler_data = isolate->profiler_data();
-      if (profiler_data == NULL) {
-        return;
-      }
-      SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-      ASSERT(sample_buffer != NULL);
-      JSONStream stream(10 * MB);
-      intptr_t tid = reinterpret_cast<intptr_t>(sample_buffer);
-      intptr_t pid = 1;
-      {
-        JSONArray events(&stream);
-        {
-          JSONObject thread_name(&events);
-          thread_name.AddProperty("name", "thread_name");
-          thread_name.AddProperty("ph", "M");
-          thread_name.AddProperty("tid", tid);
-          thread_name.AddProperty("pid", pid);
-          {
-            JSONObject args(&thread_name, "args");
-            args.AddProperty("name", name);
-          }
-        }
-        {
-          JSONObject process_name(&events);
-          process_name.AddProperty("name", "process_name");
-          process_name.AddProperty("ph", "M");
-          process_name.AddProperty("tid", tid);
-          process_name.AddProperty("pid", pid);
-          {
-            JSONObject args(&process_name, "args");
-            args.AddProperty("name", "Dart VM");
-          }
-        }
-        uint64_t last_time = 0;
-        for (Sample* i = sample_buffer->FirstSample();
-             i != sample_buffer->LastSample();
-             i = sample_buffer->NextSample(i)) {
-          if (last_time == 0) {
-            last_time = i->timestamp;
-          }
-          intptr_t delta = i->timestamp - last_time;
-          {
-            double percentage = static_cast<double>(i->cpu_usage) /
-                                static_cast<double>(delta) * 100.0;
-            if (percentage != percentage) {
-              percentage = 0.0;
-            }
-            percentage = percentage < 0.0 ? 0.0 : percentage;
-            percentage = percentage > 100.0 ? 100.0 : percentage;
-            {
-              JSONObject cpu_usage(&events);
-              cpu_usage.AddProperty("name", "CPU Usage");
-              cpu_usage.AddProperty("ph", "C");
-              cpu_usage.AddProperty("tid", tid);
-              cpu_usage.AddProperty("pid", pid);
-              cpu_usage.AddProperty("ts", static_cast<double>(last_time));
-              {
-                JSONObject args(&cpu_usage, "args");
-                args.AddProperty("CPU", percentage);
-              }
-            }
-            {
-              JSONObject cpu_usage(&events);
-              cpu_usage.AddProperty("name", "CPU Usage");
-              cpu_usage.AddProperty("ph", "C");
-              cpu_usage.AddProperty("tid", tid);
-              cpu_usage.AddProperty("pid", pid);
-              cpu_usage.AddProperty("ts", static_cast<double>(i->timestamp));
-              {
-                JSONObject args(&cpu_usage, "args");
-                args.AddProperty("CPU", percentage);
-              }
-            }
-          }
-          for (int j = 0; j < Sample::kNumStackFrames; j++) {
-            if (i->pcs[j] == 0) {
-              continue;
-            }
-            bool native_symbol = false;
-            char* symbol_name = FindSymbolName(i->pcs[j], &native_symbol);
-            {
-              JSONObject begin(&events);
-              begin.AddProperty("ph", "B");
-              begin.AddProperty("tid", tid);
-              begin.AddProperty("pid", pid);
-              begin.AddProperty("name", symbol_name);
-              begin.AddProperty("ts", static_cast<double>(last_time));
-            }
-            if (native_symbol) {
-              NativeSymbolResolver::FreeSymbolName(symbol_name);
-            }
-          }
-          for (int j = Sample::kNumStackFrames-1; j >= 0; j--) {
-            if (i->pcs[j] == 0) {
-              continue;
-            }
-            bool native_symbol = false;
-            char* symbol_name = FindSymbolName(i->pcs[j], &native_symbol);
-            {
-              JSONObject end(&events);
-              end.AddProperty("ph", "E");
-              end.AddProperty("tid", tid);
-              end.AddProperty("pid", pid);
-              end.AddProperty("name", symbol_name);
-              end.AddProperty("ts", static_cast<double>(i->timestamp));
-            }
-            if (native_symbol) {
-              NativeSymbolResolver::FreeSymbolName(symbol_name);
-            }
-          }
-          last_time = i->timestamp;
-        }
-      }
-      char fname[1024];
-    #if defined(TARGET_OS_WINDOWS)
-      snprintf(fname, sizeof(fname)-1, "c:\\tmp\\isolate-%d.prof",
-               static_cast<int>(port));
-    #else
-      snprintf(fname, sizeof(fname)-1, "/tmp/isolate-%d.prof",
-               static_cast<int>(port));
-    #endif
-      printf("%s\n", fname);
-      FILE* f = fopen(fname, "wb");
-      ASSERT(f != NULL);
-      fputs(stream.ToCString(), f);
-      fclose(f);
+void Profiler::WriteTracingSample(Isolate* isolate, intptr_t pid,
+                                  Sample* sample, JSONArray& events) {
+  Sample::SampleType type = sample->type;
+  intptr_t tid = Thread::ThreadIdToIntPtr(sample->tid);
+  double timestamp = static_cast<double>(sample->timestamp);
+  const char* isolate_name = isolate->name();
+  switch (type) {
+    case Sample::kIsolateStart: {
+      JSONObject begin(&events);
+      begin.AddProperty("ph", "B");
+      begin.AddProperty("tid", tid);
+      begin.AddProperty("pid", pid);
+      begin.AddProperty("name", isolate_name);
+      begin.AddProperty("ts", timestamp);
     }
+    break;
+    case Sample::kIsolateStop: {
+      JSONObject begin(&events);
+      begin.AddProperty("ph", "E");
+      begin.AddProperty("tid", tid);
+      begin.AddProperty("pid", pid);
+      begin.AddProperty("name", isolate_name);
+      begin.AddProperty("ts", timestamp);
+    }
+    break;
+    case Sample::kIsolateSample:
+      // Write "B" events.
+      for (int i = Sample::kNumStackFrames - 1; i >= 0; i--) {
+        bool native_symbol = false;
+        char* symbol_name = FindSymbolName(sample->pcs[i], &native_symbol);
+        {
+          JSONObject begin(&events);
+          begin.AddProperty("ph", "B");
+          begin.AddProperty("tid", tid);
+          begin.AddProperty("pid", pid);
+          begin.AddProperty("name", symbol_name);
+          begin.AddProperty("ts", timestamp);
+        }
+        if (native_symbol) {
+          NativeSymbolResolver::FreeSymbolName(symbol_name);
+        }
+      }
+      // Write "E" events.
+      for (int i = 0; i < Sample::kNumStackFrames; i++) {
+        bool native_symbol = false;
+        char* symbol_name = FindSymbolName(sample->pcs[i], &native_symbol);
+        {
+          JSONObject begin(&events);
+          begin.AddProperty("ph", "E");
+          begin.AddProperty("tid", tid);
+          begin.AddProperty("pid", pid);
+          begin.AddProperty("name", symbol_name);
+          begin.AddProperty("ts", timestamp);
+        }
+        if (native_symbol) {
+          NativeSymbolResolver::FreeSymbolName(symbol_name);
+        }
+      }
+    break;
+    default:
+      UNIMPLEMENTED();
   }
 }
 
 
-IsolateProfilerData::IsolateProfilerData(Isolate* isolate,
-                                         SampleBuffer* sample_buffer) {
-  isolate_ = isolate;
+void Profiler::WriteTracing(Isolate* isolate) {
+  if (isolate == NULL) {
+    return;
+  }
+  if (!FLAG_profile) {
+    return;
+  }
+  ASSERT(initialized_);
+  if (FLAG_profile_dir == NULL) {
+    return;
+  }
+  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+  Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+  if ((file_open == NULL) || (file_close == NULL) || (file_write == NULL)) {
+    // Embedder has not provided necessary callbacks.
+    return;
+  }
+  // We will be looking up code objects within the isolate.
+  ASSERT(Isolate::Current() != NULL);
+  // We do not want to be interrupted while processing the buffer.
+  EndExecution(isolate);
+  MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    return;
+  }
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  ASSERT(sample_buffer != NULL);
+  JSONStream stream(10 * MB);
+  intptr_t pid = OS::ProcessId();
+  {
+    JSONArray events(&stream);
+    {
+      JSONObject process_name(&events);
+      process_name.AddProperty("name", "process_name");
+      process_name.AddProperty("ph", "M");
+      process_name.AddProperty("pid", pid);
+      {
+        JSONObject args(&process_name, "args");
+        args.AddProperty("name", "Dart VM");
+      }
+    }
+    for (intptr_t i = 0; i < sample_buffer->capacity(); i++) {
+      Sample* sample = sample_buffer->GetSample(i);
+      if (sample->isolate != isolate) {
+        continue;
+      }
+      if (sample->timestamp == 0) {
+        continue;
+      }
+      WriteTracingSample(isolate, pid, sample, events);
+    }
+  }
+  const char* format = "%s/dart-profile-%" Pd "-%" Pd ".json";
+  intptr_t len = OS::SNPrint(NULL, 0, format,
+                             FLAG_profile_dir, pid, isolate->main_port());
+  char* filename = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+  OS::SNPrint(filename, len + 1, format,
+              FLAG_profile_dir, pid, isolate->main_port());
+  void* f = file_open(filename, true);
+  if (f == NULL) {
+    // Cannot write.
+    return;
+  }
+  TextBuffer* buffer = stream.buffer();
+  ASSERT(buffer != NULL);
+  file_write(buffer->buf(), buffer->length(), f);
+  file_close(f);
+  BeginExecution(isolate);
+}
+
+
+IsolateProfilerData::IsolateProfilerData(SampleBuffer* sample_buffer,
+                                         bool own_sample_buffer) {
   sample_buffer_ = sample_buffer;
-  timer_expiration_micros_ = kNoExpirationTime;
-  last_sampled_micros_ = 0;
-  thread_id_ = 0;
+  own_sample_buffer_ = own_sample_buffer;
 }
 
 
 IsolateProfilerData::~IsolateProfilerData() {
-}
-
-
-void IsolateProfilerData::SampledAt(int64_t current_time) {
-  last_sampled_micros_ = current_time;
-}
-
-
-void IsolateProfilerData::Scheduled(int64_t current_time, ThreadId thread_id) {
-  timer_expiration_micros_ = current_time + sample_interval_micros_;
-  thread_id_ = thread_id;
-  Thread::GetThreadCpuUsage(thread_id_, &cpu_usage_);
-}
-
-
-void IsolateProfilerData::Descheduled() {
-  // TODO(johnmccutchan): Track when we ran for a fraction of our sample
-  // interval and incorporate the time difference when scheduling the
-  // isolate again.
-  cpu_usage_ = kDescheduledCpuUsage;
-  timer_expiration_micros_ = kNoExpirationTime;
-  Sample* sample = sample_buffer_->ReserveSample();
-  ASSERT(sample != NULL);
-  sample->timestamp = OS::GetCurrentTimeMicros();
-  sample->cpu_usage = 0;
-  sample->vm_tags = Sample::kIdle;
+  if (own_sample_buffer_) {
+    delete sample_buffer_;
+    sample_buffer_ = NULL;
+    own_sample_buffer_ = false;
+  }
 }
 
 
 const char* Sample::kLookupSymbol = "Symbol Not Looked Up";
 const char* Sample::kNoSymbol = "No Symbol Found";
+const char* Sample::kNoFrame = "<no frame>";
 
-Sample::Sample()  {
-  timestamp = 0;
-  cpu_usage = 0;
-  for (int i = 0; i < kNumStackFrames; i++) {
+void Sample::Init(SampleType type, Isolate* isolate, int64_t timestamp,
+                  ThreadId tid) {
+  this->timestamp = timestamp;
+  this->tid = tid;
+  this->isolate = isolate;
+  for (intptr_t i = 0; i < kNumStackFrames; i++) {
     pcs[i] = 0;
   }
-  vm_tags = kIdle;
+  this->type = type;
+  vm_tags = 0;
   runtime_tags = 0;
 }
 
-
 SampleBuffer::SampleBuffer(intptr_t capacity) {
-  start_ = 0;
-  end_ = 0;
   capacity_ = capacity;
   samples_ = reinterpret_cast<Sample*>(calloc(capacity, sizeof(Sample)));
+  cursor_ = 0;
 }
 
 
@@ -587,8 +429,7 @@ SampleBuffer::~SampleBuffer() {
   if (samples_ != NULL) {
     free(samples_);
     samples_ = NULL;
-    start_ = 0;
-    end_ = 0;
+    cursor_ = 0;
     capacity_ = 0;
   }
 }
@@ -596,40 +437,10 @@ SampleBuffer::~SampleBuffer() {
 
 Sample* SampleBuffer::ReserveSample() {
   ASSERT(samples_ != NULL);
-  intptr_t index = end_;
-  end_ = WrapIncrement(end_);
-  if (end_ == start_) {
-    start_ = WrapIncrement(start_);
-  }
-  ASSERT(index >= 0);
-  ASSERT(index < capacity_);
-  // Reset.
-  samples_[index] = Sample();
-  return &samples_[index];
-}
-
-
-Sample* SampleBuffer::FirstSample() const {
-  return &samples_[start_];
-}
-
-
-Sample* SampleBuffer::NextSample(Sample* sample) const {
-  ASSERT(sample >= &samples_[0]);
-  ASSERT(sample < &samples_[capacity_]);
-  intptr_t index = sample - samples_;
-  index = WrapIncrement(index);
-  return &samples_[index];
-}
-
-
-Sample* SampleBuffer::LastSample() const {
-  return &samples_[end_];
-}
-
-
-intptr_t SampleBuffer::WrapIncrement(intptr_t i) const {
-  return (i + 1) % capacity_;
+  uintptr_t cursor = AtomicOperations::FetchAndIncrement(&cursor_);
+  // Map back into sample buffer range.
+  cursor = cursor % capacity_;
+  return &samples_[cursor];
 }
 
 
@@ -652,6 +463,7 @@ ProfilerSampleStackWalker::ProfilerSampleStackWalker(Sample* sample,
 
 int ProfilerSampleStackWalker::walk() {
   uword* pc = reinterpret_cast<uword*>(original_pc_);
+#define WALK_STACK
 #if defined(WALK_STACK)
   uword* fp = reinterpret_cast<uword*>(original_fp_);
   uword* previous_fp = fp;

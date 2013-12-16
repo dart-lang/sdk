@@ -30,6 +30,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
+#include "vm/thread_interrupter.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
 
@@ -339,13 +340,11 @@ Isolate::~Isolate() {
 }
 
 void Isolate::SetCurrent(Isolate* current) {
-  Isolate* old_isolate = Current();
-  if (old_isolate != NULL) {
-    ProfilerManager::DescheduleIsolate(old_isolate);
-  }
-  Thread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
-  if (current != NULL) {
-    ProfilerManager::ScheduleIsolate(current);
+  Isolate* old_current = Current();
+  if (old_current != current) {
+    Profiler::EndExecution(old_current);
+    Thread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
+    Profiler::BeginExecution(current);
   }
 }
 
@@ -370,7 +369,7 @@ Isolate* Isolate::Init(const char* name_prefix) {
   ASSERT(result != NULL);
 
   // Setup for profiling.
-  ProfilerManager::SetupIsolateForProfiling(result);
+  Profiler::InitProfilingForIsolate(result);
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
@@ -724,6 +723,9 @@ void Isolate::Shutdown() {
       PrintInvokedFunctions();
     }
 
+    // Write out profiler data if requested.
+    Profiler::WriteTracing(this);
+
     // Write out the coverage data if collection has been enabled.
     CodeCoverage::Write(this);
 
@@ -744,8 +746,7 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
-  ProfilerManager::DescheduleIsolate(this);
-  ProfilerManager::ShutdownIsolateForProfiling(this);
+  Profiler::ShutdownProfilingForIsolate(this);
 }
 
 

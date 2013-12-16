@@ -14,23 +14,29 @@ namespace dart {
 
 class ProfileSampleBufferTestHelper {
  public:
-  static intptr_t IterateCount(const SampleBuffer& sample_buffer) {
+  static intptr_t IterateCount(const Isolate* isolate,
+                               const SampleBuffer& sample_buffer) {
     intptr_t c = 0;
-    for (Sample* i = sample_buffer.FirstSample();
-         i != sample_buffer.LastSample();
-         i = sample_buffer.NextSample(i)) {
+    for (intptr_t i = 0; i < sample_buffer.capacity(); i++) {
+      Sample* sample = sample_buffer.GetSample(i);
+      if (sample->isolate != isolate) {
+        continue;
+      }
       c++;
     }
     return c;
   }
 
 
-  static intptr_t IterateSumPC(const SampleBuffer& sample_buffer) {
+  static intptr_t IterateSumPC(const Isolate* isolate,
+                               const SampleBuffer& sample_buffer) {
     intptr_t c = 0;
-    for (Sample* i = sample_buffer.FirstSample();
-         i != sample_buffer.LastSample();
-         i = sample_buffer.NextSample(i)) {
-      c += i->pcs[0];
+    for (intptr_t i = 0; i < sample_buffer.capacity(); i++) {
+      Sample* sample = sample_buffer.GetSample(i);
+      if (sample->isolate != isolate) {
+        continue;
+      }
+      c += sample->pcs[0];
     }
     return c;
   }
@@ -39,35 +45,46 @@ class ProfileSampleBufferTestHelper {
 
 TEST_CASE(ProfilerSampleBufferWrapTest) {
   SampleBuffer* sample_buffer = new SampleBuffer(3);
-  EXPECT_EQ(0, ProfileSampleBufferTestHelper::IterateSumPC(*sample_buffer));
+  Isolate* i = reinterpret_cast<Isolate*>(0x1);
+  EXPECT_EQ(0, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
   Sample* s;
   s = sample_buffer->ReserveSample();
+  s->isolate = i;
   s->pcs[0] = 2;
-  EXPECT_EQ(2, ProfileSampleBufferTestHelper::IterateSumPC(*sample_buffer));
+  EXPECT_EQ(2, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
   s = sample_buffer->ReserveSample();
+  s->isolate = i;
   s->pcs[0] = 4;
-  EXPECT_EQ(6, ProfileSampleBufferTestHelper::IterateSumPC(*sample_buffer));
+  EXPECT_EQ(6, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
   s = sample_buffer->ReserveSample();
+  s->isolate = i;
   s->pcs[0] = 6;
-  EXPECT_EQ(10, ProfileSampleBufferTestHelper::IterateSumPC(*sample_buffer));
+  EXPECT_EQ(12, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
   s = sample_buffer->ReserveSample();
+  s->isolate = i;
   s->pcs[0] = 8;
-  EXPECT_EQ(14, ProfileSampleBufferTestHelper::IterateSumPC(*sample_buffer));
+  EXPECT_EQ(18, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
   delete sample_buffer;
 }
 
 
 TEST_CASE(ProfilerSampleBufferIterateTest) {
   SampleBuffer* sample_buffer = new SampleBuffer(3);
-  EXPECT_EQ(0, ProfileSampleBufferTestHelper::IterateCount(*sample_buffer));
-  sample_buffer->ReserveSample();
-  EXPECT_EQ(1, ProfileSampleBufferTestHelper::IterateCount(*sample_buffer));
-  sample_buffer->ReserveSample();
-  EXPECT_EQ(2, ProfileSampleBufferTestHelper::IterateCount(*sample_buffer));
-  sample_buffer->ReserveSample();
-  EXPECT_EQ(2, ProfileSampleBufferTestHelper::IterateCount(*sample_buffer));
-  sample_buffer->ReserveSample();
-  EXPECT_EQ(2, ProfileSampleBufferTestHelper::IterateCount(*sample_buffer));
+  Isolate* i = reinterpret_cast<Isolate*>(0x1);
+  EXPECT_EQ(0, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
+  Sample* s;
+  s = sample_buffer->ReserveSample();
+  s->isolate = i;
+  EXPECT_EQ(1, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
+  s = sample_buffer->ReserveSample();
+  s->isolate = i;
+  EXPECT_EQ(2, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
+  s = sample_buffer->ReserveSample();
+  s->isolate = i;
+  EXPECT_EQ(3, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
+  s = sample_buffer->ReserveSample();
+  s->isolate = i;
+  EXPECT_EQ(3, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
   delete sample_buffer;
 }
 

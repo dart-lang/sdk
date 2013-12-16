@@ -1,0 +1,55 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#ifndef BIN_SIGNAL_BLOCKER_H_
+#define BIN_SIGNAL_BLOCKER_H_
+
+#include "platform/globals.h"
+
+#if defined(TARGET_OS_WINDOWS)
+#error Do not include this file on Windows.
+#endif
+
+#include <signal.h>  // NOLINT
+
+namespace dart {
+namespace bin {
+
+class ThreadSignalBlocker {
+ public:
+  explicit ThreadSignalBlocker(int sig) {
+    sigset_t signal_mask;
+    sigemptyset(&signal_mask);
+    sigaddset(&signal_mask, sig);
+    // Add sig to signal mask.
+    int r = pthread_sigmask(SIG_BLOCK, &signal_mask, &old);
+    ASSERT(r == 0);
+  }
+
+  ~ThreadSignalBlocker() {
+    // Restore signal mask.
+    int r = pthread_sigmask(SIG_SETMASK, &old, NULL);
+    ASSERT(r == 0);
+  }
+
+ private:
+  sigset_t old;
+};
+
+
+#define TEMP_FAILURE_RETRY_BLOCK_SIGNALS(expression)                           \
+    ({ ThreadSignalBlocker tsb(SIGPROF);                                       \
+       int64_t __result;                                                       \
+       do {                                                                    \
+         __result = static_cast<int64_t>(expression);                          \
+       } while (__result == -1L && errno == EINTR);                            \
+       __result; })
+
+#define VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(expression)                      \
+    (static_cast<void>(TEMP_FAILURE_RETRY_BLOCK_SIGNALS(expression)))
+
+}  // namespace bin
+}  // namespace dart
+
+#endif  // BIN_SIGNAL_BLOCKER_H_

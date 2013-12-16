@@ -40,16 +40,6 @@ class SignalHandler : public AllStatic {
 };
 
 
-class ScopedSignalBlocker {
- public:
-  ScopedSignalBlocker();
-  ~ScopedSignalBlocker();
-
- private:
-  sigset_t old_;
-};
-
-
 }  // namespace dart
 
 #endif  // VM_SIGNAL_HANDLER_H_

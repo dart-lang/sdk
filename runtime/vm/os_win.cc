@@ -174,6 +174,16 @@ void OS::Sleep(int64_t millis) {
 }
 
 
+void OS::SleepMicros(int64_t micros) {
+  // Windows only supports millisecond sleeps.
+  if (micros < kMicrosecondsPerMillisecond) {
+    // Calling ::Sleep with 0 has no determined behaviour, round up.
+    micros = kMicrosecondsPerMillisecond;
+  }
+  OS::Sleep(micros / kMicrosecondsPerMillisecond);
+}
+
+
 void OS::DebugBreak() {
 #if defined(_MSC_VER)
   // Microsoft Visual C/C++ or drop-in replacement.
