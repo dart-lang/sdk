@@ -2681,8 +2681,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
     }
 
-    // TODO(ngeoffray): Warn if target is null and the send is
-    // unqualified.
     useElement(node, target);
     registerSend(selector, target);
     if (node.isPropertyAccess && Elements.isStaticOrTopLevelFunction(target)) {
@@ -2736,14 +2734,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
           compiler.backend.registerThrowNoSuchMethod(mapping);
         }
       } else if (target.impliesType()) {
+        setter = warnAndCreateErroneousElement(
+            node.selector, target.name, MessageKind.ASSIGNING_TYPE);
         compiler.backend.registerThrowNoSuchMethod(mapping);
-      } else if (target.modifiers.isFinal() ||
-                 target.modifiers.isConst() ||
-                 (target.isFunction() &&
-                     Elements.isStaticOrTopLevelFunction(target) &&
-                     !target.isSetter())) {
+      } else if (target.modifiers.isFinal() || target.modifiers.isConst()) {
         setter = warnAndCreateErroneousElement(
             node.selector, target.name, MessageKind.CANNOT_RESOLVE_SETTER);
+        compiler.backend.registerThrowNoSuchMethod(mapping);
+      } else if (target.isFunction() && !target.isSetter()) {
+        setter = warnAndCreateErroneousElement(
+            node.selector, target.name, MessageKind.ASSIGNING_METHOD);
         compiler.backend.registerThrowNoSuchMethod(mapping);
       }
       if (isPotentiallyMutableTarget(target)) {
@@ -2758,10 +2758,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
 
     resolveArguments(node.argumentsNode);
-
-    // TODO(ngeoffray): Check if the target can be assigned.
-    // TODO(ngeoffray): Warn if target is null and the send is
-    // unqualified.
 
     Selector selector = mapping.getSelector(node);
     if (isComplex) {
@@ -2870,7 +2866,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitOperator(Operator node) {
-    unimplemented(node, 'operator');
+    internalError(node, 'operator');
   }
 
   visitRethrow(Rethrow node) {
@@ -3166,8 +3162,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitModifiers(Modifiers node) {
-    // TODO(ngeoffray): Implement this.
-    unimplemented(node, 'modifiers');
+    internalError(node, 'modifiers');
   }
 
   visitLiteralList(LiteralList node) {
@@ -3503,8 +3498,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
         mapping.remove(label.label);
       }
     });
-    // TODO(ngeoffray): We should check here instead of the SSA backend if
-    // there might be an error.
+    // TODO(15575): We should warn if we can detect a fall through
+    // error.
     compiler.backend.registerFallThroughError(mapping);
   }
 
@@ -3520,9 +3515,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   visitTryStatement(TryStatement node) {
     visit(node.tryBlock);
     if (node.catchBlocks.isEmpty && node.finallyBlock == null) {
-      // TODO(ngeoffray): The precise location is
-      // node.getEndtoken.next. Adjust when issue #1581 is fixed.
-      error(node, MessageKind.NO_CATCH_NOR_FINALLY);
+      error(node.getEndToken().next, MessageKind.NO_CATCH_NOR_FINALLY);
     }
     visit(node.catchBlocks);
     visit(node.finallyBlock);
@@ -3599,7 +3592,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitTypedef(Typedef node) {
-    unimplemented(node, 'typedef');
+    internalError(node, 'typedef');
   }
 }
 
@@ -4642,10 +4635,9 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
             resolver.enclosingElement.getLibrary());
   }
 
-  // TODO(ngeoffray): method named lookup should not report errors.
-  FunctionElement lookupConstructor(ClassElement cls,
-                                    Node diagnosticNode,
-                                    String constructorName) {
+  FunctionElement resolveConstructor(ClassElement cls,
+                                     Node diagnosticNode,
+                                     String constructorName) {
     cls.ensureResolved(compiler);
     Selector selector = createConstructorSelector(constructorName);
     Element result = cls.lookupConstructor(selector);
@@ -4689,7 +4681,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
         // The unnamed constructor may not exist, so [e] may become unresolved.
-        element = lookupConstructor(cls, diagnosticNode, '');
+        element = resolveConstructor(cls, diagnosticNode, '');
       } else {
         element = failOrReturnErroneousElement(
             element, diagnosticNode, element.name, MessageKind.NOT_A_TYPE,
@@ -4726,7 +4718,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     if (element.isClass()) {
       ClassElement cls = element;
       cls.ensureResolved(compiler);
-      return lookupConstructor(cls, name, name.source);
+      return resolveConstructor(cls, name, name.source);
     } else if (element.isPrefix()) {
       PrefixElement prefix = element;
       element = prefix.lookupLocalMember(name.source);
