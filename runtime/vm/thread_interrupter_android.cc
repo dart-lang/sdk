@@ -27,15 +27,6 @@ class ThreadInterrupterAndroid : public AllStatic {
       return;
     }
     ASSERT(Thread::Compare(state->id, Thread::GetCurrentThreadId()));
-    // Extract thread state.
-    ucontext_t* context = reinterpret_cast<ucontext_t*>(context_);
-    mcontext_t mcontext = context->uc_mcontext;
-    InterruptedThreadState its;
-    its.tid = state->id;
-    its.pc = SignalHandler::GetProgramCounter(mcontext);
-    its.fp = SignalHandler::GetFramePointer(mcontext);
-    its.sp = SignalHandler::GetStackPointer(mcontext);
-    state->callback(its, state->data);
   }
 };
 
