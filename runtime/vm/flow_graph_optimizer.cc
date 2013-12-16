@@ -41,6 +41,8 @@ DEFINE_FLAG(bool, trace_load_optimization, false,
     "Print live sets for load optimization pass.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
+DEFINE_FLAG(int, getter_setter_ratio, 10,
+    "Ratio of getter/setter usage used for double field unboxing heuristics");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_check_elimination);
@@ -3531,6 +3533,37 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
+void FlowGraphOptimizer::VisitStoreInstanceField(
+    StoreInstanceFieldInstr* instr) {
+  if (instr->IsUnboxedStore()) {
+    ASSERT(instr->is_initialization_);
+    // Determine if this field should be unboxed based on the usage of getter
+    // and setter functions: The heuristic requires that the setter has a
+    // usage count of at least 1/kGetterSetterRatio of the getter usage count.
+    // This is to avoid unboxing fields where the setter is never or rarely
+    // executed.
+    const Field& field = Field::ZoneHandle(instr->field().raw());
+    const String& field_name = String::Handle(field.name());
+    class Class& owner = Class::Handle(field.owner());
+    const Function& getter =
+        Function::Handle(owner.LookupGetterFunction(field_name));
+    const Function& setter =
+        Function::Handle(owner.LookupSetterFunction(field_name));
+    bool result = !getter.IsNull()
+               && !setter.IsNull()
+               && (setter.usage_counter() > 0)
+               && (FLAG_getter_setter_ratio * setter.usage_counter() >
+                   getter.usage_counter());
+    if (!result) {
+      field.set_is_unboxing_candidate(false);
+      field.DeoptimizeDependentCode();
+    } else {
+      FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+    }
+  }
+}
+
+
 bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                                  const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
@@ -3561,7 +3594,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   // Inline implicit instance setter.
   const String& field_name =
       String::Handle(Field::NameFromSetter(instr->function_name()));
-  const Field& field = Field::Handle(GetField(class_id, field_name));
+  const Field& field = Field::ZoneHandle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(instr)) {
@@ -3592,6 +3625,11 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       new Value(instr->ArgumentAt(0)),
       new Value(instr->ArgumentAt(1)),
       needs_store_barrier);
+
+  if (store->IsUnboxedStore()) {
+    FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+  }
+
   // Discard the environment from the original instruction because the store
   // can't deoptimize.
   instr->RemoveEnvironment();

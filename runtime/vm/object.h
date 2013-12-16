@@ -2142,6 +2142,25 @@ class Field : public Object {
     return r;
   }
 
+  bool IsUnboxedField() const {
+    return is_unboxing_candidate()
+        && !is_final()
+        && (guarded_cid() == kDoubleCid && !is_nullable());
+  }
+
+  bool IsPotentialUnboxedField() const {
+    return is_unboxing_candidate()
+        && (IsUnboxedField() ||
+            (!is_final() && (guarded_cid() == kIllegalCid)));
+  }
+
+  bool is_unboxing_candidate() const {
+    return UnboxingCandidateBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_unboxing_candidate(bool b) const {
+    set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
+  }
+
   static bool IsExternalizableCid(intptr_t cid) {
     return (cid == kOneByteStringCid) || (cid == kTwoByteStringCid);
   }
@@ -2206,11 +2225,15 @@ class Field : public Object {
     kStaticBit,
     kFinalBit,
     kHasInitializerBit,
+    kUnboxingCandidateBit
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class FinalBit : public BitField<bool, kFinalBit, 1> {};
   class HasInitializerBit : public BitField<bool, kHasInitializerBit, 1> {};
+  class UnboxingCandidateBit : public BitField<bool,
+                                               kUnboxingCandidateBit, 1> {
+  };
 
   // Update guarded class id and nullability of the field to reflect assignment
   // of the value with the given class id to this field. Returns true, if

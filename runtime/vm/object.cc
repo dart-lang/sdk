@@ -5855,6 +5855,7 @@ RawField* Field::New(const String& name,
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
+  result.set_is_unboxing_candidate(true);
   result.set_guarded_cid(kIllegalCid);
   result.set_is_nullable(false);
   // Presently, we only attempt to remember the list length for final fields.

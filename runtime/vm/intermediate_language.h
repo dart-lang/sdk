@@ -711,7 +711,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual void Accept(FlowGraphVisitor* visitor);                              \
   virtual type##Instr* As##type() { return this; }                             \
   virtual const char* DebugName() const { return #type; }                      \
-  virtual LocationSummary* MakeLocationSummary() const;                        \
+  virtual LocationSummary* MakeLocationSummary(bool optimizing) const;         \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);                    \
 
 
@@ -729,6 +729,7 @@ class Instruction : public ZoneAllocated {
         previous_(NULL),
         next_(NULL),
         env_(NULL),
+        locs_(NULL),
         place_id_(kNoPlaceId) { }
 
   virtual Tag tag() const = 0;
@@ -830,13 +831,16 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
   virtual LocationSummary* locs() {
-    // TODO(vegorov): This should be pure virtual method.
-    // However we are temporary using NULL for instructions that
-    // were not converted to the location based code generation yet.
-    return NULL;
+    ASSERT(locs_ != NULL);
+    return locs_;
   }
 
-  virtual LocationSummary* MakeLocationSummary() const = 0;
+  virtual LocationSummary* MakeLocationSummary(bool is_optimizing) const = 0;
+
+  void InitializeLocationSummary(bool optimizing) {
+    ASSERT(locs_ == NULL);
+    locs_ = MakeLocationSummary(optimizing);
+  }
 
   static LocationSummary* MakeCallSummary();
 
@@ -953,6 +957,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
  private:
+  friend class FlowGraphPrinter;
   friend class Definition;  // Needed for InsertBefore, InsertAfter.
 
   // Classes that set or read deopt_id_.
@@ -1027,6 +1032,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   Instruction* previous_;
   Instruction* next_;
   Environment* env_;
+  LocationSummary* locs_;
   intptr_t place_id_;
 
   DISALLOW_COPY_AND_ASSIGN(Instruction);
@@ -1036,17 +1042,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 template<intptr_t N>
 class TemplateInstruction: public Instruction {
  public:
-  TemplateInstruction<N>() : locs_(NULL) { }
+  TemplateInstruction<N>() : inputs_() { }
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  virtual LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -1055,8 +1054,6 @@ class TemplateInstruction: public Instruction {
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     inputs_[i] = value;
   }
-
-  LocationSummary* locs_;
 };
 
 
@@ -1929,7 +1926,7 @@ class ParameterInstr : public Definition {
 
 class PushArgumentInstr : public Definition {
  public:
-  explicit PushArgumentInstr(Value* value) : locs_(NULL) {
+  explicit PushArgumentInstr(Value* value) {
     SetInputAt(0, value);
     set_use_kind(kEffect);  // Override the default.
   }
@@ -1947,13 +1944,6 @@ class PushArgumentInstr : public Definition {
   virtual CompileType ComputeType() const;
 
   Value* value() const { return value_; }
-
-  virtual LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
 
   virtual intptr_t Hashcode() const {
     UNREACHABLE();
@@ -1975,7 +1965,6 @@ class PushArgumentInstr : public Definition {
   }
 
   Value* value_;
-  LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
@@ -2133,19 +2122,10 @@ class GotoInstr : public TemplateInstruction<0> {
 template<intptr_t N>
 class TemplateDefinition : public Definition {
  public:
-  TemplateDefinition<N>() : locs_(NULL) { }
+  TemplateDefinition<N>() : inputs_() { }
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-
-  // Returns a structure describing the location constraints required
-  // to emit native code for this definition.
-  LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -2157,8 +2137,6 @@ class TemplateDefinition : public Definition {
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     inputs_[i] = value;
   }
-
-  LocationSummary* locs_;
 };
 
 
@@ -2259,18 +2237,6 @@ class BranchInstr : public Instruction {
   void SetComparison(ComparisonInstr* comp);
 
   bool is_checked() const { return is_checked_; }
-
-  virtual LocationSummary* locs() {
-    if (comparison()->locs_ == NULL) {
-      LocationSummary* summary = comparison()->MakeLocationSummary();
-      // Branches don't produce a result.
-      summary->set_out(Location::NoLocation());
-      // The back-end expects the location summary to be stored in the
-      // comparison.
-      comparison()->locs_ = summary;
-    }
-    return comparison()->locs_;
-  }
 
   virtual intptr_t DeoptimizationTarget() const {
     return comparison()->DeoptimizationTarget();
@@ -3153,16 +3119,6 @@ class IfThenElseInstr : public Definition {
     return comparison()->CanBecomeDeoptimizationTarget();
   }
 
-  virtual LocationSummary* locs() {
-    if (comparison()->locs_ == NULL) {
-      LocationSummary* summary = MakeLocationSummary();
-      // The back-end expects the location summary to be stored in the
-      // comparison.
-      comparison()->locs_ = summary;
-    }
-    return comparison()->locs_;
-  }
-
   virtual intptr_t DeoptimizationTarget() const {
     return comparison()->DeoptimizationTarget();
   }
@@ -3469,9 +3425,11 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   StoreInstanceFieldInstr(const Field& field,
                           Value* instance,
                           Value* value,
-                          StoreBarrierType emit_store_barrier)
+                          StoreBarrierType emit_store_barrier,
+                          bool is_initialization = false)
       : field_(field),
-        emit_store_barrier_(emit_store_barrier) {
+        emit_store_barrier_(emit_store_barrier),
+        is_initialization_(is_initialization) {
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
   }
@@ -3499,6 +3457,11 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  // May require a deoptimization target for input conversions.
+  virtual intptr_t DeoptimizationTarget() const {
+    return GetDeoptId();
+  }
+
   // Currently CSE/LICM don't operate on any instructions that can be affected
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
   // are marked as having no side-effects.
@@ -3506,7 +3469,19 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   virtual bool MayThrow() const { return false; }
 
+  bool IsUnboxedStore() const;
+
+  bool IsPotentialUnboxedStore() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    ASSERT((index == 0) || (index == 1));
+    if ((index == 1) && IsUnboxedStore()) return kUnboxedDouble;
+    return kTagged;
+  }
+
  private:
+  friend class FlowGraphOptimizer;  // For ASSERT(initialization_).
+
   bool CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
@@ -3516,6 +3491,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   const Field& field_;
   const StoreBarrierType emit_store_barrier_;
+  const bool is_initialization_;  // Marks stores in the constructor.
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
 };
@@ -3996,11 +3972,6 @@ class MaterializeObjectInstr : public Definition {
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
-  LocationSummary* locs() {
-    UNREACHABLE();
-    return NULL;
-  }
-
   Location* locations() { return locations_; }
   void set_locations(Location* locations) { locations_ = locations; }
 
@@ -4215,6 +4186,14 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   const Field* field() const { return field_; }
   void set_field(const Field* field) { field_ = field; }
+
+  virtual Representation representation() const {
+    return IsUnboxedLoad() ? kUnboxedDouble : kTagged;
+  }
+
+  bool IsUnboxedLoad() const;
+
+  bool IsPotentialUnboxedLoad() const;
 
   void set_recognized_kind(MethodRecognizer::Kind kind) {
     recognized_kind_ = kind;
@@ -6617,15 +6596,6 @@ class InvokeMathCFunctionInstr : public Definition {
     return (*inputs_)[i];
   }
 
-  // Returns a structure describing the location constraints required
-  // to emit native code for this definition.
-  LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
-
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
@@ -6642,8 +6612,6 @@ class InvokeMathCFunctionInstr : public Definition {
   }
 
   ZoneGrowableArray<Value*>* inputs_;
-
-  LocationSummary* locs_;
 
   const MethodRecognizer::Kind recognized_kind_;
 
@@ -6727,15 +6695,6 @@ class MergedMathInstr : public Definition {
 
   DECLARE_INSTRUCTION(MergedMath)
 
-  // Returns a structure describing the location constraints required
-  // to emit native code for this definition.
-  LocationSummary* locs() {
-    if (locs_ == NULL) {
-      locs_ = MakeLocationSummary();
-    }
-    return locs_;
-  }
-
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
@@ -6759,7 +6718,6 @@ class MergedMathInstr : public Definition {
   }
 
   ZoneGrowableArray<Value*>* inputs_;
-  LocationSummary* locs_;
   MergedMathInstr::Kind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(MergedMathInstr);

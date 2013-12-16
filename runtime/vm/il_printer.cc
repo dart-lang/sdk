@@ -79,7 +79,7 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
   if (FLAG_print_environments && (instr->env() != NULL)) {
     instr->env()->PrintTo(&f);
   }
-  if (print_locations && (instr->locs() != NULL)) {
+  if (print_locations && (instr->locs_ != NULL)) {
     instr->locs()->PrintTo(&f);
   }
   if (instr->lifetime_position() != -1) {

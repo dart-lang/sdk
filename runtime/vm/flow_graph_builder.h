@@ -454,7 +454,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitLoadLocalNode(LoadLocalNode* node);
   virtual void VisitStoreLocalNode(StoreLocalNode* node);
   virtual void VisitStoreIndexedNode(StoreIndexedNode* node);
-  virtual void VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node);
   virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
   virtual void VisitThrowNode(ThrowNode* node);
   virtual void VisitClosureCallNode(ClosureCallNode* node);

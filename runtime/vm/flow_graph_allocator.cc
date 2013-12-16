@@ -122,6 +122,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       }
 
       // Handle uses.
+      current->InitializeLocationSummary(true);  // Optimizing.
       LocationSummary* locs = current->locs();
       ASSERT(locs->input_count() == current->InputCount());
       for (intptr_t j = 0; j < current->InputCount(); j++) {

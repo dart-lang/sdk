@@ -3285,15 +3285,9 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
       new StoreInstanceFieldInstr(node->field(),
                                   for_instance.value(),
                                   store_value,
-                                  kEmitStoreBarrier);
+                                  kEmitStoreBarrier,
+                                  true);  // Maybe initializing store.
   ReturnDefinition(store);
-}
-
-
-// StoreInstanceFieldNode does not return result.
-void ValueGraphVisitor::VisitStoreInstanceFieldNode(
-    StoreInstanceFieldNode* node) {
-  UNIMPLEMENTED();
 }
 
 
