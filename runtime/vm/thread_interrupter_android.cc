@@ -5,6 +5,7 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_ANDROID)
 
+#include "vm/signal_handler.h"
 #include "vm/thread_interrupter.h"
 
 namespace dart {
