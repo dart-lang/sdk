@@ -249,7 +249,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
     //   Applications may wish to fall back to read(2)/write(2) in the case
     //   where sendfile() fails with EINVAL or ENOSYS.
     if (result < 0 && (errno == EINVAL || errno == ENOSYS)) {
-      const intptr_t kBufferSize = 8 * 1024;
+      const intptr_t kBufferSize = 8 * KB;
       uint8_t buffer[kBufferSize];
       while ((result = TEMP_FAILURE_RETRY(
           read(old_fd, buffer, kBufferSize))) > 0) {
