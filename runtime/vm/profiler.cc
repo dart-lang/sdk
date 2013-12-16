@@ -133,7 +133,7 @@ void Profiler::BeginExecution(Isolate* isolate) {
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(Sample::kIsolateStart, isolate, OS::GetCurrentTimeMicros(),
                Thread::GetCurrentThreadId());
-  ThreadInterrupter::Register(RecordSampleInterruptCallback, isolate);
+  ThreadInterrupter::Register(ThreadInterruptNoOp, isolate);
 }
 
 
