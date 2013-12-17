@@ -2358,7 +2358,7 @@ RawObject* Class::Evaluate(const String& expr) const {
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));
   eval_func.set_num_fixed_parameters(0);
   eval_func.SetNumOptionalParameters(0, true);
-  eval_func.set_is_optimizable(false);
+  eval_func.SetIsOptimizable(false);
 
   const Array& args = Array::Handle(Array::New(0));
   const Object& result =
@@ -4554,13 +4554,16 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 }
 
 
-bool Function::is_optimizable() const {
+bool Function::IsOptimizable() const {
   if (FLAG_coverage_dir != NULL) {
     // Do not optimize if collecting coverage data.
     return false;
   }
-  if (OptimizableBit::decode(raw_ptr()->kind_tag_) &&
-      (script() != Script::null()) &&
+  if (is_native()) {
+    // Native methods don't need to be optimized.
+    return false;
+  }
+  if (is_optimizable() && (script() != Script::null()) &&
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
     if (HasCode() &&
@@ -4574,6 +4577,22 @@ bool Function::is_optimizable() const {
   return false;
 }
 
+
+bool Function::IsNativeLeaf() const {
+  return is_native() ? is_optimizable() : false;
+}
+
+
+void Function::SetIsOptimizable(bool value) const {
+  ASSERT(!is_native());
+  set_is_optimizable(value);
+}
+
+
+void Function::SetIsNativeLeaf(bool value) const {
+  ASSERT(is_native());
+  set_is_optimizable(value);
+}
 
 void Function::set_is_optimizable(bool value) const {
   set_kind_tag(OptimizableBit::update(value, raw_ptr()->kind_tag_));
@@ -5096,7 +5115,7 @@ RawFunction* Function::New(const String& name,
   result.set_deoptimization_counter(0);
   result.set_optimized_instruction_count(0);
   result.set_optimized_call_site_count(0);
-  result.set_is_optimizable(true);
+  result.set_is_optimizable(is_native ? false : true);
   result.set_has_finally(false);
   result.set_is_inlinable(true);
   if (kind == RawFunction::kClosureFunction) {
@@ -5536,7 +5555,7 @@ RawFunction* Function::NewStaticInitializer(const Field& field) {
   // optimizing compiler can eliminate the call to the static initializer
   // via constant folding.
   init_function.set_is_visible(false);
-  init_function.set_is_optimizable(false);
+  init_function.SetIsOptimizable(false);
   init_function.set_is_inlinable(false);
   init_function.set_saved_static_field(field);
   return init_function.raw();
@@ -8837,7 +8856,7 @@ void PcDescriptors::Verify(const Function& function) const {
     return;
   }
   // Only check ids for unoptimized code that is optimizable.
-  if (!function.is_optimizable()) return;
+  if (!function.IsOptimizable()) return;
   for (intptr_t i = 0; i < Length(); i++) {
     PcDescriptors::Kind kind = DescriptorKind(i);
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
@@ -11086,7 +11105,7 @@ RawObject* Instance::Evaluate(const String& expr) const {
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));
   eval_func.set_num_fixed_parameters(1);
   eval_func.SetNumOptionalParameters(0, true);
-  eval_func.set_is_optimizable(false);
+  eval_func.SetIsOptimizable(false);
 
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, *this);

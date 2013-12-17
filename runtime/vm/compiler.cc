@@ -263,7 +263,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                                         bool optimized,
                                         intptr_t osr_id) {
   const Function& function = parsed_function->function();
-  if (optimized && !function.is_optimizable()) {
+  if (optimized && !function.IsOptimizable()) {
     return false;
   }
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
@@ -786,7 +786,7 @@ static RawError* CompileFunctionHelper(const Function& function,
       } else if (FLAG_trace_failed_optimization_attempts) {
         OS::Print("Cannot optimize: %s\n", function.ToFullyQualifiedCString());
       }
-      function.set_is_optimizable(false);
+      function.SetIsOptimizable(false);
       isolate->set_long_jump_base(base);
       return Error::null();
     }
@@ -939,7 +939,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     func.set_num_fixed_parameters(0);
     func.SetNumOptionalParameters(0, true);
     // Manually generated AST, do not recompile.
-    func.set_is_optimizable(false);
+    func.SetIsOptimizable(false);
 
     // We compile the function here, even though InvokeStatic() below
     // would compile func automatically. We are checking fewer invariants

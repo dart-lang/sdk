@@ -3175,7 +3175,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
     }
   }
   InlineBailout("EffectGraphVisitor::VisitNativeBodyNode");
-  function.set_is_optimizable(false);
   NativeCallInstr* native_call = new NativeCallInstr(node);
   ReturnDefinition(native_call);
 }

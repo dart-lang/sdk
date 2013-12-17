@@ -1065,7 +1065,7 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInlining(intptr_t receiver_cid,
                                      const Function& target) {
-  if (!target.is_optimizable()) {
+  if (!target.IsOptimizable()) {
     if (TryInlineRecognizedMethod(receiver_cid, target)) {
       owner_->inlined_ = true;
       return true;

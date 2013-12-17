@@ -1734,8 +1734,10 @@ class Function : public Object {
     raw_ptr()->optimized_call_site_count_ = static_cast<uint16_t>(value);
   }
 
-  bool is_optimizable() const;
-  void set_is_optimizable(bool value) const;
+  bool IsOptimizable() const;
+  bool IsNativeLeaf() const;
+  void SetIsOptimizable(bool value) const;
+  void SetIsNativeLeaf(bool value) const;
 
   bool has_finally() const {
     return HasFinallyBit::decode(raw_ptr()->kind_tag_);
@@ -1972,6 +1974,10 @@ class Function : public Object {
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   void set_data(const Object& value) const;
+  bool is_optimizable() const {
+    return OptimizableBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_optimizable(bool value) const;
 
   static RawFunction* New();
 
