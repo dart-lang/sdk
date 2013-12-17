@@ -484,6 +484,29 @@ void main() {
           "Which: has no match for element <3> at index 0");
     });
 
+    test('unorderedMatchess', () {
+      var d = [1, 2];
+      shouldPass(d, unorderedMatches([2, 1]));
+      shouldPass(d, unorderedMatches([greaterThan(1), greaterThan(0)]));
+      shouldFail(d, unorderedMatches([greaterThan(0)]),
+          "Expected: matches [a value greater than <0>] unordered "
+          "Actual: [1, 2] "
+          "Which: has too many elements (2 > 1)");
+      shouldFail(d, unorderedMatches([3, 2, 1]),
+          "Expected: matches [<3>, <2>, <1>] unordered "
+          "Actual: [1, 2] "
+          "Which: has too few elements (2 < 3)");
+      shouldFail(d, unorderedMatches([3, 1]),
+          "Expected: matches [<3>, <1>] unordered "
+          "Actual: [1, 2] "
+          "Which: has no match for <3> at index 0");
+      shouldFail(d, unorderedMatches([greaterThan(3), greaterThan(0)]),
+          "Expected: matches [a value greater than <3>, a value greater than "
+              "<0>] unordered "
+          "Actual: [1, 2] "
+          "Which: has no match for a value greater than <3> at index 0");
+    });
+
     test('pairwise compare', () {
       var c = [1, 2];
       var d = [1, 2, 3];
