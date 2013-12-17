@@ -7,14 +7,10 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
-// MutationObservers sometimes do not fire if the node being observed is GCed
+// Due to https://code.google.com/p/chromium/issues/detail?id=329103
+// mutationObservers sometimes do not fire if the node being observed is GCed
 // so we keep around references to all nodes we have created mutation
-// observers for. As a side note, this behavior only manifests in content_shell
-// and not chrome and the behavior goes away in content_shell if the flag
-// -js-flags="--gc_global" is passed to content_shell. Note: the gc behavior
-// only has been detected when running dart2js but could equally reasonably
-// impact the dartvm as well unless it is specified that mutation events must
-// be delivered even if the object the events are for has already been GCed.
+// observers for.
 var keepAlive = [];
 
 /**
