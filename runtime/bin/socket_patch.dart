@@ -62,8 +62,7 @@ class _InternetAddress implements InternetAddress {
   static const int _ADDRESS_LOOPBACK_IP_V6 = 1;
   static const int _ADDRESS_ANY_IP_V4 = 2;
   static const int _ADDRESS_ANY_IP_V6 = 3;
-  static const int _IPV4_ADDR_OFFSET = 4;
-  static const int _IPV6_ADDR_OFFSET = 8;
+  static const int _IPV4_ADDR_LENGTH = 4;
   static const int _IPV6_ADDR_LENGTH = 16;
 
   static _InternetAddress LOOPBACK_IP_V4 =
@@ -75,24 +74,26 @@ class _InternetAddress implements InternetAddress {
   static _InternetAddress ANY_IP_V6 =
       new _InternetAddress.fixed(_ADDRESS_ANY_IP_V6);
 
-  final InternetAddressType type;
   final String address;
   final String _host;
-  final Uint8List _sockaddr_storage;
+  final Uint8List _in_addr;
+
+  InternetAddressType get type =>
+      _in_addr.length == _IPV4_ADDR_LENGTH ? InternetAddressType.IP_V4
+                                           : InternetAddressType.IP_V6;
 
   String get host => _host != null ? _host : address;
 
   bool get isLoopback {
     switch (type) {
       case InternetAddressType.IP_V4:
-        return _sockaddr_storage[_IPV4_ADDR_OFFSET] == 127;
+        return _in_addr[0] == 127;
 
       case InternetAddressType.IP_V6:
         for (int i = 0; i < _IPV6_ADDR_LENGTH - 1; i++) {
-          if (_sockaddr_storage[_IPV6_ADDR_OFFSET + i] != 0) return false;
+          if (_in_addr[i] != 0) return false;
         }
-        int lastByteIndex = _IPV6_ADDR_OFFSET + _IPV6_ADDR_LENGTH - 1;
-        return _sockaddr_storage[lastByteIndex] == 1;
+        return _in_addr[_IPV6_ADDR_LENGTH - 1] == 1;
     }
   }
 
@@ -100,13 +101,11 @@ class _InternetAddress implements InternetAddress {
     switch (type) {
       case InternetAddressType.IP_V4:
         // Checking for 169.254.0.0/16.
-        return _sockaddr_storage[_IPV4_ADDR_OFFSET] == 169 &&
-            _sockaddr_storage[_IPV4_ADDR_OFFSET + 1] == 254;
+        return _in_addr[0] == 169 && _in_addr[1] == 254;
 
       case InternetAddressType.IP_V6:
         // Checking for fe80::/10.
-        return _sockaddr_storage[_IPV6_ADDR_OFFSET] == 0xFE &&
-            (_sockaddr_storage[_IPV6_ADDR_OFFSET + 1] & 0xB0) == 0x80;
+        return _in_addr[0] == 0xFE && (_in_addr[1] & 0xB0) == 0x80;
     }
   }
 
@@ -114,48 +113,45 @@ class _InternetAddress implements InternetAddress {
     switch (type) {
       case InternetAddressType.IP_V4:
         // Checking for 224.0.0.0 through 239.255.255.255.
-        return _sockaddr_storage[_IPV4_ADDR_OFFSET] >= 224 &&
-            _sockaddr_storage[_IPV4_ADDR_OFFSET] < 240;
+        return _in_addr[0] >= 224 && _in_addr[0] < 240;
 
       case InternetAddressType.IP_V6:
         // Checking for ff00::/8.
-        return _sockaddr_storage[_IPV6_ADDR_OFFSET] == 0xFF;
+        return _in_addr[0] == 0xFF;
     }
   }
 
   Future<InternetAddress> reverse() => _NativeSocket.reverseLookup(this);
 
-  _InternetAddress(InternetAddressType this.type,
-                   String this.address,
+  _InternetAddress(String this.address,
                    String this._host,
-                   List<int> this._sockaddr_storage);
+                   List<int> this._in_addr);
 
   factory _InternetAddress.parse(String address) {
-    var type = address.indexOf(':') == -1
-        ? InternetAddressType.IP_V4
-        : InternetAddressType.IP_V6;
-    var raw = _parse(type._value, address);
-    if (raw == null) {
+    var in_addr = _parse(address);
+    if (in_addr == null) {
       throw new ArgumentError("Invalid internet address $address");
     }
-    return new _InternetAddress(type, address, null, raw);
+    return new _InternetAddress(address, null, in_addr);
   }
 
   factory _InternetAddress.fixed(int id) {
-    var sockaddr = _fixed(id);
     switch (id) {
       case _ADDRESS_LOOPBACK_IP_V4:
-        return new _InternetAddress(
-            InternetAddressType.IP_V4, "127.0.0.1", null, sockaddr);
+        var in_addr = new Uint8List(_IPV4_ADDR_LENGTH);
+        in_addr[0] = 127;
+        in_addr[_IPV4_ADDR_LENGTH - 1] = 1;
+        return new _InternetAddress("127.0.0.1", null, in_addr);
       case _ADDRESS_LOOPBACK_IP_V6:
-        return new _InternetAddress(
-            InternetAddressType.IP_V6, "::1", null, sockaddr);
+        var in_addr = new Uint8List(_IPV6_ADDR_LENGTH);
+        in_addr[_IPV6_ADDR_LENGTH - 1] = 1;
+        return new _InternetAddress("::1", null, in_addr);
       case _ADDRESS_ANY_IP_V4:
-        return new _InternetAddress(
-            InternetAddressType.IP_V4, "0.0.0.0", "0.0.0.0", sockaddr);
+        var in_addr = new Uint8List(_IPV4_ADDR_LENGTH);
+        return new _InternetAddress("0.0.0.0", "0.0.0.0", in_addr);
       case _ADDRESS_ANY_IP_V6:
-        return new _InternetAddress(
-            InternetAddressType.IP_V6, "::", "::", sockaddr);
+        var in_addr = new Uint8List(_IPV6_ADDR_LENGTH);
+        return new _InternetAddress("::", "::", in_addr);
       default:
         assert(false);
         throw new ArgumentError();
@@ -165,23 +161,23 @@ class _InternetAddress implements InternetAddress {
   // Create a clone of this _InternetAddress replacing the host.
   _InternetAddress _cloneWithNewHost(String host) {
     return new _InternetAddress(
-        type, address, host, new Uint8List.fromList(_sockaddr_storage));
+        address, host, new Uint8List.fromList(_in_addr));
   }
 
   bool operator ==(other) {
     if (!(other is _InternetAddress)) return false;
     if (other.type != type) return false;
     bool equals = true;
-    for (int i = 0; i < _sockaddr_storage.length && equals; i++) {
-      equals = other._sockaddr_storage[i] == _sockaddr_storage[i];
+    for (int i = 0; i < _in_addr.length && equals; i++) {
+      equals = other._in_addr[i] == _in_addr[i];
     }
     return equals;
   }
 
   int get hashCode {
     int result = 1;
-    for (int i = 0; i < _sockaddr_storage.length; i++) {
-      result = (result * 31 + _sockaddr_storage[i]) & 0x3FFFFFFF;
+    for (int i = 0; i < _in_addr.length; i++) {
+      result = (result * 31 + _in_addr[i]) & 0x3FFFFFFF;
     }
     return result;
   }
@@ -190,9 +186,7 @@ class _InternetAddress implements InternetAddress {
     return "InternetAddress('$address', ${type.name})";
   }
 
-  static Uint8List _fixed(int id) native "InternetAddress_Fixed";
-  static Uint8List _parse(int type, String address)
-      native "InternetAddress_Parse";
+  static Uint8List _parse(String address) native "InternetAddress_Parse";
 }
 
 class _NetworkInterface implements NetworkInterface {
@@ -284,14 +278,14 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           } else {
             return response.skip(1).map((result) {
               var type = new InternetAddressType._from(result[0]);
-              return new _InternetAddress(type, result[1], host, result[2]);
+              return new _InternetAddress(result[1], host, result[2]);
             }).toList();
           }
         });
   }
 
   static Future<InternetAddress> reverseLookup(InternetAddress addr) {
-    return _IOService.dispatch(_SOCKET_REVERSE_LOOKUP, [addr._sockaddr_storage])
+    return _IOService.dispatch(_SOCKET_REVERSE_LOOKUP, [addr._in_addr])
         .then((response) {
           if (isErrorResponse(response)) {
             throw createError(response, "Failed reverse host lookup", addr);
@@ -315,8 +309,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
                   var type = new InternetAddressType._from(result[0]);
                   var name = result[3];
                   var index = result[4];
-                  var address = new _InternetAddress(
-                      type, result[1], "", result[2]);
+                  var address = new _InternetAddress(result[1], "", result[2]);
                   if (!includeLinkLocal && address.isLinkLocal) return map;
                   if (!includeLoopback && address.isLoopback) return map;
                   map.putIfAbsent(
@@ -345,7 +338,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           var socket = new _NativeSocket.normal();
           socket.address = address;
           var result = socket.nativeCreateConnect(
-              address._sockaddr_storage, port);
+              address._in_addr, port);
           if (result is OSError) {
             throw createError(result, "Connection failed", address, port);
           } else {
@@ -387,7 +380,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         .then((address) {
           var socket = new _NativeSocket.listen();
           socket.address = address;
-          var result = socket.nativeCreateBindListen(address._sockaddr_storage,
+          var result = socket.nativeCreateBindListen(address._in_addr,
                                                      port,
                                                      backlog,
                                                      v6Only);
@@ -418,7 +411,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         .then((address) {
           var socket = new _NativeSocket.datagram(address);
           var result = socket.nativeCreateBindDatagram(
-              address._sockaddr_storage, port, reuseAddress);
+              address._in_addr, port, reuseAddress);
           if (result is OSError) {
             throw new SocketException("Failed to create datagram socket",
                                       osError: result,
@@ -525,7 +518,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
             buffer, offset, bytes);
     var result = nativeSendTo(
         bufferAndStart.buffer, bufferAndStart.start, bytes,
-        address._sockaddr_storage, port);
+        address._in_addr, port);
     if (result is OSError) {
       scheduleMicrotask(() => reportError(result, "Send failed"));
       result = 0;
@@ -555,7 +548,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   InternetAddress get remoteAddress {
     var result = nativeGetRemotePeer()[0];
     var type = new InternetAddressType._from(result[0]);
-    return new _InternetAddress(type, result[1], null, result[2]);
+    return new _InternetAddress(result[1], null, result[2]);
   }
 
   // Multiplexes socket events to the socket handlers.
@@ -801,8 +794,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     var interfaceAddr = multicastAddress(addr, interface);
     var interfaceIndex = interface == null ? 0 : interface.index;
     var result = nativeJoinMulticast(
-        addr._sockaddr_storage,
-        interfaceAddr == null ? null : interfaceAddr._sockaddr_storage,
+        addr._in_addr,
+        interfaceAddr == null ? null : interfaceAddr._in_addr,
         interfaceIndex);
     if (result is OSError) throw result;
   }
@@ -811,8 +804,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     var interfaceAddr = multicastAddress(addr, interface);
     var interfaceIndex = interface == null ? 0 : interface.index;
     var result = nativeLeaveMulticast(
-        addr._sockaddr_storage,
-        interfaceAddr == null ? null : interfaceAddr._sockaddr_storage,
+        addr._in_addr,
+        interfaceAddr == null ? null : interfaceAddr._in_addr,
         interfaceIndex);
     if (result is OSError) throw result;
   }
@@ -1551,14 +1544,11 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
 }
 
 Datagram _makeDatagram(List<int> data,
-                       bool ipV6,
                        String address,
-                       List<int> sockaddr_storage,
+                       List<int> in_addr,
                        int port) {
-  var addressType =
-      ipV6 ? InternetAddressType.IP_V6 : InternetAddressType.IP_V4;
   return new Datagram(
       data,
-      new _InternetAddress(addressType, address, null, sockaddr_storage),
+      new _InternetAddress(address, null, in_addr),
       port);
 }

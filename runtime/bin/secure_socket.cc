@@ -126,16 +126,7 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   ThrowIfError(Dart_StringToCString(host_name_object, &host_name));
 
   RawAddr raw_addr;
-  Dart_TypedData_Type type;
-  uint8_t* buffer = NULL;
-  intptr_t len;
-  ThrowIfError(Dart_TypedDataAcquireData(host_sockaddr_storage_object,
-                                         &type,
-                                         reinterpret_cast<void**>(&buffer),
-                                         &len));
-  ASSERT(static_cast<size_t>(len) <= sizeof(raw_addr));
-  memmove(&raw_addr, buffer, len);
-  Dart_TypedDataReleaseData(host_sockaddr_storage_object);
+  SocketAddress::GetSockAddr(host_sockaddr_storage_object, &raw_addr);
 
   int64_t port;
   if (!DartUtils::GetInt64Value(port_object, &port)) {

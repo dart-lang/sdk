@@ -70,6 +70,36 @@ class SocketAddress {
         sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
   }
 
+  static intptr_t GetInAddrLength(const RawAddr* addr) {
+    ASSERT(addr->ss.ss_family == AF_INET || addr->ss.ss_family == AF_INET6);
+    return addr->ss.ss_family == AF_INET6 ?
+        sizeof(struct in6_addr) : sizeof(struct in_addr);
+  }
+
+  static void GetSockAddr(Dart_Handle obj, RawAddr* addr) {
+    Dart_TypedData_Type data_type;
+    uint8_t* data = NULL;
+    intptr_t len;
+    Dart_Handle result = Dart_TypedDataAcquireData(
+        obj, &data_type, reinterpret_cast<void**>(&data), &len);
+    if (Dart_IsError(result)) Dart_PropagateError(result);
+    if (data_type != Dart_TypedData_kUint8 ||
+        (len != sizeof(in_addr) && len != sizeof(in6_addr))) {
+      Dart_PropagateError(
+          Dart_NewApiError("Unexpected type for socket address"));
+    }
+    memset(reinterpret_cast<void*>(addr), 0, sizeof(RawAddr));
+    if (len == sizeof(in_addr)) {
+      addr->in.sin_family = AF_INET;
+      memmove(reinterpret_cast<void *>(&addr->in.sin_addr), data, len);
+    } else {
+      ASSERT(len == sizeof(in6_addr));
+      addr->in6.sin6_family = AF_INET6;
+      memmove(reinterpret_cast<void*>(&addr->in6.sin6_addr), data, len);
+    }
+    Dart_TypedDataReleaseData(obj);
+  }
+
   static int16_t FromType(int type) {
     if (type == TYPE_ANY) return AF_UNSPEC;
     if (type == TYPE_IPV4) return AF_INET;
@@ -85,7 +115,7 @@ class SocketAddress {
     }
   }
 
-  static intptr_t GetAddrPort(RawAddr* addr) {
+  static intptr_t GetAddrPort(const RawAddr* addr) {
     if (addr->ss.ss_family == AF_INET) {
       return ntohs(addr->in.sin_port);
     } else {
@@ -93,12 +123,34 @@ class SocketAddress {
     }
   }
 
-  static Dart_Handle ToTypedData(RawAddr* addr) {
-    int len = GetAddrLength(addr);
+  static Dart_Handle ToTypedData(RawAddr* raw) {
+    int len = GetInAddrLength(raw);
     Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
     if (Dart_IsError(result)) Dart_PropagateError(result);
-    Dart_ListSetAsBytes(result, 0, reinterpret_cast<uint8_t *>(addr), len);
+    Dart_Handle err;
+    if (raw->addr.sa_family == AF_INET6) {
+      err = Dart_ListSetAsBytes(
+          result, 0, reinterpret_cast<uint8_t*>(&raw->in6.sin6_addr), len);
+    } else {
+      err = Dart_ListSetAsBytes(
+          result, 0, reinterpret_cast<uint8_t*>(&raw->in.sin_addr), len);
+    }
+    if (Dart_IsError(err)) Dart_PropagateError(err);
     return result;
+  }
+
+  static CObjectUint8Array* ToCObject(RawAddr* raw) {
+    int in_addr_len = SocketAddress::GetInAddrLength(raw);
+    void* in_addr;
+    CObjectUint8Array* data =
+        new CObjectUint8Array(CObject::NewUint8Array(in_addr_len));
+    if (raw->addr.sa_family == AF_INET6) {
+      in_addr = reinterpret_cast<void*>(&raw->in6.sin6_addr);
+    } else {
+      in_addr = reinterpret_cast<void*>(&raw->in.sin_addr);
+    }
+    memmove(data->Buffer(), in_addr, in_addr_len);
+    return data;
   }
 
  private:

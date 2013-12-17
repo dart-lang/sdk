@@ -26,75 +26,20 @@ Dart_Port* Socket::service_ports_ = NULL;
 int Socket::service_ports_index_ = 0;
 
 
-static void GetSockAddr(Dart_Handle obj, RawAddr* addr) {
-  Dart_TypedData_Type data_type;
-  uint8_t* data = NULL;
-  intptr_t len;
-  Dart_Handle result = Dart_TypedDataAcquireData(
-      obj, &data_type, reinterpret_cast<void**>(&data), &len);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
-  if (data_type != Dart_TypedData_kUint8) {
-    Dart_PropagateError(Dart_NewApiError("Unexpected type for socket address"));
-  }
-  memmove(reinterpret_cast<void *>(addr), data, len);
-  Dart_TypedDataReleaseData(obj);
-}
-
-
-void FUNCTION_NAME(InternetAddress_Fixed)(Dart_NativeArguments args) {
-  int64_t id = 0;
-  bool ok = DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &id);
-  ASSERT(ok);
-  USE(ok);
-  RawAddr raw;
-  memset(&raw, 0, sizeof(raw));
-  switch (id) {
-    case SocketAddress::ADDRESS_LOOPBACK_IP_V4: {
-      raw.in.sin_family = AF_INET;
-      raw.in.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-      break;
-    }
-    case SocketAddress::ADDRESS_LOOPBACK_IP_V6: {
-      raw.in6.sin6_family = AF_INET6;
-      raw.in6.sin6_addr = in6addr_loopback;
-      break;
-    }
-    case SocketAddress::ADDRESS_ANY_IP_V4: {
-      raw.in.sin_family = AF_INET;
-      raw.in.sin_addr.s_addr = INADDR_ANY;
-      break;
-    }
-    case SocketAddress::ADDRESS_ANY_IP_V6: {
-      raw.in6.sin6_family = AF_INET6;
-      raw.in6.sin6_addr = in6addr_any;
-      break;
-    }
-    default:
-      Dart_Handle error = DartUtils::NewDartArgumentError("");
-      if (Dart_IsError(error)) Dart_PropagateError(error);
-      Dart_ThrowException(error);
-  }
-  Dart_SetReturnValue(args, SocketAddress::ToTypedData(&raw));
-}
-
-
 void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
-  int64_t type = 0;
-  bool ok = DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &type);
-  ASSERT(ok);
-  USE(ok);
   const char* address =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   ASSERT(address != NULL);
   RawAddr raw;
   memset(&raw, 0, sizeof(raw));
+  int type = strchr(address, ':') == NULL ? SocketAddress::TYPE_IPV4
+                                          : SocketAddress::TYPE_IPV6;
   if (type == SocketAddress::TYPE_IPV4) {
     raw.addr.sa_family = AF_INET;
   } else {
-    ASSERT(type == SocketAddress::TYPE_IPV6);
     raw.addr.sa_family = AF_INET6;
   }
-  ok = Socket::ParseAddress(type, address, &raw);
+  bool ok = Socket::ParseAddress(type, address, &raw);
   if (!ok) {
     Dart_SetReturnValue(args, Dart_Null());
   } else {
@@ -105,7 +50,7 @@ void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   RawAddr addr;
-  GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
+  SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
   Dart_Handle port_arg = Dart_GetNativeArgument(args, 2);
   int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
   intptr_t socket = Socket::CreateConnect(addr, port);
@@ -121,7 +66,7 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   RawAddr addr;
-  GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
+  SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
   Dart_Handle port_arg = Dart_GetNativeArgument(args, 2);
   int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
   bool reuse_addr = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
@@ -245,20 +190,14 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   Socket::FormatNumericAddress(&addr, numeric_address, INET6_ADDRSTRLEN);
 
   // Create a Datagram object with the data and sender address and port.
-  const int kNumArgs = 5;
+  const int kNumArgs = 4;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = data;
-  dart_args[1] = Dart_NewBoolean(addr.addr.sa_family == AF_INET6);
-  dart_args[2] = Dart_NewStringFromCString(numeric_address);
-  if (Dart_IsError(dart_args[2])) Dart_PropagateError(dart_args[2]);
-  int len = SocketAddress::GetAddrLength(&addr);
-  dart_args[3] = Dart_NewTypedData(Dart_TypedData_kUint8, len);
+  dart_args[1] = Dart_NewStringFromCString(numeric_address);
+  if (Dart_IsError(dart_args[1])) Dart_PropagateError(dart_args[1]);
+  dart_args[2] = SocketAddress::ToTypedData(&addr);
+  dart_args[3] = Dart_NewInteger(port);
   if (Dart_IsError(dart_args[3])) Dart_PropagateError(dart_args[3]);
-  Dart_Handle err = Dart_ListSetAsBytes(
-      dart_args[3], 0, reinterpret_cast<uint8_t *>(&addr), len);
-  if (Dart_IsError(err)) Dart_PropagateError(err);
-  dart_args[4] = Dart_NewInteger(port);
-  if (Dart_IsError(dart_args[4])) Dart_PropagateError(dart_args[4]);
   // TODO(sgjesse): Cache the _makeDatagram function somewhere.
   Dart_Handle io_lib =
       Dart_LookupLibrary(DartUtils::NewString("dart:io"));
@@ -318,7 +257,7 @@ void FUNCTION_NAME(Socket_SendTo)(Dart_NativeArguments args) {
   Dart_Handle address_obj = Dart_GetNativeArgument(args, 4);
   ASSERT(Dart_IsList(address_obj));
   RawAddr addr;
-  GetSockAddr(address_obj, &addr);
+  SocketAddress::GetSockAddr(address_obj, &addr);
   int64_t port = DartUtils::GetInt64ValueCheckRange(
       Dart_GetNativeArgument(args, 5),
       0,
@@ -427,7 +366,7 @@ void FUNCTION_NAME(Socket_SetSocketId)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   RawAddr addr;
-  GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
+  SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
   int64_t port = DartUtils::GetInt64ValueCheckRange(
       Dart_GetNativeArgument(args, 2),
       0,
@@ -496,13 +435,9 @@ CObject* Socket::LookupRequest(const CObjectArray& request) {
         entry->SetAt(1, as_string);
 
         RawAddr raw = addr->addr();
-        CObjectUint8Array* data = new CObjectUint8Array(CObject::NewUint8Array(
-            SocketAddress::GetAddrLength(&raw)));
-        memmove(data->Buffer(),
-                reinterpret_cast<void *>(&raw),
-                SocketAddress::GetAddrLength(&raw));
-
+        CObjectUint8Array* data = SocketAddress::ToCObject(&raw);
         entry->SetAt(2, data);
+
         array->SetAt(i + 1, entry);
       }
       result = array;
@@ -522,9 +457,21 @@ CObject* Socket::ReverseLookupRequest(const CObjectArray& request) {
       request[0]->IsTypedData()) {
     CObjectUint8Array addr_object(request[0]);
     RawAddr addr;
-    memmove(reinterpret_cast<void *>(&addr),
-            addr_object.Buffer(),
-            addr_object.Length());
+    int len = addr_object.Length();
+    memset(reinterpret_cast<void*>(&addr), 0, sizeof(RawAddr));
+    if (len == sizeof(in_addr)) {
+      addr.in.sin_family = AF_INET;
+      memmove(reinterpret_cast<void*>(&addr.in.sin_addr),
+              addr_object.Buffer(),
+              len);
+    } else {
+      ASSERT(len == sizeof(in6_addr));
+      addr.in6.sin6_family = AF_INET6;
+      memmove(reinterpret_cast<void*>(&addr.in6.sin6_addr),
+              addr_object.Buffer(),
+              len);
+    }
+
     OSError* os_error = NULL;
     const intptr_t kMaxHostLength = 1025;
     char host[kMaxHostLength];
@@ -566,11 +513,7 @@ CObject* Socket::ListInterfacesRequest(const CObjectArray& request) {
         entry->SetAt(1, as_string);
 
         RawAddr raw = addr->addr();
-        CObjectUint8Array* data = new CObjectUint8Array(CObject::NewUint8Array(
-            SocketAddress::GetAddrLength(&raw)));
-        memmove(data->Buffer(),
-                reinterpret_cast<void *>(&raw),
-                SocketAddress::GetAddrLength(&raw));
+        CObjectUint8Array* data = SocketAddress::ToCObject(&raw);
         entry->SetAt(2, data);
 
         CObjectString* interface_name = new CObjectString(CObject::NewString(
@@ -701,10 +644,10 @@ void FUNCTION_NAME(Socket_JoinMulticast)(Dart_NativeArguments args) {
   intptr_t socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   RawAddr addr;
-  GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
+  SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
   RawAddr interface;
   if (Dart_GetNativeArgument(args, 2) != Dart_Null()) {
-    GetSockAddr(Dart_GetNativeArgument(args, 2), &interface);
+    SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 2), &interface);
   }
   int interfaceIndex =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));
@@ -720,10 +663,10 @@ void FUNCTION_NAME(Socket_LeaveMulticast)(Dart_NativeArguments args) {
   intptr_t socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   RawAddr addr;
-  GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
+  SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
   RawAddr interface;
   if (Dart_GetNativeArgument(args, 2) != Dart_Null()) {
-    GetSockAddr(Dart_GetNativeArgument(args, 2), &interface);
+    SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 2), &interface);
   }
   int interfaceIndex =
       DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 3));

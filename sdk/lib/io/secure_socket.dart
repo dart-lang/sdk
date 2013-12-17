@@ -540,7 +540,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _socketSubscription.onDone(_doneHandler);
       }
       _secureFilter.connect(address.host,
-                            (address as dynamic)._sockaddr_storage,
+                            (address as dynamic)._in_addr,
                             port,
                             is_server,
                             certificateName,
