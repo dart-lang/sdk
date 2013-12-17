@@ -1414,9 +1414,9 @@ class HInvokeStatic extends HInvoke {
   bool canThrow() => targetCanThrow;
 
   /// If this instruction is a call to a constructor, [instantiatedTypes]
-  /// contains the type(s) used in the (Dart) `New` expression(s).
-  /// The [instructionType] of this node is not enough, because we also need
-  /// the type arguments.  See also [SsaBuilder.currentInlinedInstantiations].
+  /// contains the type(s) used in the (Dart) `New` expression(s). The
+  /// [instructionType] of this node is not enough, because we also need the
+  /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
   List<DartType> instantiatedTypes;
 
   /** The first input must be the target. */
@@ -1605,9 +1605,9 @@ class HForeignNew extends HForeign {
   ClassElement element;
 
   /// If this field is not `null`, this call is from an inlined constructor and
-  /// we have to register the instantiated type in the code generator.
-  /// The [instructionType] of this node is not enough, because we also need
-  /// the type arguments.  See also [SsaBuilder.currentInlinedInstantiations].
+  /// we have to register the instantiated type in the code generator. The
+  /// [instructionType] of this node is not enough, because we also need the
+  /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
   List<DartType> instantiatedTypes;
 
   HForeignNew(this.element, TypeMask type, List<HInstruction> inputs,
@@ -1837,7 +1837,7 @@ class HBreak extends HJump {
   /**
    * Signals that this is a special break instruction for the synthetic loop
    * generatedfor a switch statement with continue statements. See
-   * [SsaBuilder.buildComplexSwitchStatement] for detail.
+   * [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
    */
   final bool breakSwitchContinueLoop;
   HBreak(TargetElement target, {bool this.breakSwitchContinueLoop: false})

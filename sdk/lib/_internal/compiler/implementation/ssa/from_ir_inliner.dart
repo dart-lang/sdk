@@ -6,56 +6,36 @@ part of ssa;
 
 /**
  * This class implements an [IrNodesVisitor] that inlines a function represented
- * as IR into an [SsaBuilder].
+ * as IR into an [SsaFromAstBuilder].
  */
-class SsaFromIrInliner
-    extends IrNodesVisitor with SsaGraphBuilderMixin<IrNode>, SsaFromIrMixin {
-  final SsaBuilder builder;
+class SsaFromIrInliner extends IrNodesVisitor with
+    SsaBuilderMixin<IrNode>,
+    SsaFromIrMixin,
+    SsaBuilderDelegate<IrNode, Node> {
+  final SsaFromAstBuilder builder;
 
-  SsaFromIrInliner(this.builder);
+  SsaFromIrInliner.internal(this.builder);
+
+  factory SsaFromIrInliner(SsaFromAstBuilder builder,
+                           FunctionElement function,
+                           List<HInstruction> compiledArguments) {
+    SsaFromIrInliner irInliner = new SsaFromIrInliner.internal(builder);
+    irInliner.setupStateForInlining(function, compiledArguments);
+    return irInliner;
+  }
 
   final List<IrExpression> inlinedCalls = <IrExpression>[];
 
-  Compiler get compiler => builder.compiler;
-
-  JavaScriptBackend get backend => builder.backend;
-
-  Element get sourceElement => builder.sourceElementStack.last;
-
-  HGraph get graph => builder.graph;
-
-  HBasicBlock get current => builder.current;
-
-  void set current(HBasicBlock block) {
-    builder.current = block;
-  }
-
-  HBasicBlock get lastOpenedBlock => builder.lastOpenedBlock;
-
-  void set lastOpenedBlock(HBasicBlock block) {
-    builder.lastOpenedBlock = block;
-  }
-
-  bool get isReachable => builder.isReachable;
-
-  void set isReachable(bool value) {
-    builder.isReachable = value;
-  }
-
-  bool get inThrowExpression => builder.inThrowExpression;
-
-  int get loopNesting => builder.loopNesting;
-
-  List<InliningState> get inliningStack => builder.inliningStack;
-
-  List<Element> get sourceElementStack => builder.sourceElementStack;
-
-  void setupInliningState(FunctionElement function,
+  /**
+   * This function is invoked when we are currently inlining an IR function
+   * into an AST builder, and we encounter an infocation that is inlined.
+   */
+  void enterInlinedMethod(FunctionElement function,
                           IrNode callNode,
                           List<HInstruction> compiledArguments) {
+    assert(callNode != null);
     inlinedCalls.add(callNode);
-    // The [SsaBuilder] does not use the [currentNode].
-    builder.setupInliningState(function, null, compiledArguments);
+    builder.enterInlinedMethod(function, null, compiledArguments);
   }
 
   void leaveInlinedMethod() {
