@@ -1417,9 +1417,6 @@ class _SpecialTypeMirror extends _LocalMirror
 }
 
 class _Mirrors {
-  // Does a port refer to our local isolate?
-  static bool isLocalPort(SendPort port) native 'Mirrors_isLocalPort';
-
   static MirrorSystem _currentMirrorSystem = null;
 
   // Creates a new local MirrorSystem.
