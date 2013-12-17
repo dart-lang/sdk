@@ -120,9 +120,12 @@ class IrBuilderTask extends CompilerTask {
   void unlinkTreeAndToken(element) {
     // Ensure the funciton signature has been computed (requires the AST).
     assert(element is !FunctionElementX || element.functionSignature != null);
-    element.beginToken.next = null;
-    // TODO(lry): Mark [element] so that parseNode will fail an assertion.
-    // element.cachedNode = null;
+    bool isCheckedMode = false;
+    assert((isCheckedMode = true));
+    if (isCheckedMode) {
+      element.beginToken.next = null;
+      element.cachedNode = null;
+    }
   }
 
   SourceFile elementSourceFile(Element element) {
