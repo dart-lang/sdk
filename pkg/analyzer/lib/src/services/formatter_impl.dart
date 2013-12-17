@@ -422,8 +422,10 @@ class SourceVisitor implements ASTVisitor {
     visit(node.leftHandSide);
     space();
     token(node.operator);
-    space();
-    visit(node.rightHandSide);
+    allowContinuedLines((){
+      space();
+      visit(node.rightHandSide);
+    });
   }
 
   visitBinaryExpression(BinaryExpression node) {
@@ -492,11 +494,13 @@ class SourceVisitor implements ASTVisitor {
     token(node.classKeyword);
     space();
     visit(node.name);
-    visit(node.typeParameters);
-    visitNode(node.extendsClause, precededBy: space);
-    visitNode(node.withClause, precededBy: space);
-    visitNode(node.implementsClause, precededBy: space);
-    space();
+    allowContinuedLines((){
+      visit(node.typeParameters);
+      visitNode(node.extendsClause, precededBy: space);
+      visitNode(node.withClause, precededBy: space);
+      visitNode(node.implementsClause, precededBy: space);
+      space();
+    });
     token(node.leftBracket);
     indent();
     visitNodes(node.members, precededBy: newlines, separatedBy: newlines);
@@ -554,12 +558,14 @@ class SourceVisitor implements ASTVisitor {
     visit(node.condition);
     space();
     token(node.question);
-    space();
-    visit(node.thenExpression);
-    space();
-    token(node.colon);
-    space();
-    visit(node.elseExpression);
+    allowContinuedLines((){
+      space();
+      visit(node.thenExpression);
+      space();
+      token(node.colon);
+      space();
+      visit(node.elseExpression);
+    });
   }
 
   visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -663,8 +669,10 @@ class SourceVisitor implements ASTVisitor {
     token(node.whileKeyword);
     space();
     token(node.leftParenthesis);
-    visit(node.condition);
-    token(node.rightParenthesis);
+    allowContinuedLines((){
+      visit(node.condition);
+      token(node.rightParenthesis);
+    });
     token(node.semicolon);
   }
 
@@ -684,7 +692,9 @@ class SourceVisitor implements ASTVisitor {
     token(node.keyword);
     space();
     visit(node.uri);
-    visitNodes(node.combinators, precededBy: space, separatedBy: space);
+    allowContinuedLines((){
+      visitNodes(node.combinators, precededBy: space, separatedBy: space);
+    });
     token(node.semicolon);
   }
 
@@ -837,10 +847,12 @@ class SourceVisitor implements ASTVisitor {
   visitIfStatement(IfStatement node) {
     var hasElse = node.elseStatement != null;
     token(node.ifKeyword);
-    space();
-    token(node.leftParenthesis);
-    visit(node.condition);
-    token(node.rightParenthesis);
+    allowContinuedLines((){
+      space();
+      token(node.leftParenthesis);
+      visit(node.condition);
+      token(node.rightParenthesis);
+    });
     space();
     if (hasElse) {
       printAsBlock(node.thenStatement);
@@ -864,8 +876,10 @@ class SourceVisitor implements ASTVisitor {
     space();
     visit(node.uri);
     token(node.asToken, precededBy: space, followedBy: space);
-    visit(node.prefix);
-    visitNodes(node.combinators, precededBy: space, separatedBy: space);
+    allowContinuedLines((){
+      visit(node.prefix);
+      visitNodes(node.combinators, precededBy: space, separatedBy: space);
+    });
     token(node.semicolon);
   }
 
@@ -1073,9 +1087,11 @@ class SourceVisitor implements ASTVisitor {
       token(node.semicolon);
     } else {
       token(node.keyword);
-      space();
-      expression.accept(this);
-      token(node.semicolon);
+      allowContinuedLines((){
+        space();
+        expression.accept(this);
+        token(node.semicolon);
+      });
     }
   }
 
@@ -1209,8 +1225,16 @@ class SourceVisitor implements ASTVisitor {
     if (node.initializer != null) {
       space();
       token(node.equals);
-      space();
-      visit(node.initializer);
+      var initializer = node.initializer;
+      if (initializer is! ListLiteral && initializer is! MapLiteral) {
+        allowContinuedLines((){
+          space();
+          visit(initializer);
+        });
+      } else {
+        space();
+        visit(initializer);
+      }
     }
   }
 
@@ -1229,8 +1253,10 @@ class SourceVisitor implements ASTVisitor {
     token(node.keyword);
     space();
     token(node.leftParenthesis);
-    visit(node.condition);
-    token(node.rightParenthesis);
+    allowContinuedLines((){
+      visit(node.condition);
+      token(node.rightParenthesis);
+    });
     if (node.body is! EmptyStatement) {
       space();
     }
@@ -1316,6 +1342,12 @@ class SourceVisitor implements ASTVisitor {
     }
   }
 
+  /// Allow [code] to be continued across lines.
+  allowContinuedLines(code()) {
+    //TODO(pquitslund): add before
+    code();
+    //TODO(pquitslund): add after
+  }
 
   /// Emit the given [modifier] if it's non null, followed by non-breaking
   /// whitespace.
@@ -1447,7 +1479,7 @@ class SourceVisitor implements ASTVisitor {
     }
 
     var lines = max(min, countNewlinesBetween(previousToken, currentToken));
-    writer.newlines(lines);
+    emitNewlines(lines);
 
     previousToken =
         currentToken.previous != null ? currentToken.previous : token.previous;
@@ -1459,7 +1491,7 @@ class SourceVisitor implements ASTVisitor {
       var nextToken = comment.next != null ? comment.next : token;
       var newlines = calculateNewlinesBetweenComments(comment, nextToken);
       if (newlines > 0) {
-        writer.newlines(newlines);
+        emitNewlines(newlines);
         lines += newlines;
       } else {
         var spaces = countSpacesBetween(comment, nextToken);
@@ -1474,6 +1506,10 @@ class SourceVisitor implements ASTVisitor {
 
     previousToken = token;
     return lines;
+  }
+
+  void emitNewlines(lines) {
+    writer.newlines(lines);
   }
 
   ensureTrailingNewline() {

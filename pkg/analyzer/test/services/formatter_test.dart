@@ -914,6 +914,123 @@ main() {
                           transforms: false);
     });
 
+//    test('line continuations - 1', () {
+//      expectStmtFormatsTo(
+//          'if (x &&\n'
+//          '    y) {\n'
+//          '  print("yes!");\n'
+//          '}',
+//          'if (x &&\n'
+//          '    y) {\n'
+//          '  print("yes!");\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'var x =\n'
+//          '    1234567890;',
+//          'var x =\n'
+//          '    1234567890;'
+//      );
+//      expectStmtFormatsTo(
+//          'foo() {\n'
+//          '  var x = 0;\n'
+//          '  x =\n'
+//          '      1234567890;\n'
+//          '}',
+//          'foo() {\n'
+//          '  var x = 0;\n'
+//          '  x =\n'
+//          '      1234567890;\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'foo() {\n'
+//          '  while (true &&\n'
+//          '      true) {\n'
+//          '    print("!");\n'
+//          '  }\n'
+//          '}',
+//          'foo() {\n'
+//          '  while (true &&\n'
+//          '      true) {\n'
+//          '    print("!");\n'
+//          '  }\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'foo() {\n'
+//          '  do {\n'
+//          '    print("!");\n'
+//          '  } while (true &&\n'
+//          '      true);\n'
+//          '}',
+//          'foo() {\n'
+//          '  do {\n'
+//          '    print("!");\n'
+//          '  } while (true &&\n'
+//          '      true);\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'int foo() {\n'
+//          '  return\n'
+//          '      foo();\n'
+//          '}',
+//          'int foo() {\n'
+//          '  return\n'
+//          '      foo();\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'int foo() {\n'
+//          '  return\n'
+//          '      13;\n'
+//          '}',
+//          'int foo() {\n'
+//          '  return\n'
+//          '      13;\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'foo(fn()) {\n'
+//          '  return foo(() {\n'
+//          '    return 1;\n'
+//          '});\n'
+//          '}',
+//          'foo(fn()) {\n'
+//          '  return foo(() {\n'
+//          '    return 1;\n'
+//          '});\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'true ? foo() :\n'
+//          '    bar();',
+//          'true ? foo() :\n'
+//          '    bar();'
+//      );
+//      expectCUFormatsTo(
+//          'import "dart:core" as\n'
+//          '    core;\n',
+//          'import "dart:core" as\n'
+//          '    core;\n'
+//      );
+//      expectCUFormatsTo(
+//          'export "package:foo/foo.dart" show\n'
+//          '    Foo;\n',
+//          'export "package:foo/foo.dart" show\n'
+//          '    Foo;\n'
+//      );
+//      expectCUFormatsTo(
+//          'class Foo extends Bar implements\n'
+//          '    Baz {\n'
+//          '}\n',
+//          'class Foo extends Bar implements\n'
+//          '    Baz {\n'
+//          '}\n'
+//      );
+//    });
+
     test('initialIndent', () {
       var formatter = new CodeFormatter(
           new FormatterOptions(initialIndentationLevel: 2));
