@@ -74,7 +74,6 @@ mirrors/private_symbol_test: CompileTimeError # Issue 13597
 mirrors/proxy_type_test: RuntimeError # Issue 13842
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
-mirrors/reflected_type_test: RuntimeError # Issue 12607
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Issue 14670
 mirrors/symbol_validation_test: RuntimeError # Issue 13597
 mirrors/static_members_test: RuntimeError # Issue 14633, Issue 12164

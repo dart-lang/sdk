@@ -963,7 +963,16 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
         super(originalDeclaration.simpleName);
 
   String get _prettyName => 'ClassMirror';
-  String get _mangledName => '${_class._mangledName}<$_typeArguments>';
+  String get _mangledName {
+    for (TypeMirror typeArgument in typeArguments) {
+      if (typeArgument != JsMirrorSystem._dynamicType) {
+        return '${_class._mangledName}<$_typeArguments>';
+      }
+    }
+    // When all type arguments are dynamic, the canonical representation is to
+    // drop them.
+    return _class._mangledName;
+  }
 
   List<TypeVariableMirror> get typeVariables => _class.typeVariables;
 
@@ -1116,8 +1125,6 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
     return _cachedSuperinterfaces = _class._getSuperinterfacesWithOwner(this);
   }
 
-  bool get hasReflectedType => _class.hasReflectedType;
-
   bool get isPrivate => _class.isPrivate;
 
   bool get isTopLevel => _class.isTopLevel;
@@ -1128,7 +1135,9 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
 
   Symbol get qualifiedName => _class.qualifiedName;
 
-  Type get reflectedType => _class.reflectedType;
+  bool get hasReflectedType => true;
+
+  Type get reflectedType => createRuntimeType(_mangledName);
 
   Symbol get simpleName => _class.simpleName;
 
@@ -1497,6 +1506,16 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   }
 
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
+
+  bool get hasReflectedType => typeVariables.length == 0;
+
+  Type get reflectedType {
+    if (!hasReflectedType) {
+      throw new UnsupportedError(
+          "Declarations of generics have no reflected type");
+    }
+    return createRuntimeType(_mangledName);
+  }
 
   // TODO(ahe): Implement this.
   Map<Symbol, MethodMirror> get instanceMembers
