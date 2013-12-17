@@ -388,6 +388,9 @@ class ContainerTracerVisitor implements TypeInformationVisitor {
   }
 
   visitElementTypeInformation(ElementTypeInformation info) {
+    if (info.isClosurized()) {
+      bailout('Returned from a closurized method');
+    }
     if (isClosure(info.element)) {
       bailout('Returned from a closure');
     }

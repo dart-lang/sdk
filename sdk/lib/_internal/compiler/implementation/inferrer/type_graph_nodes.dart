@@ -210,6 +210,12 @@ class ElementTypeInformation extends TypeInformation {
   final Element element;
 
   /**
+   * If [element] is a function, [closurizedCount] is the number of
+   * times it is closurized. The value gets updated while infering.
+   */
+  int closurizedCount = 0;
+
+  /**
    * This map contains the callers of [element]. It stores all unique call sites
    * to enable counting the global number of call sites of [element].
    *
@@ -255,6 +261,8 @@ class ElementTypeInformation extends TypeInformation {
     }
     return count == 1;
   }
+
+  bool isClosurized() => closurizedCount > 0;
 
   TypeMask handleSpecialCases(TypeGraphInferrerEngine inferrer) {
     if (abandonInferencing) {

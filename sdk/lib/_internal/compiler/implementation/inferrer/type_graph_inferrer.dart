@@ -636,7 +636,11 @@ class TypeGraphInferrerEngine
     } else if (callee.isGetter()) {
       return;
     } else if (selector != null && selector.isGetter()) {
-      if (!remove) {
+      ElementTypeInformation info = types.getInferredTypeOf(callee);
+      if (remove) {
+        info.closurizedCount--;
+      } else {
+        info.closurizedCount++;
         FunctionElement function = callee.implementation;
         FunctionSignature signature = function.computeSignature(compiler);
         signature.forEachParameter((Element parameter) {
