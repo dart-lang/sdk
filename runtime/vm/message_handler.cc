@@ -97,10 +97,9 @@ void MessageHandler::PostMessage(Message* message) {
     }
     OS::Print("[>] Posting message:\n"
               "\tsource:     %s\n"
-              "\treply_port: %" Pd64 "\n"
               "\tdest:       %s\n"
               "\tdest_port:  %" Pd64 "\n",
-              source_name, message->reply_port(), name(), message->dest_port());
+              source_name, name(), message->dest_port());
   }
 
   Message::Priority saved_priority = message->priority();

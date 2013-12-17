@@ -105,7 +105,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   writer.WriteMessage(obj);
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(send_id.Value(), Message::kIllegalPort,
+  PortMap::PostMessage(new Message(send_id.Value(),
                                    data, writer.BytesWritten(),
                                    Message::kNormalPriority));
   return Object::null();

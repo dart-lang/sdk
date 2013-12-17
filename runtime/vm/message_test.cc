@@ -45,13 +45,13 @@ TEST_CASE(MessageQueue_BasicOperations) {
 
   // Add two messages.
   Message* msg1 =
-      new Message(port, 0, AllocMsg(str1), strlen(str1) + 1,
+      new Message(port, AllocMsg(str1), strlen(str1) + 1,
                   Message::kNormalPriority);
   queue.Enqueue(msg1);
   EXPECT(queue_peer.HasMessage());
 
   Message* msg2 =
-      new Message(port, 0, AllocMsg(str2), strlen(str2) + 1,
+      new Message(port, AllocMsg(str2), strlen(str2) + 1,
                   Message::kNormalPriority);
 
   queue.Enqueue(msg2);
@@ -84,11 +84,11 @@ TEST_CASE(MessageQueue_Clear) {
 
   // Add two messages.
   Message* msg1 =
-      new Message(port1, 0, AllocMsg(str1), strlen(str1) + 1,
+      new Message(port1, AllocMsg(str1), strlen(str1) + 1,
                   Message::kNormalPriority);
   queue.Enqueue(msg1);
   Message* msg2 =
-      new Message(port2, 0, AllocMsg(str2), strlen(str2) + 1,
+      new Message(port2, AllocMsg(str2), strlen(str2) + 1,
                   Message::kNormalPriority);
   queue.Enqueue(msg2);
 

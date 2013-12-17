@@ -107,8 +107,7 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   // Called from the VM to dispatch to the handler.
-  static void _handleMessage(
-      _RawReceivePortImpl port, int replyId, var message) {
+  static void _handleMessage(_RawReceivePortImpl port, var message) {
     assert(port != null);
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors

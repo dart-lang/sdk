@@ -7,6 +7,8 @@
 
 #include "include/dart_api.h"
 
+#include "vm/allocation.h"
+
 namespace dart {
 
 class Instance;
@@ -14,8 +16,7 @@ class Isolate;
 
 class Service : public AllStatic {
  public:
-  static void HandleServiceMessage(Isolate* isolate, Dart_Port reply_port,
-                                   const Instance& message);
+  static void HandleServiceMessage(Isolate* isolate, const Instance& message);
 };
 
 }  // namespace dart

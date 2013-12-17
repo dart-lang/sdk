@@ -401,20 +401,18 @@ RawObject* DartLibraryCalls::LookupReceivePort(Dart_Port port_id) {
 
 
 RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
-                                           Dart_Port reply_port_id,
                                            const Instance& message) {
   Isolate* isolate = Isolate::Current();
-  Function& function =
-      Function::Handle(isolate,
-                       isolate->object_store()->handle_message_function());
-  const int kNumArguments = 3;
+  Function& function = Function::Handle(isolate,
+      isolate->object_store()->handle_message_function());
+  const int kNumArguments = 2;
   if (function.IsNull()) {
-    Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+    Library& isolate_lib = Library::Handle(isolate, Library::IsolateLibrary());
     ASSERT(!isolate_lib.IsNull());
-    const String& class_name =
-        String::Handle(isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
-    const String& function_name =
-        String::Handle(isolate_lib.PrivateName(Symbols::_handleMessage()));
+    const String& class_name = String::Handle(isolate,
+        isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
+    const String& function_name = String::Handle(isolate,
+        isolate_lib.PrivateName(Symbols::_handleMessage()));
     function = Resolver::ResolveStatic(isolate_lib,
                                        class_name,
                                        function_name,
@@ -425,16 +423,15 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
   }
   const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
   args.SetAt(0, receive_port);
-  args.SetAt(1, Integer::Handle(isolate, Integer::New(reply_port_id)));
-  args.SetAt(2, message);
+  args.SetAt(1, message);
   if (isolate->debugger()->IsStepping()) {
     // If the isolate is being debugged and the debugger was stepping
     // through code, enable single stepping so debugger will stop
     // at the first location the user is interested in.
     isolate->debugger()->SetSingleStep();
   }
-  const Object& result =
-      Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
+  const Object& result = Object::Handle(isolate,
+      DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsNull() || result.IsError());
   return result.raw();
 }

@@ -143,11 +143,10 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
   bool success = true;
   if (message->IsOOB()) {
-    Service::HandleServiceMessage(isolate_, message->reply_port(), msg);
+    Service::HandleServiceMessage(isolate_, msg);
   } else {
     const Object& result = Object::Handle(
-        DartLibraryCalls::HandleMessage(
-            receive_port, message->reply_port(), msg));
+        DartLibraryCalls::HandleMessage(receive_port, msg));
     if (result.IsError()) {
       success = ProcessUnhandledException(msg, Error::Cast(result));
     } else {

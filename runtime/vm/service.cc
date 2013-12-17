@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/service.h"
+
+#include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/heap_histogram.h"
 #include "vm/isolate.h"
@@ -10,7 +13,6 @@
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
-#include "vm/service.h"
 
 namespace dart {
 
@@ -30,36 +32,46 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
-static void PostReply(const String& reply, Dart_Port reply_port) {
+static void PostReply(const String& reply, const Instance& reply_port) {
+  const Object& id_obj = Object::Handle(
+      DartLibraryCalls::PortGetId(reply_port));
+  if (id_obj.IsError()) {
+    Exceptions::PropagateError(Error::Cast(id_obj));
+  }
+  const Integer& id = Integer::Cast(id_obj);
+  Dart_Port port = static_cast<Dart_Port>(id.AsInt64Value());
+  ASSERT(port != ILLEGAL_PORT);
+
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator);
   writer.WriteMessage(reply);
-  PortMap::PostMessage(new Message(reply_port, Message::kIllegalPort, data,
+  PortMap::PostMessage(new Message(port, data,
                                    writer.BytesWritten(),
                                    Message::kNormalPriority));
 }
 
 
-void Service::HandleServiceMessage(Isolate* isolate, Dart_Port reply_port,
-                                   const Instance& msg) {
+void Service::HandleServiceMessage(Isolate* isolate, const Instance& msg) {
   ASSERT(isolate != NULL);
-  ASSERT(reply_port != ILLEGAL_PORT);
   ASSERT(!msg.IsNull());
   ASSERT(msg.IsGrowableObjectArray());
 
   {
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
+
     const GrowableObjectArray& message = GrowableObjectArray::Cast(msg);
     // Message is a list with three entries.
-    ASSERT(message.Length() == 3);
+    ASSERT(message.Length() == 4);
 
-    GrowableObjectArray& path = GrowableObjectArray::Handle();
-    GrowableObjectArray& option_keys = GrowableObjectArray::Handle();
-    GrowableObjectArray& option_values = GrowableObjectArray::Handle();
-    path ^= message.At(0);
-    option_keys ^= message.At(1);
-    option_values ^= message.At(2);
+    Instance& reply_port = Instance::Handle(isolate);
+    GrowableObjectArray& path = GrowableObjectArray::Handle(isolate);
+    GrowableObjectArray& option_keys = GrowableObjectArray::Handle(isolate);
+    GrowableObjectArray& option_values = GrowableObjectArray::Handle(isolate);
+    reply_port ^= message.At(0);
+    path ^= message.At(1);
+    option_keys ^= message.At(2);
+    option_values ^= message.At(3);
 
     ASSERT(!path.IsNull());
     ASSERT(!option_keys.IsNull());

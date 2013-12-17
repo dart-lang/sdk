@@ -62,8 +62,8 @@ class Message {
     };
     var keys = options.keys.toList();
     var values = options.values.toList();
-    var request = [path, keys, values];
-    sendServiceMessage(sendPort, receivePort, request);
+    var request = [receivePort.sendPort, path, keys, values];
+    sendServiceMessage(sendPort, request);
     return _completer.future;
   }
 

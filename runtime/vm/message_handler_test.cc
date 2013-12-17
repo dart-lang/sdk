@@ -123,7 +123,7 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
   EXPECT_EQ(0, handler.notify_count());
 
   // Post a message.
-  Message* message = new Message(0, 0, NULL, 0, Message::kNormalPriority);
+  Message* message = new Message(0, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message);
 
   // The notify callback is called.
@@ -135,7 +135,7 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
   delete message;
 
   // Post an oob message.
-  message = new Message(0, 0, NULL, 0, Message::kOOBPriority);
+  message = new Message(0, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(message);
 
   // The notify callback is called.
@@ -151,9 +151,9 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
 UNIT_TEST_CASE(MessageHandler_ClosePort) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Message* message1 = new Message(1, 0, NULL, 0, Message::kNormalPriority);
+  Message* message1 = new Message(1, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message1);
-  Message* message2 = new Message(2, 0, NULL, 0, Message::kNormalPriority);
+  Message* message2 = new Message(2, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message2);
 
   handler_peer.ClosePort(1);
@@ -169,9 +169,9 @@ UNIT_TEST_CASE(MessageHandler_ClosePort) {
 UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Message* message1 = new Message(1, 0, NULL, 0, Message::kNormalPriority);
+  Message* message1 = new Message(1, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message1);
-  Message* message2 = new Message(2, 0, NULL, 0, Message::kNormalPriority);
+  Message* message2 = new Message(2, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message2);
 
   handler_peer.CloseAllPorts();
@@ -187,13 +187,13 @@ UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
   Dart_Port port1 = PortMap::CreatePort(&handler);
   Dart_Port port2 = PortMap::CreatePort(&handler);
   Dart_Port port3 = PortMap::CreatePort(&handler);
-  Message* message1 = new Message(port1, 0, NULL, 0, Message::kNormalPriority);
+  Message* message1 = new Message(port1, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message1);
-  Message* oob_message1 = new Message(port2, 0, NULL, 0, Message::kOOBPriority);
+  Message* oob_message1 = new Message(port2, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(oob_message1);
-  Message* message2 = new Message(port2, 0, NULL, 0, Message::kNormalPriority);
+  Message* message2 = new Message(port2, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message2);
-  Message* oob_message2 = new Message(port3, 0, NULL, 0, Message::kOOBPriority);
+  Message* oob_message2 = new Message(port3, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(oob_message2);
 
   // We handle both oob messages and a single normal message.
@@ -214,13 +214,13 @@ UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
   Dart_Port port2 = PortMap::CreatePort(&handler);
   Dart_Port port3 = PortMap::CreatePort(&handler);
   Dart_Port port4 = PortMap::CreatePort(&handler);
-  Message* message1 = new Message(port1, 0, NULL, 0, Message::kNormalPriority);
+  Message* message1 = new Message(port1, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message1);
-  Message* message2 = new Message(port2, 0, NULL, 0, Message::kNormalPriority);
+  Message* message2 = new Message(port2, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message2);
-  Message* oob_message1 = new Message(port3, 0, NULL, 0, Message::kOOBPriority);
+  Message* oob_message1 = new Message(port3, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(oob_message1);
-  Message* oob_message2 = new Message(port4, 0, NULL, 0, Message::kOOBPriority);
+  Message* oob_message2 = new Message(port4, NULL, 0, Message::kOOBPriority);
   handler_peer.PostMessage(oob_message2);
 
   // We handle both oob messages but no normal messages.
@@ -246,7 +246,7 @@ static void SendMessages(uword param) {
   MessageHandlerTestPeer handler_peer(handler);
   for (int i = 0; i < info->count; i++) {
     Message* message =
-        new Message(info->ports[i], 0, NULL, 0, Message::kNormalPriority);
+        new Message(info->ports[i], NULL, 0, Message::kNormalPriority);
     handler_peer.PostMessage(message);
   }
 }
@@ -267,7 +267,7 @@ UNIT_TEST_CASE(MessageHandler_Run) {
               TestEndFunction,
               reinterpret_cast<uword>(&handler));
   Dart_Port port = PortMap::CreatePort(&handler);
-  Message* message = new Message(port, 0, NULL, 0, Message::kNormalPriority);
+  Message* message = new Message(port, NULL, 0, Message::kNormalPriority);
   handler_peer.PostMessage(message);
 
   // Wait for the first message to be handled.

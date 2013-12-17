@@ -167,7 +167,6 @@ class DartLibraryCalls : public AllStatic {
 
   // Returns null on success, a RawError on failure.
   static RawObject* HandleMessage(const Object& receive_port,
-                                  Dart_Port reply_port_id,
                                   const Instance& dart_message);
 
   // On success returns new SendPort, on failure returns a RawError.

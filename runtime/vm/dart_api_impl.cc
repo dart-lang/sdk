@@ -1055,7 +1055,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   writer.WriteMessage(object);
   intptr_t len = writer.BytesWritten();
   return PortMap::PostMessage(new Message(
-      port_id, Message::kIllegalPort, data, len, Message::kNormalPriority));
+      port_id, data, len, Message::kNormalPriority));
 }
 
 

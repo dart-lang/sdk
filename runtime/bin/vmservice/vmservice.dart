@@ -87,5 +87,5 @@ class VMService extends MessageRouter {
   }
 }
 
-void sendServiceMessage(SendPort sp, ReceivePort rp, Object m)
+void sendServiceMessage(SendPort sp, Object m)
     native "VMService_SendServiceMessage";
