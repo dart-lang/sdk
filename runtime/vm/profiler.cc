@@ -472,7 +472,8 @@ int ProfilerSampleStackWalker::walk() {
     // Stack pointer should not be above frame pointer.
     return 0;
   }
-  if ((original_fp_ - original_sp_) >= kMaxStep) {
+  intptr_t gap = original_fp_ - original_sp_;
+  if (gap >= kMaxStep) {
     // Gap between frame pointer and stack pointer is
     // too large.
     return 0;
