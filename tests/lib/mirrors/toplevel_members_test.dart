@@ -29,13 +29,14 @@ main() {
      MirrorSystem.getSymbol('_libraryGetter', lm),
      MirrorSystem.getSymbol('_librarySetter=', lm),
      MirrorSystem.getSymbol('_libraryMethod', lm),
-     #Predicate,
-     #Superclass,
-     #Interface,
-     #Mixin,
-     #Class,
-     MirrorSystem.getSymbol('_PrivateClass', lm),
-     #ConcreteClass],
+     #Predicate,  /// 01: ok
+     #Superclass,  /// 01: continued
+     #Interface,  /// 01: continued
+     #Mixin,  /// 01: continued
+     #Class,  /// 01: continued
+     MirrorSystem.getSymbol('_PrivateClass', lm),  /// 01: continued
+     #ConcreteClass  /// 01: continued
+     ],
     selectKeys(lm.topLevelMembers, (dm) => true));
 
   Expect.setEquals(
@@ -43,12 +44,13 @@ main() {
      const Symbol('libraryVariable='),
      MirrorSystem.getSymbol('_libraryVariable', lm),
      MirrorSystem.getSymbol('_libraryVariable=', lm),
-     #Predicate,
-     #Superclass,
-     #Interface,
-     #Mixin,
-     #Class,
-     MirrorSystem.getSymbol('_PrivateClass', lm),
-     #ConcreteClass],
+     #Predicate,  /// 01: continued
+     #Superclass,  /// 01: continued
+     #Interface,  /// 01: continued
+     #Mixin,  /// 01: continued
+     #Class,  /// 01: continued
+     MirrorSystem.getSymbol('_PrivateClass', lm),  /// 01: continued
+     #ConcreteClass  /// 01: continued
+     ],
     selectKeys(lm.topLevelMembers, (dm) => dm.isSynthetic));
 }
