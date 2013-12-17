@@ -302,7 +302,7 @@ class CompileType : public ValueObject {
   // Create None CompileType. It is the bottom of the lattice and is used to
   // represent type of the phi that was not yet inferred.
   static CompileType None() {
-    return CompileType(true, kIllegalCid, NULL);
+    return CompileType(kNullable, kIllegalCid, NULL);
   }
 
   // Create Dynamic CompileType. It is the top of the lattice and is used to
