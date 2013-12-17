@@ -22,6 +22,8 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
   pc = static_cast<uintptr_t>(mcontext.gregs[REG_EIP]);
 #elif defined(TARGET_ARCH_ARM)
   pc = static_cast<uintptr_t>(mcontext.arm_pc);
+#elif defined(TARGET_ARCH_MIPS)
+  pc = static_cast<uintptr_t>(mcontext.pc);
 #else
   UNIMPLEMENTED();
 #endif  // TARGET_ARCH_...
@@ -42,6 +44,8 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   fp = static_cast<uintptr_t>(mcontext.gregs[REG_EBP]);
 #elif defined(TARGET_ARCH_ARM)
   fp = static_cast<uintptr_t>(mcontext.arm_fp);
+#elif defined(TARGET_ARCH_MIPS)
+  fp = static_cast<uintptr_t>(mcontext.gregs[30]);
 #else
   UNIMPLEMENTED();
 #endif  // TARGET_ARCH_...
@@ -63,6 +67,8 @@ uintptr_t SignalHandler::GetStackPointer(const mcontext_t& mcontext) {
   sp = static_cast<uintptr_t>(mcontext.gregs[REG_ESP]);
 #elif defined(TARGET_ARCH_ARM)
   sp = static_cast<uintptr_t>(mcontext.arm_sp);
+#elif defined(TARGET_ARCH_MIPS)
+  sp = static_cast<uintptr_t>(mcontext.gregs[29]);
 #else
   UNIMPLEMENTED();
 #endif  // TARGET_ARCH_...
