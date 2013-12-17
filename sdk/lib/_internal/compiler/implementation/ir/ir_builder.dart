@@ -118,7 +118,7 @@ class IrBuilderTask extends CompilerTask {
   }
 
   void unlinkTreeAndToken(element) {
-    // Ensure the funciton signature has been computed (requires the AST).
+    // Ensure the function signature has been computed (requires the AST).
     assert(element is !FunctionElementX || element.functionSignature != null);
     bool isCheckedMode = false;
     assert((isCheckedMode = true));

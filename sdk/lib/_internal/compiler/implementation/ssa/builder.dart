@@ -1055,7 +1055,7 @@ abstract class SsaGraphBuilderMixin<N> {
       compiledArguments = completeDynamicSendArgumentsList(
           selector, function, providedArguments);
     }
-    setupInliningState(function, compiledArguments);
+    setupInliningState(function, currentNode, compiledArguments);
   }
 
   /**
@@ -1128,6 +1128,7 @@ abstract class SsaGraphBuilderMixin<N> {
   }
 
   void setupInliningState(FunctionElement function,
+                          N currentNode,
                           List<HInstruction> compiledArguments);
 
   void leaveInlinedMethod();
@@ -1281,7 +1282,7 @@ abstract class SsaGraphBuilderMixin<N> {
     return false;
   }
 
-  void doInline(Element element);
+  void doInline(FunctionElement function);
 
   inlinedFrom(Element element, f()) {
     assert(element is FunctionElement || element is VariableElement);
@@ -1337,8 +1338,6 @@ abstract class SsaGraphBuilderFields<N> implements SsaGraphBuilderMixin<N> {
   bool inThrowExpression = false;
 
   int loopNesting = 0;
-
-  final List<InliningState> inliningStack = <InliningState>[];
 
   final List<Element> sourceElementStack = <Element>[];
 }
@@ -1408,6 +1407,8 @@ class SsaBuilder extends ResolvedVisitor
     localsHandler = new LocalsHandler(this);
     sourceElementStack.add(work.element);
   }
+
+  final List<AstInliningState> inliningStack = <AstInliningState>[];
 
   Element returnElement;
   DartType returnType;
@@ -1595,8 +1596,9 @@ class SsaBuilder extends ResolvedVisitor
   }
 
   void setupInliningState(FunctionElement function,
+                          Node _,
                           List<HInstruction> compiledArguments) {
-    InliningState state = new InliningState(
+    AstInliningState state = new AstInliningState(
         function, returnElement, returnType, elements, stack,
         localsHandler, inTryStatement);
     inTryStatement = false; // TODO(lry): why? Document.
@@ -1647,7 +1649,7 @@ class SsaBuilder extends ResolvedVisitor
   }
 
   void leaveInlinedMethod() {
-    InliningState state = inliningStack.removeLast();
+    AstInliningState state = inliningStack.removeLast();
     elements = state.oldElements;
     stack.add(localsHandler.readLocal(returnElement));
     returnElement = state.oldReturnElement;
@@ -1668,10 +1670,6 @@ class SsaBuilder extends ResolvedVisitor
       IrFunction irFunction = compiler.irBuilder.getIr(function);
       SsaFromIrInliner irInliner = new SsaFromIrInliner(this);
       irInliner.visitAll(irFunction.statements);
-      // The [IrInliner] does not push the final instruction on the [stack].
-      // In a way, this violates the invariant of the [SsaBuilder], however
-      // it works just fine because [leaveInlinedMethod] will restore the
-      // stack of the callee and push the value of the [returnElement].
     } else {
       FunctionExpression functionNode = function.parseNode(compiler);
       functionNode.body.accept(this);
@@ -5784,13 +5782,18 @@ class InlineWeeder extends Visitor {
   }
 }
 
-class InliningState {
+abstract class InliningState {
   /**
-   * Documentation wanted -- johnniwinther
-   *
    * Invariant: [function] must be an implementation element.
    */
   final FunctionElement function;
+
+  InliningState(this.function) {
+    assert(function.isImplementation);
+  }
+}
+
+class AstInliningState extends InliningState {
   final Element oldReturnElement;
   final DartType oldReturnType;
   final TreeElements oldElements;
@@ -5798,15 +5801,19 @@ class InliningState {
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
 
-  InliningState(this.function,
-                this.oldReturnElement,
-                this.oldReturnType,
-                this.oldElements,
-                this.oldStack,
-                this.oldLocalsHandler,
-                this.inTryStatement) {
-    assert(function.isImplementation);
-  }
+  AstInliningState(FunctionElement function,
+                   this.oldReturnElement,
+                   this.oldReturnType,
+                   this.oldElements,
+                   this.oldStack,
+                   this.oldLocalsHandler,
+                   this.inTryStatement): super(function);
+}
+
+class IrInliningState extends InliningState {
+  final IrNode invokeNode;
+
+  IrInliningState(FunctionElement function, this.invokeNode) : super(function);
 }
 
 class SsaBranch {

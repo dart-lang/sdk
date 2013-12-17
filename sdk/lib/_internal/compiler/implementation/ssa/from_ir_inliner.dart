@@ -14,6 +14,8 @@ class SsaFromIrInliner
 
   SsaFromIrInliner(this.builder);
 
+  final List<IrExpression> inlinedCalls = <IrExpression>[];
+
   Compiler get compiler => builder.compiler;
 
   JavaScriptBackend get backend => builder.backend;
@@ -49,16 +51,22 @@ class SsaFromIrInliner
   List<Element> get sourceElementStack => builder.sourceElementStack;
 
   void setupInliningState(FunctionElement function,
+                          IrNode callNode,
                           List<HInstruction> compiledArguments) {
-    builder.setupInliningState(function, compiledArguments);
+    inlinedCalls.add(callNode);
+    // The [SsaBuilder] does not use the [currentNode].
+    builder.setupInliningState(function, null, compiledArguments);
   }
 
   void leaveInlinedMethod() {
     builder.leaveInlinedMethod();
+    // [leaveInlinedMethod] pushes the returned value on the builder's stack,
+    // no matter if the inlined function is represented in AST or IR.
+    emitted[inlinedCalls.removeLast()] = builder.pop();
   }
 
-  void doInline(Element element) {
-    builder.doInline(element);
+  void doInline(FunctionElement function) {
+    builder.doInline(function);
   }
 
   void emitReturn(HInstruction value, IrReturn node) {
