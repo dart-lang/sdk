@@ -12,8 +12,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 import '../../../compiler/compiler.dart' as compiler;
-import '../../../compiler/implementation/source_file_provider.dart'
-    show FormattingDiagnosticHandler, CompilerSourceFileProvider;
 import '../../../compiler/implementation/filenames.dart'
     show appendSlash;
 
@@ -53,7 +51,7 @@ abstract class CompilerProvider {
 /// if [packageRoot] is passed that will be used instead.
 Future compile(String entrypoint, CompilerProvider provider, {
     String packageRoot, bool toDart: false, bool minify: true}) {
-  return new Future.sync(() {
+  return syncFuture(() {
     var options = <String>['--categories=Client,Server'];
     if (toDart) options.add('--output-type=dart');
     if (minify) options.add('--minify');
@@ -62,14 +60,14 @@ Future compile(String entrypoint, CompilerProvider provider, {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
     }
 
-    return compiler.compile(
+    return Chain.track(compiler.compile(
         path.toUri(entrypoint),
         path.toUri(appendSlash(_libPath)),
         path.toUri(appendSlash(packageRoot)),
         provider.provideInput,
         provider.handleDiagnostic,
         options,
-        provider.provideOutput);
+        provider.provideOutput));
   });
 }
 
@@ -106,15 +104,16 @@ Future runInIsolate(String code, message) {
     var dartPath = path.join(dir, 'runInIsolate.dart');
     writeTextFile(dartPath, code, dontLogContents: true);
     var port = new ReceivePort();
-    return Isolate.spawn(_isolateBuffer, {
+    return Chain.track(Isolate.spawn(_isolateBuffer, {
       'replyTo': port.sendPort,
       'uri': path.toUri(dartPath).toString(),
       'message': message
-    }).then((_) => port.first).then((response) {
+    })).then((_) => port.first).then((response) {
       if (response['type'] == 'success') return null;
       assert(response['type'] == 'error');
       return new Future.error(
-          new CrossIsolateException.deserialize(response['error']));
+          new CrossIsolateException.deserialize(response['error']),
+          new Chain.current());
     });
   });
 }
@@ -127,7 +126,8 @@ Future runInIsolate(String code, message) {
 /// Adding an additional isolate in the middle works around this.
 void _isolateBuffer(message) {
   var replyTo = message['replyTo'];
-  Isolate.spawnUri(Uri.parse(message['uri']), [], message['message'])
+  Chain.track(Isolate.spawnUri(
+          Uri.parse(message['uri']), [], message['message']))
       .then((_) => replyTo.send({'type': 'success'}))
       .catchError((e, stack) {
     replyTo.send({

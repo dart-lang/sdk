@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';
+import '../utils.dart';
 import '../validator.dart';
 
 /// A validator that validates a package's top-level directories.
@@ -22,7 +23,7 @@ class DirectoryValidator extends Validator {
   ];
 
   Future validate() {
-    return new Future.sync(() {
+    return syncFuture(() {
       for (var dir in listDir(entrypoint.root.dir)) {
         if (!dirExists(dir)) continue;
 

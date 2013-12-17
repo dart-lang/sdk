@@ -15,7 +15,6 @@ import '../http.dart';
 import '../io.dart';
 import '../log.dart' as log;
 import '../oauth2.dart' as oauth2;
-import '../sdk.dart' as sdk;
 import '../source/hosted.dart';
 import '../utils.dart';
 import '../validator.dart';

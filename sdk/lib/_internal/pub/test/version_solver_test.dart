@@ -15,6 +15,7 @@ import '../lib/src/pubspec.dart';
 import '../lib/src/sdk.dart' as sdk;
 import '../lib/src/source.dart';
 import '../lib/src/system_cache.dart';
+import '../lib/src/utils.dart';
 import '../lib/src/version.dart';
 import '../lib/src/solver/version_solver.dart';
 import 'test_pub.dart';
@@ -1270,7 +1271,7 @@ class MockSource extends Source {
   }
 
   Future<List<Version>> getVersions(String name, String description) {
-    return new Future.sync(() {
+    return syncFuture(() {
       // Make sure the solver doesn't request the same thing twice.
       if (_requestedVersions.contains(description)) {
         throw new Exception('Version list for $description was already '
@@ -1289,7 +1290,7 @@ class MockSource extends Source {
   }
 
   Future<Pubspec> describe(PackageId id) {
-    return new Future.sync(() {
+    return syncFuture(() {
       // Make sure the solver doesn't request the same thing twice.
       if (_requestedPubspecs.containsKey(id.description) &&
           _requestedPubspecs[id.description].contains(id.version)) {

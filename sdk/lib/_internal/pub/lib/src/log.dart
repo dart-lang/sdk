@@ -6,7 +6,6 @@
 library pub.log;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
 
 import 'io.dart';

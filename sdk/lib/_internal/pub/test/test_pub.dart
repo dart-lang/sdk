@@ -837,7 +837,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
   return schedule(() {
     var cache = new SystemCache.withSources(path.join(sandboxDir, cachePath));
 
-    return new Future.sync(() {
+    return syncFuture(() {
       var validator = fn(new Entrypoint(path.join(sandboxDir, appPath), cache));
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);

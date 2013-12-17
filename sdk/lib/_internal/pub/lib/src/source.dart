@@ -7,6 +7,7 @@ library pub.source;
 import 'dart:async';
 
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 
 import 'io.dart';
 import 'package.dart';
@@ -203,7 +204,8 @@ abstract class Source {
   /// This doesn't need to be implemented if [shouldCache] is false.
   Future<String> systemCacheDirectory(PackageId id) {
     return new Future.error(
-        "systemCacheDirectory() must be implemented if shouldCache is true.");
+        "systemCacheDirectory() must be implemented if shouldCache is true.",
+        new Chain.current());
   }
 
   /// When a [Pubspec] or [LockFile] is parsed, it reads in the description for

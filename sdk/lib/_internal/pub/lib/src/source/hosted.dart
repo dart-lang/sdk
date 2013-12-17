@@ -78,7 +78,7 @@ class HostedSource extends Source {
 
   /// Downloads a package from the site and unpacks it.
   Future<bool> get(PackageId id, String destPath) {
-    return new Future.sync(() {
+    return syncFuture(() {
       var url = _makeVersionUrl(id, (server, package, version) =>
           "$server/packages/$package/versions/$version.tar.gz");
       log.io("Get package from $url.");

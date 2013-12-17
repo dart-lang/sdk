@@ -20,7 +20,7 @@ class PathSource extends Source {
   final shouldCache = false;
 
   Future<Pubspec> describeUncached(PackageId id) {
-    return new Future.sync(() {
+    return syncFuture(() {
       var dir = _validatePath(id.name, id.description);
       return new Pubspec.load(dir, systemCache.sources,
           expectedName: id.name);
@@ -35,7 +35,7 @@ class PathSource extends Source {
   }
 
   Future<bool> get(PackageId id, String destination) {
-    return new Future.sync(() {
+    return syncFuture(() {
       try {
         var dir = _validatePath(id.name, id.description);
         createPackageSymlink(id.name, dir, destination,

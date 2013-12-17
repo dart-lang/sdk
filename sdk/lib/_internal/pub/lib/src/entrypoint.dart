@@ -80,7 +80,7 @@ class Entrypoint {
     var packageDir = path.join(packagesDir, id.name);
     var source;
 
-    var future = new Future.sync(() {
+    var future = syncFuture(() {
       ensureDir(path.dirname(packageDir));
 
       if (entryExists(packageDir)) {
@@ -126,7 +126,7 @@ class Entrypoint {
       bool upgradeAll: false}) {
     var numChanged = 0;
 
-    return new Future.sync(() {
+    return syncFuture(() {
       return resolveVersions(cache.sources, root, lockFile: loadLockFile(),
           useLatest: useLatest, upgradeAll: upgradeAll);
     }).then((result) {
@@ -212,7 +212,7 @@ class Entrypoint {
   /// Gets dependencies if the lockfile is out of date with respect to the
   /// pubspec.
   Future ensureLockFileIsUpToDate() {
-    return new Future.sync(() {
+    return syncFuture(() {
       var lockFile = loadLockFile();
 
       // If we don't have a current lock file, we definitely need to install.
