@@ -133,7 +133,7 @@ void Profiler::BeginExecution(Isolate* isolate) {
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(Sample::kIsolateStart, isolate, OS::GetCurrentTimeMicros(),
                Thread::GetCurrentThreadId());
-  ThreadInterrupter::Register(ThreadInterruptNoOp, isolate);
+  ThreadInterrupter::Register(RecordSampleInterruptCallback, isolate);
 }
 
 
@@ -462,11 +462,21 @@ ProfilerSampleStackWalker::ProfilerSampleStackWalker(Sample* sample,
 
 
 int ProfilerSampleStackWalker::walk() {
+  const intptr_t kMaxStep = 0x1000;  // 4K.
   uword* pc = reinterpret_cast<uword*>(original_pc_);
 #define WALK_STACK
 #if defined(WALK_STACK)
   uword* fp = reinterpret_cast<uword*>(original_fp_);
   uword* previous_fp = fp;
+  if (original_sp_ > original_fp_) {
+    // Stack pointer should not be above frame pointer.
+    return 0;
+  }
+  if ((original_fp_ - original_sp_) >= kMaxStep) {
+    // Gap between frame pointer and stack pointer is
+    // too large.
+    return 0;
+  }
   if (original_sp_ < lower_bound_) {
     // The stack pointer gives us a better lower bound than
     // the isolates stack limit.
@@ -481,8 +491,11 @@ int ProfilerSampleStackWalker::walk() {
     pc = CallerPC(fp);
     previous_fp = fp;
     fp = CallerFP(fp);
-    if ((fp <= previous_fp) || !ValidFramePointer(fp)) {
-      // Frame pointers should only move to higher addresses.
+    intptr_t step = fp - previous_fp;
+    if ((step >= kMaxStep) || (fp <= previous_fp) || !ValidFramePointer(fp)) {
+      // Frame pointer step is too large.
+      // Frame pointer did not move to a higher address.
+      // Frame pointer is outside of isolate stack bounds.
       break;
     }
     // Move the lower bound up.

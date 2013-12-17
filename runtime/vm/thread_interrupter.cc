@@ -352,6 +352,7 @@ void ThreadInterruptNoOp(const InterruptedThreadState& state, void* data) {
   // NoOp.
 }
 
+
 void ThreadInterrupter::ThreadMain(uword parameters) {
   ASSERT(initialized_);
   InstallSignalHandler();
