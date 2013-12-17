@@ -386,6 +386,21 @@ void main() {
           '$userSlashCode 10:11  Foo.bar\n'
           'dart:core             Bar.baz\n'));
     });
+
+    test("doesn't return in an empty chain", () {
+      var chain = new Chain([
+        new Trace.parse(
+            'dart:core 10:11                             Foo.bar\n'
+            'package:stack_trace/stack_trace.dart 10:11  Bar.baz\n'
+            'dart:core 10:11                             Zip.zap'),
+        new Trace.parse(
+            'dart:core 10:11                             A.b\n'
+            'package:stack_trace/stack_trace.dart 10:11  C.d\n'
+            'dart:core 10:11                             E.f')
+      ]);
+
+      expect(chain.terse.toString(), equals('dart:core  E.f\n'));
+    });
   });
 
   test('Chain.toTrace eliminates asynchronous gaps', () {
