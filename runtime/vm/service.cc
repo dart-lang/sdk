@@ -4,6 +4,7 @@
 
 #include "vm/service.h"
 
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/heap_histogram.h"
@@ -266,14 +267,23 @@ static void HandleObjects(Isolate* isolate, JSONStream* js) {
 }
 
 
+static void HandleCpu(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "CPU");
+  jsobj.AddProperty("architecture", CPU::Id());
+}
+
+
+// Alphabetical order.
 static ServiceMessageHandlerEntry __message_handlers[] = {
-  { "name", HandleName },
-  { "stacktrace", HandleStackTrace },
-  { "objecthistogram", HandleObjectHistogram},
-  { "library", HandleLibrary },
-  { "classes", HandleClasses },
-  { "objects", HandleObjects },
   { "_echo", HandleEcho },
+  { "classes", HandleClasses },
+  { "cpu", HandleCpu },
+  { "library", HandleLibrary },
+  { "name", HandleName },
+  { "objecthistogram", HandleObjectHistogram},
+  { "objects", HandleObjects },
+  { "stacktrace", HandleStackTrace },
 };
 
 
