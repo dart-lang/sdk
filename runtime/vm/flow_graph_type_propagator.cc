@@ -808,17 +808,23 @@ CompileType RelationalOpInstr::ComputeType() const {
 
 
 CompileType CurrentContextInstr::ComputeType() const {
-  return CompileType::FromCid(kContextCid);
+  return CompileType(CompileType::kNonNullable,
+                     kContextCid,
+                     &AbstractType::ZoneHandle(Type::DynamicType()));
 }
 
 
 CompileType CloneContextInstr::ComputeType() const {
-  return CompileType::FromCid(kContextCid);
+  return CompileType(CompileType::kNonNullable,
+                     kContextCid,
+                     &AbstractType::ZoneHandle(Type::DynamicType()));
 }
 
 
 CompileType AllocateContextInstr::ComputeType() const {
-  return CompileType::FromCid(kContextCid);
+  return CompileType(CompileType::kNonNullable,
+                     kContextCid,
+                     &AbstractType::ZoneHandle(Type::DynamicType()));
 }
 
 

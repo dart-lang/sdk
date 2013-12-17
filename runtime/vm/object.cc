@@ -143,7 +143,6 @@ RawClass* Object::language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unhandled_exception_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-#undef RAW_NULL
 
 
 const double MegamorphicCache::kLoadFactor = 0.75;
@@ -1612,7 +1611,12 @@ RawType* Class::SignatureType() const {
   // finalization time. The optimizer may canonicalize instantiated function
   // types of the same signature class, but these will be added after the
   // uninstantiated signature class at index 0.
-  const Array& signature_types = Array::Handle(canonical_types());
+  Array& signature_types = Array::Handle();
+  signature_types ^= canonical_types();
+  if (signature_types.IsNull()) {
+    set_canonical_types(empty_array());
+    signature_types ^= canonical_types();
+  }
   // The canonical_types array is initialized to the empty array.
   ASSERT(!signature_types.IsNull());
   if (signature_types.Length() > 0) {
@@ -1736,7 +1740,6 @@ void Class::InitEmptyFields() {
   }
   StorePointer(&raw_ptr()->interfaces_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->constants_, Object::empty_array().raw());
-  StorePointer(&raw_ptr()->canonical_types_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->fields_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->invocation_dispatcher_cache_,
@@ -2719,11 +2722,11 @@ void Class::set_constants(const Array& value) const {
 }
 
 
-RawArray* Class::canonical_types() const {
+RawObject* Class::canonical_types() const {
   return raw_ptr()->canonical_types_;
 }
 
-void Class::set_canonical_types(const Array& value) const {
+void Class::set_canonical_types(const Object& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->canonical_types_, value.raw());
 }
@@ -11229,13 +11232,16 @@ RawType* Instance::GetType() const {
     return Type::NullType();
   }
   const Class& cls = Class::Handle(clazz());
-  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
-  if (cls.NumTypeArguments() > 0) {
-    type_arguments = GetTypeArguments();
+  Type& type = Type::Handle(cls.CanonicalType());
+  if (type.IsNull()) {
+    AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
+    if (cls.NumTypeArguments() > 0) {
+      type_arguments = GetTypeArguments();
+    }
+    type = Type::New(cls, type_arguments, Scanner::kDummyTokenIndex);
+    type.SetIsFinalized();
+    type ^= type.Canonicalize();
   }
-  const Type& type = Type::Handle(
-      Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
-  type.SetIsFinalized();
   return type.raw();
 }
 
@@ -11959,13 +11965,23 @@ RawType* Type::Function() {
 
 RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
-  const TypeArguments& no_type_arguments = TypeArguments::Handle();
-  Type& type = Type::Handle();
-  type ^= Type::New(Object::Handle(type_class.raw()),
-                    no_type_arguments,
-                    Scanner::kDummyTokenIndex);
-  type.SetIsFinalized();
-  type ^= type.Canonicalize();
+  if (type_class.raw() == Object::dynamic_class()) {
+    // If the dynamic type has not been setup in the VM isolate, then we need
+    // to allocate it here.
+    if (Object::dynamic_type() != reinterpret_cast<RawType*>(RAW_NULL)) {
+      return Object::dynamic_type();
+    }
+    ASSERT(Isolate::Current() == Dart::vm_isolate());
+  }
+  Type& type = Type::Handle(type_class.CanonicalType());
+  if (type.IsNull()) {
+    const TypeArguments& no_type_arguments = TypeArguments::Handle();
+    type ^= Type::New(Object::Handle(type_class.raw()),
+                      no_type_arguments,
+                      Scanner::kDummyTokenIndex);
+    type.SetIsFinalized();
+    type ^= type.Canonicalize();
+  }
   return type.raw();
 }
 
@@ -12202,18 +12218,35 @@ RawAbstractType* Type::Canonicalize() const {
     ASSERT(IsMalformed() || AbstractTypeArguments::Handle(arguments()).IsOld());
     return this->raw();
   }
-  const Class& cls = Class::Handle(type_class());
-  Array& canonical_types = Array::Handle(cls.canonical_types());
+  Isolate* isolate = Isolate::Current();
+  Type& type = Type::Handle(isolate);
+  const Class& cls = Class::Handle(isolate, type_class());
+  if (cls.raw() == Object::dynamic_class() && (isolate != Dart::vm_isolate())) {
+    return Object::dynamic_type();
+  }
+  // Fast canonical lookup/registry for simple types.
+  if ((cls.NumTypeArguments() == 0) && !cls.IsSignatureClass()) {
+    type = cls.CanonicalType();
+    if (type.IsNull()) {
+      ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
+      cls.set_canonical_types(*this);
+      SetCanonical();
+      return this->raw();
+    }
+    ASSERT(this->Equals(type));
+    return type.raw();
+  }
+
+  Array& canonical_types = Array::Handle(isolate);
+  canonical_types ^= cls.canonical_types();
   if (canonical_types.IsNull()) {
-    // Types defined in the VM isolate are canonicalized via the object store.
-    return this->raw();
+    canonical_types = empty_array().raw();
   }
   const intptr_t canonical_types_len = canonical_types.Length();
   // Linear search to see whether this type is already present in the
   // list of canonicalized types.
   // TODO(asiva): Try to re-factor this lookup code to make sharing
   // easy between the 4 versions of this loop.
-  Type& type = Type::Handle();
   intptr_t index = 0;
   while (index < canonical_types_len) {
     type ^= canonical_types.At(index);
@@ -12227,7 +12260,8 @@ RawAbstractType* Type::Canonicalize() const {
     index++;
   }
   // Canonicalize the type arguments.
-  AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(arguments());
+  AbstractTypeArguments& type_args =
+      AbstractTypeArguments::Handle(isolate, arguments());
   ASSERT(type_args.IsNull() || (type_args.Length() == cls.NumTypeArguments()));
   type_args = type_args.Canonicalize();
   set_arguments(type_args);
@@ -12235,8 +12269,8 @@ RawAbstractType* Type::Canonicalize() const {
   if (index == canonical_types_len) {
     const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
     const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
-    const Array& new_canonical_types =
-        Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
+    const Array& new_canonical_types = Array::Handle(
+        isolate, Array::Grow(canonical_types, new_length, Heap::kOld));
     cls.set_canonical_types(new_canonical_types);
     new_canonical_types.SetAt(index, *this);
   } else {
@@ -12254,11 +12288,11 @@ RawAbstractType* Type::Canonicalize() const {
     // of the super class of the owner class of its signature function will be
     // prepended to the type argument vector during class finalization.
     const TypeArguments& type_params =
-      TypeArguments::Handle(cls.type_parameters());
+      TypeArguments::Handle(isolate, cls.type_parameters());
     const intptr_t num_type_params = cls.NumTypeParameters();
     const intptr_t num_type_args = cls.NumTypeArguments();
-    TypeParameter& type_arg = TypeParameter::Handle();
-    TypeParameter& type_param = TypeParameter::Handle();
+    TypeParameter& type_arg = TypeParameter::Handle(isolate);
+    TypeParameter& type_param = TypeParameter::Handle(isolate);
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_arg ^= type_args.TypeAt(num_type_args - num_type_params + i);
       type_param ^= type_params.TypeAt(i);

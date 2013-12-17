@@ -778,6 +778,13 @@ class Class : public Object {
     return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
   }
 
+  RawType* CanonicalType() const {
+    if ((NumTypeArguments() == 0) && !IsSignatureClass()) {
+      return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
+    }
+    return reinterpret_cast<RawType*>(Object::null());
+  }
+
   // The super type of this class, Object type if not explicitly specified.
   // Note that the super type may be bounded, as in this example:
   // class C<T> extends S<T> { }; class S<T extends num> { };
@@ -1084,8 +1091,8 @@ class Class : public Object {
 
   void set_constants(const Array& value) const;
 
-  void set_canonical_types(const Array& value) const;
-  RawArray* canonical_types() const;
+  void set_canonical_types(const Object& value) const;
+  RawObject* canonical_types() const;
 
   RawArray* invocation_dispatcher_cache() const;
   void set_invocation_dispatcher_cache(const Array& cache) const;
