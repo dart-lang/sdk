@@ -111,6 +111,10 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return type;
   }
 
+  TypeMask allocateClosure(Node node, Element element) {
+    return functionType;
+  }
+
   Selector newTypedSelector(TypeMask receiver, Selector selector) {
     return new TypedSelector(receiver, selector);
   }
@@ -566,10 +570,7 @@ class SimpleTypeInferrerVisitor<T>
 
     // Record the types of captured non-boxed variables. Types of
     // these variables may already be there, because of an analysis of
-    // a previous closure. Note that analyzing the same closure multiple
-    // times closure will refine the type of those variables, therefore
-    // [:inferrer.typeOf[variable]:] is not necessarilly null, nor the
-    // same as [newType].
+    // a previous closure.
     ClosureClassMap nestedClosureData =
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
     nestedClosureData.forEachCapturedVariable((variable, field) {
@@ -584,7 +585,19 @@ class SimpleTypeInferrerVisitor<T>
       capturedVariables.add(variable);
     });
 
-    return types.functionType;
+    return inferrer.concreteTypes.putIfAbsent(node, () {
+      return types.allocateClosure(node, element);
+    });
+  }
+
+  T visitFunctionDeclaration(FunctionDeclaration node) {
+    Element element = elements[node];
+    T type = inferrer.concreteTypes.putIfAbsent(node.function, () {
+      return types.allocateClosure(node.function, element);
+    });
+    locals.update(element, type, node);
+    visit(node.function);
+    return type;
   }
 
   T visitLiteralList(LiteralList node) {

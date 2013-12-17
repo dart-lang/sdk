@@ -55,6 +55,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Map<Node, TypeInformation> allocatedLists =
       new Map<Node, TypeInformation>();
 
+  /// [ClosureTypeInformation] for allocated closures.
+  final Map<Node, TypeInformation> allocatedClosures =
+      new Map<Node, TypeInformation>();
+
   /// Cache of [ConcreteTypeInformation].
   final Map<TypeMask, TypeInformation> concreteTypes =
       new Map<TypeMask, TypeInformation>();
@@ -298,6 +302,11 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
         new ListTypeInformation(mask, element, length);
   }
 
+  TypeInformation allocateClosure(Node node, Element element) {
+    return allocatedClosures[node] =
+        new ClosureTypeInformation(node, element);
+  }
+
   TypeInformation allocateMap(TypeInformation keyType,
                               TypeInformation valueType,
                               ConcreteTypeInformation type) {
@@ -479,6 +488,16 @@ class TypeGraphInferrerEngine
       workQueue.add(info.elementType);
     });
 
+    types.allocatedClosures.values.forEach((ClosureTypeInformation info) {
+      ClosureTracerVisitor tracer = new ClosureTracerVisitor(info, this);
+      tracer.run();
+      if (!tracer.continueAnalyzing) return;
+      FunctionElement element = info.element;
+      element.functionSignature.forEachParameter((parameter) {
+        workQueue.add(types.getInferredTypeOf(parameter));
+      });
+    });
+
     // Reset all nodes that use lists that have been inferred, as well
     // as nodes that use elements fetched from these lists. The
     // workset for a new run of the analysis will be these nodes.
@@ -609,6 +628,7 @@ class TypeGraphInferrerEngine
   void buildWorkQueue() {
     workQueue.addAll(types.typeInformations.values);
     workQueue.addAll(types.allocatedTypes);
+    workQueue.addAll(types.allocatedClosures.values);
     workQueue.addAll(allocatedCalls);
   }
 
@@ -621,7 +641,7 @@ class TypeGraphInferrerEngine
                                   Element callee,
                                   ArgumentsTypes arguments,
                                   Selector selector,
-                                  {bool remove, bool init: false}) {
+                                  {bool remove, bool addToQueue: true}) {
     if (callee.name == Compiler.NO_SUCH_METHOD) return;
     if (callee.isField()) {
       if (selector.isSetter()) {
@@ -631,7 +651,7 @@ class TypeGraphInferrerEngine
         } else {
           info.addAssignment(arguments.positional[0]);
         }
-        if (!init) workQueue.add(info);
+        if (addToQueue) workQueue.add(info);
       }
     } else if (callee.isGetter()) {
       return;
@@ -646,7 +666,7 @@ class TypeGraphInferrerEngine
         signature.forEachParameter((Element parameter) {
           ElementTypeInformation info = types.getInferredTypeOf(parameter);
           info.giveUp(this);
-          if (!init) workQueue.addAll(info.users);
+          if (addToQueue) workQueue.addAll(info.users);
         });
       }
     } else {
@@ -673,7 +693,7 @@ class TypeGraphInferrerEngine
           info.addAssignment(type);
         }
         parameterIndex++;
-        if (!init) workQueue.add(info);
+        if (addToQueue) workQueue.add(info);
       });
     }
   }
@@ -860,6 +880,7 @@ class TypeGraphInferrerEngine
     types.typeInformations.values.forEach((info) => info.clear());
     types.allocatedTypes.clear();
     types.concreteTypes.clear();
+    types.allocatedClosures.clear();
     analyzedElements.clear();
     generativeConstructorsExposingThis.clear();
   }
