@@ -195,7 +195,6 @@ def Main(argv):
   for library in [join('_chrome', 'dart2js'), join('_chrome', 'dartium'),
                   join('_internal', 'compiler'),
                   join('_internal', 'dartdoc'),
-                  join('_internal', 'pub', 'resource'),
                   join('_internal', 'lib'),
                   'async', 'collection', '_collection_dev', 'convert',
                   'core', 'crypto', 'io', 'isolate',
@@ -231,8 +230,10 @@ def Main(argv):
 
   # Copy in 7zip for Windows.
   if HOST_OS == 'win32':
+    RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'resource')
+    os.makedirs(RESOURCE)
     copytree(join(HOME, 'third_party', '7zip'),
-             join(SDK_tmp, 'lib', '_internal', 'pub', 'resource', '7zip'),
+             join(RESOURCE, '7zip'),
              ignore=ignore_patterns('.svn'))
 
   # Copy dart2js/dartdoc/pub.
