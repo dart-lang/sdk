@@ -19,6 +19,7 @@ package/package_isolate_test: Fail # Issue 12474
 io/process_invalid_arguments_test: Fail, OK
 io/directory_invalid_arguments_test: Fail, OK
 io/file_invalid_arguments_test: Fail, OK
+io/internet_address_invalid_arguments_test: Fail, OK
 io/socket_invalid_arguments_test: Fail, OK
 io/stdout_bad_argument_test: Fail, OK
 # These test have type errors on purpose and take very long to run in
