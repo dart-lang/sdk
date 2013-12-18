@@ -16,6 +16,14 @@ part of dart.core;
  *
  * * Growable list. Full implementation of the API defined in this class.
  *
+ * The default growable list, as returned by `new List()` or `[]`, keeps
+ * an internal buffer, and grows that buffer when necessary. This guarantees
+ * that a sequence of [add] operations will each execute in amortized constant
+ * time. Setting the length directly may take time proportional to the new
+ * length, and may change the internal capacity so that a following add
+ * operation will need to immediately increase the buffer capacity.
+ * Other list implementations may have different performance behavior.
+ *
  * The following code illustrates that some List implementations support
  * only a subset of the API.
  *

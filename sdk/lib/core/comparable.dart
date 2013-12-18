@@ -35,10 +35,10 @@ abstract class Comparable<T> {
   int compareTo(T other);
 
   /**
-   * Compare one comparable to another.
+   * A [Comparator] that compares one comparable to another.
    *
    * This utility function is used as the default comparator
-   * for the [List] sort function.
+   * for ordering collections, for example in the [List] sort function.
    */
   static int compare(Comparable a, Comparable b) => a.compareTo(b);
 }

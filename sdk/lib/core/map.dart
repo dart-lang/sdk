@@ -18,23 +18,36 @@ part of dart.core;
  */
 abstract class Map<K, V> {
   /**
-   * Creates a Map instance with the default implementation.
+   * Creates a Map instance with the default implementation, [LinkedHashMap].
+   *
+   * A `LinkedHashMap` requires the keys to implement compatible
+   * `operator==` and `hashCode`, and it allows null as a key.
    */
   factory Map() = LinkedHashMap<K, V>;
 
   /**
-   * Creates a Map instance that contains all key-value pairs of [other].
+   * Creates a [LinkedHashMap] instance that contains all key-value pairs of
+   * [other].
+   *
+   * A `LinkedHashMap` requires the keys to implement compatible
+   * `operator==` and `hashCode`, and it allows null as a key.
    */
   factory Map.from(Map<K, V> other) = LinkedHashMap<K, V>.from;
 
   /**
-   * Creates an identity map with the default implementation.
+   * Creates an identity map with the default implementation, [LinkedHashMap].
+   *
+   * The returned map allows `null` as a key.
    */
   factory Map.identity() = LinkedHashMap<K, V>.identity;
 
   /**
    * Creates a Map instance in which the keys and values are computed from the
    * [iterable].
+   *
+   * The created map is a [LinkedHashMap].
+   * A `LinkedHashMap` requires the keys to implement compatible
+   * `operator==` and `hashCode`, and it allows null as a key.
    *
    * For each element of the [iterable] this constructor computes a key-value
    * pair, by applying [key] and [value] respectively.
@@ -69,6 +82,10 @@ abstract class Map<K, V> {
 
   /**
    * Creates a Map instance associating the given [keys] to [values].
+   *
+   * The created map is a [LinkedHashMap].
+   * A `LinkedHashMap` requires the keys to implement compatible
+   * `operator==` and `hashCode`, and it allows null as a key.
    *
    * This constructor iterates over [keys] and [values] and maps each element of
    * [keys] to the corresponding element of [values].
