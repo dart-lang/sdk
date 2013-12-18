@@ -68,7 +68,7 @@ class TraceSummary {
       _marked = true;
       _totalSamples++;
       // Mark all symbols except the top with an inclusive tick.
-      for (int i = 1; i < _stack.length - 1; i++) {
+      for (int i = 1; i < _stack.length; i++) {
         _stack[i].inclusive++;
       }
       _stack.last.exclusive++;

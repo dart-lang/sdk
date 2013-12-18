@@ -37,12 +37,15 @@ namespace dart {
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 DEFINE_FLAG(charp, profile_dir, NULL,
             "Enable writing profile data into specified directory.");
+DEFINE_FLAG(int, profile_period, 1000,
+            "Time between profiler samples in microseconds. Minimum 250.");
 
 bool Profiler::initialized_ = false;
 Monitor* Profiler::monitor_ = NULL;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
 
 void Profiler::InitOnce() {
+  const int kMinimumProfilePeriod = 250;
   if (!FLAG_profile) {
     return;
   }
@@ -52,6 +55,10 @@ void Profiler::InitOnce() {
   sample_buffer_ = new SampleBuffer();
   NativeSymbolResolver::InitOnce();
   ThreadInterrupter::InitOnce();
+  if (FLAG_profile_period < kMinimumProfilePeriod) {
+    FLAG_profile_period = kMinimumProfilePeriod;
+  }
+  ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
 }
 
 
