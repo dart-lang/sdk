@@ -151,7 +151,12 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator ==(other) => true;
     get hashCode => throw "JSNumber.hashCode not implemented.";
 
-    _tdivFast(other) => 42;
+    // We force side effects on _tdivFast to mimic the shortcomings of
+    // the effect analysis: because the `_tdivFast` implementation of
+    // the core library has calls that may not already be analyzed,
+    // the analysis will conclude that `_tdivFast` may have side
+    // effects.
+    _tdivFast(other) => new List()..length = 42;
     _shlPositive(other) => 42;
     _shrBothPositive(other) => 42;
     _shrReceiverPositive(other) => 42;
@@ -207,6 +212,7 @@ const String DEFAULT_CORELIB = r'''
   class Type {}
   class Function {}
   class List<E> {
+    var length;
     List([length]);
     List.filled(length, element);
   }
