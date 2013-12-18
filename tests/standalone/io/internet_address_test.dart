@@ -6,6 +6,16 @@ import 'dart:io';
 
 import "package:expect/expect.dart";
 
+void testIllegalArguments() {
+  var args = [
+      null, 1, 1.1, new Object(), [], {'a' : '127.0.0.1'},
+      "", "." , ":", ":::"];
+  args.forEach((arg) {
+    Expect.throws(() => new InternetAddress(arg),
+                  (e) => e is ArgumentError);
+  });
+}
+
 void testDefaultAddresses() {
   var loopback4 = InternetAddress.LOOPBACK_IP_V4;
   Expect.isNotNull(loopback4);
@@ -131,6 +141,7 @@ void testReverseLookup() {
 }
 
 void main() {
+  testIllegalArguments();
   testDefaultAddresses();
   testConstructor();
   testEquality();

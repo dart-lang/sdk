@@ -128,6 +128,9 @@ class _InternetAddress implements InternetAddress {
                    List<int> this._in_addr);
 
   factory _InternetAddress.parse(String address) {
+    if (address is !String) {
+      throw new ArgumentError("Invalid internet address $address");
+    }
     var in_addr = _parse(address);
     if (in_addr == null) {
       throw new ArgumentError("Invalid internet address $address");
