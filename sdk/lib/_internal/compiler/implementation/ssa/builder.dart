@@ -4702,12 +4702,19 @@ abstract class SsaFromAstMixin
 
       // [receiver] is only used if the node is an instance send.
       HInstruction receiver = null;
-      if (Elements.isInstanceSend(node, elements)) {
+      Element getter = elements[node.selector];
+
+      if (!Elements.isUnresolved(getter) && getter.impliesType()) {
+        Identifier selector = node.selector;
+        generateThrowNoSuchMethod(node, selector.source,
+                                  argumentNodes: node.arguments);
+        return;
+      } else if (Elements.isInstanceSend(node, elements)) {
         receiver = generateInstanceSendReceiver(node);
         generateInstanceGetterWithCompiledReceiver(
             node, elements.getGetterSelectorInComplexSendSet(node), receiver);
       } else {
-        generateGetter(node, elements[node.selector]);
+        generateGetter(node, getter);
       }
       HInstruction getterInstruction = pop();
       handleComplexOperatorSend(node, getterInstruction, node.arguments);
