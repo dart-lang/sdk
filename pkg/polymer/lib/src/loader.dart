@@ -139,7 +139,8 @@ final _libs = currentMirrorSystem().libraries;
 final _rootUri = currentMirrorSystem().isolate.rootLibrary.uri;
 
 final String _packageRoot =
-    '${path.dirname(Uri.parse(window.location.href).path)}/packages/';
+    path.url.join(path.url.dirname(Uri.parse(window.location.href).path),
+        'packages') + '/';
 
 final Logger _loaderLog = new Logger('polymer.loader');
 
