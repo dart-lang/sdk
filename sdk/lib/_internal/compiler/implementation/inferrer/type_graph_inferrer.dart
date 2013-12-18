@@ -20,7 +20,11 @@ import 'ir_type_inferrer.dart';
 import '../dart2jslib.dart' show invariant, Constant;
 
 part 'type_graph_nodes.dart';
-part 'container_tracer.dart';
+part 'closure_tracer.dart';
+part 'list_tracer.dart';
+part 'node_tracer.dart';
+
+bool _VERBOSE = false;
 
 /**
  * A set of selector names that [List] implements, that we know return
@@ -415,12 +419,6 @@ class WorkQueue {
  * [TypeInformation] nodes by visiting the AST of the application, and
  * then does the inferencing on the graph.
  *
- * The inferencing is currently done in three steps:
- *
- * 1) Compute the call graph.
- * 2) Refine all nodes in a way that avoids cycles.
- * 3) Refine all nodes.
- *
  */
 class TypeGraphInferrerEngine
     extends InferrerEngine<TypeInformation, TypeInformationSystem> {
@@ -446,7 +444,7 @@ class TypeGraphInferrerEngine
   void analyzeContainer(ListTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
-    ContainerTracerVisitor tracer = new ContainerTracerVisitor(info, this);
+    ListTracerVisitor tracer = new ListTracerVisitor(info, this);
     List<TypeInformation> newAssignments = tracer.run();
     if (newAssignments == null) {
       return;
@@ -837,7 +835,7 @@ class TypeGraphInferrerEngine
   }
 
   // Sorts the resolved elements by size. We do this for this inferrer
-  // to get the same results for [ContainerTracer] compared to the
+  // to get the same results for [ListTracer] compared to the
   // [SimpleTypesInferrer].
   Iterable<Element> sortResolvedElements() {
     int max = 0;
