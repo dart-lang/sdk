@@ -601,10 +601,10 @@ static bool JoinOrLeaveMulticast(intptr_t fd,
     struct ip_mreq mreq;
     memmove(&mreq.imr_multiaddr,
             &addr->in.sin_addr,
-            SocketAddress::GetAddrLength(addr));
+            SocketAddress::GetInAddrLength(addr));
     memmove(&mreq.imr_interface,
             &interface->in.sin_addr,
-            SocketAddress::GetAddrLength(interface));
+            SocketAddress::GetInAddrLength(interface));
     if (join) {
       return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(
           fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))) == 0;
@@ -617,7 +617,7 @@ static bool JoinOrLeaveMulticast(intptr_t fd,
     struct ipv6_mreq mreq;
     memmove(&mreq.ipv6mr_multiaddr,
             &addr->in6.sin6_addr,
-            SocketAddress::GetAddrLength(addr));
+            SocketAddress::GetInAddrLength(addr));
     mreq.ipv6mr_interface = interfaceIndex;
     if (join) {
       return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(
@@ -630,30 +630,8 @@ static bool JoinOrLeaveMulticast(intptr_t fd,
 }
 
 bool Socket::JoinMulticast(
-  intptr_t fd, RawAddr* addr, RawAddr* interface, int interfaceIndex) {
-    return JoinOrLeaveMulticast(fd, addr, interface, interfaceIndex, true);
-  if (addr->addr.sa_family == AF_INET) {
-    ASSERT(interface->addr.sa_family == AF_INET);
-    struct ip_mreq mreq;
-    memmove(&mreq.imr_multiaddr,
-            &addr->in.sin_addr,
-            SocketAddress::GetAddrLength(addr));
-    memmove(&mreq.imr_interface,
-            &interface->in.sin_addr,
-            SocketAddress::GetAddrLength(interface));
-    return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(
-        fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq))) == 0;
-  } else {
-    ASSERT(addr->addr.sa_family == AF_INET6);
-    ASSERT(interface->addr.sa_family == AF_INET6);
-    struct ipv6_mreq mreq;
-    memmove(&mreq.ipv6mr_multiaddr,
-            &addr->in6.sin6_addr,
-            SocketAddress::GetAddrLength(addr));
-    mreq.ipv6mr_interface = interfaceIndex;
-    return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(
-        fd, IPPROTO_IPV6, IPV6_JOIN_GROUP, &mreq, sizeof(mreq))) == 0;
-  }
+    intptr_t fd, RawAddr* addr, RawAddr* interface, int interfaceIndex) {
+  return JoinOrLeaveMulticast(fd, addr, interface, interfaceIndex, true);
 }
 
 

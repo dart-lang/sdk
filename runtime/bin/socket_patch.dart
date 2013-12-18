@@ -776,7 +776,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     if (Platform.isMacOS && addr.type == InternetAddressType.IP_V4) {
       if (interface != null) {
         for (int i = 0; i < interface.addresses.length; i++) {
-          if (addr.type == InternetAddressType.IP_V4) {
+          if (interface.addresses[i].type == InternetAddressType.IP_V4) {
             return interface.addresses[i];
           }
         }
@@ -785,7 +785,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
             "The network interface does not have an address "
             "of the same family as the multicast address");
       } else {
-        // Default to the ANY address if on iterface is specified.
+        // Default to the ANY address if no iterface is specified.
         return InternetAddress.ANY_IP_V4;
       }
     } else {

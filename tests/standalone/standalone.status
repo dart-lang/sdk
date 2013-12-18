@@ -32,9 +32,6 @@ io/directory_fuzz_test: Skip
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
-# The UDP tests are currently skipped on Mac OS as multicast configuration
-# needs to be resolved.
-io/raw_datagram_socket_test: Skip # Issue 1975
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 typed_array_test: Fail # Issue 13921
