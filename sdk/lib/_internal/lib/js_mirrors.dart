@@ -67,12 +67,12 @@ class JsMirrorSystem implements MirrorSystem {
 
   final IsolateMirror isolate = new JsIsolateMirror();
 
-  TypeMirror get dynamicType => _dynamicType;
-  TypeMirror get voidType => _voidType;
+  JsTypeMirror get dynamicType => _dynamicType;
+  JsTypeMirror get voidType => _voidType;
 
-  final static TypeMirror _dynamicType =
+  final static JsTypeMirror _dynamicType =
       new JsTypeMirror(const Symbol('dynamic'));
-  final static TypeMirror _voidType = new JsTypeMirror(const Symbol('void'));
+  final static JsTypeMirror _voidType = new JsTypeMirror(const Symbol('void'));
 
   static final Map<String, List<LibraryMirror>> librariesByName =
       computeLibrariesByName();
