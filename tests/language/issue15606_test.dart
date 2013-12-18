@@ -8,11 +8,14 @@ var a = [new Object(), 42];
 
 main() {
   while (false) { // Comply to inlining heuristics.
-    var foo = Unresolved.foo( // Use an unresolved prefix.
-      new Foo<int>(), // Make dart2js generate a call to setRuntimeTypeInfo.
-      a[0].toString()); // Use a one-shot interceptor.
+    // Use an unresolved prefix.
+    var foo = Unresolved.foo( /// 01: static type warning
+      // Make dart2js generate a call to setRuntimeTypeInfo.
+      new Foo<int>(), /// 01: continued
+      // Use a one-shot interceptor.
+      a[0].toString()); /// 01: continued
 
     // Do an is test on `Foo` to require setRuntimeTypeInfo.
-    print(foo is Foo<int>);
+    print(foo is Foo<int>); /// 01: continued
   }
 }
