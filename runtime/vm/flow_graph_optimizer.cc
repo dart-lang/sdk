@@ -6674,7 +6674,37 @@ void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
-  SetValue(instr, non_constant_);
+  const Object& array_obj = instr->array()->definition()->constant_value();
+  const Object& index_obj = instr->index()->definition()->constant_value();
+  if (IsNonConstant(array_obj) || IsNonConstant(index_obj)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(array_obj) && IsConstant(index_obj)) {
+    // Need index to be Smi and array to be either String or an immutable array.
+    if (!index_obj.IsSmi()) {
+      // Should not occur.
+      SetValue(instr, non_constant_);
+      return;
+    }
+    const intptr_t index = Smi::Cast(index_obj).Value();
+    if (index >= 0) {
+      if (array_obj.IsString()) {
+        const String& str = String::Cast(array_obj);
+        if (str.Length() > index) {
+          SetValue(instr, Smi::Handle(Smi::New(str.CharAt(index))));
+          return;
+        }
+      } else if (array_obj.IsArray()) {
+        const Array& a = Array::Cast(array_obj);
+        if ((a.Length() > index) && a.IsImmutable()) {
+          Instance& result = Instance::Handle();
+          result ^= a.At(index);
+          SetValue(instr, result);
+          return;
+        }
+      }
+    }
+    SetValue(instr, non_constant_);
+  }
 }
 
 
