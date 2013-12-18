@@ -758,7 +758,7 @@ CompileType* AssertAssignableInstr::ComputeInitialType() const {
   CompileType* value_type = value()->Type();
 
   if (value_type->IsMoreSpecificThan(dst_type())) {
-    return value_type;
+    return ZoneCompileType::Wrap(*value_type);
   }
 
   if (dst_type().IsVoidType()) {
@@ -767,6 +767,14 @@ CompileType* AssertAssignableInstr::ComputeInitialType() const {
   }
 
   return ZoneCompileType::Wrap(CompileType::FromAbstractType(dst_type()));
+}
+
+
+bool AssertAssignableInstr::RecomputeType() {
+  CompileType* value_type = value()->Type();
+  return UpdateType(value_type->IsMoreSpecificThan(dst_type())
+                      ? *value_type
+                      : CompileType::FromAbstractType(dst_type()));
 }
 
 
