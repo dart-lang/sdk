@@ -15,11 +15,17 @@ class TraceSymbol {
 }
 
 class TraceSummary {
+  final int numSymbols;
+
   Map<String, TraceSymbol> _symbols = {};
   List _events = [];
   List<TraceSymbol> _stack = [];
   List<TraceSymbol> _topExclusive = [];
   List<TraceSymbol> _topInclusive = [];
+  bool _marked = false;
+  int _totalSamples = 0;
+
+  TraceSummary(this.numSymbols);
 
   void _processEventsFromFile(String name) {
     var file = new File(name);
@@ -43,16 +49,8 @@ class TraceSummary {
       symbol = new TraceSymbol(name);
       _symbols[name] = symbol;
     }
-    // Start at 1 because 0 will always be the isolate.
-    for (var i = 1; i < _stack.length; i++) {
-      // Bump inclusive count for all frames.
-      symbol.inclusive++;
-    }
     _stack.add(symbol);
-    if (_stack.length > 1) {
-      // Only if we aren't the isolate.
-      symbol.exclusive++;
-    }
+    _marked = false;
   }
 
   void _processEnd(Map event) {
@@ -63,6 +61,17 @@ class TraceSummary {
     var symbol = _stack.last;
     if (symbol.name != name) {
       throw new StateError('$name not found at top of stack.');
+    }
+    if ((_stack.length > 1) && (_marked == false)) {
+      // We are transitioning from the sequence of begins to the sequence
+      // of ends. Mark the symbols on the stack.
+      _marked = true;
+      _totalSamples++;
+      // Mark all symbols except the top with an inclusive tick.
+      for (int i = 1; i < _stack.length - 1; i++) {
+        _stack[i].inclusive++;
+      }
+      _stack.last.exclusive++;
     }
     _stack.removeLast();
   }
@@ -79,9 +88,6 @@ class TraceSummary {
       }
     }
   }
-
-
-  static const NUM_SYMBOLS = 10;
 
   void _findTopExclusive() {
     _topExclusive = _symbols.values.toList();
@@ -105,25 +111,53 @@ class TraceSummary {
     _print();
   }
 
+  String _pad(String input, int minLength) {
+    int length = input.length;
+    for (int i = 0; i < minLength - length; i++) {
+      input = ' $input';
+    }
+    return input;
+  }
+
+  static const TICKS_LENGTH = 10;
+  static const PERCENT_LENGTH = 7;
+
+  void _printSymbol(int t, String name) {
+    String ticks = t.toString();
+    ticks = _pad(ticks, TICKS_LENGTH);
+    double total = (t / _totalSamples);
+    String percent = (total * 100.0).toStringAsFixed(2);
+    percent = _pad(percent, PERCENT_LENGTH);
+    print('$ticks  $percent  $name');
+  }
+
   void _print() {
-    print('Top ${NUM_SYMBOLS} exlusive symbols:');
-    _topExclusive.getRange(0, NUM_SYMBOLS).forEach((a) {
-      print('${a.exclusive} ${a.name}');
+    print('Top ${numSymbols} inclusive symbols');
+    print('--------------------------');
+    print('     ticks  percent  name');
+    _topInclusive.getRange(0, numSymbols).forEach((a) {
+      _printSymbol(a.inclusive, a.name);
     });
     print('');
-    print('Top ${NUM_SYMBOLS} inclusive symbols:');
-    _topInclusive.getRange(0, NUM_SYMBOLS).forEach((a) {
-      print('${a.inclusive} ${a.name}');
+    print('Top ${numSymbols} exclusive symbols');
+    print('--------------------------');
+    print('     ticks  percent  name');
+    _topExclusive.getRange(0, numSymbols).forEach((a) {
+      _printSymbol(a.exclusive, a.name);
     });
   }
 }
 
 main(List<String> arguments) {
   if (arguments.length < 1) {
-    print('${Platform.executable} ${Platform.script} <input>');
+    print('${Platform.executable} ${Platform.script} <input> [symbol count]');
     return;
   }
   String input = arguments[0];
-  TraceSummary ts = new TraceSummary();
+  int numSymbols = 10;
+  if (arguments.length >= 2) {
+    numSymbols = int.parse(arguments[1]);
+  }
+  TraceSummary ts = new TraceSummary(numSymbols);
   ts.summarize(input);
 }
