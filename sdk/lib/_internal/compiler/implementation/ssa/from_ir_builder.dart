@@ -60,8 +60,6 @@ abstract class SsaFromIrMixin
   final Map<IrExpression, HInstruction> emitted =
       new Map<IrExpression, HInstruction>();
 
-  void emitReturn(HInstruction value, IrReturn node);
-
   /**
    * This method sets up the state of the IR visitor for inlining an invocation
    * of [function].

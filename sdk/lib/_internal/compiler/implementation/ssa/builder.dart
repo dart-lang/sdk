@@ -1317,7 +1317,11 @@ abstract class SsaBuilderMixin<N> {
           function, selector, providedArguments, currentNode);
       enterInlinedMethod(function, currentNode, compiledArguments);
       inlinedFrom(function, () {
-        doInline(function);
+        if (!isReachable) {
+          emitReturn(graph.addConstantNull(compiler), null);
+        } else {
+          doInline(function);
+        }
       });
       leaveInlinedMethod();
     }
@@ -1329,6 +1333,8 @@ abstract class SsaBuilderMixin<N> {
 
     return false;
   }
+
+  void emitReturn(HInstruction value, N node);
 
   void doInline(FunctionElement function);
 
@@ -3989,6 +3995,11 @@ abstract class SsaFromAstMixin
         typeInfoSetterElement,
         <HInstruction>[newObject, typeInfo],
         backend.dynamicType);
+
+    // The new object will now be referenced through the
+    // `setRuntimeTypeInfo` call. We therefore set the type of that
+    // instruction to be of the object's type.
+    assert(stack.last is HInvokeStatic || stack.last == newObject);
     stack.last.instructionType = newObject.instructionType;
     return pop();
   }
@@ -4870,8 +4881,6 @@ abstract class SsaFromAstMixin
     handleInTryStatement();
     emitReturn(value, node);
   }
-
-  void emitReturn(HInstruction value, Node node);
 
   visitThrow(Throw node) {
     visitThrowExpression(node.expression);
