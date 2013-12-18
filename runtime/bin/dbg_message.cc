@@ -1017,27 +1017,54 @@ void DbgMsgQueue::AddMessage(int32_t cmd_idx,
 }
 
 
-void DbgMsgQueue::HandleMessages() {
-  bool resume_requested = false;
+void DbgMsgQueue::Notify() {
   MonitorLocker ml(&msg_queue_lock_);
-  is_running_ = false;
-  while (!resume_requested) {
-    while (msglist_head_ == NULL) {
-      ASSERT(msglist_tail_ == NULL);
-      dart::Monitor::WaitResult res = ml.Wait();  // Wait for debugger commands.
-      ASSERT(res == dart::Monitor::kNotified);
-    }
-    while (msglist_head_ != NULL && !resume_requested) {
-      ASSERT(msglist_tail_ != NULL);
-      DbgMessage* msg = msglist_head_;
-      msglist_head_ = msglist_head_->next();
-      resume_requested = msg->HandleMessage();
-      delete msg;
-    }
+  ml.Notify();
+}
+
+
+bool DbgMsgQueue::HandlePendingMessages() {
+  // Handle all available debug messages, up to a resume request.
+  bool resume_requested = false;
+  while (msglist_head_ != NULL && !resume_requested) {
+    ASSERT(msglist_tail_ != NULL);
+    DbgMessage* msg = msglist_head_;
+    msglist_head_ = msglist_head_->next();
     if (msglist_head_ == NULL) {
       msglist_tail_ = NULL;
     }
+    resume_requested = msg->HandleMessage();
+    delete msg;
   }
+  return resume_requested;
+}
+
+
+void DbgMsgQueue::MessageLoop() {
+  MonitorLocker ml(&msg_queue_lock_);
+  is_running_ = false;
+
+  // Request notification on isolate messages.  This allows us to
+  // respond to vm service messages while at breakpoint.
+  Dart_SetMessageNotifyCallback(DbgMsgQueueList::NotifyIsolate);
+
+  while (true) {
+    // Handle all available vm service messages, up to a resume
+    // request.
+    if (Dart_HandleServiceMessages()) {
+      break;
+    }
+
+    // Handle all available debug messages, up to a resume request.
+    if (HandlePendingMessages()) {
+      break;
+    }
+
+    // Wait for more debug or vm service messages.
+    dart::Monitor::WaitResult res = ml.Wait();
+    ASSERT(res == dart::Monitor::kNotified);
+  }
+  Dart_SetMessageNotifyCallback(NULL);
   is_interrupted_ = false;
   is_running_ = true;
 }
@@ -1177,6 +1204,16 @@ bool DbgMsgQueueList::AddIsolateMessage(Dart_IsolateId isolate_id,
 }
 
 
+void DbgMsgQueueList::NotifyIsolate(Dart_Isolate isolate) {
+  MutexLocker ml(msg_queue_list_lock_);
+  Dart_IsolateId isolate_id = Dart_GetIsolateId(isolate);
+  DbgMsgQueue* queue = DbgMsgQueueList::GetIsolateMsgQueueLocked(isolate_id);
+  if (queue != NULL) {
+    queue->Notify();
+  }
+}
+
+
 bool DbgMsgQueueList::InterruptIsolate(Dart_IsolateId isolate_id) {
   MutexLocker ml(msg_queue_list_lock_);
   DbgMsgQueue* queue = DbgMsgQueueList::GetIsolateMsgQueueLocked(isolate_id);
@@ -1293,7 +1330,7 @@ void DbgMsgQueueList::PausedEventHandler(Dart_IsolateId isolate_id,
   ASSERT(msg_queue != NULL);
   msg_queue->SendQueuedMsgs();
   msg_queue->SendBreakpointEvent(bp_id, loc);
-  msg_queue->HandleMessages();
+  msg_queue->MessageLoop();
   Dart_ExitScope();
 }
 
@@ -1307,7 +1344,7 @@ void DbgMsgQueueList::ExceptionThrownHandler(Dart_IsolateId isolate_id,
   ASSERT(msg_queue != NULL);
   msg_queue->SendQueuedMsgs();
   msg_queue->SendExceptionEvent(exception, stack_trace);
-  msg_queue->HandleMessages();
+  msg_queue->MessageLoop();
   Dart_ExitScope();
 }
 
@@ -1325,7 +1362,7 @@ void DbgMsgQueueList::IsolateEventHandler(Dart_IsolateId isolate_id,
     msg_queue->SendQueuedMsgs();
     msg_queue->SendIsolateEvent(isolate_id, kind);
     if (kind == kInterrupted) {
-      msg_queue->HandleMessages();
+      msg_queue->MessageLoop();
     } else {
       ASSERT(kind == kShutdown);
       RemoveIsolateMsgQueue(isolate_id);

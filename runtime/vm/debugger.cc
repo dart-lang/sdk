@@ -14,6 +14,7 @@
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/longjump.h"
+#include "vm/json_stream.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -84,7 +85,7 @@ RawScript* SourceBreakpoint::SourceCode() {
 void SourceBreakpoint::GetCodeLocation(
     Library* lib,
     Script* script,
-    intptr_t* pos) {
+    intptr_t* pos) const {
   const Function& func = Function::Handle(function_);
   const Class& cls = Class::Handle(func.origin());
   *lib = cls.library();
@@ -119,10 +120,38 @@ void SourceBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+void SourceBreakpoint::PrintToJSONStream(JSONStream* stream) const {
+  Isolate* isolate = Isolate::Current();
+
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "Breakpoint");
+
+  jsobj.AddProperty("id", id());
+  jsobj.AddProperty("enabled", IsEnabled());
+
+  const Function& func = Function::Handle(function());
+  jsobj.AddProperty("resolved", func.HasCode());
+
+  Library& library = Library::Handle(isolate);
+  Script& script = Script::Handle(isolate);
+  intptr_t token_pos;
+  GetCodeLocation(&library, &script, &token_pos);
+  {
+    JSONObject location(&jsobj, "location");
+    location.AddProperty("type", "Location");
+    location.AddProperty("libId", library.index());
+
+    const String& url = String::Handle(script.url());
+    location.AddProperty("script", url.ToCString());
+    location.AddProperty("tokenPos", token_pos);
+  }
+}
+
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
 }
+
 
 ActivationFrame::ActivationFrame(
     uword pc,
@@ -216,6 +245,15 @@ bool Debugger::HasBreakpoint(const Function& func) {
     cbpt = cbpt->next_;
   }
   return false;
+}
+
+
+void Debugger::PrintBreakpointsToJSONArray(JSONArray* jsarr) const {
+  SourceBreakpoint* sbpt = src_breakpoints_;
+  while (sbpt != NULL) {
+    jsarr->AddValue(sbpt);
+    sbpt = sbpt->next_;
+  }
 }
 
 
@@ -1446,7 +1484,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtEntry(
 
 
 SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
-                                          intptr_t line_number) {
+                                                intptr_t line_number) {
   Library& lib = Library::Handle(isolate_);
   Script& script = Script::Handle(isolate_);
   const GrowableObjectArray& libs =

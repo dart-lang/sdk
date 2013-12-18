@@ -983,6 +983,18 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
 DART_EXPORT Dart_Handle Dart_HandleMessage();
 
 /**
+ * Handles any pending messages for the vm service for the current
+ * isolate.
+ *
+ * This function may be used by an embedder at a breakpoint to avoid
+ * pausing the vm service.
+ *
+ * \return true if the vm service requests the program resume
+ * execution, false otherwise
+ */
+DART_EXPORT bool Dart_HandleServiceMessages();
+
+/**
  * Processes any incoming messages for the current isolate.
  *
  * This function may only be used when the embedder has not provided

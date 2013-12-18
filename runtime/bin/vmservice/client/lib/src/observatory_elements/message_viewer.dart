@@ -24,6 +24,7 @@ class MessageViewerElement extends ObservatoryElement {
     if (message == null || message['type'] == null) {
       return 'Error';
     }
+    print("Received message of type '${message['type']}' :\n$message");
     return message['type'];
   }
 

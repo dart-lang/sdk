@@ -15,6 +15,8 @@ namespace dart {
 class ActiveVariables;
 class CodeBreakpoint;
 class Isolate;
+class JSONArray;
+class JSONStream;
 class ObjectPointerVisitor;
 class RemoteObjectCache;
 class SourceBreakpoint;
@@ -36,11 +38,15 @@ class SourceBreakpoint {
   RawString* SourceUrl();
   intptr_t LineNumber();
 
-  void GetCodeLocation(Library* lib, Script* script, intptr_t* token_pos);
+  void GetCodeLocation(Library* lib,
+                       Script* script,
+                       intptr_t* token_pos) const;
 
   void Enable();
   void Disable();
   bool IsEnabled() const { return is_enabled_; }
+
+  void PrintToJSONStream(JSONStream* stream) const;
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -351,6 +357,8 @@ class Debugger {
   static void SignalIsolateEvent(EventType type);
 
   uword GetPatchedStubAddress(uword breakpoint_address);
+
+  void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
 
   static bool IsDebuggable(const Function& func);
 

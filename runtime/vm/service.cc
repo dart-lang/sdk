@@ -153,19 +153,31 @@ static void PrintArgumentsAndOptions(const JSONObject& obj, JSONStream* js) {
 }
 
 
-static void PrintCollectionErrorResponse(const char* collection_name,
-                                         JSONStream* js) {
+static void PrintGenericError(JSONStream* js) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "error");
-  jsobj.AddPropertyF("text", "Must specify collection object id: /%s/id",
-                     collection_name);
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("text", "Invalid request.");
+  PrintArgumentsAndOptions(jsobj, js);
 }
 
 
-static void PrintGenericError(JSONStream* js) {
+static void PrintError(JSONStream* js, const char* format, ...) {
+  Isolate* isolate = Isolate::Current();
+
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+
+  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  va_list args2;
+  va_start(args2, format);
+  OS::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
+
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "error");
-  jsobj.AddProperty("text", "Invalid request.");
+  jsobj.AddProperty("type", "Error");
+  jsobj.AddProperty("text", buffer);
   PrintArgumentsAndOptions(jsobj, js);
 }
 
@@ -204,7 +216,7 @@ static void HandleObjectHistogram(Isolate* isolate, JSONStream* js) {
   ObjectHistogram* histogram = Isolate::Current()->object_histogram();
   if (histogram == NULL) {
     JSONObject jsobj(js);
-    jsobj.AddProperty("type", "error");
+    jsobj.AddProperty("type", "Error");
     jsobj.AddProperty("text", "Run with --print_object_histogram");
     return;
   }
@@ -220,10 +232,10 @@ static void HandleEcho(Isolate* isolate, JSONStream* js) {
 
 
 // Print an error message if there is no ID argument.
-#define REQUIRE_COLLECTION_ID(collection)                                      \
-  if (js->num_arguments() == 1) {                                              \
-    PrintCollectionErrorResponse(collection, js);                              \
-    return;                                                                    \
+#define REQUIRE_COLLECTION_ID(collection)                                     \
+  if (js->num_arguments() == 1) {                                             \
+    PrintError(js, "Must specify collection object id: /%s/id", collection);  \
+    return;                                                                   \
   }
 
 
@@ -267,6 +279,39 @@ static void HandleObjects(Isolate* isolate, JSONStream* js) {
 }
 
 
+static void HandleDebug(Isolate* isolate, JSONStream* js) {
+  if (js->num_arguments() == 1) {
+    PrintError(js, "Must specify a subcommand");
+    return;
+  }
+  const char* command = js->GetArgument(1);
+  if (!strcmp(command, "breakpoints")) {
+    if (js->num_arguments() == 2) {
+      // Print breakpoint list.
+      JSONObject jsobj(js);
+      jsobj.AddProperty("type", "BreakpointList");
+      JSONArray jsarr(&jsobj, "breakpoints");
+      isolate->debugger()->PrintBreakpointsToJSONArray(&jsarr);
+
+    } else if (js->num_arguments() == 3) {
+      // Print individual breakpoint.
+      intptr_t id = atoi(js->GetArgument(2));
+      SourceBreakpoint* bpt = isolate->debugger()->GetBreakpointById(id);
+      if (bpt != NULL) {
+        bpt->PrintToJSONStream(js);
+      } else {
+        PrintError(js, "Unrecognized breakpoint id %s", js->GetArgument(2));
+      }
+
+    } else {
+      PrintError(js, "Command too long");
+    }
+  } else {
+    PrintError(js, "Unrecognized subcommand '%s'", js->GetArgument(1));
+  }
+}
+
+
 static void HandleCpu(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "CPU");
@@ -274,11 +319,11 @@ static void HandleCpu(Isolate* isolate, JSONStream* js) {
 }
 
 
-// Alphabetical order.
 static ServiceMessageHandlerEntry __message_handlers[] = {
   { "_echo", HandleEcho },
   { "classes", HandleClasses },
   { "cpu", HandleCpu },
+  { "debug", HandleDebug },
   { "library", HandleLibrary },
   { "name", HandleName },
   { "objecthistogram", HandleObjectHistogram},
@@ -289,7 +334,7 @@ static ServiceMessageHandlerEntry __message_handlers[] = {
 
 static void HandleFallthrough(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "error");
+  jsobj.AddProperty("type", "Error");
   jsobj.AddProperty("text", "request not understood.");
   PrintArgumentsAndOptions(jsobj, js);
 }

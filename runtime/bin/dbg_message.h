@@ -161,8 +161,16 @@ class DbgMsgQueue {
                   const char* end,
                   int debug_fd);
 
-  // Handle all debug command messages in the queue.
-  void HandleMessages();
+  // Notify an isolate of a pending vmservice message.
+  void Notify();
+
+  // Run a message loop which handles messages as they arrive until
+  // normal program execution resumes.
+  void MessageLoop();
+
+  // Handle any pending debug command messages in the queue.  Return
+  // value indicates whether a resume has been requested.
+  bool HandlePendingMessages();
 
   // Interrupt Isolate.
   void InterruptIsolate();
@@ -224,6 +232,9 @@ class DbgMsgQueueList {
                                 const char* start,
                                 const char* end,
                                 int debug_fd);
+
+  // Notify an isolate of a pending vmservice message.
+  static void NotifyIsolate(Dart_Isolate isolate);
 
   // Interrupt isolate.
   static bool InterruptIsolate(Dart_IsolateId isolate_id);

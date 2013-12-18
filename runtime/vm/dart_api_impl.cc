@@ -1033,6 +1033,17 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
 }
 
 
+DART_EXPORT bool Dart_HandleServiceMessages() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+  isolate->message_handler()->HandleOOBMessages();
+  // TODO(turnidge): The return value here should indicate whether an
+  // OOB message should cause the program to resume.  Implement.
+  return false;
+}
+
+
 DART_EXPORT bool Dart_HasLivePorts() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);

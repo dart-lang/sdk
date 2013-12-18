@@ -15,6 +15,7 @@ class Instance;
 class JSONArray;
 class JSONObject;
 class Object;
+class SourceBreakpoint;
 
 class JSONStream : ValueObject {
  public:
@@ -40,6 +41,8 @@ class JSONStream : ValueObject {
     return option_values_[i];
   }
 
+  const char* LookupOption(const char* key) const;
+
  private:
   void Clear();
 
@@ -56,6 +59,7 @@ class JSONStream : ValueObject {
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
   void PrintValue(const Field& f, const Instance& instance, bool ref = true);
+  void PrintValue(const SourceBreakpoint* bpt);
 
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
@@ -153,6 +157,9 @@ class JSONArray : public ValueObject {
                 const Instance& instance,
                 bool ref = true) const {
     stream_->PrintValue(field, instance, ref);
+  }
+  void AddValue(const SourceBreakpoint* bpt) const {
+    stream_->PrintValue(bpt);
   }
   void AddValueF(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 

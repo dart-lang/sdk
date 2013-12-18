@@ -4,6 +4,7 @@
 
 #include "platform/assert.h"
 #include "vm/object.h"
+#include "vm/debugger.h"
 #include "vm/json_stream.h"
 
 
@@ -20,6 +21,16 @@ JSONStream::JSONStream(intptr_t buf_size) : buffer_(buf_size) {
 
 
 JSONStream::~JSONStream() {
+}
+
+
+const char* JSONStream::LookupOption(const char* key) const {
+  for (int i = 0; i < num_options(); i++) {
+    if (!strcmp(key, option_keys_[i])) {
+      return option_values_[i];
+    }
+  }
+  return NULL;
 }
 
 
@@ -119,6 +130,12 @@ void JSONStream::PrintValue(const Field& field,
                             bool ref) {
   PrintCommaIfNeeded();
   field.PrintToJSONStreamWithInstance(this, instance, ref);
+}
+
+
+void JSONStream::PrintValue(const SourceBreakpoint* bpt) {
+  PrintCommaIfNeeded();
+  bpt->PrintToJSONStream(this);
 }
 
 
