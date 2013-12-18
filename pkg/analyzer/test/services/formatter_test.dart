@@ -566,7 +566,10 @@ main() {
     test('CU - comments (11)', () {
       expectCUFormatsTo(
           'var m = {1: 2 /* bang */, 3: 4};\n',
-          'var m = {1: 2 /* bang */, 3: 4};\n'
+          'var m = {\n'
+          '  1: 2 /* bang */,\n'
+          '  3: 4\n'
+          '};\n'
       );
     });
 
@@ -787,10 +790,7 @@ main() {
         '1,\n'
         '2,\n'
         '];',
-        'var l = [\n'
-        '  1,\n'
-        '  2,\n'
-        '];'
+        'var l = [1, 2,];'
       );
       //Dangling ','
       expectStmtFormatsTo(
@@ -802,24 +802,29 @@ main() {
     test('stmt (maps)', () {
       expectStmtFormatsTo(
         'var map = const {"foo": "bar", "fuz": null};',
-        'var map = const {"foo": "bar", "fuz": null};'
+        'var map = const {\n'
+        '  "foo": "bar",\n'
+        '  "fuz": null\n'
+        '};'
       );
 
       expectStmtFormatsTo(
           'var map = {\n'
           '"foo": "bar",\n'
-          '"bar": "baz"'
+          '"bar": "baz"\n'
           '};',
           'var map = {\n'
           '  "foo": "bar",\n'
-          '  "bar": "baz"'
+          '  "bar": "baz"\n'
           '};'
       );
 
       //Dangling ','
       expectStmtFormatsTo(
         'var map = {"foo": "bar",};',
-        'var map = {"foo": "bar",};'
+        'var map = {\n'
+        '  "foo": "bar",\n'
+        '};'
       );
     });
 
@@ -912,6 +917,18 @@ main() {
       expectStmtFormatsTo('if (true) print("true!"); else print("false!");',
                           'if (true) print("true!"); else print("false!");',
                           transforms: false);
+    });
+
+    // smoketest to ensure we're enforcing the 'no gratuitous linebreaks'
+    // opinion
+    test('CU (eat newlines)', () {
+      expectCUFormatsTo(
+        'abstract\n'
+        'class\n'
+        'A{}',
+        'abstract class A {\n'
+        '}\n'
+      );
     });
 
 //    test('line continuations - 1', () {

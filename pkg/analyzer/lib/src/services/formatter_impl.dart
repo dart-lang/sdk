@@ -352,6 +352,10 @@ class SourceVisitor implements ASTVisitor {
   /// A flag to indicate that a newline should be emitted before the next token.
   bool needsNewline = false;
 
+  /// A flag to indicate that user introduced newlines should be emitted before
+  /// the next token.
+  bool preserveNewlines = false;
+
   /// A counter for spaces that should be emitted preceding the next token.
   int leadingSpaces = 0;
 
@@ -462,7 +466,8 @@ class SourceVisitor implements ASTVisitor {
   visitCascadeExpression(CascadeExpression node) {
     visit(node.target);
     indent(2);
-    visitNodes(node.cascadeSections);
+    newlines();
+    visitNodes(node.cascadeSections, separatedBy: newlines);
     unindent(2);
   }
 
@@ -490,6 +495,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitClassDeclaration(ClassDeclaration node) {
+    preserveLeadingNewlines();
     modifier(node.abstractKeyword);
     token(node.classKeyword);
     space();
@@ -546,6 +552,8 @@ class SourceVisitor implements ASTVisitor {
     visitNodes(directives, separatedBy: newlines, followedBy: newlines);
 
     visitNodes(node.declarations, separatedBy: newlines);
+
+    preserveLeadingNewlines();
 
     // Handle trailing whitespace
     token(node.endToken /* EOF */);
@@ -801,6 +809,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
+    preserveLeadingNewlines();
     visitNode(node.returnType, followedBy: space);
     token(node.propertyKeyword, followedBy: space);
     visit(node.name);
@@ -965,10 +974,12 @@ class SourceVisitor implements ASTVisitor {
     modifier(node.constKeyword);
     visitNode(node.typeArguments, followedBy: space);
     token(node.leftBracket);
+    newlines();
     indent();
-    visitCommaSeparatedNodes(node.entries);
+    visitCommaSeparatedNodes(node.entries, followedBy: newlines);
     optionalTrailingComma(node.rightBracket);
     unindent();
+    newlines();
     token(node.rightBracket);
   }
 
@@ -1309,7 +1320,11 @@ class SourceVisitor implements ASTVisitor {
   }
 
   /// Visit a comma-separated list of [nodes] if not null.
-  visitCommaSeparatedNodes(NodeList<ASTNode> nodes) {
+  visitCommaSeparatedNodes(NodeList<ASTNode> nodes, {followedBy(): null}) {
+    //TODO(pquitslund): handle this more neatly
+    if (followedBy == null) {
+      followedBy = space;
+    }
     if (nodes != null) {
       var size = nodes.length;
       if (size > 0) {
@@ -1319,7 +1334,7 @@ class SourceVisitor implements ASTVisitor {
           if (i > 0) {
             var comma = node.beginToken.previous;
             token(comma);
-            space();
+            followedBy();
           }
           node.accept(this);
         }
@@ -1366,6 +1381,12 @@ class SourceVisitor implements ASTVisitor {
     if (rightBracket.previous.lexeme == ',') {
       token(rightBracket.previous);
     }
+  }
+
+  /// Indicate that user introduced newlines should be emitted before the next
+  /// token.
+  preserveLeadingNewlines() {
+    preserveNewlines = true;
   }
 
   token(Token token, {precededBy(), followedBy(), int minNewlines: 0}) {
@@ -1478,7 +1499,11 @@ class SourceVisitor implements ASTVisitor {
       currentToken = comment != null ? comment : token;
     }
 
-    var lines = max(min, countNewlinesBetween(previousToken, currentToken));
+    var lines = 0;
+    if (needsNewline || preserveNewlines) {
+      lines = max(min, countNewlinesBetween(previousToken, currentToken));
+      preserveNewlines = false;
+    }
     emitNewlines(lines);
 
     previousToken =
