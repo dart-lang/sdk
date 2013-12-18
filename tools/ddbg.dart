@@ -1148,7 +1148,7 @@ void handleIsolateEvent(msg) {
     if (isolate == currentIsolate) {
       currentIsolate = mainIsolate;
       if (currentIsolate == null && !targetIsolates.isEmpty) {
-        currentIsolate = targetIsolates.first;
+        currentIsolate = targetIsolates.values.first;
       }
       if (currentIsolate != null) {
         print("Setting current isolate to ${currentIsolate.id}.");
