@@ -59,7 +59,6 @@ import 'package:polymer_expressions/polymer_expressions.dart'
 import 'package:template_binding/template_binding.dart';
 
 import 'deserialize.dart' as deserialize;
-import 'src/reflected_type.dart';
 
 export 'package:observe/observe.dart';
 export 'package:observe/html.dart';

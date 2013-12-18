@@ -181,7 +181,7 @@ void _loadLibrary(String uriString) {
     for (var m in c.metadata) {
       var meta = m.reflectee;
       if (meta is CustomTag) {
-        Polymer.register(meta.tagName, getReflectedTypeWorkaround(c));
+        Polymer.register(meta.tagName, c.reflectedType);
       }
     }
 
