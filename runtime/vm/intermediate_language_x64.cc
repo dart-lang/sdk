@@ -1585,6 +1585,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpq(FieldAddress(temp, Field::is_nullable_offset()),
             Immediate(kNullCid));
     __ j(EQUAL, &store_pointer);
+    __ movzxb(temp2, FieldAddress(temp, Field::kind_bits_offset()));
+    __ testq(temp2, Immediate(1 << Field::kUnboxingCandidateBit));
+    __ j(ZERO, &store_pointer);
 
     __ movq(temp, FieldAddress(instance_reg, field().Offset()));
     __ CompareObject(temp, Object::null_object(), PP);

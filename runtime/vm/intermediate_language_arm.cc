@@ -1679,6 +1679,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ ldr(temp2, FieldAddress(temp, Field::is_nullable_offset()));
     __ CompareImmediate(temp2, kNullCid);
     __ b(&store_pointer, EQ);
+    __ ldrb(temp2, FieldAddress(temp, Field::kind_bits_offset()));
+    __ tst(temp2, ShifterOperand(1 << Field::kUnboxingCandidateBit));
+    __ b(&store_pointer, EQ);
 
     __ ldr(temp, FieldAddress(instance_reg, field().Offset()));
     __ CompareImmediate(temp,

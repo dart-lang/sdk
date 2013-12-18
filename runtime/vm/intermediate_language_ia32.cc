@@ -1689,6 +1689,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cmpl(FieldAddress(temp, Field::is_nullable_offset()),
             Immediate(kNullCid));
     __ j(EQUAL, &store_pointer);
+    __ movzxb(temp2, FieldAddress(temp, Field::kind_bits_offset()));
+    __ testl(temp2, Immediate(1 << Field::kUnboxingCandidateBit));
+    __ j(ZERO, &store_pointer);
 
     const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));

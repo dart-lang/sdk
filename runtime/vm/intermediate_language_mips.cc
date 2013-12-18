@@ -1745,6 +1745,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ BranchNotEqual(temp2, kDoubleCid, &store_pointer);
     __ lw(temp2, FieldAddress(temp, Field::is_nullable_offset()));
     __ BranchEqual(temp2, kNullCid, &store_pointer);
+    __ lbu(temp2, FieldAddress(temp, Field::kind_bits_offset()));
+    __ andi(CMPRES1, temp2, Immediate(1 << Field::kUnboxingCandidateBit));
+    __ beq(CMPRES1, ZR, &store_pointer);
 
     __ lw(temp, FieldAddress(instance_reg, field().Offset()));
     __ BranchNotEqual(temp, reinterpret_cast<int32_t>(Object::null()),

@@ -2119,6 +2119,8 @@ class Field : public Object {
 
   static intptr_t value_offset() { return OFFSET_OF(RawField, value_); }
 
+  static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
+
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
   bool has_initializer() const {
@@ -2233,8 +2235,10 @@ class Field : public Object {
       JSONStream* stream, const Instance& instance, bool ref) const;
 
  private:
+  friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
+
   enum {
-    kConstBit = 1,
+    kConstBit = 0,
     kStaticBit,
     kFinalBit,
     kHasInitializerBit,

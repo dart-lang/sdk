@@ -3555,6 +3555,9 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
                && (FLAG_getter_setter_ratio * setter.usage_counter() >
                    getter.usage_counter());
     if (!result) {
+      if (FLAG_trace_optimization) {
+        OS::Print("Disabling unboxing of %s\n", field.ToCString());
+      }
       field.set_is_unboxing_candidate(false);
       field.DeoptimizeDependentCode();
     } else {
