@@ -1468,14 +1468,16 @@ class InitializerResolver {
     }
     FunctionElement result;
     bool resolvedSuper = false;
-    for (Link<Node> link = initializers;
-         !link.isEmpty;
-         link = link.tail) {
+    for (Link<Node> link = initializers; !link.isEmpty; link = link.tail) {
       if (link.head.asSendSet() != null) {
         final SendSet init = link.head.asSendSet();
         resolveFieldInitializer(constructor, init);
       } else if (link.head.asSend() != null) {
         final Send call = link.head.asSend();
+        if (call.argumentsNode == null) {
+          error(link.head, MessageKind.INVALID_INITIALIZER);
+          continue;
+        }
         if (Initializers.isSuperConstructorCall(call)) {
           if (resolvedSuper) {
             error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
