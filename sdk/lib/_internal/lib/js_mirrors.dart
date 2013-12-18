@@ -226,6 +226,8 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
     return _cachedUpperBound = typeMirrorFromRuntimeTypeRepresentation(
         owner, getMetadata(_typeVariable.bound));
   }
+
+  _asRuntimeType() => _metadataIndex;
 }
 
 class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
@@ -252,6 +254,12 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
+
+  _asRuntimeType() {
+    if (this == JsMirrorSystem._dynamicType) return null;
+    if (this == JsMirrorSystem._voidType) return null;
+    throw new RuntimeError('Should not call _asRuntimeType');
+  }
 }
 
 class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
@@ -713,6 +721,8 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   Map<Symbol, DeclarationMirror> get declarations => mixin.declarations;
 
+  _asRuntimeType() => null;
+
   InstanceMirror invoke(
       Symbol memberName,
       List positionalArguments,
@@ -1091,9 +1101,16 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
                              [Map<Symbol, dynamic> namedArguments]) {
-    return _class.newInstance(constructorName,
-                              positionalArguments,
-                              namedArguments);
+    var instance = _class._getInvokedInstance(constructorName,
+                                              positionalArguments,
+                                              namedArguments);
+    return reflect(setRuntimeTypeInfo(
+        instance, typeArguments.map((t) => t._asRuntimeType()).toList()));
+  }
+
+  _asRuntimeType() {
+    return [_class._jsConstructor].addAll(
+        typeArguments.map((t) => t._asRuntimeType()));
   }
 
   JsLibraryMirror get owner => _class.owner;
@@ -1202,6 +1219,15 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     return _cachedConstructors =
         new UnmodifiableMapView<Symbol, MethodMirror>(
             filterConstructors(_methods));
+  }
+
+  _asRuntimeType() {
+    if (typeVariables.isEmpty)  return _jsConstructor;
+    var type = [_jsConstructor];
+    for (int i = 0; i < typeVariables.length; i ++) {
+      type.add(JsMirrorSystem._dynamicType._asRuntimeType);
+    }
+    return type;
   }
 
   List<JsMethodMirror> _getMethodsWithOwner(DeclarationMirror methodOwner) {
@@ -1366,25 +1392,33 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     throw new NoSuchMethodError(this, fieldName, null, null);
   }
 
+  _getInvokedInstance(Symbol constructorName,
+                      List positionalArguments,
+                      [Map<Symbol, dynamic> namedArguments]) {
+     if (namedArguments != null && !namedArguments.isEmpty) {
+       throw new UnsupportedError('Named arguments are not implemented.');
+     }
+     JsMethodMirror mirror =
+         JsCache.fetch(_jsConstructorCache, n(constructorName));
+     if (mirror == null) {
+       mirror = __constructors.values.firstWhere(
+           (m) => m.constructorName == constructorName,
+           orElse: () {
+             // TODO(ahe): What receiver to use?
+             throw new NoSuchMethodError(
+                 this, constructorName, positionalArguments, namedArguments);
+           });
+       JsCache.update(_jsConstructorCache, n(constructorName), mirror);
+     }
+     return mirror._invoke(positionalArguments, namedArguments);
+   }
+
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
                              [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented.');
-    }
-    JsMethodMirror mirror =
-        JsCache.fetch(_jsConstructorCache, n(constructorName));
-    if (mirror == null) {
-      mirror = __constructors.values.firstWhere(
-          (m) => m.constructorName == constructorName,
-          orElse: () {
-            // TODO(ahe): What receiver to use?
-            throw new NoSuchStaticMethodError.missingConstructor(
-                this, constructorName, positionalArguments, namedArguments);
-          });
-      JsCache.update(_jsConstructorCache, n(constructorName), mirror);
-    }
-    return reflect(mirror._invoke(positionalArguments, namedArguments));
+    return reflect(_getInvokedInstance(constructorName,
+                                       positionalArguments,
+                                       namedArguments));
   }
 
   JsLibraryMirror get owner {

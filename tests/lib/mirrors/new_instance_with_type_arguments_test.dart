@@ -20,7 +20,7 @@ main() {
   ClassMirror cmA = reflectClass(A);
   ClassMirror cmB = reflectClass(B);
   ClassMirror cmC = reflectClass(C);
-  
+
   var a_int = new A<int>();
   var a_dynamic = new A();
   var b = new B();
@@ -36,31 +36,26 @@ main() {
   Expect.equals(String, c_string.s);
   Expect.equals(dynamic, c_dynamic.s);
 
-
   var reflective_a_int =
       cmB.superclass.newInstance(const Symbol(''), []).reflectee;
   var reflective_a_dynamic =
       cmA.newInstance(const Symbol(''), []).reflectee;
   var reflective_b =
       cmB.newInstance(const Symbol(''), []).reflectee;
-  // TODO(rmacnak): Uncomment when reflectType is added to the API.
-  // var reflective_c_string =
-  //   reflectType(cmC.runtimeType).newInstance(const Symbol(''), []).reflectee;
   var reflective_c_dynamic =
       cmC.newInstance(const Symbol(''), []).reflectee;
 
   Expect.equals(int, reflective_a_int.t);
   Expect.equals(dynamic, reflective_a_dynamic.t);
   Expect.equals(int, reflective_b.t);
-  // Expect.equals(num, c_string.t);
+  Expect.equals(num, c_string.t);
   Expect.equals(num, reflective_c_dynamic.t);
 
-  // Expect.equals(String, c_string.s);
+  Expect.equals(String, c_string.s);
   Expect.equals(dynamic, reflective_c_dynamic.s);
 
   Expect.equals(a_int.runtimeType, reflective_a_int.runtimeType);
   Expect.equals(a_dynamic.runtimeType, reflective_a_dynamic.runtimeType);
   Expect.equals(b.runtimeType, reflective_b.runtimeType);
-  // Expect.equals(c_string.runtimeType, reflective_c_string.runtimeType);
   Expect.equals(c_dynamic.runtimeType, reflective_c_dynamic.runtimeType);
 }
