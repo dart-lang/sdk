@@ -1794,10 +1794,12 @@ class CommandEnqueuer {
     });
 
     eventCondition((e) => e is dgraph.StateChangedEvent).listen((event) {
-      if (event.from == dgraph.NodeState.Processing) {
-        assert(FINISHED_STATES.contains(event.to));
-        for (var dependendNode in event.node.neededFor) {
-          _changeNodeStateIfNecessary(dependendNode);
+      if ([dgraph.NodeState.Waiting,
+           dgraph.NodeState.Processing].contains(event.from)) {
+        if (FINISHED_STATES.contains(event.to)){
+          for (var dependendNode in event.node.neededFor) {
+            _changeNodeStateIfNecessary(dependendNode);
+          }
         }
       }
     });
@@ -1806,23 +1808,25 @@ class CommandEnqueuer {
   // Called when either a new node was added or if one of it's dependencies
   // changed it's state.
   void _changeNodeStateIfNecessary(dgraph.Node node) {
-    assert(INIT_STATES.contains(node.state));
-    bool allDependenciesFinished =
-        node.dependencies.every((node) => FINISHED_STATES.contains(node.state));
+    if (INIT_STATES.contains(node.state)) {
+      bool anyDependenciesUnsuccessful = node.dependencies.any(
+          (dep) => [dgraph.NodeState.Failed,
+                    dgraph.NodeState.UnableToRun].contains(dep.state));
 
-    var newState = dgraph.NodeState.Waiting;
-    if (allDependenciesFinished) {
-      bool allDependenciesSuccessful = node.dependencies.every(
-          (dep) => dep.state == dgraph.NodeState.Successful);
-
-      if (allDependenciesSuccessful) {
-        newState = dgraph.NodeState.Enqueuing;
-      } else {
+      var newState = dgraph.NodeState.Waiting;
+      if (anyDependenciesUnsuccessful) {
         newState = dgraph.NodeState.UnableToRun;
+      } else {
+        bool allDependenciesSuccessful = node.dependencies.every(
+            (dep) => dep.state == dgraph.NodeState.Successful);
+
+        if (allDependenciesSuccessful) {
+          newState = dgraph.NodeState.Enqueuing;
+        }
       }
-    }
-    if (node.state != newState) {
-      _graph.changeState(node, newState);
+      if (node.state != newState) {
+        _graph.changeState(node, newState);
+      }
     }
   }
 }
