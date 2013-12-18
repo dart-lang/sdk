@@ -10,7 +10,6 @@
  * DARTBIN should be the checked in stable binary.
  */
 
-import "dart:io";
 import "browser_controller.dart";
 import "utils.dart";
 

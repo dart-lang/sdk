@@ -178,7 +178,7 @@ class Locations {
     if (location != null && location != '') {
       return location;
     }
-    final browserLocations = const {
+    var browserLocations = {
         'firefox': const {
           'windows': 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
           'linux': 'firefox',
@@ -205,6 +205,7 @@ class Locations {
         'ie10': const {
           'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
         }};
+    browserLocations['ff'] = browserLocations['firefox'];
 
     assert(browserLocations[browserName] != null);
     location = browserLocations[browserName][Platform.operatingSystem];

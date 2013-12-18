@@ -15,7 +15,6 @@
 library test_suite;
 
 import "dart:async";
-import "dart:convert" show LineSplitter, UTF8;
 import "dart:io";
 import "drt_updater.dart";
 import "multitest.dart";
@@ -1583,117 +1582,6 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
   }
 
   bool get listRecursively => true;
-}
-
-class JUnitTestSuite extends TestSuite {
-  String directoryPath;
-  String statusFilePath;
-  final String dartDir;
-  String classPath;
-  List<String> testClasses;
-  VoidFunction doDone;
-  TestExpectations testExpectations;
-
-  JUnitTestSuite(Map configuration,
-                 String suiteName,
-                 String this.directoryPath,
-                 String this.statusFilePath)
-      : super(configuration, suiteName),
-        dartDir = TestUtils.dartDir().toNativePath();
-
-  bool isTestFile(String filename) => filename.endsWith("Tests.java") &&
-      !filename.contains('com/google/dart/compiler/vm') &&
-      !filename.contains('com/google/dart/corelib/SharedTests.java');
-
-  void forEachTest(TestCaseEvent onTest,
-                   Map testCacheIgnored,
-                   [VoidFunction onDone]) {
-    doTest = onTest;
-    doDone = onDone;
-
-    if (!configuration['analyzer']) {
-      // Do nothing. Asynchronously report that the suite is enqueued.
-      asynchronously(doDone);
-      return;
-    }
-    RegExp pattern = configuration['selectors']['dartc'];
-    if (!pattern.hasMatch('junit_tests')) {
-      asynchronously(doDone);
-      return;
-    }
-
-    computeClassPath();
-    testClasses = <String>[];
-    // Do not read the status file.
-    // All exclusions are hardcoded in this script, as they are in testcfg.py.
-    processDirectory();
-  }
-
-  void processDirectory() {
-    directoryPath = '$dartDir/$directoryPath';
-    Directory dir = new Directory(directoryPath);
-
-    dir.list(recursive: true).listen((FileSystemEntity fse) {
-      if (fse is File) processFile(fse.path);
-    },
-    onDone: createTest);
-  }
-
-  void processFile(String filename) {
-    if (!isTestFile(filename)) return;
-
-    int index = filename.indexOf('compiler/javatests/com/google/dart');
-    if (index != -1) {
-      String testRelativePath =
-          filename.substring(index + 'compiler/javatests/'.length,
-                             filename.length - '.java'.length);
-      String testClass = testRelativePath.replaceAll('/', '.');
-      testClasses.add(testClass);
-    }
-  }
-
-  void createTest() {
-    var sdkDir = "$buildDir/dart-sdk".trim();
-    List<String> args = <String>[
-        '-ea',
-        '-classpath', classPath,
-        '-Dcom.google.dart.sdk=$sdkDir',
-        '-Dcom.google.dart.corelib.SharedTests.test_py=$dartDir/tools/test.py',
-        'org.junit.runner.JUnitCore'];
-    args.addAll(testClasses);
-
-    // Lengthen the timeout for JUnit tests.  It is normal for them
-    // to run for a few minutes.
-    Map updatedConfiguration = new Map();
-    configuration.forEach((key, value) {
-      updatedConfiguration[key] = value;
-    });
-    updatedConfiguration['timeout'] *= 3;
-    var command = CommandBuilder.instance.getCommand(
-        'junit_test', 'java', args, configurationDir);
-    enqueueNewTestCase(
-        new TestCase(suiteName,
-                     [command],
-                     updatedConfiguration,
-                     new Set<Expectation>.from([Expectation.PASS])));
-    doDone();
-  }
-
-  void computeClassPath() {
-    classPath =
-        ['$buildDir/analyzer/util/analyzer/dart_analyzer.jar',
-         '$buildDir/analyzer/dart_analyzer_tests.jar',
-         // Third party libraries.
-         '$dartDir/third_party/args4j/2.0.12/args4j-2.0.12.jar',
-         '$dartDir/third_party/guava/r13/guava-13.0.1.jar',
-         '$dartDir/third_party/rhino/1_7R3/js.jar',
-         '$dartDir/third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
-         '$dartDir/third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
-         '$dartDir/third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
-         '$dartDir/third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
-         '$dartDir/third_party/junit/v4_8_2/junit.jar']
-        .join(Platform.operatingSystem == 'windows'? ';': ':');
-  }
 }
 
 class LastModifiedCache {
