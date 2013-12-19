@@ -429,7 +429,6 @@ bool ListenSocket::LoadAcceptEx() {
 
 bool ListenSocket::IssueAccept() {
   ScopedLock lock(this);
-
   // For AcceptEx there needs to be buffer storage for address
   // information for two addresses (local and remote address). The
   // AcceptEx documentation says: "This value must be at least 16
@@ -452,9 +451,10 @@ bool ListenSocket::IssueAccept() {
                  buffer->GetCleanOverlapped());
   if (!ok) {
     if (WSAGetLastError() != WSA_IO_PENDING) {
-      Log::PrintErr("AcceptEx failed: %d\n", WSAGetLastError());
+      int error = WSAGetLastError();
       closesocket(buffer->client());
       OverlappedBuffer::DisposeBuffer(buffer);
+      WSASetLastError(error);
       return false;
     }
   }
@@ -972,7 +972,11 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         }
         // Always keep 5 outstanding accepts going, to enhance performance.
         while (listen_socket->pending_accept_count() < 5) {
-          listen_socket->IssueAccept();
+          bool accept_success = listen_socket->IssueAccept();
+          if (!accept_success) {
+            HandleError(listen_socket);
+            break;
+          }
         }
       }
 
