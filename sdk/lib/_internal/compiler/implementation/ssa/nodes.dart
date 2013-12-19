@@ -1933,9 +1933,10 @@ class HConstant extends HInstruction {
   bool isCodeMotionInvariant() => true;
 
   set instructionType(type) {
-    assert((type.isEmpty && super.instructionType.isEmpty)
-           || !type.isNullable);
-    assert(!isConstantNull() || (type.isEmpty && type.isNullable));
+    // Only lists can be specialized. The SSA builder uses the
+    // inferrer for finding the type of a constant list. We should
+    // have the constant know its type instead.
+    if (!isConstantList()) return;
     super.instructionType = type;
   }
 }
