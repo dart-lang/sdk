@@ -20,7 +20,7 @@ Set _toStringVisiting = new HashSet.identity();
  * repeatedly increasing the length of a growable list is not efficient.
  * To avoid this, either override 'add' and 'addAll' to also forward directly
  * to the growable list, or, preferably, use `DelegatingList` from
- * "package:collection_helpers/wrappers.dart" instead.
+ * "package:collection/wrappers.dart" instead.
  */
 abstract class ListBase<E> = Object with ListMixin<E>;
 
@@ -40,7 +40,7 @@ abstract class ListBase<E> = Object with ListMixin<E>;
  * repeatedly increasing the length of a growable list is not efficient.
  * To avoid this, either override 'add' and 'addAll' to also forward directly
  * to the growable list, or, if possible, use `DelegatingList` from
- * "package:collection_helpers/wrappers.dart" instead.
+ * "package:collection/wrappers.dart" instead.
  */
 abstract class ListMixin<E> implements List<E> {
 

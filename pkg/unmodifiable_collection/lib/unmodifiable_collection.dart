@@ -5,18 +5,18 @@
 /**
  * This library used to introduce unmodifiable wrappers for collections.
  *
- * This functionality has been moved to the `collection_helpers` library.
+ * This functionality has been moved to the `collection` library.
  *
  * Please replace the import of this library with:
  *
- *     import "package:collection_helpers/wrappers.dart";
+ *     import "package:collection/wrappers.dart";
  *
  * and change dependencies to match.
  */
 @deprecated
 library unmodifiable_collection;
 
-export "package:collection_helpers/wrappers.dart"
+export "package:collection/wrappers.dart"
     show UnmodifiableListView,
          UnmodifiableSetView,
          UnmodifiableMapView,

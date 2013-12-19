@@ -4,7 +4,7 @@
 
 // Tests typed-data buffer classes.
 
-import "package:collection_helpers/all.dart";
+import "package:typed_data/typed_buffers.dart";
 import "package:unittest/unittest.dart";
 import "dart:typed_data";
 

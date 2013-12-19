@@ -5,7 +5,7 @@
 /// Tests wrapper utilities.
 
 import "dart:collection";
-import "package:collection_helpers/all.dart";
+import "package:collection/collection.dart";
 import "package:unittest/unittest.dart";
 
 // Test that any member access/call on the wrapper object is equal to

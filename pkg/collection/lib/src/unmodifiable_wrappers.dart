@@ -11,7 +11,7 @@
  * The [List] wrapper prevents changes to the length of the wrapped list,
  * but allows changes to the contents.
  */
-part of dart.collection_helpers.wrappers;
+part of dart.pkg.collection.wrappers;
 
 /**
  * A fixed-length list.

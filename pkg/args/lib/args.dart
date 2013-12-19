@@ -261,7 +261,7 @@
  */
 library args;
 
-import 'package:collection_helpers/wrappers.dart';
+import 'package:collection/wrappers.dart';
 
 import 'src/parser.dart';
 import 'src/usage.dart';

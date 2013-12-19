@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@deprecated
-library dart.collection_helpers.typed_buffers;
+library dart.pkg.async;
 
-export "package:typed_data/typed_buffers.dart";
+export "stream_zip.dart";

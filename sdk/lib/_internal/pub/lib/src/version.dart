@@ -9,7 +9,7 @@ library pub.version;
 
 import 'dart:math';
 
-import 'package:collection_helpers/equality.dart';
+import 'package:collection/equality.dart';
 
 /// Regex that matches a version number at the beginning of a string.
 final _START_VERSION = new RegExp(

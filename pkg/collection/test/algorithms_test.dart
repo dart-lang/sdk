@@ -4,7 +4,7 @@
 
 /// Tests algorithm utilities.
 
-import "package:collection_helpers/all.dart";
+import "package:collection/collection.dart";
 import "package:unittest/unittest.dart";
 import 'dart:math';
 
