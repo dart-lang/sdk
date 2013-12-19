@@ -17,7 +17,6 @@ abstract class ConstantVisitor<R> {
   R visitConstructed(ConstructedConstant constant);
   R visitType(TypeConstant constant);
   R visitInterceptor(InterceptorConstant constant);
-  R visitDummyReceiver(DummyReceiverConstant constant);
 }
 
 abstract class Constant {
@@ -42,7 +41,6 @@ abstract class Constant {
   bool isType() => false;
   bool isSentinel() => false;
   bool isInterceptor() => false;
-  bool isDummyReceiver() => false;
 
   bool isNaN() => false;
   bool isMinusZero() => false;
@@ -537,33 +535,6 @@ class InterceptorConstant extends Constant {
 
   String toString() {
     return 'InterceptorConstant(${Error.safeToString(dispatchedType)})';
-  }
-}
-
-class DummyReceiverConstant extends Constant {
-  final ti.TypeMask typeMask;
-
-  DummyReceiverConstant(this.typeMask);
-
-  bool isDummyReceiver() => true;
-
-  bool operator ==(other) {
-    return other is DummyReceiverConstant
-        && typeMask == other.typeMask;
-  }
-
-  get hashCode => typeMask.hashCode;
-
-  List<Constant> getDependencies() => const <Constant>[];
-
-  accept(ConstantVisitor visitor) => visitor.visitDummyReceiver(this);
-
-  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
-
-  ti.TypeMask computeMask(Compiler compiler) => typeMask;
-
-  String toString() {
-    return 'DummyReceiverConstant($typeMask)';
   }
 }
 
