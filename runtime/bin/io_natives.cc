@@ -98,11 +98,14 @@ static struct NativeEntries {
 
 
 Dart_NativeFunction IONativeLookup(Dart_Handle name,
-                                   int argument_count) {
+                                   int argument_count,
+                                   bool* auto_setup_scope) {
   const char* function_name = NULL;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
   DART_CHECK_VALID(result);
   ASSERT(function_name != NULL);
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = true;
   int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(IOEntries[i]);

@@ -4578,7 +4578,7 @@ bool Function::IsOptimizable() const {
 }
 
 
-bool Function::IsNativeLeaf() const {
+bool Function::IsNativeAutoSetupScope() const {
   return is_native() ? is_optimizable() : false;
 }
 
@@ -4589,7 +4589,7 @@ void Function::SetIsOptimizable(bool value) const {
 }
 
 
-void Function::SetIsNativeLeaf(bool value) const {
+void Function::SetIsNativeAutoSetupScope(bool value) const {
   ASSERT(is_native());
   set_is_optimizable(value);
 }

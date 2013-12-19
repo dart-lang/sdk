@@ -1172,7 +1172,7 @@ DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size) {
 
 DART_EXPORT Dart_Handle Dart_Null() {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   return Api::Null();
 }
 
@@ -1551,21 +1551,21 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
 
 DART_EXPORT Dart_Handle Dart_True() {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   return Api::True();
 }
 
 
 DART_EXPORT Dart_Handle Dart_False() {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   return Api::False();
 }
 
 
 DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   return value ? Api::True() : Api::False();
 }
 

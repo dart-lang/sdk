@@ -2122,7 +2122,8 @@ typedef void (*Dart_NativeFunction)(Dart_NativeArguments arguments);
  * See Dart_SetNativeResolver.
  */
 typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
-                                                        int num_of_arguments);
+                                                        int num_of_arguments,
+                                                        bool* auto_setup_scope);
 /* TODO(turnidge): Consider renaming to NativeFunctionResolver or
  * NativeResolver. */
 

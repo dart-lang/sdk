@@ -1350,7 +1350,10 @@ static void InterruptNativeFunction(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction InterruptNativeResolver(Dart_Handle name,
-                                                   int arg_count) {
+                                                   int arg_count,
+                                                   bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return &InterruptNativeFunction;
 }
 

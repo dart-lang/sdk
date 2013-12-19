@@ -60,7 +60,8 @@ const char* VmService::error_msg_ = NULL;
 
 
 static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
-                                                   int num_arguments);
+                                                   int num_arguments,
+                                                   bool* auto_setup_scope);
 
 
 bool VmService::Start(intptr_t server_port) {
@@ -527,13 +528,16 @@ static VmServiceNativeEntry _VmServiceNativeEntries[] = {
 
 
 static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
-                                                   int num_arguments) {
+                                                   int num_arguments,
+                                                   bool* auto_setup_scope) {
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
   }
   const char* function_name = obj.ToCString();
   ASSERT(function_name != NULL);
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = true;
   intptr_t n =
       sizeof(_VmServiceNativeEntries) / sizeof(_VmServiceNativeEntries[0]);
   for (intptr_t i = 0; i < n; i++) {

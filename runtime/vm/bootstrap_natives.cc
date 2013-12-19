@@ -31,11 +31,14 @@ static struct NativeEntries {
 
 
 Dart_NativeFunction BootstrapNatives::Lookup(Dart_Handle name,
-                                             int argument_count) {
+                                             int argument_count,
+                                             bool* auto_setup_scope) {
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
   }
+  ASSERT(auto_setup_scope);
+  *auto_setup_scope = false;
   const char* function_name = obj.ToCString();
   ASSERT(function_name != NULL);
   int num_entries = sizeof(BootStrapEntries) / sizeof(struct NativeEntries);

@@ -93,7 +93,8 @@ class NativeEntry : public AllStatic {
   // Resolve specified dart native function to the actual native entrypoint.
   static NativeFunction ResolveNative(const Library& library,
                                       const String& function_name,
-                                      int number_of_arguments);
+                                      int number_of_arguments,
+                                      bool* auto_setup_scope);
   static void NativeCallWrapper(Dart_NativeArguments args,
                                 Dart_NativeFunction func);
   static const ExternalLabel& NativeCallWrapperLabel();

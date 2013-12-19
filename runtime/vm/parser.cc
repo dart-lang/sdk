@@ -5317,12 +5317,14 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
 
   // Now resolve the native function to the corresponding native entrypoint.
   const int num_params = NativeArguments::ParameterCountForResolution(func);
+  bool auto_setup_scope = true;
   NativeFunction native_function = NativeEntry::ResolveNative(
-      library, native_name, num_params);
+      library, native_name, num_params, &auto_setup_scope);
   if (native_function == NULL) {
     ErrorMsg(native_pos, "native function '%s' cannot be found",
         native_name.ToCString());
   }
+  func.SetIsNativeAutoSetupScope(auto_setup_scope);
 
   // Now add the NativeBodyNode and return statement.
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();

@@ -709,6 +709,12 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // stub generates the redirection address when running under the simulator
     // and hence we do not change 'entry' here.
     stub_entry = &StubCode::CallNativeCFunctionLabel();
+#if defined(USING_SIMULATOR)
+    if (!function().IsNativeAutoSetupScope()) {
+      entry = Simulator::RedirectExternalReference(
+          entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+    }
+#endif
   }
   __ LoadImmediate(R5, entry);
   __ LoadImmediate(R1, NativeArguments::ComputeArgcTag(function()));

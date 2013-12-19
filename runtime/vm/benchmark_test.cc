@@ -134,7 +134,11 @@ static void UseDartApi(Dart_NativeArguments args) {
 }
 
 
-static Dart_NativeFunction bm_uda_lookup(Dart_Handle name, int argument_count) {
+static Dart_NativeFunction bm_uda_lookup(Dart_Handle name,
+                                         int argument_count,
+                                         bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   const char* cstr = NULL;
   Dart_Handle result = Dart_StringToCString(name, &cstr);
   EXPECT_VALID(result);
@@ -265,7 +269,10 @@ static void func(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction NativeResolver(Dart_Handle name,
-                                          int arg_count) {
+                                          int arg_count,
+                                          bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return &func;
 }
 
@@ -335,7 +342,10 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction StackFrameNativeResolver(Dart_Handle name,
-                                                    int arg_count) {
+                                                    int arg_count,
+                                                    bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return &StackFrame_accessFrame;
 }
 

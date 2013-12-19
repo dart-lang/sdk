@@ -318,7 +318,9 @@ namespace dart {
 
 class BootstrapNatives : public AllStatic {
  public:
-  static Dart_NativeFunction Lookup(Dart_Handle name, int argument_count);
+  static Dart_NativeFunction Lookup(Dart_Handle name,
+                                    int argument_count,
+                                    bool* auto_setup_scope);
 
 #define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
   static void DN_##name(Dart_NativeArguments args);

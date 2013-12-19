@@ -163,8 +163,18 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ leal(EAX, Address(ESP, 2 * kWordSize));  // Pointer to the NativeArguments.
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
+
+  // Call native function (setsup scope if not leaf function).
+  Label leaf_call;
+  Label done;
+  __ testl(EDX, Immediate(NativeArguments::AutoSetupScopeMask()));
+  __ j(ZERO, &leaf_call, Assembler::kNearJump);
   __ movl(Address(ESP, kWordSize), ECX);  // Function to call.
   __ call(&NativeEntry::NativeCallWrapperLabel());
+  __ jmp(&done);
+  __ Bind(&leaf_call);
+  __ call(ECX);
+  __ Bind(&done);
 
   // Reset exit frame information in Isolate structure.
   __ movl(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));

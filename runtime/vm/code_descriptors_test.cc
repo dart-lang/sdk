@@ -194,7 +194,10 @@ static void NativeFunc(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction native_resolver(Dart_Handle name,
-                                           int argument_count) {
+                                           int argument_count,
+                                           bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope);
+  *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&NativeFunc);
 }
 

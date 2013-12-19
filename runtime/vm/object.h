@@ -1735,9 +1735,9 @@ class Function : public Object {
   }
 
   bool IsOptimizable() const;
-  bool IsNativeLeaf() const;
+  bool IsNativeAutoSetupScope() const;
   void SetIsOptimizable(bool value) const;
-  void SetIsNativeLeaf(bool value) const;
+  void SetIsNativeAutoSetupScope(bool value) const;
 
   bool has_finally() const {
     return HasFinallyBit::decode(raw_ptr()->kind_tag_);
