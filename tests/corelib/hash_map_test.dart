@@ -9,8 +9,6 @@ import "package:expect/expect.dart";
 class HashMapTest {
 
   static testMain() {
-    // TODO(srdjan/ngeoffray): Add more meaningful testing below. For now this
-    // is used to verify that the test script is picking up these tests.
     var m = new Map();
     Expect.equals(0, m.length);
     Expect.equals(true, m.isEmpty);
