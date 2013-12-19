@@ -86,7 +86,7 @@ String readCurrentPackageFromPubspec([String dir]) {
  * Extract a mapping between package names and the path in the file system where
  * to find the sources of such package. This map will contain an entry for the
  * current package and everything it depends on (extracted via `pub
- * list-pacakge-dirs`).
+ * list-package-dirs`).
  */
 Map<String, String> _readPackageDirsFromPub(String currentPackage) {
   var dartExec = Platform.executable;
