@@ -143,7 +143,8 @@ class IrBuilderTask extends CompilerTask {
     if (!inCheckedMode || compiler.backend is !JavaScriptBackend) return false;
     JavaScriptBackend backend = compiler.backend;
     for (MetadataAnnotation metadata in element.metadata) {
-      if (!metadata.value.isConstructedObject()) continue;
+      if (metadata.value == null ||
+          !metadata.value.isConstructedObject()) continue;
       ObjectConstant value = metadata.value;
       ClassElement cls = value.type.element;
       if (cls == backend.irRepresentationClass) {
