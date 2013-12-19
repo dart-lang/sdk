@@ -3106,14 +3106,18 @@ abstract class SsaFromAstMixin
         value = compiler.constantHandler.getConstantForVariable(element);
       }
       if (value != null) {
-        HInstruction instruction = graph.addConstant(value, compiler);
+        HConstant instruction = graph.addConstant(value, compiler);
         stack.add(instruction);
         // The inferrer may have found a better type than the constant
         // handler in the case of lists, because the constant handler
         // does not look at elements in the list.
         TypeMask type =
             TypeMaskFactory.inferredTypeForElement(element, compiler);
-        if (!type.containsAll(compiler)) instruction.instructionType = type;
+        if (!type.containsAll(compiler) && !instruction.isConstantNull()) {
+          // TODO(13429): The inferrer should know that an element
+          // cannot be null.
+          instruction.instructionType = type.nonNullable();
+        }
       } else if (element.isField() && isLazilyInitialized(element)) {
         HInstruction instruction = new HLazyStatic(
             element,

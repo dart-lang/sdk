@@ -1931,6 +1931,13 @@ class HConstant extends HInstruction {
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
+
+  set instructionType(type) {
+    assert((type.isEmpty && super.instructionType.isEmpty)
+           || !type.isNullable);
+    assert(!isConstantNull() || (type.isEmpty && type.isNullable));
+    super.instructionType = type;
+  }
 }
 
 class HNot extends HInstruction {
