@@ -1,6 +1,6 @@
 name: collection
 version: 0.9.0
-author: '"Dart Team <misc@dartlang.org>"'
+author: Dart Team <misc@dartlang.org>
 description: Collections and utilities functions and classes related to collections.
 homepage: http://www.dartlang.org
 dev_dependencies:
