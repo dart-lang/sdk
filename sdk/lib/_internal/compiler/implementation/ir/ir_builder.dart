@@ -144,7 +144,9 @@ class IrBuilderTask extends CompilerTask {
     JavaScriptBackend backend = compiler.backend;
     for (MetadataAnnotation metadata in element.metadata) {
       if (metadata.value == null ||
-          !metadata.value.isConstructedObject()) continue;
+          !metadata.value.isConstructedObject()) {
+        continue;
+      }
       ObjectConstant value = metadata.value;
       ClassElement cls = value.type.element;
       if (cls == backend.irRepresentationClass) {
