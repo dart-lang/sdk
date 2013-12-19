@@ -388,6 +388,10 @@ class ElementTypeInformation extends TypeInformation {
         && !(element.modifiers.isConst() || element.modifiers.isFinal())) {
       return false;
     }
+    // If the method is closurized, the closure tracing phase will go
+    // through the users.
+    if (closurizedCount != 0) return false;
+
     return super.hasStableType(inferrer);
   }
 }
