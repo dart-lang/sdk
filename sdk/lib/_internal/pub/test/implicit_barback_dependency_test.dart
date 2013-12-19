@@ -114,8 +114,8 @@ main() {
     d.appDir({"barback": "any"}).create();
 
     pubGet(error: """
-Package 'barback' has no versions that match >=$current <$max derived from:
-- 'myapp' depends on version any
+Package barback has no versions that match >=$current <$max derived from:
+- myapp depends on version any
 - pub itself depends on version >=$current <$max""");
   });
 
@@ -128,8 +128,8 @@ Package 'barback' has no versions that match >=$current <$max derived from:
     d.appDir({"barback": previous}).create();
 
     pubGet(error: """
-Incompatible version constraints on 'barback':
-- 'myapp' depends on version $previous
+Incompatible version constraints on barback:
+- myapp depends on version $previous
 - pub itself depends on version >=$current <$max""");
   });
 }

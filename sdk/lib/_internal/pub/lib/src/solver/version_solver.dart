@@ -228,6 +228,13 @@ abstract class SolveFailure implements ApplicationException {
   final innerError = null;
   final innerTrace = null;
 
+  String get message => toString();
+
+  /// A message describing the specific kind of solve failure.
+  String get _message {
+    throw new UnimplementedError("Must override _message or toString().");
+  }
+
   SolveFailure(this.package, Iterable<Dependency> dependencies)
       : dependencies = dependencies != null ? dependencies : <Dependency>[];
 
@@ -246,26 +253,13 @@ abstract class SolveFailure implements ApplicationException {
 
     for (var name in names) {
       buffer.writeln();
-      buffer.write("- ");
-      if (name == "pub itself") {
-        buffer.write(name);
-      } else {
-        buffer.write("'$name'");
-      }
-      buffer.write(" ${_describeDependency(map[name])}");
+      buffer.write("- $name ${_describeDependency(map[name])}");
     }
 
     return buffer.toString();
   }
 
-  String get message => toString();
-
-  /// A message describing the specific kind of solve failure.
-  String get _message {
-    throw new UnimplementedError("Must override _message or toString().");
-  }
-
-  /// Describes a dependencie's reference in the output message. Override this
+  /// Describes a dependency's reference in the output message. Override this
   /// to highlight which aspect of [dep] led to the failure.
   String _describeDependency(PackageDep dep) =>
       "depends on version ${dep.constraint}";
@@ -274,12 +268,11 @@ abstract class SolveFailure implements ApplicationException {
 /// Exception thrown when the current SDK's version does not match a package's
 /// constraint on it.
 class BadSdkVersionException extends SolveFailure {
+  final String _message;
+
   BadSdkVersionException(String package, String message)
       : super(package, null),
         _message = message;
-
-  /// A message describing the specific kind of solve failure.
-  final String _message;
 }
 
 /// Exception thrown when the [VersionConstraint] used to match a package is
@@ -292,7 +285,7 @@ class NoVersionException extends SolveFailure {
       Iterable<Dependency> dependencies)
       : super(package, dependencies);
 
-  String get _message => "Package '$package' has no versions that match "
+  String get _message => "Package $package has no versions that match "
       "$constraint derived from";
 }
 
@@ -307,7 +300,7 @@ class CouldNotUpgradeException extends SolveFailure {
       : super(package, null);
 
   String get _message =>
-      "The latest version of '$package', $best, does not match $constraint.";
+      "The latest version of $package, $best, does not match $constraint.";
 }
 
 /// Exception thrown when the [VersionConstraint] used to match a package is
@@ -317,16 +310,16 @@ class DisjointConstraintException extends SolveFailure {
   DisjointConstraintException(String package, Iterable<Dependency> dependencies)
       : super(package, dependencies);
 
-  String get _message => "Incompatible version constraints on '$package'";
+  String get _message => "Incompatible version constraints on $package";
 }
 
 /// Exception thrown when two packages with the same name but different sources
 /// are depended upon.
 class SourceMismatchException extends SolveFailure {
+  String get _message => "Incompatible dependencies on $package";
+
   SourceMismatchException(String package, Iterable<Dependency> dependencies)
       : super(package, dependencies);
-
-  String get _message => "Incompatible dependencies on '$package'";
 
   String _describeDependency(PackageDep dep) =>
       "depends on it from source ${dep.source}";
@@ -339,22 +332,40 @@ class UnknownSourceException extends SolveFailure {
 
   String toString() {
     var dep = dependencies.single;
-    return "Package '${dep.depender}' depends on '${dep.dep.name}' from "
-           "unknown source '${dep.dep.source}'.";
+    return 'Package ${dep.depender} depends on ${dep.dep.name} from unknown '
+           'source "${dep.dep.source}".';
   }
 }
 
 /// Exception thrown when two packages with the same name and source but
 /// different descriptions are depended upon.
 class DescriptionMismatchException extends SolveFailure {
+  String get _message => "Incompatible dependencies on $package";
+
   DescriptionMismatchException(String package,
       Iterable<Dependency> dependencies)
       : super(package, dependencies);
-
-  String get _message => "Incompatible dependencies on '$package'";
 
   String _describeDependency(PackageDep dep) {
     // TODO(nweiz): Dump descriptions to YAML when that's supported.
     return "depends on it with description ${JSON.encode(dep.description)}";
   }
+}
+
+/// Exception thrown when a dependency could not be found in its source.
+///
+/// Unlike [PackageNotFoundException], this includes information about the
+/// dependent packages requesting the missing one.
+class DependencyNotFoundException extends SolveFailure {
+  final PackageNotFoundException _innerException;
+  String get _message => "${_innerException.message}\nDepended on by";
+
+  DependencyNotFoundException(String package, this._innerException,
+      Iterable<Dependency> dependencies)
+      : super(package, dependencies);
+
+  /// The failure isn't because of the version of description of the package,
+  /// it's the package itself that can't be found, so just show the name and no
+  /// descriptive details.
+  String _describeDependency(PackageDep dep) => "";
 }

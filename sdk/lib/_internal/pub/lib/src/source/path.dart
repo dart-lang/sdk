@@ -135,10 +135,11 @@ class PathSource extends Source {
     if (dirExists(dir)) return dir;
 
     if (fileExists(dir)) {
-      fail("Path dependency for package '$name' must refer to a "
-           "directory, not a file. Was '$dir'.");
+      fail('Path dependency for package $name must refer to a directory, '
+           'not a file. Was "$dir".');
     }
 
-    fail("Could not find package '$name' at '$dir'.");
+    throw new PackageNotFoundException(
+        'Could not find package $name at "$dir".');
   }
 }

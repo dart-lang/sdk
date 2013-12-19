@@ -40,7 +40,7 @@ class GitSource extends Source {
     return git.isInstalled.then((installed) {
       if (!installed) {
         throw new Exception(
-            "Cannot get '${id.name}' from Git (${_getUrl(id)}).\n"
+            "Cannot get ${id.name} from Git (${_getUrl(id)}).\n"
             "Please ensure Git is correctly installed.");
       }
 

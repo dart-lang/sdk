@@ -372,7 +372,7 @@ void createPackageSymlink(String name, String target, String symlink,
   // directory since it may just be a leaf application that only has
   // code in bin or web.
   if (!isSelfLink) {
-    log.warning('Warning: Package "$name" does not have a "lib" directory so '
+    log.warning('Warning: Package $name does not have a "lib" directory so '
                 'you will not be able to import any libraries from it.');
   }
 }

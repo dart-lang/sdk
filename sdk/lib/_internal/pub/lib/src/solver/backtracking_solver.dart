@@ -593,6 +593,14 @@ class Traverser {
       }
 
       return allowed;
+    }).catchError((error, stackTrace) {
+      if (error is PackageNotFoundException) {
+        // Show the user why the package was being requested.
+        throw new DependencyNotFoundException(
+            dep.name, error, _getDependencies(dep.name));
+      }
+
+      throw error;
     });
   }
 

@@ -12,7 +12,7 @@ main() {
     d.appDir().create();
 
     schedulePub(args: ["build"],
-        error: new RegExp(r"^There is no '[^']+[/\\]web' directory.$",
+        error: new RegExp(r'^There is no "[^"]+[/\\]web" directory.$',
             multiLine: true),
         exitCode: 1);
   });

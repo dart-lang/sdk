@@ -156,16 +156,17 @@ class HostedSource extends Source {
       String url) {
     if (error is PubHttpException &&
         error.response.statusCode == 404) {
-      fail('Could not find package "$package" at $url.', error, stackTrace);
+      throw new PackageNotFoundException(
+          "Could not find package $package at $url.", error, stackTrace);
     }
 
     if (error is TimeoutException) {
-      fail('Timed out trying to find package "$package" at $url.',
+      fail("Timed out trying to find package $package at $url.",
           error, stackTrace);
     }
 
     if (error is io.SocketException) {
-      fail('Got socket error trying to find package "$package" at $url.',
+      fail("Got socket error trying to find package $package at $url.",
            error, stackTrace);
     }
 
@@ -191,7 +192,7 @@ class OfflineHostedSource extends HostedSource {
           .toList();
     }).then((versions) {
       // If there are no versions in the cache, report a clearer error.
-      if (versions.isEmpty) fail('Could not find package "$name" in cache.');
+      if (versions.isEmpty) fail("Could not find package $name in cache.");
 
       return versions;
     });

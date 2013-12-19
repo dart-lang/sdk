@@ -110,7 +110,7 @@ main() {
       ]).create();
 
       pubCommand(command,
-          error: new RegExp("^Incompatible dependencies on 'baz':\n"));
+          error: new RegExp("^Incompatible dependencies on baz:\n"));
     });
 
     integration('does not allow a dependency on itself', () {

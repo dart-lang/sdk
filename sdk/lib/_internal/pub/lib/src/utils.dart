@@ -832,6 +832,16 @@ class ApplicationException implements Exception {
   String toString() => message;
 }
 
+/// An class for exceptions where a package could not be found in a [Source].
+///
+/// The source is responsible for wrapping its internal exceptions in this so
+/// that other code in pub can use this to show a more detailed explanation of
+/// why the package was being requested.
+class PackageNotFoundException extends ApplicationException {
+  PackageNotFoundException(String message, [innerError, StackTrace innerTrace])
+      : super(message, innerError, innerTrace);
+}
+
 /// Throw a [ApplicationException] with [message].
 void fail(String message, [innerError, StackTrace innerTrace]) {
   throw new ApplicationException(message, innerError, innerTrace);

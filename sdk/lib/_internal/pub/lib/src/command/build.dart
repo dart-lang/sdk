@@ -44,7 +44,7 @@ class BuildCommand extends PubCommand {
 
   Future onRun() {
     if (!dirExists(source)) {
-      throw new ApplicationException("There is no '$source' directory.");
+      throw new ApplicationException('There is no "$source" directory.');
     }
 
     cleanDir(target);
