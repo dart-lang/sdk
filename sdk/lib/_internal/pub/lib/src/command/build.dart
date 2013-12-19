@@ -52,9 +52,7 @@ class BuildCommand extends PubCommand {
     var dart2jsTransformer;
     var builtFiles = 0;
 
-    return entrypoint.ensureLockFileIsUpToDate().then((_) {
-      return entrypoint.loadPackageGraph();
-    }).then((graph) {
+    return entrypoint.loadPackageGraph().then((graph) {
       dart2jsTransformer = new Dart2JSTransformer(graph, mode);
       var builtInTransformers = [
         dart2jsTransformer,

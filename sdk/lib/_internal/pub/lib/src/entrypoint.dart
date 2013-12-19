@@ -211,7 +211,7 @@ class Entrypoint {
 
   /// Gets dependencies if the lockfile is out of date with respect to the
   /// pubspec.
-  Future ensureLockFileIsUpToDate() {
+  Future _ensureLockFileIsUpToDate() {
     return syncFuture(() {
       var lockFile = loadLockFile();
 
@@ -248,19 +248,42 @@ class Entrypoint {
     });
   }
 
+  /// Warns users if they have directory or file named `assets` _anywhere_
+  /// inside `web` directory.
+  void _warnOnAssetsPaths() {
+    var webDir = path.join(root.dir, 'web');
+    if (!dirExists(webDir)) return;
+
+    listDir(webDir, recursive: true)
+      .where((p) => path.basename(p) == 'assets')
+      .forEach((p) {
+        var assetsPath = path.relative(p, from: root.dir);
+        log.warning(
+            'Warning: Pub reserves paths containing "assets" for using assets '
+            'from packages. Please rename the path "$assetsPath".');
+      });
+  }
+
+  /// Loads the package graph for the application and all of its transitive
+  /// dependencies. Before loading makes sure the lockfile and dependencies are
+  /// installed and up to date.
+  Future<PackageGraph> loadPackageGraph() =>
+    _ensureLockFileIsUpToDate()
+      .then((_) {
+        _warnOnAssetsPaths();
+        return _loadPackageGraph();
+      });
+
   /// Loads the package graph for the application and all of its transitive
   /// dependencies.
-  Future<PackageGraph> loadPackageGraph() {
+  Future<PackageGraph> _loadPackageGraph() {
     var lockFile = loadLockFile();
     return Future.wait(lockFile.packages.values.map((id) {
       var source = cache.sources[id.source];
       return source.getDirectory(id)
           .then((dir) => new Package.load(id.name, dir, cache.sources));
     })).then((packages) {
-      var packageMap = <String, Package>{};
-      for (var package in packages) {
-        packageMap[package.name] = package;
-      }
+      var packageMap = new Map.fromIterable(packages, key: (p) => p.name);
       packageMap[root.name] = root;
       return new PackageGraph(this, lockFile, packageMap);
     });

@@ -65,9 +65,7 @@ class ServeCommand extends PubCommand {
       return flushThenExit(exit_codes.USAGE);
     }
 
-    return entrypoint.ensureLockFileIsUpToDate().then((_) {
-      return entrypoint.loadPackageGraph();
-    }).then((graph) {
+    return entrypoint.loadPackageGraph().then((graph) {
       var builtInTransformers = [new DartForwardingTransformer(mode)];
       if (useDart2JS) {
         builtInTransformers.add(new Dart2JSTransformer(graph, mode));
