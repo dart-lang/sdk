@@ -11,6 +11,7 @@
 
 #include "bin/stdio.h"
 #include "bin/fdutils.h"
+#include "bin/signal_blocker.h"
 
 
 namespace dart {
@@ -80,4 +81,3 @@ bool Stdout::GetTerminalSize(int size[2]) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)
-
