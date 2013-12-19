@@ -159,6 +159,49 @@ class Stdin extends _StdStream implements Stream<List<int>> {
 }
 
 
+/**
+ * [Stdout] exposes methods to query the terminal for properties.
+ *
+ * Use [hasTerminal] to test if there is a terminal associated to stdout.
+ */
+class Stdout extends _StdSink implements IOSink {
+  Stdout._(IOSink sink) : super(sink);
+
+  /**
+   * Returns true if there is a terminal attached to stdout.
+   */
+  external bool get hasTerminal;
+
+  /**
+   * Get the number of columns of the terminal.
+   *
+   * If no terminal is attached to stdout, a [StdoutException] is thrown. See
+   * [hasTerminal] for more info.
+   */
+  external int get terminalColumns;
+
+  /**
+   * Get the number of lines of the terminal.
+   *
+   * If no terminal is attached to stdout, a [StdoutException] is thrown. See
+   * [hasTerminal] for more info.
+   */
+  external int get terminalLines;
+}
+
+
+class StdoutException implements IOException {
+  final String message;
+  final OSError osError;
+
+  const StdoutException(this.message, [this.osError]);
+
+  String toString() {
+    return "StdoutException: $message${osError == null ? "" : ", $osError"}";
+  }
+}
+
+
 class _StdSink implements IOSink {
   final IOSink _sink;
 
@@ -194,7 +237,7 @@ class StdioType {
 
 
 Stdin _stdin;
-IOSink _stdout;
+Stdout _stdout;
 IOSink _stderr;
 
 
@@ -208,7 +251,7 @@ Stdin get stdin {
 
 
 /// The standard output stream of data written by this program.
-IOSink get stdout {
+Stdout get stdout {
   if (_stdout == null) {
     _stdout = _StdIOUtils._getStdioOutputStream(1);
   }
@@ -257,7 +300,7 @@ StdioType stdioType(object) {
 
 
 class _StdIOUtils {
-  external static IOSink _getStdioOutputStream(int fd);
+  external static _getStdioOutputStream(int fd);
   external static Stdin _getStdioInputStream();
   external static int _socketType(nativeSocket);
 }

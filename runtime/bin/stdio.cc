@@ -5,7 +5,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/utils.h"
-#include "bin/stdin.h"
+#include "bin/stdio.h"
 
 #include "platform/globals.h"
 #include "platform/thread.h"
@@ -41,6 +41,19 @@ void FUNCTION_NAME(Stdin_GetLineMode)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
   bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 0));
   Stdin::SetLineMode(enabled);
+}
+
+
+void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
+  int size[2];
+  if (Stdout::GetTerminalSize(size)) {
+    Dart_Handle list = Dart_NewList(2);
+    Dart_ListSetAt(list, 0, Dart_NewInteger(size[0]));
+    Dart_ListSetAt(list, 1, Dart_NewInteger(size[1]));
+    Dart_SetReturnValue(args, list);
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
 }
 
 }  // namespace bin

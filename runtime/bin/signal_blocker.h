@@ -13,6 +13,8 @@
 
 #include <signal.h>  // NOLINT
 
+#include "platform/thread.h"
+
 namespace dart {
 namespace bin {
 

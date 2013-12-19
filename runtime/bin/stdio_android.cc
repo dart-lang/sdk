@@ -3,67 +3,82 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_LINUX)
+#if defined(TARGET_OS_ANDROID)
 
+#include <errno.h>  // NOLINT
+#include <sys/ioctl.h>  // NOLINT
 #include <termios.h>  // NOLINT
 
-#include "bin/stdin.h"
+#include "bin/stdio.h"
 #include "bin/fdutils.h"
+#include "bin/signal_blocker.h"
 
 
 namespace dart {
 namespace bin {
 
 int Stdin::ReadByte() {
-  FDUtils::SetBlocking(fileno(stdin));
+  FDUtils::SetBlocking(STDIN_FILENO);
   int c = getchar();
   if (c == EOF) {
     c = -1;
   }
-  FDUtils::SetNonBlocking(fileno(stdin));
+  FDUtils::SetNonBlocking(STDIN_FILENO);
   return c;
 }
 
 
 bool Stdin::GetEchoMode() {
   struct termios term;
-  tcgetattr(fileno(stdin), &term);
+  tcgetattr(STDIN_FILENO, &term);
   return (term.c_lflag & ECHO) != 0;
 }
 
 
 void Stdin::SetEchoMode(bool enabled) {
   struct termios term;
-  tcgetattr(fileno(stdin), &term);
+  tcgetattr(STDIN_FILENO, &term);
   if (enabled) {
     term.c_lflag |= ECHO|ECHONL;
   } else {
     term.c_lflag &= ~(ECHO|ECHONL);
   }
-  tcsetattr(fileno(stdin), TCSANOW, &term);
+  tcsetattr(STDIN_FILENO, TCSANOW, &term);
 }
 
 
 bool Stdin::GetLineMode() {
   struct termios term;
-  tcgetattr(fileno(stdin), &term);
+  tcgetattr(STDIN_FILENO, &term);
   return (term.c_lflag & ICANON) != 0;
 }
 
 
 void Stdin::SetLineMode(bool enabled) {
   struct termios term;
-  tcgetattr(fileno(stdin), &term);
+  tcgetattr(STDIN_FILENO, &term);
   if (enabled) {
     term.c_lflag |= ICANON;
   } else {
     term.c_lflag &= ~(ICANON);
   }
-  tcsetattr(fileno(stdin), TCSANOW, &term);
+  tcsetattr(STDIN_FILENO, TCSANOW, &term);
+}
+
+
+bool Stdout::GetTerminalSize(int size[2]) {
+  struct winsize w;
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != 0)) {
+    return false;
+  }
+  size[0] = w.ws_col;
+  size[1] = w.ws_row;
+  return true;
 }
 
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(TARGET_OS_ANDROID)
 

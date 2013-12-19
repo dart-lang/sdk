@@ -79,6 +79,7 @@ namespace bin {
   V(Stdin_SetEchoMode, 1)                                                      \
   V(Stdin_GetLineMode, 0)                                                      \
   V(Stdin_SetLineMode, 1)                                                      \
+  V(Stdout_GetTerminalSize, 0)                                                 \
   V(StringToSystemEncoding, 1)                                                 \
   V(SystemEncodingToString, 1)
 

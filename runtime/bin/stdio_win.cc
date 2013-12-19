@@ -5,7 +5,7 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
-#include "bin/stdin.h"
+#include "bin/stdio.h"
 
 
 namespace dart {
@@ -62,6 +62,16 @@ void Stdin::SetLineMode(bool enabled) {
     mode &= ~ENABLE_LINE_INPUT;
   }
   SetConsoleMode(h, mode);
+}
+
+
+bool Stdout::GetTerminalSize(int size[2]) {
+  HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+  CONSOLE_SCREEN_BUFFER_INFO info;
+  if (!GetConsoleScreenBufferInfo(h, &info)) return false;
+  size[0] = info.srWindow.Right - info.srWindow.Left + 1;
+  size[1] = info.srWindow.Bottom - info.srWindow.Top + 1;
+  return true;
 }
 
 }  // namespace bin

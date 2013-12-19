@@ -16,15 +16,22 @@ patch class _StdIOUtils {
     }
   }
 
-  static IOSink _getStdioOutputStream(int fd) {
+  static _getStdioOutputStream(int fd) {
+    wrap(sink) {
+      if (fd == 1) {
+        return new Stdout._(sink);
+      } else {
+        return new _StdSink(sink);
+      }
+    }
     assert(fd == 1 || fd == 2);
     switch (_getStdioHandleType(fd)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
       case _STDIO_HANDLE_TYPE_SOCKET:
-        return new _StdSink(new _Socket._writePipe(fd));
+        return wrap(new _Socket._writePipe(fd));
       case _STDIO_HANDLE_TYPE_FILE:
-        return new _StdSink(new IOSink(new _FileStreamConsumer.fromStdio(fd)));
+        return wrap(new IOSink(new _FileStreamConsumer.fromStdio(fd)));
       default:
         throw new FileSystemException("Unsupported stdin type");
     }
@@ -52,6 +59,30 @@ patch class Stdin {
   static void set _echoMode(bool enabled) native "Stdin_SetEchoMode";
   static bool get _lineMode native "Stdin_GetLineMode";
   static void set _lineMode(bool enabled) native "Stdin_SetLineMode";
+}
+
+patch class Stdout {
+  /* patch */ bool get hasTerminal {
+    try {
+      _terminalSize;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /* patch */ int get terminalColumns => _terminalSize[0];
+  /* patch */ int get terminalLines => _terminalSize[1];
+
+  static List get _terminalSize {
+    var size = _getTerminalSize();
+    if (size is! List) {
+      throw new StdoutException("Could not get terminal size", size);
+    }
+    return size;
+  }
+
+  static List _getTerminalSize() native "Stdout_GetTerminalSize";
 }
 
 
