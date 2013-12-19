@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:unittest/unittest.dart';
 
 import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
@@ -10,6 +12,20 @@ import 'package:analyzer/src/services/formatter_impl.dart';
 import 'package:analyzer/src/services/writer.dart';
 
 main() {
+
+  /// Data driven statement tests
+  group('stmt_tests.data', () {
+    runTests(new File('data/stmt_tests.data'), (input, expectedOutput) {
+      expect(formatStatement(input) + '\n', equals(expectedOutput));
+    });
+  });
+
+  /// Data driven compilation unit tests
+  group('cu_tests.data', () {
+    runTests(new File('data/cu_tests.data'), (input, expectedOutput) {
+      expectCUFormatsTo(input, expectedOutput);
+    });
+  });
 
   /// Formatter tests
   group('formatter', () {
@@ -1289,3 +1305,22 @@ expectCUFormatsTo(src, expected, {transforms: true}) =>
 expectStmtFormatsTo(src, expected, {transforms: true}) =>
     expect(formatStatement(src, options:
       new FormatterOptions(codeTransforms: transforms)), equals(expected));
+
+runTests(testFile, expectClause(input, output)) {
+
+  var testIndex = 1;
+  var lines = testFile.readAsLinesSync();
+
+  for (var i = 1; i < lines.length; ++i) {
+    var input = '', expectedOutput = '';
+    while(lines[i] != '<<<') {
+      input += lines[i++] + '\n';
+    }
+    while(++i < lines.length && lines[i] != '>>>') {
+      expectedOutput += lines[i] + '\n';
+    }
+    test('test - (${testIndex++})', () {
+      expectClause(input, expectedOutput);
+    });
+  }
+}
