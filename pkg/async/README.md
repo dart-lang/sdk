@@ -8,4 +8,4 @@ The "stream_zip.dart" sub-library contains functionality to combine several stre
 of events into a single stream of tuples of events.
 
 ### History.
-This package is unrelated to the discontinued `async` package with version 0.1.17.
+This package is unrelated to the discontinued `async` package with version 0.1.7.
