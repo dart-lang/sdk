@@ -186,7 +186,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       if (interceptedClasses.contains(backend.jsNumberClass)
           && !(interceptedClasses.contains(backend.jsDoubleClass)
                || interceptedClasses.contains(backend.jsIntClass))) {
-        for (var user in node.usedBy) {
+        for (HInstruction user in node.usedBy) {
           if (user is! HInvoke) continue;
           Set<ClassElement> intercepted =
               backend.getInterceptedClassesOn(user.selector.name);
@@ -200,7 +200,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       }
     } else {
       interceptedClasses = new Set<ClassElement>();
-      for (var user in node.usedBy) {
+      for (HInstruction user in node.usedBy) {
         if (user is HIs) {
           // Is-checks can be performed on any intercepted class.
           interceptedClasses.addAll(backend.interceptedClasses);
@@ -215,7 +215,29 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     HInstruction receiver = node.receiver;
     if (canUseSelfForInterceptor(receiver, interceptedClasses)) {
+      List<HInstruction> users = node.usedBy.toList();
       node.block.rewrite(node, receiver);
+
+      // Replace occurences of the receiver in invocations with a dummy receiver
+      // if the selector matches only methods that ignore the receiver.
+      JavaScriptBackend backend = compiler.backend;
+      for (HInstruction user in users) {
+        if (user is HInvokeDynamic) {
+          HInvokeDynamic invoke = user;
+          if (invoke.getDartReceiver(compiler) == receiver
+              && !backend.isInterceptedMixinSelector(invoke.selector)) {
+            // [receiver] might not be the direct input since `node.receiver`
+            // looks through type conversion nodes like [TypeKnown].
+            HInstruction immediateReceiver = invoke.inputs[1];
+            Constant constant = new DummyReceiverConstant(
+                immediateReceiver.instructionType);
+            HConstant dummy = graph.addConstant(constant, compiler);
+            immediateReceiver.usedBy.remove(invoke);
+            invoke.inputs[1] = dummy;
+            dummy.usedBy.add(invoke);
+          }
+        }
+      }
       return false;
     }
 

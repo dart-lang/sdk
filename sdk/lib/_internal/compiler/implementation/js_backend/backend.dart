@@ -164,11 +164,17 @@ class JavaScriptBackend extends Backend {
    * know whether a send must be intercepted or not.
    */
   final Map<String, Set<Element>> interceptedElements;
-  // TODO(sra): Not all methods in the Set always require an interceptor.  A
-  // method may be mixed into a true interceptor *and* a plain class. For the
-  // method to work on the interceptor class it needs to use the explicit
-  // receiver.  This constrains the call on a known plain receiver to pass the
-  // explicit receiver.  https://code.google.com/p/dart/issues/detail?id=8942
+
+  /**
+   * The members of mixin classes that are mixed into an instantiated
+   * interceptor class.  This is a cached subset of [interceptedElements].
+   * These members must be invoked with a correct explicit receiver even when
+   * the receiver is not an intercepted class because the function uses the
+   * explicit interceptor parameter since it may be called on an intercepted
+   * class.
+   */
+  final Map<String, Set<Element>> interceptedMixinElements =
+      new Map<String, Set<Element>>();
 
   /**
    * A map of specialized versions of the [getInterceptorMethod].
@@ -365,6 +371,29 @@ class JavaScriptBackend extends Backend {
 
   bool isInterceptedSelector(Selector selector) {
     return interceptedElements[selector.name] != null;
+  }
+
+  /**
+   * Returns `true` iff [selector] matches an element defined in a class mixed
+   * into an intercepted class.  These selectors are not eligible for the 'dummy
+   * explicit receiver' optimization.
+   */
+  bool isInterceptedMixinSelector(Selector selector) {
+    Set<Element> elements = interceptedMixinElements.putIfAbsent(
+        selector.name,
+        () {
+          Set<Element> elements = interceptedElements[selector.name];
+          if (elements == null) return null;
+          return elements
+              .where((element) =>
+                  classesMixedIntoNativeClasses.contains(
+                      element.getEnclosingClass()))
+              .toSet();
+        });
+
+    if (elements == null) return false;
+    if (elements.isEmpty) return false;
+    return elements.any((element) => selector.applies(element, compiler));
   }
 
   final Map<String, Set<ClassElement>> interceptedClassesCache =
@@ -1852,6 +1881,8 @@ class ConstantCopier implements ConstantVisitor {
   void visitType(TypeConstant constant) => copy(constant);
 
   void visitInterceptor(InterceptorConstant constant) => copy(constant);
+
+  void visitDummyReceiver(DummyReceiverConstant constant) => copy(constant);
 
   void visitList(ListConstant constant) {
     copy(constant.entries);

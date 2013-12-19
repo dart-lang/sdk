@@ -909,8 +909,9 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   bool isConstantInlinedOrAlreadyEmitted(Constant constant) {
-    if (constant.isFunction()) return true;   // Already emitted.
-    if (constant.isPrimitive()) return true;  // Inlined.
+    if (constant.isFunction()) return true;       // Already emitted.
+    if (constant.isPrimitive()) return true;      // Inlined.
+    if (constant.isDummyReceiver()) return true;  // Inlined.
     // The name is null when the constant is already a JS constant.
     // TODO(floitsch): every constant should be registered, so that we can
     // share the ones that take up too much space (like some strings).
