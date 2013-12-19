@@ -42,7 +42,7 @@ Dart_NativeFunction ResolveName(Dart_Handle name,
   if (auto_setup_scope == NULL) {
     return NULL;
   }
-  *auto_setup_scope = true;
+  *auto_setup_scope = 1;
   check_error = Dart_StringToCString(name, &c_name);
   if (Dart_IsError(check_error)) {
     Dart_PropagateError(check_error);
