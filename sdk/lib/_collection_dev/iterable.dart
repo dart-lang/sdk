@@ -1016,12 +1016,12 @@ class IterableMixinWorkaround {
   }
 
   static int indexOfList(List list, var element, int start) {
-    return Arrays.indexOf(list, element, start, list.length);
+    return Lists.indexOf(list, element, start, list.length);
   }
 
   static int lastIndexOfList(List list, var element, int start) {
     if (start == null) start = list.length - 1;
-    return Arrays.lastIndexOf(list, element, start);
+    return Lists.lastIndexOf(list, element, start);
   }
 
   static void _rangeCheck(List list, int start, int end) {
@@ -1060,7 +1060,7 @@ class IterableMixinWorkaround {
     if (otherStart + length > otherList.length) {
       throw new StateError("Not enough elements");
     }
-    Arrays.copy(otherList, otherStart, list, start, length);
+    Lists.copy(otherList, otherStart, list, start, length);
   }
 
   static void replaceRangeList(List list, int start, int end,

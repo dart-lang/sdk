@@ -4,8 +4,7 @@
 
 part of dart._collection.dev;
 
-// TODO(ngeoffray): Rename to Lists.
-class Arrays {
+class Lists {
   static void copy(List src, int srcStart,
                    List dst, int dstStart, int count) {
     if (srcStart < dstStart) {

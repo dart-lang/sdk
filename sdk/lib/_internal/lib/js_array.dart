@@ -269,11 +269,11 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (end < start || end > receiverLength) {
       throw new RangeError.range(end, start, receiverLength);
     }
-    Arrays.copy(this,
-                end,
-                this,
-                start,
-                receiverLength - end);
+    Lists.copy(this,
+               end,
+               this,
+               start,
+               receiverLength - end);
     this.length = receiverLength - (end - start);
   }
 
