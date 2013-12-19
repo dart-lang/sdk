@@ -185,9 +185,6 @@ patch class _ProcessUtils {
   patch static int _pid(Process process) {
     throw new UnsupportedError("ProcessUtils._pid");
   }
-  patch static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
-    throw new UnsupportedError("ProcessUtils._watchSignal");
-  }
 }
 
 patch class Process {
