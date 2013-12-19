@@ -21,3 +21,10 @@ class NoThrows {
 class NoInline {
   const NoInline();
 }
+
+// Ensures that the annotated method is represented internally using
+// IR nodes ([:value == true:]) or AST nodes ([:value == false:]).
+class IrRepresentation {
+  final bool value;
+  const IrRepresentation(this.value);
+}

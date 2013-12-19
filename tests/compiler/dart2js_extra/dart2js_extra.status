@@ -14,6 +14,10 @@ constant_javascript_semantics4_test: Fail, OK
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
 
+[ $compiler == dart2js && $host_checked ]
+# Test that @IrRepresentation yields compile-time errors in host-checked mode.
+ir_representation_test: CompileTimeError, OK
+
 [ $compiler == dart2js && $mode == debug ]
 operator_test: Skip
 string_interpolation_test: Skip

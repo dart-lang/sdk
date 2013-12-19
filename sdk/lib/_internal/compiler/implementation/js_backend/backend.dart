@@ -107,6 +107,7 @@ class JavaScriptBackend extends Backend {
   ClassElement noSideEffectsClass;
   ClassElement noThrowsClass;
   ClassElement noInlineClass;
+  ClassElement irRepresentationClass;
 
   Element getInterceptorMethod;
   Element interceptedNames;
@@ -521,6 +522,7 @@ class JavaScriptBackend extends Backend {
     noSideEffectsClass = compiler.findHelper('NoSideEffects');
     noThrowsClass = compiler.findHelper('NoThrows');
     noInlineClass = compiler.findHelper('NoInline');
+    irRepresentationClass = compiler.findHelper('IrRepresentation');
   }
 
   void validateInterceptorImplementsAllObjectMethods(
