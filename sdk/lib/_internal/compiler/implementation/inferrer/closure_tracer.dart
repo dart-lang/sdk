@@ -54,6 +54,11 @@ class ClosureTracerVisitor extends TracerVisitor {
     if (called.isForeign(compiler) && called.name == 'JS') {
       bailout('Used in JS ${info.call}');
     }
+    if (inferrer.types.getInferredTypeOf(called) == currentUser) {
+      // This node can be a closure call as well. For example, `foo()`
+      // where `foo` is a getter.
+      analyzeCall(info);
+    }
   }
 
   bool checkIfCurrentUser(element) {
