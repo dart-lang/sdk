@@ -84,6 +84,9 @@ class Process {
 
   static intptr_t CurrentProcessId();
 
+  static intptr_t SetSignalHandler(intptr_t signal);
+  static void ClearSignalHandler(intptr_t signal);
+
   static Dart_Handle GetProcessIdNativeField(Dart_Handle process,
                                              intptr_t* pid);
   static Dart_Handle SetProcessIdNativeField(Dart_Handle process,
@@ -95,6 +98,46 @@ class Process {
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
+};
+
+
+class SignalInfo {
+ public:
+  SignalInfo(int fd, int signal, SignalInfo* prev = NULL)
+      : fd_(fd),
+        signal_(signal),
+        // SignalInfo is expected to be created when in a isolate.
+        port_(Dart_GetMainPortId()),
+        next_(NULL),
+        prev_(prev) {
+    if (prev_ != NULL) {
+      prev_->next_ = this;
+    }
+  }
+
+  ~SignalInfo();
+
+  void Unlink() {
+    if (prev_ != NULL) {
+      prev_->next_ = next_;
+    }
+    if (next_ != NULL) {
+      next_->prev_ = prev_;
+    }
+  }
+
+  int fd() const { return fd_; }
+  int signal() const { return signal_; }
+  Dart_Port port() const { return port_; }
+  SignalInfo* next() const { return next_; }
+
+ private:
+  int fd_;
+  int signal_;
+  // The port_ is used to identify what isolate the signal-info belongs to.
+  Dart_Port port_;
+  SignalInfo* next_;
+  SignalInfo* prev_;
 };
 
 

@@ -26,12 +26,26 @@ class ThreadSignalBlocker {
     sigaddset(&signal_mask, sig);
     // Add sig to signal mask.
     int r = pthread_sigmask(SIG_BLOCK, &signal_mask, &old);
+    USE(r);
+    ASSERT(r == 0);
+  }
+
+  ThreadSignalBlocker(int sigs_count, const int sigs[]) {
+    sigset_t signal_mask;
+    sigemptyset(&signal_mask);
+    for (int i = 0; i < sigs_count; i++) {
+      sigaddset(&signal_mask, sigs[i]);
+    }
+    // Add sig to signal mask.
+    int r = pthread_sigmask(SIG_BLOCK, &signal_mask, &old);
+    USE(r);
     ASSERT(r == 0);
   }
 
   ~ThreadSignalBlocker() {
     // Restore signal mask.
     int r = pthread_sigmask(SIG_SETMASK, &old, NULL);
+    USE(r);
     ASSERT(r == 0);
   }
 

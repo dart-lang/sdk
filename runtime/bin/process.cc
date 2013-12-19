@@ -243,6 +243,23 @@ void FUNCTION_NAME(Process_Pid)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Process_SetSignalHandler)(Dart_NativeArguments args) {
+  intptr_t signal = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
+  intptr_t id = Process::SetSignalHandler(signal);
+  if (id == -1) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  } else {
+    Dart_SetReturnValue(args, Dart_NewInteger(id));
+  }
+}
+
+
+void FUNCTION_NAME(Process_ClearSignalHandler)(Dart_NativeArguments args) {
+  intptr_t signal = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
+  Process::ClearSignalHandler(signal);
+}
+
+
 Dart_Handle Process::GetProcessIdNativeField(Dart_Handle process,
                                              intptr_t* pid) {
   return Dart_GetNativeInstanceField(process, kProcessIdNativeField, pid);
