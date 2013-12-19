@@ -9,5 +9,5 @@
 @deprecated
 library sequence_zip;
 
-export "iterable_zip";
-export "stream_zip";
+export "iterable_zip.dart";
+export "stream_zip.dart";
