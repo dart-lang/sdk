@@ -39,7 +39,7 @@ $TO_DART
         return returnToDart(args, value.get());
     }
 
-    static Dart_NativeFunction resolver(Dart_Handle name, int argumentCount);
+    static Dart_NativeFunction resolver(Dart_Handle name, int argumentCount, bool* autoSetupScope);
 };
 
 Dart_Handle $(WEBCORE_CLASS_NAME_ESCAPED)_toDart(PassRefPtr< $WEBCORE_CLASS_NAME > value);

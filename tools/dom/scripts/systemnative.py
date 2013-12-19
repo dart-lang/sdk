@@ -1078,8 +1078,10 @@ class DartiumBackend(HtmlDartGenerator):
     cpp_callback_name = '%s%s' % (idl_name, native_suffix)
 
     self._cpp_resolver_emitter.Emit(
-        '    if (argumentCount == $ARGC && name == "$NATIVE_BINDING")\n'
-        '        return Dart$(INTERFACE_NAME)Internal::$CPP_CALLBACK_NAME;\n',
+        '    if (argumentCount == $ARGC && name == "$NATIVE_BINDING") {\n'
+        '        *autoSetupScope = true;\n'
+        '        return Dart$(INTERFACE_NAME)Internal::$CPP_CALLBACK_NAME;\n'
+        '    }\n',
         ARGC=argument_count,
         NATIVE_BINDING=native_binding,
         INTERFACE_NAME=self._interface.id,
@@ -1181,7 +1183,7 @@ class CPPLibraryEmitter():
         path = os.path.relpath(header_file, output_dir)
         includes_emitter.Emit('#include "$PATH"\n', PATH=path)
         body_emitter.Emit(
-            '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
+            '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount, autoSetupScope))\n'
             '        return func;\n',
             CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
 
