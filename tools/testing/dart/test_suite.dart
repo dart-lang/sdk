@@ -110,8 +110,10 @@ abstract class TestSuite {
 
   TestSuite(this.configuration, this.suiteName);
 
-  String get configurationDir {
-    return TestUtils.configurationDir(configuration);
+  Map<String, String> get environmentOverrides {
+    return {
+      'DART_CONFIGURATION' : TestUtils.configurationDir(configuration),
+    };
   }
 
   /**
@@ -388,8 +390,8 @@ class CCTestSuite extends TestSuite {
     var args = TestUtils.standardOptions(configuration);
     args.add(testName);
 
-    var command = CommandBuilder.instance.getCommand(
-        'run_vm_unittest', targetRunnerPath, args, configurationDir);
+    var command = CommandBuilder.instance.getProcessCommand(
+        'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
     enqueueNewTestCase(
         new TestCase(constructedName, [command], configuration, expectations));
   }
@@ -738,7 +740,8 @@ class StandardTestSuite extends TestSuite {
 
       var command = CommandBuilder.instance.getCompilationCommand(
           compiler, "$tempDir/out.js", !useSdk,
-          dart2JsBootstrapDependencies, compilerPath, args, configurationDir);
+          dart2JsBootstrapDependencies, compilerPath, args,
+          environmentOverrides);
 
       List<Command> commands = <Command>[command];
       if (info.hasCompileError) {
@@ -746,10 +749,11 @@ class StandardTestSuite extends TestSuite {
         // error should be reported by the compilation command.
       } else if (configuration['runtime'] == 'd8') {
         commands.add(CommandBuilder.instance.getJSCommandlineCommand(
-            "d8", d8FileName, ['$tempDir/out.js'], configurationDir));
+            "d8", d8FileName, ['$tempDir/out.js'], environmentOverrides));
       } else if (configuration['runtime'] == 'jsshell') {
         commands.add(CommandBuilder.instance.getJSCommandlineCommand(
-            "jsshell", jsShellFileName, ['$tempDir/out.js'], configurationDir));
+            "jsshell", jsShellFileName, ['$tempDir/out.js'],
+            environmentOverrides));
       }
       return commands;
     case 'dart2dart':
@@ -763,7 +767,7 @@ class StandardTestSuite extends TestSuite {
           <Command>[CommandBuilder.instance.getCompilationCommand(
               compiler, "$tempDir/out.dart", !useSdk,
               dart2JsBootstrapDependencies, compilerPath, args,
-              configurationDir)];
+              environmentOverrides)];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
@@ -773,7 +777,7 @@ class StandardTestSuite extends TestSuite {
         vmArguments.addAll([
             '--ignore-unrecognized-flags', '$tempDir/out.dart']);
         commands.add(CommandBuilder.instance.getVmCommand(
-            vmFileName, vmArguments, configurationDir));
+            vmFileName, vmArguments, environmentOverrides));
       } else {
         throw 'Unsupported runtime ${configuration["runtime"]} for dart2dart';
       }
@@ -784,7 +788,7 @@ class StandardTestSuite extends TestSuite {
       arguments.addAll(sharedOptions);
       arguments.addAll(args);
       return <Command>[CommandBuilder.instance.getVmCommand(
-          dartShellFileName, arguments, configurationDir)];
+          dartShellFileName, arguments, environmentOverrides)];
 
     case 'dartanalyzer':
     case 'dart2analyzer':
@@ -799,7 +803,8 @@ class StandardTestSuite extends TestSuite {
                                       List<String> arguments) {
     return CommandBuilder.instance.getAnalysisCommand(
         configuration['compiler'], dartShellFileName, arguments,
-        configurationDir, flavor: configuration['compiler']);
+        environmentOverrides,
+        flavor: configuration['compiler']);
   }
 
   CreateTest makeTestCaseCreator(Map optionsFromFile) {
@@ -825,7 +830,6 @@ class StandardTestSuite extends TestSuite {
       enqueueTestCaseFromTestInformation(info);
     };
   }
-
 
   /**
    * _createUrlPathFromFile takes a [file], which is either located in the dart
@@ -1072,16 +1076,10 @@ class StandardTestSuite extends TestSuite {
 
           commandSet.add(CommandBuilder.instance.getContentShellCommand(
               contentShellFilename, fullHtmlPath, contentShellOptions,
-              dartFlags, configurationDir));
+              dartFlags, environmentOverrides));
         } else {
-          // This command is not actually run, it is used for reproducing
-          // the failure.
-          args = ['tools/testing/dart/launch_browser.dart',
-                  runtime,
-                  fullHtmlPath];
           commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-              runtime, fullHtmlPath, TestUtils.dartTestExecutable.toString(),
-              args, configurationDir, checkedMode: configuration['checked']));
+              runtime, fullHtmlPath, checkedMode: configuration['checked']));
         }
 
         // Create BrowserTestCase and queue it.
@@ -1126,7 +1124,7 @@ class StandardTestSuite extends TestSuite {
     }
     return CommandBuilder.instance.getCompilationCommand(
         compiler, outputFile, !useSdk,
-        dart2JsBootstrapDependencies, compilerPath, args, configurationDir);
+        dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides);
   }
 
   /** Helper to create a Polymer deploy command for a single HTML file. */
@@ -1140,8 +1138,8 @@ class StandardTestSuite extends TestSuite {
         ..add('--out')..add(outputDir);
     if (configuration['csp']) args.add('--csp');
 
-    return CommandBuilder.instance.getCommand(
-        'polymer_deploy', vmFileName, args, configurationDir);
+    return CommandBuilder.instance.getProcessCommand(
+        'polymer_deploy', vmFileName, args, environmentOverrides);
   }
 
   /**
@@ -1578,7 +1576,7 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
                                       List<String> arguments) {
     return CommandBuilder.instance.getAnalysisCommand(
         configuration['compiler'], dartShellFileName, arguments,
-        configurationDir, flavor: configuration['compiler']);
+        environmentOverrides, flavor: configuration['compiler']);
   }
 
   bool get listRecursively => true;

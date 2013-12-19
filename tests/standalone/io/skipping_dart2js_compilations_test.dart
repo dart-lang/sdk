@@ -160,8 +160,7 @@ runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
       false,
       bootstrapDeps,
       executable,
-      arguments,
-      'ReleaseIA32');
+      arguments, {});
 }
 
 void main() {
