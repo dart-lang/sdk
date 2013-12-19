@@ -82,7 +82,7 @@ patch class Stdout {
     return size;
   }
 
-  static List _getTerminalSize() native "Stdout_GetTerminalSize";
+  static _getTerminalSize() native "Stdout_GetTerminalSize";
 }
 
 
