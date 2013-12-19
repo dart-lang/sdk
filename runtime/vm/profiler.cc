@@ -224,33 +224,47 @@ void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream) {
 }
 
 
-static char* FindSymbolName(uintptr_t pc, bool* native_symbol) {
+static const char* FindSymbolName(uintptr_t pc, bool* symbol_name_allocated) {
   // TODO(johnmccutchan): Differentiate between symbols which can't be found
   // and symbols which were GCed. (Heap::CodeContains).
-  ASSERT(native_symbol != NULL);
+  ASSERT(symbol_name_allocated != NULL);
   const char* symbol_name = "Unknown";
-  *native_symbol = false;
+  *symbol_name_allocated = false;
   if (pc == 0) {
     return const_cast<char*>(Sample::kNoFrame);
   }
   const Code& code = Code::Handle(Code::LookupCode(pc));
-  if (code.IsNull()) {
-    // Possibly a native symbol.
-    char* native_name = NativeSymbolResolver::LookupSymbolName(pc);
-    if (native_name != NULL) {
-      symbol_name = native_name;
-      *native_symbol = true;
-    }
-  } else {
+  if (!code.IsNull()) {
     const Function& function = Function::Handle(code.function());
     if (!function.IsNull()) {
       const String& name = String::Handle(function.QualifiedUserVisibleName());
       if (!name.IsNull()) {
         symbol_name = name.ToCString();
+        return symbol_name;
       }
     }
+  } else {
+    // Possibly a native symbol.
+    char* native_name = NativeSymbolResolver::LookupSymbolName(pc);
+    if (native_name != NULL) {
+      symbol_name = native_name;
+      *symbol_name_allocated = true;
+      return symbol_name;
+    }
   }
-  return const_cast<char*>(symbol_name);
+  const intptr_t kBucketSize = 256;
+  const intptr_t kBucketMask = ~(kBucketSize - 1);
+  // Not a Dart symbol or a native symbol. Bin into buckets by PC.
+  pc &= kBucketMask;
+  {
+    const intptr_t kBuffSize = 256;
+    char buff[kBuffSize];
+    OS::SNPrint(&buff[0], kBuffSize-1, "Unknown [%" Px ", %" Px ")",
+                pc, pc + kBucketSize);
+    symbol_name = strdup(buff);
+    *symbol_name_allocated = true;
+  }
+  return symbol_name;
 }
 
 
@@ -282,8 +296,9 @@ void Profiler::WriteTracingSample(Isolate* isolate, intptr_t pid,
     case Sample::kIsolateSample:
       // Write "B" events.
       for (int i = Sample::kNumStackFrames - 1; i >= 0; i--) {
-        bool native_symbol = false;
-        char* symbol_name = FindSymbolName(sample->pcs[i], &native_symbol);
+        bool symbol_name_allocated = false;
+        const char* symbol_name = FindSymbolName(sample->pcs[i],
+                                                 &symbol_name_allocated);
         {
           JSONObject begin(&events);
           begin.AddProperty("ph", "B");
@@ -292,14 +307,15 @@ void Profiler::WriteTracingSample(Isolate* isolate, intptr_t pid,
           begin.AddProperty("name", symbol_name);
           begin.AddProperty("ts", timestamp);
         }
-        if (native_symbol) {
-          NativeSymbolResolver::FreeSymbolName(symbol_name);
+        if (symbol_name_allocated) {
+          free(const_cast<char*>(symbol_name));
         }
       }
       // Write "E" events.
       for (int i = 0; i < Sample::kNumStackFrames; i++) {
-        bool native_symbol = false;
-        char* symbol_name = FindSymbolName(sample->pcs[i], &native_symbol);
+        bool symbol_name_allocated = false;
+        const char* symbol_name = FindSymbolName(sample->pcs[i],
+                                                 &symbol_name_allocated);
         {
           JSONObject begin(&events);
           begin.AddProperty("ph", "E");
@@ -308,8 +324,8 @@ void Profiler::WriteTracingSample(Isolate* isolate, intptr_t pid,
           begin.AddProperty("name", symbol_name);
           begin.AddProperty("ts", timestamp);
         }
-        if (native_symbol) {
-          NativeSymbolResolver::FreeSymbolName(symbol_name);
+        if (symbol_name_allocated) {
+          free(const_cast<char*>(symbol_name));
         }
       }
     break;
