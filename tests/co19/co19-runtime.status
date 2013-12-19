@@ -79,6 +79,9 @@ LibTest/core/double/toInt_A01_t01: Fail
 [ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
 
+[ $compiler == none && $runtime == vm && $arch == simarm ]
+LibTest/typed_data/Float32x4/sqrt_A01_t01: Pass, Fail # co19 issue 666.
+
 [ $compiler == none && $checked && ($runtime == vm || $runtime == dartium) ]
 Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please triage this failure
 
