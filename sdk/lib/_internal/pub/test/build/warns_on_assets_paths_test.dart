@@ -9,9 +9,13 @@ import 'package:path/path.dart' as path;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
-getWarningRegExp(String assetsPath) => new RegExp(
-    '^Warning: Pub reserves paths containing "assets" for using assets from '
-    'packages\\. Please rename the path "$assetsPath"\\.\$');
+getWarningRegExp(String assetsPath) {
+  // Escape backslashes since they are metacharacters in a regex.
+  assetsPath = assetsPath.replaceAll("\\", "\\\\");
+  return new RegExp(
+      '^Warning: Pub reserves paths containing "assets" for using assets from '
+      'packages\\. Please rename the path "$assetsPath"\\.\$');
+}
 
 main() {
   initConfig();
