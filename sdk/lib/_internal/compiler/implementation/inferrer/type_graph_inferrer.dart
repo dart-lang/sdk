@@ -59,8 +59,9 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Map<Node, TypeInformation> allocatedLists =
       new Map<Node, TypeInformation>();
 
-  /// Closures found during the analysis.
-  final Set<TypeInformation> allocatedClosures = new Set<TypeInformation>();
+  /// [ClosureTypeInformation] for allocated closures.
+  final Map<Node, TypeInformation> allocatedClosures =
+      new Map<Node, TypeInformation>();
 
   /// Cache of [ConcreteTypeInformation].
   final Map<TypeMask, TypeInformation> concreteTypes =
@@ -306,9 +307,8 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   TypeInformation allocateClosure(Node node, Element element) {
-    TypeInformation result = new ClosureTypeInformation(node, element);
-    allocatedClosures.add(result);
-    return result;
+    return allocatedClosures[node] =
+        new ClosureTypeInformation(node, element);
   }
 
   TypeInformation allocateMap(TypeInformation keyType,
@@ -486,10 +486,8 @@ class TypeGraphInferrerEngine
       workQueue.add(info.elementType);
     });
 
-    types.allocatedClosures.forEach((info) {
-      ClosureTracerVisitor tracer = info is ClosureTypeInformation
-          ? new ClosureTracerVisitor(info.element, info, this)
-          : new StaticTearOffClosureTracerVisitor(info.element, info, this);
+    types.allocatedClosures.values.forEach((ClosureTypeInformation info) {
+      ClosureTracerVisitor tracer = new ClosureTracerVisitor(info, this);
       tracer.run();
       if (!tracer.continueAnalyzing) return;
       FunctionElement element = info.element;
@@ -628,7 +626,7 @@ class TypeGraphInferrerEngine
   void buildWorkQueue() {
     workQueue.addAll(types.typeInformations.values);
     workQueue.addAll(types.allocatedTypes);
-    workQueue.addAll(types.allocatedClosures);
+    workQueue.addAll(types.allocatedClosures.values);
     workQueue.addAll(allocatedCalls);
   }
 
@@ -661,14 +659,11 @@ class TypeGraphInferrerEngine
         info.closurizedCount--;
       } else {
         info.closurizedCount++;
-        if (Elements.isStaticOrTopLevel(callee)) {
-          types.allocatedClosures.add(info);
-        }
         FunctionElement function = callee.implementation;
         FunctionSignature signature = function.computeSignature(compiler);
         signature.forEachParameter((Element parameter) {
           ElementTypeInformation info = types.getInferredTypeOf(parameter);
-          info.giveUp(this, clearAssignments: false);
+          info.giveUp(this);
           if (addToQueue) workQueue.addAll(info.users);
         });
       }
