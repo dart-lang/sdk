@@ -1424,7 +1424,7 @@ class HInvokeStatic extends HInvoke {
                 {this.targetCanThrow: true})
     : super(inputs, type);
 
-  toString() => 'invoke static: ${element.name}';
+  toString() => 'invoke static: $element';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
 }
