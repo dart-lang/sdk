@@ -71,12 +71,77 @@ patch class Process {
 }
 
 
+List<_SignalController> _signalControllers = new List(32);
+
+
+class _SignalController {
+  final ProcessSignal signal;
+
+  StreamController _controller;
+  var _id;
+
+  _SignalController(this.signal) {
+    _controller = new StreamController.broadcast(
+        onListen: _listen,
+        onCancel: _cancel);
+  }
+
+  Stream<ProcessSignal> get stream => _controller.stream;
+
+  void _listen() {
+    var id = _setSignalHandler(signal._signalNumber);
+    if (id is! int) {
+      _controller.addError(
+          new SignalException("Failed to listen for $signal", id));
+      return;
+    }
+    _id = id;
+    var socket = new _RawSocket(new _NativeSocket.watch(id));
+    socket.listen((event) {
+      if (event == RawSocketEvent.READ) {
+        var bytes = socket.read();
+        for (int i = 0; i < bytes.length; i++) {
+          _controller.add(signal);
+        }
+      }
+    });
+  }
+
+  void _cancel() {
+    if (_id != null) {
+      _clearSignalHandler(signal._signalNumber);
+      _id = null;
+    }
+  }
+
+  /* patch */ static int _setSignalHandler(int signal)
+      native "Process_SetSignalHandler";
+  /* patch */ static int _clearSignalHandler(int signal)
+      native "Process_ClearSignalHandler";
+}
+
+
 patch class _ProcessUtils {
   /* patch */ static void _exit(int status) native "Process_Exit";
   /* patch */ static void _setExitCode(int status)
       native "Process_SetExitCode";
   /* patch */ static void _sleep(int millis) native "Process_Sleep";
   /* patch */ static int _pid(Process process) native "Process_Pid";
+  /* patch */ static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
+    if (signal != ProcessSignal.SIGHUP &&
+        signal != ProcessSignal.SIGINT &&
+        (Platform.isWindows ||
+         (signal != ProcessSignal.SIGUSR1 &&
+          signal != ProcessSignal.SIGUSR2 &&
+          signal != ProcessSignal.SIGWINCH))) {
+      throw new SignalException(
+          "Listening for signal $signal is not supported");
+    }
+    if (_signalControllers[signal._signalNumber] == null) {
+      _signalControllers[signal._signalNumber] = new _SignalController(signal);
+    }
+    return _signalControllers[signal._signalNumber].stream;
+  }
 }
 
 

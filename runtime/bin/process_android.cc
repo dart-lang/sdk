@@ -18,6 +18,7 @@
 
 #include "bin/fdutils.h"
 #include "bin/log.h"
+#include "bin/signal_blocker.h"
 #include "bin/thread.h"
 
 
@@ -629,6 +630,115 @@ void Process::TerminateExitCodeHandler() {
 
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(getpid());
+}
+
+
+static Mutex* signal_mutex = new Mutex();
+static SignalInfo* signal_handlers = NULL;
+static const int kSignalsCount = 5;
+static const int kSignals[kSignalsCount] = {
+  SIGINT,
+  SIGWINCH,
+  SIGTERM,
+  SIGUSR1,
+  SIGUSR2
+};
+
+
+SignalInfo::~SignalInfo() {
+  VOID_TEMP_FAILURE_RETRY(close(fd_));
+}
+
+
+static void SignalHandler(int signal) {
+  MutexLocker lock(signal_mutex);
+  const SignalInfo* handler = signal_handlers;
+  while (handler != NULL) {
+    if (handler->signal() == signal) {
+      int value = 0;
+      VOID_TEMP_FAILURE_RETRY(write(handler->fd(), &value, 1));
+    }
+    handler = handler->next();
+  }
+}
+
+
+intptr_t Process::SetSignalHandler(intptr_t signal) {
+  bool found = false;
+  for (int i = 0; i < kSignalsCount; i++) {
+    if (kSignals[i] == signal) {
+      found = true;
+      break;
+    }
+  }
+  if (!found) return -1;
+  int fds[2];
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(pipe(fds)) != 0) {
+    return -1;
+  }
+  if (!FDUtils::SetNonBlocking(fds[0])) {
+    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[0]));
+    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[1]));
+    return -1;
+  }
+  ThreadSignalBlocker blocker(kSignalsCount, kSignals);
+  MutexLocker lock(signal_mutex);
+  SignalInfo* handler = signal_handlers;
+  bool listen = true;
+  while (handler != NULL) {
+    if (handler->signal() == signal) {
+      listen = false;
+      break;
+    }
+    handler = handler->next();
+  }
+  if (listen) {
+    struct sigaction act;
+    bzero(&act, sizeof(act));
+    act.sa_handler = SignalHandler;
+    int status = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
+        sigaction(signal, &act, NULL));
+    if (status < 0) {
+      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[0]));
+      VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fds[1]));
+      return -1;
+    }
+  }
+  if (signal_handlers == NULL) {
+    signal_handlers = new SignalInfo(fds[1], signal);
+  } else {
+    new SignalInfo(fds[1], signal, signal_handlers);
+  }
+  return fds[0];
+}
+
+
+void Process::ClearSignalHandler(intptr_t signal) {
+  ThreadSignalBlocker blocker(kSignalsCount, kSignals);
+  MutexLocker lock(signal_mutex);
+  SignalInfo* handler = signal_handlers;
+  bool unlisten = true;
+  while (handler != NULL) {
+    bool remove = false;
+    if (handler->signal() == signal) {
+      if (handler->port() == Dart_GetMainPortId()) {
+        if (signal_handlers == handler) signal_handlers = handler->next();
+        handler->Unlink();
+        remove = true;
+      } else {
+        unlisten = false;
+      }
+    }
+    SignalInfo* next = handler->next();
+    if (remove) delete handler;
+    handler = next;
+  }
+  if (unlisten) {
+    struct sigaction act;
+    bzero(&act, sizeof(act));
+    act.sa_handler = SIG_DFL;
+    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(sigaction(signal, &act, NULL));
+  }
 }
 
 }  // namespace bin

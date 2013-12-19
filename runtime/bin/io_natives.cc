@@ -45,6 +45,8 @@ namespace bin {
   V(Process_Exit, 1)                                                           \
   V(Process_Sleep, 1)                                                          \
   V(Process_Pid, 1)                                                            \
+  V(Process_SetSignalHandler, 1)                                               \
+  V(Process_ClearSignalHandler, 1)                                             \
   V(SecureSocket_Connect, 9)                                                   \
   V(SecureSocket_Destroy, 1)                                                   \
   V(SecureSocket_Handshake, 1)                                                 \
