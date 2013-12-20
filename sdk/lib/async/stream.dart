@@ -1341,8 +1341,6 @@ abstract class StreamTransformer<S, T> {
  * This wraps a [Stream] and a subscription on the stream. It listens
  * on the stream, and completes the future returned by [moveNext] when the
  * next value becomes available.
- *
- * NOTICE: This is a tentative design. This class may change.
  */
 abstract class StreamIterator<T> {
 
