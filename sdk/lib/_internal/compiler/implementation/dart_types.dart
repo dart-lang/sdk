@@ -201,7 +201,7 @@ class TypeVariableType extends DartType {
     return identical(other.element, element);
   }
 
-  String toString() => name;
+  String toString() => '${element.enclosingElement.name}.$name';
 }
 
 /**

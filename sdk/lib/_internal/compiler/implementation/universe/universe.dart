@@ -68,8 +68,6 @@ class Universe {
    */
   final Set<Element> closurizedMembers = new Set<Element>();
 
-  bool usingFactoryWithTypeArguments = false;
-
   bool hasMatchingSelector(Set<Selector> selectors,
                            Element member,
                            Compiler compiler) {
