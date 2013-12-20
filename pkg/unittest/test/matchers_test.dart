@@ -481,7 +481,7 @@ void main() {
       shouldFail(d, unorderedEquals([3, 1]),
           "Expected: equals [3, 1] unordered "
           "Actual: [1, 2] "
-          "Which: has no match for element <3> at index 0");
+          "Which: has no match for <3> at index 0");
     });
 
     test('unorderedMatchess', () {

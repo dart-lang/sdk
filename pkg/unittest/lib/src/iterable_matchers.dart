@@ -115,63 +115,20 @@ class _OrderedEquals extends Matcher {
  * the same order. Note that this is O(n^2) so should only be used on
  * small objects.
  */
-Matcher unorderedEquals(Iterable expected) =>
-    new _UnorderedEquals(expected);
+Matcher unorderedEquals(Iterable expected) => new _UnorderedEquals(expected);
 
-class _UnorderedEquals extends Matcher {
-  Iterable _expected;
+class _UnorderedEquals extends _UnorderedMatches {
+  final List _expectedValues;
 
-  _UnorderedEquals(Iterable this._expected);
-
-  String _test(item) {
-    if (item is !Iterable) {
-      return 'not iterable';
-    }
-    // Check the lengths are the same.
-    var expectedLength = _expected.length;
-    var actualLength = item.length;
-    if (expectedLength > actualLength) {
-      return 'has too few elements (${actualLength} < ${expectedLength})';
-    } else if (expectedLength < actualLength) {
-      return 'has too many elements (${actualLength} > ${expectedLength})';
-    }
-    List<bool> matched = new List<bool>(actualLength);
-    for (var i = 0; i < actualLength; i++) {
-      matched[i] = false;
-    }
-    var expectedPosition = 0;
-    for (var expectedElement in _expected) {
-      var actualPosition = 0;
-      var gotMatch = false;
-      for (var actualElement in item) {
-        if (!matched[actualPosition]) {
-          if (expectedElement == actualElement) {
-            matched[actualPosition] = gotMatch = true;
-            break;
-          }
-        }
-        ++actualPosition;
-      }
-      if (!gotMatch) {
-        Description reason = new StringDescription();
-        reason.add('has no match for element ').
-            addDescriptionOf(expectedElement).
-            add(' at index ${expectedPosition}');
-        return reason.toString();
-      }
-      ++expectedPosition;
-    }
-    return null;
-  }
-
-  bool matches(item, Map mismatchState) => (_test(item) == null);
+  _UnorderedEquals(Iterable expected)
+      : super(expected.map(equals)),
+        _expectedValues = expected.toList();
 
   Description describe(Description description) =>
-      description.add('equals ').addDescriptionOf(_expected).add(' unordered');
-
-  Description describeMismatch(item, Description mismatchDescription,
-                               Map matchState, bool verbose) =>
-      mismatchDescription.add(_test(item));
+    description
+        .add('equals ')
+        .addDescriptionOf(_expectedValues)
+        .add(' unordered');
 }
 
 /**
