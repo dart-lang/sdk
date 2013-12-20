@@ -14462,6 +14462,17 @@ static bool IsPercent(int32_t c) {
 }
 
 
+static bool IsHexCharacter(int32_t c) {
+  if (c >= '0' && c <= '9') {
+    return true;
+  }
+  if (c >= 'A' && c <= 'F') {
+    return true;
+  }
+  return false;
+}
+
+
 static bool IsURISafeCharacter(int32_t c) {
   if ((c >= '0') && (c <= '9')) {
     return true;
@@ -14545,14 +14556,38 @@ RawString* String::DecodeURI(const String& str) {
   CodePointIterator cpi(str);
   intptr_t num_escapes = 0;
   intptr_t len = str.Length();
+  bool valid = true;
   {
     CodePointIterator cpi(str);
-    while (cpi.Next()) {
+    while (valid && cpi.Next()) {
       int32_t code_point = cpi.Current();
       if (IsPercent(code_point)) {
+        // Verify that the two characters following the % are hex digits.
+        if (!cpi.Next()) {
+          valid = false;
+          break;
+        }
+        int32_t code_point = cpi.Current();
+        if (!IsHexCharacter(code_point)) {
+          valid = false;
+          break;
+        }
+        if (!cpi.Next()) {
+          valid = false;
+          break;
+        }
+        code_point = cpi.Current();
+        if (!IsHexCharacter(code_point)) {
+          valid = false;
+          break;
+        }
         num_escapes += 2;
       }
     }
+  }
+  if (!valid) {
+    // Invalid, return original string.
+    return str.raw();
   }
   ASSERT(len - num_escapes > 0);
   const String& dststr = String::Handle(
@@ -14563,7 +14598,7 @@ RawString* String::DecodeURI(const String& str) {
     while (cpi.Next()) {
       int32_t code_point = cpi.Current();
       if (IsPercent(code_point)) {
-        ASSERT(cpi.Next());
+        cpi.Next();
         int32_t ch1 = cpi.Current();
         cpi.Next();
         int32_t ch2 = cpi.Current();
