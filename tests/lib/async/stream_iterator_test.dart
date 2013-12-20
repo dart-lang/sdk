@@ -55,7 +55,7 @@ main() {
       expect(42, i.current);
       return i.moveNext();
     })).then((bool b) {
-      Expect.fail("Result not expected");
+      fail("Result not expected");
     }, onError: expectAsync1((e) {
       expect("BAD", e);
       return i.moveNext();
