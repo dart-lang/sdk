@@ -742,6 +742,31 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* StringToCharCodeInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+
+void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(cid_ == kOneByteStringCid);
+  Register str = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  Label is_one, done;
+  __ movl(result, FieldAddress(str, String::length_offset()));
+  __ cmpl(result, Immediate(Smi::RawValue(1)));
+  __ j(EQUAL, &is_one, Assembler::kNearJump);
+  __ movl(result, Immediate(Smi::RawValue(-1)));
+  __ jmp(&done);
+  __ Bind(&is_one);
+  __ movzxb(result, FieldAddress(str, OneByteString::data_offset()));
+  __ SmiTag(result);
+  __ Bind(&done);
+}
+
+
 LocationSummary* StringInterpolateInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;

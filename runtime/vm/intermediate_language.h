@@ -669,6 +669,7 @@ class EmbeddedArray<T, 0> {
   M(UnaryMintOp)                                                               \
   M(CheckArrayBound)                                                           \
   M(Constraint)                                                                \
+  M(StringToCharCode)                                                          \
   M(StringFromCharCode)                                                        \
   M(StringInterpolate)                                                         \
   M(InvokeMathCFunction)                                                       \
@@ -3694,6 +3695,36 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
   const intptr_t cid_;
 
   DISALLOW_COPY_AND_ASSIGN(StringFromCharCodeInstr);
+};
+
+
+class StringToCharCodeInstr : public TemplateDefinition<1> {
+ public:
+  StringToCharCodeInstr(Value* str, intptr_t cid) : cid_(cid) {
+    ASSERT(str != NULL);
+    SetInputAt(0, str);
+  }
+
+  DECLARE_INSTRUCTION(StringToCharCode)
+  virtual CompileType ComputeType() const;
+
+  Value* str() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsStringToCharCode()->cid_ == cid_;
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const intptr_t cid_;
+
+  DISALLOW_COPY_AND_ASSIGN(StringToCharCodeInstr);
 };
 
 

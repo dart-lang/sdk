@@ -1481,6 +1481,111 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
 }
 
 
+// Return true if d is a string of length one (a constant or result from
+// from string-from-char-code instruction.
+static bool IsLengthOneString(Definition* d) {
+  if (d->IsConstant()) {
+    const Object& obj = d->AsConstant()->value();
+    if (obj.IsString()) {
+      return String::Cast(obj).Length() == 1;
+    } else {
+      return false;
+    }
+  } else {
+    return d->IsStringFromCharCode();
+  }
+}
+
+
+// Returns true if the string comparison was converted into char-code
+// comparison. Conversion is only possible for strings of length one.
+// E.g., detect str[x] == "x"; and use an integer comparison of char-codes.
+// TODO(srdjan): Expand for two-byte and external strings.
+bool FlowGraphOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
+                                                    Token::Kind op_kind) {
+  ASSERT(HasOnlyTwoOf(*call->ic_data(), kOneByteStringCid));
+  // Check that left and right are length one strings (either string constants
+  // or results of string-from-char-code.
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+  Value* left_val = NULL;
+  Definition* to_remove_left = NULL;
+  if (IsLengthOneString(right)) {
+    // Swap, since we know that both arguments are strings
+    Definition* temp = left;
+    left = right;
+    right = temp;
+  }
+  if (IsLengthOneString(left)) {
+    // Optimize if left is a string with length one (either constant or
+    // result of string-from-char-code.
+    if (left->IsConstant()) {
+      ConstantInstr* left_const = left->AsConstant();
+      const String& str = String::Cast(left_const->value());
+      ASSERT(str.Length() == 1);
+      ConstantInstr* char_code_left =
+          flow_graph()->GetConstant(Smi::ZoneHandle(Smi::New(str.CharAt(0))));
+      left_val = new Value(char_code_left);
+    } else if (left->IsStringFromCharCode()) {
+      // Use input of string-from-charcode as left value.
+      StringFromCharCodeInstr* instr = left->AsStringFromCharCode();
+      left_val = new Value(instr->char_code()->definition());
+      to_remove_left = instr;
+    } else {
+      // IsLengthOneString(left) should have been false.
+      UNREACHABLE();
+    }
+
+    Definition* to_remove_right = NULL;
+    Value* right_val = NULL;
+    if (right->IsStringFromCharCode()) {
+      // Skip string-from-char-code, and use its input as right value.
+      StringFromCharCodeInstr* right_instr = right->AsStringFromCharCode();
+      right_val = new Value(right_instr->char_code()->definition());
+      to_remove_right = right_instr;
+    } else {
+      const ICData& unary_checks_1 =
+          ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecksForArgNr(1));
+      AddCheckClass(right,
+                    unary_checks_1,
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      // String-to-char-code instructions returns -1 (illegal charcode) if
+      // string is not of length one.
+      StringToCharCodeInstr* char_code_right =
+          new StringToCharCodeInstr(new Value(right), kOneByteStringCid);
+      InsertBefore(call, char_code_right, call->env(), Definition::kValue);
+      right_val = new Value(char_code_right);
+    }
+
+    // Comparing char-codes instead of strings.
+    EqualityCompareInstr* comp =
+        new EqualityCompareInstr(call->token_pos(),
+                                 op_kind,
+                                 left_val,
+                                 right_val,
+                                 kSmiCid,
+                                 call->deopt_id());
+    ReplaceCall(call, comp);
+
+    // Remove dead instructions.
+    if ((to_remove_left != NULL) &&
+        (to_remove_left->input_use_list() == NULL)) {
+      to_remove_left->ReplaceUsesWith(flow_graph()->constant_null());
+      to_remove_left->RemoveFromGraph();
+    }
+    if ((to_remove_right != NULL) &&
+        (to_remove_right->input_use_list() == NULL)) {
+      to_remove_right->ReplaceUsesWith(flow_graph()->constant_null());
+      to_remove_right->RemoveFromGraph();
+    }
+    return true;
+  }
+  return false;
+}
+
+
 static bool SmiFitsInDouble() { return kSmiBits < 53; }
 
 bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
@@ -1493,7 +1598,13 @@ bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
   Definition* right = call->ArgumentAt(1);
 
   intptr_t cid = kIllegalCid;
-  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+  if (HasOnlyTwoOf(ic_data, kOneByteStringCid)) {
+    if (TryStringLengthOneEquality(call, op_kind)) {
+      return true;
+    } else {
+      return false;
+    }
+  } else if (HasOnlyTwoOf(ic_data, kSmiCid)) {
     InsertBefore(call,
                  new CheckSmiInstr(new Value(left), call->deopt_id()),
                  call->env(),
@@ -6663,8 +6774,34 @@ void ConstantPropagator::VisitNativeCall(NativeCallInstr* instr) {
 
 void ConstantPropagator::VisitStringFromCharCode(
     StringFromCharCodeInstr* instr) {
-  SetValue(instr, non_constant_);
+  const Object& o = instr->char_code()->definition()->constant_value();
+  if (o.IsNull() || IsNonConstant(o)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(o)) {
+    const intptr_t ch_code = Smi::Cast(o).Value();
+    ASSERT(ch_code >= 0);
+    if (ch_code < Symbols::kMaxOneCharCodeSymbol) {
+      RawString** table = Symbols::PredefinedAddress();
+      SetValue(instr, String::ZoneHandle(table[ch_code]));
+    } else {
+      SetValue(instr, non_constant_);
+    }
+  }
 }
+
+
+void ConstantPropagator::VisitStringToCharCode(StringToCharCodeInstr* instr) {
+  const Object& o = instr->str()->definition()->constant_value();
+  if (o.IsNull() || IsNonConstant(o)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(o)) {
+    const String& str = String::Cast(o);
+    const intptr_t result = (str.Length() == 1) ? str.CharAt(0) : -1;
+    SetValue(instr, Smi::ZoneHandle(Smi::New(result)));
+  }
+}
+
+
 
 
 void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {

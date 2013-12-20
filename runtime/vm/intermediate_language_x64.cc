@@ -665,11 +665,36 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register char_code = locs()->in(0).reg();
   Register result = locs()->out().reg();
   __ LoadImmediate(result,
-          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())), PP);
+      Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())), PP);
   __ movq(result, Address(result,
                           char_code,
                           TIMES_HALF_WORD_SIZE,  // Char code is a smi.
                           Symbols::kNullCharCodeSymbolOffset * kWordSize));
+}
+
+
+LocationSummary* StringToCharCodeInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+
+void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(cid_ == kOneByteStringCid);
+  Register str = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  Label is_one, done;
+  __ movq(result, FieldAddress(str, String::length_offset()));
+  __ cmpq(result, Immediate(Smi::RawValue(1)));
+  __ j(EQUAL, &is_one, Assembler::kNearJump);
+  __ movq(result, Immediate(Smi::RawValue(-1)));
+  __ jmp(&done);
+  __ Bind(&is_one);
+  __ movzxb(result, FieldAddress(str, OneByteString::data_offset()));
+  __ SmiTag(result);
+  __ Bind(&done);
 }
 
 
