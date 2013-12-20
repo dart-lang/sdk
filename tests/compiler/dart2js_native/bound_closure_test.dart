@@ -46,7 +46,7 @@ main() {
   setup();
   var a = inscrutable(new AA());
   var b = inscrutable(makeBB());
-  var c = inscrutable(makeCC);
+  var c = inscrutable(makeCC)();
 
   Expect.equals('AA.bar(1, A)', inscrutable(a).bar(1));
   Expect.equals('AA.bar(2, 3)', inscrutable(a).bar(2, 3));
@@ -64,7 +64,6 @@ main() {
   var afoo = inscrutable(a).foo;
   var bfoo = inscrutable(b).foo;
   var cfoo = inscrutable(c).foo;
-  var csfoo = inscrutable(c).superfoo;
 
   Expect.equals('AA.bar(1, A)', abar(1));
   Expect.equals('AA.bar(2, 3)', abar(2, 3));
@@ -77,7 +76,4 @@ main() {
 
   Expect.equals('CC.foo(1, C)', cfoo(1));
   Expect.equals('CC.foo(2, 3)', cfoo(2, 3));
-
-  Expect.equals('BB.foo(1, B)', csfoo(1));
-  Expect.equals('BB.foo(2, 3)', csfoo(2, 3));
 }

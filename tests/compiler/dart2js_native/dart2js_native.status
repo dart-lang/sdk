@@ -7,6 +7,7 @@
 
 [ $compiler == dart2js ]
 bound_closure_test: Fail
+bound_closure_super_test: Fail
 call_on_native_class_test: CompileTimeError # Issue 14813
 native_no_such_method_exception4_frog_test: Fail  # Issue 9631
 native_no_such_method_exception5_frog_test: Fail  # Issue 9631
