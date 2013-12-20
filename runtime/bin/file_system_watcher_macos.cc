@@ -181,7 +181,7 @@ class FSEventsWatcher {
     for (size_t i = 0; i < num_events; i++) {
       char *path = reinterpret_cast<char**>(event_paths)[i];
       FSEvent event;
-      event.data.exists = File::Exists(path);
+      event.data.exists = File::GetType(path, false) != File::kDoesNotExist;
       path += node->base_path_length();
       // If path is longer the base, skip next character ('/').
       if (path[0] != '\0') path += 1;
