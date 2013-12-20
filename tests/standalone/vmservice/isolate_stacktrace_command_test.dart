@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 
 class StacktraceTest extends VmServiceRequestHelper {
   StacktraceTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/stacktrace');
+      super('http://127.0.0.1:$port/$id/stacktrace');
 
   onRequestCompleted(Map reply) {
     Expect.equals('StackTrace', reply['type'], 'Not a StackTrace message.');

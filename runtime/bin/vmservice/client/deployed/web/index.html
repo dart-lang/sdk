@@ -29,7 +29,15 @@
     </template>
   </template>
   
-</polymer-element><polymer-element name="error-view" extends="observatory-element">
+</polymer-element><polymer-element name="service-ref" extends="observatory-element">
+  
+</polymer-element><polymer-element name="class-ref" extends="service-ref">
+<template>
+  <a href="{{ url }}">{{ name }}</a>
+</template>
+
+</polymer-element>
+<polymer-element name="error-view" extends="observatory-element">
   <template>
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
@@ -48,34 +56,42 @@
     </div>
   </template>
   
-</polymer-element><polymer-element name="field-ref" extends="observatory-element">
+</polymer-element><polymer-element name="field-ref" extends="service-ref">
 <template>
 <div>
-  <template if="{{ field['final'] }}"> final </template>
-  <template if="{{ field['const'] }}"> const </template>
-  <template if="{{ (field['declared_type']['name'] == 'dynamic' &amp;&amp; !field['final'] &amp;&amp; !field['const']) }}">
+  <template if="{{ ref['final'] }}"> final </template>
+  <template if="{{ ref['const'] }}"> const </template>
+  <template if="{{ (ref['declared_type']['name'] == 'dynamic' &amp;&amp; !ref['final'] &amp;&amp; !ref['const']) }}">
   var
   </template>
-  <template if="{{ (field['declared_type']['name'] != 'dynamic') }}">
-  <a href="{{ app.locationManager.currentIsolateClassLink(field['declared_type']['id']) }}">
-    {{ field['declared_type']['user_name'] }} </a>
+  <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
+  <class-ref app="{{ app }}" ref="{{ ref['declared_type'] }}"></class-ref>
   </template>
-  <a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">
-    {{ field['user_name'] }} </a>
+  <a href="{{ url }}">{{ name }}</a>
 </div>
-</template>  </polymer-element><polymer-element name="instance-ref" extends="observatory-element">
+</template>  </polymer-element><polymer-element name="function-ref" extends="service-ref">
+<template>
+  <a href="{{ url }}">{{ name }}</a>
+</template>
+
+</polymer-element><polymer-element name="instance-ref" extends="service-ref">
 <template>
 <div>
-  <template if="{{ (instance['type'] == 'null') }}">
+  <template if="{{ (ref['type'] == 'null') }}">
     {{ "null" }}
   </template>
-  <template if="{{ (instance['type'] != 'null') }}">
-  <a href="{{ app.locationManager.currentIsolateObjectLink(instance['id'])}}">
-    {{ instance['preview'] }}
-  </a>
+  <template if="{{ (ref['type'] != 'null') }}">
+  <a href="{{ url }}">{{ name }} </a>
   </template>
  </div>
-</template>  </polymer-element><polymer-element name="class-view" extends="observatory-element">
+</template>
+
+</polymer-element><polymer-element name="library-ref" extends="service-ref">
+<template>
+  <a href="{{ url }}">{{ name }}</a>
+</template>
+
+</polymer-element><polymer-element name="class-view" extends="observatory-element">
   <template>
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
@@ -84,13 +100,9 @@
           class <strong>{{ cls['user_name'] }}</strong>
           <template if="{{ cls['super']['type'] != 'Null' }}">
             extends
-            <a href="{{ app.locationManager.currentIsolateClassLink(cls['super']['id'])}}">
-              {{ cls['super']['user_name'] }}
-            </a>
+            <class-ref app="{{ app }}" ref="{{ cls['super'] }}"></class-ref>
           </template>
-          <a class="pull-right" href="{{ app.locationManager.currentIsolateObjectLink(cls['library']['id'])}}">
-            {{ cls['library']['name'] }}
-          </a>
+          <library-ref app="{{ app }}" ref="{{ cls['library'] }}"></library-ref>
         </div>
         <div class="panel-body">
           <table class="table table-hover">
@@ -120,8 +132,8 @@
             <table class="table table-hover">
              <tbody>
                 <tr template="" repeat="{{ field in cls['fields'] }}">
-                  <td><field-ref app="{{ app }}" field="{{ field }}"></field-ref></td>
-                  <td><instance-ref app="{{ app }}" instance="{{ field['value'] }}"></instance-ref></td>                  
+                  <td><field-ref app="{{ app }}" ref="{{ field }}"></field-ref></td>
+                  <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>
             </table>
@@ -135,8 +147,8 @@
               </thead>
               <tbody>
                 <tr template="" repeat="{{ function in cls['functions'] }}">
-                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['user_name'] }}</a></td>
-                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['name'] }}</a></td>
+                  <td><function-ref app="{{ app }}" ref="{{ function }}"></function-ref></td>
+                  <td><function-ref app="{{ app }}" ref="{{ function }}" internal=""></function-ref></td>
                 </tr>
               </tbody>
             </table>
@@ -150,6 +162,12 @@
     </div>
   </template>
   
+</polymer-element>
+<polymer-element name="code-ref" extends="service-ref">
+<template>
+  <a href="{{ url }}">{{ name }}</a>
+</template>
+
 </polymer-element><polymer-element name="disassembly-entry" extends="observatory-element">
   <template>
   <div class="row">
@@ -174,9 +192,7 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="{{ cssPanelClass }}">
         <div class="panel-heading">
-          <a href="{{ app.locationManager.currentIsolateObjectLink(code['function']['id'])}}">
-            {{ code['function']['user_name'] }} ({{ code['function']['name'] }})
-          </a>
+          <function-ref app="{{ app }}" ref="{{ code['function'] }}"></function-ref>
         </div>
         <div class="panel-body">
           <div class="row">
@@ -215,10 +231,8 @@
           <template if="{{ field['static'] }}">static</template>
           <template if="{{ field['final'] }}">final</template>
           <template if="{{ field['const'] }}">const</template>
-          {{ field['user_name'] }} ({{ field['name'] }}) 
-          <a class="pull-right" href="{{ app.locationManager.currentIsolateClassLink(field['class']['id'])}}">
-            {{ field['class']['user_name'] }}
-          </a>
+          {{ field['user_name'] }} ({{ field['name'] }})
+          <class-ref app="{{ app }}" ref="{{ field['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
         <template if="{{ field['guard_class'] == 'dynamic'}}">
@@ -227,9 +241,9 @@
             assigned a single type, performance may improve.
           </div>
         </template>
-        <template if="{{ field['guard_class'] != 'dynamic'}}">
+        <template if="{{ (field['guard_class'] != 'dynamic') &amp;&amp; (field['guard_class'] != 'unknown') }}">
           <div class="alert alert-success">Field has monomorphic type</div>
-          <template if="{{ (field['guard_class'] != 'dynamic') &amp;&amp; 
+          <template if="{{ (field['guard_class'] != 'dynamic') &amp;&amp;
                         field['guard_nullable'] }}">
             <div class="alert alert-info">
               Field has been assigned null. If a field is never assigned null,
@@ -237,9 +251,7 @@
             </div>
           </template>
           <blockquote>
-            <a href="{{ app.locationManager.currentIsolateClassLink(field['guard_class']['id'])}}">
-            {{ field['guard_class']['user_name'] }}
-          </a>
+            <class-ref app="{{ app }}" ref="{{ field['guard_class'] }}"></class-ref>
           </blockquote>
         </template>
         </div>
@@ -254,15 +266,13 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
         <div class="panel-heading">
-          {{ function['user_name'] }} ({{ function['name'] }}) 
-          <a class="pull-right" href="{{ app.locationManager.currentIsolateClassLink(function['class']['id'])}}">
-            {{ function['class']['name'] }}
-          </a>
+          {{ function['user_name'] }} ({{ function['name'] }})
+          <class-ref app="{{ app }}" ref="{{ function['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
           <div>
-          <a class="btn btn-primary" href="{{ app.locationManager.currentIsolateObjectLink(function['code']['id'])}}">Current Code</a>
-          <a class="btn btn-info" href="{{ app.locationManager.currentIsolateObjectLink(function['unoptimized_code']['id'])}}">Unoptimized Code</a>
+          <code-ref app="{{ app }}" ref="{{ function['code'] }}"></code-ref>
+          <code-ref app="{{ app }}" ref="{{ function['unoptimized_code'] }}"></code-ref>
           </div>
           <table class="table table-hover">
             <tbody>
@@ -337,12 +347,10 @@
   <template>
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <div class="panel panel-warning">   
+      <div class="panel panel-warning">
         <div class="panel-heading">
          Instance of
-         <a href="{{ app.locationManager.currentIsolateClassLink(instance['class']['id'])}}">
-            {{ instance['class']['user_name'] }}
-         </a>
+         <class-ref app="{{ app }}" ref="{{ instance['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
           <template if="{{ instance['error'] == null }}">
@@ -357,8 +365,8 @@
             <table class="table table-hover">
              <tbody>
                 <tr template="" repeat="{{ field in instance['fields'] }}">
-                  <td><field-ref app="{{ app }}" field="{{ field }}"></field-ref></td>
-                  <td><instance-ref app="{{ app }}" instance="{{ field['value'] }}"></instance-ref></td>              
+                  <td><field-ref app="{{ app }}" ref="{{ field }}"></field-ref></td>
+                  <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>
             </table>
@@ -372,7 +380,8 @@
     </div>
   </template>
   
-</polymer-element><polymer-element name="json-view" extends="observatory-element">
+</polymer-element>
+<polymer-element name="json-view" extends="observatory-element">
   <template>
     <template bind="" if="{{ valueType == 'Primitive' }}">
       <span>{{primitiveString}}</span>
@@ -401,6 +410,12 @@
     </template>
   </template>
   
+</polymer-element>
+<polymer-element name="script-ref" extends="service-ref">
+<template>
+  <a href="{{ url }}">{{ name }}</a>
+</template>
+
 </polymer-element><polymer-element name="library-view" extends="observatory-element">
   <template>
   <div class="alert alert-success">Library {{ library['name'] }}</div>
@@ -412,7 +427,7 @@
           {{ script['kind'] }}
         </td>
         <td>
-          <a href="{{ app.locationManager.currentIsolateScriptLink(script['id'], script['name']) }}">{{ script['name'] }}</a>
+          <script-ref app="{{ app }}" ref="{{ script }}"></script-ref>
         </td>
       </tr>
     </tbody>
@@ -422,9 +437,7 @@
     <tbody>
       <tr template="" repeat="{{ lib in library['libraries'] }}">
         <td>
-          <a href="{{ app.locationManager.currentIsolateObjectLink(lib['id'])}}">
-            {{ lib['url'] }}
-          </a>
+          <library-ref app="{{ app }}" ref="{{ lib }}"></library-ref>
         </td>
       </tr>
     </tbody>
@@ -433,8 +446,8 @@
   <table class="table table-hover">
     <tbody>
       <tr template="" repeat="{{ variable in library['variables'] }}">
-        <td><field-ref app="{{ app }}" field="{{ variable }}"></field-ref></td>
-        <td><instance-ref app="{{ app }}" instance="{{ variable['value'] }}"></instance-ref></td>
+        <td><field-ref app="{{ app }}" ref="{{ variable }}"></field-ref></td>
+        <td><instance-ref app="{{ app }}" ref="{{ variable['value'] }}"></instance-ref></td>
       </tr>
     </tbody>
   </table>
@@ -443,9 +456,7 @@
     <tbody>
       <tr template="" repeat="{{ func in library['functions'] }}">
         <td>
-          <a href="{{ app.locationManager.currentIsolateObjectLink(func['id'])}}">
-            {{ func['user_name'] }}
-          </a>
+          <function-ref app="{{ app }}" ref="{{ func }}"></function-ref>
         </td>
       </tr>
     </tbody>
@@ -461,14 +472,10 @@
     <tbody>
       <tr template="" repeat="{{ cls in library['classes'] }}">
         <td>
-          <a href="{{ app.locationManager.currentIsolateClassLink(cls['id']) }}">
-            {{ cls['user_name'] }}
-          </a>
+          <class-ref app="{{ app }}" ref="{{ cls }}"></class-ref>
         </td>
         <td>
-          <a href="{{ app.locationManager.currentIsolateClassLink(cls['id']) }}">
-            {{ cls['name'] }}
-          </a>
+          <class-ref app="{{ app }}" ref="{{ cls }}" internal=""></class-ref>
         </td>
       </tr>
     </tbody>
@@ -506,15 +513,15 @@
       <tr>
         <th>Depth</th>
         <th>Function</th>
-        <th>Url</th>
+        <th>Script</th>
         <th>Line</th>
       </tr>
     </thead>
     <tbody>
       <tr template="" repeat="{{ frame in trace['members'] }}">
         <td>{{$index}}</td>
-        <td><a href="{{app.locationManager.currentIsolateObjectLink(frame['function']['id'])}}">{{ frame['name'] }}</a></td>
-        <td>{{ frame['url'] }}</td>
+        <td><function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref></td>
+        <td><script-ref app="{{ app }}" ref="{{ frame['script'] }}"></script-ref></td>
         <td>{{ frame['line'] }}</td>
       </tr>
     </tbody>
@@ -588,7 +595,6 @@
         <a class="navbar-brand" href="">Observatory</a>
       </div>
       <div class="collapse navbar-collapse navbar-ex1-collapse">
-        <input class="span2 pull-right navbar-form" placeholder="VM Address" type="text" value="{{ app.requestManager.prefix }}">
       </div>
     </nav>
   </template>

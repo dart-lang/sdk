@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 class MethodTest extends VmServiceRequestHelper {
   MethodTest(port, id, functionId) :
-      super('http://127.0.0.1:$port/isolates/$id/objects/$functionId');
+      super('http://127.0.0.1:$port/$id/$functionId');
   onRequestCompleted(Map reply) {
     Expect.equals('Function', reply['type']);
     Expect.equals('C.c', reply['user_name']);
@@ -20,7 +20,7 @@ class MethodTest extends VmServiceRequestHelper {
 
 class FunctionTest extends VmServiceRequestHelper {
   FunctionTest(port, id, functionId) :
-      super('http://127.0.0.1:$port/isolates/$id/objects/$functionId');
+      super('http://127.0.0.1:$port/$id/$functionId');
 
   onRequestCompleted(Map reply) {
     Expect.equals('Function', reply['type']);
@@ -31,7 +31,7 @@ class FunctionTest extends VmServiceRequestHelper {
 
 class StackTraceTest extends VmServiceRequestHelper {
   StackTraceTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/stacktrace');
+      super('http://127.0.0.1:$port/$id/stacktrace');
 
   int _aId;
   int _cId;

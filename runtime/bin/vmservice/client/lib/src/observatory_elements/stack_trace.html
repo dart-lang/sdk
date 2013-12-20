@@ -1,5 +1,7 @@
 <head>
+  <link rel="import" href="function_ref.html">
   <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_ref.html">
 </head>
 <polymer-element name="stack-trace" extends="observatory-element">
   <template>
@@ -9,15 +11,15 @@
       <tr>
         <th>Depth</th>
         <th>Function</th>
-        <th>Url</th>
+        <th>Script</th>
         <th>Line</th>
       </tr>
     </thead>
     <tbody>
       <tr template repeat="{{ frame in trace['members'] }}">
         <td>{{$index}}</td>
-        <td><a href="{{app.locationManager.currentIsolateObjectLink(frame['function']['id'])}}">{{ frame['name'] }}</a></td>
-        <td>{{ frame['url'] }}</td>
+        <td><function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref></td>
+        <td><script-ref app="{{ app }}" ref="{{ frame['script'] }}"></script-ref></td>
         <td>{{ frame['line'] }}</td>
       </tr>
     </tbody>

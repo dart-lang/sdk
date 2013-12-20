@@ -332,6 +332,32 @@ TEST_CASE(StringCompareTo) {
 }
 
 
+TEST_CASE(StringEncodeURI) {
+  const char* kInput =
+      "file:///usr/local/johnmccutchan/workspace/dart-repo/dart/test.dart";
+  const char* kOutput =
+      "file%3A%2F%2F%2Fusr%2Flocal%2Fjohnmccutchan%2Fworkspace%2F"
+      "dart-repo%2Fdart%2Ftest.dart";
+  const String& input = String::Handle(String::New(kInput));
+  const String& output = String::Handle(String::New(kOutput));
+  const String& encoded = String::Handle(String::EncodeURI(input));
+  EXPECT(output.Equals(encoded));
+}
+
+
+TEST_CASE(StringDecodeURI) {
+  const char* kOutput =
+      "file:///usr/local/johnmccutchan/workspace/dart-repo/dart/test.dart";
+  const char* kInput =
+      "file%3A%2F%2F%2Fusr%2Flocal%2Fjohnmccutchan%2Fworkspace%2F"
+      "dart-repo%2Fdart%2Ftest.dart";
+  const String& input = String::Handle(String::New(kInput));
+  const String& output = String::Handle(String::New(kOutput));
+  const String& decoded = String::Handle(String::DecodeURI(input));
+  EXPECT(output.Equals(decoded));
+}
+
+
 TEST_CASE(Mint) {
 // On 64-bit architectures a Smi is stored in a 64 bit word. A Midint cannot
 // be allocated if it does fit into a Smi.
@@ -2749,6 +2775,8 @@ TEST_CASE(FieldTests) {
 }
 
 
+
+
 // Expose helper function from object.cc for testing.
 bool EqualsIgnoringPrivate(const String& name, const String& private_name);
 
@@ -3388,6 +3416,140 @@ static RawClass* GetClass(const Library& lib, const char* name) {
       lib.LookupClass(String::Handle(Symbols::New(name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
+}
+
+
+TEST_CASE(FindFieldIndex) {
+  const char* kScriptChars =
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "}\n"
+      "class B {\n"
+      "  var d;\n"
+      "}\n"
+      "test() {\n"
+      "  new A();\n"
+      "  new B();\n"
+      "}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(h_lib);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("test"), 0, NULL);
+  EXPECT_VALID(result);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  const Class& class_a = Class::Handle(GetClass(lib, "A"));
+  const Array& class_a_fields = Array::Handle(class_a.fields());
+  const Class& class_b = Class::Handle(GetClass(lib, "B"));
+  const Field& field_a = Field::Handle(GetField(class_a, "a"));
+  const Field& field_b = Field::Handle(GetField(class_a, "b"));
+  const Field& field_d = Field::Handle(GetField(class_b, "d"));
+  intptr_t field_a_index = class_a.FindFieldIndex(field_a);
+  intptr_t field_b_index = class_a.FindFieldIndex(field_b);
+  intptr_t field_d_index = class_a.FindFieldIndex(field_d);
+  // Valid index.
+  EXPECT_GE(field_a_index, 0);
+  // Valid index.
+  EXPECT_GE(field_b_index, 0);
+  // Invalid index.
+  EXPECT_EQ(field_d_index, -1);
+  Field& field_a_from_index = Field::Handle();
+  field_a_from_index ^= class_a_fields.At(field_a_index);
+  ASSERT(!field_a_from_index.IsNull());
+  // Same field.
+  EXPECT_EQ(field_a.raw(), field_a_from_index.raw());
+  Field& field_b_from_index = Field::Handle();
+  field_b_from_index ^= class_a_fields.At(field_b_index);
+  ASSERT(!field_b_from_index.IsNull());
+  // Same field.
+  EXPECT_EQ(field_b.raw(), field_b_from_index.raw());
+}
+
+
+TEST_CASE(FindFunctionIndex) {
+  const char* kScriptChars =
+      "class A {\n"
+      "  void a() {}\n"
+      "  void b() {}\n"
+      "}\n"
+      "class B {\n"
+      "  dynamic d() {}\n"
+      "}\n"
+      "test() {\n"
+      "  new A();\n"
+      "  new B();\n"
+      "}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(h_lib);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("test"), 0, NULL);
+  EXPECT_VALID(result);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  const Class& class_a = Class::Handle(GetClass(lib, "A"));
+  const Array& class_a_funcs = Array::Handle(class_a.functions());
+  const Class& class_b = Class::Handle(GetClass(lib, "B"));
+  const Function& func_a = Function::Handle(GetFunction(class_a, "a"));
+  const Function& func_b = Function::Handle(GetFunction(class_a, "b"));
+  const Function& func_d = Function::Handle(GetFunction(class_b, "d"));
+  intptr_t func_a_index = class_a.FindFunctionIndex(func_a);
+  intptr_t func_b_index = class_a.FindFunctionIndex(func_b);
+  intptr_t func_d_index = class_a.FindFunctionIndex(func_d);
+  // Valid index.
+  EXPECT_GE(func_a_index, 0);
+  // Valid index.
+  EXPECT_GE(func_b_index, 0);
+  // Invalid index.
+  EXPECT_EQ(func_d_index, -1);
+  Function& func_a_from_index = Function::Handle();
+  func_a_from_index ^= class_a_funcs.At(func_a_index);
+  ASSERT(!func_a_from_index.IsNull());
+  // Same function.
+  EXPECT_EQ(func_a.raw(), func_a_from_index.raw());
+  Function& func_b_from_index = Function::Handle();
+  func_b_from_index ^= class_a_funcs.At(func_b_index);
+  ASSERT(!func_b_from_index.IsNull());
+  // Same function.
+  EXPECT_EQ(func_b.raw(), func_b_from_index.raw());
+}
+
+
+TEST_CASE(FindClosureIndex) {
+  // Allocate the class first.
+  const String& class_name = String::Handle(Symbols::New("MyClass"));
+  const Script& script = Script::Handle();
+  const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
+  const Array& functions = Array::Handle(Array::New(1));
+
+  Function& parent = Function::Handle();
+  const String& parent_name = String::Handle(Symbols::New("foo_papa"));
+  parent = Function::New(parent_name, RawFunction::kRegularFunction,
+                         false, false, false, false, false, cls, 0);
+  functions.SetAt(0, parent);
+  cls.SetFunctions(functions);
+
+  Function& function = Function::Handle();
+  const String& function_name = String::Handle(Symbols::New("foo"));
+  function = Function::NewClosureFunction(function_name, parent, 0);
+  // Add closure function to class.
+  cls.AddClosureFunction(function);
+
+  // Token position 0 should return a valid index.
+  intptr_t good_closure_index = cls.FindClosureIndex(0);
+  EXPECT_GE(good_closure_index, 0);
+  // Token position 1 should return an invalid index.
+  intptr_t bad_closure_index = cls.FindClosureIndex(1);
+  EXPECT_EQ(bad_closure_index, -1);
+
+  // Retrieve closure function via index.
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
+      cls.closures());
+  Function& func_from_index = Function::Handle();
+  func_from_index ^= closures.At(good_closure_index);
+
+  // Same closure function.
+  EXPECT_EQ(func_from_index.raw(), function.raw());
 }
 
 

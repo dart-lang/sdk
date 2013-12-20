@@ -1,7 +1,11 @@
 <head>
-  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="class_ref.html">
   <link rel="import" href="field_ref.html">
+  <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
+  <link rel="import" href="library_ref.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_ref.html">
 </head>
 <polymer-element name="library-view" extends="observatory-element">
   <template>
@@ -14,7 +18,7 @@
           {{ script['kind'] }}
         </td>
         <td>
-          <a href="{{ app.locationManager.currentIsolateScriptLink(script['id'], script['name']) }}">{{ script['name'] }}</a>
+          <script-ref app="{{ app }}" ref="{{ script }}"></script-ref>
         </td>
       </tr>
     </tbody>
@@ -24,9 +28,7 @@
     <tbody>
       <tr template repeat="{{ lib in library['libraries'] }}">
         <td>
-          <a href="{{ app.locationManager.currentIsolateObjectLink(lib['id'])}}">
-            {{ lib['url'] }}
-          </a>
+          <library-ref app="{{ app }}" ref="{{ lib }}"></library-ref>
         </td>
       </tr>
     </tbody>
@@ -35,8 +37,8 @@
   <table class="table table-hover">
     <tbody>
       <tr template repeat="{{ variable in library['variables'] }}">
-        <td><field-ref app="{{ app }}" field="{{ variable }}"></field-ref></td>
-        <td><instance-ref app="{{ app }}" instance="{{ variable['value'] }}"></instance-ref></td>
+        <td><field-ref app="{{ app }}" ref="{{ variable }}"></field-ref></td>
+        <td><instance-ref app="{{ app }}" ref="{{ variable['value'] }}"></instance-ref></td>
       </tr>
     </tbody>
   </table>
@@ -45,9 +47,7 @@
     <tbody>
       <tr template repeat="{{ func in library['functions'] }}">
         <td>
-          <a href="{{ app.locationManager.currentIsolateObjectLink(func['id'])}}">
-            {{ func['user_name'] }}
-          </a>
+          <function-ref app="{{ app }}" ref="{{ func }}"></function-ref>
         </td>
       </tr>
     </tbody>
@@ -63,14 +63,10 @@
     <tbody>
       <tr template repeat="{{ cls in library['classes'] }}">
         <td>
-          <a href="{{ app.locationManager.currentIsolateClassLink(cls['id']) }}">
-            {{ cls['user_name'] }}
-          </a>
+          <class-ref app="{{ app }}" ref="{{ cls }}"></class-ref>
         </td>
         <td>
-          <a href="{{ app.locationManager.currentIsolateClassLink(cls['id']) }}">
-            {{ cls['name'] }}
-          </a>
+          <class-ref app="{{ app }}" ref="{{ cls }}" internal></class-ref>
         </td>
       </tr>
     </tbody>

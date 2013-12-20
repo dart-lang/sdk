@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 class NullCollectionTest extends VmServiceRequestHelper {
   NullCollectionTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/objects/50');
+      super('http://127.0.0.1:$port/$id/objects/50');
 
   onRequestCompleted(Map reply) {
     Expect.equals('null', reply['type']);
@@ -19,7 +19,7 @@ class NullCollectionTest extends VmServiceRequestHelper {
 
 class BadCollectionTest extends VmServiceRequestHelper {
   BadCollectionTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/objects');
+      super('http://127.0.0.1:$port/$id/objects');
 
   onRequestCompleted(Map reply) {
     Expect.equals('Error', reply['type']);

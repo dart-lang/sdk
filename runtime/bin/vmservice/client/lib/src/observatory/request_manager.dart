@@ -19,7 +19,12 @@ abstract class RequestManager extends Observable {
 
   /// Parse
   void parseResponses(String responseString) {
-    var r = JSON.decode(responseString);
+    var r;
+    try {
+      r = JSON.decode(responseString);
+    } catch (e) {
+      setResponseError(e.message);
+    }
     if (r is Map) {
       setResponses([r]);
     } else {
@@ -34,7 +39,7 @@ abstract class RequestManager extends Observable {
     }
   }
 
-  void setResponseError(HttpRequest request) {
+  void setResponseRequestError(HttpRequest request) {
     String error = '${request.status} ${request.statusText}';
     if (request.status == 0) {
       error = 'No service found. Did you run with --enable-vm-service ?';
@@ -45,52 +50,20 @@ abstract class RequestManager extends Observable {
     }]);
   }
 
+  void setResponseError(String message) {
+    setResponses([{
+      'type': 'Error',
+      'text': message
+    }]);
+  }
+
   /// Request [requestString] from the VM service. Updates [responses].
   /// Will trigger [interceptor] if one is set.
   void get(String requestString) {
-    if (_application.locationManager.isScriptLink) {
-      // We cache script sources.
-      String scriptName = _application.locationManager.scriptName;
-      getScriptSource(scriptName, requestString).then((source) {
-        if (source != null) {
-          setResponses([{
-            'type': 'Script',
-            'source': source
-          }]);
-        } else {
-          setResponses([{
-            'type': 'RequestError',
-            'error': 'Source for $scriptName could not be loaded.'
-          }]);
-        }
-      });
-    } else {
-      request(requestString).then((responseString) {
-        parseResponses(responseString);
-      }).catchError((e) {
-        if (e is FormatException) {
-          setResponseError(e.message);
-        } else {
-          setResponseError(e.target);
-        }
-      });
-    }
-  }
-
-  Future<ScriptSource> getScriptSource(String name, String requestString) {
-    int isolateId = _application.locationManager.currentIsolateId();
-    Isolate isolate = _application.isolateManager.getIsolate(isolateId);
-    ScriptSource source = isolate.scripts[name];
-    if (source != null) {
-      return new Future.value(source);
-    }
-    return request(requestString).then((responseString) {
-      var r = JSON.decode(responseString);
-      ScriptSource scriptSource = new ScriptSource(r);
-      isolate.scripts[name] = scriptSource;
-      return scriptSource;
+    request(requestString).then((responseString) {
+      parseResponses(responseString);
     }).catchError((e) {
-      setResponseError(e.target);
+      setResponseRequestError(e.target);
       return null;
     });
   }

@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 
 class EchoRequestTest extends VmServiceRequestHelper {
   EchoRequestTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/_echo/foo/bar?a=b&k=&d=e&z=w');
+      super('http://127.0.0.1:$port/$id/_echo/foo/bar?a=b&k=&d=e&z=w');
 
   onRequestCompleted(Map reply) {
     Expect.equals('message', reply['type']);

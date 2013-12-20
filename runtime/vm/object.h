@@ -878,6 +878,7 @@ class Class : public Object {
 
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
+  intptr_t FindFieldIndex(const Field& field) const;
 
   // Returns an array of all fields of this class and its superclasses indexed
   // by offset in words.
@@ -889,12 +890,14 @@ class Class : public Object {
   RawArray* functions() const { return raw_ptr()->functions_; }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
+  intptr_t FindFunctionIndex(const Function& function) const;
 
   RawGrowableObjectArray* closures() const {
     return raw_ptr()->closure_functions_;
   }
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(intptr_t token_pos) const;
+  intptr_t FindClosureIndex(intptr_t token_pos) const;
 
   RawFunction* LookupDynamicFunction(const String& name) const;
   RawFunction* LookupDynamicFunctionAllowPrivate(const String& name) const;
@@ -5072,7 +5075,8 @@ class String : public Instance {
                    intptr_t len);
 
   static RawString* EscapeSpecialCharacters(const String& str);
-
+  static RawString* EncodeURI(const String& str);
+  static RawString* DecodeURI(const String& str);
   static RawString* Concat(const String& str1,
                            const String& str2,
                            Heap::Space space = Heap::kNew);
@@ -5163,7 +5167,6 @@ class OneByteString : public AllStatic {
     *CharAddr(str, index) = code_point;
   }
   static RawOneByteString* EscapeSpecialCharacters(const String& str);
-
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = String::kMaxElements;
@@ -5387,6 +5390,8 @@ class ExternalOneByteString : public AllStatic {
   }
 
   static RawOneByteString* EscapeSpecialCharacters(const String& str);
+  static RawOneByteString* EncodeURI(const String& str);
+  static RawOneByteString* DecodeURI(const String& str);
 
   static const ClassId kClassId = kExternalOneByteStringCid;
 

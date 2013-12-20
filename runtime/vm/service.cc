@@ -196,15 +196,15 @@ static void HandleStackTrace(Isolate* isolate, JSONStream* js) {
   jsobj.AddProperty("type", "StackTrace");
   JSONArray jsarr(&jsobj, "members");
   intptr_t n_frames = stack->Length();
-  String& url = String::Handle();
   String& function = String::Handle();
+  Script& script = Script::Handle();
   for (int i = 0; i < n_frames; i++) {
     ActivationFrame* frame = stack->FrameAt(i);
-    url ^= frame->SourceUrl();
+    script ^= frame->SourceScript();
     function ^= frame->function().UserVisibleName();
     JSONObject jsobj(&jsarr);
     jsobj.AddProperty("name", function.ToCString());
-    jsobj.AddProperty("url", url.ToCString());
+    jsobj.AddProperty("script", script);
     jsobj.AddProperty("line", frame->LineNumber());
     jsobj.AddProperty("function", frame->function());
     jsobj.AddProperty("code", frame->code());
@@ -239,6 +239,93 @@ static void HandleEcho(Isolate* isolate, JSONStream* js) {
   }
 
 
+#define CHECK_COLLECTION_ID_BOUNDS(collection, length, arg, id, js)            \
+  if (!GetIntegerId(arg, &id)) {                                               \
+    PrintError(js, "Must specify collection object id: %s/id", collection);    \
+    return;                                                                    \
+  }                                                                            \
+  if ((id < 0) || (id >= length)) {                                            \
+    PrintError(js, "%s id (%" Pd ") must be in [0, %" Pd ").", collection, id, \
+                                                               length);        \
+    return;                                                                    \
+  }
+
+
+static bool GetIntegerId(const char* s, intptr_t* id) {
+  if ((s == NULL) || (*s == '\0')) {
+    // Empty string.
+    return false;
+  }
+  if (id == NULL) {
+    // No id pointer.
+    return false;
+  }
+  intptr_t r = 0;
+  char* end_ptr = NULL;
+  r = strtol(s, &end_ptr, 10);
+  if (end_ptr == s) {
+    // String was not advanced at all, cannot be valid.
+    return false;
+  }
+  *id = r;
+  return true;
+}
+
+
+static void HandleClassesClosures(Isolate* isolate, const Class& cls,
+                                  JSONStream* js) {
+  const GrowableObjectArray& closures =
+      GrowableObjectArray::Handle(cls.closures());
+  intptr_t id;
+  if (js->num_arguments() > 4) {
+    PrintError(js, "Command too long");
+    return;
+  }
+  CHECK_COLLECTION_ID_BOUNDS("closures", closures.Length(), js->GetArgument(3),
+                             id, js);
+  Function& function = Function::Handle();
+  function ^= closures.At(id);
+  ASSERT(!function.IsNull());
+  function.PrintToJSONStream(js, false);
+}
+
+
+static void HandleClassesFunctions(Isolate* isolate, const Class& cls,
+                                   JSONStream* js) {
+  const Array& functions =
+      Array::Handle(cls.functions());
+  intptr_t id;
+  if (js->num_arguments() > 4) {
+    PrintError(js, "Command too long");
+    return;
+  }
+  CHECK_COLLECTION_ID_BOUNDS("functions", functions.Length(),
+                             js->GetArgument(3), id, js);
+  Function& function = Function::Handle();
+  function ^= functions.At(id);
+  ASSERT(!function.IsNull());
+  function.PrintToJSONStream(js, false);
+}
+
+
+static void HandleClassesFields(Isolate* isolate, const Class& cls,
+                                JSONStream* js) {
+  const Array& fields =
+      Array::Handle(cls.fields());
+  intptr_t id;
+  if (js->num_arguments() > 4) {
+    PrintError(js, "Command too long");
+    return;
+  }
+  CHECK_COLLECTION_ID_BOUNDS("fields", fields.Length(), js->GetArgument(3),
+                             id, js);
+  Field& field = Field::Handle();
+  field ^= fields.At(id);
+  ASSERT(!field.IsNull());
+  field.PrintToJSONStream(js, false);
+}
+
+
 static void HandleClasses(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     ClassTable* table = isolate->class_table();
@@ -246,14 +333,34 @@ static void HandleClasses(Isolate* isolate, JSONStream* js) {
     return;
   }
   ASSERT(js->num_arguments() >= 2);
-  intptr_t id = atoi(js->GetArgument(1));
+  intptr_t id;
+  if (!GetIntegerId(js->GetArgument(1), &id)) {
+    PrintError(js, "Must specify collection object id: /classes/id");
+    return;
+  }
   ClassTable* table = isolate->class_table();
   if (!table->IsValidIndex(id)) {
-    Object::null_object().PrintToJSONStream(js, false);
-  } else {
-    Class& cls = Class::Handle(table->At(id));
-    cls.PrintToJSONStream(js, false);
+    PrintError(js, "%" Pd " is not a valid class id.", id);;
+    return;
   }
+  Class& cls = Class::Handle(table->At(id));
+  if (js->num_arguments() == 2) {
+    cls.PrintToJSONStream(js, false);
+    return;
+  } else if (js->num_arguments() >= 3) {
+    const char* second = js->GetArgument(2);
+    if (!strcmp(second, "closures")) {
+      HandleClassesClosures(isolate, cls, js);
+    } else if (!strcmp(second, "fields")) {
+      HandleClassesFields(isolate, cls, js);
+    } else if (!strcmp(second, "functions")) {
+      HandleClassesFunctions(isolate, cls, js);
+    } else {
+      PrintError(js, "Invalid sub collection %s", second);
+    }
+    return;
+  }
+  UNREACHABLE();
 }
 
 
@@ -268,14 +375,106 @@ static void HandleLibrary(Isolate* isolate, JSONStream* js) {
 }
 
 
+static void HandleLibraries(Isolate* isolate, JSONStream* js) {
+  // TODO(johnmccutchan): Support fields and functions on libraries.
+  REQUIRE_COLLECTION_ID("libraries");
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  ASSERT(!libs.IsNull());
+  intptr_t id = 0;
+  CHECK_COLLECTION_ID_BOUNDS("libraries", libs.Length(), js->GetArgument(1),
+                             id, js);
+  Library& lib = Library::Handle();
+  lib ^= libs.At(id);
+  ASSERT(!lib.IsNull());
+  lib.PrintToJSONStream(js, false);
+}
+
+
 static void HandleObjects(Isolate* isolate, JSONStream* js) {
   REQUIRE_COLLECTION_ID("objects");
   ASSERT(js->num_arguments() >= 2);
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
-  intptr_t id = atoi(js->GetArgument(1));
+  intptr_t id = -1;
+  if (!GetIntegerId(js->GetArgument(1), &id)) {
+    Object::null_object().PrintToJSONStream(js, false);
+    return;
+  }
   Object& obj = Object::Handle(ring->GetObjectForId(id));
   obj.PrintToJSONStream(js, false);
+}
+
+
+
+static void HandleScriptsEnumerate(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "ScriptList");
+  {
+    JSONArray members(&jsobj, "members");
+    const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+    int num_libs = libs.Length();
+    Library &lib = Library::Handle();
+    Script& script = Script::Handle();
+    for (intptr_t i = 0; i < num_libs; i++) {
+      lib ^= libs.At(i);
+      ASSERT(!lib.IsNull());
+      ASSERT(Smi::IsValid(lib.index()));
+      const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
+      ASSERT(!loaded_scripts.IsNull());
+      intptr_t num_scripts = loaded_scripts.Length();
+      for (intptr_t i = 0; i < num_scripts; i++) {
+        script ^= loaded_scripts.At(i);
+        members.AddValue(script);
+      }
+    }
+  }
+}
+
+
+static void HandleScriptsFetch(Isolate* isolate, JSONStream* js) {
+  const GrowableObjectArray& libs =
+    GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  int num_libs = libs.Length();
+  Library &lib = Library::Handle();
+  Script& script = Script::Handle();
+  String& url = String::Handle();
+  const String& id = String::Handle(String::New(js->GetArgument(1)));
+  ASSERT(!id.IsNull());
+  // The id is the url of the script % encoded, decode it.
+  String& requested_url = String::Handle(String::DecodeURI(id));
+  for (intptr_t i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    ASSERT(Smi::IsValid(lib.index()));
+    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
+    ASSERT(!loaded_scripts.IsNull());
+    intptr_t num_scripts = loaded_scripts.Length();
+    for (intptr_t i = 0; i < num_scripts; i++) {
+      script ^= loaded_scripts.At(i);
+      ASSERT(!script.IsNull());
+      url ^= script.url();
+      if (url.Equals(requested_url)) {
+        script.PrintToJSONStream(js, false);
+        return;
+      }
+    }
+  }
+  PrintError(js, "Cannot find script %s\n", requested_url.ToCString());
+}
+
+
+static void HandleScripts(Isolate* isolate, JSONStream* js) {
+  if (js->num_arguments() == 1) {
+    // Enumerate all scripts.
+    HandleScriptsEnumerate(isolate, js);
+  } else if (js->num_arguments() == 2) {
+    // Fetch specific script.
+    HandleScriptsFetch(isolate, js);
+  } else {
+    PrintError(js, "Command too long");
+  }
 }
 
 
@@ -295,8 +494,11 @@ static void HandleDebug(Isolate* isolate, JSONStream* js) {
 
     } else if (js->num_arguments() == 3) {
       // Print individual breakpoint.
-      intptr_t id = atoi(js->GetArgument(2));
-      SourceBreakpoint* bpt = isolate->debugger()->GetBreakpointById(id);
+      intptr_t id = 0;
+      SourceBreakpoint* bpt = NULL;
+      if (GetIntegerId(js->GetArgument(2), &id)) {
+        bpt = isolate->debugger()->GetBreakpointById(id);
+      }
       if (bpt != NULL) {
         bpt->PrintToJSONStream(js);
       } else {
@@ -324,10 +526,12 @@ static ServiceMessageHandlerEntry __message_handlers[] = {
   { "classes", HandleClasses },
   { "cpu", HandleCpu },
   { "debug", HandleDebug },
+  { "libraries", HandleLibraries },
   { "library", HandleLibrary },
   { "name", HandleName },
   { "objecthistogram", HandleObjectHistogram},
   { "objects", HandleObjects },
+  { "scripts", HandleScripts },
   { "stacktrace", HandleStackTrace },
 };
 

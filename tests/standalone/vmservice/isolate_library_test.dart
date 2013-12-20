@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 class LibraryTest extends VmServiceRequestHelper {
   LibraryTest(port, id, libId) :
-      super('http://127.0.0.1:$port/isolates/$id/objects/$libId');
+      super('http://127.0.0.1:$port/$id/$libId');
 
   onRequestCompleted(Map reply) {
     Expect.equals('Library', reply['type']);
@@ -20,7 +20,7 @@ class LibraryTest extends VmServiceRequestHelper {
 
 class RootLibraryTest extends VmServiceRequestHelper {
   RootLibraryTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/library');
+      super('http://127.0.0.1:$port/$id/library');
 
   int _libId;
   onRequestCompleted(Map reply) {

@@ -10,7 +10,7 @@ part of observatory;
 class LocationManager extends Observable {
   static const int InvalidIsolateId = 0;
   static const String defaultHash = '#/isolates/';
-  static final RegExp currentIsolateMatcher = new RegExp(r"#/isolates/\d+/");
+  static final RegExp currentIsolateMatcher = new RegExp(r"#/isolates/\d+");
 
   ObservatoryApplication _application;
   ObservatoryApplication get application => _application;
@@ -48,24 +48,15 @@ class LocationManager extends Observable {
     return currentIsolateAnchorPrefix() != null;
   }
 
-  bool get isScriptLink {
-    String type = currentHashUri.queryParameters['type'];
-    return type == 'Script';
-  }
-
-  String get scriptName {
-    return Uri.decodeQueryComponent(currentHashUri.queryParameters['name']);
-  }
-
   /// Extract the current isolate id as an integer. Returns [InvalidIsolateId]
   /// if none is present in window.location.
-  int currentIsolateId() {
-    String isolatePrefix = currentIsolateAnchorPrefix();
-    if (isolatePrefix == null) {
-      return InvalidIsolateId;
+  String currentIsolateId() {
+    var prefix = currentIsolateAnchorPrefix();
+    if (prefix == null) {
+      return '';
     }
-    String id = isolatePrefix.split("/")[2];
-    return int.parse(id);
+    // Chop off the '/#'.
+    return prefix.substring(2);
   }
 
   /// If no anchor is set, set the default anchor and return true.
@@ -99,59 +90,16 @@ class LocationManager extends Observable {
     return relativeLink(isolateId, l);
   }
 
-  /// Create a request for [objectId] on the current isolate.
+  /// Create a request for [scriptURL] on the current isolate.
   @observable
-  String currentIsolateObjectLink(int objectId) {
-    var isolateId = currentIsolateId();
-    if (isolateId == LocationManager.InvalidIsolateId) {
-      return defaultHash;
-    }
-    return objectLink(isolateId, objectId);
-  }
-
-  /// Create a request for [cid] on the current isolate.
-  @observable
-  String currentIsolateClassLink(int cid) {
-    var isolateId = currentIsolateId();
-    if (isolateId == LocationManager.InvalidIsolateId) {
-      return defaultHash;
-    }
-    return classLink(isolateId, cid);
-  }
-
-  /// Create a request for the script [objectId] with script [name].
-  @observable
-  String currentIsolateScriptLink(int objectId, String name) {
-    var isolateId = currentIsolateId();
-    if (isolateId == LocationManager.InvalidIsolateId) {
-      return defaultHash;
-    }
-    return scriptLink(isolateId, objectId, name);
+  String currentIsolateScriptLink(String scriptURL) {
+    var encoded = Uri.encodeComponent(scriptURL);
+    return currentIsolateRelativeLink('scripts/$encoded');
   }
 
   /// Create a request for [l] on [isolateId].
   @observable
-  String relativeLink(int isolateId, String l) {
-    return '#/isolates/$isolateId/$l';
-  }
-
-  /// Create a request for [objectId] on [isolateId].
-  @observable
-  String objectLink(int isolateId, int objectId) {
-    return '#/isolates/$isolateId/objects/$objectId';
-  }
-
-  /// Create a request for [cid] on [isolateId].
-  @observable
-  String classLink(int isolateId, int cid) {
-    return '#/isolates/$isolateId/classes/$cid';
-  }
-
-  @observable
-  /// Create a request for the script [objectId] with script [url].
-  String scriptLink(int isolateId, int objectId, String name) {
-    String encodedName = Uri.encodeQueryComponent(name);
-    return '#/isolates/$isolateId/objects/$objectId'
-           '?type=Script&name=$encodedName';
+  String relativeLink(String isolateId, String l) {
+    return '#/$isolateId/$l';
   }
 }

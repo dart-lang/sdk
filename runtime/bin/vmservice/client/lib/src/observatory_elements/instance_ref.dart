@@ -5,10 +5,16 @@
 library instance_ref_element;
 
 import 'package:polymer/polymer.dart';
-import 'observatory_element.dart';
+import 'service_ref.dart';
 
 @CustomTag('instance-ref')
-class InstanceRefElement extends ObservatoryElement {
-  @published Map instance;
+class InstanceRefElement extends ServiceRefElement {
   InstanceRefElement.created() : super.created();
+
+  String get name {
+    if (ref == null) {
+      return super.name;
+    }
+    return ref['preview'];
+  }
 }

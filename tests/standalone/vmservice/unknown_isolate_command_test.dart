@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 class ClassTableTest extends VmServiceRequestHelper {
   ClassTableTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/classes');
+      super('http://127.0.0.1:$port/$id/classes');
 
   onRequestCompleted(Map reply) {
     ClassTableHelper helper = new ClassTableHelper(reply);

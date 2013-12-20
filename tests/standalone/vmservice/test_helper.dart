@@ -255,7 +255,7 @@ class ClassTableHelper {
 
 class FieldRequestHelper extends VmServiceRequestHelper {
   FieldRequestHelper(port, isolate_id, field_id) :
-      super('http://127.0.0.1:$port/isolates/$isolate_id/objects/$field_id');
+      super('http://127.0.0.1:$port/$isolate_id/$field_id');
   Map field;
   onRequestCompleted(Map reply) {
     Expect.equals('Field', reply['type']);
@@ -269,7 +269,7 @@ class ClassFieldRequestHelper extends VmServiceRequestHelper {
   int port_;
   int isolate_id_;
   ClassFieldRequestHelper(port, isolate_id, class_id, this.fieldNames) :
-      super('http://127.0.0.1:$port/isolates/$isolate_id/classes/$class_id') {
+      super('http://127.0.0.1:$port/$isolate_id/$class_id') {
     port_ = port;
     isolate_id_ = isolate_id;
   }

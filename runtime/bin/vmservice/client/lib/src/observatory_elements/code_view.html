@@ -1,5 +1,6 @@
 <head>
   <link rel="import" href="disassembly_entry.html">
+  <link rel="import" href="function_ref.html">
   <link rel="import" href="observatory_element.html">
 </head>
 <polymer-element name="code-view" extends="observatory-element">
@@ -8,9 +9,7 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="{{ cssPanelClass }}">
         <div class="panel-heading">
-          <a href="{{ app.locationManager.currentIsolateObjectLink(code['function']['id'])}}">
-            {{ code['function']['user_name'] }} ({{ code['function']['name'] }})
-          </a>
+          <function-ref app="{{ app }}" ref="{{ code['function'] }}"></function-ref>
         </div>
         <div class="panel-body">
           <div class="row">

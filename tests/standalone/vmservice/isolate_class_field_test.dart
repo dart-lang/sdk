@@ -140,7 +140,7 @@ class BadBananaClassTest {
 
 class ClassTableTest extends VmServiceRequestHelper {
   ClassTableTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/classes/');
+      super('http://127.0.0.1:$port/$id/classes/');
 
   int banana_class_id;
   int bad_banana_class_id;

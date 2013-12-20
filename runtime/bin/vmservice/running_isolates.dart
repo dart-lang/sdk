@@ -29,8 +29,9 @@ class RunningIsolates implements MessageRouter {
     var result = {};
     isolates.forEach((portId, runningIsolate) {
       members.add({
-        'id': portId,
-        'name': runningIsolate.name
+        'type': 'Isolate',
+        'id': 'isolates/$portId',
+        'name': runningIsolate.name,
         });
     });
     result['type'] = 'IsolateList';
