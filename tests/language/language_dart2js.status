@@ -304,6 +304,7 @@ f_bounded_quantification5_test: Fail # Issue 12605.
 many_overridden_no_such_method_test: Pass, Fail # Issue 13078
 overridden_no_such_method_test: Pass, Fail # Issue 13078
 no_such_method_test: Pass, Fail # Issue 13078
+type_variable_typedef_test: Fail # Issue 11467
 
 import_core_prefix_test: Pass
 prefix22_test: Pass
