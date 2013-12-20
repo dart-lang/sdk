@@ -295,7 +295,7 @@ void _log(LogEntry entry) {
 
   // Show the level (unless the message mentions it).
   if (!messageMentions(entry.level.name)) {
-    prefixParts.add("${entry.level} in");
+    prefixParts.add("${entry.level} from");
   }
 
   // Show the transformer.
@@ -329,7 +329,7 @@ void _log(LogEntry entry) {
       break;
 
     case LogLevel.INFO:
-      log.message("$prefix\n$message");
+      log.message("${log.cyan(prefix)}\n$message");
       break;
   }
 }
