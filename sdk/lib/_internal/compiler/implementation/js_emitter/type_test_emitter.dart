@@ -123,7 +123,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
       if (a.isClosure()) return true;
-      return a.typeVariables == b.typeVariables;
+      return backend.rti.isTrivialSubstitution(a, b);
     }
 
     if (superclass != null && superclass != compiler.objectClass &&
@@ -135,9 +135,12 @@ class TypeTestEmitter extends CodeEmitterHelper {
       Set<ClassElement> emitted = new Set<ClassElement>();
       // TODO(karlklose): move the computation of these checks to
       // RuntimeTypeInformation.
-      if (backend.classNeedsRti(cls)) {
-        emitSubstitution(superclass, emitNull: true);
-        emitted.add(superclass);
+      while (superclass != null) {
+        if (backend.classNeedsRti(superclass)) {
+          emitSubstitution(superclass, emitNull: true);
+          emitted.add(superclass);
+        }
+        superclass = superclass.superclass;
       }
       for (DartType supertype in cls.allSupertypes) {
         ClassElement superclass = supertype.element;
