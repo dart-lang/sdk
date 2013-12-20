@@ -79,7 +79,7 @@ def main():
   toolchain_arch = 'arm-linux-androideabi-4.6'
   if target_arch == 'ia32':
     toolchain_arch = 'x86-4.6'
-  toolchain_dir = 'linux-x86'
+  toolchain_dir = 'linux-x86_64'
   android_toolchain = os.path.join(android_ndk_root,
       'toolchains', toolchain_arch,
       'prebuilt', toolchain_dir, 'bin')
