@@ -41,7 +41,7 @@ DEFINE_FLAG(bool, trace_load_optimization, false,
     "Print live sets for load optimization pass.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
-DEFINE_FLAG(int, getter_setter_ratio, 10,
+DEFINE_FLAG(int, getter_setter_ratio, 13,
     "Ratio of getter/setter usage used for double field unboxing heuristics");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
