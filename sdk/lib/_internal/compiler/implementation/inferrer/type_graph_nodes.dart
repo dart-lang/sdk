@@ -66,10 +66,16 @@ abstract class TypeInformation {
     users.remove(user);
   }
 
+  static final STOP_TRACKING_ASSIGNMENTS_MARKER =  const <TypeInformation>[];
+
+  bool areAssignmentsTracked() {
+    return assignments != STOP_TRACKING_ASSIGNMENTS_MARKER;
+  }
+
   void addAssignment(TypeInformation assignment) {
     // Cheap one-level cycle detection.
     if (assignment == this) return;
-    if (!abandonInferencing) {
+    if (areAssignmentsTracked()) {
       assignments.add(assignment);
     }
     // Even if we abandon inferencing on this [TypeInformation] we
@@ -104,7 +110,7 @@ abstract class TypeInformation {
   }
 
   void clear() {
-    assignments = const <TypeInformation>[];
+    assignments = STOP_TRACKING_ASSIGNMENTS_MARKER;
     users = const <TypeInformation>[];
   }
 
@@ -135,7 +141,7 @@ abstract class TypeInformation {
   void stabilize(TypeGraphInferrerEngine inferrer) {
     removeAndClearReferences(inferrer);
     users = const <TypeInformation>[];
-    assignments = const <TypeInformation>[];
+    assignments = STOP_TRACKING_ASSIGNMENTS_MARKER;
     abandonInferencing = true;
     isStable = true;
   }
@@ -388,6 +394,10 @@ class ElementTypeInformation extends TypeInformation {
         && !(element.modifiers.isConst() || element.modifiers.isFinal())) {
       return false;
     }
+    // If the method is closurized, the closure tracing phase will go
+    // through the users.
+    if (closurizedCount != 0) return false;
+
     return super.hasStableType(inferrer);
   }
 }

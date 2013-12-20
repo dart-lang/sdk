@@ -36,9 +36,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
         var parameter =
           printElement.computeSignature(compiler).requiredParameters.head;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
-        var inferrer = compiler.typesTask.typesInferrer;
-        Expect.identical(compiler.typesTask.dynamicType,
-                         type.simplify(compiler));
+        checkType(compiler, type);
       }));
 
   asyncTest(() => compileAndFind(
