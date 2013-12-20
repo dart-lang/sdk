@@ -336,14 +336,8 @@ class ClassEmitter extends CodeEmitterHelper {
 
     String reflectionName = task.getReflectionName(classElement, className);
     if (reflectionName != null) {
-      reflectionName = '+$reflectionName';
-    } else if (classElement.isUnnamedMixinApplication &&
-               backend.isNeededForReflection(classElement)) {
-      reflectionName = '-$className';
-    }
-    if (reflectionName != null) {
       if (!backend.isNeededForReflection(classElement)) {
-        enclosingBuilder.addProperty("$reflectionName", js.number(0));
+        enclosingBuilder.addProperty("+$reflectionName", js.number(0));
       } else {
         List<int> types = new List<int>();
         if (classElement.supertype != null) {
@@ -352,7 +346,7 @@ class ClassEmitter extends CodeEmitterHelper {
         for (DartType interface in classElement.interfaces) {
           types.add(task.metadataEmitter.reifyType(interface));
         }
-        enclosingBuilder.addProperty("$reflectionName",
+        enclosingBuilder.addProperty("+$reflectionName",
             new jsAst.ArrayInitializer.from(types.map((typeNumber) =>
                 js.number(typeNumber))));
       }

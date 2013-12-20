@@ -182,10 +182,10 @@ String getReflectionDataParser(String classesCollector,
         var element = descriptor[property];
         var firstChar = property.substring(0, 1);
         var previousProperty;
-        if (firstChar === "+" || firstChar === "-") {
-           if (firstChar === "+") ''' // Break long line.
-          '''mangledGlobalNames[previousProperty] = property.substring(1);
-          if (element == 1) descriptor[previousProperty].$reflectableField = 1;
+        if (firstChar === "+") {
+          mangledGlobalNames[previousProperty] = property.substring(1);
+          if (descriptor[property] == 1) ''' // Break long line.
+         '''descriptor[previousProperty].$reflectableField = 1;
           if (element && element.length) ''' // Break long line.
          '''init.typeInformation[previousProperty] = element;
         } else if (firstChar === "@") {
