@@ -209,6 +209,11 @@ class Api : AllStatic {
                                   int arg_index,
                                   void** peer);
 
+  // Helper function to get the boolean value of a Bool native argument.
+  static bool GetNativeBooleanArgument(Dart_NativeArguments args,
+                                       int arg_index,
+                                       bool* value);
+
   // Helper function to set the return value of native functions.
   static void SetReturnValue(NativeArguments* args, Dart_Handle retval) {
     args->SetReturnUnsafe(UnwrapHandle(retval));
