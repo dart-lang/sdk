@@ -304,6 +304,14 @@ class Debugger {
   void SetStepOut();
   bool IsStepping() const { return resume_action_ != kContinue; }
 
+  bool IsPaused() const { return pause_event_ != NULL; }
+
+  // Indicates why the debugger is currently paused.  If the debugger
+  // is not paused, this returns NULL.  Note that the debugger can be
+  // paused for breakpoints, isolate interruption, and (sometimes)
+  // exceptions.
+  const DebuggerEvent* PauseEvent() const { return pause_event_; }
+
   void SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info);
   Dart_ExceptionPauseInfo GetExceptionPauseInfo();
 
@@ -419,6 +427,10 @@ class Debugger {
                             const String& prefix,
                             bool include_private_fields);
 
+  // Handles any events which pause vm execution.  Breakpoints,
+  // interrupts, etc.
+  void Pause(DebuggerEvent* event);
+
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
   bool initialized_;
@@ -426,10 +438,6 @@ class Debugger {
   // ID number generator.
   intptr_t next_id_;
 
-  // Current stack trace. Valid while executing breakpoint callback code.
-  DebuggerStackTrace* stack_trace_;
-
-  RemoteObjectCache* obj_cache_;
 
   SourceBreakpoint* src_breakpoints_;
   CodeBreakpoint* code_breakpoints_;
@@ -442,9 +450,17 @@ class Debugger {
   // be run as a side effect of getting values of fields.
   bool ignore_breakpoints_;
 
-  // True while debugger calls event_handler_. Used to prevent recursive
-  // debugger events.
-  bool in_event_notification_;
+  // Indicates why the debugger is currently paused.  If the debugger
+  // is not paused, this is NULL.  Note that the debugger can be
+  // paused for breakpoints, isolate interruption, and (sometimes)
+  // exceptions.
+  DebuggerEvent* pause_event_;
+
+  // An id -> object map.  Valid only while IsPaused().
+  RemoteObjectCache* obj_cache_;
+
+  // Current stack trace. Valid only while IsPaused().
+  DebuggerStackTrace* stack_trace_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
 

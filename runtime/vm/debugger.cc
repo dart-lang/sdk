@@ -189,12 +189,9 @@ void Debugger::SignalIsolateEvent(EventType type) {
       DebuggerStackTrace* stack_trace = debugger->CollectStackTrace();
       ASSERT(stack_trace->Length() > 0);
       ASSERT(debugger->stack_trace_ == NULL);
-      ASSERT(debugger->obj_cache_ == NULL);
-      debugger->obj_cache_ = new RemoteObjectCache(64);
       debugger->stack_trace_ = stack_trace;
-      (*event_handler_)(&event);
+      debugger->Pause(&event);
       debugger->stack_trace_ = NULL;
-      debugger->obj_cache_ = NULL;  // Remote object cache is zone allocated.
       // TODO(asiva): Need some work here to be able to single step after
       // an interrupt.
     } else {
@@ -855,20 +852,20 @@ Debugger::Debugger()
       isolate_id_(ILLEGAL_ISOLATE_ID),
       initialized_(false),
       next_id_(1),
-      stack_trace_(NULL),
-      obj_cache_(NULL),
       src_breakpoints_(NULL),
       code_breakpoints_(NULL),
       resume_action_(kContinue),
       ignore_breakpoints_(false),
-      in_event_notification_(false),
+      pause_event_(NULL),
+      obj_cache_(NULL),
+      stack_trace_(NULL),
       exc_pause_info_(kNoPauseOnExceptions) {
 }
 
 
 Debugger::~Debugger() {
   isolate_id_ = ILLEGAL_ISOLATE_ID;
-  ASSERT(!in_event_notification_);
+  ASSERT(!IsPaused());
   ASSERT(src_breakpoints_ == NULL);
   ASSERT(code_breakpoints_ == NULL);
   ASSERT(stack_trace_ == NULL);
@@ -1270,7 +1267,7 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   // breakpoint or exception event, or if the debugger is not
   // interested in exception events.
   if (ignore_breakpoints_ ||
-      in_event_notification_ ||
+      IsPaused() ||
       (event_handler_ == NULL) ||
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
@@ -1279,17 +1276,12 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   if (!ShouldPauseOnException(stack_trace, exc)) {
     return;
   }
-  ASSERT(stack_trace_ == NULL);
-  stack_trace_ = stack_trace;
-  ASSERT(obj_cache_ == NULL);
-  in_event_notification_ = true;
-  obj_cache_ = new RemoteObjectCache(64);
   DebuggerEvent event(kExceptionThrown);
   event.exception = &exc;
-  (*event_handler_)(&event);
-  in_event_notification_ = false;
+  ASSERT(stack_trace_ == NULL);
+  stack_trace_ = stack_trace;
+  Pause(&event);
   stack_trace_ = NULL;
-  obj_cache_ = NULL;  // Remote object cache is zone allocated.
 }
 
 
@@ -1759,6 +1751,20 @@ void Debugger::SetEventHandler(EventHandler* handler) {
 }
 
 
+void Debugger::Pause(DebuggerEvent* event) {
+  ASSERT(!IsPaused());  // No recursive pausing.
+  ASSERT(obj_cache_ == NULL);
+
+  pause_event_ = event;
+  obj_cache_ = new RemoteObjectCache(64);
+
+  (*event_handler_)(event);
+
+  pause_event_ = NULL;
+  obj_cache_ = NULL;    // Zone allocated
+}
+
+
 bool Debugger::IsDebuggable(const Function& func) {
   RawFunction::Kind fkind = func.kind();
   if ((fkind == RawFunction::kImplicitGetter) ||
@@ -1780,16 +1786,12 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
                                  SourceBreakpoint* bpt) {
   resume_action_ = kContinue;
   isolate_->set_single_step(false);
-  ASSERT(!in_event_notification_);
+  ASSERT(!IsPaused());
   ASSERT(obj_cache_ == NULL);
-  in_event_notification_ = true;
-  obj_cache_ = new RemoteObjectCache(64);
   DebuggerEvent event(kBreakpointReached);
   event.top_frame = top_frame;
   event.breakpoint = bpt;
-  (*event_handler_)(&event);
-  in_event_notification_ = false;
-  obj_cache_ = NULL;  // Remote object cache is zone allocated.
+  Pause(&event);
 }
 
 
@@ -1800,7 +1802,7 @@ void Debugger::SingleStepCallback() {
   // single stepping.
   ASSERT(event_handler_ != NULL);
   // Don't pause recursively.
-  if (in_event_notification_) return;
+  if (IsPaused()) return;
 
   // Check whether we are in a Dart function that the user is
   // interested in.
@@ -1822,6 +1824,7 @@ void Debugger::SingleStepCallback() {
               frame->TokenPos());
   }
 
+  ASSERT(stack_trace_ == NULL);
   stack_trace_ = CollectStackTrace();
   SignalPausedEvent(frame, NULL);
 
@@ -1842,7 +1845,7 @@ void Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || in_event_notification_) {
+  if (ignore_breakpoints_ || IsPaused()) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
@@ -1868,6 +1871,7 @@ void Debugger::SignalBpReached() {
   }
 
   if (report_bp && (event_handler_ != NULL)) {
+    ASSERT(stack_trace_ == NULL);
     stack_trace_ = stack_trace;
     SignalPausedEvent(top_frame, bpt->src_bpt_);
     stack_trace_ = NULL;
