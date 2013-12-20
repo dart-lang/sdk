@@ -125,6 +125,7 @@ async/timer_isActive_test: RuntimeError # Timer interface not supported: dartbug
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
 async/zone_create_timer2_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
 async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: dartbug.com/7728.
+async/stream_iterator_test: RuntimeError, OK # Timer interface not supported: dartbug.com/7728.
 async/catch_errors12_test: Fail # Timer interface not supported: dartbug.com/7728.
 async/catch_errors13_test: Fail # Timer interface not supported: dartbug.com/7728.
 async/catch_errors14_test: Fail # Timer interface not supported: dartbug.com/7728.
