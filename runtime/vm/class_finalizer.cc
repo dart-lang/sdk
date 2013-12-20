@@ -320,7 +320,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     OS::Print("Resolving redirecting factory: %s\n",
               String::Handle(factory.name()).ToCString());
   }
-  ResolveType(cls, type, kCanonicalize);
+  ResolveType(cls, type);
   type ^= FinalizeType(cls, type, kCanonicalize);
   factory.SetRedirectionType(type);
   if (type.IsMalformedOrMalbounded()) {
@@ -437,9 +437,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
 }
 
 
-void ClassFinalizer::ResolveType(const Class& cls,
-                                 const AbstractType& type,
-                                 FinalizationKind finalization) {
+void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
   if (type.IsResolved() || type.IsFinalized()) {
     return;
   }
@@ -485,7 +483,7 @@ void ClassFinalizer::ResolveType(const Class& cls,
     AbstractType& type_argument = AbstractType::Handle();
     for (intptr_t i = 0; i < num_arguments; i++) {
       type_argument = arguments.TypeAt(i);
-      ResolveType(cls, type_argument, finalization);
+      ResolveType(cls, type_argument);
     }
   }
 }
@@ -993,7 +991,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   AbstractType& type = AbstractType::Handle(function.result_type());
   // It is not a compile time error if this name does not resolve to a class or
   // interface.
-  ResolveType(cls, type, kCanonicalize);
+  ResolveType(cls, type);
   type = FinalizeType(cls, type, kCanonicalize);
   // The result type may be malformed or malbounded.
   function.set_result_type(type);
@@ -1001,7 +999,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    ResolveType(cls, type, kCanonicalize);
+    ResolveType(cls, type);
     type = FinalizeType(cls, type, kCanonicalize);
     // The parameter type may be malformed or malbounded.
     function.SetParameterTypeAt(i, type);
@@ -1070,7 +1068,7 @@ void ClassFinalizer::ResolveUpperBounds(const Class& cls) {
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_param ^= type_params.TypeAt(i);
     bound = type_param.bound();
-    ResolveType(cls, bound, kCanonicalize);
+    ResolveType(cls, bound);
   }
 }
 
@@ -1130,7 +1128,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
-    ResolveType(cls, type, kCanonicalize);
+    ResolveType(cls, type);
     type = FinalizeType(cls, type, kCanonicalize);
     field.set_type(type);
     name = field.name();
@@ -2156,7 +2154,7 @@ bool ClassFinalizer::IsTypeCycleFree(
     const AbstractType& type,
     GrowableArray<intptr_t>* visited) {
   ASSERT(visited != NULL);
-  ResolveType(cls, type, kCanonicalize);
+  ResolveType(cls, type);
   if (type.IsType() && !type.IsMalformed()) {
     const Class& type_class = Class::Handle(type.type_class());
     if (!type_class.is_type_finalized() &&
@@ -2316,7 +2314,7 @@ RawType* ClassFinalizer::ResolveMixinAppType(
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_super_type =
       AbstractType::Handle(mixin_app_type.super_type());
-  ResolveType(cls, mixin_super_type, kCanonicalizeWellFormed);
+  ResolveType(cls, mixin_super_type);
   ASSERT(mixin_super_type.HasResolvedTypeClass());
   // TODO(14453): May need to handle BoundedType here.
   ASSERT(mixin_super_type.IsType());
@@ -2331,7 +2329,7 @@ RawType* ClassFinalizer::ResolveMixinAppType(
   for (intptr_t i = 0; i < depth; i++) {
     mixin_type = mixin_app_type.MixinTypeAt(i);
     ASSERT(!mixin_type.IsNull());
-    ResolveType(cls, mixin_type, kCanonicalizeWellFormed);
+    ResolveType(cls, mixin_type);
     ASSERT(mixin_type.HasResolvedTypeClass());
     ASSERT(mixin_type.IsType());
     CollectTypeArguments(cls, Type::Cast(mixin_type), type_args);
@@ -2446,7 +2444,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
   Class& interface_class = Class::Handle();
 
   // Resolve super type. Failures lead to a longjmp.
-  ResolveType(cls, super_type, kCanonicalizeWellFormed);
+  ResolveType(cls, super_type);
   if (super_type.IsMalformedOrMalbounded()) {
     ReportError(Error::Handle(super_type.error()));
   }
@@ -2523,7 +2521,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
   // Resolve interfaces. Failures lead to a longjmp.
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
     interface ^= super_interfaces.At(i);
-    ResolveType(cls, interface, kCanonicalizeWellFormed);
+    ResolveType(cls, interface);
     ASSERT(!interface.IsTypeParameter());  // Should be detected by parser.
     // A malbounded interface is only reported when involved in a type test.
     if (interface.IsMalformed()) {
