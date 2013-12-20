@@ -11,7 +11,6 @@ dependencies:
   args: ">=0.9.0 <0.10.0"
   barback: ">=0.9.0 <0.12.0"
   browser: ">=0.9.0 <0.10.0"
-  csslib: ">=0.9.0 <0.10.0"
   custom_element: ">=0.9.1+1 <0.10.0"
   html5lib: ">=0.9.1 <0.10.0"
   html_import: ">=0.9.0 <0.10.0"
