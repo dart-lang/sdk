@@ -1209,7 +1209,7 @@ class AbstractTypeArguments : public Object {
     return this->raw();
   }
 
-  // Do not canonicalize InstantiatedTypeArguments or null vectors.
+  // Null vectors are canonical.
   virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
@@ -1383,6 +1383,7 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
     return false;
   }
   virtual bool IsBounded() const { return false; }  // Bounds were checked.
+  virtual RawAbstractTypeArguments* Canonicalize() const;
 
   RawAbstractTypeArguments* uninstantiated_type_arguments() const {
     return raw_ptr()->uninstantiated_type_arguments_;

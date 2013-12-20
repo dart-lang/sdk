@@ -4011,6 +4011,19 @@ void InstantiatedTypeArguments::SetTypeAt(intptr_t index,
 }
 
 
+RawAbstractTypeArguments* InstantiatedTypeArguments::Canonicalize() const {
+  const intptr_t num_types = Length();
+  const TypeArguments& type_args = TypeArguments::Handle(
+      TypeArguments::New(num_types, Heap::kOld));
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    type_args.SetTypeAt(i, type);
+  }
+  return type_args.Canonicalize();
+}
+
+
 void InstantiatedTypeArguments::set_uninstantiated_type_arguments(
     const AbstractTypeArguments& value) const {
   StorePointer(&raw_ptr()->uninstantiated_type_arguments_, value.raw());
@@ -12320,6 +12333,7 @@ RawAbstractType* Type::Canonicalize() const {
   }
 #endif
   ASSERT(IsOld());
+  ASSERT(type_args.IsNull() || type_args.IsOld());
   SetCanonical();
   return this->raw();
 }
