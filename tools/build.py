@@ -30,7 +30,8 @@ Then,
 $ chmod u+x install-build-deps.sh
 $ ./install-build-deps.sh --arm --no-chromeos-fonts
 """
-DEFAULT_ARM_CROSS_COMPILER_PATH = '/usr'
+DEFAULT_ARM_CROSS_COMPILER_PATH = '/usr/bin'
+
 
 def BuildOptions():
   result = optparse.OptionParser()
@@ -49,6 +50,9 @@ def BuildOptions():
     help='Target OSs (comma-separated).',
     metavar='[all,host,android]',
     default='host')
+  result.add_option("-t", "--toolchain",
+    help='Cross-compiler toolchain path',
+    default=None)
   result.add_option("-j",
       help='The number of parallel jobs to run.',
       metavar=HOST_CPUS,
@@ -101,14 +105,14 @@ def ProcessOptions(options, args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os, HOST_OS))
         return False
-      if not arch in ['ia32']:
+      if not arch in ['ia32', 'arm']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os, arch))
         return False
       # We have not yet tweaked the v8 dart build to work with the Android
       # NDK/SDK, so don't try to build it.
       if args == []:
-        print "For android builds you must specify a target, such as 'samples'."
+        print "For android builds you must specify a target, such as 'runtime'."
         return False
       if 'v8' in args:
         print "The v8 target is not supported for android builds."
@@ -116,19 +120,42 @@ def ProcessOptions(options, args):
   return True
 
 
-def SetTools(arch, toolchainprefix):
+def SetTools(arch, target_os, toolchainprefix):
   toolsOverride = None
+
+  # For Android, by default use the toolchain from third_party/android_tools.
+  if target_os == 'android' and toolchainprefix == None:
+    android_toolchain = GetAndroidToolchainDir(HOST_OS, arch)
+    if arch == 'arm':
+      toolchainprefix = os.path.join(
+          android_toolchain, 'arm-linux-androideabi')
+    if arch == 'ia32':
+      toolchainprefix = os.path.join(
+          android_toolchain, 'i686-linux-android')
+
+  # For ARM Linux, by default use the Linux distribution's cross-compiler.
   if arch == 'arm' and toolchainprefix == None:
-    # Here, we specify the hf compiler. If this changes, we must also remove
+    # We specify the hf compiler. If this changes, we must also remove
     # the ARM_FLOAT_ABI_HARD define in configurations_make.gypi.
     toolchainprefix = (DEFAULT_ARM_CROSS_COMPILER_PATH +
-                       "/bin/arm-linux-gnueabihf")
+                       "/arm-linux-gnueabihf")
+
+  # TODO(zra): Find a default MIPS Linux cross-compiler?
+
+  # Override the Android toolchain's linker to handle some complexity in the
+  # linker arguments that gyp has trouble with.
+  linker = ""
+  if target_os == 'android':
+    linker = os.path.join(DART_ROOT, 'tools', 'android_link.py')
+  elif toolchainprefix:
+    linker = toolchainprefix + "-g++"
+
   if toolchainprefix:
     toolsOverride = {
       "CC.target"  :  toolchainprefix + "-gcc",
       "CXX.target" :  toolchainprefix + "-g++",
       "AR.target"  :  toolchainprefix + "-ar",
-      "LINK.target":  toolchainprefix + "-g++",
+      "LINK.target":  linker,
       "NM.target"  :  toolchainprefix + "-nm",
     }
   return toolsOverride
@@ -140,99 +167,38 @@ def CheckDirExists(path, docstring):
           % (docstring, path))
 
 
-def SetCrossCompilationEnvironment(host_os, target_os, target_arch, old_path):
+def GetAndroidToolchainDir(host_os, target_arch):
   global THIRD_PARTY_ROOT
   if host_os not in ['linux']:
     raise Exception('Unsupported host os %s' % host_os)
-  if target_os not in ['android']:
-    raise Exception('Unsupported target os %s' % target_os)
-  if target_arch not in ['ia32']:
+  if target_arch not in ['ia32', 'arm']:
     raise Exception('Unsupported target architecture %s' % target_arch)
 
+  # Set up path to the Android NDK.
   CheckDirExists(THIRD_PARTY_ROOT, 'third party tools');
   android_tools = os.path.join(THIRD_PARTY_ROOT, 'android_tools')
   CheckDirExists(android_tools, 'Android tools')
   android_ndk_root = os.path.join(android_tools, 'ndk')
   CheckDirExists(android_ndk_root, 'Android NDK')
-  android_sdk_root = os.path.join(android_tools, 'sdk')
-  CheckDirExists(android_sdk_root, 'Android SDK')
 
-  os.environ['ANDROID_NDK_ROOT'] = android_ndk_root
-  os.environ['ANDROID_SDK_ROOT'] = android_sdk_root
-
-  toolchain_arch = 'x86-4.4.3'
+  # Set up the directory of the Android NDK cross-compiler toolchain.
+  toolchain_arch = 'arm-linux-androideabi-4.6'
+  if target_arch == 'ia32':
+    toolchain_arch = 'x86-4.6'
   toolchain_dir = 'linux-x86'
   android_toolchain = os.path.join(android_ndk_root,
       'toolchains', toolchain_arch,
       'prebuilt', toolchain_dir, 'bin')
   CheckDirExists(android_toolchain, 'Android toolchain')
 
-  os.environ['ANDROID_TOOLCHAIN'] = android_toolchain
-
-  android_sdk_version = 15
-
-  android_sdk_tools = os.path.join(android_sdk_root, 'tools')
-  CheckDirExists(android_sdk_tools, 'Android SDK tools')
-
-  android_sdk_platform_tools = os.path.join(android_sdk_root, 'platform-tools')
-  CheckDirExists(android_sdk_platform_tools, 'Android SDK platform tools')
-
-  pathList = [old_path,
-              android_ndk_root,
-              android_sdk_tools,
-              android_sdk_platform_tools,
-              # for Ninja - maybe don't need?
-              android_toolchain
-              ]
-  os.environ['PATH'] = ':'.join(pathList)
-
-  gypDefinesList = [
-    'target_arch=ia32',
-    'OS=%s' % target_os,
-    'android_build_type=0',
-    'host_os=%s' % host_os,
-    'linux_fpic=1',
-    'release_optimize=s',
-    'linux_use_tcmalloc=0',
-    'android_sdk=%s', os.path.join(android_sdk_root, 'platforms',
-        'android-%d' % android_sdk_version),
-    'android_sdk_tools=%s' % android_sdk_platform_tools
-    ]
-
-  os.environ['GYP_DEFINES'] = ' '.join(gypDefinesList)
+  return android_toolchain
 
 
 def Execute(args):
   process = subprocess.Popen(args)
   process.wait()
   if process.returncode != 0:
-    raise Exception(args[0] + " failed")
-
-
-def GClientRunHooks():
-  Execute(['gclient', 'runhooks'])
-
-
-def RunhooksIfNeeded(host_os, mode, arch, target_os):
-  if host_os != 'linux':
-    return
-  build_root = utils.GetBuildRoot(host_os)
-  build_cookie_path = os.path.join(build_root, 'lastHooksTargetOS.txt')
-
-  old_target_os = None
-  try:
-    with open(build_cookie_path) as f:
-      old_target_os = f.read(1024)
-  except IOError as e:
-    pass
-  if target_os != old_target_os:
-    try:
-      os.mkdir(build_root)
-    except OSError as e:
-      pass
-    with open(build_cookie_path, 'w') as f:
-      f.write(target_os)
-    GClientRunHooks()
+    raise Exception(args[0] + " failed")  
 
 
 def CurrentDirectoryBaseName():
@@ -353,15 +319,13 @@ def Main():
     targets = args
 
   filter_xcodebuild_output = False
-  # Remember path
-  old_path = os.environ['PATH']
   # Build all targets for each requested configuration.
   for target in targets:
     for target_os in options.os:
       for mode in options.mode:
         for arch in options.arch:
           os.environ['DART_BUILD_MODE'] = mode
-          build_config = utils.GetBuildConf(mode, arch)
+          build_config = utils.GetBuildConf(mode, arch, target_os)
           if HOST_OS == 'macos':
             filter_xcodebuild_output = True
             project_file = 'dart.xcodeproj'
@@ -412,22 +376,12 @@ def Main():
 
             args += [target]
 
-          if target_os != HOST_OS:
-            SetCrossCompilationEnvironment(
-                HOST_OS, target_os, arch, old_path)
-
-          RunhooksIfNeeded(HOST_OS, mode, arch, target_os)
-
-          toolchainprefix = None
-          if target_os == 'android':
-            toolchainprefix = ('%s/i686-linux-android'
-                                % os.environ['ANDROID_TOOLCHAIN'])
-          toolsOverride = SetTools(arch, toolchainprefix)
+          toolchainprefix = options.toolchain
+          toolsOverride = SetTools(arch, target_os, toolchainprefix)
           if toolsOverride:
-            printToolOverrides = target_os != 'android'
             for k, v in toolsOverride.iteritems():
               args.append(  k + "=" + v)
-              if printToolOverrides:
+              if options.verbose:
                 print k + " = " + v
             if not os.path.isfile(toolsOverride['CC.target']):
               if arch == 'arm':

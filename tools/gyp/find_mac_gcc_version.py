@@ -35,5 +35,8 @@ def main():
 
 if __name__ == '__main__':
   if sys.platform != 'darwin':
-    raise Exception("This script only runs on Mac")
-  print main()
+    #raise Exception("This script only runs on Mac")
+    # If we aren't on Mac, print out a dummy version string; it won't be used.
+    print 'X.X'
+  else:
+    print main()

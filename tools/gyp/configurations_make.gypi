@@ -4,12 +4,11 @@
 
 {
   'variables': {
-    'arm_cross_libc%': '/opt/codesourcery/arm-2009q1/arm-none-linux-gnueabi/libc',
     'dart_debug_optimization_level%': '2',
   },
   'target_defaults': {
     'configurations': {
-      'Dart_Base': {
+      'Dart_Linux_Base': {
         'abstract': 1,
         'cflags': [
           '-Werror',
@@ -29,17 +28,20 @@
         ],
       },
 
-      'Dart_ia32_Base': {
+      'Dart_Linux_ia32_Base': {
+        'abstract': 1,
         'cflags': [ '-m32', '-msse2' ],
         'ldflags': [ '-m32', ],
       },
 
-      'Dart_x64_Base': {
+      'Dart_Linux_x64_Base': {
+        'abstract': 1,
         'cflags': [ '-m64', '-msse2' ],
         'ldflags': [ '-m64', ],
       },
 
-      'Dart_simarm_Base': {
+      'Dart_Linux_simarm_Base': {
+        'abstract': 1,
         'cflags': [ '-O3', '-m32', '-msse2' ],
         'ldflags': [ '-m32', ],
         'defines': [
@@ -47,7 +49,8 @@
         ],
       },
 
-      'Dart_arm_Base': {
+      'Dart_Linux_arm_Base': {
+        'abstract': 1,
         'target_conditions': [
         ['_toolset=="target"', {
           'cflags': [
@@ -68,12 +71,14 @@
         }]]
       },
 
-      'Dart_simmips_Base': {
+      'Dart_Linux_simmips_Base': {
+        'abstract': 1,
         'cflags': [ '-O3', '-m32', '-msse2' ],
         'ldflags': [ '-m32', ],
       },
 
-      'Dart_mips_Base': {
+      'Dart_Linux_mips_Base': {
+        'abstract': 1,
         'target_conditions': [
           ['_toolset=="target"', {
             'cflags': [
@@ -88,7 +93,8 @@
         }]]
       },
 
-      'Dart_Debug': {
+      'Dart_Linux_Debug': {
+        'abstract': 1,
         'cflags': [
           '-O<(dart_debug_optimization_level)',
           # The sampling profiler uses the frame pointer to walk the stack.
@@ -99,7 +105,8 @@
         ],
       },
 
-      'Dart_Release': {
+      'Dart_Linux_Release': {
+        'abstract': 1,
         'cflags': [
           '-O3',
           # The sampling profiler uses the frame pointer to walk the stack.

@@ -205,6 +205,19 @@
           },
         }],
       ],
+      'configurations': {
+        'Dart_Android_Base': {
+          'target_conditions': [
+            ['_toolset=="target"', {
+              'defines': [
+                # Needed for sources outside of nss that include pr and ssl
+                # header files. 
+                'MDCPUCFG="md/_linux.cfg"',
+              ],
+            }],
+          ],
+        },
+      },
     },
     {
       'target_name': 'libdart_withcore',
@@ -264,12 +277,15 @@
           'link_settings': {
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
           },
-       }],
+        }],
+        # Normally, we should not have flags conditional on OS==android, but
+        # here we must because gen_snapshot is compiled for the host during
+        # and Android cross-build, and these flags are not set anywhere else.
         ['OS=="android"', {
           'link_settings': {
             'libraries': [ '-ldl', '-lrt' ],
           },
-       }]
+        }]
       ],
     },
     {
@@ -400,30 +416,16 @@
             },
           },
         }],
-        ['OS=="linux"', {
+      ],
+      'configurations': {
+        'Dart_Linux_Base': {
           # Have the linker add all symbols to the dynamic symbol table
           # so that extensions can look them up dynamically in the binary.
           'ldflags': [
             '-rdynamic',
           ],
-        }],
-        ['OS=="android"', {
-          'link_settings': {
-            'ldflags': [
-              '-z',
-              'muldefs',
-            ],
-            'ldflags!': [
-              '-Wl,--exclude-libs=ALL,-shared',
-            ],
-            'libraries': [
-              '-llog',
-              '-lc',
-              '-lz',
-            ],
-          },
-        }],
-      ],
+        },
+      },
     },
     {
       # dart binary without any snapshot built in.
@@ -468,31 +470,16 @@
             },
           },
         }],
-        ['OS=="linux"', {
+      ],
+      'configurations': {
+        'Dart_Linux_Base': {
           # Have the linker add all symbols to the dynamic symbol table
           # so that extensions can look them up dynamically in the binary.
           'ldflags': [
             '-rdynamic',
           ],
-        }],
-
-        ['OS=="android"', {
-          'link_settings': {
-            'ldflags': [
-              '-z',
-              'muldefs',
-            ],
-            'ldflags!': [
-              '-Wl,--exclude-libs=ALL,-shared',
-            ],
-            'libraries': [
-              '-llog',
-              '-lc',
-              '-lz',
-            ],
-          },
-        }],
-      ],
+        },
+      },
     },
     {
       'target_name': 'process_test',
@@ -551,25 +538,6 @@
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
         }],
-        ['OS=="android"', {
-
-          'link_settings': {
-            'ldflags': [
-              '-z',
-              'muldefs',
-            ],
-            'ldflags!': [
-              '-Wl,--exclude-libs=ALL,-shared',
-            ],
-            'libraries': [
-              '-Wl,--start-group',
-              '-Wl,--end-group',
-              '-llog',
-              '-lc',
-              '-lz',
-            ],
-          },
-        }],
       ],
     },
     {
@@ -624,57 +592,50 @@
         }],
       ],
     },
-  ],
-  'conditions': [
-    ['OS!="android"', {
-      'targets': [
-        {
-          'target_name': 'test_extension',
-          'type': 'shared_library',
-          'dependencies': [
-            'dart',
-          ],
-          'include_dirs': [
-            '..',
-          ],
-          'cflags!': [
-            '-Wnon-virtual-dtor',
-            '-Woverloaded-virtual',
-            '-fno-rtti',
-            '-fvisibility-inlines-hidden',
-            '-Wno-conversion-null',
-          ],
-          'sources': [
-            'test_extension.c',
-            'test_extension_dllmain_win.cc',
-          ],
-          'defines': [
-            # The only effect of DART_SHARED_LIB is to export the Dart API.
-            'DART_SHARED_LIB',
-          ],
-          'conditions': [
-            ['OS=="win"', {
-              'msvs_settings': {
-                'VCLinkerTool': {
-                  'AdditionalDependencies': [ 'dart.lib' ],
-                  'AdditionalLibraryDirectories': [ '<(PRODUCT_DIR)' ],
-                },
-              },
-            }],
-            ['OS=="mac"', {
-              'xcode_settings': {
-                'OTHER_LDFLAGS': [ '-undefined', 'dynamic_lookup' ],
-              },
-            }],
-            ['OS=="linux"', {
-              'cflags': [
-                '-fPIC',
-              ],
-            }],
-          ],
-        },
+    {
+      'target_name': 'test_extension',
+      'type': 'shared_library',
+      'dependencies': [
+        'dart',
       ],
-    }],
+      'include_dirs': [
+        '..',
+      ],
+      'cflags!': [
+        '-Wnon-virtual-dtor',
+        '-Woverloaded-virtual',
+        '-fno-rtti',
+        '-fvisibility-inlines-hidden',
+        '-Wno-conversion-null',
+      ],
+      'sources': [
+        'test_extension.c',
+        'test_extension_dllmain_win.cc',
+      ],
+      'defines': [
+        # The only effect of DART_SHARED_LIB is to export the Dart API.
+        'DART_SHARED_LIB',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'AdditionalDependencies': [ 'dart.lib' ],
+              'AdditionalLibraryDirectories': [ '<(PRODUCT_DIR)' ],
+            },
+          },
+        }],
+        ['OS=="mac"', {
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [ '-undefined', 'dynamic_lookup' ],
+          },
+        }],
+        ['OS=="linux"', {
+          'cflags': [
+            '-fPIC',
+          ],
+        }],
+      ],
+    },
   ],
 }
-

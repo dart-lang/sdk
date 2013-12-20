@@ -47,13 +47,6 @@
         '..',
       ],
       'conditions': [
-        ['OS=="android"', {
-          'link_settings': {
-            'libraries': [
-              '-lc',
-            ],
-          },
-        }],
         ['OS=="linux"', {
           'link_settings': {
             'libraries': [

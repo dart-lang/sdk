@@ -8,7 +8,26 @@
   },
   'target_defaults': {
     'configurations': {
-      'Dart_Debug': {
+      'Dart_Win_Base': {
+        'abstract': 1,
+        'defines': [
+          '_HAS_EXCEPTIONS=0',  # disable C++ exceptions use in C++ std. libs.
+        ],
+      },
+      'Dart_Win_ia32_Base': {
+        'abstract': 1,
+      },
+      'Dart_Win_x64_Base': {
+        'abstract': 1,
+      },
+      'Dart_Win_simarm_Base': {
+        'abstract': 1,
+      },
+      'Dart_Win_simmips_Base': {
+        'abstract': 1,
+      },
+      'Dart_Win_Debug': {
+        'abstract': 1,
         'msvs_settings': {
           'VCCLCompilerTool': {
             'Optimization': '<(dart_debug_optimization_level)',
@@ -36,7 +55,8 @@
         'msvs_disabled_warnings': [4351],
       },
 
-      'Dart_Release': {
+      'Dart_Win_Release': {
+        'abstract': 1,
         'msvs_settings': {
           'VCCLCompilerTool': {
             'Optimization': '2',
@@ -68,8 +88,5 @@
         'msvs_disabled_warnings': [4351],
       },
     },
-    'defines': [
-      '_HAS_EXCEPTIONS=0',  # disable C++ exceptions use in C++ std. libs.
-    ],
   },
 }
