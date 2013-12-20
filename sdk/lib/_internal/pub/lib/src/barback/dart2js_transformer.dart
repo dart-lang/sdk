@@ -261,6 +261,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   Future<String> _readResource(Uri url) {
     // See if the path is within a package. If so, use Barback so we can use
     // generated Dart assets.
+
     var id = _sourceUrlToId(url);
     if (id != null) return _transform.readInputAsString(id);
 
@@ -276,11 +277,16 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     var id = specialUrlToId(url);
     if (id != null) return id;
 
-    // See if it's a path within the root package.
+    // See if it's a path to a "public" asset within the root package. All
+    // other files in the root package are not visible to transformers, so
+    // should be loaded directly from disk.
     var rootDir = _graph.entrypoint.root.dir;
     var sourcePath = path.fromUri(url);
-    if (isBeneath(sourcePath, rootDir)) {
+    if (isBeneath(sourcePath, path.join(rootDir, "lib")) ||
+        isBeneath(sourcePath, path.join(rootDir, "asset")) ||
+        isBeneath(sourcePath, path.join(rootDir, "web"))) {
       var relative = path.relative(sourcePath, from: rootDir);
+
       return new AssetId(_graph.entrypoint.root.name, relative);
     }
 
