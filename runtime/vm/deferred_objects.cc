@@ -13,7 +13,7 @@ namespace dart {
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 
 
-void DeferredDouble::Materialize(DeoptContext* deopt_context) {
+void DeferredDouble::Materialize() {
   RawDouble** double_slot = reinterpret_cast<RawDouble**>(slot());
   *double_slot = Double::New(value());
 
@@ -24,7 +24,7 @@ void DeferredDouble::Materialize(DeoptContext* deopt_context) {
 }
 
 
-void DeferredMint::Materialize(DeoptContext* deopt_context) {
+void DeferredMint::Materialize() {
   RawMint** mint_slot = reinterpret_cast<RawMint**>(slot());
   ASSERT(!Smi::IsValid64(value()));
   Mint& mint = Mint::Handle();
@@ -38,7 +38,7 @@ void DeferredMint::Materialize(DeoptContext* deopt_context) {
 }
 
 
-void DeferredFloat32x4::Materialize(DeoptContext* deopt_context) {
+void DeferredFloat32x4::Materialize() {
   RawFloat32x4** float32x4_slot = reinterpret_cast<RawFloat32x4**>(slot());
   RawFloat32x4* raw_float32x4 = Float32x4::New(value());
   *float32x4_slot = raw_float32x4;
@@ -54,7 +54,7 @@ void DeferredFloat32x4::Materialize(DeoptContext* deopt_context) {
 }
 
 
-void DeferredInt32x4::Materialize(DeoptContext* deopt_context) {
+void DeferredInt32x4::Materialize() {
   RawInt32x4** int32x4_slot = reinterpret_cast<RawInt32x4**>(slot());
   RawInt32x4* raw_int32x4 = Int32x4::New(value());
   *int32x4_slot = raw_int32x4;
@@ -70,8 +70,13 @@ void DeferredInt32x4::Materialize(DeoptContext* deopt_context) {
 }
 
 
-void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
-  DeferredObject* obj = deopt_context->GetDeferredObject(index());
+void DeferredObjectRef::Materialize() {
+  // TODO(turnidge): Consider passing the deopt_context to materialize
+  // instead of accessing it through the current isolate.  It would
+  // make it easier to test deferred object materialization in a unit
+  // test eventually.
+  DeferredObject* obj =
+      Isolate::Current()->deopt_context()->GetDeferredObject(index());
   *slot() = obj->object();
   if (FLAG_trace_deoptimization_verbose) {
     OS::PrintErr("writing instance ref at %" Px ": %s\n",

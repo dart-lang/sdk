@@ -473,6 +473,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitFrameEntry();
 
+  void EmitTrySyncMove(intptr_t dest_offset, Location loc, bool* push_emitted);
+
   void AddStaticCallTarget(const Function& function);
 
   void GenerateDeferredCode();

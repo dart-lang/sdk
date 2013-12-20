@@ -718,6 +718,74 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 }
 
 
+void FlowGraphCompiler::EmitTrySyncMove(intptr_t dest_offset,
+                                        Location loc,
+                                        bool* push_emitted) {
+  if (loc.IsConstant()) {
+    if (!*push_emitted) {
+      __ Push(R0);
+      *push_emitted = true;
+    }
+    __ LoadObject(R0, loc.constant());
+    __ StoreToOffset(kWord, R0, FP, dest_offset);
+  } else if (loc.IsRegister()) {
+    if (*push_emitted && (loc.reg() == R0)) {
+      __ ldr(R0, Address(SP, 0));
+      __ StoreToOffset(kWord, R0, FP, dest_offset);
+    } else {
+      __ StoreToOffset(kWord, loc.reg(), FP, dest_offset);
+    }
+  } else {
+    const intptr_t src_offset = loc.ToStackSlotOffset();
+    if (src_offset != dest_offset) {
+      if (!*push_emitted) {
+        __ Push(R0);
+        *push_emitted = true;
+      }
+      __ LoadFromOffset(kWord, R0, FP, src_offset);
+      __ StoreToOffset(kWord, R0, FP, dest_offset);
+    }
+  }
+}
+
+
+void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
+  ASSERT(is_optimizing());
+  Environment* env = instr->env();
+  CatchBlockEntryInstr* catch_block =
+      flow_graph().graph_entry()->GetCatchEntry(try_index);
+  const GrowableArray<Definition*>* idefs = catch_block->initial_definitions();
+  // Parameters.
+  intptr_t i = 0;
+  bool push_emitted = false;
+  const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
+  const intptr_t param_base =
+      kParamEndSlotFromFp + num_non_copied_params;
+  for (; i < num_non_copied_params; ++i) {
+    if ((*idefs)[i]->IsConstant()) continue;  // Common constants
+    Location loc = env->LocationAt(i);
+    EmitTrySyncMove((param_base - i) * kWordSize, loc, &push_emitted);
+  }
+
+  // Process locals. Skip exception_var and stacktrace_var.
+  intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
+  intptr_t ex_idx = local_base - catch_block->exception_var().index();
+  intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
+  for (; i < flow_graph().variable_count(); ++i) {
+    if (i == ex_idx || i == st_idx) continue;
+    if ((*idefs)[i]->IsConstant()) continue;
+    Location loc = env->LocationAt(i);
+    EmitTrySyncMove((local_base - i) * kWordSize, loc, &push_emitted);
+    // Update safepoint bitmap to indicate that the target location
+    // now contains a pointer.
+    instr->locs()->stack_bitmap()->Set(i - num_non_copied_params, true);
+  }
+  if (push_emitted) {
+    __ Pop(R0);
+  }
+}
+
+
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   if (is_optimizing()) return;
   Definition* defn = instr->AsDefinition();

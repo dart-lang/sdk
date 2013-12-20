@@ -4960,10 +4960,8 @@ class AliasedSet : public ZoneAllocated {
            use = use->next_use()) {
         Instruction* instr = use->instruction();
         if (instr->IsPushArgument() ||
-            (instr->IsStoreVMField()
-             && (use->use_index() != StoreVMFieldInstr::kObjectPos)) ||
-            (instr->IsStoreInstanceField()
-             && (use->use_index() != StoreInstanceFieldInstr::kInstancePos)) ||
+            (instr->IsStoreVMField() && (use->use_index() != 1)) ||
+            (instr->IsStoreInstanceField() && (use->use_index() != 0)) ||
             instr->IsStoreStaticField() ||
             instr->IsPhi() ||
             instr->IsAssertAssignable() ||

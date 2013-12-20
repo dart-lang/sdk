@@ -4251,19 +4251,19 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
       : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     SetInputAt(kValuePos, value);
-    SetInputAt(kObjectPos, dest);
+    SetInputAt(kDestPos, dest);
   }
 
   enum {
     kValuePos = 0,
-    kObjectPos = 1
+    kDestPos = 1
   };
 
   DECLARE_INSTRUCTION(StoreVMField)
   virtual CompileType* ComputeInitialType() const;
 
   Value* value() const { return inputs_[kValuePos]; }
-  Value* dest() const { return inputs_[kObjectPos]; }
+  Value* dest() const { return inputs_[kDestPos]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
 
