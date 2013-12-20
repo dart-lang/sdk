@@ -1188,8 +1188,6 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label* fail = (deopt != NULL) ? deopt : &fail_label;
 
-  const bool ok_is_fall_through = (deopt != NULL);
-
   if (!compiler->is_optimizing() || (field_cid == kIllegalCid)) {
     if (!compiler->is_optimizing() && (field_reg == kNoRegister)) {
       // Currently we can't have different location summaries for optimized
@@ -1387,12 +1385,10 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         }
       }
     }
-    if (!ok_is_fall_through) {
-      __ jmp(&ok);
-    }
 
     if (deopt == NULL) {
       ASSERT(!compiler->is_optimizing());
+      __ jmp(&ok);
       __ Bind(fail);
 
       __ CompareImmediate(FieldAddress(field_reg, Field::guarded_cid_offset()),
@@ -1407,7 +1403,6 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     ASSERT(compiler->is_optimizing());
     ASSERT(deopt != NULL);
-    ASSERT(ok_is_fall_through);
     // Field guard class has been initialized and is known.
     if (field_reg != kNoRegister) {
       __ LoadObject(field_reg, Field::ZoneHandle(field().raw()), PP);
