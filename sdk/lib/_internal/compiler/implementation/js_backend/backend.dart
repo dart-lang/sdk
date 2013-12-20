@@ -1037,33 +1037,15 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerRequiredType(DartType type, Element enclosingElement) {
-    /**
-     * If [argument] has type variables or is a type variable, this
-     * method registers a RTI dependency between the class where the
-     * type variable is defined (that is the enclosing class of the
-     * current element being resolved) and the class of [annotation].
-     * If the class of [annotation] requires RTI, then the class of
-     * the type variable does too.
-     */
-    void analyzeTypeArgument(DartType annotation, DartType argument) {
-      if (argument == null) return;
-      if (argument.element.isTypeVariable()) {
-        ClassElement enclosing = argument.element.getEnclosingClass();
-        assert(enclosing == enclosingElement.getEnclosingClass().declaration);
-        rti.registerRtiDependency(annotation.element, enclosing);
-      } else if (argument is InterfaceType) {
-        InterfaceType type = argument;
-        type.typeArguments.forEach((DartType argument) {
-          analyzeTypeArgument(annotation, argument);
-        });
-      }
-    }
-
-    if (type is InterfaceType) {
-      InterfaceType itf = type;
-      itf.typeArguments.forEach((DartType argument) {
-        analyzeTypeArgument(type, argument);
-      });
+    // If [argument] has type variables or is a type variable, this method
+    // registers a RTI dependency between the class where the type variable is
+    // defined (that is the enclosing class of the current element being
+    // resolved) and the class of [type]. If the class of [type] requires RTI,
+    // then the class of the type variable does too.
+    ClassElement contextClass = Types.getClassContext(type);
+    if (contextClass != null) {
+      assert(contextClass == enclosingElement.getEnclosingClass().declaration);
+      rti.registerRtiDependency(type.element, contextClass);
     }
   }
 
