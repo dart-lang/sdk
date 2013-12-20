@@ -125,7 +125,7 @@ TEST_CASE(PortMap_PostMessage) {
   intptr_t message_len = strlen(message) + 1;
 
   EXPECT(PortMap::PostMessage(new Message(
-      port, 0, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
+      port, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
       Message::kNormalPriority)));
 
   // Check that the message notify callback was called.
@@ -139,7 +139,7 @@ TEST_CASE(PortMap_PostMessageInvalidPort) {
   intptr_t message_len = strlen(message) + 1;
 
   EXPECT(!PortMap::PostMessage(new Message(
-      0, 0, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
+      0, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
       Message::kNormalPriority)));
 }
 

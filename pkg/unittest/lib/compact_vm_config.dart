@@ -67,6 +67,20 @@ class CompactVMConfiguration extends VMConfiguration {
     }
   }
 
+  void onTestResultChanged(TestCase test) {
+    _pass--;
+    _fail++;
+    _progressLine(_start, _pass, _fail, test.description);
+    print('');
+    if (test.message != '') {
+      print(indent(test.message));
+    }
+
+    if (test.stackTrace != null) {
+      print(indent(test.stackTrace.toString()));
+    }
+  }
+
   void onDone(bool success) {
     // Override and don't call the superclass onDone() to avoid printing the
     // "unittest-suite-..." boilerplate.

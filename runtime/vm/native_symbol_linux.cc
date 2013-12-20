@@ -8,7 +8,7 @@
 #include "vm/native_symbol.h"
 #include "vm/thread.h"
 
-
+#include <cxxabi.h>  // NOLINT
 #include <dlfcn.h>  // NOLINT
 
 namespace dart {
@@ -29,6 +29,11 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc) {
   }
   if (info.dli_sname == NULL) {
     return NULL;
+  }
+  int status;
+  char* demangled = abi::__cxa_demangle(info.dli_sname, NULL, NULL, &status);
+  if (status == 0) {
+    return demangled;
   }
   return strdup(info.dli_sname);
 }

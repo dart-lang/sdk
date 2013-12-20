@@ -25,7 +25,9 @@ testDatagramBroadcastOptions() {
     RawDatagramSocket.bind(address, 0).then((socket) {
       Expect.isFalse(socket.broadcastEnabled);
       socket.broadcastEnabled = true;
-      Expect.isTrue(socket.broadcastEnabled);
+      if (!Platform.isMacOS) {
+        Expect.isTrue(socket.broadcastEnabled);
+      }
       socket.broadcastEnabled = false;
       Expect.isFalse(socket.broadcastEnabled);
       asyncEnd();
@@ -177,8 +179,10 @@ testLoopbackMulticast() {
 
   test(InternetAddress.ANY_IP_V4, new InternetAddress("228.0.0.4"), true);
   test(InternetAddress.ANY_IP_V4, new InternetAddress("224.0.0.0"), false);
-  test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), true);
-  test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), false);
+  if (!Platform.isMacOS) {
+    test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), true);
+    test(InternetAddress.ANY_IP_V6, new InternetAddress("ff11::0"), false);
+  }
 }
 
 testSendReceive(InternetAddress bindAddress) {
@@ -297,7 +301,9 @@ testSendReceive(InternetAddress bindAddress) {
 main() {
   testDatagramBroadcastOptions();
   testDatagramMulticastOptions();
-  testDatagramSocketReuseAddress();
+  if (!Platform.isMacOS) {
+    testDatagramSocketReuseAddress();
+  }
   testBroadcast();
   testLoopbackMulticast();
   testSendReceive(InternetAddress.LOOPBACK_IP_V4);

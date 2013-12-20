@@ -67,12 +67,12 @@ class JsMirrorSystem implements MirrorSystem {
 
   final IsolateMirror isolate = new JsIsolateMirror();
 
-  TypeMirror get dynamicType => _dynamicType;
-  TypeMirror get voidType => _voidType;
+  JsTypeMirror get dynamicType => _dynamicType;
+  JsTypeMirror get voidType => _voidType;
 
-  final static TypeMirror _dynamicType =
+  final static JsTypeMirror _dynamicType =
       new JsTypeMirror(const Symbol('dynamic'));
-  final static TypeMirror _voidType = new JsTypeMirror(const Symbol('void'));
+  final static JsTypeMirror _voidType = new JsTypeMirror(const Symbol('void'));
 
   static final Map<String, List<LibraryMirror>> librariesByName =
       computeLibrariesByName();
@@ -226,6 +226,8 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
     return _cachedUpperBound = typeMirrorFromRuntimeTypeRepresentation(
         owner, getMetadata(_typeVariable.bound));
   }
+
+  _asRuntimeType() => _metadataIndex;
 }
 
 class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
@@ -244,7 +246,7 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
 
   bool get hasReflectedType => false;
   Type get reflectedType {
-    throw new UnsupportedError("This type does not support reflectedTypees");
+    throw new UnsupportedError("This type does not support reflectedType");
   }
 
   List<TypeVariableMirror> get typeVariables => const <TypeVariableMirror>[];
@@ -252,6 +254,12 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
+
+  _asRuntimeType() {
+    if (this == JsMirrorSystem._dynamicType) return null;
+    if (this == JsMirrorSystem._voidType) return null;
+    throw new RuntimeError('Should not call _asRuntimeType');
+  }
 }
 
 class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
@@ -713,6 +721,8 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   Map<Symbol, DeclarationMirror> get declarations => mixin.declarations;
 
+  _asRuntimeType() => null;
+
   InstanceMirror invoke(
       Symbol memberName,
       List positionalArguments,
@@ -963,7 +973,16 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
         super(originalDeclaration.simpleName);
 
   String get _prettyName => 'ClassMirror';
-  String get _mangledName => '${_class._mangledName}<$_typeArguments>';
+  String get _mangledName {
+    for (TypeMirror typeArgument in typeArguments) {
+      if (typeArgument != JsMirrorSystem._dynamicType) {
+        return '${_class._mangledName}<$_typeArguments>';
+      }
+    }
+    // When all type arguments are dynamic, the canonical representation is to
+    // drop them.
+    return _class._mangledName;
+  }
 
   List<TypeVariableMirror> get typeVariables => _class.typeVariables;
 
@@ -1082,9 +1101,16 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
                              [Map<Symbol, dynamic> namedArguments]) {
-    return _class.newInstance(constructorName,
-                              positionalArguments,
-                              namedArguments);
+    var instance = _class._getInvokedInstance(constructorName,
+                                              positionalArguments,
+                                              namedArguments);
+    return reflect(setRuntimeTypeInfo(
+        instance, typeArguments.map((t) => t._asRuntimeType()).toList()));
+  }
+
+  _asRuntimeType() {
+    return [_class._jsConstructor].addAll(
+        typeArguments.map((t) => t._asRuntimeType()));
   }
 
   JsLibraryMirror get owner => _class.owner;
@@ -1116,8 +1142,6 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
     return _cachedSuperinterfaces = _class._getSuperinterfacesWithOwner(this);
   }
 
-  bool get hasReflectedType => _class.hasReflectedType;
-
   bool get isPrivate => _class.isPrivate;
 
   bool get isTopLevel => _class.isTopLevel;
@@ -1128,7 +1152,9 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
 
   Symbol get qualifiedName => _class.qualifiedName;
 
-  Type get reflectedType => _class.reflectedType;
+  bool get hasReflectedType => true;
+
+  Type get reflectedType => createRuntimeType(_mangledName);
 
   Symbol get simpleName => _class.simpleName;
 
@@ -1193,6 +1219,15 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     return _cachedConstructors =
         new UnmodifiableMapView<Symbol, MethodMirror>(
             filterConstructors(_methods));
+  }
+
+  _asRuntimeType() {
+    if (typeVariables.isEmpty)  return _jsConstructor;
+    var type = [_jsConstructor];
+    for (int i = 0; i < typeVariables.length; i ++) {
+      type.add(JsMirrorSystem._dynamicType._asRuntimeType);
+    }
+    return type;
   }
 
   List<JsMethodMirror> _getMethodsWithOwner(DeclarationMirror methodOwner) {
@@ -1357,25 +1392,33 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     throw new NoSuchMethodError(this, fieldName, null, null);
   }
 
+  _getInvokedInstance(Symbol constructorName,
+                      List positionalArguments,
+                      [Map<Symbol, dynamic> namedArguments]) {
+     if (namedArguments != null && !namedArguments.isEmpty) {
+       throw new UnsupportedError('Named arguments are not implemented.');
+     }
+     JsMethodMirror mirror =
+         JsCache.fetch(_jsConstructorCache, n(constructorName));
+     if (mirror == null) {
+       mirror = __constructors.values.firstWhere(
+           (m) => m.constructorName == constructorName,
+           orElse: () {
+             // TODO(ahe): What receiver to use?
+             throw new NoSuchMethodError(
+                 this, constructorName, positionalArguments, namedArguments);
+           });
+       JsCache.update(_jsConstructorCache, n(constructorName), mirror);
+     }
+     return mirror._invoke(positionalArguments, namedArguments);
+   }
+
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
                              [Map<Symbol, dynamic> namedArguments]) {
-    if (namedArguments != null && !namedArguments.isEmpty) {
-      throw new UnsupportedError('Named arguments are not implemented.');
-    }
-    JsMethodMirror mirror =
-        JsCache.fetch(_jsConstructorCache, n(constructorName));
-    if (mirror == null) {
-      mirror = __constructors.values.firstWhere(
-          (m) => m.constructorName == constructorName,
-          orElse: () {
-            // TODO(ahe): What receiver to use?
-            throw new NoSuchStaticMethodError.missingConstructor(
-                this, constructorName, positionalArguments, namedArguments);
-          });
-      JsCache.update(_jsConstructorCache, n(constructorName), mirror);
-    }
-    return reflect(mirror._invoke(positionalArguments, namedArguments));
+    return reflect(_getInvokedInstance(constructorName,
+                                       positionalArguments,
+                                       namedArguments));
   }
 
   JsLibraryMirror get owner {
@@ -1497,6 +1540,16 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   }
 
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
+
+  bool get hasReflectedType => typeVariables.length == 0;
+
+  Type get reflectedType {
+    if (!hasReflectedType) {
+      throw new UnsupportedError(
+          "Declarations of generics have no reflected type");
+    }
+    return createRuntimeType(_mangledName);
+  }
 
   // TODO(ahe): Implement this.
   Map<Symbol, MethodMirror> get instanceMembers

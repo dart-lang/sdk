@@ -77,9 +77,6 @@ class FutureGroup<T> {
   Future<List> get future => _completer.future;
 }
 
-/// Like [Future.sync], but wraps the Future in [Chain.track] as well.
-Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
-
 /// Returns a buffered stream that will emit the same values as the stream
 /// returned by [future] once [future] completes.
 ///
@@ -130,6 +127,37 @@ Stream futureStream(Future<Stream> future, {bool broadcast: false}) {
 /// Like [new Future], but avoids around issue 11911 by using [new Future.value]
 /// under the covers.
 Future newFuture(callback()) => new Future.value().then((_) => callback());
+
+/// Like [new Future.sync], but automatically wraps the future in a
+/// [Chain.track] call.
+Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
+
+/// Runs [callback] in an error zone and pipes any unhandled error to the
+/// returned [Future].
+///
+/// If the returned [Future] produces an error, its stack trace will always be a
+/// [Chain]. By default, this chain will contain only the local stack trace, but
+/// if [captureStackChains] is passed, it will contain the full stack chain for
+/// the error.
+Future captureErrors(Future callback(), {bool captureStackChains: false}) {
+  var completer = new Completer();
+  var wrappedCallback = () {
+    new Future.sync(callback).then(completer.complete)
+        .catchError((e, stackTrace) {
+      completer.completeError(e, new Chain.forTrace(stackTrace));
+    });
+  };
+
+  if (captureStackChains) {
+    Chain.capture(wrappedCallback, onError: completer.completeError);
+  } else {
+    runZoned(wrappedCallback, onError: (e, stackTrace) {
+      completer.completeError(e, new Chain([new Trace.from(stackTrace)]));
+    });
+  }
+
+  return completer.future;
+}
 
 /// Returns a [StreamTransformer] that will call [onDone] when the stream
 /// completes.
@@ -411,7 +439,7 @@ Future streamFirst(Stream stream) {
   }, onError: (e, [stackTrace]) {
     completer.completeError(e, stackTrace);
   }, onDone: () {
-    completer.completeError(new StateError("No elements"));
+    completer.completeError(new StateError("No elements"), new Chain.current());
   }, cancelOnError: true);
   return completer.future;
 }
@@ -802,6 +830,16 @@ class ApplicationException implements Exception {
       : innerTrace = innerTrace == null ? null : new Trace.from(innerTrace);
 
   String toString() => message;
+}
+
+/// An class for exceptions where a package could not be found in a [Source].
+///
+/// The source is responsible for wrapping its internal exceptions in this so
+/// that other code in pub can use this to show a more detailed explanation of
+/// why the package was being requested.
+class PackageNotFoundException extends ApplicationException {
+  PackageNotFoundException(String message, [innerError, StackTrace innerTrace])
+      : super(message, innerError, innerTrace);
 }
 
 /// Throw a [ApplicationException] with [message].

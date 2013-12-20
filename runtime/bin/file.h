@@ -126,6 +126,7 @@ class File {
   static bool DeleteLink(const char* path);
   static bool Rename(const char* old_path, const char* new_path);
   static bool RenameLink(const char* old_path, const char* new_path);
+  static bool Copy(const char* old_path, const char* new_path);
   static off64_t LengthFromPath(const char* path);
   static void Stat(const char* path, int64_t* data);
   static time_t LastModified(const char* path);
@@ -144,6 +145,7 @@ class File {
   static CObject* CreateRequest(const CObjectArray& request);
   static CObject* DeleteRequest(const CObjectArray& request);
   static CObject* RenameRequest(const CObjectArray& request);
+  static CObject* CopyRequest(const CObjectArray& request);
   static CObject* OpenRequest(const CObjectArray& request);
   static CObject* ResolveSymbolicLinksRequest(const CObjectArray& request);
   static CObject* CloseRequest(const CObjectArray& request);

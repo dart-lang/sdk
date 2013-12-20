@@ -141,7 +141,7 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
 
   return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
       .then((server) {
-    return new Future.sync(() {
+    return syncFuture(() {
       if (watcher != WatcherType.NONE) {
         return watchSources(graph, barback, watcher);
       }
@@ -157,7 +157,7 @@ Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
         server.barback.errors.listen((error) {
           if (error is TransformerException) error = error.error;
           if (!completer.isCompleted) {
-            completer.completeError(error, new Trace.current());
+            completer.completeError(error, new Chain.current());
           }
         }),
         server.barback.results.listen((_) {}, onError: (error, stackTrace) {
@@ -295,7 +295,7 @@ void _log(LogEntry entry) {
 
   // Show the level (unless the message mentions it).
   if (!messageMentions(entry.level.name)) {
-    prefixParts.add("${entry.level} in");
+    prefixParts.add("${entry.level} from");
   }
 
   // Show the transformer.
@@ -329,7 +329,7 @@ void _log(LogEntry entry) {
       break;
 
     case LogLevel.INFO:
-      log.message("$prefix\n$message");
+      log.message("${log.cyan(prefix)}\n$message");
       break;
   }
 }

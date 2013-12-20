@@ -4,34 +4,15 @@
 
 part of vmservice;
 
-class RunningIsolate implements ServiceRequestRouter {
+class RunningIsolate implements MessageRouter {
   final int portId;
   final SendPort sendPort;
   final String name;
 
   RunningIsolate(this.portId, this.sendPort, this.name);
 
-  Future sendMessage(List request) {
-    final completer = new Completer.sync();
-    final receivePort = new RawReceivePort();
-    sendServiceMessage(sendPort, receivePort, request);
-    receivePort.handler = (value) {
-      receivePort.close();
-      if (value is Exception) {
-        completer.completeError(value);
-      } else {
-        completer.complete(value);
-      }
-    };
-    return completer.future;
-  }
-
-  Future route(ServiceRequest request) {
+  Future<String> route(Message message) {
     // Send message to isolate.
-    var message = request.toServiceCallMessage();
-    return sendMessage(message).then((response) {
-      request.setResponse(response);
-      return new Future.value(request);
-    });
+    return message.send(sendPort);
   }
 }

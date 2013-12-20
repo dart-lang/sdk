@@ -16,9 +16,8 @@ class SsaFromIrBuilderTask extends CompilerTask {
       Element element = work.element.implementation;
       return compiler.withCurrentElement(element, () {
         HInstruction.idCounter = 0;
-
-        SsaFromIrBuilder builder = new SsaFromIrBuilder(backend, work);
-
+        SsaFromIrBuilder builder =
+            new SsaFromIrBuilder(backend, work, backend.emitter.nativeEmitter);
         HGraph graph;
         ElementKind kind = element.kind;
         if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
@@ -50,7 +49,8 @@ class SsaFromIrBuilderTask extends CompilerTask {
  * This class contains code that is shared between [SsaFromIrBuilder] and
  * [SsaFromIrInliner].
  */
-abstract class SsaFromIrMixin implements SsaGraphBuilderMixin<IrNode> {
+abstract class SsaFromIrMixin
+    implements IrNodesVisitor, SsaBuilderMixin<IrNode> {
   /**
    * Maps IR expressions to the generated [HInstruction]. Because the IR is
    * in an SSA form, the arguments of an [IrNode] have already been visited
@@ -60,13 +60,30 @@ abstract class SsaFromIrMixin implements SsaGraphBuilderMixin<IrNode> {
   final Map<IrExpression, HInstruction> emitted =
       new Map<IrExpression, HInstruction>();
 
-  Compiler get compiler;
+  /**
+   * This method sets up the state of the IR visitor for inlining an invocation
+   * of [function].
+   */
+  void setupStateForInlining(FunctionElement function,
+                             List<HInstruction> compiledArguments) {
+    // TODO(lry): once the IR supports functions with parameters or dynamic
+    // invocations, map the parameters (and [:this:]) to the argument
+    // instructions by extending the [emitted] mapping.
+    assert(function.computeSignature(compiler).parameterCount == 0);
+  }
 
-  void emitReturn(HInstruction value, IrReturn node);
+  /**
+   * Run this builder on the body of the [function] to be inlined.
+   */
+  void visitInlinedFunction(FunctionElement function) {
+    assert(compiler.irBuilder.hasIr(function));
+    potentiallyCheckInlinedParameterTypes(function);
+    IrFunction functionNode = compiler.irBuilder.getIr(function);
+    visitAll(functionNode.statements);
+  }
 
-  HInstruction addExpression(IrExpression irNode, HInstruction ssaNode) {
+  void addExpression(IrExpression irNode, HInstruction ssaNode) {
     current.add(emitted[irNode] = ssaNode);
-    return ssaNode;
   }
 
   HInstruction attachPosition(HInstruction target, IrNode node) {
@@ -88,7 +105,7 @@ abstract class SsaFromIrMixin implements SsaGraphBuilderMixin<IrNode> {
   }
 
   bool providedArgumentsKnownToBeComplete(IrNode currentNode) {
-    // See comment in [SsaBuilder.providedArgumentsKnownToBeComplete].
+    // See comment in [SsaFromAstBuilder.providedArgumentsKnownToBeComplete].
     return false;
   }
 
@@ -96,22 +113,33 @@ abstract class SsaFromIrMixin implements SsaGraphBuilderMixin<IrNode> {
     return nodes.map((e) => emitted[e]).toList(growable: false);
   }
 
-  HInstruction createInvokeStatic(IrNode node,
-                                  Element element,
-                                  List<HInstruction> arguments,
-                                  [TypeMask type]) {
-//    TODO(lry): enable inlining when building from IR.
-//    if (tryInlineMethod(element, null, arguments, node)) {
-//      return emitted[node];
-//    }
-    if (type == null) {
-      type = TypeMaskFactory.inferredReturnTypeForElement(element, compiler);
+  void addInvokeStatic(IrInvokeStatic node,
+                       FunctionElement function,
+                       List<HInstruction> arguments,
+                       [TypeMask type]) {
+    if (tryInlineMethod(function, null, arguments, node)) {
+      // When encountering a [:return:] instruction in the inlined function,
+      // the value in the [emitted] map is updated. This is performed either
+      // by [SsaFromIrBuilder.emitReturn] (if this is an [SsaFromIrBuilder] or
+      // and [SsaFromAstInliner]), or by [SsaFromAstInliner.leaveInlinedMethod]
+      // if this is an [SsaFromIrInliner].
+      // If the inlined function is in AST form, it might not have an explicit
+      // [:return:] statement and therefore the return value can be [:null:].
+      if (emitted[node] == null) {
+        // IR functions should always have an explicit [:return:].
+        assert(!compiler.irBuilder.hasIr(function.implementation));
+        emitted[node] = graph.addConstantNull(compiler);
+      }
+      return;
     }
-    bool targetCanThrow = !compiler.world.getCannotThrow(element);
+    if (type == null) {
+      type = TypeMaskFactory.inferredReturnTypeForElement(function, compiler);
+    }
+    bool targetCanThrow = !compiler.world.getCannotThrow(function);
     HInvokeStatic instruction = new HInvokeStatic(
-        element.declaration, arguments, type, targetCanThrow: targetCanThrow);
-    instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
-    return attachPosition(instruction, node);
+        function.declaration, arguments, type, targetCanThrow: targetCanThrow);
+    instruction.sideEffects = compiler.world.getSideEffectsOfElement(function);
+    addExpression(node, attachPosition(instruction, node));
   }
 
   void visitIrConstant(IrConstant node) {
@@ -119,11 +147,9 @@ abstract class SsaFromIrMixin implements SsaGraphBuilderMixin<IrNode> {
   }
 
   void visitIrInvokeStatic(IrInvokeStatic node) {
-    Element element = node.target;
-    assert(element.isFunction());
+    FunctionElement function = node.target;
     List<HInstruction> arguments = toInstructionList(node.arguments);
-    HInstruction instruction = createInvokeStatic(node, element, arguments);
-    addExpression(node, instruction);
+    addInvokeStatic(node, function, arguments);
   }
 
   void visitIrNode(IrNode node) {
@@ -131,7 +157,6 @@ abstract class SsaFromIrMixin implements SsaGraphBuilderMixin<IrNode> {
   }
 
   void visitIrReturn(IrReturn node) {
-    assert(isReachable);
     HInstruction value = emitted[node.value];
     // TODO(lry): add code for dynamic type check.
     // value = potentiallyCheckType(value, returnType);
@@ -140,23 +165,31 @@ abstract class SsaFromIrMixin implements SsaGraphBuilderMixin<IrNode> {
 }
 
 /**
- * This builder generates SSA nodes for elements that have an IR representation.
- * It mixes in [SsaGraphBuilderMixin] to share functionality with the
- * [SsaBuilder] that creates SSA nodes from trees.
+ * This builder generates SSA nodes for IR functions. It mixes in
+ * [SsaBuilderMixin] to share functionality with the [SsaFromAstBuilder] that
+ * creates SSA nodes from trees.
  */
 class SsaFromIrBuilder extends IrNodesVisitor with
-    SsaGraphBuilderMixin<IrNode>,
+    SsaBuilderMixin<IrNode>,
     SsaFromIrMixin,
-    SsaGraphBuilderFields<IrNode> {
+    SsaBuilderFields<IrNode> {
   final Compiler compiler;
-
   final JavaScriptBackend backend;
+  final CodegenWorkItem work;
 
-  SsaFromIrBuilder(JavaScriptBackend backend, CodegenWorkItem work)
+  /* See comment on [SsaFromAstBuilder.nativeEmitter]. */
+  final NativeEmitter nativeEmitter;
+
+  SsaFromIrBuilder(JavaScriptBackend backend,
+                   CodegenWorkItem work,
+                   this.nativeEmitter)
    : this.backend = backend,
-     this.compiler = backend.compiler {
+     this.compiler = backend.compiler,
+     this.work = work {
     sourceElementStack.add(work.element);
   }
+
+  final List<IrInliningState> inliningStack = <IrInliningState>[];
 
   HGraph buildMethod() {
     FunctionElement functionElement = sourceElement.implementation;
@@ -175,22 +208,49 @@ class SsaFromIrBuilder extends IrNodesVisitor with
   }
 
   void emitReturn(HInstruction value, IrReturn node) {
-    closeAndGotoExit(attachPosition(new HReturn(value), node));
+    if (inliningStack.isEmpty) {
+      closeAndGotoExit(attachPosition(new HReturn(value), node));
+    } else {
+      IrInliningState state = inliningStack.last;
+      emitted[state.invokeNode] = value;
+    }
   }
 
-  void setupInliningState(FunctionElement function,
+  /**
+   * This method is invoked before inlining the body of [function] into this
+   * [SsaFromIrBuilder]. The inlined function can be either in AST or IR.
+   *
+   * The method is also invoked from the [SsaFromAstInliner], that is, if we
+   * are currently inlining an AST function and encounter a function invocation
+   * that should be inlined.
+   */
+  void enterInlinedMethod(FunctionElement function,
+                          IrNode callNode,
                           List<HInstruction> compiledArguments) {
-    // TODO(lry): inlining when building from IR.
-    throw "setup inlining for $function";
+    bool hasIr = compiler.irBuilder.hasIr(function);
+
+    SsaFromAstInliner astInliner;
+    if (!hasIr) {
+      astInliner = new SsaFromAstInliner(this, function, compiledArguments);
+    }
+
+    IrInliningState state = new IrInliningState(function, callNode, astInliner);
+    inliningStack.add(state);
+    if (hasIr) {
+      setupStateForInlining(function, compiledArguments);
+    }
   }
 
   void leaveInlinedMethod() {
-    // TODO(lry): inlining when building from IR.
-    throw "leave inlining in ir";
+    inliningStack.removeLast();
   }
 
-  void doInline(Element element) {
-    // TODO(lry): inlining when building from IR.
-    throw "inline ir in ir for $element";
+  void doInline(FunctionElement function) {
+    if (compiler.irBuilder.hasIr(function)) {
+      visitInlinedFunction(function);
+    } else {
+      IrInliningState state = inliningStack.last;
+      state.astInliner.visitInlinedFunction(function);
+    }
   }
 }

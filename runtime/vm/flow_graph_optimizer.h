@@ -59,6 +59,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
+  virtual void VisitStoreInstanceField(StoreInstanceFieldInstr* instr);
 
   void InsertBefore(Instruction* next,
                     Instruction* instr,

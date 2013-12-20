@@ -70,9 +70,11 @@ void spawnTest(name, function, response) {
   });
 }
 
-void throwsTest(name, function) {
+void functionFailTest(name, function) {
   test("throws on $name", () {
-    expect(() { Isolate.spawn(function, null); }, throws);
+    Isolate.spawn(function, null).catchError(expectAsync1((e) {
+      /* do nothing */
+    }));
   });
 }
 
@@ -97,12 +99,14 @@ void main([args, port]) {
   spawnTest("lib._class._function", lib.privateClassAndFunction, "_LIBPRIVATE");
 
   // Negative tests
-  throwsTest("static closure", staticClosure);
-  throwsTest("dynamic closure", dynamicClosure);
-  throwsTest("named dynamic closure", namedDynamicClosure);
-  throwsTest("instance closure", new C().instanceClosure);
-  throwsTest("initializer closure", new C().constructorInitializerClosure);
-  throwsTest("constructor closure", new C().constructorBodyClosure);
-  throwsTest("named constructor closure", new C().namedConstructorBodyClosure);
-  throwsTest("instance method", new C().instanceMethod);
+  functionFailTest("static closure", staticClosure);
+  functionFailTest("dynamic closure", dynamicClosure);
+  functionFailTest("named dynamic closure", namedDynamicClosure);
+  functionFailTest("instance closure", new C().instanceClosure);
+  functionFailTest("initializer closure",
+                   new C().constructorInitializerClosure);
+  functionFailTest("constructor closure", new C().constructorBodyClosure);
+  functionFailTest("named constructor closure",
+                   new C().namedConstructorBodyClosure);
+  functionFailTest("instance method", new C().instanceMethod);
 }

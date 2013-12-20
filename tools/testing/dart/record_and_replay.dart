@@ -55,7 +55,7 @@ class TestCaseRecorder {
     _cwd  = Directory.current.path;
   }
 
-  void nextCommand(Command command, int timeout) {
+  void nextCommand(ProcessCommand command, int timeout) {
     // Convert arguments from absolute to relative paths (relative to the dart
     // directory) because the absolute path on the machine where we record
     // may be different from the absolute path on the machine where we execute
@@ -100,7 +100,7 @@ class TestCaseOutputArchive {
     }
   }
 
-  CommandOutput outputOf(Command command) {
+  CommandOutput outputOf(ProcessCommand command) {
     // Convert arguments from absolute to relative paths (relative to the dart
     // directory) because the absolute path on the machine where we record
     // may be different from the absolute path on the machine where we execute

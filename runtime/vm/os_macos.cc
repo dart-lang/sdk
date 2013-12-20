@@ -131,8 +131,29 @@ int OS::NumberOfAvailableProcessors() {
 
 
 void OS::Sleep(int64_t millis) {
-  // TODO(5411554):  For now just use usleep we may have to revisit this.
-  usleep(millis * 1000);
+  int64_t micros = millis * kMicrosecondsPerMillisecond;
+  SleepMicros(micros);
+}
+
+
+void OS::SleepMicros(int64_t micros) {
+  struct timespec req;  // requested.
+  struct timespec rem;  // remainder.
+  int64_t seconds = micros / kMicrosecondsPerSecond;
+  micros = micros - seconds * kMicrosecondsPerSecond;
+  int64_t nanos = micros * kNanosecondsPerMicrosecond;
+  req.tv_sec = seconds;
+  req.tv_nsec = nanos;
+  while (true) {
+    int r = nanosleep(&req, &rem);
+    if (r == 0) {
+      break;
+    }
+    // We should only ever see an interrupt error.
+    ASSERT(errno == EINTR);
+    // Copy remainder into requested and repeat.
+    req = rem;
+  }
 }
 
 

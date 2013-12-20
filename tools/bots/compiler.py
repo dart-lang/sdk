@@ -33,6 +33,8 @@ DART2JS_FULL_CONFIGURATIONS = {
   'windows' : [
     {'runtime' : 'ie9'},
     {'runtime' : 'ie9', 'additional_flags' : ['--checked']},
+    {'runtime' : 'ff'},
+    {'runtime' : 'chrome'},
   ],
 }
 

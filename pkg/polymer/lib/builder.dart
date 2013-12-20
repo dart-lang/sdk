@@ -39,25 +39,27 @@
  *     import 'package:polymer/builder.dart';
  *
  *     main() {
- *        lint().then((_) => deploy());
+ *        deploy(); // deploy also calls the linter internally.
  *     }
  *
- * **Example 3**: Runs the linter, but conditionally does the deploy step. See
- * [parseOptions] for a description of options parsed automatically by this
- * helper library.
+ * **Example 3**: Always run the linter, but conditionally build a deployable
+ * version. See [parseOptions] for a description of options parsed automatically
+ * by this helper library.
  *
  *     import 'dart:io';
  *     import 'package:polymer/builder.dart';
  *
  *     main(args) {
  *        var options = parseOptions(args);
- *        lint().then((_) {
- *          if (options.forceDeploy) deploy();
- *        });
+ *        if (options.forceDeploy) {
+ *          deploy();
+ *        } else {
+ *          lint();
+ *        }
  *     }
  *
- * **Example 4**: Same as above, but uses [build] (which internally calls [lint]
- * and optionally calls [deploy]).
+ * **Example 4**: Same as above, but uses [build] (which internally calls either
+ * [lint] or [deploy]).
  *
  *     import 'dart:io';
  *     import 'package:polymer/builder.dart';
@@ -118,13 +120,11 @@ Future build({List<String> entryPoints, CommandLineOptions options,
         ' options to build(). Running as if no options were passed.');
     options = parseOptions([]);
   }
-  return lint(entryPoints: entryPoints, options: options,
-      currentPackage: currentPackage, packageDirs: packageDirs).then((res) {
-    if (options.forceDeploy) {
-      return deploy(entryPoints: entryPoints, options: options,
-          currentPackage: currentPackage, packageDirs: packageDirs);
-    }
-  });
+  return options.forceDeploy
+      ? deploy(entryPoints: entryPoints, options: options,
+            currentPackage: currentPackage, packageDirs: packageDirs)
+      : lint(entryPoints: entryPoints, options: options,
+            currentPackage: currentPackage, packageDirs: packageDirs);
 }
 
 
@@ -152,36 +152,10 @@ Future lint({List<String> entryPoints, CommandLineOptions options,
   }
   if (currentPackage == null) currentPackage = readCurrentPackageFromPubspec();
   var linterOptions = new TransformOptions(entryPoints: entryPoints);
-  var formatter = options.machineFormat ? jsonFormatter : consoleFormatter;
-  var linter = new Linter(linterOptions, formatter);
+  var linter = new Linter(linterOptions);
   return runBarback(new BarbackOptions([[linter]], null,
-      currentPackage: currentPackage, packageDirs: packageDirs)).then((assets) {
-    var messages = {};
-    var futures = [];
-    for (var asset in assets) {
-      var id = asset.id;
-      if (id.package == currentPackage && id.path.endsWith('.messages')) {
-        futures.add(asset.readAsString().then((content) {
-          if (content.isEmpty) return;
-          messages[id] = content;
-        }));
-      }
-    }
-
-    return Future.wait(futures).then((_) {
-      // Print messages sorting by package and filepath.
-      var orderedKeys = messages.keys.toList();
-      orderedKeys.sort((a, b) {
-        int packageCompare = a.package.compareTo(b.package);
-        if (packageCompare != 0) return packageCompare;
-        return a.path.compareTo(b.path);
-      });
-
-      for (var key in orderedKeys) {
-        print(messages[key]);
-      }
-    });
-  });
+      currentPackage: currentPackage, packageDirs: packageDirs,
+      machineFormat: options.machineFormat));
 }
 
 /**
@@ -220,7 +194,7 @@ Future deploy({List<String> entryPoints, CommandLineOptions options,
   var barbackOptions = new BarbackOptions(
       new PolymerTransformerGroup(transformOptions).phases,
       options.outDir, currentPackage: currentPackage,
-      packageDirs: packageDirs);
+      packageDirs: packageDirs, machineFormat: options.machineFormat);
   return runBarback(barbackOptions)
       .then((_) => print('Done! All files written to "${options.outDir}"'));
 }

@@ -104,6 +104,12 @@ class _Double implements double {
     return this < 0.0 ? -this : this;
   }
 
+  double get sign {
+    if (this > 0.0) return 1.0;
+    if (this < 0.0) return -1.0;
+    return this;  // +/-0.0 or NaN.
+  }
+
   int round() => roundToDouble().toInt();
   int floor() => floorToDouble().toInt();
   int ceil () => ceilToDouble().toInt();

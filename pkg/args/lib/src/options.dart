@@ -1,6 +1,6 @@
 library options;
 
-import 'package:collection_helpers/wrappers.dart';
+import 'package:collection/wrappers.dart';
 
 /**
  * A command-line option. Includes both flags and options which take a value.

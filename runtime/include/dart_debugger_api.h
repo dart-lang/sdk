@@ -679,22 +679,30 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id);
 
 
 /**
-* Returns the url of the library \library_id.
-*
-* Requires there to be a current isolate.
-*
-* \return A string handle containing the URL of the library.
-*/
+ * Returns the url of the library \library_id.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A string handle containing the URL of the library.
+ */
 DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id);
 
 
 /**
-* Returns the isolate object corresponding to the isolate id.
-*
-* \return The Dart_Isolate object corresponding to the isolate id.
-* If the specified id is invalid NULL is returned.
-*/
+ * Returns the isolate object corresponding to the isolate id.
+ *
+ * \return The Dart_Isolate object corresponding to the isolate id.
+ * If the specified id is invalid NULL is returned.
+ */
 DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id);
+
+
+/**
+ * Returns the isolate id for an isolate.
+ *
+ * \return The Dart_IsolateId value corresponding to the isolate.
+ */
+DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate isolate);
 
 
 /**

@@ -28,7 +28,5 @@ main() {
       expectAsset("app|$i.out", "$i.out");
     }
     buildShouldSucceed();
-
-    expect(rewrite.maxParallelRuns, completion(equals(10)));
   });
 }

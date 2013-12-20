@@ -758,7 +758,7 @@ CompileType* AssertAssignableInstr::ComputeInitialType() const {
   CompileType* value_type = value()->Type();
 
   if (value_type->IsMoreSpecificThan(dst_type())) {
-    return value_type;
+    return ZoneCompileType::Wrap(*value_type);
   }
 
   if (dst_type().IsVoidType()) {
@@ -772,13 +772,9 @@ CompileType* AssertAssignableInstr::ComputeInitialType() const {
 
 bool AssertAssignableInstr::RecomputeType() {
   CompileType* value_type = value()->Type();
-  if (value_type == Type()) {
-    return false;
-  }
-
   return UpdateType(value_type->IsMoreSpecificThan(dst_type())
-      ? *value_type
-      : CompileType::FromAbstractType(dst_type()));
+                      ? *value_type
+                      : CompileType::FromAbstractType(dst_type()));
 }
 
 
@@ -820,17 +816,23 @@ CompileType RelationalOpInstr::ComputeType() const {
 
 
 CompileType CurrentContextInstr::ComputeType() const {
-  return CompileType::FromCid(kContextCid);
+  return CompileType(CompileType::kNonNullable,
+                     kContextCid,
+                     &AbstractType::ZoneHandle(Type::DynamicType()));
 }
 
 
 CompileType CloneContextInstr::ComputeType() const {
-  return CompileType::FromCid(kContextCid);
+  return CompileType(CompileType::kNonNullable,
+                     kContextCid,
+                     &AbstractType::ZoneHandle(Type::DynamicType()));
 }
 
 
 CompileType AllocateContextInstr::ComputeType() const {
-  return CompileType::FromCid(kContextCid);
+  return CompileType(CompileType::kNonNullable,
+                     kContextCid,
+                     &AbstractType::ZoneHandle(Type::DynamicType()));
 }
 
 

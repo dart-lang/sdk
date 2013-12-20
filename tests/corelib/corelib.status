@@ -54,6 +54,7 @@ symbol_test/03: MissingCompileTimeError # bug 11669
 
 [ $compiler == none || $compiler == dart2dart ]
 symbol_test/none: Fail # bug 11669
+symbol_operator_test/03: Fail # bug 11669
 
 [ $compiler == none && $runtime == drt ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
@@ -87,6 +88,10 @@ bit_twiddling_bigint_test: RuntimeError # Requires bigint support.
 compare_to2_test: RuntimeError, OK    # Requires bigint support.
 string_base_vm_test: RuntimeError, OK # VM specific test.
 nan_infinity_test/01: Fail # Issue 11551
+
+[ $compiler == dart2js || $compiler == dart2dart]
+symbol_operator_test/01: CompileTimeError # Issue 15653.
+symbol_operator_test/02: CompileTimeError # Issue 15653.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

@@ -9,7 +9,7 @@ class GetName {
   set flif(_) => "flif=";
 }
 
-String getName(im) => reflect(new GetName()).delegate(im);
+int getName(im) => reflect(new GetName()).delegate(im);
 
 class C {
   var im;
@@ -20,6 +20,6 @@ class C {
 main() {
  var c = new C();
  c.flif = 42;
- Expect.equals('flif=', getName(c.im));
+ Expect.equals(42, getName(c.im));
  Expect.equals(42, c.im.positionalArguments[0]);
 }

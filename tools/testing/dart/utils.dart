@@ -178,7 +178,7 @@ class Locations {
     if (location != null && location != '') {
       return location;
     }
-    final browserLocations = const {
+    var browserLocations = {
         'firefox': const {
           'windows': 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
           'linux': 'firefox',
@@ -205,6 +205,7 @@ class Locations {
         'ie10': const {
           'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
         }};
+    browserLocations['ff'] = browserLocations['firefox'];
 
     assert(browserLocations[browserName] != null);
     location = browserLocations[browserName][Platform.operatingSystem];
@@ -233,6 +234,36 @@ class HashCodeBuilder {
   }
 
   int get value => _value;
+}
+
+bool deepJsonCompare(Object a, Object b) {
+  if (a == null || a is num || a is String) {
+    return a == b;
+  } else if (a is List) {
+    if (b is List) {
+      if (a.length != b.length) return false;
+
+      for (int i = 0; i < a.length; i++) {
+        if (!deepJsonCompare(a[i], b[i])) return false;
+      }
+      return true;
+    }
+    return false;
+  } else if (a is Map) {
+    if (b is Map) {
+      if (a.length != b.length) return false;
+
+      for (var key in a.keys) {
+        if (!b.containsKey(key)) return false;
+        if (!deepJsonCompare(a[key], b[key])) return false;
+      }
+      return true;
+    }
+    return false;
+  } else {
+    throw new Exception("Can't compare two non json-like objects "
+        "(a: ${a.runtimeType}, b: ${b.runtimeType})");
+  }
 }
 
 class UniqueObject {

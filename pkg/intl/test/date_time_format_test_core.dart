@@ -14,6 +14,7 @@ import 'package:unittest/unittest.dart';
 import 'date_time_format_test_data.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/src/date_format_internal.dart';
+import 'package:intl/src/temporary_debugging.dart';
 
 var formatsToTest = const [
   DateFormat.DAY,
@@ -164,6 +165,7 @@ testRoundTripParsing(String localeName, DateTime date) {
     if (!badSkeletons.any((x) => x == skeleton)) {
       var format = new DateFormat(skeleton, localeName);
       var actualResult = format.format(date);
+      debugLogDateCreation = true;
       var parsed = format.parse(actualResult);
       var thenPrintAgain = format.format(parsed);
       // We've seen a case where this failed in a way that seemed like a time
@@ -172,11 +174,17 @@ testRoundTripParsing(String localeName, DateTime date) {
       // as possible if it occurs again.
       if (thenPrintAgain != actualResult) {
         print("Date mismatch!");
+        print("Date creation log: $debugDateCreationLog");
+        debugDateCreationLog.clear();
         print("  Expected $actualResult");
         print("  Got $thenPrintAgain");
         print("  Original date = $date");
         print("  Original ms = ${date.millisecondsSinceEpoch}");
         print("  Parsed back to $parsed");
+        var parsed2 = format.parse(actualResult);
+        print("  Parsing again yields $parsed2");
+        print("  Logged as: $debugDateCreationLog");
+        debugDateCreationLog.clear();
         print("  Parsed ms = ${parsed.millisecondsSinceEpoch}");
         print("  Original tz = $originalTimeZoneOffset");
         print("  Current tz name = $originalTimeZoneName");
@@ -185,6 +193,7 @@ testRoundTripParsing(String localeName, DateTime date) {
         print("  Start time = $originalTime");
         print("  Current time ${new DateTime.now()}");
       }
+      debugLogDateCreation = false;
       expect(thenPrintAgain, equals(actualResult));
     }
   }

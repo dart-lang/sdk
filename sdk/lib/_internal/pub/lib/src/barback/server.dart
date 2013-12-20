@@ -61,7 +61,7 @@ class BarbackServer {
   /// root package.
   static Future<BarbackServer> bind(String host, int port, Barback barback,
       String rootPackage) {
-    return HttpServer.bind(host, port)
+    return Chain.track(HttpServer.bind(host, port))
         .then((server) => new BarbackServer._(server, barback, rootPackage));
   }
 
@@ -69,7 +69,7 @@ class BarbackServer {
       : _server = server,
         port = server.port,
         address = server.address {
-    _server.listen(_handleRequest, onError: (error, stackTrace) {
+    Chain.track(_server).listen(_handleRequest, onError: (error, stackTrace) {
       _resultsController.addError(error, stackTrace);
       close();
     });
@@ -115,7 +115,7 @@ class BarbackServer {
         _resultsController.add(
             new BarbackServerResult._success(request.uri, id));
         // TODO(rnystrom): Set content-type based on asset type.
-        return request.response.addStream(stream).then((_) {
+        return Chain.track(request.response.addStream(stream)).then((_) {
           // Log successful requests both so we can provide debugging
           // information and so scheduled_test knows we haven't timed out while
           // loading transformers.
@@ -134,7 +134,7 @@ class BarbackServer {
           return;
         }
 
-        trace = new Trace.from(trace);
+        trace = new Chain.forTrace(trace);
         _logRequest(request, "$error\n$trace");
 
         // Otherwise, it's some internal error.
@@ -145,7 +145,7 @@ class BarbackServer {
       });
     }).catchError((error, trace) {
       if (error is! AssetNotFoundException) {
-        trace = new Trace.from(trace);
+        trace = new Chain.forTrace(trace);
         _logRequest(request, "$error\n$trace");
 
         _resultsController.addError(error, trace);
@@ -161,7 +161,7 @@ class BarbackServer {
 
   /// Creates a web socket for [request] which should be an upgrade request.
   void _handleWebSocket(HttpRequest request) {
-    WebSocketTransformer.upgrade(request).then((socket) {
+    Chain.track(WebSocketTransformer.upgrade(request)).then((socket) {
       socket.listen((data) {
         var command;
         try {

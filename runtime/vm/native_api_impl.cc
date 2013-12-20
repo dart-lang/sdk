@@ -31,8 +31,7 @@ DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
 
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(
-      port_id, Message::kIllegalPort, buffer, writer.BytesWritten(),
-      Message::kNormalPriority));
+      port_id, buffer, writer.BytesWritten(), Message::kNormalPriority));
 }
 
 

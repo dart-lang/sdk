@@ -46,7 +46,7 @@ main() {
   Expect.isFalse(pm.isPrivate);
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
-  
+
   mm = reflectClass(Class).declarations[#Class.named];
   pm = mm.parameters.single;
   Expect.equals(#boolField, pm.simpleName);
@@ -71,11 +71,11 @@ main() {
   Expect.isFalse(pm.isPrivate);
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
-  
+
   mm = reflectClass(Class).declarations[#Class.generic];
   pm = mm.parameters.single;
   Expect.equals(#tField, pm.simpleName);
-  Expect.equals(reflectClass(Class).typeVariables.single, pm.type);  
+  Expect.equals(reflectClass(Class).typeVariables.single, pm.type);
   Expect.isFalse(pm.isNamed);  /// 01: ok
   Expect.isFalse(pm.isFinal);  /// 01: ok
   Expect.isFalse(pm.isOptional);  /// 01: ok

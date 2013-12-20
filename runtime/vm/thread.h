@@ -54,6 +54,10 @@ class MonitorLocker : public StackResource {
     return monitor_->Wait(millis);
   }
 
+  Monitor::WaitResult WaitMicros(int64_t micros = dart::Monitor::kNoTimeout) {
+    return monitor_->WaitMicros(micros);
+  }
+
   void Notify() {
     monitor_->Notify();
   }

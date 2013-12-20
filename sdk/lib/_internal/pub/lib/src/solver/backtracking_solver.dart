@@ -55,12 +55,18 @@ import 'version_solver.dart';
 class BacktrackingSolver {
   final SourceRegistry sources;
   final Package root;
+
+  /// The lockfile that was present before solving.
   final LockFile lockFile;
+
   final PubspecCache cache;
 
   /// The set of packages that are being explicitly upgraded. The solver will
   /// only allow the very latest version for each of these packages.
   final _forceLatest = new Set<String>();
+
+  /// If this is set, the contents of [lockFile] are ignored while solving.
+  final bool _upgradeAll;
 
   /// The set of packages whose dependecy is being overridden by the root
   /// package, keyed by the name of the package.
@@ -93,12 +99,12 @@ class BacktrackingSolver {
   var _attemptedSolutions = 1;
 
   BacktrackingSolver(SourceRegistry sources, this.root, this.lockFile,
-                     List<String> useLatest)
+                     List<String> useLatest, {bool upgradeAll: false})
       : sources = sources,
-        cache = new PubspecCache(sources) {
+        cache = new PubspecCache(sources),
+        _upgradeAll = upgradeAll {
     for (var package in useLatest) {
-      forceLatestVersion(package);
-      lockFile.packages.remove(package);
+      _forceLatest.add(package);
     }
 
     for (var override in root.dependencyOverrides) {
@@ -126,12 +132,14 @@ class BacktrackingSolver {
       _validateSdkConstraint(root.pubspec);
       return _traverseSolution();
     }).then((packages) {
-      return new SolveResult(packages, overrides, null, attemptedSolutions);
+      return new SolveResult.success(sources, root, lockFile, packages,
+          overrides, _getAvailableVersions(packages), attemptedSolutions);
     }).catchError((error) {
       if (error is! SolveFailure) throw error;
 
       // Wrap a failure in a result so we can attach some other data.
-      return new SolveResult(null, overrides, error, attemptedSolutions);
+      return new SolveResult.failure(sources, root, lockFile, overrides,
+          error, attemptedSolutions);
     }).whenComplete(() {
       // Gather some solving metrics.
       var buffer = new StringBuffer();
@@ -148,8 +156,30 @@ class BacktrackingSolver {
     });
   }
 
-  void forceLatestVersion(String package) {
-    _forceLatest.add(package);
+  /// Generates a map containing all of the known available versions for each
+  /// package in [packages].
+  ///
+  /// The version list may not always be complete. The the package is the root
+  /// root package, or its a package that we didn't unlock while solving
+  /// because we weren't trying to upgrade it, we will just know the current
+  /// version.
+  Map<String, List<Version>> _getAvailableVersions(List<PackageId> packages) {
+    var availableVersions = new Map<String, List<Version>>();
+    for (var package in packages) {
+      var cached = cache.getCachedVersions(package.toRef());
+      var versions;
+      if (cached != null) {
+        versions = cached.map((id) => id.version).toList();
+      } else {
+        // If the version list was never requested, just use the one known
+        // version.
+        versions = [package.version];
+      }
+
+      availableVersions[package.name] = versions;
+    }
+
+    return availableVersions;
   }
 
   /// Adds [versions], which is the list of all allowed versions of a given
@@ -179,7 +209,12 @@ class BacktrackingSolver {
 
   /// Gets the version of [package] currently locked in the lock file. Returns
   /// `null` if it isn't in the lockfile (or has been unlocked).
-  PackageId getLocked(String package) => lockFile.packages[package];
+  PackageId getLocked(String package) {
+    if (_upgradeAll) return null;
+    if (_forceLatest.contains(package)) return null;
+
+    return lockFile.packages[package];
+  }
 
   /// Traverses the root package's dependency graph using the current potential
   /// solution. If successful, completes to the solution. If not, backtracks
@@ -250,6 +285,15 @@ class BacktrackingSolver {
       // Each queue will never be empty since it gets discarded by _backtrack()
       // when that happens.
       var selected = _selected[i].current;
+
+      // If the failure is a disjoint version range, then no possible versions
+      // for that package can match and there's no reason to try them. Instead,
+      // just backjump past it.
+      if (failure is DisjointConstraintException &&
+          selected.name == failure.package) {
+        logSolve("skipping past disjoint selected ${selected.name}");
+        continue;
+      }
 
       // If we get to the package that failed, backtrack to here.
       if (selected.name == failure.package) {
@@ -335,10 +379,11 @@ class BacktrackingSolver {
     buffer.writeln("Solving dependencies:");
     for (var package in root.dependencies) {
       buffer.write("- $package");
+      var locked = getLocked(package.name);
       if (_forceLatest.contains(package.name)) {
         buffer.write(" (use latest)");
-      } else if (lockFile.packages.containsKey(package.name)) {
-        var version = lockFile.packages[package.name].version;
+      } else if (locked != null) {
+        var version = locked.version;
         buffer.write(" (locked to $version)");
       }
       buffer.writeln();
@@ -473,12 +518,35 @@ class Traverser {
         var dependencies = _getDependencies(dep.name);
         dependencies.add(new Dependency(depender, dep));
 
+        // If the package is barback, pub has an implicit version constraint on
+        // it since pub itself uses barback too. Note that we don't check for
+        // the hosted source here because we still want to do this even when
+        // people on the Dart team are on the bleeding edge and have a path
+        // dependency on the tip version of barback in the Dart repo.
+        //
+        // The length check here is to ensure we only add the barback
+        // dependency once.
+        if (dep.name == "barback" && dependencies.length == 1) {
+          var range = new VersionRange(
+              min: barback.supportedVersion, includeMin: true,
+              max: barback.supportedVersion.nextMinor, includeMax: false);
+          _solver.logSolve('add implicit $range pub dependency on barback');
+
+          // Use the same source and description as the explicit dependency.
+          // That way, this doesn't fail with a source/desc conflict if users
+          // (like Dart team members) use things like a path dependency to
+          // find barback.
+          var barbackDep = new PackageDep(dep.name, dep.source, range,
+              dep.description);
+          dependencies.add(new Dependency("pub itself", barbackDep));
+        }
+
         var constraint = _getConstraint(dep.name);
 
         // See if it's possible for a package to match that constraint.
         if (constraint.isEmpty) {
           _solver.logSolve('disjoint constraints on ${dep.name}');
-          throw new DisjointConstraintException(depender, dependencies);
+          throw new DisjointConstraintException(dep.name, dependencies);
         }
 
         var selected = _validateSelected(dep, constraint);
@@ -525,6 +593,14 @@ class Traverser {
       }
 
       return allowed;
+    }).catchError((error, stackTrace) {
+      if (error is PackageNotFoundException) {
+        // Show the user why the package was being requested.
+        throw new DependencyNotFoundException(
+            dep.name, error, _getDependencies(dep.name));
+      }
+
+      throw error;
     });
   }
 
@@ -602,19 +678,6 @@ class Traverser {
     var constraint = _getDependencies(name)
         .map((dep) => dep.dep.constraint)
         .fold(VersionConstraint.any, (a, b) => a.intersect(b));
-
-    // If the package is barback, pub has an implicit version constraint on it
-    // since pub itself uses barback too. Note that we don't check for the
-    // hosted source here because we still want to do this even when people on
-    // the Dart team are on the bleeding edge and have a path dependency on the
-    // tip version of barback in the Dart repo.
-    if (name == "barback") {
-      var range = new VersionRange(
-          min: barback.supportedVersion, includeMin: true,
-          max: barback.supportedVersion.nextMinor, includeMax: false);
-      constraint = constraint.intersect(range);
-      _solver.logSolve('add implicit $range constraint to barback');
-    }
 
     return constraint;
   }

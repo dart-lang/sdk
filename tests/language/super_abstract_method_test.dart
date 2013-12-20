@@ -17,6 +17,7 @@ abstract class A extends Base {
 
 class B extends A {
   testSuperCall() => super.foo();
+  foo() => 42; // required since if is removed, then a warning is introduced on 'B' above
 }
 
 main() {

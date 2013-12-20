@@ -12,6 +12,7 @@ import 'package:barback/barback.dart';
 // TODO(nweiz): don't import from "src" once issue 14966 is fixed.
 import 'package:barback/src/internal_asset.dart';
 import 'package:source_maps/source_maps.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import '../barback.dart';
 import '../dart.dart' as dart;
@@ -542,7 +543,7 @@ Map _serializeId(AssetId id) => {'package': id.package, 'path': id.path};
 /// throws an error, that will also be sent.
 void _respond(wrappedMessage, callback(message)) {
   var replyTo = wrappedMessage['replyTo'];
-  new Future.sync(() => callback(wrappedMessage['message']))
+  syncFuture(() => callback(wrappedMessage['message']))
       .then((result) => replyTo.send({'type': 'success', 'value': result}))
       .catchError((error, stackTrace) {
     // TODO(nweiz): at least MissingInputException should be preserved here.
@@ -565,10 +566,11 @@ Future _call(SendPort port, message) {
     'replyTo': receivePort.sendPort
   });
 
-  return receivePort.first.then((response) {
+  return Chain.track(receivePort.first).then((response) {
     if (response['type'] == 'success') return response['value'];
     assert(response['type'] == 'error');
     return new Future.error(
-        new dart.CrossIsolateException.deserialize(response['error']));
+        new dart.CrossIsolateException.deserialize(response['error']),
+        new Chain.current());
   });
 }

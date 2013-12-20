@@ -31,13 +31,6 @@ void SignalHandler::Install(SignalAction action) {
 }
 
 
-ScopedSignalBlocker::ScopedSignalBlocker() {
-}
-
-
-ScopedSignalBlocker::~ScopedSignalBlocker() {
-}
-
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

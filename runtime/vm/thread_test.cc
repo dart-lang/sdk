@@ -5,7 +5,7 @@
 #include "platform/assert.h"
 #include "vm/isolate.h"
 #include "vm/unit_test.h"
-#include "vm/signal_handler.h"
+#include "vm/profiler.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -35,7 +35,8 @@ UNIT_TEST_CASE(Mutex) {
 UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
   Isolate* isolate = Isolate::Init(NULL);
-
+  // Profiler interrupts interfere with this test.
+  Profiler::EndExecution(isolate);
   Monitor* monitor = new Monitor();
   monitor->Enter();
   monitor->Exit();
@@ -43,10 +44,6 @@ UNIT_TEST_CASE(Monitor) {
   const int kNumAttempts = 5;
   int attempts = 0;
   while (attempts < kNumAttempts) {
-    // This test verifies that a monitor returns after the specified timeout. If
-    // a signal is delivered to this thread, the monitor may return early.
-    // Block signal delivery in this scope.
-    ScopedSignalBlocker ssb;
     MonitorLocker ml(monitor);
     int64_t start = OS::GetCurrentTimeMillis();
     int64_t wait_time = 2017;

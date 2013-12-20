@@ -12,6 +12,7 @@ import 'src/build/build_filter.dart';
 import 'src/build/code_extractor.dart';
 import 'src/build/common.dart';
 import 'src/build/import_inliner.dart';
+import 'src/build/linter.dart';
 import 'src/build/polyfill_injector.dart';
 import 'src/build/script_compactor.dart';
 
@@ -69,6 +70,7 @@ _readEntrypoints(value) {
 
 List<List<Transformer>> _createDeployPhases(TransformOptions options) {
   return [
+    [new Linter(options)],
     [new InlineCodeExtractor(options)],
     [new ObservableTransformer()],
     [new ImportInliner(options)],

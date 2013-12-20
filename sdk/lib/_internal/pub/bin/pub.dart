@@ -121,7 +121,7 @@ ArgParser initArgParser() {
 /// Checks that pub is running on a supported platform. If it isn't, it prints
 /// an error message and exits. Completes when the validation is done.
 Future validatePlatform() {
-  return new Future.sync(() {
+  return syncFuture(() {
     if (Platform.operatingSystem != 'windows') return null;
 
     return runProcess('ver', []).then((result) {

@@ -370,7 +370,9 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction CurrentStackTraceNativeLookup(
-    Dart_Handle name, int argument_count) {
+    Dart_Handle name, int argument_count, bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&CurrentStackTraceNative);
 }
 
@@ -458,7 +460,9 @@ void PropagateErrorNative(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction PropagateError_native_lookup(
-    Dart_Handle name, int argument_count) {
+    Dart_Handle name, int argument_count, bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&PropagateErrorNative);
 }
 
@@ -1266,7 +1270,10 @@ static void ByteDataNativeFunction(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction ByteDataNativeResolver(Dart_Handle name,
-                                                  int arg_count) {
+                                                  int arg_count,
+                                                  bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return &ByteDataNativeFunction;
 }
 
@@ -1324,8 +1331,10 @@ static void ExternalByteDataNativeFunction(Dart_NativeArguments args) {
 }
 
 
-static Dart_NativeFunction ExternalByteDataNativeResolver(Dart_Handle name,
-                                                          int arg_count) {
+static Dart_NativeFunction ExternalByteDataNativeResolver(
+    Dart_Handle name, int arg_count, bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return &ExternalByteDataNativeFunction;
 }
 
@@ -3580,7 +3589,10 @@ void NativeFieldLookup(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction native_field_lookup(Dart_Handle name,
-                                               int argument_count) {
+                                               int argument_count,
+                                               bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&NativeFieldLookup);
 }
 
@@ -4744,7 +4756,11 @@ void ExceptionNative(Dart_NativeArguments args) {
 }
 
 
-static Dart_NativeFunction native_lookup(Dart_Handle name, int argument_count) {
+static Dart_NativeFunction native_lookup(Dart_Handle name,
+                                         int argument_count,
+                                         bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&ExceptionNative);
 }
 
@@ -4788,7 +4804,11 @@ void NativeArgumentCounter(Dart_NativeArguments args) {
 }
 
 
-static Dart_NativeFunction gnac_lookup(Dart_Handle name, int argument_count) {
+static Dart_NativeFunction gnac_lookup(Dart_Handle name,
+                                       int argument_count,
+                                       bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentCounter);
 }
 
@@ -5682,7 +5702,10 @@ static void PatchNativeFunction(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction PatchNativeResolver(Dart_Handle name,
-                                               int arg_count) {
+                                               int arg_count,
+                                               bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return &PatchNativeFunction;
 }
 
@@ -5876,13 +5899,19 @@ static void MyNativeFunction2(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction MyNativeResolver1(Dart_Handle name,
-                                             int arg_count) {
+                                             int arg_count,
+                                             bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return &MyNativeFunction1;
 }
 
 
 static Dart_NativeFunction MyNativeResolver2(Dart_Handle name,
-                                             int arg_count) {
+                                             int arg_count,
+                                             bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return &MyNativeFunction2;
 }
 
@@ -6343,7 +6372,9 @@ void MarkMainEntered(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction IsolateInterruptTestNativeLookup(
-    Dart_Handle name, int argument_count) {
+    Dart_Handle name, int argument_count, bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&MarkMainEntered);
 }
 
@@ -6648,7 +6679,10 @@ static void NativeFoo4(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction MyNativeClosureResolver(Dart_Handle name,
-                                                   int arg_count) {
+                                                   int arg_count,
+                                                   bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
@@ -6791,8 +6825,10 @@ static void StaticNativeFoo4(Dart_NativeArguments args) {
 }
 
 
-static Dart_NativeFunction MyStaticNativeClosureResolver(Dart_Handle name,
-                                                         int arg_count) {
+static Dart_NativeFunction MyStaticNativeClosureResolver(
+    Dart_Handle name, int arg_count, bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
@@ -7598,7 +7634,9 @@ static void A_change_str_native(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction ExternalStringDeoptimize_native_lookup(
-    Dart_Handle name, int argument_count) {
+    Dart_Handle name, int argument_count, bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&A_change_str_native);
 }
 

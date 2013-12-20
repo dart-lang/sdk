@@ -20,7 +20,7 @@ class PathSource extends Source {
   final shouldCache = false;
 
   Future<Pubspec> describeUncached(PackageId id) {
-    return new Future.sync(() {
+    return syncFuture(() {
       var dir = _validatePath(id.name, id.description);
       return new Pubspec.load(dir, systemCache.sources,
           expectedName: id.name);
@@ -35,7 +35,7 @@ class PathSource extends Source {
   }
 
   Future<bool> get(PackageId id, String destination) {
-    return new Future.sync(() {
+    return syncFuture(() {
       try {
         var dir = _validatePath(id.name, id.description);
         createPackageSymlink(id.name, dir, destination,
@@ -135,10 +135,11 @@ class PathSource extends Source {
     if (dirExists(dir)) return dir;
 
     if (fileExists(dir)) {
-      fail("Path dependency for package '$name' must refer to a "
-           "directory, not a file. Was '$dir'.");
+      fail('Path dependency for package $name must refer to a directory, '
+           'not a file. Was "$dir".');
     }
 
-    fail("Could not find package '$name' at '$dir'.");
+    throw new PackageNotFoundException(
+        'Could not find package $name at "$dir".');
   }
 }

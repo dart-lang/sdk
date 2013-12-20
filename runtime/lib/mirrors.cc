@@ -97,22 +97,6 @@ static void ThrowNoSuchMethod(const Instance& receiver,
 }
 
 
-DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, port, arguments->NativeArgAt(0));
-
-  // Get the port id from the SendPort instance.
-  const Object& id_obj = Object::Handle(DartLibraryCalls::PortGetId(port));
-  if (id_obj.IsError()) {
-    Exceptions::PropagateError(Error::Cast(id_obj));
-    UNREACHABLE();
-  }
-  ASSERT(id_obj.IsSmi() || id_obj.IsMint());
-  Integer& id = Integer::Handle();
-  id ^= id_obj.raw();
-  Dart_Port port_id = static_cast<Dart_Port>(id.AsInt64Value());
-  return Bool::Get(PortMap::IsLocalPort(port_id)).raw();
-}
-
 static void EnsureConstructorsAreCompiled(const Function& func) {
   // Only generative constructors can have initializing formals.
   if (!func.IsConstructor()) return;
@@ -1709,6 +1693,16 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
                       lookup_constructor,
                       InvocationMirror::kConstructor,
                       InvocationMirror::kMethod);
+    UNREACHABLE();
+  }
+
+  if (klass.is_abstract() && !lookup_constructor.IsFactory()) {
+    const Array& error_args = Array::Handle(Array::New(3));
+    error_args.SetAt(0, klass_name);
+    // 1 = script url
+    // 2 = token position
+    Exceptions::ThrowByType(Exceptions::kAbstractClassInstantiation,
+                            error_args);
     UNREACHABLE();
   }
 

@@ -293,6 +293,27 @@ bool Api::StringGetPeerHelper(Dart_NativeArguments args,
 }
 
 
+bool Api::GetNativeBooleanArgument(Dart_NativeArguments args,
+                                   int arg_index,
+                                   bool* value) {
+  NoGCScope no_gc_scope;
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  RawObject* raw_obj = arguments->NativeArgAt(arg_index);
+  if (raw_obj->IsHeapObject()) {
+      intptr_t cid = raw_obj->GetClassId();
+      if (cid == kBoolCid) {
+        *value = (raw_obj == Object::bool_true().raw());
+        return true;
+      }
+      if (cid == kNullCid) {
+        *value = false;
+        return true;
+      }
+  }
+  return false;
+}
+
+
 void Api::SetWeakHandleReturnValue(NativeArguments* args,
                                    Dart_WeakPersistentHandle retval) {
   args->SetReturnUnsafe(Api::UnwrapAsWeakPersistentHandle(retval)->raw());
@@ -1033,6 +1054,17 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
 }
 
 
+DART_EXPORT bool Dart_HandleServiceMessages() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+  isolate->message_handler()->HandleOOBMessages();
+  // TODO(turnidge): The return value here should indicate whether an
+  // OOB message should cause the program to resume.  Implement.
+  return false;
+}
+
+
 DART_EXPORT bool Dart_HasLivePorts() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);
@@ -1055,7 +1087,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   writer.WriteMessage(object);
   intptr_t len = writer.BytesWritten();
   return PortMap::PostMessage(new Message(
-      port_id, Message::kIllegalPort, data, len, Message::kNormalPriority));
+      port_id, data, len, Message::kNormalPriority));
 }
 
 
@@ -1161,7 +1193,7 @@ DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size) {
 
 DART_EXPORT Dart_Handle Dart_Null() {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   return Api::Null();
 }
 
@@ -1540,21 +1572,21 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
 
 DART_EXPORT Dart_Handle Dart_True() {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   return Api::True();
 }
 
 
 DART_EXPORT Dart_Handle Dart_False() {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   return Api::False();
 }
 
 
 DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_ISOLATE(isolate);
   return value ? Api::True() : Api::False();
 }
 
@@ -3846,21 +3878,10 @@ DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
-  Isolate* isolate = arguments->isolate();
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& obj = reused_obj_handle.Handle();
-  obj = arguments->NativeArgAt(index);
-  intptr_t cid = obj.GetClassId();
-  if (cid == kBoolCid) {
-    *value = Bool::Cast(obj).value();
+  if (Api::GetNativeBooleanArgument(args, index, value)) {
     return Api::Success();
   }
-  if (obj.IsNull()) {
-    *value = false;
-    return Api::Success();
-  }
-  return Api::NewError(
-      "%s: argument %d is not a Boolean argument.",
+  return Api::NewError("%s: argument %d is not a Boolean argument.",
       CURRENT_FUNC, index);
 }
 

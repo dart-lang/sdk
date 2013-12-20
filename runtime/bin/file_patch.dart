@@ -14,6 +14,7 @@ patch class _File {
       native "File_Rename";
   /* patch */ static _renameLink(String oldPath, String newPath)
       native "File_RenameLink";
+  /* patch */ static _copy(String oldPath, String newPath) native "File_Copy";
   /* patch */ static _lengthFromPath(String path) native "File_LengthFromPath";
   /* patch */ static _lastModified(String path) native "File_LastModified";
   /* patch */ static _open(String path, int mode) native "File_Open";

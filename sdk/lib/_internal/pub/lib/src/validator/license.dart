@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';
+import '../utils.dart';
 import '../validator.dart';
 
 /// A validator that checks that a LICENSE-like file exists.
@@ -18,7 +19,7 @@ class LicenseValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return new Future.sync(() {
+    return syncFuture(() {
       var licenseLike = new RegExp(
           r"^([a-zA-Z0-9]+[-_])?(LICENSE|COPYING)(\..*)?$");
       if (listDir(entrypoint.root.dir)

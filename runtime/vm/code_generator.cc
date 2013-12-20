@@ -1276,7 +1276,7 @@ static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
       return false;
     }
   }
-  if (!function.is_optimizable()) {
+  if (!function.IsOptimizable()) {
     if (FLAG_trace_failed_optimization_attempts) {
       OS::PrintErr("Not Optimizable: %s\n", function.ToFullyQualifiedCString());
     }

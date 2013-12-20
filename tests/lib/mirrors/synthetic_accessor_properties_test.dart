@@ -68,7 +68,6 @@ main() {
   mm = cm.staticMembers[const Symbol('finalStaticField=')];
   Expect.isNull(mm);
 
-  return;  /// 01: ok
 
   mm = lm.topLevelMembers[#topLevelField];
   expect('Method(s(topLevelField) in s(test.synthetic_accessor_properties),'
@@ -92,6 +91,8 @@ main() {
 
   mm = lm.topLevelMembers[const Symbol('finalTopLevelField=')];
   Expect.isNull(mm);
+
+  return;  /// 01: ok
 
   mm = lm.topLevelMembers[#C];
   expect('Method(s(C) in s(test.synthetic_accessor_properties),'

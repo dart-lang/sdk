@@ -4,26 +4,95 @@
 
 part of vmservice_io;
 
-class Server {
-  int port;
+class WebSocketClient extends Client {
+  static const int PARSE_ERROR_CODE = 4000;
+  static const int BINARY_MESSAGE_ERROR_CODE = 4001;
+  static const int NOT_MAP_ERROR_CODE = 4002;
+  final WebSocket socket;
+
+  WebSocketClient(this.socket, service) : super(service) {
+    socket.listen((message) => onWebSocketMessage(message));
+    socket.done.then((_) => close());
+  }
+
+  void onWebSocketMessage(message) {
+    if (message is String) {
+      var map;
+      try {
+        map = JSON.decode(message);
+      } catch (e) {
+        socket.close(PARSE_ERROR_CODE, 'Message parse error: $e');
+        return;
+      }
+      if (map is! Map) {
+        socket.close(NOT_MAP_ERROR_CODE, 'Message must be a JSON map.');
+        return;
+      }
+      var seq = map['seq'];
+      onMessage(seq, new Message.fromMap(map));
+    } else {
+      socket.close(BINARY_MESSAGE_ERROR_CODE, 'message must be a string.');
+    }
+  }
+
+  void post(var seq, String response) {
+    try {
+      Map map = {
+        'seq': seq,
+        'response': response
+      };
+      socket.add(JSON.encode(map));
+    } catch (_) {
+      // Error posting over WebSocket.
+    }
+  }
+
+  dynamic toJson() {
+    Map map = super.toJson();
+    map['type'] = 'WebSocketClient';
+    map['socket'] = '$socket';
+    return map;
+  }
+}
+
+
+class HttpRequestClient extends Client {
   static ContentType jsonContentType = ContentType.parse('application/json');
-  final VmService service;
-  HttpServer _server;
+  final HttpRequest request;
 
-  Server(this.service, this.port);
+  HttpRequestClient(this.request, service) : super(service);
 
-  void _sendResponse(HttpRequest request, String response) {
+  void post(var seq, String response) {
     request.response..headers.contentType = jsonContentType
                     ..write(response)
                     ..close();
+    close();
   }
+
+  dynamic toJson() {
+    Map map = super.toJson();
+    map['type'] = 'HttpRequestClient';
+    map['request'] = '$request';
+    return map;
+  }
+}
+
+class Server {
+  static const WEBSOCKET_PATH = '/ws';
+  String defaultPath = '/index.html';
+  int port;
+
+  final VMService service;
+  HttpServer _server;
+
+  Server(this.service, this.port);
 
   void _requestHandler(HttpRequest request) {
     // Allow cross origin requests.
     request.response.headers.add('Access-Control-Allow-Origin', '*');
 
     final String path =
-          request.uri.path == '/' ? '/index.html' : request.uri.path;
+          request.uri.path == '/' ? defaultPath : request.uri.path;
 
     var resource = Resource.resources[path];
     if (resource != null) {
@@ -35,19 +104,16 @@ class Server {
       return;
     }
 
-    var serviceRequest = new ServiceRequest();
-    var r = serviceRequest.parse(request.uri);
-    if (r) {
-      var f = service.runningIsolates.route(serviceRequest);
-      assert(f != null);
-      f.then((_) {
-        _sendResponse(request, serviceRequest.response);
-      }).catchError((e) {
-        // Error replying over HTTP.
+    if (path == WEBSOCKET_PATH) {
+      WebSocketTransformer.upgrade(request).then((WebSocket webSocket) {
+        new WebSocketClient(webSocket, service);
       });
       return;
     }
-    _sendResponse(request, serviceRequest.response);
+
+    var message = new Message.fromUri(request.uri);
+    var client = new HttpRequestClient(request, service);
+    client.onMessage(null, message);
   }
 
   Future startServer() {
@@ -59,7 +125,7 @@ class Server {
       _server = s;
       _server.listen(_requestHandler);
       if (display_message) {
-        print('VmService listening on port $port');
+        print('VMService listening on port $port');
       }
       return s;
     });

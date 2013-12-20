@@ -66,10 +66,10 @@ class TypeVariableHandler {
       InterfaceType typeVariableType = typeVariableClass.computeType(compiler);
       List<int> constants = <int>[];
       evaluator = new CompileTimeConstantEvaluator(
-          compiler.constantHandler, 
-          compiler.globalDependencies, 
+          compiler.constantHandler,
+          compiler.globalDependencies,
           compiler);
-      
+
       for (TypeVariableType currentTypeVariable in cls.typeVariables) {
         List<Constant> createArguments(FunctionElement constructor) {
         if (constructor != typeVariableConstructor) {
@@ -154,7 +154,8 @@ class TypeVariableHandler {
       return typeVariableConstants[variable];
     }
 
-    emitter.globalMetadata.add('Placeholder for ${variable}');
+    // TODO(15613): Remove quotes.
+    emitter.globalMetadata.add('"Placeholder for ${variable}"');
     return typeVariableConstants[variable] = emitter.globalMetadata.length - 1;
   }
 

@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:collection' show Queue;
 
 import '../package.dart';
-import 'backtracking_solver.dart';
 
 /// A function that asynchronously returns a sequence of package IDs.
 typedef Future<Iterable<PackageId>> PackageIdGenerator();

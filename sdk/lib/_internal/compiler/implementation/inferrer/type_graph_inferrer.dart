@@ -20,7 +20,11 @@ import 'ir_type_inferrer.dart';
 import '../dart2jslib.dart' show invariant, Constant;
 
 part 'type_graph_nodes.dart';
-part 'container_tracer.dart';
+part 'closure_tracer.dart';
+part 'list_tracer.dart';
+part 'node_tracer.dart';
+
+bool _VERBOSE = false;
 
 /**
  * A set of selector names that [List] implements, that we know return
@@ -53,6 +57,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
 
   /// [ListTypeInformation] for allocated lists.
   final Map<Node, TypeInformation> allocatedLists =
+      new Map<Node, TypeInformation>();
+
+  /// [ClosureTypeInformation] for allocated closures.
+  final Map<Node, TypeInformation> allocatedClosures =
       new Map<Node, TypeInformation>();
 
   /// Cache of [ConcreteTypeInformation].
@@ -298,6 +306,11 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
         new ListTypeInformation(mask, element, length);
   }
 
+  TypeInformation allocateClosure(Node node, Element element) {
+    return allocatedClosures[node] =
+        new ClosureTypeInformation(node, element);
+  }
+
   TypeInformation allocateMap(TypeInformation keyType,
                               TypeInformation valueType,
                               ConcreteTypeInformation type) {
@@ -406,12 +419,6 @@ class WorkQueue {
  * [TypeInformation] nodes by visiting the AST of the application, and
  * then does the inferencing on the graph.
  *
- * The inferencing is currently done in three steps:
- *
- * 1) Compute the call graph.
- * 2) Refine all nodes in a way that avoids cycles.
- * 3) Refine all nodes.
- *
  */
 class TypeGraphInferrerEngine
     extends InferrerEngine<TypeInformation, TypeInformationSystem> {
@@ -437,7 +444,7 @@ class TypeGraphInferrerEngine
   void analyzeContainer(ListTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
-    ContainerTracerVisitor tracer = new ContainerTracerVisitor(info, this);
+    ListTracerVisitor tracer = new ListTracerVisitor(info, this);
     List<TypeInformation> newAssignments = tracer.run();
     if (newAssignments == null) {
       return;
@@ -477,6 +484,16 @@ class TypeGraphInferrerEngine
       if (info.bailedOut) return;
       workQueue.add(info);
       workQueue.add(info.elementType);
+    });
+
+    types.allocatedClosures.values.forEach((ClosureTypeInformation info) {
+      ClosureTracerVisitor tracer = new ClosureTracerVisitor(info, this);
+      tracer.run();
+      if (!tracer.continueAnalyzing) return;
+      FunctionElement element = info.element;
+      element.functionSignature.forEachParameter((parameter) {
+        workQueue.add(types.getInferredTypeOf(parameter));
+      });
     });
 
     // Reset all nodes that use lists that have been inferred, as well
@@ -609,6 +626,7 @@ class TypeGraphInferrerEngine
   void buildWorkQueue() {
     workQueue.addAll(types.typeInformations.values);
     workQueue.addAll(types.allocatedTypes);
+    workQueue.addAll(types.allocatedClosures.values);
     workQueue.addAll(allocatedCalls);
   }
 
@@ -621,7 +639,7 @@ class TypeGraphInferrerEngine
                                   Element callee,
                                   ArgumentsTypes arguments,
                                   Selector selector,
-                                  {bool remove, bool init: false}) {
+                                  {bool remove, bool addToQueue: true}) {
     if (callee.name == Compiler.NO_SUCH_METHOD) return;
     if (callee.isField()) {
       if (selector.isSetter()) {
@@ -631,18 +649,22 @@ class TypeGraphInferrerEngine
         } else {
           info.addAssignment(arguments.positional[0]);
         }
-        if (!init) workQueue.add(info);
+        if (addToQueue) workQueue.add(info);
       }
     } else if (callee.isGetter()) {
       return;
     } else if (selector != null && selector.isGetter()) {
-      if (!remove) {
+      ElementTypeInformation info = types.getInferredTypeOf(callee);
+      if (remove) {
+        info.closurizedCount--;
+      } else {
+        info.closurizedCount++;
         FunctionElement function = callee.implementation;
         FunctionSignature signature = function.computeSignature(compiler);
         signature.forEachParameter((Element parameter) {
           ElementTypeInformation info = types.getInferredTypeOf(parameter);
           info.giveUp(this);
-          if (!init) workQueue.addAll(info.users);
+          if (addToQueue) workQueue.addAll(info.users);
         });
       }
     } else {
@@ -669,7 +691,7 @@ class TypeGraphInferrerEngine
           info.addAssignment(type);
         }
         parameterIndex++;
-        if (!init) workQueue.add(info);
+        if (addToQueue) workQueue.add(info);
       });
     }
   }
@@ -813,7 +835,7 @@ class TypeGraphInferrerEngine
   }
 
   // Sorts the resolved elements by size. We do this for this inferrer
-  // to get the same results for [ContainerTracer] compared to the
+  // to get the same results for [ListTracer] compared to the
   // [SimpleTypesInferrer].
   Iterable<Element> sortResolvedElements() {
     int max = 0;
@@ -856,6 +878,7 @@ class TypeGraphInferrerEngine
     types.typeInformations.values.forEach((info) => info.clear());
     types.allocatedTypes.clear();
     types.concreteTypes.clear();
+    types.allocatedClosures.clear();
     analyzedElements.clear();
     generativeConstructorsExposingThis.clear();
   }

@@ -32,7 +32,7 @@ void NativeSymbolResolver::InitOnce() {
 
 
 void NativeSymbolResolver::ShutdownOnce() {
-  ScopedMutex lock(lock_);
+  MutexLocker lock(lock_);
   if (!running_) {
     return;
   }
@@ -52,7 +52,7 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc) {
   static const intptr_t kSymbolInfoSize = sizeof(SYMBOL_INFO);  // NOLINT.
   static char buffer[kSymbolInfoSize + kMaxNameLength];
   static char name_buffer[kMaxNameLength];
-  ScopedMutex lock(lock_);
+  MutexLocker lock(lock_);
   if (!running_) {
     return NULL;
   }

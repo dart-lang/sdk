@@ -41,6 +41,8 @@ DEFINE_FLAG(bool, trace_load_optimization, false,
     "Print live sets for load optimization pass.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
+DEFINE_FLAG(int, getter_setter_ratio, 10,
+    "Ratio of getter/setter usage used for double field unboxing heuristics");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_check_elimination);
@@ -62,9 +64,12 @@ void FlowGraphOptimizer::ApplyICData() {
 }
 
 
-// Optimize instance calls using cid.
+// Optimize instance calls using cid.  This is called after optimizer
+// converted instance calls to instructions. Any remaining
+// instance calls are either megamorphic calls, cannot be optimized or
+// have no runtime type feedback collected.
 // Attempts to convert an instance call (IC call) using propagated class-ids,
-// e.g., receiver class id, guarded-cid.
+// e.g., receiver class id, guarded-cid, or by guessing cid-s.
 void FlowGraphOptimizer::ApplyClassIds() {
   ASSERT(current_iterator_ == NULL);
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -96,18 +101,40 @@ void FlowGraphOptimizer::ApplyClassIds() {
 }
 
 
+// TODO(srdjan): Test/support other number types as well.
+static bool IsNumberCid(intptr_t cid) {
+  return (cid == kSmiCid) || (cid == kDoubleCid);
+}
+
+
 // Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfChecks() > 0) {
-    // This occurs when an instance call has too many checks.
+    // This occurs when an instance call has too many checks, will be converted
+    // to megamorphic call.
     return false;
   }
   GrowableArray<intptr_t> class_ids(call->ic_data()->num_args_tested());
   ASSERT(call->ic_data()->num_args_tested() <= call->ArgumentCount());
   for (intptr_t i = 0; i < call->ic_data()->num_args_tested(); i++) {
-    intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
+    const intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
     class_ids.Add(cid);
+  }
+
+  const Token::Kind op_kind = call->token_kind();
+  if (Token::IsRelationalOperator(op_kind) ||
+      Token::IsRelationalOperator(op_kind) ||
+      Token::IsBinaryOperator(op_kind)) {
+    // Guess cid: if one of the inputs is a number assume that the other
+    // is a number of same type.
+    const intptr_t cid_0 = class_ids[0];
+    const intptr_t cid_1 = class_ids[1];
+    if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
+      class_ids[0] = cid_1;
+    } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
+      class_ids[1] = cid_0;
+    }
   }
 
   for (intptr_t i = 0; i < class_ids.length(); i++) {
@@ -3506,6 +3533,40 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
+void FlowGraphOptimizer::VisitStoreInstanceField(
+    StoreInstanceFieldInstr* instr) {
+  if (instr->IsUnboxedStore()) {
+    ASSERT(instr->is_initialization_);
+    // Determine if this field should be unboxed based on the usage of getter
+    // and setter functions: The heuristic requires that the setter has a
+    // usage count of at least 1/kGetterSetterRatio of the getter usage count.
+    // This is to avoid unboxing fields where the setter is never or rarely
+    // executed.
+    const Field& field = Field::ZoneHandle(instr->field().raw());
+    const String& field_name = String::Handle(field.name());
+    class Class& owner = Class::Handle(field.owner());
+    const Function& getter =
+        Function::Handle(owner.LookupGetterFunction(field_name));
+    const Function& setter =
+        Function::Handle(owner.LookupSetterFunction(field_name));
+    bool result = !getter.IsNull()
+               && !setter.IsNull()
+               && (setter.usage_counter() > 0)
+               && (FLAG_getter_setter_ratio * setter.usage_counter() >
+                   getter.usage_counter());
+    if (!result) {
+      if (FLAG_trace_optimization) {
+        OS::Print("Disabling unboxing of %s\n", field.ToCString());
+      }
+      field.set_is_unboxing_candidate(false);
+      field.DeoptimizeDependentCode();
+    } else {
+      FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+    }
+  }
+}
+
+
 bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                                  const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
@@ -3536,7 +3597,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   // Inline implicit instance setter.
   const String& field_name =
       String::Handle(Field::NameFromSetter(instr->function_name()));
-  const Field& field = Field::Handle(GetField(class_id, field_name));
+  const Field& field = Field::ZoneHandle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(instr)) {
@@ -3567,6 +3628,11 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       new Value(instr->ArgumentAt(0)),
       new Value(instr->ArgumentAt(1)),
       needs_store_barrier);
+
+  if (store->IsUnboxedStore()) {
+    FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
+  }
+
   // Discard the environment from the original instruction because the store
   // can't deoptimize.
   instr->RemoveEnvironment();
@@ -4373,9 +4439,12 @@ void LICM::Optimize() {
           }
           if (inputs_loop_invariant &&
               !current->IsAssertAssignable() &&
-              !current->IsAssertBoolean()) {
+              !current->IsAssertBoolean() &&
+              !current->IsGuardField()) {
             // TODO(fschneider): Enable hoisting of Assert-instructions
             // if it safe to do.
+            // TODO(15652): Hoisting guard-field instructions causes the
+            // optimizing compiler to crash.
             Hoist(&it, pre_header, current);
           } else if (current->IsCheckSmi() &&
                      current->InputAt(0)->definition()->IsPhi()) {
@@ -6605,7 +6674,37 @@ void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
-  SetValue(instr, non_constant_);
+  const Object& array_obj = instr->array()->definition()->constant_value();
+  const Object& index_obj = instr->index()->definition()->constant_value();
+  if (IsNonConstant(array_obj) || IsNonConstant(index_obj)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(array_obj) && IsConstant(index_obj)) {
+    // Need index to be Smi and array to be either String or an immutable array.
+    if (!index_obj.IsSmi()) {
+      // Should not occur.
+      SetValue(instr, non_constant_);
+      return;
+    }
+    const intptr_t index = Smi::Cast(index_obj).Value();
+    if (index >= 0) {
+      if (array_obj.IsString()) {
+        const String& str = String::Cast(array_obj);
+        if (str.Length() > index) {
+          SetValue(instr, Smi::Handle(Smi::New(str.CharAt(index))));
+          return;
+        }
+      } else if (array_obj.IsArray()) {
+        const Array& a = Array::Cast(array_obj);
+        if ((a.Length() > index) && a.IsImmutable()) {
+          Instance& result = Instance::Handle();
+          result ^= a.At(index);
+          SetValue(instr, result);
+          return;
+        }
+      }
+    }
+    SetValue(instr, non_constant_);
+  }
 }
 
 

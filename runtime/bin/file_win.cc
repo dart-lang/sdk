@@ -322,6 +322,27 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
 }
 
 
+bool File::Copy(const char* old_path, const char* new_path) {
+  File::Type type = GetType(old_path, false);
+  if (type == kIsFile) {
+    const wchar_t* system_old_path = StringUtils::Utf8ToWide(old_path);
+    const wchar_t* system_new_path = StringUtils::Utf8ToWide(new_path);
+    bool success = CopyFileExW(system_old_path,
+                               system_new_path,
+                               NULL,
+                               NULL,
+                               NULL,
+                               0) != 0;
+    free(const_cast<wchar_t*>(system_old_path));
+    free(const_cast<wchar_t*>(system_new_path));
+    return success;
+  } else {
+    SetLastError(ERROR_FILE_NOT_FOUND);
+  }
+  return false;
+}
+
+
 off64_t File::LengthFromPath(const char* name) {
   struct __stat64 st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);

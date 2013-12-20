@@ -11,6 +11,7 @@
 #include "bin/process.h"
 #include "bin/eventhandler.h"
 #include "bin/log.h"
+#include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
@@ -350,6 +351,33 @@ static bool EnsureInitialized() {
 }
 
 
+const int kMaxPipeNameSize = 80;
+template<int Count>
+static int GenerateNames(wchar_t pipe_names[Count][kMaxPipeNameSize]) {
+  UUID uuid;
+  RPC_STATUS status = UuidCreateSequential(&uuid);
+  if (status != RPC_S_OK && status != RPC_S_UUID_LOCAL_ONLY) {
+    return status;
+  }
+  RPC_WSTR uuid_string;
+  status = UuidToStringW(&uuid, &uuid_string);
+  if (status != RPC_S_OK) {
+    return status;
+  }
+  for (int i = 0; i < Count; i++) {
+    static const wchar_t* prefix = L"\\\\.\\Pipe\\dart";
+    _snwprintf(pipe_names[i],
+               kMaxPipeNameSize,
+               L"%s_%s_%d", prefix, uuid_string, i + 1);
+  }
+  status = RpcStringFreeW(&uuid_string);
+  if (status != RPC_S_OK) {
+    return status;
+  }
+  return 0;
+}
+
+
 int Process::Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
@@ -368,32 +396,11 @@ int Process::Start(const char* path,
   HANDLE exit_handles[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
 
   // Generate unique pipe names for the four named pipes needed.
-  static const int kMaxPipeNameSize = 80;
   wchar_t pipe_names[4][kMaxPipeNameSize];
-  UUID uuid;
-  RPC_STATUS status = UuidCreateSequential(&uuid);
-  if (status != RPC_S_OK && status != RPC_S_UUID_LOCAL_ONLY) {
+  int status = GenerateNames<4>(pipe_names);
+  if (status != 0) {
     SetOsErrorMessage(os_error_message);
     Log::PrintErr("UuidCreateSequential failed %d\n", status);
-    return status;
-  }
-  RPC_WSTR uuid_string;
-  status = UuidToStringW(&uuid, &uuid_string);
-  if (status != RPC_S_OK) {
-    SetOsErrorMessage(os_error_message);
-    Log::PrintErr("UuidToString failed %d\n", status);
-    return status;
-  }
-  for (int i = 0; i < 4; i++) {
-    static const wchar_t* prefix = L"\\\\.\\Pipe\\dart";
-    _snwprintf(pipe_names[i],
-               kMaxPipeNameSize,
-               L"%s_%s_%d", prefix, uuid_string, i + 1);
-  }
-  status = RpcStringFreeW(&uuid_string);
-  if (status != RPC_S_OK) {
-    SetOsErrorMessage(os_error_message);
-    Log::PrintErr("RpcStringFree failed %d\n", status);
     return status;
   }
 
@@ -847,6 +854,102 @@ void Process::TerminateExitCodeHandler() {
 
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(GetCurrentProcessId());
+}
+
+
+static SignalInfo* signal_handlers = NULL;
+static Mutex* signal_mutex = new Mutex();
+
+
+SignalInfo::~SignalInfo() {
+  reinterpret_cast<FileHandle*>(fd_)->Close();
+}
+
+
+BOOL WINAPI SignalHandler(DWORD signal) {
+  MutexLocker lock(signal_mutex);
+  const SignalInfo* handler = signal_handlers;
+  bool handled = false;
+  while (handler != NULL) {
+    if (handler->signal() == signal) {
+      int value = 0;
+      Socket::Write(handler->fd(), &value, 1);
+      handled = true;
+    }
+    handler = handler->next();
+  }
+  return handled;
+}
+
+
+intptr_t GetWinSignal(intptr_t signal) {
+  switch (signal) {
+    case kSighup: return CTRL_CLOSE_EVENT;
+    case kSigint: return CTRL_C_EVENT;
+    default:
+      return -1;
+  }
+}
+
+
+intptr_t Process::SetSignalHandler(intptr_t signal) {
+  signal = GetWinSignal(signal);
+  if (signal == -1) return -1;
+
+  // Generate a unique pipe name for the named pipe.
+  wchar_t pipe_name[kMaxPipeNameSize];
+  int status = GenerateNames<1>(&pipe_name);
+  if (status != 0) return status;
+
+  HANDLE fds[2];
+  if (!CreateProcessPipe(fds, pipe_name, kInheritNone)) {
+    int error_code = GetLastError();
+    CloseProcessPipe(fds);
+    SetLastError(error_code);
+    return -1;
+  }
+  MutexLocker lock(signal_mutex);
+  FileHandle* write_handle = new FileHandle(fds[kWriteHandle]);
+  write_handle->EnsureInitialized(EventHandler::delegate());
+  intptr_t write_fd = reinterpret_cast<intptr_t>(write_handle);
+  if (signal_handlers == NULL) {
+    if (SetConsoleCtrlHandler(SignalHandler, true) == 0) {
+      int error_code = GetLastError();
+      delete write_handle;
+      CloseProcessPipe(fds);
+      SetLastError(error_code);
+      return -1;
+    }
+    signal_handlers = new SignalInfo(write_fd, signal);
+  } else {
+    new SignalInfo(write_fd, signal, signal_handlers);
+  }
+  return reinterpret_cast<intptr_t>(new FileHandle(fds[kReadHandle]));
+}
+
+
+void Process::ClearSignalHandler(intptr_t signal) {
+  signal = GetWinSignal(signal);
+  if (signal == -1) return;
+  MutexLocker lock(signal_mutex);
+  SignalInfo* handler = signal_handlers;
+  while (handler != NULL) {
+    if (handler->port() == Dart_GetMainPortId() &&
+        handler->signal() == signal) {
+      handler->Unlink();
+      break;
+    }
+    handler = handler->next();
+  }
+  if (handler != NULL) {
+    if (signal_handlers == handler) {
+      signal_handlers = handler->next();
+    }
+    if (signal_handlers == NULL) {
+      USE(SetConsoleCtrlHandler(SignalHandler, false));
+    }
+  }
+  delete handler;
 }
 
 }  // namespace bin

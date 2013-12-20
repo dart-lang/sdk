@@ -94,6 +94,15 @@ class IrInvokeStatic extends IrExpression {
   accept(IrNodesVisitor visitor) => visitor.visitIrInvokeStatic(this);
 }
 
+/**
+ * This class is only used during SSA generation, its instances never appear in
+ * the representation of a function. See [SsaFromAstInliner.enterInlinedMethod].
+ */
+class IrInlinedInvocationDummy extends IrExpression {
+  IrInlinedInvocationDummy() : super(0);
+  accept(IrNodesVisitor visitor) => throw "IrInlinedInvocationDummy.accept";
+}
+
 
 abstract class IrNodesVisitor<T> {
   T visit(IrNode node) => node.accept(this);

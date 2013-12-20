@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';
+import '../utils.dart';
 import '../validator.dart';
 
 // TODO(nweiz): When issue 7196 is fixed, complain about non-Dart files in lib.
@@ -20,7 +21,7 @@ class LibValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return new Future.sync(() {
+    return syncFuture(() {
       var libDir = path.join(entrypoint.root.dir, "lib");
 
       if (!dirExists(libDir)) {

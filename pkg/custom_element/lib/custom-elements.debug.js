@@ -1151,6 +1151,11 @@ if (useNative) {
       // getPrototypeOf(Element), we cannot do so when
       // we use mixin, so we install a magic reference
       customMixin(element, definition.prototype, definition.native);
+
+      // Dart note: make sure we pick up the right constructor.
+      // dart2js depends on this for dart:mirrors caching to work.
+      // See tests/html/custom/mirrors_test.dart
+      element.constructor = definition.prototype.constructor;
       element.__proto__ = definition.prototype;
     }
   }

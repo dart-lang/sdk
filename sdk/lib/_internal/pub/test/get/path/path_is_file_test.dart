@@ -24,7 +24,7 @@ main() {
       })
     ]).create();
 
-    pubGet(error: "Path dependency for package 'foo' must refer to a "
-                      "directory, not a file. Was '$dummyPath'.");
+    pubGet(error: 'Path dependency for package foo must refer to a '
+                  'directory, not a file. Was "$dummyPath".');
   });
 }

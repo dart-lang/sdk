@@ -170,6 +170,27 @@ abstract class num implements Comparable<num> {
   num abs();
 
   /**
+   * Returns minus one, zero or plus one depending on the sign and
+   * numerical value of the number.
+   *
+   * Returns minus one if the number is less than zero,
+   * plus one if the number is greater than zero,
+   * and zero if the number is equal to zero.
+   *
+   * Returns NaN if the number is the double NaN value.
+   *
+   * Returns a number of the same type as this number.
+   * For doubles, `-0.0.sign == -0.0`.
+
+   * The result satisfies:
+   *
+   *     n == n.sign * n.abs()
+   *
+   * for all numbers `n` (except NaN, because NaN isn't `==` to itself).
+   */
+  num get sign;
+
+  /**
    * Returns the integer closest to `this`.
    *
    * Rounds away from zero when there is no closest integer:

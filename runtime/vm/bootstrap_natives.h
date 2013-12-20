@@ -25,7 +25,6 @@ namespace dart {
   V(Function_apply, 2)                                                         \
   V(FunctionImpl_equals, 2)                                                    \
   V(FunctionImpl_hashCode, 1)                                                  \
-  V(InvocationMirror_invoke, 4)                                                \
   V(AbstractType_toString, 1)                                                  \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
@@ -259,7 +258,6 @@ namespace dart {
   V(Isolate_mainPort, 0)                                                       \
   V(Isolate_spawnFunction, 1)                                                  \
   V(Isolate_spawnUri, 1)                                                       \
-  V(Mirrors_isLocalPort, 1)                                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
@@ -320,7 +318,9 @@ namespace dart {
 
 class BootstrapNatives : public AllStatic {
  public:
-  static Dart_NativeFunction Lookup(Dart_Handle name, int argument_count);
+  static Dart_NativeFunction Lookup(Dart_Handle name,
+                                    int argument_count,
+                                    bool* auto_setup_scope);
 
 #define DECLARE_BOOTSTRAP_NATIVE(name, ignored)                                \
   static void DN_##name(Dart_NativeArguments args);

@@ -82,16 +82,16 @@ class CustomTestSuite extends TestSuite {
   }
 
   TestCase _makeNormalTestCase(name, expectations) {
-    var command = CommandBuilder.instance.getCommand(
+    var command = CommandBuilder.instance.getProcessCommand(
         'custom', Platform.executable, [Platform.script.toFilePath(), name],
-        'ReleaseIA32');
+        {});
     return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
   }
 
   _makeCrashTestCase(name, expectations) {
-    var crashCommand = CommandBuilder.instance.getCommand(
+    var crashCommand = CommandBuilder.instance.getProcessCommand(
         'custom_crash', getProcessTestFileName(), ["0", "0", "1", "1"],
-        'ReleaseIA32');
+        {});
     // The crash test sometimes times out. Run it with a large timeout
     // to help diagnose the delay.
     // The test loads a new executable, which may sometimes take a long time.

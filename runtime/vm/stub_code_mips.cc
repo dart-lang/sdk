@@ -192,10 +192,15 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ sw(A1, Address(SP, 1 * kWordSize));
   __ sw(A0, Address(SP, 0 * kWordSize));
   __ mov(A0, SP);  // Pass the pointer to the NativeArguments.
+
+  // Call native function (setup scope if not leaf function).
+  Label leaf_call;
+  Label done;
+  __ AndImmediate(CMPRES1, A1, NativeArguments::AutoSetupScopeMask());
+  __ beq(CMPRES1, ZR, &leaf_call);
+
   __ mov(A1, T5);  // Pass the function entrypoint.
-
   __ ReserveAlignedFrameSpace(2 * kWordSize);  // Just passing A0, A1.
-
   // Call native wrapper function or redirection via simulator.
 #if defined(USING_SIMULATOR)
   uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
@@ -207,6 +212,14 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
 #endif
   __ TraceSimMsg("CallNativeCFunctionStub return");
+  __ b(&done);
+
+  __ Bind(&leaf_call);
+  // Call native function or redirection via simulator.
+  __ ReserveAlignedFrameSpace(kWordSize);  // Just passing A0.
+  __ jalr(T5);
+
+  __ Bind(&done);
 
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(CTX, Isolate::top_exit_frame_info_offset()));

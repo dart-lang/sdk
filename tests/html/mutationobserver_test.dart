@@ -7,6 +7,12 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 
+// Due to https://code.google.com/p/chromium/issues/detail?id=329103
+// mutationObservers sometimes do not fire if the node being observed is GCed
+// so we keep around references to all nodes we have created mutation
+// observers for.
+var keepAlive = [];
+
 /**
  * Test suite for Mutation Observers. This is just a small set of sanity
  * checks, not a complete test suite.
@@ -61,6 +67,7 @@ main() {
     test('direct-parallel options-named', () {
       expect(() {
         var container = new DivElement();
+        keepAlive.add(container);
         var div1 = new DivElement();
         var div2 = new DivElement();
         var mutationObserver = new MutationObserver(
@@ -75,6 +82,7 @@ main() {
     test('direct-nested options-named', () {
       expect(() {
         var container = new DivElement();
+        keepAlive.add(container);
         var div1 = new DivElement();
         var div2 = new DivElement();
         var mutationObserver =
@@ -89,6 +97,7 @@ main() {
     test('subtree options-named', () {
       expect(() {
         var container = new DivElement();
+        keepAlive.add(container);
         var div1 = new DivElement();
         var div2 = new DivElement();
         var mutationObserver = new MutationObserver(

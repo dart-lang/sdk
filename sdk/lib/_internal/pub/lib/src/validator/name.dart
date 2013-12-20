@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';
+import '../utils.dart';
 import '../validator.dart';
 
 /// Dart reserved words, from the Dart spec.
@@ -26,7 +27,7 @@ class NameValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return new Future.sync(() {
+    return syncFuture(() {
       _checkName(entrypoint.root.name, 'Package name "${entrypoint.root.name}"',
           isPackage: true);
 

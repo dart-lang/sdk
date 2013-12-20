@@ -59,6 +59,8 @@ class JSNumber extends Interceptor implements num {
 
   num abs() => JS('num', r'Math.abs(#)', this);
 
+  num get sign => this > 0 ? 1 : this < 0 ? -1 : this;
+
   static const int _MIN_INT32 = -0x80000000;
   static const int _MAX_INT32 = 0x7FFFFFFF;
 
@@ -240,7 +242,7 @@ class JSNumber extends Interceptor implements num {
   }
 
   num operator >>(num other) {
-    if (false) _shrReceiverPositive(other); 
+    if (false) _shrReceiverPositive(other);
     if (other is !num) throw new ArgumentError(other);
     if (JS('num', '#', other) < 0) throw new ArgumentError(other);
     return _shrOtherPositive(other);

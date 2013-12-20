@@ -1300,6 +1300,7 @@ UNIT_TEST_CASE(Debug_IsolateID) {
   EXPECT_VALID(retval);
   EXPECT(test_isolate_id != ILLEGAL_ISOLATE_ID);
   EXPECT(Dart_GetIsolate(test_isolate_id) == isolate);
+  EXPECT(Dart_GetIsolateId(isolate) == test_isolate_id);
   Dart_ExitScope();
   Dart_ShutdownIsolate();
   EXPECT(verify_callback == 0x5);  // Only created and shutdown events.
@@ -1349,7 +1350,10 @@ static void InterruptNativeFunction(Dart_NativeArguments args) {
 
 
 static Dart_NativeFunction InterruptNativeResolver(Dart_Handle name,
-                                                   int arg_count) {
+                                                   int arg_count,
+                                                   bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   return &InterruptNativeFunction;
 }
 

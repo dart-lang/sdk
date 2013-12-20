@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
+import 'package:stack_trace/stack_trace.dart';
 
 import '../../../../compiler/compiler.dart' as compiler;
 import '../../../../compiler/implementation/dart2js.dart'
@@ -101,9 +102,10 @@ class Dart2JSTransformer extends Transformer {
       // Need to report compile errors to the user in an easily visible way.
       // Need to make sure paths in errors are mapped to the original source
       // path so they can understand them.
-      return dart.compile(entrypoint, provider,
+      return Chain.track(dart.compile(
+          entrypoint, provider,
           packageRoot: packageRoot,
-          minify: _mode == BarbackMode.RELEASE).then((_) {
+          minify: _mode == BarbackMode.RELEASE)).then((_) {
         stopwatch.stop();
         transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
       });
@@ -259,6 +261,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
   Future<String> _readResource(Uri url) {
     // See if the path is within a package. If so, use Barback so we can use
     // generated Dart assets.
+
     var id = _sourceUrlToId(url);
     if (id != null) return _transform.readInputAsString(id);
 
@@ -266,7 +269,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // skip Barback and just hit the file system. This will occur at the very
     // least for dart2js's implementations of the core libraries.
     var sourcePath = path.fromUri(url);
-    return new File(sourcePath).readAsString();
+    return Chain.track(new File(sourcePath).readAsString());
   }
 
   AssetId _sourceUrlToId(Uri url) {
@@ -274,11 +277,16 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     var id = specialUrlToId(url);
     if (id != null) return id;
 
-    // See if it's a path within the root package.
+    // See if it's a path to a "public" asset within the root package. All
+    // other files in the root package are not visible to transformers, so
+    // should be loaded directly from disk.
     var rootDir = _graph.entrypoint.root.dir;
     var sourcePath = path.fromUri(url);
-    if (isBeneath(sourcePath, rootDir)) {
+    if (isBeneath(sourcePath, path.join(rootDir, "lib")) ||
+        isBeneath(sourcePath, path.join(rootDir, "asset")) ||
+        isBeneath(sourcePath, path.join(rootDir, "web"))) {
       var relative = path.relative(sourcePath, from: rootDir);
+
       return new AssetId(_graph.entrypoint.root.name, relative);
     }
 

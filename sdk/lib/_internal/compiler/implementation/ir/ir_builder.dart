@@ -83,6 +83,7 @@ class IrBuilderTask extends CompilerTask {
             unlinkTreeAndToken(element);
           }
         }
+        ensureIr(element);
       });
     });
   }
@@ -114,15 +115,69 @@ class IrBuilderTask extends CompilerTask {
     // TODO(lry): support native functions (also in [visitReturn]).
     if (function.isNative()) return false;
 
+    // Methods annotated @IrRepresentation(false).
+    if (enforceAstRepresentation(function)) return false;
+
     return true;
   }
 
+  bool get inCheckedMode {
+    bool result = false;
+    assert((result = true));
+    return result;
+  }
+
+  bool enforceAstRepresentation(Element element) {
+    return irRepresentationValue(element, false);
+  }
+
+  bool enforceIrRepresentation(Element element) {
+    return irRepresentationValue(element, true);
+  }
+
+  /**
+   * In host-checked mode, the @IrRepresentation annotation can be used to
+   * enforce the internal representation of a function.
+   */
+  bool irRepresentationValue(Element element, bool expected) {
+    if (!inCheckedMode || compiler.backend is !JavaScriptBackend) return false;
+    JavaScriptBackend backend = compiler.backend;
+    for (MetadataAnnotation metadata in element.metadata) {
+      if (metadata.value == null ||
+          !metadata.value.isConstructedObject()) {
+        continue;
+      }
+      ObjectConstant value = metadata.value;
+      ClassElement cls = value.type.element;
+      if (cls == backend.irRepresentationClass) {
+        ConstructedConstant classConstant = value;
+        BoolConstant constant = classConstant.fields[0];
+        return constant.value == expected;
+      }
+    }
+    return false;
+  }
+
+  void ensureIr(Element element) {
+    // If no IR was built for [element], ensure it is not annotated
+    // @IrRepresentation(true).
+    if (inCheckedMode &&
+        !compiler.irBuilder.hasIr(element) &&
+        enforceIrRepresentation(element)) {
+      compiler.reportFatalError(
+          element,
+          MessageKind.GENERIC,
+          {'text': "Error: cannot build IR for $element."});
+    }
+  }
+
   void unlinkTreeAndToken(element) {
-    // Ensure the funciton signature has been computed (requires the AST).
+    // Ensure the function signature has been computed (requires the AST).
     assert(element is !FunctionElementX || element.functionSignature != null);
-    element.beginToken.next = null;
-    // TODO(lry): Mark [element] so that parseNode will fail an assertion.
-    // element.cachedNode = null;
+    if (inCheckedMode) {
+      element.beginToken.next = null;
+      element.cachedNode = null;
+    }
   }
 
   SourceFile elementSourceFile(Element element) {

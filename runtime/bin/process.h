@@ -41,6 +41,41 @@ class ProcessResult {
 };
 
 
+// To be kept in sync with ProcessSignal consts in sdk/lib/io/process.dart
+// Note that this map is as on Linux.
+enum ProcessSignals {
+  kSighup = 1,
+  kSigint = 2,
+  kSigquit = 3,
+  kSigill = 4,
+  kSigtrap = 5,
+  kSigabrt = 6,
+  kSigbus = 7,
+  kSigfpe = 8,
+  kSigkill = 9,
+  kSigusr1 = 10,
+  kSigsegv = 11,
+  kSigusr2 = 12,
+  kSigpipe = 13,
+  kSigalrm = 14,
+  kSigterm = 15,
+  kSigchld = 17,
+  kSigcont = 18,
+  kSigstop = 19,
+  kSigtstp = 20,
+  kSigttin = 21,
+  kSigttou = 22,
+  kSigurg = 23,
+  kSigxcpu = 24,
+  kSigxfsz = 25,
+  kSigvtalrm = 26,
+  kSigprof = 27,
+  kSigwinch = 28,
+  kSigpoll = 29,
+  kSigsys = 31
+};
+
+
 class Process {
  public:
   // Start a new process providing access to stdin, stdout, stderr and
@@ -84,6 +119,9 @@ class Process {
 
   static intptr_t CurrentProcessId();
 
+  static intptr_t SetSignalHandler(intptr_t signal);
+  static void ClearSignalHandler(intptr_t signal);
+
   static Dart_Handle GetProcessIdNativeField(Dart_Handle process,
                                              intptr_t* pid);
   static Dart_Handle SetProcessIdNativeField(Dart_Handle process,
@@ -95,6 +133,46 @@ class Process {
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
+};
+
+
+class SignalInfo {
+ public:
+  SignalInfo(int fd, int signal, SignalInfo* prev = NULL)
+      : fd_(fd),
+        signal_(signal),
+        // SignalInfo is expected to be created when in a isolate.
+        port_(Dart_GetMainPortId()),
+        next_(NULL),
+        prev_(prev) {
+    if (prev_ != NULL) {
+      prev_->next_ = this;
+    }
+  }
+
+  ~SignalInfo();
+
+  void Unlink() {
+    if (prev_ != NULL) {
+      prev_->next_ = next_;
+    }
+    if (next_ != NULL) {
+      next_->prev_ = prev_;
+    }
+  }
+
+  int fd() const { return fd_; }
+  int signal() const { return signal_; }
+  Dart_Port port() const { return port_; }
+  SignalInfo* next() const { return next_; }
+
+ private:
+  int fd_;
+  int signal_;
+  // The port_ is used to identify what isolate the signal-info belongs to.
+  Dart_Port port_;
+  SignalInfo* next_;
+  SignalInfo* prev_;
 };
 
 

@@ -32,11 +32,17 @@ void ThrowMeTheBall(Dart_NativeArguments arguments) {
 
 
 /* Native resolver for the extension library. */
-Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
+Dart_NativeFunction ResolveName(Dart_Handle name,
+                                int argc,
+                                bool* auto_setup_scope) {
   /* assert(Dart_IsString(name)); */
   const char* c_name;
   Dart_Handle check_error;
 
+  if (auto_setup_scope == NULL) {
+    return NULL;
+  }
+  *auto_setup_scope = 1;
   check_error = Dart_StringToCString(name, &c_name);
   if (Dart_IsError(check_error)) {
     Dart_PropagateError(check_error);

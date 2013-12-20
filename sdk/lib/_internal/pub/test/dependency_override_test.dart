@@ -112,9 +112,9 @@ main() {
       schedulePub(args: [command.name], output: command.success, error:
           """
           Warning: You are using these overridden dependencies:
-          - bar
-          - baz (from path $bazPath)
-          - foo
+          ! bar 1.0.0
+          ! baz 0.0.1 from path $bazPath
+          ! foo 1.0.0
           """);
     });
   });

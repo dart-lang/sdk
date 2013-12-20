@@ -22,7 +22,7 @@ class BadCollectionTest extends VmServiceRequestHelper {
       super('http://127.0.0.1:$port/isolates/$id/objects');
 
   onRequestCompleted(Map reply) {
-    Expect.equals('error', reply['type']);
+    Expect.equals('Error', reply['type']);
   }
 }
 

@@ -3175,7 +3175,6 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
     }
   }
   InlineBailout("EffectGraphVisitor::VisitNativeBodyNode");
-  function.set_is_optimizable(false);
   NativeCallInstr* native_call = new NativeCallInstr(node);
   ReturnDefinition(native_call);
 }
@@ -3285,15 +3284,9 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
       new StoreInstanceFieldInstr(node->field(),
                                   for_instance.value(),
                                   store_value,
-                                  kEmitStoreBarrier);
+                                  kEmitStoreBarrier,
+                                  true);  // Maybe initializing store.
   ReturnDefinition(store);
-}
-
-
-// StoreInstanceFieldNode does not return result.
-void ValueGraphVisitor::VisitStoreInstanceFieldNode(
-    StoreInstanceFieldNode* node) {
-  UNIMPLEMENTED();
 }
 
 

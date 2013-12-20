@@ -51,7 +51,7 @@
 library logging;
 
 import 'dart:async';
-import 'package:collection_helpers/wrappers.dart';
+import 'package:collection/wrappers.dart';
 
 /**
  * Whether to allow fine-grain logging and configuration of loggers in a

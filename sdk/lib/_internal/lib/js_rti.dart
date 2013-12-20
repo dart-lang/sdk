@@ -161,7 +161,7 @@ String getConstructorName(var type) => JS('String', r'#.builtin$cls', type);
 /**
  * Returns a human-readable representation of the type representation [type].
  */
-String runtimeTypeToString(var type , {String onTypeVariable(int i)}) {
+String runtimeTypeToString(var type, {String onTypeVariable(int i)}) {
   if (isNull(type)) {
     return 'dynamic';
   } else if (isJsArray(type)) {

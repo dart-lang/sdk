@@ -108,69 +108,27 @@ class _OrderedEquals extends Matcher {
     }
   }
 }
+
 /**
  * Returns a matcher which matches [Iterable]s that have the same
  * length and the same elements as [expected], but not necessarily in
  * the same order. Note that this is O(n^2) so should only be used on
  * small objects.
  */
-Matcher unorderedEquals(Iterable expected) =>
-    new _UnorderedEquals(expected);
+Matcher unorderedEquals(Iterable expected) => new _UnorderedEquals(expected);
 
-class _UnorderedEquals extends Matcher {
-  Iterable _expected;
+class _UnorderedEquals extends _UnorderedMatches {
+  final List _expectedValues;
 
-  _UnorderedEquals(Iterable this._expected);
-
-  String _test(item) {
-    if (item is !Iterable) {
-      return 'not iterable';
-    }
-    // Check the lengths are the same.
-    var expectedLength = _expected.length;
-    var actualLength = item.length;
-    if (expectedLength > actualLength) {
-      return 'has too few elements (${actualLength} < ${expectedLength})';
-    } else if (expectedLength < actualLength) {
-      return 'has too many elements (${actualLength} > ${expectedLength})';
-    }
-    List<bool> matched = new List<bool>(actualLength);
-    for (var i = 0; i < actualLength; i++) {
-      matched[i] = false;
-    }
-    var expectedPosition = 0;
-    for (var expectedElement in _expected) {
-      var actualPosition = 0;
-      var gotMatch = false;
-      for (var actualElement in item) {
-        if (!matched[actualPosition]) {
-          if (expectedElement == actualElement) {
-            matched[actualPosition] = gotMatch = true;
-            break;
-          }
-        }
-        ++actualPosition;
-      }
-      if (!gotMatch) {
-        Description reason = new StringDescription();
-        reason.add('has no match for element ').
-            addDescriptionOf(expectedElement).
-            add(' at index ${expectedPosition}');
-        return reason.toString();
-      }
-      ++expectedPosition;
-    }
-    return null;
-  }
-
-  bool matches(item, Map mismatchState) => (_test(item) == null);
+  _UnorderedEquals(Iterable expected)
+      : super(expected.map(equals)),
+        _expectedValues = expected.toList();
 
   Description describe(Description description) =>
-      description.add('equals ').addDescriptionOf(_expected).add(' unordered');
-
-  Description describeMismatch(item, Description mismatchDescription,
-                               Map matchState, bool verbose) =>
-      mismatchDescription.add(_test(item));
+    description
+        .add('equals ')
+        .addDescriptionOf(_expectedValues)
+        .add(' unordered');
 }
 
 /**
@@ -190,6 +148,73 @@ abstract class _IterableMatcher extends Matcher {
         verbose);
     }
   }
+}
+
+/**
+ * Returns a matcher which matches [Iterable]s whose elements match the matchers
+ * in [expected], but not necessarily in the same order.
+ *
+ *  Note that this is `O(n^2)` and so should only be used on small objects.
+ */
+Matcher unorderedMatches(Iterable expected) =>
+    new _UnorderedMatches(expected);
+
+class _UnorderedMatches extends Matcher {
+  final List<Matcher> _expected;
+
+  _UnorderedMatches(Iterable expected)
+      : _expected = expected.map(wrapMatcher).toList();
+
+  String _test(item) {
+    if (item is !Iterable) return 'not iterable';
+    item = item.toList();
+
+    // Check the lengths are the same.
+    if (_expected.length > item.length) {
+      return 'has too few elements (${item.length} < ${_expected.length})';
+    } else if (_expected.length < item.length) {
+      return 'has too many elements (${item.length} > ${_expected.length})';
+    }
+
+    var matched = new List<bool>.filled(item.length, false);
+    var expectedPosition = 0;
+    for (var expectedMatcher in _expected) {
+      var actualPosition = 0;
+      var gotMatch = false;
+      for (var actualElement in item) {
+        if (!matched[actualPosition]) {
+          if (expectedMatcher.matches(actualElement, {})) {
+            matched[actualPosition] = gotMatch = true;
+            break;
+          }
+        }
+        ++actualPosition;
+      }
+
+      if (!gotMatch) {
+        return new StringDescription()
+            .add('has no match for ')
+            .addDescriptionOf(expectedMatcher)
+            .add(' at index ${expectedPosition}')
+            .toString();
+      }
+
+      ++expectedPosition;
+    }
+    return null;
+  }
+
+  bool matches(item, Map mismatchState) => _test(item) == null;
+
+  Description describe(Description description) =>
+    description
+      .add('matches ')
+      .addAll('[', ', ', ']', _expected)
+      .add(' unordered');
+
+  Description describeMismatch(item, Description mismatchDescription,
+                               Map matchState, bool verbose) =>
+      mismatchDescription.add(_test(item));
 }
 
 /**

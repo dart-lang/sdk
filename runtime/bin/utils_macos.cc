@@ -8,6 +8,7 @@
 #include <errno.h>  // NOLINT
 #include <netdb.h>  // NOLINT
 #include <sys/time.h>  // NOLINT
+#include <time.h>  // NOLINT
 
 #include "bin/utils.h"
 #include "platform/assert.h"
@@ -98,16 +99,23 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
 }
 
 void TimerUtils::Sleep(int64_t millis) {
-  // We must loop here because SIGPROF will interrupt usleep.
-  int64_t micros = millis * 1000;
-  int64_t start = GetCurrentTimeMicros();
-  while (micros > 0) {
-    usleep(micros);
-    int64_t now = GetCurrentTimeMicros();
-    int64_t delta = now - start;
-    ASSERT(delta >= 0);
-    start = now;
-    micros -= delta;
+  struct timespec req;  // requested.
+  struct timespec rem;  // remainder.
+  int64_t micros = millis * kMicrosecondsPerMillisecond;
+  int64_t seconds = micros / kMicrosecondsPerSecond;
+  micros = micros - seconds * kMicrosecondsPerSecond;
+  int64_t nanos = micros * kNanosecondsPerMicrosecond;
+  req.tv_sec = seconds;
+  req.tv_nsec = nanos;
+  while (true) {
+    int r = nanosleep(&req, &rem);
+    if (r == 0) {
+      break;
+    }
+    // We should only ever see an interrupt error.
+    ASSERT(errno == EINTR);
+    // Copy remainder into requested and repeat.
+    req = rem;
   }
 }
 

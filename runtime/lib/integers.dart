@@ -92,6 +92,9 @@ class _IntegerImplementation {
   int abs() {
     return this < 0 ? -this : this;
   }
+  int get sign {
+    return (this > 0) ? 1 : (this < 0) ? -1 : 0;
+  }
   bool get isEven => ((this & 1) == 0);
   bool get isOdd => !isEven;
   bool get isNaN => false;

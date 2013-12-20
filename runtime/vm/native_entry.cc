@@ -22,7 +22,8 @@ static ExternalLabel native_call_label(
 
 NativeFunction NativeEntry::ResolveNative(const Library& library,
                                           const String& function_name,
-                                          int number_of_arguments) {
+                                          int number_of_arguments,
+                                          bool* auto_setup_scope) {
   // Now resolve the native function to the corresponding native entrypoint.
   if (library.native_entry_resolver() == 0) {
     // Native methods are not allowed in the library to which this
@@ -33,7 +34,7 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
   Dart_NativeFunction native_function =
       resolver(Api::NewHandle(Isolate::Current(), function_name.raw()),
-               number_of_arguments);
+               number_of_arguments, auto_setup_scope);
   Dart_ExitScope();  // Exit the Dart API scope.
   return reinterpret_cast<NativeFunction>(native_function);
 }

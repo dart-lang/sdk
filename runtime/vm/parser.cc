@@ -5317,12 +5317,14 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
 
   // Now resolve the native function to the corresponding native entrypoint.
   const int num_params = NativeArguments::ParameterCountForResolution(func);
+  bool auto_setup_scope = true;
   NativeFunction native_function = NativeEntry::ResolveNative(
-      library, native_name, num_params);
+      library, native_name, num_params, &auto_setup_scope);
   if (native_function == NULL) {
     ErrorMsg(native_pos, "native function '%s' cannot be found",
         native_name.ToCString());
   }
+  func.SetIsNativeAutoSetupScope(auto_setup_scope);
 
   // Now add the NativeBodyNode and return statement.
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
@@ -8825,7 +8827,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
           // An exception may not occur in every parse attempt, i.e., the
           // generated AST is not deterministic. Therefore mark the function as
           // not optimizable.
-          current_function().set_is_optimizable(false);
+          current_function().SetIsOptimizable(false);
           field.set_value(Object::null_instance());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
@@ -8907,7 +8909,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
       // not optimizable.
-      current_function().set_is_optimizable(false);
+      current_function().SetIsOptimizable(false);
       if (result.IsUnhandledException()) {
         return result.raw();
       } else {

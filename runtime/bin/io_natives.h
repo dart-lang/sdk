@@ -12,7 +12,8 @@ namespace dart {
 namespace bin {
 
 Dart_NativeFunction IONativeLookup(Dart_Handle name,
-                                   int argument_count);
+                                   int argument_count,
+                                   bool* auto_setup_scope);
 
 }  // namespace bin
 }  // namespace dart

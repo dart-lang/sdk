@@ -1414,9 +1414,9 @@ class HInvokeStatic extends HInvoke {
   bool canThrow() => targetCanThrow;
 
   /// If this instruction is a call to a constructor, [instantiatedTypes]
-  /// contains the type(s) used in the (Dart) `New` expression(s).
-  /// The [instructionType] of this node is not enough, because we also need
-  /// the type arguments.  See also [SsaBuilder.currentInlinedInstantiations].
+  /// contains the type(s) used in the (Dart) `New` expression(s). The
+  /// [instructionType] of this node is not enough, because we also need the
+  /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
   List<DartType> instantiatedTypes;
 
   /** The first input must be the target. */
@@ -1424,7 +1424,7 @@ class HInvokeStatic extends HInvoke {
                 {this.targetCanThrow: true})
     : super(inputs, type);
 
-  toString() => 'invoke static: ${element.name}';
+  toString() => 'invoke static: $element';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
 }
@@ -1605,9 +1605,9 @@ class HForeignNew extends HForeign {
   ClassElement element;
 
   /// If this field is not `null`, this call is from an inlined constructor and
-  /// we have to register the instantiated type in the code generator.
-  /// The [instructionType] of this node is not enough, because we also need
-  /// the type arguments.  See also [SsaBuilder.currentInlinedInstantiations].
+  /// we have to register the instantiated type in the code generator. The
+  /// [instructionType] of this node is not enough, because we also need the
+  /// type arguments. See also [SsaFromAstMixin.currentInlinedInstantiations].
   List<DartType> instantiatedTypes;
 
   HForeignNew(this.element, TypeMask type, List<HInstruction> inputs,
@@ -1837,7 +1837,7 @@ class HBreak extends HJump {
   /**
    * Signals that this is a special break instruction for the synthetic loop
    * generatedfor a switch statement with continue statements. See
-   * [SsaBuilder.buildComplexSwitchStatement] for detail.
+   * [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
    */
   final bool breakSwitchContinueLoop;
   HBreak(TargetElement target, {bool this.breakSwitchContinueLoop: false})
@@ -1931,6 +1931,14 @@ class HConstant extends HInstruction {
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
+
+  set instructionType(type) {
+    // Only lists can be specialized. The SSA builder uses the
+    // inferrer for finding the type of a constant list. We should
+    // have the constant know its type instead.
+    if (!isConstantList()) return;
+    super.instructionType = type;
+  }
 }
 
 class HNot extends HInstruction {

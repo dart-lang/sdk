@@ -21,6 +21,9 @@
 
 namespace dart {
 
+  DEFINE_FLAG(int, early_tenuring_threshold, 66, "Skip TO space when promoting"
+                                                 " above this percentage.");
+
 // Scavenger uses RawObject::kMarkBit to distinguish forwaded and non-forwarded
 // objects. The kMarkBit does not intersect with the target address because of
 // object alignment.
@@ -369,10 +372,22 @@ void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
 }
 
 
-void Scavenger::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
+void Scavenger::Epilogue(Isolate* isolate,
+                         ScavengerVisitor* visitor,
+                         bool invoke_api_callbacks) {
   // All objects in the to space have been copied from the from space at this
   // moment.
-  survivor_end_ = top_;
+  int promotion_ratio = static_cast<int>(
+      (static_cast<double>(visitor->bytes_promoted()) /
+       static_cast<double>(to_->size())) * 100.0);
+  if (promotion_ratio < FLAG_early_tenuring_threshold) {
+    // Remember the limit to which objects have been copied.
+    survivor_end_ = top_;
+  } else {
+    // Move survivor end to the end of the to_ space, making all surviving
+    // objects candidates for promotion.
+    survivor_end_ = end_;
+  }
 
 #if defined(DEBUG)
   VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
@@ -673,7 +688,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   int64_t end = OS::GetCurrentTimeMicros();
   heap_->RecordTime(kProcessToSpace, middle - start);
   heap_->RecordTime(kIterateWeaks, end - middle);
-  Epilogue(isolate, invoke_api_callbacks);
+  Epilogue(isolate, &visitor, invoke_api_callbacks);
 
   if (FLAG_verify_after_gc) {
     OS::PrintErr("Verifying after Scavenge...");

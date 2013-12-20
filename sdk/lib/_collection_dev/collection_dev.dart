@@ -10,9 +10,9 @@ import 'dart:core' hide Symbol;
 import 'dart:core' as core;
 import 'dart:math' show Random;
 
-part 'arrays.dart';
 part 'iterable.dart';
 part 'list.dart';
+part 'lists.dart';
 part 'print.dart';
 part 'sort.dart';
 part 'symbol.dart';

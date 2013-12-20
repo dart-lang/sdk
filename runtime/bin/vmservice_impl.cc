@@ -60,7 +60,8 @@ const char* VmService::error_msg_ = NULL;
 
 
 static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
-                                                   int num_arguments);
+                                                   int num_arguments,
+                                                   bool* auto_setup_scope);
 
 
 bool VmService::Start(intptr_t server_port) {
@@ -491,8 +492,7 @@ static void SendServiceMessage(Dart_NativeArguments args) {
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, sp, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, rp, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(1));
 
   // Extract SendPort port id.
   const Object& sp_id_obj = Object::Handle(DartLibraryCalls::PortGetId(sp));
@@ -502,19 +502,7 @@ static void SendServiceMessage(Dart_NativeArguments args) {
   Integer& id = Integer::Handle();
   id ^= sp_id_obj.raw();
   Dart_Port sp_id = static_cast<Dart_Port>(id.AsInt64Value());
-
-  // Extract ReceivePort port id.
-  const Object& rp_id_obj = Object::Handle(DartLibraryCalls::PortGetId(rp));
-  if (rp_id_obj.IsError()) {
-    Exceptions::PropagateError(Error::Cast(rp_id_obj));
-  }
-  ASSERT(rp_id_obj.IsSmi() || rp_id_obj.IsMint());
-  id ^= rp_id_obj.raw();
-  Dart_Port rp_id = static_cast<Dart_Port>(id.AsInt64Value());
-
-  // Both are valid ports.
   ASSERT(sp_id != ILLEGAL_PORT);
-  ASSERT(rp_id != ILLEGAL_PORT);
 
   // Serialize message.
   uint8_t* data = NULL;
@@ -522,7 +510,7 @@ static void SendServiceMessage(Dart_NativeArguments args) {
   writer.WriteMessage(message);
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(sp_id, rp_id, data, writer.BytesWritten(),
+  PortMap::PostMessage(new Message(sp_id, data, writer.BytesWritten(),
                                    Message::kOOBPriority));
 }
 
@@ -535,18 +523,21 @@ struct VmServiceNativeEntry {
 
 
 static VmServiceNativeEntry _VmServiceNativeEntries[] = {
-  {"VMService_SendServiceMessage", 3, SendServiceMessage}
+  {"VMService_SendServiceMessage", 2, SendServiceMessage}
 };
 
 
 static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
-                                                   int num_arguments) {
+                                                   int num_arguments,
+                                                   bool* auto_setup_scope) {
   const Object& obj = Object::Handle(Api::UnwrapHandle(name));
   if (!obj.IsString()) {
     return NULL;
   }
   const char* function_name = obj.ToCString();
   ASSERT(function_name != NULL);
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = true;
   intptr_t n =
       sizeof(_VmServiceNativeEntries) / sizeof(_VmServiceNativeEntries[0]);
   for (intptr_t i = 0; i < n; i++) {

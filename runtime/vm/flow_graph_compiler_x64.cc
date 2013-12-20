@@ -1046,7 +1046,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   Register new_pp = kNoRegister;
   Register new_pc = kNoRegister;
   if (CanOptimizeFunction() &&
-      function.is_optimizable() &&
+      function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
     const Register function_reg = RDI;
     new_pp = R13;

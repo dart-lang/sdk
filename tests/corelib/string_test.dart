@@ -4,7 +4,6 @@
 
 import "package:expect/expect.dart";
 
-// TODO(ngeoffray): test String methods with null arguments.
 class StringTest {
 
   static testMain() {

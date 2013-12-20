@@ -262,8 +262,6 @@ abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
 
 class _LocalInstanceMirror extends _LocalObjectMirror
     implements InstanceMirror {
-  // TODO(ahe): This is a hack, see delegate below.
-  static Function _invokeOnClosure;
 
   _LocalInstanceMirror(reflectee) : super(reflectee);
 
@@ -283,17 +281,22 @@ class _LocalInstanceMirror extends _LocalObjectMirror
   get reflectee => _reflectee;
 
   delegate(Invocation invocation) {
-    if (_invokeOnClosure == null) {
-      // TODO(ahe): This is a total hack.  We're using the mirror
-      // system to access a private field in a different library.  For
-      // some reason, that works.  On the other hand, calling a
-      // private method does not work.
-      ClassMirror invocationImplClass = reflect(invocation).type;
-      Symbol fieldName = MirrorSystem.getSymbol('_invokeOnClosure',
-                                                invocationImplClass.owner);
-      _invokeOnClosure = invocationImplClass.getField(fieldName).reflectee;
+    if (invocation.isMethod) {
+      return this.invoke(invocation.memberName,
+                         invocation.positionalArguments,
+                         invocation.namedArguments).reflectee;
     }
-    return _invokeOnClosure(reflectee, invocation);
+    if (invocation.isGetter) {
+      return this.getField(invocation.memberName).reflectee;
+    }
+    if (invocation.isSetter) {
+      var unwrapped = _n(invocation.memberName);
+      var withoutEqual = _s(unwrapped.substring(0, unwrapped.length - 1));
+      var arg = invocation.positionalArguments[0];
+      this.setField(withoutEqual, arg).reflectee;
+      return arg;
+    }
+    throw "UNREACHABLE";
   }
 
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
@@ -1072,10 +1075,33 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
         new _UnmodifiableMapView<Symbol, DeclarationMirror>(_members);
   }
 
+
+  var _cachedTopLevelMembers;
   Map<Symbol, MethodMirror> get topLevelMembers {
-    throw new UnimplementedError(
-        'LibraryMirror.topLevelMembers is not implemented');
+    if (_cachedTopLevelMembers != null) return _cachedTopLevelMembers;
+    var result = new Map<Symbol, MethodMirror>();
+    declarations.values.forEach((decl) {
+      if (decl is MethodMirror && !decl.isAbstract) {
+        result[decl.simpleName] = decl;
+      }
+      if (decl is VariableMirror) {
+        var getterName = decl.simpleName;
+        result[getterName] =
+            new _SyntheticAccessor(this, getterName, true, true, true, decl);
+        if (!decl.isFinal) {
+          var setterName = _asSetter(decl.simpleName, this);
+          result[setterName] = new _SyntheticAccessor(
+              this, setterName, false, true, true, decl);
+        }
+      }
+      // if (decl is TypeMirror) {
+      //  var getterName = decl.simpleName;
+      //  result[getterName] = new _SyntheticTypeGetter(this, getterName, decl);
+      // }
+    });
+    return _cachedTopLevelMembers = result;
   }
+
 
   Map<Symbol, Mirror> _cachedMembers;
   Map<Symbol, Mirror> get _members {
@@ -1414,9 +1440,6 @@ class _SpecialTypeMirror extends _LocalMirror
 }
 
 class _Mirrors {
-  // Does a port refer to our local isolate?
-  static bool isLocalPort(SendPort port) native 'Mirrors_isLocalPort';
-
   static MirrorSystem _currentMirrorSystem = null;
 
   // Creates a new local MirrorSystem.

@@ -60,6 +60,15 @@ abstract class double extends num {
   double abs();
 
   /**
+   * Returns the sign of the double's numerical value.
+   *
+   * Returns -1.0 if the value is less than zero,
+   * +1.0 if the value is greater than zero,
+   * and the value itself if it is -0.0, 0.0 or NaN.
+   */
+  double get sign;
+
+  /**
    * Returns the integer closest to `this`.
    *
    * Rounds away from zero when there is no closest integer:

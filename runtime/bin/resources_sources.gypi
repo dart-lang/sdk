@@ -5,13 +5,14 @@
 {
   'sources': [
 #  VM Service backend sources
+    'vmservice/client.dart',
     'vmservice/constants.dart',
     'vmservice/resources.dart',
     'vmservice/running_isolate.dart',
     'vmservice/running_isolates.dart',
     'vmservice/server.dart',
-    'vmservice/service_request.dart',
-    'vmservice/service_request_router.dart',
+    'vmservice/message.dart',
+    'vmservice/message_router.dart',
     'vmservice/vmservice.dart',
     'vmservice/vmservice_io.dart',
 # VM Service frontend sources

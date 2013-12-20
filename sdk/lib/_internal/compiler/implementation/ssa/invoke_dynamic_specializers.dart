@@ -388,12 +388,12 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
         if (left.isUInt31(compiler)) {
           return newBuiltinVariant(instruction, compiler);
         }
-        clearAllSideEffects(instruction);
         // We can call _tdivFast because the rhs is a 32bit integer
         // and not 0, nor -1.
         instruction.selector = renameToOptimizedSelector(
             '_tdivFast', instruction.selector, compiler);
       }
+      clearAllSideEffects(instruction);
     }
     return null;
   }

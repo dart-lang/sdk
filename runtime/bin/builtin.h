@@ -54,7 +54,8 @@ class Builtin {
 
   // Native method support.
   static Dart_NativeFunction NativeLookup(Dart_Handle name,
-                                          int argument_count);
+                                          int argument_count,
+                                          bool* auto_setup_scope);
 
   static const char* builtin_source_paths_[];
   static const char* io_source_paths_[];

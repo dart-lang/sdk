@@ -15,41 +15,44 @@ RawReceivePort _requestPort;
 // The native method that is called to post the response back to DevTools.
 void postResponse(String response, int cookie) native "VMService_PostResponse";
 
-void handleRequest(service, String uri, cookie) {
-  var serviceRequest = new ServiceRequest();
-  var r = serviceRequest.parse(Uri.parse(uri));
-  if (r) {
-    var f = service.runningIsolates.route(serviceRequest);
-    assert(f != null);
-    f.then((_) {
-      postResponse(serviceRequest.response, cookie);
-    }).catchError((e) {
-      // Error posting response back to Dartium.
+/// Dartium recieves messages through the _requestPort and posts
+/// responses via postResponse. It has a single persistent client.
+class DartiumClient extends Client {
+  DartiumClient(port, service) : super(service) {
+    port.handler = ((message) {
+      if (message == null) {
+        return;
+      }
+      if (message is! List) {
+        return;
+      }
+      if (message.length != 2) {
+        return;
+      }
+      if (message[0] is! String) {
+        return;
+      }
+      var uri = Uri.parse(message[0]);
+      var cookie = message[1];
+      onMessage(cookie, new Message.fromUri(uri));
     });
-    return;
   }
-  postResponse(serviceRequest.response, cookie);
+
+  void post(var seq, String response) {
+    postResponse(response, seq);
+  }
+
+  dynamic toJson() {
+    var map = super.toJson();
+    map['type'] = 'DartiumClient';
+  }
 }
+
 
 main() {
   // Create VmService.
   var service = new VMService();
   _receivePort = service.receivePort;
-  _requestPort = new RawReceivePort((message) {
-    if (message == null) {
-      return;
-    }
-    if (message is! List) {
-      return;
-    }
-    if (message.length != 2) {
-      return;
-    }
-    var uri = message[0];
-    if (uri is! String) {
-      return;
-    }
-    var cookie = message[1];
-    handleRequest(service, uri, cookie);
-  });
+  _requestPort = new RawReceivePort();
+  new DartiumClient(_requestPort, service);
 }

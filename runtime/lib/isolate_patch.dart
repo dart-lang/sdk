@@ -107,8 +107,7 @@ class _RawReceivePortImpl implements RawReceivePort {
   }
 
   // Called from the VM to dispatch to the handler.
-  static void _handleMessage(
-      _RawReceivePortImpl port, int replyId, var message) {
+  static void _handleMessage(_RawReceivePortImpl port, var message) {
     assert(port != null);
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
@@ -229,40 +228,39 @@ void _startIsolate(Function entryPoint, bool isSpawnUri) {
 patch class Isolate {
   /* patch */ static Future<Isolate> spawn(
       void entryPoint(message), var message) {
-    Completer completer = new Completer<Isolate>.sync();
     try {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       SendPort controlPort = _spawnFunction(entryPoint);
       RawReceivePort readyPort = new RawReceivePort();
       controlPort.send([readyPort.sendPort, message]);
+      Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         assert(readyMessage == 'started');
         readyPort.close();
         completer.complete(new Isolate._fromControlPort(controlPort));
       };
-    } catch(e, st) {
-      // TODO(14718): we want errors to go into the returned future.
-      rethrow;
+      return completer.future;
+    } catch (e, st) {
+      return new Future<Isolate>.error(e, st);
     };
-    return completer.future;
   }
 
   /* patch */ static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message) {
-    Completer completer = new Completer<Isolate>.sync();
     try {
       // The VM will invoke [_startIsolate] and not `main`.
       SendPort controlPort = _spawnUri(uri.toString());
       RawReceivePort readyPort = new RawReceivePort();
       controlPort.send([readyPort.sendPort, args, message]);
+      Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         assert(readyMessage == 'started');
         readyPort.close();
         completer.complete(new Isolate._fromControlPort(controlPort));
       };
-    } catch(e, st) {
-      // TODO(14718): we want errors to go into the returned future.
-      rethrow;
+      return completer.future;
+    } catch (e, st) {
+      return new Future<Isolate>.error(e, st);
     };
     return completer.future;
   }

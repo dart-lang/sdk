@@ -17,7 +17,7 @@ main() {
       d.appDir({"foo": {"bad": "foo"}}).create();
 
       pubCommand(command, error:
-          "Package 'myapp' depends on 'foo' from unknown source 'bad'.");
+          'Package myapp depends on foo from unknown source "bad".');
     });
 
     integration('fails gracefully on transitive dependency from an unknown '
@@ -30,7 +30,7 @@ main() {
       d.appDir({"foo": {"path": "../foo"}}).create();
 
       pubCommand(command, error:
-          "Package 'foo' depends on 'bar' from unknown source 'bad'.");
+          'Package foo depends on bar from unknown source "bad".');
     });
 
     integration('ignores unknown source in lockfile', () {

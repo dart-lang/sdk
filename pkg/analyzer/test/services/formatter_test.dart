@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+//import 'dart:io';
+
 import 'package:unittest/unittest.dart';
 
 import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
@@ -10,6 +12,22 @@ import 'package:analyzer/src/services/formatter_impl.dart';
 import 'package:analyzer/src/services/writer.dart';
 
 main() {
+
+//TODO(pquitslund): disabled pending build investigation
+
+//  /// Data driven statement tests
+//  group('stmt_tests.data', () {
+//    runTests(new File('data/stmt_tests.data'), (input, expectedOutput) {
+//      expect(formatStatement(input) + '\n', equals(expectedOutput));
+//    });
+//  });
+//
+//  /// Data driven compilation unit tests
+//  group('cu_tests.data', () {
+//    runTests(new File('data/cu_tests.data'), (input, expectedOutput) {
+//      expectCUFormatsTo(input, expectedOutput);
+//    });
+//  });
 
   /// Formatter tests
   group('formatter', () {
@@ -566,7 +584,10 @@ main() {
     test('CU - comments (11)', () {
       expectCUFormatsTo(
           'var m = {1: 2 /* bang */, 3: 4};\n',
-          'var m = {1: 2 /* bang */, 3: 4};\n'
+          'var m = {\n'
+          '  1: 2 /* bang */,\n'
+          '  3: 4\n'
+          '};\n'
       );
     });
 
@@ -787,10 +808,7 @@ main() {
         '1,\n'
         '2,\n'
         '];',
-        'var l = [\n'
-        '  1,\n'
-        '  2,\n'
-        '];'
+        'var l = [1, 2,];'
       );
       //Dangling ','
       expectStmtFormatsTo(
@@ -802,24 +820,29 @@ main() {
     test('stmt (maps)', () {
       expectStmtFormatsTo(
         'var map = const {"foo": "bar", "fuz": null};',
-        'var map = const {"foo": "bar", "fuz": null};'
+        'var map = const {\n'
+        '  "foo": "bar",\n'
+        '  "fuz": null\n'
+        '};'
       );
 
       expectStmtFormatsTo(
           'var map = {\n'
           '"foo": "bar",\n'
-          '"bar": "baz"'
+          '"bar": "baz"\n'
           '};',
           'var map = {\n'
           '  "foo": "bar",\n'
-          '  "bar": "baz"'
+          '  "bar": "baz"\n'
           '};'
       );
 
       //Dangling ','
       expectStmtFormatsTo(
         'var map = {"foo": "bar",};',
-        'var map = {"foo": "bar",};'
+        'var map = {\n'
+        '  "foo": "bar",\n'
+        '};'
       );
     });
 
@@ -913,6 +936,135 @@ main() {
                           'if (true) print("true!"); else print("false!");',
                           transforms: false);
     });
+
+    // smoketest to ensure we're enforcing the 'no gratuitous linebreaks'
+    // opinion
+    test('CU (eat newlines)', () {
+      expectCUFormatsTo(
+        'abstract\n'
+        'class\n'
+        'A{}',
+        'abstract class A {\n'
+        '}\n'
+      );
+    });
+
+//    test('line continuations - 1', () {
+//      expectStmtFormatsTo(
+//          'if (x &&\n'
+//          '    y) {\n'
+//          '  print("yes!");\n'
+//          '}',
+//          'if (x &&\n'
+//          '    y) {\n'
+//          '  print("yes!");\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'var x =\n'
+//          '    1234567890;',
+//          'var x =\n'
+//          '    1234567890;'
+//      );
+//      expectStmtFormatsTo(
+//          'foo() {\n'
+//          '  var x = 0;\n'
+//          '  x =\n'
+//          '      1234567890;\n'
+//          '}',
+//          'foo() {\n'
+//          '  var x = 0;\n'
+//          '  x =\n'
+//          '      1234567890;\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'foo() {\n'
+//          '  while (true &&\n'
+//          '      true) {\n'
+//          '    print("!");\n'
+//          '  }\n'
+//          '}',
+//          'foo() {\n'
+//          '  while (true &&\n'
+//          '      true) {\n'
+//          '    print("!");\n'
+//          '  }\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'foo() {\n'
+//          '  do {\n'
+//          '    print("!");\n'
+//          '  } while (true &&\n'
+//          '      true);\n'
+//          '}',
+//          'foo() {\n'
+//          '  do {\n'
+//          '    print("!");\n'
+//          '  } while (true &&\n'
+//          '      true);\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'int foo() {\n'
+//          '  return\n'
+//          '      foo();\n'
+//          '}',
+//          'int foo() {\n'
+//          '  return\n'
+//          '      foo();\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'int foo() {\n'
+//          '  return\n'
+//          '      13;\n'
+//          '}',
+//          'int foo() {\n'
+//          '  return\n'
+//          '      13;\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'foo(fn()) {\n'
+//          '  return foo(() {\n'
+//          '    return 1;\n'
+//          '});\n'
+//          '}',
+//          'foo(fn()) {\n'
+//          '  return foo(() {\n'
+//          '    return 1;\n'
+//          '});\n'
+//          '}'
+//      );
+//      expectStmtFormatsTo(
+//          'true ? foo() :\n'
+//          '    bar();',
+//          'true ? foo() :\n'
+//          '    bar();'
+//      );
+//      expectCUFormatsTo(
+//          'import "dart:core" as\n'
+//          '    core;\n',
+//          'import "dart:core" as\n'
+//          '    core;\n'
+//      );
+//      expectCUFormatsTo(
+//          'export "package:foo/foo.dart" show\n'
+//          '    Foo;\n',
+//          'export "package:foo/foo.dart" show\n'
+//          '    Foo;\n'
+//      );
+//      expectCUFormatsTo(
+//          'class Foo extends Bar implements\n'
+//          '    Baz {\n'
+//          '}\n',
+//          'class Foo extends Bar implements\n'
+//          '    Baz {\n'
+//          '}\n'
+//      );
+//    });
 
     test('initialIndent', () {
       var formatter = new CodeFormatter(
@@ -1155,3 +1307,22 @@ expectCUFormatsTo(src, expected, {transforms: true}) =>
 expectStmtFormatsTo(src, expected, {transforms: true}) =>
     expect(formatStatement(src, options:
       new FormatterOptions(codeTransforms: transforms)), equals(expected));
+
+runTests(testFile, expectClause(input, output)) {
+
+  var testIndex = 1;
+  var lines = testFile.readAsLinesSync();
+
+  for (var i = 1; i < lines.length; ++i) {
+    var input = '', expectedOutput = '';
+    while(lines[i] != '<<<') {
+      input += lines[i++] + '\n';
+    }
+    while(++i < lines.length && lines[i] != '>>>') {
+      expectedOutput += lines[i] + '\n';
+    }
+    test('test - (${testIndex++})', () {
+      expectClause(input, expectedOutput);
+    });
+  }
+}

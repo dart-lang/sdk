@@ -18,7 +18,9 @@ namespace dart {
 
 static void native_echo(Dart_NativeArguments args);
 static void CustomIsolateImpl_start(Dart_NativeArguments args);
-static Dart_NativeFunction NativeLookup(Dart_Handle name, int argc);
+static Dart_NativeFunction NativeLookup(Dart_Handle name,
+                                        int argc,
+                                        bool* auto_setup_scope);
 
 
 static const char* kCustomIsolateScriptChars =
@@ -229,7 +231,11 @@ static void NotifyMessage(Dart_Isolate dest_isolate) {
 }
 
 
-static Dart_NativeFunction NativeLookup(Dart_Handle name, int argc) {
+static Dart_NativeFunction NativeLookup(Dart_Handle name,
+                                        int argc,
+                                        bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
   const char* name_str = NULL;
   EXPECT(Dart_IsString(name));
   EXPECT_VALID(Dart_StringToCString(name, &name_str));

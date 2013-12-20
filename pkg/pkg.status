@@ -22,14 +22,16 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 third_party/html5lib/test/dom_compat_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 
+http/test/http_test: Pass, RuntimeError # Issue 15652
+
 [ $compiler == dart2js ]
-collection_helpers/test/equality_test/01: Fail # Issue 1533
-collection_helpers/test/equality_test/02: Fail # Issue 1533
-collection_helpers/test/equality_test/03: Fail # Issue 1533
-collection_helpers/test/equality_test/04: Fail # Issue 1533
-collection_helpers/test/equality_test/05: Fail # Issue 1533
-collection_helpers/test/equality_test/none: Pass, Fail # Issue 14348
-collection_helpers/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
+collection/test/equality_test/01: Fail # Issue 1533
+collection/test/equality_test/02: Fail # Issue 1533
+collection/test/equality_test/03: Fail # Issue 1533
+collection/test/equality_test/04: Fail # Issue 1533
+collection/test/equality_test/05: Fail # Issue 1533
+collection/test/equality_test/none: Pass, Fail # Issue 14348
+typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
@@ -42,7 +44,7 @@ serialization/test/serialization_test: Skip
 unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
 stack_trace/test/chain_test: Fail # Issues 15171 and 15105
-sequence_zip/test/stream_test: RuntimeError, OK # Timers are not supported.
+async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
 unittest/test/missing_tick_test: Fail # Timer interface not supported: dartbug.com/7728.
 
 [ $runtime == vm || $runtime == d8 || $runtime == jsshell ]
@@ -81,7 +83,7 @@ source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers th
 # Bug in Spidermonkey's Uint8ClampedArray on x64 (non-Win FF is x64, Win is x86)
 # See https://bugzilla.mozilla.org/show_bug.cgi?id=940972
 # Likely to get patched only on some versions of Firefox.
-collection_helpers/test/typed_buffers_test: RuntimeError
+typed_data/test/typed_buffers_test: RuntimeError
 
 [ $runtime == opera && $compiler == dart2js ]
 intl/test/find_default_locale_browser_test: Fail
@@ -90,38 +92,21 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == ie9 ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
-collection_helpers/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
+typed_data/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
 
 # Unexplained errors only occuring on Safari.
-collection_helpers/test/typed_buffers_test: RuntimeError
+typed_data/test/typed_buffers_test: RuntimeError
 
 [ $runtime == ie9 || $runtime == ie10 ]
-polymer/example/canonicalization/test/canonicalization_deploy_test: Pass, Timeout
-polymer/example/canonicalization/test/canonicalization_test: Timeout, OK # tests development only behavior
-polymer/test/attr_deserialize_test: Pass, Timeout # Issue 13260
-polymer/test/attr_mustache_test: Pass, Timeout # Issue 13260
-polymer/test/bind_test: Timeout # Issue 13260
 polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
-polymer/test/custom_event_test: Timeout # Issue 13260
-polymer/test/entered_view_test: Timeout # Issue 13260
-polymer/test/event_handlers_test: Timeout # Issue 13260
-polymer/test/event_path_declarative_test: Timeout # Issue 13260
-polymer/test/event_path_test: Timeout # Issue 13260
-polymer/test/events_test: Timeout # Issue 13260
-polymer/test/nested_binding_test: Timeout # Issue 13260
-polymer/test/noscript_test: Timeout # Issue 13260
-polymer/test/property_change_test: Timeout # Issue 13260
-polymer/test/prop_attr_reflection_test: Timeout # Issue 13260
-polymer/test/prop_attr_bind_reflection_test: Timeout # Issue 13260
-polymer/test/publish_attributes_test: Timeout # Issue 13260
-polymer/test/publish_inherited_properties_test: Timeout # Issue 13260
-polymer/test/take_attributes_test: Timeout # Issue 13260
-polymer/test/template_distribute_dynamic_test: Pass, Timeout # Issue 13260
-polymer/test/unbind_test: Timeout # Issue 13260, 15259
+polymer/test/noscript_test: RuntimeError # Issue 13260
+
+[ ($runtime == ie9 || $runtime == ie10) && $checked ]
+polymer/test/take_attributes_test: RuntimeError # Issue 13260
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]

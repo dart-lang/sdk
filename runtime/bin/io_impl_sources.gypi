@@ -50,12 +50,12 @@
     'socket_linux.cc',
     'socket_macos.cc',
     'socket_win.cc',
-    'stdin.cc',
-    'stdin.h',
-    'stdin_android.cc',
-    'stdin_linux.cc',
-    'stdin_macos.cc',
-    'stdin_win.cc',
+    'stdio.cc',
+    'stdio.h',
+    'stdio_android.cc',
+    'stdio_linux.cc',
+    'stdio_macos.cc',
+    'stdio_win.cc',
   ],
   'conditions': [
     ['dart_io_support==1', {

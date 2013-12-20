@@ -21,6 +21,7 @@ mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/closures_test/none: RuntimeError # Issue 6490
 mirrors/constructor_kinds_test: RuntimeError # Issue 13799
 mirrors/constructor_private_name_test: CompileTimeError # Issue 13597
+mirrors/delegate_call_through_getter_test: RuntimeError # Issue 15138
 mirrors/equality_test/02: RuntimeError # Issue 12785
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
@@ -41,6 +42,7 @@ mirrors/initializing_formals_test/03: CompileTimeError # Issue 12164
 mirrors/instance_members_test: RuntimeError # Issue 14633
 mirrors/instance_members_with_override_test: RuntimeError # Issue 14633
 mirrors/instance_members_unimplemented_interface_test: RuntimeError # Issue 14633
+mirrors/instantiate_abstract_class_test: RuntimeError # Issue 6490
 mirrors/intercepted_superclass_test: RuntimeError # Issue 13644
 mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_call_through_getter_test: RuntimeError # Issue 15138
@@ -64,7 +66,6 @@ mirrors/method_mirror_source_test : RuntimeError # Issue 6490
 mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this.
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test/none: RuntimeError # Issue 12464
-mirrors/new_instance_with_type_arguments_test: RuntimeError # Issue 12333
 mirrors/null_test : RuntimeError # Issue 12129
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_metadata_test: CompileTimeError # Issue 10905
@@ -72,7 +73,6 @@ mirrors/private_symbol_test: CompileTimeError # Issue 13597
 mirrors/proxy_type_test: RuntimeError # Issue 13842
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/02: RuntimeError # Issue 6490
-mirrors/reflected_type_test: RuntimeError # Issue 12607
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Issue 14670
 mirrors/symbol_validation_test: RuntimeError # Issue 13597
 mirrors/static_members_test: RuntimeError # Issue 14633, Issue 12164
@@ -161,6 +161,8 @@ json/json_test: Fail                            # Issue 10961
 [ $compiler == dart2js && $minified ]
 mirrors/typedef_test/01: Fail # http://dartbug.com/6490
 mirrors/list_constructor_test/none: Fail # http://dartbug.com/15555
+mirrors/mirrors_used_get_name_test: RuntimeError
+mirrors/mirrors_used_get_name2_test: RuntimeError
 
 [ $runtime == ff ]
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
@@ -207,7 +209,7 @@ mirrors/typedef_test/01: Fail, OK # Incorrect dart2js behavior.
 mirrors/generic_local_function_test: RuntimeError # Issue 14913
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 mirrors/synthetic_accessor_properties_test/none: RuntimeError # Issue 14632
-mirrors/toplevel_members_test: RuntimeError # Issue 14632
+mirrors/toplevel_members_test/01: RuntimeError # Issue 14632
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
@@ -254,7 +256,6 @@ async/schedule_microtask_test: Fail # Issue 9002
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 14116
-mirrors/invoke_named_test: StaticWarning # Issue 14522
 
 mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'
 mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>

@@ -19,7 +19,7 @@ class _GrowableList<T> implements List<T> {
     // (with a length that has been increased, but without a new element).
     if (index is! int) throw new ArgumentError(index);
     this.length++;
-    Arrays.copy(this,
+    Lists.copy(this,
                 index,
                 this,
                 index + 1,
@@ -31,7 +31,7 @@ class _GrowableList<T> implements List<T> {
     if (index is! int) throw new ArgumentError(index);
     T result = this[index];
     int newLength = this.length - 1;
-    Arrays.copy(this,
+    Lists.copy(this,
                 index + 1,
                 this,
                 index,
@@ -95,8 +95,8 @@ class _GrowableList<T> implements List<T> {
   }
 
   void removeRange(int start, int end) {
-    Arrays.indicesCheck(this, start, end);
-    Arrays.copy(this,
+    Lists.indicesCheck(this, start, end);
+    Lists.copy(this,
                 end,
                 this,
                 start,
@@ -113,13 +113,13 @@ class _GrowableList<T> implements List<T> {
   }
 
   List<T> sublist(int start, [int end]) {
-    Arrays.indicesCheck(this, start, end);
+    Lists.indicesCheck(this, start, end);
     if (end == null) end = this.length;
     int length = end - start;
     if (start == end) return <T>[];
     List list = new _GrowableList<T>.withCapacity(length);
     list.length = length;
-    Arrays.copy(this, start, list, 0, length);
+    Lists.copy(this, start, list, 0, length);
     return list;
   }
 

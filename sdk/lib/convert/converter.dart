@@ -7,8 +7,8 @@ part of dart.convert;
 /**
  * A [Converter] converts data from one representation into another.
  *
- * *Converters are still experimental and are subject to change without notice.*
- *
+ * It is recommended that implementations of `Converter` extend this class,
+ * to inherit any further methods that may be added to the class.
  */
 abstract class Converter<S, T> implements StreamTransformer {
   const Converter();

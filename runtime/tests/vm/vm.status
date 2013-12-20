@@ -23,6 +23,19 @@ cc/IsolateInterrupt: Skip
 [ $system == windows ]
 cc/Dart2JSCompileAll: Skip
 cc/ExternalizeConstantStrings: Skip
+cc/ThreadInterrupterHigh: Skip
+cc/ThreadInterrupterMedium: Skip
+cc/ThreadInterrupterLow: Skip
+
+[ $system == macos ]
+cc/ThreadInterrupterHigh: Skip
+cc/ThreadInterrupterMedium: Skip
+cc/ThreadInterrupterLow: Skip
+
+[ $arch == simarm || $arch == simmips ]
+cc/ThreadInterrupterHigh: Skip
+cc/ThreadInterrupterMedium: Skip
+cc/ThreadInterrupterLow: Skip
 
 [ $compiler == dart2js ]
 dart/mirrored_compilation_error_test: Skip # VM-specific flag

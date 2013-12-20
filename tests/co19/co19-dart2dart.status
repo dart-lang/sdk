@@ -160,6 +160,9 @@ Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: Runtim
 LibTest/core/Function/Function_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # co19-roll r667: Please triage this failure
 
+LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
+LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15617
+
 [ $compiler == dart2dart && $minified ]
 Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A02_t01: fail # co19-roll r559: Please triage this failure

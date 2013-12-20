@@ -40,8 +40,6 @@ LibTest/core/Uri/toFilePath_A01_t01: pass, fail, ok # co19 Issue 592
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip, OK # co19 issue 661
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip, OK # co19 issue 661
 
-LibTest/isolate/Isolate/spawnUri_A02_t04: Fail # co19-roll r672: Please triage this failure
-
 [ $runtime == vm || $runtime == dartium || $compiler == dart2js ]
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44

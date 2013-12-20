@@ -973,6 +973,12 @@ DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id) {
 }
 
 
+DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate dart_isolate) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
+  return isolate->debugger()->GetIsolateId();
+}
+
+
 DART_EXPORT char* Dart_GetVmStatus(const char* request) {
   if (strncmp(request, "/isolate/", 9) == 0) {
     return Isolate::GetStatus(request);

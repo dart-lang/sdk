@@ -123,11 +123,19 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (replacement != instruction) {
         block.rewrite(instruction, replacement);
 
-        // If we can replace [instruction] with [replacement], then
-        // [replacement]'s type can be narrowed.
-        TypeMask newType = replacement.instructionType.intersection(
-            instruction.instructionType, compiler);
-        replacement.instructionType = newType;
+        // The intersection of double and int return conflicting, and
+        // because of our number implementation for JavaScript, it
+        // might be that an operation thought to return double, can be
+        // simplified to an int. For example:
+        // `2.5 * 10`.
+        if (!(replacement.isNumberOrNull(compiler)
+              && instruction.isNumberOrNull(compiler))) {
+          // If we can replace [instruction] with [replacement], then
+          // [replacement]'s type can be narrowed.
+          TypeMask newType = replacement.instructionType.intersection(
+              instruction.instructionType, compiler);
+          replacement.instructionType = newType;
+        }
 
         // If the replacement instruction does not know its
         // source element, use the source element of the

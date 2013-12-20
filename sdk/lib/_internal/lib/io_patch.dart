@@ -83,6 +83,9 @@ patch class _File {
   patch static _renameLink(String oldPath, String newPath) {
     throw new UnsupportedError("File._renameLink");
   }
+  patch static _copy(String oldPath, String newPath) {
+    throw new UnsupportedError("File._copy");
+  }
   patch static _lengthFromPath(String path) {
     throw new UnsupportedError("File._lengthFromPath");
   }
@@ -181,6 +184,9 @@ patch class _ProcessUtils {
   }
   patch static int _pid(Process process) {
     throw new UnsupportedError("ProcessUtils._pid");
+  }
+  patch static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
+    throw new UnsupportedError("ProcessUtils._watchSignal");
   }
 }
 
@@ -310,7 +316,7 @@ patch class _StdIOUtils {
   patch static Stdin _getStdioInputStream() {
     throw new UnsupportedError("StdIOUtils._getStdioInputStream");
   }
-  patch static IOSink _getStdioOutputStream(int fd) {
+  patch static _getStdioOutputStream(int fd) {
     throw new UnsupportedError("StdIOUtils._getStdioOutputStream");
   }
   patch static int _socketType(nativeSocket) {
@@ -354,6 +360,18 @@ patch class Stdin {
   }
   patch void set lineMode(bool enabled) {
     throw new UnsupportedError("Stdin.lineMode");
+  }
+}
+
+patch class Stdout {
+  patch bool get hasTerminal {
+    throw new UnsupportedError("Stdout.hasTerminal");
+  }
+  patch int get terminalColumns {
+    throw new UnsupportedError("Stdout.terminalColumns");
+  }
+  patch int get terminalLines {
+    throw new UnsupportedError("Stdout.terminalLines");
   }
 }
 

@@ -4,6 +4,7 @@
 
 library vmservice_io;
 
+import 'dart:convert';
 import 'dart:io';
 import 'vmservice.dart';
 

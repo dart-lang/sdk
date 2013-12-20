@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import '../entrypoint.dart';
 import '../io.dart';
+import '../utils.dart';
 import '../validator.dart';
 
 /// Validates that a package's README is valid utf-8.
@@ -17,7 +18,7 @@ class Utf8ReadmeValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return new Future.sync(() {
+    return syncFuture(() {
       var readme = entrypoint.root.readmePath;
       if (readme == null) return;
       var bytes = readBinaryFile(readme);

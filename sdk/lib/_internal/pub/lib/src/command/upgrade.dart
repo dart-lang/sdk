@@ -26,15 +26,19 @@ class UpgradeCommand extends PubCommand {
   }
 
   Future onRun() {
-    var future;
-    if (commandOptions.rest.isEmpty) {
-      future = entrypoint.upgradeAllDependencies();
-    } else {
-      future = entrypoint.upgradeDependencies(commandOptions.rest);
-    }
+    var upgradeAll = commandOptions.rest.isEmpty;
+    return entrypoint.acquireDependencies(useLatest: commandOptions.rest,
+        upgradeAll: upgradeAll).then((numChanged) {
+      // TODO(rnystrom): Show a more detailed message about what was added,
+      // removed, modified, and/or upgraded?
+      if (numChanged == 0) {
+        log.message("No dependencies changed.");
+      } else if (numChanged == 1) {
+        log.message("Changed $numChanged dependency!");
+      } else {
+        log.message("Changed $numChanged dependencies!");
+      }
 
-    return future.then((_) {
-      log.message("Dependencies upgraded!");
       if (isOffline) {
         log.warning("Warning: Upgrading when offline may not update you to the "
                     "latest versions of your dependencies.");

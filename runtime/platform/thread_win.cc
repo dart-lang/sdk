@@ -99,7 +99,8 @@ void ThreadInlineImpl::DestroyThreadId(ThreadId thread_id) {
 ThreadLocalKey ThreadInlineImpl::thread_id_key = Thread::kUnsetThreadLocalKey;
 
 ThreadLocalKey Thread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-
+ThreadId Thread::kInvalidThreadId =
+    reinterpret_cast<ThreadId>(INVALID_HANDLE_VALUE);
 
 ThreadLocalKey Thread::CreateThreadLocal() {
   ThreadLocalKey key = TlsAlloc();
@@ -130,6 +131,17 @@ ThreadId Thread::GetCurrentThreadId() {
       Thread::GetThreadLocal(ThreadInlineImpl::thread_id_key));
   ASSERT(id != NULL);
   return id;
+}
+
+
+intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
+  ASSERT(sizeof(id) == sizeof(intptr_t));
+  return reinterpret_cast<intptr_t>(id);
+}
+
+
+bool Thread::Compare(ThreadId a, ThreadId b) {
+  return a == b;
 }
 
 

@@ -106,7 +106,7 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 
 
 ThreadLocalKey Thread::kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
-
+ThreadId Thread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
 
 ThreadLocalKey Thread::CreateThreadLocal() {
   pthread_key_t key = kUnsetThreadLocalKey;
@@ -139,6 +139,17 @@ intptr_t Thread::GetMaxStackSize() {
 
 ThreadId Thread::GetCurrentThreadId() {
   return pthread_self();
+}
+
+
+intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
+  ASSERT(sizeof(id) == sizeof(intptr_t));
+  return reinterpret_cast<intptr_t>(id);
+}
+
+
+bool Thread::Compare(ThreadId a, ThreadId b) {
+  return pthread_equal(a, b) != 0;
 }
 
 

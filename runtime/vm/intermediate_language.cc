@@ -26,6 +26,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
+DEFINE_FLAG(bool, unbox_double_fields, true, "Support unboxed double fields.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
@@ -133,6 +134,30 @@ bool CheckClassInstr::IsNullCheck() const {
   // Performance check: use CheckSmiInstr instead.
   ASSERT(cid != kSmiCid);
   return in_type->is_nullable() && (in_type->ToNullableCid() == cid);
+}
+
+
+bool LoadFieldInstr::IsUnboxedLoad() const {
+  return FLAG_unbox_double_fields
+      && (field() != NULL)
+      && field()->IsUnboxedField();
+}
+
+
+bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
+  return FLAG_unbox_double_fields
+      && (field() != NULL)
+      && field()->IsPotentialUnboxedField();
+}
+
+
+bool StoreInstanceFieldInstr::IsUnboxedStore() const {
+  return FLAG_unbox_double_fields && field().IsUnboxedField();
+}
+
+
+bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
+  return FLAG_unbox_double_fields && field().IsPotentialUnboxedField();
 }
 
 
@@ -1757,13 +1782,13 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
 
 #define __ compiler->assembler()->
 
-LocationSummary* GraphEntryInstr::MakeLocationSummary() const {
+LocationSummary* GraphEntryInstr::MakeLocationSummary(bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
 
 
-LocationSummary* JoinEntryInstr::MakeLocationSummary() const {
+LocationSummary* JoinEntryInstr::MakeLocationSummary(bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -1782,7 +1807,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* TargetEntryInstr::MakeLocationSummary() const {
+LocationSummary* TargetEntryInstr::MakeLocationSummary(bool optimizing) const {
   // FlowGraphCompiler::EmitInstructionPrologue is not called for block
   // entry instructions, so this function is unused.  If it becomes
   // reachable, note that the deoptimization descriptor in unoptimized code
@@ -1794,7 +1819,7 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary() const {
 }
 
 
-LocationSummary* PhiInstr::MakeLocationSummary() const {
+LocationSummary* PhiInstr::MakeLocationSummary(bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -1805,7 +1830,7 @@ void PhiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* RedefinitionInstr::MakeLocationSummary() const {
+LocationSummary* RedefinitionInstr::MakeLocationSummary(bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -1816,7 +1841,7 @@ void RedefinitionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ParameterInstr::MakeLocationSummary() const {
+LocationSummary* ParameterInstr::MakeLocationSummary(bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -1827,7 +1852,7 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ParallelMoveInstr::MakeLocationSummary() const {
+LocationSummary* ParallelMoveInstr::MakeLocationSummary(bool optimizing) const {
   return NULL;
 }
 
@@ -1837,7 +1862,7 @@ void ParallelMoveInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ConstraintInstr::MakeLocationSummary() const {
+LocationSummary* ConstraintInstr::MakeLocationSummary(bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -1848,7 +1873,8 @@ void ConstraintInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* MaterializeObjectInstr::MakeLocationSummary() const {
+LocationSummary* MaterializeObjectInstr::MakeLocationSummary(
+    bool optimizing) const {
   UNREACHABLE();
   return NULL;
 }
@@ -1859,7 +1885,7 @@ void MaterializeObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StoreContextInstr::MakeLocationSummary() const {
+LocationSummary* StoreContextInstr::MakeLocationSummary(bool optimizing) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary =
@@ -1869,7 +1895,7 @@ LocationSummary* StoreContextInstr::MakeLocationSummary() const {
 }
 
 
-LocationSummary* PushTempInstr::MakeLocationSummary() const {
+LocationSummary* PushTempInstr::MakeLocationSummary(bool optimizing) const {
   return LocationSummary::Make(1,
                                Location::NoLocation(),
                                LocationSummary::kNoCall);
@@ -1882,7 +1908,7 @@ void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* DropTempsInstr::MakeLocationSummary() const {
+LocationSummary* DropTempsInstr::MakeLocationSummary(bool optimizing) const {
   return LocationSummary::Make(1,
                                Location::SameAsFirstInput(),
                                LocationSummary::kNoCall);
@@ -1915,7 +1941,7 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
 }
 
 
-LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
+LocationSummary* InstanceCallInstr::MakeLocationSummary(bool optimizing) const {
   return MakeCallSummary();
 }
 
@@ -1976,7 +2002,7 @@ bool PolymorphicInstanceCallInstr::HasRecognizedTarget() const {
 }
 
 
-LocationSummary* StaticCallInstr::MakeLocationSummary() const {
+LocationSummary* StaticCallInstr::MakeLocationSummary(bool optimizing) const {
   return MakeCallSummary();
 }
 
@@ -2870,7 +2896,6 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     intptr_t original_deopt_id,
     MethodRecognizer::Kind recognized_kind)
     : inputs_(inputs),
-      locs_(NULL),
       recognized_kind_(recognized_kind) {
   ASSERT(inputs_->length() == ArgumentCountFor(recognized_kind_));
   for (intptr_t i = 0; i < inputs_->length(); ++i) {
@@ -2978,7 +3003,6 @@ MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
                                  intptr_t original_deopt_id,
                                  MergedMathInstr::Kind kind)
     : inputs_(inputs),
-      locs_(NULL),
       kind_(kind) {
   ASSERT(inputs_->length() == InputCountFor(kind_));
   for (intptr_t i = 0; i < inputs_->length(); ++i) {

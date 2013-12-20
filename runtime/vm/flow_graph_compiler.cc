@@ -131,7 +131,9 @@ void FlowGraphCompiler::InitCompiler() {
         if ((ic_data != NULL) && (ic_data->NumberOfChecks() == 0)) {
           may_reoptimize_ = true;
         }
-        if (is_leaf && !current->IsCheckStackOverflow()) {
+        if (is_leaf &&
+            !current->IsCheckStackOverflow() &&
+            !current->IsParallelMove()) {
           // Note that we do not care if the code contains instructions that
           // can deoptimize.
           LocationSummary* locs = current->locs();
@@ -267,7 +269,6 @@ void FlowGraphCompiler::VisitBlocks() {
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {
-        ASSERT(instr->locs() != NULL);
         EmitInstructionPrologue(instr);
         ASSERT(pending_deoptimization_env_ == NULL);
         pending_deoptimization_env_ = instr->env();
@@ -636,7 +637,11 @@ void FlowGraphCompiler::TryIntrinsify() {
       ASSERT(return_node.value()->IsLoadInstanceFieldNode());
       const LoadInstanceFieldNode& load_node =
           *return_node.value()->AsLoadInstanceFieldNode();
-      GenerateInlinedGetter(load_node.field().Offset());
+      // Only intrinsify getter if the field cannot contain a mutable double.
+      // Reading from a mutable double box requires allocating a fresh double.
+      if (load_node.field().guarded_cid() == kDynamicCid) {
+        GenerateInlinedGetter(load_node.field().Offset());
+      }
       return;
     }
     if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
@@ -819,6 +824,7 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
 
+  instr->InitializeLocationSummary(false);  // Not optimizing.
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];

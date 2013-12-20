@@ -157,10 +157,19 @@ class Chain implements StackTrace {
   /// This calls [Trace.terse] on every trace in [traces], and discards any
   /// trace that contain only internal frames.
   Chain get terse {
-    return new Chain(traces.map((trace) => trace.terse).where((trace) {
+    var terseTraces = traces.map((trace) => trace.terse);
+    var nonEmptyTraces = terseTraces.where((trace) {
       // Ignore traces that contain only internal processing.
       return trace.frames.length > 1;
-    }));
+    });
+
+    // If all the traces contain only internal processing, preserve the last
+    // (top-most) one so that the chain isn't empty.
+    if (nonEmptyTraces.isEmpty && terseTraces.isNotEmpty) {
+      return new Chain([terseTraces.last]);
+    }
+
+    return new Chain(nonEmptyTraces);
   }
 
   /// Converts [this] to a [Trace].

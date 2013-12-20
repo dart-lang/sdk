@@ -143,7 +143,6 @@ RawClass* Object::language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unhandled_exception_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-#undef RAW_NULL
 
 
 const double MegamorphicCache::kLoadFactor = 0.75;
@@ -1612,7 +1611,12 @@ RawType* Class::SignatureType() const {
   // finalization time. The optimizer may canonicalize instantiated function
   // types of the same signature class, but these will be added after the
   // uninstantiated signature class at index 0.
-  const Array& signature_types = Array::Handle(canonical_types());
+  Array& signature_types = Array::Handle();
+  signature_types ^= canonical_types();
+  if (signature_types.IsNull()) {
+    set_canonical_types(empty_array());
+    signature_types ^= canonical_types();
+  }
   // The canonical_types array is initialized to the empty array.
   ASSERT(!signature_types.IsNull());
   if (signature_types.Length() > 0) {
@@ -1736,7 +1740,6 @@ void Class::InitEmptyFields() {
   }
   StorePointer(&raw_ptr()->interfaces_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->constants_, Object::empty_array().raw());
-  StorePointer(&raw_ptr()->canonical_types_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->fields_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->invocation_dispatcher_cache_,
@@ -2355,7 +2358,7 @@ RawObject* Class::Evaluate(const String& expr) const {
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));
   eval_func.set_num_fixed_parameters(0);
   eval_func.SetNumOptionalParameters(0, true);
-  eval_func.set_is_optimizable(false);
+  eval_func.SetIsOptimizable(false);
 
   const Array& args = Array::Handle(Array::New(0));
   const Object& result =
@@ -2719,11 +2722,11 @@ void Class::set_constants(const Array& value) const {
 }
 
 
-RawArray* Class::canonical_types() const {
+RawObject* Class::canonical_types() const {
   return raw_ptr()->canonical_types_;
 }
 
-void Class::set_canonical_types(const Array& value) const {
+void Class::set_canonical_types(const Object& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->canonical_types_, value.raw());
 }
@@ -4551,13 +4554,16 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 }
 
 
-bool Function::is_optimizable() const {
+bool Function::IsOptimizable() const {
   if (FLAG_coverage_dir != NULL) {
     // Do not optimize if collecting coverage data.
     return false;
   }
-  if (OptimizableBit::decode(raw_ptr()->kind_tag_) &&
-      (script() != Script::null()) &&
+  if (is_native()) {
+    // Native methods don't need to be optimized.
+    return false;
+  }
+  if (is_optimizable() && (script() != Script::null()) &&
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
     if (HasCode() &&
@@ -4571,6 +4577,22 @@ bool Function::is_optimizable() const {
   return false;
 }
 
+
+bool Function::IsNativeAutoSetupScope() const {
+  return is_native() ? is_optimizable() : false;
+}
+
+
+void Function::SetIsOptimizable(bool value) const {
+  ASSERT(!is_native());
+  set_is_optimizable(value);
+}
+
+
+void Function::SetIsNativeAutoSetupScope(bool value) const {
+  ASSERT(is_native());
+  set_is_optimizable(value);
+}
 
 void Function::set_is_optimizable(bool value) const {
   set_kind_tag(OptimizableBit::update(value, raw_ptr()->kind_tag_));
@@ -5093,7 +5115,7 @@ RawFunction* Function::New(const String& name,
   result.set_deoptimization_counter(0);
   result.set_optimized_instruction_count(0);
   result.set_optimized_call_site_count(0);
-  result.set_is_optimizable(true);
+  result.set_is_optimizable(is_native ? false : true);
   result.set_has_finally(false);
   result.set_is_inlinable(true);
   if (kind == RawFunction::kClosureFunction) {
@@ -5533,7 +5555,7 @@ RawFunction* Function::NewStaticInitializer(const Field& field) {
   // optimizing compiler can eliminate the call to the static initializer
   // via constant folding.
   init_function.set_is_visible(false);
-  init_function.set_is_optimizable(false);
+  init_function.SetIsOptimizable(false);
   init_function.set_is_inlinable(false);
   init_function.set_saved_static_field(field);
   return init_function.raw();
@@ -5855,6 +5877,7 @@ RawField* Field::New(const String& name,
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
+  result.set_is_unboxing_candidate(true);
   result.set_guarded_cid(kIllegalCid);
   result.set_is_nullable(false);
   // Presently, we only attempt to remember the list length for final fields.
@@ -8833,7 +8856,7 @@ void PcDescriptors::Verify(const Function& function) const {
     return;
   }
   // Only check ids for unoptimized code that is optimizable.
-  if (!function.is_optimizable()) return;
+  if (!function.IsOptimizable()) return;
   for (intptr_t i = 0; i < Length(); i++) {
     PcDescriptors::Kind kind = DescriptorKind(i);
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
@@ -11082,7 +11105,7 @@ RawObject* Instance::Evaluate(const String& expr) const {
   eval_func.set_result_type(Type::Handle(Type::DynamicType()));
   eval_func.set_num_fixed_parameters(1);
   eval_func.SetNumOptionalParameters(0, true);
-  eval_func.set_is_optimizable(false);
+  eval_func.SetIsOptimizable(false);
 
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, *this);
@@ -11228,13 +11251,16 @@ RawType* Instance::GetType() const {
     return Type::NullType();
   }
   const Class& cls = Class::Handle(clazz());
-  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
-  if (cls.NumTypeArguments() > 0) {
-    type_arguments = GetTypeArguments();
+  Type& type = Type::Handle(cls.CanonicalType());
+  if (type.IsNull()) {
+    AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
+    if (cls.NumTypeArguments() > 0) {
+      type_arguments = GetTypeArguments();
+    }
+    type = Type::New(cls, type_arguments, Scanner::kDummyTokenIndex);
+    type.SetIsFinalized();
+    type ^= type.Canonicalize();
   }
-  const Type& type = Type::Handle(
-      Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
-  type.SetIsFinalized();
   return type.raw();
 }
 
@@ -11434,7 +11460,7 @@ const char* Instance::ToCString() const {
 }
 
 
-const char* Instance::ToUserCString(intptr_t maxLen) const {
+const char* Instance::ToUserCString(intptr_t max_len, intptr_t nesting) const {
   if (raw() == Object::sentinel().raw()) {
     return "<not initialized>";
   } else if (raw() == Object::transition_sentinel().raw()) {
@@ -11958,13 +11984,23 @@ RawType* Type::Function() {
 
 RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
-  const TypeArguments& no_type_arguments = TypeArguments::Handle();
-  Type& type = Type::Handle();
-  type ^= Type::New(Object::Handle(type_class.raw()),
-                    no_type_arguments,
-                    Scanner::kDummyTokenIndex);
-  type.SetIsFinalized();
-  type ^= type.Canonicalize();
+  if (type_class.raw() == Object::dynamic_class()) {
+    // If the dynamic type has not been setup in the VM isolate, then we need
+    // to allocate it here.
+    if (Object::dynamic_type() != reinterpret_cast<RawType*>(RAW_NULL)) {
+      return Object::dynamic_type();
+    }
+    ASSERT(Isolate::Current() == Dart::vm_isolate());
+  }
+  Type& type = Type::Handle(type_class.CanonicalType());
+  if (type.IsNull()) {
+    const TypeArguments& no_type_arguments = TypeArguments::Handle();
+    type ^= Type::New(Object::Handle(type_class.raw()),
+                      no_type_arguments,
+                      Scanner::kDummyTokenIndex);
+    type.SetIsFinalized();
+    type ^= type.Canonicalize();
+  }
   return type.raw();
 }
 
@@ -12201,18 +12237,35 @@ RawAbstractType* Type::Canonicalize() const {
     ASSERT(IsMalformed() || AbstractTypeArguments::Handle(arguments()).IsOld());
     return this->raw();
   }
-  const Class& cls = Class::Handle(type_class());
-  Array& canonical_types = Array::Handle(cls.canonical_types());
+  Isolate* isolate = Isolate::Current();
+  Type& type = Type::Handle(isolate);
+  const Class& cls = Class::Handle(isolate, type_class());
+  if (cls.raw() == Object::dynamic_class() && (isolate != Dart::vm_isolate())) {
+    return Object::dynamic_type();
+  }
+  // Fast canonical lookup/registry for simple types.
+  if ((cls.NumTypeArguments() == 0) && !cls.IsSignatureClass()) {
+    type = cls.CanonicalType();
+    if (type.IsNull()) {
+      ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
+      cls.set_canonical_types(*this);
+      SetCanonical();
+      return this->raw();
+    }
+    ASSERT(this->Equals(type));
+    return type.raw();
+  }
+
+  Array& canonical_types = Array::Handle(isolate);
+  canonical_types ^= cls.canonical_types();
   if (canonical_types.IsNull()) {
-    // Types defined in the VM isolate are canonicalized via the object store.
-    return this->raw();
+    canonical_types = empty_array().raw();
   }
   const intptr_t canonical_types_len = canonical_types.Length();
   // Linear search to see whether this type is already present in the
   // list of canonicalized types.
   // TODO(asiva): Try to re-factor this lookup code to make sharing
   // easy between the 4 versions of this loop.
-  Type& type = Type::Handle();
   intptr_t index = 0;
   while (index < canonical_types_len) {
     type ^= canonical_types.At(index);
@@ -12226,7 +12279,8 @@ RawAbstractType* Type::Canonicalize() const {
     index++;
   }
   // Canonicalize the type arguments.
-  AbstractTypeArguments& type_args = AbstractTypeArguments::Handle(arguments());
+  AbstractTypeArguments& type_args =
+      AbstractTypeArguments::Handle(isolate, arguments());
   ASSERT(type_args.IsNull() || (type_args.Length() == cls.NumTypeArguments()));
   type_args = type_args.Canonicalize();
   set_arguments(type_args);
@@ -12234,8 +12288,8 @@ RawAbstractType* Type::Canonicalize() const {
   if (index == canonical_types_len) {
     const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
     const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
-    const Array& new_canonical_types =
-        Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
+    const Array& new_canonical_types = Array::Handle(
+        isolate, Array::Grow(canonical_types, new_length, Heap::kOld));
     cls.set_canonical_types(new_canonical_types);
     new_canonical_types.SetAt(index, *this);
   } else {
@@ -12253,11 +12307,11 @@ RawAbstractType* Type::Canonicalize() const {
     // of the super class of the owner class of its signature function will be
     // prepended to the type argument vector during class finalization.
     const TypeArguments& type_params =
-      TypeArguments::Handle(cls.type_parameters());
+      TypeArguments::Handle(isolate, cls.type_parameters());
     const intptr_t num_type_params = cls.NumTypeParameters();
     const intptr_t num_type_args = cls.NumTypeArguments();
-    TypeParameter& type_arg = TypeParameter::Handle();
-    TypeParameter& type_param = TypeParameter::Handle();
+    TypeParameter& type_arg = TypeParameter::Handle(isolate);
+    TypeParameter& type_param = TypeParameter::Handle(isolate);
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_arg ^= type_args.TypeAt(num_type_args - num_type_params + i);
       type_param ^= type_params.TypeAt(i);
@@ -14433,33 +14487,34 @@ const char* String::ToCString() const {
 }
 
 
-static bool IsAsciiPrintChar(intptr_t codePoint) {
-  return codePoint >= ' ' && codePoint <= '~';
+static bool IsAsciiPrintChar(intptr_t code_point) {
+  return code_point >= ' ' && code_point <= '~';
 }
 
 
 // Does not null-terminate.
-intptr_t String::EscapedString(char* buffer, int maxLen) const {
+intptr_t String::EscapedString(char* buffer, int max_len) const {
   int pos = 0;
 
   CodePointIterator cpi(*this);
   while (cpi.Next()) {
-    int32_t codePoint = cpi.Current();
-    if (IsSpecialCharacter(codePoint)) {
-      if (pos + 2 > maxLen) {
+    int32_t code_point = cpi.Current();
+    if (IsSpecialCharacter(code_point)) {
+      if (pos + 2 > max_len) {
         return pos;
       }
       buffer[pos++] = '\\';
-      buffer[pos++] = SpecialCharacter(codePoint);
-    } else if (IsAsciiPrintChar(codePoint)) {
-      buffer[pos++] = codePoint;
+      buffer[pos++] = SpecialCharacter(code_point);
+    } else if (IsAsciiPrintChar(code_point)) {
+      buffer[pos++] = code_point;
     } else {
-      if (pos + 6 > maxLen) {
+      if (pos + 6 > max_len) {
         return pos;
       }
-      pos += OS::SNPrint((buffer + pos), (maxLen - pos), "\\u%04x", codePoint);
+      pos += OS::SNPrint((buffer + pos), (max_len - pos),
+                         "\\u%04x", code_point);
     }
-    if (pos == maxLen) {
+    if (pos == max_len) {
       return pos;
     }
   }
@@ -14467,20 +14522,20 @@ intptr_t String::EscapedString(char* buffer, int maxLen) const {
 }
 
 
-intptr_t String::EscapedStringLen(intptr_t tooLong) const {
+intptr_t String::EscapedStringLen(intptr_t too_long) const {
   intptr_t len = 0;
 
   CodePointIterator cpi(*this);
   while (cpi.Next()) {
-    int32_t codePoint = cpi.Current();
-    if (IsSpecialCharacter(codePoint)) {
+    int32_t code_point = cpi.Current();
+    if (IsSpecialCharacter(code_point)) {
       len += 2;  // e.g. "\n"
-    } else if (IsAsciiPrintChar(codePoint)) {
+    } else if (IsAsciiPrintChar(code_point)) {
       len += 1;
     } else {
       len += 6;  // e.g. "\u0000".
     }
-    if (len > tooLong) {
+    if (len > too_long) {
       // No point going further.
       break;
     }
@@ -14489,36 +14544,36 @@ intptr_t String::EscapedStringLen(intptr_t tooLong) const {
 }
 
 
-const char* String::ToUserCString(intptr_t maxLen) const {
+const char* String::ToUserCString(intptr_t max_len, intptr_t nesting) const {
   // Compute the needed length for the buffer.
-  const intptr_t escapedLen = EscapedStringLen(maxLen);
-  intptr_t printLen = escapedLen;
-  intptr_t bufferLen = escapedLen + 2;  // +2 for quotes.
-  if (bufferLen > maxLen) {
-    bufferLen = maxLen;     // Truncate.
-    printLen = maxLen - 5;  // -2 for quotes, -3 for elipsis.
+  const intptr_t escaped_len = EscapedStringLen(max_len);
+  intptr_t print_len = escaped_len;
+  intptr_t buffer_len = escaped_len + 2;  // +2 for quotes.
+  if (buffer_len > max_len) {
+    buffer_len = max_len;     // Truncate.
+    print_len = max_len - 5;  // -2 for quotes, -3 for elipsis.
   }
 
   // Allocate the buffer.
   Zone* zone = Isolate::Current()->current_zone();
-  char* buffer = zone->Alloc<char>(bufferLen + 1);
+  char* buffer = zone->Alloc<char>(buffer_len + 1);
 
   // Leading quote.
   intptr_t pos = 0;
   buffer[pos++] = '\"';
 
   // Print escaped string.
-  pos += EscapedString((buffer + pos), printLen);
+  pos += EscapedString((buffer + pos), print_len);
 
   // Trailing quote.
   buffer[pos++] = '\"';
 
-  if (printLen < escapedLen) {
+  if (print_len < escaped_len) {
     buffer[pos++] = '.';
     buffer[pos++] = '.';
     buffer[pos++] = '.';
   }
-  ASSERT(pos <= bufferLen);
+  ASSERT(pos <= buffer_len);
   buffer[pos++] = '\0';
 
   return buffer;
@@ -15578,6 +15633,107 @@ const char* GrowableObjectArray::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
   return chars;
+}
+
+
+const char* GrowableObjectArray::ToUserCString(intptr_t max_len,
+                                               intptr_t nesting) const {
+  if (Length() == 0) {
+    return "[]";
+  }
+  if (nesting > 3) {
+    return "[...]";
+  }
+
+  Isolate* isolate = Isolate::Current();
+  Zone* zone = isolate->current_zone();
+  Object& obj = Object::Handle(isolate);
+  Instance& element = Instance::Handle(isolate);
+
+  // Pre-print the suffix that we will use if the string is truncated.
+  // It is important to know the suffix length when deciding where to
+  // limit the list.
+  const intptr_t kMaxTruncSuffixLen = 16;
+  char trunc_suffix[kMaxTruncSuffixLen];
+  intptr_t trunc_suffix_len;
+  if (nesting == 0) {
+    trunc_suffix_len = OS::SNPrint(trunc_suffix, 16, "...](length:%" Pd ")",
+                                   Length());
+  } else {
+    trunc_suffix_len = OS::SNPrint(trunc_suffix, 16, "...]");
+  }
+  bool truncate = false;
+
+  const int kMaxPrintElements = 128;
+  const char* strings[kMaxPrintElements];
+  intptr_t print_len = 1;  // +1 for "["
+
+  // Figure out how many elements will fit in the string.
+  int i = 0;
+  while (i < Length()) {
+    if (i == kMaxPrintElements) {
+      if (i < Length()) {
+        truncate = true;
+      }
+      break;
+    }
+    obj = At(i);
+    if (!obj.IsInstance()) {
+      // Bail.
+      UNREACHABLE();
+      return "[<invalid list>]";
+    }
+    element ^= obj.raw();
+
+    // Choose max child length.  This is chosen so that it is small
+    // enough to maybe fit but not so small that we can't print
+    // anything.
+    int child_max_len = max_len - print_len;
+    if ((i + 1) < Length()) {
+      child_max_len -= (trunc_suffix_len + 1);  // 1 for ","
+    } else {
+      child_max_len -= 1;  // 1 for "]"
+    }
+    if (child_max_len < 8) {
+      child_max_len = 8;
+    }
+
+    strings[i] = element.ToUserCString(child_max_len,  nesting + 1);
+    print_len += strlen(strings[i]) + 1;  // +1 for "," or "]"
+    i++;
+    if (print_len > max_len) {
+      truncate = true;
+      break;
+    }
+  }
+  if (truncate) {
+    // Go backwards until there is enough room for the truncation suffix.
+    while (i >= 0 && (print_len + trunc_suffix_len) > max_len) {
+      i--;
+      print_len -= (strlen(strings[i]) + 1);  // +1 for ","
+    }
+  }
+
+  // Finally, allocate and print the string.
+  int num_to_print = i;
+  char* buffer = zone->Alloc<char>(print_len + 1);  // +1 for "\0"
+  intptr_t pos = 0;
+  buffer[pos++] = '[';
+  for (i = 0; i < num_to_print; i++) {
+    if ((i + 1) == Length()) {
+      pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos),
+                         "%s]", strings[i]);
+    } else {
+      pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos),
+                         "%s,", strings[i]);
+    }
+  }
+  if (i < Length()) {
+    pos += OS::SNPrint((buffer + pos), (max_len + 1 - pos), "%s", trunc_suffix);
+  }
+  ASSERT(pos <= max_len);
+  buffer[pos] = '\0';
+  return buffer;
 }
 
 

@@ -15,6 +15,8 @@ namespace dart {
 class ActiveVariables;
 class CodeBreakpoint;
 class Isolate;
+class JSONArray;
+class JSONStream;
 class ObjectPointerVisitor;
 class RemoteObjectCache;
 class SourceBreakpoint;
@@ -36,11 +38,15 @@ class SourceBreakpoint {
   RawString* SourceUrl();
   intptr_t LineNumber();
 
-  void GetCodeLocation(Library* lib, Script* script, intptr_t* token_pos);
+  void GetCodeLocation(Library* lib,
+                       Script* script,
+                       intptr_t* token_pos) const;
 
   void Enable();
   void Disable();
   bool IsEnabled() const { return is_enabled_; }
+
+  void PrintToJSONStream(JSONStream* stream) const;
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -167,8 +173,7 @@ class ActivationFrame : public ZoneAllocated {
                   Instance* value);
 
   RawArray* GetLocalVariables();
-  RawContext* GetSavedEntryContext(const Context& ctx);
-  RawContext* GetSavedEntryContextNew();
+  RawContext* GetSavedEntryContext();
   RawContext* GetSavedCurrentContext();
 
  private:
@@ -353,6 +358,8 @@ class Debugger {
 
   uword GetPatchedStubAddress(uword breakpoint_address);
 
+  void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
+
   static bool IsDebuggable(const Function& func);
 
  private:
@@ -386,7 +393,6 @@ class Debugger {
   void SyncBreakpoint(SourceBreakpoint* bpt);
 
   ActivationFrame* TopDartFrame() const;
-  static DebuggerStackTrace* CollectStackTrace();
   static ActivationFrame* CollectDartFrame(Isolate* isolate,
                                            uword pc,
                                            StackFrame* frame,
@@ -398,7 +404,7 @@ class Debugger {
   static RawArray* DeoptimizeToArray(Isolate* isolate,
                                      StackFrame* frame,
                                      const Code& code);
-  static DebuggerStackTrace* CollectStackTraceNew();
+  static DebuggerStackTrace* CollectStackTrace();
   void SignalBpResolved(SourceBreakpoint *bpt);
   void SignalPausedEvent(ActivationFrame* top_frame,
                          SourceBreakpoint* bpt);

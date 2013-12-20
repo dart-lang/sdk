@@ -181,8 +181,14 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // For now, space is reserved on the stack and we pass a pointer to it.
   __ stm(IA, SP,  (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3));
   __ mov(R0, ShifterOperand(SP));  // Pass the pointer to the NativeArguments.
-  __ mov(R1, ShifterOperand(R5));  // Pass the function entrypoint to call.
 
+  // Call native function (setsup scope if not leaf function).
+  Label leaf_call;
+  Label done;
+  __ TestImmediate(R1, NativeArguments::AutoSetupScopeMask());
+  __ b(&leaf_call, EQ);
+
+  __ mov(R1, ShifterOperand(R5));  // Pass the function entrypoint to call.
   // Call native function invocation wrapper or redirection via simulator.
 #if defined(USING_SIMULATOR)
   uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
@@ -193,6 +199,13 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #else
   __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
 #endif
+  __ b(&done);
+
+  __ Bind(&leaf_call);
+  // Call native function or redirection via simulator.
+  __ blx(R5);
+
+  __ Bind(&done);
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);

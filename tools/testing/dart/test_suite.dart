@@ -15,7 +15,6 @@
 library test_suite;
 
 import "dart:async";
-import "dart:convert" show LineSplitter, UTF8;
 import "dart:io";
 import "drt_updater.dart";
 import "multitest.dart";
@@ -111,8 +110,10 @@ abstract class TestSuite {
 
   TestSuite(this.configuration, this.suiteName);
 
-  String get configurationDir {
-    return TestUtils.configurationDir(configuration);
+  Map<String, String> get environmentOverrides {
+    return {
+      'DART_CONFIGURATION' : TestUtils.configurationDir(configuration),
+    };
   }
 
   /**
@@ -389,8 +390,8 @@ class CCTestSuite extends TestSuite {
     var args = TestUtils.standardOptions(configuration);
     args.add(testName);
 
-    var command = CommandBuilder.instance.getCommand(
-        'run_vm_unittest', targetRunnerPath, args, configurationDir);
+    var command = CommandBuilder.instance.getProcessCommand(
+        'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
     enqueueNewTestCase(
         new TestCase(constructedName, [command], configuration, expectations));
   }
@@ -739,7 +740,8 @@ class StandardTestSuite extends TestSuite {
 
       var command = CommandBuilder.instance.getCompilationCommand(
           compiler, "$tempDir/out.js", !useSdk,
-          dart2JsBootstrapDependencies, compilerPath, args, configurationDir);
+          dart2JsBootstrapDependencies, compilerPath, args,
+          environmentOverrides);
 
       List<Command> commands = <Command>[command];
       if (info.hasCompileError) {
@@ -747,10 +749,11 @@ class StandardTestSuite extends TestSuite {
         // error should be reported by the compilation command.
       } else if (configuration['runtime'] == 'd8') {
         commands.add(CommandBuilder.instance.getJSCommandlineCommand(
-            "d8", d8FileName, ['$tempDir/out.js'], configurationDir));
+            "d8", d8FileName, ['$tempDir/out.js'], environmentOverrides));
       } else if (configuration['runtime'] == 'jsshell') {
         commands.add(CommandBuilder.instance.getJSCommandlineCommand(
-            "jsshell", jsShellFileName, ['$tempDir/out.js'], configurationDir));
+            "jsshell", jsShellFileName, ['$tempDir/out.js'],
+            environmentOverrides));
       }
       return commands;
     case 'dart2dart':
@@ -764,7 +767,7 @@ class StandardTestSuite extends TestSuite {
           <Command>[CommandBuilder.instance.getCompilationCommand(
               compiler, "$tempDir/out.dart", !useSdk,
               dart2JsBootstrapDependencies, compilerPath, args,
-              configurationDir)];
+              environmentOverrides)];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
@@ -774,7 +777,7 @@ class StandardTestSuite extends TestSuite {
         vmArguments.addAll([
             '--ignore-unrecognized-flags', '$tempDir/out.dart']);
         commands.add(CommandBuilder.instance.getVmCommand(
-            vmFileName, vmArguments, configurationDir));
+            vmFileName, vmArguments, environmentOverrides));
       } else {
         throw 'Unsupported runtime ${configuration["runtime"]} for dart2dart';
       }
@@ -785,7 +788,7 @@ class StandardTestSuite extends TestSuite {
       arguments.addAll(sharedOptions);
       arguments.addAll(args);
       return <Command>[CommandBuilder.instance.getVmCommand(
-          dartShellFileName, arguments, configurationDir)];
+          dartShellFileName, arguments, environmentOverrides)];
 
     case 'dartanalyzer':
     case 'dart2analyzer':
@@ -800,7 +803,8 @@ class StandardTestSuite extends TestSuite {
                                       List<String> arguments) {
     return CommandBuilder.instance.getAnalysisCommand(
         configuration['compiler'], dartShellFileName, arguments,
-        configurationDir, flavor: configuration['compiler']);
+        environmentOverrides,
+        flavor: configuration['compiler']);
   }
 
   CreateTest makeTestCaseCreator(Map optionsFromFile) {
@@ -826,7 +830,6 @@ class StandardTestSuite extends TestSuite {
       enqueueTestCaseFromTestInformation(info);
     };
   }
-
 
   /**
    * _createUrlPathFromFile takes a [file], which is either located in the dart
@@ -1073,16 +1076,10 @@ class StandardTestSuite extends TestSuite {
 
           commandSet.add(CommandBuilder.instance.getContentShellCommand(
               contentShellFilename, fullHtmlPath, contentShellOptions,
-              dartFlags, configurationDir));
+              dartFlags, environmentOverrides));
         } else {
-          // This command is not actually run, it is used for reproducing
-          // the failure.
-          args = ['tools/testing/dart/launch_browser.dart',
-                  runtime,
-                  fullHtmlPath];
           commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-              runtime, fullHtmlPath, TestUtils.dartTestExecutable.toString(),
-              args, configurationDir, checkedMode: configuration['checked']));
+              runtime, fullHtmlPath, checkedMode: configuration['checked']));
         }
 
         // Create BrowserTestCase and queue it.
@@ -1127,7 +1124,7 @@ class StandardTestSuite extends TestSuite {
     }
     return CommandBuilder.instance.getCompilationCommand(
         compiler, outputFile, !useSdk,
-        dart2JsBootstrapDependencies, compilerPath, args, configurationDir);
+        dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides);
   }
 
   /** Helper to create a Polymer deploy command for a single HTML file. */
@@ -1141,8 +1138,8 @@ class StandardTestSuite extends TestSuite {
         ..add('--out')..add(outputDir);
     if (configuration['csp']) args.add('--csp');
 
-    return CommandBuilder.instance.getCommand(
-        'polymer_deploy', vmFileName, args, configurationDir);
+    return CommandBuilder.instance.getProcessCommand(
+        'polymer_deploy', vmFileName, args, environmentOverrides);
   }
 
   /**
@@ -1579,121 +1576,10 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
                                       List<String> arguments) {
     return CommandBuilder.instance.getAnalysisCommand(
         configuration['compiler'], dartShellFileName, arguments,
-        configurationDir, flavor: configuration['compiler']);
+        environmentOverrides, flavor: configuration['compiler']);
   }
 
   bool get listRecursively => true;
-}
-
-class JUnitTestSuite extends TestSuite {
-  String directoryPath;
-  String statusFilePath;
-  final String dartDir;
-  String classPath;
-  List<String> testClasses;
-  VoidFunction doDone;
-  TestExpectations testExpectations;
-
-  JUnitTestSuite(Map configuration,
-                 String suiteName,
-                 String this.directoryPath,
-                 String this.statusFilePath)
-      : super(configuration, suiteName),
-        dartDir = TestUtils.dartDir().toNativePath();
-
-  bool isTestFile(String filename) => filename.endsWith("Tests.java") &&
-      !filename.contains('com/google/dart/compiler/vm') &&
-      !filename.contains('com/google/dart/corelib/SharedTests.java');
-
-  void forEachTest(TestCaseEvent onTest,
-                   Map testCacheIgnored,
-                   [VoidFunction onDone]) {
-    doTest = onTest;
-    doDone = onDone;
-
-    if (!configuration['analyzer']) {
-      // Do nothing. Asynchronously report that the suite is enqueued.
-      asynchronously(doDone);
-      return;
-    }
-    RegExp pattern = configuration['selectors']['dartc'];
-    if (!pattern.hasMatch('junit_tests')) {
-      asynchronously(doDone);
-      return;
-    }
-
-    computeClassPath();
-    testClasses = <String>[];
-    // Do not read the status file.
-    // All exclusions are hardcoded in this script, as they are in testcfg.py.
-    processDirectory();
-  }
-
-  void processDirectory() {
-    directoryPath = '$dartDir/$directoryPath';
-    Directory dir = new Directory(directoryPath);
-
-    dir.list(recursive: true).listen((FileSystemEntity fse) {
-      if (fse is File) processFile(fse.path);
-    },
-    onDone: createTest);
-  }
-
-  void processFile(String filename) {
-    if (!isTestFile(filename)) return;
-
-    int index = filename.indexOf('compiler/javatests/com/google/dart');
-    if (index != -1) {
-      String testRelativePath =
-          filename.substring(index + 'compiler/javatests/'.length,
-                             filename.length - '.java'.length);
-      String testClass = testRelativePath.replaceAll('/', '.');
-      testClasses.add(testClass);
-    }
-  }
-
-  void createTest() {
-    var sdkDir = "$buildDir/dart-sdk".trim();
-    List<String> args = <String>[
-        '-ea',
-        '-classpath', classPath,
-        '-Dcom.google.dart.sdk=$sdkDir',
-        '-Dcom.google.dart.corelib.SharedTests.test_py=$dartDir/tools/test.py',
-        'org.junit.runner.JUnitCore'];
-    args.addAll(testClasses);
-
-    // Lengthen the timeout for JUnit tests.  It is normal for them
-    // to run for a few minutes.
-    Map updatedConfiguration = new Map();
-    configuration.forEach((key, value) {
-      updatedConfiguration[key] = value;
-    });
-    updatedConfiguration['timeout'] *= 3;
-    var command = CommandBuilder.instance.getCommand(
-        'junit_test', 'java', args, configurationDir);
-    enqueueNewTestCase(
-        new TestCase(suiteName,
-                     [command],
-                     updatedConfiguration,
-                     new Set<Expectation>.from([Expectation.PASS])));
-    doDone();
-  }
-
-  void computeClassPath() {
-    classPath =
-        ['$buildDir/analyzer/util/analyzer/dart_analyzer.jar',
-         '$buildDir/analyzer/dart_analyzer_tests.jar',
-         // Third party libraries.
-         '$dartDir/third_party/args4j/2.0.12/args4j-2.0.12.jar',
-         '$dartDir/third_party/guava/r13/guava-13.0.1.jar',
-         '$dartDir/third_party/rhino/1_7R3/js.jar',
-         '$dartDir/third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
-         '$dartDir/third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
-         '$dartDir/third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
-         '$dartDir/third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
-         '$dartDir/third_party/junit/v4_8_2/junit.jar']
-        .join(Platform.operatingSystem == 'windows'? ';': ':');
-  }
 }
 
 class LastModifiedCache {

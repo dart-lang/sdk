@@ -19,17 +19,27 @@ class H<A,B,C> {}
 
 expectReflectedType(classMirror, expectedType) {
   if (expectedType == null) {
-    Expect.isFalse(classMirror.hasReflectedType);
+    Expect.isFalse(classMirror.hasReflectedType,
+                   "$classMirror should not have a reflected type");
     Expect.throws(() => classMirror.reflectedType,
-                  (e) => e is UnsupportedError,
-                  "Should not have a reflected type");
+                  (e) => e is UnsupportedError);
   } else {
-    Expect.isTrue(classMirror.hasReflectedType);
+    Expect.isTrue(classMirror.hasReflectedType,
+                  "$classMirror should have a reflected type");
     Expect.equals(expectedType, classMirror.reflectedType);
   }
 }
 
 main() {
+  // Basic non-generic types, including intercepted types.
+  expectReflectedType(reflectClass(Object), Object);
+  expectReflectedType(reflectClass(String), String);
+  expectReflectedType(reflectClass(int), int);
+  expectReflectedType(reflectClass(num), num);
+  expectReflectedType(reflectClass(double), double);
+  expectReflectedType(reflectClass(bool), bool);
+  expectReflectedType(reflectClass(Null), Null);
+
   // Declarations.
   expectReflectedType(reflectClass(A), null);
   expectReflectedType(reflectClass(B), B);

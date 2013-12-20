@@ -196,6 +196,14 @@ abstract class int extends num {
    */
   int abs();
 
+  /**
+   * Returns the sign of this integer.
+   *
+   * Returns 0 for zero, -1 for values less than zero and
+   * +1 for values greater than zero.
+   */
+  int get sign;
+
   /** Returns `this`. */
   int round();
 

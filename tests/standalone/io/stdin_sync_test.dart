@@ -44,6 +44,7 @@ void testReadByte() {
   test("hej", ['hej']);
 }
 
+
 void testEchoMode() {
   stdin.echoMode = true;
   Expect.isTrue(stdin.echoMode);
@@ -54,6 +55,7 @@ void testEchoMode() {
     print("You typed: $line");
   }
 }
+
 
 void testLineMode() {
   stdin.lineMode = true;
@@ -70,7 +72,7 @@ void testLineMode() {
 void main() {
   testReadByte();
 
-  // testEchoMode and testLineMode is an developer-interactive test, thus not
+  // testEchoMode and testLineMode is developer-interactive tests, thus not
   // enabled.
   //testEchoMode();
   //testLineMode();

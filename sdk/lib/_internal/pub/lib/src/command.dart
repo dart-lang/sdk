@@ -88,19 +88,17 @@ abstract class PubCommand {
 
     cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
 
-    handleError(error, trace) {
+    handleError(error, Chain chain) {
       // This is basically the top-level exception handler so that we don't
       // spew a stack trace on our users.
       var message;
 
       log.error(getErrorMessage(error));
 
-      if (trace != null) {
-        if (options['trace'] || !isUserFacingException(error)) {
-          log.error(new Trace.from(trace).terse);
-        } else {
-          log.fine(new Trace.from(trace).terse);
-        }
+      if (options['trace'] || !isUserFacingException(error)) {
+        log.error(chain.terse);
+      } else {
+        log.fine(chain.terse);
       }
 
       if (error is ApplicationException && error.innerError != null) {
@@ -124,28 +122,31 @@ and include the results in a bug report on http://dartbug.com/new.
       return flushThenExit(_chooseExitCode(error));
     }
 
-    new Future.sync(() {
-      // Make sure there aren't unexpected arguments.
-      if (!takesArguments && commandOptions.rest.isNotEmpty) {
-        log.error('Command "${commandOptions.name}" does not take any '
-                  'arguments.');
-        this.printUsage();
-        return flushThenExit(exit_codes.USAGE);
-      }
+    var captureStackChains =
+        options['trace'] || options['verbose'] || options['verbosity'] == 'all';
+    captureErrors(() {
+      return syncFuture(() {
+        // Make sure there aren't unexpected arguments.
+        if (!takesArguments && commandOptions.rest.isNotEmpty) {
+          log.error('Command "${commandOptions.name}" does not take any '
+                    'arguments.');
+          this.printUsage();
+          return flushThenExit(exit_codes.USAGE);
+        }
 
-      if (requiresEntrypoint) {
-        // TODO(rnystrom): Will eventually need better logic to walk up
-        // subdirectories until we hit one that looks package-like. For now,
-        // just assume the cwd is it.
-        entrypoint = new Entrypoint(path.current, cache);
-      }
+        if (requiresEntrypoint) {
+          // TODO(rnystrom): Will eventually need better logic to walk up
+          // subdirectories until we hit one that looks package-like. For now,
+          // just assume the cwd is it.
+          entrypoint = new Entrypoint(path.current, cache);
+        }
 
-      var commandFuture = onRun();
-      if (commandFuture == null) return true;
+        var commandFuture = onRun();
+        if (commandFuture == null) return true;
 
-      return commandFuture;
-    }).whenComplete(() => cache.deleteTempDir())
-        .catchError(handleError)
+        return commandFuture;
+      }).whenComplete(() => cache.deleteTempDir());
+    }, captureStackChains: captureStackChains).catchError(handleError)
         .then((_) {
       // Explicitly exit on success to ensure that any dangling dart:io handles
       // don't cause the process to never terminate.

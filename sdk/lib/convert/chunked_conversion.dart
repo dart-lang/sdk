@@ -9,6 +9,9 @@ typedef void _ChunkedConversionCallback<T>(T accumulated);
 /**
  * A [ChunkedConversionSink] is used to transmit data more efficiently between
  * two converters during chunked conversions.
+ *
+ * It is recommended that implementations of `ChunkedConversionSink` extends
+ * this class, to inherit any further methods that may be added to the class.
  */
 abstract class ChunkedConversionSink<T> {
   ChunkedConversionSink();

@@ -778,6 +778,13 @@ class Class : public Object {
     return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
   }
 
+  RawType* CanonicalType() const {
+    if ((NumTypeArguments() == 0) && !IsSignatureClass()) {
+      return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
+    }
+    return reinterpret_cast<RawType*>(Object::null());
+  }
+
   // The super type of this class, Object type if not explicitly specified.
   // Note that the super type may be bounded, as in this example:
   // class C<T> extends S<T> { }; class S<T extends num> { };
@@ -1084,8 +1091,8 @@ class Class : public Object {
 
   void set_constants(const Array& value) const;
 
-  void set_canonical_types(const Array& value) const;
-  RawArray* canonical_types() const;
+  void set_canonical_types(const Object& value) const;
+  RawObject* canonical_types() const;
 
   RawArray* invocation_dispatcher_cache() const;
   void set_invocation_dispatcher_cache(const Array& cache) const;
@@ -1727,8 +1734,10 @@ class Function : public Object {
     raw_ptr()->optimized_call_site_count_ = static_cast<uint16_t>(value);
   }
 
-  bool is_optimizable() const;
-  void set_is_optimizable(bool value) const;
+  bool IsOptimizable() const;
+  bool IsNativeAutoSetupScope() const;
+  void SetIsOptimizable(bool value) const;
+  void SetIsNativeAutoSetupScope(bool value) const;
 
   bool has_finally() const {
     return HasFinallyBit::decode(raw_ptr()->kind_tag_);
@@ -1965,6 +1974,10 @@ class Function : public Object {
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   void set_data(const Object& value) const;
+  bool is_optimizable() const {
+    return OptimizableBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_optimizable(bool value) const;
 
   static RawFunction* New();
 
@@ -2106,6 +2119,8 @@ class Field : public Object {
 
   static intptr_t value_offset() { return OFFSET_OF(RawField, value_); }
 
+  static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
+
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
   bool has_initializer() const {
@@ -2140,6 +2155,25 @@ class Field : public Object {
     const bool r = guarded_list_length() >= Field::kUnknownFixedLength;
     ASSERT(!r || is_final());
     return r;
+  }
+
+  bool IsUnboxedField() const {
+    return is_unboxing_candidate()
+        && !is_final()
+        && (guarded_cid() == kDoubleCid && !is_nullable());
+  }
+
+  bool IsPotentialUnboxedField() const {
+    return is_unboxing_candidate()
+        && (IsUnboxedField() ||
+            (!is_final() && (guarded_cid() == kIllegalCid)));
+  }
+
+  bool is_unboxing_candidate() const {
+    return UnboxingCandidateBit::decode(raw_ptr()->kind_bits_);
+  }
+  void set_is_unboxing_candidate(bool b) const {
+    set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
 
   static bool IsExternalizableCid(intptr_t cid) {
@@ -2201,16 +2235,22 @@ class Field : public Object {
       JSONStream* stream, const Instance& instance, bool ref) const;
 
  private:
+  friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
+
   enum {
-    kConstBit = 1,
+    kConstBit = 0,
     kStaticBit,
     kFinalBit,
     kHasInitializerBit,
+    kUnboxingCandidateBit
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class FinalBit : public BitField<bool, kFinalBit, 1> {};
   class HasInitializerBit : public BitField<bool, kHasInitializerBit, 1> {};
+  class UnboxingCandidateBit : public BitField<bool,
+                                               kUnboxingCandidateBit, 1> {
+  };
 
   // Update guarded class id and nullability of the field to reflect assignment
   // of the value with the given class id to this field. Returns true, if
@@ -3970,7 +4010,11 @@ class Instance : public Object {
 
   // Returns a string representation of this instance in a form
   // that is suitable for an end user.
-  virtual const char* ToUserCString(intptr_t maxLen = 40) const;
+  //
+  // max_len is advisory, and the returned string may exceed this max
+  // length.
+  virtual const char* ToUserCString(intptr_t max_len = 40,
+                                    intptr_t nesting = 0) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
@@ -4965,7 +5009,8 @@ class String : public Instance {
                           Dart_PeerFinalizer cback) const;
 
   // Produces a quoted, escaped, (possibly) truncated string.
-  const char* ToUserCString(intptr_t maxLen = 40) const;
+  const char* ToUserCString(intptr_t max_len = 40,
+                            intptr_t nesting = 0) const;
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -5091,7 +5136,7 @@ class String : public Instance {
                            CallbackType new_symbol,
                            Snapshot::Kind kind);
 
-  intptr_t EscapedString(char* buffer, int maxLen) const;
+  intptr_t EscapedString(char* buffer, int max_len) const;
   intptr_t EscapedStringLen(intptr_t tooLong) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(String, Instance);
@@ -5692,6 +5737,11 @@ class GrowableObjectArray : public Instance {
     UNREACHABLE();
     return Instance::null();
   }
+
+  // Produces a readable representation of this array, e.g. '[1,2,3]',
+  // subject to length limits.
+  const char* ToUserCString(intptr_t max_len = 40,
+                            intptr_t nesting = 0) const;
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawGrowableObjectArray, type_arguments_);

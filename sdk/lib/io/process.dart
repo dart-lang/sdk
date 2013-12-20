@@ -11,6 +11,7 @@ class _ProcessUtils {
   external static void _setExitCode(int status);
   external static void _sleep(int millis);
   external static int _pid(Process process);
+  external static Stream<ProcessSignal> _watchSignal(ProcessSignal signal);
 }
 
 /**
@@ -310,37 +311,60 @@ abstract class ProcessResult {
  * to a child process, see [:Process.kill:].
  */
 class ProcessSignal {
-  static const ProcessSignal SIGHUP = const ProcessSignal._signal(1);
-  static const ProcessSignal SIGINT = const ProcessSignal._signal(2);
-  static const ProcessSignal SIGQUIT = const ProcessSignal._signal(3);
-  static const ProcessSignal SIGILL = const ProcessSignal._signal(4);
-  static const ProcessSignal SIGTRAP = const ProcessSignal._signal(5);
-  static const ProcessSignal SIGABRT = const ProcessSignal._signal(6);
-  static const ProcessSignal SIGBUS = const ProcessSignal._signal(7);
-  static const ProcessSignal SIGFPE = const ProcessSignal._signal(8);
-  static const ProcessSignal SIGKILL = const ProcessSignal._signal(9);
-  static const ProcessSignal SIGUSR1 = const ProcessSignal._signal(10);
-  static const ProcessSignal SIGSEGV = const ProcessSignal._signal(11);
-  static const ProcessSignal SIGUSR2 = const ProcessSignal._signal(12);
-  static const ProcessSignal SIGPIPE = const ProcessSignal._signal(13);
-  static const ProcessSignal SIGALRM = const ProcessSignal._signal(14);
-  static const ProcessSignal SIGTERM = const ProcessSignal._signal(15);
-  static const ProcessSignal SIGCHLD = const ProcessSignal._signal(17);
-  static const ProcessSignal SIGCONT = const ProcessSignal._signal(18);
-  static const ProcessSignal SIGSTOP = const ProcessSignal._signal(19);
-  static const ProcessSignal SIGTSTP = const ProcessSignal._signal(20);
-  static const ProcessSignal SIGTTIN = const ProcessSignal._signal(21);
-  static const ProcessSignal SIGTTOU = const ProcessSignal._signal(22);
-  static const ProcessSignal SIGURG = const ProcessSignal._signal(23);
-  static const ProcessSignal SIGXCPU = const ProcessSignal._signal(24);
-  static const ProcessSignal SIGXFSZ = const ProcessSignal._signal(25);
-  static const ProcessSignal SIGVTALRM = const ProcessSignal._signal(26);
-  static const ProcessSignal SIGPROF = const ProcessSignal._signal(27);
-  static const ProcessSignal SIGPOLL = const ProcessSignal._signal(29);
-  static const ProcessSignal SIGSYS = const ProcessSignal._signal(31);
+  static const ProcessSignal SIGHUP = const ProcessSignal._(1, "SIGHUP");
+  static const ProcessSignal SIGINT = const ProcessSignal._(2, "SIGINT");
+  static const ProcessSignal SIGQUIT = const ProcessSignal._(3, "SIGQUIT");
+  static const ProcessSignal SIGILL = const ProcessSignal._(4, "SIGILL");
+  static const ProcessSignal SIGTRAP = const ProcessSignal._(5, "SIGTRAP");
+  static const ProcessSignal SIGABRT = const ProcessSignal._(6, "SIGABRT");
+  static const ProcessSignal SIGBUS = const ProcessSignal._(7, "SIGBUS");
+  static const ProcessSignal SIGFPE = const ProcessSignal._(8, "SIGFPE");
+  static const ProcessSignal SIGKILL = const ProcessSignal._(9, "SIGKILL");
+  static const ProcessSignal SIGUSR1 = const ProcessSignal._(10, "SIGUSR1");
+  static const ProcessSignal SIGSEGV = const ProcessSignal._(11, "SIGSEGV");
+  static const ProcessSignal SIGUSR2 = const ProcessSignal._(12, "SIGUSR2");
+  static const ProcessSignal SIGPIPE = const ProcessSignal._(13, "SIGPIPE");
+  static const ProcessSignal SIGALRM = const ProcessSignal._(14, "SIGALRM");
+  static const ProcessSignal SIGTERM = const ProcessSignal._(15, "SIGTERM");
+  static const ProcessSignal SIGCHLD = const ProcessSignal._(17, "SIGCHLD");
+  static const ProcessSignal SIGCONT = const ProcessSignal._(18, "SIGCONT");
+  static const ProcessSignal SIGSTOP = const ProcessSignal._(19, "SIGSTOP");
+  static const ProcessSignal SIGTSTP = const ProcessSignal._(20, "SIGTSTP");
+  static const ProcessSignal SIGTTIN = const ProcessSignal._(21, "SIGTTIN");
+  static const ProcessSignal SIGTTOU = const ProcessSignal._(22, "SIGTTOU");
+  static const ProcessSignal SIGURG = const ProcessSignal._(23, "SIGURG");
+  static const ProcessSignal SIGXCPU = const ProcessSignal._(24, "SIGXCPU");
+  static const ProcessSignal SIGXFSZ = const ProcessSignal._(25, "SIGXFSZ");
+  static const ProcessSignal SIGVTALRM = const ProcessSignal._(26, "SIGVTALRM");
+  static const ProcessSignal SIGPROF = const ProcessSignal._(27, "SIGPROF");
+  static const ProcessSignal SIGWINCH = const ProcessSignal._(28, "SIGWINCH");
+  static const ProcessSignal SIGPOLL = const ProcessSignal._(29, "SIGPOLL");
+  static const ProcessSignal SIGSYS = const ProcessSignal._(31, "SIGSYS");
 
-  const ProcessSignal._signal(int this._signalNumber);
   final int _signalNumber;
+  final String _name;
+
+  const ProcessSignal._(this._signalNumber, this._name);
+
+  String toString() => _name;
+
+  Stream<ProcessSignal> watch() => _ProcessUtils._watchSignal(this);
+}
+
+
+class SignalException implements IOException {
+  final String message;
+  final osError;
+
+  const SignalException(String this.message, [this.osError = null]);
+
+  String toString() {
+    var msg = "";
+    if (osError != null) {
+      msg = ", osError: $osError";
+    }
+    return "SignalException: $message$msg";
+  }
 }
 
 

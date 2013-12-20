@@ -35,7 +35,7 @@ class Unpickler {
     int numEntries = readInt();
     unpickled = new List<Object>(numEntries);
     index = 0;
-    return readEntry();
+    return readNode();
   }
 
   int readByte() {
@@ -77,18 +77,35 @@ class Unpickler {
   }
 
   Selector readSelector() {
-    int elementIndex = readInt();
-    return constantPool.get(elementIndex);
+    int tag = readByte();
+    if (tag == Pickles.BACKREFERENCE) {
+      return readBackReference();
+    }
+    assert(tag == Pickles.SELECTOR_UNTYPED);
+    int entryIndex = index++;
+    SelectorKind kind = Pickles.selectorKindFromId[readInt()];
+    String name = readString();
+    Element library = readElement();
+    int argumentsCount = readInt();
+    int namedArgumentsCount = readInt();
+    List<String> namedArguments = new List<String>(namedArgumentsCount);
+    for (int i = 0; i < namedArgumentsCount; i++) {
+      namedArguments[i] = readString();
+    }
+    Selector result = new Selector(
+        kind, name, library, argumentsCount, namedArguments);
+    unpickled[entryIndex] = result;
+    return result;
   }
 
   /**
-   * Read an entry that might be a back reference, or that might be used
-   * in a back reference.
+   * Reads a [IrNode]. Expression nodes are added to the [unpickled] map to
+   * enable unpickling back references.
    */
-  IrNode readEntry() {
+  IrNode readNode() {
     int tag = readByte();
     if (Pickles.isExpressionTag(tag)) {
-      return readExpressionEntry(tag);
+      return readExpressionNode(tag);
     } else if (tag == Pickles.NODE_RETURN) {
       return readReturnNode();
     } else {
@@ -96,7 +113,7 @@ class Unpickler {
     }
   }
 
-  IrExpression readExpressionEntry(int tag) {
+  IrExpression readExpressionNode(int tag) {
     int entryIndex = index++;
     IrExpression result;
     if (tag == Pickles.NODE_CONST) {
@@ -111,14 +128,14 @@ class Unpickler {
     return unpickled[entryIndex] = result;
   }
 
-  IrExpression readBackReference() {
+  Object readBackReference() {
     int indexDelta = readInt();
     int entryIndex = index - indexDelta;
     assert(unpickled[entryIndex] != null);
     return unpickled[entryIndex];
   }
 
-  List<IrExpression> readBackReferenceList() {
+  List<IrExpression> readExpressionBackReferenceList() {
     int length = readInt();
     List<IrExpression> result = new List<IrExpression>(length);
     for (int i = 0; i < length; i++) {
@@ -129,9 +146,9 @@ class Unpickler {
 
   List<IrNode> readNodeList() {
     int length = readInt();
-    List nodes = new List<IrNode>(length);
+    List<IrNode> nodes = new List<IrNode>(length);
     for (int i = 0; i < length; i++) {
-      nodes[i] = readEntry();
+      nodes[i] = readNode();
     }
     return nodes;
   }
@@ -160,7 +177,7 @@ class Unpickler {
     var position = readPosition();
     FunctionElement functionElement = readElement();
     Selector selector = readSelector();
-    List<IrExpression> arguments = readBackReferenceList();
+    List<IrExpression> arguments = readExpressionBackReferenceList();
     return new IrInvokeStatic(position, functionElement, selector, arguments);
   }
 

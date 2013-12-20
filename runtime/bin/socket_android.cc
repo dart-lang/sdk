@@ -16,6 +16,7 @@
 #include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/log.h"
+#include "bin/signal_blocker.h"
 #include "bin/socket.h"
 
 
@@ -35,7 +36,7 @@ SocketAddress::SocketAddress(struct sockaddr* sa) {
 
 bool Socket::FormatNumericAddress(RawAddr* addr, char* address, int len) {
   socklen_t salen = SocketAddress::GetAddrLength(addr);
-  if (TEMP_FAILURE_RETRY(getnameinfo(&addr->addr,
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(getnameinfo(&addr->addr,
                                      salen,
                                      address,
                                      len,
@@ -56,8 +57,8 @@ bool Socket::Initialize() {
 
 intptr_t Socket::Create(RawAddr addr) {
   intptr_t fd;
-
-  fd = TEMP_FAILURE_RETRY(socket(addr.ss.ss_family, SOCK_STREAM, 0));
+  fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(socket(addr.ss.ss_family, SOCK_STREAM,
+                                               0));
   if (fd < 0) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
@@ -73,14 +74,14 @@ intptr_t Socket::Create(RawAddr addr) {
 
 intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
   SocketAddress::SetAddrPort(&addr, port);
-  intptr_t result = TEMP_FAILURE_RETRY(
+  intptr_t result = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
       connect(fd,
               &addr.addr,
               SocketAddress::GetAddrLength(&addr)));
   if (result == 0 || errno == EINPROGRESS) {
     return fd;
   }
-  VOID_TEMP_FAILURE_RETRY(close(fd));
+  VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fd));
   return -1;
 }
 
@@ -104,7 +105,8 @@ intptr_t Socket::Available(intptr_t fd) {
 
 int Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
-  ssize_t read_bytes = TEMP_FAILURE_RETRY(read(fd, buffer, num_bytes));
+  ssize_t read_bytes = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(read(fd, buffer,
+                                                             num_bytes));
   ASSERT(EAGAIN == EWOULDBLOCK);
   if (read_bytes == -1 && errno == EWOULDBLOCK) {
     // If the read would block we need to retry and therefore return 0
@@ -120,7 +122,7 @@ int Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
   ASSERT(fd >= 0);
   socklen_t addr_len = sizeof(addr->ss);
   ssize_t read_bytes =
-      TEMP_FAILURE_RETRY(
+      TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
           recvfrom(fd, buffer, num_bytes, 0, &addr->addr, &addr_len));
   if (read_bytes == -1 && errno == EWOULDBLOCK) {
     // If the read would block we need to retry and therefore return 0
@@ -133,7 +135,8 @@ int Socket::RecvFrom(intptr_t fd, void* buffer, intptr_t num_bytes,
 
 int Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
   ASSERT(fd >= 0);
-  ssize_t written_bytes = TEMP_FAILURE_RETRY(write(fd, buffer, num_bytes));
+  ssize_t written_bytes = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(write(fd, buffer,
+                                                                 num_bytes));
   ASSERT(EAGAIN == EWOULDBLOCK);
   if (written_bytes == -1 && errno == EWOULDBLOCK) {
     // If the would block we need to retry and therefore return 0 as
@@ -148,7 +151,7 @@ int Socket::SendTo(intptr_t fd, const void* buffer, intptr_t num_bytes,
                    RawAddr addr) {
   ASSERT(fd >= 0);
   ssize_t written_bytes =
-      TEMP_FAILURE_RETRY(
+      TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
           sendto(fd, buffer, num_bytes, 0,
                  &addr.addr, SocketAddress::GetAddrLength(&addr)));
   ASSERT(EAGAIN == EWOULDBLOCK);
@@ -165,7 +168,7 @@ intptr_t Socket::GetPort(intptr_t fd) {
   ASSERT(fd >= 0);
   RawAddr raw;
   socklen_t size = sizeof(raw);
-  if (TEMP_FAILURE_RETRY(
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
           getsockname(fd,
                       &raw.addr,
                       &size))) {
@@ -183,7 +186,7 @@ SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
   ASSERT(fd >= 0);
   RawAddr raw;
   socklen_t size = sizeof(raw);
-  if (TEMP_FAILURE_RETRY(
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
           getpeername(fd,
                       &raw.addr,
                       &size))) {
@@ -268,7 +271,7 @@ bool Socket::ReverseLookup(RawAddr addr,
                            intptr_t host_len,
                            OSError** os_error) {
   ASSERT(host_len >= NI_MAXHOST);
-  int status = TEMP_FAILURE_RETRY(getnameinfo(
+  int status = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(getnameinfo(
       &addr.addr,
       SocketAddress::GetAddrLength(&addr),
       host,
@@ -303,7 +306,7 @@ intptr_t Socket::CreateBindDatagram(
     RawAddr* addr, intptr_t port, bool reuseAddress) {
   intptr_t fd;
 
-  fd = TEMP_FAILURE_RETRY(
+  fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
       socket(addr->addr.sa_family, SOCK_DGRAM, IPPROTO_UDP));
   if (fd < 0) return -1;
 
@@ -311,16 +314,16 @@ intptr_t Socket::CreateBindDatagram(
 
   if (reuseAddress) {
     int optval = 1;
-    VOID_TEMP_FAILURE_RETRY(
+    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
         setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
   }
 
   SocketAddress::SetAddrPort(addr, port);
-  if (TEMP_FAILURE_RETRY(
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
           bind(fd,
                &addr->addr,
                SocketAddress::GetAddrLength(addr))) < 0) {
-    TEMP_FAILURE_RETRY(close(fd));
+    TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fd));
     return -1;
   }
 
@@ -344,27 +347,28 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
                                         bool v6_only) {
   intptr_t fd;
 
-  fd = TEMP_FAILURE_RETRY(socket(addr.ss.ss_family, SOCK_STREAM, 0));
+  fd = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(socket(addr.ss.ss_family, SOCK_STREAM,
+                                               0));
   if (fd < 0) return -1;
 
   FDUtils::SetCloseOnExec(fd);
 
   int optval = 1;
-  TEMP_FAILURE_RETRY(
+  TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
       setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
 
   if (addr.ss.ss_family == AF_INET6) {
     optval = v6_only ? 1 : 0;
-    TEMP_FAILURE_RETRY(
+    TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
         setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)));
   }
 
   SocketAddress::SetAddrPort(&addr, port);
-  if (TEMP_FAILURE_RETRY(
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
           bind(fd,
                &addr.addr,
                SocketAddress::GetAddrLength(&addr))) < 0) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fd));
     return -1;
   }
 
@@ -374,13 +378,14 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
     // that we do not get the bad port number again.
     intptr_t new_fd = CreateBindListen(addr, 0, backlog, v6_only);
     int err = errno;
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fd));
     errno = err;
     return new_fd;
   }
 
-  if (TEMP_FAILURE_RETRY(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
+      listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
+    VOID_TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fd));
     return -1;
   }
 
@@ -403,7 +408,7 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;
   struct sockaddr clientaddr;
   socklen_t addrlen = sizeof(clientaddr);
-  socket = TEMP_FAILURE_RETRY(accept(fd, &clientaddr, &addrlen));
+  socket = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(accept(fd, &clientaddr, &addrlen));
   if (socket == -1) {
     if (IsTemporaryAcceptError(errno)) {
       // We need to signal to the caller that this is actually not an
@@ -421,7 +426,7 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 
 void Socket::Close(intptr_t fd) {
   ASSERT(fd >= 0);
-  int err = TEMP_FAILURE_RETRY(close(fd));
+  int err = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(close(fd));
   if (err != 0) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
@@ -444,7 +449,7 @@ bool Socket::SetBlocking(intptr_t fd) {
 bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
   int on;
   socklen_t len = sizeof(on);
-  int err = TEMP_FAILURE_RETRY(getsockopt(fd,
+  int err = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(getsockopt(fd,
                                           IPPROTO_TCP,
                                           TCP_NODELAY,
                                           reinterpret_cast<void *>(&on),
@@ -458,7 +463,7 @@ bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
 
 bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
   int on = enabled ? 1 : 0;
-  return TEMP_FAILURE_RETRY(setsockopt(fd,
+  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(fd,
                                        IPPROTO_TCP,
                                        TCP_NODELAY,
                                        reinterpret_cast<char *>(&on),
@@ -472,7 +477,7 @@ bool Socket::GetMulticastLoop(intptr_t fd, intptr_t protocol, bool* enabled) {
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
   int optname = protocol == SocketAddress::TYPE_IPV4
       ? IP_MULTICAST_LOOP : IPV6_MULTICAST_LOOP;
-  if (TEMP_FAILURE_RETRY(getsockopt(fd,
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(getsockopt(fd,
                                      level,
                                      optname,
                                      reinterpret_cast<char *>(&on),
@@ -489,7 +494,7 @@ bool Socket::SetMulticastLoop(intptr_t fd, intptr_t protocol, bool enabled) {
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
   int optname = protocol == SocketAddress::TYPE_IPV4
       ? IP_MULTICAST_LOOP : IPV6_MULTICAST_LOOP;
-  return TEMP_FAILURE_RETRY(setsockopt(fd,
+  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(fd,
                                        level,
                                        optname,
                                        reinterpret_cast<char *>(&on),
@@ -503,7 +508,7 @@ bool Socket::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
   int optname = protocol == SocketAddress::TYPE_IPV4
       ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
-  if (TEMP_FAILURE_RETRY(getsockopt(fd,
+  if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(getsockopt(fd,
                                     level,
                                     optname,
                                     reinterpret_cast<char *>(&v),
@@ -520,7 +525,7 @@ bool Socket::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
   int optname = protocol == SocketAddress::TYPE_IPV4
       ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
-  return TEMP_FAILURE_RETRY(setsockopt(fd,
+  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(fd,
                                        level,
                                        optname,
                                        reinterpret_cast<char *>(&v),
@@ -531,7 +536,7 @@ bool Socket::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
 bool Socket::GetBroadcast(intptr_t fd, bool* enabled) {
   int on;
   socklen_t len = sizeof(on);
-  int err = TEMP_FAILURE_RETRY(getsockopt(fd,
+  int err = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(getsockopt(fd,
                                           SOL_SOCKET,
                                           SO_BROADCAST,
                                           reinterpret_cast<char *>(&on),
@@ -545,7 +550,7 @@ bool Socket::GetBroadcast(intptr_t fd, bool* enabled) {
 
 bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
   int on = enabled ? 1 : 0;
-  return TEMP_FAILURE_RETRY(setsockopt(fd,
+  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(fd,
                                        SOL_SOCKET,
                                        SO_BROADCAST,
                                        reinterpret_cast<char *>(&on),
@@ -559,7 +564,7 @@ bool Socket::JoinMulticast(
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
   memmove(&mreq.gr_group, &addr->ss, SocketAddress::GetAddrLength(addr));
-  return TEMP_FAILURE_RETRY(setsockopt(
+  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(
       fd, proto, MCAST_JOIN_GROUP, &mreq, sizeof(mreq))) == 0;
 }
 
@@ -570,7 +575,7 @@ bool Socket::LeaveMulticast(
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
   memmove(&mreq.gr_group, &addr->ss, SocketAddress::GetAddrLength(addr));
-  return TEMP_FAILURE_RETRY(setsockopt(
+  return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(setsockopt(
       fd, proto, MCAST_LEAVE_GROUP, &mreq, sizeof(mreq))) == 0;
 }
 

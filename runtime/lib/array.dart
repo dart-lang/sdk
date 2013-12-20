@@ -78,7 +78,7 @@ class _List<E> implements List<E> {
       _copyFromObjectArray(iterable, skipCount, start, length);
     } else {
       if (iterable is List) {
-        Arrays.copy(iterable, skipCount, this, start, length);
+        Lists.copy(iterable, skipCount, this, start, length);
       } else {
         Iterator it = iterable.iterator;
         while (skipCount > 0) {
@@ -108,13 +108,13 @@ class _List<E> implements List<E> {
   }
 
   List<E> sublist(int start, [int end]) {
-    Arrays.indicesCheck(this, start, end);
+    Lists.indicesCheck(this, start, end);
     if (end == null) end = this.length;
     int length = end - start;
     if (start == end) return [];
     List list = new _GrowableList<E>.withCapacity(length);
     list.length = length;
-    Arrays.copy(this, start, list, 0, length);
+    Lists.copy(this, start, list, 0, length);
     return list;
   }
 
@@ -209,12 +209,12 @@ class _List<E> implements List<E> {
   }
 
   int indexOf(Object element, [int start = 0]) {
-    return Arrays.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Object element, [int start = null]) {
     if (start == null) start = length - 1;
-    return Arrays.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Iterator<E> get iterator {
@@ -361,13 +361,13 @@ class _ImmutableList<E> implements List<E> {
   }
 
   List<E> sublist(int start, [int end]) {
-    Arrays.indicesCheck(this, start, end);
+    Lists.indicesCheck(this, start, end);
     if (end == null) end = this.length;
     int length = end - start;
     if (start == end) return [];
     List list = new List<E>();
     list.length = length;
-    Arrays.copy(this, start, list, 0, length);
+    Lists.copy(this, start, list, 0, length);
     return list;
   }
 
@@ -472,12 +472,12 @@ class _ImmutableList<E> implements List<E> {
   }
 
   int indexOf(Object element, [int start = 0]) {
-    return Arrays.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Object element, [int start = null]) {
     if (start == null) start = length - 1;
-    return Arrays.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   Iterator<E> get iterator {

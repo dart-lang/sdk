@@ -32,10 +32,6 @@ final _CENSORED_FIELDS = const ['refresh_token', 'authorization'];
 /// it's not supported.
 final PUB_API_HEADERS = const {'Accept': 'application/vnd.pub.v2+json'};
 
-/// Whether dart:io's SecureSocket has been initialized with pub's resources
-/// yet.
-bool _initializedSecureSocket = false;
-
 /// An HTTP client that transforms 40* errors and socket exceptions into more
 /// user-friendly error messages.
 class PubHttpClient extends http.BaseClient {
@@ -44,11 +40,7 @@ class PubHttpClient extends http.BaseClient {
   http.Client inner;
 
   PubHttpClient([http.Client inner])
-      : this.inner = inner == null ? new http.Client() : inner {
-    if (!_initializedSecureSocket) {
-      SecureSocket.initialize(database: resourcePath('certs'));
-    }
-  }
+      : this.inner = inner == null ? new http.Client() : inner;
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     _requestStopwatches[request] = new Stopwatch()..start();

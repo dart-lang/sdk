@@ -39,8 +39,22 @@ class _DateBuilder {
   DateTime asDate() {
     // TODO(alanknight): Validate the date, especially for things which
     // can crash the VM, e.g. large month values.
+    if (debugLogDateCreation) {
+      debugDateCreationLog
+        ..write("  Creating Date from\n")
+        ..write("    UTC: $utc\n")
+        ..write("    year: $year\n")
+        ..write("    month: $month\n")
+        ..write("    day: $day\n")
+        ..write("    pm: $pm\n")
+        ..write("    hour: $hour\n")
+        ..write("    minute: $minute\n")
+        ..write("    second: $second\n")
+        ..write("    fractionalSecond: $fractionalSecond\n");
+    }
+    var result;
     if (utc) {
-      return new DateTime.utc(
+      result = new DateTime.utc(
           year,
           month,
           day,
@@ -49,7 +63,7 @@ class _DateBuilder {
           second,
           fractionalSecond);
     } else {
-      return new DateTime(
+      result = new DateTime(
           year,
           month,
           day,
@@ -58,6 +72,11 @@ class _DateBuilder {
           second,
           fractionalSecond);
     }
+    if (debugLogDateCreation) {
+      debugDateCreationLog
+        ..write("Created $result");
+    }
+    return result;
   }
 }
 

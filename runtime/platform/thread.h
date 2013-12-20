@@ -25,6 +25,7 @@ namespace dart {
 class Thread {
  public:
   static ThreadLocalKey kUnsetThreadLocalKey;
+  static ThreadId kInvalidThreadId;
 
   typedef void (*ThreadStartFunction) (uword parameter);
 
@@ -41,6 +42,8 @@ class Thread {
   static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static ThreadId GetCurrentThreadId();
+  static intptr_t ThreadIdToIntPtr(ThreadId id);
+  static bool Compare(ThreadId a, ThreadId b);
   static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
 };
 
@@ -88,58 +91,6 @@ class Monitor {
   MonitorData data_;  // OS-specific data.
 
   DISALLOW_COPY_AND_ASSIGN(Monitor);
-};
-
-
-class ScopedMutex {
- public:
-  explicit ScopedMutex(Mutex* mutex) : mutex_(mutex) {
-    ASSERT(mutex_ != NULL);
-    mutex_->Lock();
-  }
-
-  ~ScopedMutex() {
-    mutex_->Unlock();
-  }
-
- private:
-  Mutex* const mutex_;
-
-  DISALLOW_COPY_AND_ASSIGN(ScopedMutex);
-};
-
-
-class ScopedMonitor {
- public:
-  explicit ScopedMonitor(Monitor* monitor) : monitor_(monitor) {
-    ASSERT(monitor_ != NULL);
-    monitor_->Enter();
-  }
-
-  ~ScopedMonitor() {
-    monitor_->Exit();
-  }
-
-  Monitor::WaitResult Wait(int64_t millis = dart::Monitor::kNoTimeout) {
-    return monitor_->Wait(millis);
-  }
-
-  Monitor::WaitResult WaitMicros(int64_t micros = dart::Monitor::kNoTimeout) {
-    return monitor_->WaitMicros(micros);
-  }
-
-  void Notify() {
-    monitor_->Notify();
-  }
-
-  void NotifyAll() {
-    monitor_->NotifyAll();
-  }
-
- private:
-  Monitor* const monitor_;
-
-  DISALLOW_COPY_AND_ASSIGN(ScopedMonitor);
 };
 
 

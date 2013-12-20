@@ -22,7 +22,7 @@ class GetCommand extends PubCommand {
   }
 
   Future onRun() {
-    return entrypoint.getDependencies()
+    return entrypoint.acquireDependencies()
         .then((_) => log.message("Got dependencies!"));
   }
 }

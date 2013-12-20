@@ -53,10 +53,9 @@ class ForInTest {
       count += i;
     }
     Expect.equals(7, count);
-    // TODO(ngeoffray): We should really test that [i] is 4 with a set
-    // that preserves order. For now, making sure [i] is in the set
-    // will have to do.
     Expect.equals(true, set.contains(i));
+    // The default implementation of [Set] preserves order.
+    Expect.equals(4, i);
   }
 
   static void testBreak() {
