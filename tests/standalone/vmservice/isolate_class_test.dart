@@ -24,7 +24,7 @@ class LibraryTest extends VmServiceRequestHelper {
   LibraryTest(port, id, libId) :
       super('http://127.0.0.1:$port/$id/$libId');
 
-  int _classId;
+  String _classId;
   onRequestCompleted(Map reply) {
     Expect.equals('Library', reply['type']);
     Expect.equals('isolate_stacktrace_command_script', reply['name']);
@@ -39,7 +39,7 @@ class RootLibraryTest extends VmServiceRequestHelper {
   RootLibraryTest(port, id) :
       super('http://127.0.0.1:$port/$id/library');
 
-  int _libId;
+  String _libId;
   onRequestCompleted(Map reply) {
     Expect.equals('Library', reply['type']);
     Expect.equals('isolate_stacktrace_command_script', reply['name']);
@@ -50,7 +50,7 @@ class RootLibraryTest extends VmServiceRequestHelper {
 class IsolateListTest extends VmServiceRequestHelper {
   IsolateListTest(port) : super('http://127.0.0.1:$port/isolates');
 
-  int _isolateId;
+  String _isolateId;
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(2);

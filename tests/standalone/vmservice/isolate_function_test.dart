@@ -33,8 +33,8 @@ class StackTraceTest extends VmServiceRequestHelper {
   StackTraceTest(port, id) :
       super('http://127.0.0.1:$port/$id/stacktrace');
 
-  int _aId;
-  int _cId;
+  String _aId;
+  String _cId;
   onRequestCompleted(Map reply) {
     Expect.equals('StackTrace', reply['type']);
     List members = reply['members'];
@@ -48,7 +48,7 @@ class StackTraceTest extends VmServiceRequestHelper {
 class IsolateListTest extends VmServiceRequestHelper {
   IsolateListTest(port) : super('http://127.0.0.1:$port/isolates');
 
-  int _isolateId;
+  String _isolateId;
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(2);

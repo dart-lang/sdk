@@ -10,8 +10,8 @@ import 'package:expect/expect.dart';
 
 class BananaClassTest {
   int port;
-  int isolate_id;
-  int class_id;
+  String isolate_id;
+  String class_id;
   BananaClassTest(this.port, this.isolate_id, this.class_id);
 
   _testFieldA(Map field) {
@@ -75,8 +75,8 @@ class BananaClassTest {
 
 class BadBananaClassTest {
   int port;
-  int isolate_id;
-  int class_id;
+  String isolate_id;
+  String class_id;
   BadBananaClassTest(this.port, this.isolate_id, this.class_id);
 
   _testFieldV(Map field) {
@@ -142,8 +142,8 @@ class ClassTableTest extends VmServiceRequestHelper {
   ClassTableTest(port, id) :
       super('http://127.0.0.1:$port/$id/classes/');
 
-  int banana_class_id;
-  int bad_banana_class_id;
+  String banana_class_id;
+  String bad_banana_class_id;
 
   onRequestCompleted(Map reply) {
     ClassTableHelper helper = new ClassTableHelper(reply);
@@ -157,7 +157,7 @@ class ClassTableTest extends VmServiceRequestHelper {
 class IsolateListTest extends VmServiceRequestHelper {
   IsolateListTest(port) : super('http://127.0.0.1:$port/isolates');
 
-  int _isolateId;
+  String _isolateId;
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(1);
