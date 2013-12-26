@@ -3910,12 +3910,15 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                String::Handle(super_type.UserVisibleName()).ToCString());
     }
     // The class finalizer will check whether the super type is malbounded.
-    if (CurrentToken() == Token::kWITH) {
-      super_type = ParseMixins(super_type);
-    }
     if (is_mixin_declaration) {
+      if (CurrentToken() != Token::kWITH) {
+        ErrorMsg("mixin application clause 'with type' expected");
+      }
       cls.set_is_mixin_app_alias();
       cls.set_is_synthesized_class();
+    }
+    if (CurrentToken() == Token::kWITH) {
+      super_type = ParseMixins(super_type);
     }
   } else {
     // No extends clause: implicitly extend Object, unless Object itself.

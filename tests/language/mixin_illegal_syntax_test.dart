@@ -31,6 +31,8 @@ class D0 extends S with M
 
 class D1 extends T0 { }
 
+class X = S;   /// 14: compile-time error
+
 main() {
   new T0();  /// 13: static type warning, runtime error
   new T0A();  /// 13: static type warning, runtime error
@@ -53,4 +55,5 @@ main() {
 
   new D0();  /// 12: continued
   new D1();
+  new X();   /// 14: continued
 }
