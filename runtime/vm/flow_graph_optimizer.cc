@@ -124,7 +124,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
 
   const Token::Kind op_kind = call->token_kind();
   if (Token::IsRelationalOperator(op_kind) ||
-      Token::IsRelationalOperator(op_kind) ||
+      Token::IsEqualityOperator(op_kind) ||
       Token::IsBinaryOperator(op_kind)) {
     // Guess cid: if one of the inputs is a number assume that the other
     // is a number of same type.
