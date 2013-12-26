@@ -139,7 +139,7 @@ TEST_CASE(Service_DebugBreakpoints) {
       "{\"type\":\"BreakpointList\",\"breakpoints\":[{"
           "\"type\":\"Breakpoint\",\"id\":1,\"enabled\":true,"
           "\"resolved\":false,"
-          "\"location\":{\"type\":\"Location\",\"libId\":12,"
+          "\"location\":{\"type\":\"Location\","
                         "\"script\":\"dart:test-lib\",\"tokenPos\":5}}]}",
       handler.msg());
 
@@ -150,7 +150,7 @@ TEST_CASE(Service_DebugBreakpoints) {
   EXPECT_STREQ(
       "{\"type\":\"Breakpoint\",\"id\":1,\"enabled\":true,"
        "\"resolved\":false,"
-       "\"location\":{\"type\":\"Location\",\"libId\":12,"
+       "\"location\":{\"type\":\"Location\","
                      "\"script\":\"dart:test-lib\",\"tokenPos\":5}}",
       handler.msg());
 

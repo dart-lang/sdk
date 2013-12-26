@@ -13,7 +13,8 @@ main(List<String> arguments) {
 }
 
 bar() {
-
+  // Attempt to set breakpoint in this empty line does not
+  // result in a resolved breakpoint.
   print("bar");
 }
 
@@ -24,12 +25,10 @@ var testScript = [
   SetBreakpoint(16),
   Resume(),
   MatchFrame(0, "main"),
-  Resume(),
-  MatchFrame(0, "bar"),
-  Resume(),
+  Resume(),  // Next breakpoint expected in main, when bar() returns.
   MatchFrame(0, "main"),
+  // Only two breakpoint resolved events expected.
   ExpectEvent("breakpointResolved", {"breakpointId": 1}),
   ExpectEvent("breakpointResolved", {"breakpointId": 2}),
-  ExpectEvent("breakpointResolved", {"breakpointId": 3}),
   Resume(),
 ];

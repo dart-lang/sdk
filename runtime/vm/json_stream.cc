@@ -133,7 +133,7 @@ void JSONStream::PrintValue(const Field& field,
 }
 
 
-void JSONStream::PrintValue(const SourceBreakpoint* bpt) {
+void JSONStream::PrintValue(SourceBreakpoint* bpt) {
   PrintCommaIfNeeded();
   bpt->PrintToJSONStream(this);
 }
