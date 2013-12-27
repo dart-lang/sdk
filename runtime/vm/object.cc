@@ -1875,19 +1875,19 @@ RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
 }
 
 intptr_t Class::FindClosureIndex(intptr_t token_pos) const {
-  if (raw_ptr()->closure_functions_ == GrowableObjectArray::null()) {
+  if (closures() == GrowableObjectArray::null()) {
     return -1;
   }
   Isolate* isolate = Isolate::Current();
   ReusableHandleScope reused_handles(isolate);
-  const GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(isolate, raw_ptr()->closure_functions_);
+  const GrowableObjectArray& closures_array =
+      GrowableObjectArray::Handle(isolate, closures());
   Function& closure = reused_handles.FunctionHandle();
-  intptr_t num_closures = closures.Length();
+  intptr_t num_closures = closures_array.Length();
   intptr_t best_fit_token_pos = -1;
   intptr_t best_fit_index = -1;
   for (intptr_t i = 0; i < num_closures; i++) {
-    closure ^= closures.At(i);
+    closure ^= closures_array.At(i);
     ASSERT(!closure.IsNull());
     if ((closure.token_pos() <= token_pos) &&
         (token_pos <= closure.end_token_pos()) &&
@@ -2472,7 +2472,7 @@ intptr_t Class::FindFieldIndex(const Field& needle) const {
       return i;
     }
   }
-  // No field found found.
+  // No field found.
   return -1;
 }
 
@@ -14556,38 +14556,29 @@ RawString* String::DecodeURI(const String& str) {
   CodePointIterator cpi(str);
   intptr_t num_escapes = 0;
   intptr_t len = str.Length();
-  bool valid = true;
   {
     CodePointIterator cpi(str);
-    while (valid && cpi.Next()) {
+    while (cpi.Next()) {
       int32_t code_point = cpi.Current();
       if (IsPercent(code_point)) {
         // Verify that the two characters following the % are hex digits.
         if (!cpi.Next()) {
-          valid = false;
-          break;
+          return str.raw();
         }
         int32_t code_point = cpi.Current();
         if (!IsHexCharacter(code_point)) {
-          valid = false;
-          break;
+          return str.raw();
         }
         if (!cpi.Next()) {
-          valid = false;
-          break;
+          return str.raw();
         }
         code_point = cpi.Current();
         if (!IsHexCharacter(code_point)) {
-          valid = false;
-          break;
+          return str.raw();
         }
         num_escapes += 2;
       }
     }
-  }
-  if (!valid) {
-    // Invalid, return original string.
-    return str.raw();
   }
   ASSERT(len - num_escapes > 0);
   const String& dststr = String::Handle(
