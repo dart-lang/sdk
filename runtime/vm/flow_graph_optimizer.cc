@@ -3424,7 +3424,8 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
       }
       // Remove call, replace it with 'left'.
       call->ReplaceUsesWith(left);
-      call->RemoveFromGraph();
+      ASSERT(current_iterator()->Current() == call);
+      current_iterator()->RemoveCurrentFromGraph();
       return;
     }
   }
