@@ -209,6 +209,9 @@ class Api : AllStatic {
                                   int arg_index,
                                   void** peer);
 
+  // Helper function to get the native field from a native receiver argument.
+  static bool GetNativeReceiver(Dart_NativeArguments args, intptr_t* value);
+
   // Helper function to get the boolean value of a Bool native argument.
   static bool GetNativeBooleanArgument(Dart_NativeArguments args,
                                        int arg_index,
