@@ -601,9 +601,11 @@ RawInstance* ActivationFrame::GetLocalInstanceVar(intptr_t slot_index) {
 
 
 RawContext* ActivationFrame::GetLocalContextVar(intptr_t slot_index) {
-  Context& context = Context::Handle();
-  context ^= GetLocalVar(slot_index);
-  return context.raw();
+  Object& context = Object::Handle(GetLocalVar(slot_index));
+  if (context.IsContext()) {
+    return Context::Cast(context).raw();
+  }
+  return Context::null();
 }
 
 
