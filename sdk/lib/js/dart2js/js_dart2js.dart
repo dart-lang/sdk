@@ -544,7 +544,14 @@ JsObject _wrapToDart(o) {
 
 Object _getDartProxy(o, String propertyName, createProxy(o)) {
   var dartProxy = JS('', '#[#]', o, propertyName);
-  if (dartProxy == null) {
+  // Temporary fix for dartbug.com/15193
+  // In some cases it's possible to see a JavaScript object that
+  // came from a different context and was previously proxied to
+  // Dart in that context. The JS object will have a cached proxy
+  // but it won't be a valid Dart object in this context.
+  // For now we throw away the cached proxy, but we should be able
+  // to cache proxies from multiple JS contexts and Dart isolates.
+  if (dartProxy == null || !_isLocalObject(o)) {
     dartProxy = createProxy(o);
     _defineProperty(o, propertyName, dartProxy);
   }
