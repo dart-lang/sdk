@@ -3368,8 +3368,10 @@ class Code : public Object {
         : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
     virtual ~FindRawCodeVisitor() { }
 
+    virtual uword filter_addr() const { return pc_; }
+
     // Check if object matches find condition.
-    virtual bool FindObject(RawObject* obj);
+    virtual bool FindObject(RawObject* obj) const;
 
    private:
     const uword pc_;

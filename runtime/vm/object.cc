@@ -9806,7 +9806,7 @@ RawCode* Code::FinalizeCode(const Function& function,
 
 
 // Check if object matches find condition.
-bool Code::FindRawCodeVisitor::FindObject(RawObject* obj) {
+bool Code::FindRawCodeVisitor::FindObject(RawObject* obj) const {
   return RawInstructions::ContainsPC(obj, pc_);
 }
 

@@ -84,14 +84,18 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
   uword obj_addr = object_start();
   uword end_addr = object_end();
-  while (obj_addr < end_addr) {
-    RawObject* raw_obj = RawObject::FromAddr(obj_addr);
-    if (raw_obj->FindObject(visitor)) {
-      return raw_obj;  // Found object, return it.
+  if (visitor->VisitRange(obj_addr, end_addr)) {
+    while (obj_addr < end_addr) {
+      RawObject* raw_obj = RawObject::FromAddr(obj_addr);
+      uword next_obj_addr = obj_addr + raw_obj->Size();
+      if (visitor->VisitRange(obj_addr, next_obj_addr) &&
+          raw_obj->FindObject(visitor)) {
+        return raw_obj;  // Found object, return it.
+      }
+      obj_addr = next_obj_addr;
     }
-    obj_addr += raw_obj->Size();
+    ASSERT(obj_addr == end_addr);
   }
-  ASSERT(obj_addr == end_addr);
   return Object::null();
 }
 
