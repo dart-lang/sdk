@@ -36,35 +36,6 @@ RawObject* ActivationFrame::GetClosureObject(intptr_t num_actual_args) {
       *reinterpret_cast<uword*>(closure_addr));
 }
 
-
-void CodeBreakpoint::PatchFunctionReturn() {
-  uint8_t* code = reinterpret_cast<uint8_t*>(pc_ - 5);
-  ASSERT((code[0] == 0x89) && (code[1] == 0xEC));  // mov esp,ebp
-  ASSERT(code[2] == 0x5D);  // pop ebp
-  ASSERT(code[3] == 0xC3);  // ret
-  ASSERT(code[4] == 0x90);  // nop
-
-  // Smash code with call instruction and relative target address.
-  uword stub_addr = StubCode::BreakpointReturnEntryPoint();
-  code[0] = 0xE8;
-  *reinterpret_cast<uword*>(&code[1]) = stub_addr - pc_;
-  CPU::FlushICache(pc_ - 5, 5);
-}
-
-
-void CodeBreakpoint::RestoreFunctionReturn() {
-  uint8_t* code = reinterpret_cast<uint8_t*>(pc_ - 5);
-  ASSERT(code[0] == 0xE8);
-  code[0] = 0x89;
-  code[1] = 0xEC;  // mov esp,ebp
-  code[2] = 0x5D;  // pop ebp
-  code[3] = 0xC3;  // ret
-  code[4] = 0x90;  // nop
-  CPU::FlushICache(pc_ - 5, 5);
-}
-
-
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

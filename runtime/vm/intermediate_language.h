@@ -620,6 +620,7 @@ class EmbeddedArray<T, 0> {
   M(EqualityCompare)                                                           \
   M(RelationalOp)                                                              \
   M(NativeCall)                                                                \
+  M(DebugStepCheck)                                                            \
   M(LoadIndexed)                                                               \
   M(StoreIndexed)                                                              \
   M(StoreInstanceField)                                                        \
@@ -3413,6 +3414,28 @@ class NativeCallInstr : public TemplateDefinition<0> {
   const NativeBodyNode& ast_node_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallInstr);
+};
+
+
+class DebugStepCheckInstr : public TemplateInstruction<0> {
+ public:
+  explicit DebugStepCheckInstr(intptr_t token_pos)
+      : token_pos_(token_pos) {
+  }
+
+  DECLARE_INSTRUCTION(DebugStepCheck)
+
+  intptr_t token_pos() const { return token_pos_; }
+  virtual bool MayThrow() const { return false; }
+  virtual bool CanDeoptimize() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual intptr_t ArgumentCount() const { return 0; }
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  const intptr_t token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(DebugStepCheckInstr);
 };
 
 

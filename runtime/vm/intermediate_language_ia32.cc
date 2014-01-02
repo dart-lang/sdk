@@ -98,13 +98,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
   __ LeaveFrame();
   __ ret();
-
-  // Generate 1 byte NOP so that the debugger can patch the
-  // return pattern with a call to the debug stub.
-  __ nop(1);
-  compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
-                                 Isolate::kNoDeoptId,
-                                 token_pos());
 }
 
 

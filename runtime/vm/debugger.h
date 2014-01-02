@@ -102,8 +102,6 @@ class CodeBreakpoint {
 
   void PatchCode();
   void RestoreCode();
-  void PatchFunctionReturn();
-  void RestoreFunctionReturn();
 
   RawFunction* function_;
   intptr_t pc_desc_index_;

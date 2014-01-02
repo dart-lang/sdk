@@ -392,11 +392,6 @@ intptr_t ActivationFrame::ContextLevel() {
       return context_level_;
     }
     ASSERT(!pc_desc_.IsNull());
-    if (pc_desc_.DescriptorKind(pc_desc_idx) == PcDescriptors::kReturn) {
-      // Special case: the context chain has already been deallocated.
-      // The context level is 0.
-      return context_level_;
-    }
     intptr_t innermost_begin_pos = 0;
     intptr_t activation_token_pos = TokenPos();
     ASSERT(activation_token_pos >= 0);
@@ -785,7 +780,8 @@ void CodeBreakpoint::PatchCode() {
       break;
     }
     case PcDescriptors::kRuntimeCall:
-    case PcDescriptors::kClosureCall: {
+    case PcDescriptors::kClosureCall:
+    case PcDescriptors::kReturn: {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       saved_bytes_.target_address_ =
@@ -794,9 +790,6 @@ void CodeBreakpoint::PatchCode() {
                                      StubCode::BreakpointRuntimeEntryPoint());
       break;
     }
-    case PcDescriptors::kReturn:
-      PatchFunctionReturn();
-      break;
     default:
       UNREACHABLE();
   }
@@ -816,16 +809,14 @@ void CodeBreakpoint::RestoreCode() {
     }
     case PcDescriptors::kUnoptStaticCall:
     case PcDescriptors::kClosureCall:
-    case PcDescriptors::kRuntimeCall: {
+    case PcDescriptors::kRuntimeCall:
+    case PcDescriptors::kReturn: {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       CodePatcher::PatchStaticCallAt(pc_, code,
                                      saved_bytes_.target_address_);
       break;
     }
-    case PcDescriptors::kReturn:
-      RestoreFunctionReturn();
-      break;
     default:
       UNREACHABLE();
   }
@@ -2013,14 +2004,13 @@ void Debugger::SignalBpReached() {
   }
 
   Function& func_to_instrument = Function::Handle();
+  if ((resume_action_ == kStepOver) &&
+      (bpt->breakpoint_kind_ == PcDescriptors::kReturn)) {
+    resume_action_ = kStepOut;
+  }
   if (resume_action_ == kStepOver) {
-    if (bpt->breakpoint_kind_ == PcDescriptors::kReturn) {
-      // Step over return is converted into a single step so we break at
-      // the caller.
-      SetSingleStep();
-    } else {
-      func_to_instrument = bpt->function();
-    }
+    ASSERT(bpt->breakpoint_kind_ != PcDescriptors::kReturn);
+    func_to_instrument = bpt->function();
   } else if (resume_action_ == kStepOut) {
     if (stack_trace->Length() > 1) {
       ActivationFrame* caller_frame = stack_trace->FrameAt(1);

@@ -964,6 +964,11 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     }
   }
 
+  // Call to stub that checks whether the debugger is in single
+  // step mode. This call must happen before the contexts are
+  // unchained so that captured variables can be inspected.
+  AddInstruction(new DebugStepCheckInstr(node->token_pos()));
+
   Value* return_value = for_value.value();
   if (FLAG_enable_type_checks) {
     const Function& function = owner()->parsed_function()->function();

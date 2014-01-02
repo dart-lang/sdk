@@ -647,28 +647,28 @@ TEST_CASE(Debug_StepOut) {
   EXPECT(breakpoint_hit == true);
 }
 
+static const char* step_into_expected_bpts[] = {
+    "main",
+      "foo",
+        "f1",
+      "foo",
+        "X.X.",
+        "X.X.",
+      "foo",
+        "X.kvmk",
+          "f2",
+        "X.kvmk",
+        "X.kvmk",
+      "foo",
+    "main"
+};
 
 void TestStepIntoHandler(Dart_IsolateId isolate_id,
                          intptr_t bp_id,
                          const Dart_CodeLocation& location) {
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
-  const char* expected_bpts[] = {
-      "main",
-        "foo",
-          "f1",
-        "foo",
-          "X.X.",
-          "X.X.",
-        "foo",
-          "X.kvmk",
-            "f2",
-          "X.kvmk",
-          "X.kvmk",
-        "foo",
-      "main"
-  };
-  const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
+  const intptr_t expected_bpts_length = ARRAY_SIZE(step_into_expected_bpts);
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
   EXPECT_VALID(res);
@@ -683,7 +683,7 @@ void TestStepIntoHandler(Dart_IsolateId isolate_id,
   const char* name_chars;
   Dart_StringToCString(func_name, &name_chars);
   if (breakpoint_hit_counter < expected_bpts_length) {
-    EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
+    EXPECT_STREQ(step_into_expected_bpts[breakpoint_hit_counter], name_chars);
   }
   if (verbose) {
     OS::Print("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
@@ -727,6 +727,7 @@ TEST_CASE(Debug_StepInto) {
   int64_t int_value = ToInt64(retval);
   EXPECT_EQ(7, int_value);
   EXPECT(breakpoint_hit == true);
+  EXPECT(breakpoint_hit_counter == ARRAY_SIZE(step_into_expected_bpts));
 }
 
 

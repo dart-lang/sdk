@@ -1455,6 +1455,31 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+LocationSummary* DebugStepCheckInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  return locs;
+}
+
+
+void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(!compiler->is_optimizing());
+  const ExternalLabel label("debug_step_check",
+                            StubCode::DebugStepCheckEntryPoint());
+  compiler->GenerateCall(token_pos(),
+                         &label,
+                         PcDescriptors::kReturn,
+                         locs());
+}
+
+
+Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
+  return NULL;
+}
+
+
 Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == NULL) {
     // Environments can accomodate any representation. No need to box.

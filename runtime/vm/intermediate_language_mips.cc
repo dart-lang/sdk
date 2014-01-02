@@ -101,13 +101,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&stack_ok);
   }
 #endif
-  // This sequence is patched by a debugger breakpoint. There is no need for
-  // extra NOP instructions here because the sequence patched in for a
-  // breakpoint is shorter than the sequence here.
   __ LeaveDartFrameAndReturn();
-  compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
-                                 Isolate::kNoDeoptId,
-                                 token_pos());
 }
 
 

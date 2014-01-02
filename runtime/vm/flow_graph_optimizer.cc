@@ -6773,6 +6773,11 @@ void ConstantPropagator::VisitNativeCall(NativeCallInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitDebugStepCheck(DebugStepCheckInstr* instr) {
+  // Nothing to do.
+}
+
+
 void ConstantPropagator::VisitStringFromCharCode(
     StringFromCharCodeInstr* instr) {
   const Object& o = instr->char_code()->definition()->constant_value();

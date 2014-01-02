@@ -716,7 +716,6 @@ class Assembler : public ValueObject {
 
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
-  void ReturnPatchable();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   // Create a frame for calling into runtime that preserves all volatile

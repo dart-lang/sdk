@@ -2667,17 +2667,6 @@ void Assembler::LeaveFrame() {
 }
 
 
-void Assembler::ReturnPatchable() {
-  // This sequence must have a fixed size so that it can be patched by the
-  // debugger.
-  intptr_t start = buffer_.GetPosition();
-  LeaveDartFrame();
-  ret();
-  nop(4);
-  ASSERT((buffer_.GetPosition() - start) == 13);
-}
-
-
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
   // the C++ world.

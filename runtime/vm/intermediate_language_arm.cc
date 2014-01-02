@@ -99,13 +99,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
   __ LeaveDartFrame();
   __ Ret();
-
-  // No need to generate NOP instructions so that the debugger can patch the
-  // return pattern (3 instructions) with a call to the debug stub (also 3
-  // instructions).
-  compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
-                                 Isolate::kNoDeoptId,
-                                 token_pos());
 }
 
 

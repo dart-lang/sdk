@@ -96,11 +96,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&done);
   }
 #endif
-
-  __ ReturnPatchable();
-  compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
-                                 Isolate::kNoDeoptId,
-                                 token_pos());
+  __ LeaveDartFrame();
+  __ ret();
 }
 
 
