@@ -4092,6 +4092,11 @@ abstract class SsaFromAstMixin
       return;
     }
 
+    if (constructor.isFactoryConstructor() &&
+        !expectedType.typeArguments.isEmpty) {
+      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
+    }
+
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
       if (!inputs[0].isNumber(compiler)) {

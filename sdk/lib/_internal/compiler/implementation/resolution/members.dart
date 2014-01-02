@@ -3048,7 +3048,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
                            MessageKind.TYPE_VARIABLE_IN_CONSTANT);
     }
     world.registerInstantiatedType(type, mapping);
-    compiler.backend.registerRequiredType(type, enclosingElement);
+    if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
+      world.registerFactoryWithTypeArguments(mapping);
+    }
     if (constructor.isGenerativeConstructor() && cls.isAbstract) {
       warning(node, MessageKind.ABSTRACT_CLASS_INSTANTIATION);
       compiler.backend.registerAbstractClassInstantiation(mapping);

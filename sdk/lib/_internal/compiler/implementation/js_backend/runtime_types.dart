@@ -85,43 +85,40 @@ class RuntimeTypes {
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
     Set<DartType> instantiatedTypes = universe.instantiatedTypes;
-    Set<ClassElement> checkingClasses =
-        new Set<ClassElement>.from(classesUsingChecks);
-    List<ClassElement> worklist =
-        new List<ClassElement>.from(classesUsingChecks);
-    // Compute all classes that directly use their type variables in checks or
-    // are factories constructing such types.
-    while (!worklist.isEmpty) {
-      Iterable dependencies = rtiDependencies[worklist.removeLast()];
-      if (dependencies == null) continue;
-      for (ClassElement dependency in dependencies) {
-        if (!checkingClasses.contains(dependency)) {
-          checkingClasses.add(dependency);
-          worklist.add(dependency);
-        }
-      }
-    }
-    // Find all instantiated types that are a subtype of a class that uses
-    // one of its type arguments in an is-check and add the arguments to the
-    // set of is-checks.
-    // TODO(karlklose): replace this with code that uses a subtype lookup
-    // datastructure in the world.
-    for (DartType type in instantiatedTypes) {
-      if (type.kind != TypeKind.INTERFACE) continue;
-      InterfaceType classType = type;
-      for (ClassElement cls in checkingClasses) {
-        InterfaceType current = classType;
+    if (universe.usingFactoryWithTypeArguments) {
+      for (DartType type in instantiatedTypes) {
+        if (type.kind != TypeKind.INTERFACE) continue;
+        InterfaceType interface = type;
         do {
-          // We need the type as instance of its superclass anyway, so we just
-          // try to compute the substitution; if the result is [:null:], the
-          // classes are not related.
-          InterfaceType instance = current.asInstanceOf(cls);
-          if (instance == null) break;
-          for (DartType argument in instance.typeArguments) {
+          for (DartType argument in interface.typeArguments) {
             universe.registerIsCheck(argument, compiler);
           }
-          current = current.element.supertype;
-        } while (current != null && !instantiatedTypes.contains(current));
+          interface = interface.element.supertype;
+        } while (interface != null && !instantiatedTypes.contains(interface));
+      }
+    } else {
+      // Find all instantiated types that are a subtype of a class that uses
+      // one of its type arguments in an is-check and add the arguments to the
+      // set of is-checks.
+      // TODO(karlklose): replace this with code that uses a subtype lookup
+      // datastructure in the world.
+      for (DartType type in instantiatedTypes) {
+        if (type.kind != TypeKind.INTERFACE) continue;
+        InterfaceType classType = type;
+        for (ClassElement cls in classesUsingChecks) {
+          InterfaceType current = classType;
+          do {
+            // We need the type as instance of its superclass anyway, so we just
+            // try to compute the substitution; if the result is [:null:], the
+            // classes are not related.
+            InterfaceType instance = current.asInstanceOf(cls);
+            if (instance == null) break;
+            for (DartType argument in instance.typeArguments) {
+              universe.registerIsCheck(argument, compiler);
+            }
+            current = current.element.supertype;
+          } while (current != null && !instantiatedTypes.contains(current));
+        }
       }
     }
   }
@@ -536,8 +533,9 @@ class RuntimeTypes {
     } else {
       List<String> parameters = const <String>[];
       if (contextClass != null) {
-        parameters = contextClass.typeVariables.toList()
-            .map((TypeVariableType type) => type.name).toList();
+        parameters = contextClass.typeVariables.toList().map((type) {
+            return type.toString();
+        }).toList();
       }
       return js.fun(parameters, js.return_(encoding));
     }
