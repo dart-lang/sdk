@@ -4493,13 +4493,20 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+// Length: register or constant.
+// Index: register, constant or stack slot.
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
-  locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
+  ConstantInstr* index_constant = index()->definition()->AsConstant();
+  if (index_constant != NULL) {
+    locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
+  } else {
+    locs->set_in(kIndexPos, Location::PrefersRegister());
+  }
   return locs;
 }
 
@@ -4534,9 +4541,19 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ j(BELOW_EQUAL, deopt);
   } else if (length_loc.IsConstant()) {
     const Smi& length = Smi::Cast(length_loc.constant());
-    Register index = index_loc.reg();
-    __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
+    if (index_loc.IsStackSlot()) {
+      const Address& index = index_loc.ToStackSlotAddress();
+      __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
+    } else {
+      Register index = index_loc.reg();
+      __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
+    }
     __ j(ABOVE_EQUAL, deopt);
+  } else if (index_loc.IsStackSlot()) {
+    Register length = length_loc.reg();
+    const Address& index = index_loc.ToStackSlotAddress();
+    __ cmpl(length, index);
+    __ j(BELOW_EQUAL, deopt);
   } else {
     Register length = length_loc.reg();
     Register index = index_loc.reg();
