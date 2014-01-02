@@ -22,6 +22,32 @@ typedef int Comparator<T>(T a, T b);
 
 /**
  * Interface used by types that have an intrinsic ordering.
+ *
+ * The comparison operations is intended to be a total ordering of objects,
+ * which can be used for ordering and sorting.
+ *
+ * When possible a the order of a `Comparable` class should agree with its
+ * `operator==` equality. That is, `a.compareTo(b) == 0` iff `a == b`.
+ *
+ * There are cases where this fail to be the case, in either direction.
+ * See [double] where the `compareTo` method is more precise than equality, or
+ * [DateTime] where the `compareTo` method is less precise than equality.
+ *
+ * If equality and `compareTo` agrees,
+ * and the ordering represents a less-than/greater-than ordering,
+ * consider implementing the comparison operators `<`, `<=`, `>` and `>=`,
+ * for the class as well.
+ * If equality and `compareTo` disagrees,
+ * and the class has a less-than/greater-than ordering,
+ * the comparison operators should match equality
+ * (`a <= b && a >= b` implies `a == b`).
+ *
+ * The `double` class has the comparison operators
+ * that are compatible with equality.
+ * They differ from [double.compareTo] on -0.0 and NaN.
+ *
+ * The `DateTime` class has no comparison operators, instead it has the more
+ * precisely named [DateTime.isBefore] and [DateTime.isAfter].
  */
 abstract class Comparable<T> {
   /**
