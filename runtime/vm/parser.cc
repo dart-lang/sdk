@@ -743,7 +743,8 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
                                              *(param[i].default_value));
       const Object* metadata = param[i].metadata;
       if ((metadata != NULL) && (*metadata).IsError()) {
-        return (*metadata).raw();  // Error evaluating the metadata.
+        isolate->set_long_jump_base(base);
+        return metadata->raw();  // Error evaluating the metadata.
       }
       param_descriptor.SetAt(j + kParameterMetadataOffset,
           (param[i].metadata == NULL) ? Object::null_instance() :
@@ -864,7 +865,10 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
     Parser parser(script, lib, token_pos);
     parser.set_current_class(cls);
     parser.set_parsing_metadata(true);
-    return parser.EvaluateMetadata();
+
+    RawObject* metadata = parser.EvaluateMetadata();
+    isolate->set_long_jump_base(base);
+    return metadata;
   } else {
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
