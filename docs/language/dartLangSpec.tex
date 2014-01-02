@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Version 1.0}}
+{\large Version 1.01}}
 \author{The Dart Team}
 \begin{document}
 \maketitle
@@ -1563,7 +1563,7 @@ If two members override each other, it is a static warning if the overriding mem
   \item  If possible the interface gets a member named $m$ that has the minimum number of required parameters among all the members in the superinterfaces, the maximal number of    positionals, and the superset of named parameters.  The types of these are all \DYNAMIC{}. If this is impossible then no member $m$ appears in the interface.
   \end{itemize}  (\ref{interfaceInheritanceAndOverriding})
 \item  Rule \ref{typeSigAssignable} applies to interfaces as well as classes  (\ref{interfaceInheritanceAndOverriding}).
-\item  It is a static warning if a concrete class does not have an implementation for a  method in any of its superinterfaces  unless it declares  its own \cd{noSuchMethod} method (\ref{superinterfaces}) or is annotated with \cd{@proxy}.
+\item  It is a static warning if a concrete class does not have an implementation for a  method in any of its superinterfaces  unless it declares  its own \cd{noSuchMethod} method (\ref{superinterfaces}). 
 \item The identifier of a named constructor cannot be the same as the name of a member declared (as opposed to inherited) in the same class (\ref{constructors}).
 \end{enumerate}
 }
@@ -1593,7 +1593,7 @@ One might argue that it is harmless to repeat a type in the superinterface list,
 
 It is a compile-time error if the interface of a class $C$ is a superinterface of itself.
 
-Let $C$ be a concrete class that does not declare its own \code{noSuchMethod()} method and is not annotated with a metadata declaration of the form \cd{@proxy}, where \cd{proxy} is declared in \cd{dart:core}.
+Let $C$ be a concrete class that does not declare its own \code{noSuchMethod()} method.
 It is a static warning if the implicit interface of  $C$ includes an instance member $m$ of type $F$ and $C$ does not declare or inherit a corresponding instance member $m$ of type $F'$ such that $F' <: F$. 
 
 \commentary{A class does not inherit members from its superinterfaces. However, its implicit interface does.
@@ -1604,8 +1604,12 @@ It is a static warning if the implicit interface of  $C$ includes an instance me
 We choose to issue these warnings only for concrete classes; an abstract class might legitimately be designed with the expectation that concrete subclasses will implement part of  the interface.
 We also disable these warnings if a \code{noSuchMethod()} declaration is present. In such cases, the supported interface is going to be implemented via \code{noSuchMethod()} and no actual declarations of the implemented interface's members are needed. This allows proxy classes for specific types to be implemented without provoking type warnings.
 
-In addition, it may be useful to suppress these warnings if \code{noSuchMethod} is inherited, However, this may suppress meaningful warnings and so we choose not to do so by default. Instead, a special annotation is defined in \cd{dart:core} for this purpose.
+In addition, it may be useful to suppress these warnings if \code{noSuchMethod} is inherited, However, this may suppress meaningful warnings and so we choose not to do so. If one does want to suppress the warnings in a subclass, one can define a simple implementation of \code{noSuchMethod} in the subclass:
 }
+
+\begin{dartCode}
+noSuchMethod(inv) =$>$ \SUPER.noSuchMethod(inv);
+\end{dartCode}
 
 It is a static warning if the implicit interface of  a class $C$ includes an instance member $m$ of type $F$ and $C$ declares or inherits a corresponding instance member $m$ of type $F'$ if  $F'$ is not a subtype of $F$. 
 
@@ -3174,7 +3178,7 @@ Then the method \code{noSuchMethod()} is looked up in $o$ and invoked with argum
 
 \commentary{Notice that the wording carefully avoids re-evaluating the receiver $o$ and the arguments $a_i$. }
 
-Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not have an accessible  (\ref{privacy}) instance member named $m$.   If $T.m$ exists, it  is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type. If $T.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
+Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not have an accessible  (\ref{privacy}) instance member named $m$ unless $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.   If $T.m$ exists, it  is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type. If $T.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
 %\item Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \to \bot$.
 %\end{itemize}
 
@@ -3270,7 +3274,7 @@ Then the method \code{noSuchMethod()} is looked up in $S$ and invoked on \THIS{}
 
 It is a compile-time error if a super method invocation occurs in a top-level function or variable initializer, in an instance variable initializer or initializer list, in class \code{Object}, in a factory constructor or in a static method or variable initializer.
 
-It is a static type warning if $S$ does not have an accessible (\ref{privacy}) instance member named $m$. If $S.m$ exists, it  is a static type warning if the type $F$ of $S.m$ may not be assigned to a function type. If $S.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
+It is a static type warning if $S$ does not have an accessible (\ref{privacy}) instance member named $m$ unless $S$ or a superinterface of $S$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. If $S.m$ exists, it  is a static type warning if the type $F$ of $S.m$ may not be assigned to a function type. If $S.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
 %\item Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, t_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \to \bot$.
 %\end{itemize}
 
@@ -3317,7 +3321,7 @@ If the getter lookup has failed, then a new instance $im$  of the predefined cla
 \end{itemize}
 Then the method \code{noSuchMethod()} is looked up in $o$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$.
 
-Let $T$ be the  static type of $e$. It is a static type warning if $T$ does not have a getter named $m$. The static type of $i$ is the declared return type of $T.m$, if $T.m$ exists; otherwise the static type of $i$  is  \DYNAMIC{}. 
+Let $T$ be the  static type of $e$. It is a static type warning if $T$ does not have a getter named $m$ unless $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. The static type of $i$ is the declared return type of $T.m$, if $T.m$ exists; otherwise the static type of $i$  is  \DYNAMIC{}. 
 
 Evaluation of a getter invocation $i$ of the form $C.m$ proceeds as follows:
 
@@ -3423,7 +3427,7 @@ Then the method \code{noSuchMethod()} is looked up in $o_1$ and invoked  with ar
 
 In checked mode, it is a dynamic type error if $o_2$ is not \NULL{} and the interface of the class of $o_2$ is not a subtype of the actual type of $e_1.v$.
 
-Let $T$ be the static type of $e_1$. It is a static type warning if $T$ does not have an accessible instance setter named $v=$. It is a static type warning if the static type of $e_2$ may not be assigned to $T$.   The static type of the expression $e_1v$ \code{=} $e_2$ is the static type of $e_2$.
+Let $T$ be the static type of $e_1$. It is a static type warning if $T$ does not have an accessible instance setter named $v=$ unless $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. It is a static type warning if the static type of $e_2$ may not be assigned to $T$.   The static type of the expression $e_1v$ \code{=} $e_2$ is the static type of $e_2$.
 
 Evaluation of an assignment of the form $e_1[e_2]$ \code{=} $e_3$ is equivalent to the evaluation of the expression \code{(a, i, e)\{a.[]=(i, e); \RETURN{} e; \} ($e_1, e_2, e_3$)}.  The static type of the expression $e_1[e_2]$ \code{=} $e_3$ is the static type of $e_3$.
 
@@ -3714,22 +3718,29 @@ Unary expressions invoke unary operators on objects.
 \begin{grammar}
 {\bf unaryExpression:}prefixOperator unaryExpression;
       postfixExpression;
-      prefixOperator \SUPER{};
+      (minusOperator $|$ tildeOperator) \SUPER{};
       incrementOperator assignableExpression
     .
  
- {\bf prefixOperator:}`-';
-      unaryOperator
+ {\bf prefixOperator:}minusOperator;
+      negationOperator;
+      tildeOperator
     .
        
-    {\bf unaryOperator:}`!' ;
-      `\~{}'
+       
+  {\bf minusOperator:}`-';  .
+
+
+    {\bf negationOperator:}`!' ;
+      .
+      
+    {\bf tildeOperator:}  `\~{}'
     .
     
     
 \end{grammar}
 
-A {\em unary expression} is either aa postfix expression  (\ref{postfixExpressions}), an invocation of a prefix operator on an expression or an invocation of a unary operator on either \SUPER{} or an expression $e$.
+A {\em unary expression} is either a postfix expression  (\ref{postfixExpressions}), an invocation of a prefix operator on an expression or an invocation of a unary operator on either \SUPER{} or an expression $e$.
 
 The expression $!e$ is equivalent to the expression $e? \FALSE{} :\TRUE{}$. 
 
@@ -4589,8 +4600,14 @@ This means, for example, that any inlining of functions done as an optimization 
 Nothing is said about how any native function calls may be represented in the trace.
  }
  
+\commentary{
+Note that we say nothing about the identity of the stack trace, or what notion of equality is defined for stack traces.
+}
  
- For each such function activation, the active stack trace includes the name of the function, the bindings of all its formal parameters, local variables and \THIS{}, and the position at which the function was executing.
+% Sadly, the info below cannot be computed efficiently. It would need to be computed at the throw point, since at latte points it might be destroyed. Native code in calling frames executes relative to the stack pointer, which therefore needs to be reset as each frame is unwound.  This means that the
+% OS kernel can dispose of this stack memory - it is not reliably preserved. And such code must execute if only to test if the exception should be caught or sent onward.
+
+% For each such function activation, the active stack trace includes the name of the function, the bindings of all its formal parameters, local variables and \THIS{}, and the position at which the function was executing.
  
  % Is this controversial? We were thinking of viewing the trace as a List<Invocation>,
  % but that won't capture the receiver or the locals. More generally, we need a standard interface that describes these traces, so one can type the stack trace variable in the catch.
@@ -5031,7 +5048,7 @@ A library $L$ exports a namespace (\ref{scoping}), meaning that the declarations
  
  An export specifies a URI $x$ where the declaration of an exported library is to be found.  It is a compile-time error if  the specified URI does not refer to a library declaration.  
 
-We say that a name {\em is exported by a library} (or equivalently, that a library {\em exports a name}) if the name is in the library`s exported namespace. We say that a declaration {\em is exported by a library} (or equivalently, that a library {\em exports a declaration}) if the declaration is in the library`s exported namespace.
+We say that a name {\em is exported by a library} (or equivalently, that a library {\em exports a name}) if the name is in the library's exported namespace. We say that a declaration {\em is exported by a library} (or equivalently, that a library {\em exports a declaration}) if the declaration is in the library`s exported namespace.
 
 A library always exports all names and all declarations in its public namespace. In addition, a library may choose to re-export additional libraries via {\em export directives}, often referred to simply as {\em exports}.
 
@@ -5071,7 +5088,7 @@ See the discussion in section \ref{imports} for the reasoning behind this rule.
 
 We say that $L$ {\em re-exports library } $B$, and also that $L$ {\em re-exports namespace } $NS_n$. When no confusion can arise, we may simply state that $L$ {\em re-exports }$B$, or that $L$ {\em re-exports }$NS_n$.
 
-It is a compile-time error if a name $N$ is re-exported by a library $L$ and $N$ is  introduced into the export namespace of $L$ by more than one export, unless each all exports refer to same declaration for the name $N$.  It is a static warning to export two different libraries with the same name.
+It is a compile-time error if a name $N$ is re-exported by a library $L$ and $N$ is  introduced into the export namespace of $L$ by more than one export, unless all  exports refer to same declaration for the name $N$.  It is a static warning to export two different libraries with the same name.
 
 
 
@@ -5763,7 +5780,7 @@ Operator precedence is given implicitly by the grammar.
 \hline
 Description &  Operator & Associativity & Precedence \\ 
 \hline
-Unary postfix &  ., ?id, e++, e--, e1[e2], e1() , () & None & 15 \\
+Unary postfix &  ., e++, e--, e1[e2], e1() , () & None & 15 \\
 \hline
 Unary prefix & -e, !e, \~{}e, ++e, --e & None & 14\\
 \hline
