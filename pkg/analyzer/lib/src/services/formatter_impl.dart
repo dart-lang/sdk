@@ -1497,6 +1497,8 @@ class SourceVisitor implements ASTVisitor {
       emitComment(comment, previousToken);
       comment = comment.next;
       currentToken = comment != null ? comment : token;
+      // Ensure EOL comments force a linebreak
+      needsNewline = true;
     }
 
     var lines = 0;

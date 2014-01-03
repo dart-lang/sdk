@@ -6,3 +6,21 @@ A
 <<<
 class A {
 }
+>>> dartbug.com/15876
+// fisk
+import "dart:typed_data";
+
+main() {
+  ByteData byteData = new ByteData(1);
+  print(byteData is ByteData);
+  print(byteData.elementSizeInBytes);
+}
+<<<
+// fisk
+import "dart:typed_data";
+
+main() {
+  ByteData byteData = new ByteData(1);
+  print(byteData is ByteData);
+  print(byteData.elementSizeInBytes);
+}
