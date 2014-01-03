@@ -3472,7 +3472,7 @@ TEST_CASE(FindFunctionIndex) {
   const char* kScriptChars =
       "class A {\n"
       "  void a() {}\n"
-      "  void b() { return a; }\n"
+      "  Function b() { return a; }\n"
       "}\n"
       "class B {\n"
       "  dynamic d() {}\n"
