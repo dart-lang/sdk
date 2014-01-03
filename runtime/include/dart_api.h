@@ -397,6 +397,20 @@ DART_EXPORT Dart_Handle Dart_HandleFromWeakPersistent(
 DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object);
 
 /**
+ * Assign value of local handle to a persistent handle.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param obj1 A persistent handle whose value needs to be set.
+ * \param obj2 An object whose value needs to be set to the persistent handle.
+ *
+ * \return Success if the persistent handle was set
+ *   Otherwise, returns an error.
+ */
+DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
+                                          Dart_Handle obj2);
+
+/**
  * Deallocates a persistent handle.
  *
  * Requires there to be a current isolate.

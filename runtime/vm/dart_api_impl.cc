@@ -578,6 +578,20 @@ DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
   return reinterpret_cast<Dart_PersistentHandle>(new_ref);
 }
 
+
+DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
+                                          Dart_Handle obj2) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  ASSERT(state->IsValidPersistentHandle(obj1));
+  const Object& obj2_ref = Object::Handle(isolate, Api::UnwrapHandle(obj2));
+  PersistentHandle* obj1_ref = Api::UnwrapAsPersistentHandle(obj1);
+  obj1_ref->set_raw(obj2_ref);
+}
+
+
 static Dart_WeakPersistentHandle AllocateFinalizableHandle(
     Isolate* isolate,
     FinalizablePersistentHandles* handles,
