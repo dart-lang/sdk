@@ -314,7 +314,6 @@ malbounded_type_cast_test: StaticWarning
 malbounded_type_literal_test: StaticWarning
 malformed_type_test: StaticWarning
 malformed2_test/01: MissingCompileTimeError
-map_literal11_test: StaticWarning
 map_literal2_negative_test: CompileTimeError
 map_literal3_test: StaticWarning
 map_literal4_test: StaticWarning
@@ -461,3 +460,4 @@ unresolved_top_level_method_negative_test: CompileTimeError
 vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
+

@@ -10,8 +10,8 @@ import 'source.dart';
 import 'error.dart' show AnalysisErrorListener;
 import 'scanner.dart' as sc show Scanner, SubSequenceReader, Token;
 import 'parser.dart' show Parser;
-import 'ast.dart' show ASTVisitor, CompilationUnit, Expression;
-import 'element.dart' show HtmlElementImpl, HtmlScriptElement;
+import 'ast.dart';
+import 'element.dart';
 import 'engine.dart' show AnalysisEngine;
 
 /**
@@ -195,32 +195,6 @@ class HtmlParseResult extends HtmlScanResult {
 }
 
 /**
- * Instances of the class `TagWithEmbeddedExpressions` represent a tag whose text content
- * contains one or more embedded expressions.
- */
-class TagWithEmbeddedExpressions extends XmlTagNode {
-  /**
-   * The expressions that are embedded in the tag's content.
-   */
-  final List<EmbeddedExpression> expressions;
-
-  /**
-   * Initialize a newly created tag whose text content contains one or more embedded expressions.
-   *
-   * @param nodeStart the token marking the beginning of the tag
-   * @param tag the name of the tag
-   * @param attributes the attributes in the tag
-   * @param attributeEnd the token terminating the region where attributes can be
-   * @param tagNodes the children of the tag
-   * @param contentEnd the token that starts the closing tag
-   * @param closingTag the name of the tag that occurs in the closing tag
-   * @param nodeEnd the last token in the tag
-   * @param expressions the expressions that are embedded in the value
-   */
-  TagWithEmbeddedExpressions(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd, this.expressions) : super(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
-}
-
-/**
  * Instances of the class `RecursiveXmlVisitor` implement an XML visitor that will recursively
  * visit all of the nodes in an XML structure. For example, using an instance of this class to visit
  * a [XmlTagNode] will also cause all of the contained [XmlAttributeNode]s and
@@ -251,6 +225,115 @@ class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
   R visitXmlTagNode(XmlTagNode node) {
     node.visitChildren(this);
     return null;
+  }
+}
+
+/**
+ * Utilities locating [Expression]s and [Element]s in [HtmlUnit].
+ */
+class HtmlUnitUtils {
+  /**
+   * Returns the best [Element] of the given [Expression].
+   */
+  static Element getElement(Expression expression) {
+    if (expression == null) {
+      return null;
+    }
+    return ElementLocator.locate(expression);
+  }
+
+  /**
+   * Returns the [Element] of the [Expression] in the given [HtmlUnit], enclosing
+   * the given offset.
+   */
+  static Element getElement2(HtmlUnit htmlUnit, int offset) {
+    Expression expression = getExpression(htmlUnit, offset);
+    return getElement(expression);
+  }
+
+  /**
+   * Returns the [Element] to open when requested at the given [Expression].
+   */
+  static Element getElementToOpen(HtmlUnit htmlUnit, Expression expression) {
+    Element element = getElement(expression);
+    if (isAngular(htmlUnit)) {
+      if (element is VariableElement) {
+        VariableElement variable = element as VariableElement;
+        Type2 type = variable.type;
+        if (variable.nameOffset == 0 && type is InterfaceType) {
+          element = (type as InterfaceType).element;
+        }
+      }
+    }
+    return element;
+  }
+
+  /**
+   * Returns the [Expression] that is part of the given [HtmlUnit] and encloses the
+   * given offset.
+   */
+  static Expression getExpression(HtmlUnit htmlUnit, int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    List<Expression> result = [null];
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor_7(offset, result));
+    } on HtmlUnitUtils_FoundExpressionError catch (e) {
+      return result[0];
+    }
+    return null;
+  }
+
+  /**
+   * Returns `true` if the given [HtmlUnit] has Angular annotation.
+   */
+  static bool isAngular(HtmlUnit htmlUnit) => false; // AngularHtmlUnitResolver.hasAngularAnnotation(htmlUnit);
+
+  /**
+   * Returns the [Expression] that is part of the given root [ASTNode] and encloses the
+   * given offset.
+   */
+  static Expression getExpressionAt(ASTNode root, int offset) {
+    if (root.offset <= offset && offset < root.end) {
+      ASTNode dartNode = new NodeLocator.con1(offset).searchWithin(root);
+      if (dartNode is Expression) {
+        return dartNode as Expression;
+      }
+    }
+    return null;
+  }
+}
+
+class HtmlUnitUtils_FoundExpressionError extends Error {
+}
+
+class RecursiveXmlVisitor_7 extends RecursiveXmlVisitor<Object> {
+  int offset = 0;
+
+  List<Expression> result;
+
+  RecursiveXmlVisitor_7(this.offset, this.result) : super();
+
+  Object visitXmlAttributeNode(XmlAttributeNode node) {
+    findExpression(offset, result, node.expressions);
+    return super.visitXmlAttributeNode(node);
+  }
+
+  Object visitXmlTagNode(XmlTagNode node) {
+    findExpression(offset, result, node.expressions);
+    return super.visitXmlTagNode(node);
+  }
+
+  void findExpression(int offset, List<Expression> result, List<EmbeddedExpression> expressions) {
+    for (EmbeddedExpression embeddedExpression in expressions) {
+      Expression expression = embeddedExpression.expression;
+      Expression at = HtmlUnitUtils.getExpressionAt(expression, offset);
+      if (at != null) {
+        result[0] = at;
+        throw new HtmlUnitUtils_FoundExpressionError();
+      }
+    }
   }
 }
 
@@ -482,27 +565,6 @@ abstract class XmlNode {
     }
     _parent = newParent;
   }
-}
-
-/**
- * Instances of the class `AttributeWithEmbeddedExpressions` represent an attribute whose
- * value contains one or more embedded expressions.
- */
-class AttributeWithEmbeddedExpressions extends XmlAttributeNode {
-  /**
-   * The expressions that are embedded in the attribute's value.
-   */
-  final List<EmbeddedExpression> expressions;
-
-  /**
-   * Initialize a newly created attribute whose value contains one or more embedded expressions.
-   *
-   * @param name the name of the attribute
-   * @param equals the equals sign separating the name from the value
-   * @param value the value of the attribute
-   * @param expressions the expressions that are embedded in the value
-   */
-  AttributeWithEmbeddedExpressions(Token name, Token equals, Token value, this.expressions) : super(name, equals, value);
 }
 
 /**
@@ -1120,6 +1182,8 @@ class XmlAttributeNode extends XmlNode {
 
   final Token value;
 
+  List<EmbeddedExpression> expressions = EmbeddedExpression.EMPTY_ARRAY;
+
   /**
    * Construct a new instance representing an XML attribute.
    *
@@ -1135,13 +1199,6 @@ class XmlAttributeNode extends XmlNode {
   Token get beginToken => name;
 
   Token get endToken => value;
-
-  /**
-   * Return the expressions that are embedded in the attribute's value.
-   *
-   * @return the expressions that are embedded in the attribute's value
-   */
-  List<EmbeddedExpression> get expressions => EmbeddedExpression.EMPTY_ARRAY;
 
   /**
    * Answer the lexeme for the value token without the leading and trailing quotes.
@@ -1630,6 +1687,11 @@ class XmlTagNode extends XmlNode {
   final Token nodeEnd;
 
   /**
+   * The expressions that are embedded in the tag's content.
+   */
+  List<EmbeddedExpression> expressions = EmbeddedExpression.EMPTY_ARRAY;
+
+  /**
    * Construct a new instance representing an XML or HTML element
    *
    * @param nodeStart the starting [TokenType#LT] token (not `null`)
@@ -1748,13 +1810,6 @@ class XmlTagNode extends XmlNode {
   }
 
   /**
-   * Return the expressions that are embedded in the tag's content.
-   *
-   * @return the expressions that are embedded in the tag's content
-   */
-  List<EmbeddedExpression> get expressions => EmbeddedExpression.EMPTY_ARRAY;
-
-  /**
    * Answer the tag nodes contained in the receiver. Callers should not manipulate the returned list
    * to edit the AST structure.
    *
@@ -1803,10 +1858,6 @@ class HtmlParser extends XmlParser {
 
   static String _APPLICATION_DART_IN_SINGLE_QUOTES = "'application/dart'";
 
-  static String _OPENING_DELIMITER = "{{";
-
-  static String _CLOSING_DELIMITER = "}}";
-
   static String _SCRIPT = "script";
 
   static String _TYPE = "type";
@@ -1817,6 +1868,35 @@ class HtmlParser extends XmlParser {
   static Set<String> SELF_CLOSING = new Set<String>();
 
   /**
+   * Given the contents of an embedded expression that occurs at the given offset, parse it as a
+   * Dart expression. The contents should not include the expression's delimiters.
+   *
+   * @param source the source that contains that given token
+   * @param token the token to start parsing from
+   * @return the Dart expression that was parsed
+   */
+  static Expression parseEmbeddedExpression(Source source, sc.Token token, AnalysisErrorListener errorListener) {
+    Parser parser = new Parser(source, errorListener);
+    return parser.parseExpression(token);
+  }
+
+  /**
+   * Given the contents of an embedded expression that occurs at the given offset, scans it as a
+   * Dart code.
+   *
+   * @param source the source of that contains the given contents
+   * @param contents the contents to scan
+   * @param contentOffset the offset of the contents in the larger file
+   * @return the first Dart token
+   */
+  static sc.Token scanDartSource(Source source, LineInfo lineInfo, String contents, int contentOffset, AnalysisErrorListener errorListener) {
+    LineInfo_Location location = lineInfo.getLocation(contentOffset);
+    sc.Scanner scanner = new sc.Scanner(source, new sc.SubSequenceReader(new CharSequence(contents), contentOffset), errorListener);
+    scanner.setSourceStart(location.lineNumber, location.columnNumber);
+    return scanner.tokenize();
+  }
+
+  /**
    * Construct a parser for the specified source.
    *
    * @param source the source being parsed
@@ -1824,28 +1904,6 @@ class HtmlParser extends XmlParser {
    */
   HtmlParser(Source source, AnalysisErrorListener errorListener) : super(source) {
     this._errorListener = errorListener;
-  }
-
-  Token getEndToken(Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) {
-    if (nodeEnd != null) {
-      return nodeEnd;
-    }
-    if (closingTag != null) {
-      return closingTag;
-    }
-    if (contentEnd != null) {
-      return contentEnd;
-    }
-    if (!tagNodes.isEmpty) {
-      return tagNodes[tagNodes.length - 1].endToken;
-    }
-    if (attributeEnd != null) {
-      return attributeEnd;
-    }
-    if (!attributes.isEmpty) {
-      return attributes[attributes.length - 1].endToken;
-    }
-    return tag;
   }
 
   /**
@@ -1875,14 +1933,7 @@ class HtmlParser extends XmlParser {
     return parse(scanner.result);
   }
 
-  XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) {
-    List<EmbeddedExpression> expressions = new List<EmbeddedExpression>();
-    addEmbeddedExpressions(expressions, value);
-    if (expressions.isEmpty) {
-      return new XmlAttributeNode(name, equals, value);
-    }
-    return new AttributeWithEmbeddedExpressions(name, equals, value, new List.from(expressions));
-  }
+  XmlAttributeNode createAttributeNode(Token name, Token equals, Token value) => new XmlAttributeNode(name, equals, value);
 
   XmlTagNode createTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) {
     if (isScriptNode(tag, attributes, tagNodes)) {
@@ -1899,44 +1950,10 @@ class HtmlParser extends XmlParser {
       tagNode.script = unit;
       return tagNode;
     }
-    Token token = nodeStart;
-    Token endToken = getEndToken(tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
-    List<EmbeddedExpression> expressions = new List<EmbeddedExpression>();
-    while (token != endToken) {
-      if (identical(token.type, TokenType.TEXT)) {
-        addEmbeddedExpressions(expressions, token);
-      }
-      token = token.next;
-    }
-    if (expressions.isEmpty) {
-      return super.createTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
-    }
-    return new TagWithEmbeddedExpressions(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd, new List.from(expressions));
+    return new XmlTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd, closingTag, nodeEnd);
   }
 
   bool isSelfClosing(Token tag) => SELF_CLOSING.contains(tag.lexeme);
-
-  /**
-   * Parse the value of the given token for embedded expressions, and add any embedded expressions
-   * that are found to the given list of expressions.
-   *
-   * @param expressions the list to which embedded expressions are to be added
-   * @param token the token whose value is to be parsed
-   */
-  void addEmbeddedExpressions(List<EmbeddedExpression> expressions, Token token) {
-    String lexeme = token.lexeme;
-    int startIndex = lexeme.indexOf(_OPENING_DELIMITER);
-    while (startIndex >= 0) {
-      int endIndex = JavaString.indexOf(lexeme, _CLOSING_DELIMITER, startIndex + 2);
-      if (endIndex < 0) {
-        return;
-      } else if (startIndex + 2 < endIndex) {
-        int offset = token.offset;
-        expressions.add(new EmbeddedExpression(startIndex, parseEmbeddedExpression(lexeme.substring(startIndex + 2, endIndex), offset + startIndex), endIndex));
-      }
-      startIndex = JavaString.indexOf(lexeme, _OPENING_DELIMITER, endIndex + 2);
-    }
-  }
 
   /**
    * Determine if the specified node is a Dart script.
@@ -1960,23 +1977,6 @@ class HtmlParser extends XmlParser {
       }
     }
     return false;
-  }
-
-  /**
-   * Given the contents of an embedded expression that occurs at the given offset, parse it as a
-   * Dart expression. The contents should not include the expression's delimiters.
-   *
-   * @param contents the contents of the expression
-   * @param contentOffset the offset of the expression in the larger file
-   * @return the Dart expression that was parsed
-   */
-  Expression parseEmbeddedExpression(String contents, int contentOffset) {
-    LineInfo_Location location = _lineInfo.getLocation(contentOffset);
-    sc.Scanner scanner = new sc.Scanner(source, new sc.SubSequenceReader(new CharSequence(contents), contentOffset), _errorListener);
-    scanner.setSourceStart(location.lineNumber, location.columnNumber);
-    sc.Token firstToken = scanner.tokenize();
-    Parser parser = new Parser(source, _errorListener);
-    return parser.parseExpression(firstToken);
   }
 }
 
@@ -2006,6 +2006,12 @@ class HtmlUnit extends XmlNode {
    * The element associated with this HTML unit or `null` if the receiver is not resolved.
    */
   HtmlElementImpl element;
+
+  /**
+   * The element associated with Dart pieces in this HTML unit or `null` if the receiver is
+   * not resolved.
+   */
+  CompilationUnitElement compilationUnitElement;
 
   /**
    * Construct a new instance representing the content of an HTML file.

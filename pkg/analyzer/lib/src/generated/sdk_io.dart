@@ -450,11 +450,21 @@ class SdkLibrariesReader {
   /**
    * Return the library map read from the given source.
    *
+   * @param file the [File] of the library file
+   * @param libraryFileContents the contents from the library file
    * @return the library map read from the given source
    */
-  LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
+  LibraryMap readFrom(JavaFile file, String libraryFileContents) => readFrom2(new FileBasedSource.con2(null, file, UriKind.FILE_URI), libraryFileContents);
+
+  /**
+   * Return the library map read from the given source.
+   *
+   * @param source the source of the library file
+   * @param libraryFileContents the contents from the library file
+   * @return the library map read from the given source
+   */
+  LibraryMap readFrom2(Source source, String libraryFileContents) {
     BooleanErrorListener errorListener = new BooleanErrorListener();
-    Source source = new FileBasedSource.con2(null, librariesFile, UriKind.FILE_URI);
     Scanner scanner = new Scanner(source, new CharSequenceReader(new CharSequence(libraryFileContents)), errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());

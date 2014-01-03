@@ -1740,7 +1740,7 @@ class Parser {
             reportError10(ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, []);
           } else {
             if (directives.length > 0) {
-              reportError10(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, []);
+              reportError11(ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, (directive as LibraryDirective).libraryToken, []);
             }
             libraryDirectiveFound = true;
           }

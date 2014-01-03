@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisContext, Analys
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 import 'ast_test.dart' show ASTFactory;
-import 'resolver_test.dart' show TestTypeProvider;
+import 'resolver_test.dart' show TestTypeProvider, AnalysisContextHelper;
 
 class ElementLocationImplTest extends EngineTestCase {
   void test_create_encoding() {
@@ -224,6 +224,65 @@ class LibraryElementImplTest extends EngineTestCase {
     }
   }
 
+  void test_getVisibleLibraries_cycle() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    libraryA.imports = <ImportElementImpl> [ElementFactory.importFor(library, null, [])];
+    library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA], libraries);
+  }
+
+  void test_getVisibleLibraries_directExports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    library.exports = <ExportElementImpl> [ElementFactory.exportFor(libraryA, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library], libraries);
+  }
+
+  void test_getVisibleLibraries_directImports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA], libraries);
+  }
+
+  void test_getVisibleLibraries_indirectExports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
+    libraryA.exports = <ExportElementImpl> [ElementFactory.exportFor(libraryAA, [])];
+    library.imports = <ImportElementImpl> [ElementFactory.importFor(libraryA, null, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA, libraryAA], libraries);
+  }
+
+  void test_getVisibleLibraries_indirectImports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
+    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
+    LibraryElementImpl libraryB = ElementFactory.library(context, "B");
+    libraryA.imports = <ImportElementImpl> [ElementFactory.importFor(libraryAA, null, [])];
+    library.imports = <ImportElementImpl> [
+        ElementFactory.importFor(libraryA, null, []),
+        ElementFactory.importFor(libraryB, null, [])];
+    List<LibraryElement> libraries = library.visibleLibraries;
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library, libraryA, libraryAA, libraryB], libraries);
+  }
+
+  void test_getVisibleLibraries_noImports() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "app");
+    EngineTestCase.assertEqualsIgnoreOrder(<LibraryElement> [library], library.visibleLibraries);
+  }
+
   void test_isUpToDate() {
     AnalysisContext context = createAnalysisContext();
     context.sourceFactory = new SourceFactory.con2([]);
@@ -260,6 +319,30 @@ class LibraryElementImplTest extends EngineTestCase {
       _ut.test('test_getPrefixes', () {
         final __test = new LibraryElementImplTest();
         runJUnitTest(__test, __test.test_getPrefixes);
+      });
+      _ut.test('test_getVisibleLibraries_cycle', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_cycle);
+      });
+      _ut.test('test_getVisibleLibraries_directExports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_directExports);
+      });
+      _ut.test('test_getVisibleLibraries_directImports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_directImports);
+      });
+      _ut.test('test_getVisibleLibraries_indirectExports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_indirectExports);
+      });
+      _ut.test('test_getVisibleLibraries_indirectImports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_indirectImports);
+      });
+      _ut.test('test_getVisibleLibraries_noImports', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getVisibleLibraries_noImports);
       });
       _ut.test('test_isUpToDate', () {
         final __test = new LibraryElementImplTest();
@@ -2210,7 +2293,7 @@ class ElementFactory {
   }
 
   static ImportElementImpl importFor(LibraryElement importedLibrary, PrefixElement prefix, List<NamespaceCombinator> combinators) {
-    ImportElementImpl spec = new ImportElementImpl();
+    ImportElementImpl spec = new ImportElementImpl(0);
     spec.importedLibrary = importedLibrary;
     spec.prefix = prefix;
     spec.combinators = combinators;
@@ -2431,6 +2514,28 @@ class ClassElementImplTest extends EngineTestCase {
     JUnitTestCase.assertNull(classA.getMethod("${methodName}x"));
   }
 
+  void test_getNode() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B {}"]));
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    {
+      ClassElement elementA = unitElement.getType("A");
+      ClassDeclaration nodeA = elementA.node;
+      JUnitTestCase.assertNotNull(nodeA);
+      JUnitTestCase.assertEquals("A", nodeA.name.name);
+      JUnitTestCase.assertSame(elementA, nodeA.element);
+    }
+    {
+      ClassElement elementB = unitElement.getType("B");
+      ClassDeclaration nodeB = elementB.node;
+      JUnitTestCase.assertNotNull(nodeB);
+      JUnitTestCase.assertEquals("B", nodeB.name.name);
+      JUnitTestCase.assertSame(elementB, nodeB.element);
+    }
+  }
+
   void test_hasNonFinalField_false_const() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     classA.fields = <FieldElement> [ElementFactory.fieldElement("f", false, false, true, classA.type)];
@@ -2596,6 +2701,10 @@ class ClassElementImplTest extends EngineTestCase {
         final __test = new ClassElementImplTest();
         runJUnitTest(__test, __test.test_getMethod_undeclared);
       });
+      _ut.test('test_getNode', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_getNode);
+      });
       _ut.test('test_hasNonFinalField_false_const', () {
         final __test = new ClassElementImplTest();
         runJUnitTest(__test, __test.test_hasNonFinalField_false_const);
@@ -2713,6 +2822,36 @@ class ElementImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(classElement.isAccessibleIn(library));
   }
 
+  void test_isPrivate_false() {
+    Element element = ElementFactory.classElement2("C", []);
+    JUnitTestCase.assertFalse(element.isPrivate);
+  }
+
+  void test_isPrivate_null() {
+    Element element = ElementFactory.classElement2(null, []);
+    JUnitTestCase.assertTrue(element.isPrivate);
+  }
+
+  void test_isPrivate_true() {
+    Element element = ElementFactory.classElement2("_C", []);
+    JUnitTestCase.assertTrue(element.isPrivate);
+  }
+
+  void test_isPublic_false() {
+    Element element = ElementFactory.classElement2("_C", []);
+    JUnitTestCase.assertFalse(element.isPublic);
+  }
+
+  void test_isPublic_null() {
+    Element element = ElementFactory.classElement2(null, []);
+    JUnitTestCase.assertFalse(element.isPublic);
+  }
+
+  void test_isPublic_true() {
+    Element element = ElementFactory.classElement2("C", []);
+    JUnitTestCase.assertTrue(element.isPublic);
+  }
+
   void test_SORT_BY_OFFSET() {
     ClassElementImpl classElementA = ElementFactory.classElement2("A", []);
     classElementA.nameOffset = 1;
@@ -2748,6 +2887,30 @@ class ElementImplTest extends EngineTestCase {
       _ut.test('test_isAccessibleIn_public_sameLibrary', () {
         final __test = new ElementImplTest();
         runJUnitTest(__test, __test.test_isAccessibleIn_public_sameLibrary);
+      });
+      _ut.test('test_isPrivate_false', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPrivate_false);
+      });
+      _ut.test('test_isPrivate_null', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPrivate_null);
+      });
+      _ut.test('test_isPrivate_true', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPrivate_true);
+      });
+      _ut.test('test_isPublic_false', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPublic_false);
+      });
+      _ut.test('test_isPublic_null', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPublic_null);
+      });
+      _ut.test('test_isPublic_true', () {
+        final __test = new ElementImplTest();
+        runJUnitTest(__test, __test.test_isPublic_true);
       });
     });
   }
@@ -2813,7 +2976,7 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
-    InterfaceTypeImpl functionType = new InterfaceTypeImpl_26(functionElement);
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl_27(functionElement);
     FunctionType f = ElementFactory.functionElement("f").type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(functionType));
   }
@@ -3312,8 +3475,8 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 }
 
-class InterfaceTypeImpl_26 extends InterfaceTypeImpl {
-  InterfaceTypeImpl_26(ClassElement arg0) : super.con1(arg0);
+class InterfaceTypeImpl_27 extends InterfaceTypeImpl {
+  InterfaceTypeImpl_27(ClassElement arg0) : super.con1(arg0);
 
   bool get isDartCoreFunction => true;
 }

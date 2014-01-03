@@ -463,6 +463,16 @@ abstract class AnalysisContext {
   CompilationUnit getResolvedCompilationUnit2(Source unitSource, Source librarySource);
 
   /**
+   * Return a fully resolved HTML unit, or `null` if the resolved unit is not already
+   * computed.
+   *
+   * @param htmlSource the source of the HTML unit
+   * @return a fully resolved HTML unit
+   * @see #resolveHtmlUnit(Source)
+   */
+  HtmlUnit getResolvedHtmlUnit(Source htmlSource);
+
+  /**
    * Return the source factory used to create the sources that can be analyzed in this context.
    *
    * @return the source factory used to create the sources that can be analyzed in this context
@@ -801,6 +811,14 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
    * @return the fully resolved AST that changed as a result of the analysis
    */
   CompilationUnit get compilationUnit;
+
+  /**
+   * Return the fully resolved HTML that changed as a result of the analysis, or `null` if the
+   * HTML was not changed.
+   *
+   * @return the fully resolved HTML that changed as a result of the analysis
+   */
+  HtmlUnit get htmlUnit;
 
   /**
    * Return the source for which the result is being reported.
@@ -3518,6 +3536,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return null;
   }
 
+  HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
+    SourceEntry sourceEntry = getReadableSourceEntry(htmlSource);
+    if (sourceEntry is HtmlEntry) {
+      HtmlEntry htmlEntry = sourceEntry as HtmlEntry;
+      if (htmlEntry.getValue(HtmlEntry.ELEMENT) != null) {
+        return htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
+      }
+    }
+    return null;
+  }
+
   SourceFactory get sourceFactory => _sourceFactory;
 
   /**
@@ -3675,7 +3704,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   CompilationUnit resolveCompilationUnit2(Source unitSource, Source librarySource) => getDartResolutionData2(unitSource, librarySource, DartEntry.RESOLVED_UNIT, null);
 
-  HtmlUnit resolveHtmlUnit(Source htmlSource) => parseHtmlUnit(htmlSource);
+  HtmlUnit resolveHtmlUnit(Source htmlSource) {
+    computeHtmlElement(htmlSource);
+    return parseHtmlUnit(htmlSource);
+  }
 
   void set analysisOptions(AnalysisOptions options) {
     {
@@ -5136,6 +5168,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           htmlCopy.setValue(HtmlEntry.ELEMENT, task.element);
           htmlCopy.setValue(HtmlEntry.RESOLUTION_ERRORS, task.resolutionErrors);
           ChangeNoticeImpl notice = getNotice(source);
+          notice.htmlUnit = task.resolvedUnit;
           notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
         } else {
           htmlCopy.recordResolutionError();
@@ -5396,6 +5429,12 @@ class ChangeNoticeImpl implements ChangeNotice {
   CompilationUnit compilationUnit;
 
   /**
+   * The fully resolved HTML that changed as a result of the analysis, or `null` if the HTML
+   * was not changed.
+   */
+  HtmlUnit htmlUnit;
+
+  /**
    * The errors that changed as a result of the analysis, or `null` if errors were not
    * changed.
    */
@@ -5418,20 +5457,8 @@ class ChangeNoticeImpl implements ChangeNotice {
    */
   ChangeNoticeImpl(this.source);
 
-  /**
-   * Return the errors that changed as a result of the analysis, or `null` if errors were not
-   * changed.
-   *
-   * @return the errors that changed as a result of the analysis
-   */
   List<AnalysisError> get errors => _errors;
 
-  /**
-   * Return the line information associated with the source, or `null` if errors were not
-   * changed.
-   *
-   * @return the line information associated with the source
-   */
   LineInfo get lineInfo => _lineInfo;
 
   /**
@@ -6272,6 +6299,16 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     try {
       instrumentation.metric3("contextId", _contextId);
       return _basis.getResolvedCompilationUnit2(unitSource, librarySource);
+    } finally {
+      instrumentation.log2(2);
+    }
+  }
+
+  HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getResolvedHtmlUnit");
+    try {
+      instrumentation.metric3("contextId", _contextId);
+      return _basis.getResolvedHtmlUnit(htmlSource);
     } finally {
       instrumentation.log2(2);
     }
@@ -7418,7 +7455,7 @@ class ParseDartTask extends AnalysisTask {
     List<Token> token = [null];
     TimeCounter_TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
     try {
-      Source_ContentReceiver receiver = new Source_ContentReceiver_11(this, errorListener, token);
+      Source_ContentReceiver receiver = new Source_ContentReceiver_12(this, errorListener, token);
       try {
         source.getContents(receiver);
       } on JavaException catch (exception) {
@@ -7427,6 +7464,9 @@ class ParseDartTask extends AnalysisTask {
       }
     } finally {
       timeCounterScan.stop();
+    }
+    if (token[0] == null) {
+      throw new AnalysisException.con1("Could not get contents for '${source.fullName}'");
     }
     TimeCounter_TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
     try {
@@ -7503,14 +7543,14 @@ class ParseDartTask extends AnalysisTask {
   }
 }
 
-class Source_ContentReceiver_11 implements Source_ContentReceiver {
+class Source_ContentReceiver_12 implements Source_ContentReceiver {
   final ParseDartTask ParseDartTask_this;
 
   RecordingErrorListener errorListener;
 
   List<Token> token;
 
-  Source_ContentReceiver_11(this.ParseDartTask_this, this.errorListener, this.token);
+  Source_ContentReceiver_12(this.ParseDartTask_this, this.errorListener, this.token);
 
   void accept(CharBuffer contents, int modificationTime) {
     doScan(contents, modificationTime);
@@ -7663,7 +7703,7 @@ class ParseHtmlTask extends AnalysisTask {
    */
   List<Source> get librarySources {
     List<Source> libraries = new List<Source>();
-    _unit.accept(new RecursiveXmlVisitor_12(this, libraries));
+    _unit.accept(new RecursiveXmlVisitor_13(this, libraries));
     if (libraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
@@ -7671,12 +7711,12 @@ class ParseHtmlTask extends AnalysisTask {
   }
 }
 
-class RecursiveXmlVisitor_12 extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_13 extends RecursiveXmlVisitor<Object> {
   final ParseHtmlTask ParseHtmlTask_this;
 
   List<Source> libraries;
 
-  RecursiveXmlVisitor_12(this.ParseHtmlTask_this, this.libraries) : super();
+  RecursiveXmlVisitor_13(this.ParseHtmlTask_this, this.libraries) : super();
 
   Object visitHtmlScriptTagNode(HtmlScriptTagNode node) {
     XmlAttributeNode scriptAttribute = null;
@@ -7889,6 +7929,11 @@ class ResolveHtmlTask extends AnalysisTask {
   int _modificationTime = -1;
 
   /**
+   * The [HtmlUnit] that was resolved by this task.
+   */
+  HtmlUnit _resolvedUnit;
+
+  /**
    * The element produced by resolving the source.
    */
   HtmlElement _element = null;
@@ -7920,6 +7965,13 @@ class ResolveHtmlTask extends AnalysisTask {
 
   List<AnalysisError> get resolutionErrors => _resolutionErrors;
 
+  /**
+   * Return the [HtmlUnit] that was resolved by this task.
+   *
+   * @return the [HtmlUnit] that was resolved by this task
+   */
+  HtmlUnit get resolvedUnit => _resolvedUnit;
+
   String get taskDescription {
     if (source == null) {
       return "resolve as html null source";
@@ -7936,7 +7988,10 @@ class ResolveHtmlTask extends AnalysisTask {
     _modificationTime = resolvableHtmlUnit.modificationTime;
     HtmlUnitBuilder builder = new HtmlUnitBuilder(context);
     _element = builder.buildHtmlElement2(source, _modificationTime, unit);
+    LineInfo lineInfo = context.getLineInfo(source);
+//    new AngularHtmlUnitResolver(context, builder.errorListener, source, lineInfo).resolve(unit);
     _resolutionErrors = builder.errorListener.getErrors2(source);
+    _resolvedUnit = unit;
   }
 }
 

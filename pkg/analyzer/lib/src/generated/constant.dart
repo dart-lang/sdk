@@ -4,12 +4,15 @@
 library engine.constant;
 
 import 'java_core.dart';
+import 'java_engine.dart' show ObjectUtilities;
 import 'source.dart' show Source;
 import 'error.dart' show AnalysisError, ErrorCode, CompileTimeErrorCode;
-import 'scanner.dart' show TokenType;
+import 'scanner.dart' show Token, TokenType;
 import 'ast.dart';
 import 'element.dart';
+import 'resolver.dart' show TypeProvider;
 import 'engine.dart' show AnalysisEngine;
+import 'utilities_dart.dart' show ParameterKind;
 
 /**
  * Instances of the class `ConstantEvaluator` evaluate constant expressions to produce their
@@ -19,36 +22,42 @@ import 'engine.dart' show AnalysisEngine;
  * * A literal number.
  * * A literal boolean.
  * * A literal string where any interpolated expression is a compile-time constant that evaluates
- * to a numeric, string or boolean value or to `null`.
- * * `null`.
- * * A reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, a class or a type parameter.
+ * to a numeric, string or boolean value or to <b>null</b>.
+ * * A literal symbol.
+ * * <b>null</b>.
+ * * A qualified reference to a static constant variable.
+ * * An identifier expression that denotes a constant variable, class or type alias.
  * * A constant constructor invocation.
  * * A constant list literal.
  * * A constant map literal.
  * * A simple or qualified identifier denoting a top-level function or a static method.
- * * A parenthesized expression `(e)` where `e` is a constant expression.
- * * An expression of one of the forms `identical(e1, e2)`, `e1 == e2`,
- * `e1 != e2` where `e1` and `e2` are constant expressions that evaluate to a
- * numeric, string or boolean value or to `null`.
- * * An expression of one of the forms `!e`, `e1 && e2` or `e1 || e2`, where
- * `e`, `e1` and `e2` are constant expressions that evaluate to a boolean value or
- * to `null`.
- * * An expression of one of the forms `~e`, `e1 ^ e2`, `e1 & e2`,
- * `e1 | e2`, `e1 >> e2` or `e1 << e2`, where `e`, `e1` and `e2`
- * are constant expressions that evaluate to an integer value or to `null`.
- * * An expression of one of the forms `-e`, `e1 + e2`, `e1 - e2`,
- * `e1 * e2`, `e1 / e2`, `e1 ~/ e2`, `e1 > e2`, `e1 < e2`,
- * `e1 >= e2`, `e1 <= e2` or `e1 % e2`, where `e`, `e1` and `e2`
- * are constant expressions that evaluate to a numeric value or to `null`.
+ * * A parenthesized expression <i>(e)</i> where <i>e</i> is a constant expression.
+ * * An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i> where
+ * <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions and <i>identical()</i> is
+ * statically bound to the predefined dart function <i>identical()</i> discussed above.
+ * * An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i> or <i>e<sub>1</sub>
+ * != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions
+ * that evaluate to a numeric, string or boolean value.
+ * * An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp; e<sub>2</sub></i> or
+ * <i>e<sub>1</sub> || e<sub>2</sub></i>, where <i>e</i>, <i>e1</sub></i> and <i>e2</sub></i> are
+ * constant expressions that evaluate to a boolean value.
+ * * An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^ e<sub>2</sub></i>,
+ * <i>e<sub>1</sub> &amp; e<sub>2</sub></i>, <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub>
+ * &gt;&gt; e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where <i>e</i>,
+ * <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions that evaluate to an
+ * integer value or to <b>null</b>.
+ * * An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> + e<sub>2</sub></i>,
+ * <i>e<sub>1</sub> -e<sub>2</sub></i>, <i>e<sub>1</sub> * e<sub>2</sub></i>, <i>e<sub>1</sub> /
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> ~/ e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or <i>e<sub>1</sub> %
+ * e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+ * expressions that evaluate to a numeric value or to <b>null</b>.
+ * * An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> : e<sub>3</sub></i> where
+ * <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and <i>e<sub>3</sub></i> are constant expressions, and
+ * <i>e<sub>1</sub></i> evaluates to a boolean value.
  *
- * </blockquote> The values returned by instances of this class are therefore `null` and
- * instances of the classes `Boolean`, `BigInteger`, `Double`, `String`, and
- * `DartObject`.
- *
- * In addition, this class defines several values that can be returned to indicate various
- * conditions encountered during evaluation. These are documented with the static field that define
- * those values.
+ * </blockquote>
  */
 class ConstantEvaluator {
   /**
@@ -57,16 +66,23 @@ class ConstantEvaluator {
   Source _source;
 
   /**
+   * The type provider used to access the known types.
+   */
+  TypeProvider _typeProvider;
+
+  /**
    * Initialize a newly created evaluator to evaluate expressions in the given source.
    *
    * @param source the source containing the expression(s) that will be evaluated
+   * @param typeProvider the type provider used to access known types
    */
-  ConstantEvaluator(Source source) {
+  ConstantEvaluator(Source source, TypeProvider typeProvider) {
     this._source = source;
+    this._typeProvider = typeProvider;
   }
 
   EvaluationResult evaluate(Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor(_typeProvider));
     if (result is ValidResult) {
       return EvaluationResult.forValue((result as ValidResult).value);
     }
@@ -77,6 +93,72 @@ class ConstantEvaluator {
     }
     return EvaluationResult.forErrors(new List.from(errors));
   }
+}
+
+/**
+ * The interface `DartObject` defines the behavior of objects that represent the state of a
+ * Dart object.
+ */
+abstract class DartObject {
+  /**
+   * Return the boolean value of this object, or `null` if either the value of this object is
+   * not known or this object is not of type 'bool'.
+   *
+   * @return the boolean value of this object
+   */
+  Object get boolValue;
+
+  /**
+   * Return the floating point value of this object, or `null` if either the value of this
+   * object is not known or this object is not of type 'double'.
+   *
+   * @return the floating point value of this object
+   */
+  double get doubleValue;
+
+  /**
+   * Return the integer value of this object, or `null` if either the value of this object is
+   * not known or this object is not of type 'int'.
+   *
+   * @return the integer value of this object
+   */
+  int get intValue;
+
+  /**
+   * Return the string value of this object, or `null` if either the value of this object is
+   * not known or this object is not of type 'String'.
+   *
+   * @return the string value of this object
+   */
+  String get stringValue;
+
+  /**
+   * Return the run-time type of this object.
+   *
+   * @return the run-time type of this object
+   */
+  InterfaceType get type;
+
+  /**
+   * Return `true` if this object represents the value 'false'.
+   *
+   * @return `true` if this object represents the value 'false'
+   */
+  bool get isFalse;
+
+  /**
+   * Return `true` if this object represents the value 'null'.
+   *
+   * @return `true` if this object represents the value 'null'
+   */
+  bool get isNull;
+
+  /**
+   * Return `true` if this object represents the value 'true'.
+   *
+   * @return `true` if this object represents the value 'true'
+   */
+  bool get isTrue;
 }
 
 /**
@@ -100,12 +182,12 @@ class EvaluationResult {
    * @param value the value of the expression
    * @return the result of evaluating an expression that is a compile-time constant
    */
-  static EvaluationResult forValue(Object value) => new EvaluationResult(value, null);
+  static EvaluationResult forValue(DartObject value) => new EvaluationResult(value, null);
 
   /**
    * The value of the expression.
    */
-  final Object value;
+  final DartObject value;
 
   /**
    * The errors that should be reported for the expression(s) that were evaluated.
@@ -168,10 +250,15 @@ class ConstantFinder extends RecursiveASTVisitor<Object> {
  * Instances of the class `ConstantValueComputer` compute the values of constant variables in
  * one or more compilation units. The expected usage pattern is for the compilation units to be
  * added to this computer using the method [add] and then for the method
- * [computeValues] to invoked exactly once. Any use of an instance after invoking the
+ * [computeValues] to be invoked exactly once. Any use of an instance after invoking the
  * method [computeValues] will result in unpredictable behavior.
  */
 class ConstantValueComputer {
+  /**
+   * The type provider used to access the known types.
+   */
+  TypeProvider _typeProvider;
+
   /**
    * The object used to find constant variables in the compilation units that were added.
    */
@@ -187,6 +274,15 @@ class ConstantValueComputer {
    * A table mapping constant variables to the declarations of those variables.
    */
   Map<VariableElement, VariableDeclaration> _declarationMap;
+
+  /**
+   * Initialize a newly created constant value computer.
+   *
+   * @param typeProvider the type provider used to access known types
+   */
+  ConstantValueComputer(TypeProvider typeProvider) {
+    this._typeProvider = typeProvider;
+  }
 
   /**
    * Add the constant variables in the given compilation unit to the list of constant variables
@@ -218,7 +314,7 @@ class ConstantValueComputer {
       if (!_referenceGraph.isEmpty) {
         List<VariableElement> variablesInCycle = _referenceGraph.findCycle();
         if (variablesInCycle == null) {
-          AnalysisEngine.instance.logger.logError("Exiting constant value computer with ${_referenceGraph.nodeCount} variables that are neither sinks no in a cycle");
+          AnalysisEngine.instance.logger.logError("Exiting constant value computer with ${_referenceGraph.nodeCount} variables that are neither sinks nor in a cycle");
           return;
         }
         for (VariableElement variable in variablesInCycle) {
@@ -239,7 +335,7 @@ class ConstantValueComputer {
     if (declaration == null) {
       return;
     }
-    EvaluationResultImpl result = declaration.initializer.accept(new ConstantVisitor());
+    EvaluationResultImpl result = declaration.initializer.accept(new ConstantVisitor(_typeProvider));
     (variable as VariableElementImpl).evaluationResult = result;
     if (result is ErrorResult) {
       List<AnalysisError> errors = new List<AnalysisError>();
@@ -271,39 +367,70 @@ class ConstantValueComputer {
  * * A literal number.
  * * A literal boolean.
  * * A literal string where any interpolated expression is a compile-time constant that evaluates
- * to a numeric, string or boolean value or to `null`.
- * * `null`.
- * * A reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, a class or a type parameter.
+ * to a numeric, string or boolean value or to <b>null</b>.
+ * * A literal symbol.
+ * * <b>null</b>.
+ * * A qualified reference to a static constant variable.
+ * * An identifier expression that denotes a constant variable, class or type alias.
  * * A constant constructor invocation.
  * * A constant list literal.
  * * A constant map literal.
  * * A simple or qualified identifier denoting a top-level function or a static method.
- * * A parenthesized expression `(e)` where `e` is a constant expression.
- * * An expression of one of the forms `identical(e1, e2)`, `e1 == e2`,
- * `e1 != e2` where `e1` and `e2` are constant expressions that evaluate to a
- * numeric, string or boolean value or to `null`.
- * * An expression of one of the forms `!e`, `e1 && e2` or `e1 || e2`, where
- * `e`, `e1` and `e2` are constant expressions that evaluate to a boolean value or
- * to `null`.
- * * An expression of one of the forms `~e`, `e1 ^ e2`, `e1 & e2`,
- * `e1 | e2`, `e1 >> e2` or `e1 << e2`, where `e`, `e1` and `e2`
- * are constant expressions that evaluate to an integer value or to `null`.
- * * An expression of one of the forms `-e`, `e1 + e2`, `e1 - e2`,
- * `e1 * e2`, `e1 / e2`, `e1 ~/ e2`, `e1 > e2`, `e1 < e2`,
- * `e1 >= e2`, `e1 <= e2` or `e1 % e2`, where `e`, `e1` and `e2`
- * are constant expressions that evaluate to a numeric value or to `null`.
+ * * A parenthesized expression <i>(e)</i> where <i>e</i> is a constant expression.
+ * * An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i> where
+ * <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions and <i>identical()</i> is
+ * statically bound to the predefined dart function <i>identical()</i> discussed above.
+ * * An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i> or <i>e<sub>1</sub>
+ * != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions
+ * that evaluate to a numeric, string or boolean value.
+ * * An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp; e<sub>2</sub></i> or
+ * <i>e<sub>1</sub> || e<sub>2</sub></i>, where <i>e</i>, <i>e1</sub></i> and <i>e2</sub></i> are
+ * constant expressions that evaluate to a boolean value.
+ * * An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^ e<sub>2</sub></i>,
+ * <i>e<sub>1</sub> &amp; e<sub>2</sub></i>, <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub>
+ * &gt;&gt; e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where <i>e</i>,
+ * <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant expressions that evaluate to an
+ * integer value or to <b>null</b>.
+ * * An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> + e<sub>2</sub></i>,
+ * <i>e<sub>1</sub> - e<sub>2</sub></i>, <i>e<sub>1</sub> * e<sub>2</sub></i>, <i>e<sub>1</sub> /
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> ~/ e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
+ * e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or <i>e<sub>1</sub> %
+ * e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+ * expressions that evaluate to a numeric value or to <b>null</b>.
+ * * An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> : e<sub>3</sub></i> where
+ * <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and <i>e<sub>3</sub></i> are constant expressions, and
+ * <i>e<sub>1</sub></i> evaluates to a boolean value.
  *
  * </blockquote>
  */
 class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
+  /**
+   * The type provider used to access the known types.
+   */
+  TypeProvider _typeProvider;
+
+  /**
+   * An shared object representing the value 'null'.
+   */
+  DartObjectImpl _nullObject;
+
+  /**
+   * Initialize a newly created constant visitor.
+   *
+   * @param typeProvider the type provider used to access known types
+   */
+  ConstantVisitor(TypeProvider typeProvider) {
+    this._typeProvider = typeProvider;
+  }
+
   EvaluationResultImpl visitAdjacentStrings(AdjacentStrings node) {
     EvaluationResultImpl result = null;
     for (StringLiteral string in node.strings) {
       if (result == null) {
         result = string.accept(this);
       } else {
-        result = result.concatenate(node, string.accept(this));
+        result = result.concatenate(_typeProvider, node, string.accept(this));
       }
     }
     return result;
@@ -320,70 +447,81 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     }
     while (true) {
       if (operatorType == TokenType.AMPERSAND) {
-        return leftResult.bitAnd(node, rightResult);
+        return leftResult.bitAnd(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-        return leftResult.logicalAnd(node, rightResult);
+        return leftResult.logicalAnd(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.BANG_EQ) {
-        return leftResult.notEqual(node, rightResult);
+        return leftResult.notEqual(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.BAR) {
-        return leftResult.bitOr(node, rightResult);
+        return leftResult.bitOr(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.BAR_BAR) {
-        return leftResult.logicalOr(node, rightResult);
+        return leftResult.logicalOr(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.CARET) {
-        return leftResult.bitXor(node, rightResult);
+        return leftResult.bitXor(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.EQ_EQ) {
-        return leftResult.equalEqual(node, rightResult);
+        return leftResult.equalEqual(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.GT) {
-        return leftResult.greaterThan(node, rightResult);
+        return leftResult.greaterThan(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.GT_EQ) {
-        return leftResult.greaterThanOrEqual(node, rightResult);
+        return leftResult.greaterThanOrEqual(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.GT_GT) {
-        return leftResult.shiftRight(node, rightResult);
+        return leftResult.shiftRight(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.LT) {
-        return leftResult.lessThan(node, rightResult);
+        return leftResult.lessThan(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.LT_EQ) {
-        return leftResult.lessThanOrEqual(node, rightResult);
+        return leftResult.lessThanOrEqual(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.LT_LT) {
-        return leftResult.shiftLeft(node, rightResult);
+        return leftResult.shiftLeft(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.MINUS) {
-        return leftResult.minus(node, rightResult);
+        return leftResult.minus(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.PERCENT) {
-        return leftResult.remainder(node, rightResult);
+        return leftResult.remainder(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.PLUS) {
-        return leftResult.add(node, rightResult);
+        return leftResult.add(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.STAR) {
-        return leftResult.times(node, rightResult);
+        return leftResult.times(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.SLASH) {
-        return leftResult.divide(node, rightResult);
+        return leftResult.divide(_typeProvider, node, rightResult);
       } else if (operatorType == TokenType.TILDE_SLASH) {
-        return leftResult.integerDivide(node, rightResult);
+        return leftResult.integerDivide(_typeProvider, node, rightResult);
       }
       break;
     }
     return error(node, null);
   }
 
-  EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) => node.value ? ValidResult.RESULT_TRUE : ValidResult.RESULT_FALSE;
+  EvaluationResultImpl visitBooleanLiteral(BooleanLiteral node) => valid2(_typeProvider.boolType, BoolState.from(node.value));
 
   EvaluationResultImpl visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
     EvaluationResultImpl conditionResult = condition.accept(this);
-    conditionResult = conditionResult.applyBooleanConversion(condition);
+    EvaluationResultImpl thenResult = node.thenExpression.accept(this);
+    EvaluationResultImpl elseResult = node.elseExpression.accept(this);
+    if (conditionResult is ErrorResult) {
+      return union(union(conditionResult as ErrorResult, thenResult), elseResult);
+    } else if (!(conditionResult as ValidResult).isBool) {
+      return new ErrorResult.con1(condition, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    } else if (thenResult is ErrorResult) {
+      return union(thenResult as ErrorResult, elseResult);
+    } else if (elseResult is ErrorResult) {
+      return elseResult;
+    }
+    conditionResult = conditionResult.applyBooleanConversion(_typeProvider, condition);
     if (conditionResult is ErrorResult) {
       return conditionResult;
     }
-    EvaluationResultImpl thenResult = node.thenExpression.accept(this);
-    if (thenResult is ErrorResult) {
+    ValidResult validResult = conditionResult as ValidResult;
+    if (validResult.isTrue) {
       return thenResult;
-    }
-    EvaluationResultImpl elseResult = node.elseExpression.accept(this);
-    if (elseResult is ErrorResult) {
+    } else if (validResult.isFalse) {
       return elseResult;
     }
-    return (identical(conditionResult, ValidResult.RESULT_TRUE)) ? thenResult : elseResult;
+    InterfaceType thenType = (thenResult as ValidResult).value.type;
+    InterfaceType elseType = (elseResult as ValidResult).value.type;
+    return valid(thenType.getLeastUpperBound(elseType) as InterfaceType);
   }
 
-  EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) => new ValidResult(node.value);
+  EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) => valid2(_typeProvider.doubleType, new DoubleState(node.value));
 
   EvaluationResultImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst) {
@@ -391,33 +529,82 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     }
     ConstructorElement constructor = node.staticElement;
     if (constructor != null && constructor.isConst) {
-      node.argumentList.accept(this);
-      return ValidResult.RESULT_OBJECT;
+      NodeList<Expression> arguments = node.argumentList.arguments;
+      int argumentCount = arguments.length;
+      List<DartObjectImpl> argumentValues = new List<DartObjectImpl>(argumentCount);
+      Map<String, DartObjectImpl> namedArgumentValues = new Map<String, DartObjectImpl>();
+      for (int i = 0; i < argumentCount; i++) {
+        Expression argument = arguments[i];
+        if (argument is NamedExpression) {
+          NamedExpression namedExpression = argument as NamedExpression;
+          String name = namedExpression.name.label.name;
+          namedArgumentValues[name] = valueOf(namedExpression.expression);
+          argumentValues[i] = null2;
+        } else {
+          argumentValues[i] = valueOf(argument);
+        }
+      }
+      InterfaceType definingClass = constructor.returnType as InterfaceType;
+      if (definingClass.element.library.isDartCore) {
+        String className = definingClass.name;
+        if (className == "Symbol" && argumentCount == 1) {
+          String argumentValue = argumentValues[0].stringValue;
+          if (argumentValue != null) {
+            return valid2(definingClass, new SymbolState(argumentValue));
+          }
+        }
+      }
+      Map<String, DartObjectImpl> fieldMap = new Map<String, DartObjectImpl>();
+      List<ParameterElement> parameters = constructor.parameters;
+      int parameterCount = parameters.length;
+      for (int i = 0; i < parameterCount; i++) {
+        ParameterElement parameter = parameters[i];
+        if (parameter.isInitializingFormal) {
+          String fieldName = (parameter as FieldFormalParameterElement).field.name;
+          if (identical(parameter.parameterKind, ParameterKind.NAMED)) {
+            DartObjectImpl argumentValue = namedArgumentValues[parameter.name];
+            if (argumentValue != null) {
+              fieldMap[fieldName] = argumentValue;
+            }
+          } else if (i < argumentCount) {
+            fieldMap[fieldName] = argumentValues[i];
+          }
+        }
+      }
+      return valid2(definingClass, new GenericState(fieldMap));
     }
     return error(node, null);
   }
 
-  EvaluationResultImpl visitIntegerLiteral(IntegerLiteral node) => new ValidResult(node.value);
+  EvaluationResultImpl visitIntegerLiteral(IntegerLiteral node) => valid2(_typeProvider.intType, new IntState(node.value));
 
   EvaluationResultImpl visitInterpolationExpression(InterpolationExpression node) {
     EvaluationResultImpl result = node.expression.accept(this);
-    return result.performToString(node);
+    if (result is ValidResult && !(result as ValidResult).isBoolNumStringOrNull) {
+      return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    }
+    return result.performToString(_typeProvider, node);
   }
 
-  EvaluationResultImpl visitInterpolationString(InterpolationString node) => new ValidResult(node.value);
+  EvaluationResultImpl visitInterpolationString(InterpolationString node) => valid2(_typeProvider.stringType, new StringState(node.value));
 
   EvaluationResultImpl visitListLiteral(ListLiteral node) {
     if (node.constKeyword == null) {
       return new ErrorResult.con1(node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
     }
     ErrorResult result = null;
+    List<DartObjectImpl> elements = new List<DartObjectImpl>();
     for (Expression element in node.elements) {
-      result = union(result, element.accept(this));
+      EvaluationResultImpl elementResult = element.accept(this);
+      result = union(result, elementResult);
+      if (elementResult is ValidResult) {
+        elements.add((elementResult as ValidResult).value);
+      }
     }
     if (result != null) {
       return result;
     }
-    return ValidResult.RESULT_OBJECT;
+    return valid2(_typeProvider.listType, new ListState(new List.from(elements)));
   }
 
   EvaluationResultImpl visitMapLiteral(MapLiteral node) {
@@ -425,14 +612,20 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       return new ErrorResult.con1(node, CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL);
     }
     ErrorResult result = null;
+    Map<DartObjectImpl, DartObjectImpl> map = new Map<DartObjectImpl, DartObjectImpl>();
     for (MapLiteralEntry entry in node.entries) {
-      result = union(result, entry.key.accept(this));
-      result = union(result, entry.value.accept(this));
+      EvaluationResultImpl keyResult = entry.key.accept(this);
+      EvaluationResultImpl valueResult = entry.value.accept(this);
+      result = union(result, keyResult);
+      result = union(result, valueResult);
+      if (keyResult is ValidResult && valueResult is ValidResult) {
+        map[(keyResult as ValidResult).value] = (valueResult as ValidResult).value;
+      }
     }
     if (result != null) {
       return result;
     }
-    return ValidResult.RESULT_OBJECT;
+    return valid2(_typeProvider.mapType, new MapState(map));
   }
 
   EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
@@ -448,7 +641,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
             if (library.isDartCore) {
               EvaluationResultImpl leftArgument = arguments[0].accept(this);
               EvaluationResultImpl rightArgument = arguments[1].accept(this);
-              return leftArgument.equalEqual(node, rightArgument);
+              return leftArgument.equalEqual(_typeProvider, node, rightArgument);
             }
           }
         }
@@ -461,7 +654,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   EvaluationResultImpl visitNode(ASTNode node) => error(node, null);
 
-  EvaluationResultImpl visitNullLiteral(NullLiteral node) => ValidResult.RESULT_NULL;
+  EvaluationResultImpl visitNullLiteral(NullLiteral node) => new ValidResult(null2);
 
   EvaluationResultImpl visitParenthesizedExpression(ParenthesizedExpression node) => node.expression.accept(this);
 
@@ -484,11 +677,11 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     }
     while (true) {
       if (node.operator.type == TokenType.BANG) {
-        return operand.logicalNot(node);
+        return operand.logicalNot(_typeProvider, node);
       } else if (node.operator.type == TokenType.TILDE) {
-        return operand.bitNot(node);
+        return operand.bitNot(_typeProvider, node);
       } else if (node.operator.type == TokenType.MINUS) {
-        return operand.negated(node);
+        return operand.negated(_typeProvider, node);
       }
       break;
     }
@@ -499,7 +692,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) => getConstantValue(node, node.staticElement);
 
-  EvaluationResultImpl visitSimpleStringLiteral(SimpleStringLiteral node) => new ValidResult(node.value);
+  EvaluationResultImpl visitSimpleStringLiteral(SimpleStringLiteral node) => valid2(_typeProvider.stringType, new StringState(node.value));
 
   EvaluationResultImpl visitStringInterpolation(StringInterpolation node) {
     EvaluationResultImpl result = null;
@@ -507,13 +700,23 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       if (result == null) {
         result = element.accept(this);
       } else {
-        result = result.concatenate(node, element.accept(this));
+        result = result.concatenate(_typeProvider, node, element.accept(this));
       }
     }
     return result;
   }
 
-  EvaluationResultImpl visitSymbolLiteral(SymbolLiteral node) => ValidResult.RESULT_SYMBOL;
+  EvaluationResultImpl visitSymbolLiteral(SymbolLiteral node) {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    List<Token> components = node.components;
+    for (int i = 0; i < components.length; i++) {
+      if (i > 0) {
+        builder.appendChar(0x2E);
+      }
+      builder.append(components[i].lexeme);
+    }
+    return valid2(_typeProvider.symbolType, new SymbolState(builder.toString()));
+  }
 
   /**
    * Return a result object representing an error associated with the given node.
@@ -542,13 +745,26 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         return value;
       }
     } else if (element is ExecutableElement) {
-      if ((element as ExecutableElement).isStatic) {
-        return new ValidResult(element);
+      ExecutableElement function = element as ExecutableElement;
+      if (function.isStatic) {
+        return valid2(_typeProvider.functionType, new FunctionState(function));
       }
     } else if (element is ClassElement || element is FunctionTypeAliasElement) {
-      return ValidResult.RESULT_OBJECT;
+      return valid2(_typeProvider.typeType, new TypeState(element));
     }
     return error(node, null);
+  }
+
+  /**
+   * Return an object representing the value 'null'.
+   *
+   * @return an object representing the value 'null'
+   */
+  DartObjectImpl get null2 {
+    if (_nullObject == null) {
+      _nullObject = new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
+    }
+    return _nullObject;
   }
 
   /**
@@ -569,6 +785,39 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       }
     }
     return leftResult;
+  }
+
+  ValidResult valid(InterfaceType type) {
+    if (type.element.library.isDartCore) {
+      String typeName = type.name;
+      if (typeName == "bool") {
+        return valid2(type, BoolState.UNKNOWN_VALUE);
+      } else if (typeName == "double") {
+        return valid2(type, DoubleState.UNKNOWN_VALUE);
+      } else if (typeName == "int") {
+        return valid2(type, IntState.UNKNOWN_VALUE);
+      } else if (typeName == "String") {
+        return valid2(type, StringState.UNKNOWN_VALUE);
+      }
+    }
+    return valid2(type, GenericState.UNKNOWN_VALUE);
+  }
+
+  ValidResult valid2(InterfaceType type, InstanceState state) => new ValidResult(new DartObjectImpl(type, state));
+
+  /**
+   * Return the value of the given expression, or a representation of 'null' if the expression
+   * cannot be evaluated.
+   *
+   * @param expression the expression whose value is to be returned
+   * @return the value of the given expression
+   */
+  DartObjectImpl valueOf(Expression expression) {
+    EvaluationResultImpl expressionValue = expression.accept(this);
+    if (expressionValue is ValidResult) {
+      return (expressionValue as ValidResult).value;
+    }
+    return null2;
   }
 }
 
@@ -763,97 +1012,97 @@ class ErrorResult extends EvaluationResultImpl {
     _errors.addAll(secondResult._errors);
   }
 
-  EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToError(node, this);
+  EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToError(node, this);
 
-  EvaluationResultImpl applyBooleanConversion(ASTNode node) => this;
+  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node) => this;
 
-  EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndError(node, this);
+  EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndError(node, this);
 
-  EvaluationResultImpl bitNot(Expression node) => this;
+  EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node) => this;
 
-  EvaluationResultImpl bitOr(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitOrError(node, this);
+  EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitOrError(node, this);
 
-  EvaluationResultImpl bitXor(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitXorError(node, this);
+  EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitXorError(node, this);
 
-  EvaluationResultImpl concatenate(Expression node, EvaluationResultImpl rightOperand) => rightOperand.concatenateError(node, this);
+  EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.concatenateError(node, this);
 
-  EvaluationResultImpl divide(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideError(node, this);
+  EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideError(node, this);
 
-  EvaluationResultImpl equalEqual(Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualError(node, this);
+  EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualError(node, this);
 
-  bool equalValues(EvaluationResultImpl result) => false;
+  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) => false;
 
   List<ErrorResult_ErrorData> get errorData => _errors;
 
-  EvaluationResultImpl greaterThan(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanError(node, this);
+  EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanError(node, this);
 
-  EvaluationResultImpl greaterThanOrEqual(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualError(node, this);
+  EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualError(node, this);
 
-  EvaluationResultImpl integerDivide(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideError(node, this);
+  EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideError(node, this);
 
-  EvaluationResultImpl integerDivideValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
-  EvaluationResultImpl lessThan(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanError(node, this);
+  EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanError(node, this);
 
-  EvaluationResultImpl lessThanOrEqual(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanOrEqualError(node, this);
+  EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanOrEqualError(node, this);
 
-  EvaluationResultImpl logicalAnd(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalAndError(node, this);
+  EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalAndError(node, this);
 
-  EvaluationResultImpl logicalNot(Expression node) => this;
+  EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node) => this;
 
-  EvaluationResultImpl logicalOr(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalOrError(node, this);
+  EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalOrError(node, this);
 
-  EvaluationResultImpl minus(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.minusError(node, this);
+  EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.minusError(node, this);
 
-  EvaluationResultImpl negated(Expression node) => this;
+  EvaluationResultImpl negated(TypeProvider typeProvider, Expression node) => this;
 
-  EvaluationResultImpl notEqual(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualError(node, this);
+  EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualError(node, this);
 
-  EvaluationResultImpl performToString(ASTNode node) => this;
+  EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node) => this;
 
-  EvaluationResultImpl remainder(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.remainderError(node, this);
+  EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.remainderError(node, this);
 
-  EvaluationResultImpl shiftLeft(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftLeftError(node, this);
+  EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftLeftError(node, this);
 
-  EvaluationResultImpl shiftRight(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftRightError(node, this);
+  EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftRightError(node, this);
 
-  EvaluationResultImpl times(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.timesError(node, this);
+  EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.timesError(node, this);
 
   EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl addToValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl bitAndValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl bitOrValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl bitXorValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl concatenateValid(Expression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl divideValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl equalEqualError(Expression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl equalEqualValid(Expression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
   EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl greaterThanOrEqualValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
-  EvaluationResultImpl greaterThanValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
@@ -861,41 +1110,41 @@ class ErrorResult extends EvaluationResultImpl {
 
   EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl lessThanOrEqualValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
-  EvaluationResultImpl lessThanValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl logicalAndValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl logicalOrError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl logicalOrValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl minusValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl notEqualError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl notEqualValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl remainderValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl shiftLeftValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl shiftRightValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 
   EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand) => new ErrorResult.con2(this, leftOperand);
 
-  EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand) => this;
+  EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) => this;
 }
 
 class ErrorResult_ErrorData {
@@ -924,143 +1173,144 @@ class ErrorResult_ErrorData {
  * expression.
  */
 abstract class EvaluationResultImpl {
-  EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
   /**
    * Return the result of applying boolean conversion to this result.
    *
+   * @param typeProvider the type provider used to access known types
    * @param node the node against which errors should be reported
    * @return the result of applying boolean conversion to the given value
    */
-  EvaluationResultImpl applyBooleanConversion(ASTNode node);
+  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node);
 
-  EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl bitNot(Expression node);
+  EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node);
 
-  EvaluationResultImpl bitOr(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl bitXor(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl concatenate(Expression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl divide(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl equalEqual(Expression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand);
 
-  bool equalValues(EvaluationResultImpl result);
+  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result);
 
-  EvaluationResultImpl greaterThan(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl greaterThanOrEqual(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl integerDivide(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl lessThan(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl lessThanOrEqual(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl logicalAnd(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl logicalNot(Expression node);
+  EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node);
 
-  EvaluationResultImpl logicalOr(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl minus(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl negated(Expression node);
+  EvaluationResultImpl negated(TypeProvider typeProvider, Expression node);
 
-  EvaluationResultImpl notEqual(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl performToString(ASTNode node);
+  EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node);
 
-  EvaluationResultImpl remainder(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl shiftLeft(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl shiftRight(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
-  EvaluationResultImpl times(BinaryExpression node, EvaluationResultImpl rightOperand);
+  EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand);
 
   EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl addToValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl bitAndValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl bitOrValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl bitXorValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl concatenateValid(Expression node, ValidResult leftOperand);
+  EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand);
 
   EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl divideValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl equalEqualError(Expression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl equalEqualValid(Expression node, ValidResult leftOperand);
+  EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand);
 
   EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand);
 
   EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl greaterThanOrEqualValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
-  EvaluationResultImpl greaterThanValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl integerDivideValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand);
 
   EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl lessThanOrEqualValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
-  EvaluationResultImpl lessThanValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl logicalAndValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl logicalOrError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl logicalOrValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl minusValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl notEqualError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl notEqualValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl remainderValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl shiftLeftValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl shiftRightValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 
   EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand);
 
-  EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand);
+  EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand);
 }
 
 /**
@@ -1113,66 +1363,9 @@ class ReferenceFinder extends RecursiveASTVisitor<Object> {
  */
 class ValidResult extends EvaluationResultImpl {
   /**
-   * A result object representing the value 'false'.
-   */
-  static ValidResult RESULT_FALSE = new ValidResult(false);
-
-  /**
-   * A result object representing the an object without specific type on which no further operations
-   * can be performed.
-   */
-  static ValidResult RESULT_DYNAMIC = new ValidResult(null);
-
-  /**
-   * A result object representing the an arbitrary integer on which no further operations can be
-   * performed.
-   */
-  static ValidResult RESULT_INT = new ValidResult(0);
-
-  /**
-   * A result object representing the `null` value.
-   */
-  static ValidResult RESULT_NULL = new ValidResult(null);
-
-  /**
-   * A result object representing the an arbitrary numeric on which no further operations can be
-   * performed.
-   */
-  static ValidResult RESULT_NUM = new ValidResult(null);
-
-  /**
-   * A result object representing the an arbitrary boolean on which no further operations can be
-   * performed.
-   */
-  static ValidResult RESULT_BOOL = new ValidResult(null);
-
-  /**
-   * A result object representing the an arbitrary object on which no further operations can be
-   * performed.
-   */
-  static ValidResult RESULT_OBJECT = new ValidResult(new Object());
-
-  /**
-   * A result object representing the an arbitrary symbol on which no further operations can be
-   * performed.
-   */
-  static ValidResult RESULT_SYMBOL = new ValidResult(new Object());
-
-  /**
-   * A result object representing the an arbitrary string on which no further operations can be
-   * performed.
-   */
-  static ValidResult RESULT_STRING = new ValidResult("<string>");
-
-  /**
-   * A result object representing the value 'true'.
-   */
-  static ValidResult RESULT_TRUE = new ValidResult(true);
-
-  /**
    * The value of the expression.
    */
-  final Object value;
+  final DartObjectImpl value;
 
   /**
    * Initialize a newly created result to represent the given value.
@@ -1181,7 +1374,7 @@ class ValidResult extends EvaluationResultImpl {
    */
   ValidResult(this.value);
 
-  EvaluationResultImpl add(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToValid(node, this);
+  EvaluationResultImpl add(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.addToValid(typeProvider, node, this);
 
   /**
    * Return the result of applying boolean conversion to this result.
@@ -1189,106 +1382,133 @@ class ValidResult extends EvaluationResultImpl {
    * @param node the node against which errors should be reported
    * @return the result of applying boolean conversion to the given value
    */
-  EvaluationResultImpl applyBooleanConversion(ASTNode node) => booleanConversion(node, value);
-
-  EvaluationResultImpl bitAnd(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndValid(node, this);
-
-  EvaluationResultImpl bitNot(Expression node) {
-    if (isSomeInt) {
-      return RESULT_INT;
+  EvaluationResultImpl applyBooleanConversion(TypeProvider typeProvider, ASTNode node) {
+    try {
+      return valueOf(value.convertToBool(typeProvider));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (value == null) {
-      return error(node);
-    } else if (value is int) {
-      return valueOf(~(value as int));
-    }
-    return error(node);
   }
 
-  EvaluationResultImpl bitOr(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitOrValid(node, this);
+  EvaluationResultImpl bitAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitAndValid(typeProvider, node, this);
 
-  EvaluationResultImpl bitXor(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitXorValid(node, this);
-
-  EvaluationResultImpl concatenate(Expression node, EvaluationResultImpl rightOperand) => rightOperand.concatenateValid(node, this);
-
-  EvaluationResultImpl divide(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideValid(node, this);
-
-  EvaluationResultImpl equalEqual(Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualValid(node, this);
-
-  bool equalValues(EvaluationResultImpl result) => identical(equalEqual(null, result), RESULT_TRUE);
-
-  EvaluationResultImpl greaterThan(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanValid(node, this);
-
-  EvaluationResultImpl greaterThanOrEqual(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualValid(node, this);
-
-  EvaluationResultImpl integerDivide(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideValid(node, this);
-
-  EvaluationResultImpl lessThan(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanValid(node, this);
-
-  EvaluationResultImpl lessThanOrEqual(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanOrEqualValid(node, this);
-
-  EvaluationResultImpl logicalAnd(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalAndValid(node, this);
-
-  EvaluationResultImpl logicalNot(Expression node) {
-    if (isSomeBool) {
-      return RESULT_BOOL;
+  EvaluationResultImpl bitNot(TypeProvider typeProvider, Expression node) {
+    try {
+      return valueOf(value.bitNot(typeProvider));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (value == null) {
-      return RESULT_TRUE;
-    } else if (value is bool) {
-      return (value as bool) ? RESULT_FALSE : RESULT_TRUE;
-    }
-    return error(node);
   }
 
-  EvaluationResultImpl logicalOr(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalOrValid(node, this);
+  EvaluationResultImpl bitOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitOrValid(typeProvider, node, this);
 
-  EvaluationResultImpl minus(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.minusValid(node, this);
+  EvaluationResultImpl bitXor(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.bitXorValid(typeProvider, node, this);
 
-  EvaluationResultImpl negated(Expression node) {
-    if (isSomeNum) {
-      return RESULT_INT;
+  EvaluationResultImpl concatenate(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.concatenateValid(typeProvider, node, this);
+
+  EvaluationResultImpl divide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.divideValid(typeProvider, node, this);
+
+  EvaluationResultImpl equalEqual(TypeProvider typeProvider, Expression node, EvaluationResultImpl rightOperand) => rightOperand.equalEqualValid(typeProvider, node, this);
+
+  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
+    if (result is! ValidResult) {
+      return false;
     }
-    if (value == null) {
-      return error(node);
-    } else if (value is int) {
-      return valueOf(-(value as int));
-    } else if (value is double) {
-      return valueOf3(-(value as double));
-    }
-    return error(node);
+    return value == (result as ValidResult).value;
   }
 
-  EvaluationResultImpl notEqual(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualValid(node, this);
+  EvaluationResultImpl greaterThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanValid(typeProvider, node, this);
 
-  EvaluationResultImpl performToString(ASTNode node) {
-    if (value == null) {
-      return valueOf4("null");
-    } else if (value is bool) {
-      return valueOf4((value as bool).toString());
-    } else if (value is int) {
-      return valueOf4((value as int).toString());
-    } else if (value is double) {
-      return valueOf4((value as double).toString());
-    } else if (value is String) {
-      return this;
-    } else if (isSomeBool) {
-      return valueOf4("<some bool>");
-    } else if (isSomeInt) {
-      return valueOf4("<some int>");
-    } else if (isSomeNum) {
-      return valueOf4("<some num>");
+  EvaluationResultImpl greaterThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.greaterThanOrEqualValid(typeProvider, node, this);
+
+  EvaluationResultImpl integerDivide(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.integerDivideValid(typeProvider, node, this);
+
+  /**
+   * Return `true` if this object represents an object whose type is 'bool'.
+   *
+   * @return `true` if this object represents a boolean value
+   */
+  bool get isBool => value.isBool;
+
+  /**
+   * Return `true` if this object represents an object whose type is either 'bool', 'num',
+   * 'String', or 'Null'.
+   *
+   * @return `true` if this object represents either a boolean, numeric, string or null value
+   */
+  bool get isBoolNumStringOrNull => value.isBoolNumStringOrNull;
+
+  /**
+   * Return `true` if this result represents the value 'false'.
+   *
+   * @return `true` if this result represents the value 'false'
+   */
+  bool get isFalse => value.isFalse;
+
+  /**
+   * Return `true` if this result represents the value 'null'.
+   *
+   * @return `true` if this result represents the value 'null'
+   */
+  bool get isNull => value.isNull;
+
+  /**
+   * Return `true` if this result represents the value 'true'.
+   *
+   * @return `true` if this result represents the value 'true'
+   */
+  bool get isTrue => value.isTrue;
+
+  /**
+   * Return `true` if this object represents an instance of a user-defined class.
+   *
+   * @return `true` if this object represents an instance of a user-defined class
+   */
+  bool get isUserDefinedObject => value.isUserDefinedObject;
+
+  EvaluationResultImpl lessThan(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanValid(typeProvider, node, this);
+
+  EvaluationResultImpl lessThanOrEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.lessThanOrEqualValid(typeProvider, node, this);
+
+  EvaluationResultImpl logicalAnd(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalAndValid(typeProvider, node, this);
+
+  EvaluationResultImpl logicalNot(TypeProvider typeProvider, Expression node) {
+    try {
+      return valueOf(value.logicalNot(typeProvider));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    return error(node);
   }
 
-  EvaluationResultImpl remainder(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.remainderValid(node, this);
+  EvaluationResultImpl logicalOr(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.logicalOrValid(typeProvider, node, this);
 
-  EvaluationResultImpl shiftLeft(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftLeftValid(node, this);
+  EvaluationResultImpl minus(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.minusValid(typeProvider, node, this);
 
-  EvaluationResultImpl shiftRight(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftRightValid(node, this);
+  EvaluationResultImpl negated(TypeProvider typeProvider, Expression node) {
+    try {
+      return valueOf(value.negated(typeProvider));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
+    }
+  }
 
-  EvaluationResultImpl times(BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.timesValid(node, this);
+  EvaluationResultImpl notEqual(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.notEqualValid(typeProvider, node, this);
+
+  EvaluationResultImpl performToString(TypeProvider typeProvider, ASTNode node) {
+    try {
+      return valueOf(value.performToString(typeProvider));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
+    }
+  }
+
+  EvaluationResultImpl remainder(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.remainderValid(typeProvider, node, this);
+
+  EvaluationResultImpl shiftLeft(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftLeftValid(typeProvider, node, this);
+
+  EvaluationResultImpl shiftRight(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.shiftRightValid(typeProvider, node, this);
+
+  EvaluationResultImpl times(TypeProvider typeProvider, BinaryExpression node, EvaluationResultImpl rightOperand) => rightOperand.timesValid(typeProvider, node, this);
 
   String toString() {
     if (value == null) {
@@ -1299,188 +1519,71 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl addToValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl addToValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.add(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeInt || leftOperand.isSomeInt) {
-      return RESULT_INT;
-    } else if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf((leftValue as int) + (value as int));
-      } else if (value is double) {
-        return valueOf3((leftValue as int).toDouble() + (value as double));
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf3((leftValue as double) + (value as int).toDouble());
-      } else if (value is double) {
-        return valueOf3((leftValue as double) + (value as double));
-      }
-    } else if (leftValue is String) {
-      if (value is String) {
-        return valueOf4("${(leftValue as String)}${(value as String)}");
-      }
-    }
-    return error(node);
   }
 
   EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl bitAndValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt || !leftOperand.isAnyInt) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  EvaluationResultImpl bitAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.bitAnd(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeInt || leftOperand.isSomeInt) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf((leftValue as int) & (value as int));
-      }
-      return error(node.leftOperand);
-    }
-    if (value is int) {
-      return error(node.rightOperand);
-    }
-    return union(error(node.leftOperand), error(node.rightOperand));
   }
 
   EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl bitOrValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt || !leftOperand.isAnyInt) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  EvaluationResultImpl bitOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.bitOr(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeInt || leftOperand.isSomeInt) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf((leftValue as int) | (value as int));
-      }
-      return error(node.leftOperand);
-    }
-    if (value is int) {
-      return error(node.rightOperand);
-    }
-    return union(error(node.leftOperand), error(node.rightOperand));
   }
 
   EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl bitXorValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt || !leftOperand.isAnyInt) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  EvaluationResultImpl bitXorValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.bitXor(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeInt || leftOperand.isSomeInt) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf((leftValue as int) ^ (value as int));
-      }
-      return error(node.leftOperand);
-    }
-    if (value is int) {
-      return error(node.rightOperand);
-    }
-    return union(error(node.leftOperand), error(node.rightOperand));
   }
 
   EvaluationResultImpl concatenateError(Expression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl concatenateValid(Expression node, ValidResult leftOperand) {
-    Object leftValue = leftOperand.value;
-    if (leftValue is String && value is String) {
-      return valueOf4("${(leftValue as String)}${(value as String)}");
+  EvaluationResultImpl concatenateValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.concatenate(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    return error(node);
   }
 
   EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl divideValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl divideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.divide(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        if ((value as int) == 0) {
-          return valueOf3((leftValue as int).toDouble() / (value as int).toDouble());
-        }
-        return valueOf((leftValue as int) ~/ (value as int));
-      } else if (value is double) {
-        return valueOf3((leftValue as int).toDouble() / (value as double));
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf3((leftValue as double) / (value as int).toDouble());
-      } else if (value is double) {
-        return valueOf3((leftValue as double) / (value as double));
-      }
-    }
-    return error(node);
   }
 
   EvaluationResultImpl equalEqualError(Expression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl equalEqualValid(Expression node, ValidResult leftOperand) {
-    if (node is BinaryExpression) {
-      if (!isAnyNullBoolNumString || !leftOperand.isAnyNullBoolNumString) {
-        return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
-      }
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return valueOf2(value == null);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf2((leftValue as int) == value);
-      } else if (value is double) {
-        return valueOf2(toDouble(leftValue as int) == value);
-      }
-      return RESULT_FALSE;
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf2((leftValue as double) == toDouble(value as int));
-      } else if (value is double) {
-        return valueOf2((leftValue as double) == value);
-      }
-      return RESULT_FALSE;
-    } else {
-      return valueOf2(leftValue == value);
+  EvaluationResultImpl equalEqualValid(TypeProvider typeProvider, Expression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.equalEqual(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
   }
 
@@ -1488,402 +1591,131 @@ class ValidResult extends EvaluationResultImpl {
 
   EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl greaterThanOrEqualValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl greaterThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.greaterThanOrEqual(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf2((leftValue as int).compareTo(value as int) >= 0);
-      } else if (value is double) {
-        return valueOf2((leftValue as int).toDouble() >= (value as double));
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf2((leftValue as double) >= (value as int).toDouble());
-      } else if (value is double) {
-        return valueOf2((leftValue as double) >= (value as double));
-      }
-    }
-    return error(node);
   }
 
-  EvaluationResultImpl greaterThanValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl greaterThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.greaterThan(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf2((leftValue as int).compareTo(value as int) > 0);
-      } else if (value is double) {
-        return valueOf2((leftValue as int).toDouble() > (value as double));
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf2((leftValue as double) > (value as int).toDouble());
-      } else if (value is double) {
-        return valueOf2((leftValue as double) > (value as double));
-      }
-    }
-    return error(node);
   }
 
   EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl integerDivideValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl integerDivideValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.integerDivide(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        if ((value as int) == 0) {
-          return error2(node, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
-        }
-        return valueOf((leftValue as int) ~/ (value as int));
-      } else if (value is double) {
-        double result = (leftValue as int).toDouble() / (value as double);
-        return valueOf(result.toInt());
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        double result = (leftValue as double) / (value as int).toDouble();
-        return valueOf(result.toInt());
-      } else if (value is double) {
-        double result = (leftValue as double) / (value as double);
-        return valueOf(result.toInt());
-      }
-    }
-    return error(node);
   }
 
   EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
   EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl lessThanOrEqualValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl lessThanOrEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.lessThanOrEqual(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf2((leftValue as int).compareTo(value as int) <= 0);
-      } else if (value is double) {
-        return valueOf2((leftValue as int).toDouble() <= (value as double));
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf2((leftValue as double) <= (value as int).toDouble());
-      } else if (value is double) {
-        return valueOf2((leftValue as double) <= (value as double));
-      }
-    }
-    return error(node);
   }
 
-  EvaluationResultImpl lessThanValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl lessThanValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.lessThan(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf2((leftValue as int).compareTo(value as int) < 0);
-      } else if (value is double) {
-        return valueOf2((leftValue as int).toDouble() < (value as double));
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf2((leftValue as double) < (value as int).toDouble());
-      } else if (value is double) {
-        return valueOf2((leftValue as double) < (value as double));
-      }
-    }
-    return error(node);
   }
 
   EvaluationResultImpl logicalAndError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl logicalAndValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyBool || !leftOperand.isAnyBool) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+  EvaluationResultImpl logicalAndValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.logicalAnd(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeBool || leftOperand.isSomeBool) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue is bool) {
-      if (leftValue as bool) {
-        return booleanConversion(node.rightOperand, value);
-      }
-      return RESULT_FALSE;
-    }
-    return error(node);
   }
 
   EvaluationResultImpl logicalOrError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl logicalOrValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyBool || !leftOperand.isAnyBool) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+  EvaluationResultImpl logicalOrValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.logicalOr(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeBool || leftOperand.isSomeBool) {
-      return RESULT_BOOL;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue is bool && (leftValue as bool)) {
-      return RESULT_TRUE;
-    }
-    return booleanConversion(node.rightOperand, value);
   }
 
   EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl minusValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl minusValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.minus(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeInt || leftOperand.isSomeInt) {
-      return RESULT_INT;
-    } else if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf((leftValue as int) - (value as int));
-      } else if (value is double) {
-        return valueOf3((leftValue as int).toDouble() - (value as double));
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf3((leftValue as double) - (value as int).toDouble());
-      } else if (value is double) {
-        return valueOf3((leftValue as double) - (value as double));
-      }
-    }
-    return error(node);
   }
 
   EvaluationResultImpl notEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl notEqualValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNullBoolNumString || !leftOperand.isAnyNullBoolNumString) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+  EvaluationResultImpl notEqualValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.notEqual(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return valueOf2(value != null);
-    } else if (leftValue is bool) {
-      if (value is bool) {
-        return valueOf2((leftValue as bool) != (value as bool));
-      }
-      return RESULT_TRUE;
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf2((leftValue as int) != value);
-      } else if (value is double) {
-        return valueOf2(toDouble(leftValue as int) != value);
-      }
-      return RESULT_TRUE;
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf2((leftValue as double) != toDouble(value as int));
-      } else if (value is double) {
-        return valueOf2((leftValue as double) != value);
-      }
-      return RESULT_TRUE;
-    } else if (leftValue is String) {
-      if (value is String) {
-        return valueOf2((leftValue as String) != value);
-      }
-      return RESULT_TRUE;
-    }
-    return RESULT_TRUE;
   }
 
   EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl remainderValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl remainderValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.remainder(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeInt || leftOperand.isSomeInt) {
-      return RESULT_INT;
-    } else if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        if ((value as int) == 0) {
-          return valueOf3((leftValue as int).toDouble() % (value as int).toDouble());
-        }
-        return valueOf((leftValue as int).remainder(value as int));
-      } else if (value is double) {
-        return valueOf3((leftValue as int).toDouble() % (value as double));
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf3((leftValue as double) % (value as int).toDouble());
-      } else if (value is double) {
-        return valueOf3((leftValue as double) % (value as double));
-      }
-    }
-    return error(node);
   }
 
   EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl shiftLeftValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt || !leftOperand.isAnyInt) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  EvaluationResultImpl shiftLeftValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.shiftLeft(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeInt || leftOperand.isSomeInt) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return RESULT_INT;
-      }
-      return error(node.rightOperand);
-    }
-    if (value is int) {
-      return error(node.leftOperand);
-    }
-    return union(error(node.leftOperand), error(node.rightOperand));
   }
 
   EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl shiftRightValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyInt || !leftOperand.isAnyInt) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+  EvaluationResultImpl shiftRightValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.shiftRight(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeInt || leftOperand.isSomeInt) {
-      return RESULT_INT;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf((leftValue as int) >> (value as int));
-      }
-      return error(node.rightOperand);
-    }
-    if (value is int) {
-      return error(node.leftOperand);
-    }
-    return union(error(node.leftOperand), error(node.rightOperand));
   }
 
   EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
 
-  EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand) {
-    if (!isAnyNum || !leftOperand.isAnyNum) {
-      return error2(node, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+  EvaluationResultImpl timesValid(TypeProvider typeProvider, BinaryExpression node, ValidResult leftOperand) {
+    try {
+      return valueOf(leftOperand.value.times(typeProvider, value));
+    } on EvaluationException catch (exception) {
+      return error(node, exception.errorCode);
     }
-    if (isSomeInt || leftOperand.isSomeInt) {
-      return RESULT_INT;
-    } else if (isSomeNum || leftOperand.isSomeNum) {
-      return RESULT_NUM;
-    }
-    Object leftValue = leftOperand.value;
-    if (leftValue == null) {
-      return error(node.leftOperand);
-    } else if (value == null) {
-      return error(node.rightOperand);
-    } else if (leftValue is int) {
-      if (value is int) {
-        return valueOf((leftValue as int) * (value as int));
-      } else if (value is double) {
-        return valueOf3((leftValue as int).toDouble() * (value as double));
-      }
-    } else if (leftValue is double) {
-      if (value is int) {
-        return valueOf3((leftValue as double) * (value as int).toDouble());
-      } else if (value is double) {
-        return valueOf3((leftValue as double) * (value as double));
-      }
-    }
-    return error(node);
   }
-
-  bool get isNull => identical(this, RESULT_NULL);
-
-  /**
-   * Return the result of applying boolean conversion to the given value.
-   *
-   * @param node the node against which errors should be reported
-   * @param value the value to be converted to a boolean
-   * @return the result of applying boolean conversion to the given value
-   */
-  EvaluationResultImpl booleanConversion(ASTNode node, Object value) {
-    if (value is bool) {
-      if (value as bool) {
-        return RESULT_TRUE;
-      } else {
-        return RESULT_FALSE;
-      }
-    }
-    return error(node);
-  }
-
-  ErrorResult error(ASTNode node) => error2(node, CompileTimeErrorCode.INVALID_CONSTANT);
 
   /**
    * Return a result object representing an error associated with the given node.
@@ -1892,53 +1724,7 @@ class ValidResult extends EvaluationResultImpl {
    * @param code the error code indicating the nature of the error
    * @return a result object representing an error associated with the given node
    */
-  ErrorResult error2(ASTNode node, ErrorCode code) => new ErrorResult.con1(node, code);
-
-  /**
-   * Checks if this result has type "bool", with known or unknown value.
-   */
-  bool get isAnyBool => isSomeBool || identical(this, RESULT_TRUE) || identical(this, RESULT_FALSE);
-
-  /**
-   * Checks if this result has type "int", with known or unknown value.
-   */
-  bool get isAnyInt => identical(this, RESULT_INT) || value is int;
-
-  /**
-   * Checks if this result has one of the types - "bool", "num" or "string"; or may be `null`.
-   */
-  bool get isAnyNullBoolNumString => isNull || isAnyBool || isAnyNum || value is String;
-
-  /**
-   * Checks if this result has type "num", with known or unknown value.
-   */
-  bool get isAnyNum => isSomeNum || value is num;
-
-  /**
-   * Checks if this result has type "bool", exact value of which we don't know.
-   */
-  bool get isSomeBool => identical(this, RESULT_BOOL);
-
-  /**
-   * Checks if this result has type "int", exact value of which we don't know.
-   */
-  bool get isSomeInt => identical(this, RESULT_INT);
-
-  /**
-   * Checks if this result has type "num" (or "int"), exact value of which we don't know.
-   */
-  bool get isSomeNum => identical(this, RESULT_DYNAMIC) || identical(this, RESULT_INT) || identical(this, RESULT_NUM);
-
-  double toDouble(int value) => value.toDouble();
-
-  /**
-   * Return an error result that is the union of the two given error results.
-   *
-   * @param firstError the first error to be combined
-   * @param secondError the second error to be combined
-   * @return an error result that is the union of the two given error results
-   */
-  ErrorResult union(ErrorResult firstError, ErrorResult secondError) => new ErrorResult.con2(firstError, secondError);
+  ErrorResult error(ASTNode node, ErrorCode code) => new ErrorResult.con1(node, code);
 
   /**
    * Return a result object representing the given value.
@@ -1946,29 +1732,2331 @@ class ValidResult extends EvaluationResultImpl {
    * @param value the value to be represented as a result object
    * @return a result object representing the given value
    */
-  ValidResult valueOf(int value) => new ValidResult(value);
+  ValidResult valueOf(DartObjectImpl value) => new ValidResult(value);
+}
+
+/**
+ * Instances of the class `BoolState` represent the state of an object representing a boolean
+ * value.
+ */
+class BoolState extends InstanceState {
+  /**
+   * The value of this instance.
+   */
+  final bool value;
 
   /**
-   * Return a result object representing the given value.
-   *
-   * @param value the value to be represented as a result object
-   * @return a result object representing the given value
+   * An instance representing the boolean value 'false'.
    */
-  ValidResult valueOf2(bool value) => value ? RESULT_TRUE : RESULT_FALSE;
+  static BoolState FALSE_STATE = new BoolState(false);
 
   /**
-   * Return a result object representing the given value.
-   *
-   * @param value the value to be represented as a result object
-   * @return a result object representing the given value
+   * An instance representing the boolean value 'true'.
    */
-  ValidResult valueOf3(double value) => new ValidResult(value);
+  static BoolState TRUE_STATE = new BoolState(true);
 
   /**
-   * Return a result object representing the given value.
-   *
-   * @param value the value to be represented as a result object
-   * @return a result object representing the given value
+   * A state that can be used to represent a boolean whose value is not known.
    */
-  ValidResult valueOf4(String value) => new ValidResult(value);
+  static BoolState UNKNOWN_VALUE = new BoolState(null);
+
+  /**
+   * Return the boolean state representing the given boolean value.
+   *
+   * @param value the value to be represented
+   * @return the boolean state representing the given boolean value
+   */
+  static BoolState from(bool value) => value ? BoolState.TRUE_STATE : BoolState.FALSE_STATE;
+
+  /**
+   * Initialize a newly created state to represent the given value.
+   *
+   * @param value the value of this instance
+   */
+  BoolState(this.value);
+
+  BoolState convertToBool() => this;
+
+  StringState convertToString() {
+    if (value == null) {
+      return StringState.UNKNOWN_VALUE;
+    }
+    return new StringState(value ? "true" : "false");
+  }
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is BoolState) {
+      bool rightValue = (rightOperand as BoolState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return BoolState.from(identical(value, rightValue));
+    } else if (rightOperand is DynamicState) {
+      return UNKNOWN_VALUE;
+    }
+    return FALSE_STATE;
+  }
+
+  bool operator ==(Object object) => object is BoolState && identical(value, (object as BoolState).value);
+
+  String get typeName => "bool";
+
+  int get hashCode => value == null ? 0 : (value ? 2 : 3);
+
+  /**
+   * Return `true` if this object represents an object whose type is 'bool'.
+   *
+   * @return `true` if this object represents a boolean value
+   */
+  bool get isBool => true;
+
+  bool get isBoolNumStringOrNull => true;
+
+  BoolState logicalAnd(InstanceState rightOperand) {
+    assertBool(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return value ? rightOperand.convertToBool() : FALSE_STATE;
+  }
+
+  BoolState logicalNot() {
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return value ? FALSE_STATE : TRUE_STATE;
+  }
+
+  BoolState logicalOr(InstanceState rightOperand) {
+    assertBool(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return value ? TRUE_STATE : rightOperand.convertToBool();
+  }
+
+  String toString() => value == null ? "-unknown-" : (value ? "true" : "false");
+}
+
+/**
+ * Instances of the class `DartObjectImpl` represent an instance of a Dart class.
+ */
+class DartObjectImpl implements DartObject {
+  /**
+   * The run-time type of this object.
+   */
+  final InterfaceType type;
+
+  /**
+   * The state of the object.
+   */
+  InstanceState _state;
+
+  /**
+   * Initialize a newly created object to have the given type and state.
+   *
+   * @param type the run-time type of this object
+   * @param state the state of the object
+   */
+  DartObjectImpl(this.type, InstanceState state) {
+    this._state = state;
+  }
+
+  /**
+   * Return the result of invoking the '+' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '+' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl add(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+    InstanceState result = _state.add(rightOperand._state);
+    if (result is IntState) {
+      return new DartObjectImpl(typeProvider.intType, result);
+    } else if (result is DoubleState) {
+      return new DartObjectImpl(typeProvider.doubleType, result);
+    } else if (result is NumState) {
+      return new DartObjectImpl(typeProvider.numType, result);
+    }
+    throw new IllegalStateException("add returned a ${result.runtimeType.toString()}");
+  }
+
+  /**
+   * Return the result of invoking the '&' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl bitAnd(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.bitAnd(rightOperand._state));
+
+  /**
+   * Return the result of invoking the '~' operator on this object.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @return the result of invoking the '~' operator on this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl bitNot(TypeProvider typeProvider) => new DartObjectImpl(typeProvider.intType, _state.bitNot());
+
+  /**
+   * Return the result of invoking the '|' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '|' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl bitOr(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.bitOr(rightOperand._state));
+
+  /**
+   * Return the result of invoking the '^' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '^' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl bitXor(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.bitXor(rightOperand._state));
+
+  /**
+   * Return the result of invoking the ' ' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the ' ' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl concatenate(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.stringType, _state.concatenate(rightOperand._state));
+
+  /**
+   * Return the result of applying boolean conversion to this object.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @return the result of applying boolean conversion to this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl convertToBool(TypeProvider typeProvider) {
+    InterfaceType boolType = typeProvider.boolType;
+    if (identical(type, boolType)) {
+      return this;
+    }
+    return new DartObjectImpl(boolType, _state.convertToBool());
+  }
+
+  /**
+   * Return the result of invoking the '/' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '/' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl divide(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+    InstanceState result = _state.divide(rightOperand._state);
+    if (result is IntState) {
+      return new DartObjectImpl(typeProvider.intType, result);
+    } else if (result is DoubleState) {
+      return new DartObjectImpl(typeProvider.doubleType, result);
+    } else if (result is NumState) {
+      return new DartObjectImpl(typeProvider.numType, result);
+    }
+    throw new IllegalStateException("divide returned a ${result.runtimeType.toString()}");
+  }
+
+  /**
+   * Return the result of invoking the '==' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '==' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl equalEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+    if (type != rightOperand.type) {
+      String typeName = type.name;
+      if (!(typeName == "bool" || typeName == "double" || typeName == "int" || typeName == "num" || typeName == "String" || typeName == "Null" || type.isDynamic)) {
+        throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+      }
+    }
+    return new DartObjectImpl(typeProvider.boolType, _state.equalEqual(rightOperand._state));
+  }
+
+  bool operator ==(Object object) {
+    if (object is! DartObjectImpl) {
+      return false;
+    }
+    DartObjectImpl dartObject = object as DartObjectImpl;
+    return type == dartObject.type && _state == dartObject._state;
+  }
+
+  Object get boolValue {
+    if (_state is BoolState) {
+      return (_state as BoolState).value;
+    }
+    return null;
+  }
+
+  double get doubleValue {
+    if (_state is DoubleState) {
+      return (_state as DoubleState).value;
+    }
+    return null;
+  }
+
+  int get intValue {
+    if (_state is IntState) {
+      return (_state as IntState).value;
+    }
+    return null;
+  }
+
+  String get stringValue {
+    if (_state is StringState) {
+      return (_state as StringState).value;
+    }
+    return null;
+  }
+
+  /**
+   * Return the result of invoking the '&gt;' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&gt;' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl greaterThan(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.greaterThan(rightOperand._state));
+
+  /**
+   * Return the result of invoking the '&gt;=' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&gt;=' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl greaterThanOrEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.greaterThanOrEqual(rightOperand._state));
+
+  int get hashCode => ObjectUtilities.combineHashCodes(type.hashCode, _state.hashCode);
+
+  /**
+   * Return the result of invoking the '~/' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '~/' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl integerDivide(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.integerDivide(rightOperand._state));
+
+  /**
+   * Return `true` if this object represents an object whose type is 'bool'.
+   *
+   * @return `true` if this object represents a boolean value
+   */
+  bool get isBool => _state.isBool;
+
+  /**
+   * Return `true` if this object represents an object whose type is either 'bool', 'num',
+   * 'String', or 'Null'.
+   *
+   * @return `true` if this object represents either a boolean, numeric, string or null value
+   */
+  bool get isBoolNumStringOrNull => _state.isBoolNumStringOrNull;
+
+  bool get isFalse => _state is BoolState && identical((_state as BoolState).value, false);
+
+  bool get isNull => _state is NullState;
+
+  bool get isTrue => _state is BoolState && identical((_state as BoolState).value, true);
+
+  /**
+   * Return `true` if this object represents an instance of a user-defined class.
+   *
+   * @return `true` if this object represents an instance of a user-defined class
+   */
+  bool get isUserDefinedObject => _state is GenericState;
+
+  /**
+   * Return the result of invoking the '&lt;' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&lt;' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl lessThan(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.lessThan(rightOperand._state));
+
+  /**
+   * Return the result of invoking the '&lt;=' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&lt;=' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl lessThanOrEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.lessThanOrEqual(rightOperand._state));
+
+  /**
+   * Return the result of invoking the '&&' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&&' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl logicalAnd(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.logicalAnd(rightOperand._state));
+
+  /**
+   * Return the result of invoking the '!' operator on this object.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @return the result of invoking the '!' operator on this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl logicalNot(TypeProvider typeProvider) => new DartObjectImpl(typeProvider.boolType, _state.logicalNot());
+
+  /**
+   * Return the result of invoking the '||' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '||' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl logicalOr(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.logicalOr(rightOperand._state));
+
+  /**
+   * Return the result of invoking the '-' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '-' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl minus(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+    InstanceState result = _state.minus(rightOperand._state);
+    if (result is IntState) {
+      return new DartObjectImpl(typeProvider.intType, result);
+    } else if (result is DoubleState) {
+      return new DartObjectImpl(typeProvider.doubleType, result);
+    } else if (result is NumState) {
+      return new DartObjectImpl(typeProvider.numType, result);
+    }
+    throw new IllegalStateException("minus returned a ${result.runtimeType.toString()}");
+  }
+
+  /**
+   * Return the result of invoking the '-' operator on this object.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @return the result of invoking the '-' operator on this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl negated(TypeProvider typeProvider) {
+    InstanceState result = _state.negated();
+    if (result is IntState) {
+      return new DartObjectImpl(typeProvider.intType, result);
+    } else if (result is DoubleState) {
+      return new DartObjectImpl(typeProvider.doubleType, result);
+    } else if (result is NumState) {
+      return new DartObjectImpl(typeProvider.numType, result);
+    }
+    throw new IllegalStateException("negated returned a ${result.runtimeType.toString()}");
+  }
+
+  /**
+   * Return the result of invoking the '!=' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '!=' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl notEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+    if (type != rightOperand.type) {
+      String typeName = type.name;
+      if (typeName != "bool" && typeName != "double" && typeName != "int" && typeName != "num" && typeName != "String") {
+        return new DartObjectImpl(typeProvider.boolType, BoolState.TRUE_STATE);
+      }
+    }
+    return new DartObjectImpl(typeProvider.boolType, _state.equalEqual(rightOperand._state).logicalNot());
+  }
+
+  /**
+   * Return the result of converting this object to a String.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @return the result of converting this object to a String
+   * @throws EvaluationException if the object cannot be converted to a String
+   */
+  DartObjectImpl performToString(TypeProvider typeProvider) {
+    InterfaceType stringType = typeProvider.stringType;
+    if (identical(type, stringType)) {
+      return this;
+    }
+    return new DartObjectImpl(stringType, _state.convertToString());
+  }
+
+  /**
+   * Return the result of invoking the '%' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '%' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl remainder(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+    InstanceState result = _state.remainder(rightOperand._state);
+    if (result is IntState) {
+      return new DartObjectImpl(typeProvider.intType, result);
+    } else if (result is DoubleState) {
+      return new DartObjectImpl(typeProvider.doubleType, result);
+    } else if (result is NumState) {
+      return new DartObjectImpl(typeProvider.numType, result);
+    }
+    throw new IllegalStateException("remainder returned a ${result.runtimeType.toString()}");
+  }
+
+  /**
+   * Return the result of invoking the '&lt;&lt;' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&lt;&lt;' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl shiftLeft(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.shiftLeft(rightOperand._state));
+
+  /**
+   * Return the result of invoking the '&gt;&gt;' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&gt;&gt;' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl shiftRight(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.intType, _state.shiftRight(rightOperand._state));
+
+  /**
+   * Return the result of invoking the '*' operator on this object with the given argument.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '*' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  DartObjectImpl times(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+    InstanceState result = _state.times(rightOperand._state);
+    if (result is IntState) {
+      return new DartObjectImpl(typeProvider.intType, result);
+    } else if (result is DoubleState) {
+      return new DartObjectImpl(typeProvider.doubleType, result);
+    } else if (result is NumState) {
+      return new DartObjectImpl(typeProvider.numType, result);
+    }
+    throw new IllegalStateException("times returned a ${result.runtimeType.toString()}");
+  }
+
+  String toString() => "${type.displayName} (${_state.toString()})";
+}
+
+/**
+ * Instances of the class `DoubleState` represent the state of an object representing a
+ * double.
+ */
+class DoubleState extends NumState {
+  /**
+   * The value of this instance.
+   */
+  final double value;
+
+  /**
+   * A state that can be used to represent a double whose value is not known.
+   */
+  static DoubleState UNKNOWN_VALUE = new DoubleState(null);
+
+  /**
+   * Initialize a newly created state to represent a double with the given value.
+   *
+   * @param value the value of this instance
+   */
+  DoubleState(this.value);
+
+  NumState add(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value + rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value + rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  StringState convertToString() {
+    if (value == null) {
+      return StringState.UNKNOWN_VALUE;
+    }
+    return new StringState(value.toString());
+  }
+
+  NumState divide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value / rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value / rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  bool operator ==(Object object) => object is DoubleState && (value == (object as DoubleState).value);
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value == rightValue);
+    } else if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value == rightValue.toDouble());
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.FALSE_STATE;
+  }
+
+  String get typeName => "double";
+
+  BoolState greaterThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value > rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value > rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  BoolState greaterThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value >= rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value >= rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  int get hashCode => value == null ? 0 : value.hashCode;
+
+  IntState integerDivide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return IntState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return IntState.UNKNOWN_VALUE;
+      }
+      double result = value / rightValue.toDouble();
+      return new IntState(result.toInt());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return IntState.UNKNOWN_VALUE;
+      }
+      double result = value / rightValue;
+      return new IntState(result.toInt());
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return IntState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  bool get isBoolNumStringOrNull => true;
+
+  BoolState lessThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value < rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value < rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  BoolState lessThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value <= rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value <= rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  NumState minus(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value - rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value - rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  NumState negated() {
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return new DoubleState(-(value));
+  }
+
+  NumState remainder(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value % rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value % rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  NumState times(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value * rightValue.toDouble());
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new DoubleState(value * rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  String toString() => value == null ? "-unknown-" : value.toString();
+}
+
+/**
+ * Instances of the class `DynamicState` represent the state of an object representing a Dart
+ * object for which there is no type information.
+ */
+class DynamicState extends InstanceState {
+  /**
+   * The unique instance of this class.
+   */
+  static DynamicState DYNAMIC_STATE = new DynamicState();
+
+  NumState add(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return unknownNum(rightOperand);
+  }
+
+  IntState bitAnd(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    return IntState.UNKNOWN_VALUE;
+  }
+
+  IntState bitNot() => IntState.UNKNOWN_VALUE;
+
+  IntState bitOr(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    return IntState.UNKNOWN_VALUE;
+  }
+
+  IntState bitXor(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    return IntState.UNKNOWN_VALUE;
+  }
+
+  StringState concatenate(InstanceState rightOperand) {
+    assertString(rightOperand);
+    return StringState.UNKNOWN_VALUE;
+  }
+
+  BoolState convertToBool() => BoolState.UNKNOWN_VALUE;
+
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  NumState divide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return unknownNum(rightOperand);
+  }
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  String get typeName => "dynamic";
+
+  BoolState greaterThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  BoolState greaterThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  IntState integerDivide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return IntState.UNKNOWN_VALUE;
+  }
+
+  bool get isBool => true;
+
+  bool get isBoolNumStringOrNull => true;
+
+  BoolState lessThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  BoolState lessThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  BoolState logicalAnd(InstanceState rightOperand) {
+    assertBool(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  BoolState logicalNot() => BoolState.UNKNOWN_VALUE;
+
+  BoolState logicalOr(InstanceState rightOperand) {
+    assertBool(rightOperand);
+    return rightOperand.convertToBool();
+  }
+
+  NumState minus(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return unknownNum(rightOperand);
+  }
+
+  NumState negated() => NumState.UNKNOWN_VALUE;
+
+  NumState remainder(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return unknownNum(rightOperand);
+  }
+
+  IntState shiftLeft(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    return IntState.UNKNOWN_VALUE;
+  }
+
+  IntState shiftRight(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    return IntState.UNKNOWN_VALUE;
+  }
+
+  NumState times(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return unknownNum(rightOperand);
+  }
+
+  /**
+   * Return an object representing an unknown numeric value whose type is based on the type of the
+   * right-hand operand.
+   *
+   * @param rightOperand the operand whose type will determine the type of the result
+   * @return an object representing an unknown numeric value
+   */
+  NumState unknownNum(InstanceState rightOperand) {
+    if (rightOperand is IntState) {
+      return IntState.UNKNOWN_VALUE;
+    } else if (rightOperand is DoubleState) {
+      return DoubleState.UNKNOWN_VALUE;
+    }
+    return NumState.UNKNOWN_VALUE;
+  }
+}
+
+/**
+ * Instances of the class `EvaluationException` represent a run-time exception that would be
+ * thrown during the evaluation of Dart code.
+ */
+class EvaluationException extends JavaException {
+  /**
+   * The error code associated with the exception.
+   */
+  final ErrorCode errorCode;
+
+  /**
+   * Initialize a newly created exception to have the given error code.
+   *
+   * @param errorCode the error code associated with the exception
+   */
+  EvaluationException(this.errorCode);
+}
+
+/**
+ * Instances of the class `FunctionState` represent the state of an object representing a
+ * function.
+ */
+class FunctionState extends InstanceState {
+  /**
+   * The element representing the function being modeled.
+   */
+  ExecutableElement _element;
+
+  /**
+   * Initialize a newly created state to represent the given function.
+   *
+   * @param element the element representing the function being modeled
+   */
+  FunctionState(ExecutableElement element) {
+    this._element = element;
+  }
+
+  StringState convertToString() {
+    if (_element == null) {
+      return StringState.UNKNOWN_VALUE;
+    }
+    return new StringState(_element.name);
+  }
+
+  bool operator ==(Object object) => object is FunctionState && (_element == (object as FunctionState)._element);
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    if (_element == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is FunctionState) {
+      ExecutableElement rightElement = (rightOperand as FunctionState)._element;
+      if (rightElement == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(_element == rightElement);
+    } else if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.FALSE_STATE;
+  }
+
+  String get typeName => "Function";
+
+  int get hashCode => _element == null ? 0 : _element.hashCode;
+
+  String toString() => _element == null ? "-unknown-" : _element.name;
+}
+
+/**
+ * Instances of the class `GenericState` represent the state of an object representing a Dart
+ * object for which there is no more specific state.
+ */
+class GenericState extends InstanceState {
+  /**
+   * The values of the fields of this instance.
+   */
+  Map<String, DartObjectImpl> _fieldMap = new Map<String, DartObjectImpl>();
+
+  /**
+   * A state that can be used to represent an object whose state is not known.
+   */
+  static GenericState UNKNOWN_VALUE = new GenericState(new Map<String, DartObjectImpl>());
+
+  /**
+   * Initialize a newly created state to represent a newly created object.
+   *
+   * @param fieldMap the values of the fields of this instance
+   */
+  GenericState(Map<String, DartObjectImpl> fieldMap) {
+    this._fieldMap = fieldMap;
+  }
+
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  bool operator ==(Object object) {
+    if (object is! GenericState) {
+      return false;
+    }
+    GenericState state = object as GenericState;
+    Set<String> otherFields = new Set<String>();
+    for (String fieldName in _fieldMap.keys.toSet()) {
+      if (_fieldMap[fieldName] != state._fieldMap[fieldName]) {
+        return false;
+      }
+      otherFields.remove(fieldName);
+    }
+    for (String fieldName in otherFields) {
+      if (state._fieldMap[fieldName] != _fieldMap[fieldName]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(this == rightOperand);
+  }
+
+  String get typeName => "user defined type";
+
+  int get hashCode {
+    int hashCode = 0;
+    for (DartObjectImpl value in _fieldMap.values) {
+      hashCode += value.hashCode;
+    }
+    return hashCode;
+  }
+}
+
+/**
+ * The class `InstanceState` defines the behavior of objects representing the state of a Dart
+ * object.
+ */
+abstract class InstanceState {
+  /**
+   * Return the result of invoking the '+' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '+' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  NumState add(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '&' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  IntState bitAnd(InstanceState rightOperand) {
+    assertIntOrNull(this);
+    assertIntOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '~' operator on this object.
+   *
+   * @return the result of invoking the '~' operator on this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  IntState bitNot() {
+    assertIntOrNull(this);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '|' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '|' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  IntState bitOr(InstanceState rightOperand) {
+    assertIntOrNull(this);
+    assertIntOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '^' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '^' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  IntState bitXor(InstanceState rightOperand) {
+    assertIntOrNull(this);
+    assertIntOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the ' ' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the ' ' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  StringState concatenate(InstanceState rightOperand) {
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of applying boolean conversion to this object.
+   *
+   * @param typeProvider the type provider used to find known types
+   * @return the result of applying boolean conversion to this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  BoolState convertToBool() => BoolState.FALSE_STATE;
+
+  /**
+   * Return the result of converting this object to a String.
+   *
+   * @return the result of converting this object to a String
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  StringState convertToString();
+
+  /**
+   * Return the result of invoking the '/' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '/' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  NumState divide(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '==' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '==' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  BoolState equalEqual(InstanceState rightOperand);
+
+  /**
+   * Return the name of the type of this value.
+   *
+   * @return the name of the type of this value
+   */
+  String get typeName;
+
+  /**
+   * Return the result of invoking the '&gt;' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&gt;' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  BoolState greaterThan(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '&gt;=' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&gt;=' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  BoolState greaterThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '~/' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '~/' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  IntState integerDivide(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return `true` if this object represents an object whose type is 'bool'.
+   *
+   * @return `true` if this object represents a boolean value
+   */
+  bool get isBool => false;
+
+  /**
+   * Return `true` if this object represents an object whose type is either 'bool', 'num',
+   * 'String', or 'Null'.
+   *
+   * @return `true` if this object represents either a boolean, numeric, string or null value
+   */
+  bool get isBoolNumStringOrNull => false;
+
+  /**
+   * Return the result of invoking the '&lt;' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&lt;' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  BoolState lessThan(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '&lt;=' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&lt;=' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  BoolState lessThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '&&' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&&' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  BoolState logicalAnd(InstanceState rightOperand) {
+    assertBool(this);
+    assertBool(rightOperand);
+    return BoolState.FALSE_STATE;
+  }
+
+  /**
+   * Return the result of invoking the '!' operator on this object.
+   *
+   * @return the result of invoking the '!' operator on this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  BoolState logicalNot() {
+    assertBool(this);
+    return BoolState.TRUE_STATE;
+  }
+
+  /**
+   * Return the result of invoking the '||' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '||' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  BoolState logicalOr(InstanceState rightOperand) {
+    assertBool(this);
+    assertBool(rightOperand);
+    return rightOperand.convertToBool();
+  }
+
+  /**
+   * Return the result of invoking the '-' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '-' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  NumState minus(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '-' operator on this object.
+   *
+   * @return the result of invoking the '-' operator on this object
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  NumState negated() {
+    assertNumOrNull(this);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '%' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '%' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  NumState remainder(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '&lt;&lt;' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&lt;&lt;' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  IntState shiftLeft(InstanceState rightOperand) {
+    assertIntOrNull(this);
+    assertIntOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '&gt;&gt;' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '&gt;&gt;' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  IntState shiftRight(InstanceState rightOperand) {
+    assertIntOrNull(this);
+    assertIntOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Return the result of invoking the '*' operator on this object with the given argument.
+   *
+   * @param rightOperand the right-hand operand of the operation
+   * @return the result of invoking the '*' operator on this object with the given argument
+   * @throws EvaluationException if the operator is not appropriate for an object of this kind
+   */
+  NumState times(InstanceState rightOperand) {
+    assertNumOrNull(this);
+    assertNumOrNull(rightOperand);
+    throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+  }
+
+  /**
+   * Throw an exception if the given state does not represent a boolean value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent a boolean value
+   */
+  void assertBool(InstanceState state) {
+    if (!(state is BoolState || state is DynamicState)) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    }
+  }
+
+  /**
+   * Throw an exception if the given state does not represent a boolean, numeric, string or null
+   * value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent a boolean, numeric, string or
+   *           null value
+   */
+  void assertBoolNumStringOrNull(InstanceState state) {
+    if (!(state is BoolState || state is DoubleState || state is IntState || state is NumState || state is StringState || state is NullState || state is DynamicState)) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+    }
+  }
+
+  /**
+   * Throw an exception if the given state does not represent an integer or null value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent an integer or null value
+   */
+  void assertIntOrNull(InstanceState state) {
+    if (!(state is IntState || state is NumState || state is NullState || state is DynamicState)) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
+    }
+  }
+
+  /**
+   * Throw an exception if the given state does not represent a boolean, numeric, string or null
+   * value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent a boolean, numeric, string or
+   *           null value
+   */
+  void assertNumOrNull(InstanceState state) {
+    if (!(state is DoubleState || state is IntState || state is NumState || state is NullState || state is DynamicState)) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
+    }
+  }
+
+  /**
+   * Throw an exception if the given state does not represent a String value.
+   *
+   * @param state the state being tested
+   * @throws EvaluationException if the given state does not represent a String value
+   */
+  void assertString(InstanceState state) {
+    if (!(state is StringState || state is DynamicState)) {
+      throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+    }
+  }
+}
+
+/**
+ * Instances of the class `IntState` represent the state of an object representing an int.
+ */
+class IntState extends NumState {
+  /**
+   * The value of this instance.
+   */
+  final int value;
+
+  /**
+   * A state that can be used to represent an int whose value is not known.
+   */
+  static IntState UNKNOWN_VALUE = new IntState(null);
+
+  /**
+   * Initialize a newly created state to represent an int with the given value.
+   *
+   * @param value the value of this instance
+   */
+  IntState(this.value);
+
+  NumState add(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      if (rightOperand is DoubleState) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new IntState(value + rightValue);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return new DoubleState(value.toDouble() + rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  IntState bitAnd(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new IntState(value & rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  IntState bitNot() {
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return new IntState(~value);
+  }
+
+  IntState bitOr(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new IntState(value | rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  IntState bitXor(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new IntState(value ^ rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  StringState convertToString() {
+    if (value == null) {
+      return StringState.UNKNOWN_VALUE;
+    }
+    return new StringState(value.toString());
+  }
+
+  NumState divide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      if (rightOperand is DoubleState) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      } else if (rightValue == 0) {
+        return new DoubleState(value.toDouble() / rightValue.toDouble());
+      }
+      return new IntState(value ~/ rightValue);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return new DoubleState(value.toDouble() / rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  bool operator ==(Object object) => object is IntState && (value == (object as IntState).value);
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value == rightValue);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(rightValue == value.toDouble());
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.FALSE_STATE;
+  }
+
+  String get typeName => "int";
+
+  BoolState greaterThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.compareTo(rightValue) > 0);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.toDouble() > rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  BoolState greaterThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.compareTo(rightValue) >= 0);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.toDouble() >= rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  int get hashCode => value == null ? 0 : value.hashCode;
+
+  IntState integerDivide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      } else if (rightValue == 0) {
+        throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
+      }
+      return new IntState(value ~/ rightValue);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      double result = value.toDouble() / rightValue;
+      return new IntState(result.toInt());
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  bool get isBoolNumStringOrNull => true;
+
+  BoolState lessThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.compareTo(rightValue) < 0);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.toDouble() < rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  BoolState lessThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.compareTo(rightValue) <= 0);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value.toDouble() <= rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  NumState minus(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      if (rightOperand is DoubleState) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new IntState(value - rightValue);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return new DoubleState(value.toDouble() - rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  NumState negated() {
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    return new IntState(-value);
+  }
+
+  NumState remainder(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      if (rightOperand is DoubleState) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      } else if (rightValue == 0) {
+        return new DoubleState(value.toDouble() % rightValue.toDouble());
+      }
+      return new IntState(value.remainder(rightValue));
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return new DoubleState(value.toDouble() % rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  IntState shiftLeft(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      } else if (rightValue.bitLength > 31) {
+        return UNKNOWN_VALUE;
+      }
+      return new IntState(value << rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  IntState shiftRight(InstanceState rightOperand) {
+    assertIntOrNull(rightOperand);
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      } else if (rightValue.bitLength > 31) {
+        return UNKNOWN_VALUE;
+      }
+      return new IntState(value >> rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  NumState times(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (value == null) {
+      if (rightOperand is DoubleState) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new IntState(value * rightValue);
+    } else if (rightOperand is DoubleState) {
+      double rightValue = (rightOperand as DoubleState).value;
+      if (rightValue == null) {
+        return DoubleState.UNKNOWN_VALUE;
+      }
+      return new DoubleState(value.toDouble() * rightValue);
+    } else if (rightOperand is DynamicState || rightOperand is NumState) {
+      return UNKNOWN_VALUE;
+    }
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  String toString() => value == null ? "-unknown-" : value.toString();
+}
+
+/**
+ * The unique instance of the class `ListState` represents the state of an object representing
+ * a list.
+ */
+class ListState extends InstanceState {
+  /**
+   * The elements of the list.
+   */
+  List<DartObjectImpl> _elements;
+
+  /**
+   * Initialize a newly created state to represent a list with the given elements.
+   *
+   * @param elements the elements of the list
+   */
+  ListState(List<DartObjectImpl> elements) {
+    this._elements = elements;
+  }
+
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  bool operator ==(Object object) {
+    if (object is! ListState) {
+      return false;
+    }
+    List<DartObjectImpl> otherElements = (object as ListState)._elements;
+    int count = _elements.length;
+    if (otherElements.length != count) {
+      return false;
+    } else if (count == 0) {
+      return true;
+    }
+    for (int i = 0; i < count; i++) {
+      if (_elements[i] != otherElements[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(this == rightOperand);
+  }
+
+  String get typeName => "List";
+
+  int get hashCode {
+    int value = 0;
+    int count = _elements.length;
+    for (int i = 0; i < count; i++) {
+      value = (value << 3) ^ _elements[i].hashCode;
+    }
+    return value;
+  }
+}
+
+/**
+ * The unique instance of the class `ListState` represents the state of an object representing
+ * a map.
+ */
+class MapState extends InstanceState {
+  /**
+   * The entries in the map.
+   */
+  Map<DartObjectImpl, DartObjectImpl> _entries;
+
+  /**
+   * Initialize a newly created state to represent a map with the given entries.
+   *
+   * @param entries the entries in the map
+   */
+  MapState(Map<DartObjectImpl, DartObjectImpl> entries) {
+    this._entries = entries;
+  }
+
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  bool operator ==(Object object) {
+    if (object is! MapState) {
+      return false;
+    }
+    Map<DartObjectImpl, DartObjectImpl> otherElements = (object as MapState)._entries;
+    int count = _entries.length;
+    if (otherElements.length != count) {
+      return false;
+    } else if (count == 0) {
+      return true;
+    }
+    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
+      DartObjectImpl key = entry.getKey();
+      DartObjectImpl value = entry.getValue();
+      DartObjectImpl otherValue = otherElements[key];
+      if (value != otherValue) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(this == rightOperand);
+  }
+
+  String get typeName => "Map";
+
+  int get hashCode {
+    int value = 0;
+    for (DartObjectImpl key in _entries.keys.toSet()) {
+      value = (value << 3) ^ key.hashCode;
+    }
+    return value;
+  }
+}
+
+/**
+ * The unique instance of the class `NullState` represents the state of the value 'null'.
+ */
+class NullState extends InstanceState {
+  /**
+   * An instance representing the boolean value 'true'.
+   */
+  static NullState NULL_STATE = new NullState();
+
+  BoolState convertToBool() {
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  StringState convertToString() => new StringState("null");
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(rightOperand is NullState);
+  }
+
+  bool operator ==(Object object) => object is NullState;
+
+  String get typeName => "Null";
+
+  int get hashCode => 0;
+
+  bool get isBoolNumStringOrNull => true;
+
+  BoolState logicalNot() {
+    throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+  }
+
+  String toString() => "null";
+}
+
+/**
+ * Instances of the class `NumState` represent the state of an object representing a number of
+ * an unknown type (a 'num').
+ */
+class NumState extends InstanceState {
+  /**
+   * A state that can be used to represent a number whose value is not known.
+   */
+  static NumState UNKNOWN_VALUE = new NumState();
+
+  NumState add(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return UNKNOWN_VALUE;
+  }
+
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  NumState divide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return UNKNOWN_VALUE;
+  }
+
+  bool operator ==(Object object) => object is NumState;
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  String get typeName => "num";
+
+  BoolState greaterThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  BoolState greaterThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  int get hashCode => 7;
+
+  IntState integerDivide(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    if (rightOperand is IntState) {
+      int rightValue = (rightOperand as IntState).value;
+      if (rightValue == null) {
+        return IntState.UNKNOWN_VALUE;
+      } else if (rightValue == 0) {
+        throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
+      }
+    } else if (rightOperand is DynamicState) {
+      return IntState.UNKNOWN_VALUE;
+    }
+    return IntState.UNKNOWN_VALUE;
+  }
+
+  bool get isBoolNumStringOrNull => true;
+
+  BoolState lessThan(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  BoolState lessThanOrEqual(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  NumState minus(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return UNKNOWN_VALUE;
+  }
+
+  NumState negated() => UNKNOWN_VALUE;
+
+  NumState remainder(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return UNKNOWN_VALUE;
+  }
+
+  NumState times(InstanceState rightOperand) {
+    assertNumOrNull(rightOperand);
+    return UNKNOWN_VALUE;
+  }
+
+  String toString() => "-unknown-";
+}
+
+/**
+ * Instances of the class `StringState` represent the state of an object representing a
+ * string.
+ */
+class StringState extends InstanceState {
+  /**
+   * The value of this instance.
+   */
+  final String value;
+
+  /**
+   * A state that can be used to represent a double whose value is not known.
+   */
+  static StringState UNKNOWN_VALUE = new StringState(null);
+
+  /**
+   * Initialize a newly created state to represent the given value.
+   *
+   * @param value the value of this instance
+   */
+  StringState(this.value);
+
+  StringState concatenate(InstanceState rightOperand) {
+    if (value == null) {
+      return UNKNOWN_VALUE;
+    }
+    if (rightOperand is StringState) {
+      String rightValue = (rightOperand as StringState).value;
+      if (rightValue == null) {
+        return UNKNOWN_VALUE;
+      }
+      return new StringState("${value}${rightValue}");
+    } else if (rightOperand is DynamicState) {
+      return UNKNOWN_VALUE;
+    }
+    return super.concatenate(rightOperand);
+  }
+
+  StringState convertToString() => this;
+
+  bool operator ==(Object object) => object is StringState && (value == (object as StringState).value);
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is StringState) {
+      String rightValue = (rightOperand as StringState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value == rightValue);
+    } else if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.FALSE_STATE;
+  }
+
+  String get typeName => "String";
+
+  int get hashCode => value == null ? 0 : value.hashCode;
+
+  bool get isBoolNumStringOrNull => true;
+
+  String toString() => value == null ? "-unknown-" : "'${value}'";
+}
+
+/**
+ * Instances of the class `StringState` represent the state of an object representing a
+ * symbol.
+ */
+class SymbolState extends InstanceState {
+  /**
+   * The value of this instance.
+   */
+  final String value;
+
+  /**
+   * Initialize a newly created state to represent the given value.
+   *
+   * @param value the value of this instance
+   */
+  SymbolState(this.value);
+
+  StringState convertToString() {
+    if (value == null) {
+      return StringState.UNKNOWN_VALUE;
+    }
+    return new StringState(value);
+  }
+
+  bool operator ==(Object object) => object is SymbolState && (value == (object as SymbolState).value);
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (value == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is SymbolState) {
+      String rightValue = (rightOperand as SymbolState).value;
+      if (rightValue == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(value == rightValue);
+    } else if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.FALSE_STATE;
+  }
+
+  String get typeName => "Symbol";
+
+  int get hashCode => value == null ? 0 : value.hashCode;
+
+  String toString() => value == null ? "-unknown-" : "#${value}";
+}
+
+/**
+ * Instances of the class `TypeState` represent the state of an object representing a type.
+ */
+class TypeState extends InstanceState {
+  /**
+   * The element representing the type being modeled.
+   */
+  Element _element;
+
+  /**
+   * Initialize a newly created state to represent the given value.
+   *
+   * @param element the element representing the type being modeled
+   */
+  TypeState(Element element) {
+    this._element = element;
+  }
+
+  StringState convertToString() {
+    if (_element == null) {
+      return StringState.UNKNOWN_VALUE;
+    }
+    return new StringState(_element.name);
+  }
+
+  bool operator ==(Object object) => object is TypeState && (_element == (object as TypeState)._element);
+
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (_element == null) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    if (rightOperand is TypeState) {
+      Element rightElement = (rightOperand as TypeState)._element;
+      if (rightElement == null) {
+        return BoolState.UNKNOWN_VALUE;
+      }
+      return BoolState.from(_element == rightElement);
+    } else if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.FALSE_STATE;
+  }
+
+  String get typeName => "Type";
+
+  int get hashCode => _element == null ? 0 : _element.hashCode;
+
+  String toString() => _element == null ? "-unknown-" : _element.name;
 }

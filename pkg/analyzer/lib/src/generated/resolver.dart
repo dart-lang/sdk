@@ -1450,6 +1450,11 @@ class BestPracticesVerifier extends RecursiveASTVisitor<Object> {
     return super.visitExportDirective(node);
   }
 
+  Object visitFunctionDeclaration(FunctionDeclaration node) {
+    checkForMissingReturn(node.returnType, node.functionExpression.body);
+    return super.visitFunctionDeclaration(node);
+  }
+
   Object visitImportDirective(ImportDirective node) {
     checkForDeprecatedMemberUse(node.uriElement, node);
     return super.visitImportDirective(node);
@@ -1472,6 +1477,7 @@ class BestPracticesVerifier extends RecursiveASTVisitor<Object> {
 
   Object visitMethodDeclaration(MethodDeclaration node) {
     checkForOverridingPrivateMember(node);
+    checkForMissingReturn(node.returnType, node.body);
     return super.visitMethodDeclaration(node);
   }
 
@@ -1633,6 +1639,18 @@ class BestPracticesVerifier extends RecursiveASTVisitor<Object> {
   }
 
   /**
+   * Generate a hint for functions or methods that have a return type, but do not have a return
+   * statement on all branches. At the end of blocks with no return, Dart implicitly returns
+   * `null`, avoiding these implicit returns is considered a best practice.
+   *
+   * @param node the binary expression to check
+   * @param body the function body
+   * @return `true` if and only if a hint code is generated on the passed node
+   * @see HintCode#MISSING_RETURN
+   */
+  bool checkForMissingReturn(TypeName returnType, FunctionBody body) => false;
+
+  /**
    * Check for the passed class declaration for the
    * [HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
    *
@@ -1657,10 +1675,10 @@ class BestPracticesVerifier extends RecursiveASTVisitor<Object> {
   }
 
   /**
-   * Check for the passed class declaration for the
-   * [HintCode#OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
+   * Checks that if the passed method declaration is private, it does not override a private member
+   * in a superclass.
    *
-   * @param node the class declaration to check
+   * @param node the method declaration to check
    * @return `true` if and only if a hint code is generated on the passed node
    * @see HintCode#OVERRIDDING_PRIVATE_MEMBER
    */
@@ -1830,11 +1848,11 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
       if (!isDebugConstant(lhsCondition)) {
         ValidResult lhsResult = getConstantBooleanValue(lhsCondition);
         if (lhsResult != null) {
-          if (identical(lhsResult, ValidResult.RESULT_TRUE) && isBarBar) {
+          if (lhsResult.isTrue && isBarBar) {
             _errorReporter.reportError2(HintCode.DEAD_CODE, node.rightOperand, []);
             safelyVisit(lhsCondition);
             return null;
-          } else if (identical(lhsResult, ValidResult.RESULT_FALSE) && isAmpAmp) {
+          } else if (lhsResult.isFalse && isAmpAmp) {
             _errorReporter.reportError2(HintCode.DEAD_CODE, node.rightOperand, []);
             safelyVisit(lhsCondition);
             return null;
@@ -1875,7 +1893,7 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
     if (!isDebugConstant(conditionExpression)) {
       ValidResult result = getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (identical(result, ValidResult.RESULT_TRUE)) {
+        if (result.isTrue) {
           _errorReporter.reportError2(HintCode.DEAD_CODE, node.elseExpression, []);
           safelyVisit(node.thenExpression);
           return null;
@@ -1895,7 +1913,7 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
     if (!isDebugConstant(conditionExpression)) {
       ValidResult result = getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (identical(result, ValidResult.RESULT_TRUE)) {
+        if (result.isTrue) {
           Statement elseStatement = node.elseStatement;
           if (elseStatement != null) {
             _errorReporter.reportError2(HintCode.DEAD_CODE, elseStatement, []);
@@ -1968,7 +1986,7 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
     if (!isDebugConstant(conditionExpression)) {
       ValidResult result = getConstantBooleanValue(conditionExpression);
       if (result != null) {
-        if (identical(result, ValidResult.RESULT_FALSE)) {
+        if (result.isFalse) {
           _errorReporter.reportError2(HintCode.DEAD_CODE, node.body, []);
           return null;
         }
@@ -1991,9 +2009,9 @@ class DeadCodeVerifier extends RecursiveASTVisitor<Object> {
   ValidResult getConstantBooleanValue(Expression expression) {
     if (expression is BooleanLiteral) {
       if ((expression as BooleanLiteral).value) {
-        return ValidResult.RESULT_TRUE;
+        return new ValidResult(new DartObjectImpl(null, BoolState.from(true)));
       } else {
-        return ValidResult.RESULT_FALSE;
+        return new ValidResult(new DartObjectImpl(null, BoolState.from(false)));
       }
     }
     return null;
@@ -3203,7 +3221,7 @@ class DeclarationMatcher extends RecursiveASTVisitor<Object> {
   }
 
   void gatherElements(Element element) {
-    element.accept(new GeneralizingElementVisitor_7(this));
+    element.accept(new GeneralizingElementVisitor_8(this));
   }
 
   /**
@@ -3265,10 +3283,10 @@ class DeclarationMatcher extends RecursiveASTVisitor<Object> {
 class DeclarationMatcher_DeclarationMismatchException extends RuntimeException {
 }
 
-class GeneralizingElementVisitor_7 extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_8 extends GeneralizingElementVisitor<Object> {
   final DeclarationMatcher DeclarationMatcher_this;
 
-  GeneralizingElementVisitor_7(this.DeclarationMatcher_this) : super();
+  GeneralizingElementVisitor_8(this.DeclarationMatcher_this) : super();
 
   Object visitElement(Element element) {
     DeclarationMatcher_this._allElements.add(element);
@@ -4372,7 +4390,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
       Type2 staticType = getStaticType(target);
       ClassElementImpl typeReference = getTypeReference(target);
       if (typeReference != null) {
-        staticElement = propagatedElement = resolveElement(typeReference, methodName.name);
+        staticElement = propagatedElement = resolveElement(typeReference, methodName);
       } else {
         staticElement = resolveInvokedElement(target, staticType, methodName);
         propagatedElement = resolveInvokedElement(target, getPropagatedType(target), methodName);
@@ -5654,17 +5672,17 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    * in 'C'.
    *
    * @param classElement the class element
-   * @param memberName the member name
+   * @param nameNode the member name node
    */
-  Element resolveElement(ClassElementImpl classElement, String memberName) {
+  Element resolveElement(ClassElementImpl classElement, SimpleIdentifier nameNode) {
+    String name = nameNode.name;
     Element element = null;
-    String methodNameStr = memberName;
-    element = classElement.getMethod(methodNameStr);
-    if (element == null) {
-      element = classElement.getSetter(memberName);
-      if (element == null) {
-        element = classElement.getGetter(memberName);
-      }
+    element = classElement.getMethod(name);
+    if (element == null && nameNode.inSetterContext()) {
+      element = classElement.getSetter(name);
+    }
+    if (element == null && nameNode.inGetterContext()) {
+      element = classElement.getGetter(name);
     }
     if (element != null && element.isAccessibleIn(_definingLibrary)) {
       return element;
@@ -5759,7 +5777,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     Element propagatedElement = null;
     ClassElementImpl typeReference = getTypeReference(target);
     if (typeReference != null) {
-      staticElement = propagatedElement = resolveElement(typeReference, propertyName.name);
+      staticElement = propagatedElement = resolveElement(typeReference, propertyName);
     } else {
       staticElement = resolveProperty(target, staticType, propertyName);
       propagatedElement = resolveProperty(target, propagatedType, propertyName);
@@ -7386,8 +7404,7 @@ class LibraryResolver {
           if (importedSource != null) {
             Library importedLibrary = _libraryMap[importedSource];
             if (importedLibrary != null) {
-              ImportElementImpl importElement = new ImportElementImpl();
-              importElement.offset = directive.offset;
+              ImportElementImpl importElement = new ImportElementImpl(directive.offset);
               StringLiteral uriLiteral = importDirective.uri;
               if (uriLiteral != null) {
                 importElement.uriEnd = uriLiteral.end;
@@ -7442,7 +7459,7 @@ class LibraryResolver {
       }
       Source librarySource = library.librarySource;
       if (!library.explicitlyImportsCore && _coreLibrarySource != librarySource) {
-        ImportElementImpl importElement = new ImportElementImpl();
+        ImportElementImpl importElement = new ImportElementImpl(-1);
         importElement.importedLibrary = _coreLibrary.libraryElement;
         importElement.synthetic = true;
         imports.add(importElement);
@@ -7682,7 +7699,7 @@ class LibraryResolver {
   void performConstantEvaluation() {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     try {
-      ConstantValueComputer computer = new ConstantValueComputer();
+      ConstantValueComputer computer = new ConstantValueComputer(_typeProvider);
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
           try {
@@ -8004,6 +8021,12 @@ class ResolverVisitor extends ScopedVisitor {
   ExecutableElement _enclosingFunction = null;
 
   /**
+   * The [Comment] before a [FunctionDeclaration] or a [MethodDeclaration] that
+   * cannot be resolved where we visited it, because it should be resolved in the scope of the body.
+   */
+  Comment _commentBeforeFunction = null;
+
+  /**
    * The object keeping track of which elements have had their types overridden.
    */
   TypeOverrideManager _overrideManager = new TypeOverrideManager();
@@ -8133,6 +8156,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   Object visitBlockFunctionBody(BlockFunctionBody node) {
+    safelyVisit(_commentBeforeFunction);
     try {
       _overrideManager.enterScope();
       super.visitBlockFunctionBody(node);
@@ -8158,6 +8182,18 @@ class ResolverVisitor extends ScopedVisitor {
       _typeAnalyzer.thisType = outerType == null ? null : outerType.type;
       _enclosingClass = outerType;
     }
+    return null;
+  }
+
+  Object visitComment(Comment node) {
+    if (node.parent is FunctionDeclaration || node.parent is MethodDeclaration) {
+      if (node != _commentBeforeFunction) {
+        _commentBeforeFunction = node;
+        return null;
+      }
+    }
+    super.visitComment(node);
+    _commentBeforeFunction = null;
     return null;
   }
 
@@ -8279,7 +8315,13 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  Object visitEmptyFunctionBody(EmptyFunctionBody node) {
+    safelyVisit(_commentBeforeFunction);
+    return super.visitEmptyFunctionBody(node);
+  }
+
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    safelyVisit(_commentBeforeFunction);
     try {
       _overrideManager.enterScope();
       super.visitExpressionFunctionBody(node);
@@ -8908,7 +8950,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   bool isVariableAccessedInClosure(Element variable, ASTNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_8(result, variable));
+    target.accept(new RecursiveASTVisitor_9(result, variable));
     return result[0];
   }
 
@@ -8922,7 +8964,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   bool isVariablePotentiallyMutatedIn(Element variable, ASTNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_9(result, variable));
+    target.accept(new RecursiveASTVisitor_10(result, variable));
     return result[0];
   }
 
@@ -9079,12 +9121,12 @@ class ResolverVisitor extends ScopedVisitor {
   set enclosingClass_J2DAccessor(__v) => _enclosingClass = __v;
 }
 
-class RecursiveASTVisitor_8 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_9 extends RecursiveASTVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_8(this.result, this.variable) : super();
+  RecursiveASTVisitor_9(this.result, this.variable) : super();
 
   bool _inClosure = false;
 
@@ -9109,12 +9151,12 @@ class RecursiveASTVisitor_8 extends RecursiveASTVisitor<Object> {
   }
 }
 
-class RecursiveASTVisitor_9 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_10 extends RecursiveASTVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_9(this.result, this.variable) : super();
+  RecursiveASTVisitor_10(this.result, this.variable) : super();
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (result[0]) {
@@ -9220,6 +9262,24 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
    * @return the library element for the library containing the compilation unit being resolved
    */
   LibraryElement get definingLibrary => _definingLibrary;
+
+  /**
+   * Replaces the current [Scope] with the enclosing [Scope].
+   */
+  void popNameScope() {
+    _nameScope = _nameScope.enclosingScope;
+  }
+
+  /**
+   * Pushes a new [Scope] into the visitor.
+   *
+   * @return the new [Scope].
+   */
+  Scope pushNameScope() {
+    Scope newScope = new EnclosedScope(_nameScope);
+    _nameScope = newScope;
+    return newScope;
+  }
 
   /**
    * Report an error with the given analysis error.
@@ -10871,7 +10931,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
     }
     if (body is BlockFunctionBody) {
       List<Type2> result = [null];
-      body.accept(new GeneralizingASTVisitor_10(result));
+      body.accept(new GeneralizingASTVisitor_11(result));
       return result[0];
     }
     return null;
@@ -11234,10 +11294,10 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
   set thisType_J2DAccessor(__v) => _thisType = __v;
 }
 
-class GeneralizingASTVisitor_10 extends GeneralizingASTVisitor<Object> {
+class GeneralizingASTVisitor_11 extends GeneralizingASTVisitor<Object> {
   List<Type2> result;
 
-  GeneralizingASTVisitor_10(this.result) : super();
+  GeneralizingASTVisitor_11(this.result) : super();
 
   Object visitExpression(Expression node) => null;
 
@@ -14125,6 +14185,11 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
   ErrorReporter _errorReporter;
 
   /**
+   * The type provider used to access the known types.
+   */
+  TypeProvider _typeProvider;
+
+  /**
    * The type representing the type 'bool'.
    */
   InterfaceType _boolType;
@@ -14151,6 +14216,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
    */
   ConstantVerifier(ErrorReporter errorReporter, TypeProvider typeProvider) {
     this._errorReporter = errorReporter;
+    this._typeProvider = typeProvider;
     this._boolType = typeProvider.boolType;
     this._intType = typeProvider.intType;
     this._numType = typeProvider.numType;
@@ -14209,7 +14275,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
     super.visitMapLiteral(node);
     bool isConst = node.constKeyword != null;
     bool reportEqualKeys = true;
-    Set<Object> keys = new Set<Object>();
+    Set<DartObject> keys = new Set<DartObject>();
     List<Expression> invalidKeys = new List<Expression>();
     for (MapLiteralEntry entry in node.entries) {
       Expression key = entry.key;
@@ -14217,7 +14283,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
         EvaluationResultImpl result = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
         validate(entry.value, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
         if (result is ValidResult) {
-          Object value = (result as ValidResult).value;
+          DartObject value = (result as ValidResult).value;
           if (keys.contains(value)) {
             invalidKeys.add(key);
           } else {
@@ -14225,9 +14291,9 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
           }
         }
       } else {
-        EvaluationResultImpl result = key.accept(new ConstantVisitor());
+        EvaluationResultImpl result = key.accept(new ConstantVisitor(_typeProvider));
         if (result is ValidResult) {
-          Object value = (result as ValidResult).value;
+          DartObject value = (result as ValidResult).value;
           if (keys.contains(value)) {
             invalidKeys.add(key);
           } else {
@@ -14294,6 +14360,8 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
     }
   }
 
+  ValidResult valid(InterfaceType type, InstanceState state) => new ValidResult(new DartObjectImpl(type, state));
+
   /**
    * Validate that the given expression is a compile time constant. Return the value of the compile
    * time constant, or `null` if the expression is not a compile time constant.
@@ -14303,7 +14371,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
    * @return the value of the compile time constant
    */
   EvaluationResultImpl validate(Expression expression, ErrorCode errorCode) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor(_typeProvider));
     reportErrors(result, errorCode);
     return result;
   }
@@ -14370,7 +14438,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
    * @param expression the expression to validate
    */
   void validateInitializerExpression(List<ParameterElement> parameterElements, Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor_13(this, parameterElements));
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor_14(_typeProvider, this, parameterElements));
     reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
   }
 
@@ -14416,12 +14484,12 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
   }
 }
 
-class ConstantVisitor_13 extends ConstantVisitor {
+class ConstantVisitor_14 extends ConstantVisitor {
   final ConstantVerifier ConstantVerifier_this;
 
   List<ParameterElement> parameterElements;
 
-  ConstantVisitor_13(this.ConstantVerifier_this, this.parameterElements) : super();
+  ConstantVisitor_14(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super(arg0);
 
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
@@ -14430,22 +14498,20 @@ class ConstantVisitor_13 extends ConstantVisitor {
         Type2 type = parameterElement.type;
         if (type != null) {
           if (type.isDynamic) {
-            return ValidResult.RESULT_DYNAMIC;
-          }
-          if (type.isSubtypeOf(ConstantVerifier_this._boolType)) {
-            return ValidResult.RESULT_BOOL;
-          }
-          if (type.isSubtypeOf(ConstantVerifier_this._intType)) {
-            return ValidResult.RESULT_INT;
-          }
-          if (type.isSubtypeOf(ConstantVerifier_this._numType)) {
-            return ValidResult.RESULT_NUM;
-          }
-          if (type.isSubtypeOf(ConstantVerifier_this._stringType)) {
-            return ValidResult.RESULT_STRING;
+            return ConstantVerifier_this.valid(ConstantVerifier_this._typeProvider.objectType, DynamicState.DYNAMIC_STATE);
+          } else if (type.isSubtypeOf(ConstantVerifier_this._boolType)) {
+            return ConstantVerifier_this.valid(ConstantVerifier_this._typeProvider.boolType, BoolState.UNKNOWN_VALUE);
+          } else if (type.isSubtypeOf(ConstantVerifier_this._typeProvider.doubleType)) {
+            return ConstantVerifier_this.valid(ConstantVerifier_this._typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
+          } else if (type.isSubtypeOf(ConstantVerifier_this._intType)) {
+            return ConstantVerifier_this.valid(ConstantVerifier_this._typeProvider.intType, IntState.UNKNOWN_VALUE);
+          } else if (type.isSubtypeOf(ConstantVerifier_this._numType)) {
+            return ConstantVerifier_this.valid(ConstantVerifier_this._typeProvider.numType, NumState.UNKNOWN_VALUE);
+          } else if (type.isSubtypeOf(ConstantVerifier_this._stringType)) {
+            return ConstantVerifier_this.valid(ConstantVerifier_this._typeProvider.stringType, StringState.UNKNOWN_VALUE);
           }
         }
-        return ValidResult.RESULT_OBJECT;
+        return ConstantVerifier_this.valid(type is InterfaceType ? (type as InterfaceType) : ConstantVerifier_this._typeProvider.objectType, GenericState.UNKNOWN_VALUE);
       }
     }
     return super.visitSimpleIdentifier(node);
@@ -15515,7 +15581,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
         for (int i = 0; i < parameterElts.length; i++) {
           ParameterElementImpl parameterElt = parameterElts[i];
           EvaluationResultImpl result = parameterElt.evaluationResult;
-          if (result == null || identical(result, ValidResult.RESULT_OBJECT)) {
+          if (isUserDefinedObject(result)) {
             continue;
           }
           String parameterName = parameterElt.name;
@@ -15524,10 +15590,10 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
             String overriddenParameterName = overriddenParameterElt.name;
             if (parameterName != null && parameterName == overriddenParameterName) {
               EvaluationResultImpl overriddenResult = overriddenParameterElt.evaluationResult;
-              if (overriddenResult == null || identical(result, ValidResult.RESULT_OBJECT)) {
+              if (isUserDefinedObject(overriddenResult)) {
                 break;
               }
-              if (!result.equalValues(overriddenResult)) {
+              if (!result.equalValues(_typeProvider, overriddenResult)) {
                 _errorReporter.reportError2(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED, formalParameters[i], [
                     overriddenExecutable.enclosingElement.displayName,
                     overriddenExecutable.displayName,
@@ -15541,15 +15607,15 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
         for (int i = 0; i < parameterElts.length && i < overriddenParameterElts.length; i++) {
           ParameterElementImpl parameterElt = parameterElts[i];
           EvaluationResultImpl result = parameterElt.evaluationResult;
-          if (result == null || identical(result, ValidResult.RESULT_OBJECT)) {
+          if (isUserDefinedObject(result)) {
             continue;
           }
           ParameterElementImpl overriddenParameterElt = overriddenParameterElts[i];
           EvaluationResultImpl overriddenResult = overriddenParameterElt.evaluationResult;
-          if (overriddenResult == null || identical(result, ValidResult.RESULT_OBJECT)) {
+          if (isUserDefinedObject(overriddenResult)) {
             continue;
           }
-          if (!result.equalValues(overriddenResult)) {
+          if (!result.equalValues(_typeProvider, overriddenResult)) {
             _errorReporter.reportError2(StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL, formalParameters[i], [
                 overriddenExecutable.enclosingElement.displayName,
                 overriddenExecutable.displayName]);
@@ -17604,23 +17670,24 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       if (memberName == null) {
         break;
       }
+      if ((executableElt.enclosingElement as ClassElement).type.isObject) {
+        continue;
+      }
+      InterfaceType enclosingType = _enclosingClass.type;
+      if (isMemberInClassOrMixin(executableElt, _enclosingClass)) {
+        continue;
+      }
       ExecutableElement elt = membersInheritedFromSuperclasses.get(executableElt.name);
       if (elt != null) {
-        if (elt is MethodElement && !(elt as MethodElement).isAbstract) {
-          continue;
-        } else if (elt is PropertyAccessorElement && !(elt as PropertyAccessorElement).isAbstract) {
-          continue;
+        if ((elt is MethodElement && !(elt as MethodElement).isAbstract) || (elt is PropertyAccessorElement && !(elt as PropertyAccessorElement).isAbstract)) {
+          FunctionType foundConcreteFT = _inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(elt.type, executableElt.name, enclosingType);
+          FunctionType requiredMemberFT = _inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(executableElt.type, executableElt.name, enclosingType);
+          if (foundConcreteFT.isSubtypeOf(requiredMemberFT)) {
+            continue;
+          }
         }
       }
-      if (executableElt is MethodElement) {
-        if (!methodsInEnclosingClass.contains(memberName) && !memberHasConcreteMethodImplementationInSuperclassChain(_enclosingClass, memberName, new List<ClassElement>())) {
-          missingOverrides.add(executableElt);
-        }
-      } else if (executableElt is PropertyAccessorElement) {
-        if (!accessorsInEnclosingClass.contains(memberName) && !memberHasConcreteAccessorImplementationInSuperclassChain(_enclosingClass, memberName, new List<ClassElement>())) {
-          missingOverrides.add(executableElt);
-        }
-      }
+      missingOverrides.add(executableElt);
     }
     int missingOverridesSize = missingOverrides.length;
     if (missingOverridesSize == 0) {
@@ -18573,7 +18640,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
           break;
         }
       }
-      current.accept(new GeneralizingElementVisitor_14(target, toCheck));
+      current.accept(new GeneralizingElementVisitor_15(target, toCheck));
       checked.add(current);
     }
   }
@@ -18620,6 +18687,56 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       return false;
     }
     return creation.isConst;
+  }
+
+  /**
+   * Return `true` iff the passed [ClassElement] has a method, getter or setter that
+   * matches the name of the passed [ExecutableElement] in either the class itself, or one of
+   * its' mixins.
+   *
+   * By "match", only the name of the member is tested to match, it does not have to equal or be a
+   * subtype of the passed executable element, this is due to the specific use where this method is
+   * used in [checkForNonAbstractClassInheritsAbstractMember].
+   *
+   * @param executableElt the executable to search for in the passed class element
+   * @param classElt the class method to search through the members of
+   * @return `true` iff the passed member is found in the passed class element
+   */
+  bool isMemberInClassOrMixin(ExecutableElement executableElt, ClassElement classElt) {
+    ExecutableElement foundElt;
+    String executableName = executableElt.name;
+    if (executableElt is MethodElement) {
+      foundElt = classElt.getMethod(executableName);
+      if (foundElt != null) {
+        return true;
+      }
+      List<InterfaceType> mixins = classElt.mixins;
+      for (int i = 0; i < mixins.length && foundElt == null; i++) {
+        foundElt = mixins[i].getMethod(executableName);
+      }
+      if (foundElt != null) {
+        return true;
+      }
+    } else if (executableElt is PropertyAccessorElement) {
+      foundElt = classElt.getGetter(executableElt.name);
+      if (foundElt == null) {
+        foundElt = classElt.getSetter(executableName);
+      }
+      if (foundElt != null) {
+        return true;
+      }
+      List<InterfaceType> mixins = classElt.mixins;
+      for (int i = 0; i < mixins.length && foundElt == null; i++) {
+        foundElt = mixins[i].getGetter(executableName);
+        if (foundElt == null) {
+          foundElt = mixins[i].getSetter(executableName);
+        }
+      }
+      if (foundElt != null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -18676,6 +18793,8 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     }
     return false;
   }
+
+  bool isUserDefinedObject(EvaluationResultImpl result) => result == null || (result is ValidResult && (result as ValidResult).isUserDefinedObject);
 
   /**
    * Return `true` iff the passed [ClassElement] has a concrete implementation of the
@@ -18783,12 +18902,12 @@ class INIT_STATE extends Enum<INIT_STATE> {
   INIT_STATE(String name, int ordinal) : super(name, ordinal);
 }
 
-class GeneralizingElementVisitor_14 extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_15 extends GeneralizingElementVisitor<Object> {
   Element target;
 
   List<Element> toCheck;
 
-  GeneralizingElementVisitor_14(this.target, this.toCheck) : super();
+  GeneralizingElementVisitor_15(this.target, this.toCheck) : super();
 
   bool _inClass = false;
 

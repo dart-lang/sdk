@@ -556,6 +556,15 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
   static final HintCode IS_NOT_INT = new HintCode.con1('IS_NOT_INT', 9, "When compiled to JS, this test might return false when the left hand side is a double");
 
   /**
+   * Generate a hint for methods or functions that have a return type, but do not have a non-void
+   * return statement on all branches. At the end of methods or functions with no return, Dart
+   * implicitly returns `null`, avoiding these implicit returns is considered a best practice.
+   *
+   * @param returnType the name of the declared return type
+   */
+  static final HintCode MISSING_RETURN = new HintCode.con2('MISSING_RETURN', 10, "This function declares a return type of '%s', but does not end with a return statement.", "Either add a return statement or change the return type to 'void'.");
+
+  /**
    * It is not in best practice to declare a private method that happens to override the method in a
    * superclass- depending on where the superclass is (either in the same library, or out of the
    * same library), behavior can be different.
@@ -564,24 +573,24 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param memberName some private member name
    * @param className the class name where the member is overriding the functionality
    */
-  static final HintCode OVERRIDDING_PRIVATE_MEMBER = new HintCode.con1('OVERRIDDING_PRIVATE_MEMBER', 10, "The %s '%s' does not override the definition from '%s' because it is private and in a different library");
+  static final HintCode OVERRIDDING_PRIVATE_MEMBER = new HintCode.con1('OVERRIDDING_PRIVATE_MEMBER', 11, "The %s '%s' does not override the definition from '%s' because it is private and in a different library");
 
   /**
    * Hint for classes that override equals, but not hashCode.
    *
    * @param className the name of the current class
    */
-  static final HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = new HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 11, "The class '%s' overrides 'operator==', but not 'get hashCode'");
+  static final HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = new HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 12, "The class '%s' overrides 'operator==', but not 'get hashCode'");
 
   /**
    * Type checks of the type `x is! Null` should be done with `x != null`.
    */
-  static final HintCode TYPE_CHECK_IS_NOT_NULL = new HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 12, "Tests for non-null should be done with '!= null'");
+  static final HintCode TYPE_CHECK_IS_NOT_NULL = new HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 13, "Tests for non-null should be done with '!= null'");
 
   /**
    * Type checks of the type `x is Null` should be done with `x == null`.
    */
-  static final HintCode TYPE_CHECK_IS_NULL = new HintCode.con1('TYPE_CHECK_IS_NULL', 13, "Tests for null should be done with '== null'");
+  static final HintCode TYPE_CHECK_IS_NULL = new HintCode.con1('TYPE_CHECK_IS_NULL', 14, "Tests for null should be done with '== null'");
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_GETTER] or
@@ -593,7 +602,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_GETTER
    * @see StaticWarningCode#UNDEFINED_GETTER
    */
-  static final HintCode UNDEFINED_GETTER = new HintCode.con1('UNDEFINED_GETTER', 14, StaticTypeWarningCode.UNDEFINED_GETTER.message);
+  static final HintCode UNDEFINED_GETTER = new HintCode.con1('UNDEFINED_GETTER', 15, StaticTypeWarningCode.UNDEFINED_GETTER.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_METHOD] would
@@ -603,7 +612,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param typeName the resolved type name that the method lookup is happening on
    * @see StaticTypeWarningCode#UNDEFINED_METHOD
    */
-  static final HintCode UNDEFINED_METHOD = new HintCode.con1('UNDEFINED_METHOD', 15, StaticTypeWarningCode.UNDEFINED_METHOD.message);
+  static final HintCode UNDEFINED_METHOD = new HintCode.con1('UNDEFINED_METHOD', 16, StaticTypeWarningCode.UNDEFINED_METHOD.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_OPERATOR]
@@ -613,7 +622,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the operator is being looked for
    * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
    */
-  static final HintCode UNDEFINED_OPERATOR = new HintCode.con1('UNDEFINED_OPERATOR', 16, StaticTypeWarningCode.UNDEFINED_OPERATOR.message);
+  static final HintCode UNDEFINED_OPERATOR = new HintCode.con1('UNDEFINED_OPERATOR', 17, StaticTypeWarningCode.UNDEFINED_OPERATOR.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_SETTER] or
@@ -625,27 +634,27 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_SETTER
    * @see StaticWarningCode#UNDEFINED_SETTER
    */
-  static final HintCode UNDEFINED_SETTER = new HintCode.con1('UNDEFINED_SETTER', 17, StaticTypeWarningCode.UNDEFINED_SETTER.message);
+  static final HintCode UNDEFINED_SETTER = new HintCode.con1('UNDEFINED_SETTER', 18, StaticTypeWarningCode.UNDEFINED_SETTER.message);
 
   /**
    * Unnecessary cast.
    */
-  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 18, "Unnecessary cast");
+  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 19, "Unnecessary cast");
 
   /**
    * Unnecessary type checks, the result is always true.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 19, "Unnecessary type check, the result is always false");
+  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 20, "Unnecessary type check, the result is always false");
 
   /**
    * Unnecessary type checks, the result is always false.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 20, "Unnecessary type check, the result is always true");
+  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 21, "Unnecessary type check, the result is always true");
 
   /**
    * Unused imports are imports which are never not used.
    */
-  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 21, "Unused import");
+  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 22, "Unused import");
 
   static final List<HintCode> values = [
       DEAD_CODE,
@@ -658,6 +667,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
       IS_INT,
       IS_NOT_DOUBLE,
       IS_NOT_INT,
+      MISSING_RETURN,
       OVERRIDDING_PRIVATE_MEMBER,
       OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
       TYPE_CHECK_IS_NOT_NULL,

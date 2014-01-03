@@ -4404,7 +4404,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme, bool first, bool last) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_27();
+    AnalysisErrorListener listener = new AnalysisErrorListener_28();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme, first, last], null) as String;
   }
@@ -6674,7 +6674,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 }
 
-class AnalysisErrorListener_27 implements AnalysisErrorListener {
+class AnalysisErrorListener_28 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -7683,7 +7683,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitImportDirective() {
     ImportDirective fromNode = ASTFactory.importDirective2("dart:uri", null, []);
-    ImportElement element = new ImportElementImpl();
+    ImportElement element = new ImportElementImpl(0);
     fromNode.element = element;
     ImportDirective toNode = ASTFactory.importDirective2("dart:uri", null, []);
     ResolutionCopier.copyResolutionData(fromNode, toNode);

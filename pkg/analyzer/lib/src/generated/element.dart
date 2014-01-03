@@ -9,7 +9,7 @@ import 'java_engine.dart';
 import 'utilities_collection.dart';
 import 'source.dart';
 import 'scanner.dart' show Keyword;
-import 'ast.dart' show Identifier, LibraryIdentifier;
+import 'ast.dart';
 import 'sdk.dart' show DartSdk;
 import 'html.dart' show XmlTagNode;
 import 'engine.dart' show AnalysisContext;
@@ -111,6 +111,16 @@ abstract class ClassElement implements Element {
   ConstructorElement getNamedConstructor(String name);
 
   /**
+   * Return the resolved [ClassDeclaration] node that declares this [ClassElement].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [ClassDeclaration], not `null`.
+   */
+  ClassDeclaration get node;
+
+  /**
    * Return the element representing the setter with the given name that is declared in this class,
    * or `null` if this class does not declare a setter with the given name.
    *
@@ -132,6 +142,13 @@ abstract class ClassElement implements Element {
    * @return the superclass of this class
    */
   InterfaceType get supertype;
+
+  /**
+   * Return an array containing all of the toolkit specific objects attached to this class.
+   *
+   * @return the toolkit objects attached to this class
+   */
+  List<ToolkitObjectElement> get toolkitObjects;
 
   /**
    * Return the type defined by the class.
@@ -331,6 +348,16 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   List<FunctionTypeAliasElement> get functionTypeAliases;
 
   /**
+   * Return the resolved [CompilationUnit] node that declares this element.
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [CompilationUnit], not `null`.
+   */
+  CompilationUnit get node;
+
+  /**
    * Return an array containing all of the top-level variables contained in this compilation unit.
    *
    * @return the top-level variables contained in this compilation unit
@@ -361,6 +388,17 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
  * @coverage dart.engine.element
  */
 abstract class ConstructorElement implements ClassMemberElement, ExecutableElement {
+  /**
+   * Return the resolved [ConstructorDeclaration] node that declares this
+   * [ConstructorElement] .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [ConstructorDeclaration], not `null`.
+   */
+  ConstructorDeclaration get node;
+
   /**
    * Return the constructor to which this constructor is redirecting.
    *
@@ -528,12 +566,33 @@ abstract class Element {
   int get nameOffset;
 
   /**
+   * Return the resolved [ASTNode] node that declares this [Element].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [ASTNode], maybe `null` if [Element] is synthetic or
+   *         isn't contained in a compilation unit, such as a [LibraryElement].
+   */
+  ASTNode get node;
+
+  /**
    * Return the source that contains this element, or `null` if this element is not contained
    * in a source.
    *
    * @return the source that contains this element
    */
   Source get source;
+
+  /**
+   * Return the resolved [CompilationUnit] that declares this [Element].
+   *
+   * This method is expensive, because resolved AST might have been already evicted from cache, so
+   * parsing and resolving will be performed.
+   *
+   * @return the resolved [CompilationUnit], maybe `null` if synthetic [Element].
+   */
+  CompilationUnit get unit;
 
   /**
    * Return `true` if this element, assuming that it is within scope, is accessible to code in
@@ -553,6 +612,22 @@ abstract class Element {
    * @return `true` if this element is deprecated
    */
   bool get isDeprecated;
+
+  /**
+   * Return `true` if this element is private. Private elements are visible only within the
+   * library in which they are declared.
+   *
+   * @return `true` if this element is private
+   */
+  bool get isPrivate;
+
+  /**
+   * Return `true` if this element is public. Public elements are visible within any library
+   * that imports the library in which they are declared.
+   *
+   * @return `true` if this element is public
+   */
+  bool get isPublic;
 
   /**
    * Return `true` if this element is synthetic. A synthetic element is an element that is not
@@ -947,6 +1022,16 @@ abstract class FieldFormalParameterElement implements ParameterElement {
  * @coverage dart.engine.element
  */
 abstract class FunctionElement implements ExecutableElement, LocalElement {
+  /**
+   * Return the resolved [FunctionDeclaration] node that declares this [FunctionElement]
+   * .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [FunctionDeclaration], not `null`.
+   */
+  FunctionDeclaration get node;
 }
 
 /**
@@ -962,6 +1047,17 @@ abstract class FunctionTypeAliasElement implements Element {
    * @return the compilation unit in which this type alias is defined
    */
   CompilationUnitElement get enclosingElement;
+
+  /**
+   * Return the resolved [FunctionTypeAlias] node that declares this
+   * [FunctionTypeAliasElement] .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [FunctionTypeAlias], not `null`.
+   */
+  FunctionTypeAlias get node;
 
   /**
    * Return an array containing all of the parameters defined by this type alias.
@@ -1182,6 +1278,13 @@ abstract class LibraryElement implements Element {
   ClassElement getType(String className);
 
   /**
+   * Return an array containing all directly and indirectly imported libraries.
+   *
+   * @return all directly and indirectly imported libraries
+   */
+  List<LibraryElement> get visibleLibraries;
+
+  /**
    * Answer `true` if this library is an application that can be run in the browser.
    *
    * @return `true` if this library is an application that can be run in the browser
@@ -1255,6 +1358,16 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
  * @coverage dart.engine.element
  */
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
+  /**
+   * Return the resolved [MethodDeclaration] node that declares this [MethodElement].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [MethodDeclaration], not `null`.
+   */
+  MethodDeclaration get node;
+
   /**
    * Return `true` if this method is abstract. Methods are abstract if they are not external
    * and have no body.
@@ -1508,6 +1621,20 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 }
 
 /**
+ * The interface `ToolkitObjectElement` defines the behavior of elements that represent a
+ * toolkit specific object, such as Angular controller or component. These elements are not based on
+ * the Dart syntax, but on some semantic agreement, such as a special annotation.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class ToolkitObjectElement implements Element {
+  /**
+   * An empty array of toolkit object elements.
+   */
+  static final List<ToolkitObjectElement> EMPTY_ARRAY = new List<ToolkitObjectElement>(0);
+}
+
+/**
  * The interface `TopLevelVariableElement` defines the behavior of elements representing a
  * top-level variable.
  *
@@ -1583,6 +1710,17 @@ abstract class VariableElement implements Element {
   FunctionElement get initializer;
 
   /**
+   * Return the resolved [VariableDeclaration] node that declares this [VariableElement]
+   * .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [VariableDeclaration], not `null`.
+   */
+  VariableDeclaration get node;
+
+  /**
    * Return the declared type of this variable, or `null` if the variable did not have a
    * declared type (such as if it was declared using the keyword 'var').
    *
@@ -1605,6 +1743,171 @@ abstract class VariableElement implements Element {
    * @return `true` if this variable was declared with the 'final' modifier
    */
   bool get isFinal;
+}
+
+/**
+ * The interface `AngularControllerElement` defines the Angular component described by
+ * <code>NgComponent</code> annotation.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularComponentElement implements AngularSelectorElement {
+  /**
+   * Return an array containing all of the properties declared by this component.
+   */
+  List<AngularPropertyElement> get properties;
+
+  /**
+   * Returns the CSS file URI.
+   */
+  String get styleUri;
+
+  /**
+   * Return the offset of the [getStyleUri] in the [getSource].
+   *
+   * @return the offset of the style URI
+   */
+  int get styleUriOffset;
+
+  /**
+   * Returns the HTML template URI.
+   */
+  String get templateUri;
+
+  /**
+   * Return the offset of the [getTemplateUri] in the [getSource].
+   *
+   * @return the offset of the template URI
+   */
+  int get templateUriOffset;
+}
+
+/**
+ * The interface `AngularControllerElement` defines the Angular controller described by
+ * <code>NgController</code> annotation.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularControllerElement implements AngularSelectorElement {
+}
+
+/**
+ * The interface `AngularElement` defines the behavior of objects representing information
+ * about an Angular specific element.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularElement implements ToolkitObjectElement {
+}
+
+/**
+ * The interface `AngularFilterElement` defines the Angular filter described by
+ * <code>NgFilter</code> annotation.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularFilterElement implements AngularElement {
+}
+
+/**
+ * The interface `AngularControllerElement` defines a single property in
+ * [AngularComponentElement].
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularPropertyElement implements AngularElement {
+  /**
+   * Returns the field this property is mapped to.
+   *
+   * @return the field this property is mapped to.
+   */
+  FieldElement get field;
+
+  /**
+   * Return the offset of the field name of this property in the [getSource].
+   *
+   * @return the offset of the field name of this property
+   */
+  int get fieldNameOffset;
+
+  /**
+   * Returns the kind of this property.
+   *
+   * @return the kind of this property
+   */
+  AngularPropertyKind get propertyKind;
+}
+
+/**
+ * The enumeration `AngularPropertyKind` defines the different kinds of property bindings.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularPropertyKind extends Enum<AngularPropertyKind> {
+  /**
+   * `@` - Map the DOM attribute string. The attribute string will be taken literally or
+   * interpolated if it contains binding {{}} syntax and assigned to the expression. (cost: 0
+   * watches)
+   */
+  static final AngularPropertyKind ATTR = new AngularPropertyKind('ATTR', 0);
+
+  /**
+   * `&` - Treat the DOM attribute value as an expression. Assign a closure function into the field.
+   * This allows the component to control the invocation of the closure. This is useful for passing
+   * expressions into controllers which act like callbacks. (cost: 0 watches)
+   */
+  static final AngularPropertyKind CALLBACK = new AngularPropertyKind('CALLBACK', 1);
+
+  /**
+   * `=>` - Treat the DOM attribute value as an expression. Set up a watch, which will read the
+   * expression in the attribute and assign the value to destination expression. (cost: 1 watch)
+   */
+  static final AngularPropertyKind ONE_WAY = new AngularPropertyKind('ONE_WAY', 2);
+
+  /**
+   * `=>!` - Treat the DOM attribute value as an expression. Set up a one time watch on expression.
+   * Once the expression turns not null it will no longer update. (cost: 1 watches until not null,
+   * then 0 watches)
+   */
+  static final AngularPropertyKind ONE_WAY_ONE_TIME = new AngularPropertyKind('ONE_WAY_ONE_TIME', 3);
+
+  /**
+   * `<=>` - Treat the DOM attribute value as an expression. Set up a watch on both outside as well
+   * as component scope to keep the source and destination in sync. (cost: 2 watches)
+   */
+  static final AngularPropertyKind TWO_WAY = new AngularPropertyKind('TWO_WAY', 4);
+
+  static final List<AngularPropertyKind> values = [ATTR, CALLBACK, ONE_WAY, ONE_WAY_ONE_TIME, TWO_WAY];
+
+  AngularPropertyKind(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * [AngularSelector] is used to decide when Angular object should be applied.
+ */
+abstract class AngularSelector {
+  /**
+   * Checks if the given [XmlTagNode] matches this selector.
+   *
+   * @param node the [XmlTagNode] to check
+   * @return `true` if the given [XmlTagNode] matches, or `false` otherwise
+   */
+  bool apply(XmlTagNode node);
+}
+
+/**
+ * The interface `AngularElement` defines the behavior of objects representing information
+ * about an Angular element which is applied conditionally using some [AngularSelector].
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularSelectorElement implements AngularElement {
+  /**
+   * Returns the selector specified for this element.
+   *
+   * @return the [AngularSelector] specified for this element
+   */
+  AngularSelector get selector;
 }
 
 /**
@@ -1984,6 +2287,11 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   InterfaceType supertype;
 
   /**
+   * An array containing all of the toolkit objects attached to this class.
+   */
+  List<ToolkitObjectElement> _toolkitObjects = ToolkitObjectElement.EMPTY_ARRAY;
+
+  /**
    * The type defined by the class.
    */
   InterfaceType type;
@@ -2096,6 +2404,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  ClassDeclaration get node => getNode2(ClassDeclaration);
+
   PropertyAccessorElement getSetter(String setterName) {
     if (!setterName.endsWith("=")) {
       setterName += '=';
@@ -2107,6 +2417,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     return null;
   }
+
+  List<ToolkitObjectElement> get toolkitObjects => _toolkitObjects;
 
   List<TypeParameterElement> get typeParameters => _typeParameters;
 
@@ -2313,6 +2625,18 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   /**
+   * Set the toolkit specific information objects attached to this class.
+   *
+   * @param toolkitObjects the toolkit objects attached to this class
+   */
+  void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
+    for (ToolkitObjectElement toolkitObject in toolkitObjects) {
+      (toolkitObject as ToolkitObjectElementImpl).enclosingElement = this;
+    }
+    this._toolkitObjects = toolkitObjects;
+  }
+
+  /**
    * Set whether this class is defined by a typedef construct to correspond to the given value.
    *
    * @param isTypedef `true` if the class is defined by a typedef construct
@@ -2348,6 +2672,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     safelyVisitChildren(_constructors, visitor);
     safelyVisitChildren(_fields, visitor);
     safelyVisitChildren(_methods, visitor);
+    safelyVisitChildren(_toolkitObjects, visitor);
     safelyVisitChildren(_typeParameters, visitor);
   }
 
@@ -2414,6 +2739,11 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   static List<CompilationUnitElement> EMPTY_ARRAY = new List<CompilationUnitElement>(0);
 
   /**
+   * The source that corresponds to this compilation unit.
+   */
+  Source source;
+
+  /**
    * An array containing all of the top-level accessors (getters and setters) contained in this
    * compilation unit.
    */
@@ -2425,16 +2755,6 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   List<FunctionElement> _functions = FunctionElementImpl.EMPTY_ARRAY;
 
   /**
-   * An array containing all of the variables contained in this compilation unit.
-   */
-  List<TopLevelVariableElement> _variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
-
-  /**
-   * The source that corresponds to this compilation unit.
-   */
-  Source source;
-
-  /**
    * An array containing all of the function type aliases contained in this compilation unit.
    */
   List<FunctionTypeAliasElement> _typeAliases = FunctionTypeAliasElementImpl.EMPTY_ARRAY;
@@ -2443,6 +2763,11 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
    * An array containing all of the types contained in this compilation unit.
    */
   List<ClassElement> _types = ClassElementImpl.EMPTY_ARRAY;
+
+  /**
+   * An array containing all of the variables contained in this compilation unit.
+   */
+  List<TopLevelVariableElement> _variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
 
   /**
    * The URI that is specified by the "part" directive in the enclosing library, or `null` if
@@ -2499,6 +2824,8 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   List<FunctionTypeAliasElement> get functionTypeAliases => _typeAliases;
 
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
+
+  CompilationUnit get node => unit;
 
   List<TopLevelVariableElement> get topLevelVariables => _variables;
 
@@ -2698,6 +3025,8 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
   ElementKind get kind => ElementKind.CONSTRUCTOR;
+
+  ConstructorDeclaration get node => getNode2(ConstructorDeclaration);
 
   bool get isConst => hasModifier(Modifier.CONST);
 
@@ -3030,12 +3359,16 @@ abstract class ElementImpl implements Element {
 
   String get name => _name;
 
+  ASTNode get node => getNode2(ASTNode);
+
   Source get source {
     if (_enclosingElement == null) {
       return null;
     }
     return _enclosingElement.source;
   }
+
+  CompilationUnit get unit => context.resolveCompilationUnit(source, library);
 
   int get hashCode {
     if (_cachedHashCode == 0) {
@@ -3059,6 +3392,16 @@ abstract class ElementImpl implements Element {
     }
     return false;
   }
+
+  bool get isPrivate {
+    String name = displayName;
+    if (name == null) {
+      return true;
+    }
+    return Identifier.isPrivateName(name);
+  }
+
+  bool get isPublic => !isPrivate;
 
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
 
@@ -3102,6 +3445,22 @@ abstract class ElementImpl implements Element {
    * @return an identifier that uniquely identifies this element relative to its parent
    */
   String get identifier => name;
+
+  /**
+   * Return the resolved [ASTNode] of the given type enclosing [getNameOffset].
+   */
+  ASTNode getNode2(Type clazz) {
+    CompilationUnit unit = this.unit;
+    if (unit == null) {
+      return null;
+    }
+    int offset = nameOffset;
+    ASTNode node = new NodeLocator.con1(offset).searchWithin(unit);
+    if (node == null) {
+      return null;
+    }
+    return node.getAncestor(clazz);
+  }
 
   /**
    * Return `true` if this element has the given modifier associated with it.
@@ -3347,6 +3706,60 @@ class ElementLocationImpl implements ElementLocation {
     }
     return sourceComponent.substring(1).hashCode;
   }
+}
+
+/**
+ * The class `ElementPair` is a pair of [Element]s. [Object#equals] and
+ * [Object#hashCode] so this class can be used in hashed data structures.
+ */
+class ElementPair {
+  /**
+   * The first [Element]
+   */
+  Element _first;
+
+  /**
+   * The second [Element]
+   */
+  Element _second;
+
+  /**
+   * The sole constructor for this class, taking two [Element]s.
+   *
+   * @param first the first element
+   * @param second the second element
+   */
+  ElementPair(Element first, Element second) {
+    this._first = first;
+    this._second = second;
+  }
+
+  bool operator ==(Object object) {
+    if (identical(object, this)) {
+      return true;
+    }
+    if (object is ElementPair) {
+      ElementPair elementPair = object as ElementPair;
+      return (_first == elementPair._first) && (_second == elementPair._second);
+    }
+    return false;
+  }
+
+  /**
+   * Return the first element.
+   *
+   * @return the first element
+   */
+  Element get firstElt => _first;
+
+  /**
+   * Return the second element
+   *
+   * @return the second element
+   */
+  Element get secondElt => _second;
+
+  int get hashCode => ObjectUtilities.combineHashCodes(_first.hashCode, _second.hashCode);
 }
 
 /**
@@ -3727,6 +4140,8 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
 
   ElementKind get kind => ElementKind.FUNCTION;
 
+  FunctionDeclaration get node => getNode2(FunctionDeclaration);
+
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
       return null;
@@ -3818,6 +4233,8 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   CompilationUnitElement get enclosingElement => super.enclosingElement as CompilationUnitElement;
 
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
+
+  FunctionTypeAlias get node => getNode2(FunctionTypeAlias);
 
   List<ParameterElement> get parameters => _parameters;
 
@@ -4033,11 +4450,6 @@ abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptEl
  */
 class ImportElementImpl extends ElementImpl implements ImportElement {
   /**
-   * The offset of this directive, may be `-1` if synthetic.
-   */
-  int _offset = -1;
-
-  /**
    * The offset of the character immediately following the last character of this node's URI, may be
    * `-1` if synthetic.
    */
@@ -4073,19 +4485,14 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
 
   /**
    * Initialize a newly created import element.
+   *
+   * @param offset the directive offset, may be `-1` if synthetic.
    */
-  ImportElementImpl() : super.con1(null);
+  ImportElementImpl(int offset) : super.con2(null, offset);
 
   accept(ElementVisitor visitor) => visitor.visitImportElement(this);
 
   ElementKind get kind => ElementKind.IMPORT;
-
-  /**
-   * Set the offset of this directive.
-   */
-  void set offset(int offset) {
-    this._offset = offset;
-  }
 
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
@@ -4097,7 +4504,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
     (importedLibrary as LibraryElementImpl).appendTo(builder);
   }
 
-  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@${_offset}";
+  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@${nameOffset}";
 }
 
 /**
@@ -4331,6 +4738,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return null;
   }
 
+  List<LibraryElement> get visibleLibraries {
+    Set<LibraryElement> visibleLibraries = new Set();
+    addVisibleLibraries(visibleLibraries, false);
+    return new List.from(visibleLibraries);
+  }
+
   int get hashCode => _definingCompilationUnit.hashCode;
 
   bool get isBrowserApplication => entryPoint != null && isOrImportsBrowserLibrary;
@@ -4404,6 +4817,29 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   String get identifier => _definingCompilationUnit.source.encoding;
+
+  /**
+   * Recursively fills set of visible libraries for [getVisibleElementsLibraries].
+   */
+  void addVisibleLibraries(Set<LibraryElement> visibleLibraries, bool includeExports) {
+    if (!visibleLibraries.add(this)) {
+      return;
+    }
+    for (ImportElement importElement in _imports) {
+      LibraryElement importedLibrary = importElement.importedLibrary;
+      if (importedLibrary != null) {
+        (importedLibrary as LibraryElementImpl).addVisibleLibraries(visibleLibraries, true);
+      }
+    }
+    if (includeExports) {
+      for (ExportElement exportElement in _exports) {
+        LibraryElement exportedLibrary = exportElement.exportedLibrary;
+        if (exportedLibrary != null) {
+          (exportedLibrary as LibraryElementImpl).addVisibleLibraries(visibleLibraries, true);
+        }
+      }
+    }
+  }
 
   /**
    * Answer `true` if the receiver directly or indirectly imports the dart:html libraries.
@@ -4567,6 +5003,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     }
     return super.name;
   }
+
+  MethodDeclaration get node => getNode2(MethodDeclaration);
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
@@ -4757,9 +5195,13 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   int get nameOffset => -1;
 
+  ASTNode get node => null;
+
   Source get source => null;
 
   Type2 get type => DynamicTypeImpl.instance;
+
+  CompilationUnit get unit => null;
 
   bool isAccessibleIn(LibraryElement library) {
     for (Element element in conflictingElements) {
@@ -4771,6 +5213,16 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   bool get isDeprecated => false;
+
+  bool get isPrivate {
+    String name = displayName;
+    if (name == null) {
+      return false;
+    }
+    return Identifier.isPrivateName(name);
+  }
+
+  bool get isPublic => !isPrivate;
 
   bool get isSynthetic => true;
 
@@ -5084,6 +5536,19 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     return super.name;
   }
 
+  ASTNode get node {
+    if (isSynthetic) {
+      return null;
+    }
+    if (enclosingElement is ClassElement) {
+      return getNode2(MethodDeclaration);
+    }
+    if (enclosingElement is CompilationUnitElement) {
+      return getNode2(FunctionDeclaration);
+    }
+    return null;
+  }
+
   int get hashCode => ObjectUtilities.combineHashCodes(super.hashCode, isGetter ? 1 : 2);
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
@@ -5215,6 +5680,22 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 }
 
 /**
+ * Instances of the class `ToolkitObjectElementImpl` implement a `ToolkitObjectElement`.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class ToolkitObjectElementImpl extends ElementImpl implements ToolkitObjectElement {
+  /**
+   * Initialize a newly created toolkit object element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  ToolkitObjectElementImpl(String name, int nameOffset) : super.con2(name, nameOffset);
+}
+
+/**
  * Instances of the class `TopLevelVariableElementImpl` implement a
  * `TopLevelVariableElement`.
  *
@@ -5338,6 +5819,8 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
 
   FunctionElement get initializer => _initializer;
 
+  VariableDeclaration get node => getNode2(VariableDeclaration);
+
   bool get isConst => hasModifier(Modifier.CONST);
 
   bool get isFinal => hasModifier(Modifier.FINAL);
@@ -5456,6 +5939,8 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   ConstructorElement get baseElement => super.baseElement as ConstructorElement;
 
   ClassElement get enclosingElement => baseElement.enclosingElement;
+
+  ConstructorDeclaration get node => baseElement.node;
 
   ConstructorElement get redirectedConstructor => from(baseElement.redirectedConstructor, definingType);
 
@@ -5679,11 +6164,19 @@ abstract class Member implements Element {
 
   int get nameOffset => _baseElement.nameOffset;
 
+  ASTNode get node => _baseElement.node;
+
   Source get source => _baseElement.source;
+
+  CompilationUnit get unit => _baseElement.unit;
 
   bool isAccessibleIn(LibraryElement library) => _baseElement.isAccessibleIn(library);
 
   bool get isDeprecated => _baseElement.isDeprecated;
+
+  bool get isPrivate => _baseElement.isPrivate;
+
+  bool get isPublic => _baseElement.isPublic;
 
   bool get isSynthetic => _baseElement.isSynthetic;
 
@@ -5796,6 +6289,8 @@ class MethodMember extends ExecutableMember implements MethodElement {
   MethodElement get baseElement => super.baseElement as MethodElement;
 
   ClassElement get enclosingElement => baseElement.enclosingElement;
+
+  MethodDeclaration get node => baseElement.node;
 
   bool get isAbstract => baseElement.isAbstract;
 
@@ -6056,6 +6551,8 @@ abstract class VariableMember extends Member implements VariableElement {
     throw new UnsupportedOperationException();
   }
 
+  VariableDeclaration get node => baseElement.node;
+
   Type2 get type => substituteFor(baseElement.type);
 
   bool get isConst => baseElement.isConst;
@@ -6100,6 +6597,8 @@ class BottomTypeImpl extends TypeImpl {
   bool isSupertypeOf(Type2 type) => false;
 
   BottomTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
+
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
 
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => true;
 
@@ -6149,6 +6648,8 @@ class DynamicTypeImpl extends TypeImpl {
     return this;
   }
 
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
+
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     if (identical(this, type)) {
       return true;
@@ -6173,10 +6674,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    *
    * @param firstTypes the first map of name/type pairs being compared
    * @param secondTypes the second map of name/type pairs being compared
+   * @param visitedElementPairs a set of visited element pairs
    * @return `true` if all of the name/type pairs in the first map are equal to the
    *         corresponding name/type pairs in the second map
    */
-  static bool equals2(Map<String, Type2> firstTypes, Map<String, Type2> secondTypes) {
+  static bool equals2(Map<String, Type2> firstTypes, Map<String, Type2> secondTypes, Set<ElementPair> visitedElementPairs) {
     if (secondTypes.length != firstTypes.length) {
       return false;
     }
@@ -6185,7 +6687,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     while (firstIterator.hasNext) {
       MapEntry<String, Type2> firstEntry = firstIterator.next();
       MapEntry<String, Type2> secondEntry = secondIterator.next();
-      if (firstEntry.getKey() != secondEntry.getKey() || firstEntry.getValue() != secondEntry.getValue()) {
+      if (firstEntry.getKey() != secondEntry.getKey() || !(firstEntry.getValue() as TypeImpl).internalEquals(secondEntry.getValue(), visitedElementPairs)) {
         return false;
       }
     }
@@ -6213,13 +6715,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   FunctionTypeImpl.con2(FunctionTypeAliasElement element) : super(element, element == null ? null : element.name);
 
-  bool operator ==(Object object) {
-    if (object is! FunctionTypeImpl) {
-      return false;
-    }
-    FunctionTypeImpl otherType = object as FunctionTypeImpl;
-    return (element == otherType.element) && JavaArrays.equals(normalParameterTypes, otherType.normalParameterTypes) && JavaArrays.equals(optionalParameterTypes, otherType.optionalParameterTypes) && equals2(namedParameterTypes, otherType.namedParameterTypes) && (returnType == otherType.returnType);
-  }
+  bool operator ==(Object object) => internalEquals(object, new Set<ElementPair>());
 
   String get displayName {
     String name = this.name;
@@ -6368,11 +6864,23 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   int get hashCode {
-    Element element = this.element;
     if (element == null) {
       return 0;
     }
-    return element.hashCode;
+    List<Type2> normalParameterTypes = this.normalParameterTypes;
+    List<Type2> optionalParameterTypes = this.optionalParameterTypes;
+    Iterable<Type2> namedParameterTypes = this.namedParameterTypes.values;
+    int hashCode = returnType.hashCode;
+    for (int i = 0; i < normalParameterTypes.length; i++) {
+      hashCode = (hashCode << 1) + normalParameterTypes[i].hashCode;
+    }
+    for (int i = 0; i < optionalParameterTypes.length; i++) {
+      hashCode = (hashCode << 1) + optionalParameterTypes[i].hashCode;
+    }
+    for (Type2 type in namedParameterTypes) {
+      hashCode = (hashCode << 1) + type.hashCode;
+    }
+    return hashCode;
   }
 
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
@@ -6550,6 +7058,20 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else {
       return (element as FunctionTypeAliasElement).parameters;
     }
+  }
+
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
+    if (object is! FunctionTypeImpl) {
+      return false;
+    }
+    FunctionTypeImpl otherType = object as FunctionTypeImpl;
+    ElementPair elementPair = new ElementPair(element, otherType.element);
+    if (!visitedElementPairs.add(elementPair)) {
+      return elementPair.firstElt == elementPair.secondElt;
+    }
+    bool result = TypeImpl.equalArrays(normalParameterTypes, otherType.normalParameterTypes, visitedElementPairs) && TypeImpl.equalArrays(optionalParameterTypes, otherType.optionalParameterTypes, visitedElementPairs) && equals2(namedParameterTypes, otherType.namedParameterTypes, visitedElementPairs) && (returnType as TypeImpl).internalEquals(otherType.returnType, visitedElementPairs);
+    visitedElementPairs.remove(elementPair);
+    return result;
   }
 
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
@@ -6837,13 +7359,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   InterfaceTypeImpl.con2(String name) : super(null, name);
 
-  bool operator ==(Object object) {
-    if (object is! InterfaceTypeImpl) {
-      return false;
-    }
-    InterfaceTypeImpl otherType = object as InterfaceTypeImpl;
-    return (element == otherType.element) && JavaArrays.equals(typeArguments, otherType.typeArguments);
-  }
+  bool operator ==(Object object) => internalEquals(object, new Set<ElementPair>());
 
   List<PropertyAccessorElement> get accessors {
     List<PropertyAccessorElement> accessors = element.accessors;
@@ -7184,6 +7700,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
+    if (object is! InterfaceTypeImpl) {
+      return false;
+    }
+    InterfaceTypeImpl otherType = object as InterfaceTypeImpl;
+    return (element == otherType.element) && TypeImpl.equalArrays(typeArguments, otherType.typeArguments, visitedElementPairs);
+  }
+
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     if (identical(type, DynamicTypeImpl.instance)) {
       return true;
@@ -7309,6 +7833,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
  * @coverage dart.engine.type
  */
 abstract class TypeImpl implements Type2 {
+  static bool equalArrays(List<Type2> typeArgs1, List<Type2> typeArgs2, Set<ElementPair> visitedElementPairs) {
+    if (typeArgs1.length != typeArgs2.length) {
+      return false;
+    }
+    for (int i = 0; i < typeArgs1.length; i++) {
+      if (!(typeArgs1[i] as TypeImpl).internalEquals(typeArgs2[i], visitedElementPairs)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Return an array containing the results of using the given argument types and parameter types to
    * perform a substitution on all of the given types.
@@ -7457,6 +7993,8 @@ abstract class TypeImpl implements Type2 {
     }
   }
 
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs);
+
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs);
 
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs);
@@ -7552,6 +8090,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return this;
   }
 
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => this == object;
+
   bool internalIsMoreSpecificThan(Type2 s, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
     if (this == s) {
       return true;
@@ -7620,6 +8160,8 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   bool get isVoid => true;
 
   VoidTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
+
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
 
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf(type);
 
