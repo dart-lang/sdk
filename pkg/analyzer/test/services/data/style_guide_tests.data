@@ -1,0 +1,225 @@
+>>> DO use ; instead of {} for empty constructor bodies
+class Point {
+  int x, y;
+  Point(this.x, this.y) {}
+}
+<<<
+class Point {
+  int x, y;
+  Point(this.x, this.y);
+}
+>>> DO indent block bodies two spaces.
+hi() {
+if (condition) { print('hi'); }
+}
+<<<
+hi() {
+  if (condition) {
+    print('hi');
+  }
+}
+>>> DON'T indent lines that are continued with a function expression.
+var callback = new Future.delayed(const Duration(seconds: 1), () {
+      print('I am a callback');
+    });
+<<<
+var callback = new Future.delayed(const Duration(seconds: 1), () {
+  print('I am a callback');
+});
+>>> DO place the opening curly brace ({) on the same line as what it follows.
+class Foo {
+  method() 
+  {
+    if (true) 
+    {
+      print('true');
+    } else {
+      print('false');
+    }
+  }
+}
+<<<
+class Foo {
+  method() {
+    if (true) {
+      print('true');
+    } else {
+      print('false');
+    }
+  }
+}
+>>> DO use curly braces for all flow control structures.
+flow() {
+  if (true) print('sanity');
+  else
+    print('opposite day!');
+}
+<<<
+flow() {
+  if (true) {
+    print('sanity');
+  } else {
+    print('opposite day!');
+  }
+}
+>>> ... short if statements with no else may omit the braces ...
+except() {
+  if (arg == null) return defaultValue;
+}
+<<<
+except() {
+  if (arg == null) return defaultValue;
+}
+>>> DO indent switch cases two spaces and case bodies four spaces
+switches() {
+  switch (fruit) {
+    case 'apple':
+    print('delish');
+    break;
+
+    case 'durian':
+    print('stinky');
+    break;
+  }
+}
+<<<
+switches() {
+  switch (fruit) {
+    case 'apple':
+      print('delish');
+      break;
+
+    case 'durian':
+      print('stinky');
+      break;
+  }
+}
+>>> DO use spaces around binary and ternary operators, etc...
+spaces() {
+  a=1+2/(3* - b);
+  c= ! condition==a>b;
+  d= condition?b:object.method(a,b,c);
+  if (obj is !SomeType) print('not SomeType');
+}
+<<<
+spaces() {
+  a = 1 + 2 / (3 * -b);
+  c = !condition == a > b;
+  d = condition ? b : object.method(a, b, c);
+  if (obj is! SomeType) print('not SomeType');
+}
+>>> DO place spaces around in, and after each ; in a loop.
+loop() {
+  for (var i = 0;i<100;i++) {
+    print(i);
+  }
+  for (final item in  collection) {
+    print(item);
+  }
+}
+<<<
+loop() {
+  for (var i = 0; i < 100; i++) {
+    print(i);
+  }
+  for (final item in collection) {
+    print(item);
+  }
+}
+>>> DO use a space after flow-control keywords.
+flow() {
+  while(foo) {
+    print(foo);
+  }
+
+  try{
+    flow();
+  }catch(e) {
+    print(e);
+  }
+}
+<<<
+flow() {
+  while (foo) {
+    print(foo);
+  }
+
+  try {
+    flow();
+  } catch (e) {
+    print(e);
+  }
+}
+>>> DON'T use a space after (, [, and {, or before ), ], and }.
+spaces() {
+  var numbers = <int> [ 1, 2,( 3+4 ) ];
+}
+<<<
+spaces() {
+  var numbers = <int>[1, 2, (3 + 4)];
+}
+>>> DO use a space before { in function and method bodies.
+getEmptyFn(a){
+  return (){};
+}
+<<<
+getEmptyFn(a) {
+  return () {
+  };
+}
+>>> DO format constructor initialization lists with each field on its own line.
+class MyClass {
+  var firstField, secondField, thirdField;
+  MyClass() : firstField = "some value", secondField = "another",
+        thirdField = "last";
+}
+<<<
+class MyClass {
+  var firstField, secondField, thirdField;
+  MyClass()
+      : firstField = "some value",
+        secondField = "another",
+        thirdField = "last";
+}
+>>> DO use a space after : in named parameters and named arguments.
+class ListBox {
+  bool showScrollbars;
+
+  ListBox({this.showScrollbars: false});
+}
+
+main() {
+  new ListBox(showScrollbars:true);
+  new ListBox(showScrollbars : true);
+}
+<<<
+class ListBox {
+  bool showScrollbars;
+
+  ListBox({this.showScrollbars: false});
+}
+
+main() {
+  new ListBox(showScrollbars: true);
+  new ListBox(showScrollbars: true);
+}
+>>> DO use a spaces around = in optional positional parameters.
+class HttpServer {
+  static Future<HttpServer> listen([int port=80]) {
+    print('hi!');
+  }
+}
+<<<
+class HttpServer {
+  static Future<HttpServer> listen([int port = 80]) {
+    print('hi!');
+  }
+}
+>>> DO use four spaces for method cascades
+var list = new List()
+  ..addAll([1, 2, 3])
+  ..addAll([4, 5, 6]);
+<<<
+var list = new List()
+    ..addAll([1, 2, 3])
+    ..addAll([4, 5, 6]);
