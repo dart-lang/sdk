@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-//import 'dart:io';
+import 'dart:io';
 
+import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
@@ -11,23 +12,31 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/services/formatter_impl.dart';
 import 'package:analyzer/src/services/writer.dart';
 
+// Test data location ('pkg/analyzer/test/services/data')
+final TEST_DATA_DIR = join(dirname(fromUri(Platform.script)), 'data');
+
 main() {
 
-//TODO(pquitslund): disabled pending build investigation
+  /// Data-driven statement tests
+  group('stmt_tests.data', () {
+    runTests('stmt_tests.data', (input, expectedOutput) {
+      expect(formatStatement(input) + '\n', equals(expectedOutput));
+    });
+  });
 
-//  /// Data driven statement tests
-//  group('stmt_tests.data', () {
-//    runTests(new File('data/stmt_tests.data'), (input, expectedOutput) {
-//      expect(formatStatement(input) + '\n', equals(expectedOutput));
-//    });
-//  });
-//
-//  /// Data driven compilation unit tests
-//  group('cu_tests.data', () {
-//    runTests(new File('data/cu_tests.data'), (input, expectedOutput) {
-//      expectCUFormatsTo(input, expectedOutput);
-//    });
-//  });
+  /// Data-driven compilation unit tests
+  group('cu_tests.data', () {
+    runTests('cu_tests.data', (input, expectedOutput) {
+      expectCUFormatsTo(input, expectedOutput);
+    });
+  });
+
+  /// Data-driven Style Guide acceptance tests
+  group('style_guide_tests.data', () {
+    runTests('style_guide_tests.data', (input, expectedOutput) {
+      expectCUFormatsTo(input, expectedOutput);
+    });
+  });
 
   /// Formatter tests
   group('formatter', () {
@@ -1308,17 +1317,19 @@ expectStmtFormatsTo(src, expected, {transforms: true}) =>
     expect(formatStatement(src, options:
       new FormatterOptions(codeTransforms: transforms)), equals(expected));
 
-runTests(testFile, expectClause(input, output)) {
+
+runTests(testFileName, expectClause(input, output)) {
 
   var testIndex = 1;
+  var testFile = new File(join(TEST_DATA_DIR, testFileName));
   var lines = testFile.readAsLinesSync();
 
   for (var i = 1; i < lines.length; ++i) {
     var input = '', expectedOutput = '';
-    while(lines[i] != '<<<') {
+    while(!lines[i].startsWith('<<<')) {
       input += lines[i++] + '\n';
     }
-    while(++i < lines.length && lines[i] != '>>>') {
+    while(++i < lines.length && !lines[i].startsWith('>>>')) {
       expectedOutput += lines[i] + '\n';
     }
     test('test - (${testIndex++})', () {
