@@ -1392,6 +1392,13 @@ void Debugger::FindEquivalentFunctions(const Script& script,
   for (intptr_t i = 1; i < num_classes; i++) {
     if (class_table.HasValidClassAt(i)) {
       cls = class_table.At(i);
+      // If the class is not finalized, e.g. if it hasn't been parsed
+      // yet entirely, we can ignore it. If it contains a function with
+      // a latent breakpoint, we will detect it if and when the function
+      // gets compiled.
+      if (!cls.is_finalized()) {
+        continue;
+      }
       // Note: we need to check the functions of this class even if
       // the class is defined in a differenct 'script'. There could
       // be mixin functions from the given script in this class.
@@ -1475,9 +1482,17 @@ RawFunction* Debugger::FindBestFit(const Script& script,
   for (intptr_t i = 1; i < num_classes; i++) {
     if (class_table.HasValidClassAt(i)) {
       cls = class_table.At(i);
-      // Note: we need to check the functions of this class even if
-      // the class is defined in a differenct 'script'. There could
+      // Note: if this class has been parsed and finalized already,
+      // we need to check the functions of this class even if
+      // it is defined in a differenct 'script'. There could
       // be mixin functions from the given script in this class.
+      // However, if this class is not parsed yet (not finalized),
+      // we can ignore it and avoid the side effect of parsing it.
+      if ((cls.script() != script.raw()) && !cls.is_finalized()) {
+        continue;
+      }
+      // Parse class definition if not done yet.
+      cls.EnsureIsFinalized(isolate_);
       functions = cls.functions();
       if (!functions.IsNull()) {
         const intptr_t num_functions = functions.Length();
