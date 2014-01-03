@@ -1334,19 +1334,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (Elements.isUnresolved(constructor)) return types.dynamicType;
     DartType constructorType = constructor.computeType(compiler);
     if (identical(type.kind, TypeKind.INTERFACE)) {
-      if (constructor.isSynthesized) {
-        // TODO(johnniwinther): Remove this when synthesized constructors handle
-        // type variables correctly.
-        InterfaceType interfaceType = type;
-        ClassElement receiverElement = interfaceType.element;
-        while (receiverElement.isMixinApplication) {
-          receiverElement = receiverElement.supertype.element;
-        }
-        constructorType = constructorType.substByContext(
-            interfaceType.asInstanceOf(receiverElement));
-      } else {
-        constructorType = constructorType.substByContext(type);
-      }
+      InterfaceType interfaceType = type;
+      constructorType = constructorType.subst(
+          interfaceType.typeArguments,
+          interfaceType.element.typeVariables);
     }
     return constructorType;
   }

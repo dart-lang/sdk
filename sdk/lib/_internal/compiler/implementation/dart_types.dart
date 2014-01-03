@@ -60,11 +60,6 @@ abstract class DartType {
    */
   DartType subst(Link<DartType> arguments, Link<DartType> parameters);
 
-  /// Performs the substitution of the type arguments of [type] for their
-  /// corresponding type variables in this type.
-  DartType substByContext(GenericType type) =>
-      subst(type.typeArguments, type.element.typeVariables);
-
   /**
    * Returns the unaliased type of this type.
    *
@@ -802,7 +797,8 @@ class TypedefType extends GenericType {
     compiler.resolveTypedef(element);
     element.checkCyclicReference(compiler);
     DartType definition = element.alias.unalias(compiler);
-    return definition.substByContext(this);
+    TypedefType declaration = element.computeType(compiler);
+    return definition.subst(typeArguments, declaration.typeArguments);
   }
 
   int get hashCode => super.hashCode;
@@ -893,8 +889,10 @@ class Member {
         type = element.computeType(compiler);
       }
       if (!declarer.element.typeVariables.isEmpty) {
-        type = type.substByContext(declarer);
-        type = type.substByContext(receiver);
+        type = type.subst(declarer.typeArguments,
+                          declarer.element.typeVariables);
+        type = type.subst(receiver.typeArguments,
+                          receiver.element.typeVariables);
       }
       cachedType = type;
     }
@@ -1307,7 +1305,8 @@ class Types {
     Link<DartType> typeVariables = element.typeVariables;
     while (!typeVariables.isEmpty && !typeArguments.isEmpty) {
       TypeVariableType typeVariable = typeVariables.head;
-      DartType bound = typeVariable.element.bound.substByContext(type);
+      DartType bound = typeVariable.element.bound.subst(
+          type.typeArguments, element.typeVariables);
       DartType typeArgument = typeArguments.head;
       checkTypeVariableBound(type, typeArgument, typeVariable, bound);
       typeVariables = typeVariables.tail;
@@ -1502,10 +1501,13 @@ class Types {
 
     /// Returns the set of supertypes of [type] at depth [depth].
     Set<DartType> getSupertypesAtDepth(InterfaceType type, int depth) {
-      OrderedTypeSet types = type.element.allSupertypesAndSelf;
+      ClassElement cls = type.element;
+      OrderedTypeSet types = cls.allSupertypesAndSelf;
+      Link<DartType> typeVariables = cls.typeVariables;
+      Link<DartType> typeArguments = type.typeArguments;
       Set<DartType> set = new Set<DartType>();
-      types.forEach(depth, (DartType supertype) {
-        set.add(supertype.substByContext(type));
+      types.forEach(depth, (DartType type) {
+        set.add(type.subst(typeArguments, typeVariables));
       });
       return set;
     }

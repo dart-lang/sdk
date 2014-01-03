@@ -645,7 +645,8 @@ class ResolverTask extends CompilerTask {
       InterfaceType factoryType =
           treeElements.getType(redirectionNode.expression);
 
-      targetType = targetType.substByContext(factoryType);
+      targetType = targetType.subst(factoryType.typeArguments,
+                                    factoryType.element.typeVariables);
       factory.redirectionTarget = target;
       factory.redirectionTargetType = targetType;
     }
@@ -2737,7 +2738,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       } else if (target.modifiers.isFinal() ||
                  target.modifiers.isConst() ||
                  (target.isFunction() &&
-                  Elements.isStaticOrTopLevelFunction(target) &&
+                  Elements.isStaticOrTopLevelFunction(target) && 
                   !target.isSetter())) {
         if (target.isFunction()) {
           setter = warnAndCreateErroneousElement(
@@ -4165,14 +4166,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
    */
   void addAllSupertypes(OrderedTypeSetBuilder allSupertypes,
                         InterfaceType type) {
+    Link<DartType> typeArguments = type.typeArguments;
     ClassElement classElement = type.element;
+    Link<DartType> typeVariables = classElement.typeVariables;
     Link<DartType> supertypes = classElement.allSupertypes;
     assert(invariant(element, supertypes != null,
         message: "Supertypes not computed on $classElement "
                  "during resolution of $element"));
     while (!supertypes.isEmpty) {
       DartType supertype = supertypes.head;
-      allSupertypes.add(compiler, supertype.substByContext(type));
+      allSupertypes.add(compiler,
+                        supertype.subst(typeArguments, typeVariables));
       supertypes = supertypes.tail;
     }
   }
