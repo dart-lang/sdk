@@ -14,6 +14,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
+#include "vm/profiler.h"
 
 namespace dart {
 
@@ -251,7 +252,7 @@ static void HandleEcho(Isolate* isolate, JSONStream* js) {
   }
 
 
-static bool GetIntegerId(const char* s, intptr_t* id) {
+static bool GetIntegerId(const char* s, intptr_t* id, int base = 10) {
   if ((s == NULL) || (*s == '\0')) {
     // Empty string.
     return false;
@@ -262,7 +263,28 @@ static bool GetIntegerId(const char* s, intptr_t* id) {
   }
   intptr_t r = 0;
   char* end_ptr = NULL;
-  r = strtol(s, &end_ptr, 10);
+  r = strtol(s, &end_ptr, base);
+  if (end_ptr == s) {
+    // String was not advanced at all, cannot be valid.
+    return false;
+  }
+  *id = r;
+  return true;
+}
+
+
+static bool GetUnsignedIntegerId(const char* s, uintptr_t* id, int base = 10) {
+  if ((s == NULL) || (*s == '\0')) {
+    // Empty string.
+    return false;
+  }
+  if (id == NULL) {
+    // No id pointer.
+    return false;
+  }
+  uintptr_t r = 0;
+  char* end_ptr = NULL;
+  r = strtoul(s, &end_ptr, base);
   if (end_ptr == s) {
     // String was not advanced at all, cannot be valid.
     return false;
@@ -274,54 +296,104 @@ static bool GetIntegerId(const char* s, intptr_t* id) {
 
 static void HandleClassesClosures(Isolate* isolate, const Class& cls,
                                   JSONStream* js) {
-  const GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(cls.closures());
   intptr_t id;
   if (js->num_arguments() > 4) {
     PrintError(js, "Command too long");
     return;
   }
-  CHECK_COLLECTION_ID_BOUNDS("closures", closures.Length(), js->GetArgument(3),
-                             id, js);
-  Function& function = Function::Handle();
-  function ^= closures.At(id);
-  ASSERT(!function.IsNull());
-  function.PrintToJSONStream(js, false);
+  if (!GetIntegerId(js->GetArgument(3), &id)) {
+    PrintError(js, "Must specify collection object id: closures/id");
+    return;
+  }
+  Function& func = Function::Handle();
+  func ^= cls.ClosureFunctionFromIndex(id);
+  if (func.IsNull()) {
+    PrintError(js, "Closure function %" Pd " not found", id);
+    return;
+  }
+  func.PrintToJSONStream(js, false);
+}
+
+
+static void HandleClassesDispatchers(Isolate* isolate, const Class& cls,
+                                     JSONStream* js) {
+  intptr_t id;
+  if (js->num_arguments() > 4) {
+    PrintError(js, "Command too long");
+    return;
+  }
+  if (!GetIntegerId(js->GetArgument(3), &id)) {
+    PrintError(js, "Must specify collection object id: dispatchers/id");
+    return;
+  }
+  Function& func = Function::Handle();
+  func ^= cls.InvocationDispatcherFunctionFromIndex(id);
+  if (func.IsNull()) {
+    PrintError(js, "Dispatcher %" Pd " not found", id);
+    return;
+  }
+  func.PrintToJSONStream(js, false);
 }
 
 
 static void HandleClassesFunctions(Isolate* isolate, const Class& cls,
                                    JSONStream* js) {
-  const Array& functions =
-      Array::Handle(cls.functions());
   intptr_t id;
   if (js->num_arguments() > 4) {
     PrintError(js, "Command too long");
     return;
   }
-  CHECK_COLLECTION_ID_BOUNDS("functions", functions.Length(),
-                             js->GetArgument(3), id, js);
-  Function& function = Function::Handle();
-  function ^= functions.At(id);
-  ASSERT(!function.IsNull());
-  function.PrintToJSONStream(js, false);
+  if (!GetIntegerId(js->GetArgument(3), &id)) {
+    PrintError(js, "Must specify collection object id: functions/id");
+    return;
+  }
+  Function& func = Function::Handle();
+  func ^= cls.FunctionFromIndex(id);
+  if (func.IsNull()) {
+    PrintError(js, "Function %" Pd " not found", id);
+    return;
+  }
+  func.PrintToJSONStream(js, false);
+}
+
+
+static void HandleClassesImplicitClosures(Isolate* isolate, const Class& cls,
+                                          JSONStream* js) {
+  intptr_t id;
+  if (js->num_arguments() > 4) {
+    PrintError(js, "Command too long");
+    return;
+  }
+  if (!GetIntegerId(js->GetArgument(3), &id)) {
+    PrintError(js, "Must specify collection object id: implicit_closures/id");
+    return;
+  }
+  Function& func = Function::Handle();
+  func ^= cls.ImplicitClosureFunctionFromIndex(id);
+  if (func.IsNull()) {
+    PrintError(js, "Implicit closure function %" Pd " not found", id);
+    return;
+  }
+  func.PrintToJSONStream(js, false);
 }
 
 
 static void HandleClassesFields(Isolate* isolate, const Class& cls,
                                 JSONStream* js) {
-  const Array& fields =
-      Array::Handle(cls.fields());
   intptr_t id;
   if (js->num_arguments() > 4) {
     PrintError(js, "Command too long");
     return;
   }
-  CHECK_COLLECTION_ID_BOUNDS("fields", fields.Length(), js->GetArgument(3),
-                             id, js);
-  Field& field = Field::Handle();
-  field ^= fields.At(id);
-  ASSERT(!field.IsNull());
+  if (!GetIntegerId(js->GetArgument(3), &id)) {
+    PrintError(js, "Must specify collection object id: fields/id");
+    return;
+  }
+  Field& field = Field::Handle(cls.FieldFromIndex(id));
+  if (field.IsNull()) {
+    PrintError(js, "Field %" Pd " not found", id);
+    return;
+  }
   field.PrintToJSONStream(js, false);
 }
 
@@ -355,6 +427,10 @@ static void HandleClasses(Isolate* isolate, JSONStream* js) {
       HandleClassesFields(isolate, cls, js);
     } else if (!strcmp(second, "functions")) {
       HandleClassesFunctions(isolate, cls, js);
+    } else if (!strcmp(second, "implicit_closures")) {
+      HandleClassesImplicitClosures(isolate, cls, js);
+    } else if (!strcmp(second, "dispatchers")) {
+      HandleClassesDispatchers(isolate, cls, js);
     } else {
       PrintError(js, "Invalid sub collection %s", second);
     }
@@ -521,9 +597,31 @@ static void HandleCpu(Isolate* isolate, JSONStream* js) {
 }
 
 
+static void HandleCode(Isolate* isolate, JSONStream* js) {
+  REQUIRE_COLLECTION_ID("code");
+  uintptr_t pc;
+  if (!GetUnsignedIntegerId(js->GetArgument(1), &pc, 16)) {
+    PrintError(js, "Must specify code address: code/c0deadd0.");
+    return;
+  }
+  Code& code = Code::Handle(Code::LookupCode(pc));
+  if (code.IsNull()) {
+    PrintError(js, "Could not find code at %" Px "", pc);
+    return;
+  }
+  code.PrintToJSONStream(js, false);
+}
+
+
+static void HandleProfile(Isolate* isolate, JSONStream* js) {
+  Profiler::PrintToJSONStream(isolate, js, true);
+}
+
+
 static ServiceMessageHandlerEntry __message_handlers[] = {
   { "_echo", HandleEcho },
   { "classes", HandleClasses },
+  { "code", HandleCode },
   { "cpu", HandleCpu },
   { "debug", HandleDebug },
   { "libraries", HandleLibraries },
@@ -531,6 +629,7 @@ static ServiceMessageHandlerEntry __message_handlers[] = {
   { "name", HandleName },
   { "objecthistogram", HandleObjectHistogram},
   { "objects", HandleObjects },
+  { "profile", HandleProfile },
   { "scripts", HandleScripts },
   { "stacktrace", HandleStackTrace },
 };

@@ -65,12 +65,23 @@ void CodePatcher::RestoreEntry(const Code& code) {
 }
 
 
+bool CodePatcher::IsEntryPatched(const Code& code) {
+  const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
+                                                PcDescriptors::kEntryPatch);
+  if (patch_addr == 0) {
+    return false;
+  }
+  JumpPattern jmp_entry(patch_addr, code);
+  return jmp_entry.IsValid();
+}
+
+
 bool CodePatcher::CodeIsPatchable(const Code& code) {
   const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
                                                 PcDescriptors::kEntryPatch);
   // kEntryPatch may not exist which means the function is not patchable.
   if (patch_addr == 0) {
-    return true;
+    return false;
   }
   JumpPattern jmp_entry(patch_addr, code);
   if (code.Size() < (jmp_entry.pattern_length_in_bytes() * 2)) {

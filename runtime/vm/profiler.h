@@ -16,6 +16,7 @@ namespace dart {
 // Forward declarations.
 class JSONArray;
 class JSONStream;
+class ProfilerCodeRegionTable;
 struct Sample;
 
 // Profiler
@@ -31,9 +32,9 @@ class Profiler : public AllStatic {
   static void BeginExecution(Isolate* isolate);
   static void EndExecution(Isolate* isolate);
 
-  static void PrintToJSONStream(Isolate* isolate, JSONStream* stream);
-
-  static void WriteTracing(Isolate* isolate);
+  static void PrintToJSONStream(Isolate* isolate, JSONStream* stream,
+                                bool full);
+  static void WriteProfile(Isolate* isolate);
 
   static SampleBuffer* sample_buffer() {
     return sample_buffer_;
@@ -43,8 +44,13 @@ class Profiler : public AllStatic {
   static bool initialized_;
   static Monitor* monitor_;
 
-  static void WriteTracingSample(Isolate* isolate, intptr_t pid,
-                                 Sample* sample, JSONArray& events);
+  static intptr_t ProcessSamples(Isolate* isolate,
+                                 ProfilerCodeRegionTable* code_region_table,
+                                 SampleBuffer* sample_buffer);
+
+  static intptr_t ProcessSample(Isolate* isolate,
+                                ProfilerCodeRegionTable* code_region_table,
+                                Sample* sample);
 
   static void RecordTickInterruptCallback(const InterruptedThreadState& state,
                                           void* data);
@@ -76,9 +82,6 @@ class IsolateProfilerData {
 
 // Profile sample.
 struct Sample {
-  static const char* kLookupSymbol;
-  static const char* kNoSymbol;
-  static const char* kNoFrame;
   static const intptr_t kNumStackFrames = 6;
   enum SampleType {
     kIsolateStart,
@@ -109,10 +112,10 @@ class SampleBuffer {
 
   Sample* ReserveSample();
 
-  Sample* GetSample(intptr_t i) const {
+  Sample GetSample(intptr_t i) const {
     ASSERT(i >= 0);
     ASSERT(i < capacity_);
-    return &samples_[i];
+    return samples_[i];
   }
 
  private:

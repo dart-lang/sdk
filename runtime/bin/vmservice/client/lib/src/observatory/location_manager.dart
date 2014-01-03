@@ -11,10 +11,13 @@ class LocationManager extends Observable {
   static const int InvalidIsolateId = 0;
   static const String defaultHash = '#/isolates/';
   static final RegExp currentIsolateMatcher = new RegExp(r"#/isolates/\d+");
+  static final RegExp currentIsolateProfileMatcher =
+      new RegExp(r'#/isolates/\d+/profile');
 
   ObservatoryApplication _application;
   ObservatoryApplication get application => _application;
 
+  @observable bool profile = false;
   @observable String currentHash = '';
   @observable Uri currentHashUri;
   void init() {
@@ -77,7 +80,12 @@ class LocationManager extends Observable {
     // Chomp off the #
     String requestUrl = currentHash.substring(1);
     currentHashUri = Uri.parse(requestUrl);
-    application.requestManager.get(requestUrl);
+    if (currentIsolateProfileMatcher.hasMatch(currentHash)) {
+      // We do not automatically fetch profile data.
+      profile = true;
+    } else {
+      application.requestManager.get(requestUrl);
+    }
   }
 
   /// Create a request for [l] on the current isolate.

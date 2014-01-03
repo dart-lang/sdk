@@ -3468,17 +3468,21 @@ TEST_CASE(FindFieldIndex) {
 
 
 TEST_CASE(FindFunctionIndex) {
+  // Tests both FindFunctionIndex and FindImplicitClosureFunctionIndex.
   const char* kScriptChars =
       "class A {\n"
       "  void a() {}\n"
-      "  void b() {}\n"
+      "  void b() { return a; }\n"
       "}\n"
       "class B {\n"
       "  dynamic d() {}\n"
       "}\n"
+      "var x;\n"
       "test() {\n"
-      "  new A();\n"
+      "  x = new A().b();\n"
+      "  x();\n"
       "  new B();\n"
+      "  return x;\n"
       "}";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(h_lib);
@@ -3488,30 +3492,38 @@ TEST_CASE(FindFunctionIndex) {
   lib ^= Api::UnwrapHandle(h_lib);
   EXPECT(!lib.IsNull());
   const Class& class_a = Class::Handle(GetClass(lib, "A"));
-  const Array& class_a_funcs = Array::Handle(class_a.functions());
   const Class& class_b = Class::Handle(GetClass(lib, "B"));
   const Function& func_a = Function::Handle(GetFunction(class_a, "a"));
   const Function& func_b = Function::Handle(GetFunction(class_a, "b"));
   const Function& func_d = Function::Handle(GetFunction(class_b, "d"));
+  EXPECT(func_a.HasImplicitClosureFunction());
+  const Function& func_x = Function::Handle(func_a.ImplicitClosureFunction());
   intptr_t func_a_index = class_a.FindFunctionIndex(func_a);
   intptr_t func_b_index = class_a.FindFunctionIndex(func_b);
   intptr_t func_d_index = class_a.FindFunctionIndex(func_d);
+  intptr_t func_x_index = class_a.FindImplicitClosureFunctionIndex(func_x);
   // Valid index.
   EXPECT_GE(func_a_index, 0);
   // Valid index.
   EXPECT_GE(func_b_index, 0);
   // Invalid index.
   EXPECT_EQ(func_d_index, -1);
+  // Valid index.
+  EXPECT_GE(func_x_index, 0);
   Function& func_a_from_index = Function::Handle();
-  func_a_from_index ^= class_a_funcs.At(func_a_index);
-  ASSERT(!func_a_from_index.IsNull());
+  func_a_from_index ^= class_a.FunctionFromIndex(func_a_index);
+  EXPECT(!func_a_from_index.IsNull());
   // Same function.
   EXPECT_EQ(func_a.raw(), func_a_from_index.raw());
   Function& func_b_from_index = Function::Handle();
-  func_b_from_index ^= class_a_funcs.At(func_b_index);
-  ASSERT(!func_b_from_index.IsNull());
+  func_b_from_index ^= class_a.FunctionFromIndex(func_b_index);
+  EXPECT(!func_b_from_index.IsNull());
   // Same function.
   EXPECT_EQ(func_b.raw(), func_b_from_index.raw());
+  // Retrieve implicit closure function.
+  Function& func_x_from_index = Function::Handle();
+  func_x_from_index ^= class_a.ImplicitClosureFunctionFromIndex(func_x_index);
+  EXPECT_EQ(func_x.raw(), func_x_from_index.raw());
 }
 
 
@@ -3535,21 +3547,62 @@ TEST_CASE(FindClosureIndex) {
   // Add closure function to class.
   cls.AddClosureFunction(function);
 
-  // Token position 0 should return a valid index.
-  intptr_t good_closure_index = cls.FindClosureIndex(0);
+  // The closure should return a valid index.
+  intptr_t good_closure_index = cls.FindClosureIndex(function);
   EXPECT_GE(good_closure_index, 0);
-  // Token position 1 should return an invalid index.
-  intptr_t bad_closure_index = cls.FindClosureIndex(1);
+  // The parent function should return an invalid index.
+  intptr_t bad_closure_index = cls.FindClosureIndex(parent);
   EXPECT_EQ(bad_closure_index, -1);
 
   // Retrieve closure function via index.
-  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      cls.closures());
   Function& func_from_index = Function::Handle();
-  func_from_index ^= closures.At(good_closure_index);
-
+  func_from_index ^= cls.ClosureFunctionFromIndex(good_closure_index);
   // Same closure function.
   EXPECT_EQ(func_from_index.raw(), function.raw());
+}
+
+
+TEST_CASE(FindInvocationDispatcherFunctionIndex) {
+  const String& class_name = String::Handle(Symbols::New("MyClass"));
+  const Script& script = Script::Handle();
+  const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
+  ClassFinalizer::FinalizeTypesInClass(cls);
+
+  const Array& functions = Array::Handle(Array::New(1));
+  Function& parent = Function::Handle();
+  const String& parent_name = String::Handle(Symbols::New("foo_papa"));
+  parent = Function::New(parent_name, RawFunction::kRegularFunction,
+                         false, false, false, false, false, cls, 0);
+  functions.SetAt(0, parent);
+  cls.SetFunctions(functions);
+  cls.Finalize();
+
+  // Add invocation dispatcher.
+  const String& invocation_dispatcher_name =
+      String::Handle(Symbols::New("myMethod"));
+  const Array& args_desc = Array::Handle(ArgumentsDescriptor::New(1));
+  Function& invocation_dispatcher = Function::Handle();
+  invocation_dispatcher ^=
+      cls.GetInvocationDispatcher(invocation_dispatcher_name, args_desc,
+                                  RawFunction::kNoSuchMethodDispatcher);
+  EXPECT(!invocation_dispatcher.IsNull());
+  // Get index to function.
+  intptr_t invocation_dispatcher_index =
+      cls.FindInvocationDispatcherFunctionIndex(invocation_dispatcher);
+  // Expect a valid index.
+  EXPECT_GE(invocation_dispatcher_index, 0);
+  // Retrieve function through index.
+  Function& invocation_dispatcher_from_index = Function::Handle();
+  invocation_dispatcher_from_index ^=
+      cls.InvocationDispatcherFunctionFromIndex(invocation_dispatcher_index);
+  // Same function.
+  EXPECT_EQ(invocation_dispatcher.raw(),
+            invocation_dispatcher_from_index.raw());
+  // Test function not found case.
+  const Function& bad_function = Function::Handle(Function::null());
+  intptr_t bad_invocation_dispatcher_index =
+      cls.FindInvocationDispatcherFunctionIndex(bad_function);
+  EXPECT_EQ(bad_invocation_dispatcher_index, -1);
 }
 
 

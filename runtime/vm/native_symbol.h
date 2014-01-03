@@ -16,7 +16,7 @@ class NativeSymbolResolver : public AllStatic {
  public:
   static void InitOnce();
   static void ShutdownOnce();
-  static char* LookupSymbolName(uintptr_t pc);
+  static char* LookupSymbolName(uintptr_t pc, uintptr_t* start);
   static void FreeSymbolName(char* name);
 };
 

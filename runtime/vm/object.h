@@ -31,6 +31,7 @@ class ArgumentsDescriptor;
 class Assembler;
 class Closure;
 class Code;
+class DisassemblyFormatter;
 class DeoptInstr;
 class FinalizablePersistentHandle;
 class LocalScope;
@@ -879,6 +880,7 @@ class Class : public Object {
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
   intptr_t FindFieldIndex(const Field& field) const;
+  RawField* FieldFromIndex(intptr_t idx) const;
 
   // Returns an array of all fields of this class and its superclasses indexed
   // by offset in words.
@@ -891,13 +893,17 @@ class Class : public Object {
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
   intptr_t FindFunctionIndex(const Function& function) const;
+  RawFunction* FunctionFromIndex(intptr_t idx) const;
+  intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
+  RawFunction* ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
   RawGrowableObjectArray* closures() const {
     return raw_ptr()->closure_functions_;
   }
   void AddClosureFunction(const Function& function) const;
   RawFunction* LookupClosureFunction(intptr_t token_pos) const;
-  intptr_t FindClosureIndex(intptr_t token_pos) const;
+  intptr_t FindClosureIndex(const Function& function) const;
+  RawFunction* ClosureFunctionFromIndex(intptr_t idx) const;
 
   RawFunction* LookupDynamicFunction(const String& name) const;
   RawFunction* LookupDynamicFunctionAllowPrivate(const String& name) const;
@@ -993,6 +999,9 @@ class Class : public Object {
   void set_allocation_stub(const Code& value) const;
 
   RawArray* constants() const;
+
+  intptr_t FindInvocationDispatcherFunctionIndex(const Function& needle) const;
+  RawFunction* InvocationDispatcherFunctionFromIndex(intptr_t idx) const;
 
   RawFunction* GetInvocationDispatcher(const String& target_name,
                                        const Array& args_desc,
@@ -1598,6 +1607,8 @@ class Function : public Object {
   RawFunction::Kind kind() const {
     return KindBits::decode(raw_ptr()->kind_tag_);
   }
+
+  static const char* KindToCString(RawFunction::Kind kind);
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_tag_); }
   bool is_const() const { return ConstBit::decode(raw_ptr()->kind_tag_); }
@@ -3242,7 +3253,7 @@ class Code : public Object {
   // Aborts if there is no static call at 'pc'.
   void SetStaticCallTargetCodeAt(uword pc, const Code& code) const;
 
-  void Disassemble() const;
+  void Disassemble(DisassemblyFormatter* formatter = NULL) const;
 
   class Comments : public ZoneAllocated {
    public:

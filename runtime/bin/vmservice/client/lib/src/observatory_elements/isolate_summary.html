@@ -5,7 +5,7 @@
   <template>
   	<div class="row">
   	  <div class="col-md-1">
-  	  	<img src="img/isolate_icon.png" class="img-polaroid">	
+        <img src="img/isolate_icon.png" class="img-polaroid">
   	  </div>
   	  <div class="col-md-1">{{ isolate }}</div>
   	  <div class="col-md-10">{{ name }}</div>
@@ -20,6 +20,9 @@
       </div>
       <div class="col-md-1">
         <a href="{{ app.locationManager.relativeLink(isolate, 'debug/breakpoints') }}">Breakpoints</a>
+      </div>
+      <div class="col-md-1">
+        <a href="{{ app.locationManager.relativeLink(isolate, 'profile') }}">Profile</a>
       </div>
   	  <div class="col-md-8"></div>
     </div>

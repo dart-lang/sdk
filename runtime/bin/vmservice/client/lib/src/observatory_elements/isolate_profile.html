@@ -1,0 +1,49 @@
+<head>
+  <link rel="import" href="observatory_element.html">
+</head>
+<polymer-element name="isolate-profile" extends="observatory-element">
+  <template>
+    <p> P R O F I L E </p>
+    <div>
+      <button type="button" on-click="{{refreshData}}">Refresh profile data</button>
+      <span>Top</span>
+      <select selectedIndex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
+        <option template repeat="{{count in methodCounts}}">{{count}}</option>
+      </select>
+      <span>methods</span>
+    </div>
+    <blockquote><strong>Top Inclusive</strong></blockquote>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Ticks</th>
+          <th>Percent</th>
+          <th>Method</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr template repeat="{{ code in topInclusiveCodes }}">
+            <td>{{ codeTicks(code, true) }}</td>
+            <td>{{ codePercent(code, true) }}</td>
+            <td>{{ codeName(code) }}</td>
+        </tr>
+    </table>
+    <blockquote><strong>Top Exclusive</strong></blockquote>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Ticks</th>
+          <th>Percent</th>
+          <th>Method</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr template repeat="{{ code in topExclusiveCodes }}">
+            <td>{{ codeTicks(code, false) }}</td>
+            <td>{{ codePercent(code, false) }}</td>
+            <td>{{ codeName(code) }}</td>
+        </tr>
+    </table>
+  </template>
+  <script type="application/dart" src="isolate_profile.dart"></script>
+</polymer-element>

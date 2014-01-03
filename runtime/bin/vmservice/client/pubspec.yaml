@@ -2,3 +2,5 @@ name: observatory
 version: 0.1.1
 dependencies:
   polymer: any
+  dprof:
+    git: https://github.com/dart-lang/dprof

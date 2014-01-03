@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <cstdio>
-
 #include "platform/utils.h"
 
+#include "vm/allocation.h"
 #include "vm/atomic.h"
+#include "vm/code_patcher.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/native_symbol.h"
@@ -218,124 +218,395 @@ void Profiler::RecordSampleInterruptCallback(
 }
 
 
-void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream) {
-  ASSERT(isolate == Isolate::Current());
-  UNIMPLEMENTED();
-}
+struct AddressEntry {
+  uintptr_t pc;
+  uintptr_t ticks;
+};
 
 
-static const char* FindSymbolName(uintptr_t pc, bool* symbol_name_allocated) {
-  // TODO(johnmccutchan): Differentiate between symbols which can't be found
-  // and symbols which were GCed. (Heap::CodeContains).
-  ASSERT(symbol_name_allocated != NULL);
-  const char* symbol_name = "Unknown";
-  *symbol_name_allocated = false;
-  if (pc == 0) {
-    return const_cast<char*>(Sample::kNoFrame);
+// A region of code. Each region is a kind of code (Dart, Collected, or Native).
+class CodeRegion : public ZoneAllocated {
+ public:
+  enum Kind {
+    kDartCode,
+    kCollectedCode,
+    kNativeCode
+  };
+
+  CodeRegion(Kind kind, uintptr_t start, uintptr_t end) :
+      kind_(kind),
+      start_(start),
+      end_(end),
+      inclusive_ticks_(0),
+      exclusive_ticks_(0),
+      name_(NULL),
+      address_table_(new ZoneGrowableArray<AddressEntry>()) {
   }
-  const Code& code = Code::Handle(Code::LookupCode(pc));
-  if (!code.IsNull()) {
-    const Function& function = Function::Handle(code.function());
-    if (!function.IsNull()) {
-      const String& name = String::Handle(function.QualifiedUserVisibleName());
-      if (!name.IsNull()) {
-        symbol_name = name.ToCString();
-        return symbol_name;
+
+  ~CodeRegion() {
+  }
+
+  uintptr_t start() const { return start_; }
+  void set_start(uintptr_t start) {
+    start_ = start;
+  }
+
+  uintptr_t end() const { return end_; }
+  void set_end(uintptr_t end) {
+    end_ = end;
+  }
+
+  void AdjustExtent(uintptr_t start, uintptr_t end) {
+    if (start < start_) {
+      start_ = start;
+    }
+    if (end > end_) {
+      end_ = end;
+    }
+  }
+
+  bool contains(uintptr_t pc) const {
+    return (pc >= start_) && (pc < end_);
+  }
+
+  intptr_t inclusive_ticks() const { return inclusive_ticks_; }
+  void set_inclusive_ticks(intptr_t inclusive_ticks) {
+    inclusive_ticks_ = inclusive_ticks;
+  }
+
+  intptr_t exclusive_ticks() const { return exclusive_ticks_; }
+  void set_exclusive_ticks(intptr_t exclusive_ticks) {
+    exclusive_ticks_ = exclusive_ticks;
+  }
+
+  const char* name() const { return name_; }
+  void SetName(const char* name) {
+    if (name == NULL) {
+      name_ = NULL;
+    }
+    intptr_t len = strlen(name);
+    name_ = Isolate::Current()->current_zone()->Alloc<const char>(len + 1);
+    strncpy(const_cast<char*>(name_), name, len);
+    const_cast<char*>(name_)[len] = '\0';
+  }
+
+  Kind kind() const { return kind_; }
+
+  static const char* KindToCString(Kind kind) {
+    switch (kind) {
+      case kDartCode:
+        return "Dart";
+      case kCollectedCode:
+        return "Collected";
+      case kNativeCode:
+        return "Native";
+    }
+    UNREACHABLE();
+    return NULL;
+  }
+
+  void AddTick(bool exclusive) {
+    if (exclusive) {
+      exclusive_ticks_++;
+    } else {
+      inclusive_ticks_++;
+    }
+  }
+
+  void AddTickAtAddress(uintptr_t pc) {
+    const intptr_t length = address_table_->length();
+    intptr_t i = 0;
+    for (; i < length; i++) {
+      AddressEntry& entry = (*address_table_)[i];
+      if (entry.pc == pc) {
+        entry.ticks++;
+        return;
+      }
+      if (entry.pc > pc) {
+        break;
       }
     }
-  } else {
-    // Possibly a native symbol.
-    char* native_name = NativeSymbolResolver::LookupSymbolName(pc);
-    if (native_name != NULL) {
-      symbol_name = native_name;
-      *symbol_name_allocated = true;
-      return symbol_name;
+    AddressEntry entry;
+    entry.pc = pc;
+    entry.ticks = 1;
+    if (i < length) {
+      // Insert at i.
+      address_table_->InsertAt(i, entry);
+    } else {
+      // Add to end.
+      address_table_->Add(entry);
     }
   }
-  const intptr_t kBucketSize = 256;
-  const intptr_t kBucketMask = ~(kBucketSize - 1);
-  // Not a Dart symbol or a native symbol. Bin into buckets by PC.
-  pc &= kBucketMask;
-  {
-    const intptr_t kBuffSize = 256;
+
+
+  void PrintToJSONArray(JSONArray* events, bool full) {
+    JSONObject obj(events);
+    obj.AddProperty("type", "ProfileCode");
+    obj.AddProperty("kind", KindToCString(kind()));
+    obj.AddPropertyF("inclusive_ticks", "%" Pd "", inclusive_ticks());
+    obj.AddPropertyF("exclusive_ticks", "%" Pd "", exclusive_ticks());
+    if (kind() == kDartCode) {
+      // Look up code in Dart heap.
+      Code& code = Code::Handle(Code::LookupCode(start()));
+      Function& func = Function::Handle();
+      ASSERT(!code.IsNull());
+      func ^= code.function();
+      if (func.IsNull()) {
+        if (name() == NULL) {
+          GenerateAndSetSymbolName("Stub");
+        }
+        obj.AddPropertyF("start", "%" Px "", start());
+        obj.AddPropertyF("end", "%" Px "", end());
+        obj.AddProperty("name", name());
+      } else {
+        obj.AddProperty("code", code, !full);
+      }
+    } else if (kind() == kCollectedCode) {
+      if (name() == NULL) {
+        GenerateAndSetSymbolName("Collected");
+      }
+      obj.AddPropertyF("start", "%" Px "", start());
+      obj.AddPropertyF("end", "%" Px "", end());
+      obj.AddProperty("name", name());
+    } else {
+      ASSERT(kind() == kNativeCode);
+      if (name() == NULL) {
+        GenerateAndSetSymbolName("Native");
+      }
+      obj.AddPropertyF("start", "%" Px "", start());
+      obj.AddPropertyF("end", "%" Px "", end());
+      obj.AddProperty("name", name());
+    }
+    {
+      JSONArray ticks(&obj, "ticks");
+      for (intptr_t i = 0; i < address_table_->length(); i++) {
+        const AddressEntry& entry = (*address_table_)[i];
+        ticks.AddValueF("%" Px "", entry.pc);
+        ticks.AddValueF("%" Pd "", entry.ticks);
+      }
+    }
+  }
+
+ private:
+  void GenerateAndSetSymbolName(const char* prefix) {
+    const intptr_t kBuffSize = 512;
     char buff[kBuffSize];
-    OS::SNPrint(&buff[0], kBuffSize-1, "Unknown [%" Px ", %" Px ")",
-                pc, pc + kBucketSize);
-    symbol_name = strdup(buff);
-    *symbol_name_allocated = true;
+    OS::SNPrint(&buff[0], kBuffSize-1, "%s [%" Px ", %" Px ")",
+                prefix, start(), end());
+    SetName(buff);
   }
-  return symbol_name;
+
+  Kind kind_;
+  uintptr_t start_;
+  uintptr_t end_;
+  intptr_t inclusive_ticks_;
+  intptr_t exclusive_ticks_;
+  const char* name_;
+  ZoneGrowableArray<AddressEntry>* address_table_;
+
+  DISALLOW_COPY_AND_ASSIGN(CodeRegion);
+};
+
+
+// All code regions. Code region tables are built on demand when a profile
+// is requested (through the service or on isolate shutdown).
+class ProfilerCodeRegionTable : public ValueObject {
+ public:
+  explicit ProfilerCodeRegionTable(Isolate* isolate) :
+      heap_(isolate->heap()),
+      code_region_table_(new ZoneGrowableArray<CodeRegion*>(64)) {
+  }
+
+  ~ProfilerCodeRegionTable() {
+  }
+
+  void AddTick(uintptr_t pc, bool exclusive, bool tick_address) {
+    intptr_t index = FindIndex(pc);
+    if (index < 0) {
+      CodeRegion* code_region = CreateCodeRegion(pc);
+      ASSERT(code_region != NULL);
+      index = InsertCodeRegion(code_region);
+    }
+    ASSERT(index >= 0);
+    ASSERT(index < code_region_table_->length());
+    (*code_region_table_)[index]->AddTick(exclusive);
+    if (tick_address) {
+      (*code_region_table_)[index]->AddTickAtAddress(pc);
+    }
+  }
+
+  intptr_t Length() const { return code_region_table_->length(); }
+
+  CodeRegion* At(intptr_t idx) {
+    return (*code_region_table_)[idx];
+  }
+
+ private:
+  intptr_t FindIndex(uintptr_t pc) {
+    const intptr_t length = code_region_table_->length();
+    for (intptr_t i = 0; i < length; i++) {
+      const CodeRegion* code_region = (*code_region_table_)[i];
+      if (code_region->contains(pc)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  CodeRegion* CreateCodeRegion(uintptr_t pc) {
+    Code& code = Code::Handle(Code::LookupCode(pc));
+    if (!code.IsNull()) {
+      return new CodeRegion(CodeRegion::kDartCode, code.EntryPoint(),
+                            code.EntryPoint() + code.Size());
+    }
+    if (heap_->CodeContains(pc)) {
+      const intptr_t kDartCodeAlignment = 0x10;
+      const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
+      return new CodeRegion(CodeRegion::kCollectedCode,
+                            (pc & kDartCodeAlignmentMask),
+                            (pc & kDartCodeAlignmentMask) + kDartCodeAlignment);
+    }
+    uintptr_t native_start = 0;
+    char* native_name = NativeSymbolResolver::LookupSymbolName(pc,
+                                                               &native_start);
+    if (native_name == NULL) {
+      return new CodeRegion(CodeRegion::kNativeCode, pc, pc + 1);
+    }
+    ASSERT(pc >= native_start);
+    CodeRegion* code_region =
+        new CodeRegion(CodeRegion::kNativeCode, native_start, pc + 1);
+    code_region->SetName(native_name);
+    free(native_name);
+    return code_region;
+  }
+
+  intptr_t InsertCodeRegion(CodeRegion* code_region) {
+    const intptr_t length = code_region_table_->length();
+    const uintptr_t start = code_region->start();
+    const uintptr_t end = code_region->end();
+    intptr_t i = 0;
+    for (; i < length; i++) {
+      CodeRegion* region = (*code_region_table_)[i];
+      if (region->contains(start) || region->contains(end - 1)) {
+        // We should only see overlapping native code regions.
+        ASSERT(region->kind() == CodeRegion::kNativeCode);
+        // When code regions overlap, they should be of the same kind.
+        ASSERT(region->kind() == code_region->kind());
+        // Overlapping code region.
+        region->AdjustExtent(start, end);
+        return i;
+      } else if (start >= region->end()) {
+        // Insert here.
+        break;
+      }
+    }
+    if (i != length) {
+      code_region_table_->InsertAt(i, code_region);
+      return i;
+    }
+    code_region_table_->Add(code_region);
+    return code_region_table_->length() - 1;
+  }
+
+  Heap* heap_;
+  ZoneGrowableArray<CodeRegion*>* code_region_table_;
+};
+
+
+void Profiler::PrintToJSONStream(Isolate* isolate, JSONStream* stream,
+                                 bool full) {
+  ASSERT(isolate == Isolate::Current());
+  // Disable profile interrupts while processing the buffer.
+  EndExecution(isolate);
+  MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    JSONObject error(stream);
+    error.AddProperty("type", "Error");
+    error.AddProperty("text", "Isolate does not have profiling enabled.");
+    return;
+  }
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  ASSERT(sample_buffer != NULL);
+  {
+    StackZone zone(isolate);
+    {
+      // Build code region table.
+      ProfilerCodeRegionTable code_region_table(isolate);
+      intptr_t samples =
+          ProcessSamples(isolate, &code_region_table, sample_buffer);
+      {
+        // Serialize to JSON.
+        JSONObject obj(stream);
+        obj.AddProperty("type", "Profile");
+        obj.AddProperty("samples", samples);
+        JSONArray codes(&obj, "codes");
+        for (intptr_t i = 0; i < code_region_table.Length(); i++) {
+          CodeRegion* region = code_region_table.At(i);
+          ASSERT(region != NULL);
+          region->PrintToJSONArray(&codes, full);
+        }
+      }
+    }
+  }
+  // Enable profile interrupts.
+  BeginExecution(isolate);
 }
 
 
-void Profiler::WriteTracingSample(Isolate* isolate, intptr_t pid,
-                                  Sample* sample, JSONArray& events) {
+intptr_t Profiler::ProcessSamples(Isolate* isolate,
+                                  ProfilerCodeRegionTable* code_region_table,
+                                  SampleBuffer* sample_buffer) {
+  int64_t start = OS::GetCurrentTimeMillis();
+  intptr_t samples = 0;
+  for (intptr_t i = 0; i < sample_buffer->capacity(); i++) {
+    Sample sample = sample_buffer->GetSample(i);
+    if (sample.isolate != isolate) {
+      continue;
+    }
+    if (sample.timestamp == 0) {
+      continue;
+    }
+    samples += ProcessSample(isolate, code_region_table, &sample);
+  }
+  int64_t end = OS::GetCurrentTimeMillis();
+  if (FLAG_trace_profiled_isolates) {
+    int64_t delta = end - start;
+    OS::Print("Processed %" Pd " samples from %s in %" Pd64 " milliseconds.\n",
+        samples,
+        isolate->name(),
+        delta);
+  }
+  return samples;
+}
+
+
+intptr_t Profiler::ProcessSample(Isolate* isolate,
+                                 ProfilerCodeRegionTable* code_region_table,
+                                Sample* sample) {
   Sample::SampleType type = sample->type;
-  intptr_t tid = Thread::ThreadIdToIntPtr(sample->tid);
-  double timestamp = static_cast<double>(sample->timestamp);
-  const char* isolate_name = isolate->name();
-  switch (type) {
-    case Sample::kIsolateStart: {
-      JSONObject begin(&events);
-      begin.AddProperty("ph", "B");
-      begin.AddProperty("tid", tid);
-      begin.AddProperty("pid", pid);
-      begin.AddProperty("name", isolate_name);
-      begin.AddProperty("ts", timestamp);
-    }
-    break;
-    case Sample::kIsolateStop: {
-      JSONObject begin(&events);
-      begin.AddProperty("ph", "E");
-      begin.AddProperty("tid", tid);
-      begin.AddProperty("pid", pid);
-      begin.AddProperty("name", isolate_name);
-      begin.AddProperty("ts", timestamp);
-    }
-    break;
-    case Sample::kIsolateSample:
-      // Write "B" events.
-      for (int i = Sample::kNumStackFrames - 1; i >= 0; i--) {
-        bool symbol_name_allocated = false;
-        const char* symbol_name = FindSymbolName(sample->pcs[i],
-                                                 &symbol_name_allocated);
-        {
-          JSONObject begin(&events);
-          begin.AddProperty("ph", "B");
-          begin.AddProperty("tid", tid);
-          begin.AddProperty("pid", pid);
-          begin.AddProperty("name", symbol_name);
-          begin.AddProperty("ts", timestamp);
-        }
-        if (symbol_name_allocated) {
-          free(const_cast<char*>(symbol_name));
-        }
-      }
-      // Write "E" events.
-      for (int i = 0; i < Sample::kNumStackFrames; i++) {
-        bool symbol_name_allocated = false;
-        const char* symbol_name = FindSymbolName(sample->pcs[i],
-                                                 &symbol_name_allocated);
-        {
-          JSONObject begin(&events);
-          begin.AddProperty("ph", "E");
-          begin.AddProperty("tid", tid);
-          begin.AddProperty("pid", pid);
-          begin.AddProperty("name", symbol_name);
-          begin.AddProperty("ts", timestamp);
-        }
-        if (symbol_name_allocated) {
-          free(const_cast<char*>(symbol_name));
-        }
-      }
-    break;
-    default:
-      UNIMPLEMENTED();
+  if (type != Sample::kIsolateSample) {
+    return 0;
   }
+  if (sample->pcs[0] == 0) {
+    // No frames in this sample.
+    return 0;
+  }
+  intptr_t i = 0;
+  // i points to the leaf (exclusive) PC sample. Do not tick the address.
+  code_region_table->AddTick(sample->pcs[i], true, false);
+  // Give all frames an inclusive tick and tick the address.
+  for (; i < Sample::kNumStackFrames; i++) {
+    if (sample->pcs[i] == 0) {
+      break;
+    }
+    code_region_table->AddTick(sample->pcs[i], false, true);
+  }
+  return 1;
 }
 
 
-void Profiler::WriteTracing(Isolate* isolate) {
+void Profiler::WriteProfile(Isolate* isolate) {
   if (isolate == NULL) {
     return;
   }
@@ -354,41 +625,10 @@ void Profiler::WriteTracing(Isolate* isolate) {
     return;
   }
   // We will be looking up code objects within the isolate.
-  ASSERT(Isolate::Current() != NULL);
-  // We do not want to be interrupted while processing the buffer.
-  EndExecution(isolate);
-  MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
-    return;
-  }
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  ASSERT(sample_buffer != NULL);
+  ASSERT(Isolate::Current() == isolate);
   JSONStream stream(10 * MB);
   intptr_t pid = OS::ProcessId();
-  {
-    JSONArray events(&stream);
-    {
-      JSONObject process_name(&events);
-      process_name.AddProperty("name", "process_name");
-      process_name.AddProperty("ph", "M");
-      process_name.AddProperty("pid", pid);
-      {
-        JSONObject args(&process_name, "args");
-        args.AddProperty("name", "Dart VM");
-      }
-    }
-    for (intptr_t i = 0; i < sample_buffer->capacity(); i++) {
-      Sample* sample = sample_buffer->GetSample(i);
-      if (sample->isolate != isolate) {
-        continue;
-      }
-      if (sample->timestamp == 0) {
-        continue;
-      }
-      WriteTracingSample(isolate, pid, sample, events);
-    }
-  }
+  PrintToJSONStream(isolate, &stream, true);
   const char* format = "%s/dart-profile-%" Pd "-%" Pd ".json";
   intptr_t len = OS::SNPrint(NULL, 0, format,
                              FLAG_profile_dir, pid, isolate->main_port());
@@ -404,7 +644,6 @@ void Profiler::WriteTracing(Isolate* isolate) {
   ASSERT(buffer != NULL);
   file_write(buffer->buf(), buffer->length(), f);
   file_close(f);
-  BeginExecution(isolate);
 }
 
 
@@ -423,10 +662,6 @@ IsolateProfilerData::~IsolateProfilerData() {
   }
 }
 
-
-const char* Sample::kLookupSymbol = "Symbol Not Looked Up";
-const char* Sample::kNoSymbol = "No Symbol Found";
-const char* Sample::kNoFrame = "<no frame>";
 
 void Sample::Init(SampleType type, Isolate* isolate, int64_t timestamp,
                   ThreadId tid) {

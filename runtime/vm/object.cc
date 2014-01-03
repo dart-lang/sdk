@@ -1818,19 +1818,115 @@ intptr_t Class::FindFunctionIndex(const Function& needle) const {
   funcs ^= functions();
   ASSERT(!funcs.IsNull());
   Function& function = reused_handles.FunctionHandle();
-  String& function_name = reused_handles.StringHandle();
-  String& needle_name = String::Handle(isolate);
-  needle_name ^= needle.name();
   const intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
-    function_name ^= function.name();
-    if (function_name.Equals(needle_name)) {
+    if (function.raw() == needle.raw()) {
       return i;
     }
   }
   // No function found.
   return -1;
+}
+
+
+RawFunction* Class::FunctionFromIndex(intptr_t idx) const {
+  const Array& funcs = Array::Handle(functions());
+  if ((idx < 0) || (idx >= funcs.Length())) {
+    return Function::null();
+  }
+  Function& func = Function::Handle();
+  func ^= funcs.At(idx);
+  ASSERT(!func.IsNull());
+  return func.raw();
+}
+
+
+RawFunction* Class::ImplicitClosureFunctionFromIndex(intptr_t idx) const {
+  const Array& funcs = Array::Handle(functions());
+  if ((idx < 0) || (idx >= funcs.Length())) {
+    return Function::null();
+  }
+  Function& func = Function::Handle();
+  func ^= funcs.At(idx);
+  ASSERT(!func.IsNull());
+  if (!func.HasImplicitClosureFunction()) {
+    return Function::null();
+  }
+  const Function& closure_func =
+      Function::Handle(func.ImplicitClosureFunction());
+  ASSERT(!closure_func.IsNull());
+  return closure_func.raw();
+}
+
+
+intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
+  Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return -1;
+  }
+  ReusableHandleScope reused_handles(isolate);
+  Array& funcs = reused_handles.ArrayHandle();
+  funcs ^= functions();
+  ASSERT(!funcs.IsNull());
+  Function& function = reused_handles.FunctionHandle();
+  Function& implicit_closure = Function::Handle();
+  const intptr_t len = funcs.Length();
+  for (intptr_t i = 0; i < len; i++) {
+    function ^= funcs.At(i);
+    implicit_closure ^= function.implicit_closure_function();
+    if (implicit_closure.IsNull()) {
+      // Skip non-implicit closure functions.
+      continue;
+    }
+    if (needle.raw() == implicit_closure.raw()) {
+      return i;
+    }
+  }
+  // No function found.
+  return -1;
+}
+
+
+
+intptr_t Class::FindInvocationDispatcherFunctionIndex(
+    const Function& needle) const {
+  Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return -1;
+  }
+  ReusableHandleScope reused_handles(isolate);
+  Array& funcs = reused_handles.ArrayHandle();
+  funcs ^= invocation_dispatcher_cache();
+  ASSERT(!funcs.IsNull());
+  Object& object = reused_handles.ObjectHandle();
+  const intptr_t len = funcs.Length();
+  for (intptr_t i = 0; i < len; i++) {
+    object = funcs.At(i);
+    // The invocation_dispatcher_cache is a table with some entries that
+    // are functions.
+    if (object.IsFunction()) {
+      if (Function::Cast(object).raw() == needle.raw()) {
+      return i;
+      }
+    }
+  }
+  // No function found.
+  return -1;
+}
+
+
+
+RawFunction* Class::InvocationDispatcherFunctionFromIndex(intptr_t idx) const {
+  ReusableHandleScope reused_handles(Isolate::Current());
+  Array& dispatcher_cache = reused_handles.ArrayHandle();
+  dispatcher_cache ^= invocation_dispatcher_cache();
+  Object& object = reused_handles.ObjectHandle();
+  object = dispatcher_cache.At(idx);
+  if (!object.IsFunction()) {
+    return Function::null();
+  }
+  return Function::Cast(object).raw();
 }
 
 
@@ -1874,7 +1970,7 @@ RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
   return closure.raw();
 }
 
-intptr_t Class::FindClosureIndex(intptr_t token_pos) const {
+intptr_t Class::FindClosureIndex(const Function& needle) const {
   if (closures() == GrowableObjectArray::null()) {
     return -1;
   }
@@ -1884,19 +1980,27 @@ intptr_t Class::FindClosureIndex(intptr_t token_pos) const {
       GrowableObjectArray::Handle(isolate, closures());
   Function& closure = reused_handles.FunctionHandle();
   intptr_t num_closures = closures_array.Length();
-  intptr_t best_fit_token_pos = -1;
-  intptr_t best_fit_index = -1;
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures_array.At(i);
     ASSERT(!closure.IsNull());
-    if ((closure.token_pos() <= token_pos) &&
-        (token_pos <= closure.end_token_pos()) &&
-        (best_fit_token_pos < closure.token_pos())) {
-      best_fit_index = i;
-      best_fit_token_pos = closure.token_pos();
+    if (closure.raw() == needle.raw()) {
+      return i;
     }
   }
-  return best_fit_index;
+  return -1;
+}
+
+
+RawFunction* Class::ClosureFunctionFromIndex(intptr_t idx) const {
+  const GrowableObjectArray& closures_array =
+      GrowableObjectArray::Handle(closures());
+  if ((idx < 0) || (idx >= closures_array.Length())) {
+    return Function::null();
+  }
+  Function& func = Function::Handle();
+  func ^= closures_array.At(idx);
+  ASSERT(!func.IsNull());
+  return func.raw();
 }
 
 
@@ -2474,6 +2578,18 @@ intptr_t Class::FindFieldIndex(const Field& needle) const {
   }
   // No field found.
   return -1;
+}
+
+
+RawField* Class::FieldFromIndex(intptr_t idx) const {
+  const Array& flds = Array::Handle(fields());
+  if ((idx < 0) || (idx >= flds.Length())) {
+    return Field::null();
+  }
+  Field& field = Field::Handle();
+  field ^= flds.At(idx);
+  ASSERT(!field.IsNull());
+  return field.raw();
 }
 
 
@@ -4451,6 +4567,54 @@ RawType* Function::RedirectionType() const {
 }
 
 
+const char* Function::KindToCString(RawFunction::Kind kind) {
+  switch (kind) {
+    case RawFunction::kRegularFunction:
+      return "kRegularFunction";
+      break;
+    case RawFunction::kClosureFunction:
+      return "kClosureFunction";
+      break;
+    case RawFunction::kSignatureFunction:
+      return "kSignatureFunction";
+      break;
+    case RawFunction::kGetterFunction:
+      return "kGetterFunction";
+      break;
+    case RawFunction::kSetterFunction:
+      return "kSetterFunction";
+      break;
+    case RawFunction::kConstructor:
+      return "kConstructor";
+      break;
+    case RawFunction::kImplicitGetter:
+      return "kImplicitGetter";
+      break;
+    case RawFunction::kImplicitSetter:
+      return "kImplicitSetter";
+      break;
+    case RawFunction::kImplicitStaticFinalGetter:
+      return "kImplicitStaticFinalGetter";
+      break;
+    case RawFunction::kStaticInitializer:
+      return "kStaticInitializer";
+      break;
+    case RawFunction::kMethodExtractor:
+      return "kMethodExtractor";
+      break;
+    case RawFunction::kNoSuchMethodDispatcher:
+      return "kNoSuchMethodDispatcher";
+      break;
+    case RawFunction::kInvokeFieldDispatcher:
+      return "kInvokeFieldDispatcher";
+      break;
+    default:
+      UNREACHABLE();
+      return NULL;
+  }
+}
+
+
 void Function::SetRedirectionType(const Type& type) const {
   ASSERT(IsFactory());
   Object& obj = Object::Handle(raw_ptr()->data_);
@@ -5711,25 +5875,30 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   const char* function_name =
       String::Handle(QualifiedUserVisibleName()).ToCString();
   Class& cls = Class::Handle(Owner());
+  ASSERT(!cls.IsNull());
   Error& err = Error::Handle();
   err ^= cls.EnsureIsFinalized(Isolate::Current());
   ASSERT(err.IsNull());
-  const Function& func = *this;
-  intptr_t id;
+  intptr_t id = -1;
+  const char* selector = NULL;
   if (IsNonImplicitClosureFunction()) {
-    id = cls.FindClosureIndex(token_pos());
+    id = cls.FindClosureIndex(*this);
+    selector = "closures";
+  } else if (IsImplicitClosureFunction()) {
+    id = cls.FindImplicitClosureFunctionIndex(*this);
+    selector = "implicit_closures";
+  } else if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
+    id = cls.FindInvocationDispatcherFunctionIndex(*this);
+    selector = "dispatchers";
   } else {
-    id = cls.FindFunctionIndex(func);
+    id = cls.FindFunctionIndex(*this);
+    selector = "functions";
   }
   ASSERT(id >= 0);
   intptr_t cid = cls.id();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  if (IsNonImplicitClosureFunction()) {
-    jsobj.AddPropertyF("id", "classes/%" Pd "/closures/%" Pd "", cid, id);
-  } else {
-    jsobj.AddPropertyF("id", "classes/%" Pd "/functions/%" Pd "", cid, id);
-  }
+  jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
   jsobj.AddProperty("name", internal_function_name);
   jsobj.AddProperty("user_name", function_name);
   if (ref) return;
@@ -5737,44 +5906,7 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("is_const", is_const());
   jsobj.AddProperty("is_optimizable", is_optimizable());
   jsobj.AddProperty("is_inlinable", IsInlineable());
-  const char* kind_string = NULL;
-  switch (kind()) {
-      case RawFunction::kRegularFunction:
-        kind_string = "regular";
-        break;
-      case RawFunction::kGetterFunction:
-        kind_string = "getter";
-        break;
-      case RawFunction::kSetterFunction:
-        kind_string = "setter";
-        break;
-      case RawFunction::kImplicitGetter:
-        kind_string = "implicit getter";
-        break;
-      case RawFunction::kImplicitSetter:
-        kind_string = "implicit setter";
-        break;
-      case RawFunction::kMethodExtractor:
-        kind_string = "method extractor";
-        break;
-      case RawFunction::kNoSuchMethodDispatcher:
-        kind_string = "no such method";
-        break;
-      case RawFunction::kClosureFunction:
-        kind_string = "closure";
-        break;
-      case RawFunction::kConstructor:
-        kind_string = "constructor";
-        break;
-      case RawFunction::kStaticInitializer:
-        kind_string = "static initializer";
-        break;
-      case RawFunction::kImplicitStaticFinalGetter:
-        kind_string = "static final getter";
-        break;
-      default:
-        UNREACHABLE();
-  }
+  const char* kind_string = Function::KindToCString(kind());
   jsobj.AddProperty("kind", kind_string);
   jsobj.AddProperty("unoptimized_code", Object::Handle(unoptimized_code()));
   jsobj.AddProperty("usage_counter", usage_counter());
@@ -9691,10 +9823,26 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
 }
 
 
-void Code::Disassemble() const {
+void Code::Disassemble(DisassemblyFormatter* formatter) const {
+  const bool fix_patch = CodePatcher::CodeIsPatchable(*this) &&
+                         CodePatcher::IsEntryPatched(*this);
+  if (fix_patch) {
+    // The disassembler may choke on illegal instructions if the code has been
+    // patched, un-patch the code before disassembling and re-patch after.
+    CodePatcher::RestoreEntry(*this);
+  }
   const Instructions& instr = Instructions::Handle(instructions());
   uword start = instr.EntryPoint();
-  Disassembler::Disassemble(start, start + instr.size(), comments());
+  if (formatter == NULL) {
+    Disassembler::Disassemble(start, start + instr.size(), comments());
+  } else {
+    Disassembler::Disassemble(start, start + instr.size(), formatter,
+                              comments());
+  }
+  if (fix_patch) {
+    // Redo the patch.
+    CodePatcher::PatchEntry(*this);
+  }
 }
 
 
@@ -9876,15 +10024,15 @@ const char* Code::ToCString() const {
 
 
 void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Isolate* isolate = Isolate::Current();
-  ObjectIdRing* ring = isolate->object_id_ring();
-  intptr_t id = ring->GetIdForObject(raw());
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+  jsobj.AddPropertyF("id", "code/%" Px "", EntryPoint());
+  jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
+  jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
   Function& func = Function::Handle();
-  String& name = String::Handle();
   func ^= function();
+  ASSERT(!func.IsNull());
+  String& name = String::Handle();
   ASSERT(!func.IsNull());
   name ^= func.name();
   const char* internal_function_name = name.ToCString();
@@ -9902,10 +10050,7 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("function", Object::Handle(function()));
   JSONArray jsarr(&jsobj, "disassembly");
   DisassembleToJSONStream formatter(jsarr);
-  const Instructions& instr = Instructions::Handle(instructions());
-  uword start = instr.EntryPoint();
-  Disassembler::Disassemble(start, start + instr.size(), &formatter,
-                            comments());
+  Disassemble(&formatter);
 }
 
 

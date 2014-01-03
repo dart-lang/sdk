@@ -312,7 +312,7 @@
   <template>
   	<div class="row">
   	  <div class="col-md-1">
-  	  	<img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">	
+        <img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">
   	  </div>
   	  <div class="col-md-1">{{ isolate }}</div>
   	  <div class="col-md-10">{{ name }}</div>
@@ -328,11 +328,15 @@
       <div class="col-md-1">
         <a href="{{ app.locationManager.relativeLink(isolate, 'debug/breakpoints') }}">Breakpoints</a>
       </div>
+      <div class="col-md-1">
+        <a href="{{ app.locationManager.relativeLink(isolate, 'profile') }}">Profile</a>
+      </div>
   	  <div class="col-md-8"></div>
     </div>
   </template>
   
-</polymer-element><polymer-element name="isolate-list" extends="observatory-element">
+</polymer-element>
+<polymer-element name="isolate-list" extends="observatory-element">
   <template>
       <ul class="list-group">
       <template repeat="{{ isolate in app.isolateManager.isolates.values }}">
@@ -599,7 +603,53 @@
     </nav>
   </template>
   
-</polymer-element><polymer-element name="response-viewer" extends="observatory-element">
+</polymer-element><polymer-element name="isolate-profile" extends="observatory-element">
+  <template>
+    <p> P R O F I L E </p>
+    <div>
+      <button type="button" on-click="{{refreshData}}">Refresh profile data</button>
+      <span>Top</span>
+      <select selectedindex="{{methodCountSelected}}" value="{{methodCounts[methodCountSelected]}}">
+        <option template="" repeat="{{count in methodCounts}}">{{count}}</option>
+      </select>
+      <span>methods</span>
+    </div>
+    <blockquote><strong>Top Inclusive</strong></blockquote>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Ticks</th>
+          <th>Percent</th>
+          <th>Method</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr template="" repeat="{{ code in topInclusiveCodes }}">
+            <td>{{ codeTicks(code, true) }}</td>
+            <td>{{ codePercent(code, true) }}</td>
+            <td>{{ codeName(code) }}</td>
+        </tr>
+    </tbody></table>
+    <blockquote><strong>Top Exclusive</strong></blockquote>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Ticks</th>
+          <th>Percent</th>
+          <th>Method</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr template="" repeat="{{ code in topExclusiveCodes }}">
+            <td>{{ codeTicks(code, false) }}</td>
+            <td>{{ codePercent(code, false) }}</td>
+            <td>{{ codeName(code) }}</td>
+        </tr>
+    </tbody></table>
+  </template>
+  
+</polymer-element>
+<polymer-element name="response-viewer" extends="observatory-element">
   <template>
     <template repeat="{{ message in app.requestManager.responses }}">
       <message-viewer app="{{ app }}" message="{{ message }}"></message-viewer>
@@ -612,7 +662,12 @@
 </polymer-element><polymer-element name="observatory-application" extends="observatory-element">
   <template>
     <navigation-bar app="{{ app }}"></navigation-bar>
-    <response-viewer app="{{ app }}"></response-viewer>
+    <template if="{{ app.locationManager.profile }}">
+      <isolate-profile app="{{ app }}"></isolate-profile>
+    </template>
+    <template if="{{ app.locationManager.profile == false }}">
+      <response-viewer app="{{ app }}"></response-viewer>
+    </template>
   </template>
   
 </polymer-element>

@@ -72,30 +72,12 @@ static RawInstance* EvalF(Dart_Handle lib, const char* fmt, ...) {
 }
 
 
-/*
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(cls.LookupDynamicFunction(
       String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
-
-
-static RawFunction* GetStaticFunction(const Class& cls, const char* name) {
-  const Function& result = Function::Handle(cls.LookupStaticFunction(
-      String::Handle(String::New(name))));
-  EXPECT(!result.IsNull());
-  return result.raw();
-}
-
-
-static RawField* GetField(const Class& cls, const char* name) {
-  const Field& field =
-      Field::Handle(cls.LookupField(String::Handle(String::New(name))));
-  EXPECT(!field.IsNull());
-  return field.raw();
-}
-*/
 
 
 static RawClass* GetClass(const Library& lib, const char* name) {
@@ -285,7 +267,7 @@ TEST_CASE(Service_Classes) {
     "{\"type\":\"Function\",\"id\":\"classes\\/1009\\/functions\\/0\",\"name\":"
     "\"get:a\",\"user_name\":\"A.a\",\"is_static\":false,\"is_const\":false,"
     "\"is_optimizable\":true,\"is_inlinable\":false,\"kind\":"
-    "\"implicit getter\",\"unoptimized_code\":{\"type\":\"null\"},"
+    "\"kImplicitGetter\",\"unoptimized_code\":{\"type\":\"null\"},"
     "\"usage_counter\":0,\"optimized_call_site_count\":0,\"code\":"
     "{\"type\":\"null\"},\"deoptimizations\":0}", handler.msg());
 
@@ -320,7 +302,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleServiceMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-    "{\"type\":\"Error\",\"text\":\"fields id (9) must be in [0, 1).\","
+    "{\"type\":\"Error\",\"text\":\"Field 9 not found\","
     "\"message\":{\"arguments\":[\"classes\",\"1009\",\"fields\",\"9\"],"
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
@@ -330,7 +312,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleServiceMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-    "{\"type\":\"Error\",\"text\":\"functions id (9) must be in [0, 5).\","
+    "{\"type\":\"Error\",\"text\":\"Function 9 not found\","
     "\"message\":{\"arguments\":[\"classes\",\"1009\",\"functions\",\"9\"],"
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
@@ -356,6 +338,126 @@ TEST_CASE(Service_Classes) {
     "{\"arguments\":[\"classes\",\"1009\",\"functions\",\"9\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}",
     handler.msg());
+}
+
+
+TEST_CASE(Service_Code) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "class A {\n"
+      "  var a;\n"
+      "  dynamic b() {}\n"
+      "  dynamic c() {\n"
+      "    var d = () { b(); };\n"
+      "    return d;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  var z = new A();\n"
+      "  var x = z.c();\n"
+      "  x();\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  const Class& class_a = Class::Handle(GetClass(lib, "A"));
+  EXPECT(!class_a.IsNull());
+  const Function& function_c = Function::Handle(GetFunction(class_a, "c"));
+  EXPECT(!function_c.IsNull());
+  const Code& code_c = Code::Handle(function_c.CurrentCode());
+  EXPECT(!code_c.IsNull());
+  // Use the entry of the code object as it's reference.
+  uword entry = code_c.EntryPoint();
+  EXPECT_GT(code_c.Size(), 16);
+  uword last = entry + code_c.Size();
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+
+  // Request an invalid code object.
+  service_msg = Eval(h_lib, "[port, ['code', '0'], [], []]");
+  Service::HandleServiceMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ(
+    "{\"type\":\"Error\",\"text\":\"Could not find code at 0\",\"message\":"
+    "{\"arguments\":[\"code\",\"0\"],"
+    "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
+
+  // The following four tests check that a code object can be found
+  // inside the range: [code.EntryPoint(), code.EntryPoint() + code.Size()).
+  // Request code object at code.EntryPoint()
+  // Expect this to succeed as it is inside [entry, entry + size).
+  service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", entry);
+  Service::HandleServiceMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  {
+    // Only perform a partial match.
+    const intptr_t kBufferSize = 512;
+    char buffer[kBufferSize];
+    OS::SNPrint(buffer, kBufferSize-1,
+                "{\"type\":\"Code\",\"id\":\"code\\/%" Px "\",", entry);
+    EXPECT_SUBSTRING(buffer, handler.msg());
+  }
+
+  // Request code object at code.EntryPoint() + 16.
+  // Expect this to succeed as it is inside [entry, entry + size).
+  uintptr_t address = entry + 16;
+  service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", address);
+  Service::HandleServiceMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  {
+    // Only perform a partial match.
+    const intptr_t kBufferSize = 512;
+    char buffer[kBufferSize];
+    OS::SNPrint(buffer, kBufferSize-1,
+                "{\"type\":\"Code\",\"id\":\"code\\/%" Px "\",", entry);
+    EXPECT_SUBSTRING(buffer, handler.msg());
+  }
+
+  // Request code object at code.EntryPoint() + code.Size() - 1.
+  // Expect this to succeed as it is inside [entry, entry + size).
+  address = last - 1;
+  service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", address);
+  Service::HandleServiceMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  {
+    // Only perform a partial match.
+    const intptr_t kBufferSize = 512;
+    char buffer[kBufferSize];
+    OS::SNPrint(buffer, kBufferSize-1,
+                "{\"type\":\"Code\",\"id\":\"code\\/%" Px "\",", entry);
+    EXPECT_SUBSTRING(buffer, handler.msg());
+  }
+
+  // Request code object at code.EntryPoint() + code.Size(). Expect this
+  // to fail as it's outside of [entry, entry + size).
+  address = last;
+  service_msg = EvalF(h_lib, "[port, ['code', '%" Px "'], [], []]", address);
+  Service::HandleServiceMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  {
+    const intptr_t kBufferSize = 1024;
+    char buffer[kBufferSize];
+    OS::SNPrint(buffer, kBufferSize-1,
+        "{\"type\":\"Error\",\"text\":\"Could not find code at %" Px "\","
+        "\"message\":{\"arguments\":[\"code\",\"%" Px "\"],"
+        "\"option_keys\":[],\"option_values\":[]}}", address, address);
+    EXPECT_STREQ(buffer, handler.msg());
+  }
 }
 
 }  // namespace dart
