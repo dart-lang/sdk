@@ -13,7 +13,7 @@ import 'dart:io';
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart' show JavaSystem;
+import 'package:analyzer/src/generated/java_core.dart' show JavaSystem, instanceOfTimer;
 import 'package:analyzer/options.dart';
 
 import 'package:analyzer/src/analyzer_impl.dart';
@@ -38,6 +38,7 @@ void main(args) {
       print("resolve:${PerformanceStatistics.resolve.result}");
       print("errors:${PerformanceStatistics.errors.result}");
       print("hints:${PerformanceStatistics.hints.result}");
+      print("instanceof:${instanceOfTimer.elapsedMilliseconds}");
       print("total:$totalTime");
     }
 
