@@ -717,9 +717,7 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
   ASSERT(!func.IsNull());
   Isolate* isolate = Isolate::Current();
   StackZone zone(isolate);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     const Script& script = Script::Handle(isolate, func.script());
     const Class& owner = Class::Handle(isolate, func.Owner());
@@ -743,20 +741,17 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
                                              *(param[i].default_value));
       const Object* metadata = param[i].metadata;
       if ((metadata != NULL) && (*metadata).IsError()) {
-        isolate->set_long_jump_base(base);
         return metadata->raw();  // Error evaluating the metadata.
       }
       param_descriptor.SetAt(j + kParameterMetadataOffset,
           (param[i].metadata == NULL) ? Object::null_instance() :
                                         *(param[i].metadata));
     }
-    isolate->set_long_jump_base(base);
     return param_descriptor.raw();
   } else {
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
-    isolate->set_long_jump_base(base);
     return error.raw();
   }
   UNREACHABLE();
@@ -856,9 +851,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
   Isolate* isolate = Isolate::Current();
   StackZone zone(isolate);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     const Script& script = Script::Handle(cls.script());
     const Library& lib = Library::Handle(cls.library());
@@ -867,13 +860,11 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
     parser.set_parsing_metadata(true);
 
     RawObject* metadata = parser.EvaluateMetadata();
-    isolate->set_long_jump_base(base);
     return metadata;
   } else {
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
-    isolate->set_long_jump_base(base);
     return error.raw();
   }
   UNREACHABLE();

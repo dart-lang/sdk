@@ -8,14 +8,24 @@
 #include <setjmp.h>
 
 #include "vm/allocation.h"
+#include "vm/isolate.h"
 
 namespace dart {
 
 class Error;
 
-class LongJump : public ValueObject {
+class LongJumpScope : public StackResource {
  public:
-  LongJump() : top_(NULL) { }
+  LongJumpScope()
+    : StackResource(Isolate::Current()),
+      top_(NULL),
+      base_(Isolate::Current()->long_jump_base()) {
+    Isolate::Current()->set_long_jump_base(this);
+  }
+
+  ~LongJumpScope() {
+    Isolate::Current()->set_long_jump_base(base_);
+  }
 
   jmp_buf* Set();
   void Jump(int value, const Error& error);
@@ -28,8 +38,9 @@ class LongJump : public ValueObject {
  private:
   jmp_buf environment_;
   StackResource* top_;
+  LongJumpScope* base_;
 
-  DISALLOW_COPY_AND_ASSIGN(LongJump);
+  DISALLOW_COPY_AND_ASSIGN(LongJumpScope);
 };
 
 }  // namespace dart

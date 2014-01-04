@@ -8,7 +8,7 @@
 
 namespace dart {
 
-static void LongJumpHelper(LongJump* jump) {
+static void LongJumpHelper(LongJumpScope* jump) {
   const Error& error =
       Error::Handle(LanguageError::New(
           String::Handle(String::New("LongJumpHelper"))));
@@ -18,11 +18,15 @@ static void LongJumpHelper(LongJump* jump) {
 
 
 TEST_CASE(LongJump) {
-  LongJump jump;
-  if (setjmp(*jump.Set()) == 0) {
-    LongJumpHelper(&jump);
-    UNREACHABLE();
+  LongJumpScope* base = Isolate::Current()->long_jump_base();
+  {
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      LongJumpHelper(&jump);
+      UNREACHABLE();
+    }
   }
+  ASSERT(base == Isolate::Current()->long_jump_base());
 }
 
 }  // namespace dart

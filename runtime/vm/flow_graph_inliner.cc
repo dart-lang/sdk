@@ -482,9 +482,7 @@ class CallSiteInliner : public ValueObject {
     const intptr_t prev_deopt_id = isolate->deopt_id();
     isolate->set_deopt_id(0);
     // Install bailout jump.
-    LongJump* base = isolate->long_jump_base();
-    LongJump jump;
-    isolate->set_long_jump_base(&jump);
+    LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
       // Parse the callee function.
       bool in_cache;
@@ -544,7 +542,6 @@ class CallSiteInliner : public ValueObject {
                                          callee_graph)) {
           function.set_is_inlinable(false);
           TRACE_INLINING(OS::Print("     Bailout: optional arg mismatch\n"));
-          isolate->set_long_jump_base(base);
           return false;
         }
       }
@@ -611,7 +608,6 @@ class CallSiteInliner : public ValueObject {
             (size > FLAG_inlining_constant_arguments_size_threshold)) {
           function.set_is_inlinable(false);
         }
-        isolate->set_long_jump_base(base);
         isolate->set_deopt_id(prev_deopt_id);
         TRACE_INLINING(OS::Print("     Bailout: heuristics with "
                                  "code size:  %" Pd ", "
@@ -633,7 +629,6 @@ class CallSiteInliner : public ValueObject {
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
       inlined_size_ += size;
-      isolate->set_long_jump_base(base);
       isolate->set_deopt_id(prev_deopt_id);
 
       call_data->callee_graph = callee_graph;
@@ -656,7 +651,6 @@ class CallSiteInliner : public ValueObject {
       Error& error = Error::Handle();
       error = isolate->object_store()->sticky_error();
       isolate->object_store()->clear_sticky_error();
-      isolate->set_long_jump_base(base);
       isolate->set_deopt_id(prev_deopt_id);
       TRACE_INLINING(OS::Print("     Bailout: %s\n", error.ToErrorCString()));
       return false;

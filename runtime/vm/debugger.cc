@@ -1703,11 +1703,10 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
   ASSERT(!getter_func.IsNull());
 
   Object& result = Object::Handle();
-  LongJump* base = isolate_->long_jump_base();
-  LongJump jump;
-  isolate_->set_long_jump_base(&jump);
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
+
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, object);
@@ -1716,7 +1715,6 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
     result = isolate_->object_store()->sticky_error();
   }
   ignore_breakpoints_ = saved_ignore_flag;
-  isolate_->set_long_jump_base(base);
   return result.raw();
 }
 
@@ -1742,18 +1740,15 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   }
 
   Object& result = Object::Handle();
-  LongJump* base = isolate_->long_jump_base();
-  LongJump jump;
-  isolate_->set_long_jump_base(&jump);
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     result = DartEntry::InvokeFunction(getter_func, Object::empty_array());
   } else {
     result = isolate_->object_store()->sticky_error();
   }
   ignore_breakpoints_ = saved_ignore_flag;
-  isolate_->set_long_jump_base(base);
   return result.raw();
 }
 

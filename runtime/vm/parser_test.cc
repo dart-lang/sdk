@@ -24,11 +24,8 @@ void DumpFunction(const Library& lib, const char* cname, const char* fname) {
   EXPECT(!function.IsNull());
 
   bool retval;
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate != NULL);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  EXPECT(Isolate::Current() != NULL);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ParsedFunction* parsed_function = new ParsedFunction(function);
     Parser::ParseFunction(parsed_function);
@@ -40,7 +37,6 @@ void DumpFunction(const Library& lib, const char* cname, const char* fname) {
     retval = false;
   }
   EXPECT(retval);
-  isolate->set_long_jump_base(base);
 }
 
 

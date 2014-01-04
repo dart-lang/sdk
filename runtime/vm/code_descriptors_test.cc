@@ -49,9 +49,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   bool retval;
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     // Build a stackmap table and some stackmap table entries.
     const intptr_t kStackSlotCount = 11;
@@ -176,7 +174,6 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     retval = false;
   }
   EXPECT(retval);
-  isolate->set_long_jump_base(base);
 }
 CODEGEN_TEST_RUN(StackmapCodegen, Smi::New(1))
 

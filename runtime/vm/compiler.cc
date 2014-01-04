@@ -74,9 +74,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 RawError* Compiler::Compile(const Library& library, const Script& script) {
   Isolate* isolate = Isolate::Current();
   StackZone zone(isolate);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {
       const String& script_url = String::Handle(script.url());
@@ -86,13 +84,11 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
     const String& library_key = String::Handle(library.private_key());
     script.Tokenize(library_key);
     Parser::ParseCompilationUnit(library, script);
-    isolate->set_long_jump_base(base);
     return Error::null();
   } else {
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
-    isolate->set_long_jump_base(base);
     return error.raw();
   }
   UNREACHABLE();
@@ -168,9 +164,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
 
   // Parse the class and all the interfaces it implements and super classes.
   StackZone zone(isolate);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {
       OS::Print("Compiling Class %s '%s'\n", "", cls.ToCString());
@@ -215,7 +209,6 @@ RawError* Compiler::CompileClass(const Class& cls) {
       parse_class.reset_is_marked_for_parsing();
     }
 
-    isolate->set_long_jump_base(base);
     return Error::null();
   } else {
     // Reset the marked for parsing flags.
@@ -235,7 +228,6 @@ RawError* Compiler::CompileClass(const Class& cls) {
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
-    isolate->set_long_jump_base(base);
     return error.raw();
   }
   UNREACHABLE();
@@ -283,10 +275,8 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
   while (!done) {
     const intptr_t prev_deopt_id = isolate->deopt_id();
     isolate->set_deopt_id(0);
-    LongJump* old_base = isolate->long_jump_base();
-    LongJump bailout_jump;
-    isolate->set_long_jump_base(&bailout_jump);
-    if (setjmp(*bailout_jump.Set()) == 0) {
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
       FlowGraph* flow_graph = NULL;
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
@@ -608,7 +598,6 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       is_compiled = false;
     }
     // Reset global isolate state.
-    isolate->set_long_jump_base(old_base);
     isolate->set_deopt_id(prev_deopt_id);
   }
   return is_compiled;
@@ -745,15 +734,12 @@ static RawError* CompileFunctionHelper(const Function& function,
                                        intptr_t osr_id) {
   Isolate* isolate = Isolate::Current();
   StackZone zone(isolate);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   // Make sure unoptimized code is not collected while we are compiling.
   const Code& unoptimized_code = Code::ZoneHandle(function.unoptimized_code());
   // Skips parsing if we need to only install unoptimized code.
   if (!optimized && !unoptimized_code.IsNull()) {
     InstallUnoptimizedCode(function);
-    isolate->set_long_jump_base(base);
     return Error::null();
   }
   if (setjmp(*jump.Set()) == 0) {
@@ -787,7 +773,6 @@ static RawError* CompileFunctionHelper(const Function& function,
         OS::Print("Cannot optimize: %s\n", function.ToFullyQualifiedCString());
       }
       function.SetIsOptimizable(false);
-      isolate->set_long_jump_base(base);
       return Error::null();
     }
 
@@ -813,14 +798,12 @@ static RawError* CompileFunctionHelper(const Function& function,
       OS::Print("*** END CODE\n");
     }
 
-    isolate->set_long_jump_base(base);
     return Error::null();
   } else {
     Error& error = Error::Handle();
     // We got an error during compilation.
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
-    isolate->set_long_jump_base(base);
     return error.raw();
   }
   UNREACHABLE();
@@ -842,23 +825,19 @@ RawError* Compiler::CompileOptimizedFunction(const Function& function,
 RawError* Compiler::CompileParsedFunction(
     ParsedFunction* parsed_function) {
   Isolate* isolate = Isolate::Current();
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
     CompileParsedFunctionHelper(parsed_function, false, Isolate::kNoDeoptId);
     if (FLAG_disassemble) {
       DisassembleCode(parsed_function->function(), false);
     }
-    isolate->set_long_jump_base(base);
     return Error::null();
   } else {
     Error& error = Error::Handle();
     // We got an error during compilation.
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
-    isolate->set_long_jump_base(base);
     return error.raw();
   }
   UNREACHABLE();
@@ -911,9 +890,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   Isolate* isolate = Isolate::Current();
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {
       OS::Print("compiling expression: ");
@@ -956,13 +933,11 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
     const Object& result = Object::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));
-    isolate->set_long_jump_base(base);
     return result.raw();
   } else {
     const Object& result =
       Object::Handle(isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();
-    isolate->set_long_jump_base(base);
     return result.raw();
   }
   UNREACHABLE();

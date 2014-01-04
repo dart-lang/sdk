@@ -121,9 +121,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
     return true;
   }
 
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     GrowableObjectArray& class_array = GrowableObjectArray::Handle();
     class_array = object_store->pending_classes();
@@ -153,7 +151,6 @@ bool ClassFinalizer::ProcessPendingClasses() {
   } else {
     retval = false;
   }
-  isolate->set_long_jump_base(base);
   return retval;
 }
 
