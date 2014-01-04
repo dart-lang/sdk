@@ -86,9 +86,6 @@ mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 mirrors/variable_is_const_test/01: MissingCompileTimeError # Issue 5519
 mirrors/list_constructor_test/01: RuntimeError # Issue 13523
 
-# RuntimeError in VM. Parse error here.
-mirrors/syntax_error_test/01: CompileTimeError, OK
-
 [ $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -203,6 +200,7 @@ mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 typed_data/setRange_1_test: Fail # Issue 15413
 typed_data/setRange_2_test: Fail # Issue 15413
 typed_data/setRange_3_test: Fail # Issue 15413
+mirrors/syntax_error_test/01: Fail # Issue 15886
 
 [ $compiler == none  ]
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
@@ -260,9 +258,6 @@ async/schedule_microtask_test: Fail # Issue 9002
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 14116
-
-# RuntimeError in VM. Parse error here.
-mirrors/syntax_error_test/01: CompileTimeError, OK
 
 mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'
 mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>
