@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import "package:http_server/http_server.dart";
-import "package:path/path.dart";
 import "package:unittest/unittest.dart";
 
 import 'utils.dart';

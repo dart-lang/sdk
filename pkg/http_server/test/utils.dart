@@ -7,7 +7,6 @@ library utils;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import "package:path/path.dart";
 
 Future<int> getStatusCode(int port,
                           String path,
