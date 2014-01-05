@@ -6,225 +6,212 @@ import 'dart:async';
 import 'dart:io';
 
 import "package:http_server/http_server.dart";
+import 'package:path/path.dart' as pathos;
 import "package:unittest/unittest.dart";
 
 import 'utils.dart';
 
+void _testVirDir(String name, dynamic func(HttpServer server, Directory dir)) {
+  test(name, () {
+    HttpServer server;
+    Directory dir;
+    
+    return HttpServer.bind('localhost', 0)
+        .then((value) {
+          server = value;
+          dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+          return func(server, dir);          
+        })
+        .whenComplete(() {
+          return Future.wait([server.close(), dir.delete(recursive: true)]);
+        });
+  });
+}
+
+void _testEncoding(name, expected, [bool create = true]) {
+  _testVirDir('encode-$name', (server, dir) {
+      if (create) new File('${dir.path}/$name').createSync();
+      var virDir = new VirtualDirectory(dir.path);
+      virDir.allowDirectoryListing = true;
+
+      virDir.serve(server);
+
+      return getStatusCode(server.port, '/$name')
+        .then((result) {
+          expect(result, expected);
+        });
+  });
+}
 
 void main() {
   group('serve-root', () {
-    test('dir-exists', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-        var virDir = new VirtualDirectory(dir.path);
+    _testVirDir('dir-exists', (server, dir) {
 
-        virDir.serve(server);
+      var virDir = new VirtualDirectory(dir.path);
+      virDir.serve(server);
 
-        return getStatusCode(server.port, '/')
-            .whenComplete(() {
-              server.close();
-              dir.deleteSync();
-            });
-      }), completion(equals(HttpStatus.NOT_FOUND)));
+      return getStatusCode(server.port, '/')
+        .then((result) {
+          expect(result, HttpStatus.NOT_FOUND);
+        });
     });
 
-    test('dir-not-exists', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-        dir.deleteSync();
-        var virDir = new VirtualDirectory(dir.path);
+    _testVirDir('dir-not-exists', (server, dir) {
+      var virDir = new VirtualDirectory(pathos.join(dir.path + 'foo'));
 
-        virDir.serve(server);
+      virDir.serve(server);
 
-        return getStatusCode(server.port, '/')
-            .whenComplete(() {
-              server.close();
-            });
-      }), completion(equals(HttpStatus.NOT_FOUND)));
+      return getStatusCode(server.port, '/')
+          .then((result) {
+            expect(result, HttpStatus.NOT_FOUND);
+          });
     });
   });
 
   group('serve-file', () {
     group('top-level', () {
-      test('file-exists', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          var file = new File('${dir.path}/file')..createSync();
-          var virDir = new VirtualDirectory(dir.path);
-
-          virDir.serve(server);
-
-          return getStatusCode(server.port, '/file')
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync(recursive: true);
-              });
-        }), completion(equals(HttpStatus.OK)));
+      _testVirDir('file-exists', (server, dir) {
+        var file = new File('${dir.path}/file')..createSync();
+        var virDir = new VirtualDirectory(dir.path);
+  
+        virDir.serve(server);
+  
+        return getStatusCode(server.port, '/file')
+            .then((result) {
+              expect(result, HttpStatus.OK);
+            });
       });
 
-      test('file-not-exists', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          var virDir = new VirtualDirectory(dir.path);
+      _testVirDir('file-not-exists', (server, dir) {
+        var virDir = new VirtualDirectory(dir.path);
 
-          virDir.serve(server);
+        virDir.serve(server);
 
-          return getStatusCode(server.port, '/file')
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync();
-              });
-        }), completion(equals(HttpStatus.NOT_FOUND)));
+        return getStatusCode(server.port, '/file')
+          .then((result) {
+            expect(result, HttpStatus.NOT_FOUND);
+          });
       });
     });
 
     group('in-dir', () {
-      test('file-exists', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          var dir2 = new Directory('${dir.path}/dir')..createSync();
-          var file = new File('${dir2.path}/file')..createSync();
-          var virDir = new VirtualDirectory(dir.path);
-
-          virDir.serve(server);
-
-          return getStatusCode(server.port, '/dir/file')
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync(recursive: true);
-              });
-        }), completion(equals(HttpStatus.OK)));
+      _testVirDir('file-exists', (server, dir) {
+              var dir2 = new Directory('${dir.path}/dir')..createSync();
+              var file = new File('${dir2.path}/file')..createSync();
+              var virDir = new VirtualDirectory(dir.path);
+    
+              virDir.serve(server);
+    
+              return getStatusCode(server.port, '/dir/file')
+            .then((result) {
+              expect(result, HttpStatus.OK);
+            });
       });
 
-      test('file-not-exists', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          var dir2 = new Directory('${dir.path}/dir')..createSync();
-          var file = new File('${dir.path}/file')..createSync();
-          var virDir = new VirtualDirectory(dir.path);
-
-          virDir.serve(server);
-
-          return getStatusCode(server.port, '/dir/file')
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync(recursive: true);
-              });
-        }), completion(equals(HttpStatus.NOT_FOUND)));
+      _testVirDir('file-not-exists', (server, dir) {
+              var dir2 = new Directory('${dir.path}/dir')..createSync();
+              var file = new File('${dir.path}/file')..createSync();
+              var virDir = new VirtualDirectory(dir.path);
+    
+              virDir.serve(server);
+    
+              return getStatusCode(server.port, '/dir/file')
+                .then((result) {
+                  expect(result, HttpStatus.NOT_FOUND);
+                });
       });
     });
   });
 
   group('serve-dir', () {
     group('top-level', () {
-      test('simple', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          var virDir = new VirtualDirectory(dir.path);
-          virDir.allowDirectoryListing = true;
-
-          virDir.serve(server);
-
-          return getAsString(server.port, '/')
-          .whenComplete(() {
-            server.close();
-            dir.deleteSync();
+      _testVirDir('simple', (server, dir) {
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+  
+        virDir.serve(server);
+  
+        return getAsString(server.port, '/')
+          .then((result) {
+            expect(result, contains('Index of /'));
           });
-        }), completion(contains('Index of /')));
       });
 
-      test('files', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          var virDir = new VirtualDirectory(dir.path);
-          for (int i = 0; i < 10; i++) {
-            new File('${dir.path}/$i').createSync();
-          }
-          virDir.allowDirectoryListing = true;
-
-          virDir.serve(server);
-
-          return getAsString(server.port, '/')
-          .whenComplete(() {
-            server.close();
-            dir.deleteSync(recursive: true);
+      _testVirDir('files', (server, dir) {
+        var virDir = new VirtualDirectory(dir.path);
+        for (int i = 0; i < 10; i++) {
+          new File('${dir.path}/$i').createSync();
+        }
+        virDir.allowDirectoryListing = true;
+  
+        virDir.serve(server);
+  
+        return getAsString(server.port, '/')
+          .then((result) {
+            expect(result, contains('Index of /'));
           });
-        }), completion(contains('Index of /')));
       });
 
-      test('dirs', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          var virDir = new VirtualDirectory(dir.path);
-          for (int i = 0; i < 10; i++) {
-            new Directory('${dir.path}/$i').createSync();
-          }
-          virDir.allowDirectoryListing = true;
+      _testVirDir('dirs', (server, dir) {
+        var virDir = new VirtualDirectory(dir.path);
+        for (int i = 0; i < 10; i++) {
+          new Directory('${dir.path}/$i').createSync();
+        }
+        virDir.allowDirectoryListing = true;
 
-          virDir.serve(server);
+        virDir.serve(server);
 
-          return getAsString(server.port, '/')
-          .whenComplete(() {
-            server.close();
-            dir.deleteSync(recursive: true);
+        return getAsString(server.port, '/')
+          .then((result) {
+            expect(result, contains('Index of /'));
           });
-        }), completion(contains('Index of /')));
       });
 
       if (!Platform.isWindows) {
-        test('recursive-link', () {
-          expect(HttpServer.bind('localhost', 0).then((server) {
-            var dir =
-                Directory.systemTemp.createTempSync('http_server_virtual_');
-            var link = new Link('${dir.path}/recursive')..createSync('.');
-            var virDir = new VirtualDirectory(dir.path);
-            virDir.allowDirectoryListing = true;
-
-            virDir.serve(server);
-
-            return Future.wait([
-                getAsString(server.port, '/').then(
-                    (s) => s.contains('recursive/')),
-                getAsString(server.port, '/').then(
-                    (s) => !s.contains('../')),
-                getAsString(server.port, '/').then(
-                    (s) => s.contains('Index of /')),
-                getAsString(server.port, '/recursive').then(
-                    (s) => s.contains('recursive/')),
-                getAsString(server.port, '/recursive').then(
-                    (s) => s.contains('../')),
-                getAsString(server.port, '/recursive').then(
-                    (s) => s.contains('Index of /recursive'))])
-                .whenComplete(() {
-                  server.close();
-                  dir.deleteSync(recursive: true);
-                });
-          }), completion(equals([true, true, true, true, true, true])));
+        _testVirDir('recursive-link', (server, dir) {
+          var link = new Link('${dir.path}/recursive')..createSync('.');
+          var virDir = new VirtualDirectory(dir.path);
+          virDir.allowDirectoryListing = true;
+  
+          virDir.serve(server);
+  
+          return Future.wait([
+              getAsString(server.port, '/').then(
+                  (s) => s.contains('recursive/')),
+              getAsString(server.port, '/').then(
+                  (s) => !s.contains('../')),
+              getAsString(server.port, '/').then(
+                  (s) => s.contains('Index of /')),
+              getAsString(server.port, '/recursive').then(
+                  (s) => s.contains('recursive/')),
+              getAsString(server.port, '/recursive').then(
+                  (s) => s.contains('../')),
+              getAsString(server.port, '/recursive').then(
+                  (s) => s.contains('Index of /recursive'))])
+            .then((result) {
+              expect(result, equals([true, true, true, true, true, true]));
+            });
         });
       }
     });
 
     group('custom', () {
-      test('simple', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          var virDir = new VirtualDirectory(dir.path);
-          virDir.allowDirectoryListing = true;
-          virDir.directoryHandler = (dir2, request) {
-            expect(dir2, isNotNull);
-            expect(FileSystemEntity.identicalSync(dir.path, dir2.path), isTrue);
-            request.response.write('My handler ${request.uri.path}');
-            request.response.close();
-          };
-
-          virDir.serve(server);
-
-          return getAsString(server.port, '/')
-          .whenComplete(() {
-            server.close();
-            dir.deleteSync();
+      _testVirDir('simple', (server, dir) {
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+        virDir.directoryHandler = (dir2, request) {
+          expect(dir2, isNotNull);
+          expect(FileSystemEntity.identicalSync(dir.path, dir2.path), isTrue);
+          request.response.write('My handler ${request.uri.path}');
+          request.response.close();
+        };
+  
+        virDir.serve(server);
+  
+        return getAsString(server.port, '/')
+          .then((result) {
+            expect(result, 'My handler /');
           });
-        }), completion(contains('My handler /')));
       });
     });
   });
@@ -232,75 +219,57 @@ void main() {
   group('links', () {
     if (!Platform.isWindows) {
       group('follow-links', () {
-        test('dir-link', () {
-          expect(HttpServer.bind('localhost', 0).then((server) {
-            var dir =
-                Directory.systemTemp.createTempSync('http_server_virtual_');
-            var dir2 = new Directory('${dir.path}/dir2')..createSync();
-            var link = new Link('${dir.path}/dir3')..createSync('dir2');
-            var file = new File('${dir2.path}/file')..createSync();
-            var virDir = new VirtualDirectory(dir.path);
-            virDir.followLinks = true;
-
-            virDir.serve(server);
-
-            return getStatusCode(server.port, '/dir3/file')
-                .whenComplete(() {
-                  server.close();
-                  dir.deleteSync(recursive: true);
-                });
-          }), completion(equals(HttpStatus.OK)));
+        _testVirDir('dir-link', (server, dir) {
+          var dir2 = new Directory('${dir.path}/dir2')..createSync();
+          var link = new Link('${dir.path}/dir3')..createSync('dir2');
+          var file = new File('${dir2.path}/file')..createSync();
+          var virDir = new VirtualDirectory(dir.path);
+          virDir.followLinks = true;
+  
+          virDir.serve(server);
+  
+          return getStatusCode(server.port, '/dir3/file')
+            .then((result) {
+              expect(result, HttpStatus.OK);
+            });
         });
 
-        test('root-link', () {
-          expect(HttpServer.bind('localhost', 0).then((server) {
-            var dir =
-                Directory.systemTemp.createTempSync('http_server_virtual_');
-            var link = new Link('${dir.path}/dir3')..createSync('.');
-            var file = new File('${dir.path}/file')..createSync();
-            var virDir = new VirtualDirectory(dir.path);
-            virDir.followLinks = true;
-
-            virDir.serve(server);
-
-            return getStatusCode(server.port, '/dir3/file')
-                .whenComplete(() {
-                  server.close();
-                  dir.deleteSync(recursive: true);
-                });
-          }), completion(equals(HttpStatus.OK)));
+        _testVirDir('root-link', (server, dir) {
+          var link = new Link('${dir.path}/dir3')..createSync('.');
+          var file = new File('${dir.path}/file')..createSync();
+          var virDir = new VirtualDirectory(dir.path);
+          virDir.followLinks = true;
+  
+          virDir.serve(server);
+  
+          return getStatusCode(server.port, '/dir3/file')
+            .then((result) {
+              expect(result, HttpStatus.OK);
+            });
         });
 
         group('bad-links', () {
-          test('absolute-link', () {
-            expect(HttpServer.bind('localhost', 0).then((server) {
-              var dir =
-                  Directory.systemTemp.createTempSync('http_server_virtual_');
+          _testVirDir('absolute-link', (server, dir) {
               var file = new File('${dir.path}/file')..createSync();
               var link = new Link('${dir.path}/file2')
                   ..createSync('${dir.path}/file');
               var virDir = new VirtualDirectory(dir.path);
               virDir.followLinks = true;
-
+  
               virDir.serve(server);
-
+  
               return new HttpClient().get('localhost',
                                           server.port,
                                           '/file2')
                   .then((request) => request.close())
                   .then((response) => response.drain().then(
                       (_) => response.statusCode))
-                  .whenComplete(() {
-                    server.close();
-                    dir.deleteSync(recursive: true);
-                  });
-            }), completion(equals(HttpStatus.NOT_FOUND)));
+                .then((result) {
+                  expect(result, HttpStatus.NOT_FOUND);
+                });
           });
 
-          test('relative-parent-link', () {
-            expect(HttpServer.bind('localhost', 0).then((server) {
-              var dir =
-                  Directory.systemTemp.createTempSync('http_server_virtual_');
+          _testVirDir('relative-parent-link', (server, dir) {
               var dir2 = new Directory('${dir.path}/dir')..createSync();
               var file = new File('${dir.path}/file')..createSync();
               var link = new Link('${dir2.path}/file')
@@ -316,18 +285,16 @@ void main() {
                   .then((request) => request.close())
                   .then((response) => response.drain().then(
                       (_) => response.statusCode))
-                  .whenComplete(() {
-                    server.close();
-                    dir.deleteSync(recursive: true);
+                  .then((result) {
+                    expect(result, HttpStatus.NOT_FOUND);
                   });
-            }), completion(equals(HttpStatus.NOT_FOUND)));
           });
         });
       });
 
       group('not-follow-links', () {
-        test('dir-link', () {
-          expect(HttpServer.bind('localhost', 0).then((server) {
+        _testVirDir('dir-link', (server, dir) {
+          return HttpServer.bind('localhost', 0).then((server) {
             var dir =
                 Directory.systemTemp.createTempSync('http_server_virtual_');
             var dir2 = new Directory('${dir.path}/dir2')..createSync();
@@ -343,16 +310,16 @@ void main() {
                   server.close();
                   dir.deleteSync(recursive: true);
                 });
-          }), completion(equals(HttpStatus.NOT_FOUND)));
+          })
+          .then((result) {
+            expect(result, HttpStatus.NOT_FOUND);
+          });
         });
       });
 
       group('follow-links', () {
-        test('no-root-jail', () {
-          test('absolute-link', () {
-            expect(HttpServer.bind('localhost', 0).then((server) {
-              var dir =
-                  Directory.systemTemp.createTempSync('http_server_virtual_');
+        group('no-root-jail', () {
+          _testVirDir('absolute-link', (server, dir) {
               var file = new File('${dir.path}/file')..createSync();
               var link = new Link('${dir.path}/file2')
                   ..createSync('${dir.path}/file');
@@ -368,17 +335,12 @@ void main() {
                   .then((request) => request.close())
                   .then((response) => response.drain().then(
                       (_) => response.statusCode))
-                  .whenComplete(() {
-                    server.close();
-                    dir.deleteSync(recursive: true);
+                  .then((result) {
+                    expect(result, HttpStatus.OK);
                   });
-            }), completion(equals(HttpStatus.OK)));
           });
 
-          test('relative-parent-link', () {
-            expect(HttpServer.bind('localhost', 0).then((server) {
-              var dir =
-                  Directory.systemTemp.createTempSync('http_server_virtual_');
+          _testVirDir('relative-parent-link', (server, dir) {
               var dir2 = new Directory('${dir.path}/dir')..createSync();
               var file = new File('${dir.path}/file')..createSync();
               var link = new Link('${dir2.path}/file')
@@ -395,11 +357,9 @@ void main() {
                   .then((request) => request.close())
                   .then((response) => response.drain().then(
                       (_) => response.statusCode))
-                  .whenComplete(() {
-                    server.close();
-                    dir.deleteSync(recursive: true);
+                  .then((result) {
+                    expect(result, HttpStatus.OK);
                   });
-            }), completion(equals(HttpStatus.OK)));
           });
         });
       });
@@ -408,9 +368,7 @@ void main() {
 
   group('last-modified', () {
     group('file', () {
-      test('file-exists', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+      _testVirDir('file-exists', (server, dir) {
           var file = new File('${dir.path}/file')..createSync();
           var virDir = new VirtualDirectory(dir.path);
 
@@ -426,16 +384,12 @@ void main() {
                 return getStatusCode(
                     server.port, '/file', ifModifiedSince: lastModified);
               })
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync(recursive: true);
+              .then((result) {
+                expect(result, HttpStatus.NOT_MODIFIED);
               });
-        }), completion(equals(HttpStatus.NOT_MODIFIED)));
       });
 
-      test('file-changes', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+      _testVirDir('file-changes', (server, dir) {
           var file = new File('${dir.path}/file')..createSync();
           var virDir = new VirtualDirectory(dir.path);
 
@@ -454,20 +408,16 @@ void main() {
                 return getStatusCode(
                     server.port, '/file', ifModifiedSince: lastModified);
               })
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync(recursive: true);
+              .then((result) {
+                expect(result, HttpStatus.OK);
               });
-        }), completion(equals(HttpStatus.OK)));
       });
     });
   });
 
   group('content-type', () {
     group('mime-type', () {
-      test('from-path', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+      _testVirDir('from-path', (server, dir) {
           var file = new File('${dir.path}/file.jpg')..createSync();
           var virDir = new VirtualDirectory(dir.path);
 
@@ -475,16 +425,12 @@ void main() {
 
           return getHeaders(server.port, '/file.jpg')
               .then((headers) => headers.contentType.toString())
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync(recursive: true);
+              .then((result) {
+                expect(result, 'image/jpeg');
               });
-        }), completion(equals('image/jpeg')));
       });
 
-      test('from-magic-number', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-          var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+      _testVirDir('from-magic-number', (server, dir) {
           var file = new File('${dir.path}/file.jpg')..createSync();
           file.writeAsBytesSync(
               [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
@@ -494,36 +440,27 @@ void main() {
 
           return getHeaders(server.port, '/file.jpg')
               .then((headers) => headers.contentType.toString())
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync(recursive: true);
+              .then((result) {
+                expect(result, 'image/png');
               });
-        }), completion(equals('image/png')));
       });
     });
   });
 
   group('error-page', () {
-    test('default', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-        var virDir = new VirtualDirectory(dir.path);
-        dir.deleteSync();
+    _testVirDir('default', (server, dir) {
+        var virDir = new VirtualDirectory(pathos.join(dir.path, 'foo'));
 
         virDir.serve(server);
 
         return getAsString(server.port, '/')
-            .whenComplete(() {
-              server.close();
-            });
-      }), completion(matches(new RegExp('404.*Not Found'))));
+          .then((result) {
+            expect(result, matches(new RegExp('404.*Not Found')));
+          });
     });
 
-    test('custom', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-        var virDir = new VirtualDirectory(dir.path);
-        dir.deleteSync();
+    _testVirDir('custom', (server, dir) {
+        var virDir = new VirtualDirectory(pathos.join(dir.path, 'foo'));
 
         virDir.errorPageHandler = (request) {
           request.response.write('my-page ');
@@ -533,33 +470,26 @@ void main() {
         virDir.serve(server);
 
         return getAsString(server.port, '/')
-            .whenComplete(() {
-              server.close();
-            });
-      }), completion(equals('my-page 404')));
+          .then((result) {
+            expect(result, 'my-page 404');
+          });
     });
   });
 
   group('escape-root', () {
-    test('escape1', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+    _testVirDir('escape1', (server, dir) {
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
 
         virDir.serve(server);
 
         return getStatusCode(server.port, '/../')
-            .whenComplete(() {
-              server.close();
-              dir.deleteSync();
-            });
-      }), completion(equals(HttpStatus.NOT_FOUND)));
+          .then((result) {
+            expect(result, HttpStatus.NOT_FOUND);
+          });
     });
 
-    test('escape2', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+    _testVirDir('escape2', (server, dir) {
         new Directory('${dir.path}/dir').createSync();
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
@@ -567,50 +497,38 @@ void main() {
         virDir.serve(server);
 
         return getStatusCode(server.port, '/dir/../../')
-            .whenComplete(() {
-              server.close();
-              dir.deleteSync(recursive: true);
-            });
-      }), completion(equals(HttpStatus.NOT_FOUND)));
+          .then((result) {
+            expect(result, HttpStatus.NOT_FOUND);
+          });
     });
   });
 
   group('url-decode', () {
-    test('with-space', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+    _testVirDir('with-space', (server, dir) {
         var file = new File('${dir.path}/my file')..createSync();
         var virDir = new VirtualDirectory(dir.path);
 
         virDir.serve(server);
 
         return getStatusCode(server.port, '/my file')
-            .whenComplete(() {
-              server.close();
-              dir.deleteSync(recursive: true);
-            });
-      }), completion(equals(HttpStatus.OK)));
+          .then((result) {
+            expect(result, HttpStatus.OK);
+          });
     });
 
-    test('encoded-space', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+    _testVirDir('encoded-space', (server, dir) {
         var file = new File('${dir.path}/my file')..createSync();
         var virDir = new VirtualDirectory(dir.path);
 
         virDir.serve(server);
 
         return getStatusCode(server.port, '/my%20file')
-            .whenComplete(() {
-              server.close();
-              dir.deleteSync(recursive: true);
-            });
-      }), completion(equals(HttpStatus.NOT_FOUND)));
+          .then((result) {
+            expect(result, HttpStatus.NOT_FOUND);
+          });
     });
 
-    test('encoded-path-separator', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+    _testVirDir('encoded-path-separator', (server, dir) {
         new Directory('${dir.path}/a').createSync();
         new Directory('${dir.path}/a/b').createSync();
         new Directory('${dir.path}/a/b/c').createSync();
@@ -620,59 +538,33 @@ void main() {
         virDir.serve(server);
 
         return getStatusCode(server.port, '/a%2fb/c', rawPath: true)
-            .whenComplete(() {
-              server.close();
-              dir.deleteSync(recursive: true);
-            });
-      }), completion(equals(HttpStatus.NOT_FOUND)));
+          .then((result) {
+            expect(result, HttpStatus.NOT_FOUND);
+          });
     });
 
-    test('encoded-null', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+    _testVirDir('encoded-null', (server, dir) {
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
 
         virDir.serve(server);
 
         return getStatusCode(server.port, '/%00', rawPath: true)
-            .whenComplete(() {
-              server.close();
-              dir.deleteSync(recursive: true);
-            });
-      }), completion(equals(HttpStatus.NOT_FOUND)));
+          .then((result) {
+            expect(result, HttpStatus.NOT_FOUND);
+          });
     });
 
-    testEncoding(name, expected, [bool create = true]) {
-      test('encode-$name', () {
-        expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          if (create) new File('${dir.path}/$name').createSync();
-          var virDir = new VirtualDirectory(dir.path);
-          virDir.allowDirectoryListing = true;
-
-          virDir.serve(server);
-
-          return getStatusCode(server.port, '/$name')
-              .whenComplete(() {
-                server.close();
-                dir.deleteSync(recursive: true);
-              });
-        }), completion(equals(expected)));
-      });
-    }
-    testEncoding('..', HttpStatus.NOT_FOUND, false);
-    testEncoding('%2e%2e', HttpStatus.OK);
-    testEncoding('%252e%252e', HttpStatus.OK);
-    testEncoding('/', HttpStatus.OK, false);
-    testEncoding('%2f', HttpStatus.NOT_FOUND, false);
-    testEncoding('%2f', HttpStatus.OK, true);
+    _testEncoding('..', HttpStatus.NOT_FOUND, false);
+    _testEncoding('%2e%2e', HttpStatus.OK);
+    _testEncoding('%252e%252e', HttpStatus.OK);
+    _testEncoding('/', HttpStatus.OK, false);
+    _testEncoding('%2f', HttpStatus.NOT_FOUND, false);
+    _testEncoding('%2f', HttpStatus.OK, true);
   });
 
   group('serve-file', () {
-    test('from-dir-handler', () {
-      expect(HttpServer.bind('localhost', 0).then((server) {
-        var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+    _testVirDir('from-dir-handler', (server, dir) {
         new File('${dir.path}/file')..writeAsStringSync('file contents');
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
@@ -684,12 +576,9 @@ void main() {
         virDir.serve(server);
 
         return getAsString(server.port, '/')
-            .whenComplete(() {
-              server.close();
-              dir.deleteSync(recursive: true);
-            });
-      }), completion(equals('file contents')));
+          .then((result) {
+            expect(result, 'file contents');
+          });
     });
   });
 }
-

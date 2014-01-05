@@ -14,7 +14,7 @@ Future<int> getStatusCode(int port,
                            bool secure: false,
                            DateTime ifModifiedSince,
                            bool rawPath: false}) {
-  var uri;
+  Uri uri;
   if (rawPath) {
     uri = new Uri(scheme: secure ? 'https' : 'http',
                   host: 'localhost',
@@ -25,6 +25,7 @@ Future<int> getStatusCode(int port,
         new Uri.https('localhost:$port', path) :
         new Uri.http('localhost:$port', path));
   }
+  
   return new HttpClient().getUrl(uri)
       .then((request) {
         if (host != null) request.headers.host = host;
@@ -38,25 +39,26 @@ Future<int> getStatusCode(int port,
 }
 
 
-Future<HttpHeaders> getHeaders(int port, String path) {
-  return new HttpClient().get('localhost', port, path)
+Future<HttpHeaders> getHeaders(int port, String path) =>
+    new HttpClient()
+      .get('localhost', port, path)
       .then((request) => request.close())
       .then((response) => response.drain().then(
           (_) => response.headers));
-}
 
 
-Future<String> getAsString(int port, String path) {
-  return new HttpClient().get('localhost', port, path)
+
+Future<String> getAsString(int port, String path) =>
+    new HttpClient()
+      .get('localhost', port, path)
       .then((request) => request.close())
       .then((response) => UTF8.decodeStream(response));
-}
 
 
 const CERTIFICATE = "localhost_cert";
 
 
-setupSecure() {
+void setupSecure() {
   String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
                           password: 'dartdart');
