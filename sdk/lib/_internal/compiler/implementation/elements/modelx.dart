@@ -1518,8 +1518,7 @@ class FunctionElementX extends ElementX implements FunctionElement {
     assert(invariant(this, redirectionTargetType != null,
         message: 'Redirection target type has not yet been computed for '
                  '$this.'));
-    return redirectionTargetType.subst(newType.typeArguments,
-                                       newType.element.typeVariables);
+    return redirectionTargetType.substByContext(newType);
   }
 
   /**
@@ -1671,6 +1670,8 @@ class SynthesizedConstructorElementX extends FunctionElementX {
       return functionSignature = compiler.objectClass.localLookup('')
           .computeSignature(compiler);
     }
+    // TODO(johnniwinther): Ensure that the function signature (and with it the
+    // function type) substitutes type variables correctly.
     return functionSignature = superMember.computeSignature(compiler);
   }
 

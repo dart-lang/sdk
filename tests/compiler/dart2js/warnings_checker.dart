@@ -16,10 +16,11 @@ import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.
 import '../../../sdk/lib/_internal/compiler/implementation/util/uri_extras.dart';
 import 'dart:convert';
 
-void checkWarnings(Map<String, dynamic> tests) {
+void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
   bool isWindows = Platform.isWindows;
   Uri script = currentDirectory.resolveUri(Platform.script);
   bool warningsMismatch = false;
+  bool verbose = arguments != null && arguments.contains('-v');
   asyncTest(() => Future.forEach(tests.keys, (String test) {
     Uri uri = script.resolve('../../$test');
     String source = UTF8.decode(readAll(uriPathToNative(uri.path)));
@@ -38,7 +39,7 @@ void checkWarnings(Map<String, dynamic> tests) {
     var compiler = compilerFor(const {},
          diagnosticHandler: collector,
          options: ['--analyze-only'],
-         showDiagnostics: false);
+         showDiagnostics: verbose);
     return compiler.run(uri).then((_) {
       Map<String, List<int>> statusMap = tests[test];
       // Line numbers with known unexpected warnings.

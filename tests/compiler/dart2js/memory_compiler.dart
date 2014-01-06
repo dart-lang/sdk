@@ -84,7 +84,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
                       bool showDiagnostics: true}) {
   Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
+  Uri packageRoot = currentDirectory.resolve('${Platform.packageRoot}/');
 
   MemorySourceFileProvider provider;
   var readStringFromUri;
