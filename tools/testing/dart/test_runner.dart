@@ -1452,7 +1452,7 @@ class RunningProcess {
   }
 
   Map<String, String> _createProcessEnvironment() {
-    var environment = io.Platform.environment;
+    var environment = new Map.from(io.Platform.environment);
 
     if (command.environmentOverrides != null) {
       for (var key in command.environmentOverrides.keys) {

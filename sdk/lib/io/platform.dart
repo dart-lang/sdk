@@ -63,6 +63,9 @@ class Platform {
   /**
    * Get the environment for this process.
    *
+   * The returned environment is a unmodifiable map which content is
+   * retrieved from the operating system on its first use.
+   *
    * Environment variables on Windows are case-insensitive. The map
    * returned on Windows is therefore case-insensitive and will convert
    * all keys to upper case. On other platforms the returned map is
