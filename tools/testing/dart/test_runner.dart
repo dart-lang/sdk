@@ -362,6 +362,13 @@ class JSCommandlineCommand extends ProcessCommand {
                 environmentOverrides);
 }
 
+/* [ScriptCommand]s are executed by dart code. */
+abstract class ScriptCommand extends Command {
+  ScriptCommand._(String displayName) : super._(displayName);
+
+  Future<ScriptCommandOutputImpl> run();
+}
+
 class CommandBuilder {
   static final CommandBuilder instance = new CommandBuilder._();
 
@@ -538,8 +545,9 @@ class TestCase extends UniqueObject {
   }
 
   bool get isFinished {
-    return !lastCommandOutput.successful ||
-           commands.length == commandOutputs.length;
+    return commandOutputs.length > 0 &&
+        (!lastCommandOutput.successful ||
+         commands.length == commandOutputs.length);
   }
 }
 
@@ -1329,6 +1337,24 @@ class JsCommandlineOutputImpl extends CommandOutputImpl
   }
 }
 
+class ScriptCommandOutputImpl extends CommandOutputImpl {
+  final Expectation _result;
+
+  ScriptCommandOutputImpl(ScriptCommand command, this._result,
+                          String scriptExecutionInformation, Duration time)
+      : super(command, 0, false, [], [], time, false) {
+    var lines = scriptExecutionInformation.split("\n");
+    diagnostics.addAll(lines);
+  }
+
+  Expectation result(TestCase testCase) => _result;
+
+  bool get canRunDependendCommands => _result == Expectation.PASS;
+
+  bool get successful => _result == Expectation.PASS;
+
+}
+
 CommandOutput createCommandOutput(Command command,
                                   int exitCode,
                                   bool timedOut,
@@ -2054,6 +2080,8 @@ class CommandExecutorImpl implements CommandExecutor {
     } else if (command is AnalysisCommand && batchMode) {
       return _getBatchRunner(command.flavor)
           .runCommand(command.flavor, command, timeout, command.arguments);
+    } else if (command is ScriptCommand) {
+      return command.run();
     } else {
       return new RunningProcess(command, timeout).run();
     }
