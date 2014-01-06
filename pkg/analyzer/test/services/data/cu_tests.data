@@ -48,3 +48,87 @@ void set foo(int bar) {
 }
 
 int get baz => null;
+>>>
+@deprecated
+library foo;
+
+@deprecated
+import 'dart:io';
+
+@deprecated
+export 'dart:io';
+
+class NoInline {
+  const NoInline();
+}
+
+@NoInline()
+int foo(@NoInline() bar) => bar + 42;
+
+class Z<@NoInline() Y> {
+
+}
+
+@NoInline()
+class Y = X;
+
+@NoInline()
+class X {
+
+  @NoInline()
+  var _x;
+
+  @NoInline()
+  X.y() {
+    @NoInline()
+    const y = null;
+  }
+
+  @NoInline()
+  factory X(@NoInline() x) => null;
+
+  @NoInline()
+  int x() => null;
+}
+<<<
+@deprecated
+library foo;
+
+@deprecated
+import 'dart:io';
+
+@deprecated
+export 'dart:io';
+
+class NoInline {
+  const NoInline();
+}
+
+@NoInline()
+int foo(@NoInline() bar) => bar + 42;
+
+class Z<@NoInline() Y> {
+
+}
+
+@NoInline()
+class Y = X;
+
+@NoInline()
+class X {
+
+  @NoInline()
+  var _x;
+
+  @NoInline()
+  X.y() {
+    @NoInline()
+    const y = null;
+  }
+
+  @NoInline()
+  factory X(@NoInline() x) => null;
+
+  @NoInline()
+  int x() => null;
+}

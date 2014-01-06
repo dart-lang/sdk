@@ -496,6 +496,7 @@ class SourceVisitor implements ASTVisitor {
 
   visitClassDeclaration(ClassDeclaration node) {
     preserveLeadingNewlines();
+    visitNodes(node.metadata, followedBy: newlines);
     modifier(node.abstractKeyword);
     token(node.classKeyword);
     space();
@@ -517,11 +518,12 @@ class SourceVisitor implements ASTVisitor {
 
   visitClassTypeAlias(ClassTypeAlias node) {
     preserveLeadingNewlines();
+    visitNodes(node.metadata, followedBy: newlines);
     //TODO(pquitslund): the following _should_ work (dartbug.com/15912)
     //modifier(node.abstractKeyword);
     // ... in the meantime we use this workaround
     var prev = node.keyword.previous;
-    if (prev.keyword == Keyword.ABSTRACT) {
+    if (prev is KeywordToken && prev.keyword == Keyword.ABSTRACT) {
       token(prev);
       space();
     }
@@ -582,6 +584,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitConstructorDeclaration(ConstructorDeclaration node) {
+    visitNodes(node.metadata, followedBy: newlines);
     modifier(node.externalKeyword);
     modifier(node.constKeyword);
     modifier(node.factoryKeyword);
@@ -702,6 +705,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitExportDirective(ExportDirective node) {
+    visitNodes(node.metadata, followedBy: newlines);
     token(node.keyword);
     space();
     visit(node.uri);
@@ -730,6 +734,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFieldDeclaration(FieldDeclaration node) {
+    visitNodes(node.metadata, followedBy: newlines);
     modifier(node.staticKeyword);
     visit(node.fields);
     token(node.semicolon);
@@ -815,6 +820,7 @@ class SourceVisitor implements ASTVisitor {
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     preserveLeadingNewlines();
+    visitNodes(node.metadata, followedBy: newlines);
     modifier(node.externalKeyword);
     //TODO(pquitslund): remove this workaround once setter functions
     //have their return types properly set (dartbug.com/15914)
@@ -895,6 +901,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitImportDirective(ImportDirective node) {
+    visitNodes(node.metadata, followedBy: newlines);
     token(node.keyword);
     space();
     visit(node.uri);
@@ -963,6 +970,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitLibraryDirective(LibraryDirective node) {
+    visitNodes(node.metadata, followedBy: newlines);
     token(node.keyword);
     space();
     visit(node.name);
@@ -1005,6 +1013,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitMethodDeclaration(MethodDeclaration node) {
+    visitNodes(node.metadata, followedBy: newlines);
     modifier(node.externalKeyword);
     modifier(node.modifierKeyword);
     visitNode(node.returnType, followedBy: space);
@@ -1131,6 +1140,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitSimpleFormalParameter(SimpleFormalParameter node) {
+    visitNodes(node.metadata, followedBy: space);
     modifier(node.keyword);
     visitNode(node.type, followedBy: space);
     visit(node.identifier);
@@ -1234,6 +1244,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitTypeParameter(TypeParameter node) {
+    visitNodes(node.metadata, followedBy: space);
     visit(node.name);
     token(node.keyword /* extends */, precededBy: space, followedBy: space);
     visit(node.bound);
@@ -1264,6 +1275,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitVariableDeclarationList(VariableDeclarationList node) {
+    visitNodes(node.metadata, followedBy: newlines);
     modifier(node.keyword);
     visitNode(node.type, followedBy: space);
     visitCommaSeparatedNodes(node.variables);
