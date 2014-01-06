@@ -124,10 +124,19 @@ class Section {
   }
 }
 
-void ReadTestExpectationsInto(TestExpectations expectations,
-                              String statusFilePath,
-                              environment,
-                              onDone) {
+Future<TestExpectations> ReadTestExpectations(List<String> statusFilePaths,
+                                              Map environment) {
+  var testExpectations = new TestExpectations();
+  return Future.wait(statusFilePaths.map((String statusFile) {
+    return ReadTestExpectationsInto(
+        testExpectations, statusFile, environment);
+  })).then((_) => testExpectations);
+}
+
+Future ReadTestExpectationsInto(TestExpectations expectations,
+                                String statusFilePath,
+                                environment) {
+  var completer = new Completer();
   List<Section> sections = new List<Section>();
 
   void sectionsRead() {
@@ -138,10 +147,11 @@ void ReadTestExpectationsInto(TestExpectations expectations,
         }
       }
     }
-    onDone();
+    completer.complete();
   }
 
   ReadConfigurationInto(statusFilePath, sections, sectionsRead);
+  return completer.future;
 }
 
 void ReadConfigurationInto(path, sections, onDone) {

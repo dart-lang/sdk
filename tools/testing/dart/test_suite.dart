@@ -356,12 +356,11 @@ class CCTestSuite extends TestSuite {
   final String dartDir;
   List<String> statusFilePaths;
   VoidFunction doDone;
-  TestExpectations testExpectations;
 
   CCTestSuite(Map configuration,
               String suiteName,
               String runnerName,
-              List<String> this.statusFilePaths,
+              this.statusFilePaths,
               {this.testPrefix: ''})
       : super(configuration, suiteName),
         dartDir = TestUtils.dartDir().toNativePath() {
@@ -379,7 +378,7 @@ class CCTestSuite extends TestSuite {
     }
   }
 
-  void testNameHandler(String testName) {
+  void testNameHandler(TestExpectations testExpectations, String testName) {
     // Only run the tests that match the pattern. Use the name
     // "suiteName/testName" for cc tests.
     String constructedName = '$suiteName/$testPrefix$testName';
@@ -400,27 +399,19 @@ class CCTestSuite extends TestSuite {
     doTest = onTest;
     doDone = onDone;
 
-    var filesRead = 0;
-    void statusFileRead() {
-      filesRead++;
-      if (filesRead == statusFilePaths.length) {
-        ccTestLister(hostRunnerPath).then((Iterable<String> names) {
-          names.forEach(testNameHandler);
-          onDone();
-        }).catchError((error) {
-          print("Fatal error occured: $error");
-          exit(1);
-        });
-      }
-    }
+    var statusFiles =
+        statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
 
-    testExpectations = new TestExpectations();
-    for (var statusFilePath in statusFilePaths) {
-      ReadTestExpectationsInto(testExpectations,
-                               '$dartDir/$statusFilePath',
-                               configuration,
-                               statusFileRead);
-    }
+    ReadTestExpectations(statusFiles, configuration)
+        .then((TestExpectations expectations) {
+      ccTestLister(hostRunnerPath).then((Iterable<String> names) {
+        names.forEach((testName) => testNameHandler(expectations, testName));
+        onDone();
+      }).catchError((error) {
+        print("Fatal error occured: $error");
+        exit(1);
+      });
+    });
   }
 }
 
@@ -584,36 +575,21 @@ class StandardTestSuite extends TestSuite {
    * Reads the status files and completes with the parsed expectations.
    */
   Future<TestExpectations> readExpectations() {
-    var completer = new Completer();
-    var expectations = new TestExpectations();
-
-    var filesRead = 0;
-    void statusFileRead() {
-      filesRead++;
-      if (filesRead == statusFilePaths.length) {
-        completer.complete(expectations);
-      }
-    }
-
-    for (var statusFilePath in statusFilePaths) {
-      // [forDirectory] adds name_$compiler.status for all tests suites. Use it
-      // if it exists, but otherwise skip it and don't fail.
+    var statusFiles = statusFilePaths.where((String statusFilePath) {
+      // [forDirectory] adds name_$compiler.status for all tests suites.
+      // Use it if it exists, but otherwise skip it and don't fail.
       if (statusFilePath.endsWith('_dart2js.status') ||
           statusFilePath.endsWith('_analyzer.status') ||
           statusFilePath.endsWith('_analyzer2.status')) {
         var file = new File(dartDir.append(statusFilePath).toNativePath());
-        if (!file.existsSync()) {
-          filesRead++;
-          continue;
-        }
+        return file.existsSync();
       }
+      return true;
+    }).map((statusFilePath) {
+      return dartDir.append(statusFilePath).toNativePath();
+    }).toList();
 
-      ReadTestExpectationsInto(expectations,
-                               dartDir.append(statusFilePath).toNativePath(),
-                               configuration, statusFileRead);
-    }
-
-    return completer.future;
+    return ReadTestExpectations(statusFiles, configuration);
   }
 
   Future enqueueTests() {
