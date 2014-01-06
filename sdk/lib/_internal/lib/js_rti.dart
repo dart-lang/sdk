@@ -523,21 +523,18 @@ bool areAssignableMaps(var s, var t) {
   assert(isJsObject(s));
   assert(isJsObject(t));
 
-  return JS('bool', r'''
-     function (t, s, isAssignable) {
-       for (var $name in t) {
-         if (!s.hasOwnProperty($name)) {
-           return false;
-         }
-         var tType = t[$name];
-         var sType = s[$name];
-         if (!isAssignable.call$2(sType, tType)) {
-          return false;
-         }
-       }
-       return true;
-     }(#, #, #)
-  ''', t, s, RAW_DART_FUNCTION_REF(isAssignable));
+  List names =
+      JSArray.markFixedList(JS('', 'Object.getOwnPropertyNames(#)', t));
+  for (int i = 0; i < names.length; i++) {
+    var name = names[i];
+    if (JS('bool', '!Object.hasOwnProperty.call(#, #)', s, name)) {
+      return false;
+    }
+    var tType = JS('', '#[#]', t, name);
+    var sType = JS('', '#[#]', s, name);
+    if (!isAssignable(tType, sType)) return false;
+  }
+  return true;
 }
 
 bool isFunctionSubtype(var s, var t) {
