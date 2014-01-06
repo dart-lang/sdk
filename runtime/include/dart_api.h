@@ -2133,6 +2133,21 @@ typedef void (*Dart_NativeFunction)(Dart_NativeArguments arguments);
  * name/arity to a Dart_NativeFunction. If no function is found, the
  * callback should return NULL.
  *
+ * The parameters to the native resolver function are:
+ * \param name a Dart string which is the name of the native function.
+ * \param num_of_arguments is the number of arguments expected by the
+ *   native function.
+ * \param auto_setup_scope is a boolean flag that can be set by the resolver
+ *   to indicate if this function needs a Dart API scope (see Dart_EnterScope/
+ *   Dart_ExitScope) to be setup automatically by the VM before calling into
+ *   the native function. By default most native functions would require this
+ *   to be true but some light weight native functions which do not call back
+ *   into the VM through the Dart API may not require a Dart scope to be
+ *   setup automatically.
+ *
+ * \return A valid Dart_NativeFunction which resolves to a native entry point
+ *   for the native function.
+ *
  * See Dart_SetNativeResolver.
  */
 typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
