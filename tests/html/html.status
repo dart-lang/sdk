@@ -401,7 +401,6 @@ wheelevent_test: Fail # http://dartbug.com/12958
 [ $compiler == none && $runtime == dartium ]
 async_test: Timeout # Issue 13719: Please triage this failure.
 element_offset_test/offset: Pass, Fail # Issue 13719, 13296
-touchevent_test/supported: Fail # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 audiocontext_test: StaticWarning
