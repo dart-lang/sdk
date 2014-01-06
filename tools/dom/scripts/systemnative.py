@@ -17,6 +17,7 @@ from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 # an ugly workaround.
 _cpp_callback_map = {
   ('DataTransferItem', 'webkitGetAsEntry'): 'DataTransferItemFileSystem',
+  ('Document', 'fonts'): 'DocumentFontFaceSet',
   ('Document', 'webkitIsFullScreen'): 'DocumentFullscreen',
   ('Document', 'webkitFullScreenKeyboardInputAllowed'): 'DocumentFullscreen',
   ('Document', 'webkitCurrentFullScreenElement'): 'DocumentFullscreen',
@@ -39,6 +40,7 @@ _cpp_callback_map = {
   ('DOMWindow', 'clearInterval'): 'DOMWindowTimers',
   ('DOMWindow', 'createImageBitmap'): 'ImageBitmapFactories',
   ('HTMLInputElement', 'webkitEntries'): 'HTMLInputElementFileSystem',
+  ('HTMLVideoElement', 'getVideoPlaybackQuality'): 'HTMLVideoElementMediaSource',
   ('Navigator', 'doNotTrack'): 'NavigatorDoNotTrack',
   ('Navigator', 'geolocation'): 'NavigatorGeolocation',
   ('Navigator', 'webkitPersistentStorage'): 'NavigatorStorageQuota',
@@ -58,6 +60,7 @@ _cpp_callback_map = {
   ('Navigator', 'onLine'): 'NavigatorOnLine',
   ('Navigator', 'registerServiceWorker'): 'NavigatorServiceWorker',
   ('Navigator', 'unregisterServiceWorker'): 'NavigatorServiceWorker',
+  ('Navigator', 'maxTouchPoints'): 'NavigatorEvents',
   ('WorkerGlobalScope', 'crypto'): 'WorkerGlobalScopeCrypto',
   ('WorkerGlobalScope', 'indexedDB'): 'WorkerGlobalScopeIndexedDatabase',
   ('WorkerGlobalScope', 'webkitNotifications'): 'WorkerGlobalScopeNotifications',
@@ -99,6 +102,17 @@ _cpp_no_auto_scope_list = set([
   ('NodeList', 'item', 'Callback'),
   ('Document', 'body', 'Getter'),
 ])
+
+# TODO(vsm): This should be recoverable from IDL, but we appear to not
+# track the necessary info.
+_url_utils = ['hash', 'host', 'hostname', 'origin',
+              'password', 'pathname', 'port', 'protocol',
+              'search', 'username']
+_cpp_static_call_map = {
+  'DOMURL': _url_utils + ['href', 'toString'],
+  'HTMLAnchorElement': _url_utils,
+  'HTMLAreaElement': _url_utils,
+}
 
 def _GetCPPPartialNames(interface):
   interface_name = interface.ext_attrs.get('ImplementedAs', interface.id)
@@ -174,8 +188,11 @@ class DartiumBackend(HtmlDartGenerator):
     cpp_impl_handlers_emitter = emitter.Emitter()
     class_name = 'Dart%s' % self._interface.id
     for operation in self._interface.operations:
+      function_name = operation.id
       parameters = []
       arguments = []
+      if operation.ext_attrs.get('CallWith') == 'ThisValue':
+        parameters.append('ScriptValue scriptValue')
       conversion_includes = []
       for argument in operation.arguments:
         argument_type_info = self._TypeInfo(argument.type.id)
@@ -184,9 +201,22 @@ class DartiumBackend(HtmlDartGenerator):
         arguments.append(argument_type_info.to_dart_conversion(argument.id))
         conversion_includes.extend(argument_type_info.conversion_includes())
 
+      # FIXME(vsm): Handle ThisValue attribute.
+      if operation.ext_attrs.get('CallWith') == 'ThisValue':
+        cpp_header_handlers_emitter.Emit(
+            '\n'
+            '    virtual bool $FUNCTION($PARAMETERS) {\n'
+            '        DART_UNIMPLEMENTED();\n'
+            '        return false;\n'
+            '    }\n',
+            FUNCTION=function_name,
+            PARAMETERS=', '.join(parameters))
+        continue
+
       cpp_header_handlers_emitter.Emit(
           '\n'
-          '    virtual bool handleEvent($PARAMETERS);\n',
+          '    virtual bool $FUNCTION($PARAMETERS);\n',
+          FUNCTION=function_name,
           PARAMETERS=', '.join(parameters))
 
       if 'Custom' in operation.ext_attrs:
@@ -198,7 +228,7 @@ class DartiumBackend(HtmlDartGenerator):
         arguments_declaration = 'Dart_Handle* arguments = 0'
       cpp_impl_handlers_emitter.Emit(
           '\n'
-          'bool $CLASS_NAME::handleEvent($PARAMETERS)\n'
+          'bool $CLASS_NAME::$FUNCTION($PARAMETERS)\n'
           '{\n'
           '    if (!m_callback.isIsolateAlive())\n'
           '        return false;\n'
@@ -208,6 +238,7 @@ class DartiumBackend(HtmlDartGenerator):
           '    return m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
           '}\n',
           CLASS_NAME=class_name,
+          FUNCTION=function_name,
           PARAMETERS=', '.join(parameters),
           ARGUMENTS_DECLARATION=arguments_declaration,
           ARGUMENT_COUNT=len(arguments))
@@ -460,6 +491,7 @@ class DartiumBackend(HtmlDartGenerator):
     if ('CustomToV8' in ext_attrs or
         'PureInterface' in ext_attrs or
         'CPPPureInterface' in ext_attrs or
+        'SpecialWrapFor' in ext_attrs or
         self._interface_type_info.custom_to_dart()):
       to_dart_emitter.Emit(
           '    static Dart_Handle createWrapper(DartDOMData* domData, NativeType* value);\n')
@@ -555,7 +587,7 @@ class DartiumBackend(HtmlDartGenerator):
     if 'Reflect' in attr.ext_attrs:
       webcore_function_name = self._TypeInfo(attr.type.id).webcore_setter_name()
     else:
-      webcore_function_name = re.sub(r'^(xml(?=[A-Z])|\w)',
+      webcore_function_name = re.sub(r'^(xml|css|(?=[A-Z])|\w)',
                                      lambda s: s.group(1).upper(),
                                      attr.id)
       webcore_function_name = 'set%s' % webcore_function_name
@@ -754,6 +786,8 @@ class DartiumBackend(HtmlDartGenerator):
       generate_custom_element_scope_if_needed=False):
 
     ext_attrs = node.ext_attrs
+    if self._IsStatic(node.id):
+      needs_receiver = True
 
     cpp_arguments = []
     runtime_check = None
@@ -782,8 +816,8 @@ class DartiumBackend(HtmlDartGenerator):
       # it's not needed and should be just removed.
       arguments = arguments[:-1]
 
-    requires_script_execution_context = (ext_attrs.get('CallWith') == 'ScriptExecutionContext' or
-                                         ext_attrs.get('ConstructorCallWith') == 'ScriptExecutionContext')
+    requires_script_execution_context = (ext_attrs.get('CallWith') == 'ExecutionContext' or
+                                         ext_attrs.get('ConstructorCallWith') == 'ExecutionContext')
 
     requires_document = ext_attrs.get('ConstructorCallWith') == 'Document'
 
@@ -811,7 +845,7 @@ class DartiumBackend(HtmlDartGenerator):
       cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
 
     if generate_custom_element_scope_if_needed and (ext_attrs.get('CustomElementCallbacks', 'None') != 'None' or 'Reflect' in ext_attrs):
-      self._cpp_impl_includes.add('"core/dom/CustomElementCallbackDispatcher.h"')
+      self._cpp_impl_includes.add('"core/dom/custom/CustomElementCallbackDispatcher.h"')
       needs_custom_element_callbacks = True
 
     if return_type_is_nullable:
@@ -872,7 +906,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     if requires_script_execution_context:
       body_emitter.Emit(
-          '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
+          '        ExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
           '        if (!context) {\n'
           '            exception = Dart_NewStringFromCString("Failed to retrieve a context");\n'
           '            goto fail;\n'
@@ -1019,6 +1053,8 @@ class DartiumBackend(HtmlDartGenerator):
           cpp_arguments.insert(0, 'receiver')
         else:
           cpp_arguments.append('receiver')
+      elif self._IsStatic(node.id):
+        cpp_arguments.insert(0, 'receiver')
 
     function_call = '%s(%s)' % (function_expression, ', '.join(cpp_arguments))
     if return_type == 'void':
@@ -1128,12 +1164,18 @@ class DartiumBackend(HtmlDartGenerator):
     attribute_name = attr.ext_attrs['Reflect'] or attr.id.lower()
     return 'WebCore::%s::%sAttr' % (namespace, attribute_name)
 
+  def _IsStatic(self, attribute_name):
+    cpp_type_name = self._interface_type_info.native_type()
+    if cpp_type_name in _cpp_static_call_map:
+      return attribute_name in _cpp_static_call_map[cpp_type_name]
+    return False
+
   def _GenerateWebCoreFunctionExpression(self, function_name, idl_node, cpp_callback_name=None):
     if 'ImplementedBy' in idl_node.ext_attrs:
       return '%s::%s' % (idl_node.ext_attrs['ImplementedBy'], function_name)
     cpp_type_name = self._interface_type_info.native_type()
     impl_type_name = _GetCPPTypeName(cpp_type_name, function_name, cpp_callback_name)
-    if idl_node.is_static:
+    if idl_node.is_static or self._IsStatic(idl_node.id):
       return '%s::%s' % (impl_type_name, function_name)
     if cpp_type_name == impl_type_name:
       return '%s%s' % (self._interface_type_info.receiver(), function_name)

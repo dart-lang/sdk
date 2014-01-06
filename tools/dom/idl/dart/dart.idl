@@ -191,15 +191,15 @@ interface WebGLRenderingContext {
 // TODO(vsm): Define new names for these (see b/4436830).
 [Supplemental]
 interface IDBCursor {
-  [DartName=next, CallWith=ScriptExecutionContext, ImplementedAs=continueFunction, RaisesException] void continue([ForceOptional] optional any key);
+  [DartName=next, CallWith=ExecutionContext, ImplementedAs=continueFunction, RaisesException] void continue([ForceOptional] optional any key);
 };
 [Supplemental]
 interface IDBIndex {
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any key, [ForceOptional] optional DOMString direction);
 
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor([Default=Undefined] optional any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest openKeyCursor([Default=Undefined] optional any key, [ForceOptional] optional DOMString direction);
 
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([Default=Undefined] optional any key);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest count([Default=Undefined] optional any key);
 };
 
 [Supplemental]
@@ -219,9 +219,9 @@ interface IDBKeyRange {
 interface IDBObjectStore {
     [CallWith=ScriptState, RaisesException] IDBRequest put(any value, [ForceOptional] optional any key);
     [CallWith=ScriptState, RaisesException] IDBRequest add(any value, [ForceOptional] optional any key);
-    # [CallWith=ScriptExecutionContext, ImplementedAs=deleteFunction, RaisesException] IDBRequest delete(any key);
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor(any key, [ForceOptional] optional DOMString direction);
-    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count(any key);
+    # [CallWith=ExecutionContext, ImplementedAs=deleteFunction, RaisesException] IDBRequest delete(any key);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor(any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ExecutionContext, RaisesException] IDBRequest count(any key);
 };
 
 interface EntrySync {
@@ -359,3 +359,4 @@ interface TextDecoder {};
 [Supplemental]
 interface Window : EventTarget {};
 
+Element implements GlobalEventHandlers;

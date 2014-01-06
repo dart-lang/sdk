@@ -18,6 +18,7 @@ main() {
       if(AudioContext.supported) {
         var ctx = new AudioContext();
         AudioBufferSourceNode node = ctx.createBufferSource();
+        expect(node is AudioBufferSourceNode, isTrue);
         node.start(ctx.currentTime, 0, 2);
         node.stop(ctx.currentTime + 2);
         expect(node is AudioBufferSourceNode, isTrue);

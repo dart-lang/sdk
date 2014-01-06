@@ -19,6 +19,7 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'DOMStringMap',
     'ChildNode',
     'EventListener',
+    'GlobalEventHandlers',
     'MediaQueryListListener',
     'MutationCallback',
     'NavigatorID',
@@ -31,7 +32,10 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'SVGURIReference',
     'SVGZoomAndPan',
     'TimeoutHandler',
+    'URLUtils',
+    'URLUtilsReadOnly',
     'WindowBase64',
+    'WindowEventHandlers',
     'WindowTimers',
     ])
 
@@ -194,6 +198,9 @@ def GetCallbackInfo(interface):
   auto-transforming callbacks into futures)."""
   callback_handlers = [operation for operation in interface.operations
       if operation.id == 'handleEvent']
+  if callback_handlers == []:
+    callback_handlers = [operation for operation in interface.operations
+                         if operation.id == 'handleItem']
   return AnalyzeOperation(interface, callback_handlers)
 
 # Given a list of overloaded arguments, render dart arguments.
@@ -1172,7 +1179,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'SVGPoint': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatPoint>'),
     'SVGPointList': TypeData(clazz='SVGTearOff'),
     'SVGPreserveAspectRatio': TypeData(clazz='SVGTearOff'),
-    'SVGRect': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatRect>'),
+    'SVGRect': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<SVGRect>'),
     'SVGStringList': TypeData(clazz='SVGTearOff', item_type='DOMString',
         native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
     'SVGTransform': TypeData(clazz='SVGTearOff'),
