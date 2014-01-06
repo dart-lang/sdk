@@ -128,6 +128,9 @@ JS_CALL_IN_ISOLATE(isolate, Function function) {}
 
 /**
  * Converts the Dart closure [function] into a JavaScript closure.
+ *
+ * Warning: This is no different from [RAW_DART_FUNCTION_REF] which means care
+ * must be taken to store the current isolate.
  */
 DART_CLOSURE_TO_JS(Function function) {}
 

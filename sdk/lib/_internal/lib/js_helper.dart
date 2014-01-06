@@ -5,29 +5,33 @@
 library _js_helper;
 
 import 'dart:collection';
-import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
-                                   JS,
-                                   JS_CALL_IN_ISOLATE,
-                                   JS_CONST,
-                                   JS_CURRENT_ISOLATE,
-                                   JS_CURRENT_ISOLATE_CONTEXT,
-                                   JS_DART_OBJECT_CONSTRUCTOR,
-                                   JS_FUNCTION_CLASS_NAME,
-                                   JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
-                                   JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
-                                   JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
-                                   JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
-                                   JS_FUNCTION_TYPE_TAG,
-                                   JS_FUNCTION_TYPE_VOID_RETURN_TAG,
-                                   JS_GET_NAME,
-                                   JS_HAS_EQUALS,
-                                   JS_IS_INDEXABLE_FIELD_NAME,
-                                   JS_OBJECT_CLASS_NAME,
-                                   JS_NULL_CLASS_NAME,
-                                   JS_OPERATOR_AS_PREFIX,
-                                   JS_OPERATOR_IS_PREFIX,
-                                   JS_SIGNATURE_NAME,
-                                   RAW_DART_FUNCTION_REF;
+
+import 'dart:_foreign_helper' show
+    DART_CLOSURE_TO_JS,
+    JS,
+    JS_CALL_IN_ISOLATE,
+    JS_CONST,
+    JS_CURRENT_ISOLATE,
+    JS_CURRENT_ISOLATE_CONTEXT,
+    JS_DART_OBJECT_CONSTRUCTOR,
+    JS_EFFECT,
+    JS_FUNCTION_CLASS_NAME,
+    JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
+    JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
+    JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
+    JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
+    JS_FUNCTION_TYPE_TAG,
+    JS_FUNCTION_TYPE_VOID_RETURN_TAG,
+    JS_GET_NAME,
+    JS_HAS_EQUALS,
+    JS_IS_INDEXABLE_FIELD_NAME,
+    JS_NULL_CLASS_NAME,
+    JS_OBJECT_CLASS_NAME,
+    JS_OPERATOR_AS_PREFIX,
+    JS_OPERATOR_IS_PREFIX,
+    JS_SIGNATURE_NAME,
+    RAW_DART_FUNCTION_REF;
+
 import 'dart:_interceptors';
 import 'dart:_collection-dev' as _symbol_dev;
 import 'dart:_collection-dev' show MappedIterable;
@@ -1741,10 +1745,21 @@ abstract class Closure implements Function {
   static const OPTIONAL_PARAMETER_INDEX = 4;
   static const DEFAULT_ARGUMENTS_INDEX = 5;
 
+  /**
+   * Global counter to prevent reusing function code objects.
+   *
+   * V8 will share the underlying function code objects when the same string is
+   * passed to "new Function".  Shared function code objects can lead to
+   * sub-optimal performance due to polymorhism, and can be prevented by
+   * ensuring the strings are different.
+   */
+  static int functionCounter = 0;
+
   Closure();
 
   /**
-   * Creates a closure for use by implicit getters associated with a method.
+   * Creates a new closure class for use by implicit getters associated with a
+   * method.
    *
    * In other words, creates a tear-off closure.
    *
@@ -1762,46 +1777,83 @@ abstract class Closure implements Function {
    * Caution: this function may be called when building constants.
    * TODO(ahe): Don't call this function when building constants.
    */
-  factory Closure.fromTearOff(receiver,
-                              List functions,
-                              List reflectionInfo,
-                              bool isStatic,
-                              jsArguments,
-                              String propertyName) {
+  static fromTearOff(receiver,
+                     List functions,
+                     List reflectionInfo,
+                     bool isStatic,
+                     jsArguments,
+                     String propertyName) {
+    JS_EFFECT(() {
+      BoundClosure.receiverOf(JS('BoundClosure', 'void 0'));
+      BoundClosure.selfOf(JS('BoundClosure', 'void 0'));
+    });
     // TODO(ahe): All the place below using \$ should be rewritten to go
     // through the namer.
     var function = JS('', '#[#]', functions, 0);
-    // TODO(ahe): Try fetching the property directly instead of using "in".
-    if (isStatic && JS('bool', '"\$tearOff" in #', function)) {
-      // The implicit closure of a static function is always the same.
-      return JS('Closure', '#.\$tearOff', function);
-    }
-
     String name = JS('String|Null', '#.\$stubName', function);
     String callName = JS('String|Null', '#.\$callName', function);
 
-    JS('', r'#.$reflectionInfo = #', function, reflectionInfo);
+    JS('', '#.\$reflectionInfo = #', function, reflectionInfo);
     ReflectionInfo info = new ReflectionInfo(function);
 
     var functionType = info.functionType;
 
+    // function tmp() {};
+    // tmp.prototype = BC.prototype;
+    // var proto = new tmp;
+    // for each computed prototype property:
+    //   proto[property] = ...;
+    // proto._init = BC;
+    // var dynClosureConstructor =
+    //     new Function('self', 'target', 'receiver', 'name',
+    //                  'this._init(self, target, receiver, name)');
+    // proto.constructor = dynClosureConstructor; // Necessary?
+    // dynClosureConstructor.prototype = proto;
+    // return dynClosureConstructor;
+
+    // We need to create a new subclass of either TearOffClosure or
+    // BoundClosure.  For this, we need to create an object whose prototype is
+    // the prototype is either TearOffClosure.prototype or
+    // BoundClosure.prototype, respectively in pseudo JavaScript code. The
+    // simplest way to access the JavaScript construction function of a Dart
+    // class is to create an instance and access its constructor property.  The
+    // newly created instance could in theory be used directly as the
+    // prototype, but it might include additional fields that we don't need.
+    // So we only use the new instance to access the constructor property and
+    // use Object.create to create the desired prototype.
+    var prototype = isStatic
+        // TODO(ahe): Safe to use Object.create?
+        ? JS('TearOffClosure', 'Object.create(#.constructor.prototype)',
+             new TearOffClosure())
+        : JS('BoundClosure', 'Object.create(#.constructor.prototype)',
+             new BoundClosure(null, null, null, null));
+
+    JS('', '#.\$initialize = #', prototype, JS('', '#.constructor', prototype));
+    var constructor = isStatic
+        ? JS('', 'function(){this.\$initialize()}')
+        : isCsp
+            ? JS('', 'function(a,b,c,d) {this.\$initialize(a,b,c,d)}')
+            : JS('',
+                 'new Function("a","b","c","d",'
+                     '"this.\$initialize(a,b,c,d);"+#)',
+                 functionCounter++);
+
+    // TODO(ahe): Is it necessary to set the constructor property?
+    JS('', '#.constructor = #', prototype, constructor);
+
+    JS('', '#.prototype = #', constructor, prototype);
+
     // Create a closure and "monkey" patch it with call stubs.
-    Closure closure;
     var trampoline = function;
+    var isIntercepted = false;
     if (!isStatic) {
       if (JS('bool', '#.length == 1', jsArguments)) {
         // Intercepted call.
-        var argument = JS('', '#[0]', jsArguments);
-        trampoline = forwardInterceptedCallTo(argument, receiver, function);
-        closure = new BoundClosure(receiver, function, argument, name);
-      } else {
-        trampoline = forwardTo(receiver, function);
-        closure = new BoundClosure(receiver, function, null, name);
+        isIntercepted = true;
       }
+      trampoline = forwardCallTo(function, isIntercepted);
     } else {
-      closure = new TearOffClosure();
-      JS('', '#.\$tearOff = #', function, closure);
-      JS('', r'#.$name = #', closure, propertyName);
+      JS('', '#.\$name = #', prototype, propertyName);
     }
 
     var signatureFunction;
@@ -1811,54 +1863,241 @@ abstract class Closure implements Function {
              functionType);
     } else if (!isStatic
                && JS('bool', 'typeof # == "function"', functionType)) {
-      signatureFunction = functionType;
-      JS('', r'#.$receiver = #', closure, receiver);
+      var getReceiver = isIntercepted
+          ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
+          : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+      signatureFunction = JS(
+        '',
+        'function(f,r){'
+          'return function(){'
+            'return f.apply({\$receiver:r(this)},arguments)'
+          '}'
+        '}(#,#)', functionType, getReceiver);
     } else {
       throw 'Error in reflectionInfo.';
     }
 
-    JS('', '#.\$signature = #', closure, signatureFunction);
+    JS('', '#.\$signature = #', prototype, signatureFunction);
 
-    JS('', '#[#] = #', closure, callName, trampoline);
+    JS('', '#[#] = #', prototype, callName, trampoline);
     for (int i = 1; i < functions.length; i++) {
       var stub = functions[i];
       var stubCallName = JS('String|Null', '#.\$callName', stub);
-      // TODO(ahe): Support interceptors here.
-      JS('', '#[#] = #', closure, stubCallName,
-         isStatic ? stub : forwardTo(receiver, stub));
+      if (stubCallName != null) {
+        JS('', '#[#] = #', prototype, stubCallName,
+           isStatic ? stub : forwardCallTo(stub, isIntercepted));
+      }
     }
 
-    JS('', '#["call*"] = #', closure, function);
+    JS('', '#["call*"] = #', prototype, function);
 
-    return closure;
+    return constructor;
   }
 
-  static forwardTo(receiver, function) {
-    return JS(
-        '',
-        'function(r,f){return function(){return f.apply(r,arguments)}}(#,#)',
-        receiver, function);
+  static cspForwardCall(int arity, function) {
+    var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+    switch (arity) {
+    case 0:
+      return JS(
+          '',
+          'function(F,S){'
+            'return function(){'
+              'return F.call(S(this))'
+            '}'
+          '}(#,#)', function, getSelf);
+    case 1:
+      return JS(
+          '',
+          'function(F,S){'
+            'return function(a){'
+              'return F.call(S(this),a)'
+            '}'
+          '}(#,#)', function, getSelf);
+    case 2:
+      return JS(
+          '',
+          'function(F,S){'
+            'return function(a,b){'
+              'return F.call(S(this),a,b)'
+            '}'
+          '}(#,#)', function, getSelf);
+    case 3:
+      return JS(
+          '',
+          'function(F,S){'
+            'return function(a,b,c){'
+              'return F.call(S(this),a,b,c)'
+            '}'
+          '}(#,#)', function, getSelf);
+    case 4:
+      return JS(
+          '',
+          'function(F,S){'
+            'return function(a,b,c,d){'
+              'return F.call(S(this),a,b,c,d)'
+            '}'
+          '}(#,#)', function, getSelf);
+    case 5:
+      return JS(
+          '',
+          'function(F,S){'
+            'return function(a,b,c,d,e){'
+              'return F.call(S(this),a,b,c,d,e)'
+            '}'
+          '}(#,#)', function, getSelf);
+    default:
+      return JS(
+          '',
+          'function(f,s){'
+            'return function(){'
+              'return f.apply(s(this),arguments)'
+            '}'
+          '}(#,#)', function, getSelf);
+    }
   }
 
-  static forwardInterceptedCallTo(self, interceptor, function) {
-    return JS(
-        '',
-        'function(i,s,f){return function(){'
-        'return f.call.bind(f,i,s).apply(i,arguments)}}(#,#,#)',
-        interceptor, self, function);
+  static bool get isCsp => JS('bool', 'typeof dart_precompiled == "function"');
+
+  static forwardCallTo(function, bool isIntercepted) {
+    if (isIntercepted) return forwardInterceptedCallTo(function);
+    int arity = JS('int', '#.length', function);
+    if (isCsp) {
+      return cspForwardCall(arity, function);
+    } else if (arity == 0) {
+      return JS(
+          '',
+          '(new Function("F",#))(#)',
+          'return function(){'
+            'return F.call(this.${BoundClosure.selfFieldName()});${functionCounter++}'
+          '}',
+          function);
+    } else if (1 <= arity && arity < 27) {
+      String arguments = JS(
+          'String',
+          '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
+          arity);
+      return JS(
+          '',
+          '(new Function("F",#))(#)',
+          'return function($arguments){'
+            'return F.call(this.${BoundClosure.selfFieldName()},$arguments);'
+            '${functionCounter++}'
+          '}',
+          function);
+    } else {
+      return cspForwardCall(arity, function);
+    }
+  }
+
+  static cspForwardInterceptedCall(int arity, String name, function) {
+    var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+    var getReceiver = RAW_DART_FUNCTION_REF(BoundClosure.receiverOf);
+    switch (arity) {
+    case 0:
+      // Intercepted functions always takes at least one argument (the
+      // receiver).
+      throw new RuntimeError('Intercepted function with no arguments.');
+    case 1:
+      return JS(
+          '',
+          'function(n,s,r){'
+            'return function(){'
+              'return s(this)[n](r(this))'
+            '}'
+          '}(#,#,#)', name, getSelf, getReceiver);
+    case 2:
+      return JS(
+          '',
+          'function(n,s,r){'
+            'return function(a){'
+              'return s(this)[n](r(this),a)'
+            '}'
+          '}(#,#,#)', name, getSelf, getReceiver);
+    case 3:
+      return JS(
+          '',
+          'function(n,s,r){'
+            'return function(a,b){'
+              'return s(this)[n](r(this),a,b)'
+            '}'
+          '}(#,#,#)', name, getSelf, getReceiver);
+    case 4:
+      return JS(
+          '',
+          'function(n,s,r){'
+            'return function(a,b,c){'
+              'return s(this)[n](r(this),a,b,c)'
+            '}'
+          '}(#,#,#)', name, getSelf, getReceiver);
+    case 5:
+      return JS(
+          '',
+          'function(n,s,r){'
+            'return function(a,b,c,d){'
+              'return s(this)[n](r(this),a,b,c,d)'
+            '}'
+          '}(#,#,#)', name, getSelf, getReceiver);
+    case 6:
+      return JS(
+          '',
+          'function(n,s,r){'
+            'return function(a,b,c,d,e){'
+              'return s(this)[n](r(this),a,b,c,d,e)'
+            '}'
+          '}(#,#,#)', name, getSelf, getReceiver);
+    default:
+      return JS(
+          '',
+          'function(f,s,r,a){'
+            'return function(){'
+              'a=[r(this)];'
+              'Array.prototype.push.apply(a,arguments);'
+              'return f.apply(s(this),a)'
+            '}'
+          '}(#,#,#)', function, getSelf, getReceiver);
+    }
+  }
+
+  static forwardInterceptedCallTo(function) {
+    String stubName = JS('String|Null', '#.\$stubName', function);
+    int arity = JS('int', '#.length', function);
+    bool isCsp = JS('bool', 'typeof dart_precompiled == "function"');
+    if (isCsp) {
+      return cspForwardInterceptedCall(arity, stubName, function);
+    } else if (arity == 1) {
+      return JS('', 'new Function(#)',
+                'return this.${BoundClosure.selfFieldName()}.$stubName('
+                    'this.${BoundClosure.receiverFieldName()});'
+                '${functionCounter++}');
+    } else if (1 < arity && arity < 28) {
+      String arguments = JS(
+          'String',
+          '"abcdefghijklmnopqrstuvwxyz".split("").splice(0,#).join(",")',
+          arity - 1);
+      return JS(
+          '',
+          '(new Function(#))()',
+          'return function($arguments){'
+            'return this.${BoundClosure.selfFieldName()}.$stubName('
+                'this.${BoundClosure.receiverFieldName()},$arguments);'
+            '${functionCounter++}'
+          '}');
+    } else {
+      return cspForwardInterceptedCall(arity, stubName, function);
+    }
   }
 
   String toString() => "Closure";
 }
 
 /// Called from implicit method getter (aka tear-off).
-Closure closureFromTearOff(receiver,
-                           functions,
-                           reflectionInfo,
-                           isStatic,
-                           jsArguments,
-                           name) {
-  return new Closure.fromTearOff(
+closureFromTearOff(receiver,
+                   functions,
+                   reflectionInfo,
+                   isStatic,
+                   jsArguments,
+                   name) {
+  return Closure.fromTearOff(
       receiver,
       JSArray.markFixedList(functions),
       JSArray.markFixedList(reflectionInfo),
@@ -1917,13 +2156,46 @@ class BoundClosure extends TearOffClosure {
     return receiverHashCode ^ Primitives.objectHashCode(_target);
   }
 
+  @NoInline
   static selfOf(BoundClosure closure) => closure._self;
 
   static targetOf(BoundClosure closure) => closure._target;
 
+  @NoInline
   static receiverOf(BoundClosure closure) => closure._receiver;
 
   static nameOf(BoundClosure closure) => closure._name;
+
+  static String selfFieldNameCache;
+
+  static String selfFieldName() {
+    if (selfFieldNameCache == null) {
+      selfFieldNameCache = computeFieldNamed('self');
+    }
+    return selfFieldNameCache;
+  }
+
+  static String receiverFieldNameCache;
+
+  static String receiverFieldName() {
+    if (receiverFieldNameCache == null) {
+      receiverFieldNameCache = computeFieldNamed('receiver');
+    }
+    return receiverFieldNameCache;
+  }
+
+  @NoInline() @NoSideEffects()
+  static String computeFieldNamed(String fieldName) {
+    var template = new BoundClosure('self', 'target', 'receiver', 'name');
+    var names = JSArray.markFixedList(
+        JS('', 'Object.getOwnPropertyNames(#)', template));
+    for (int i = 0; i < names.length; i++) {
+      var name = names[i];
+      if (JS('bool', '#[#] === #', template, name, fieldName)) {
+        return JS('String', '#', name);
+      }
+    }
+  }
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {

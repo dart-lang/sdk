@@ -544,6 +544,7 @@ class CallSiteInliner : public ValueObject {
                                          callee_graph)) {
           function.set_is_inlinable(false);
           TRACE_INLINING(OS::Print("     Bailout: optional arg mismatch\n"));
+          isolate->set_long_jump_base(base);
           return false;
         }
       }

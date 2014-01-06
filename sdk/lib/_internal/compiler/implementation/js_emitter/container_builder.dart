@@ -391,6 +391,8 @@ class ContainerBuilder extends CodeEmitterHelper {
     // P.   Unmangled name (if reflectable).
     // P+1. First metadata (if reflectable).
     // ...
+    // TODO(ahe): Consider one of the parameter counts can be replaced by the
+    // length property of the JavaScript function object.
 
     List expressions = [];
 
@@ -421,14 +423,14 @@ class ContainerBuilder extends CodeEmitterHelper {
         if (member.isInstanceMember()) {
           Set invokedSelectors =
               compiler.codegenWorld.invokedNames[member.name];
-          if (invokedSelectors != null && invokedSelectors.contains(selector)) {
+          //if (invokedSelectors != null && invokedSelectors.contains(selector)) {
             expressions.add(js.string(namer.invocationName(selector)));
-          } else {
-            // Don't add a stub for calling this as a regular instance method,
-            // we only need the "call" stub for implicit closures of this
-            // method.
-            expressions.add("null");
-          }
+          //} else {
+          //  // Don't add a stub for calling this as a regular instance method,
+          //  // we only need the "call" stub for implicit closures of this
+          //  // method.
+          //  expressions.add("null");
+          //}
         } else {
           // Static methods don't need "named" stubs as the default arguments
           // are inlined at call sites. But static methods might need "call"

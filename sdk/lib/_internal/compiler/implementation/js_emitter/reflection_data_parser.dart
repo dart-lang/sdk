@@ -18,12 +18,21 @@ String getReflectionDataParser(String classesCollector,
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
   Element closureFromTearOff = compiler.findHelper('closureFromTearOff');
-  String tearOffAccess =
-      // Default value for mocked-up test libraries.
-      'function () { throw "Helper \'closureFromTearOff\' missing." }';
+  String tearOffAccess;
+  String tearOffGlobalObjectName;
+  String tearOffGlobalObject;
   if (closureFromTearOff != null) {
     tearOffAccess = namer.isolateAccess(closureFromTearOff);
+    tearOffGlobalObjectName = tearOffGlobalObject =
+        namer.globalObjectFor(closureFromTearOff);
+  } else {
+    // Default values for mocked-up test libraries.
+    tearOffAccess =
+        'function() { throw "Helper \'closureFromTearOff\' missing." }';
+    tearOffGlobalObjectName = 'MissingHelperFunction';
+    tearOffGlobalObject = '($tearOffAccess())';
   }
+
   String metadataField = '"${namer.metadataField}"';
   String reflectableField = namer.reflectableField;
 
@@ -83,11 +92,13 @@ String getReflectionDataParser(String classesCollector,
     var optionalParameterInfo = ${readInt("array", "1")};
     var optionalParameterCount = optionalParameterInfo >> 1;
     var optionalParametersAreNamed = (optionalParameterInfo & 1) === 1;
+    var isIntercepted =''' // Break long line.
+       ''' requiredParameterCount + optionalParameterCount != funcs[0].length;
     var functionTypeIndex = ${readFunctionType("array", "2")};
     var isReflectable =''' // Break long line.
     ''' array.length > requiredParameterCount + optionalParameterCount + 3;
     if (getterStubName) {
-      f = tearOff(funcs, array, isStatic, name);
+      f = tearOff(funcs, array, isStatic, name, isIntercepted);
 '''
       /* Used to create an isolate using spawnFunction.*/
 '''
@@ -129,15 +140,56 @@ String getReflectionDataParser(String classesCollector,
 ''';
 
   String tearOff = '''
-  function tearOff(funcs, reflectionInfo, isStatic, name) {
-    return function() {
-      return $tearOffAccess(''' // Break long line.
-       '''this, funcs, reflectionInfo, isStatic, arguments, name);
-    }
+  function tearOffGetterNoCsp(funcs, reflectionInfo, name, isIntercepted) {
+    return isIntercepted
+        ? new Function("funcs", "reflectionInfo", "name",''' // Break long line.
+                   ''' "$tearOffGlobalObjectName", "c",
+            "return function tearOff_" + name + (functionCounter++)+ "(x) {" +
+              "if (c === null) c = $tearOffAccess(" +
+                  "this, funcs, reflectionInfo, false, [x], name);" +
+              "return new c(this, funcs[0], x, name);" +
+            "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
+        : new Function("funcs", "reflectionInfo", "name",''' // Break long line.
+                   ''' "$tearOffGlobalObjectName", "c",
+            "return function tearOff_" + name + (functionCounter++)+ "() {" +
+              "if (c === null) c = $tearOffAccess(" +
+                  "this, funcs, reflectionInfo, false, [], name);" +
+              "return new c(this, funcs[0], null, name);" +
+            "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
+  }
+  function tearOffGetterCsp(funcs, reflectionInfo, name, isIntercepted) {
+    var cache = null;
+    return isIntercepted
+        ? function(x) {
+            if (cache === null) cache = $tearOffAccess(''' // Break long line.
+             '''this, funcs, reflectionInfo, false, [x], name);
+            return new cache(this, funcs[0], x, name)
+          }
+        : function() {
+            if (cache === null) cache = $tearOffAccess(''' // Break long line.
+             '''this, funcs, reflectionInfo, false, [], name);
+            return new cache(this, funcs[0], null, name)
+          }
+  }
+  function tearOff(funcs, reflectionInfo, isStatic, name, isIntercepted) {
+    var cache;
+    return isStatic
+        ? function() {
+            if (cache === void 0) cache = $tearOffAccess(''' // Break long line.
+             '''this, funcs, reflectionInfo, true, [], name).prototype;
+            return cache;
+          }
+        : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
   }
 ''';
 
+
+
+
   String init = '''
+  var functionCounter = 0;
+  var tearOffGetter = (typeof dart_precompiled == "function")
+      ? tearOffGetterCsp : tearOffGetterNoCsp;
   if (!init.libraries) init.libraries = [];
   if (!init.mangledNames) init.mangledNames = map();
   if (!init.mangledGlobalNames) init.mangledGlobalNames = map();

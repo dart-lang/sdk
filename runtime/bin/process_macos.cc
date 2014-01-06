@@ -739,6 +739,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     struct sigaction act;
     bzero(&act, sizeof(act));
     act.sa_handler = SignalHandler;
+    sigemptyset(&act.sa_mask);
+    for (int i = 0; i < kSignalsCount; i++) {
+      sigaddset(&act.sa_mask, kSignals[i]);
+    }
     int status = TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
         sigaction(signal, &act, NULL));
     if (status < 0) {

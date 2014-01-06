@@ -3615,18 +3615,19 @@ abstract class SsaFromAstMixin
           '"$name" does not handle closure with optional parameters',
           node: closure);
     }
-    visit(closure);
+
+    compiler.enqueuer.codegen.registerStaticUse(element);
+    push(new HForeign(backend.namer.elementAccess(element),
+                      backend.dynamicType,
+                      <HInstruction>[]));
     return params;
   }
 
   void handleForeignDartClosureToJs(Send node, String name) {
-    FunctionSignature params = handleForeignRawFunctionRef(node, name);
-    List<HInstruction> inputs = <HInstruction>[pop()];
-    String invocationName = backend.namer.invocationName(
-        new Selector.callClosure(params.requiredParameterCount));
-    push(new HForeign(js.js('#.$invocationName'),
-                      backend.dynamicType,
-                      inputs));
+    // TODO(ahe): This implements DART_CLOSURE_TO_JS and should probably take
+    // care to wrap the closure in another closure that saves the current
+    // isolate.
+    handleForeignRawFunctionRef(node, name);
   }
 
   void handleForeignSetCurrentIsolate(Send node) {
