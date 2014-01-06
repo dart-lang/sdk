@@ -34,3 +34,17 @@ abstract class Y = String;
  * Y.
  */
 abstract class Y = String;
+>>>
+external void printToConsole(String line);
+<<<
+external void printToConsole(String line);
+>>>
+void set foo(int bar) {
+}
+
+int get baz => null;
+<<<
+void set foo(int bar) {
+}
+
+int get baz => null;

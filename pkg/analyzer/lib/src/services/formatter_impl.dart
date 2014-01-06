@@ -815,8 +815,15 @@ class SourceVisitor implements ASTVisitor {
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     preserveLeadingNewlines();
-    visitNode(node.returnType, followedBy: space);
-    token(node.propertyKeyword, followedBy: space);
+    modifier(node.externalKeyword);
+    //TODO(pquitslund): remove this workaround once setter functions
+    //have their return types properly set (dartbug.com/15914)
+    if (node.returnType == null && node.propertyKeyword != null) {
+      modifier(node.propertyKeyword.previous);
+    } else {
+      visitNode(node.returnType, followedBy: space);
+    }
+    modifier(node.propertyKeyword);
     visit(node.name);
     visit(node.functionExpression);
   }
@@ -827,7 +834,9 @@ class SourceVisitor implements ASTVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     visit(node.parameters);
-    space();
+    if (node.body is! EmptyFunctionBody) {
+      space();
+    }
     visit(node.body);
   }
 
