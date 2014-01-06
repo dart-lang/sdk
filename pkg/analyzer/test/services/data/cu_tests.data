@@ -70,6 +70,9 @@ class Z<@NoInline() Y> {
 }
 
 @NoInline()
+typedef void X(y);
+
+@NoInline()
 class Y = X;
 
 @NoInline()
@@ -112,6 +115,9 @@ class Z<@NoInline() Y> {
 }
 
 @NoInline()
+typedef void X(y);
+
+@NoInline()
 class Y = X;
 
 @NoInline()
@@ -132,3 +138,33 @@ class X {
   @NoInline()
   int x() => null;
 }
+>>>
+Object get _globalState => null;
+
+set _globalState(Object val) {
+}
+<<<
+Object get _globalState => null;
+
+set _globalState(Object val) {
+}
+>>>
+var x = #foo;
+var y=#foo.bar.baz;
+<<<
+var x = #foo;
+var y = #foo.bar.baz;
+>>>
+class Zounds extends Object native "Zapp" {
+}
+<<<
+class Zounds extends Object native "Zapp" {
+}
+>>>
+@DomName('DatabaseCallback')
+@Experimental() // deprecated
+typedef void DatabaseCallback(database);
+<<<
+@DomName('DatabaseCallback')
+@Experimental() // deprecated
+typedef void DatabaseCallback(database);

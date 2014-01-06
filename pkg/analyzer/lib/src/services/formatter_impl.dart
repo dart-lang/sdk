@@ -506,6 +506,7 @@ class SourceVisitor implements ASTVisitor {
       visitNode(node.extendsClause, precededBy: space);
       visitNode(node.withClause, precededBy: space);
       visitNode(node.implementsClause, precededBy: space);
+      visitNode(node.nativeClause, precededBy: space);
       space();
     });
     token(node.leftBracket);
@@ -825,7 +826,10 @@ class SourceVisitor implements ASTVisitor {
     //TODO(pquitslund): remove this workaround once setter functions
     //have their return types properly set (dartbug.com/15914)
     if (node.returnType == null && node.propertyKeyword != null) {
-      modifier(node.propertyKeyword.previous);
+      var previous = node.propertyKeyword.previous;
+      if (previous is KeywordToken && previous.keyword == Keyword.VOID) {
+        modifier(previous);
+      }
     } else {
       visitNode(node.returnType, followedBy: space);
     }
@@ -852,6 +856,7 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitFunctionTypeAlias(FunctionTypeAlias node) {
+    visitNodes(node.metadata, separatedBy: newlines, followedBy: newlines);
     token(node.keyword);
     space();
     visitNode(node.returnType, followedBy: space);
@@ -1205,7 +1210,16 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
-     // No-op ?
+    token(node.poundSign);
+    var components = node.components;
+    var size = components.length;
+    for (var component in components) {
+      // The '.' separator
+      if (component.previous.lexeme == '.') {
+        token(component.previous);
+      }
+      token(component);
+    }
   }
 
   visitThisExpression(ThisExpression node) {
