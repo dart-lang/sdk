@@ -516,6 +516,15 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitClassTypeAlias(ClassTypeAlias node) {
+    preserveLeadingNewlines();
+    //TODO(pquitslund): the following _should_ work (dartbug.com/15912)
+    //modifier(node.abstractKeyword);
+    // ... in the meantime we use this workaround
+    var prev = node.keyword.previous;
+    if (prev.keyword == Keyword.ABSTRACT) {
+      token(prev);
+      space();
+    }
     token(node.keyword);
     space();
     visit(node.name);
@@ -523,10 +532,6 @@ class SourceVisitor implements ASTVisitor {
     space();
     token(node.equals);
     space();
-    if (node.abstractKeyword != null) {
-      token(node.abstractKeyword);
-      space();
-    }
     visit(node.superclass);
     visitNode(node.withClause, precededBy: space);
     visitNode(node.implementsClause, precededBy: space);

@@ -24,3 +24,13 @@ main() {
   print(byteData is ByteData);
   print(byteData.elementSizeInBytes);
 }
+>>>
+/**
+ * Y.
+ */
+abstract class Y = String;
+<<<
+/**
+ * Y.
+ */
+abstract class Y = String;
