@@ -481,7 +481,7 @@ class DartiumBackend(HtmlDartGenerator):
         '            if (result)\n'
         '                Dart_SetWeakHandleReturnValue(args, result);\n'
         '            else {\n'
-        '                DartApiScope apiScope();\n'
+        '                DartApiScope apiScope;\n'
         '                Dart_SetReturnValue(args, createWrapper(domData, value));\n'
         '            }\n'
         '        }\n'
