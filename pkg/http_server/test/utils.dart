@@ -25,7 +25,7 @@ Future<int> getStatusCode(int port,
         new Uri.https('localhost:$port', path) :
         new Uri.http('localhost:$port', path));
   }
-  
+
   return new HttpClient().getUrl(uri)
       .then((request) {
         if (host != null) request.headers.host = host;

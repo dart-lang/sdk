@@ -15,12 +15,12 @@ void _testVirDir(String name, dynamic func(HttpServer server, Directory dir)) {
   test(name, () {
     HttpServer server;
     Directory dir;
-    
+
     return HttpServer.bind('localhost', 0)
         .then((value) {
           server = value;
           dir = Directory.systemTemp.createTempSync('http_server_virtual_');
-          return func(server, dir);          
+          return func(server, dir);
         })
         .whenComplete(() {
           return Future.wait([server.close(), dir.delete(recursive: true)]);
@@ -73,9 +73,9 @@ void main() {
       _testVirDir('file-exists', (server, dir) {
         var file = new File('${dir.path}/file')..createSync();
         var virDir = new VirtualDirectory(dir.path);
-  
+
         virDir.serve(server);
-  
+
         return getStatusCode(server.port, '/file')
             .then((result) {
               expect(result, HttpStatus.OK);
@@ -99,9 +99,9 @@ void main() {
               var dir2 = new Directory('${dir.path}/dir')..createSync();
               var file = new File('${dir2.path}/file')..createSync();
               var virDir = new VirtualDirectory(dir.path);
-    
+
               virDir.serve(server);
-    
+
               return getStatusCode(server.port, '/dir/file')
             .then((result) {
               expect(result, HttpStatus.OK);
@@ -112,9 +112,9 @@ void main() {
               var dir2 = new Directory('${dir.path}/dir')..createSync();
               var file = new File('${dir.path}/file')..createSync();
               var virDir = new VirtualDirectory(dir.path);
-    
+
               virDir.serve(server);
-    
+
               return getStatusCode(server.port, '/dir/file')
                 .then((result) {
                   expect(result, HttpStatus.NOT_FOUND);
@@ -128,9 +128,9 @@ void main() {
       _testVirDir('simple', (server, dir) {
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
-  
+
         virDir.serve(server);
-  
+
         return getAsString(server.port, '/')
           .then((result) {
             expect(result, contains('Index of /'));
@@ -143,9 +143,9 @@ void main() {
           new File('${dir.path}/$i').createSync();
         }
         virDir.allowDirectoryListing = true;
-  
+
         virDir.serve(server);
-  
+
         return getAsString(server.port, '/')
           .then((result) {
             expect(result, contains('Index of /'));
@@ -172,9 +172,9 @@ void main() {
           var link = new Link('${dir.path}/recursive')..createSync('.');
           var virDir = new VirtualDirectory(dir.path);
           virDir.allowDirectoryListing = true;
-  
+
           virDir.serve(server);
-  
+
           return Future.wait([
               getAsString(server.port, '/').then(
                   (s) => s.contains('recursive/')),
@@ -205,9 +205,9 @@ void main() {
           request.response.write('My handler ${request.uri.path}');
           request.response.close();
         };
-  
+
         virDir.serve(server);
-  
+
         return getAsString(server.port, '/')
           .then((result) {
             expect(result, 'My handler /');
@@ -259,9 +259,9 @@ void main() {
           var file = new File('${dir2.path}/file')..createSync();
           var virDir = new VirtualDirectory(dir.path);
           virDir.followLinks = true;
-  
+
           virDir.serve(server);
-  
+
           return getStatusCode(server.port, '/dir3/file')
             .then((result) {
               expect(result, HttpStatus.OK);
@@ -273,9 +273,9 @@ void main() {
           var file = new File('${dir.path}/file')..createSync();
           var virDir = new VirtualDirectory(dir.path);
           virDir.followLinks = true;
-  
+
           virDir.serve(server);
-  
+
           return getStatusCode(server.port, '/dir3/file')
             .then((result) {
               expect(result, HttpStatus.OK);
@@ -289,9 +289,9 @@ void main() {
                   ..createSync('${dir.path}/file');
               var virDir = new VirtualDirectory(dir.path);
               virDir.followLinks = true;
-  
+
               virDir.serve(server);
-  
+
               return new HttpClient().get('localhost',
                                           server.port,
                                           '/file2')
@@ -328,9 +328,6 @@ void main() {
 
       group('not-follow-links', () {
         _testVirDir('dir-link', (server, dir) {
-          return HttpServer.bind('localhost', 0).then((server) {
-            var dir =
-                Directory.systemTemp.createTempSync('http_server_virtual_');
             var dir2 = new Directory('${dir.path}/dir2')..createSync();
             var link = new Link('${dir.path}/dir3')..createSync('dir2');
             var file = new File('${dir2.path}/file')..createSync();
@@ -340,14 +337,9 @@ void main() {
             virDir.serve(server);
 
             return getStatusCode(server.port, '/dir3/file')
-                .whenComplete(() {
-                  server.close();
-                  dir.deleteSync(recursive: true);
+                .then((result) {
+                  expect(result, HttpStatus.NOT_FOUND);
                 });
-          })
-          .then((result) {
-            expect(result, HttpStatus.NOT_FOUND);
-          });
         });
       });
 
