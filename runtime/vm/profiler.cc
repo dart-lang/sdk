@@ -716,25 +716,31 @@ ProfilerSampleStackWalker::ProfilerSampleStackWalker(Sample* sample,
     original_sp_(sp),
     lower_bound_(stack_lower) {
   ASSERT(sample_ != NULL);
+  // Zero out the PCs before (re)using the sample.
+  for (int i = 0; i < Sample::kNumStackFrames; i++) {
+    sample_->pcs[i] = 0;
+  }
 }
 
 
 int ProfilerSampleStackWalker::walk() {
   const intptr_t kMaxStep = 0x1000;  // 4K.
   uword* pc = reinterpret_cast<uword*>(original_pc_);
+  // Always store the exclusive PC.
+  sample_->pcs[0] = original_pc_;
 #define WALK_STACK
 #if defined(WALK_STACK)
   uword* fp = reinterpret_cast<uword*>(original_fp_);
   uword* previous_fp = fp;
   if (original_sp_ > original_fp_) {
     // Stack pointer should not be above frame pointer.
-    return 0;
+    return 1;
   }
   intptr_t gap = original_fp_ - original_sp_;
   if (gap >= kMaxStep) {
     // Gap between frame pointer and stack pointer is
     // too large.
-    return 0;
+    return 1;
   }
   if (original_sp_ < lower_bound_) {
     // The stack pointer gives us a better lower bound than
@@ -745,7 +751,7 @@ int ProfilerSampleStackWalker::walk() {
   for (; i < Sample::kNumStackFrames; i++) {
     sample_->pcs[i] = reinterpret_cast<uintptr_t>(pc);
     if (!ValidFramePointer(fp)) {
-      break;
+      return i + 1;
     }
     pc = CallerPC(fp);
     previous_fp = fp;
@@ -755,7 +761,7 @@ int ProfilerSampleStackWalker::walk() {
       // Frame pointer step is too large.
       // Frame pointer did not move to a higher address.
       // Frame pointer is outside of isolate stack bounds.
-      break;
+      return i + 1;
     }
     // Move the lower bound up.
     lower_bound_ = reinterpret_cast<uintptr_t>(fp);
