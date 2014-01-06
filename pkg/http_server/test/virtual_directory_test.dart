@@ -213,6 +213,40 @@ void main() {
             expect(result, 'My handler /');
           });
       });
+
+      _testVirDir('index-1', (server, dir) {
+        new File('${dir.path}/index.html').writeAsStringSync('index file');
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+        virDir.directoryHandler = (dir2, request) {
+          // Redirect directory-requests to index.html files.
+          var indexUri = new Uri.file(dir2.path).resolve('index.html');
+          virDir.serveFile(new File(indexUri.toFilePath()), request);
+        };
+        virDir.serve(server);
+        return getAsString(server.port, '/')
+          .then((result) {
+            expect(result, 'index file');
+          });
+      });
+
+      _testVirDir('index-2', (server, dir) {
+        new File('${dir.path}/dir/index.html')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('index file');
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+        virDir.directoryHandler = (dir2, request) {
+          // Redirect directory-requests to index.html files.
+          var indexUri = new Uri.file(dir2.path).resolve('index.html');
+          virDir.serveFile(new File(indexUri.toFilePath()), request);
+        };
+        virDir.serve(server);
+        return getAsString(server.port, '/dir')
+          .then((result) {
+            expect(result, 'index file');
+          });
+      });
     });
   });
 

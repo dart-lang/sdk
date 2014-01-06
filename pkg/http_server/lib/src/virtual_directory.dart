@@ -97,7 +97,11 @@ class VirtualDirectory {
     path = normalize(path);
     // If we jail to root, the relative path can never go up.
     if (jailRoot && split(path).first == "..") return new Future.value(null);
-    String fullPath() => join(root, path);
+    String fullPath({bool endSlash: false}) {
+      var p = join(root, path);
+      if (endSlash && path != ".") p = "$p$separator";
+      return p;
+    }
     return FileSystemEntity.type(fullPath(), followLinks: false)
         .then((type) {
           switch (type) {
@@ -110,7 +114,7 @@ class VirtualDirectory {
             case FileSystemEntityType.DIRECTORY:
               if (segments.current == null) {
                 if (allowDirectoryListing) {
-                  return new Directory(fullPath());
+                  return new Directory(fullPath(endSlash: true));
                 }
               } else {
                 if (_invalidPathRegExp.hasMatch(segments.current)) break;
