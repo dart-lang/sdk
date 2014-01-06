@@ -105,9 +105,13 @@ class ProcessCommand extends Command {
   /** Environment for the command */
   Map<String, String> environmentOverrides;
 
+  /** Working directory for the command */
+  final String workingDirectory;
+
   ProcessCommand._(String displayName, this.executable,
                    this.arguments,
-                   [this.environmentOverrides = null])
+                   [this.environmentOverrides = null,
+                    this.workingDirectory = null])
       : super._(displayName) {
     if (io.Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
@@ -120,6 +124,7 @@ class ProcessCommand extends Command {
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(executable);
+    builder.add(workingDirectory);
     for (var object in arguments) builder.add(object);
     if (environmentOverrides != null) {
       for (var key in environmentOverrides.keys) {
@@ -130,8 +135,8 @@ class ProcessCommand extends Command {
   }
 
   bool _equal(Command other) {
-    if (!super._equal(other)) return false;
-      if (other is ProcessCommand) {
+    if (other is ProcessCommand) {
+      if (!super._equal(other)) return false;
 
       if (hashCode != other.hashCode ||
           executable != other.executable ||
@@ -140,6 +145,7 @@ class ProcessCommand extends Command {
       }
 
       if (!deepJsonCompare(arguments, other.arguments)) return false;
+      if (workingDirectory != other.workingDirectory) return false;
       if (!deepJsonCompare(environmentOverrides, other.environmentOverrides)) {
         return false;
       }
@@ -418,9 +424,9 @@ class CommandBuilder {
   }
 
   Command getProcessCommand(String displayName, executable, arguments,
-                     [environment = null]) {
+                     [environment = null, workingDirectory = null]) {
     var command = new ProcessCommand._(displayName, executable, arguments,
-                                       environment);
+                                       environment, workingDirectory);
     return _getUniqueCommand(command);
   }
 
@@ -1399,7 +1405,8 @@ class RunningProcess {
         Future processFuture =
             io.Process.start(command.executable,
                              command.arguments,
-                             environment: processEnvironment);
+                             environment: processEnvironment,
+                             workingDirectory: command.workingDirectory);
         processFuture.then((io.Process process) {
           // Close stdin so that tests that try to block on input will fail.
           process.stdin.close();
