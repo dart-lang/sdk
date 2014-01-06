@@ -89,6 +89,7 @@ mirrors/list_constructor_test/01: RuntimeError # Issue 13523
 [ $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+mirrors/to_string_test.dart: Fail # Safari bug TODO(ahe): Add bug number if able to submit bug.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
@@ -142,6 +143,7 @@ async/stream_timeout_test: Fail # Timer interface not supported: dartbug.com/772
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
+async/stream_transform_test: Fail # https://code.google.com/p/v8/issues/detail?id=3084
 
 [ $compiler == dart2js ]
 convert/chunked_conversion_utf88_test: Slow, Pass
