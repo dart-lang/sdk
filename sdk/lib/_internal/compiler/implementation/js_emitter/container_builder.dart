@@ -413,7 +413,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     expressions.add(code);
 
-    List tearOffInfo = [new jsAst.LiteralString('$callSelectorString')];
+    List tearOffInfo = [new jsAst.LiteralString(callSelectorString)];
 
     if (needsStubs || canTearOff) {
       addParameterStubs(member, (Selector selector, jsAst.Fun function) {
@@ -445,7 +445,7 @@ class ContainerBuilder extends CodeEmitterHelper {
             callSelectors.contains(callSelector)) {
           callSelectorString = '"${namer.invocationName(callSelector)}"';
         }
-        tearOffInfo.add(new jsAst.LiteralString('$callSelectorString'));
+        tearOffInfo.add(new jsAst.LiteralString(callSelectorString));
       }, canTearOff);
     }
 
