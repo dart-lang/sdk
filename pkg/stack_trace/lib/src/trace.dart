@@ -126,7 +126,10 @@ class Trace implements StackTrace {
 
   /// Parses a string representation of a Dart VM stack trace.
   Trace.parseVM(String trace)
-      : this(trace.trim().split("\n").map((line) => new Frame.parseVM(line)));
+      : this(trace.trim().split("\n").
+            // TODO(nweiz): remove this when issue 15920 is fixed.
+            where((line) => line.isNotEmpty).
+            map((line) => new Frame.parseVM(line)));
 
   /// Parses a string representation of a Chrome/V8 stack trace.
   Trace.parseV8(String trace)
