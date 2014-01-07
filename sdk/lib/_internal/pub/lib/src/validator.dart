@@ -13,7 +13,6 @@ import 'validator/compiled_dartdoc.dart';
 import 'validator/dependency.dart';
 import 'validator/dependency_override.dart';
 import 'validator/directory.dart';
-import 'validator/lib.dart';
 import 'validator/license.dart';
 import 'validator/name.dart';
 import 'validator/pubspec_field.dart';
@@ -51,7 +50,6 @@ abstract class Validator {
   static Future<Pair<List<String>, List<String>>> runAll(
       Entrypoint entrypoint, [Future<int> packageSize]) {
     var validators = [
-      new LibValidator(entrypoint),
       new LicenseValidator(entrypoint),
       new NameValidator(entrypoint),
       new PubspecFieldValidator(entrypoint),
