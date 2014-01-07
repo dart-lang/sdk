@@ -51,6 +51,16 @@ sharedTests() {
     expectModifyEvent("file.txt");
   });
 
+  test('notifies even if the file contents are unchanged', () {
+    writeFile("a.txt", contents: "same");
+    writeFile("b.txt", contents: "before");
+    startWatcher();
+    writeFile("a.txt", contents: "same");
+    writeFile("b.txt", contents: "after");
+    expectModifyEvent("a.txt");
+    expectModifyEvent("b.txt");
+  });
+
   test('when the watched directory is deleted, removes all files', () {
     writeFile("dir/a.txt");
     writeFile("dir/b.txt");

@@ -23,16 +23,6 @@ main() {
         new isInstanceOf<LinuxDirectoryWatcher>());
   });
 
-  test('notifies even if the file contents are unchanged', () {
-    writeFile("a.txt", contents: "same");
-    writeFile("b.txt", contents: "before");
-    startWatcher();
-    writeFile("a.txt", contents: "same");
-    writeFile("b.txt", contents: "after");
-    expectModifyEvent("a.txt");
-    expectModifyEvent("b.txt");
-  });
-
   test('emits events for many nested files moved out then immediately back in',
       () {
     withPermutations((i, j, k) =>
