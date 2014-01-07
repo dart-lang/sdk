@@ -591,7 +591,7 @@ div:nth-child(2n) { color : red; }
   expect(errors.isEmpty, true, reason: errors.toString());
   expect(prettyPrint(stylesheet), r'''
 html:lang(fr-ca) {
-  quotes: "\" " " \"";
+  quotes: '" ' ' "';
 }
 zoom {
 }
