@@ -13559,16 +13559,6 @@ abstract class GlobalEventHandlers extends Interceptor {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
-  @DomName('GlobalEventHandlers.canplayEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
-
-  @DomName('GlobalEventHandlers.canplaythroughEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
-
   @DomName('GlobalEventHandlers.changeEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -13624,21 +13614,6 @@ abstract class GlobalEventHandlers extends Interceptor {
   @Experimental() // untriaged
   static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
 
-  @DomName('GlobalEventHandlers.durationchangeEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
-
-  @DomName('GlobalEventHandlers.emptiedEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
-
-  @DomName('GlobalEventHandlers.endedEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
-
   @DomName('GlobalEventHandlers.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -13678,16 +13653,6 @@ abstract class GlobalEventHandlers extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  @DomName('GlobalEventHandlers.loadeddataEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
-
-  @DomName('GlobalEventHandlers.loadedmetadataEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
 
   @DomName('GlobalEventHandlers.mousedownEvent')
   @DocsEditable()
@@ -13729,26 +13694,6 @@ abstract class GlobalEventHandlers extends Interceptor {
   @Experimental() // untriaged
   static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
 
-  @DomName('GlobalEventHandlers.pauseEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
-
-  @DomName('GlobalEventHandlers.playEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
-
-  @DomName('GlobalEventHandlers.playingEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
-
-  @DomName('GlobalEventHandlers.ratechangeEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
-
   @DomName('GlobalEventHandlers.resetEvent')
   @DocsEditable()
   @Experimental() // untriaged
@@ -13759,50 +13704,15 @@ abstract class GlobalEventHandlers extends Interceptor {
   @Experimental() // untriaged
   static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
 
-  @DomName('GlobalEventHandlers.seekedEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
-
-  @DomName('GlobalEventHandlers.seekingEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
-
   @DomName('GlobalEventHandlers.selectEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
 
-  @DomName('GlobalEventHandlers.stalledEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
-
   @DomName('GlobalEventHandlers.submitEvent')
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  @DomName('GlobalEventHandlers.suspendEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
-
-  @DomName('GlobalEventHandlers.timeupdateEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
-
-  @DomName('GlobalEventHandlers.volumechangeEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
-
-  @DomName('GlobalEventHandlers.waitingEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
   @DomName('GlobalEventHandlers.onabort')
   @DocsEditable()
@@ -13813,16 +13723,6 @@ abstract class GlobalEventHandlers extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   Stream<Event> get onBlur => blurEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.oncanplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onCanPlay => canPlayEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.oncanplaythrough')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onCanPlayThrough => canPlayThroughEvent.forTarget(this);
 
   @DomName('GlobalEventHandlers.onchange')
   @DocsEditable()
@@ -13879,21 +13779,6 @@ abstract class GlobalEventHandlers extends Interceptor {
   @Experimental() // untriaged
   Stream<MouseEvent> get onDrop => dropEvent.forTarget(this);
 
-  @DomName('GlobalEventHandlers.ondurationchange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onDurationChange => durationChangeEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onemptied')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onEmptied => emptiedEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onended')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onEnded => endedEvent.forTarget(this);
-
   @DomName('GlobalEventHandlers.onerror')
   @DocsEditable()
   @Experimental() // untriaged
@@ -13933,16 +13818,6 @@ abstract class GlobalEventHandlers extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   Stream<Event> get onLoad => loadEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onloadeddata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onLoadedData => loadedDataEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onloadedmetadata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onLoadedMetadata => loadedMetadataEvent.forTarget(this);
 
   @DomName('GlobalEventHandlers.onmousedown')
   @DocsEditable()
@@ -13984,26 +13859,6 @@ abstract class GlobalEventHandlers extends Interceptor {
   @Experimental() // untriaged
   Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
 
-  @DomName('GlobalEventHandlers.onpause')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onPause => pauseEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onPlay => playEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onplaying')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onPlaying => playingEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onratechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onRateChange => rateChangeEvent.forTarget(this);
-
   @DomName('GlobalEventHandlers.onreset')
   @DocsEditable()
   @Experimental() // untriaged
@@ -14014,50 +13869,15 @@ abstract class GlobalEventHandlers extends Interceptor {
   @Experimental() // untriaged
   Stream<Event> get onScroll => scrollEvent.forTarget(this);
 
-  @DomName('GlobalEventHandlers.onseeked')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onSeeked => seekedEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onseeking')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onSeeking => seekingEvent.forTarget(this);
-
   @DomName('GlobalEventHandlers.onselect')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<Event> get onSelect => selectEvent.forTarget(this);
 
-  @DomName('GlobalEventHandlers.onstalled')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onStalled => stalledEvent.forTarget(this);
-
   @DomName('GlobalEventHandlers.onsubmit')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<Event> get onSubmit => submitEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onsuspend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onSuspend => suspendEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.ontimeupdate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onTimeUpdate => timeUpdateEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onvolumechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onVolumeChange => volumeChangeEvent.forTarget(this);
-
-  @DomName('GlobalEventHandlers.onwaiting')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onWaiting => waitingEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
