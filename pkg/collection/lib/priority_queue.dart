@@ -35,6 +35,19 @@ abstract class PriorityQueue<E> {
   bool contains(E object);
 
   /**
+   * Adds element to the queue.
+   *
+   * The element will become the next to be removed by [removeFirst]
+   * when all elements with higher priority have been removed.
+   */
+  void add(E element);
+
+  /**
+   * Adds all [elements] to the queue.
+   */
+  void addAll(Iterable<E> elements);
+
+  /**
    * Returns the next element that will be returned by [removeFirst].
    *
    * The element is not removed from the queue.
@@ -58,7 +71,7 @@ abstract class PriorityQueue<E> {
    * Removes an element that compares equal to [element] in the queue.
    *
    * Returns true if an element is found and removed,
-   * and false if not equal element is found.
+   * and false if no equal element is found.
    */
   bool remove(E element);
 
