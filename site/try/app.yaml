@@ -1,0 +1,39 @@
+application: try-dart-lang
+version: 5
+runtime: python27
+api_version: 1
+threadsafe: yes
+default_expiration: 1s
+
+handlers:
+
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+  secure: never
+
+- url: /
+  static_files: index.html
+  upload: index.html
+  secure: never
+
+- url: /nossl.appcache
+  static_files: nossl.appcache
+  upload: nossl.appcache
+  secure: never
+
+- url: /(.*\.(html|js|png|css|dart))
+  static_files: \1
+  upload: (.*\.(html|js|png|css|dart))
+  secure: never
+
+- url: /css/fonts/
+  static_dir: font
+  secure: never
+
+error_handlers:
+  - file: static/not_found.html
+
+libraries:
+- name: webapp2
+  version: "2.5.2"
