@@ -340,3 +340,7 @@ watcher/test/directory_watcher/mac_os_test: Pass, Fail # Issue 15024
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip
 
+[ $unchecked ]
+third_party/angular_tests/core/scope_test: Skip # Requires checked mode.
+third_party/angular_tests/angular_test: Skip # Requires checked mode.
+third_party/angular_tests/core/zone_test: Skip # Requires checked mode.
