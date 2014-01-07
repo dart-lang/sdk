@@ -4,8 +4,9 @@
 
 library pub.command;
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
@@ -33,6 +34,40 @@ import 'utils.dart';
 abstract class PubCommand {
   /// The commands that pub understands.
   static final Map<String, PubCommand> commands = _initCommands();
+
+  /// The top-level [ArgParser] used to parse the pub command line.
+  static final pubArgParser = _initArgParser();
+
+  /// Displays usage information for the app.
+  static void printGlobalUsage() {
+    // Build up a buffer so it shows up as a single log entry.
+    var buffer = new StringBuffer();
+    buffer.writeln('Pub is a package manager for Dart.');
+    buffer.writeln();
+    buffer.writeln('Usage: pub command [arguments]');
+    buffer.writeln();
+    buffer.writeln('Global options:');
+    buffer.writeln(pubArgParser.getUsage());
+    buffer.writeln();
+
+    // Show the public commands alphabetically.
+    var names = ordered(commands.keys.where((name) =>
+        !commands[name].aliases.contains(name) &&
+        !commands[name].hidden));
+
+    var length = names.map((name) => name.length).reduce(math.max);
+
+    buffer.writeln('Available commands:');
+    for (var name in names) {
+      buffer.writeln('  ${padRight(name, length)}   '
+          '${commands[name].description}');
+    }
+
+    buffer.writeln();
+    buffer.write(
+        'Use "pub help [command]" for more information about a command.');
+    log.message(buffer.toString());
+  }
 
   SystemCache cache;
 
@@ -210,4 +245,35 @@ _initCommands() {
   }
 
   return commands;
+}
+
+/// Creates the top-level [ArgParser] used to parse the pub command line.
+ArgParser _initArgParser() {
+  var argParser = new ArgParser();
+
+  // Add the global options.
+  argParser.addFlag('help', abbr: 'h', negatable: false,
+      help: 'Print this usage information.');
+  argParser.addFlag('version', negatable: false,
+      help: 'Print pub version.');
+  argParser.addFlag('trace',
+       help: 'Print debugging information when an error occurs.');
+  argParser.addOption('verbosity',
+      help: 'Control output verbosity.',
+      allowed: ['normal', 'io', 'solver', 'all'],
+      allowedHelp: {
+        'normal': 'Show errors, warnings, and user messages.',
+        'io':     'Also show IO operations.',
+        'solver': 'Show steps during version resolution.',
+        'all':    'Show all output including internal tracing messages.'
+      });
+  argParser.addFlag('verbose', abbr: 'v', negatable: false,
+      help: 'Shortcut for "--verbosity=all".');
+
+  // Register the commands.
+  PubCommand.commands.forEach((name, command) {
+    argParser.addCommand(name, command.commandParser);
+  });
+
+  return argParser;
 }
