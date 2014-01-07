@@ -445,18 +445,22 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   }
 
   void write(Object obj) {
+    if (!_headersWritten) _dataSink.encoding = encoding;
     _dataSink.write(obj);
   }
 
   void writeAll(Iterable objects, [String separator = ""]) {
+    if (!_headersWritten) _dataSink.encoding = encoding;
     _dataSink.writeAll(objects, separator);
   }
 
   void writeln([Object obj = ""]) {
+    if (!_headersWritten) _dataSink.encoding = encoding;
     _dataSink.writeln(obj);
   }
 
   void writeCharCode(int charCode) {
+    if (!_headersWritten) _dataSink.encoding = encoding;
     _dataSink.writeCharCode(charCode);
   }
 
