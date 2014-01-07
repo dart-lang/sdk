@@ -4,8 +4,10 @@
 
 library vmservice_io;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'vmservice.dart';
 
 part 'server.dart';

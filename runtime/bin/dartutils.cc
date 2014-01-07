@@ -629,7 +629,7 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
   } else {
     Dart_Handle source = Dart_NewStringFromUTF8(buffer, len);
     if (Dart_IsError(source)) {
-      returnValue = source;
+      returnValue = NewError("%s is not a valid UTF-8 script", script_uri);
     } else {
       returnValue = Dart_LoadScript(resolved_script_uri, source, 0, 0);
     }

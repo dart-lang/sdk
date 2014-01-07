@@ -98,13 +98,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
   __ LeaveFrame();
   __ ret();
-
-  // Generate 1 byte NOP so that the debugger can patch the
-  // return pattern with a call to the debug stub.
-  __ nop(1);
-  compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
-                                 Isolate::kNoDeoptId,
-                                 token_pos());
 }
 
 
@@ -739,6 +732,31 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                           char_code,
                           TIMES_HALF_WORD_SIZE,  // Char code is a smi.
                           Symbols::kNullCharCodeSymbolOffset * kWordSize));
+}
+
+
+LocationSummary* StringToCharCodeInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+
+void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(cid_ == kOneByteStringCid);
+  Register str = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  Label is_one, done;
+  __ movl(result, FieldAddress(str, String::length_offset()));
+  __ cmpl(result, Immediate(Smi::RawValue(1)));
+  __ j(EQUAL, &is_one, Assembler::kNearJump);
+  __ movl(result, Immediate(Smi::RawValue(-1)));
+  __ jmp(&done);
+  __ Bind(&is_one);
+  __ movzxb(result, FieldAddress(str, OneByteString::data_offset()));
+  __ SmiTag(result);
+  __ Bind(&done);
 }
 
 
@@ -4468,13 +4486,20 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+// Length: register or constant.
+// Index: register, constant or stack slot.
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
-  locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
+  ConstantInstr* index_constant = index()->definition()->AsConstant();
+  if (index_constant != NULL) {
+    locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
+  } else {
+    locs->set_in(kIndexPos, Location::PrefersRegister());
+  }
   return locs;
 }
 
@@ -4509,9 +4534,19 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ j(BELOW_EQUAL, deopt);
   } else if (length_loc.IsConstant()) {
     const Smi& length = Smi::Cast(length_loc.constant());
-    Register index = index_loc.reg();
-    __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
+    if (index_loc.IsStackSlot()) {
+      const Address& index = index_loc.ToStackSlotAddress();
+      __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
+    } else {
+      Register index = index_loc.reg();
+      __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
+    }
     __ j(ABOVE_EQUAL, deopt);
+  } else if (index_loc.IsStackSlot()) {
+    Register length = length_loc.reg();
+    const Address& index = index_loc.ToStackSlotAddress();
+    __ cmpl(length, index);
+    __ j(BELOW_EQUAL, deopt);
   } else {
     Register length = length_loc.reg();
     Register index = index_loc.reg();

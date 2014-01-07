@@ -97,6 +97,9 @@ class ClassFinalizer : public AllStatic {
   // needed during bootstrapping where the classes have been preloaded.
   static void VerifyBootstrapClasses();
 
+  // Resolve the class of the type and the class of the type's type arguments.
+  static void ResolveType(const Class& cls, const AbstractType& type);
+
   // Resolve the type and target of the redirecting factory.
   static void ResolveRedirectingFactory(const Class& cls,
                                         const Function& factory);
@@ -145,9 +148,6 @@ class ClassFinalizer : public AllStatic {
   static void CheckTypeArgumentBounds(const Class& cls,
                                       const AbstractTypeArguments& arguments,
                                       Error* bound_error);
-  static void ResolveType(const Class& cls,
-                          const AbstractType& type,
-                          FinalizationKind finalization);
   static void ResolveUpperBounds(const Class& cls);
   static void FinalizeUpperBounds(const Class& cls);
   static void ResolveAndFinalizeSignature(const Class& cls,

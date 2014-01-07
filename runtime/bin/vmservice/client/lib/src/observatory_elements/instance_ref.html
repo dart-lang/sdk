@@ -1,16 +1,17 @@
 <head>
 <link rel="import" href="observatory_element.html">
+<link rel="import" href="service_ref.html">
 </head>
-<polymer-element name="instance-ref" extends="observatory-element">
+<polymer-element name="instance-ref" extends="service-ref">
 <template>
 <div>
-  <template if="{{ (instance['type'] == 'null') }}">
+  <template if="{{ (ref['type'] == 'null') }}">
     {{ "null" }}
   </template>
-  <template if="{{ (instance['type'] != 'null') }}">
-  <a href="{{ app.locationManager.currentIsolateObjectLink(instance['id'])}}">
-    {{ instance['preview'] }}
-  </a>
+  <template if="{{ (ref['type'] != 'null') }}">
+  <a href="{{ url }}">{{ name }} </a>
   </template>
  </div>
-</template> <script type="application/dart" src="instance_ref.dart"></script> </polymer-element>
+</template>
+<script type="application/dart" src="instance_ref.dart"></script>
+</polymer-element>

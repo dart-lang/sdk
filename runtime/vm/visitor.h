@@ -69,8 +69,15 @@ class FindObjectVisitor {
   explicit FindObjectVisitor(Isolate* isolate) : isolate_(isolate) {}
   virtual ~FindObjectVisitor() {}
 
+  // Allow to specify a address filter.
+  virtual uword filter_addr() const { return 0; }
+  bool VisitRange(uword begin_addr, uword end_addr) const {
+    uword addr = filter_addr();
+    return (addr == 0) || ((begin_addr <= addr) && (addr < end_addr));
+  }
+
   // Check if object matches find condition.
-  virtual bool FindObject(RawObject* obj) = 0;
+  virtual bool FindObject(RawObject* obj) const = 0;
 
  private:
   Isolate* isolate_;

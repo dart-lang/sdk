@@ -25,7 +25,7 @@ namespace bin {
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     free(snapshot_buffer);                                                     \
-    Log::PrintErr("Error: %s", Dart_GetError(result));                    \
+    Log::PrintErr("Error: %s", Dart_GetError(result));                         \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
     exit(255);                                                                 \

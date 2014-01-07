@@ -1900,6 +1900,23 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 }
 
 
+// Called only from unoptimized code. All relevant registers have been saved.
+void StubCode::GenerateDebugStepCheckStub(
+    Assembler* assembler) {
+  // Check single stepping.
+  Label not_stepping;
+  __ ldr(R1, FieldAddress(CTX, Context::isolate_offset()));
+  __ ldrb(R1, Address(R1, Isolate::single_step_offset()));
+  __ CompareImmediate(R1, 0);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
+  __ Ret();
+}
+
+
 // Used to check class and type arguments. Arguments passed in registers:
 // LR: return address.
 // R0: instance (must be preserved).

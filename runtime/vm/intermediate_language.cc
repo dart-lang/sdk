@@ -1455,6 +1455,31 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+LocationSummary* DebugStepCheckInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  return locs;
+}
+
+
+void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(!compiler->is_optimizing());
+  const ExternalLabel label("debug_step_check",
+                            StubCode::DebugStepCheckEntryPoint());
+  compiler->GenerateCall(token_pos(),
+                         &label,
+                         PcDescriptors::kReturn,
+                         locs());
+}
+
+
+Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
+  return NULL;
+}
+
+
 Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == NULL) {
     // Environments can accomodate any representation. No need to box.
@@ -2618,6 +2643,30 @@ static bool IsArrayLength(Definition* defn) {
 }
 
 
+static int64_t ConstantAbsMax(const Range* range) {
+  if (range == NULL) return Smi::kMaxValue;
+  const int64_t abs_min = Utils::Abs(Range::ConstantMin(range).value());
+  const int64_t abs_max = Utils::Abs(Range::ConstantMax(range).value());
+  return abs_min > abs_max ? abs_min : abs_max;
+}
+
+
+static bool OnlyPositiveOrZero(const Range* a, const Range* b) {
+  if ((a == NULL) || (b == NULL)) return false;
+  if (Range::ConstantMin(a).value() < 0) return false;
+  if (Range::ConstantMin(b).value() < 0) return false;
+  return true;
+}
+
+
+static bool OnlyNegativeOrZero(const Range* a, const Range* b) {
+  if ((a == NULL) || (b == NULL)) return false;
+  if (Range::ConstantMax(a).value() > 0) return false;
+  if (Range::ConstantMax(b).value() > 0) return false;
+  return true;
+}
+
+
 void BinarySmiOpInstr::InferRange() {
   // TODO(vegorov): canonicalize BinarySmiOp to always have constant on the
   // right and a non-constant on the left.
@@ -2674,6 +2723,27 @@ void BinarySmiOpInstr::InferRange() {
       }
       break;
 
+    case Token::kMUL: {
+      const int64_t left_max = ConstantAbsMax(left_range);
+      const int64_t right_max = ConstantAbsMax(right_range);
+      if ((left_max < 0x7FFFFFFF) && (right_max < 0x7FFFFFFF)) {
+        // Product of left and right max values stays in 64 bit range.
+        const int64_t result_max = left_max * right_max;
+        if (Smi::IsValid64(result_max) && Smi::IsValid64(-result_max)) {
+          const intptr_t r_min =
+              OnlyPositiveOrZero(left_range, right_range) ? 0 : -result_max;
+          min = RangeBoundary::FromConstant(r_min);
+          const intptr_t r_max =
+              OnlyNegativeOrZero(left_range, right_range) ? 0 : result_max;
+          max = RangeBoundary::FromConstant(r_max);
+          break;
+        }
+      }
+      if (range_ == NULL) {
+        range_ = Range::Unknown();
+      }
+      return;
+    }
     case Token::kBIT_AND:
       if (Range::ConstantMin(right_range).value() >= 0) {
         min = RangeBoundary::FromConstant(0);

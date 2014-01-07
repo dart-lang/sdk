@@ -2,7 +2,9 @@
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="error_view.html">
   <link rel="import" href="field_ref.html">
+  <link rel="import" href="function_ref.html">
   <link rel="import" href="instance_ref.html">
+  <link rel="import" href="library_ref.html">
 </head>
 <polymer-element name="class-view" extends="observatory-element">
   <template>
@@ -13,13 +15,9 @@
           class <strong>{{ cls['user_name'] }}</strong>
           <template if="{{ cls['super']['type'] != 'Null' }}">
             extends
-            <a href="{{ app.locationManager.currentIsolateClassLink(cls['super']['id'])}}">
-              {{ cls['super']['user_name'] }}
-            </a>
+            <class-ref app="{{ app }}" ref="{{ cls['super'] }}"></class-ref>
           </template>
-          <a class="pull-right" href="{{ app.locationManager.currentIsolateObjectLink(cls['library']['id'])}}">
-            {{ cls['library']['name'] }}
-          </a>
+          <library-ref app="{{ app }}" ref="{{ cls['library'] }}"></library-ref>
         </div>
         <div class="panel-body">
           <table class="table table-hover">
@@ -49,8 +47,8 @@
             <table class="table table-hover">
              <tbody>
                 <tr template repeat="{{ field in cls['fields'] }}">
-                  <td><field-ref app="{{ app }}" field="{{ field }}"></field-ref></td>
-                  <td><instance-ref app="{{ app }}" instance="{{ field['value'] }}"></instance-ref></td>                  
+                  <td><field-ref app="{{ app }}" ref="{{ field }}"></field-ref></td>
+                  <td><instance-ref app="{{ app }}" ref="{{ field['value'] }}"></instance-ref></td>
                 </tr>
               </tbody>
             </table>
@@ -64,8 +62,8 @@
               </thead>
               <tbody>
                 <tr template repeat="{{ function in cls['functions'] }}">
-                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['user_name'] }}</a></td>
-                  <td><a href="{{ app.locationManager.currentIsolateObjectLink(function['id'])}}">{{ function['name'] }}</a></td>
+                  <td><function-ref app="{{ app }}" ref="{{ function }}"></function-ref></td>
+                  <td><function-ref app="{{ app }}" ref="{{ function }}" internal></function-ref></td>
                 </tr>
               </tbody>
             </table>

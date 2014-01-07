@@ -1897,6 +1897,38 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
 }
 
 
+// Test that we can assign to a persistent handle.
+UNIT_TEST_CASE(AssignToPersistentHandle) {
+  const char* kTestString1 = "Test String1";
+  const char* kTestString2 = "Test String2";
+  TestIsolateScope __test_isolate__;
+
+  Isolate* isolate = Isolate::Current();
+  EXPECT(isolate != NULL);
+  ApiState* state = isolate->api_state();
+  EXPECT(state != NULL);
+  DARTSCOPE(isolate);
+  String& str = String::Handle();
+
+  // Start with a known persistent handle.
+  Dart_Handle ref1 = Api::NewHandle(isolate, String::New(kTestString1));
+  Dart_PersistentHandle obj = Dart_NewPersistentHandle(ref1);
+  EXPECT(state->IsValidPersistentHandle(obj));
+  str ^= Api::UnwrapAsPersistentHandle(obj)->raw();
+  EXPECT(str.Equals(kTestString1));
+
+  // Now create another local handle and assign it to the persistent handle.
+  Dart_Handle ref2 = Api::NewHandle(isolate, String::New(kTestString2));
+  Dart_SetPersistentHandle(obj, ref2);
+  str ^= Api::UnwrapAsPersistentHandle(obj)->raw();
+  EXPECT(str.Equals(kTestString2));
+
+  // Now assign Null to the persistent handle and check.
+  Dart_SetPersistentHandle(obj, Dart_Null());
+  EXPECT(Dart_IsNull(obj));
+}
+
+
 // Helper class to ensure new gen GC is triggered without any side effects.
 // The normal call to CollectGarbage(Heap::kNew) could potentially trigger
 // an old gen collection if there is a promotion failure and this could

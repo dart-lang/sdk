@@ -723,7 +723,7 @@ void Isolate::Shutdown() {
     }
 
     // Write out profiler data if requested.
-    Profiler::WriteTracing(this);
+    Profiler::WriteProfile(this);
 
     // Write out the coverage data if collection has been enabled.
     CodeCoverage::Write(this);

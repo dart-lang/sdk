@@ -216,9 +216,11 @@ def GetBuildbotGSUtilPath():
 def GetBuildMode(mode):
   return BUILD_MODES[mode]
 
-
-def GetBuildConf(mode, arch):
-  return '%s%s' % (GetBuildMode(mode), arch.upper())
+def GetBuildConf(mode, arch, conf_os=None):
+  if conf_os == 'android':
+    return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
+  else:
+    return '%s%s' % (GetBuildMode(mode), arch.upper())
 
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
@@ -226,10 +228,7 @@ DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
 
 
 def GetBuildDir(host_os, target_os):
-  build_dir = BUILD_ROOT[host_os]
-  if target_os and target_os != host_os:
-    build_dir = os.path.join(build_dir, target_os)
-  return build_dir
+  return BUILD_ROOT[host_os]
 
 def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
   build_root = GetBuildDir(host_os, target_os)

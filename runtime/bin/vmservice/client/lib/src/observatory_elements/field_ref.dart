@@ -5,10 +5,9 @@
 library field_ref_element;
 
 import 'package:polymer/polymer.dart';
-import 'observatory_element.dart';
+import 'service_ref.dart';
 
 @CustomTag('field-ref')
-class FieldRefElement extends ObservatoryElement {
-  @published Map field;
+class FieldRefElement extends ServiceRefElement {
   FieldRefElement.created() : super.created();
 }

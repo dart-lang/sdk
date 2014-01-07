@@ -19,7 +19,5 @@ main() {
   Expect.isFalse(generated.contains('bailout'));
   Expect.isFalse(generated.contains('interceptor'));
   // Make sure we don't go through an interceptor.
-  Expect.isTrue(
-      generated.contains(r'a.$indexSet(a') ||
-      generated.contains(r'.$indexSet(0'));
+  Expect.isTrue(generated.contains('a.\$indexSet'));
 }

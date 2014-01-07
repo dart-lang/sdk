@@ -89,6 +89,17 @@ _cpp_overloaded_callback_map = {
 
 _cpp_partial_map = {}
 
+_cpp_no_auto_scope_list = set([
+  ('Node', 'firstChild', 'Getter'),
+  ('Node', 'lastChild', 'Getter'),
+  ('Node', 'nextSibling', 'Getter'),
+  ('Node', 'previousSibling', 'Getter'),
+  ('Node', 'childNodes', 'Getter'),
+  ('NodeList', 'length', 'Getter'),
+  ('NodeList', 'item', 'Callback'),
+  ('Document', 'body', 'Getter'),
+])
+
 def _GetCPPPartialNames(interface):
   interface_name = interface.ext_attrs.get('ImplementedAs', interface.id)
   if not _cpp_partial_map:
@@ -438,8 +449,10 @@ class DartiumBackend(HtmlDartGenerator):
         '                DartDOMWrapper::lookupWrapper<Dart$(INTERFACE)>(domData, value);\n'
         '            if (result)\n'
         '                Dart_SetWeakHandleReturnValue(args, result);\n'
-        '            else\n'
+        '            else {\n'
+        '                DartApiScope apiScope();\n'
         '                Dart_SetReturnValue(args, createWrapper(domData, value));\n'
+        '            }\n'
         '        }\n'
         '    }\n',
         INTERFACE=self._interface.id)
@@ -1060,6 +1073,12 @@ class DartiumBackend(HtmlDartGenerator):
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom, emit_metadata=True):
+
+    def _GenerateAutoSetupScope(self, idl_name, native_suffix):
+      if ((self._interface.id, idl_name, native_suffix) not in _cpp_no_auto_scope_list):
+        return 'true'
+      return 'false'
+
     metadata = []
     if emit_metadata:
       metadata = self._metadata.GetFormattedMetadata(
@@ -1076,15 +1095,17 @@ class DartiumBackend(HtmlDartGenerator):
         NATIVE_BINDING=native_binding)
 
     cpp_callback_name = '%s%s' % (idl_name, native_suffix)
+    auto_scope_setup = _GenerateAutoSetupScope(self, idl_name, native_suffix)
 
     self._cpp_resolver_emitter.Emit(
         '    if (argumentCount == $ARGC && name == "$NATIVE_BINDING") {\n'
-        '        *autoSetupScope = true;\n'
+        '        *autoSetupScope = $AUTO_SCOPE_SETUP;\n'
         '        return Dart$(INTERFACE_NAME)Internal::$CPP_CALLBACK_NAME;\n'
         '    }\n',
         ARGC=argument_count,
         NATIVE_BINDING=native_binding,
         INTERFACE_NAME=self._interface.id,
+        AUTO_SCOPE_SETUP=auto_scope_setup,
         CPP_CALLBACK_NAME=cpp_callback_name)
 
     if is_custom:

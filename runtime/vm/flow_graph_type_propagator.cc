@@ -879,6 +879,11 @@ CompileType StringFromCharCodeInstr::ComputeType() const {
 }
 
 
+CompileType StringToCharCodeInstr::ComputeType() const {
+    return CompileType::FromCid(kSmiCid);
+}
+
+
 CompileType StringInterpolateInstr::ComputeType() const {
   // TODO(srdjan): Do better and determine if it is a one or two byte string.
   return CompileType::String();

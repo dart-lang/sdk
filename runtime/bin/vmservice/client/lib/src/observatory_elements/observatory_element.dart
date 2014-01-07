@@ -22,6 +22,10 @@ class ObservatoryElement extends PolymerElement {
     super.leftView();
   }
 
+  void attributeChanged(String name, String oldValue, String newValue) {
+    super.attributeChanged(name, oldValue, newValue);
+  }
+
   @published ObservatoryApplication app;
   bool get applyAuthorStyles => true;
 }

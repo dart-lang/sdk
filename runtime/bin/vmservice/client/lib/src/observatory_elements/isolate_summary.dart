@@ -9,7 +9,7 @@ import 'observatory_element.dart';
 
 @CustomTag('isolate-summary')
 class IsolateSummaryElement extends ObservatoryElement {
-  @published int isolate;
+  @published String isolate;
   @published String name = '';
 
   IsolateSummaryElement.created() : super.created();

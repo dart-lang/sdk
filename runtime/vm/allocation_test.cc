@@ -84,7 +84,7 @@ UNIT_TEST_CASE(StackAllocatedDestruction) {
 }
 
 
-static void StackAllocatedLongJumpHelper(int* ptr, LongJump* jump) {
+static void StackAllocatedLongJumpHelper(int* ptr, LongJumpScope* jump) {
   TestValueObject stacked(ptr);
   EXPECT_EQ(2, *ptr);
   *ptr = 3;
@@ -97,7 +97,7 @@ static void StackAllocatedLongJumpHelper(int* ptr, LongJump* jump) {
 
 
 TEST_CASE(StackAllocatedLongJump) {
-  LongJump jump;
+  LongJumpScope jump;
   int data = 1;
   if (setjmp(*jump.Set()) == 0) {
     StackAllocatedLongJumpHelper(&data, &jump);
@@ -131,7 +131,7 @@ TEST_CASE(StackResourceDestruction) {
 }
 
 
-static void StackedStackResourceLongJumpHelper(int* ptr, LongJump* jump) {
+static void StackedStackResourceLongJumpHelper(int* ptr, LongJumpScope* jump) {
   TestStackedStackResource stacked(ptr);
   EXPECT_EQ(4, *ptr);
   *ptr = 5;
@@ -143,7 +143,7 @@ static void StackedStackResourceLongJumpHelper(int* ptr, LongJump* jump) {
 }
 
 
-static void StackResourceLongJumpHelper(int* ptr, LongJump* jump) {
+static void StackResourceLongJumpHelper(int* ptr, LongJumpScope* jump) {
   TestStackResource stacked(ptr);
   EXPECT_EQ(2, *ptr);
   *ptr = 3;
@@ -153,13 +153,17 @@ static void StackResourceLongJumpHelper(int* ptr, LongJump* jump) {
 
 
 TEST_CASE(StackResourceLongJump) {
-  LongJump jump;
-  int data = 1;
-  if (setjmp(*jump.Set()) == 0) {
-    StackResourceLongJumpHelper(&data, &jump);
-    UNREACHABLE();
+  LongJumpScope* base = Isolate::Current()->long_jump_base();
+  {
+    LongJumpScope jump;
+    int data = 1;
+    if (setjmp(*jump.Set()) == 0) {
+      StackResourceLongJumpHelper(&data, &jump);
+      UNREACHABLE();
+    }
+    EXPECT_EQ(7, data);
   }
-  EXPECT_EQ(7, data);
+  ASSERT(base == Isolate::Current()->long_jump_base());
 }
 
 }  // namespace dart

@@ -35,7 +35,7 @@ class Heap;
 class ICData;
 class Instance;
 class IsolateProfilerData;
-class LongJump;
+class LongJumpScope;
 class MessageHandler;
 class Mutex;
 class Object;
@@ -161,8 +161,8 @@ class Isolate : public BaseIsolate {
   StubCode* stub_code() const { return stub_code_; }
   void set_stub_code(StubCode* value) { stub_code_ = value; }
 
-  LongJump* long_jump_base() const { return long_jump_base_; }
-  void set_long_jump_base(LongJump* value) { long_jump_base_ = value; }
+  LongJumpScope* long_jump_base() const { return long_jump_base_; }
+  void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
 
   TimerList& timer_list() { return timer_list_; }
 
@@ -436,7 +436,7 @@ class Isolate : public BaseIsolate {
   bool single_step_;
   Random random_;
   Simulator* simulator_;
-  LongJump* long_jump_base_;
+  LongJumpScope* long_jump_base_;
   TimerList timer_list_;
   intptr_t deopt_id_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.

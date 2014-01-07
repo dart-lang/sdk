@@ -210,6 +210,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void AppendLoadIndexedForMerged(Definition* instr, intptr_t ix, intptr_t cid);
 
+  bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
+
   FlowGraph* flow_graph_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);

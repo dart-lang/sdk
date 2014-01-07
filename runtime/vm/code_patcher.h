@@ -42,6 +42,9 @@ class CodePatcher : public AllStatic {
   // Restore entry point with original code (i.e., before patching).
   static void RestoreEntry(const Code& code);
 
+  // Has the entry been patched?
+  static bool IsEntryPatched(const Code& code);
+
   // Returns true if the code can be patched with a jump at beginning (checks
   // that there are no conflicts with object pointers). Used in ASSERTs.
   static bool CodeIsPatchable(const Code& code);

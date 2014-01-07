@@ -101,13 +101,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&stack_ok);
   }
 #endif
-  // This sequence is patched by a debugger breakpoint. There is no need for
-  // extra NOP instructions here because the sequence patched in for a
-  // breakpoint is shorter than the sequence here.
   __ LeaveDartFrameAndReturn();
-  compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
-                                 Isolate::kNoDeoptId,
-                                 token_pos());
 }
 
 
@@ -807,6 +801,32 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ sll(TMP, char_code, 1);  // Char code is a smi.
   __ addu(TMP, TMP, result);
   __ lw(result, Address(TMP));
+}
+
+
+LocationSummary* StringToCharCodeInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+
+void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ TraceSimMsg("StringToCharCodeInstr");
+
+  ASSERT(cid_ == kOneByteStringCid);
+  Register str = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  Label done, is_one;
+  __ lw(result, FieldAddress(str, String::length_offset()));
+  __ BranchEqual(result, Smi::RawValue(1), &is_one);
+  __ LoadImmediate(result, Smi::RawValue(-1));
+  __ b(&done);
+  __ Bind(&is_one);
+  __ lbu(result, FieldAddress(str, OneByteString::data_offset()));
+  __ SmiTag(result);
+  __ Bind(&done);
 }
 
 

@@ -18,8 +18,8 @@ class ProfileSampleBufferTestHelper {
                                const SampleBuffer& sample_buffer) {
     intptr_t c = 0;
     for (intptr_t i = 0; i < sample_buffer.capacity(); i++) {
-      Sample* sample = sample_buffer.GetSample(i);
-      if (sample->isolate != isolate) {
+      Sample sample = sample_buffer.GetSample(i);
+      if (sample.isolate != isolate) {
         continue;
       }
       c++;
@@ -32,11 +32,11 @@ class ProfileSampleBufferTestHelper {
                                const SampleBuffer& sample_buffer) {
     intptr_t c = 0;
     for (intptr_t i = 0; i < sample_buffer.capacity(); i++) {
-      Sample* sample = sample_buffer.GetSample(i);
-      if (sample->isolate != isolate) {
+      Sample sample = sample_buffer.GetSample(i);
+      if (sample.isolate != isolate) {
         continue;
       }
-      c += sample->pcs[0];
+      c += sample.pcs[0];
     }
     return c;
   }

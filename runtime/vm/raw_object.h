@@ -1477,6 +1477,7 @@ class RawTypedData : public RawInstance {
   // Variable length data follows here.
   uint8_t data_[0];
 
+  friend class Api;
   friend class Object;
   friend class Instance;
 };

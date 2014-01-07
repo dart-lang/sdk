@@ -293,6 +293,28 @@ bool Api::StringGetPeerHelper(Dart_NativeArguments args,
 }
 
 
+bool Api::GetNativeReceiver(Dart_NativeArguments args, intptr_t* value) {
+  NoGCScope no_gc_scope;
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  RawObject* raw_obj = arguments->NativeArg0();
+  if (raw_obj->IsHeapObject()) {
+    intptr_t cid = raw_obj->GetClassId();
+    if (cid > kNumPredefinedCids) {
+      ASSERT(Instance::Cast(Object::Handle(raw_obj)).IsValidNativeIndex(0));
+      RawTypedData* native_fields = *reinterpret_cast<RawTypedData**>(
+          RawObject::ToAddr(raw_obj) + sizeof(RawObject));
+      if (native_fields == TypedData::null()) {
+        *value = 0;
+      } else {
+        *value = *bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data_);
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+
 bool Api::GetNativeBooleanArgument(Dart_NativeArguments args,
                                    int arg_index,
                                    bool* value) {
@@ -555,6 +577,20 @@ DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
   new_ref->set_raw(old_ref);
   return reinterpret_cast<Dart_PersistentHandle>(new_ref);
 }
+
+
+DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
+                                          Dart_Handle obj2) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  ASSERT(state->IsValidPersistentHandle(obj1));
+  const Object& obj2_ref = Object::Handle(isolate, Api::UnwrapHandle(obj2));
+  PersistentHandle* obj1_ref = Api::UnwrapAsPersistentHandle(obj1);
+  obj1_ref->set_raw(obj2_ref);
+}
+
 
 static Dart_WeakPersistentHandle AllocateFinalizableHandle(
     Isolate* isolate,
@@ -3783,25 +3819,14 @@ DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   Isolate* isolate = arguments->isolate();
   CHECK_ISOLATE(isolate);
-  ReusableObjectHandleScope reused_obj_handle(isolate);
-  Object& obj = reused_obj_handle.Handle();
-  obj = arguments->NativeArg0();
-  intptr_t cid = obj.GetClassId();
-  if (cid <= kNumPredefinedCids) {
-    if (cid == kNullCid) {
-      return Api::NewError("%s expects receiver argument to be non-null.",
-                           CURRENT_FUNC);
-    }
-    return Api::NewError("%s expects receiver argument to be of"
-                         " type Instance.", CURRENT_FUNC);
-  }
-  const Instance& instance = Instance::Cast(obj);
-  ASSERT(instance.IsValidNativeIndex(0));
   if (value == NULL) {
     RETURN_NULL_ERROR(value);
   }
-  *value = instance.GetNativeField(isolate, 0);
-  return Api::Success();
+  if (Api::GetNativeReceiver(args, value)) {
+    return Api::Success();
+  }
+  return Api::NewError("%s expects receiver argument to be non-null and of"
+                       " type Instance.", CURRENT_FUNC);
 }
 
 

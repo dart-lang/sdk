@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 class ClassTableTest extends VmServiceRequestHelper {
   ClassTableTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/classes');
+      super('http://127.0.0.1:$port/$id/classes');
 
   onRequestCompleted(Map reply) {
     ClassTableHelper helper = new ClassTableHelper(reply);
@@ -20,7 +20,7 @@ class ClassTableTest extends VmServiceRequestHelper {
 class IsolateListTest extends VmServiceRequestHelper {
   IsolateListTest(port) : super('http://127.0.0.1:$port/isolates');
 
-  int _isolateId;
+  String _isolateId;
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(1);

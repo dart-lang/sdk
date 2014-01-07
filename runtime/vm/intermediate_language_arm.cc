@@ -99,13 +99,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
   __ LeaveDartFrame();
   __ Ret();
-
-  // No need to generate NOP instructions so that the debugger can patch the
-  // return pattern (3 instructions) with a call to the debug stub (also 3
-  // instructions).
-  compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
-                                 Isolate::kNoDeoptId,
-                                 token_pos());
 }
 
 
@@ -742,6 +735,26 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                    reinterpret_cast<uword>(Symbols::PredefinedAddress()));
   __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(result, Address(result, char_code, LSL, 1));  // Char code is a smi.
+}
+
+
+LocationSummary* StringToCharCodeInstr::MakeLocationSummary(bool opt) const {
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+
+void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(cid_ == kOneByteStringCid);
+  Register str = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  __ ldr(result, FieldAddress(str, String::length_offset()));
+  __ cmp(result, ShifterOperand(Smi::RawValue(1)));
+  __ LoadImmediate(result, Smi::RawValue(-1), NE);
+  __ ldrb(result, FieldAddress(str, OneByteString::data_offset()), EQ);
+  __ SmiTag(result);
 }
 
 

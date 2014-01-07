@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 class CodeATest extends VmServiceRequestHelper {
   CodeATest(port, id, codeId) :
-      super('http://127.0.0.1:$port/isolates/$id/objects/$codeId');
+      super('http://127.0.0.1:$port/$id/$codeId');
 
   onRequestCompleted(Map reply) {
     Expect.equals('Code', reply['type']);
@@ -21,7 +21,7 @@ class CodeATest extends VmServiceRequestHelper {
 
 class CodeCTest extends VmServiceRequestHelper {
   CodeCTest(port, id, codeId) :
-      super('http://127.0.0.1:$port/isolates/$id/objects/$codeId');
+      super('http://127.0.0.1:$port/$id/$codeId');
 
   onRequestCompleted(Map reply) {
     Expect.equals('Code', reply['type']);
@@ -32,10 +32,10 @@ class CodeCTest extends VmServiceRequestHelper {
 
 class StackTraceTest extends VmServiceRequestHelper {
   StackTraceTest(port, id) :
-      super('http://127.0.0.1:$port/isolates/$id/stacktrace');
+      super('http://127.0.0.1:$port/$id/stacktrace');
 
-  int _aId;
-  int _cId;
+  String _aId;
+  String _cId;
   onRequestCompleted(Map reply) {
     Expect.equals('StackTrace', reply['type']);
     List members = reply['members'];
@@ -49,7 +49,7 @@ class StackTraceTest extends VmServiceRequestHelper {
 class IsolateListTest extends VmServiceRequestHelper {
   IsolateListTest(port) : super('http://127.0.0.1:$port/isolates');
 
-  int _isolateId;
+  String _isolateId;
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(2);

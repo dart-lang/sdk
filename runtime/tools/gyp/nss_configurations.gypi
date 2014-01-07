@@ -48,22 +48,52 @@
           ],
         },
       },
-      # Dart_Debug and Dart_Release are merged after Dart_Base, so we can
-      # override the 'ansi' and '-Werror' flags set at the global level in
-      # tools/gyp/configurations_xcode.gypi.
-      'Dart_Debug': {
+      # Dart_Macos_Debug and Dart_Macos_Release are merged after
+      # Dart_Macos_Base, so we can override the 'ansi' and '-Werror' flags set
+      # at the global level in tools/gyp/configurations_xcode.gypi.
+      'Dart_Macos_Debug': {
+        'abstract': 1,
         'xcode_settings': {
           # Remove 'ansi' setting.
           'GCC_C_LANGUAGE_STANDARD': 'c99',
           'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO', # -Werror off
         },
       },
-      'Dart_Release': {
+      'Dart_Macos_Release': {
+        'abstract': 1,
         'xcode_settings': {
           # Remove 'ansi' setting.
           'GCC_C_LANGUAGE_STANDARD': 'c99',
           'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO', # -Werror off
         },
+      },
+      # When being built for Android nss expects __linux__ to be defined.
+      'Dart_Android_Base': {
+        'target_conditions': [
+          ['_toolset=="host"', {
+            'defines!': [
+              'ANDROID',
+            ],
+            # Define __linux__ on Android build for NSS.
+            'defines': [
+              '__linux__',
+            ],
+            'cflags!': [
+              '-U__linux__',
+            ],
+          }],
+          ['_toolset=="target"', {
+            'defines': [
+              '__linux__',
+              'CHECK_FORK_GETPID',  # Android does not provide pthread_atfork.
+              '__USE_LARGEFILE64',
+            ],
+            # Define __linux__ on Android build for NSS.
+            'cflags!': [
+              '-U__linux__',
+            ],
+          }]
+        ],
       },
     },
   },

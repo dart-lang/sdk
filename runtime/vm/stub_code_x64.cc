@@ -1912,6 +1912,23 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 }
 
 
+// Called only from unoptimized code.
+void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
+  // Check single stepping.
+  Label not_stepping;
+  __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
+  __ ret();
+}
+
+
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
 // TOS + 1: instantiator type arguments (can be NULL).

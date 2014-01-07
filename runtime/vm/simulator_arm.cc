@@ -2943,7 +2943,7 @@ void Simulator::DecodeType7(Instr* instr) {
 
 static float arm_reciprocal_sqrt_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-87.
-  if (isinf(a) || (abs(a) >= exp2f(126))) return 0.0;
+  if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
   else if (a == 0.0) return INFINITY;
   else if (isnan(a)) return a;
 
@@ -2994,7 +2994,7 @@ static float arm_reciprocal_sqrt_estimate(float a) {
 
 static float arm_recip_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-85.
-  if (isinf(a) || (abs(a) >= exp2f(126))) return 0.0;
+  if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
   else if (a == 0.0) return INFINITY;
   else if (isnan(a)) return a;
 

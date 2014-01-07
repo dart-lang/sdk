@@ -471,7 +471,7 @@ class Debugger {
   }
 
   // Send next debugger command in the script, if a response
-  // form the last command has been received and processed.
+  // from the last command has been received and processed.
   void sendNextCommand() {
     while (script.isNextEventMatcher) {
       EventMatcher matcher = script.currentEntry;
@@ -610,6 +610,9 @@ bool RunScript(List script, List<String> arguments) {
 
   // Port number 0 means debug target picks a free port dynamically.
   var targetOpts = [ "--debug:0" ];
+  if (arguments.contains("--verbose")) {
+    targetOpts.add("--verbose_debug");
+  }
   targetOpts.add(Platform.script.toFilePath());
   targetOpts.add("--debuggee");
   print('args: ${targetOpts.join(" ")}');

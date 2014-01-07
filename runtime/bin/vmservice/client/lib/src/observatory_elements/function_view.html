@@ -1,4 +1,6 @@
 <head>
+  <link rel="import" href="class_ref.html">
+  <link rel="import" href="code_ref.html">
   <link rel="import" href="observatory_element.html">
 </head>
 <polymer-element name="function-view" extends="observatory-element">
@@ -7,15 +9,13 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-warning">
         <div class="panel-heading">
-          {{ function['user_name'] }} ({{ function['name'] }}) 
-          <a class="pull-right" href="{{ app.locationManager.currentIsolateClassLink(function['class']['id'])}}">
-            {{ function['class']['name'] }}
-          </a>
+          {{ function['user_name'] }} ({{ function['name'] }})
+          <class-ref app="{{ app }}" ref="{{ function['class'] }}"></class-ref>
         </div>
         <div class="panel-body">
           <div>
-          <a class="btn btn-primary" href="{{ app.locationManager.currentIsolateObjectLink(function['code']['id'])}}">Current Code</a>
-          <a class="btn btn-info" href="{{ app.locationManager.currentIsolateObjectLink(function['unoptimized_code']['id'])}}">Unoptimized Code</a>
+          <code-ref app="{{ app }}" ref="{{ function['code'] }}"></code-ref>
+          <code-ref app="{{ app }}" ref="{{ function['unoptimized_code'] }}"></code-ref>
           </div>
           <table class="table table-hover">
             <tbody>

@@ -167,12 +167,10 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
 
 
 RawObject* SnapshotReader::ReadObject() {
-  // Setup for long jump in case there is an exception while reading.
-  LongJump* base = isolate()->long_jump_base();
-  LongJump jump;
-  isolate()->set_long_jump_base(&jump);
   const Instance& null_object = Instance::Handle();
   *ErrorHandle() = UnhandledException::New(null_object, null_object);
+  // Setup for long jump in case there is an exception while reading.
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Object& obj = Object::Handle(ReadObjectImpl());
     for (intptr_t i = 0; i < backward_references_.length(); i++) {
@@ -181,13 +179,11 @@ RawObject* SnapshotReader::ReadObject() {
         backward_references_[i]->set_state(kIsDeserialized);
       }
     }
-    isolate()->set_long_jump_base(base);
     return obj.raw();
   } else {
     // An error occurred while reading, return the error object.
     const Error& err = Error::Handle(isolate()->object_store()->sticky_error());
     isolate()->object_store()->clear_sticky_error();
-    isolate()->set_long_jump_base(base);
     return err.raw();
   }
 }
@@ -1082,9 +1078,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
 
   // Setup for long jump in case there is an exception while writing
   // the snapshot.
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     NoGCScope no_gc;
 
@@ -1101,10 +1095,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
 
     FillHeader(kind());
     UnmarkAll();
-
-    isolate->set_long_jump_base(base);
   } else {
-    isolate->set_long_jump_base(base);
     ThrowException(exception_type(), exception_msg());
   }
 }
@@ -1475,9 +1466,7 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
 
   // Setup for long jump in case there is an exception while writing
   // the snapshot.
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     // Write out the library object.
     NoGCScope no_gc;
@@ -1485,9 +1474,7 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
     WriteObject(lib.raw());
     FillHeader(kind());
     UnmarkAll();
-    isolate->set_long_jump_base(base);
   } else {
-    isolate->set_long_jump_base(base);
     ThrowException(exception_type(), exception_msg());
   }
 }
@@ -1512,16 +1499,12 @@ void MessageWriter::WriteMessage(const Object& obj) {
 
   // Setup for long jump in case there is an exception while writing
   // the message.
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
+  LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     NoGCScope no_gc;
     WriteObject(obj.raw());
     UnmarkAll();
-    isolate->set_long_jump_base(base);
   } else {
-    isolate->set_long_jump_base(base);
     ThrowException(exception_type(), exception_msg());
   }
 }

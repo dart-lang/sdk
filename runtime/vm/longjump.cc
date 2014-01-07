@@ -15,13 +15,14 @@
 
 namespace dart {
 
-jmp_buf* LongJump::Set() {
+jmp_buf* LongJumpScope::Set() {
+  ASSERT(top_ == NULL);
   top_ = Isolate::Current()->top_resource();
   return &environment_;
 }
 
 
-bool LongJump::IsSafeToJump() {
+bool LongJumpScope::IsSafeToJump() {
   // We do not want to jump past Dart frames.  Note that this code
   // assumes the stack grows from high to low.
   Isolate* isolate = Isolate::Current();
@@ -35,8 +36,9 @@ bool LongJump::IsSafeToJump() {
 }
 
 
-void LongJump::Jump(int value, const Error& error) {
-  // A zero is the default return value from setting up a LongJump using Set.
+void LongJumpScope::Jump(int value, const Error& error) {
+  // A zero is the default return value from setting up a LongJumpScope
+  // using Set.
   ASSERT(value != 0);
   ASSERT(IsSafeToJump());
 

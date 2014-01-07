@@ -397,6 +397,20 @@ DART_EXPORT Dart_Handle Dart_HandleFromWeakPersistent(
 DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object);
 
 /**
+ * Assign value of local handle to a persistent handle.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param obj1 A persistent handle whose value needs to be set.
+ * \param obj2 An object whose value needs to be set to the persistent handle.
+ *
+ * \return Success if the persistent handle was set
+ *   Otherwise, returns an error.
+ */
+DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
+                                          Dart_Handle obj2);
+
+/**
  * Deallocates a persistent handle.
  *
  * Requires there to be a current isolate.
@@ -2118,6 +2132,21 @@ typedef void (*Dart_NativeFunction)(Dart_NativeArguments arguments);
  * can provide a native entry resolver. This callback is used to map a
  * name/arity to a Dart_NativeFunction. If no function is found, the
  * callback should return NULL.
+ *
+ * The parameters to the native resolver function are:
+ * \param name a Dart string which is the name of the native function.
+ * \param num_of_arguments is the number of arguments expected by the
+ *   native function.
+ * \param auto_setup_scope is a boolean flag that can be set by the resolver
+ *   to indicate if this function needs a Dart API scope (see Dart_EnterScope/
+ *   Dart_ExitScope) to be setup automatically by the VM before calling into
+ *   the native function. By default most native functions would require this
+ *   to be true but some light weight native functions which do not call back
+ *   into the VM through the Dart API may not require a Dart scope to be
+ *   setup automatically.
+ *
+ * \return A valid Dart_NativeFunction which resolves to a native entry point
+ *   for the native function.
  *
  * See Dart_SetNativeResolver.
  */

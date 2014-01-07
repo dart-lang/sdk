@@ -66,63 +66,6 @@
       'conditions': [
         ['OS!="win"', {
           'product_name': 'chrome_zlib',
-        }], ['OS=="android"', {
-          'toolsets': ['target', 'host'],
-        }],
-      ],
-    },
-    {
-      'target_name': 'minizip_dart',  # Added by Dart (the _dart postfix)
-      'type': 'static_library',
-      'sources': [
-        '<(zlib_path)/contrib/minizip/ioapi.c',
-        '<(zlib_path)/contrib/minizip/ioapi.h',
-        '<(zlib_path)/contrib/minizip/iowin32.c',
-        '<(zlib_path)/contrib/minizip/iowin32.h',
-        '<(zlib_path)/contrib/minizip/unzip.c',
-        '<(zlib_path)/contrib/minizip/unzip.h',
-        '<(zlib_path)/contrib/minizip/zip.c',
-        '<(zlib_path)/contrib/minizip/zip.h',
-      ],
-      'dependencies': [
-        'zlib_dart',
-      ],
-      'include_dirs': [
-        '<(zlib_path)/.',
-        '<(zlib_path)/../..',
-      ],
-      'direct_dependent_settings': {
-        'include_dirs': [
-              '<(zlib_path)/.',
-        ],
-      },
-      'conditions': [
-        ['OS!="win"', {
-          'sources!': [
-            '<(zlib_path)/contrib/minizip/iowin32.c'
-          ],
-        }],
-        ['OS=="android"', {
-          'toolsets': ['target', 'host'],
-        }],
-        ['OS=="mac" or OS=="ios" or os_bsd==1 or OS=="android"', {
-          # Mac, Android and the BSDs don't have fopen64, ftello64, or
-          # fseeko64. We use fopen, ftell, and fseek instead on these
-          # systems.
-          'defines': [
-            'USE_FILE32API'
-          ],
-        }],
-        ['clang==1', {
-          'xcode_settings': {
-            'WARNING_CFLAGS': [
-              # zlib uses `if ((a == b))` for some reason.
-              '-Wno-parentheses-equality',
-            ],
-          },
-          'cflags': [
-            '-Wno-parentheses-equality',
-          ],
         }],
       ],
     },

@@ -1,19 +1,19 @@
 <head>
+<link rel="import" href="class_ref.html">
 <link rel="import" href="observatory_element.html">
+<link rel="import" href="service_ref.html">
 </head>
-<polymer-element name="field-ref" extends="observatory-element">
+<polymer-element name="field-ref" extends="service-ref">
 <template>
 <div>
-  <template if="{{ field['final'] }}"> final </template>
-  <template if="{{ field['const'] }}"> const </template>
-  <template if="{{ (field['declared_type']['name'] == 'dynamic' && !field['final'] && !field['const']) }}">
+  <template if="{{ ref['final'] }}"> final </template>
+  <template if="{{ ref['const'] }}"> const </template>
+  <template if="{{ (ref['declared_type']['name'] == 'dynamic' && !ref['final'] && !ref['const']) }}">
   var
   </template>
-  <template if="{{ (field['declared_type']['name'] != 'dynamic') }}">
-  <a href="{{ app.locationManager.currentIsolateClassLink(field['declared_type']['id']) }}">
-    {{ field['declared_type']['user_name'] }} </a>
+  <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
+  <class-ref app="{{ app }}" ref="{{ ref['declared_type'] }}"></class-ref>
   </template>
-  <a href="{{ app.locationManager.currentIsolateObjectLink(field['id'])}}">
-    {{ field['user_name'] }} </a>
+  <a href="{{ url }}">{{ name }}</a>
 </div>
 </template> <script type="application/dart" src="field_ref.dart"></script> </polymer-element>
