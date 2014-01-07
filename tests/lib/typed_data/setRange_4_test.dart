@@ -8,7 +8,7 @@ import 'dart:typed_data';
 
 clampingTest() {
   var a1 = new Int8List(8);
-  var a2 = new Uint8ClampedList.view(a1);
+  var a2 = new Uint8ClampedList.view(a1.buffer);
   initialize(a1);
   Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8]', '$a1');
   Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8]', '$a2');
