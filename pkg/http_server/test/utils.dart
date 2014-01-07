@@ -7,6 +7,34 @@ library utils;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import "package:unittest/unittest.dart";
+
+import 'package:http_server/http_server.dart';
+
+void testVirtualDir(String name, Future func(Directory dir)) {
+  test(name, () {
+    var dir = Directory.systemTemp.createTempSync('http_server_virtual_');
+
+    return func(dir)
+        .whenComplete(() {
+          return dir.delete(recursive: true);
+        });
+  });
+}
+
+Future<int> getStatusCodeForVirtDir(VirtualDirectory virtualDir,
+                           String path,
+                          {String host,
+                           bool secure: false,
+                           DateTime ifModifiedSince,
+                           bool rawPath: false}) {
+  return _withServer((server) {
+
+      virtualDir.serve(server);
+      return getStatusCode(server.port, path, host: host, secure: secure,
+          ifModifiedSince: ifModifiedSince, rawPath: rawPath);
+    });
+}
 
 Future<int> getStatusCode(int port,
                           String path,
@@ -38,21 +66,37 @@ Future<int> getStatusCode(int port,
           (_) => response.statusCode));
 }
 
+Future<HttpHeaders> getHeaders(VirtualDirectory virDir, String path) {
+  return _withServer((server) {
+      virDir.serve(server);
 
-Future<HttpHeaders> getHeaders(int port, String path) =>
-    new HttpClient()
-      .get('localhost', port, path)
-      .then((request) => request.close())
-      .then((response) => response.drain().then(
-          (_) => response.headers));
+      return new HttpClient()
+          .get('localhost', server.port, path)
+          .then((request) => request.close())
+          .then((response) => response.drain().then((_) => response.headers));
+    });
+}
 
+Future<String> getAsString(VirtualDirectory virtualDir, String path) {
+  return _withServer((server) {
+      virtualDir.serve(server);
 
+      return new HttpClient()
+          .get('localhost', server.port, path)
+          .then((request) => request.close())
+          .then((response) => UTF8.decodeStream(response));
+    });
+}
 
-Future<String> getAsString(int port, String path) =>
-    new HttpClient()
-      .get('localhost', port, path)
-      .then((request) => request.close())
-      .then((response) => UTF8.decodeStream(response));
+Future _withServer(Future func(HttpServer server)) {
+  HttpServer server;
+  return HttpServer.bind('localhost', 0)
+      .then((value) {
+        server = value;
+        return func(server);
+      })
+      .whenComplete(server.close);
+}
 
 
 const CERTIFICATE = "localhost_cert";
