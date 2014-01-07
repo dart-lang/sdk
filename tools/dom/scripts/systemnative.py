@@ -93,14 +93,24 @@ _cpp_overloaded_callback_map = {
 _cpp_partial_map = {}
 
 _cpp_no_auto_scope_list = set([
+  ('Document', 'body', 'Getter'),
+  ('Document', 'getElementById', 'Callback'),
+  ('Document', 'getElementsByName', 'Callback'),
+  ('Document', 'getElementsByTagName', 'Callback'),
+  ('Element', 'getAttribute', 'Callback'),
+  ('Element', 'getAttributeNS', 'Callback'),
+  ('Element', 'id', 'Getter'),
+  ('Element', 'id', 'Setter'),
+  ('Element', 'setAttribute', 'Callback'),
+  ('Element', 'setAttributeNS', 'Callback'),
   ('Node', 'firstChild', 'Getter'),
   ('Node', 'lastChild', 'Getter'),
   ('Node', 'nextSibling', 'Getter'),
   ('Node', 'previousSibling', 'Getter'),
   ('Node', 'childNodes', 'Getter'),
+  ('Node', 'nodeType', 'Getter'),
   ('NodeList', 'length', 'Getter'),
   ('NodeList', 'item', 'Callback'),
-  ('Document', 'body', 'Getter'),
 ])
 
 # TODO(vsm): This should be recoverable from IDL, but we appear to not
@@ -383,7 +393,8 @@ class DartiumBackend(HtmlDartGenerator):
         arguments,
         self._interface.id,
         False,
-        'ConstructorRaisesException' in ext_attrs or 'RaisesException' in ext_attrs)
+        'ConstructorRaisesException' in ext_attrs or 'RaisesException' in ext_attrs,
+        True)
 
   def HasSupportCheck(self):
     # Need to omit a support check if it is conditional in JS.
@@ -471,7 +482,8 @@ class DartiumBackend(HtmlDartGenerator):
         '        return createWrapper(domData, value);\n'
         '    }\n'
         '    static void returnToDart(Dart_NativeArguments args,\n'
-        '                             NativeType* value)\n'
+        '                             NativeType* value,\n'
+        '                             bool autoDartScope = true)\n'
         '    {\n'
         '        if (value) {\n'
         '            DartDOMData* domData = static_cast<DartDOMData*>(\n'
@@ -481,8 +493,12 @@ class DartiumBackend(HtmlDartGenerator):
         '            if (result)\n'
         '                Dart_SetWeakHandleReturnValue(args, result);\n'
         '            else {\n'
-        '                DartApiScope apiScope;\n'
-        '                Dart_SetReturnValue(args, createWrapper(domData, value));\n'
+        '                if (autoDartScope) {\n'
+        '                    Dart_SetReturnValue(args, createWrapper(domData, value));\n'
+        '                } else {\n'
+        '                    DartApiScope apiScope;\n'
+        '                    Dart_SetReturnValue(args, createWrapper(domData, value));\n'
+        '               }\n'
         '            }\n'
         '        }\n'
         '    }\n',
@@ -531,6 +547,9 @@ class DartiumBackend(HtmlDartGenerator):
     if not read_only:
       self._AddSetter(attribute, html_name)
 
+  def _GenerateAutoSetupScope(self, idl_name, native_suffix):
+    return (self._interface.id, idl_name, native_suffix) not in _cpp_no_auto_scope_list
+
   def _AddGetter(self, attr, html_name, read_only):
     # Temporary hack to force dart:scalarlist clamped array for ImageData.data.
     # TODO(antonm): solve in principled way.
@@ -540,8 +559,10 @@ class DartiumBackend(HtmlDartGenerator):
     dart_declaration = '%s get %s' % (
         self.SecureOutputType(attr.type.id, False, read_only), html_name)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
+    native_suffix = 'Getter'
+    auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
-        dart_declaration, 'Getter', is_custom)
+        dart_declaration, native_suffix, is_custom, auto_scope_setup)
     if is_custom:
       return
 
@@ -573,14 +594,17 @@ class DartiumBackend(HtmlDartGenerator):
         [],
         attr.type.id,
         attr.type.nullable,
-        'GetterRaisesException' in attr.ext_attrs or 'RaisesException' in attr.ext_attrs)
+        'GetterRaisesException' in attr.ext_attrs or 'RaisesException' in attr.ext_attrs,
+        auto_scope_setup)
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
     dart_declaration = 'void set %s(%s value)' % (html_name, self._DartType(attr.type.id))
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
+    native_suffix = 'Setter'
+    auto_scope_setup = self._GenerateAutoSetupScope(attr.id, native_suffix)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
-        dart_declaration, 'Setter', is_custom)
+        dart_declaration, native_suffix, is_custom, auto_scope_setup)
     if is_custom:
       return
 
@@ -602,6 +626,7 @@ class DartiumBackend(HtmlDartGenerator):
         'void',
         False,
         'SetterRaisesException' in attr.ext_attrs,
+        auto_scope_setup,
         generate_custom_element_scope_if_needed=True)
 
   def AddIndexer(self, element_type):
@@ -674,7 +699,7 @@ class DartiumBackend(HtmlDartGenerator):
     dart_declaration = '%s operator[](int index)' % \
         self.SecureOutputType(element_type, True)
     self._GenerateNativeBinding('numericIndexGetter', 2, dart_declaration,
-        'Callback', True)
+        'Callback', True, False)
 
   def _HasExplicitIndexedGetter(self):
     return any(op.id == 'getItem' for op in self._interface.operations)
@@ -699,7 +724,7 @@ class DartiumBackend(HtmlDartGenerator):
   def _EmitNativeIndexSetter(self, element_type):
     dart_declaration = 'void operator[]=(int index, %s value)' % element_type
     self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
-        'Callback', True)
+        'Callback', True, False)
 
   def EmitOperation(self, info, html_name):
     """
@@ -723,10 +748,13 @@ class DartiumBackend(HtmlDartGenerator):
     elif not needs_dispatcher:
       # Bind directly to native implementation
       argument_count = (0 if info.IsStatic() else 1) + len(info.param_infos)
+      native_suffix = 'Callback'
+      auto_scope_setup = self._GenerateAutoSetupScope(info.name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
-          info.name, argument_count, dart_declaration, 'Callback', is_custom)
+          info.name, argument_count, dart_declaration, native_suffix, is_custom,
+          auto_scope_setup)
       if not is_custom:
-        self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name)
+        self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name, auto_scope_setup)
     else:
       self._GenerateDispatcher(info, info.operations, dart_declaration)
 
@@ -744,11 +772,14 @@ class DartiumBackend(HtmlDartGenerator):
           self.SecureOutputType(operation.type.id),
           overload_name, argument_list)
       is_custom = 'Custom' in operation.ext_attrs
+      native_suffix = 'Callback'
+      auto_scope_setup = self._GenerateAutoSetupScope(overload_name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
           overload_name, (0 if operation.is_static else 1) + argument_count,
-          dart_declaration, 'Callback', is_custom, emit_metadata=False)
+          dart_declaration, 'Callback', is_custom, auto_scope_setup,
+          emit_metadata=False)
       if not is_custom:
-        self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
+        self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name, auto_scope_setup)
 
     self._GenerateDispatcherBody(
         info,
@@ -760,7 +791,7 @@ class DartiumBackend(HtmlDartGenerator):
   def SecondaryContext(self, interface):
     pass
 
-  def _GenerateOperationNativeCallback(self, operation, arguments, cpp_callback_name):
+  def _GenerateOperationNativeCallback(self, operation, arguments, cpp_callback_name, auto_scope_setup=True):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation, cpp_callback_name)
     self._GenerateNativeCallback(
@@ -772,6 +803,7 @@ class DartiumBackend(HtmlDartGenerator):
         operation.type.id,
         operation.type.nullable,
         'RaisesException' in operation.ext_attrs,
+        auto_scope_setup,
         generate_custom_element_scope_if_needed=True)
 
   def _GenerateNativeCallback(self,
@@ -783,6 +815,7 @@ class DartiumBackend(HtmlDartGenerator):
       return_type,
       return_type_is_nullable,
       raises_dom_exception,
+      auto_scope_setup=True,
       generate_custom_element_scope_if_needed=False):
 
     ext_attrs = node.ext_attrs
@@ -1011,8 +1044,12 @@ class DartiumBackend(HtmlDartGenerator):
             '        $TYPE $ARGUMENT_NAME;\n'\
             '        $CLS::$FUNCTION(args, $INDEX, $ARGUMENT_NAME, exception);\n'
       else:
-        invocation_template =\
-            '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(args, $INDEX, exception);\n'
+        if not auto_scope_setup and type_info.native_type() == 'String':
+          invocation_template =\
+              '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(args, $INDEX, exception, false);\n'
+        else:
+          invocation_template =\
+              '        $TYPE $ARGUMENT_NAME = $CLS::$FUNCTION(args, $INDEX, exception);\n'
       body_emitter.Emit(
           '\n' +
           invocation_template +
@@ -1091,15 +1128,17 @@ class DartiumBackend(HtmlDartGenerator):
       elif return_type_info.dart_type() == 'double':
         set_return_value = 'Dart_SetDoubleReturnValue(args, %s)' % (value_expression)
       elif return_type_info.dart_type() == 'String':
+        auto_dart_scope='true' if auto_scope_setup else 'false'
         if ext_attrs and 'TreatReturnedNullStringAs' in ext_attrs:
-          set_return_value = 'DartUtilities::setDartStringReturnValueWithNullCheck(args, %s)' % (value_expression)
+          set_return_value = 'DartUtilities::setDartStringReturnValueWithNullCheck(args, %s, %s)' % (value_expression, auto_dart_scope)
         else:
-          set_return_value = 'DartUtilities::setDartStringReturnValue(args, %s)' % (value_expression)
+          set_return_value = 'DartUtilities::setDartStringReturnValue(args, %s, %s)' % (value_expression, auto_dart_scope)
       elif return_type_info.dart_type() == 'num' and return_type_info.native_type() == 'double':
         set_return_value = 'Dart_SetDoubleReturnValue(args, %s)' % (value_expression)
       else:
         return_to_dart_conversion = return_type_info.return_to_dart_conversion(
             value_expression,
+            auto_scope_setup,
             self._interface.id,
             ext_attrs)
         set_return_value = '%s' % (return_to_dart_conversion)
@@ -1108,12 +1147,7 @@ class DartiumBackend(HtmlDartGenerator):
         RETURN_VALUE=set_return_value)
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
-      native_suffix, is_custom, emit_metadata=True):
-
-    def _GenerateAutoSetupScope(self, idl_name, native_suffix):
-      if ((self._interface.id, idl_name, native_suffix) not in _cpp_no_auto_scope_list):
-        return 'true'
-      return 'false'
+      native_suffix, is_custom, auto_scope_setup=True, emit_metadata=True):
 
     metadata = []
     if emit_metadata:
@@ -1131,7 +1165,6 @@ class DartiumBackend(HtmlDartGenerator):
         NATIVE_BINDING=native_binding)
 
     cpp_callback_name = '%s%s' % (idl_name, native_suffix)
-    auto_scope_setup = _GenerateAutoSetupScope(self, idl_name, native_suffix)
 
     self._cpp_resolver_emitter.Emit(
         '    if (argumentCount == $ARGC && name == "$NATIVE_BINDING") {\n'
@@ -1141,7 +1174,7 @@ class DartiumBackend(HtmlDartGenerator):
         ARGC=argument_count,
         NATIVE_BINDING=native_binding,
         INTERFACE_NAME=self._interface.id,
-        AUTO_SCOPE_SETUP=auto_scope_setup,
+        AUTO_SCOPE_SETUP='true' if auto_scope_setup else 'false',
         CPP_CALLBACK_NAME=cpp_callback_name)
 
     if is_custom:

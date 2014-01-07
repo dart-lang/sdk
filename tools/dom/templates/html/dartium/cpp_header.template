@@ -34,9 +34,9 @@ $TO_DART
     {
         return createWrapper(value.get());
     }
-    static void returnToDart(Dart_NativeArguments args, PassRefPtr< $WEBCORE_CLASS_NAME > value)
+    static void returnToDart(Dart_NativeArguments args, PassRefPtr< $WEBCORE_CLASS_NAME > value, bool autoDartScope = true)
     {
-        return returnToDart(args, value.get());
+        return returnToDart(args, value.get(), autoDartScope);
     }
 
     static Dart_NativeFunction resolver(Dart_Handle name, int argumentCount, bool* autoSetupScope);
