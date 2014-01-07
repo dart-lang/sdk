@@ -62,6 +62,8 @@ patch class Uint8ClampedList {
                                              int length]) {
     return new _Uint8ClampedArrayView(buffer, offsetInBytes, length);
   }
+
+  bool _isClamped() { return true; }
 }
 
 
@@ -523,11 +525,38 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    if (!_setRange(start, end - start, iterable, skipCount)) {
-      IterableMixinWorkaround.setRangeList(this, start,
-                                           end, iterable, skipCount);
+  bool _isClamped() { return false; }
+
+  void setRange(int start, int end, Iterable from, [int skipCount = 0]) {
+    if (from is _TypedListBase){
+      final needsClamping =
+          this._isClamped() && (this._isClamped() != from._isClamped());
+      if (!needsClamping &&
+          (this.elementSizeInBytes == from.elementSizeInBytes)) {
+        if (this.buffer._setRange(
+              start + (this.offsetInBytes ~/ this.elementSizeInBytes),
+              end - start,
+              from.buffer,
+              skipCount + (from.offsetInBytes  ~/ from.elementSizeInBytes))) {
+          return;
+        }
+      } else if (from.buffer == this.buffer) {
+        // Different element sizes, but same buffer means that we need
+        // an intermediate structure.
+        // TODO(srdjan): Optimize to skip copying if the range does not overlap.
+        final len = end - start;
+        final buffer = new List(len);
+        for (int i = 0; i < len; i++) {
+          buffer[i] = from[skipCount + i];
+        }
+        for (int i = start; i < end; i++) {
+          this[i] = buffer[i - start];
+        }
+        return;
+      }
     }
+    IterableMixinWorkaround.setRangeList(this, start,
+                                         end, from, skipCount);
   }
 
   void setAll(int index, Iterable iterable) {
@@ -567,11 +596,9 @@ abstract class _TypedList extends _TypedListBase implements ByteBuffer {
     return this;
   }
 
-
   // Methods implementing the collection interface.
 
   int get length native "TypedData_length";
-
 
   // Internal utility methods.
 
@@ -738,6 +765,7 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
     return new _Uint8ClampedArrayView(buffer, offsetInBytes, length);
   }
 
+  bool _isClamped() { return true; }
 
   // Methods implementing List interface.
 
@@ -1503,6 +1531,7 @@ class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList 
     return _new(length);
   }
 
+  bool _isClamped() { return true; }
 
   // Method(s) implementing the List interface.
 
@@ -2286,7 +2315,6 @@ class _TypedListView extends _TypedListBase implements TypedData {
       length = _length {
   }
 
-
   // Method(s) implementing the TypedData interface.
 
   int get lengthInBytes {
@@ -2418,6 +2446,8 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8ClampedList 
                 length * Uint8List.BYTES_PER_ELEMENT);
   }
 
+
+  bool _isClamped() { return true; }
 
   // Method(s) implementing List interface.
 
