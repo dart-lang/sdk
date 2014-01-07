@@ -95,7 +95,7 @@ Future _withServer(Future func(HttpServer server)) {
         server = value;
         return func(server);
       })
-      .whenComplete(server.close);
+      .whenComplete(() => server.close());
 }
 
 
