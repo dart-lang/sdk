@@ -132,6 +132,7 @@ class Heap {
   // traversal through the heap space continues.
   RawInstructions* FindObjectInCodeSpace(FindObjectVisitor* visitor);
   RawInstructions* FindObjectInStubCodeSpace(FindObjectVisitor* visitor);
+  RawObject* FindOldObject(FindObjectVisitor* visitor) const;
 
   void CollectGarbage(Space space);
   void CollectGarbage(Space space, ApiCallbacks api_callbacks);

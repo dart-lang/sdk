@@ -472,8 +472,9 @@ void X86Decoder::PrintAddress(uword addr) {
   Print(addr_buffer);
   // Try to print as heap object or stub name
   if (((addr & kSmiTagMask) == kHeapObjectTag) &&
+      reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
-      Isolate::Current()->heap()->Contains(addr - kHeapObjectTag)) {
+      Disassembler::CanFindOldObject(addr)) {
     const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
     if (obj.IsArray()) {
       const Array& arr = Array::Cast(obj);

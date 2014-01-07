@@ -155,6 +155,11 @@ RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
 }
 
 
+RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
+  return old_space_->FindObject(visitor, HeapPage::kData);
+}
+
+
 void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
   bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
   switch (space) {

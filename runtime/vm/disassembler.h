@@ -128,6 +128,8 @@ class Disassembler : public AllStatic {
                                 char* human_buffer, intptr_t human_size,
                                 int* out_instr_len, uword pc);
 
+  static bool CanFindOldObject(uword addr);
+
  private:
   static const int kHexadecimalBufferSize = 32;
   static const int kUserReadableBufferSize = 256;
