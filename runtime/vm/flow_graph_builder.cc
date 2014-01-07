@@ -967,11 +967,15 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // Call to stub that checks whether the debugger is in single
   // step mode. This call must happen before the contexts are
   // unchained so that captured variables can be inspected.
-  AddInstruction(new DebugStepCheckInstr(node->token_pos()));
+  // No debugger check is done in native functions.
+  const Function& function = owner()->parsed_function()->function();
+  if (!function.is_native()) {
+    AddInstruction(new DebugStepCheckInstr(node->token_pos(),
+                                           PcDescriptors::kReturn));
+  }
 
   Value* return_value = for_value.value();
   if (FLAG_enable_type_checks) {
-    const Function& function = owner()->parsed_function()->function();
     const bool is_implicit_dynamic_getter =
         (!function.is_static() &&
         ((function.kind() == RawFunction::kImplicitGetter) ||
@@ -983,8 +987,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     // However, factories may create an instance of the wrong type.
     if (!is_implicit_dynamic_getter && !function.IsConstructor()) {
       const AbstractType& dst_type =
-          AbstractType::ZoneHandle(
-              owner()->parsed_function()->function().result_type());
+          AbstractType::ZoneHandle(function.result_type());
       return_value = BuildAssignableValue(node->value()->token_pos(),
                                           return_value,
                                           dst_type,
@@ -3207,6 +3210,15 @@ void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 //                               value: <Expression> }
 void EffectGraphVisitor::HandleStoreLocal(StoreLocalNode* node,
                                           bool result_is_needed) {
+  // If the right hand side is an expression that does not contain
+  // a safe point for the debugger to stop, add an explicit stub
+  // call.
+  if (node->value()->IsLiteralNode() ||
+      node->value()->IsLoadLocalNode()) {
+    AddInstruction(new DebugStepCheckInstr(node->token_pos(),
+                                           PcDescriptors::kRuntimeCall));
+  }
+
   ValueGraphVisitor for_value(owner());
   node->value()->Visit(&for_value);
   Append(for_value);
