@@ -11,6 +11,7 @@
  *                      and various sorting algorithms).
  * - `equality.dart`: Different notions of equality of collections.
  * - `iterable_zip.dart`: Combining multiple iterables into one.
+ * - `priority_queue.dart`: Priority queue type and implementations.
  * - `wrappers.dart`: Wrapper classes that delegate to a collection object.
  *                    Includes unmodifiable views of collections.
  */
@@ -19,4 +20,5 @@ library dart.pkg.collection;
 export "algorithms.dart";
 export "equality.dart";
 export "iterable_zip.dart";
+export "priority_queue.dart";
 export "wrappers.dart";

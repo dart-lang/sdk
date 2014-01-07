@@ -63,6 +63,8 @@ abstract class Comparable<T> {
   /**
    * A [Comparator] that compares one comparable to another.
    *
+   * It returns the result of `a.compareTo(b)`.
+   *
    * This utility function is used as the default comparator
    * for ordering collections, for example in the [List] sort function.
    */
