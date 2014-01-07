@@ -23,28 +23,48 @@ typedef int Comparator<T>(T a, T b);
 /**
  * Interface used by types that have an intrinsic ordering.
  *
- * The comparison operations is intended to be a total ordering of objects,
+ * The [compareTo] operation defines a total ordering of objects,
  * which can be used for ordering and sorting.
  *
- * When possible a the order of a `Comparable` class should agree with its
- * `operator==` equality. That is, `a.compareTo(b) == 0` iff `a == b`.
+ * The [Comparable] interface should be used for the natural ordering of a type.
+ * If a type can be ordered in more than one way,
+ * and none of them is the obvious natural ordering,
+ * then it might be better not to use the [Comparable] interface,
+ * and to provide separate [Comparator]s instead.
  *
- * There are cases where this fail to be the case, in either direction.
- * See [double] where the `compareTo` method is more precise than equality, or
- * [DateTime] where the `compareTo` method is less precise than equality.
+ * It is recommended that the order of a `Comparable` agrees
+ * with its `operator==` equality (`a.compareTo(b) == 0` iff `a == b`),
+ * but this is not a requirement.
+ * For example, [double] and [DateTime] have `compareTo` methods
+ * that do not agree with `operator==`.
+ * For doubles the `compareTo` method is more precise than the equality,
+ * and for [DateTime] it is less precise.
  *
- * If equality and `compareTo` agrees,
- * and the ordering represents a less-than/greater-than ordering,
- * consider implementing the comparison operators `<`, `<=`, `>` and `>=`,
- * for the class as well.
- * If equality and `compareTo` disagrees,
- * and the class has a less-than/greater-than ordering,
- * the comparison operators should match equality
- * (`a <= b && a >= b` implies `a == b`).
+ * Examples:
  *
- * The `double` class has the comparison operators
+ *    (0.0).compareTo(-0.0);  // => 1
+ *    0.0 == -0.0;            // => true
+ *    var dt = new DateTime.now();
+ *    var dt2 = dt.toUtc();
+ *    dt == dt2;              // => false
+ *    dt.compareTo(dt2);      // => 0
+ *
+ * The `Comparable` interface does not imply the existence
+ * of the comparison operators `<`, `<=`, `>` and `>=`.
+ * These should only be defined
+ * if the ordering is a less-than/greater-than ordering,
+ * that is, an ordering where you would naturally
+ * use the words "less than" about the order of two elements.
+ *
+ * If the equality operator and `compareTo` disagree,
+ * the comparison operators should follow the equality operator,
+ * and will likely also disagree with `compareTo`.
+ * Otherwise they should match the `compareTo` method,
+ * so that `a < b` iff `a.compareTo(b) < 0`.
+ *
+ * The `double` class defines comparison operators
  * that are compatible with equality.
- * They differ from [double.compareTo] on -0.0 and NaN.
+ * The operators differ from [double.compareTo] on -0.0 and NaN.
  *
  * The `DateTime` class has no comparison operators, instead it has the more
  * precisely named [DateTime.isBefore] and [DateTime.isAfter].
@@ -53,10 +73,12 @@ abstract class Comparable<T> {
   /**
    * Compares this object to another [Comparable]
    *
-   * Returns a value like a [Comparator] when comparing [:this:] to [other].
+   * Returns a value like a [Comparator] when comparing `this` to [other].
+   * That is, it returns a negative integer if `this` is ordered before `other`,
+   * a positive integer if `this` is ordered after `other`,
+   * and zero if `this` and `other` are ordered together.
    *
-   * May throw an [ArgumentError] if [other] is of a type that
-   * is not comparable to [:this:].
+   * The `other` argument must be a value that is comparable to this object.
    */
   int compareTo(T other);
 
