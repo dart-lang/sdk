@@ -21,7 +21,7 @@ custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill 
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $runtime == drt || $runtime == dartium ]
 audiobuffersourcenode_test/functional: Fail # 15913
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
