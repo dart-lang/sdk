@@ -5834,23 +5834,6 @@ class SvgElement extends Element implements GlobalEventHandlers native "SVGEleme
   @Experimental() // untriaged
   String xmlspace;
 
-  // From EventTarget
-
-  @DomName('SVGElement.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('SVGElement.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native;
-
-  @DomName('SVGElement.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
   @DomName('SVGElement.onabort')
   @DocsEditable()
   @Experimental() // untriaged
