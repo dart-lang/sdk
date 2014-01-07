@@ -43,6 +43,11 @@ def PubSteps(build_info):
 
   bot.RunTest('pub', build_info, ['pub', 'pkg', 'dartdoc', 'docs'])
 
+  pkgbuild_build_info = bot.BuildInfo('none', 'vm', 'release',
+      build_info.system, checked=False)
+  bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info, ['pkgbuild'])
+  bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info, ['pkgbuild'])
+
 
 if __name__ == '__main__':
   bot.RunBot(PubConfig, PubSteps)
