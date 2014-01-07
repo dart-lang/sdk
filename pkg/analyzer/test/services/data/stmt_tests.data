@@ -25,3 +25,11 @@ print(a);
 for (var a = 0; a < 100; ++a) {
   print(a);
 }
+>>>
+for (x in xs) {
+  print(x);
+}
+<<<
+for (x in xs) {
+  print(x);
+}

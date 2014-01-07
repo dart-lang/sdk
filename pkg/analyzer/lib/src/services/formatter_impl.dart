@@ -754,7 +754,11 @@ class SourceVisitor implements ASTVisitor {
     token(node.forKeyword);
     space();
     token(node.leftParenthesis);
-    visit(node.loopVariable);
+    if (node.loopVariable != null) {
+      visit(node.loopVariable);
+    } else {
+      visit(node.identifier);
+    }
     space();
     token(node.inKeyword);
     space();
