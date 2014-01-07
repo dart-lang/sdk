@@ -55,10 +55,13 @@ sharedTests() {
     writeFile("a.txt", contents: "same");
     writeFile("b.txt", contents: "before");
     startWatcher();
+
     writeFile("a.txt", contents: "same");
     writeFile("b.txt", contents: "after");
-    expectModifyEvent("a.txt");
-    expectModifyEvent("b.txt");
+    inAnyOrder(() {
+      expectModifyEvent("a.txt");
+      expectModifyEvent("b.txt");
+    });
   });
 
   test('when the watched directory is deleted, removes all files', () {
