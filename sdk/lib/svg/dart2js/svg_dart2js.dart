@@ -3166,6 +3166,11 @@ class GraphicsElement extends SvgElement implements Tests native "SVGGraphicsEle
   @Experimental() // untriaged
   Matrix getScreenCtm() native;
 
+  @DomName('SVGGraphicsElement.getStrokeBBox')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Rect getStrokeBBox() native;
+
   @DomName('SVGGraphicsElement.getTransformToElement')
   @DocsEditable()
   @Experimental() // untriaged
@@ -5418,7 +5423,7 @@ class _AttributeClassSet extends CssClassSetImpl {
 
 @DomName('SVGElement')
 @Unstable()
-class SvgElement extends Element native "SVGElement" {
+class SvgElement extends Element implements GlobalEventHandlers native "SVGElement" {
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory SvgElement.tag(String tag) =>
@@ -5538,6 +5543,261 @@ class SvgElement extends Element native "SVGElement" {
   }
   // To suppress missing implicit constructor warnings.
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('SVGElement.abortEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> abortEvent = const EventStreamProvider<Event>('abort');
+
+  @DomName('SVGElement.blurEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
+
+  @DomName('SVGElement.canplayEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
+
+  @DomName('SVGElement.canplaythroughEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
+
+  @DomName('SVGElement.changeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  @DomName('SVGElement.clickEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> clickEvent = const EventStreamProvider<MouseEvent>('click');
+
+  @DomName('SVGElement.contextmenuEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> contextMenuEvent = const EventStreamProvider<MouseEvent>('contextmenu');
+
+  @DomName('SVGElement.dblclickEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> doubleClickEvent = const EventStreamProvider<Event>('dblclick');
+
+  @DomName('SVGElement.dragEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> dragEvent = const EventStreamProvider<MouseEvent>('drag');
+
+  @DomName('SVGElement.dragendEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> dragEndEvent = const EventStreamProvider<MouseEvent>('dragend');
+
+  @DomName('SVGElement.dragenterEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> dragEnterEvent = const EventStreamProvider<MouseEvent>('dragenter');
+
+  @DomName('SVGElement.dragleaveEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> dragLeaveEvent = const EventStreamProvider<MouseEvent>('dragleave');
+
+  @DomName('SVGElement.dragoverEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> dragOverEvent = const EventStreamProvider<MouseEvent>('dragover');
+
+  @DomName('SVGElement.dragstartEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> dragStartEvent = const EventStreamProvider<MouseEvent>('dragstart');
+
+  @DomName('SVGElement.dropEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
+
+  @DomName('SVGElement.durationchangeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
+
+  @DomName('SVGElement.emptiedEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
+
+  @DomName('SVGElement.endedEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
+
+  @DomName('SVGElement.errorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  @DomName('SVGElement.focusEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> focusEvent = const EventStreamProvider<Event>('focus');
+
+  @DomName('SVGElement.inputEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> inputEvent = const EventStreamProvider<Event>('input');
+
+  @DomName('SVGElement.invalidEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> invalidEvent = const EventStreamProvider<Event>('invalid');
+
+  @DomName('SVGElement.keydownEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<KeyboardEvent> keyDownEvent = const EventStreamProvider<KeyboardEvent>('keydown');
+
+  @DomName('SVGElement.keypressEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<KeyboardEvent> keyPressEvent = const EventStreamProvider<KeyboardEvent>('keypress');
+
+  @DomName('SVGElement.keyupEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<KeyboardEvent> keyUpEvent = const EventStreamProvider<KeyboardEvent>('keyup');
+
+  @DomName('SVGElement.loadEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  @DomName('SVGElement.loadeddataEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
+
+  @DomName('SVGElement.loadedmetadataEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
+
+  @DomName('SVGElement.mousedownEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseDownEvent = const EventStreamProvider<MouseEvent>('mousedown');
+
+  @DomName('SVGElement.mouseenterEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseEnterEvent = const EventStreamProvider<MouseEvent>('mouseenter');
+
+  @DomName('SVGElement.mouseleaveEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseLeaveEvent = const EventStreamProvider<MouseEvent>('mouseleave');
+
+  @DomName('SVGElement.mousemoveEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseMoveEvent = const EventStreamProvider<MouseEvent>('mousemove');
+
+  @DomName('SVGElement.mouseoutEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseOutEvent = const EventStreamProvider<MouseEvent>('mouseout');
+
+  @DomName('SVGElement.mouseoverEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseOverEvent = const EventStreamProvider<MouseEvent>('mouseover');
+
+  @DomName('SVGElement.mouseupEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MouseEvent> mouseUpEvent = const EventStreamProvider<MouseEvent>('mouseup');
+
+  @DomName('SVGElement.mousewheelEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
+
+  @DomName('SVGElement.pauseEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
+
+  @DomName('SVGElement.playEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
+
+  @DomName('SVGElement.playingEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
+
+  @DomName('SVGElement.ratechangeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
+
+  @DomName('SVGElement.resetEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> resetEvent = const EventStreamProvider<Event>('reset');
+
+  @DomName('SVGElement.scrollEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> scrollEvent = const EventStreamProvider<Event>('scroll');
+
+  @DomName('SVGElement.seekedEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
+
+  @DomName('SVGElement.seekingEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
+
+  @DomName('SVGElement.selectEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> selectEvent = const EventStreamProvider<Event>('select');
+
+  @DomName('SVGElement.stalledEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
+
+  @DomName('SVGElement.submitEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
+
+  @DomName('SVGElement.suspendEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
+
+  @DomName('SVGElement.timeupdateEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
+
+  @DomName('SVGElement.volumechangeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
+
+  @DomName('SVGElement.waitingEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -5573,6 +5833,261 @@ class SvgElement extends Element native "SVGElement" {
   @DocsEditable()
   @Experimental() // untriaged
   String xmlspace;
+
+  @DomName('SVGElement.onabort')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onAbort => abortEvent.forElement(this);
+
+  @DomName('SVGElement.onblur')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onBlur => blurEvent.forElement(this);
+
+  @DomName('SVGElement.oncanplay')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onCanPlay => canPlayEvent.forElement(this);
+
+  @DomName('SVGElement.oncanplaythrough')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onCanPlayThrough => canPlayThroughEvent.forElement(this);
+
+  @DomName('SVGElement.onchange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onChange => changeEvent.forElement(this);
+
+  @DomName('SVGElement.onclick')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onClick => clickEvent.forElement(this);
+
+  @DomName('SVGElement.oncontextmenu')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onContextMenu => contextMenuEvent.forElement(this);
+
+  @DomName('SVGElement.ondblclick')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onDoubleClick => doubleClickEvent.forElement(this);
+
+  @DomName('SVGElement.ondrag')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onDrag => dragEvent.forElement(this);
+
+  @DomName('SVGElement.ondragend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onDragEnd => dragEndEvent.forElement(this);
+
+  @DomName('SVGElement.ondragenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onDragEnter => dragEnterEvent.forElement(this);
+
+  @DomName('SVGElement.ondragleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onDragLeave => dragLeaveEvent.forElement(this);
+
+  @DomName('SVGElement.ondragover')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onDragOver => dragOverEvent.forElement(this);
+
+  @DomName('SVGElement.ondragstart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onDragStart => dragStartEvent.forElement(this);
+
+  @DomName('SVGElement.ondrop')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onDrop => dropEvent.forElement(this);
+
+  @DomName('SVGElement.ondurationchange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onDurationChange => durationChangeEvent.forElement(this);
+
+  @DomName('SVGElement.onemptied')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onEmptied => emptiedEvent.forElement(this);
+
+  @DomName('SVGElement.onended')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onEnded => endedEvent.forElement(this);
+
+  @DomName('SVGElement.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onError => errorEvent.forElement(this);
+
+  @DomName('SVGElement.onfocus')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onFocus => focusEvent.forElement(this);
+
+  @DomName('SVGElement.oninput')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onInput => inputEvent.forElement(this);
+
+  @DomName('SVGElement.oninvalid')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onInvalid => invalidEvent.forElement(this);
+
+  @DomName('SVGElement.onkeydown')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<KeyboardEvent> get onKeyDown => keyDownEvent.forElement(this);
+
+  @DomName('SVGElement.onkeypress')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<KeyboardEvent> get onKeyPress => keyPressEvent.forElement(this);
+
+  @DomName('SVGElement.onkeyup')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<KeyboardEvent> get onKeyUp => keyUpEvent.forElement(this);
+
+  @DomName('SVGElement.onload')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onLoad => loadEvent.forElement(this);
+
+  @DomName('SVGElement.onloadeddata')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onLoadedData => loadedDataEvent.forElement(this);
+
+  @DomName('SVGElement.onloadedmetadata')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onLoadedMetadata => loadedMetadataEvent.forElement(this);
+
+  @DomName('SVGElement.onmousedown')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseDown => mouseDownEvent.forElement(this);
+
+  @DomName('SVGElement.onmouseenter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseEnter => mouseEnterEvent.forElement(this);
+
+  @DomName('SVGElement.onmouseleave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseLeave => mouseLeaveEvent.forElement(this);
+
+  @DomName('SVGElement.onmousemove')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseMove => mouseMoveEvent.forElement(this);
+
+  @DomName('SVGElement.onmouseout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseOut => mouseOutEvent.forElement(this);
+
+  @DomName('SVGElement.onmouseover')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseOver => mouseOverEvent.forElement(this);
+
+  @DomName('SVGElement.onmouseup')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<MouseEvent> get onMouseUp => mouseUpEvent.forElement(this);
+
+  @DomName('SVGElement.onmousewheel')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<WheelEvent> get onMouseWheel => mouseWheelEvent.forElement(this);
+
+  @DomName('SVGElement.onpause')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onPause => pauseEvent.forElement(this);
+
+  @DomName('SVGElement.onplay')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onPlay => playEvent.forElement(this);
+
+  @DomName('SVGElement.onplaying')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onPlaying => playingEvent.forElement(this);
+
+  @DomName('SVGElement.onratechange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onRateChange => rateChangeEvent.forElement(this);
+
+  @DomName('SVGElement.onreset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onReset => resetEvent.forElement(this);
+
+  @DomName('SVGElement.onscroll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onScroll => scrollEvent.forElement(this);
+
+  @DomName('SVGElement.onseeked')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onSeeked => seekedEvent.forElement(this);
+
+  @DomName('SVGElement.onseeking')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onSeeking => seekingEvent.forElement(this);
+
+  @DomName('SVGElement.onselect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onSelect => selectEvent.forElement(this);
+
+  @DomName('SVGElement.onstalled')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onStalled => stalledEvent.forElement(this);
+
+  @DomName('SVGElement.onsubmit')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onSubmit => submitEvent.forElement(this);
+
+  @DomName('SVGElement.onsuspend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onSuspend => suspendEvent.forElement(this);
+
+  @DomName('SVGElement.ontimeupdate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onTimeUpdate => timeUpdateEvent.forElement(this);
+
+  @DomName('SVGElement.onvolumechange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onVolumeChange => volumeChangeEvent.forElement(this);
+
+  @DomName('SVGElement.onwaiting')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ElementStream<Event> get onWaiting => waitingEvent.forElement(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

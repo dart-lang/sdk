@@ -1122,6 +1122,11 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @Creates('Cursor')
   Request _openCursor(Object key, [String direction]) native;
 
+  @DomName('IDBObjectStore.openKeyCursor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Request openKeyCursor(Object range, String direction) native;
+
   @DomName('IDBObjectStore.put')
   @DocsEditable()
   @Returns('Request')
@@ -1411,6 +1416,11 @@ class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
   @DocsEditable()
   @Experimental() // untriaged
   final String dataLoss;
+
+  @DomName('IDBVersionChangeEvent.dataLossMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String dataLossMessage;
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable()
