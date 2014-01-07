@@ -27408,7 +27408,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    * [animationFrame] again for the animation to continue.
    */
   Future<num> get animationFrame {
-    var completer = new Completer<num>();
+    var completer = new Completer<num>.sync();
     requestAnimationFrame((time) {
       completer.complete(time);
     });
