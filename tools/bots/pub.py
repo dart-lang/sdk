@@ -46,7 +46,8 @@ def PubSteps(build_info):
   pkgbuild_build_info = bot.BuildInfo('none', 'vm', 'release',
       build_info.system, checked=False)
   bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info, ['pkgbuild'])
-  bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info, ['pkgbuild'])
+  bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info,
+      ['pkgbuild', '--use-public-packages'])
 
 
 if __name__ == '__main__':
