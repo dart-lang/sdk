@@ -1889,11 +1889,14 @@ class TestUtils {
   }
 
   static Future copyDirectory(String source, String dest) {
+    source = new Path(source).toNativePath();
+    dest = new Path(dest).toNativePath();
+
     var executable = 'cp';
     var args = ['-Rp', source, dest];
     if (Platform.operatingSystem == 'windows') {
       executable = 'xcopy';
-      args = [source, dest, '/e'];
+      args = [source, dest, '/e', '/i'];
     }
     return Process.run(executable, args).then((ProcessResult result) {
       if (result.exitCode != 0) {
