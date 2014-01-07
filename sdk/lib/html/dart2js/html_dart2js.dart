@@ -34,6 +34,7 @@ import "dart:convert";
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:svg' as svg;
+import 'dart:svg' show Matrix;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
