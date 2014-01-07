@@ -1801,7 +1801,8 @@ class PkgBuildTestSuite extends TestSuite {
     doTest = onTest;
     Map<String, String> _localPackageDirectories;
     Map<String, String> _localSampleDirectories;
-    List<String> statusFiles = ['${TestUtils.dartDir()}/$statusFilePath'];
+    List<String> statusFiles = [
+        TestUtils.dartDir().join(new Path(statusFilePath)).toNativePath()];
     ReadTestExpectations(statusFiles, configuration).then((expectations) {
       Future.wait([discoverPackagesInRepository(),
                    discoverSamplesInRepository()]).then((List results) {
