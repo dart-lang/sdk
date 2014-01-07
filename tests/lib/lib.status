@@ -89,6 +89,7 @@ mirrors/list_constructor_test/01: RuntimeError # Issue 13523
 [ $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 mirrors/to_string_test: Fail # Safari bug TODO(ahe): Add bug number if able to submit bug.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
