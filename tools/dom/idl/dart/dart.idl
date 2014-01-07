@@ -360,3 +360,5 @@ interface TextDecoder {};
 interface Window : EventTarget {};
 
 Element implements GlobalEventHandlers;
+GlobalEventHandlers implements EventTarget;
+WindowEventHandlers implements EventTarget;
