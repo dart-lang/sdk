@@ -1213,7 +1213,8 @@ class AbstractTypeArguments : public Object {
   // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractTypeArguments* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* bound_error) const;
+      Error* bound_error,
+      GrowableObjectArray* trail = NULL) const;
 
   // Do not clone InstantiatedTypeArguments or null vectors, since they are
   // considered finalized.
@@ -1222,7 +1223,10 @@ class AbstractTypeArguments : public Object {
   }
 
   // Null vectors are canonical.
-  virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
+  virtual RawAbstractTypeArguments* Canonicalize(
+      GrowableObjectArray* trail = NULL) const {
+    return this->raw();
+  }
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
   virtual RawString* Name() const {
@@ -1268,14 +1272,19 @@ class AbstractTypeArguments : public Object {
   }
 
   // Check if the vectors are equal.
-  bool Equals(const AbstractTypeArguments& other) const;
+  bool Equals(const AbstractTypeArguments& other) const {
+    return IsEquivalent(other);
+  }
+
+  bool IsEquivalent(const AbstractTypeArguments& other,
+                    GrowableObjectArray* trail = NULL) const;
 
   // UNREACHABLEs as AbstractTypeArguments is an abstract class.
   virtual intptr_t Length() const;
   virtual RawAbstractType* TypeAt(intptr_t index) const;
   virtual void SetTypeAt(intptr_t index, const AbstractType& value) const;
   virtual bool IsResolved() const;
-  virtual bool IsInstantiated() const;
+  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   virtual bool IsUninstantiatedIdentity() const;
   virtual bool CanShareInstantiatorTypeArguments(
       const Class& instantiator_class) const;
@@ -1323,7 +1332,7 @@ class TypeArguments : public AbstractTypeArguments {
   }
   virtual void SetTypeAt(intptr_t index, const AbstractType& value) const;
   virtual bool IsResolved() const;
-  virtual bool IsInstantiated() const;
+  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   virtual bool IsUninstantiatedIdentity() const;
   virtual bool CanShareInstantiatorTypeArguments(
       const Class& instantiator_class) const;
@@ -1331,11 +1340,13 @@ class TypeArguments : public AbstractTypeArguments {
   virtual bool IsBounded() const;
   virtual RawAbstractTypeArguments* CloneUnfinalized() const;
   // Canonicalize only if instantiated, otherwise returns 'this'.
-  virtual RawAbstractTypeArguments* Canonicalize() const;
+  virtual RawAbstractTypeArguments* Canonicalize(
+      GrowableObjectArray* trail = NULL) const;
 
   virtual RawAbstractTypeArguments* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* bound_error) const;
+      Error* bound_error,
+      GrowableObjectArray* trail = NULL) const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -1384,7 +1395,9 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
   virtual RawAbstractType* TypeAt(intptr_t index) const;
   virtual void SetTypeAt(intptr_t index, const AbstractType& value) const;
   virtual bool IsResolved() const { return true; }
-  virtual bool IsInstantiated() const { return true; }
+  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+    return true;
+  }
   virtual bool IsUninstantiatedIdentity() const {
     UNREACHABLE();
     return false;
@@ -1395,7 +1408,8 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
     return false;
   }
   virtual bool IsBounded() const { return false; }  // Bounds were checked.
-  virtual RawAbstractTypeArguments* Canonicalize() const;
+  virtual RawAbstractTypeArguments* Canonicalize(
+      GrowableObjectArray* trail = NULL) const;
 
   RawAbstractTypeArguments* uninstantiated_type_arguments() const {
     return raw_ptr()->uninstantiated_type_arguments_;
@@ -4086,15 +4100,20 @@ class AbstractType : public Instance {
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawAbstractTypeArguments* arguments() const;
   virtual intptr_t token_pos() const;
-  virtual bool IsInstantiated() const;
-  virtual bool Equals(const Instance& other) const;
+  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  virtual bool Equals(const Instance& other) const {
+    return IsEquivalent(other);
+  }
+  virtual bool IsEquivalent(const Instance& other,
+                            GrowableObjectArray* trail = NULL) const;
 
   // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
   // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* bound_error) const;
+      Error* bound_error,
+      GrowableObjectArray* trail = NULL) const;
 
   // Return a clone of this unfinalized type or the type itself if it is
   // already finalized. Apply recursively to type arguments, i.e. finalized
@@ -4106,7 +4125,8 @@ class AbstractType : public Instance {
   }
 
   // Return the canonical version of this type.
-  virtual RawAbstractType* Canonicalize() const;
+  virtual RawAbstractType* Canonicalize(
+      GrowableObjectArray* trail = NULL) const;
 
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const {
@@ -4232,13 +4252,16 @@ class Type : public AbstractType {
   virtual RawAbstractTypeArguments* arguments() const;
   void set_arguments(const AbstractTypeArguments& value) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  virtual bool IsInstantiated() const;
-  virtual bool Equals(const Instance& other) const;
+  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* malformed_error) const;
+      Error* malformed_error,
+      GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
-  virtual RawAbstractType* Canonicalize() const;
+  virtual RawAbstractType* Canonicalize(
+      GrowableObjectArray* trail = NULL) const;
 
   virtual intptr_t Hash() const;
 
@@ -4343,14 +4366,38 @@ class TypeRef : public AbstractType {
   virtual intptr_t token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
-  virtual bool IsInstantiated() const;
-  virtual bool Equals(const Instance& other) const;
+  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* bound_error) const;
-  virtual RawAbstractType* Canonicalize() const;
+      Error* bound_error,
+      GrowableObjectArray* trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(
+      GrowableObjectArray* trail = NULL) const;
 
   virtual intptr_t Hash() const;
+
+  // Return true if the receiver is contained in the trail.
+  // Otherwise, if the trail is null, allocate a trail, then add the receiver to
+  // the trail and return false.
+  bool TestAndAddToTrail(GrowableObjectArray** trail) const;
+
+  // Return true if the pair <receiver, buddy> is contained in the trail.
+  // Otherwise, if the trail is null, allocate a trail, add the pair <receiver,
+  // buddy> to the trail and return false.
+  // The receiver may be added several times, each time with a different buddy.
+  bool TestAndAddBuddyToTrail(GrowableObjectArray** trail,
+                              const Object& buddy) const;
+
+  // Return the object associated with the receiver in the trail or
+  // Object::null() if the receiver is not contained in the trail.
+  RawObject* OnlyBuddyInTrail(GrowableObjectArray* trail) const;
+
+  // If the trail is null, allocate a trail, add the pair <receiver, buddy> to
+  // the trail. The receiver may only be added once with its only buddy.
+  void AddOnlyBuddyToTrail(GrowableObjectArray** trail,
+                           const Object& buddy) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeRef));
@@ -4359,11 +4406,6 @@ class TypeRef : public AbstractType {
   static RawTypeRef* New(const AbstractType& type);
 
  private:
-  bool is_being_checked() const {
-    return raw_ptr()->is_being_checked_;
-  }
-  void set_is_being_checked(bool value) const;
-
   static RawTypeRef* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeRef, AbstractType);
@@ -4410,13 +4452,20 @@ class TypeParameter : public AbstractType {
                   const AbstractType& upper_bound,
                   Error* bound_error) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  virtual bool IsInstantiated() const { return false; }
-  virtual bool Equals(const Instance& other) const;
+  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
+    return false;
+  }
+  virtual bool IsEquivalent(const Instance& other,
+                            GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* bound_error) const;
+      Error* bound_error,
+      GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
-  virtual RawAbstractType* Canonicalize() const { return raw(); }
+  virtual RawAbstractType* Canonicalize(
+      GrowableObjectArray* trail = NULL) const {
+    return raw();
+  }
 
   virtual intptr_t Hash() const;
 
@@ -4482,19 +4531,24 @@ class BoundedType : public AbstractType {
   virtual intptr_t token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
-  virtual bool IsInstantiated() const {
+  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
     // It is not possible to encounter an instantiated bounded type with an
     // uninstantiated upper bound. Therefore, we do not need to check if the
     // bound is instantiated. Moreover, doing so could lead into cycles, as in
     // class C<T extends C<C>> { }.
     return AbstractType::Handle(type()).IsInstantiated();
   }
-  virtual bool Equals(const Instance& other) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
-      Error* bound_error) const;
+      Error* bound_error,
+      GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
-  virtual RawAbstractType* Canonicalize() const { return raw(); }
+  virtual RawAbstractType* Canonicalize(
+      GrowableObjectArray* trail = NULL) const {
+    return raw();
+  }
 
   virtual intptr_t Hash() const;
 
@@ -4510,11 +4564,6 @@ class BoundedType : public AbstractType {
   void set_type(const AbstractType& value) const;
   void set_bound(const AbstractType& value) const;
   void set_type_parameter(const TypeParameter& value) const;
-
-  bool is_being_checked() const {
-    return raw_ptr()->is_being_checked_;
-  }
-  void set_is_being_checked(bool value) const;
 
   static RawBoundedType* New();
 

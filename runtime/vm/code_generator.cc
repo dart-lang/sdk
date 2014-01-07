@@ -227,6 +227,11 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
         Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
+  if (type.IsTypeRef()) {
+    type = TypeRef::Cast(type).type();
+    ASSERT(!type.IsTypeRef());
+    ASSERT(type.IsCanonical());
+  }
   ASSERT(!type.IsNull() && type.IsInstantiated());
   arguments.SetReturn(type);
 }

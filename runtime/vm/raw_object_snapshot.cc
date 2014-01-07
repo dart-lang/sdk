@@ -331,8 +331,6 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
                           reader->ObjectHandle()->raw());
   }
 
-  type_ref.set_is_being_checked(false);
-
   return type_ref.raw();
 }
 
@@ -456,8 +454,6 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
     bounded_type.StorePointer((bounded_type.raw()->from() + i),
                               reader->ObjectHandle()->raw());
   }
-
-  bounded_type.set_is_being_checked(false);
 
   return bounded_type.raw();
 }

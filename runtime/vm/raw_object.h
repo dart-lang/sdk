@@ -1191,7 +1191,6 @@ class RawTypeRef : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->type_);
   }
-  bool is_being_checked_;  // Transient field, not snapshotted.
 };
 
 
@@ -1225,7 +1224,6 @@ class RawBoundedType : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->type_parameter_);
   }
-  bool is_being_checked_;  // Transient field, not snapshotted.
 };
 
 

@@ -3595,7 +3595,7 @@ bool AbstractTypeArguments::IsResolved() const {
 }
 
 
-bool AbstractTypeArguments::IsInstantiated() const {
+bool AbstractTypeArguments::IsInstantiated(GrowableObjectArray* trail) const {
   // AbstractTypeArguments is an abstract class.
   UNREACHABLE();
   return false;
@@ -3673,7 +3673,8 @@ RawString* AbstractTypeArguments::SubvectorName(
 }
 
 
-bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
+bool AbstractTypeArguments::IsEquivalent(const AbstractTypeArguments& other,
+                                         GrowableObjectArray* trail) const {
   if (this->raw() == other.raw()) {
     return true;
   }
@@ -3689,7 +3690,7 @@ bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     other_type = other.TypeAt(i);
-    if (!type.Equals(other_type)) {
+    if (!type.IsEquivalent(other_type, trail)) {
       return false;
     }
   }
@@ -3699,7 +3700,8 @@ bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
 
 RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* bound_error) const {
+    Error* bound_error,
+    GrowableObjectArray* trail) const {
   // AbstractTypeArguments is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -3808,13 +3810,13 @@ bool TypeArguments::IsResolved() const {
 }
 
 
-bool TypeArguments::IsInstantiated() const {
+bool TypeArguments::IsInstantiated(GrowableObjectArray* trail) const {
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     ASSERT(!type.IsNull());
-    if (!type.IsInstantiated()) {
+    if (!type.IsInstantiated(trail)) {
       return false;
     }
   }
@@ -3964,7 +3966,8 @@ bool TypeArguments::IsBounded() const {
 
 RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* bound_error) const {
+    Error* bound_error,
+    GrowableObjectArray* trail) const {
   ASSERT(!IsInstantiated());
   if (!instantiator_type_arguments.IsNull() &&
       IsUninstantiatedIdentity() &&
@@ -3978,7 +3981,9 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsInstantiated()) {
-      type = type.InstantiateFrom(instantiator_type_arguments, bound_error);
+      type = type.InstantiateFrom(instantiator_type_arguments,
+                                  bound_error,
+                                  trail);
     }
     instantiated_array.SetTypeAt(i, type);
   }
@@ -4109,7 +4114,8 @@ RawAbstractTypeArguments* TypeArguments::CloneUnfinalized() const {
 }
 
 
-RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
+RawAbstractTypeArguments* TypeArguments::Canonicalize(
+    GrowableObjectArray* trail) const {
   if (IsNull() || IsCanonical()) {
     ASSERT(IsOld());
     return this->raw();
@@ -4131,7 +4137,7 @@ RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
     AbstractType& type = AbstractType::Handle(isolate);
     for (intptr_t i = 0; i < num_types; i++) {
       type = TypeAt(i);
-      type = type.Canonicalize();
+      type = type.Canonicalize(trail);
       SetTypeAt(i, type);
     }
     // Make sure we have an old space object and add it to the table.
@@ -4205,7 +4211,8 @@ void InstantiatedTypeArguments::SetTypeAt(intptr_t index,
 }
 
 
-RawAbstractTypeArguments* InstantiatedTypeArguments::Canonicalize() const {
+RawAbstractTypeArguments* InstantiatedTypeArguments::Canonicalize(
+    GrowableObjectArray* trail) const {
   const intptr_t num_types = Length();
   const TypeArguments& type_args = TypeArguments::Handle(
       TypeArguments::New(num_types, Heap::kOld));
@@ -4214,7 +4221,7 @@ RawAbstractTypeArguments* InstantiatedTypeArguments::Canonicalize() const {
     type = TypeAt(i);
     type_args.SetTypeAt(i, type);
   }
-  return type_args.Canonicalize();
+  return type_args.Canonicalize(trail);
 }
 
 
@@ -11820,7 +11827,7 @@ intptr_t AbstractType::token_pos() const {
 }
 
 
-bool AbstractType::IsInstantiated() const {
+bool AbstractType::IsInstantiated(GrowableObjectArray* trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -11875,7 +11882,8 @@ void AbstractType::set_error(const LanguageError& value) const {
 }
 
 
-bool AbstractType::Equals(const Instance& other) const {
+bool AbstractType::IsEquivalent(const Instance& other,
+                                GrowableObjectArray* trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -11884,7 +11892,8 @@ bool AbstractType::Equals(const Instance& other) const {
 
 RawAbstractType* AbstractType::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* bound_error) const {
+    Error* bound_error,
+    GrowableObjectArray* trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -11898,7 +11907,7 @@ RawAbstractType* AbstractType::CloneUnfinalized() const {
 }
 
 
-RawAbstractType* AbstractType::Canonicalize() const {
+RawAbstractType* AbstractType::Canonicalize(GrowableObjectArray* trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -11914,7 +11923,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     }
     String& type_name = String::Handle(type.BuildName(kInternalName));
     type_name = String::Concat(type_name, Symbols::SpaceExtendsSpace());
-    // Building the bound name may lead into cycles.
+    // Build the bound name without causing divergence.
     const AbstractType& bound = AbstractType::Handle(
         BoundedType::Cast(*this).bound());
     String& bound_name = String::Handle();
@@ -11975,11 +11984,11 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     }
     if (cls.IsSignatureClass()) {
       // We may be reporting an error about a malformed function type. In that
-      // case, avoid instantiating the signature, since it may lead to cycles.
+      // case, avoid instantiating the signature, since it may cause divergence.
       if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
         return class_name.raw();
       }
-      // In order to avoid cycles, print the name of a typedef (non-canonical
+      // To avoid divergence, print the name of a typedef (non-canonical
       // signature class) as a regular, possibly parameterized, class.
       if (cls.IsCanonicalSignatureClass()) {
         const Function& signature_function = Function::Handle(
@@ -12384,7 +12393,7 @@ RawAbstractTypeArguments* Type::arguments() const {
 }
 
 
-bool Type::IsInstantiated() const {
+bool Type::IsInstantiated(GrowableObjectArray* trail) const {
   if (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) {
     return true;
   }
@@ -12393,13 +12402,14 @@ bool Type::IsInstantiated() const {
   }
   const AbstractTypeArguments& args =
       AbstractTypeArguments::Handle(arguments());
-  return args.IsNull() || args.IsInstantiated();
+  return args.IsNull() || args.IsInstantiated(trail);
 }
 
 
 RawAbstractType* Type::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* bound_error) const {
+    Error* bound_error,
+    GrowableObjectArray* trail) const {
   ASSERT(IsFinalized() || IsBeingFinalized());
   ASSERT(!IsInstantiated());
   // Return the uninstantiated type unchanged if malformed. No copy needed.
@@ -12409,7 +12419,8 @@ RawAbstractType* Type::InstantiateFrom(
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(arguments());
   type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
-                                                  bound_error);
+                                                  bound_error,
+                                                  trail);
   // Note that the type class has to be resolved at this time, but not
   // necessarily finalized yet. We may be checking bounds at compile time.
   const Class& cls = Class::Handle(type_class());
@@ -12424,14 +12435,18 @@ RawAbstractType* Type::InstantiateFrom(
 }
 
 
-bool Type::Equals(const Instance& other) const {
+bool Type::IsEquivalent(const Instance& other,
+                        GrowableObjectArray* trail) const {
   ASSERT(!IsNull());
   if (raw() == other.raw()) {
     return true;
   }
   if (other.IsTypeRef()) {
-    // TODO(regis): Use trail. For now, we "unfold" the right hand type.
-    return Equals(AbstractType::Handle(TypeRef::Cast(other).type()));
+    // Unfold right hand type. Divergence is controlled by left hand type.
+    const AbstractType& other_ref_type = AbstractType::Handle(
+        TypeRef::Cast(other).type());
+    ASSERT(!other_ref_type.IsTypeRef());
+    return IsEquivalent(other_ref_type, trail);
   }
   if (!other.IsType()) {
     return false;
@@ -12475,7 +12490,7 @@ bool Type::Equals(const Instance& other) const {
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_arg = type_args.TypeAt(from_index + i);
     other_type_arg = other_type_args.TypeAt(from_index + i);
-    if (!type_arg.Equals(other_type_arg)) {
+    if (!type_arg.IsEquivalent(other_type_arg, trail)) {
       return false;
     }
   }
@@ -12497,7 +12512,7 @@ RawAbstractType* Type::CloneUnfinalized() const {
 }
 
 
-RawAbstractType* Type::Canonicalize() const {
+RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   ASSERT(IsFinalized());
   if (IsCanonical() || IsMalformed()) {
     ASSERT(IsMalformed() || AbstractTypeArguments::Handle(arguments()).IsOld());
@@ -12548,7 +12563,7 @@ RawAbstractType* Type::Canonicalize() const {
   AbstractTypeArguments& type_args =
       AbstractTypeArguments::Handle(isolate, arguments());
   ASSERT(type_args.IsNull() || (type_args.Length() == cls.NumTypeArguments()));
-  type_args = type_args.Canonicalize();
+  type_args = type_args.Canonicalize(trail);
   set_arguments(type_args);
   // The type needs to be added to the list. Grow the list if it is full.
   if (index == canonical_types_len) {
@@ -12687,53 +12702,44 @@ void Type::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
-bool TypeRef::IsInstantiated() const {
-  if (is_being_checked()) {
+bool TypeRef::IsInstantiated(GrowableObjectArray* trail) const {
+  if (TestAndAddToTrail(&trail)) {
     return true;
   }
-  set_is_being_checked(true);
-  const bool result = AbstractType::Handle(type()).IsInstantiated();
-  set_is_being_checked(false);
-  return result;
+  return AbstractType::Handle(type()).IsInstantiated(trail);
 }
 
 
-bool TypeRef::Equals(const Instance& other) const {
-  // TODO(regis): Use trail instead of mark bit.
+bool TypeRef::IsEquivalent(const Instance& other,
+                           GrowableObjectArray* trail) const {
   if (raw() == other.raw()) {
     return true;
   }
-  if (is_being_checked()) {
+  if (TestAndAddBuddyToTrail(&trail, other)) {
     return true;
   }
-  set_is_being_checked(true);
-  const bool result = AbstractType::Handle(type()).Equals(other);
-  set_is_being_checked(false);
-  return result;
+  return AbstractType::Handle(type()).IsEquivalent(other, trail);
 }
 
 
 RawAbstractType* TypeRef::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* bound_error) const {
-  const AbstractType& ref_type = AbstractType::Handle(type());
-  // TODO(regis): Use trail instead of mark bit plus temporary redirection,
-  // because it could be marked for another reason.
-  if (is_being_checked()) {
-    ASSERT(ref_type.IsTypeRef());
-    return ref_type.raw();
+    Error* bound_error,
+    GrowableObjectArray* trail) const {
+  TypeRef& instantiated_type_ref = TypeRef::Handle();
+  instantiated_type_ref ^= OnlyBuddyInTrail(trail);
+  if (!instantiated_type_ref.IsNull()) {
+    return instantiated_type_ref.raw();
   }
-  set_is_being_checked(true);
+  instantiated_type_ref = TypeRef::New(Type::Handle(Type::DynamicType()));
+  AddOnlyBuddyToTrail(&trail, instantiated_type_ref);
+  const AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsTypeRef());
-  const TypeRef& instantiated_type_ref = TypeRef::Handle(
-      TypeRef::New(ref_type));
-  // TODO(regis): instantiated_type_ref should be stored in the trail instead.
-  set_type(instantiated_type_ref);
   const AbstractType& instantiated_ref_type = AbstractType::Handle(
-      ref_type.InstantiateFrom(instantiator_type_arguments, bound_error));
+      ref_type.InstantiateFrom(instantiator_type_arguments,
+                               bound_error,
+                               trail));
   instantiated_type_ref.set_type(instantiated_ref_type);
-  set_type(ref_type);
-  set_is_being_checked(false);
   return instantiated_type_ref.raw();
 }
 
@@ -12744,40 +12750,89 @@ void TypeRef::set_type(const AbstractType& value) const {
 }
 
 
-void TypeRef::set_is_being_checked(bool value) const {
-  raw_ptr()->is_being_checked_ = value;
-}
-
-
-// This function only canonicalizes the referenced type, but not the TypeRef
-// itself, since it cannot be canonical by definition.
+// A TypeRef cannot be canonical by definition. Only its referenced type can be.
 // Consider the type Derived, where class Derived extends Base<Derived>.
 // The first type argument of its flattened type argument vector is Derived,
 // i.e. itself, but pointer equality is not possible.
-RawAbstractType* TypeRef::Canonicalize() const {
-  // TODO(regis): Use trail, not mark bit.
-  if (is_being_checked()) {
+RawAbstractType* TypeRef::Canonicalize(GrowableObjectArray* trail) const {
+  if (TestAndAddToTrail(&trail)) {
     return raw();
   }
-  set_is_being_checked(true);
   AbstractType& ref_type = AbstractType::Handle(type());
-  ASSERT(!ref_type.IsTypeRef());
-  ref_type = ref_type.Canonicalize();
+  ref_type = ref_type.Canonicalize(trail);
   set_type(ref_type);
-  // No need to call SetCanonical(), since a TypeRef cannot be canonical by
-  // definition.
-  set_is_being_checked(false);
-  // We return the referenced type instead of the TypeRef in order to provide
-  // pointer equality in simple cases, e.g. in language/f_bounded_equality_test.
-  return ref_type.raw();
+  return raw();
 }
 
 
 intptr_t TypeRef::Hash() const {
-  // TODO(regis): Use trail and hash of referenced type.
-  // Do not calculate the hash of the referenced type to avoid cycles.
+  // Do not calculate the hash of the referenced type to avoid divergence.
   uword result = Class::Handle(AbstractType::Handle(type()).type_class()).id();
   return FinalizeHash(result);
+}
+
+
+bool TypeRef::TestAndAddToTrail(GrowableObjectArray** trail) const {
+  if (*trail == NULL) {
+    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+  } else {
+    const intptr_t len = (*trail)->Length();
+    for (intptr_t i = 0; i < len; i++) {
+      if ((*trail)->At(i) == this->raw()) {
+        return true;
+      }
+    }
+  }
+  (*trail)->Add(*this);
+  return false;
+}
+
+
+bool TypeRef::TestAndAddBuddyToTrail(GrowableObjectArray** trail,
+                                     const Object& buddy) const {
+  if (*trail == NULL) {
+    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+  } else {
+    const intptr_t len = (*trail)->Length();
+    ASSERT((len % 2) == 0);
+    for (intptr_t i = 0; i < len; i += 2) {
+      if (((*trail)->At(i) == this->raw()) &&
+          ((*trail)->At(i + 1) == buddy.raw())) {
+        return true;
+      }
+    }
+  }
+  (*trail)->Add(*this);
+  (*trail)->Add(buddy);
+  return false;
+}
+
+
+RawObject* TypeRef::OnlyBuddyInTrail(GrowableObjectArray* trail) const {
+  if (trail == NULL) {
+    return Object::null();
+  }
+  const intptr_t len = trail->Length();
+  ASSERT((len % 2) == 0);
+  for (intptr_t i = 0; i < len; i += 2) {
+    if (trail->At(i) == this->raw()) {
+      ASSERT(trail->At(i + 1) != Object::null());
+      return trail->At(i + 1);
+    }
+  }
+  return Object::null();
+}
+
+
+void TypeRef::AddOnlyBuddyToTrail(GrowableObjectArray** trail,
+                              const Object& buddy) const {
+  if (*trail == NULL) {
+    *trail = &GrowableObjectArray::ZoneHandle(GrowableObjectArray::New());
+  } else {
+    ASSERT(OnlyBuddyInTrail(*trail) == Object::null());
+  }
+  (*trail)->Add(*this);
+  (*trail)->Add(buddy);
 }
 
 
@@ -12793,7 +12848,6 @@ RawTypeRef* TypeRef::New() {
 RawTypeRef* TypeRef::New(const AbstractType& type) {
   const TypeRef& result = TypeRef::Handle(TypeRef::New());
   result.set_type(type);
-  result.set_is_being_checked(false);
   return result.raw();
 }
 
@@ -12822,13 +12876,17 @@ void TypeParameter::set_is_finalized() const {
 }
 
 
-bool TypeParameter::Equals(const Instance& other) const {
+bool TypeParameter::IsEquivalent(const Instance& other,
+                                 GrowableObjectArray* trail) const {
   if (raw() == other.raw()) {
     return true;
   }
   if (other.IsTypeRef()) {
-    // TODO(regis): Use trail. For now, we "unfold" the right hand type.
-    return Equals(AbstractType::Handle(TypeRef::Cast(other).type()));
+    // Unfold right hand type. Divergence is controlled by left hand type.
+    const AbstractType& other_ref_type = AbstractType::Handle(
+        TypeRef::Cast(other).type());
+    ASSERT(!other_ref_type.IsTypeRef());
+    return IsEquivalent(other_ref_type, trail);
   }
   if (!other.IsTypeParameter()) {
     return false;
@@ -12869,7 +12927,8 @@ void TypeParameter::set_bound(const AbstractType& value) const {
 
 RawAbstractType* TypeParameter::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* bound_error) const {
+    Error* bound_error,
+    GrowableObjectArray* trail) const {
   ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
@@ -12880,17 +12939,6 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   // type arguments are canonicalized at type finalization time. It would be too
   // early to canonicalize the returned type argument here, since instantiation
   // not only happens at run time, but also during type finalization.
-  // However, if the type argument is a reference to a canonical type, we
-  // return the referenced canonical type instead of the type reference to
-  // provide pointer equality in some simple cases, e.g. in
-  // language/f_bounded_equality_test.
-  if (type_arg.IsTypeRef()) {
-    const AbstractType& ref_type = AbstractType::Handle(
-        TypeRef::Cast(type_arg).type());
-    if (ref_type.IsCanonical()) {
-      return ref_type.raw();
-    }
-  }
   return type_arg.raw();
 }
 
@@ -12957,7 +13005,8 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
 intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
   uword result = Class::Handle(parameterized_class()).id();
-  // Do not include the hash of the bound, which could lead to cycles.
+  // No need to include the hash of the bound, since the type parameter is fully
+  // identified by its class and index.
   result <<= index();
   return FinalizeHash(result);
 }
@@ -13041,35 +13090,37 @@ RawLanguageError* BoundedType::error() const {
 }
 
 
-bool BoundedType::Equals(const Instance& other) const {
+bool BoundedType::IsEquivalent(const Instance& other,
+                               GrowableObjectArray* trail) const {
   // BoundedType are not canonicalized, because their bound may get finalized
   // after the BoundedType is created and initialized.
   if (raw() == other.raw()) {
     return true;
   }
   if (other.IsTypeRef()) {
-    // TODO(regis): Use trail. For now, we "unfold" the right hand type.
-    return Equals(AbstractType::Handle(TypeRef::Cast(other).type()));
+    // Unfold right hand type. Divergence is controlled by left hand type.
+    const AbstractType& other_ref_type = AbstractType::Handle(
+        TypeRef::Cast(other).type());
+    ASSERT(!other_ref_type.IsTypeRef());
+    return IsEquivalent(other_ref_type, trail);
   }
   if (!other.IsBoundedType()) {
     return false;
   }
   const BoundedType& other_bounded = BoundedType::Cast(other);
   if (type_parameter() != other_bounded.type_parameter()) {
-    // Not a structural compare.
-    // Note that a deep comparison of bounds could lead to cycles.
     return false;
   }
   const AbstractType& this_type = AbstractType::Handle(type());
   const AbstractType& other_type = AbstractType::Handle(other_bounded.type());
-  if (!this_type.Equals(other_type)) {
+  if (!this_type.IsEquivalent(other_type, trail)) {
     return false;
   }
   const AbstractType& this_bound = AbstractType::Handle(bound());
   const AbstractType& other_bound = AbstractType::Handle(other_bounded.bound());
   return this_bound.IsFinalized() &&
          other_bound.IsFinalized() &&
-         this_bound.Equals(other_bound);
+         this_bound.Equals(other_bound);  // Different graph, do not pass trail.
 }
 
 
@@ -13095,31 +13146,25 @@ void BoundedType::set_type_parameter(const TypeParameter& value) const {
 }
 
 
-void BoundedType::set_is_being_checked(bool value) const {
-  raw_ptr()->is_being_checked_ = value;
-}
-
-
 RawAbstractType* BoundedType::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
-    Error* bound_error) const {
+    Error* bound_error,
+    GrowableObjectArray* trail) const {
   ASSERT(IsFinalized());
   AbstractType& bounded_type = AbstractType::Handle(type());
   if (!bounded_type.IsInstantiated()) {
     bounded_type = bounded_type.InstantiateFrom(instantiator_type_arguments,
-                                                bound_error);
+                                                bound_error,
+                                                trail);
   }
-  if (FLAG_enable_type_checks &&
-      bound_error->IsNull() &&
-      !is_being_checked()) {
-    // Avoid endless recursion while checking and instantiating bound.
-    set_is_being_checked(true);
+  if (FLAG_enable_type_checks && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
     const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
     if (!upper_bound.IsInstantiated()) {
       upper_bound = upper_bound.InstantiateFrom(instantiator_type_arguments,
-                                                bound_error);
+                                                bound_error,
+                                                trail);
     }
     if (bound_error->IsNull()) {
       if (!type_param.CheckBound(bounded_type, upper_bound, bound_error) &&
@@ -13132,7 +13177,6 @@ RawAbstractType* BoundedType::InstantiateFrom(
         bounded_type = BoundedType::New(bounded_type, upper_bound, type_param);
       }
     }
-    set_is_being_checked(false);
   }
   return bounded_type.raw();
 }
@@ -13155,7 +13199,8 @@ RawAbstractType* BoundedType::CloneUnfinalized() const {
 
 intptr_t BoundedType::Hash() const {
   uword result = AbstractType::Handle(type()).Hash();
-  // Do not include the hash of the bound, which could lead to cycles.
+  // No need to include the hash of the bound, since the bound is defined by the
+  // type parameter (modulo instantiation state).
   result += TypeParameter::Handle(type_parameter()).Hash();
 return FinalizeHash(result);
 }
@@ -13178,7 +13223,6 @@ RawBoundedType* BoundedType::New(const AbstractType& type,
   result.set_type(type);
   result.set_bound(bound);
   result.set_type_parameter(type_parameter);
-  result.set_is_being_checked(false);
   return result.raw();
 }
 

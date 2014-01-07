@@ -317,10 +317,15 @@ static RawInstance* CreateClassMirror(const Class& cls,
                                       const AbstractType& type,
                                       const Bool& is_declaration,
                                       const Instance& owner_mirror) {
+  if (type.IsTypeRef()) {
+    AbstractType& ref_type = AbstractType::Handle(TypeRef::Cast(type).type());
+    ASSERT(!ref_type.IsTypeRef());
+    ASSERT(ref_type.IsCanonical());
+    return CreateClassMirror(cls, ref_type, is_declaration, owner_mirror);
+  }
   ASSERT(!cls.IsDynamicClass() && !cls.IsVoidClass());
   ASSERT(!type.IsNull());
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsTypeRef());
 
   if (cls.IsSignatureClass()) {
     if (cls.IsCanonicalSignatureClass()) {
@@ -365,9 +370,14 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
 
 
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
+  if (type.IsTypeRef()) {
+    AbstractType& ref_type = AbstractType::Handle(TypeRef::Cast(type).type());
+    ASSERT(!ref_type.IsTypeRef());
+    ASSERT(ref_type.IsCanonical());
+    return CreateTypeMirror(ref_type);
+  }
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
-  ASSERT(!type.IsTypeRef());
   if (type.HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
     // Handle void and dynamic types.
@@ -1260,7 +1270,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   const intptr_t num_inherited_args = args.Length() - num_params;
   for (intptr_t i = 0; i < num_params; i++) {
     arg_type ^= args.TypeAt(i + num_inherited_args);
-    arg_type = arg_type.Canonicalize();  // Necessary for recursive types.
     type_mirror = CreateTypeMirror(arg_type);
     result.SetAt(i, type_mirror);
   }
