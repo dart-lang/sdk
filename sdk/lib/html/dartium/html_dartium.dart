@@ -7965,16 +7965,6 @@ class Document extends Node
   @DocsEditable()
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  @DomName('Document.oncanplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onCanPlay => Element.canPlayEvent.forTarget(this);
-
-  @DomName('Document.oncanplaythrough')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onCanPlayThrough => Element.canPlayThroughEvent.forTarget(this);
-
   /// Stream of `change` events handled by this [Document].
   @DomName('Document.onchange')
   @DocsEditable()
@@ -8040,21 +8030,6 @@ class Document extends Node
   @DocsEditable()
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  @DomName('Document.ondurationchange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onDurationChange => Element.durationChangeEvent.forTarget(this);
-
-  @DomName('Document.onemptied')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onEmptied => Element.emptiedEvent.forTarget(this);
-
-  @DomName('Document.onended')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onEnded => Element.endedEvent.forTarget(this);
-
   /// Stream of `error` events handled by this [Document].
   @DomName('Document.onerror')
   @DocsEditable()
@@ -8094,16 +8069,6 @@ class Document extends Node
   @DomName('Document.onload')
   @DocsEditable()
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
-
-  @DomName('Document.onloadeddata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onLoadedData => Element.loadedDataEvent.forTarget(this);
-
-  @DomName('Document.onloadedmetadata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onLoadedMetadata => Element.loadedMetadataEvent.forTarget(this);
 
   /// Stream of `mousedown` events handled by this [Document].
   @DomName('Document.onmousedown')
@@ -8152,26 +8117,6 @@ class Document extends Node
   @DocsEditable()
   Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
 
-  @DomName('Document.onpause')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onPause => Element.pauseEvent.forTarget(this);
-
-  @DomName('Document.onplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onPlay => Element.playEvent.forTarget(this);
-
-  @DomName('Document.onplaying')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onPlaying => Element.playingEvent.forTarget(this);
-
-  @DomName('Document.onratechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onRateChange => Element.rateChangeEvent.forTarget(this);
-
   /// Stream of `readystatechange` events handled by this [Document].
   @DomName('Document.onreadystatechange')
   @DocsEditable()
@@ -8201,16 +8146,6 @@ class Document extends Node
   @Experimental()
   Stream<SecurityPolicyViolationEvent> get onSecurityPolicyViolation => securityPolicyViolationEvent.forTarget(this);
 
-  @DomName('Document.onseeked')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onSeeked => Element.seekedEvent.forTarget(this);
-
-  @DomName('Document.onseeking')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onSeeking => Element.seekingEvent.forTarget(this);
-
   /// Stream of `select` events handled by this [Document].
   @DomName('Document.onselect')
   @DocsEditable()
@@ -8226,25 +8161,10 @@ class Document extends Node
   @DocsEditable()
   Stream<Event> get onSelectStart => Element.selectStartEvent.forTarget(this);
 
-  @DomName('Document.onstalled')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onStalled => Element.stalledEvent.forTarget(this);
-
   /// Stream of `submit` events handled by this [Document].
   @DomName('Document.onsubmit')
   @DocsEditable()
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
-
-  @DomName('Document.onsuspend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onSuspend => Element.suspendEvent.forTarget(this);
-
-  @DomName('Document.ontimeupdate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onTimeUpdate => Element.timeUpdateEvent.forTarget(this);
 
   /// Stream of `touchcancel` events handled by this [Document].
   @DomName('Document.ontouchcancel')
@@ -8273,16 +8193,6 @@ class Document extends Node
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
-
-  @DomName('Document.onvolumechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onVolumeChange => Element.volumeChangeEvent.forTarget(this);
-
-  @DomName('Document.onwaiting')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onWaiting => Element.waitingEvent.forTarget(this);
 
   /// Stream of `fullscreenchange` events handled by this [Document].
   @DomName('Document.onwebkitfullscreenchange')
@@ -9104,16 +9014,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   @DocsEditable()
   ElementStream<Event> get onBlur;
 
-  @DomName('Element.oncanplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onCanPlay;
-
-  @DomName('Element.oncanplaythrough')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onCanPlayThrough;
-
   /// Stream of `change` events handled by this [Element].
   @DomName('Element.onchange')
   @DocsEditable()
@@ -9273,21 +9173,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   @DocsEditable()
   ElementStream<MouseEvent> get onDrop;
 
-  @DomName('Element.ondurationchange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onDurationChange;
-
-  @DomName('Element.onemptied')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onEmptied;
-
-  @DomName('Element.onended')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onEnded;
-
   /// Stream of `error` events handled by this [Element].
   @DomName('Element.onerror')
   @DocsEditable()
@@ -9327,16 +9212,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   @DomName('Element.onload')
   @DocsEditable()
   ElementStream<Event> get onLoad;
-
-  @DomName('Element.onloadeddata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onLoadedData;
-
-  @DomName('Element.onloadedmetadata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onLoadedMetadata;
 
   /// Stream of `mousedown` events handled by this [Element].
   @DomName('Element.onmousedown')
@@ -9387,26 +9262,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   @DocsEditable()
   ElementStream<Event> get onPaste;
 
-  @DomName('Element.onpause')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onPause;
-
-  @DomName('Element.onplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onPlay;
-
-  @DomName('Element.onplaying')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onPlaying;
-
-  @DomName('Element.onratechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onRateChange;
-
   /// Stream of `reset` events handled by this [Element].
   @DomName('Element.onreset')
   @DocsEditable()
@@ -9424,16 +9279,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   @Experimental()
   ElementStream<Event> get onSearch;
 
-  @DomName('Element.onseeked')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onSeeked;
-
-  @DomName('Element.onseeking')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onSeeking;
-
   /// Stream of `select` events handled by this [Element].
   @DomName('Element.onselect')
   @DocsEditable()
@@ -9445,25 +9290,10 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   @Experimental() // nonstandard
   ElementStream<Event> get onSelectStart;
 
-  @DomName('Element.onstalled')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onStalled;
-
   /// Stream of `submit` events handled by this [Element].
   @DomName('Element.onsubmit')
   @DocsEditable()
   ElementStream<Event> get onSubmit;
-
-  @DomName('Element.onsuspend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onSuspend;
-
-  @DomName('Element.ontimeupdate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onTimeUpdate;
 
   /// Stream of `touchcancel` events handled by this [Element].
   @DomName('Element.ontouchcancel')
@@ -9515,16 +9345,6 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   ElementStream<TransitionEvent> get onTransitionEnd;
-
-  @DomName('Element.onvolumechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onVolumeChange;
-
-  @DomName('Element.onwaiting')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onWaiting;
 
   /// Stream of `fullscreenchange` events handled by this [Element].
   @DomName('Element.onwebkitfullscreenchange')
@@ -9626,16 +9446,6 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
   @DomName('Element.onblur')
   @DocsEditable()
   ElementStream<Event> get onBlur => Element.blurEvent._forElementList(this);
-
-  @DomName('Element.oncanplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onCanPlay => Element.canPlayEvent._forElementList(this);
-
-  @DomName('Element.oncanplaythrough')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onCanPlayThrough => Element.canPlayThroughEvent._forElementList(this);
 
   /// Stream of `change` events handled by this [Element].
   @DomName('Element.onchange')
@@ -9796,21 +9606,6 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
   @DocsEditable()
   ElementStream<MouseEvent> get onDrop => Element.dropEvent._forElementList(this);
 
-  @DomName('Element.ondurationchange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onDurationChange => Element.durationChangeEvent._forElementList(this);
-
-  @DomName('Element.onemptied')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onEmptied => Element.emptiedEvent._forElementList(this);
-
-  @DomName('Element.onended')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onEnded => Element.endedEvent._forElementList(this);
-
   /// Stream of `error` events handled by this [Element].
   @DomName('Element.onerror')
   @DocsEditable()
@@ -9850,16 +9645,6 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
   @DomName('Element.onload')
   @DocsEditable()
   ElementStream<Event> get onLoad => Element.loadEvent._forElementList(this);
-
-  @DomName('Element.onloadeddata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onLoadedData => Element.loadedDataEvent._forElementList(this);
-
-  @DomName('Element.onloadedmetadata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onLoadedMetadata => Element.loadedMetadataEvent._forElementList(this);
 
   /// Stream of `mousedown` events handled by this [Element].
   @DomName('Element.onmousedown')
@@ -9910,26 +9695,6 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
   @DocsEditable()
   ElementStream<Event> get onPaste => Element.pasteEvent._forElementList(this);
 
-  @DomName('Element.onpause')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onPause => Element.pauseEvent._forElementList(this);
-
-  @DomName('Element.onplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onPlay => Element.playEvent._forElementList(this);
-
-  @DomName('Element.onplaying')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onPlaying => Element.playingEvent._forElementList(this);
-
-  @DomName('Element.onratechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onRateChange => Element.rateChangeEvent._forElementList(this);
-
   /// Stream of `reset` events handled by this [Element].
   @DomName('Element.onreset')
   @DocsEditable()
@@ -9947,16 +9712,6 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
   @Experimental()
   ElementStream<Event> get onSearch => Element.searchEvent._forElementList(this);
 
-  @DomName('Element.onseeked')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onSeeked => Element.seekedEvent._forElementList(this);
-
-  @DomName('Element.onseeking')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onSeeking => Element.seekingEvent._forElementList(this);
-
   /// Stream of `select` events handled by this [Element].
   @DomName('Element.onselect')
   @DocsEditable()
@@ -9968,25 +9723,10 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
   @Experimental() // nonstandard
   ElementStream<Event> get onSelectStart => Element.selectStartEvent._forElementList(this);
 
-  @DomName('Element.onstalled')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onStalled => Element.stalledEvent._forElementList(this);
-
   /// Stream of `submit` events handled by this [Element].
   @DomName('Element.onsubmit')
   @DocsEditable()
   ElementStream<Event> get onSubmit => Element.submitEvent._forElementList(this);
-
-  @DomName('Element.onsuspend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onSuspend => Element.suspendEvent._forElementList(this);
-
-  @DomName('Element.ontimeupdate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onTimeUpdate => Element.timeUpdateEvent._forElementList(this);
 
   /// Stream of `touchcancel` events handled by this [Element].
   @DomName('Element.ontouchcancel')
@@ -10038,16 +9778,6 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   ElementStream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent._forElementList(this);
-
-  @DomName('Element.onvolumechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onVolumeChange => Element.volumeChangeEvent._forElementList(this);
-
-  @DomName('Element.onwaiting')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onWaiting => Element.waitingEvent._forElementList(this);
 
   /// Stream of `fullscreenchange` events handled by this [Element].
   @DomName('Element.onwebkitfullscreenchange')
@@ -10901,16 +10631,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
 
-  @DomName('Element.canplayEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> canPlayEvent = const EventStreamProvider<Event>('canplay');
-
-  @DomName('Element.canplaythroughEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> canPlayThroughEvent = const EventStreamProvider<Event>('canplaythrough');
-
   /**
    * Static factory designed to expose `change` events to event
    * handlers that are not necessarily instances of [Element].
@@ -11099,21 +10819,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   static const EventStreamProvider<MouseEvent> dropEvent = const EventStreamProvider<MouseEvent>('drop');
 
-  @DomName('Element.durationchangeEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> durationChangeEvent = const EventStreamProvider<Event>('durationchange');
-
-  @DomName('Element.emptiedEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> emptiedEvent = const EventStreamProvider<Event>('emptied');
-
-  @DomName('Element.endedEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
-
   /**
    * Static factory designed to expose `error` events to event
    * handlers that are not necessarily instances of [Element].
@@ -11193,16 +10898,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.loadEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
-
-  @DomName('Element.loadeddataEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> loadedDataEvent = const EventStreamProvider<Event>('loadeddata');
-
-  @DomName('Element.loadedmetadataEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> loadedMetadataEvent = const EventStreamProvider<Event>('loadedmetadata');
 
   /**
    * Static factory designed to expose `mousedown` events to event
@@ -11292,26 +10987,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
 
-  @DomName('Element.pauseEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
-
-  @DomName('Element.playEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> playEvent = const EventStreamProvider<Event>('play');
-
-  @DomName('Element.playingEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> playingEvent = const EventStreamProvider<Event>('playing');
-
-  @DomName('Element.ratechangeEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> rateChangeEvent = const EventStreamProvider<Event>('ratechange');
-
   /**
    * Static factory designed to expose `reset` events to event
    * handlers that are not necessarily instances of [Element].
@@ -11344,16 +11019,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @Experimental()
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
-  @DomName('Element.seekedEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> seekedEvent = const EventStreamProvider<Event>('seeked');
-
-  @DomName('Element.seekingEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> seekingEvent = const EventStreamProvider<Event>('seeking');
-
   /**
    * Static factory designed to expose `select` events to event
    * handlers that are not necessarily instances of [Element].
@@ -11375,11 +11040,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @Experimental() // nonstandard
   static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
 
-  @DomName('Element.stalledEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> stalledEvent = const EventStreamProvider<Event>('stalled');
-
   /**
    * Static factory designed to expose `submit` events to event
    * handlers that are not necessarily instances of [Element].
@@ -11389,16 +11049,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.submitEvent')
   @DocsEditable()
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  @DomName('Element.suspendEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> suspendEvent = const EventStreamProvider<Event>('suspend');
-
-  @DomName('Element.timeupdateEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> timeUpdateEvent = const EventStreamProvider<Event>('timeupdate');
 
   /**
    * Static factory designed to expose `touchcancel` events to event
@@ -11475,16 +11125,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.transitionendEvent')
   @DocsEditable()
   static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('transitionend');
-
-  @DomName('Element.volumechangeEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> volumeChangeEvent = const EventStreamProvider<Event>('volumechange');
-
-  @DomName('Element.waitingEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
   /**
    * Static factory designed to expose `fullscreenchange` events to event
@@ -12030,16 +11670,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   ElementStream<Event> get onBlur => blurEvent.forElement(this);
 
-  @DomName('Element.oncanplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onCanPlay => canPlayEvent.forElement(this);
-
-  @DomName('Element.oncanplaythrough')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onCanPlayThrough => canPlayThroughEvent.forElement(this);
-
   /// Stream of `change` events handled by this [Element].
   @DomName('Element.onchange')
   @DocsEditable()
@@ -12199,21 +11829,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   ElementStream<MouseEvent> get onDrop => dropEvent.forElement(this);
 
-  @DomName('Element.ondurationchange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onDurationChange => durationChangeEvent.forElement(this);
-
-  @DomName('Element.onemptied')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onEmptied => emptiedEvent.forElement(this);
-
-  @DomName('Element.onended')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onEnded => endedEvent.forElement(this);
-
   /// Stream of `error` events handled by this [Element].
   @DomName('Element.onerror')
   @DocsEditable()
@@ -12253,16 +11868,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.onload')
   @DocsEditable()
   ElementStream<Event> get onLoad => loadEvent.forElement(this);
-
-  @DomName('Element.onloadeddata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onLoadedData => loadedDataEvent.forElement(this);
-
-  @DomName('Element.onloadedmetadata')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onLoadedMetadata => loadedMetadataEvent.forElement(this);
 
   /// Stream of `mousedown` events handled by this [Element].
   @DomName('Element.onmousedown')
@@ -12313,26 +11918,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   ElementStream<Event> get onPaste => pasteEvent.forElement(this);
 
-  @DomName('Element.onpause')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onPause => pauseEvent.forElement(this);
-
-  @DomName('Element.onplay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onPlay => playEvent.forElement(this);
-
-  @DomName('Element.onplaying')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onPlaying => playingEvent.forElement(this);
-
-  @DomName('Element.onratechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onRateChange => rateChangeEvent.forElement(this);
-
   /// Stream of `reset` events handled by this [Element].
   @DomName('Element.onreset')
   @DocsEditable()
@@ -12350,16 +11935,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @Experimental()
   ElementStream<Event> get onSearch => searchEvent.forElement(this);
 
-  @DomName('Element.onseeked')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onSeeked => seekedEvent.forElement(this);
-
-  @DomName('Element.onseeking')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onSeeking => seekingEvent.forElement(this);
-
   /// Stream of `select` events handled by this [Element].
   @DomName('Element.onselect')
   @DocsEditable()
@@ -12371,25 +11946,10 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @Experimental() // nonstandard
   ElementStream<Event> get onSelectStart => selectStartEvent.forElement(this);
 
-  @DomName('Element.onstalled')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onStalled => stalledEvent.forElement(this);
-
   /// Stream of `submit` events handled by this [Element].
   @DomName('Element.onsubmit')
   @DocsEditable()
   ElementStream<Event> get onSubmit => submitEvent.forElement(this);
-
-  @DomName('Element.onsuspend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onSuspend => suspendEvent.forElement(this);
-
-  @DomName('Element.ontimeupdate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onTimeUpdate => timeUpdateEvent.forElement(this);
 
   /// Stream of `touchcancel` events handled by this [Element].
   @DomName('Element.ontouchcancel')
@@ -12441,16 +12001,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   ElementStream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forElement(this);
-
-  @DomName('Element.onvolumechange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onVolumeChange => volumeChangeEvent.forElement(this);
-
-  @DomName('Element.onwaiting')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ElementStream<Event> get onWaiting => waitingEvent.forElement(this);
 
   /// Stream of `fullscreenchange` events handled by this [Element].
   @DomName('Element.onwebkitfullscreenchange')
@@ -29601,13 +29151,13 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");

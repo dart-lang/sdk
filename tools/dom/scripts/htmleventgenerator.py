@@ -382,7 +382,9 @@ class HtmlEventGenerator(object):
     if self._renamer.ShouldSuppressMember(interface, event_name, 'on:'):
       return True
 
-    if interface.doc_js_name == 'Window':
+    if (interface.doc_js_name == 'Window' or
+        interface.doc_js_name == 'Element' or
+        interface.doc_js_name == 'Document'):
       media_interface = self._database.GetInterface('HTMLMediaElement')
       media_events = self._GetEvents(media_interface, [])
       if self._HasEvent(media_events, event_name, event_type):
