@@ -25,6 +25,7 @@ class Expectation {
   static Expectation STATIC_WARNING = byName('StaticWarning');
   static Expectation MISSING_STATIC_WARNING =
       byName('MissingStaticWarning');
+  static Expectation PUB_GET_ERROR = byName('PubGetError');
 
   // "meta expectations"
   static Expectation OK = byName('Ok');
@@ -66,6 +67,8 @@ class Expectation {
 
       build("MissingStaticWarning", group: fail);
       build("StaticWarning", group: fail);
+
+      build("PubGetError", group: fail);
 
       build("Skip", isMetaExpectation: true);
       build("SkipByDesign", isMetaExpectation: true);

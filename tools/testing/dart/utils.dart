@@ -233,6 +233,19 @@ class HashCodeBuilder {
     _value = ((_value * 31) ^ object.hashCode)  & 0x3FFFFFFF;
   }
 
+  void addJson(Object object) {
+    if (object == null || object is num || object is String) {
+      add(object);
+    } else if (object is List) {
+      object.forEach(addJson);
+    } else if (object is Map) {
+      object.forEach((k, v) { addJson(k); addJson(value); });
+    } else {
+      throw new Exception("Can't build hashcode for non json-like object "
+          "(${object.runtimeType})");
+    }
+  }
+
   int get value => _value;
 }
 

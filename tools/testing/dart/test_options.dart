@@ -272,6 +272,14 @@ Note: currently only implemented for dart2js.''',
               false,
               'bool'),
           new _TestOptionSpecification(
+              'use_public_packages',
+              'For tests using packages: Use pub.dartlang.org packages '
+              'instead the ones in the repository.',
+              ['--use-public-packages'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
               'build_directory',
               'The name of the build directory, where products are placed.',
               ['--build-directory'],
@@ -610,6 +618,8 @@ Note: currently only implemented for dart2js.''',
     // Create the artificial negative options that test status files
     // expect.
     configuration['unchecked'] = !configuration['checked'];
+    configuration['use_repository_packages'] =
+        !configuration['use_public_packages'];
     configuration['host_unchecked'] = !configuration['host_checked'];
     configuration['unminified'] = !configuration['minified'];
     configuration['nocsp'] = !configuration['csp'];
