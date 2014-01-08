@@ -1181,6 +1181,10 @@ class ConstantNamingVisitor implements ConstantVisitor {
     addRoot(constant.dispatchedType.element.name);
     add('methods');
   }
+
+  visitDummyReceiver(DummyReceiverConstant constant) {
+    add('dummy_receiver');
+  }
 }
 
 /**
@@ -1256,6 +1260,11 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
   visitInterceptor(InterceptorConstant constant) {
     String typeName = constant.dispatchedType.element.name;
     return _hashString(5, typeName);
+  }
+
+  visitDummyReceiver(DummyReceiverConstant constant) {
+    compiler.internalError(
+        'DummyReceiverConstant should never be named and never be subconstant');
   }
 
   int _hashString(int hash, String s) {
