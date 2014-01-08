@@ -1273,6 +1273,9 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
       // A constructor cannot override anything.
       for (intptr_t i = 0; i < interfaces.Length(); i++) {
         super_class ^= interfaces.At(i);
+        // Finalize superclass since overrides check relies on all members
+        // of the superclass to be finalized.
+        FinalizeClass(super_class);
         overridden_function = super_class.LookupDynamicFunction(name);
         if (!overridden_function.IsNull() &&
             !function.HasCompatibleParametersWith(overridden_function,
