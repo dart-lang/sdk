@@ -25,6 +25,8 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 http/test/http_test: Pass, RuntimeError # Issue 15652
 
+third_party/angular_tests/*: Skip # Issue 15955
+
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
