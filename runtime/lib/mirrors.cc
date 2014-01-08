@@ -340,7 +340,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
   const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
   const Bool& is_mixin_app_alias = Bool::Get(cls.is_mixin_app_alias());
 
-  const Array& args = Array::Handle(Array::New(7));
+  const Array& args = Array::Handle(Array::New(8));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
   // We do not set the names of anonymous mixin applications because the mirrors
@@ -350,9 +350,10 @@ static RawInstance* CreateClassMirror(const Class& cls,
     args.SetAt(2, String::Handle(cls.Name()));
   }
   args.SetAt(3, owner_mirror);
-  args.SetAt(4, is_generic);
-  args.SetAt(5, is_mixin_app_alias);
-  args.SetAt(6, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
+  args.SetAt(4, Bool::Get(cls.is_abstract()));
+  args.SetAt(5, is_generic);
+  args.SetAt(6, is_mixin_app_alias);
+  args.SetAt(7, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
   return CreateMirror(Symbols::_LocalClassMirror(), args);
 }
 

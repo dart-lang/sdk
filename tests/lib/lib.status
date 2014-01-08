@@ -16,6 +16,7 @@ async/schedule_microtask6_test: RuntimeError # global error handling is not supp
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 
+mirrors/abstract_class_test: RuntimeError # Issue 12826
 mirrors/basic_types_in_dart_core_test: RuntimeError # Issue 14025
 mirrors/class_declarations_test/none: RuntimeError # Issue 13440
 mirrors/closures_test/none: RuntimeError # Issue 6490
