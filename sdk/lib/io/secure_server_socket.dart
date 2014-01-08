@@ -253,10 +253,13 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
     });
   }
 
-  void _onError(e, [StackTrace stackTrace]) =>
-      _controller.addError(e, stackTrace);
+  void _onError(e, [StackTrace stackTrace]) {
+    _controller.addError(e, stackTrace);
+  }
 
-  void _onDone() => _controller.close();
+  void _onDone() {
+    _controller.close();
+  }
 
   void _onPauseStateChange() {
     if (_controller.isPaused) {

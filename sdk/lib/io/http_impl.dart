@@ -170,8 +170,11 @@ class _HttpClientResponse
   int get statusCode => _incoming.statusCode;
   String get reasonPhrase => _incoming.reasonPhrase;
 
-  X509Certificate get certificate =>
-    _httpRequest._httpClientConnection._socket.peerCertificate;
+  X509Certificate get certificate {
+    // The peerCertificate isn't on a plain socket, so cast to dynamic.
+    var socket = _httpRequest._httpClientConnection._socket;
+    return socket.peerCertificate;
+  }
 
   List<Cookie> get cookies {
     if (_cookies != null) return _cookies;
