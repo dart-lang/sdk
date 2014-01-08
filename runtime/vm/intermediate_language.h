@@ -1416,14 +1416,6 @@ class GraphEntryInstr : public BlockEntryInstr {
     spill_slot_count_ = count;
   }
 
-  // Number of stack slots reserved for compiling try-catch. For functions
-  // without try-catch, this is 0. Otherwise, it is the number of local
-  // variables.
-  intptr_t fixed_slot_count() const { return fixed_slot_count_; }
-  void set_fixed_slot_count(intptr_t count) {
-    ASSERT(count >= 0);
-    fixed_slot_count_ = count;
-  }
   TargetEntryInstr* normal_entry() const { return normal_entry_; }
 
   const ParsedFunction& parsed_function() const {
@@ -1447,7 +1439,6 @@ class GraphEntryInstr : public BlockEntryInstr {
   const intptr_t osr_id_;
   intptr_t entry_count_;
   intptr_t spill_slot_count_;
-  intptr_t fixed_slot_count_;  // For try-catch in optimized code.
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };

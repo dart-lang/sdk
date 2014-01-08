@@ -1065,7 +1065,6 @@ void FlowGraphCompiler::EmitFrameEntry() {
     intptr_t extra_slots = StackSize()
         - flow_graph().num_stack_locals()
         - flow_graph().num_copied_params();
-    ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize, new_pp, new_pc);
   } else {
     ASSERT(StackSize() >= 0);

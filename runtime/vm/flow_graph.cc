@@ -6,9 +6,10 @@
 
 #include "vm/bit_vector.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/growable_array.h"
 #include "vm/intermediate_language.h"
 #include "vm/longjump.h"
-#include "vm/growable_array.h"
+#include "vm/stack_frame.h"
 
 namespace dart {
 
@@ -77,6 +78,8 @@ GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
 
 
 ConstantInstr* FlowGraph::GetConstant(const Object& object) {
+  // Not all objects can be embedded in code.
+  ASSERT(object.IsSmi() || object.InVMHeap() || object.IsOld());
   // Check if the constant is already in the pool.
   GrowableArray<Definition*>* pool = graph_entry_->initial_definitions();
   for (intptr_t i = 0; i < pool->length(); ++i) {
@@ -695,6 +698,47 @@ void FlowGraph::InsertPhis(
 }
 
 
+void FlowGraph::InitializeOsrLocalRange(GrowableArray<Definition*>* env,
+                                        RawObject** base,
+                                        intptr_t count) {
+  for (intptr_t i = 0; i < count; ++i) {
+    // Variables go from high to low addresses as they go from left to
+    // right.
+    const Object& value = Object::ZoneHandle(base[-i]);
+    Definition* definition = NULL;
+    if (value.IsSmi() || value.InVMHeap() || value.IsOld()) {
+      definition = GetConstant(value);
+    } else {
+      definition = new ParameterInstr(env->length(), graph_entry());
+      definition->set_ssa_temp_index(alloc_ssa_temp_index());
+      AddToInitialDefinitions(definition);
+    }
+    env->Add(definition);
+  }
+}
+
+
+void FlowGraph::InitializeOsrLocals(GrowableArray<Definition*>* env) {
+  DartFrameIterator iterator;
+  StackFrame* frame = iterator.NextFrame();
+  const Code& code = Code::Handle(frame->LookupDartCode());
+  ASSERT(!code.is_optimized());
+  ASSERT(frame->LookupDartFunction() == parsed_function().function().raw());
+
+  // Initialize parameters and locals in the order they appear in the
+  // environment (left-to-right, parameters first).
+  intptr_t count = num_non_copied_params();
+  RawObject** base = reinterpret_cast<RawObject**>(frame->fp())
+      + kParamEndSlotFromFp  // One past the last parameter.
+      + count;
+  InitializeOsrLocalRange(env, base, count);
+
+  count = num_copied_params() + num_stack_locals();
+  base = reinterpret_cast<RawObject**>(frame->fp()) + kFirstLocalSlotFromFp;
+  InitializeOsrLocalRange(env, base, count);
+}
+
+
 void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
                        ZoneGrowableArray<Definition*>* inlining_parameters) {
@@ -712,7 +756,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
   // Add parameters to the initial definitions and renaming environment.
   if (inlining_parameters != NULL) {
-    // Use known parameters.
+    // When inlining, use the known parameter definitions.
     ASSERT(parameter_count() == inlining_parameters->length());
     for (intptr_t i = 0; i < parameter_count(); ++i) {
       Definition* defn = (*inlining_parameters)[i];
@@ -720,11 +764,13 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
       AddToInitialDefinitions(defn);
       env.Add(defn);
     }
+  } else if (IsCompiledForOsr()) {
+    // For functions compiled for OSR, use the constants found in the
+    // unoptimized frame.
+    InitializeOsrLocals(&env);
   } else {
-    // Create new parameters.  For functions compiled for OSR, the locals
-    // are unknown and so treated like parameters.
-    intptr_t count = IsCompiledForOsr() ? variable_count() : parameter_count();
-    for (intptr_t i = 0; i < count; ++i) {
+    // Create fresh (unknown) parameters.
+    for (intptr_t i = 0; i < parameter_count(); ++i) {
       ParameterInstr* param = new ParameterInstr(i, entry);
       param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
       AddToInitialDefinitions(param);
@@ -740,12 +786,6 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     }
   }
 
-  if (entry->SuccessorCount() > 1) {
-    // Functions with try-catch have a fixed area of stack slots reserved
-    // so that all local variables are stored at a known location when
-    // on entry to the catch.
-    entry->set_fixed_slot_count(num_stack_locals() + num_copied_params());
-  }
   RenameRecursive(entry, &env, live_phis, variable_liveness);
 }
 
