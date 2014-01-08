@@ -14,7 +14,7 @@ const int _STDIO_HANDLE_TYPE_OTHER = 4;
 class _StdStream extends Stream<List<int>> {
   final Stream<List<int>> _stream;
 
-  _StdStream(Stream<List<int>> this._stream);
+  _StdStream(this._stream);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {Function onError,
@@ -206,7 +206,7 @@ class StdoutException implements IOException {
 class _StdSink implements IOSink {
   final IOSink _sink;
 
-  _StdSink(IOSink this._sink);
+  _StdSink(this._sink);
 
   Encoding get encoding => _sink.encoding;
   void set encoding(Encoding encoding) {
@@ -232,7 +232,7 @@ class StdioType {
   static const StdioType FILE = const StdioType._("file");
   static const StdioType OTHER = const StdioType._("other");
   final String name;
-  const StdioType._(String this.name);
+  const StdioType._(this.name);
   String toString() => "StdioType: $name";
 }
 

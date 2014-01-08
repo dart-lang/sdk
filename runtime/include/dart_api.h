@@ -302,7 +302,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
  *
  * If the provided handle is an unhandled exception error, this
  * function will cause the unhandled exception to be rethrown.  This
- * will proceeed in the standard way, walking up Dart frames until an
+ * will proceed in the standard way, walking up Dart frames until an
  * appropriate 'catch' block is found, executing 'finally' blocks,
  * etc.
  *
@@ -315,7 +315,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
  * In either case, when an error is propagated any current scopes
  * created by Dart_EnterScope will be exited.
  *
- * See the additonal discussion under "Propagating Errors" at the
+ * See the additional discussion under "Propagating Errors" at the
  * beginning of this file.
  *
  * \param An error handle (See Dart_IsError)
@@ -1948,7 +1948,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
  * Throws an exception.
  *
  * This function causes a Dart language exception to be thrown. This
- * will proceeed in the standard way, walking up Dart frames until an
+ * will proceed in the standard way, walking up Dart frames until an
  * appropriate 'catch' block is found, executing 'finally' blocks,
  * etc.
  *

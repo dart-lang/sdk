@@ -30,7 +30,7 @@ class _FileStream extends Stream<List<int>> {
   // Block read but not yet send because stream is paused.
   List<int> _currentBlock;
 
-  _FileStream(String this._path, this._position, this._end) {
+  _FileStream(this._path, this._position, this._end) {
     _setupController();
   }
 
@@ -215,9 +215,8 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
     return completer.future;
   }
 
-  Future<File> close() {
-    return _openFuture.then((openedFile) => openedFile.close());
-  }
+  Future<File> close() =>
+      _openFuture.then((openedFile) => openedFile.close());
 }
 
 
@@ -226,7 +225,7 @@ class _File extends FileSystemEntity implements File {
   final String path;
 
   // Constructor for file.
-  _File(String this.path) {
+  _File(this.path) {
     if (path is! String) {
       throw new ArgumentError('${Error.safeToString(path)} '
                               'is not a String');
@@ -473,11 +472,8 @@ class _File extends FileSystemEntity implements File {
     }
   }
 
-  Future<String> readAsString({Encoding encoding: UTF8}) {
-    return readAsBytes().then((bytes) {
-      return _tryDecode(bytes, encoding);
-    });
-  }
+  Future<String> readAsString({Encoding encoding: UTF8}) =>
+    readAsBytes().then((bytes) => _tryDecode(bytes, encoding));
 
   String readAsStringSync({Encoding encoding: UTF8}) {
     List<int> bytes = readAsBytesSync();
@@ -508,9 +504,8 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  List<String> readAsLinesSync({Encoding encoding: UTF8}) {
-    return _decodeLines(readAsBytesSync(), encoding);
-  }
+  List<String> readAsLinesSync({Encoding encoding: UTF8}) =>
+      _decodeLines(readAsBytesSync(), encoding);
 
   Future<File> writeAsBytes(List<int> bytes,
                             {FileMode mode: FileMode.WRITE,
@@ -572,7 +567,7 @@ class _RandomAccessFile implements RandomAccessFile {
   bool _asyncDispatched = false;
   SendPort _fileService;
 
-  _RandomAccessFile(int this._id, String this.path);
+  _RandomAccessFile(this._id, this.path);
 
   Future<RandomAccessFile> close() {
     return _dispatch(_FILE_CLOSE, [_id], markClosed: true).then((result) {

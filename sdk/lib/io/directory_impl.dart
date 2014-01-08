@@ -7,7 +7,7 @@ part of dart.io;
 class _Directory extends FileSystemEntity implements Directory {
   final String path;
 
-  _Directory(String this.path) {
+  _Directory(this.path) {
     if (path is! String) {
       throw new ArgumentError('${Error.safeToString(path)} '
                               'is not a String');
@@ -230,9 +230,8 @@ class _Directory extends FileSystemEntity implements Directory {
 
   String toString() => "Directory: '$path'";
 
-  bool _isErrorResponse(response) {
-    return response is List && response[0] != _SUCCESS_RESPONSE;
-  }
+  bool _isErrorResponse(response) =>
+      response is List && response[0] != _SUCCESS_RESPONSE;
 
   _exceptionOrErrorFromResponse(response, String message) {
     assert(_isErrorResponse(response));
@@ -272,9 +271,7 @@ class _AsyncDirectoryLister {
   bool closed = false;
   Completer closeCompleter = new Completer();
 
-  _AsyncDirectoryLister(String this.path,
-                        bool this.recursive,
-                        bool this.followLinks) {
+  _AsyncDirectoryLister(this.path, this.recursive, this.followLinks) {
     controller = new StreamController(onListen: onListen,
                                       onResume: onResume,
                                       onCancel: onCancel,

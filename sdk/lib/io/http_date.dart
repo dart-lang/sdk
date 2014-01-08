@@ -43,21 +43,21 @@ class HttpDate {
                               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     DateTime d = date.toUtc();
-    StringBuffer sb = new StringBuffer();
-    sb.write(wkday[d.weekday - 1]);
-    sb.write(", ");
-    sb.write(d.day.toString());
-    sb.write(" ");
-    sb.write(month[d.month - 1]);
-    sb.write(" ");
-    sb.write(d.year.toString());
-    sb.write(d.hour < 9 ? " 0" : " ");
-    sb.write(d.hour.toString());
-    sb.write(d.minute < 9 ? ":0" : ":");
-    sb.write(d.minute.toString());
-    sb.write(d.second < 9 ? ":0" : ":");
-    sb.write(d.second.toString());
-    sb.write(" GMT");
+    StringBuffer sb = new StringBuffer()
+        ..write(wkday[d.weekday - 1])
+        ..write(", ")
+        ..write(d.day.toString())
+        ..write(" ")
+        ..write(month[d.month - 1])
+        ..write(" ")
+        ..write(d.year.toString())
+        ..write(d.hour < 9 ? " 0" : " ")
+        ..write(d.hour.toString())
+        ..write(d.minute < 9 ? ":0" : ":")
+        ..write(d.minute.toString())
+        ..write(d.second < 9 ? ":0" : ":")
+        ..write(d.second.toString())
+        ..write(" GMT");
     return sb.toString();
   }
 
@@ -215,9 +215,7 @@ class HttpDate {
       throw new HttpException("Invalid cookie date $date");
     }
 
-    bool isEnd() {
-      return position == date.length;
-    }
+    bool isEnd() => position == date.length;
 
     bool isDelimiter(String s) {
       int char = s.codeUnitAt(0);

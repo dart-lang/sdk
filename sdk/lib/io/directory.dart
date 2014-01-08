@@ -9,6 +9,11 @@ part of dart.io;
  */
 abstract class Directory implements FileSystemEntity {
   /**
+   * Gets the path of this directory.
+   */
+  final String path;
+
+  /**
    * Creates a directory object. The path is either an absolute path,
    * or it is a relative path which is interpreted relative to the directory
    * in which the Dart VM was started.
@@ -188,9 +193,4 @@ abstract class Directory implements FileSystemEntity {
    * Returns a human readable string for this Directory instance.
    */
   String toString();
-
-  /**
-   * Gets the path of this directory.
-   */
-  final String path;
 }

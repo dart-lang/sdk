@@ -51,10 +51,28 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
   static const int CLOSED = 5;
   static const int FAILURE = 6;
 
+  int _state;
+  bool _fin;
+  int _opcode;
+  int _len;
+  bool _masked;
+  int _maskingKey;
+  int _remainingLenBytes;
+  int _remainingMaskingKeyBytes;
+  int _remainingPayloadBytes;
+  int _unmaskingIndex;
+
+  int _currentMessageType;
+  List<int> _controlPayload;
+  StreamController _controller;
+
+  int closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
+  String closeReason = "";
+
   bool _serverSide;
   EventSink _eventSink;
 
-  _WebSocketProtocolTransformer([bool this._serverSide = false]) {
+  _WebSocketProtocolTransformer([this._serverSide = false]) {
     _prepareForNextFrame();
     _currentMessageType = _WebSocketMessageType.NONE;
   }
@@ -71,9 +89,8 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
         });
   }
 
-  void addError(Object error, [StackTrace stackTrace]) {
-    _eventSink.addError(error, stackTrace);
-  }
+  void addError(Object error, [StackTrace stackTrace]) =>
+      _eventSink.addError(error, stackTrace);
 
   void close() => _eventSink.close();
 
@@ -357,24 +374,6 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
     _unmaskingIndex = 0;
     _controlPayload = null;
   }
-
-  int _state;
-  bool _fin;
-  int _opcode;
-  int _len;
-  bool _masked;
-  int _maskingKey;
-  int _remainingLenBytes;
-  int _remainingMaskingKeyBytes;
-  int _remainingPayloadBytes;
-  int _unmaskingIndex;
-
-  int _currentMessageType;
-  List<int> _controlPayload;
-  StreamController _controller;
-
-  int closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
-  String closeReason = "";
 }
 
 
@@ -411,17 +410,19 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
     var response = request.response;
     if (!_isUpgradeRequest(request)) {
       // Send error response.
-      response.statusCode = HttpStatus.BAD_REQUEST;
-      response.close();
+      response
+          ..statusCode = HttpStatus.BAD_REQUEST
+          ..close();
       return new Future.error(
           new WebSocketException("Invalid WebSocket upgrade request"));
     }
 
     Future upgrade(String protocol) {
       // Send the upgrade response.
-      response.statusCode = HttpStatus.SWITCHING_PROTOCOLS;
-      response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
-      response.headers.add(HttpHeaders.UPGRADE, "websocket");
+      response
+          ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
+          ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
+          ..headers.add(HttpHeaders.UPGRADE, "websocket");
       String key = request.headers.value("Sec-WebSocket-Key");
       _SHA1 sha1 = new _SHA1();
       sha1.add("$key$_webSocketGUID".codeUnits);
@@ -451,8 +452,9 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
           return protocol;
         })
         .catchError((error) {
-          response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-          response.close();
+          response
+              ..statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+              ..close();
           throw error;
         })
         .then(upgrade);
@@ -495,7 +497,7 @@ class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
   final _WebSocketImpl webSocket;
   EventSink _eventSink;
 
-  _WebSocketOutgoingTransformer(_WebSocketImpl this.webSocket);
+  _WebSocketOutgoingTransformer(this.webSocket);
 
   Stream bind(Stream stream) {
     return new Stream.eventTransformed(
@@ -537,9 +539,8 @@ class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
     addFrame(opcode, data);
   }
 
-  void addError(Object error, [StackTrace stackTrace]) {
-    _eventSink.addError(error, stackTrace);
-  }
+  void addError(Object error, [StackTrace stackTrace]) =>
+      _eventSink.addError(error, stackTrace);
 
   void close() {
     int code = webSocket._outCloseCode;
@@ -557,9 +558,8 @@ class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
     _eventSink.close();
   }
 
-  void addFrame(int opcode, List<int> data) {
-    createFrame(opcode, data, webSocket._serverSide).forEach(_eventSink.add);
-  }
+  void addFrame(int opcode, List<int> data) =>
+      createFrame(opcode, data, webSocket._serverSide).forEach(_eventSink.add);
 
   static Iterable createFrame(int opcode, List<int> data, bool serverSide) {
     bool mask = !serverSide;  // Masking not implemented for server.
@@ -640,7 +640,7 @@ class _WebSocketConsumer implements StreamConsumer {
   Completer _closeCompleter = new Completer();
   Completer _completer;
 
-  _WebSocketConsumer(_WebSocketImpl this.webSocket, Socket this.socket);
+  _WebSocketConsumer(this.webSocket, this.socket);
 
   void _onListen() {
     if (_subscription != null) {
@@ -802,10 +802,11 @@ class _WebSocketImpl extends Stream implements WebSocket {
     return _httpClient.openUrl("GET", uri)
       .then((request) {
         // Setup the initial handshake.
-        request.headers.add(HttpHeaders.CONNECTION, "upgrade");
-        request.headers.set(HttpHeaders.UPGRADE, "websocket");
-        request.headers.set("Sec-WebSocket-Key", nonce);
-        request.headers.set("Sec-WebSocket-Version", "13");
+        request.headers
+            ..add(HttpHeaders.CONNECTION, "upgrade")
+            ..set(HttpHeaders.UPGRADE, "websocket")
+            ..set("Sec-WebSocket-Key", nonce)
+            ..set("Sec-WebSocket-Version", "13");
         if (protocols.isNotEmpty) {
           request.headers.add("Sec-WebSocket-Protocol", protocols);
         }
@@ -849,9 +850,8 @@ class _WebSocketImpl extends Stream implements WebSocket {
       });
   }
 
-  _WebSocketImpl._fromSocket(Socket this._socket,
-                             String this.protocol,
-                             [bool this._serverSide = false]) {
+  _WebSocketImpl._fromSocket(this._socket, this.protocol,
+                             [this._serverSide = false]) {
     _consumer = new _WebSocketConsumer(this, _socket);
     _sink = new _StreamSinkImpl(_consumer);
     _readyState = WebSocket.OPEN;

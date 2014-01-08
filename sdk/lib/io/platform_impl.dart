@@ -15,6 +15,9 @@ class _Platform {
   external static String _packageRoot();
   external static String _version();
 
+  static String executable = _executable();
+  static String packageRoot = _packageRoot();
+
   // Cache the OS environemnt. This can be an OSError instance if
   // retrieving the environment failed.
   static var _environmentCache;
@@ -44,8 +47,6 @@ class _Platform {
     }
   }
 
-  static String executable = _executable();
-  static String packageRoot = _packageRoot();
   static List<String> get executableArguments => _executableArguments();
 
   static Map<String, String> get environment {
@@ -89,6 +90,8 @@ class _Platform {
 // Environment variables are case-insensitive on Windows. In order
 // to reflect that we use a case-insensitive string map on Windows.
 class _CaseInsensitiveStringMap<V> implements Map<String, V> {
+  Map<String, V> _map;
+
   _CaseInsensitiveStringMap() : _map = new Map<String, V>();
 
   _CaseInsensitiveStringMap.from(Map<String, V> other)
@@ -118,6 +121,4 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
-
-  Map<String, V> _map;
 }

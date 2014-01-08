@@ -105,8 +105,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
 
   Completer resumeCompleter;
 
-  _HttpDetachedIncoming(StreamSubscription this.subscription,
-                        List<int> this.bufferedData) {
+  _HttpDetachedIncoming(this.subscription, this.bufferedData) {
     controller = new StreamController<List<int>>(
         sync: true,
         onListen: resume,
@@ -119,10 +118,11 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
       controller.close();
     } else {
       pause();
-      subscription.resume();
-      subscription.onData(controller.add);
-      subscription.onDone(controller.close);
-      subscription.onError(controller.addError);
+      subscription
+          ..resume()
+          ..onData(controller.add)
+          ..onDone(controller.close)
+          ..onError(controller.addError);
     }
   }
 
@@ -186,6 +186,42 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
 class _HttpParser
     extends Stream<_HttpIncoming>
     implements StreamConsumer<List<int>> {
+  // State.
+  bool _parserCalled = false;
+
+  // The data that is currently being parsed.
+  Uint8List _buffer;
+  int _index;
+
+  final bool _requestParser;
+  int _state;
+  int _httpVersionIndex;
+  int _messageType;
+  int _statusCode = 0;
+  List _method_or_status_code;
+  List _uri_or_reason_phrase;
+  List _headerField;
+  List _headerValue;
+
+  int _httpVersion;
+  int _transferLength = -1;
+  bool _persistentConnection;
+  bool _connectionUpgrade;
+  bool _chunked;
+
+  bool _noMessageBody;
+  String _responseToMethod;  // Indicates the method used for the request.
+  int _remainingContent = -1;
+
+  _HttpHeaders _headers;
+
+  // The current incoming connection.
+  _HttpIncoming _incoming;
+  StreamSubscription _socketSubscription;
+  bool _paused = true;
+  bool _bodyPaused = false;
+  StreamController<_HttpIncoming> _controller;
+  StreamController<List<int>> _bodyController;
 
   factory _HttpParser.requestParser() {
     return new _HttpParser._(true);
@@ -955,41 +991,4 @@ class _HttpParser
     _controller.addError(error, stackTrace);
     _controller.close();
   }
-
-  // State.
-  bool _parserCalled = false;
-
-  // The data that is currently being parsed.
-  Uint8List _buffer;
-  int _index;
-
-  final bool _requestParser;
-  int _state;
-  int _httpVersionIndex;
-  int _messageType;
-  int _statusCode = 0;
-  List _method_or_status_code;
-  List _uri_or_reason_phrase;
-  List _headerField;
-  List _headerValue;
-
-  int _httpVersion;
-  int _transferLength = -1;
-  bool _persistentConnection;
-  bool _connectionUpgrade;
-  bool _chunked;
-
-  bool _noMessageBody;
-  String _responseToMethod;  // Indicates the method used for the request.
-  int _remainingContent = -1;
-
-  _HttpHeaders _headers;
-
-  // The current incoming connection.
-  _HttpIncoming _incoming;
-  StreamSubscription _socketSubscription;
-  bool _paused = true;
-  bool _bodyPaused = false;
-  StreamController<_HttpIncoming> _controller;
-  StreamController<List<int>> _bodyController;
 }

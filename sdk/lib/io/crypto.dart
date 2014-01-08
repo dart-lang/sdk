@@ -5,14 +5,6 @@
 part of dart.io;
 
 class _CryptoUtils {
-  static String bytesToHex(List<int> bytes) {
-    var result = new StringBuffer();
-    for (var part in bytes) {
-      result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
-    }
-    return result.toString();
-  }
-
   static const int PAD = 61; // '='
   static const int CR = 13;  // '\r'
   static const int LF = 10;  // '\n'
@@ -46,6 +38,14 @@ class _CryptoUtils {
               -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
               -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
               -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2 ];
+
+  static String bytesToHex(List<int> bytes) {
+    var result = new StringBuffer();
+    for (var part in bytes) {
+      result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
+    }
+    return result.toString();
+  }
 
   static String bytesToBase64(List<int> bytes,
                               [bool urlSafe = false,
@@ -169,9 +169,19 @@ const _BYTES_PER_WORD = 4;
 // Base class encapsulating common behavior for cryptographic hash
 // functions.
 abstract class _HashBase {
-  _HashBase(int this._chunkSizeInWords,
-            int this._digestSizeInWords,
-            bool this._bigEndianWords)
+  // Hasher state.
+  final int _chunkSizeInWords;
+  final int _digestSizeInWords;
+  final bool _bigEndianWords;
+  int _lengthInBytes = 0;
+  List<int> _pendingData;
+  List<int> _currentChunk;
+  List<int> _h;
+  bool _digestCalled = false;
+
+  _HashBase(this._chunkSizeInWords,
+            this._digestSizeInWords,
+            this._bigEndianWords)
       : _pendingData = [] {
     _currentChunk = new List(_chunkSizeInWords);
     _h = new List(_digestSizeInWords);
@@ -296,16 +306,6 @@ abstract class _HashBase {
       _pendingData.addAll(_wordToBytes(0));
     }
   }
-
-  // Hasher state.
-  final int _chunkSizeInWords;
-  final int _digestSizeInWords;
-  final bool _bigEndianWords;
-  int _lengthInBytes = 0;
-  List<int> _pendingData;
-  List<int> _currentChunk;
-  List<int> _h;
-  bool _digestCalled = false;
 }
 
 // The MD5 hasher is used to compute an MD5 message digest.

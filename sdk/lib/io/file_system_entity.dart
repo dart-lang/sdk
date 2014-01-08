@@ -13,12 +13,12 @@ class FileSystemEntityType {
                                   FileSystemEntityType.DIRECTORY,
                                   FileSystemEntityType.LINK,
                                   FileSystemEntityType.NOT_FOUND];
-  const FileSystemEntityType._internal(int this._type);
+  final int _type;
+
+  const FileSystemEntityType._internal(this._type);
 
   static FileSystemEntityType _lookup(int type) => _typeList[type];
   String toString() => const ['FILE', 'DIRECTORY', 'LINK', 'NOT_FOUND'][_type];
-
-  final int _type;
 }
 
 /**
@@ -34,6 +34,37 @@ class FileStat {
   static const _ACCESSED_TIME = 3;
   static const _MODE = 4;
   static const _SIZE = 5;
+
+  /**
+   * The time of the last change to the data or metadata of the file system
+   * object.  On Windows platforms, this is instead the file creation time.
+   */
+  final DateTime changed;
+  /**
+   * The time of the last change to the data of the file system
+   * object.
+   */
+  final DateTime modified;
+  /**
+   * The time of the last access to the data of the file system
+   * object.  On Windows platforms, this may have 1 day granularity, and be
+   * out of date by an hour.
+   */
+  final DateTime accessed;
+  /**
+   * The type of the object (file, directory, or link).  If the call to
+   * stat() fails, the type of the returned object is NOT_FOUND.
+   */
+  final FileSystemEntityType type;
+  /**
+   * The mode of the file system object.  Permissions are encoded in the lower
+   * 16 bits of this number, and can be decoded using the [modeString] getter.
+   */
+  final int mode;
+  /**
+   * The size of the file system object.
+   */
+  final int size;
 
   FileStat._internal(this.changed,
                      this.modified,
@@ -111,42 +142,12 @@ FileStat: type $type
     if ((permissions & 0x800) != 0) result.add("(suid) ");
     if ((permissions & 0x400) != 0) result.add("(guid) ");
     if ((permissions & 0x200) != 0) result.add("(sticky) ");
-    result.add(codes[(permissions >> 6) & 0x7]);
-    result.add(codes[(permissions >> 3) & 0x7]);
-    result.add(codes[permissions & 0x7]);
+    result
+        ..add(codes[(permissions >> 6) & 0x7])
+        ..add(codes[(permissions >> 3) & 0x7])
+        ..add(codes[permissions & 0x7]);
     return result.join();
   }
-
-  /**
-   * The time of the last change to the data or metadata of the file system
-   * object.  On Windows platforms, this is instead the file creation time.
-   */
-  final DateTime changed;
-  /**
-   * The time of the last change to the data of the file system
-   * object.
-   */
-  final DateTime modified;
-  /**
-   * The time of the last access to the data of the file system
-   * object.  On Windows platforms, this may have 1 day granularity, and be
-   * out of date by an hour.
-   */
-  final DateTime accessed;
-  /**
-   * The type of the object (file, directory, or link).  If the call to
-   * stat() fails, the type of the returned object is NOT_FOUND.
-   */
-  final FileSystemEntityType type;
-  /**
-   * The mode of the file system object.  Permissions are encoded in the lower
-   * 16 bits of this number, and can be decoded using the [modeString] getter.
-   */
-  final int mode;
-  /**
-   * The size of the file system object.
-   */
-  final int size;
 }
 
 

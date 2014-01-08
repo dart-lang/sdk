@@ -90,6 +90,31 @@ int get pid => _ProcessUtils._pid(null);
  */
 abstract class Process {
   /**
+   * Returns a [:Future:] which completes with the exit code of the process
+   * when the process completes.
+   *
+   * The handling of exit codes is platform specific.
+   *
+   * On Linux and Mac a normal exit code will be a positive value in
+   * the range [0..255]. If the process was terminated due to a signal
+   * the exit code will be a negative value in the range [-255..0[,
+   * where the absolute value of the exit code is the signal
+   * number. For example, if a process crashes due to a segmentation
+   * violation the exit code will be -11, as the signal SIGSEGV has the
+   * number 11.
+   *
+   * On Windows a process can report any 32-bit value as an exit
+   * code. When returning the exit code this exit code is turned into
+   * a signed value. Some special values are used to report
+   * termination due to some system event. E.g. if a process crashes
+   * due to an access violation the 32-bit exit code is `0xc0000005`,
+   * which will be returned as the negative number `-1073741819`. To
+   * get the original 32-bit value use `(0x100000000 + exitCode) &
+   * 0xffffffff`.
+   */
+  Future<int> exitCode;
+
+  /**
    * Starts a process running the [executable] with the specified
    * [arguments]. Returns a [:Future<Process>:] that completes with a
    * Process instance when the process has been successfully
@@ -229,31 +254,6 @@ abstract class Process {
   int get pid;
 
   /**
-   * Returns a [:Future:] which completes with the exit code of the process
-   * when the process completes.
-   *
-   * The handling of exit codes is platform specific.
-   *
-   * On Linux and Mac a normal exit code will be a positive value in
-   * the range [0..255]. If the process was terminated due to a signal
-   * the exit code will be a negative value in the range [-255..0[,
-   * where the absolute value of the exit code is the signal
-   * number. For example, if a process crashes due to a segmentation
-   * violation the exit code will be -11, as the signal SIGSEGV has the
-   * number 11.
-   *
-   * On Windows a process can report any 32-bit value as an exit
-   * code. When returning the exit code this exit code is turned into
-   * a signed value. Some special values are used to report
-   * termination due to some system event. E.g. if a process crashes
-   * due to an access violation the 32-bit exit code is `0xc0000005`,
-   * which will be returned as the negative number `-1073741819`. To
-   * get the original 32-bit value use `(0x100000000 + exitCode) &
-   * 0xffffffff`.
-   */
-  Future<int> exitCode;
-
-  /**
    * On Windows, [kill] kills the process, ignoring the [signal]
    * flag. On Posix systems, [kill] sends [signal] to the
    * process. Depending on the signal giving, it'll have different
@@ -356,7 +356,7 @@ class SignalException implements IOException {
   final String message;
   final osError;
 
-  const SignalException(String this.message, [this.osError = null]);
+  const SignalException(this.message, [this.osError = null]);
 
   String toString() {
     var msg = "";
@@ -369,16 +369,6 @@ class SignalException implements IOException {
 
 
 class ProcessException implements IOException {
-  const ProcessException(String this.executable,
-                         List<String> this.arguments,
-                         [String this.message = "",
-                          int this.errorCode = 0]);
-  String toString() {
-    var msg = (message == null) ? 'OS error code: $errorCode' : message;
-    var args = arguments.join(' ');
-    return "ProcessException: $msg\n  Command: $executable $args";
-  }
-
   /**
    * Contains the executable provided for the process.
    */
@@ -398,4 +388,12 @@ class ProcessException implements IOException {
    * Contains the OS error code for the process exception if any.
    */
   final int errorCode;
+
+  const ProcessException(this.executable, this.arguments, [this.message = "",
+                         this.errorCode = 0]);
+  String toString() {
+    var msg = (message == null) ? 'OS error code: $errorCode' : message;
+    var args = arguments.join(' ');
+    return "ProcessException: $msg\n  Command: $executable $args";
+  }
 }

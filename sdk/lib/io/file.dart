@@ -16,8 +16,9 @@ class FileMode {
   /// The [FileMode] for opening a file for reading a file and writing to the
   /// end of it. If the file does not exist, it will be created.
   static const APPEND = const FileMode._internal(2);
-  const FileMode._internal(int this._mode);
   final int _mode;
+
+  const FileMode._internal(this._mode);
 }
 
 /// The [FileMode] for opening a file only for reading.
@@ -564,9 +565,7 @@ class FileSystemException implements IOException {
   final String message;
   final String path;
   final OSError osError;
-  const FileSystemException([String this.message = "",
-                             String this.path = "",
-                             OSError this.osError]);
+  const FileSystemException([this.message = "", this.path = "", this.osError]);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
