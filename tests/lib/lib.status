@@ -144,6 +144,8 @@ async/stream_timeout_test: Fail # Timer interface not supported: dartbug.com/772
 
 [ $compiler == dart2js && $checked ]
 convert/utf85_test: Pass, Slow # Issue 12029.
+
+[ $compiler == dart2js && $checked && $runtime == d8 ]
 async/stream_transform_test: Fail # https://code.google.com/p/v8/issues/detail?id=3084
 
 [ $compiler == dart2js ]

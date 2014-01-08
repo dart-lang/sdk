@@ -119,9 +119,6 @@ typed_data/test/typed_buffers_test: RuntimeError
 polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
 polymer/test/noscript_test: RuntimeError # Issue 13260
 
-[ ($runtime == ie9 || $runtime == ie10) && $checked ]
-polymer/test/take_attributes_test: RuntimeError # Issue 13260
-
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
 path/test/browser_test: Fail, OK # Uses dart:html
