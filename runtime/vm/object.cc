@@ -4848,6 +4848,9 @@ bool Function::IsNativeAutoSetupScope() const {
 void Function::SetIsOptimizable(bool value) const {
   ASSERT(!is_native());
   set_is_optimizable(value);
+  if (!value) {
+    set_is_inlinable(false);
+  }
 }
 
 

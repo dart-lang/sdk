@@ -1060,7 +1060,7 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInlining(intptr_t receiver_cid,
                                      const Function& target) {
-  if (!target.IsOptimizable()) {
+  if (!target.IsInlineable()) {
     if (TryInlineRecognizedMethod(receiver_cid, target)) {
       owner_->inlined_ = true;
       return true;
