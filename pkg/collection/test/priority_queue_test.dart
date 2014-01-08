@@ -14,7 +14,7 @@ void main() {
 }
 
 void testInt(PriorityQueue<int> create()) {
-  for (int count in [1, 5, 127, 128, 400]) {
+  for (int count in [1, 5, 127, 128]) {
     testQueue("int:$count",
               create,
               new List<int>.generate(count, (x) => x),
@@ -23,7 +23,7 @@ void testInt(PriorityQueue<int> create()) {
 }
 
 void testCustom(PriorityQueue<C> create(comparator)) {
-  for (int count in [1, 5, 127, 128, 400]) {
+  for (int count in [1, 5, 127, 128]) {
     testQueue("Custom:$count/null",
               () => create(null),
               new List<C>.generate(count, (x) => new C(x)),
