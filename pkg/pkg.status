@@ -209,28 +209,11 @@ polymer/test/build/*: Fail, OK # Uses dart:io.
 third_party/angular_tests/tools/*: Skip # Uses dart:io
 watcher/test/*: Fail, OK # Uses dart:io.
 
-scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/file_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/nothing_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/pattern_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/*: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_future_matchers_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_process_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/abort_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/current_schedule_current_task_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/current_schedule_errors_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/current_schedule_state_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/nested_task_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/on_complete_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/on_exception_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/out_of_band_task_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/set_up_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/signal_error_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/simple_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/task_return_value_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/*: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_stream/scheduled_matcher_test: Fail # http://dartbug.com/8440
 
 
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
