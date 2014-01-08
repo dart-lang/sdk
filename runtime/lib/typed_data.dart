@@ -528,29 +528,49 @@ abstract class _TypedListBase {
   bool _isClamped() { return false; }
 
   void setRange(int start, int end, Iterable from, [int skipCount = 0]) {
-    if (from is _TypedListBase){
+    // Check ranges.
+    if ((start < 0) || (start > length)) {
+      _throwRangeError(start, length + 1);
+    }
+    if ((end < 0) || (end > length)) {
+      _throwRangeError(end, length + 1);
+    }
+    if (start > end) {
+      _throwRangeError(start, end + 1);
+    }
+    if (skipCount < 0) {
+      throw new ArgumentError(skipCount);
+    }
+
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw new StateError("Not enough elements");
+    }
+
+    if (from is _TypedListBase) {
       final needsClamping =
           this._isClamped() && (this._isClamped() != from._isClamped());
-      if (!needsClamping &&
-          (this.elementSizeInBytes == from.elementSizeInBytes)) {
-        if (this.buffer._setRange(
-              start + (this.offsetInBytes ~/ this.elementSizeInBytes),
-              end - start,
-              from.buffer,
-              skipCount + (from.offsetInBytes  ~/ from.elementSizeInBytes))) {
+      if (this.elementSizeInBytes == from.elementSizeInBytes) {
+        if (needsClamping) {
+          Lists.copy(from, skipCount, this, start, count);
+          return;
+        } else if (this.buffer._setRange(
+                     start * elementSizeInBytes + this.offsetInBytes,
+                     count * elementSizeInBytes,
+                     from.buffer,
+                     skipCount * elementSizeInBytes + from.offsetInBytes)) {
           return;
         }
       } else if (from.buffer == this.buffer) {
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
-        final len = end - start;
-        final buffer = new List(len);
-        for (int i = 0; i < len; i++) {
-          buffer[i] = from[skipCount + i];
+        final temp_buffer = new List(count);
+        for (int i = 0; i < count; i++) {
+          temp_buffer[i] = from[skipCount + i];
         }
         for (int i = start; i < end; i++) {
-          this[i] = buffer[i - start];
+          this[i] = temp_buffer[i - start];
         }
         return;
       }
@@ -577,7 +597,11 @@ abstract class _TypedListBase {
 
   // Internal utility methods.
 
-  bool _setRange(int start, int length, Iterable from, int startFrom)
+  // Returns true if operation succeeds.
+  // Returns false if 'from' and 'this' do not have the same element types.
+  // The copy occurs using a memory copy (no clamping, conversion, etc).
+  bool _setRange(int startInBytes, int lengthInBytes,
+                 _TypedListBase from, int startFromInBytes)
       native "TypedData_setRange";
 }
 

@@ -213,8 +213,6 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 mirrors/synthetic_accessor_properties_test/none: RuntimeError # Issue 14632
 mirrors/toplevel_members_test/01: RuntimeError # Issue 14632
 
-typed_data/setRange_5_test: Fail  # 
-
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
 [ $compiler == none && ( $runtime == drt || $runtime == dartium ) ]
