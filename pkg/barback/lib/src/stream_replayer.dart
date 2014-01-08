@@ -27,9 +27,9 @@ class StreamReplayer<T> {
   /// The buffer of events or errors that have already been emitted by
   /// [_stream].
   ///
-  /// Each element is a [Either] that's either a value or an error sent through
-  /// the stream.
-  final _buffer = new Queue<Either<T, Pair<dynamic, StackTrace>>>();
+  /// Each element is a [Fallible] that's either a value or an error sent
+  /// through the stream.
+  final _buffer = new Queue<Fallible<T>>();
 
   /// The controllers that are listening for future events from [_stream].
   final _controllers = new Set<StreamController<T>>();
@@ -43,9 +43,11 @@ class StreamReplayer<T> {
     var controller = new StreamController<T>(onListen: _subscribe);
 
     for (var eventOrError in _buffer) {
-      eventOrError.match(controller.add, (pair) {
-        controller.addError(pair.first, pair.second);
-      });
+      if (eventOrError.hasValue) {
+        controller.add(eventOrError.value);
+      } else {
+        controller.addError(eventOrError.error, eventOrError.stackTrace);
+      }
     }
     if (_isClosed) {
       controller.close();
@@ -61,13 +63,12 @@ class StreamReplayer<T> {
     _isSubscribed = true;
 
     _stream.listen((data) {
-      _buffer.add(new Either<T, dynamic>.withFirst(data));
+      _buffer.add(new Fallible<T>.withValue(data));
       for (var controller in _controllers) {
         controller.add(data);
       }
     }, onError: (error, [stackTrace]) {
-      _buffer.add(new Either<T, Pair<dynamic, StackTrace>>.withSecond(
-          new Pair<dynamic, StackTrace>(error, stackTrace)));
+      _buffer.add(new Fallible<T>.withError(error, stackTrace));
       for (var controller in _controllers) {
         controller.addError(error, stackTrace);
       }
