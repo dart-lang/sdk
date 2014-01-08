@@ -122,11 +122,14 @@ class Character {
   static const int MIN_SUPPLEMENTARY_CODE_POINT = 0x010000;
   static const int MIN_LOW_SURROGATE  = 0xDC00;
   static const int MIN_HIGH_SURROGATE = 0xD800;
+  static bool isDigit(int c) {
+    return c >= 0x30 && c <= 0x39;
+  }
   static bool isLetter(int c) {
     return c >= 0x41 && c <= 0x5A || c >= 0x61 && c <= 0x7A;
   }
   static bool isLetterOrDigit(int c) {
-    return isLetter(c) || c >= 0x30 && c <= 0x39;
+    return isLetter(c) || isDigit(c);
   }
   static bool isWhitespace(int c) {
     return c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0D;

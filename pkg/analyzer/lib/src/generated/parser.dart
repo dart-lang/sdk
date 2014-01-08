@@ -3447,10 +3447,10 @@ class Parser {
       if (matches4(next, TokenType.LT)) {
         next = skipTypeParameterList(next);
         if (next != null && matches4(next, TokenType.EQ)) {
-          return parseClassTypeAlias(commentAndMetadata, keyword);
+          return parseClassTypeAlias(commentAndMetadata, abstractKeyword, keyword);
         }
       } else if (matches4(next, TokenType.EQ)) {
-        return parseClassTypeAlias(commentAndMetadata, keyword);
+        return parseClassTypeAlias(commentAndMetadata, abstractKeyword, keyword);
       }
     }
     SimpleIdentifier name = parseSimpleIdentifier();
@@ -3568,17 +3568,17 @@ class Parser {
    * </pre>
    *
    * @param commentAndMetadata the metadata to be associated with the member
-   * @param keyword the token representing the 'typedef' keyword
+   * @param abstractKeyword the token representing the 'abstract' keyword
+   * @param classKeyword the token representing the 'class' keyword
    * @return the class type alias that was parsed
    */
-  ClassTypeAlias parseClassTypeAlias(CommentAndMetadata commentAndMetadata, Token keyword) {
+  ClassTypeAlias parseClassTypeAlias(CommentAndMetadata commentAndMetadata, Token abstractKeyword, Token classKeyword) {
     SimpleIdentifier className = parseSimpleIdentifier();
     TypeParameterList typeParameters = null;
     if (matches5(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
     Token equals = expect2(TokenType.EQ);
-    Token abstractKeyword = null;
     if (matches(Keyword.ABSTRACT)) {
       abstractKeyword = andAdvance;
     }
@@ -3605,7 +3605,7 @@ class Parser {
       }
       semicolon = createSyntheticToken2(TokenType.SEMICOLON);
     }
-    return new ClassTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, className, typeParameters, equals, abstractKeyword, superclass, withClause, implementsClause, semicolon);
+    return new ClassTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, classKeyword, className, typeParameters, equals, abstractKeyword, superclass, withClause, implementsClause, semicolon);
   }
 
   /**
@@ -3793,7 +3793,7 @@ class Parser {
       TypeName returnType = parseReturnType();
       if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
         validateModifiersForTopLevelFunction(modifiers);
-        return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
+        return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
       } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
         reportError11(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
         return convertToFunctionDeclaration(parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType));
@@ -5842,12 +5842,12 @@ class Parser {
       if (matches4(next, TokenType.LT)) {
         next = skipTypeParameterList(next);
         if (next != null && matches4(next, TokenType.EQ)) {
-          TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+          TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, null, keyword);
           reportError11(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
           return typeAlias;
         }
       } else if (matches4(next, TokenType.EQ)) {
-        TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, keyword);
+        TypeAlias typeAlias = parseClassTypeAlias(commentAndMetadata, null, keyword);
         reportError11(ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS, keyword, []);
         return typeAlias;
       }
@@ -7340,7 +7340,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction8;
+  String correction9;
 
   /**
    * Initialize a newly created error code to have the given severity and message.
@@ -7363,7 +7363,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
   ParserErrorCode.con2(String name, int ordinal, ErrorSeverity severity, String message, String correction) : super(name, ordinal) {
     this._severity = severity;
     this._message = message;
-    this.correction8 = correction;
+    this.correction9 = correction;
   }
 
   /**
@@ -7373,7 +7373,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
    */
   ParserErrorCode.con3(String name, int ordinal, String message) : this.con1(name, ordinal, ErrorSeverity.ERROR, message);
 
-  String get correction => correction8;
+  String get correction => correction9;
 
   ErrorSeverity get errorSeverity => _severity;
 

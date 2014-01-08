@@ -1207,6 +1207,19 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_commentReference_beforeConstructor() {
+    String code = EngineTestCase.createSource(["abstract class A {", "  /// [p]", "  A(int p) {}", "}"]);
+    Source source = addSource(code);
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisContext.parseCompilationUnit(source);
+    {
+      SimpleIdentifier ref = EngineTestCase.findNode(unit, code, "p]", SimpleIdentifier);
+      EngineTestCase.assertInstanceOf(ParameterElement, ref.staticElement);
+    }
+  }
+
   void test_commentReference_beforeFunction_blockBody() {
     String code = EngineTestCase.createSource(["/// [p]", "foo(int p) {", "}"]);
     Source source = addSource(code);
@@ -4460,6 +4473,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_caseExpressionTypeImplementsEquals_int', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_caseExpressionTypeImplementsEquals_int);
+      });
+      _ut.test('test_commentReference_beforeConstructor', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_commentReference_beforeConstructor);
       });
       _ut.test('test_commentReference_beforeFunction_blockBody', () {
         final __test = new NonErrorResolverTest();
@@ -21656,7 +21673,7 @@ class NonHintCodeTest extends ResolverTestCase {
 class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_25(errorListener2);
+    Scope rootScope = new Scope_27(errorListener2);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -21667,7 +21684,7 @@ class EnclosedScopeTest extends ResolverTestCase {
 
   void test_define_normal() {
     GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_26(errorListener3);
+    Scope rootScope = new Scope_28(errorListener3);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -21691,20 +21708,20 @@ class EnclosedScopeTest extends ResolverTestCase {
   }
 }
 
-class Scope_25 extends Scope {
+class Scope_27 extends Scope {
   GatheringErrorListener errorListener2;
 
-  Scope_25(this.errorListener2) : super();
+  Scope_27(this.errorListener2) : super();
 
   AnalysisErrorListener get errorListener => errorListener2;
 
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
 
-class Scope_26 extends Scope {
+class Scope_28 extends Scope {
   GatheringErrorListener errorListener3;
 
-  Scope_26(this.errorListener3) : super();
+  Scope_28(this.errorListener3) : super();
 
   AnalysisErrorListener get errorListener => errorListener3;
 
@@ -22436,7 +22453,7 @@ class SimpleResolverTest extends ResolverTestCase {
     JUnitTestCase.assertNotNull(unit);
     List<bool> found = [false];
     List<AnalysisException> thrownException = new List<AnalysisException>(1);
-    unit.accept(new RecursiveASTVisitor_29(this, found, thrownException));
+    unit.accept(new RecursiveASTVisitor_31(this, found, thrownException));
     if (thrownException[0] != null) {
       throw new AnalysisException.con3(thrownException[0]);
     }
@@ -22832,14 +22849,14 @@ class SimpleResolverTest extends ResolverTestCase {
   }
 }
 
-class RecursiveASTVisitor_29 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_31 extends RecursiveASTVisitor<Object> {
   final SimpleResolverTest SimpleResolverTest_this;
 
   List<bool> found;
 
   List<AnalysisException> thrownException;
 
-  RecursiveASTVisitor_29(this.SimpleResolverTest_this, this.found, this.thrownException) : super();
+  RecursiveASTVisitor_31(this.SimpleResolverTest_this, this.found, this.thrownException) : super();
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "myVar" && node.parent is MethodInvocation) {

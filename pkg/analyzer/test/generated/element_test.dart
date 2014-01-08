@@ -2498,6 +2498,15 @@ class ClassElementImplTest extends EngineTestCase {
     EngineTestCase.assertLength(1, supers);
   }
 
+  void test_getField() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    String fieldName = "f";
+    FieldElementImpl field = ElementFactory.fieldElement(fieldName, false, false, false, null);
+    classA.fields = <FieldElement> [field];
+    JUnitTestCase.assertSame(field, classA.getField(fieldName));
+    JUnitTestCase.assertSame(null, classA.getField("noSuchField"));
+  }
+
   void test_getMethod_declared() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
@@ -2692,6 +2701,10 @@ class ClassElementImplTest extends EngineTestCase {
       _ut.test('test_getAllSupertypes_recursive', () {
         final __test = new ClassElementImplTest();
         runJUnitTest(__test, __test.test_getAllSupertypes_recursive);
+      });
+      _ut.test('test_getField', () {
+        final __test = new ClassElementImplTest();
+        runJUnitTest(__test, __test.test_getField);
       });
       _ut.test('test_getMethod_declared', () {
         final __test = new ClassElementImplTest();
@@ -2976,7 +2989,7 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
-    InterfaceTypeImpl functionType = new InterfaceTypeImpl_27(functionElement);
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl_29(functionElement);
     FunctionType f = ElementFactory.functionElement("f").type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(functionType));
   }
@@ -3475,8 +3488,8 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 }
 
-class InterfaceTypeImpl_27 extends InterfaceTypeImpl {
-  InterfaceTypeImpl_27(ClassElement arg0) : super.con1(arg0);
+class InterfaceTypeImpl_29 extends InterfaceTypeImpl {
+  InterfaceTypeImpl_29(ClassElement arg0) : super.con1(arg0);
 
   bool get isDartCoreFunction => true;
 }

@@ -169,7 +169,7 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction10;
+  String correction11;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -185,10 +185,10 @@ class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   ScannerErrorCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction10 = correction;
+    this.correction11 = correction;
   }
 
-  String get correction => correction10;
+  String get correction => correction11;
 
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
 

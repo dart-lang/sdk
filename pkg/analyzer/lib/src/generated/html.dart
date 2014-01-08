@@ -518,9 +518,9 @@ abstract class XmlNode {
    */
   void appendIdentifier(JavaStringBuilder builder, XmlNode node) {
     if (node is XmlTagNode) {
-      builder.append((node as XmlTagNode).tag.lexeme);
+      builder.append((node as XmlTagNode).tag);
     } else if (node is XmlAttributeNode) {
-      builder.append((node as XmlAttributeNode).name.lexeme);
+      builder.append((node as XmlAttributeNode).name);
     } else {
       builder.append("htmlUnit");
     }
@@ -1059,8 +1059,8 @@ class ToSourceVisitor implements XmlVisitor<Object> {
   }
 
   Object visitXmlAttributeNode(XmlAttributeNode node) {
-    String name = node.name.lexeme;
-    Token value = node.value;
+    String name = node.name;
+    Token value = node.valueToken;
     if (name.length == 0) {
       _writer.print("__");
     } else {
@@ -1077,7 +1077,7 @@ class ToSourceVisitor implements XmlVisitor<Object> {
 
   Object visitXmlTagNode(XmlTagNode node) {
     _writer.print("<");
-    String tagName = node.tag.lexeme;
+    String tagName = node.tag;
     _writer.print(tagName);
     for (XmlAttributeNode attribute in node.attributes) {
       _writer.print(" ");
@@ -1176,11 +1176,11 @@ class TokenType_EOF extends TokenType {
  * @coverage dart.engine.html
  */
 class XmlAttributeNode extends XmlNode {
-  final Token name;
+  Token _name;
 
   final Token equals;
 
-  final Token value;
+  Token _value;
 
   List<EmbeddedExpression> expressions = EmbeddedExpression.EMPTY_ARRAY;
 
@@ -1192,13 +1192,31 @@ class XmlAttributeNode extends XmlNode {
    * @param equals the equals sign or `null` if none
    * @param value the value token (not `null`)
    */
-  XmlAttributeNode(this.name, this.equals, this.value);
+  XmlAttributeNode(Token name, this.equals, Token value) {
+    this._name = name;
+    this._value = value;
+  }
 
   accept(XmlVisitor visitor) => visitor.visitXmlAttributeNode(this);
 
-  Token get beginToken => name;
+  Token get beginToken => _name;
 
-  Token get endToken => value;
+  Token get endToken => _value;
+
+  /**
+   * Answer the attribute name. This may be a zero length string if the attribute is badly formed.
+   *
+   * @return the name (not `null`)
+   */
+  String get name => _name.lexeme;
+
+  /**
+   * Answer the attribute name token. This may be a zero length token if the attribute is badly
+   * formed.
+   *
+   * @return the name token (not `null`)
+   */
+  Token get nameToken => _name;
 
   /**
    * Answer the lexeme for the value token without the leading and trailing quotes.
@@ -1206,10 +1224,10 @@ class XmlAttributeNode extends XmlNode {
    * @return the text or `null` if the value is not specified
    */
   String get text {
-    if (value == null) {
+    if (_value == null) {
       return null;
     }
-    String text = value.lexeme;
+    String text = _value.lexeme;
     int len = text.length;
     if (len > 0) {
       if (text.codeUnitAt(0) == 0x22) {
@@ -1228,6 +1246,14 @@ class XmlAttributeNode extends XmlNode {
     }
     return text;
   }
+
+  /**
+   * Answer the attribute value token. A properly formed value will start and end with matching
+   * quote characters, but the value returned may not be properly formed.
+   *
+   * @return the value token or `null` if this represents a badly formed attribute
+   */
+  Token get valueToken => _value;
 
   void visitChildren(XmlVisitor visitor) {
   }
@@ -1643,7 +1669,7 @@ class XmlTagNode extends XmlNode {
   /**
    * The [TokenType#TAG] token after the starting '&lt;' (not `null`).
    */
-  final Token tag;
+  Token _tag;
 
   /**
    * The attributes contained by the receiver (not `null`, contains no `null`s).
@@ -1717,7 +1743,8 @@ class XmlTagNode extends XmlNode {
    * @param nodeEnd the ending [TokenType#GT] or [TokenType#SLASH_GT] token (not
    *          `null`)
    */
-  XmlTagNode(this.nodeStart, this.tag, List<XmlAttributeNode> attributes, this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag, this.nodeEnd) {
+  XmlTagNode(this.nodeStart, Token tag, List<XmlAttributeNode> attributes, this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd, this.closingTag, this.nodeEnd) {
+    this._tag = tag;
     this._attributes = becomeParentOfEmpty(attributes, NO_ATTRIBUTES);
     this._tagNodes = becomeParentOfEmpty(tagNodes, NO_TAG_NODES);
   }
@@ -1732,7 +1759,7 @@ class XmlTagNode extends XmlNode {
    */
   XmlAttributeNode getAttribute(String name) {
     for (XmlAttributeNode attribute in _attributes) {
-      if (attribute.name.lexeme == name) {
+      if (attribute.name == name) {
         return attribute;
       }
     }
@@ -1806,8 +1833,15 @@ class XmlTagNode extends XmlNode {
     if (!_attributes.isEmpty) {
       return _attributes[_attributes.length - 1].endToken;
     }
-    return tag;
+    return _tag;
   }
+
+  /**
+   * Answer the tag name after the starting '&lt;'.
+   *
+   * @return the tag name (not `null`)
+   */
+  String get tag => _tag.lexeme;
 
   /**
    * Answer the tag nodes contained in the receiver. Callers should not manipulate the returned list
@@ -1816,6 +1850,13 @@ class XmlTagNode extends XmlNode {
    * @return the children (not `null`, contains no `null`s)
    */
   List<XmlTagNode> get tagNodes => _tagNodes;
+
+  /**
+   * Answer the [TokenType#TAG] token after the starting '&lt;'.
+   *
+   * @return the token (not `null`)
+   */
+  Token get tagToken => _tag;
 
   void visitChildren(XmlVisitor visitor) {
     for (XmlAttributeNode node in _attributes) {
@@ -1966,8 +2007,8 @@ class HtmlParser extends XmlParser {
       return false;
     }
     for (XmlAttributeNode attribute in attributes) {
-      if (attribute.name.lexeme == _TYPE) {
-        Token valueToken = attribute.value;
+      if (attribute.name == _TYPE) {
+        Token valueToken = attribute.valueToken;
         if (valueToken != null) {
           String value = valueToken.lexeme;
           if (value == _APPLICATION_DART_IN_DOUBLE_QUOTES || value == _APPLICATION_DART_IN_SINGLE_QUOTES) {

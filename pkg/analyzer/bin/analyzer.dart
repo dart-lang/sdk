@@ -38,6 +38,7 @@ void main(args) {
       print("resolve:${PerformanceStatistics.resolve.result}");
       print("errors:${PerformanceStatistics.errors.result}");
       print("hints:${PerformanceStatistics.hints.result}");
+      print("angular:${PerformanceStatistics.angular.result}");
       print("instanceof:${instanceOfTimer.elapsedMilliseconds}");
       print("total:$totalTime");
     }

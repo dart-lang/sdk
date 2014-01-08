@@ -21,6 +21,629 @@ import 'engine.dart';
 import 'constant.dart';
 
 /**
+ * Instances of the class `AngularCompilationUnitBuilder` build an Angular specific element
+ * model for a single compilation unit.
+ *
+ * @coverage dart.engine.resolver
+ */
+class AngularCompilationUnitBuilder {
+  static String _NG_COMPONENT = "NgComponent";
+
+  static String _NG_CONTROLLER = "NgController";
+
+  static String _NG_FILTER = "NgFilter";
+
+  static String _NAME = "name";
+
+  static String _SELECTOR = "selector";
+
+  static String _PUBLISH_AS = "publishAs";
+
+  static String _TEMPLATE_URL = "templateUrl";
+
+  static String _CSS_URL = "cssUrl";
+
+  static String _PREFIX_ATTR = "@";
+
+  static String _PREFIX_CALLBACK = "&";
+
+  static String _PREFIX_ONE_WAY = "=>";
+
+  static String _PREFIX_ONE_WAY_ONE_TIME = "=>!";
+
+  static String _PREFIX_TWO_WAY = "<=>";
+
+  static String _NG_ATTR = "NgAttr";
+
+  static String _NG_CALLBACK = "NgCallback";
+
+  static String _NG_ONE_WAY = "NgOneWay";
+
+  static String _NG_ONE_WAY_ONE_TIME = "NgOneWayOneTime";
+
+  static String _NG_TWO_WAY = "NgTwoWay";
+
+  /**
+   * Checks if given [Type] is an Angular <code>Module</code> or its subclass.
+   */
+  static bool isModule(Type2 type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+    InterfaceType interfaceType = type as InterfaceType;
+    Set<Type2> seenTypes = new Set();
+    while (interfaceType != null) {
+      if (!seenTypes.add(interfaceType)) {
+        return false;
+      }
+      if (interfaceType.element.name == "Module") {
+        return true;
+      }
+      interfaceType = interfaceType.superclass;
+    }
+    return false;
+  }
+
+  static bool isTagName(String s) {
+    if (s == null || s.length == 0) {
+      return false;
+    }
+    int sz = s.length;
+    for (int i = 0; i < sz; i++) {
+      int c = s.codeUnitAt(i);
+      if (!Character.isLetter(c)) {
+        if (i == 0) {
+          return false;
+        }
+        if (!Character.isDigit(c) && c != 0x2D) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Parses given selector text and returns [AngularSelector]. May be `null` if cannot
+   * parse.
+   */
+  static AngularSelector parseSelector(String text) {
+    if (text.startsWith("[") && text.endsWith("]")) {
+      return new HasAttributeSelector(text.substring(1, text.length - 1));
+    }
+    if (StringUtilities.isTagName(text)) {
+      return new IsTagSelector(text);
+    }
+    return null;
+  }
+
+  /**
+   * Returns the [FieldElement] of the first field in the given [FieldDeclaration].
+   */
+  static FieldElement getOnlyFieldElement(FieldDeclaration fieldDeclaration) {
+    NodeList<VariableDeclaration> fields = fieldDeclaration.fields.variables;
+    return fields[0].element as FieldElement;
+  }
+
+  /**
+   * If given [Annotation] has one argument and it is [SimpleStringLiteral], returns it,
+   * otherwise returns `null`.
+   */
+  static SimpleStringLiteral getOnlySimpleStringLiteralArgument(Annotation annotation) {
+    SimpleStringLiteral nameLiteral = null;
+    ArgumentList argsNode = annotation.arguments;
+    if (argsNode != null) {
+      NodeList<Expression> args = argsNode.arguments;
+      if (args.length == 1) {
+        Expression arg = args[0];
+        if (arg is SimpleStringLiteral) {
+          nameLiteral = arg as SimpleStringLiteral;
+        }
+      }
+    }
+    return nameLiteral;
+  }
+
+  /**
+   * Checks if given [LocalVariableElement] is an Angular <code>Module</code>.
+   */
+  static bool isModule2(VariableDeclaration node) {
+    Type2 type = node.name.bestType;
+    return isModule(type);
+  }
+
+  /**
+   * The source containing the unit that will be analyzed.
+   */
+  Source _source;
+
+  /**
+   * The listener to which errors will be reported.
+   */
+  AnalysisErrorListener _errorListener;
+
+  /**
+   * The [ClassDeclaration] that is currently being analyzed.
+   */
+  ClassDeclaration _classDeclaration;
+
+  /**
+   * The [ClassElementImpl] that is currently being analyzed.
+   */
+  ClassElementImpl _classElement;
+
+  /**
+   * The [ToolkitObjectElement]s to set for [classElement].
+   */
+  List<ToolkitObjectElement> _classToolkitObjects = [];
+
+  /**
+   * The [Annotation] that is currently being analyzed.
+   */
+  Annotation _annotation;
+
+  /**
+   * Initialize a newly created compilation unit element builder.
+   *
+   * @param errorListener the listener to which errors will be reported.
+   * @param source the source containing the unit that will be analyzed
+   */
+  AngularCompilationUnitBuilder(AnalysisErrorListener errorListener, Source source) {
+    this._errorListener = errorListener;
+    this._source = source;
+  }
+
+  /**
+   * Builds Angular specific element models and adds them to the existing Dart elements.
+   *
+   * @param unit the compilation unit with built Dart element models
+   */
+  void build(CompilationUnit unit) {
+    for (CompilationUnitMember unitMember in unit.declarations) {
+      if (unitMember is ClassDeclaration) {
+        this._classDeclaration = unitMember as ClassDeclaration;
+        this._classElement = _classDeclaration.element as ClassElementImpl;
+        this._classToolkitObjects.clear();
+        parseModuleClass();
+        NodeList<Annotation> annotations = _classDeclaration.metadata;
+        for (Annotation annotation in annotations) {
+          this._annotation = annotation;
+          if (isAngularAnnotation2(_NG_FILTER)) {
+            parseNgFilter();
+            continue;
+          }
+          if (isAngularAnnotation2(_NG_COMPONENT)) {
+            parseNgComponent();
+            continue;
+          }
+          if (isAngularAnnotation2(_NG_CONTROLLER)) {
+            parseNgController();
+            continue;
+          }
+        }
+        if (!_classToolkitObjects.isEmpty) {
+          List<ToolkitObjectElement> objects = _classToolkitObjects;
+          _classElement.toolkitObjects = new List.from(objects);
+        }
+      }
+    }
+    parseModuleVariables(unit);
+  }
+
+  /**
+   * Creates [AngularModuleElementImpl] for given information.
+   */
+  AngularModuleElementImpl createModuleElement(List<AngularModuleElement> childModules, List<ClassElement> keyTypes) {
+    AngularModuleElementImpl module = new AngularModuleElementImpl();
+    module.childModules = new List.from(childModules);
+    module.keyTypes = new List.from(keyTypes);
+    return module;
+  }
+
+  /**
+   * @return the argument [Expression] with given name form [annotation], may be
+   *         `null` if not found.
+   */
+  Expression getArgument(String name) {
+    List<Expression> arguments = _annotation.arguments.arguments;
+    for (Expression argument in arguments) {
+      if (argument is NamedExpression) {
+        NamedExpression namedExpression = argument as NamedExpression;
+        String argumentName = namedExpression.name.label.name;
+        if (name == argumentName) {
+          return namedExpression.expression;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return the [String] value of the named argument.
+   */
+  String getStringArgument(String name) {
+    Expression argument = getArgument(name);
+    return (argument as SimpleStringLiteral).value;
+  }
+
+  /**
+   * @return the offset of the value of the named argument.
+   */
+  int getStringArgumentOffset(String name) {
+    Expression argument = getArgument(name);
+    return (argument as SimpleStringLiteral).valueOffset;
+  }
+
+  /**
+   * Checks if [namedArguments] has string value for the argument with the given name.
+   */
+  bool hasStringArgument(String name) {
+    Expression argument = getArgument(name);
+    return argument is SimpleStringLiteral;
+  }
+
+  /**
+   * Checks if given [Annotation] is an annotation with required name.
+   */
+  bool isAngularAnnotation(Annotation annotation, String name) {
+    Element element = annotation.element;
+    if (element is ConstructorElement) {
+      ConstructorElement constructorElement = element as ConstructorElement;
+      return constructorElement.returnType.displayName == name;
+    }
+    return false;
+  }
+
+  /**
+   * Checks if [annotation] is an annotation with required name.
+   */
+  bool isAngularAnnotation2(String name) => isAngularAnnotation(_annotation, name);
+
+  /**
+   * Checks if [classElement] is an Angular <code>Module</code>.
+   */
+  bool get isModule4 {
+    InterfaceType supertype = _classElement.supertype;
+    return isModule(supertype);
+  }
+
+  /**
+   * Analyzes [classDeclaration] and if it is a module, creates [AngularModuleElement]
+   * model for it.
+   */
+  void parseModuleClass() {
+    if (!isModule4) {
+      return;
+    }
+    List<AngularModuleElement> childModules = [];
+    List<ClassElement> keyTypes = [];
+    _classDeclaration.accept(new RecursiveASTVisitor_8(this, childModules, keyTypes));
+    AngularModuleElementImpl module = createModuleElement(childModules, keyTypes);
+    _classToolkitObjects.add(module);
+  }
+
+  /**
+   * Checks if given [MethodInvocation] is an interesting <code>Module</code> method
+   * invocation and remembers corresponding elements into lists.
+   */
+  void parseModuleInvocation(MethodInvocation node, List<AngularModuleElement> childModules, List<ClassElement> keyTypes) {
+    String methodName = node.methodName.name;
+    NodeList<Expression> arguments = node.argumentList.arguments;
+    if (arguments.length == 1 && methodName == "install") {
+      Type2 argType = arguments[0].bestType;
+      if (argType is InterfaceType) {
+        ClassElement argElement = (argType as InterfaceType).element;
+        List<ToolkitObjectElement> toolkitObjects = argElement.toolkitObjects;
+        for (ToolkitObjectElement toolkitObject in toolkitObjects) {
+          if (toolkitObject is AngularModuleElement) {
+            childModules.add(toolkitObject as AngularModuleElement);
+          }
+        }
+      }
+      return;
+    }
+    if (arguments.length >= 1 && (methodName == "type" || methodName == "value")) {
+      Expression arg = arguments[0];
+      if (arg is Identifier) {
+        Element argElement = (arg as Identifier).staticElement;
+        if (argElement is ClassElement) {
+          keyTypes.add(argElement as ClassElement);
+        }
+      }
+      return;
+    }
+  }
+
+  /**
+   * Checks every local variable in the given unit to see if it is a <code>Module</code> and creates
+   * [AngularModuleElement] for it.
+   */
+  void parseModuleVariables(CompilationUnit unit) {
+    unit.accept(new RecursiveASTVisitor_9(this));
+  }
+
+  void parseNgComponent() {
+    bool isValid = true;
+    if (!hasStringArgument(_PUBLISH_AS)) {
+      reportErrorForAnnotation(AngularCode.MISSING_PUBLISH_AS, []);
+      isValid = false;
+    }
+    AngularSelector selector = null;
+    if (!hasStringArgument(_SELECTOR)) {
+      reportErrorForAnnotation(AngularCode.MISSING_SELECTOR, []);
+      isValid = false;
+    } else {
+      String selectorText = getStringArgument(_SELECTOR);
+      selector = parseSelector(selectorText);
+      if (selector == null) {
+        reportErrorForArgument(_SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, [selectorText]);
+        isValid = false;
+      }
+    }
+    if (!hasStringArgument(_TEMPLATE_URL)) {
+      reportErrorForAnnotation(AngularCode.MISSING_TEMPLATE_URL, []);
+      isValid = false;
+    }
+    if (!hasStringArgument(_CSS_URL)) {
+      reportErrorForAnnotation(AngularCode.MISSING_CSS_URL, []);
+      isValid = false;
+    }
+    if (isValid) {
+      String name = getStringArgument(_PUBLISH_AS);
+      int nameOffset = getStringArgumentOffset(_PUBLISH_AS);
+      String templateUri = getStringArgument(_TEMPLATE_URL);
+      int templateUriOffset = getStringArgumentOffset(_TEMPLATE_URL);
+      String styleUri = getStringArgument(_CSS_URL);
+      int styleUriOffset = getStringArgumentOffset(_CSS_URL);
+      AngularComponentElementImpl element = new AngularComponentElementImpl(name, nameOffset);
+      element.selector = selector;
+      element.templateUri = templateUri;
+      element.templateUriOffset = templateUriOffset;
+      element.styleUri = styleUri;
+      element.styleUriOffset = styleUriOffset;
+      element.properties = parseNgComponentProperties();
+      _classToolkitObjects.add(element);
+    }
+  }
+
+  /**
+   * Parses [AngularPropertyElement]s from [annotation] and [classDeclaration].
+   */
+  List<AngularPropertyElement> parseNgComponentProperties() {
+    List<AngularPropertyElement> properties = [];
+    parseNgComponentProperties_fromMap(properties);
+    parseNgComponentProperties_fromFields(properties);
+    return new List.from(properties);
+  }
+
+  /**
+   * Parses [AngularPropertyElement]s from [annotation].
+   */
+  void parseNgComponentProperties_fromFields(List<AngularPropertyElement> properties) {
+    NodeList<ClassMember> members = _classDeclaration.members;
+    for (ClassMember member in members) {
+      if (member is FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = member as FieldDeclaration;
+        for (Annotation annotation in fieldDeclaration.metadata) {
+          AngularPropertyKind kind = null;
+          if (isAngularAnnotation(annotation, _NG_ATTR)) {
+            kind = AngularPropertyKind.ATTR;
+          } else if (isAngularAnnotation(annotation, _NG_CALLBACK)) {
+            kind = AngularPropertyKind.CALLBACK;
+          } else if (isAngularAnnotation(annotation, _NG_ONE_WAY)) {
+            kind = AngularPropertyKind.ONE_WAY;
+          } else if (isAngularAnnotation(annotation, _NG_ONE_WAY_ONE_TIME)) {
+            kind = AngularPropertyKind.ONE_WAY_ONE_TIME;
+          } else if (isAngularAnnotation(annotation, _NG_TWO_WAY)) {
+            kind = AngularPropertyKind.TWO_WAY;
+          }
+          if (kind != null) {
+            SimpleStringLiteral nameLiteral = getOnlySimpleStringLiteralArgument(annotation);
+            FieldElement field = getOnlyFieldElement(fieldDeclaration);
+            if (nameLiteral != null && field != null) {
+              AngularPropertyElementImpl property = new AngularPropertyElementImpl(nameLiteral.value, nameLiteral.valueOffset);
+              property.field = field;
+              property.propertyKind = kind;
+              properties.add(property);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Parses [AngularPropertyElement]s from [annotation].
+   */
+  void parseNgComponentProperties_fromMap(List<AngularPropertyElement> properties) {
+    Expression mapExpression = getArgument("map");
+    if (mapExpression == null) {
+      return;
+    }
+    if (mapExpression is! MapLiteral) {
+      reportError(mapExpression, AngularCode.INVALID_PROPERTY_MAP, []);
+      return;
+    }
+    MapLiteral mapLiteral = mapExpression as MapLiteral;
+    for (MapLiteralEntry entry in mapLiteral.entries) {
+      Expression nameExpression = entry.key;
+      if (nameExpression is! SimpleStringLiteral) {
+        reportError(nameExpression, AngularCode.INVALID_PROPERTY_NAME, []);
+        continue;
+      }
+      SimpleStringLiteral nameLiteral = nameExpression as SimpleStringLiteral;
+      String name = nameLiteral.value;
+      int nameOffset = nameLiteral.valueOffset;
+      Expression specExpression = entry.value;
+      if (specExpression is! SimpleStringLiteral) {
+        reportError(specExpression, AngularCode.INVALID_PROPERTY_SPEC, []);
+        continue;
+      }
+      SimpleStringLiteral specLiteral = specExpression as SimpleStringLiteral;
+      String spec = specLiteral.value;
+      AngularPropertyKind kind;
+      int fieldNameOffset;
+      if (spec.startsWith(_PREFIX_ATTR)) {
+        kind = AngularPropertyKind.ATTR;
+        fieldNameOffset = 1;
+      } else if (spec.startsWith(_PREFIX_CALLBACK)) {
+        kind = AngularPropertyKind.CALLBACK;
+        fieldNameOffset = 1;
+      } else if (spec.startsWith(_PREFIX_ONE_WAY_ONE_TIME)) {
+        kind = AngularPropertyKind.ONE_WAY_ONE_TIME;
+        fieldNameOffset = 3;
+      } else if (spec.startsWith(_PREFIX_ONE_WAY)) {
+        kind = AngularPropertyKind.ONE_WAY;
+        fieldNameOffset = 2;
+      } else if (spec.startsWith(_PREFIX_TWO_WAY)) {
+        kind = AngularPropertyKind.TWO_WAY;
+        fieldNameOffset = 3;
+      } else {
+        reportError(specLiteral, AngularCode.INVALID_PROPERTY_KIND, [spec]);
+        continue;
+      }
+      String fieldName = spec.substring(fieldNameOffset);
+      fieldNameOffset += specLiteral.valueOffset;
+      FieldElement field = _classElement.getField(fieldName);
+      if (field == null) {
+        reportError(specLiteral, AngularCode.INVALID_PROPERTY_FIELD, [fieldName]);
+        continue;
+      }
+      AngularPropertyElementImpl property = new AngularPropertyElementImpl(name, nameOffset);
+      property.field = field;
+      property.propertyKind = kind;
+      property.fieldNameOffset = fieldNameOffset;
+      properties.add(property);
+    }
+  }
+
+  void parseNgController() {
+    bool isValid = true;
+    if (!hasStringArgument(_PUBLISH_AS)) {
+      reportErrorForAnnotation(AngularCode.MISSING_PUBLISH_AS, []);
+      isValid = false;
+    }
+    AngularSelector selector = null;
+    if (!hasStringArgument(_SELECTOR)) {
+      reportErrorForAnnotation(AngularCode.MISSING_SELECTOR, []);
+      isValid = false;
+    } else {
+      String selectorText = getStringArgument(_SELECTOR);
+      selector = parseSelector(selectorText);
+      if (selector == null) {
+        reportErrorForArgument(_SELECTOR, AngularCode.CANNOT_PARSE_SELECTOR, [selectorText]);
+        isValid = false;
+      }
+    }
+    if (isValid) {
+      String name = getStringArgument(_PUBLISH_AS);
+      int nameOffset = getStringArgumentOffset(_PUBLISH_AS);
+      AngularControllerElementImpl element = new AngularControllerElementImpl(name, nameOffset);
+      element.selector = selector;
+      _classToolkitObjects.add(element);
+    }
+  }
+
+  void parseNgFilter() {
+    bool isValid = true;
+    if (!hasStringArgument(_NAME)) {
+      reportErrorForAnnotation(AngularCode.MISSING_NAME, []);
+      isValid = false;
+    }
+    if (isValid) {
+      String name = getStringArgument(_NAME);
+      int nameOffset = getStringArgumentOffset(_NAME);
+      _classToolkitObjects.add(new AngularFilterElementImpl(name, nameOffset));
+    }
+  }
+
+  void reportError(ASTNode node, ErrorCode errorCode, List<Object> arguments) {
+    _errorListener.onError(new AnalysisError.con2(_source, node.offset, node.length, errorCode, arguments));
+  }
+
+  void reportErrorForAnnotation(ErrorCode errorCode, List<Object> arguments) {
+    reportError(_annotation, errorCode, arguments);
+  }
+
+  void reportErrorForArgument(String argumentName, ErrorCode errorCode, List<Object> arguments) {
+    Expression argument = getArgument(argumentName);
+    reportError(argument, errorCode, arguments);
+  }
+}
+
+class RecursiveASTVisitor_8 extends RecursiveASTVisitor<Object> {
+  final AngularCompilationUnitBuilder AngularCompilationUnitBuilder_this;
+
+  List<AngularModuleElement> childModules;
+
+  List<ClassElement> keyTypes;
+
+  RecursiveASTVisitor_8(this.AngularCompilationUnitBuilder_this, this.childModules, this.keyTypes) : super();
+
+  Object visitMethodInvocation(MethodInvocation node) {
+    if (node.target == null) {
+      AngularCompilationUnitBuilder_this.parseModuleInvocation(node, childModules, keyTypes);
+    }
+    return null;
+  }
+}
+
+class RecursiveASTVisitor_9 extends RecursiveASTVisitor<Object> {
+  final AngularCompilationUnitBuilder AngularCompilationUnitBuilder_this;
+
+  RecursiveASTVisitor_9(this.AngularCompilationUnitBuilder_this) : super();
+
+  LocalVariableElementImpl _variable = null;
+
+  Expression _variableInit = null;
+
+  List<AngularModuleElement> _childModules = [];
+
+  List<ClassElement> _keyTypes = [];
+
+  Object visitFunctionDeclaration(FunctionDeclaration node) {
+    _childModules.clear();
+    _keyTypes.clear();
+    super.visitFunctionDeclaration(node);
+    if (_variable != null) {
+      AngularModuleElementImpl module = AngularCompilationUnitBuilder_this.createModuleElement(_childModules, _keyTypes);
+      _variable.toolkitObjects = <ToolkitObjectElement> [module];
+    }
+    return null;
+  }
+
+  Object visitMethodInvocation(MethodInvocation node) {
+    if (_variable != null) {
+      if (isVariableInvocation(node)) {
+        AngularCompilationUnitBuilder_this.parseModuleInvocation(node, _childModules, _keyTypes);
+      }
+    }
+    return null;
+  }
+
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    VariableElement element = node.element;
+    if (element is LocalVariableElementImpl && AngularCompilationUnitBuilder.isModule2(node)) {
+      _variable = element as LocalVariableElementImpl;
+      _variableInit = node.initializer;
+    }
+    return super.visitVariableDeclaration(node);
+  }
+
+  bool isVariableInvocation(MethodInvocation node) {
+    Expression target = node.realTarget;
+    if (_variableInit is CascadeExpression && target != null && identical(target.parent, _variableInit)) {
+      return true;
+    }
+    if (target is Identifier) {
+      Element targetElement = (target as Identifier).staticElement;
+      return identical(targetElement, _variable);
+    }
+    return false;
+  }
+}
+
+/**
  * Instances of the class `CompilationUnitBuilder` build an element model for a single
  * compilation unit.
  *
@@ -1297,7 +1920,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    */
   ht.XmlAttributeNode getScriptSourcePath(ht.XmlTagNode node) {
     for (ht.XmlAttributeNode attribute in node.attributes) {
-      if (attribute.name.lexeme == _SRC) {
+      if (attribute.name == _SRC) {
         return attribute;
       }
     }
@@ -1314,7 +1937,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
       } else {
         builder.append(", ");
       }
-      String tagName = pathNode.tag.lexeme;
+      String tagName = pathNode.tag;
       if (identical(pathNode, node)) {
         builder.append("*");
         builder.append(tagName);
@@ -1350,8 +1973,8 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
    * @param arguments the arguments used to compose the error message
    */
   void reportValueError(ErrorCode errorCode, ht.XmlAttributeNode attribute, List<Object> arguments) {
-    int offset = attribute.value.offset + 1;
-    int length = attribute.value.length - 2;
+    int offset = attribute.valueToken.offset + 1;
+    int length = attribute.valueToken.length - 2;
     reportError(errorCode, offset, length, arguments);
   }
 
@@ -3221,7 +3844,7 @@ class DeclarationMatcher extends RecursiveASTVisitor<Object> {
   }
 
   void gatherElements(Element element) {
-    element.accept(new GeneralizingElementVisitor_8(this));
+    element.accept(new GeneralizingElementVisitor_10(this));
   }
 
   /**
@@ -3283,10 +3906,10 @@ class DeclarationMatcher extends RecursiveASTVisitor<Object> {
 class DeclarationMatcher_DeclarationMismatchException extends RuntimeException {
 }
 
-class GeneralizingElementVisitor_8 extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_10 extends GeneralizingElementVisitor<Object> {
   final DeclarationMatcher DeclarationMatcher_this;
 
-  GeneralizingElementVisitor_8(this.DeclarationMatcher_this) : super();
+  GeneralizingElementVisitor_10(this.DeclarationMatcher_this) : super();
 
   Object visitElement(Element element) {
     DeclarationMatcher_this._allElements.add(element);
@@ -4174,7 +4797,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     SimpleIdentifier fieldName = node.fieldName;
     ClassElement enclosingClass = _resolver.enclosingClass;
-    FieldElement fieldElement = (enclosingClass as ClassElementImpl).getField(fieldName.name);
+    FieldElement fieldElement = enclosingClass.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
     if (fieldElement == null || fieldElement.isSynthetic) {
       _resolver.reportError6(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, [fieldName]);
@@ -4238,7 +4861,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     String fieldName = node.identifier.name;
     ClassElement classElement = _resolver.enclosingClass;
     if (classElement != null) {
-      FieldElement fieldElement = (classElement as ClassElementImpl).getField(fieldName);
+      FieldElement fieldElement = classElement.getField(fieldName);
       if (fieldElement == null) {
         _resolver.reportError6(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD, node, [fieldName]);
       } else {
@@ -7754,6 +8377,15 @@ class LibraryResolver {
     } finally {
       timeCounter.stop();
     }
+    timeCounter = PerformanceStatistics.angular.start();
+    try {
+      for (Source source in library.compilationUnitSources) {
+        CompilationUnit ast = library.getAST(source);
+        new AngularCompilationUnitBuilder(_errorListener, source).build(ast);
+      }
+    } finally {
+      timeCounter.stop();
+    }
   }
 
   /**
@@ -8186,7 +8818,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   Object visitComment(Comment node) {
-    if (node.parent is FunctionDeclaration || node.parent is MethodDeclaration) {
+    if (node.parent is FunctionDeclaration || node.parent is ConstructorDeclaration || node.parent is MethodDeclaration) {
       if (node != _commentBeforeFunction) {
         _commentBeforeFunction = node;
         return null;
@@ -8950,7 +9582,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   bool isVariableAccessedInClosure(Element variable, ASTNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_9(result, variable));
+    target.accept(new RecursiveASTVisitor_11(result, variable));
     return result[0];
   }
 
@@ -8964,7 +9596,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   bool isVariablePotentiallyMutatedIn(Element variable, ASTNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_10(result, variable));
+    target.accept(new RecursiveASTVisitor_12(result, variable));
     return result[0];
   }
 
@@ -9121,12 +9753,12 @@ class ResolverVisitor extends ScopedVisitor {
   set enclosingClass_J2DAccessor(__v) => _enclosingClass = __v;
 }
 
-class RecursiveASTVisitor_9 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_11 extends RecursiveASTVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_9(this.result, this.variable) : super();
+  RecursiveASTVisitor_11(this.result, this.variable) : super();
 
   bool _inClosure = false;
 
@@ -9151,12 +9783,12 @@ class RecursiveASTVisitor_9 extends RecursiveASTVisitor<Object> {
   }
 }
 
-class RecursiveASTVisitor_10 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_12 extends RecursiveASTVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_10(this.result, this.variable) : super();
+  RecursiveASTVisitor_12(this.result, this.variable) : super();
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (result[0]) {
@@ -10931,7 +11563,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
     }
     if (body is BlockFunctionBody) {
       List<Type2> result = [null];
-      body.accept(new GeneralizingASTVisitor_11(result));
+      body.accept(new GeneralizingASTVisitor_13(result));
       return result[0];
     }
     return null;
@@ -11294,10 +11926,10 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
   set thisType_J2DAccessor(__v) => _thisType = __v;
 }
 
-class GeneralizingASTVisitor_11 extends GeneralizingASTVisitor<Object> {
+class GeneralizingASTVisitor_13 extends GeneralizingASTVisitor<Object> {
   List<Type2> result;
 
-  GeneralizingASTVisitor_11(this.result) : super();
+  GeneralizingASTVisitor_13(this.result) : super();
 
   Object visitExpression(Expression node) => null;
 
@@ -14438,7 +15070,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
    * @param expression the expression to validate
    */
   void validateInitializerExpression(List<ParameterElement> parameterElements, Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor_14(_typeProvider, this, parameterElements));
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor_16(_typeProvider, this, parameterElements));
     reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
   }
 
@@ -14484,12 +15116,12 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
   }
 }
 
-class ConstantVisitor_14 extends ConstantVisitor {
+class ConstantVisitor_16 extends ConstantVisitor {
   final ConstantVerifier ConstantVerifier_this;
 
   List<ParameterElement> parameterElements;
 
-  ConstantVisitor_14(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super(arg0);
+  ConstantVisitor_16(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super(arg0);
 
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
@@ -16120,19 +16752,15 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       }
     }
     if (constructorName != null && constructorElement != null && !constructorName.isSynthetic) {
-      List<FieldElement> fields = classElement.fields;
-      for (FieldElement field in fields) {
-        if (field.name == name) {
-          _errorReporter.reportError2(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, node, [name]);
-          return true;
-        }
+      FieldElement field = classElement.getField(name);
+      if (field != null) {
+        _errorReporter.reportError2(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, node, [name]);
+        return true;
       }
-      List<MethodElement> methods = classElement.methods;
-      for (MethodElement method in methods) {
-        if (method.name == name) {
-          _errorReporter.reportError2(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD, node, [name]);
-          return true;
-        }
+      MethodElement method = classElement.getMethod(name);
+      if (method != null) {
+        _errorReporter.reportError2(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD, node, [name]);
+        return true;
       }
     }
     return false;
@@ -18640,7 +19268,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
           break;
         }
       }
-      current.accept(new GeneralizingElementVisitor_15(target, toCheck));
+      current.accept(new GeneralizingElementVisitor_17(target, toCheck));
       checked.add(current);
     }
   }
@@ -18902,12 +19530,12 @@ class INIT_STATE extends Enum<INIT_STATE> {
   INIT_STATE(String name, int ordinal) : super(name, ordinal);
 }
 
-class GeneralizingElementVisitor_15 extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_17 extends GeneralizingElementVisitor<Object> {
   Element target;
 
   List<Element> toCheck;
 
-  GeneralizingElementVisitor_15(this.target, this.toCheck) : super();
+  GeneralizingElementVisitor_17(this.target, this.toCheck) : super();
 
   bool _inClass = false;
 
@@ -19004,7 +19632,7 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction9;
+  String correction10;
 
   /**
    * Initialize a newly created error code to have the given type and message.
@@ -19022,10 +19650,10 @@ class ResolverErrorCode extends Enum<ResolverErrorCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   ResolverErrorCode.con2(String name, int ordinal, this.type, this.message, String correction) : super(name, ordinal) {
-    this.correction9 = correction;
+    this.correction10 = correction;
   }
 
-  String get correction => correction9;
+  String get correction => correction10;
 
   ErrorSeverity get errorSeverity => type.severity;
 }

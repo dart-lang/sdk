@@ -1,9 +1,29 @@
 library java.engine;
 
+import 'java_core.dart';
+
 class StringUtilities {
   static const String EMPTY = '';
   static const List<String> EMPTY_ARRAY = const <String> [];
   static String intern(String s) => s;
+  static bool isTagName(String s) {
+    if (s == null || s.length == 0) {
+      return false;
+    }
+    int sz = s.length;
+    for (int i = 0; i < sz; i++) {
+      int c = s.codeUnitAt(i);
+      if (!Character.isLetter(c)) {
+        if (i == 0) {
+          return false;
+        }
+        if (!Character.isDigit(c) && c != 0x2D) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
   static String substringBefore(String str, String separator) {
     if (str == null || str.isEmpty) {
       return str;

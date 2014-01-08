@@ -6635,6 +6635,11 @@ abstract class InternalAnalysisContext implements AnalysisContext {
  */
 class PerformanceStatistics {
   /**
+   * The [TimeCounter] for time spent in Angular analysis.
+   */
+  static TimeCounter angular = new TimeCounter();
+
+  /**
    * The [TimeCounter] for time spent in scanning.
    */
   static TimeCounter scan = new TimeCounter();
@@ -7455,7 +7460,7 @@ class ParseDartTask extends AnalysisTask {
     List<Token> token = [null];
     TimeCounter_TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
     try {
-      Source_ContentReceiver receiver = new Source_ContentReceiver_12(this, errorListener, token);
+      Source_ContentReceiver receiver = new Source_ContentReceiver_14(this, errorListener, token);
       try {
         source.getContents(receiver);
       } on JavaException catch (exception) {
@@ -7543,14 +7548,14 @@ class ParseDartTask extends AnalysisTask {
   }
 }
 
-class Source_ContentReceiver_12 implements Source_ContentReceiver {
+class Source_ContentReceiver_14 implements Source_ContentReceiver {
   final ParseDartTask ParseDartTask_this;
 
   RecordingErrorListener errorListener;
 
   List<Token> token;
 
-  Source_ContentReceiver_12(this.ParseDartTask_this, this.errorListener, this.token);
+  Source_ContentReceiver_14(this.ParseDartTask_this, this.errorListener, this.token);
 
   void accept(CharBuffer contents, int modificationTime) {
     doScan(contents, modificationTime);
@@ -7703,7 +7708,7 @@ class ParseHtmlTask extends AnalysisTask {
    */
   List<Source> get librarySources {
     List<Source> libraries = new List<Source>();
-    _unit.accept(new RecursiveXmlVisitor_13(this, libraries));
+    _unit.accept(new RecursiveXmlVisitor_15(this, libraries));
     if (libraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
@@ -7711,17 +7716,17 @@ class ParseHtmlTask extends AnalysisTask {
   }
 }
 
-class RecursiveXmlVisitor_13 extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_15 extends RecursiveXmlVisitor<Object> {
   final ParseHtmlTask ParseHtmlTask_this;
 
   List<Source> libraries;
 
-  RecursiveXmlVisitor_13(this.ParseHtmlTask_this, this.libraries) : super();
+  RecursiveXmlVisitor_15(this.ParseHtmlTask_this, this.libraries) : super();
 
   Object visitHtmlScriptTagNode(HtmlScriptTagNode node) {
     XmlAttributeNode scriptAttribute = null;
     for (XmlAttributeNode attribute in node.attributes) {
-      if (javaStringEqualsIgnoreCase(attribute.name.lexeme, ParseHtmlTask._ATTRIBUTE_SRC)) {
+      if (javaStringEqualsIgnoreCase(attribute.name, ParseHtmlTask._ATTRIBUTE_SRC)) {
         scriptAttribute = attribute;
       }
     }

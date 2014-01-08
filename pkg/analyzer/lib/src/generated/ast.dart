@@ -9984,7 +9984,7 @@ class SimpleIdentifier extends Identifier {
  *   | basicStringLiteral
  *
  * rawStringLiteral ::=
- *     '@' basicStringLiteral
+ *     'r' basicStringLiteral
  *
  * simpleStringLiteral ::=
  *     multiLineStringLiteral
@@ -10036,15 +10036,34 @@ class SimpleStringLiteral extends StringLiteral {
   String get value => _value;
 
   /**
+   * Return the offset of the first value character.
+   *
+   * @return the offset of the first value character
+   */
+  int get valueOffset {
+    int valueOffset = 0;
+    if (isRaw) {
+      valueOffset += 1;
+    }
+    if (isMultiline) {
+      valueOffset += 3;
+    } else {
+      valueOffset += 1;
+    }
+    return offset + valueOffset;
+  }
+
+  /**
    * Return `true` if this string literal is a multi-line string.
    *
    * @return `true` if this string literal is a multi-line string
    */
   bool get isMultiline {
-    if (_value.length < 6) {
+    String lexeme = literal.lexeme;
+    if (lexeme.length < 6) {
       return false;
     }
-    return _value.endsWith("\"\"\"") || _value.endsWith("'''");
+    return lexeme.endsWith("\"\"\"") || lexeme.endsWith("'''");
   }
 
   /**
@@ -10052,7 +10071,7 @@ class SimpleStringLiteral extends StringLiteral {
    *
    * @return `true` if this string literal is a raw string
    */
-  bool get isRaw => _value.codeUnitAt(0) == 0x40;
+  bool get isRaw => literal.lexeme.codeUnitAt(0) == 0x72;
 
   bool get isSynthetic => literal.isSynthetic;
 

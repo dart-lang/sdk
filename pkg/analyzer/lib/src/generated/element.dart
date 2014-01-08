@@ -45,6 +45,15 @@ abstract class ClassElement implements Element {
   List<ConstructorElement> get constructors;
 
   /**
+   * Return the field (synthetic or explicit) defined in this class that has the given name, or
+   * `null` if this class does not define a field with the given name.
+   *
+   * @param fieldName the name of the field to be returned
+   * @return the field with the given name that is defined in this class
+   */
+  FieldElement getField(String fieldName);
+
+  /**
    * Return an array containing all of the fields declared in this class.
    *
    * @return the fields declared in this class
@@ -694,57 +703,72 @@ abstract class ElementAnnotation {
  * @coverage dart.engine.element
  */
 class ElementKind extends Enum<ElementKind> {
-  static final ElementKind CLASS = new ElementKind('CLASS', 0, "class");
+  static final ElementKind ANGULAR_FILTER = new ElementKind('ANGULAR_FILTER', 0, "Angular filter");
 
-  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 1, "compilation unit");
+  static final ElementKind ANGULAR_COMPONENT = new ElementKind('ANGULAR_COMPONENT', 1, "Angular component");
 
-  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 2, "constructor");
+  static final ElementKind ANGULAR_CONTROLLER = new ElementKind('ANGULAR_CONTROLLER', 2, "Angular controller");
 
-  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 3, "<dynamic>");
+  static final ElementKind ANGULAR_MODULE = new ElementKind('ANGULAR_MODULE', 3, "Angular module");
 
-  static final ElementKind EMBEDDED_HTML_SCRIPT = new ElementKind('EMBEDDED_HTML_SCRIPT', 4, "embedded html script");
+  static final ElementKind ANGULAR_PROPERTY = new ElementKind('ANGULAR_PROPERTY', 4, "Angular property");
 
-  static final ElementKind ERROR = new ElementKind('ERROR', 5, "<error>");
+  static final ElementKind CLASS = new ElementKind('CLASS', 5, "class");
 
-  static final ElementKind EXPORT = new ElementKind('EXPORT', 6, "export directive");
+  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 6, "compilation unit");
 
-  static final ElementKind EXTERNAL_HTML_SCRIPT = new ElementKind('EXTERNAL_HTML_SCRIPT', 7, "external html script");
+  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 7, "constructor");
 
-  static final ElementKind FIELD = new ElementKind('FIELD', 8, "field");
+  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 8, "<dynamic>");
 
-  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 9, "function");
+  static final ElementKind EMBEDDED_HTML_SCRIPT = new ElementKind('EMBEDDED_HTML_SCRIPT', 9, "embedded html script");
 
-  static final ElementKind GETTER = new ElementKind('GETTER', 10, "getter");
+  static final ElementKind ERROR = new ElementKind('ERROR', 10, "<error>");
 
-  static final ElementKind HTML = new ElementKind('HTML', 11, "html");
+  static final ElementKind EXPORT = new ElementKind('EXPORT', 11, "export directive");
 
-  static final ElementKind IMPORT = new ElementKind('IMPORT', 12, "import directive");
+  static final ElementKind EXTERNAL_HTML_SCRIPT = new ElementKind('EXTERNAL_HTML_SCRIPT', 12, "external html script");
 
-  static final ElementKind LABEL = new ElementKind('LABEL', 13, "label");
+  static final ElementKind FIELD = new ElementKind('FIELD', 13, "field");
 
-  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 14, "library");
+  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 14, "function");
 
-  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 15, "local variable");
+  static final ElementKind GETTER = new ElementKind('GETTER', 15, "getter");
 
-  static final ElementKind METHOD = new ElementKind('METHOD', 16, "method");
+  static final ElementKind HTML = new ElementKind('HTML', 16, "html");
 
-  static final ElementKind NAME = new ElementKind('NAME', 17, "<name>");
+  static final ElementKind IMPORT = new ElementKind('IMPORT', 17, "import directive");
 
-  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 18, "parameter");
+  static final ElementKind LABEL = new ElementKind('LABEL', 18, "label");
 
-  static final ElementKind PREFIX = new ElementKind('PREFIX', 19, "import prefix");
+  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 19, "library");
 
-  static final ElementKind SETTER = new ElementKind('SETTER', 20, "setter");
+  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 20, "local variable");
 
-  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 21, "top level variable");
+  static final ElementKind METHOD = new ElementKind('METHOD', 21, "method");
 
-  static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 22, "function type alias");
+  static final ElementKind NAME = new ElementKind('NAME', 22, "<name>");
 
-  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 23, "type parameter");
+  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 23, "parameter");
 
-  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 24, "<universe>");
+  static final ElementKind PREFIX = new ElementKind('PREFIX', 24, "import prefix");
+
+  static final ElementKind SETTER = new ElementKind('SETTER', 25, "setter");
+
+  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 26, "top level variable");
+
+  static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 27, "function type alias");
+
+  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 28, "type parameter");
+
+  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 29, "<universe>");
 
   static final List<ElementKind> values = [
+      ANGULAR_FILTER,
+      ANGULAR_COMPONENT,
+      ANGULAR_CONTROLLER,
+      ANGULAR_MODULE,
+      ANGULAR_PROPERTY,
       CLASS,
       COMPILATION_UNIT,
       CONSTRUCTOR,
@@ -821,6 +845,16 @@ abstract class ElementLocation {
  * @coverage dart.engine.element
  */
 abstract class ElementVisitor<R> {
+  R visitAngularComponentElement(AngularComponentElement element);
+
+  R visitAngularControllerElement(AngularControllerElement element);
+
+  R visitAngularFilterElement(AngularFilterElement element);
+
+  R visitAngularModuleElement(AngularModuleElement element);
+
+  R visitAngularPropertyElement(AngularPropertyElement element);
+
   R visitClassElement(ClassElement element);
 
   R visitCompilationUnitElement(CompilationUnitElement element);
@@ -1349,6 +1383,12 @@ abstract class LocalElement implements Element {
  * @coverage dart.engine.element
  */
 abstract class LocalVariableElement implements LocalElement, VariableElement {
+  /**
+   * Return an array containing all of the toolkit specific objects attached to this variable.
+   *
+   * @return the toolkit objects attached to this variable
+   */
+  List<ToolkitObjectElement> get toolkitObjects;
 }
 
 /**
@@ -1810,12 +1850,44 @@ abstract class AngularFilterElement implements AngularElement {
 }
 
 /**
- * The interface `AngularControllerElement` defines a single property in
+ * The interface `AngularModuleElement` defines a single DI <code>Module</code>.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularModuleElement implements AngularElement {
+  /**
+   * An empty array of module elements.
+   */
+  static final List<AngularModuleElement> EMPTY_ARRAY = [];
+
+  /**
+   * Returns the child modules installed into this module using <code>install</code>.
+   *
+   * @return the installed child modules
+   */
+  List<AngularModuleElement> get childModules;
+
+  /**
+   * Returns the keys injected into this module using <code>type()</code> and <code>value()</code>
+   * invocations.
+   *
+   * @return the injected types
+   */
+  List<ClassElement> get keyTypes;
+}
+
+/**
+ * The interface `AngularPropertyElement` defines a single property in
  * [AngularComponentElement].
  *
  * @coverage dart.engine.element
  */
 abstract class AngularPropertyElement implements AngularElement {
+  /**
+   * An empty array of property elements.
+   */
+  static final List<AngularPropertyElement> EMPTY_ARRAY = [];
+
   /**
    * Returns the field this property is mapped to.
    *
@@ -1824,7 +1896,7 @@ abstract class AngularPropertyElement implements AngularElement {
   FieldElement get field;
 
   /**
-   * Return the offset of the field name of this property in the [getSource].
+   * Return the offset of the field name of this property in the property map.
    *
    * @return the offset of the field name of this property
    */
@@ -1968,6 +2040,20 @@ abstract class AngularSelectorElement implements AngularElement {
  * @coverage dart.engine.element
  */
 class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
+  R visitAngularComponentElement(AngularComponentElement element) => visitAngularSelectorElement(element);
+
+  R visitAngularControllerElement(AngularControllerElement element) => visitAngularSelectorElement(element);
+
+  R visitAngularElement(AngularElement element) => visitToolkitObjectElement(element);
+
+  R visitAngularFilterElement(AngularFilterElement element) => visitAngularElement(element);
+
+  R visitAngularModuleElement(AngularModuleElement element) => visitAngularElement(element);
+
+  R visitAngularPropertyElement(AngularPropertyElement element) => visitAngularElement(element);
+
+  R visitAngularSelectorElement(AngularSelectorElement element) => visitAngularElement(element);
+
   R visitClassElement(ClassElement element) => visitElement(element);
 
   R visitCompilationUnitElement(CompilationUnitElement element) => visitElement(element);
@@ -2030,6 +2116,8 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   R visitPropertyInducingElement(PropertyInducingElement element) => visitVariableElement(element);
 
+  R visitToolkitObjectElement(ToolkitObjectElement element) => visitElement(element);
+
   R visitTopLevelVariableElement(TopLevelVariableElement element) => visitPropertyInducingElement(element);
 
   R visitTypeParameterElement(TypeParameterElement element) => visitElement(element);
@@ -2050,6 +2138,31 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
  * @coverage dart.engine.element
  */
 class RecursiveElementVisitor<R> implements ElementVisitor<R> {
+  R visitAngularComponentElement(AngularComponentElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularControllerElement(AngularControllerElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularFilterElement(AngularFilterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularModuleElement(AngularModuleElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularPropertyElement(AngularPropertyElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
   R visitClassElement(ClassElement element) {
     element.visitChildren(this);
     return null;
@@ -2170,6 +2283,16 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
  * @coverage dart.engine.element
  */
 class SimpleElementVisitor<R> implements ElementVisitor<R> {
+  R visitAngularComponentElement(AngularComponentElement element) => null;
+
+  R visitAngularControllerElement(AngularControllerElement element) => null;
+
+  R visitAngularFilterElement(AngularFilterElement element) => null;
+
+  R visitAngularModuleElement(AngularModuleElement element) => null;
+
+  R visitAngularPropertyElement(AngularPropertyElement element) => null;
+
   R visitClassElement(ClassElement element) => null;
 
   R visitCompilationUnitElement(CompilationUnitElement element) => null;
@@ -2354,13 +2477,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   List<ConstructorElement> get constructors => _constructors;
 
-  /**
-   * Given some name, this returns the [FieldElement] with the matching name, if there is no
-   * such field, then `null` is returned.
-   *
-   * @param name some name to lookup a field element with
-   * @return the matching field element, or `null` if no such element was found
-   */
   FieldElement getField(String name) {
     for (FieldElement fieldElement in _fields) {
       if (name == fieldElement.name) {
@@ -2755,6 +2871,11 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   List<FunctionElement> _functions = FunctionElementImpl.EMPTY_ARRAY;
 
   /**
+   * A table mapping elements to associated toolkit objects.
+   */
+  Map<Element, List<ToolkitObjectElement>> _toolkitObjects = {};
+
+  /**
    * An array containing all of the function type aliases contained in this compilation unit.
    */
   List<FunctionTypeAliasElement> _typeAliases = FunctionTypeAliasElementImpl.EMPTY_ARRAY;
@@ -2921,6 +3042,33 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   }
 
   String get identifier => source.encoding;
+
+  /**
+   * Returns the associated toolkit objects.
+   *
+   * @param element the [Element] to get toolkit objects for
+   * @return the associated toolkit objects, may be empty, but not `null`
+   */
+  List<ToolkitObjectElement> getToolkitObjects(Element element) {
+    List<ToolkitObjectElement> objects = _toolkitObjects[element];
+    if (objects != null) {
+      return objects;
+    }
+    return ToolkitObjectElement.EMPTY_ARRAY;
+  }
+
+  /**
+   * Sets the toolkit objects that are associated with the given [Element].
+   *
+   * @param element the [Element] to associate toolkit objects with
+   * @param objects the toolkit objects to associate
+   */
+  void setToolkitObjects(Element element, List<ToolkitObjectElement> objects) {
+    for (ToolkitObjectElement toolkitObject in objects) {
+      (toolkitObject as ToolkitObjectElementImpl).enclosingElement = element;
+    }
+    _toolkitObjects[element] = objects;
+  }
 }
 
 /**
@@ -3439,6 +3587,15 @@ abstract class ElementImpl implements Element {
   }
 
   /**
+   * Set this [Element] as an enclosing for given.
+   *
+   * @param element the element to enclose, must be [ElementImpl]
+   */
+  void encloseElement(ElementImpl element) {
+    element.enclosingElement = this;
+  }
+
+  /**
    * Return an identifier that uniquely identifies this element among the children of this element's
    * parent.
    *
@@ -3952,12 +4109,34 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
 
   void appendTo(JavaStringBuilder builder) {
     builder.append("(");
+    String closing = null;
+    ParameterKind kind = ParameterKind.REQUIRED;
     int parameterCount = _parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
         builder.append(", ");
       }
-      (_parameters[i] as ParameterElementImpl).appendTo(builder);
+      ParameterElementImpl parameter = _parameters[i] as ParameterElementImpl;
+      ParameterKind parameterKind = parameter.parameterKind;
+      if (parameterKind != kind) {
+        if (closing != null) {
+          builder.append(closing);
+        }
+        if (identical(parameterKind, ParameterKind.POSITIONAL)) {
+          builder.append("[");
+          closing = "]";
+        } else if (identical(parameterKind, ParameterKind.NAMED)) {
+          builder.append("{");
+          closing = "}";
+        } else {
+          closing = null;
+        }
+      }
+      kind = parameterKind;
+      parameter.appendToWithoutDelimiters(builder);
+    }
+    if (closing != null) {
+      builder.append(closing);
     }
     builder.append(")");
     if (type != null) {
@@ -4440,7 +4619,7 @@ abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptEl
    *
    * @param node the XML node from which this element is derived (not `null`)
    */
-  HtmlScriptElementImpl(XmlTagNode node) : super.con2(node.tag.lexeme, node.tag.offset);
+  HtmlScriptElementImpl(XmlTagNode node) : super.con2(node.tag, node.tagToken.offset);
 }
 
 /**
@@ -4914,6 +5093,14 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
 
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
+  List<ToolkitObjectElement> get toolkitObjects {
+    CompilationUnitElementImpl unit = getAncestor(CompilationUnitElementImpl);
+    if (unit == null) {
+      return ToolkitObjectElement.EMPTY_ARRAY;
+    }
+    return unit.getToolkitObjects(this);
+  }
+
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
       return null;
@@ -4937,6 +5124,19 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
    */
   void markPotentiallyMutatedInScope() {
     _isPotentiallyMutatedInScope2 = true;
+  }
+
+  /**
+   * Set the toolkit specific information objects attached to this variable.
+   *
+   * @param toolkitObjects the toolkit objects attached to this variable
+   */
+  void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
+    CompilationUnitElementImpl unit = getAncestor(CompilationUnitElementImpl);
+    if (unit == null) {
+      return;
+    }
+    unit.setToolkitObjects(this, toolkitObjects);
   }
 
   /**
@@ -5411,10 +5611,19 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
       break;
     }
     builder.append(left);
+    appendToWithoutDelimiters(builder);
+    builder.append(right);
+  }
+
+  /**
+   * Append the type and name of this parameter to the given builder.
+   *
+   * @param builder the builder to which the type and name are to be appended
+   */
+  void appendToWithoutDelimiters(JavaStringBuilder builder) {
     builder.append(type);
     builder.append(" ");
     builder.append(displayName);
-    builder.append(right);
   }
 }
 
@@ -5891,6 +6100,222 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
     builder.append(" ");
     builder.append(displayName);
   }
+}
+
+/**
+ * Implementation of `AngularComponentElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularComponentElementImpl extends AngularSelectorElementImpl implements AngularComponentElement {
+  /**
+   * The array containing all of the properties declared by this component.
+   */
+  List<AngularPropertyElement> _properties;
+
+  /**
+   * The the CSS file URI.
+   */
+  String styleUri;
+
+  /**
+   * The offset of the [styleUri] in the [getSource].
+   */
+  int styleUriOffset = 0;
+
+  /**
+   * The HTML template URI.
+   */
+  String templateUri;
+
+  /**
+   * The offset of the [templateUri] in the [getSource].
+   */
+  int templateUriOffset = 0;
+
+  /**
+   * Initialize a newly created Angular component to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularComponentElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularComponentElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_COMPONENT;
+
+  List<AngularPropertyElement> get properties => _properties;
+
+  /**
+   * Set an array containing all of the properties declared by this component.
+   *
+   * @param properties the properties to set
+   */
+  void set properties(List<AngularPropertyElement> properties) {
+    for (AngularPropertyElement property in properties) {
+      encloseElement(property as AngularPropertyElementImpl);
+    }
+    this._properties = properties;
+  }
+}
+
+/**
+ * Implementation of `AngularControllerElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularControllerElementImpl extends AngularSelectorElementImpl implements AngularControllerElement {
+  /**
+   * Initialize a newly created Angular controller to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularControllerElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularControllerElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_CONTROLLER;
+}
+
+/**
+ * Implementation of `AngularElement`.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularElementImpl extends ToolkitObjectElementImpl implements AngularElement {
+  /**
+   * Initialize a newly created Angular element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularElementImpl(String name, int nameOffset) : super(name, nameOffset);
+}
+
+/**
+ * Implementation of `AngularFilterElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularFilterElementImpl extends AngularElementImpl implements AngularFilterElement {
+  /**
+   * Initialize a newly created Angular filter to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularFilterElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularFilterElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_FILTER;
+}
+
+/**
+ * Implementation of `AngularModuleElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularModuleElementImpl extends AngularElementImpl implements AngularModuleElement {
+  /**
+   * The array containing all of the child modules.
+   */
+  List<AngularModuleElement> childModules = AngularModuleElement.EMPTY_ARRAY;
+
+  /**
+   * The array containing all of the types used as injection keys.
+   */
+  List<ClassElement> keyTypes = ClassElementImpl.EMPTY_ARRAY;
+
+  /**
+   * Initialize a newly created Angular module.
+   */
+  AngularModuleElementImpl() : super(null, -1);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularModuleElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_MODULE;
+}
+
+/**
+ * Implementation of `AngularPropertyElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularPropertyElementImpl extends AngularElementImpl implements AngularPropertyElement {
+  /**
+   * The [FieldElement] to which this property is bound.
+   */
+  FieldElement field;
+
+  /**
+   * The offset of the field name in the property map.
+   */
+  int fieldNameOffset = -1;
+
+  AngularPropertyKind propertyKind;
+
+  /**
+   * Initialize a newly created Angular property to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularPropertyElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularPropertyElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_PROPERTY;
+}
+
+/**
+ * Implementation of `AngularSelectorElement`.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularSelectorElementImpl extends AngularElementImpl implements AngularSelectorElement {
+  /**
+   * The selector of this element.
+   */
+  AngularSelector selector;
+
+  /**
+   * Initialize a newly created Angular element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularSelectorElementImpl(String name, int nameOffset) : super(name, nameOffset);
+}
+
+/**
+ * Implementation of [AngularSelector] based on presence of attribute.
+ */
+class HasAttributeSelector implements AngularSelector {
+  final String attributeName;
+
+  HasAttributeSelector(this.attributeName);
+
+  bool apply(XmlTagNode node) => node.getAttribute(attributeName) != null;
+}
+
+/**
+ * Implementation of [AngularSelector] based tag name.
+ */
+class IsTagSelector implements AngularSelector {
+  final String name;
+
+  IsTagSelector(this.name);
+
+  bool apply(XmlTagNode node) => node.tag == name;
 }
 
 /**

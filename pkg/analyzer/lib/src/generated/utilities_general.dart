@@ -3,18 +3,16 @@
 
 library engine.utilities.general;
 
-import 'java_core.dart';
-
 /**
  * Helper for measuring how much time is spent doing some operation.
  */
 class TimeCounter {
-  int _result = 0;
+  Stopwatch _sw = new Stopwatch();
 
   /**
    * @return the number of milliseconds spent between [start] and [stop].
    */
-  int get result => _result;
+  int get result => _sw.elapsedMilliseconds;
 
   /**
    * Starts counting time.
@@ -28,18 +26,16 @@ class TimeCounter {
  * The handle object that should be used to stop and update counter.
  */
 class TimeCounter_TimeCounterHandle {
-  final TimeCounter TimeCounter_this;
+  final TimeCounter _counter;
 
-  int _startTime = JavaSystem.currentTimeMillis();
-
-  TimeCounter_TimeCounterHandle(this.TimeCounter_this);
+  TimeCounter_TimeCounterHandle(this._counter) {
+    _counter._sw.start();
+  }
 
   /**
    * Stops counting time and updates counter.
    */
   void stop() {
-    {
-      TimeCounter_this._result += JavaSystem.currentTimeMillis() - _startTime;
-    }
+    _counter._sw.stop();
   }
 }

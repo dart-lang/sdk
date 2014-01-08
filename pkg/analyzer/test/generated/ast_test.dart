@@ -1035,7 +1035,7 @@ class BreadthFirstVisitorTest extends ParserTestCase {
         "}"]);
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<ASTNode> nodes = new List<ASTNode>();
-    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_21(nodes);
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_23(nodes);
     visitor.visitAllNodes(unit);
     EngineTestCase.assertSize(59, nodes);
     EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
@@ -1055,10 +1055,10 @@ class BreadthFirstVisitorTest extends ParserTestCase {
   }
 }
 
-class BreadthFirstVisitor_21 extends BreadthFirstVisitor<Object> {
+class BreadthFirstVisitor_23 extends BreadthFirstVisitor<Object> {
   List<ASTNode> nodes;
 
-  BreadthFirstVisitor_21(this.nodes) : super();
+  BreadthFirstVisitor_23(this.nodes) : super();
 
   Object visitNode(ASTNode node) {
     nodes.add(node);
@@ -1884,6 +1884,71 @@ class ConstantEvaluatorTest extends ParserTestCase {
       _ut.test('test_unary_negated_integer', () {
         final __test = new ConstantEvaluatorTest();
         runJUnitTest(__test, __test.test_unary_negated_integer);
+      });
+    });
+  }
+}
+
+class SimpleStringLiteralTest extends ParserTestCase {
+  void test_getValueOffset() {
+    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.token2("'X'"), "X").valueOffset);
+    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.token2("\"X\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.token2("\"\"\"X\"\"\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.token2("'''X'''"), "X").valueOffset);
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.token2("r'X'"), "X").valueOffset);
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.token2("r\"X\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.token2("r\"\"\"X\"\"\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.token2("r'''X'''"), "X").valueOffset);
+  }
+
+  void test_isMultiline() {
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("'X'"), "X").isMultiline);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("r'X'"), "X").isMultiline);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("\"X\""), "X").isMultiline);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("r\"X\""), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("'''X'''"), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r'''X'''"), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("\"\"\"X\"\"\""), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r\"\"\"X\"\"\""), "X").isMultiline);
+  }
+
+  void test_isRaw() {
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("'X'"), "X").isRaw);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("\"X\""), "X").isRaw);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("\"\"\"X\"\"\""), "X").isRaw);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("'''X'''"), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r'X'"), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r\"X\""), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r\"\"\"X\"\"\""), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r'''X'''"), "X").isRaw);
+  }
+
+  void test_simple() {
+    Token token = TokenFactory.token2("'value'");
+    SimpleStringLiteral stringLiteral = new SimpleStringLiteral(token, "value");
+    JUnitTestCase.assertSame(token, stringLiteral.literal);
+    JUnitTestCase.assertSame(token, stringLiteral.beginToken);
+    JUnitTestCase.assertSame(token, stringLiteral.endToken);
+    JUnitTestCase.assertEquals("value", stringLiteral.value);
+  }
+
+  static dartSuite() {
+    _ut.group('SimpleStringLiteralTest', () {
+      _ut.test('test_getValueOffset', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_getValueOffset);
+      });
+      _ut.test('test_isMultiline', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_isMultiline);
+      });
+      _ut.test('test_isRaw', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_isRaw);
+      });
+      _ut.test('test_simple', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_simple);
       });
     });
   }
@@ -3981,5 +4046,6 @@ main() {
   IndexExpressionTest.dartSuite();
   NodeListTest.dartSuite();
   SimpleIdentifierTest.dartSuite();
+  SimpleStringLiteralTest.dartSuite();
   VariableDeclarationTest.dartSuite();
 }
