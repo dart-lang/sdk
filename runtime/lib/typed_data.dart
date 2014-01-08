@@ -580,7 +580,8 @@ abstract class _TypedListBase {
   }
 
   void setAll(int index, Iterable iterable) {
-    IterableMixinWorkaround.setAllList(this, index, iterable);
+    final end = iterable.length + index;
+    setRange(index, end, iterable);
   }
 
   void fillRange(int start, int end, [fillValue]) {
