@@ -41,6 +41,8 @@ class ThreadInterrupterLinux : public AllStatic {
 
 
 void ThreadInterrupter::InterruptThreads(int64_t current_time) {
+  // Temporary test.
+  return;
   for (intptr_t i = 0; i < threads_size_; i++) {
     ThreadState* state = threads_[i];
     ASSERT(state->id != Thread::kInvalidThreadId);
