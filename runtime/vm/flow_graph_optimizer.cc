@@ -178,7 +178,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
 }
 
 
-static const ICData& SpecializeICData(const ICData& ic_data, intptr_t cid) {
+static const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid) {
   ASSERT(ic_data.num_args_tested() == 1);
 
   if ((ic_data.NumberOfChecks() == 1) &&
@@ -186,21 +186,23 @@ static const ICData& SpecializeICData(const ICData& ic_data, intptr_t cid) {
     return ic_data;  // Nothing to do
   }
 
-  const ICData& new_ic_data = ICData::ZoneHandle(ICData::New(
-      Function::Handle(ic_data.function()),
-      String::Handle(ic_data.target_name()),
-      Object::empty_array(),  // Dummy argument descriptor.
-      ic_data.deopt_id(),
-      ic_data.num_args_tested()));
-  new_ic_data.set_deopt_reason(ic_data.deopt_reason());
-
   const Function& function =
       Function::Handle(ic_data.GetTargetForReceiverClassId(cid));
+  // TODO(fschneider): Try looking up the function on the class if it is
+  // not found in the ICData.
   if (!function.IsNull()) {
+    const ICData& new_ic_data = ICData::ZoneHandle(ICData::New(
+        Function::Handle(ic_data.function()),
+        String::Handle(ic_data.target_name()),
+        Object::empty_array(),  // Dummy argument descriptor.
+        ic_data.deopt_id(),
+        ic_data.num_args_tested()));
+    new_ic_data.set_deopt_reason(ic_data.deopt_reason());
     new_ic_data.AddReceiverCheck(cid, function);
+    return new_ic_data;
   }
 
-  return new_ic_data;
+  return ic_data;
 }
 
 
@@ -216,7 +218,11 @@ void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
     return;  // No information about receiver was infered.
   }
 
-  const ICData& ic_data = SpecializeICData(call->ic_data(), receiver_cid);
+  const ICData& ic_data = TrySpecializeICData(call->ic_data(), receiver_cid);
+  if (ic_data.raw() == call->ic_data().raw()) {
+    // No specialization.
+    return;
+  }
 
   const bool with_checks = false;
   PolymorphicInstanceCallInstr* specialized =
