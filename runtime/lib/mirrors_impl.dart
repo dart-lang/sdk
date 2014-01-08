@@ -437,7 +437,6 @@ class _LocalClassMirror extends _LocalObjectMirror
   final Type _reflectedType;
   Symbol _simpleName;
   DeclarationMirror _owner;
-  final bool isAbstract;
   final bool _isGeneric;
   final bool _isMixinAlias;
   final bool _isGenericDeclaration;
@@ -447,7 +446,6 @@ class _LocalClassMirror extends _LocalObjectMirror
                     reflectedType,
                     String simpleName,
                     this._owner,
-                    this.isAbstract,
                     this._isGeneric,
                     this._isMixinAlias,
                     this._isGenericDeclaration)
@@ -806,7 +804,7 @@ class _LocalClassMirror extends _LocalObjectMirror
 class _LocalFunctionTypeMirror extends _LocalClassMirror
     implements FunctionTypeMirror {
   _LocalFunctionTypeMirror(reflectee, reflectedType)
-      : super(reflectee, reflectedType, null, null, false, false, false, false);
+      : super(reflectee, reflectedType, null, null, false, false, false);
 
   bool get _isAnonymousMixinApplication => false;
 

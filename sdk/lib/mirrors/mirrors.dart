@@ -705,11 +705,6 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
   List<ClassMirror> get superinterfaces;
 
   /**
-   * Is the reflectee abstract?
-   */
-  bool get isAbstract;
-
-  /**
    * Returns an immutable map of the declarations actually given in the class
    * declaration.
    *
