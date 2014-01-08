@@ -743,10 +743,18 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
-  if (is_optimizing()) return;
+  if (is_optimizing()) {
+    return;
+  }
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->is_used()) {
-    __ pushl(defn->locs()->out().reg());
+    Location value = defn->locs()->out();
+    if (value.IsRegister()) {
+      __ pushl(value.reg());
+    } else {
+      ASSERT(value.IsStackSlot());
+      __ pushl(value.ToStackSlotAddress());
+    }
   }
 }
 

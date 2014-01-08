@@ -103,15 +103,18 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 0;
+  const intptr_t stack_index = (local().index() < 0)
+      ? kFirstLocalSlotFromFp - local().index()
+      : kParamEndSlotFromFp - local().index();
   return LocationSummary::Make(kNumInputs,
-                               Location::RequiresRegister(),
+                               Location::StackSlot(stack_index),
                                LocationSummary::kNoCall);
 }
 
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out().reg();
-  __ movl(result, Address(EBP, local().index() * kWordSize));
+  ASSERT(!compiler->is_optimizing());
+  // Nothing to do.
 }
 
 
