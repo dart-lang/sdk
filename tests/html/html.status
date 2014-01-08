@@ -74,10 +74,6 @@ js_test: Fail # Issue 14246
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
-[ $compiler == dart2js && $browser && $checked ]
-postmessage_structured_test/typed_arrays: Fail # Issue 10097
-postmessage_structured_test/primitives: Fail # Issue 10097
-
 [ $compiler == dart2js && $runtime == chrome ]
 selectelement_test: Skip # http://dartbug.com/15516
 
