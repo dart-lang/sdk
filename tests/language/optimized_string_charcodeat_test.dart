@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 
 String one_byte = "hest";
-String two_byte = "høns";
+String two_byte = "h\u{2029}ns";
 
 int testOneByteCodeUnitAt(String x, int j) {
   int test() {
@@ -68,13 +68,13 @@ int testTwoByteCodeUnitAtInLoop(var x) {
 main() {
   for (int j = 0; j < 10; j++) {
     Expect.equals(101, testOneByteCodeUnitAt(one_byte, 1));
-    Expect.equals(248, testTwoByteCodeUnitAt(two_byte, 1));
+    Expect.equals(8233, testTwoByteCodeUnitAt(two_byte, 1));
     Expect.equals(248, testConstantStringCodeUnitAt(1));
     Expect.equals(101, testConstantIndexCodeUnitAt(one_byte));
   }
   for (int j = 0; j < 20; j++) {
     Expect.equals(436, testOneByteCodeUnitAtInLoop(one_byte));
-    Expect.equals(577, testTwoByteCodeUnitAtInLoop(two_byte));
+    Expect.equals(8562, testTwoByteCodeUnitAtInLoop(two_byte));
   }
   Expect.throws(() => testOneByteCodeUnitAtInLoop(123));
   Expect.throws(() => testTwoByteCodeUnitAtInLoop(123));
