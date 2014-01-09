@@ -840,14 +840,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
 }
 
 
-// Gets called from debug stub when code reaches a breakpoint at a return
-// in Dart code.
-DEFINE_RUNTIME_ENTRY(BreakpointReturnHandler, 0) {
-  ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->SignalBpReached();
-}
-
-
 // Gets called from debug stub when code reaches a breakpoint.
 DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
   ASSERT(isolate->debugger() != NULL);
