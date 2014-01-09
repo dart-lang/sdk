@@ -83,8 +83,12 @@ class FileStat {
    * FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
   static FileStat statSync(String path) {
+    // Trailing path is not supported on Windows.
+    if (Platform.isWindows) {
+      path = FileSystemEntity._trimTrailingPathSeparators(path);
+    }
     var data = _statSync(path);
-    if (data is Error) throw data;
+    if (data is OSError) throw data;
     return new FileStat._internal(
         new DateTime.fromMillisecondsSinceEpoch(data[_CHANGED_TIME] * 1000),
         new DateTime.fromMillisecondsSinceEpoch(data[_MODIFIED_TIME] * 1000),
@@ -102,6 +106,10 @@ class FileStat {
    * .type set to FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
   static Future<FileStat> stat(String path) {
+    // Trailing path is not supported on Windows.
+    if (Platform.isWindows) {
+      path = FileSystemEntity._trimTrailingPathSeparators(path);
+    }
     return _IOService.dispatch(_FILE_STAT, [path]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
