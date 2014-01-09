@@ -379,6 +379,33 @@ class TypeTestEmitter extends CodeEmitterHelper {
       }
     }
 
+    bool canTearOff(Element function) {
+      if (!function.isFunction() ||
+          function.isConstructor() ||
+          function.isAccessor()) {
+        return false;
+      } else if (function.isInstanceMember()) {
+        if (!function.getEnclosingClass().isClosure()) {
+          return compiler.codegenWorld.hasInvokedGetter(function, compiler);
+        }
+      }
+      return false;
+    }
+
+    backend.generatedCode.keys.where((element) {
+      return element is FunctionElement &&
+          element is! ConstructorBodyElement &&
+          (canTearOff(element) || backend.isAccessibleByReflection(element));
+    }).forEach((FunctionElement function) {
+      DartType type = function.computeType(compiler);
+      for (ClassElement cls in backend.rti.getReferencedClasses(type)) {
+        while (cls != null) {
+          rtiNeededClasses.add(cls);
+          cls = cls.superclass;
+        }
+      }
+    });
+
     return rtiNeededClasses;
   }
 

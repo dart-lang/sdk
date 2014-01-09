@@ -603,6 +603,15 @@ class RuntimeTypes {
       if (variables.head.element == variable) return index;
     }
   }
+
+  /// Return all classes that are referenced in the type of the function, i.e.,
+  /// in the return type or the argument types.
+  Set<ClassElement> getReferencedClasses(FunctionType type) {
+    FunctionArgumentCollector collector =
+        new FunctionArgumentCollector(backend);
+    collector.collect(type);
+    return collector.classes;
+  }
 }
 
 class TypeRepresentationGenerator extends DartTypeVisitor {

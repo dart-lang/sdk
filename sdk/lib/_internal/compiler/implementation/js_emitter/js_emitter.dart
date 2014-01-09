@@ -19,7 +19,8 @@ import '../dart2jslib.dart' show
     CodeBuffer;
 
 import '../elements/elements.dart' show
-    TypeVariableElement;
+    TypeVariableElement,
+    ConstructorBodyElement;
 
 import '../js/js.dart' show
     js;
