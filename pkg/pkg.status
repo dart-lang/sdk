@@ -213,7 +213,7 @@ scheduled_test/test/descriptor/*: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_future_matchers_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_process_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_test/*: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_stream/scheduled_matcher_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_stream/stream_matcher_test: Fail # http://dartbug.com/8440
 
 
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
