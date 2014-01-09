@@ -88,6 +88,10 @@ class BarbackServer {
       return;
     }
 
+    // Set content-type to force UTF-8 encoding.
+    request.response.headers.contentType =
+        ContentType.parse("text/html; charset=utf-8");
+
     if (request.method != "GET" && request.method != "HEAD") {
       _methodNotAllowed(request);
       return;
