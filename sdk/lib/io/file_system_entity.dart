@@ -622,6 +622,22 @@ abstract class FileSystemEntity {
     }
     return path;
   }
+
+  static String _ensureTrailingPathSeparators(String path) {
+    // Don't handle argument errors here.
+    if (path is! String) return path;
+    if (path.isEmpty) path = '.';
+    if (Platform.operatingSystem == 'windows') {
+      while (!path.endsWith(Platform.pathSeparator) && !path.endsWith('/')) {
+        path = "$path${Platform.pathSeparator}";
+      }
+    } else {
+      while (!path.endsWith(Platform.pathSeparator)) {
+        path = "$path${Platform.pathSeparator}";
+      }
+    }
+    return path;
+  }
 }
 
 

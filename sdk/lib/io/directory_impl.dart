@@ -213,7 +213,7 @@ class _Directory extends FileSystemEntity implements Directory {
   Stream<FileSystemEntity> list({bool recursive: false,
                                  bool followLinks: true}) {
     return new _AsyncDirectoryLister(
-        FileSystemEntity._trimTrailingPathSeparators(path),
+        FileSystemEntity._ensureTrailingPathSeparators(path),
         recursive,
         followLinks).stream;
   }
@@ -223,7 +223,7 @@ class _Directory extends FileSystemEntity implements Directory {
       throw new ArgumentError();
     }
     return _list(
-        FileSystemEntity._trimTrailingPathSeparators(path),
+        FileSystemEntity._ensureTrailingPathSeparators(path),
         recursive,
         followLinks);
   }
