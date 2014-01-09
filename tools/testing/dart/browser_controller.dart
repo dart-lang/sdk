@@ -145,28 +145,71 @@ abstract class Browser {
       Completer stdoutDone = new Completer();
       Completer stderrDone = new Completer();
 
-      process.stdout.transform(UTF8.decoder).listen((data) {
+      bool stdoutIsDone = false;
+      bool stderrIsDone = false;
+      StreamSubscription stdoutSubscription;
+      StreamSubscription stderrSubscription;
+
+      // This timer is used to close stdio to the subprocess once we got
+      // the exitCode. Sometimes descendants of the subprocess keep stdio
+      // handles alive even though the direct subprocess is dead.
+      Timer watchdogTimer;
+
+      void closeStdout([_]){
+        if (!stdoutIsDone) {
+          stdoutDone.complete();
+          stdoutIsDone = true;
+
+          if (stderrIsDone && watchdogTimer != null) {
+            watchdogTimer.cancel();
+          }
+        }
+      }
+
+      void closeStderr([_]) {
+        if (!stderrIsDone) {
+          stderrDone.complete();
+          stderrIsDone = true;
+
+          if (stdoutIsDone && watchdogTimer != null) {
+            watchdogTimer.cancel();
+          }
+        }
+      }
+
+      stdoutSubscription =
+        process.stdout.transform(UTF8.decoder).listen((data) {
         _addStdout(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stdout handling: $error");
-      }, onDone: () {
-        stdoutDone.complete(true);
-      });
+      }, onDone: closeStdout);
 
-      process.stderr.transform(UTF8.decoder).listen((data) {
+      stderrSubscription =
+        process.stderr.transform(UTF8.decoder).listen((data) {
         _addStderr(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stderr handling: $error");
-      },  onDone: () {
-        stderrDone.complete(true);
-      });
+      },  onDone: closeStderr);
 
       process.exitCode.then((exitCode) {
         _logEvent("Browser closed with exitcode $exitCode");
+
+        if (!stdoutIsDone || !stderrIsDone) {
+          watchdogTimer = new Timer(MAX_STDIO_DELAY, () {
+            DebugLogger.warning(
+                "$MAX_STDIO_DELAY_PASSED_MESSAGE (browser: $this)");
+            watchdogTimer = null;
+            stdoutSubscription.cancel();
+            stderrSubscription.cancel();
+            closeStdout();
+            closeStderr();
+          });
+        }
+
         Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
           process = null;
           if (_cleanup != null) {

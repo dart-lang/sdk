@@ -1623,18 +1623,76 @@ class RunningProcess {
                              environment: processEnvironment,
                              workingDirectory: command.workingDirectory);
         processFuture.then((io.Process process) {
+          StreamSubscription stdoutSubscription =
+              _drainStream(process.stdout, stdout);
+          StreamSubscription stderrSubscription =
+              _drainStream(process.stderr, stderr);
+
+          var stdoutCompleter = new Completer();
+          var stderrCompleter = new Completer();
+
+          bool stdoutDone = false;
+          bool stderrDone = false;
+
+          // This timer is used to close stdio to the subprocess once we got
+          // the exitCode. Sometimes descendants of the subprocess keep stdio
+          // handles alive even though the direct subprocess is dead.
+          Timer watchdogTimer;
+
+          closeStdout([_]) {
+            if (!stdoutDone) {
+              stdoutCompleter.complete();
+              stdoutDone = true;
+
+              if (stderrDone && watchdogTimer != null) {
+                watchdogTimer.cancel();
+              }
+            }
+          }
+          closeStderr([_]) {
+            if (!stderrDone) {
+              stderrCompleter.complete();
+              stderrDone = true;
+
+              if (stdoutDone && watchdogTimer != null) {
+                watchdogTimer.cancel();
+              }
+            }
+          }
+
           // Close stdin so that tests that try to block on input will fail.
           process.stdin.close();
           void timeoutHandler() {
             timedOut = true;
             if (process != null) {
-              process.kill();
+              if (!process.kill()) {
+                DebugLogger.error("Unable to kill ${process.pid}");
+              }
             }
           }
-          Future.wait([process.exitCode,
-                       _drainStream(process.stdout, stdout),
-                       _drainStream(process.stderr, stderr)])
-              .then((values) => _commandComplete(values[0]));
+
+          stdoutSubscription.asFuture().then(closeStdout);
+          stderrSubscription.asFuture().then(closeStderr);
+
+          process.exitCode.then((exitCode) {
+            if (!stdoutDone || !stderrDone) {
+              watchdogTimer = new Timer(MAX_STDIO_DELAY, () {
+                DebugLogger.warning(
+                    "$MAX_STDIO_DELAY_PASSED_MESSAGE (command: $command)");
+                watchdogTimer = null;
+                stdoutSubscription.cancel();
+                stderrSubscription.cancel();
+                closeStdout();
+                closeStderr();
+              });
+            }
+
+            Future.wait([stdoutCompleter.future,
+                         stderrCompleter.future]).then((_) {
+              _commandComplete(exitCode);
+            });
+          });
+
           timeoutTimer = new Timer(new Duration(seconds: timeout),
                                    timeoutHandler);
         }).catchError((e) {
@@ -1669,8 +1727,9 @@ class RunningProcess {
     return commandOutput;
   }
 
-  Future _drainStream(Stream<List<int>> source, List<int> destination) {
-    return source.listen(destination.addAll).asFuture();
+  StreamSubscription _drainStream(Stream<List<int>> source,
+                                  List<int> destination) {
+    return source.listen(destination.addAll);
   }
 
   Map<String, String> _createProcessEnvironment() {
@@ -2187,6 +2246,19 @@ class CommandQueue {
       });
     }
   }
+
+  void dumpState() {
+    print("");
+    print("CommandQueue state:");
+    print("  Processes: used: $_numProcesses max: $_maxProcesses");
+    print("  BrowserProcesses: used: $_numBrowserProcesses "
+          "max: $_maxBrowserProcesses");
+    print("  Finishing: $_finishing");
+    print("  Queue (length = ${_runQueue.length}):");
+    for (var command in _runQueue) {
+      print("      $command");
+    }
+  }
 }
 
 
@@ -2556,6 +2628,7 @@ class ProcessQueue {
     }
 
     var testCaseEnqueuer;
+    CommandQueue commandQueue;
     void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
       Timer _debugTimer;
       // If we haven't seen a single test finishing during a 10 minute period
@@ -2573,6 +2646,8 @@ class ProcessQueue {
         _debugTimer = new Timer(debugTimerDuration, () {
           print("The debug timer of test.dart expired. Please report this issue"
                 " to ricow/kustermann and provide the following information:");
+          print("");
+          print("Graph is sealed: ${_graph.isSealed}");
           print("");
           _graph.DumpCounts();
           print("");
@@ -2603,6 +2678,10 @@ class ProcessQueue {
               print("");
             }
           }
+
+          if (commandQueue != null) {
+            commandQueue.dumpState();
+          }
         });
       }
 
@@ -2631,7 +2710,7 @@ class ProcessQueue {
 
       // Run "runnable commands" using [executor] subject to
       // maxProcesses/maxBrowserProcesses constraint
-      var commandQueue = new CommandQueue(
+      commandQueue = new CommandQueue(
           _graph, testCaseEnqueuer, executor, maxProcesses, maxBrowserProcesses,
           verbose);
 
