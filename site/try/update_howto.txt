@@ -1,5 +1,0 @@
-$ git pull --ff-only
-$ git checkout-index -a -f --prefix=8bbcef7/
-$ rm -rf 12775d4
-$ sh 8bbcef7/dart/web_editor/create_manifest.sh > live.appcache
-$ sed -e 's/12775d4/8bbcef7/' -i.12775d4 index.html

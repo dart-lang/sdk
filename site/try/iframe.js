@@ -27,19 +27,25 @@ function onMessageReceived(event) {
 window.addEventListener("message", onMessageReceived, false);
 
 (function () {
-function postScrollHeight() {
-  window.parent.postMessage(["scrollHeight", document.documentElement.scrollHeight], "*");
-}
+  function postScrollHeight() {
+    window.parent.postMessage(
+      ["scrollHeight", document.documentElement.scrollHeight], "*");
+  }
 
-var observer = new (window.MutationObserver||window.WebKitMutationObserver||window.MozMutationObserver)(function(mutations) {
-  postScrollHeight()
-  window.setTimeout(postScrollHeight, 500);
-});
+  var mutationObserverConstructor =
+      window.MutationObserver ||
+      window.WebKitMutationObserver ||
+      window.MozMutationObserver;
 
-observer.observe(
-    document.body,
-    { attributes: true,
-      childList: true,
-      characterData: true,
-      subtree: true });
+  var observer = new mutationObserverConstructor(function(mutations) {
+    postScrollHeight()
+    window.setTimeout(postScrollHeight, 500);
+  });
+
+  observer.observe(
+      document.body,
+      { attributes: true,
+        childList: true,
+        characterData: true,
+        subtree: true });
 })();

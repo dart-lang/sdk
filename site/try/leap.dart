@@ -9,8 +9,13 @@ import 'dart:html';
 import 'dart:isolate';
 import 'dart:uri';
 
-import '../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart' show StringScanner, EOF_TOKEN;
-import '../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart' as scanner;
+import '../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart'
+  show
+    StringScanner,
+    EOF_TOKEN;
+
+import '../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart'
+  as scanner;
 
 import 'decoration.dart';
 import 'themes.dart';
@@ -31,7 +36,8 @@ bool alwaysRunInWorker = window.localStorage['alwaysRunInWorker'] == 'true';
 bool verboseCompiler = window.localStorage['verboseCompiler'] == 'true';
 bool minified = window.localStorage['minified'] == 'true';
 bool onlyAnalyze = window.localStorage['onlyAnalyze'] == 'true';
-String codeFont = ((x) => x == null ? '' : x)(window.localStorage['codeFont']);
+final String rawCodeFont = window.localStorage['codeFont'];
+String codeFont = rawCodeFont == null ? '' : rawCodeFont;
 String currentSample = window.localStorage['currentSample'];
 Theme currentTheme = Theme.named(window.localStorage['theme']);
 bool applyingSettings = false;
@@ -58,6 +64,7 @@ onKeyUp(KeyboardEvent e) {
 bool isMalformedInput = false;
 String currentSource = "";
 
+// TODO(ahe): This method should be cleaned up. It is too large.
 onMutation(List<MutationRecord> mutations, MutationObserver observer) {
   scheduleCompilation();
 
@@ -74,53 +81,53 @@ onMutation(List<MutationRecord> mutations, MutationObserver observer) {
       String type = record.type;
       switch (type) {
 
-      case 'characterData':
+        case 'characterData':
 
-        bool hasSelection = false;
-        int offset = selection.anchorOffset;
-        if (selection.isCollapsed && selection.anchorNode == record.target) {
-          hasSelection = true;
-        }
-        var parent = record.target.parentNode;
-        if (parent != inputPre) {
-          inlineChildren(parent);
-        }
-        if (hasSelection) {
-          selection.collapse(record.target, offset);
-        }
-        break;
+          bool hasSelection = false;
+          int offset = selection.anchorOffset;
+          if (selection.isCollapsed && selection.anchorNode == record.target) {
+            hasSelection = true;
+          }
+          var parent = record.target.parentNode;
+          if (parent != inputPre) {
+            inlineChildren(parent);
+          }
+          if (hasSelection) {
+            selection.collapse(record.target, offset);
+          }
+          break;
 
-      default:
-        if (!record.addedNodes.isEmpty) {
-          for (var node in record.addedNodes) {
+        default:
+          if (!record.addedNodes.isEmpty) {
+            for (var node in record.addedNodes) {
 
-            if (node.nodeType != Node.ELEMENT_NODE) continue;
+              if (node.nodeType != Node.ELEMENT_NODE) continue;
 
-            if (node is BRElement) {
-              if (selection.anchorNode != node) {
-                node.replaceWith(new Text('\n'));
-              }
-            } else {
-              var parent = node.parentNode;
-              if (parent == null) continue;
-              var nodes = new List.from(node.nodes);
-              var style = node.getComputedStyle();
-              if (style.display != 'inline') {
-                var previous = node.previousNode;
-                if (previous is Text) {
-                  previous.appendData('\n');
-                } else {
-                  parent.insertBefore(new Text('\n'), node);
+              if (node is BRElement) {
+                if (selection.anchorNode != node) {
+                  node.replaceWith(new Text('\n'));
                 }
+              } else {
+                var parent = node.parentNode;
+                if (parent == null) continue;
+                var nodes = new List.from(node.nodes);
+                var style = node.getComputedStyle();
+                if (style.display != 'inline') {
+                  var previous = node.previousNode;
+                  if (previous is Text) {
+                    previous.appendData('\n');
+                  } else {
+                    parent.insertBefore(new Text('\n'), node);
+                  }
+                }
+                for (Node child in nodes) {
+                  child.remove();
+                  parent.insertBefore(child, node);
+                }
+                node.remove();
               }
-              for (Node child in nodes) {
-                child.remove();
-                parent.insertBefore(child, node);
-              }
-              node.remove();
             }
           }
-        }
       }
     }
     mutations = observer.takeRecords();
@@ -137,10 +144,12 @@ onMutation(List<MutationRecord> mutations, MutationObserver observer) {
   int anchorOffset = 0;
   bool hasSelection = false;
   Node anchorNode = selection.anchorNode;
+  // TODO(ahe): Try to share walk4 methods.
   void walk4(Node node) {
     // TODO(ahe): Use TreeWalker when that is exposed.
     // function textNodesUnder(root){
-    //   var n, a=[], walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null,false);
+    //   var n, a=[], walk=document.createTreeWalker(
+    //       root,NodeFilter.SHOW_TEXT,null,false);
     //   while(n=walk.nextNode()) a.push(n);
     //   return a;
     // }
@@ -155,7 +164,7 @@ onMutation(List<MutationRecord> mutations, MutationObserver observer) {
     }
 
     var child = node.$dom_firstChild;
-    while(child != null) {
+    while (child != null) {
       walk4(child);
       if (hasSelection) return;
       child = child.nextNode;
@@ -271,7 +280,8 @@ addDiagnostic(String kind, String message, int begin, int end) {
   }
 
   observer.takeRecords();
-  observer.observe(inputPre, childList: true, characterData: true, subtree: true);
+  observer.observe(
+      inputPre, childList: true, characterData: true, subtree: true);
 }
 
 void inlineChildren(Element element) {
@@ -363,15 +373,15 @@ class CompilationProcess {
     String kind = message is String ? message : message[0];
     var data = (message is List && message.length == 2) ? message[1] : null;
     switch (kind) {
-    case 'done': return onDone(data);
-    case 'url': return onUrl(data);
-    case 'code': return onCode(data);
-    case 'diagnostic': return onDiagnostic(data);
-    case 'crash': return onCrash(data);
-    case 'failed': return onFail(data);
-    case 'dart:html': return onDartHtml(data);
-    default:
-      throw ['Unknown message kind', message];
+      case 'done': return onDone(data);
+      case 'url': return onUrl(data);
+      case 'code': return onCode(data);
+      case 'diagnostic': return onDiagnostic(data);
+      case 'crash': return onCrash(data);
+      case 'failed': return onFail(data);
+      case 'dart:html': return onDartHtml(data);
+      default:
+        throw ['Unknown message kind', message];
     }
   }
 
@@ -895,6 +905,7 @@ void openSettings(MouseEvent event) {
         ..appendText(' $text');
   }
 
+  // TODO(ahe): Build abstraction for flags/options.
   fieldSet.append(
       buildCheckBox(
           'Always run in Worker thread.', alwaysRunInWorker,
