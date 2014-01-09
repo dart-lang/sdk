@@ -11,14 +11,14 @@ import 'trace.dart';
 
 // #1      Foo._bar (file:///home/nweiz/code/stuff.dart:42:21)
 final _vmFrame = new RegExp(
-    r'^#\d+\s+([^\s].*) \((.+?):(\d+)(?::(\d+))?\)$');
+    r'^#\d+\s+(\S.*) \((.+?):(\d+)(?::(\d+))?\)$');
 
 //     at VW.call$0 (http://pub.dartlang.org/stuff.dart.js:560:28)
 //     at VW.call$0 (eval as fn
 //         (http://pub.dartlang.org/stuff.dart.js:560:28), efn:3:28)
 //     at http://pub.dartlang.org/stuff.dart.js:560:28
 final _v8Frame = new RegExp(
-    r'^\s*at (?:([^\s].*?)(?: \[as [^\]]+\])? \((.*)\)|(.*))$');
+    r'^\s*at (?:(\S.*?)(?: \[as [^\]]+\])? \((.*)\)|(.*))$');
 
 // http://pub.dartlang.org/stuff.dart.js:560:28
 final _v8UrlLocation = new RegExp(r'^(.*):(\d+):(\d+)$');
@@ -28,7 +28,7 @@ final _v8UrlLocation = new RegExp(r'^(.*):(\d+):(\d+)$');
 // eval as function (eval as otherFunction
 //     (http://pub.dartlang.org/stuff.dart.js:560:28))
 final _v8EvalLocation = new RegExp(
-    r'^eval at (?:[^\s].*?) \((.*)\)(?:, .*?:\d+:\d+)?$');
+    r'^eval at (?:\S.*?) \((.*)\)(?:, .*?:\d+:\d+)?$');
 
 // foo$bar$0@http://pub.dartlang.org/stuff.dart.js:560:28
 // http://pub.dartlang.org/stuff.dart.js:560:28
@@ -43,7 +43,7 @@ final _firefoxFrame = new RegExp(
 // foo/bar.dart 10:11 in Foo._bar
 // http://dartlang.org/foo/bar.dart in Foo._bar
 final _friendlyFrame = new RegExp(
-    r'^([^\s]+)(?: (\d+)(?::(\d+))?)?\s+([^\d][^\s]*)$');
+    r'^(\S+)(?: (\d+)(?::(\d+))?)?\s+([^\d]\S*)$');
 
 final _initialDot = new RegExp(r"^\.");
 
@@ -154,8 +154,10 @@ class Frame {
     // nesting for each eval performed on that line.
     parseLocation(location, member) {
       var evalMatch = _v8EvalLocation.firstMatch(location);
-      if (evalMatch != null) return parseLocation(evalMatch[1], member);
-      
+      while (evalMatch != null) {
+        location = evalMatch[1];
+        evalMatch = _v8EvalLocation.firstMatch(location);
+      }
 
       var urlMatch = _v8UrlLocation.firstMatch(location);
       if (urlMatch == null) {
