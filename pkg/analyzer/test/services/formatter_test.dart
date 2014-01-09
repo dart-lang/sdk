@@ -1177,7 +1177,6 @@ main() {
 
   });
 
-
   /// Writer tests
   group('writer', () {
 
@@ -1216,6 +1215,52 @@ main() {
 
   });
 
+
+
+  /// Line breaker tests
+  group('linebreaker', () {
+
+    List<Chunk> breakLine(Line line, int maxLength) =>
+        new SimpleLineBreaker(maxLength).breakLine(line);
+
+    Line line(List tokens) {
+      var line = new Line();
+      tokens.forEach((t) =>
+          line.addToken(t is LineToken ? t : new LineToken(t)));
+      return line;
+    }
+
+    expectTextsEqual(List<Chunk> chunks, List<String> texts) {
+      expect(chunks.map((chunk) => chunk.toString()), orderedEquals(texts));
+    }
+
+    final SP_1 = new SpaceToken(1, breakWeight: 1);
+
+    // 'foo|1|bar|1|baz|1|foo|1|bar|1|baz'
+    final LINE_1 = line(['foo', SP_1, 'bar', SP_1, 'baz', SP_1,
+                         'foo', SP_1, 'bar', SP_1, 'baz']);
+
+    test('breakLine - 1', () {
+      var chunks = breakLine(LINE_1, 1);
+      expectTextsEqual(chunks, ['foo', 'bar', 'baz', 'foo', 'bar', 'baz']);
+    });
+
+    test('breakLine - 2', () {
+      var chunks = breakLine(LINE_1, 4);
+      expectTextsEqual(chunks, ['foo', 'bar', 'baz', 'foo', 'bar', 'baz']);
+    });
+
+    test('breakLine - 3', () {
+      var chunks = breakLine(LINE_1, 8);
+      expectTextsEqual(chunks, ['foo bar', 'baz foo', 'bar baz']);
+    });
+
+    test('breakLine - 4', () {
+      var chunks = breakLine(LINE_1, 12);
+      expectTextsEqual(chunks, ['foo bar baz', 'foo bar baz']);
+    });
+
+  });
 
   /// Helper method tests
   group('helpers', () {

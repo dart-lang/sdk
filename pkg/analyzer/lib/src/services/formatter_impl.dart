@@ -366,6 +366,9 @@ class SourceVisitor implements ASTVisitor {
   /// Used for matching EOL comments
   final twoSlashes = new RegExp(r'//[^/]');
 
+  /// A weight for potential breakpoints.
+  int breakWeight = null;
+
   /// Original pre-format selection information (may be null).
   final Selection preSelection;
 
@@ -995,7 +998,7 @@ class SourceVisitor implements ASTVisitor {
     visit(node.typeArguments);
     token(node.leftBracket);
     indent();
-    visitCommaSeparatedNodes(node.elements);
+    visitCommaSeparatedNodes(node.elements /*, followedBy: breakableSpace*/);
     optionalTrailingComma(node.rightBracket);
     unindent();
     token(node.rightBracket);
@@ -1455,12 +1458,13 @@ class SourceVisitor implements ASTVisitor {
   }
 
   emitSpaces() {
-    while (leadingSpaces > 0) {
-      if (!writer.currentLine.isWhitespace() || allowLineLeadingSpaces) {
-        writer.print(' ');
+    if (leadingSpaces > 0) {
+      if (allowLineLeadingSpaces || !writer.currentLine.isWhitespace()) {
+        writer.spaces(leadingSpaces, breakWeight: breakWeight);
       }
+      leadingSpaces = 0;
       allowLineLeadingSpaces = false;
-      leadingSpaces--;
+      breakWeight = null;
     }
   }
 
@@ -1487,9 +1491,11 @@ class SourceVisitor implements ASTVisitor {
     allowLineLeadingSpaces = allowLineLeading;
   }
 
-  /// Emit a breakable space
+  /// Mark a breakable space
   breakableSpace() {
-    //Implement
+    space();
+    breakWeight =
+        countNewlinesBetween(previousToken, previousToken.next) > 0 ? 1 : 0;
   }
 
   /// Append the given [string] to the source writer if it's non-null.

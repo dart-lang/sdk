@@ -7,13 +7,13 @@ library source_writer;
 
 class Line {
 
-  final int lineLength;
   final tokens = <LineToken>[];
   final bool useTabs;
   final int spacesPerIndent;
+  final LinePrinter printer;
 
-  Line({indent: 0, this.lineLength: 80, this.useTabs: false,
-        this.spacesPerIndent: 2}) {
+  Line({indent: 0, this.useTabs: false, this.spacesPerIndent: 2,
+      this.printer: const SimpleLinePrinter()}) {
     if (indent > 0) {
       _indent(indent);
     }
@@ -23,9 +23,9 @@ class Line {
     addSpaces(1);
   }
 
-  void addSpaces(int n) {
+  void addSpaces(int n, {breakWeight: DEFAULT_SPACE_WEIGHT}) {
     if (n > 0) {
-      tokens.add(new SpaceToken(n));
+      tokens.add(new SpaceToken(n, breakWeight: breakWeight));
     }
   }
 
@@ -39,28 +39,167 @@ class Line {
     tokens.add(useTabs ? new TabToken(n) : new SpaceToken(n * spacesPerIndent));
   }
 
-  String toString() {
+  String toString() => printer.printLine(this);
+
+}
+
+
+/// Base class for line printers
+abstract class LinePrinter {
+
+  const LinePrinter();
+
+  /// Convert this [line] to a [String] representation.
+  String printLine(Line line);
+}
+
+
+/// A simple line breaking [LinePrinter]
+class SimpleLineBreaker extends LinePrinter {
+
+  final chunks = <Chunk>[];
+  final int maxLength;
+
+  SimpleLineBreaker(this.maxLength);
+
+  String printLine(Line line) {
+    //TODO(pquitslund): implement
+  }
+
+  List<Chunk> breakLine(Line line) {
+
+    var chunks = <Chunk>[];
+
+    // The current unbroken line
+    var current = new Chunk(maxLength: maxLength);
+
+    // A tentative working chunk that will either start a new line or get
+    // absorbed into 'current'
+    var work = new Chunk(maxLength: maxLength);
+
+    line.tokens.forEach((tok) {
+
+      if (goodStart(tok, work)) {
+        if (current.fits(work)) {
+          current.add(work);
+        } else {
+          if (current.length > 0) {
+            chunks.add(current);
+          }
+          current = work;
+        }
+        work = new Chunk(start: tok, maxLength: maxLength - current.length);
+      } else {
+        if (work.fits(tok)) {
+          work.add(tok);
+        } else {
+          current.add(work);
+          if (current.length > 0) {
+            chunks.add(current);
+            current = new Chunk(maxLength: maxLength);
+          }
+          work = new Chunk(maxLength: maxLength);
+          work.add(tok);
+        }
+      }
+
+    });
+
+    current.add(work);
+    if (current.length > 0) {
+      chunks.add(current);
+    }
+    return chunks;
+  }
+
+  /// Test whether this token is a good start for a new working chunk
+  bool goodStart(LineToken tok, Chunk workingChunk) =>
+      tok is SpaceToken && tok.breakWeight >= workingChunk.start.breakWeight;
+
+}
+
+
+/// Special token indicating a line start
+final LINE_START = new SpaceToken(0);
+
+const DEFAULT_SPACE_WEIGHT = -1;
+
+/// Simple non-breaking printer
+class SimpleLinePrinter extends LinePrinter {
+
+  const SimpleLinePrinter();
+
+  String printLine(Line line) {
     var buffer = new StringBuffer();
-    tokens.forEach((tok) => buffer.write(tok.toString()));
+    line.tokens.forEach((tok) => buffer.write(tok.toString()));
     return buffer.toString();
   }
 
 }
 
 
-class LineToken {
+/// Describes a piece of text in a [Line].
+abstract class LineText {
+  int get length;
+  void addTo(Chunk chunk);
+}
+
+
+/// A working piece of text used in calculating line breaks
+class Chunk implements LineText {
+
+  final buffer = new StringBuffer();
+
+  int maxLength;
+  SpaceToken start;
+
+  Chunk({this.start, this.maxLength}) {
+    if (start == null) {
+      start = LINE_START;
+    }
+  }
+
+  bool fits(LineText text) => length + text.length < maxLength;
+
+  int get length => start.value.length + buffer.length;
+
+  void add(LineText text) {
+    text.addTo(this);
+  }
+
+  String toString() => buffer.toString().trim();
+
+  void addTo(Chunk chunk) {
+    chunk.buffer.write(start.value);
+    chunk.buffer.write(buffer.toString());
+  }
+}
+
+
+class LineToken implements LineText {
 
   final String value;
 
   LineToken(this.value);
 
   String toString() => value;
+
+  int get length => value.length;
+
+  void addTo(Chunk chunk) {
+    chunk.buffer.write(value);
+  }
 }
+
 
 class SpaceToken extends LineToken {
 
-  SpaceToken(int n) : super(getSpaces(n));
+  final int breakWeight;
+
+  SpaceToken(int n, {this.breakWeight: DEFAULT_SPACE_WEIGHT}) :
+      super(getSpaces(n));
 }
+
 
 class TabToken extends LineToken {
 
@@ -74,7 +213,6 @@ class NewlineToken extends LineToken {
 }
 
 
-
 class SourceWriter {
 
   final StringBuffer buffer = new StringBuffer();
@@ -82,20 +220,23 @@ class SourceWriter {
 
   final String lineSeparator;
   int indentCount = 0;
-  
+
+  LinePrinter linePrinter;
   LineToken _lastToken;
-  
-  SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE}) {
-    currentLine = new Line(indent: indentCount);
+
+  SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE,
+      int maxLineLength: 80}) {
+    linePrinter = new SimpleLinePrinter();
+    currentLine = new Line(indent: indentCount, printer: linePrinter);
   }
 
   LineToken get lastToken => _lastToken;
-  
+
   _addToken(LineToken token) {
     _lastToken = token;
     currentLine.addToken(token);
   }
-  
+
   void indent() {
     ++indentCount;
   }
@@ -106,7 +247,7 @@ class SourceWriter {
     }
     _addToken(new NewlineToken(this.lineSeparator));
     buffer.write(currentLine.toString());
-    currentLine = new Line(indent: indentCount);
+    currentLine = new Line(indent: indentCount, printer: linePrinter);
   }
 
   void newlines(int num) {
@@ -118,24 +259,24 @@ class SourceWriter {
   void print(x) {
     _addToken(new LineToken(x));
   }
-  
+
   void println(String s) {
     print(s);
     newline();
   }
-  
+
   void space() {
     spaces(1);
   }
 
-  void spaces(n) {
-    currentLine.addSpaces(n);
+  void spaces(n, {breakWeight: null}) {
+    currentLine.addSpaces(n, breakWeight: breakWeight);
   }
-  
+
   void unindent() {
     --indentCount;
   }
-  
+
   String toString() {
     var source = new StringBuffer(buffer.toString());
     if (!currentLine.isWhitespace()) {
