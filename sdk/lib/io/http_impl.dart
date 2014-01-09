@@ -87,6 +87,8 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
 
   _HttpSession _session;
 
+  Uri _requestedUri;
+
   _HttpRequest(this.response, _HttpIncoming _incoming, this._httpServer,
                this._httpConnection) : super(_incoming) {
     if (headers.protocolVersion == "1.1") {
@@ -121,6 +123,27 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   }
 
   Uri get uri => _incoming.uri;
+
+  Uri get requestedUri {
+    if (_requestedUri == null) {
+      var proto = headers['x-forwarded-proto'];
+      var scheme = proto != null ? proto.first :
+          _httpConnection._socket is SecureSocket ? "https" : "http";
+      var host = headers['x-forwarded-host'];
+      if (host != null) {
+        host = host.first;
+      } else {
+        host = headers['host'];
+        if (host != null) {
+          host = host.first;
+        } else {
+          host = "${_httpServer.address.host}:${_httpServer.port}";
+        }
+      }
+      _requestedUri = Uri.parse("$scheme://$host$uri");
+    }
+    return _requestedUri;
+  }
 
   String get method => _incoming.method;
 

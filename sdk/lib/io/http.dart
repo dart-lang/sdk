@@ -790,6 +790,20 @@ abstract class HttpRequest implements Stream<List<int>> {
   Uri get uri;
 
   /**
+   * The requested URI for the request (read-only).
+   *
+   * The returend URI is reconstructed by using http-header fields, to access
+   * otherwise lost information, e.g. host and scheme.
+   *
+   * To reconstruct the scheme, first 'X-Forwarded-Proto' is checked, and then
+   * falling back to server type.
+   *
+   * To reconstruct the host, fisrt 'X-Forwarded-Host' is checked, then 'Host'
+   * and finally calling back to server.
+   */
+  Uri get requestedUri;
+
+  /**
    * The request headers (read-only).
    */
   HttpHeaders get headers;
