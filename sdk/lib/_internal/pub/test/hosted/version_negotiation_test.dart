@@ -54,12 +54,6 @@ main() {
         request.response.close();
       });
 
-      // TODO(nweiz): this shouldn't request the versions twice (issue 11077).
-      server.handle('GET', '/api/packages/foo', (request) {
-        request.response.statusCode = 406;
-        request.response.close();
-      });
-
       pub.shouldExit(1);
 
       expect(pub.remainingStderr(), completion(equals(
