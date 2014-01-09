@@ -55,13 +55,14 @@ LibTest/core/double/floor_A01_t04: FAIL, OK # co19 issue 389
 LibTest/core/double/round_A01_t02: FAIL, OK # co19 issue 389
 LibTest/core/double/round_A01_t04: FAIL, OK # co19 issue 389
 
-LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
-
 LibTest/async/Stream/Stream.periodic_A01_t01: PASS, FAIL, OK # co19 issue 538
 
 LibTest/isolate/SendPort/send_A02_t02: SKIP # co19 issue 493
 LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495
 
+
+[ $runtime == dartium || $compiler == dart2js ]
+LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
 [ $runtime == vm || $compiler == dart2js ]
 Language/07_Classes/6_Constructors_A02_t01: SKIP # co19 issue 415.
