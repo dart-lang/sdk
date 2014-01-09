@@ -42,12 +42,16 @@ checkMethod(MethodMirror mm) {
 
 checkClass(ClassMirror cm) {
   checkMap(cm.declarations, 'ClassMirror.declarations');
+  checkMap(cm.instanceMembers, 'ClassMirror.instanceMembers');
+  checkMap(cm.staticMembers, 'ClassMirror.staticMembers');
   checkList(cm.metadata, 'ClassMirror.metadata');
   checkList(cm.superinterfaces, 'ClassMirror.superinterfaces');
   checkList(cm.typeArguments, 'ClassMirror.typeArguments');
   checkList(cm.typeVariables, 'ClassMirror.typeVariables');
 
   cm.declarations.values.forEach(checkDeclaration);
+  cm.instanceMembers.values.forEach(checkDeclaration);
+  cm.staticMembers.values.forEach(checkDeclaration);
   cm.typeVariables.forEach(checkTypeVariable);
 }
 
@@ -65,9 +69,11 @@ checkDeclaration(DeclarationMirror dm) {
 
 checkLibrary(LibraryMirror lm) {
   checkMap(lm.declarations, 'LibraryMirror.declarations');
+  checkMap(lm.topLevelMembers, 'LibraryMirror.topLevelMembers');
   checkList(lm.metadata, 'LibraryMirror.metadata');
 
   lm.declarations.values.forEach(checkDeclaration);
+  lm.topLevelMembers.values.forEach(checkDeclaration);
 }
 
 main() {
