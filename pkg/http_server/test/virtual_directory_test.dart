@@ -189,6 +189,19 @@ void main() {
       });
 
       testVirtualDir('index-2', (dir) {
+        new Directory('${dir.path}/dir').createSync();
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+        virDir.directoryHandler = (dir2, request) {
+          fail('not expected');
+        };
+        return getStatusCodeForVirtDir(virDir, '/dir', followRedirects: false)
+          .then((result) {
+            expect(result, 301);
+          });
+      });
+
+      testVirtualDir('index-3', (dir) {
         new File('${dir.path}/dir/index.html')
             ..createSync(recursive: true)
             ..writeAsStringSync('index file');
@@ -199,8 +212,24 @@ void main() {
           var indexUri = new Uri.file(dir2.path).resolve('index.html');
           return virDir.serveFile(new File(indexUri.toFilePath()), request);
         };
-
         return getAsString(virDir, '/dir')
+          .then((result) {
+            expect(result, 'index file');
+          });
+      });
+
+      testVirtualDir('index-4', (dir) {
+        new File('${dir.path}/dir/index.html')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('index file');
+        var virDir = new VirtualDirectory(dir.path);
+        virDir.allowDirectoryListing = true;
+        virDir.directoryHandler = (dir2, request) {
+          // Redirect directory-requests to index.html files.
+          var indexUri = new Uri.file(dir2.path).resolve('index.html');
+          virDir.serveFile(new File(indexUri.toFilePath()), request);
+        };
+        return getAsString(virDir, '/dir/')
           .then((result) {
             expect(result, 'index file');
           });

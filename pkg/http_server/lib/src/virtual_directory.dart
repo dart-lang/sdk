@@ -4,6 +4,12 @@
 
 part of http_server;
 
+
+// Used for signal a directory redirecting, where a tailing slash is missing.
+class _DirectoryRedirect {
+  const _DirectoryRedirect();
+}
+
 /**
  * A [VirtualDirectory] can serve files and directory-listing from a root path,
  * to [HttpRequest]s.
@@ -66,7 +72,15 @@ class VirtualDirectory {
           if (entity is File) {
             serveFile(entity, request);
           } else if (entity is Directory) {
-            _serveDirectory(entity, request);
+            if (allowDirectoryListing) {
+              _serveDirectory(entity, request);
+            } else {
+              _serveErrorPage(HttpStatus.NOT_FOUND, request);
+            }
+          } else if (entity is _DirectoryRedirect) {
+            // TODO(ajohnsen): Use HttpRequest.requestedUri once 1.2 is out.
+            request.response.redirect(Uri.parse('${request.uri}/'),
+                                      status: HttpStatus.MOVED_PERMANENTLY);
           } else {
             _serveErrorPage(HttpStatus.NOT_FOUND, request);
           }
@@ -90,18 +104,13 @@ class VirtualDirectory {
     _errorCallback = callback;
   }
 
-  Future<FileSystemEntity> _locateResource(String path,
-                                           Iterator<String> segments) {
+  Future _locateResource(String path, Iterator<String> segments) {
     // Don't allow navigating up paths.
     if (segments.current == "..") return new Future.value(null);
     path = normalize(path);
     // If we jail to root, the relative path can never go up.
     if (jailRoot && split(path).first == "..") return new Future.value(null);
-    String fullPath({bool endSlash: false}) {
-      var p = join(root, path);
-      if (endSlash && path != ".") p = "$p$separator";
-      return p;
-    }
+    String fullPath() => join(root, path);
     return FileSystemEntity.type(fullPath(), followLinks: false)
         .then((type) {
           switch (type) {
@@ -112,14 +121,18 @@ class VirtualDirectory {
               break;
 
             case FileSystemEntityType.DIRECTORY:
-              if (segments.current == null) {
-                if (allowDirectoryListing) {
-                  return new Directory(fullPath(endSlash: true));
-                }
+              String dirFullPath() => '${fullPath()}$separator';
+              var current = segments.current;
+              if (current == null) {
+                if (path == '.') return new Directory(dirFullPath());
+                return const _DirectoryRedirect();
+              }
+              bool hasNext = segments.moveNext();
+              if (!hasNext && current == "") {
+                return new Directory(dirFullPath());
               } else {
-                if (_invalidPathRegExp.hasMatch(segments.current)) break;
-                return _locateResource(join(path, segments.current),
-                                       segments..moveNext());
+                if (_invalidPathRegExp.hasMatch(current)) break;
+                return _locateResource(join(path, current), segments);
               }
               break;
 

@@ -27,12 +27,14 @@ Future<int> getStatusCodeForVirtDir(VirtualDirectory virtualDir,
                           {String host,
                            bool secure: false,
                            DateTime ifModifiedSince,
-                           bool rawPath: false}) {
+                           bool rawPath: false,
+                           bool followRedirects: true}) {
   return _withServer((server) {
 
       virtualDir.serve(server);
       return getStatusCode(server.port, path, host: host, secure: secure,
-          ifModifiedSince: ifModifiedSince, rawPath: rawPath);
+          ifModifiedSince: ifModifiedSince, rawPath: rawPath,
+          followRedirects: followRedirects);
     });
 }
 
@@ -41,7 +43,8 @@ Future<int> getStatusCode(int port,
                           {String host,
                            bool secure: false,
                            DateTime ifModifiedSince,
-                           bool rawPath: false}) {
+                           bool rawPath: false,
+                           bool followRedirects: true}) {
   Uri uri;
   if (rawPath) {
     uri = new Uri(scheme: secure ? 'https' : 'http',
@@ -56,6 +59,7 @@ Future<int> getStatusCode(int port,
 
   return new HttpClient().getUrl(uri)
       .then((request) {
+        if (!followRedirects) request.followRedirects = false;
         if (host != null) request.headers.host = host;
         if (ifModifiedSince != null) {
           request.headers.ifModifiedSince = ifModifiedSince;
