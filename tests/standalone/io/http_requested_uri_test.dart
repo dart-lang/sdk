@@ -11,7 +11,7 @@ const PATH = '/path?a=b#c';
 
 void test(String expected, Map headers) {
   asyncStart();
-  HttpServer.bind("127.0.0.1", 0).then((server) {
+  HttpServer.bind("localhost", 0).then((server) {
     expected = expected.replaceAll('%PORT', server.port.toString());
     server.listen((request) {
       Expect.equals("$expected$PATH",
@@ -44,6 +44,6 @@ void main() {
   test('https://localhost:%PORT', {'x-forwarded-proto': 'https'});
   test('ws://localhost:%PORT', {'x-forwarded-proto': 'ws'});
   test('http://my-host:321', {'x-forwarded-host': 'my-host:321'});
-  test('http://127.0.0.1:%PORT', {'host': null});
+  test('http://localhost:%PORT', {'host': null});
 }
 
