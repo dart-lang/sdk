@@ -125,9 +125,18 @@ class DependencyQueue {
   /// versions available for it.
   Future<int> _getNumVersions(PackageDep dep) {
     // There is only ever one version of the root package.
-    if (dep.isRoot) return new Future.value(1);
+    if (dep.isRoot) {
+      return new Future.value(1);
+    }
 
-    return _solver.cache.getVersions(dep.toRef())
-        .then((versions) => versions.length);
+    return _solver.cache.getVersions(dep.toRef()).then((versions) {
+      return versions.length;
+    }).catchError((error, trace) {
+      // If it fails for any reason, just treat that as no versions. This
+      // will sort this reference higher so that we can traverse into it
+      // and report the error more properly.
+      log.solver("Could not get versions for $dep:\n$error\n\n$trace");
+      return 0;
+    });
   }
 }
