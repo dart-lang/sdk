@@ -66,7 +66,7 @@ Iterable initialize(Uri uri, Map configuration, BarbackMode mode) {
     if (declaration is! ClassMirror) return null;
     var classMirror = declaration;
     if (classMirror.isPrivate) return null;
-    if (isAbstract(classMirror)) return null;
+    if (classMirror.isAbstract) return null;
     if (!classIsA(classMirror, transformerClass) &&
         !classIsA(classMirror, groupClass)) {
       return null;
@@ -163,11 +163,6 @@ bool classIsA(ClassMirror mirror, ClassMirror superclass) {
   return classIsA(mirror.superclass, superclass) ||
       mirror.superinterfaces.any((int) => classIsA(int, superclass));
 }
-
-// TODO(nweiz): get rid of this when issue 12826 is fixed.
-/// Returns whether or not [mirror] is an abstract class.
-bool isAbstract(ClassMirror mirror) => mirror.declarations.values
-    .any((member) => member is MethodMirror && member.isAbstract);
 
 /// Converts [transformerOrGroup] into a serializable map.
 Map _serializeTransformerOrGroup(transformerOrGroup) {
