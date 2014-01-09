@@ -337,6 +337,12 @@ static RawInstance* CreateClassMirror(const Class& cls,
     }
   }
 
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(Isolate::Current()));
+  if (!error.IsNull()) {
+    ThrowInvokeError(error);
+    UNREACHABLE();
+  }
+
   const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
   const Bool& is_mixin_app_alias = Bool::Get(cls.is_mixin_app_alias());
 

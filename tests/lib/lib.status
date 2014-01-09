@@ -202,7 +202,6 @@ async/timer_test: Fail, Pass
 [ $runtime == vm ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
-mirrors/syntax_error_test/01: Fail # Issue 15886
 
 [ $compiler == none  ]
 mirrors/hierarchy_test: Fail # TODO(ahe): This test is slightly broken. http://dartbug.com/12464
