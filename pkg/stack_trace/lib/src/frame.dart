@@ -14,13 +14,24 @@ final _vmFrame = new RegExp(
     r'^#\d+\s+([^\s].*) \((.+?):(\d+)(?::(\d+))?\)$');
 
 //     at VW.call$0 (http://pub.dartlang.org/stuff.dart.js:560:28)
+//     at VW.call$0 (eval as fn
+//         (http://pub.dartlang.org/stuff.dart.js:560:28), efn:3:28)
 //     at http://pub.dartlang.org/stuff.dart.js:560:28
 final _v8Frame = new RegExp(
-    r'^\s*at (?:([^\s].*?)(?: \[as [^\]]+\])? '
-    r'\((.+):(\d+):(\d+)\)|(.+):(\d+):(\d+))$');
+    r'^\s*at (?:([^\s].*?)(?: \[as [^\]]+\])? \((.*)\)|(.*))$');
 
-/// foo$bar$0@http://pub.dartlang.org/stuff.dart.js:560:28
-/// http://pub.dartlang.org/stuff.dart.js:560:28
+// http://pub.dartlang.org/stuff.dart.js:560:28
+final _v8UrlLocation = new RegExp(r'^(.*):(\d+):(\d+)$');
+
+// eval as function (http://pub.dartlang.org/stuff.dart.js:560:28), efn:3:28
+// eval as function (http://pub.dartlang.org/stuff.dart.js:560:28)
+// eval as function (eval as otherFunction
+//     (http://pub.dartlang.org/stuff.dart.js:560:28))
+final _v8EvalLocation = new RegExp(
+    r'^eval at (?:[^\s].*?) \((.*)\)(?:, .*?:\d+:\d+)?$');
+
+// foo$bar$0@http://pub.dartlang.org/stuff.dart.js:560:28
+// http://pub.dartlang.org/stuff.dart.js:560:28
 final _safariFrame = new RegExp(r"^(?:([0-9A-Za-z_$]*)@)?(.*):(\d*):(\d*)$");
 
 // .VW.call$0@http://pub.dartlang.org/stuff.dart.js:560
@@ -139,20 +150,35 @@ class Frame {
       throw new FormatException("Couldn't parse V8 stack trace line '$frame'.");
     }
 
+    // v8 location strings can be arbitrarily-nested, since it adds a layer of
+    // nesting for each eval performed on that line.
+    parseLocation(location, member) {
+      var evalMatch = _v8EvalLocation.firstMatch(location);
+      if (evalMatch != null) return parseLocation(evalMatch[1], member);
+      
+
+      var urlMatch = _v8UrlLocation.firstMatch(location);
+      if (urlMatch == null) {
+        throw new FormatException(
+            "Couldn't parse V8 stack trace line '$frame'.");
+      }
+
+      return new Frame(
+          _uriOrPathToUri(urlMatch[1]),
+          int.parse(urlMatch[2]),
+          int.parse(urlMatch[3]),
+          member);
+    }
+
     // V8 stack frames can be in two forms.
     if (match[2] != null) {
-      // The first form looks like " at FUNCTION (PATH:LINE:COL)". PATH is
-      // usually an absolute URL, but it can be a path if the stack frame came
-      // from d8.
-      var uri = _uriOrPathToUri(match[2]);
-      var member = match[1].replaceAll("<anonymous>", "<fn>");
-      return new Frame(uri, int.parse(match[3]), int.parse(match[4]), member);
+      // The first form looks like " at FUNCTION (LOCATION)".
+      return parseLocation(
+          match[2], match[1].replaceAll("<anonymous>", "<fn>"));
     } else {
-      // The second form looks like " at PATH:LINE:COL", and is used for
-      // anonymous functions. PATH is usually an absolute URL, but it can be a
-      // path if the stack frame came from d8.
-      var uri = _uriOrPathToUri(match[5]);
-      return new Frame(uri, int.parse(match[6]), int.parse(match[7]), "<fn>");
+      // The second form looks like " at LOCATION", and is used for anonymous
+      // functions.
+      return parseLocation(match[3], "<fn>");
     }
   }
 
