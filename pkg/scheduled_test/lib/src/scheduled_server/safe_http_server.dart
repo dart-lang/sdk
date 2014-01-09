@@ -83,6 +83,7 @@ class _HttpRequestWrapper extends StreamView<List<int>> implements HttpRequest {
   int get contentLength => _inner.contentLength;
   String get method => _inner.method;
   Uri get uri => _inner.uri;
+  Uri get requestedUri => _inner.requestedUri;
   HttpHeaders get headers => _inner.headers;
   List<Cookie> get cookies => _inner.cookies;
   bool get persistentConnection => _inner.persistentConnection;
