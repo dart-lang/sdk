@@ -170,7 +170,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   WIN32_FIND_DATAW find_file_data;
 
   if (lister_ == 0) {
-    if (!listing->path_buffer().AddW(L"*")) {
+    wchar_t tail = parent_ == NULL ? L"*" : L"\\*";
+    if (!listing->path_buffer().AddW(tail)) {
       done_ = true;
       return kListError;
     }
@@ -186,12 +187,6 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
     }
 
     lister_ = reinterpret_cast<intptr_t>(find_handle);
-
-    if (parent_ != NULL) {
-      if (!listing->path_buffer().AddW(L"\\")) {
-        return kListError;
-      }
-    }
 
     listing->path_buffer().Reset(path_length_);
 
