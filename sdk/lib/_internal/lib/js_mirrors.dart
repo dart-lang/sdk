@@ -774,6 +774,8 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
 
   // TODO(ahe): Implement this.
   Function operator [](Symbol name) => throw new UnimplementedError();
+
+  bool get isAbstract => throw new UnimplementedError();
 }
 
 abstract class JsObjectMirror implements ObjectMirror {
@@ -1145,6 +1147,8 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
   bool get isPrivate => _class.isPrivate;
 
   bool get isTopLevel => _class.isTopLevel;
+
+  bool get isAbstract => _class.isAbstract;
 
   SourceLocation get location => _class.location;
 
@@ -1563,6 +1567,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   // TODO(ahe): Implement this.
   Function operator [](Symbol name) => throw new UnimplementedError();
+
+  bool get isAbstract => throw new UnimplementedError();
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
@@ -2069,6 +2075,8 @@ class JsFunctionTypeMirror extends BrokenClassMirror
   bool get _hasNamedArguments => JS('bool', '"named" in #', _typeData);
   get _namedArguments => JS('=Object', '#.named', _typeData);
   bool get isOriginalDeclaration => true;
+
+  bool get isAbstract => false;
 
   TypeMirror get returnType {
     if (_cachedReturnType != null) return _cachedReturnType;
