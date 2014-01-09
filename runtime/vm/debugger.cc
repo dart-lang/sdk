@@ -1806,21 +1806,27 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
   DictionaryIterator it(lib);
   Object& entry = Object::Handle(isolate_);
   Field& field = Field::Handle(isolate_);
-  Class& cls = Class::Handle(isolate_);
   String& field_name = String::Handle(isolate_);
   Object& field_value = Object::Handle(isolate_);
   while (it.HasNext()) {
     entry = it.GetNext();
     if (entry.IsField()) {
       field ^= entry.raw();
-      cls = field.owner();
       ASSERT(field.is_static());
       field_name = field.name();
       if ((field_name.CharAt(0) == '_') && !include_private_fields) {
         // Skip library-private field.
         continue;
       }
-      field_value = GetStaticField(cls, field_name);
+      // If the field is not initialized yet, report the value to be
+      // "<not initialized>". We don't want to execute the implicit getter
+      // since it may have side effects.
+      if ((field.value() == Object::sentinel().raw()) ||
+          (field.value() == Object::transition_sentinel().raw())) {
+        field_value = Symbols::NotInitialized().raw();
+      } else {
+        field_value = field.value();
+      }
       if (!prefix.IsNull()) {
         field_name = String::Concat(prefix, field_name);
       }

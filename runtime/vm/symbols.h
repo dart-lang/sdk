@@ -297,6 +297,7 @@ class ObjectPointerVisitor;
   V(hashCode, "get:hashCode")                                                  \
   V(_leftShiftWithMask32, "_leftShiftWithMask32")                              \
   V(OptimizedOut, "<optimized out>")                                           \
+  V(NotInitialized, "<not initialized>")                                       \
   V(ClassId, "get:_classId")                                                   \
 
 
