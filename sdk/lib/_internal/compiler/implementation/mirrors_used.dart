@@ -147,8 +147,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
 
       if (named.name.source == 'symbols') {
         analyzer.cachedStrings[value] =
-            builder.convertToListOfStrings(
-                builder.convertConstantToUsageList(value, onlyStrings: true));
+            builder.convertConstantToUsageList(value, onlyStrings: true);
       } else if (named.name.source == 'targets') {
         analyzer.cachedElements[value] =
             builder.resolveUsageList(builder.convertConstantToUsageList(value));
@@ -390,14 +389,17 @@ class MirrorUsageBuilder {
   /// constant is a single [String], it is assumed to be a comma-separated list
   /// of qualified names. If the constant is a [Type] t, the result is [:[t]:].
   /// Otherwise, the constant is assumed to represent a list of strings (each a
-  /// qualified name) and types, and such a list is constructed.
+  /// qualified name) and types, and such a list is constructed.  If
+  /// [onlyStrings] is true, the returned list is a [:List<String>:] and any
+  /// [Type] values are treated as an error (meaning that the value is ignored
+  /// and a hint is emitted).
   List convertConstantToUsageList(
       Constant constant, { bool onlyStrings: false }) {
     if (constant.isNull()) {
       return null;
     } else if (constant.isList()) {
       ListConstant list = constant;
-      List result = [];
+      List result = onlyStrings ? <String> [] : [];
       for (Constant entry in list.entries) {
         if (entry.isString()) {
           StringConstant string = entry;
@@ -421,8 +423,9 @@ class MirrorUsageBuilder {
       return [type.representedType];
     } else if (constant.isString()) {
       StringConstant string = constant;
-      return
-          string.value.slowToString().split(',').map((e) => e.trim()).toList();
+      var iterable =
+          string.value.slowToString().split(',').map((e) => e.trim());
+      return onlyStrings ? new List<String>.from(iterable) : iterable.toList();
     } else {
       Spannable node = positionOf(constant);
       MessageKind kind = onlyStrings
@@ -450,18 +453,6 @@ class MirrorUsageBuilder {
       }
     }
     return type;
-  }
-
-  /// Ensure a list contains only strings.
-  List<String> convertToListOfStrings(List list) {
-    if (list == null) return null;
-    List<String> result = new List<String>(list.length);
-    int count = 0;
-    for (var entry in list) {
-      assert(invariant(spannable, entry is String));
-      result[count++] = entry;
-    }
-    return result;
   }
 
   /// Convert a list of strings and types to a list of elements. Types are
