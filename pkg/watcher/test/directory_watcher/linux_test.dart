@@ -32,14 +32,15 @@ main() {
     renameDir("dir/sub", "sub");
     renameDir("sub", "dir/sub");
 
-    inAnyOrder(() {
-      withPermutations((i, j, k) =>
-          expectRemoveEvent("dir/sub/sub-$i/sub-$j/file-$k.txt"));
-    });
+    allowEither(() {
+      inAnyOrder(withPermutations((i, j, k) =>
+          isRemoveEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
 
-    inAnyOrder(() {
-      withPermutations((i, j, k) =>
-          expectAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt"));
+      inAnyOrder(withPermutations((i, j, k) =>
+          isAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
+    }, () {
+      inAnyOrder(withPermutations((i, j, k) =>
+          isModifyEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
     });
   });
 }

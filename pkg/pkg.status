@@ -311,9 +311,6 @@ watcher/test/*/linux_test: Skip
 [ $runtime == vm && ($system == windows || $system == linux) ]
 watcher/test/*/mac_os_test: Skip
 
-[ $runtime == vm && $system == macos ]
-watcher/test/directory_watcher/mac_os_test: Pass, Fail # Issue 15024
-
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == ie10 ]
 # Various issues due to limited browser testing in Angular.
 third_party/angular_tests/*: Skip

@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:scheduled_test/scheduled_stream.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:unittest/compact_vm_config.dart';
 import 'package:watcher/watcher.dart';
@@ -24,11 +25,6 @@ String _sandboxDir;
 
 /// The [DirectoryWatcher] being used for the current scheduled test.
 DirectoryWatcher _watcher;
-
-/// The index in [_watcher]'s event stream for the next event. When event
-/// expectations are set using [expectEvent] (et. al.), they use this to
-/// expect a series of events in order.
-var _nextEvent = 0;
 
 /// The mock modification times (in milliseconds since epoch) for each file.
 ///
@@ -111,7 +107,7 @@ DirectoryWatcher createWatcher({String dir, bool waitForReady}) {
 }
 
 /// The stream of events from the watcher started with [startWatcher].
-Stream _watcherEvents;
+ScheduledStream<WatchEvent> _watcherEvents;
 
 /// Creates a new [DirectoryWatcher] that watches a temporary directory and
 /// starts monitoring it for events.
@@ -130,82 +126,102 @@ void startWatcher({String dir}) {
   // Schedule [_watcher.events.listen] so that the watcher doesn't start
   // watching [dir] before it exists. Expose [_watcherEvents] immediately so
   // that it can be accessed synchronously after this.
-  _watcherEvents = futureStream(schedule(() {
-    var allEvents = new Queue();
-    var subscription = _watcher.events.listen(allEvents.add,
-        onError: currentSchedule.signalError);
-
+  _watcherEvents = new ScheduledStream(futureStream(schedule(() {
     currentSchedule.onComplete.schedule(() {
       if (MacOSDirectoryWatcher.logDebugInfo) {
         print("stopping watcher for $testCase");
       }
 
-      var numEvents = _nextEvent;
-      subscription.cancel();
-      _nextEvent = 0;
       _watcher = null;
+      if (!_closePending) _watcherEvents.close();
 
       // If there are already errors, don't add this to the output and make
       // people think it might be the root cause.
       if (currentSchedule.errors.isEmpty) {
-        expect(allEvents, hasLength(numEvents));
-      } else {
-        currentSchedule.addDebugInfo("Events fired:\n${allEvents.join('\n')}");
+        _watcherEvents.expect(isDone);
       }
     }, "reset watcher");
 
     return _watcher.events;
-  }, "create watcher"), broadcast: true);
+  }, "create watcher"), broadcast: true));
 
   schedule(() => _watcher.ready, "wait for watcher to be ready");
 }
 
-/// A future set by [inAnyOrder] that will complete to the set of events that
-/// occur in the [inAnyOrder] block.
-Future<Set<WatchEvent>> _unorderedEventFuture;
+/// Whether an event to close [_watcherEvents] has been scheduled.
+bool _closePending = false;
 
-/// Runs [block] and allows multiple [expectEvent] calls in that block to match
-/// events in any order.
-void inAnyOrder(block()) {
-  var oldFuture = _unorderedEventFuture;
+/// Schedule closing the directory watcher stream after the event queue has been
+/// pumped.
+///
+/// This is necessary when events are allowed to occur, but don't have to occur,
+/// at the end of a test. Otherwise, if they don't occur, the test will wait
+/// indefinitely because they might in the future and because the watcher is
+/// normally only closed after the test completes.
+void startClosingEventStream() {
+  schedule(() {
+    _closePending = true;
+    pumpEventQueue().then((_) => _watcherEvents.close()).whenComplete(() {
+      _closePending = false;
+    });
+  }, 'start closing event stream');
+}
+
+/// A list of [StreamMatcher]s that have been collected using
+/// [_collectStreamMatcher].
+List<StreamMatcher> _collectedStreamMatchers;
+
+/// Collects all stream matchers that are registered within [block] into a
+/// single stream matcher.
+///
+/// The returned matcher will match each of the collected matchers in order.
+StreamMatcher _collectStreamMatcher(block()) {
+  var oldStreamMatchers = _collectedStreamMatchers;
+  _collectedStreamMatchers = new List<StreamMatcher>();
   try {
-    var firstEvent = _nextEvent;
-    var completer = new Completer();
-    _unorderedEventFuture = completer.future;
     block();
-
-    _watcherEvents.skip(firstEvent).take(_nextEvent - firstEvent).toSet()
-        .then(completer.complete, onError: completer.completeError);
-    currentSchedule.wrapFuture(_unorderedEventFuture,
-        "waiting for ${_nextEvent - firstEvent} events");
+    return inOrder(_collectedStreamMatchers);
   } finally {
-    _unorderedEventFuture = oldFuture;
+    _collectedStreamMatchers = oldStreamMatchers;
   }
 }
 
-/// Expects that the next set of event will be a change of [type] on [path].
+/// Either add [streamMatcher] as an expectation to [_watcherEvents], or collect
+/// it with [_collectStreamMatcher].
 ///
-/// Multiple calls to [expectEvent] require that the events are received in that
-/// order unless they're called in an [inAnyOrder] block.
-void expectEvent(ChangeType type, String path) {
-  if (_unorderedEventFuture != null) {
-    // Assign this to a local variable since it will be un-assigned by the time
-    // the scheduled callback runs.
-    var future = _unorderedEventFuture;
-
-    expect(
-        schedule(() => future, "should fire $type event on $path"),
-        completion(contains(isWatchEvent(type, path))));
+/// [streamMatcher] can be a [StreamMatcher], a [Matcher], or a value.
+void _expectOrCollect(streamMatcher) {
+  if (_collectedStreamMatchers != null) {
+    _collectedStreamMatchers.add(new StreamMatcher.wrap(streamMatcher));
   } else {
-    var future = currentSchedule.wrapFuture(
-        _watcherEvents.elementAt(_nextEvent),
-        "waiting for $type event on $path");
-
-    expect(
-        schedule(() => future, "should fire $type event on $path"),
-        completion(isWatchEvent(type, path)));
+    _watcherEvents.expect(streamMatcher);
   }
-  _nextEvent++;
+}
+
+/// Expects that [matchers] will match emitted events in any order.
+///
+/// [matchers] may be [Matcher]s or values, but not [StreamMatcher]s.
+void inAnyOrder(Iterable matchers) {
+  matchers = matchers.toSet();
+  _expectOrCollect(nextValues(matchers.length, unorderedMatches(matchers)));
+}
+
+/// Expects that the expectations established in either [block1] or [block2]
+/// will match the emitted events.
+///
+/// If both blocks match, the one that consumed more events will be used.
+void allowEither(block1(), block2()) {
+  _expectOrCollect(either(
+      _collectStreamMatcher(block1), _collectStreamMatcher(block2)));
+}
+
+/// Allows the expectations established in [block] to match the emitted events.
+///
+/// If the expectations in [block] don't match, no error will be raised and no
+/// events will be consumed. If this is used at the end of a test,
+/// [startClosingEventStream] should be called before it.
+void allowEvents(block()) {
+  _expectOrCollect(allow(_collectStreamMatcher(block)));
 }
 
 /// Returns a matcher that matches a [WatchEvent] with the given [type] and
@@ -217,9 +233,53 @@ Matcher isWatchEvent(ChangeType type, String path) {
   }, "is $type $path");
 }
 
-void expectAddEvent(String path) => expectEvent(ChangeType.ADD, path);
-void expectModifyEvent(String path) => expectEvent(ChangeType.MODIFY, path);
-void expectRemoveEvent(String path) => expectEvent(ChangeType.REMOVE, path);
+/// Returns a [Matcher] that matches a [WatchEvent] for an add event for [path].
+Matcher isAddEvent(String path) => isWatchEvent(ChangeType.ADD, path);
+
+/// Returns a [Matcher] that matches a [WatchEvent] for a modification event for
+/// [path].
+Matcher isModifyEvent(String path) => isWatchEvent(ChangeType.MODIFY, path);
+
+/// Returns a [Matcher] that matches a [WatchEvent] for a removal event for
+/// [path].
+Matcher isRemoveEvent(String path) => isWatchEvent(ChangeType.REMOVE, path);
+
+/// Expects that the next event emitted will be for an add event for [path].
+void expectAddEvent(String path) =>
+  _expectOrCollect(isWatchEvent(ChangeType.ADD, path));
+
+/// Expects that the next event emitted will be for a modification event for
+/// [path].
+void expectModifyEvent(String path) =>
+  _expectOrCollect(isWatchEvent(ChangeType.MODIFY, path));
+
+/// Expects that the next event emitted will be for a removal event for [path].
+void expectRemoveEvent(String path) =>
+  _expectOrCollect(isWatchEvent(ChangeType.REMOVE, path));
+
+/// Consumes an add event for [path] if one is emitted at this point in the
+/// schedule, but doesn't throw an error if it isn't.
+///
+/// If this is used at the end of a test, [startClosingEventStream] should be
+/// called before it.
+void allowAddEvent(String path) =>
+  _expectOrCollect(allow(isWatchEvent(ChangeType.ADD, path)));
+
+/// Consumes a modification event for [path] if one is emitted at this point in
+/// the schedule, but doesn't throw an error if it isn't.
+///
+/// If this is used at the end of a test, [startClosingEventStream] should be
+/// called before it.
+void allowModifyEvent(String path) =>
+  _expectOrCollect(allow(isWatchEvent(ChangeType.MODIFY, path)));
+
+/// Consumes a removal event for [path] if one is emitted at this point in the
+/// schedule, but doesn't throw an error if it isn't.
+///
+/// If this is used at the end of a test, [startClosingEventStream] should be
+/// called before it.
+void allowRemoveEvent(String path) =>
+  _expectOrCollect(allow(isWatchEvent(ChangeType.REMOVE, path)));
 
 /// Schedules writing a file in the sandbox at [path] with [contents].
 ///
@@ -299,14 +359,18 @@ void deleteDir(String path) {
 /// Runs [callback] with every permutation of non-negative [i], [j], and [k]
 /// less than [limit].
 ///
+/// Returns a set of all values returns by [callback].
+///
 /// [limit] defaults to 3.
-void withPermutations(callback(int i, int j, int k), {int limit}) {
+Set withPermutations(callback(int i, int j, int k), {int limit}) {
   if (limit == null) limit = 3;
+  var results = new Set();
   for (var i = 0; i < limit; i++) {
     for (var j = 0; j < limit; j++) {
       for (var k = 0; k < limit; k++) {
-        callback(i, j, k);
+        results.add(callback(i, j, k));
       }
     }
   }
+  return results;
 }
