@@ -326,3 +326,31 @@ third_party/angular_tests/*: Skip
 third_party/angular_tests/core/scope_test: Skip # Requires checked mode.
 third_party/angular_tests/angular_test: Skip # Requires checked mode.
 third_party/angular_tests/core/zone_test: Skip # Requires checked mode.
+
+[ $use_repository_packages ]
+analyzer/test/error_test: PubGetError
+analyzer/test/generated/ast_test: PubGetError
+analyzer/test/generated/element_test: PubGetError
+analyzer/test/generated/parser_test: PubGetError
+analyzer/test/generated/resolver_test: PubGetError
+analyzer/test/generated/scanner_test: PubGetError
+analyzer/test/options_test: PubGetError
+analyzer/test/parse_compilation_unit_test: PubGetError
+analyzer/test/services/formatter_test: PubGetError
+args/test/args_test: PubGetError
+args/test/command_test: PubGetError
+args/test/parse_all_test: PubGetError
+args/test/parse_test: PubGetError
+args/test/usage_test: PubGetError
+async/test/stream_zip_test: PubGetError
+async/test/stream_zip_zone_test: PubGetError
+collection/test/algorithms_test: PubGetError
+collection/test/iterable_zip_test: PubGetError
+collection/test/priority_queue_test: PubGetError
+collection/test/unmodifiable_collection_test: PubGetError
+collection/test/wrapper_test: PubGetError
+stack_trace/test/chain_test: PubGetError
+stack_trace/test/frame_test: PubGetError
+stack_trace/test/trace_test: PubGetError
+stack_trace/test/vm_test: PubGetError
+

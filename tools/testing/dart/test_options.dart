@@ -279,6 +279,15 @@ Note: currently only implemented for dart2js.''',
               [],
               false,
               'bool'),
+            new _TestOptionSpecification(
+                'use_repository_packages',
+                'For tests using packages: Use pub.dartlang.org packages '
+                'but use overrides for the packages available in the '
+                'repository.',
+                ['--use-repository-packages'],
+                [],
+                false,
+            'bool'),
           new _TestOptionSpecification(
               'build_directory',
               'The name of the build directory, where products are placed.',
@@ -593,6 +602,12 @@ Note: currently only implemented for dart2js.''',
       print("Error: shard index is ${config['shard']} out of "
             "${config['shards']} shards");
     }
+
+    if (config['use_repository_packages'] && config['use_public_packages']) {
+      isValid = false;
+      print("Cannot have both --use-repository-packages and "
+            "--use-public-packages");
+    }
     return isValid;
   }
 
@@ -618,8 +633,6 @@ Note: currently only implemented for dart2js.''',
     // Create the artificial negative options that test status files
     // expect.
     configuration['unchecked'] = !configuration['checked'];
-    configuration['use_repository_packages'] =
-        !configuration['use_public_packages'];
     configuration['host_unchecked'] = !configuration['host_checked'];
     configuration['unminified'] = !configuration['minified'];
     configuration['nocsp'] = !configuration['csp'];

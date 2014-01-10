@@ -224,7 +224,7 @@ class TestOutcomeLogWriter extends EventListener {
   static final INTERESTED_CONFIGURATION_PARAMETERS =
       ['mode', 'arch', 'compiler', 'runtime', 'checked', 'host_checked',
        'minified', 'csp', 'system', 'vm_options', 'use_sdk',
-       'use_public_packages'];
+       'use_repository_packages', 'use_public_packages'];
 
   IOSink _sink;
 

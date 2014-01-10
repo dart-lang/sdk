@@ -47,11 +47,11 @@ def PubSteps(build_info):
   pkgbuild_build_info = bot.BuildInfo('none', 'vm', 'release',
       build_info.system, checked=False)
   bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info,
-      ['--append_logs', '--write-test-outcome-log', 'pkgbuild'])
+      ['--append_logs', '--write-test-outcome-log',
+       '--use-repository-packages', 'pkgbuild'])
   bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info,
       ['--append_logs', '--write-test-outcome-log',
        '--use-public-packages', 'pkgbuild'])
-
 
 if __name__ == '__main__':
   bot.RunBot(PubConfig, PubSteps)
