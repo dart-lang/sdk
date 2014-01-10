@@ -47,9 +47,16 @@ class BarbackOptions {
    */
   final bool machineFormat;
 
+  /**
+   * Whether to follow symlinks when listing directories. By default this is
+   * false because directories have symlinks for the packages directory created
+   * by pub, but it can be turned on for custom uses of this library.
+   */
+  final bool followLinks;
+
   BarbackOptions(this.phases, this.outDir, {currentPackage, packageDirs,
       this.transformTests: false, this.transformPolymerDependencies: false,
-      this.machineFormat: false})
+      this.machineFormat: false, this.followLinks: false})
       : currentPackage = (currentPackage != null
           ? currentPackage : readCurrentPackageFromPubspec()),
         packageDirs = (packageDirs != null
@@ -123,7 +130,7 @@ Iterable<String> _listPackageDir(String package, String subDir,
   if (packageDir == null) return const [];
   var dir = new Directory(path.join(packageDir, subDir));
   if (!dir.existsSync()) return const [];
-  return dir.listSync(recursive: true, followLinks: false)
+  return dir.listSync(recursive: true, followLinks: options.followLinks)
       .where((f) => f is File)
       .map((f) => path.relative(f.path, from: packageDir));
 }

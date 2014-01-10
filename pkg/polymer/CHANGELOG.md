@@ -5,6 +5,9 @@ package. We will also note important changes to the polyfill packages if they
 impact polymer: custom_element, html_import, observe, shadow_dom,
 and template_binding.
 
+#### Pub version 0.9.4
+  * Removes unused dependency on csslib.
+
 #### Pub version 0.9.3+3
   * Removes workaround now that mirrors implement a missing feature. Requires
     SDK >= 1.1.0-dev.5.0.
