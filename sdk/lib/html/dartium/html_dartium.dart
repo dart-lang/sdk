@@ -1086,21 +1086,6 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
    */
   BodyElement.created() : super.created();
 
-  @DomName('HTMLBodyElement.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "HTMLBodyElement_addEventListener_Callback";
-
-  @DomName('HTMLBodyElement.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "HTMLBodyElement_dispatchEvent_Callback";
-
-  @DomName('HTMLBodyElement.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "HTMLBodyElement_removeEventListener_Callback";
-
   /// Stream of `blur` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onblur')
   @DocsEditable()
@@ -7940,21 +7925,6 @@ class Document extends Node
   // http://www.w3.org/TR/css3-regions/#dom-named-flow-collection
   NamedFlowCollection getNamedFlows() native "Document_webkitGetNamedFlows_Callback";
 
-  @DomName('Document.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "Document_addEventListener_Callback";
-
-  @DomName('Document.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "Document_dispatchEvent_Callback";
-
-  @DomName('Document.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Document_removeEventListener_Callback";
-
   @DomName('Document.childElementCount')
   @DocsEditable()
   int get _childElementCount native "Document_childElementCount_Getter";
@@ -11648,21 +11618,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Element-requestPointerLock-void
   void requestPointerLock() native "Element_webkitRequestPointerLock_Callback";
 
-  @DomName('Element.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "Element_addEventListener_Callback";
-
-  @DomName('Element.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "Element_dispatchEvent_Callback";
-
-  @DomName('Element.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Element_removeEventListener_Callback";
-
   @DomName('Element.nextElementSibling')
   @DocsEditable()
   Element get nextElementSibling native "Element_nextElementSibling_Getter";
@@ -13989,7 +13944,7 @@ class Geoposition extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('GlobalEventHandlers')
 @Experimental() // untriaged
-abstract class GlobalEventHandlers extends EventTarget {
+abstract class GlobalEventHandlers extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory GlobalEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
@@ -14157,21 +14112,6 @@ abstract class GlobalEventHandlers extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> submitEvent = const EventStreamProvider<Event>('submit');
-
-  @DomName('GlobalEventHandlers.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "GlobalEventHandlers_addEventListener_Callback";
-
-  @DomName('GlobalEventHandlers.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "GlobalEventHandlers_dispatchEvent_Callback";
-
-  @DomName('GlobalEventHandlers.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "GlobalEventHandlers_removeEventListener_Callback";
 
   @DomName('GlobalEventHandlers.onabort')
   @DocsEditable()
@@ -15334,21 +15274,6 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   @Experimental() // non-standard
   void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
-
-  @DomName('HTMLElement.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "HTMLElement_addEventListener_Callback";
-
-  @DomName('HTMLElement.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "HTMLElement_dispatchEvent_Callback";
-
-  @DomName('HTMLElement.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "HTMLElement_removeEventListener_Callback";
 
   @DomName('HTMLElement.onabort')
   @DocsEditable()
@@ -29047,13 +28972,13 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -31253,30 +31178,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Window_removeEventListener_Callback";
 
-  @DomName('Window.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "Window_addEventListener_Callback";
-
-  @DomName('Window.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "Window_dispatchEvent_Callback";
-
-  @DomName('Window.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Window_removeEventListener_Callback";
-
-  @DomName('Window.addEventListener')
-  @DocsEditable()
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "Window_addEventListener_Callback";
-
-  @DomName('Window.dispatchEvent')
-  @DocsEditable()
-  bool dispatchEvent(Event event) native "Window_dispatchEvent_Callback";
-
-  @DomName('Window.removeEventListener')
-  @DocsEditable()
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "Window_removeEventListener_Callback";
-
   @DomName('Window.atob')
   @DocsEditable()
   String atob(String string) native "Window_atob_Callback";
@@ -31679,7 +31580,7 @@ abstract class WindowBase64 extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('WindowEventHandlers')
 @Experimental() // untriaged
-abstract class WindowEventHandlers extends EventTarget {
+abstract class WindowEventHandlers extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory WindowEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
@@ -31727,21 +31628,6 @@ abstract class WindowEventHandlers extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  @DomName('WindowEventHandlers.addEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "WindowEventHandlers_addEventListener_Callback";
-
-  @DomName('WindowEventHandlers.dispatchEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool dispatchEvent(Event event) native "WindowEventHandlers_dispatchEvent_Callback";
-
-  @DomName('WindowEventHandlers.removeEventListener')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "WindowEventHandlers_removeEventListener_Callback";
 
   @DomName('WindowEventHandlers.onbeforeunload')
   @DocsEditable()

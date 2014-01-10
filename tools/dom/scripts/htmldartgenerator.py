@@ -111,19 +111,15 @@ class HtmlDartGenerator(object):
     # interfaces need to be added.  Sometimes the attribute or operation is
     # defined in the current interface as well as a parent.  In that case we
     # avoid making a duplicate definition and pray that the signatures match.
-    inherited_attrs = []
-    inherited_ops = []
     secondary_parents = self._database.TransitiveSecondaryParents(interface)
     for parent_interface in sorted(secondary_parents):
       if isinstance(parent_interface, str):
         continue
       for attr in sorted(parent_interface.attributes, ConstantOutputOrder):
-        if (not FindMatchingAttribute(interface, attr) or
-            attr.id not in inherited_attrs):
+        if not FindMatchingAttribute(interface, attr):
           if attr.type.id != 'EventHandler':
             self.SecondaryContext(parent_interface)
             self.AddAttribute(attr)
-            inherited_attrs.append(attr.id)
 
       # Group overloaded operations by name.
       operationsByName =self._OperationsByName(parent_interface)
@@ -134,13 +130,11 @@ class HtmlDartGenerator(object):
 
       # Generate operations.
       for id in sorted(operationsByName.keys()):
-        if (not any(op.id == id for op in interface.operations)
-            or id not in inherited_ops):
+        if not any(op.id == id for op in interface.operations):
           operations = operationsByName[id]
           info = AnalyzeOperation(interface, operations)
           self.SecondaryContext(parent_interface)
           self.AddOperation(info)
-          inherited_ops.append(id)
 
   def _RemoveShadowingOperationsWithSameSignature(self, operationsByName,
       interface):
