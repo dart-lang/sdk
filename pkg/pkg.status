@@ -296,10 +296,6 @@ polymer_expressions/test/bindings_test: Fail, Pass # Issue 14445.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 docgen/test/single_library_test: StaticWarning
-http_server/test/http_body_test: StaticWarning
-http_server/test/http_multipart_test: StaticWarning
-http_server/test/virtual_directory_test: StaticWarning
-http_server/test/virtual_host_test: StaticWarning
 http/test/client_test: StaticWarning
 http/test/http_test: StaticWarning
 http/test/mock_client_test: StaticWarning
