@@ -538,8 +538,20 @@ bool FlowGraphOptimizer::Canonicalize() {
 void FlowGraphOptimizer::InsertConversion(Representation from,
                                           Representation to,
                                           Value* use,
-                                          Instruction* insert_before,
-                                          Instruction* deopt_target) {
+                                          bool is_environment_use) {
+  Instruction* insert_before;
+  Instruction* deopt_target;
+  PhiInstr* phi = use->instruction()->AsPhi();
+  if (phi != NULL) {
+    ASSERT(phi->is_alive());
+    // For phis conversions have to be inserted in the predecessor.
+    insert_before =
+        phi->block()->PredecessorAt(use->use_index())->last_instruction();
+    deopt_target = NULL;
+  } else {
+    deopt_target = insert_before = use->instruction();
+  }
+
   Definition* converted = NULL;
   if ((from == kTagged) && (to == kUnboxedMint)) {
     ASSERT((deopt_target != NULL) ||
@@ -632,9 +644,13 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     }
   }
   ASSERT(converted != NULL);
-  use->BindTo(converted);
   InsertBefore(insert_before, converted, use->instruction()->env(),
                Definition::kValue);
+  if (is_environment_use) {
+    use->BindToEnvironment(converted);
+  } else {
+    use->BindTo(converted);
+  }
 }
 
 
@@ -644,21 +660,17 @@ void FlowGraphOptimizer::ConvertUse(Value* use, Representation from_rep) {
   if (from_rep == to_rep || to_rep == kNoRepresentation) {
     return;
   }
+  InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/ false);
+}
 
-  Instruction* insert_before;
-  Instruction* deopt_target;
-  PhiInstr* phi = use->instruction()->AsPhi();
-  if (phi != NULL) {
-    ASSERT(phi->is_alive());
-    // For phis conversions have to be inserted in the predecessor.
-    insert_before =
-        phi->block()->PredecessorAt(use->use_index())->last_instruction();
-    deopt_target = NULL;
-  } else {
-    deopt_target = insert_before = use->instruction();
+
+void FlowGraphOptimizer::ConvertEnvironmentUse(Value* use,
+                                               Representation from_rep) {
+  const Representation to_rep = kTagged;
+  if (from_rep == to_rep || to_rep == kNoRepresentation) {
+    return;
   }
-
-  InsertConversion(from_rep, to_rep, use, insert_before, deopt_target);
+  InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/ true);
 }
 
 
@@ -669,6 +681,18 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
        !it.Done();
        it.Advance()) {
     ConvertUse(it.Current(), from_rep);
+  }
+
+  for (Value::Iterator it(def->env_use_list());
+       !it.Done();
+       it.Advance()) {
+    Value* use = it.Current();
+    if (use->instruction()->MayThrow() &&
+        use->instruction()->GetBlock()->InsideTryBlock()) {
+      // Environment uses at calls inside try-blocks must be converted to
+      // tagged representation.
+      ConvertEnvironmentUse(it.Current(), from_rep);
+    }
   }
 }
 
@@ -5072,8 +5096,10 @@ class AliasedSet : public ZoneAllocated {
            use = use->next_use()) {
         Instruction* instr = use->instruction();
         if (instr->IsPushArgument() ||
-            (instr->IsStoreVMField() && (use->use_index() != 1)) ||
-            (instr->IsStoreInstanceField() && (use->use_index() != 0)) ||
+            (instr->IsStoreVMField()
+             && (use->use_index() != StoreVMFieldInstr::kObjectPos)) ||
+            (instr->IsStoreInstanceField()
+             && (use->use_index() != StoreInstanceFieldInstr::kInstancePos)) ||
             instr->IsStoreStaticField() ||
             instr->IsPhi() ||
             instr->IsAssertAssignable() ||

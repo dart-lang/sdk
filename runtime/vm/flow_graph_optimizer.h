@@ -176,12 +176,12 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InsertConversionsFor(Definition* def);
 
   void ConvertUse(Value* use, Representation from);
+  void ConvertEnvironmentUse(Value* use, Representation from);
 
   void InsertConversion(Representation from,
                         Representation to,
                         Value* use,
-                        Instruction* insert_before,
-                        Instruction* deopt_target);
+                        bool is_environment_use);
 
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call) const;
   bool MethodExtractorNeedsClassCheck(InstanceCallInstr* call) const;

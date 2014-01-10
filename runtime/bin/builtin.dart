@@ -85,6 +85,9 @@ void _makeHttpRequest(String uri) {
               .fold(new BytesBuilder(), (b, d) => b..add(d))
               .then((builder) {
                 _requestCompleted(builder.takeBytes(), response);
+                // This client is only used for a single request. Force closing
+                // it now otherwise we wait around until it times out.
+                _client.close(force:true);
               });
         }).catchError((error) {
           _requestFailed(error);

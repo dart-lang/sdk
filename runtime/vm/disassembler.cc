@@ -73,4 +73,30 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   free(p);
 }
 
+
+class FindAddrVisitor : public FindObjectVisitor {
+   public:
+    explicit FindAddrVisitor(uword addr)
+        : FindObjectVisitor(Isolate::Current()), addr_(addr) { }
+    virtual ~FindAddrVisitor() { }
+
+    virtual uword filter_addr() const { return addr_; }
+
+    // Check if object matches find condition.
+    virtual bool FindObject(RawObject* obj) const {
+      return obj == reinterpret_cast<RawObject*>(addr_);
+    }
+
+   private:
+    const uword addr_;
+
+    DISALLOW_COPY_AND_ASSIGN(FindAddrVisitor);
+};
+
+
+bool Disassembler::CanFindOldObject(uword addr) {
+  FindAddrVisitor visitor(addr);
+  return Isolate::Current()->heap()->FindOldObject(&visitor) != Object::null();
+}
+
 }  // namespace dart

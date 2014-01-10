@@ -27,6 +27,11 @@ cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 
+[ $system == linux ]
+cc/ThreadInterrupterHigh: Skip
+cc/ThreadInterrupterMedium: Skip
+cc/ThreadInterrupterLow: Skip
+
 [ $system == macos ]
 cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip

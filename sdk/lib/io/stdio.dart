@@ -164,8 +164,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
  *
  * Use [hasTerminal] to test if there is a terminal associated to stdout.
  */
-class Stdout extends _StdSink {
-  // TODO(15721): Should implement IOSink (for documentation purpose).
+class Stdout extends _StdSink implements IOSink {
   Stdout._(IOSink sink) : super(sink);
 
   /**

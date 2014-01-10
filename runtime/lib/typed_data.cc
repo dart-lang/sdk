@@ -65,33 +65,28 @@ DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
   return Integer::null();
 }
 
+
 template <typename DstType, typename SrcType>
 static RawBool* CopyData(const Instance& dst, const Instance& src,
                          const Smi& dst_start, const Smi& src_start,
                          const Smi& length) {
   const DstType& dst_array = DstType::Cast(dst);
   const SrcType& src_array = SrcType::Cast(src);
-  intptr_t element_size_in_bytes = dst_array.ElementSizeInBytes();
-  intptr_t dst_offset_in_bytes = dst_start.Value() * element_size_in_bytes;
-  intptr_t src_offset_in_bytes = src_start.Value() * element_size_in_bytes;
-  intptr_t length_in_bytes = length.Value() * element_size_in_bytes;
+  const intptr_t dst_offset_in_bytes = dst_start.Value();
+  const intptr_t src_offset_in_bytes = src_start.Value();
+  const intptr_t length_in_bytes = length.Value();
   if (dst_array.ElementType() != src_array.ElementType()) {
     return Bool::False().raw();
   }
-  RangeCheck(src_offset_in_bytes,
-             length_in_bytes,
-             src_array.LengthInBytes(),
-             element_size_in_bytes);
-  RangeCheck(dst_offset_in_bytes,
-             length_in_bytes,
-             dst_array.LengthInBytes(),
-             element_size_in_bytes);
+  ASSERT(Utils::RangeCheck(
+      src_offset_in_bytes, length_in_bytes, src_array.LengthInBytes()));
+  ASSERT(Utils::RangeCheck(
+      dst_offset_in_bytes, length_in_bytes, dst_array.LengthInBytes()));
   TypedData::Copy<DstType, SrcType>(dst_array, dst_offset_in_bytes,
                                     src_array, src_offset_in_bytes,
                                     length_in_bytes);
   return Bool::True().raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(TypedData_setRange, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, dst, arguments->NativeArgAt(0));
@@ -122,9 +117,9 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 5) {
           dst, src, dst_start, src_start, length);
     }
   }
+  UNREACHABLE();
   return Bool::False().raw();
 }
-
 
 // We check the length parameter against a possible maximum length for the
 // array based on available physical addressable memory on the system. The

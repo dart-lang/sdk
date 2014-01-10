@@ -301,7 +301,8 @@ void DeoptContext::FillDestFrame() {
 }
 
 
-static void FillDeferredSlots(DeferredSlot** slot_list) {
+static void FillDeferredSlots(DeoptContext* deopt_context,
+                              DeferredSlot** slot_list) {
   DeferredSlot* slot = *slot_list;
   *slot_list = NULL;
 
@@ -309,7 +310,7 @@ static void FillDeferredSlots(DeferredSlot** slot_list) {
     DeferredSlot* current = slot;
     slot = slot->next();
 
-    current->Materialize();
+    current->Materialize(deopt_context);
 
     delete current;
   }
@@ -325,8 +326,8 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
   // objects can't be referencing other deferred objects because storing
   // an object into a field is always conservatively treated as escaping by
   // allocation sinking and load forwarding.
-  FillDeferredSlots(&deferred_boxes_);
-  FillDeferredSlots(&deferred_object_refs_);
+  FillDeferredSlots(this, &deferred_boxes_);
+  FillDeferredSlots(this, &deferred_object_refs_);
 
   // Compute total number of artificial arguments used during deoptimization.
   intptr_t deopt_arg_count = 0;

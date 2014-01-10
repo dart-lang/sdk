@@ -482,6 +482,7 @@ class Value : public ZoneAllocated {
 
   // Change the definition after use lists have been computed.
   inline void BindTo(Definition* definition);
+  inline void BindToEnvironment(Definition* definition);
 
   Value* Copy() { return new Value(definition_); }
 
@@ -1791,6 +1792,13 @@ inline void Value::BindTo(Definition* def) {
   RemoveFromUseList();
   set_definition(def);
   def->AddInputUse(this);
+}
+
+
+inline void Value::BindToEnvironment(Definition* def) {
+  RemoveFromUseList();
+  set_definition(def);
+  def->AddEnvUse(this);
 }
 
 
@@ -3419,8 +3427,10 @@ class NativeCallInstr : public TemplateDefinition<0> {
 
 class DebugStepCheckInstr : public TemplateInstruction<0> {
  public:
-  explicit DebugStepCheckInstr(intptr_t token_pos)
-      : token_pos_(token_pos) {
+  DebugStepCheckInstr(intptr_t token_pos,
+                      PcDescriptors::Kind stub_kind)
+      : token_pos_(token_pos),
+        stub_kind_(stub_kind) {
   }
 
   DECLARE_INSTRUCTION(DebugStepCheck)
@@ -3434,6 +3444,7 @@ class DebugStepCheckInstr : public TemplateInstruction<0> {
 
  private:
   const intptr_t token_pos_;
+  const PcDescriptors::Kind stub_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DebugStepCheckInstr);
 };
@@ -4305,19 +4316,19 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
       : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     SetInputAt(kValuePos, value);
-    SetInputAt(kDestPos, dest);
+    SetInputAt(kObjectPos, dest);
   }
 
   enum {
     kValuePos = 0,
-    kDestPos = 1
+    kObjectPos = 1
   };
 
   DECLARE_INSTRUCTION(StoreVMField)
   virtual CompileType* ComputeInitialType() const;
 
   Value* value() const { return inputs_[kValuePos]; }
-  Value* dest() const { return inputs_[kDestPos]; }
+  Value* dest() const { return inputs_[kObjectPos]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
 

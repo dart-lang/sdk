@@ -17,6 +17,7 @@
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
@@ -294,6 +295,51 @@ void FlowGraphCompiler::Bailout(const char* reason) {
                                   String::Handle(function.name()).ToCString(),
                                   reason));
   Isolate::Current()->long_jump_base()->Jump(1, error);
+}
+
+
+void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
+  ASSERT(is_optimizing());
+  Environment* env = instr->env();
+  CatchBlockEntryInstr* catch_block =
+      flow_graph().graph_entry()->GetCatchEntry(try_index);
+  const GrowableArray<Definition*>* idefs = catch_block->initial_definitions();
+
+  // Construct a ParallelMove instruction for parameters and locals. Skip the
+  // special locals exception_var and stacktrace_var since they will be filled
+  // when an exception is thrown. Constant locations are known to be the same
+  // at all instructions that may throw, and do not need to be materialized.
+
+  // Parameters first.
+  intptr_t i = 0;
+  const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
+  ParallelMoveInstr* move_instr = new ParallelMoveInstr();
+  for (; i < num_non_copied_params; ++i) {
+    if ((*idefs)[i]->IsConstant()) continue;  // Common constants
+    Location src = env->LocationAt(i);
+    intptr_t dest_index = i - num_non_copied_params;
+    Location dest = Location::StackSlot(dest_index);
+    move_instr->AddMove(dest, src);
+  }
+
+  // Process locals. Skip exception_var and stacktrace_var.
+  intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
+  intptr_t ex_idx = local_base - catch_block->exception_var().index();
+  intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
+  for (; i < flow_graph().variable_count(); ++i) {
+    if (i == ex_idx || i == st_idx) continue;
+    if ((*idefs)[i]->IsConstant()) continue;
+    Location src = env->LocationAt(i);
+    ASSERT(!src.IsFpuRegister());
+    ASSERT(!src.IsDoubleStackSlot());
+    intptr_t dest_index = i - num_non_copied_params;
+    Location dest = Location::StackSlot(dest_index);
+    move_instr->AddMove(dest, src);
+    // Update safepoint bitmap to indicate that the target location
+    // now contains a pointer.
+    instr->locs()->stack_bitmap()->Set(dest_index, true);
+  }
+  parallel_move_resolver()->EmitNativeCode(move_instr);
 }
 
 
