@@ -457,10 +457,7 @@ class ModifyPubspecYamlCommand extends ScriptCommand {
   ModifyPubspecYamlCommand._(this._pubspecYamlFile,
                              this._destinationFile,
                              this._dependencyOverrides)
-    : super._("modify_pubspec") {
-    assert(_pubspecYamlFile.endsWith("pubspec.yaml"));
-    assert(_destinationFile.endsWith("pubspec.yaml"));
-  }
+    : super._("modify_pubspec");
 
   String get reproductionCommand =>
       "Adding necessary dependency overrides to '$_pubspecYamlFile' "
@@ -469,13 +466,8 @@ class ModifyPubspecYamlCommand extends ScriptCommand {
   Future<ScriptCommandOutputImpl> run() {
     var watch = new Stopwatch()..start();
 
-    var pubspecLockFile =
-        _destinationFile.substring(0, _destinationFile.length - ".yaml".length)
-        + ".lock";
-
     var file = new io.File(_pubspecYamlFile);
     var destinationFile = new io.File(_destinationFile);
-    var lockfile = new io.File(pubspecLockFile);
     return file.readAsString().then((String yamlString) {
       var dependencyOverrideSection = new StringBuffer();
       if (_dependencyOverrides.isNotEmpty) {
@@ -492,13 +484,7 @@ class ModifyPubspecYamlCommand extends ScriptCommand {
         });
       }
       var modifiedYamlString = "$yamlString\n$dependencyOverrideSection";
-      return destinationFile.writeAsString(modifiedYamlString).then((_) {
-        lockfile.exists().then((bool lockfileExists) {
-          if (lockfileExists) {
-            return lockfile.delete();
-          }
-        });
-      });
+      return destinationFile.writeAsString(modifiedYamlString);
     }).then((_) {
       return new ScriptCommandOutputImpl(
           this, Expectation.PASS, "", watch.elapsed);
@@ -522,54 +508,6 @@ class ModifyPubspecYamlCommand extends ScriptCommand {
         _pubspecYamlFile == other._pubspecYamlFile &&
         _destinationFile == other._destinationFile &&
         deepJsonCompare(_dependencyOverrides, other._dependencyOverrides);
-  }
-}
-
-/*
- * [MakeSymlinkCommand] makes a symbolic link to another directory.
- */
-class MakeSymlinkCommand extends ScriptCommand {
-  String _link;
-  String _target;
-
-  MakeSymlinkCommand._(this._link, this._target) : super._('make_symlink');
-
-  String get reproductionCommand =>
-      "Make symbolic link '$_link' (target: $_target)'.";
-
-  Future<ScriptCommandOutputImpl> run() {
-    var watch = new Stopwatch()..start();
-    var targetFile = new io.Directory(_target);
-    return targetFile.exists().then((bool targetExists) {
-      if (!targetExists) {
-        throw new Exception("Target '$_target' does not exist");
-      }
-      var link = new io.Link(_link);
-
-      return link.exists()
-          .then((bool exists) { if (exists) return link.delete(); })
-          .then((_) => link.create(_target));
-    }).then((_) {
-      return new ScriptCommandOutputImpl(
-          this, Expectation.PASS, "", watch.elapsed);
-    }).catchError((error) {
-      return new ScriptCommandOutputImpl(
-          this, Expectation.FAIL, "An error occured: $error.", watch.elapsed);
-    });
-  }
-
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.add(_link);
-    builder.add(_target);
-  }
-
-  bool _equal(Command other) {
-    return
-        other is MakeSymlinkCommand &&
-        super._equal(other) &&
-        _link == other._link &&
-        _target == other._target;
   }
 }
 
@@ -656,10 +594,6 @@ class CommandBuilder {
                                    pubspecYamlDirectory,
                                    pubCacheDirectory);
     return _getUniqueCommand(command);
-  }
-
-  Command getMakeSymlinkCommand(String link, String target) {
-    return _getUniqueCommand(new MakeSymlinkCommand._(link, target));
   }
 
   Command getModifyPubspecCommand(String pubspecYamlFile, Map depsOverrides,
