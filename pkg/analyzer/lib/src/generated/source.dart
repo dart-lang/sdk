@@ -17,18 +17,18 @@ abstract class LocalSourcePredicate {
   /**
    * Instance of [LocalSourcePredicate] that always returns `false`.
    */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_18();
+  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_20();
 
   /**
    * Instance of [LocalSourcePredicate] that always returns `true`.
    */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_19();
+  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_21();
 
   /**
    * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
    * except of SDK.
    */
-  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_20();
+  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_22();
 
   /**
    * Determines if the given [Source] is local.
@@ -39,15 +39,15 @@ abstract class LocalSourcePredicate {
   bool isLocal(Source source);
 }
 
-class LocalSourcePredicate_18 implements LocalSourcePredicate {
+class LocalSourcePredicate_20 implements LocalSourcePredicate {
   bool isLocal(Source source) => false;
 }
 
-class LocalSourcePredicate_19 implements LocalSourcePredicate {
+class LocalSourcePredicate_21 implements LocalSourcePredicate {
   bool isLocal(Source source) => true;
 }
 
-class LocalSourcePredicate_20 implements LocalSourcePredicate {
+class LocalSourcePredicate_22 implements LocalSourcePredicate {
   bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
 }
 
@@ -162,7 +162,7 @@ class SourceFactory {
   DartSdk get dartSdk {
     for (UriResolver resolver in _resolvers) {
       if (resolver is DartUriResolver) {
-        DartUriResolver dartUriResolver = resolver as DartUriResolver;
+        DartUriResolver dartUriResolver = resolver;
         return dartUriResolver.dartSdk;
       }
     }

@@ -2271,7 +2271,7 @@ class ElementFactory {
 
   static ClassElementImpl get object {
     if (_objectElement == null) {
-      _objectElement = classElement("Object", null as InterfaceType, []);
+      _objectElement = classElement("Object", null, []);
     }
     return _objectElement;
   }
@@ -2973,7 +2973,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_hashCode_noElement() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(null as ExecutableElement);
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(null);
     type.hashCode;
   }
 
@@ -2989,7 +2989,7 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
-    InterfaceTypeImpl functionType = new InterfaceTypeImpl_29(functionElement);
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl_31(functionElement);
     FunctionType f = ElementFactory.functionElement("f").type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(functionType));
   }
@@ -3488,8 +3488,8 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 }
 
-class InterfaceTypeImpl_29 extends InterfaceTypeImpl {
-  InterfaceTypeImpl_29(ClassElement arg0) : super.con1(arg0);
+class InterfaceTypeImpl_31 extends InterfaceTypeImpl {
+  InterfaceTypeImpl_31(ClassElement arg0) : super.con1(arg0);
 
   bool get isDartCoreFunction => true;
 }

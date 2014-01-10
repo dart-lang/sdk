@@ -212,6 +212,18 @@ class IndexExpressionTest extends EngineTestCase {
 }
 
 class ClassDeclarationTest extends ParserTestCase {
+  void test_getConstructor() {
+    List<ConstructorInitializer> initializers = new List<ConstructorInitializer>();
+    ConstructorDeclaration defaultConstructor = ASTFactory.constructorDeclaration(ASTFactory.identifier3("Test"), null, ASTFactory.formalParameterList([]), initializers);
+    ConstructorDeclaration aConstructor = ASTFactory.constructorDeclaration(ASTFactory.identifier3("Test"), "a", ASTFactory.formalParameterList([]), initializers);
+    ConstructorDeclaration bConstructor = ASTFactory.constructorDeclaration(ASTFactory.identifier3("Test"), "b", ASTFactory.formalParameterList([]), initializers);
+    ClassDeclaration clazz = ASTFactory.classDeclaration(null, "Test", null, null, null, null, [defaultConstructor, aConstructor, bConstructor]);
+    JUnitTestCase.assertSame(defaultConstructor, clazz.getConstructor(null));
+    JUnitTestCase.assertSame(aConstructor, clazz.getConstructor("a"));
+    JUnitTestCase.assertSame(bConstructor, clazz.getConstructor("b"));
+    JUnitTestCase.assertSame(null, clazz.getConstructor("noSuchConstructor"));
+  }
+
   void test_getField() {
     VariableDeclaration aVar = ASTFactory.variableDeclaration("a");
     VariableDeclaration bVar = ASTFactory.variableDeclaration("b");
@@ -225,11 +237,28 @@ class ClassDeclarationTest extends ParserTestCase {
     JUnitTestCase.assertSame(null, clazz.getField("noSuchField"));
   }
 
+  void test_getMethod() {
+    MethodDeclaration aMethod = ASTFactory.methodDeclaration(null, null, null, null, ASTFactory.identifier3("a"), ASTFactory.formalParameterList([]));
+    MethodDeclaration bMethod = ASTFactory.methodDeclaration(null, null, null, null, ASTFactory.identifier3("b"), ASTFactory.formalParameterList([]));
+    ClassDeclaration clazz = ASTFactory.classDeclaration(null, "Test", null, null, null, null, [aMethod, bMethod]);
+    JUnitTestCase.assertSame(aMethod, clazz.getMethod("a"));
+    JUnitTestCase.assertSame(bMethod, clazz.getMethod("b"));
+    JUnitTestCase.assertSame(null, clazz.getMethod("noSuchMethod"));
+  }
+
   static dartSuite() {
     _ut.group('ClassDeclarationTest', () {
+      _ut.test('test_getConstructor', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getConstructor);
+      });
       _ut.test('test_getField', () {
         final __test = new ClassDeclarationTest();
         runJUnitTest(__test, __test.test_getField);
+      });
+      _ut.test('test_getMethod', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getMethod);
       });
     });
   }
@@ -1035,7 +1064,7 @@ class BreadthFirstVisitorTest extends ParserTestCase {
         "}"]);
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<ASTNode> nodes = new List<ASTNode>();
-    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_23(nodes);
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_25(nodes);
     visitor.visitAllNodes(unit);
     EngineTestCase.assertSize(59, nodes);
     EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
@@ -1055,10 +1084,10 @@ class BreadthFirstVisitorTest extends ParserTestCase {
   }
 }
 
-class BreadthFirstVisitor_23 extends BreadthFirstVisitor<Object> {
+class BreadthFirstVisitor_25 extends BreadthFirstVisitor<Object> {
   List<ASTNode> nodes;
 
-  BreadthFirstVisitor_23(this.nodes) : super();
+  BreadthFirstVisitor_25(this.nodes) : super();
 
   Object visitNode(ASTNode node) {
     nodes.add(node);
@@ -2164,7 +2193,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitCompilationUnit_directive_declaration() {
-    assertSource("library l; var a;", ASTFactory.compilationUnit4(ASTFactory.list([ASTFactory.libraryDirective2("l") as Directive]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]) as CompilationUnitMember])));
+    assertSource("library l; var a;", ASTFactory.compilationUnit4(ASTFactory.list([ASTFactory.libraryDirective2("l")]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")])])));
   }
 
   void test_visitCompilationUnit_empty() {
@@ -2184,7 +2213,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitCompilationUnit_script_directives_declarations() {
-    assertSource("!#/bin/dartvm library l; var a;", ASTFactory.compilationUnit8("!#/bin/dartvm", ASTFactory.list([ASTFactory.libraryDirective2("l") as Directive]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]) as CompilationUnitMember])));
+    assertSource("!#/bin/dartvm library l; var a;", ASTFactory.compilationUnit8("!#/bin/dartvm", ASTFactory.list([ASTFactory.libraryDirective2("l")]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")])])));
   }
 
   void test_visitConditionalExpression() {
@@ -2205,7 +2234,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitConstructorDeclaration_multipleInitializers() {
     assertSource("C() : a = b, c = d {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([
-        ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer,
+        ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")),
         ASTFactory.constructorFieldInitializer(false, "c", ASTFactory.identifier3("d"))]), ASTFactory.blockFunctionBody2([])));
   }
 
@@ -2220,7 +2249,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitConstructorDeclaration_singleInitializer() {
-    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer]), ASTFactory.blockFunctionBody2([])));
+    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b"))]), ASTFactory.blockFunctionBody2([])));
   }
 
   void test_visitConstructorFieldInitializer_withoutThis() {
@@ -2284,7 +2313,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitExportDirective_combinator() {
-    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [ASTFactory.showCombinator([ASTFactory.identifier3("A")]) as Combinator]));
+    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [ASTFactory.showCombinator([ASTFactory.identifier3("A")])]));
   }
 
   void test_visitExportDirective_combinators() {
@@ -2428,11 +2457,11 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitForStatement_c() {
-    assertSource("for (; c;) {}", ASTFactory.forStatement(null as Expression, ASTFactory.identifier3("c"), null, ASTFactory.block([])));
+    assertSource("for (; c;) {}", ASTFactory.forStatement(null, ASTFactory.identifier3("c"), null, ASTFactory.block([])));
   }
 
   void test_visitForStatement_cu() {
-    assertSource("for (; c; u) {}", ASTFactory.forStatement(null as Expression, ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (; c; u) {}", ASTFactory.forStatement(null, ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_e() {
@@ -2444,11 +2473,11 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitForStatement_ecu() {
-    assertSource("for (e; c; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (e; c; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_eu() {
-    assertSource("for (e;; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), null, ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (e;; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), null, ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_i() {
@@ -2460,15 +2489,15 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitForStatement_icu() {
-    assertSource("for (var i; c; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (var i; c; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_iu() {
-    assertSource("for (var i;; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (var i;; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_u() {
-    assertSource("for (;; u) {}", ASTFactory.forStatement(null as Expression, null, ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (;; u) {}", ASTFactory.forStatement(null, null, ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitFunctionDeclaration_getter() {

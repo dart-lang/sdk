@@ -521,18 +521,18 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
     String libraryName = null;
     Expression key = node.key;
     if (key is SimpleStringLiteral) {
-      libraryName = "${_LIBRARY_PREFIX}${(key as SimpleStringLiteral).value}";
+      libraryName = "${_LIBRARY_PREFIX}${key.value}";
     }
     Expression value = node.value;
     if (value is InstanceCreationExpression) {
       SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
-      List<Expression> arguments = (value as InstanceCreationExpression).argumentList.arguments;
+      List<Expression> arguments = value.argumentList.arguments;
       for (Expression argument in arguments) {
         if (argument is SimpleStringLiteral) {
-          library.path = (argument as SimpleStringLiteral).value;
+          library.path = argument.value;
         } else if (argument is NamedExpression) {
-          String name = (argument as NamedExpression).name.label.name;
-          Expression expression = (argument as NamedExpression).expression;
+          String name = argument.name.label.name;
+          Expression expression = argument.expression;
           if (name == _CATEGORY) {
             library.category = (expression as SimpleStringLiteral).value;
           } else if (name == _IMPLEMENTATION) {
@@ -541,7 +541,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
             library.documented = (expression as BooleanLiteral).value;
           } else if (name == _PLATFORMS) {
             if (expression is SimpleIdentifier) {
-              String identifier = (expression as SimpleIdentifier).name;
+              String identifier = expression.name;
               if (identifier == _VM_PLATFORM) {
                 library.setVmLibrary();
               } else {

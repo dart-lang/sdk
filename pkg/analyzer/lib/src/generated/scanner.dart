@@ -1453,7 +1453,7 @@ class Scanner {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = _reader.offset;
     while (state != null && 0x61 <= next && next <= 0x7A) {
-      state = state.next(next as int);
+      state = state.next(next);
       next = _reader.advance();
     }
     if (state == null || state.keyword() == null) {

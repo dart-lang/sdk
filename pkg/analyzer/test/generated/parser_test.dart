@@ -4426,7 +4426,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme, bool first, bool last) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_30();
+    AnalysisErrorListener listener = new AnalysisErrorListener_32();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme, first, last], null) as String;
   }
@@ -6708,7 +6708,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 }
 
-class AnalysisErrorListener_30 implements AnalysisErrorListener {
+class AnalysisErrorListener_32 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -7399,7 +7399,7 @@ class ParserTestCase extends EngineTestCase {
     Expression expression = parser.parseExpression(token);
     JUnitTestCase.assertNotNull(expression);
     listener.assertErrors2(errorCodes);
-    return expression as Expression;
+    return expression;
   }
 
   /**
@@ -7420,7 +7420,7 @@ class ParserTestCase extends EngineTestCase {
     Statement statement = parser.parseStatement(token);
     JUnitTestCase.assertNotNull(statement);
     listener.assertErrors2(errorCodes);
-    return statement as Statement;
+    return statement;
   }
 
   /**
@@ -7472,7 +7472,7 @@ class ParserTestCase extends EngineTestCase {
     if (!listener.hasErrors()) {
       JUnitTestCase.assertNotNull(result);
     }
-    return result as Object;
+    return result;
   }
 
   /**
@@ -11639,8 +11639,8 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'peek_0': new MethodTrampoline(0, (Parser target) => target.peek()),
   'peek_1': new MethodTrampoline(1, (Parser target, arg0) => target.peek2(arg0)),
   'reportError_1': new MethodTrampoline(1, (Parser target, arg0) => target.reportError(arg0)),
-  'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError9(arg0, arg1, arg2)),
-  'reportError_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportError10(arg0, arg1)),
+  'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError10(arg0, arg1, arg2)),
+  'reportError_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportError11(arg0, arg1)),
   'skipBlock_0': new MethodTrampoline(0, (Parser target) => target.skipBlock()),
   'skipFinalConstVarOrType_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFinalConstVarOrType(arg0)),
   'skipFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFormalParameterList(arg0)),

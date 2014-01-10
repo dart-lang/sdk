@@ -421,6 +421,22 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
+   * Assert that the given collection is non-`null` and has the expected number of elements.
+   *
+   * @param expectedSize the expected number of elements
+   * @param c the collection being tested
+   * @throws AssertionFailedError if the list is `null` or does not have the expected number
+   *           of elements
+   */
+  static void assertCollectionSize(int expectedSize, Iterable c) {
+    if (c == null) {
+      JUnitTestCase.fail("Expected collection of size ${expectedSize}; found null");
+    } else if (c.length != expectedSize) {
+      JUnitTestCase.fail("Expected collection of size ${expectedSize}; contained ${c.length} elements");
+    }
+  }
+
+  /**
    * Assert that the given array is non-`null` and contains the expected elements. The
    * elements can appear in any order.
    *
@@ -585,7 +601,7 @@ class EngineTestCase extends JUnitTestCase {
     if (!isInstanceOf(object, expectedClass)) {
       JUnitTestCase.fail("Expected instance of ${expectedClass.toString()}, found ${(object == null ? "null" : object.runtimeType.toString())}");
     }
-    return object as Object;
+    return object;
   }
 
   /**
@@ -616,26 +632,10 @@ class EngineTestCase extends JUnitTestCase {
     JUnitTestCase.assertEquals(expectedToken.type, actualToken.type);
     if (expectedToken is KeywordToken) {
       assertInstanceOf(KeywordToken, actualToken);
-      JUnitTestCase.assertEquals((expectedToken as KeywordToken).keyword, (actualToken as KeywordToken).keyword);
+      JUnitTestCase.assertEquals(expectedToken.keyword, (actualToken as KeywordToken).keyword);
     } else if (expectedToken is StringToken) {
       assertInstanceOf(StringToken, actualToken);
-      JUnitTestCase.assertEquals((expectedToken as StringToken).lexeme, (actualToken as StringToken).lexeme);
-    }
-  }
-
-  /**
-   * Assert that the given collection is non-`null` and has the expected number of elements.
-   *
-   * @param expectedSize the expected number of elements
-   * @param c the collection being tested
-   * @throws AssertionFailedError if the list is `null` or does not have the expected number
-   *           of elements
-   */
-  static void assertCollectionSize(int expectedSize, Iterable c) {
-    if (c == null) {
-      JUnitTestCase.fail("Expected collection of size ${expectedSize}; found null");
-    } else if (c.length != expectedSize) {
-      JUnitTestCase.fail("Expected collection of size ${expectedSize}; contained ${c.length} elements");
+      JUnitTestCase.assertEquals(expectedToken.lexeme, (actualToken as StringToken).lexeme);
     }
   }
 

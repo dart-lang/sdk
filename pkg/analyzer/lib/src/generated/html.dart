@@ -233,6 +233,23 @@ class RecursiveXmlVisitor<R> implements XmlVisitor<R> {
  */
 class HtmlUnitUtils {
   /**
+   * Returns the [XmlAttributeNode] that is part of the given [HtmlUnit] and encloses
+   * the given offset.
+   */
+  static XmlAttributeNode getAttributeNode(HtmlUnit htmlUnit, int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    List<XmlAttributeNode> result = [null];
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor_7(offset, result));
+    } on HtmlUnitUtils_FoundAttributeNodeError catch (e) {
+      return result[0];
+    }
+    return null;
+  }
+
+  /**
    * Returns the best [Element] of the given [Expression].
    */
   static Element getElement(Expression expression) {
@@ -261,7 +278,7 @@ class HtmlUnitUtils {
         VariableElement variable = element as VariableElement;
         Type2 type = variable.type;
         if (variable.nameOffset == 0 && type is InterfaceType) {
-          element = (type as InterfaceType).element;
+          element = type.element;
         }
       }
     }
@@ -278,8 +295,25 @@ class HtmlUnitUtils {
     }
     List<Expression> result = [null];
     try {
-      htmlUnit.accept(new RecursiveXmlVisitor_7(offset, result));
+      htmlUnit.accept(new RecursiveXmlVisitor_8(offset, result));
     } on HtmlUnitUtils_FoundExpressionError catch (e) {
+      return result[0];
+    }
+    return null;
+  }
+
+  /**
+   * Returns the [XmlTagNode] that is part of the given [HtmlUnit] and encloses the
+   * given offset.
+   */
+  static XmlTagNode getTagNode(HtmlUnit htmlUnit, int offset) {
+    if (htmlUnit == null) {
+      return null;
+    }
+    List<XmlTagNode> result = [null];
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor_9(offset, result));
+    } on HtmlUnitUtils_FoundTagNodeError catch (e) {
       return result[0];
     }
     return null;
@@ -298,22 +332,45 @@ class HtmlUnitUtils {
     if (root.offset <= offset && offset < root.end) {
       ASTNode dartNode = new NodeLocator.con1(offset).searchWithin(root);
       if (dartNode is Expression) {
-        return dartNode as Expression;
+        return dartNode;
       }
     }
     return null;
   }
 }
 
+class HtmlUnitUtils_FoundAttributeNodeError extends Error {
+}
+
 class HtmlUnitUtils_FoundExpressionError extends Error {
+}
+
+class HtmlUnitUtils_FoundTagNodeError extends Error {
 }
 
 class RecursiveXmlVisitor_7 extends RecursiveXmlVisitor<Object> {
   int offset = 0;
 
-  List<Expression> result;
+  List<XmlAttributeNode> result;
 
   RecursiveXmlVisitor_7(this.offset, this.result) : super();
+
+  Object visitXmlAttributeNode(XmlAttributeNode node) {
+    Token nameToken = node.nameToken;
+    if (nameToken.offset <= offset && offset < nameToken.end) {
+      result[0] = node;
+      throw new HtmlUnitUtils_FoundAttributeNodeError();
+    }
+    return super.visitXmlAttributeNode(node);
+  }
+}
+
+class RecursiveXmlVisitor_8 extends RecursiveXmlVisitor<Object> {
+  int offset = 0;
+
+  List<Expression> result;
+
+  RecursiveXmlVisitor_8(this.offset, this.result) : super();
 
   Object visitXmlAttributeNode(XmlAttributeNode node) {
     findExpression(offset, result, node.expressions);
@@ -334,6 +391,24 @@ class RecursiveXmlVisitor_7 extends RecursiveXmlVisitor<Object> {
         throw new HtmlUnitUtils_FoundExpressionError();
       }
     }
+  }
+}
+
+class RecursiveXmlVisitor_9 extends RecursiveXmlVisitor<Object> {
+  int offset = 0;
+
+  List<XmlTagNode> result;
+
+  RecursiveXmlVisitor_9(this.offset, this.result) : super();
+
+  Object visitXmlTagNode(XmlTagNode node) {
+    super.visitXmlTagNode(node);
+    Token tagToken = node.tagToken;
+    if (tagToken.offset <= offset && offset < tagToken.end) {
+      result[0] = node;
+      throw new HtmlUnitUtils_FoundTagNodeError();
+    }
+    return null;
   }
 }
 
@@ -399,6 +474,11 @@ abstract class XmlNode {
   XmlNode _parent;
 
   /**
+   * The element associated with this node or `null` if the receiver is not resolved.
+   */
+  Element _element;
+
+  /**
    * Use the given visitor to visit this node.
    *
    * @param visitor the visitor that will visit this node
@@ -412,6 +492,13 @@ abstract class XmlNode {
    * @return the first token or `null` if none
    */
   Token get beginToken;
+
+  /**
+   * Return the element associated with this node.
+   *
+   * @return the element or `null` if the receiver is not resolved
+   */
+  Element get element => _element;
 
   /**
    * Return the offset of the character immediately following the last character of this node's
@@ -468,6 +555,15 @@ abstract class XmlNode {
    */
   XmlNode get parent => _parent;
 
+  /**
+   * Set the element associated with this node.
+   *
+   * @param element the element
+   */
+  void set element(Element element) {
+    this._element = element;
+  }
+
   String toString() {
     PrintStringWriter writer = new PrintStringWriter();
     accept(new ToSourceVisitor(writer));
@@ -518,9 +614,9 @@ abstract class XmlNode {
    */
   void appendIdentifier(JavaStringBuilder builder, XmlNode node) {
     if (node is XmlTagNode) {
-      builder.append((node as XmlTagNode).tag);
+      builder.append(node.tag);
     } else if (node is XmlAttributeNode) {
-      builder.append((node as XmlAttributeNode).name);
+      builder.append(node.name);
     } else {
       builder.append("htmlUnit");
     }
@@ -2044,11 +2140,6 @@ class HtmlUnit extends XmlNode {
   List<XmlTagNode> _tagNodes;
 
   /**
-   * The element associated with this HTML unit or `null` if the receiver is not resolved.
-   */
-  HtmlElementImpl element;
-
-  /**
    * The element associated with Dart pieces in this HTML unit or `null` if the receiver is
    * not resolved.
    */
@@ -2069,12 +2160,26 @@ class HtmlUnit extends XmlNode {
   accept(XmlVisitor visitor) => visitor.visitHtmlUnit(this);
 
   /**
+   * Return the element associated with this HTML unit.
+   *
+   * @return the element or `null` if the receiver is not resolved
+   */
+  HtmlElement get element => super.element as HtmlElement;
+
+  /**
    * Answer the tag nodes contained in the receiver. Callers should not manipulate the returned list
    * to edit the AST structure.
    *
    * @return the children (not `null`, contains no `null`s)
    */
   List<XmlTagNode> get tagNodes => _tagNodes;
+
+  void set element(Element element) {
+    if (element != null && element is! HtmlElement) {
+      throw new IllegalArgumentException("HtmlElement expected, but ${element.runtimeType} given");
+    }
+    super.element = element;
+  }
 
   void visitChildren(XmlVisitor visitor) {
     for (XmlTagNode node in _tagNodes) {

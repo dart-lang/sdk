@@ -14442,15 +14442,15 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     ASTNode parent = node.parent;
-    if (parent is MethodInvocation && identical(node, (parent as MethodInvocation).methodName)) {
+    if (parent is MethodInvocation && identical(node, parent.methodName)) {
       return null;
-    } else if (parent is RedirectingConstructorInvocation && identical(node, (parent as RedirectingConstructorInvocation).constructorName)) {
+    } else if (parent is RedirectingConstructorInvocation && identical(node, parent.constructorName)) {
       return null;
-    } else if (parent is SuperConstructorInvocation && identical(node, (parent as SuperConstructorInvocation).constructorName)) {
+    } else if (parent is SuperConstructorInvocation && identical(node, parent.constructorName)) {
       return null;
-    } else if (parent is ConstructorName && identical(node, (parent as ConstructorName).name)) {
+    } else if (parent is ConstructorName && identical(node, parent.name)) {
       return null;
-    } else if (parent is ConstructorFieldInitializer && identical(node, (parent as ConstructorFieldInitializer).fieldName)) {
+    } else if (parent is ConstructorFieldInitializer && identical(node, parent.fieldName)) {
       return null;
     } else if (node.staticElement is PrefixElement) {
       return null;
@@ -14471,7 +14471,7 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
     if (node != null) {
       ASTNode root = node.root;
       if (root is CompilationUnit) {
-        CompilationUnit rootCU = root as CompilationUnit;
+        CompilationUnit rootCU = root;
         if (rootCU.element != null) {
           return rootCU.element.source.fullName;
         } else {
@@ -19633,7 +19633,7 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
     }
     ASTNode parent = node.parent;
     if (parent is MethodInvocation) {
-      MethodInvocation invocation = parent as MethodInvocation;
+      MethodInvocation invocation = parent;
       if (identical(invocation.methodName, node)) {
         Expression target = invocation.realTarget;
         Type2 targetType = target == null ? null : target.staticType;
@@ -19664,7 +19664,7 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
     if (node != null) {
       ASTNode root = node.root;
       if (root is CompilationUnit) {
-        CompilationUnit rootCU = root as CompilationUnit;
+        CompilationUnit rootCU = root;
         if (rootCU.element != null) {
           return rootCU.element.source.fullName;
         } else {
@@ -20529,7 +20529,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void assertType2(Type2 expectedType, Type2 actualType) {
     if (expectedType is InterfaceTypeImpl) {
       EngineTestCase.assertInstanceOf(InterfaceTypeImpl, actualType);
-      assertType(expectedType as InterfaceTypeImpl, actualType as InterfaceTypeImpl);
+      assertType(expectedType, actualType as InterfaceTypeImpl);
     }
   }
 
@@ -21673,7 +21673,7 @@ class NonHintCodeTest extends ResolverTestCase {
 class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_27(errorListener2);
+    Scope rootScope = new Scope_29(errorListener2);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -21684,7 +21684,7 @@ class EnclosedScopeTest extends ResolverTestCase {
 
   void test_define_normal() {
     GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_28(errorListener3);
+    Scope rootScope = new Scope_30(errorListener3);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -21708,20 +21708,20 @@ class EnclosedScopeTest extends ResolverTestCase {
   }
 }
 
-class Scope_27 extends Scope {
+class Scope_29 extends Scope {
   GatheringErrorListener errorListener2;
 
-  Scope_27(this.errorListener2) : super();
+  Scope_29(this.errorListener2) : super();
 
   AnalysisErrorListener get errorListener => errorListener2;
 
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
 
-class Scope_28 extends Scope {
+class Scope_30 extends Scope {
   GatheringErrorListener errorListener3;
 
-  Scope_28(this.errorListener3) : super();
+  Scope_30(this.errorListener3) : super();
 
   AnalysisErrorListener get errorListener => errorListener3;
 
@@ -21882,7 +21882,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
         new FileUriResolver()]);
     LibraryResolver resolver = new LibraryResolver(context);
     LibraryElementBuilder builder = new LibraryElementBuilder(resolver);
-    Library library = resolver.createLibrary(librarySource) as Library;
+    Library library = resolver.createLibrary(librarySource);
     LibraryElement element = builder.buildLibrary(library);
     GatheringErrorListener listener = new GatheringErrorListener();
     listener.addAll(resolver.errorListener);
@@ -22453,7 +22453,7 @@ class SimpleResolverTest extends ResolverTestCase {
     JUnitTestCase.assertNotNull(unit);
     List<bool> found = [false];
     List<AnalysisException> thrownException = new List<AnalysisException>(1);
-    unit.accept(new RecursiveASTVisitor_31(this, found, thrownException));
+    unit.accept(new RecursiveASTVisitor_33(this, found, thrownException));
     if (thrownException[0] != null) {
       throw new AnalysisException.con3(thrownException[0]);
     }
@@ -22849,14 +22849,14 @@ class SimpleResolverTest extends ResolverTestCase {
   }
 }
 
-class RecursiveASTVisitor_31 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_33 extends RecursiveASTVisitor<Object> {
   final SimpleResolverTest SimpleResolverTest_this;
 
   List<bool> found;
 
   List<AnalysisException> thrownException;
 
-  RecursiveASTVisitor_31(this.SimpleResolverTest_this, this.found, this.thrownException) : super();
+  RecursiveASTVisitor_33(this.SimpleResolverTest_this, this.found, this.thrownException) : super();
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "myVar" && node.parent is MethodInvocation) {

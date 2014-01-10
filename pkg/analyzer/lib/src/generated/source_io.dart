@@ -19,18 +19,18 @@ abstract class LocalSourcePredicate {
   /**
    * Instance of [LocalSourcePredicate] that always returns `false`.
    */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_18();
+  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_20();
 
   /**
    * Instance of [LocalSourcePredicate] that always returns `true`.
    */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_19();
+  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_21();
 
   /**
    * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
    * except of SDK.
    */
-  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_20();
+  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_22();
 
   /**
    * Determines if the given [Source] is local.
@@ -41,15 +41,15 @@ abstract class LocalSourcePredicate {
   bool isLocal(Source source);
 }
 
-class LocalSourcePredicate_18 implements LocalSourcePredicate {
+class LocalSourcePredicate_20 implements LocalSourcePredicate {
   bool isLocal(Source source) => false;
 }
 
-class LocalSourcePredicate_19 implements LocalSourcePredicate {
+class LocalSourcePredicate_21 implements LocalSourcePredicate {
   bool isLocal(Source source) => true;
 }
 
-class LocalSourcePredicate_20 implements LocalSourcePredicate {
+class LocalSourcePredicate_22 implements LocalSourcePredicate {
   bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
 }
 
@@ -272,7 +272,7 @@ class PackageUriResolver extends UriResolver {
 
   Uri restoreAbsolute(Source source) {
     if (source is FileBasedSource) {
-      String sourcePath = (source as FileBasedSource).file.getPath();
+      String sourcePath = source.file.getPath();
       for (JavaFile packagesDirectory in _packagesDirectories) {
         List<JavaFile> pkgFolders = packagesDirectory.listFiles();
         if (pkgFolders != null) {
@@ -379,7 +379,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
 
   bool contains(Source source) => source.fullName.startsWith(_path);
 
-  bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && (obj as DirectoryBasedSourceContainer).path == path;
+  bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && obj.path == path;
 
   /**
    * Answer the receiver's path, used to determine if a source is contained in the receiver.

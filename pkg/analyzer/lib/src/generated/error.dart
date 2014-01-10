@@ -277,8 +277,8 @@ class ErrorReporter {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError2(ErrorCode errorCode, ASTNode node, List<Object> arguments) {
-    reportError4(errorCode, node.offset, node.length, arguments);
+  void reportError3(ErrorCode errorCode, ASTNode node, List<Object> arguments) {
+    reportError5(errorCode, node.offset, node.length, arguments);
   }
 
   /**
@@ -288,8 +288,8 @@ class ErrorReporter {
    * @param element the element which name should be used as the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError3(ErrorCode errorCode, Element element, List<Object> arguments) {
-    reportError4(errorCode, element.nameOffset, element.displayName.length, arguments);
+  void reportError4(ErrorCode errorCode, Element element, List<Object> arguments) {
+    reportError5(errorCode, element.nameOffset, element.displayName.length, arguments);
   }
 
   /**
@@ -300,7 +300,7 @@ class ErrorReporter {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError4(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void reportError5(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 
@@ -311,8 +311,8 @@ class ErrorReporter {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError5(ErrorCode errorCode, Token token, List<Object> arguments) {
-    reportError4(errorCode, token.offset, token.length, arguments);
+  void reportError6(ErrorCode errorCode, Token token, List<Object> arguments) {
+    reportError5(errorCode, token.offset, token.length, arguments);
   }
 
   /**

@@ -84,7 +84,7 @@ class ConstantEvaluator {
   EvaluationResult evaluate(Expression expression) {
     EvaluationResultImpl result = expression.accept(new ConstantVisitor(_typeProvider));
     if (result is ValidResult) {
-      return EvaluationResult.forValue((result as ValidResult).value);
+      return EvaluationResult.forValue(result.value);
     }
     List<AnalysisError> errors = new List<AnalysisError>();
     for (ErrorResult_ErrorData data in (result as ErrorResult).errorData) {
@@ -106,7 +106,7 @@ abstract class DartObject {
    *
    * @return the boolean value of this object
    */
-  Object get boolValue;
+  bool get boolValue;
 
   /**
    * Return the floating point value of this object, or `null` if either the value of this
@@ -138,6 +138,22 @@ abstract class DartObject {
    * @return the run-time type of this object
    */
   InterfaceType get type;
+
+  /**
+   * Return this object's value if it can be represented exactly, or `null` if either the
+   * value cannot be represented exactly or if the value is `null`. Clients should use
+   * [hasExactValue] to distinguish between these two cases.
+   *
+   * @return this object's value
+   */
+  Object get value;
+
+  /**
+   * Return `true` if this object's value can be represented exactly.
+   *
+   * @return `true` if this object's value can be represented exactly
+   */
+  bool hasExactValue();
 
   /**
    * Return `true` if this object represents the value 'false'.
@@ -339,7 +355,7 @@ class ConstantValueComputer {
     (variable as VariableElementImpl).evaluationResult = result;
     if (result is ErrorResult) {
       List<AnalysisError> errors = new List<AnalysisError>();
-      for (ErrorResult_ErrorData data in (result as ErrorResult).errorData) {
+      for (ErrorResult_ErrorData data in result.errorData) {
         ASTNode node = data.node;
         Source source = variable.getAncestor(CompilationUnitElement).source;
         errors.add(new AnalysisError.con2(source, node.offset, node.length, data.errorCode, []));
@@ -441,7 +457,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     EvaluationResultImpl rightResult = node.rightOperand.accept(this);
     TokenType operatorType = node.operator.type;
     if (operatorType != TokenType.BANG_EQ && operatorType != TokenType.EQ_EQ) {
-      if (leftResult is ValidResult && (leftResult as ValidResult).isNull || rightResult is ValidResult && (rightResult as ValidResult).isNull) {
+      if (leftResult is ValidResult && leftResult.isNull || rightResult is ValidResult && rightResult.isNull) {
         return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       }
     }
@@ -502,7 +518,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     } else if (!(conditionResult as ValidResult).isBool) {
       return new ErrorResult.con1(condition, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     } else if (thenResult is ErrorResult) {
-      return union(thenResult as ErrorResult, elseResult);
+      return union(thenResult, elseResult);
     } else if (elseResult is ErrorResult) {
       return elseResult;
     }
@@ -536,7 +552,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       for (int i = 0; i < argumentCount; i++) {
         Expression argument = arguments[i];
         if (argument is NamedExpression) {
-          NamedExpression namedExpression = argument as NamedExpression;
+          NamedExpression namedExpression = argument;
           String name = namedExpression.name.label.name;
           namedArgumentValues[name] = valueOf(namedExpression.expression);
           argumentValues[i] = null2;
@@ -580,7 +596,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   EvaluationResultImpl visitInterpolationExpression(InterpolationExpression node) {
     EvaluationResultImpl result = node.expression.accept(this);
-    if (result is ValidResult && !(result as ValidResult).isBoolNumStringOrNull) {
+    if (result is ValidResult && !result.isBoolNumStringOrNull) {
       return error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
     }
     return result.performToString(_typeProvider, node);
@@ -598,7 +614,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       EvaluationResultImpl elementResult = element.accept(this);
       result = union(result, elementResult);
       if (elementResult is ValidResult) {
-        elements.add((elementResult as ValidResult).value);
+        elements.add(elementResult.value);
       }
     }
     if (result != null) {
@@ -619,7 +635,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       result = union(result, keyResult);
       result = union(result, valueResult);
       if (keyResult is ValidResult && valueResult is ValidResult) {
-        map[(keyResult as ValidResult).value] = (valueResult as ValidResult).value;
+        map[keyResult.value] = valueResult.value;
       }
     }
     if (result != null) {
@@ -631,13 +647,13 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
   EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
     Element element = node.methodName.staticElement;
     if (element is FunctionElement) {
-      FunctionElement function = element as FunctionElement;
+      FunctionElement function = element;
       if (function.name == "identical") {
         NodeList<Expression> arguments = node.argumentList.arguments;
         if (arguments.length == 2) {
           Element enclosingElement = function.enclosingElement;
           if (enclosingElement is CompilationUnitElement) {
-            LibraryElement library = (enclosingElement as CompilationUnitElement).library;
+            LibraryElement library = enclosingElement.library;
             if (library.isDartCore) {
               EvaluationResultImpl leftArgument = arguments[0].accept(this);
               EvaluationResultImpl rightArgument = arguments[1].accept(this);
@@ -672,7 +688,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   EvaluationResultImpl visitPrefixExpression(PrefixExpression node) {
     EvaluationResultImpl operand = node.operand.accept(this);
-    if (operand is ValidResult && (operand as ValidResult).isNull) {
+    if (operand is ValidResult && operand.isNull) {
       return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }
     while (true) {
@@ -739,13 +755,13 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       element = (element as PropertyAccessorElement).variable;
     }
     if (element is VariableElementImpl) {
-      VariableElementImpl variableElementImpl = element as VariableElementImpl;
+      VariableElementImpl variableElementImpl = element;
       EvaluationResultImpl value = variableElementImpl.evaluationResult;
       if (variableElementImpl.isConst && value != null) {
         return value;
       }
     } else if (element is ExecutableElement) {
-      ExecutableElement function = element as ExecutableElement;
+      ExecutableElement function = element;
       if (function.isStatic) {
         return valid2(_typeProvider.functionType, new FunctionState(function));
       }
@@ -779,9 +795,9 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
   ErrorResult union(ErrorResult leftResult, EvaluationResultImpl rightResult) {
     if (rightResult is ErrorResult) {
       if (leftResult != null) {
-        return new ErrorResult.con2(leftResult, rightResult as ErrorResult);
+        return new ErrorResult.con2(leftResult, rightResult);
       } else {
-        return rightResult as ErrorResult;
+        return rightResult;
       }
     }
     return leftResult;
@@ -815,7 +831,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
   DartObjectImpl valueOf(Expression expression) {
     EvaluationResultImpl expressionValue = expression.accept(this);
     if (expressionValue is ValidResult) {
-      return (expressionValue as ValidResult).value;
+      return expressionValue.value;
     }
     return null2;
   }
@@ -1790,7 +1806,7 @@ class BoolState extends InstanceState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is BoolState) {
-      bool rightValue = (rightOperand as BoolState).value;
+      bool rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -1801,9 +1817,11 @@ class BoolState extends InstanceState {
     return FALSE_STATE;
   }
 
-  bool operator ==(Object object) => object is BoolState && identical(value, (object as BoolState).value);
+  bool operator ==(Object object) => object is BoolState && identical(value, object.value);
 
   String get typeName => "bool";
+
+  bool hasExactValue() => true;
 
   int get hashCode => value == null ? 0 : (value ? 2 : 3);
 
@@ -1996,7 +2014,7 @@ class DartObjectImpl implements DartObject {
     return type == dartObject.type && _state == dartObject._state;
   }
 
-  Object get boolValue {
+  bool get boolValue {
     if (_state is BoolState) {
       return (_state as BoolState).value;
     }
@@ -2024,6 +2042,8 @@ class DartObjectImpl implements DartObject {
     return null;
   }
 
+  Object get value => _state.value;
+
   /**
    * Return the result of invoking the '&gt;' operator on this object with the given argument.
    *
@@ -2043,6 +2063,8 @@ class DartObjectImpl implements DartObject {
    * @throws EvaluationException if the operator is not appropriate for an object of this kind
    */
   DartObjectImpl greaterThanOrEqual(TypeProvider typeProvider, DartObjectImpl rightOperand) => new DartObjectImpl(typeProvider.boolType, _state.greaterThanOrEqual(rightOperand._state));
+
+  bool hasExactValue() => _state.hasExactValue();
 
   int get hashCode => ObjectUtilities.combineHashCodes(type.hashCode, _state.hashCode);
 
@@ -2296,13 +2318,13 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value + rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -2326,13 +2348,13 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value / rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -2343,21 +2365,19 @@ class DoubleState extends NumState {
     throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  bool operator ==(Object object) => object is DoubleState && (value == (object as DoubleState).value);
-
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value == rightValue);
     } else if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -2368,6 +2388,8 @@ class DoubleState extends NumState {
     return BoolState.FALSE_STATE;
   }
 
+  bool operator ==(Object object) => object is DoubleState && (value == object.value);
+
   String get typeName => "double";
 
   BoolState greaterThan(InstanceState rightOperand) {
@@ -2376,13 +2398,13 @@ class DoubleState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value > rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -2399,13 +2421,13 @@ class DoubleState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value >= rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -2416,6 +2438,8 @@ class DoubleState extends NumState {
     throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
+  bool hasExactValue() => true;
+
   int get hashCode => value == null ? 0 : value.hashCode;
 
   IntState integerDivide(InstanceState rightOperand) {
@@ -2424,14 +2448,14 @@ class DoubleState extends NumState {
       return IntState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return IntState.UNKNOWN_VALUE;
       }
       double result = value / rightValue.toDouble();
       return new IntState(result.toInt());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return IntState.UNKNOWN_VALUE;
       }
@@ -2451,13 +2475,13 @@ class DoubleState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value < rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -2474,13 +2498,13 @@ class DoubleState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value <= rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -2497,13 +2521,13 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value - rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -2527,13 +2551,13 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value % rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -2550,13 +2574,13 @@ class DoubleState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value * rightValue.toDouble());
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -2752,14 +2776,14 @@ class FunctionState extends InstanceState {
     return new StringState(_element.name);
   }
 
-  bool operator ==(Object object) => object is FunctionState && (_element == (object as FunctionState)._element);
+  bool operator ==(Object object) => object is FunctionState && (_element == object._element);
 
   BoolState equalEqual(InstanceState rightOperand) {
     if (_element == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is FunctionState) {
-      ExecutableElement rightElement = (rightOperand as FunctionState)._element;
+      ExecutableElement rightElement = rightOperand._element;
       if (rightElement == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -2968,6 +2992,15 @@ abstract class InstanceState {
   String get typeName;
 
   /**
+   * Return this object's value if it can be represented exactly, or `null` if either the
+   * value cannot be represented exactly or if the value is `null`. Clients should use
+   * [hasExactValue] to distinguish between these two cases.
+   *
+   * @return this object's value
+   */
+  Object get value => null;
+
+  /**
    * Return the result of invoking the '&gt;' operator on this object with the given argument.
    *
    * @param rightOperand the right-hand operand of the operation
@@ -2992,6 +3025,13 @@ abstract class InstanceState {
     assertNumOrNull(rightOperand);
     throw new EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
   }
+
+  /**
+   * Return `true` if this object's value can be represented exactly.
+   *
+   * @return `true` if this object's value can be represented exactly
+   */
+  bool hasExactValue() => false;
 
   /**
    * Return the result of invoking the '~/' operator on this object with the given argument.
@@ -3255,13 +3295,13 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       return new IntState(value + rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
@@ -3278,7 +3318,7 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -3302,7 +3342,7 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -3319,7 +3359,7 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -3346,7 +3386,7 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue == 0) {
@@ -3354,7 +3394,7 @@ class IntState extends NumState {
       }
       return new IntState(value ~/ rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
@@ -3365,21 +3405,19 @@ class IntState extends NumState {
     throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  bool operator ==(Object object) => object is IntState && (value == (object as IntState).value);
-
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value == rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -3390,6 +3428,8 @@ class IntState extends NumState {
     return BoolState.FALSE_STATE;
   }
 
+  bool operator ==(Object object) => object is IntState && (value == object.value);
+
   String get typeName => "int";
 
   BoolState greaterThan(InstanceState rightOperand) {
@@ -3398,13 +3438,13 @@ class IntState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value.compareTo(rightValue) > 0);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -3421,13 +3461,13 @@ class IntState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value.compareTo(rightValue) >= 0);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -3438,6 +3478,8 @@ class IntState extends NumState {
     throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
+  bool hasExactValue() => true;
+
   int get hashCode => value == null ? 0 : value.hashCode;
 
   IntState integerDivide(InstanceState rightOperand) {
@@ -3446,7 +3488,7 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue == 0) {
@@ -3454,7 +3496,7 @@ class IntState extends NumState {
       }
       return new IntState(value ~/ rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -3474,13 +3516,13 @@ class IntState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value.compareTo(rightValue) < 0);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -3497,13 +3539,13 @@ class IntState extends NumState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value.compareTo(rightValue) <= 0);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -3523,13 +3565,13 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       return new IntState(value - rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
@@ -3556,7 +3598,7 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue == 0) {
@@ -3564,7 +3606,7 @@ class IntState extends NumState {
       }
       return new IntState(value.remainder(rightValue));
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
@@ -3581,7 +3623,7 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue.bitLength > 31) {
@@ -3600,7 +3642,7 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue.bitLength > 31) {
@@ -3622,13 +3664,13 @@ class IntState extends NumState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
       return new IntState(value * rightValue);
     } else if (rightOperand is DoubleState) {
-      double rightValue = (rightOperand as DoubleState).value;
+      double rightValue = rightOperand.value;
       if (rightValue == null) {
         return DoubleState.UNKNOWN_VALUE;
       }
@@ -3663,6 +3705,14 @@ class ListState extends InstanceState {
 
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(this == rightOperand);
+  }
+
   bool operator ==(Object object) {
     if (object is! ListState) {
       return false;
@@ -3682,15 +3732,30 @@ class ListState extends InstanceState {
     return true;
   }
 
-  BoolState equalEqual(InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
-    if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
+  String get typeName => "List";
+
+  List<Object> get value {
+    int count = _elements.length;
+    List<Object> result = new List<Object>(count);
+    for (int i = 0; i < count; i++) {
+      DartObjectImpl element = _elements[i];
+      if (!element.hasExactValue()) {
+        return null;
+      }
+      result[i] = element.value;
     }
-    return BoolState.from(this == rightOperand);
+    return result;
   }
 
-  String get typeName => "List";
+  bool hasExactValue() {
+    int count = _elements.length;
+    for (int i = 0; i < count; i++) {
+      if (!_elements[i].hasExactValue()) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   int get hashCode {
     int value = 0;
@@ -3723,6 +3788,14 @@ class MapState extends InstanceState {
 
   StringState convertToString() => StringState.UNKNOWN_VALUE;
 
+  BoolState equalEqual(InstanceState rightOperand) {
+    assertBoolNumStringOrNull(rightOperand);
+    if (rightOperand is DynamicState) {
+      return BoolState.UNKNOWN_VALUE;
+    }
+    return BoolState.from(this == rightOperand);
+  }
+
   bool operator ==(Object object) {
     if (object is! MapState) {
       return false;
@@ -3745,15 +3818,29 @@ class MapState extends InstanceState {
     return true;
   }
 
-  BoolState equalEqual(InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
-    if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
+  String get typeName => "Map";
+
+  Map<Object, Object> get value {
+    Map<Object, Object> result = new Map<Object, Object>();
+    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
+      DartObjectImpl key = entry.getKey();
+      DartObjectImpl value = entry.getValue();
+      if (!key.hasExactValue() || !value.hasExactValue()) {
+        return null;
+      }
+      result[key.value] = value.value;
     }
-    return BoolState.from(this == rightOperand);
+    return result;
   }
 
-  String get typeName => "Map";
+  bool hasExactValue() {
+    for (MapEntry<DartObjectImpl, DartObjectImpl> entry in getMapEntrySet(_entries)) {
+      if (!entry.getKey().hasExactValue() || !entry.getValue().hasExactValue()) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   int get hashCode {
     int value = 0;
@@ -3790,6 +3877,8 @@ class NullState extends InstanceState {
   bool operator ==(Object object) => object is NullState;
 
   String get typeName => "Null";
+
+  bool hasExactValue() => true;
 
   int get hashCode => 0;
 
@@ -3848,7 +3937,7 @@ class NumState extends InstanceState {
   IntState integerDivide(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     if (rightOperand is IntState) {
-      int rightValue = (rightOperand as IntState).value;
+      int rightValue = rightOperand.value;
       if (rightValue == null) {
         return IntState.UNKNOWN_VALUE;
       } else if (rightValue == 0) {
@@ -3919,7 +4008,7 @@ class StringState extends InstanceState {
       return UNKNOWN_VALUE;
     }
     if (rightOperand is StringState) {
-      String rightValue = (rightOperand as StringState).value;
+      String rightValue = rightOperand.value;
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       }
@@ -3932,15 +4021,13 @@ class StringState extends InstanceState {
 
   StringState convertToString() => this;
 
-  bool operator ==(Object object) => object is StringState && (value == (object as StringState).value);
-
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is StringState) {
-      String rightValue = (rightOperand as StringState).value;
+      String rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -3951,7 +4038,11 @@ class StringState extends InstanceState {
     return BoolState.FALSE_STATE;
   }
 
+  bool operator ==(Object object) => object is StringState && (value == object.value);
+
   String get typeName => "String";
+
+  bool hasExactValue() => true;
 
   int get hashCode => value == null ? 0 : value.hashCode;
 
@@ -3984,15 +4075,13 @@ class SymbolState extends InstanceState {
     return new StringState(value);
   }
 
-  bool operator ==(Object object) => object is SymbolState && (value == (object as SymbolState).value);
-
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is SymbolState) {
-      String rightValue = (rightOperand as SymbolState).value;
+      String rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
@@ -4003,7 +4092,11 @@ class SymbolState extends InstanceState {
     return BoolState.FALSE_STATE;
   }
 
+  bool operator ==(Object object) => object is SymbolState && (value == object.value);
+
   String get typeName => "Symbol";
+
+  bool hasExactValue() => true;
 
   int get hashCode => value == null ? 0 : value.hashCode;
 
@@ -4035,7 +4128,7 @@ class TypeState extends InstanceState {
     return new StringState(_element.name);
   }
 
-  bool operator ==(Object object) => object is TypeState && (_element == (object as TypeState)._element);
+  bool operator ==(Object object) => object is TypeState && (_element == object._element);
 
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
@@ -4043,7 +4136,7 @@ class TypeState extends InstanceState {
       return BoolState.UNKNOWN_VALUE;
     }
     if (rightOperand is TypeState) {
-      Element rightElement = (rightOperand as TypeState)._element;
+      Element rightElement = rightOperand._element;
       if (rightElement == null) {
         return BoolState.UNKNOWN_VALUE;
       }
