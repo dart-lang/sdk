@@ -24,7 +24,7 @@ import 'resubscribable.dart';
 /// succession, it won't report them in the order they occurred. See issue
 /// 14373.
 ///
-/// This also works around issues 15458 and 14849 in the implementation of
+/// This also works around issue 14849 in the implementation of
 /// [Directory.watch].
 class MacOSDirectoryWatcher extends ResubscribableDirectoryWatcher {
   // TODO(nweiz): remove these when issue 15042 is fixed.
@@ -295,9 +295,6 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       case FileSystemEvent.CREATE:
         return new ConstructableFileSystemCreateEvent(batch.first.path, isDir);
       case FileSystemEvent.DELETE:
-        // Issue 15458 means that DELETE events for directories can actually
-        // mean CREATE, so we always check the filesystem for them.
-        if (isDir) return null;
         return new ConstructableFileSystemCreateEvent(batch.first.path, false);
       case FileSystemEvent.MODIFY:
         return new ConstructableFileSystemModifyEvent(
