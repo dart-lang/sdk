@@ -192,9 +192,11 @@ void main() {
         new Directory('${dir.path}/dir').createSync();
         var virDir = new VirtualDirectory(dir.path);
         virDir.allowDirectoryListing = true;
-        virDir.directoryHandler = (dir2, request) {
+
+        virDir.directoryHandler = protectAsync2((dir2, request) {
           fail('not expected');
-        };
+        });
+
         return getStatusCodeForVirtDir(virDir, '/dir', followRedirects: false)
           .then((result) {
             expect(result, 301);

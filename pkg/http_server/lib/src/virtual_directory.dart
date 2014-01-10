@@ -10,6 +10,9 @@ class _DirectoryRedirect {
   const _DirectoryRedirect();
 }
 
+typedef dynamic _DirCallback(Directory dir, HttpRequest request);
+typedef dynamic _ErrorCallback(HttpRequest request);
+
 /**
  * A [VirtualDirectory] can serve files and directory-listing from a root path,
  * to [HttpRequest]s.
@@ -40,8 +43,8 @@ class VirtualDirectory {
 
   final RegExp _invalidPathRegExp = new RegExp("[\\\/\x00]");
 
-  Function _errorCallback;
-  Function _dirCallback;
+  _ErrorCallback _errorCallback;
+  _DirCallback _dirCallback;
 
   /*
    * Create a new [VirtualDirectory] for serving static file content of
@@ -55,20 +58,15 @@ class VirtualDirectory {
   /**
    * Serve a [Stream] of [HttpRequest]s, in this [VirtualDirectory].
    */
-  void serve(Stream<HttpRequest> requests) {
-    requests.listen(serveRequest);
-  }
+  StreamSubscription<HttpRequest> serve(Stream<HttpRequest> requests) =>
+      requests.listen(serveRequest);
 
   /**
    * Serve a single [HttpRequest], in this [VirtualDirectory].
    */
-  void serveRequest(HttpRequest request) {
-    _locateResource('.', request.uri.pathSegments.iterator..moveNext())
+  Future serveRequest(HttpRequest request) {
+    return _locateResource('.', request.uri.pathSegments.iterator..moveNext())
         .then((entity) {
-          if (entity == null) {
-            _serveErrorPage(HttpStatus.NOT_FOUND, request);
-            return;
-          }
           if (entity is File) {
             serveFile(entity, request);
           } else if (entity is Directory) {
@@ -82,8 +80,10 @@ class VirtualDirectory {
             request.response.redirect(Uri.parse('${request.uri}/'),
                                       status: HttpStatus.MOVED_PERMANENTLY);
           } else {
+            assert(entity == null);
             _serveErrorPage(HttpStatus.NOT_FOUND, request);
           }
+          return request.response.done;
         });
   }
 
@@ -179,7 +179,7 @@ class VirtualDirectory {
           !lastModified.isAfter(request.headers.ifModifiedSince)) {
         response.statusCode = HttpStatus.NOT_MODIFIED;
         response.close();
-        return;
+        return null;
       }
 
       response.headers.set(HttpHeaders.LAST_MODIFIED, lastModified);
@@ -187,7 +187,7 @@ class VirtualDirectory {
 
       if (request.method == 'HEAD') {
         response.close();
-        return;
+        return null;
       }
 
       return file.length().then((length) {
@@ -221,14 +221,18 @@ class VirtualDirectory {
             // Pipe the 'range' of the file.
             file.openRead(start, end)
                 .pipe(new _VirtualDirectoryFileStream(response, file.path))
-                .catchError((_) {});
+                .catchError((_) {
+                  // TODO(kevmoo): log errors
+                });
             return;
           }
         }
 
         file.openRead()
             .pipe(new _VirtualDirectoryFileStream(response, file.path))
-            .catchError((_) {});
+            .catchError((_) {
+              // TODO(kevmoo): log errors
+            });
       });
     }).catchError((_) {
       response.statusCode = HttpStatus.NOT_FOUND;
@@ -297,7 +301,6 @@ $server
       }
 
       dir.list(followLinks: true).listen((entity) {
-        // TODO(ajohnsen): Consider async dir listing.
         if (entity is File) {
           var stat = entity.statSync();
           add(basename(entity.path),
@@ -309,11 +312,15 @@ $server
               null);
         }
       }, onError: (e) {
+        // TODO(kevmoo): log error
       }, onDone: () {
         response.write(footer);
         response.close();
       });
-    }, onError: (e) => response.close());
+    }, onError: (e) {
+      // TODO(kevmoo): log error
+      response.close();
+    });
   }
 
   void _serveErrorPage(int error, HttpRequest request) {
@@ -349,7 +356,7 @@ $server
 class _VirtualDirectoryFileStream extends StreamConsumer<List<int>> {
   final HttpResponse response;
   final String path;
-  var buffer = [];
+  List<int> buffer = [];
 
   _VirtualDirectoryFileStream(HttpResponse this.response, String this.path);
 
@@ -394,7 +401,7 @@ class _VirtualDirectoryFileStream extends StreamConsumer<List<int>> {
 
   Future close() => new Future.value();
 
-  void setMimeType(var bytes) {
+  void setMimeType(List<int> bytes) {
     var mimeType = lookupMimeType(path, headerBytes: bytes);
     if (mimeType != null) {
       response.headers.contentType = ContentType.parse(mimeType);
