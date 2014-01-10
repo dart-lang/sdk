@@ -88,10 +88,6 @@ class BarbackServer {
       return;
     }
 
-    // Set content-type to force UTF-8 encoding.
-    request.response.headers.contentType =
-        ContentType.parse("text/html; charset=utf-8");
-
     if (request.method != "GET" && request.method != "HEAD") {
       _methodNotAllowed(request);
       return;
@@ -264,6 +260,12 @@ class BarbackServer {
   /// Responds to [request] with a 404 response and closes it.
   void _notFound(HttpRequest request, message) {
     _logRequest(request, "404 Not Found");
+
+    // Force a UTF-8 encoding so that error messages in non-English locales are
+    // sent correctly.
+    request.response.headers.contentType =
+        ContentType.parse("text/plain; charset=utf-8");
+
     request.response.statusCode = 404;
     request.response.reasonPhrase = "Not Found";
     request.response.write(message);
