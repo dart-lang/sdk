@@ -17,8 +17,6 @@ polymer/example/scoped_style/*: Skip
 scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
-watcher/test/directory_watcher/polling_test: Timeout # Issue 16023
-
 polymer/test/event_path_test: Pass, Fail # Issue 15766
 
 # Skip test not runnable via test.dart
@@ -28,6 +26,9 @@ third_party/html5lib/test/browser/browser_test: Skip
 http/test/http_test: Pass, RuntimeError # Issue 15652
 
 third_party/angular_tests/*: Skip # Issue 15955
+
+[ $runtime == vm ]
+watcher/test/directory_watcher/polling_test: Timeout # Issue 16023
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
