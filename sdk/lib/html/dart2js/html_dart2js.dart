@@ -910,6 +910,23 @@ class BodyElement extends HtmlElement implements WindowEventHandlers native "HTM
    */
   BodyElement.created() : super.created();
 
+  // From EventTarget
+
+  @DomName('HTMLBodyElement.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('HTMLBodyElement.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native;
+
+  @DomName('HTMLBodyElement.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
   /// Stream of `blur` events handled by this [BodyElement].
   @DomName('HTMLBodyElement.onblur')
   @DocsEditable()
@@ -7467,6 +7484,23 @@ class Document extends Node  native "Document"
   // http://www.w3.org/TR/css3-regions/#dom-named-flow-collection
   NamedFlowCollection getNamedFlows() native;
 
+  // From EventTarget
+
+  @DomName('Document.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('Document.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native;
+
+  @DomName('Document.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
   // From ParentNode
 
   @JSName('childElementCount')
@@ -11360,6 +11394,23 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Element-requestPointerLock-void
   void requestPointerLock() native;
 
+  // From EventTarget
+
+  @DomName('Element.addEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('Element.dispatchEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool dispatchEvent(Event event) native;
+
+  @DomName('Element.removeEventListener')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
   // From ChildNode
 
   @DomName('Element.nextElementSibling')
@@ -13546,7 +13597,7 @@ class Geoposition extends Interceptor native "Geoposition" {
 @DocsEditable()
 @DomName('GlobalEventHandlers')
 @Experimental() // untriaged
-abstract class GlobalEventHandlers extends Interceptor {
+abstract class GlobalEventHandlers extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory GlobalEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
@@ -29166,7 +29217,7 @@ abstract class WindowBase64 extends Interceptor {
 @DocsEditable()
 @DomName('WindowEventHandlers')
 @Experimental() // untriaged
-abstract class WindowEventHandlers extends Interceptor {
+abstract class WindowEventHandlers extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory WindowEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
@@ -30593,6 +30644,8 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
    * This can only be called by subclasses from their created constructor.
    */
   _HTMLFrameSetElement.created() : super.created();
+
+  // From EventTarget
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

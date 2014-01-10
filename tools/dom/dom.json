@@ -1646,6 +1646,9 @@
     "comment": "http://dom.spec.whatwg.org/#interface-document",
     "members": {
       "URL": {},
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "adoptNode": {},
       "anchors": {
         "dart_action": "suppress"
@@ -1732,6 +1735,9 @@
         "support_level": "nonstandard"
       },
       "defaultView": {},
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "doctype": {
         "dart_action": "suppress"
       },
@@ -1963,6 +1969,9 @@
       "querySelectorAll": {},
       "readyState": {},
       "referrer": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
       "securityPolicy": {
         "comment": "https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#idl-def-SecurityPolicy",
         "support_level": "experimental"
@@ -2127,6 +2136,9 @@
         "dart_action": "suppress",
         "support_level": "deprecated"
       },
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "attributes": {},
       "blur": {},
       "childElementCount": {},
@@ -2164,6 +2176,9 @@
         "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
         "dart_action": "stable",
         "support_level": "nonstandard"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
       },
       "draggable": {
         "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
@@ -2434,6 +2449,9 @@
         "comment": "http://dom.spec.whatwg.org/#dom-element-removeattributenode",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
       },
       "scrollByLines": {},
       "scrollByPages": {},
@@ -3154,6 +3172,12 @@
   },
   "GlobalEventHandlers": {
     "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "onabort": {
         "support_level": "untriaged"
       },
@@ -3308,6 +3332,9 @@
         "support_level": "untriaged"
       },
       "onwaiting": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
         "support_level": "untriaged"
       }
     },
@@ -3496,6 +3523,9 @@
         "dart_action": "suppress",
         "support_level": "deprecated"
       },
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "background": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLBodyElement-partial",
         "dart_action": "suppress",
@@ -3505,6 +3535,9 @@
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLBodyElement-partial",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
       },
       "link": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLBodyElement-partial",
@@ -3527,6 +3560,9 @@
       },
       "onstorage": {},
       "onunload": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
       "text": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLBodyElement-partial",
         "dart_action": "suppress",
@@ -3747,10 +3783,16 @@
     "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
     "members": {
       "accessKey": {},
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "children": {},
       "click": {},
       "contentEditable": {},
       "dir": {},
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "draggable": {},
       "getInputContext": {
         "comment": "http://www.w3.org/TR/ime-api/#the-getinputcontext-method",
@@ -3937,6 +3979,9 @@
       "outerText": {
         "dart_action": "suppress",
         "support_level": "nonstandard"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
       },
       "spellcheck": {
         "comment": "http://blog.whatwg.org/the-road-to-html-5-spellchecking",
@@ -8266,7 +8311,13 @@
     "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGElement",
     "dart_action": "unstable",
     "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "className": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
         "support_level": "untriaged"
       },
       "getPresentationAttribute": {
@@ -8430,6 +8481,9 @@
         "support_level": "untriaged"
       },
       "ownerSVGElement": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
       "style": {
         "support_level": "untriaged"
       },
@@ -13429,6 +13483,12 @@
   },
   "WindowEventHandlers": {
     "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "onbeforeunload": {
         "support_level": "untriaged"
       },
@@ -13454,6 +13514,9 @@
         "support_level": "untriaged"
       },
       "onunload": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
         "support_level": "untriaged"
       }
     },
