@@ -57,9 +57,17 @@ abstract class Message {
 
   /**
    * We find the arguments from the top-level [MainMessage] and use those to
-   * do variable substitutions.
+   * do variable substitutions. [MainMessage] overrides this to return
+   * the actual arguments.
    */
   get arguments => parent == null ? const [] : parent.arguments;
+
+  /**
+   * We find the examples from the top-level [MainMessage] and use those
+   * when writing out variables. [MainMessage] overrides this to return
+   * the actual examples.
+   */
+  get examples => parent == null ? const [] : parent.examples;
 
   String checkValidity(MethodInvocation node, List arguments,
                        String outerName, FormalParameterList outerArgs) {
