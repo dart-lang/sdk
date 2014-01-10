@@ -78,16 +78,7 @@ polymer/test/register_test: Skip #uses dart:html
 polymer/test/take_attributes_test: Skip #uses dart:html
 polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
 polymer/test/unbind_test: Skip # uses dart:html
-third_party/angular_tests/_specs_test: Skip # uses dart:html
-third_party/angular_tests/angular_test: Skip # uses dart:html
-third_party/angular_tests/bootstrap_test: Skip # uses dart:html
-third_party/angular_tests/core/*: Skip # uses dart:html
-third_party/angular_tests/core_dom/*: Skip # uses dart:html
-third_party/angular_tests/directive/*: Skip # uses dart:html
-third_party/angular_tests/filter/*: Skip # uses dart:html
-third_party/angular_tests/introspection_test: Skip # uses dart:html
-third_party/angular_tests/mock/*: Skip # uses dart:html
-third_party/angular_tests/routing/*: Skip # uses dart:html
+third_party/angular_tests/browser_test: Skip # uses dart:html
 
 [$compiler == dart2dart]
 *: Skip
@@ -139,8 +130,7 @@ unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
 
-third_party/angular_tests/*: StaticWarning # Issue 15890
-third_party/angular_tests/tools/*: Pass
+third_party/angular_tests/browser_test: StaticWarning # Issue 15890
 
 [ $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip
@@ -209,7 +199,7 @@ oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
-third_party/angular_tests/tools/*: Skip # Uses dart:io
+third_party/angular_tests/vm_test: Skip # Uses dart:io
 watcher/test/*: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/*: Fail # http://dartbug.com/8440
@@ -222,7 +212,6 @@ scheduled_test/test/scheduled_stream/stream_matcher_test: Fail # http://dartbug.
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
 
 # Skip tests on the browser if the test depends on dart:io
-third_party/angular_tests/io/*: Skip
 third_party/html5lib/test/parser_test: Skip
 third_party/html5lib/test/tokenizer_test: Skip
 
@@ -319,9 +308,9 @@ watcher/test/*/mac_os_test: Skip
 third_party/angular_tests/*: Skip
 
 [ $unchecked ]
-third_party/angular_tests/core/scope_test: Skip # Requires checked mode.
-third_party/angular_tests/angular_test: Skip # Requires checked mode.
-third_party/angular_tests/core/zone_test: Skip # Requires checked mode.
+third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.
+third_party/angular_tests/browser_test/core/scope: Skip # Requires checked mode.
+third_party/angular_tests/browser_test/core/zone: Skip # Requires checked mode.
 
 [ $use_repository_packages ]
 analyzer/test/error_test: PubGetError
