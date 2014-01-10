@@ -13546,7 +13546,7 @@ class Geoposition extends Interceptor native "Geoposition" {
 @DocsEditable()
 @DomName('GlobalEventHandlers')
 @Experimental() // untriaged
-abstract class GlobalEventHandlers extends Interceptor {
+abstract class GlobalEventHandlers extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory GlobalEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
@@ -29166,7 +29166,7 @@ abstract class WindowBase64 extends Interceptor {
 @DocsEditable()
 @DomName('WindowEventHandlers')
 @Experimental() // untriaged
-abstract class WindowEventHandlers extends Interceptor {
+abstract class WindowEventHandlers extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory WindowEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
