@@ -135,12 +135,12 @@ ArgParser _initArgParser() {
             'Do not print reformatted sources to standard output.');
   parser.addOption('kind', abbr: 'k', defaultsTo: 'cu',
       help: 'Specify source snippet kind ("stmt" or "cu")'
-            ' --- [PROVISIONAL API].');
+            ' --- [PROVISIONAL API].', hide: true);
   parser.addFlag('machine', abbr: 'm', negatable: false,
       help: 'Produce output in a format suitable for parsing.');
   parser.addOption('selection', abbr: 's',
       help: 'Specify selection information as an offset,length pair '
-            '(e.g., -s "0,4").');
+            '(e.g., -s "0,4").', hide: true);
   parser.addFlag('transform', abbr: 't', negatable: true,
       help: 'Perform code transformations.');
   parser.addFlag('help', abbr: 'h', negatable: false,
@@ -161,8 +161,8 @@ _printUsage() {
                 'default, $BINARY_NAME prints the reformatted sources to '
                 'standard output.')
         ..write('\n\n')
-        ..write('Supported flags are:')
         ..write('Usage: $BINARY_NAME [flags] [path...]\n\n')
+        ..write('Supported flags are:\n')
         ..write('${argParser.getUsage()}\n\n');
   _log(buffer.toString());
 }
