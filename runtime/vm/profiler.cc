@@ -32,7 +32,7 @@ namespace dart {
     defined(TARGET_OS_MACOS) || defined(TARGET_OS_ANDROID)
   DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
 #else
-  DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
+  DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 #endif
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 DEFINE_FLAG(charp, profile_dir, NULL,
@@ -112,7 +112,6 @@ void Profiler::ShutdownProfilingForIsolate(Isolate* isolate) {
       return;
     }
     isolate->set_profiler_data(NULL);
-    profiler_data->set_sample_buffer(NULL);
     delete profiler_data;
     if (FLAG_trace_profiled_isolates) {
       OS::Print("Profiler Shutdown %p %s\n", isolate, isolate->name());
