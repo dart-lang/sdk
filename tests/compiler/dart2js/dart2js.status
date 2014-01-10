@@ -6,9 +6,11 @@ identity_test: Fail # Issue 6638
 constant_folding_string_test: Fail
 boolified_operator_test: Fail # Issue 8001
 
-analyze_api_test: Fail # Issue 15954
-# analyze_api_test: Pass, Slow
-analyze_dart2js_test: Pass, Slow
+# Don't mark these tests as failing. Instead, fix the errors/warnings that they
+# report or update the whitelist in the test-files to temporarily allow
+# digression.
+analyze_api_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
+analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- SEE ABOVE.
 
 # simple_function_subtype_test is temporarily(?) disabled due to new method for
 # building function type tests.

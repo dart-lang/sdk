@@ -20,6 +20,10 @@ import "package:async_helper/async_helper.dart";
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String, List<String>> WHITE_LIST = const {
+  'html_dart2js.dart': const [
+      // Issue 15954:
+      "'GlobalEventHandlers' is not assignable to 'EventTarget'",
+      "'WindowEventHandlers' is not assignable to 'EventTarget'"]
 };
 
 void main() {
