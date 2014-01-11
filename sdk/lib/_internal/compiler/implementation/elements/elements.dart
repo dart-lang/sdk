@@ -560,17 +560,12 @@ class Elements {
 
   static bool isConstructorOfTypedArraySubclass(Element element,
                                                 Compiler compiler) {
-    if (compiler.typedDataLibrary == null) return false;
-    if (!element.isConstructor()) return false;
-    FunctionElement constructor = element;
-    constructor = constructor.redirectionTarget;
-    ClassElement cls = constructor.getEnclosingClass();
-    //if (cls == null) return false;
-    return cls.getLibrary() == compiler.typedDataLibrary
-        && cls.isNative()
-        && compiler.world.isSubtype(compiler.typedDataClass, cls)
-        && compiler.world.isSubtype(compiler.listClass, cls)
-        && constructor.name == '';
+    if (compiler.typedDataClass == null) return false;
+    ClassElement cls = element.getEnclosingClass();
+    if (cls == null || !element.isConstructor()) return false;
+    return compiler.world.isSubclass(compiler.typedDataClass, cls)
+        && cls.getLibrary() == compiler.typedDataLibrary
+        && element.name == '';
   }
 
   static bool switchStatementHasContinue(SwitchStatement node,
