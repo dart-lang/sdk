@@ -808,7 +808,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (uri == new Uri(scheme: 'dart', path: 'typed_data')) {
       typedDataLibrary = library;
       typedDataClass =
-          findRequiredElement(library, 'TypedData');
+          findRequiredElement(library, '_NativeTypedData');
     } else if (uri == new Uri(scheme: 'dart', path: '_collection-dev')) {
       symbolImplementationClass =
           findRequiredElement(library, 'Symbol');
