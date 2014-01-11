@@ -6,7 +6,6 @@ library utils;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:stack_trace/stack_trace.dart';

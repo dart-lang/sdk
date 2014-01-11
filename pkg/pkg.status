@@ -287,12 +287,6 @@ polymer_expressions/test/bindings_test: Fail, Pass # Issue 14445.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 docgen/test/single_library_test: StaticWarning
-http/test/client_test: StaticWarning
-http/test/http_test: StaticWarning
-http/test/mock_client_test: StaticWarning
-http/test/multipart_test: StaticWarning
-http/test/request_test: StaticWarning
-http/test/streamed_request_test: StaticWarning
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 
 [ $runtime == vm && ($system == windows || $system == macos) ]

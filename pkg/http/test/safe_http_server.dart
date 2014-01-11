@@ -5,6 +5,7 @@
 library safe_http_server;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 // TODO(nweiz): remove this when issue 9140 is fixed.
@@ -19,6 +20,8 @@ import 'dart:io';
 /// The [HttpRequest] data stream can still emit errors.
 class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
   final HttpServer _inner;
+  String serverHeader = 'SaftHttpServer';
+  Duration idleTimeout = const Duration(seconds: 120);
 
   static Future<SafeHttpServer> bind([String host = "localhost",
       int port = 0, int backlog = 0]) {
@@ -112,6 +115,11 @@ class _HttpResponseWrapper implements HttpResponse {
     _inner.contentLength = value;
   }
 
+  Duration get deadline => _inner.deadline;
+  void set deadline(Duration value) {
+    _inner.deadline = value;
+  }
+
   int get statusCode => _inner.statusCode;
   set statusCode(int value) {
     _inner.statusCode = value;
@@ -128,7 +136,8 @@ class _HttpResponseWrapper implements HttpResponse {
   }
 
   Encoding get encoding => _inner.encoding;
-  set encoding(Encoding value) {
+
+  void set encoding(Encoding value) {
     _inner.encoding = value;
   }
 
@@ -148,4 +157,6 @@ class _HttpResponseWrapper implements HttpResponse {
   void writeln([Object obj = ""]) => _inner.writeln(obj);
   void addError(error, [StackTrace stackTrace]) =>
       _inner.addError(error, stackTrace);
+  Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY}) =>
+      _inner.redirect(location, status: status);
 }
