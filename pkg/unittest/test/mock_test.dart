@@ -7,6 +7,7 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
 
 class MockList extends Mock implements List {
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class Foo {
@@ -19,6 +20,8 @@ class FooSpy extends Mock implements Foo {
     real = new Foo();
     this.when(callsTo('sum')).alwaysCall(real.sum);
   }
+
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 makeTestLogEntry(String methodName, List args, int time,
@@ -666,10 +669,10 @@ main() {
     // This is distinct from value ordering, i.e.
     //
     // m.when(...).thenReturn(1).thenReturn(2)
-    // 
+    //
     // Here we want to test using distinct matchers being
     // applied in order, so we have a single call that
-    // matches 3 different behaviors, and test that 
+    // matches 3 different behaviors, and test that
     // the behaviors are applied in the order they are
     // defined.
     var m = new Mock();

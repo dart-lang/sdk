@@ -294,7 +294,6 @@ http/test/multipart_test: StaticWarning
 http/test/request_test: StaticWarning
 http/test/streamed_request_test: StaticWarning
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
-unittest/test/mock_test: StaticWarning, OK # testing unimplemented members
 
 [ $runtime == vm && ($system == windows || $system == macos) ]
 watcher/test/*/linux_test: Skip
