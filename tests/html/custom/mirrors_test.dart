@@ -4,6 +4,7 @@
 
 library tests.html.mirrors_test;
 
+@MirrorsUsed(targets: const [A, B])
 import 'dart:mirrors';
 import 'dart:html';
 import 'package:unittest/unittest.dart';
