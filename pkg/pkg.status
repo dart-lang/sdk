@@ -25,8 +25,6 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 http/test/http_test: Pass, RuntimeError # Issue 15652
 
-third_party/angular_tests/*: Skip # Issue 15955
-
 [ $runtime == vm ]
 watcher/test/directory_watcher/polling_test: Timeout # Issue 16023
 
@@ -37,7 +35,8 @@ collection/test/equality_test/03: Fail # Issue 1533
 collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
-third_party/angular_tests/core/parser/parser_test: Fail # Issue 15915
+third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
+third_party/angular_tests/browser_test/core/parser/parser: Fail # Issue 15915
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
 [ $compiler == dart2js && $checked ]
