@@ -19,7 +19,7 @@ part 'part_of_sample_with_messages.dart';
 message1() => Intl.message("This is a message", name: 'message1', desc: 'foo' );
 
 message2(x) => Intl.message("Another message with parameter $x",
-    name: 'message2', desc: 'Description 2', args: [x]);
+    name: 'message2', desc: 'Description 2', args: [x], examples: {'x' : 3});
 
 // A string with multiple adjacent strings concatenated together, verify
 // that the parser handles this properly.

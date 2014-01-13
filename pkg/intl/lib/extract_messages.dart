@@ -229,8 +229,11 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     for (var namedArgument in arguments.where((x) => x is NamedExpression)) {
       var name = namedArgument.name.label.name;
       var exp = namedArgument.expression;
-      var string = exp is SimpleStringLiteral ? exp.value : exp.toString();
-      setAttribute(message, name, string);
+      var evaluator = new ConstantEvaluator();
+      var basicValue = exp.accept(evaluator);
+      var value = basicValue == ConstantEvaluator.NOT_A_CONSTANT ?
+          exp.toString() : basicValue;
+      setAttribute(message, name, value);
     }
     return message;
   }
@@ -258,7 +261,7 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
       }
     }
 
-    void setValue(MainMessage message, String fieldName, String fieldValue) {
+    void setValue(MainMessage message, String fieldName, Object fieldValue) {
       message[fieldName] = fieldValue;
     }
 

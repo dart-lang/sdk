@@ -323,7 +323,7 @@ class MainMessage extends ComplexMessage {
   String description;
 
   /** The examples from the Intl.message call */
-  String examples;
+  Map<String, dynamic> examples;
 
   /**
    * The name, which may come from the function name, from the arguments
