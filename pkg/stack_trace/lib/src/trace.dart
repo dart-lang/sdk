@@ -164,6 +164,7 @@ class Trace implements StackTrace {
   /// Parses a string representation of a Safari 6.1+ stack trace.
   Trace.parseSafari6_1(String trace)
       : this(trace.trim().split("\n")
+          .where((line) => line.isNotEmpty)
           .map((line) => new Frame.parseSafari6_1(line)));
 
   /// Parses a string representation of a Safari 6.0 stack trace.

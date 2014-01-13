@@ -160,6 +160,21 @@ void main() {
           equals(Uri.parse("http://pub.dartlang.org/thing.js")));
     });
 
+    test('parses a Safari 6.1 stack trace with an empty line correctly', () {
+      var trace = new Trace.parse(
+          'http://pub.dartlang.org/stuff.js:42:43\n'
+          '\n'
+          'zip@http://pub.dartlang.org/stuff.js:0:1\n'
+          'zip\$zap@http://pub.dartlang.org/thing.js:1:2');
+
+      expect(trace.frames[0].uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
+      expect(trace.frames[1].uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.js")));
+      expect(trace.frames[2].uri,
+          equals(Uri.parse("http://pub.dartlang.org/thing.js")));
+    });
+
     test('parses a package:stack_trace stack trace correctly', () {
       var trace = new Trace.parse(
           'http://dartlang.org/foo/bar.dart 10:11  Foo.<fn>.bar\n'
