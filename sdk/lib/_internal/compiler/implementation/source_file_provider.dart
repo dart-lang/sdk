@@ -42,7 +42,7 @@ abstract class SourceFileProvider {
     }
     List<int> source;
     try {
-      source = readAll(uriPathToNative(resourceUri.path));
+      source = readAll(resourceUri.toFilePath());
     } on FileSystemException catch (ex) {
       return new Future.error(
           "Error reading '${relativize(cwd, resourceUri, isWindows)}' "

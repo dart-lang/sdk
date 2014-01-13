@@ -376,7 +376,7 @@ Future compile(List<String> argv) {
     }
 
     RandomAccessFile output =
-        new File(uriPathToNative(uri.path)).openSync(mode: FileMode.WRITE);
+        new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
     int charactersWritten = 0;
 
     writeStringSync(String data) {
@@ -445,7 +445,7 @@ void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
     fail('Error: Unhandled scheme ${uri.scheme}.');
   }
-  var file = new File(uriPathToNative(uri.path)).openSync(mode: FileMode.WRITE);
+  var file = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
   file.writeStringSync(text);
   file.closeSync();
 }
