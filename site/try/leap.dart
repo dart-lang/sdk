@@ -1193,6 +1193,8 @@ observer.observe(
 })();
 ''';
 
+// Test that math.png is displayed correctly (centered without 3d border).
+// Test that slider works and changes size of sunflower.
 const String EXAMPLE_SUNFLOWER = '''
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1221,6 +1223,8 @@ final CanvasRenderingContext2D context =
 void main() {
   document.head.append(new StyleElement()..appendText(STYLE));
   document.body.innerHtml = BODY;
+  ImageElement img = document.querySelector("#math_png");
+  img.src = MATH_PNG;
   slider.onChange.listen((e) => draw());
   draw();
 }
@@ -1262,7 +1266,7 @@ const String BODY = """
         <input id="slider" type="range" max="1000" value="500"/>
       </form>
       <br/>
-      <img src="\$MATH_PNG" width="350px" height="42px" class="center">
+      <img id="math_png" width="350px" height="42px" class="center">
     </div>
 
     <footer>
@@ -1274,7 +1278,7 @@ const String BODY = """
 const String STYLE = r"""
 body {
   background-color: #F8F8F8;
-  font-family: 'Open Sans', sans-serif;
+  font-family: \'Open Sans\', sans-serif;
   font-size: 14px;
   font-weight: normal;
   line-height: 1.2em;
@@ -1319,5 +1323,4 @@ img {
   text-align: center;
 }
 """;
-
 ''';
