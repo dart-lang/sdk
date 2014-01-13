@@ -361,7 +361,7 @@ class AngularCompilationUnitBuilder {
     }
     List<AngularModuleElement> childModules = [];
     List<ClassElement> keyTypes = [];
-    _classDeclaration.accept(new RecursiveASTVisitor_10(this, childModules, keyTypes));
+    _classDeclaration.accept(new RecursiveASTVisitor_AngularCompilationUnitBuilder_parseModuleClass(this, childModules, keyTypes));
     AngularModuleElementImpl module = createModuleElement(childModules, keyTypes);
     _classToolkitObjects.add(module);
   }
@@ -403,7 +403,7 @@ class AngularCompilationUnitBuilder {
    * [AngularModuleElement] for it.
    */
   void parseModuleVariables(CompilationUnit unit) {
-    unit.accept(new RecursiveASTVisitor_11(this));
+    unit.accept(new RecursiveASTVisitor_AngularCompilationUnitBuilder_parseModuleVariables(this));
   }
 
   void parseNgComponent() {
@@ -646,14 +646,14 @@ class AngularCompilationUnitBuilder {
   }
 }
 
-class RecursiveASTVisitor_10 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_AngularCompilationUnitBuilder_parseModuleClass extends RecursiveASTVisitor<Object> {
   final AngularCompilationUnitBuilder AngularCompilationUnitBuilder_this;
 
   List<AngularModuleElement> childModules;
 
   List<ClassElement> keyTypes;
 
-  RecursiveASTVisitor_10(this.AngularCompilationUnitBuilder_this, this.childModules, this.keyTypes) : super();
+  RecursiveASTVisitor_AngularCompilationUnitBuilder_parseModuleClass(this.AngularCompilationUnitBuilder_this, this.childModules, this.keyTypes) : super();
 
   Object visitMethodInvocation(MethodInvocation node) {
     if (node.target == null) {
@@ -663,10 +663,10 @@ class RecursiveASTVisitor_10 extends RecursiveASTVisitor<Object> {
   }
 }
 
-class RecursiveASTVisitor_11 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_AngularCompilationUnitBuilder_parseModuleVariables extends RecursiveASTVisitor<Object> {
   final AngularCompilationUnitBuilder AngularCompilationUnitBuilder_this;
 
-  RecursiveASTVisitor_11(this.AngularCompilationUnitBuilder_this) : super();
+  RecursiveASTVisitor_AngularCompilationUnitBuilder_parseModuleVariables(this.AngularCompilationUnitBuilder_this) : super();
 
   LocalVariableElementImpl _variable = null;
 
@@ -3919,7 +3919,7 @@ class DeclarationMatcher extends RecursiveASTVisitor<Object> {
   }
 
   void gatherElements(Element element) {
-    element.accept(new GeneralizingElementVisitor_15(this));
+    element.accept(new GeneralizingElementVisitor_DeclarationMatcher_gatherElements(this));
   }
 
   /**
@@ -3981,10 +3981,10 @@ class DeclarationMatcher extends RecursiveASTVisitor<Object> {
 class DeclarationMatcher_DeclarationMismatchException extends RuntimeException {
 }
 
-class GeneralizingElementVisitor_15 extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_DeclarationMatcher_gatherElements extends GeneralizingElementVisitor<Object> {
   final DeclarationMatcher DeclarationMatcher_this;
 
-  GeneralizingElementVisitor_15(this.DeclarationMatcher_this) : super();
+  GeneralizingElementVisitor_DeclarationMatcher_gatherElements(this.DeclarationMatcher_this) : super();
 
   Object visitElement(Element element) {
     DeclarationMatcher_this._allElements.add(element);
@@ -9657,7 +9657,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   bool isVariableAccessedInClosure(Element variable, ASTNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_16(result, variable));
+    target.accept(new RecursiveASTVisitor_ResolverVisitor_isVariableAccessedInClosure(result, variable));
     return result[0];
   }
 
@@ -9671,7 +9671,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   bool isVariablePotentiallyMutatedIn(Element variable, ASTNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_17(result, variable));
+    target.accept(new RecursiveASTVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(result, variable));
     return result[0];
   }
 
@@ -9828,12 +9828,12 @@ class ResolverVisitor extends ScopedVisitor {
   set enclosingClass_J2DAccessor(__v) => _enclosingClass = __v;
 }
 
-class RecursiveASTVisitor_16 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_ResolverVisitor_isVariableAccessedInClosure extends RecursiveASTVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_16(this.result, this.variable) : super();
+  RecursiveASTVisitor_ResolverVisitor_isVariableAccessedInClosure(this.result, this.variable) : super();
 
   bool _inClosure = false;
 
@@ -9858,12 +9858,12 @@ class RecursiveASTVisitor_16 extends RecursiveASTVisitor<Object> {
   }
 }
 
-class RecursiveASTVisitor_17 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn extends RecursiveASTVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_17(this.result, this.variable) : super();
+  RecursiveASTVisitor_ResolverVisitor_isVariablePotentiallyMutatedIn(this.result, this.variable) : super();
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (result[0]) {
@@ -11638,7 +11638,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
     }
     if (body is BlockFunctionBody) {
       List<Type2> result = [null];
-      body.accept(new GeneralizingASTVisitor_18(result));
+      body.accept(new GeneralizingASTVisitor_StaticTypeAnalyzer_computePropagatedReturnType2(result));
       return result[0];
     }
     return null;
@@ -12001,10 +12001,10 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
   set thisType_J2DAccessor(__v) => _thisType = __v;
 }
 
-class GeneralizingASTVisitor_18 extends GeneralizingASTVisitor<Object> {
+class GeneralizingASTVisitor_StaticTypeAnalyzer_computePropagatedReturnType2 extends GeneralizingASTVisitor<Object> {
   List<Type2> result;
 
-  GeneralizingASTVisitor_18(this.result) : super();
+  GeneralizingASTVisitor_StaticTypeAnalyzer_computePropagatedReturnType2(this.result) : super();
 
   Object visitExpression(Expression node) => null;
 
@@ -15145,7 +15145,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
    * @param expression the expression to validate
    */
   void validateInitializerExpression(List<ParameterElement> parameterElements, Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor_21(_typeProvider, this, parameterElements));
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor_ConstantVerifier_validateInitializerExpression(_typeProvider, this, parameterElements));
     reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
   }
 
@@ -15191,12 +15191,12 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
   }
 }
 
-class ConstantVisitor_21 extends ConstantVisitor {
+class ConstantVisitor_ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
   final ConstantVerifier ConstantVerifier_this;
 
   List<ParameterElement> parameterElements;
 
-  ConstantVisitor_21(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super(arg0);
+  ConstantVisitor_ConstantVerifier_validateInitializerExpression(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super(arg0);
 
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
@@ -19343,7 +19343,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
           break;
         }
       }
-      current.accept(new GeneralizingElementVisitor_22(target, toCheck));
+      current.accept(new GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(target, toCheck));
       checked.add(current);
     }
   }
@@ -19605,12 +19605,12 @@ class INIT_STATE extends Enum<INIT_STATE> {
   INIT_STATE(String name, int ordinal) : super(name, ordinal);
 }
 
-class GeneralizingElementVisitor_22 extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference extends GeneralizingElementVisitor<Object> {
   Element target;
 
   List<Element> toCheck;
 
-  GeneralizingElementVisitor_22(this.target, this.toCheck) : super();
+  GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(this.target, this.toCheck) : super();
 
   bool _inClass = false;
 

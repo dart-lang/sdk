@@ -242,7 +242,7 @@ class HtmlUnitUtils {
     }
     List<XmlAttributeNode> result = [null];
     try {
-      htmlUnit.accept(new RecursiveXmlVisitor_7(offset, result));
+      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(offset, result));
     } on HtmlUnitUtils_FoundAttributeNodeError catch (e) {
       return result[0];
     }
@@ -295,7 +295,7 @@ class HtmlUnitUtils {
     }
     List<Expression> result = [null];
     try {
-      htmlUnit.accept(new RecursiveXmlVisitor_8(offset, result));
+      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getExpression(offset, result));
     } on HtmlUnitUtils_FoundExpressionError catch (e) {
       return result[0];
     }
@@ -312,7 +312,7 @@ class HtmlUnitUtils {
     }
     List<XmlTagNode> result = [null];
     try {
-      htmlUnit.accept(new RecursiveXmlVisitor_9(offset, result));
+      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getTagNode(offset, result));
     } on HtmlUnitUtils_FoundTagNodeError catch (e) {
       return result[0];
     }
@@ -348,12 +348,12 @@ class HtmlUnitUtils_FoundExpressionError extends Error {
 class HtmlUnitUtils_FoundTagNodeError extends Error {
 }
 
-class RecursiveXmlVisitor_7 extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVisitor<Object> {
   int offset = 0;
 
   List<XmlAttributeNode> result;
 
-  RecursiveXmlVisitor_7(this.offset, this.result) : super();
+  RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode(this.offset, this.result) : super();
 
   Object visitXmlAttributeNode(XmlAttributeNode node) {
     Token nameToken = node.nameToken;
@@ -365,12 +365,12 @@ class RecursiveXmlVisitor_7 extends RecursiveXmlVisitor<Object> {
   }
 }
 
-class RecursiveXmlVisitor_8 extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_HtmlUnitUtils_getExpression extends RecursiveXmlVisitor<Object> {
   int offset = 0;
 
   List<Expression> result;
 
-  RecursiveXmlVisitor_8(this.offset, this.result) : super();
+  RecursiveXmlVisitor_HtmlUnitUtils_getExpression(this.offset, this.result) : super();
 
   Object visitXmlAttributeNode(XmlAttributeNode node) {
     findExpression(offset, result, node.expressions);
@@ -394,12 +394,12 @@ class RecursiveXmlVisitor_8 extends RecursiveXmlVisitor<Object> {
   }
 }
 
-class RecursiveXmlVisitor_9 extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_HtmlUnitUtils_getTagNode extends RecursiveXmlVisitor<Object> {
   int offset = 0;
 
   List<XmlTagNode> result;
 
-  RecursiveXmlVisitor_9(this.offset, this.result) : super();
+  RecursiveXmlVisitor_HtmlUnitUtils_getTagNode(this.offset, this.result) : super();
 
   Object visitXmlTagNode(XmlTagNode node) {
     super.visitXmlTagNode(node);

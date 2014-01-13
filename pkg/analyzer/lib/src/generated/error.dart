@@ -3236,7 +3236,7 @@ abstract class AnalysisErrorListener {
   /**
    * An error listener that ignores errors that are reported to it.
    */
-  static final AnalysisErrorListener NULL_LISTENER = new AnalysisErrorListener_6();
+  static final AnalysisErrorListener NULL_LISTENER = new AnalysisErrorListener_NULL_LISTENER();
 
   /**
    * This method is invoked when an error has been found by the analysis engine.
@@ -3246,7 +3246,7 @@ abstract class AnalysisErrorListener {
   void onError(AnalysisError error);
 }
 
-class AnalysisErrorListener_6 implements AnalysisErrorListener {
+class AnalysisErrorListener_NULL_LISTENER implements AnalysisErrorListener {
   void onError(AnalysisError event) {
   }
 }

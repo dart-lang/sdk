@@ -11916,14 +11916,14 @@ class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
   }
 
   BreadthFirstVisitor() {
-    this._childVisitor = new GeneralizingASTVisitor_2(this);
+    this._childVisitor = new GeneralizingASTVisitor_BreadthFirstVisitor(this);
   }
 }
 
-class GeneralizingASTVisitor_2 extends GeneralizingASTVisitor<Object> {
+class GeneralizingASTVisitor_BreadthFirstVisitor extends GeneralizingASTVisitor<Object> {
   final BreadthFirstVisitor BreadthFirstVisitor_this;
 
-  GeneralizingASTVisitor_2(this.BreadthFirstVisitor_this) : super();
+  GeneralizingASTVisitor_BreadthFirstVisitor(this.BreadthFirstVisitor_this) : super();
 
   Object visitNode(ASTNode node) {
     BreadthFirstVisitor_this._queue.add(node);

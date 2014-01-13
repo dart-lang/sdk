@@ -19,18 +19,18 @@ abstract class LocalSourcePredicate {
   /**
    * Instance of [LocalSourcePredicate] that always returns `false`.
    */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_23();
+  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
 
   /**
    * Instance of [LocalSourcePredicate] that always returns `true`.
    */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_24();
+  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
 
   /**
    * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
    * except of SDK.
    */
-  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_25();
+  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_NOT_SDK();
 
   /**
    * Determines if the given [Source] is local.
@@ -41,15 +41,15 @@ abstract class LocalSourcePredicate {
   bool isLocal(Source source);
 }
 
-class LocalSourcePredicate_23 implements LocalSourcePredicate {
+class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
   bool isLocal(Source source) => false;
 }
 
-class LocalSourcePredicate_24 implements LocalSourcePredicate {
+class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
   bool isLocal(Source source) => true;
 }
 
-class LocalSourcePredicate_25 implements LocalSourcePredicate {
+class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
   bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
 }
 
