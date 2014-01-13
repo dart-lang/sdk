@@ -567,7 +567,8 @@ class _LocalClassMirror extends _LocalObjectMirror
     if (_cachedStaticMembers == null) {
       var result = new Map<Symbol, MethodMirror>();
       declarations.values.forEach((decl) {
-        if (decl is MethodMirror && decl.isStatic && !decl.isConstructor) {
+        if (decl is MethodMirror && decl.isStatic &&
+            !decl.isConstructor && !decl.isAbstract) {
           result[decl.simpleName] = decl;
         }
         if (decl is VariableMirror && decl.isStatic) {
@@ -1085,7 +1086,7 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
     if (_cachedTopLevelMembers == null) {
       var result = new Map<Symbol, MethodMirror>();
       declarations.values.forEach((decl) {
-        if (decl is MethodMirror) {
+        if (decl is MethodMirror && !decl.isAbstract) {
           result[decl.simpleName] = decl;
         }
         if (decl is VariableMirror) {
