@@ -123,6 +123,17 @@ main() {
       json.stringify([new Object()]);
     }, throwsJsonError);
 
+    expect(() {
+      json.stringify([double.NAN]);
+    }, throwsJsonError);
+
+    expect(() {
+      json.stringify([double.INFINITY]);
+    }, throwsJsonError);
+
+    expect(() {
+      json.stringify([-double.INFINITY]);
+    }, throwsJsonError);
   });
 
   test('stringify throws if argument cannot be converted', () {

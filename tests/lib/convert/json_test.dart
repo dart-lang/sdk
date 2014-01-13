@@ -135,6 +135,13 @@ testNumbers() {
 
   testThrows("[2.,2]");
   testThrows("{2.:2}");
+
+  testThrows("NaN");
+  testThrows("Infinity");
+  testThrows("-Infinity");
+  Expect.throws(() => JSON.encode(double.NAN));
+  Expect.throws(() => JSON.encode(double.INFINITY));
+  Expect.throws(() => JSON.encode(double.NEGATIVE_INFINITY));
 }
 
 testStrings() {

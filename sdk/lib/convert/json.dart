@@ -426,7 +426,7 @@ class _JsonStringifier {
    */
   bool stringifyJsonValue(final object) {
     if (object is num) {
-      // TODO: use writeOn.
+      if (!object.isFinite) return false;
       sink.write(numberToString(object));
       return true;
     } else if (identical(object, true)) {
@@ -449,7 +449,6 @@ class _JsonStringifier {
       sink.write('[');
       if (a.length > 0) {
         stringifyValue(a[0]);
-        // TODO: switch to Iterables.
         for (int i = 1; i < a.length; i++) {
           sink.write(',');
           stringifyValue(a[i]);
