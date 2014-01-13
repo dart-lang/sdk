@@ -478,6 +478,16 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
 }
 
 
+RawInstance* SnapshotReader::NewInstance() {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  cls_ = object_store()->object_class();
+  RawInstance* obj = reinterpret_cast<RawInstance*>(
+      AllocateUninitialized(cls_, Instance::InstanceSize()));
+  return obj;
+}
+
+
 RawMint* SnapshotReader::NewMint(int64_t value) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
@@ -701,6 +711,10 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
     ErrorHandle()->set_exception(exception);
     Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
   }
+  // Make sure to initialize the last word, as this can be left untouched in
+  // case the object deserialized has an alignment tail.
+  *reinterpret_cast<RawObject**>(address + size - kWordSize) = Object::null();
+
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   uword tags = 0;
   intptr_t index = cls.id();

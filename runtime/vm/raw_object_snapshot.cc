@@ -1684,15 +1684,48 @@ RawInstance* Instance::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
-  UNREACHABLE();
-  return Instance::null();
+  ASSERT(reader != NULL);
+
+  // Create an Instance object or get canonical one if it is a canonical
+  // constant.
+  Instance& obj = Instance::ZoneHandle(reader->isolate(), Instance::null());
+  if (kind == Snapshot::kFull) {
+    obj = reader->NewInstance();
+  } else {
+    obj ^= Object::Allocate(kInstanceCid,
+                            Instance::InstanceSize(),
+                            HEAP_SPACE(kind));
+    // When reading a script snapshot we need to canonicalize only those object
+    // references that are objects from the core library (loaded from a
+    // full snapshot). Objects that are only in the script need not be
+    // canonicalized as they are already canonical.
+    // When reading a message snapshot we always have to canonicalize.
+    if (RawObject::IsCanonical(tags) &&
+        (RawObject::IsCreatedFromSnapshot(tags) ||
+         (kind == Snapshot::kMessage))) {
+      obj = obj.CheckAndCanonicalize(NULL);
+    }
+  }
+  reader->AddBackRef(object_id, &obj, kIsDeserialized);
+
+  // Set the object tags.
+  obj.set_tags(tags);
+
+  return obj.raw();
 }
 
 
 void RawInstance::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kInstanceCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 }
 
 
@@ -2561,6 +2594,9 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
     array ^= reader->ReadObjectRef();
     result.set_catch_pc_offset_array(array);
 
+    bool expand_inlined = reader->Read<bool>();
+    result.set_expand_inlined(expand_inlined);
+
     return result.raw();
   }
   UNREACHABLE();  // Stacktraces are not sent in a snapshot.
@@ -2583,11 +2619,11 @@ void RawStacktrace::WriteTo(SnapshotWriter* writer,
     writer->WriteIndexedObject(kStacktraceCid);
     writer->WriteIntptrValue(writer->GetObjectTags(this));
 
-    // There are no non object pointer fields.
-
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer);
     visitor.VisitPointers(from(), to());
+
+    writer->Write(expand_inlined_);
   } else {
     // Stacktraces are not allowed in other snapshot forms.
     writer->SetWriteException(Exceptions::kArgument,
