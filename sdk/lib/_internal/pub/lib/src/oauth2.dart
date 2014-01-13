@@ -13,7 +13,6 @@ import 'package:path/path.dart' as path;
 import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
-import 'safe_http_server.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 
@@ -168,7 +167,7 @@ Future<Client> _authorize() {
   // Spin up a one-shot HTTP server to receive the authorization code from the
   // Google OAuth2 server via redirect. This server will close itself as soon as
   // the code is received.
-  return SafeHttpServer.bind('127.0.0.1', 0).then((server) {
+  return HttpServer.bind('127.0.0.1', 0).then((server) {
     var authUrl = grant.getAuthorizationUrl(
         Uri.parse('http://127.0.0.1:${server.port}'), scopes: _scopes);
 
