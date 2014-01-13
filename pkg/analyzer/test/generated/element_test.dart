@@ -2989,7 +2989,7 @@ class FunctionTypeImplTest extends EngineTestCase {
 
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
-    InterfaceTypeImpl functionType = new InterfaceTypeImpl_31(functionElement);
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl_34(functionElement);
     FunctionType f = ElementFactory.functionElement("f").type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(functionType));
   }
@@ -3488,8 +3488,8 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 }
 
-class InterfaceTypeImpl_31 extends InterfaceTypeImpl {
-  InterfaceTypeImpl_31(ClassElement arg0) : super.con1(arg0);
+class InterfaceTypeImpl_34 extends InterfaceTypeImpl {
+  InterfaceTypeImpl_34(ClassElement arg0) : super.con1(arg0);
 
   bool get isDartCoreFunction => true;
 }

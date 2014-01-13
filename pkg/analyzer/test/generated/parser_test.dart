@@ -4426,7 +4426,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme, bool first, bool last) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_32();
+    AnalysisErrorListener listener = new AnalysisErrorListener_35();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme, first, last], null) as String;
   }
@@ -6708,7 +6708,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 }
 
-class AnalysisErrorListener_32 implements AnalysisErrorListener {
+class AnalysisErrorListener_35 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
@@ -11502,7 +11502,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseCompilationUnit_0': new MethodTrampoline(0, (Parser target) => target.parseCompilationUnit2()),
   'parseConditionalExpression_0': new MethodTrampoline(0, (Parser target) => target.parseConditionalExpression()),
   'parseConstructorName_0': new MethodTrampoline(0, (Parser target) => target.parseConstructorName()),
-  'parseExpression_0': new MethodTrampoline(0, (Parser target) => target.parseExpression2()),
+  'parseExpression_0': new MethodTrampoline(0, (Parser target) => target.parseExpression3()),
   'parseExpressionWithoutCascade_0': new MethodTrampoline(0, (Parser target) => target.parseExpressionWithoutCascade()),
   'parseExtendsClause_0': new MethodTrampoline(0, (Parser target) => target.parseExtendsClause()),
   'parseFormalParameterList_0': new MethodTrampoline(0, (Parser target) => target.parseFormalParameterList()),

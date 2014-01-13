@@ -7458,7 +7458,7 @@ class ParseDartTask extends AnalysisTask {
   void internalPerform() {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     List<Token> token = [null];
-    Source_ContentReceiver receiver = new Source_ContentReceiver_16(this, errorListener, token);
+    Source_ContentReceiver receiver = new Source_ContentReceiver_19(this, errorListener, token);
     try {
       source.getContents(receiver);
     } on JavaException catch (exception) {
@@ -7543,14 +7543,14 @@ class ParseDartTask extends AnalysisTask {
   }
 }
 
-class Source_ContentReceiver_16 implements Source_ContentReceiver {
+class Source_ContentReceiver_19 implements Source_ContentReceiver {
   final ParseDartTask ParseDartTask_this;
 
   RecordingErrorListener errorListener;
 
   List<Token> token;
 
-  Source_ContentReceiver_16(this.ParseDartTask_this, this.errorListener, this.token);
+  Source_ContentReceiver_19(this.ParseDartTask_this, this.errorListener, this.token);
 
   void accept(CharBuffer contents, int modificationTime) {
     doScan(contents, modificationTime);
@@ -7708,7 +7708,7 @@ class ParseHtmlTask extends AnalysisTask {
    */
   List<Source> get librarySources {
     List<Source> libraries = new List<Source>();
-    _unit.accept(new RecursiveXmlVisitor_17(this, libraries));
+    _unit.accept(new RecursiveXmlVisitor_20(this, libraries));
     if (libraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
@@ -7716,12 +7716,12 @@ class ParseHtmlTask extends AnalysisTask {
   }
 }
 
-class RecursiveXmlVisitor_17 extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_20 extends RecursiveXmlVisitor<Object> {
   final ParseHtmlTask ParseHtmlTask_this;
 
   List<Source> libraries;
 
-  RecursiveXmlVisitor_17(this.ParseHtmlTask_this, this.libraries) : super();
+  RecursiveXmlVisitor_20(this.ParseHtmlTask_this, this.libraries) : super();
 
   Object visitHtmlScriptTagNode(HtmlScriptTagNode node) {
     XmlAttributeNode scriptAttribute = null;

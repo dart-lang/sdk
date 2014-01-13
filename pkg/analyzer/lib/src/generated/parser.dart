@@ -213,7 +213,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
 
   ASTNode visitAssertStatement(AssertStatement node) {
     if (identical(_oldNode, node.condition)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -223,7 +223,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.rightHandSide)) {
       if (isCascadeAllowed(node)) {
-        return _parser.parseExpression2();
+        return _parser.parseExpression3();
       }
       return _parser.parseExpressionWithoutCascade();
     }
@@ -413,7 +413,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     if (identical(_oldNode, node.parameter)) {
       return _parser.parseNormalFormalParameter();
     } else if (identical(_oldNode, node.defaultValue)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -422,7 +422,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     if (identical(_oldNode, node.body)) {
       return _parser.parseStatement2();
     } else if (identical(_oldNode, node.condition)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -448,14 +448,14 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
 
   ASTNode visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (identical(_oldNode, node.expression)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
 
   ASTNode visitExpressionStatement(ExpressionStatement node) {
     if (identical(_oldNode, node.expression)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -514,9 +514,9 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     } else if (identical(_oldNode, node.initialization)) {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.condition)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     } else if (node.updaters.contains(_oldNode)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     } else if (identical(_oldNode, node.body)) {
       return _parser.parseStatement2();
     }
@@ -604,7 +604,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
 
   ASTNode visitIfStatement(IfStatement node) {
     if (identical(_oldNode, node.condition)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     } else if (identical(_oldNode, node.thenStatement)) {
       return _parser.parseStatement2();
     } else if (identical(_oldNode, node.elseStatement)) {
@@ -639,7 +639,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     if (identical(_oldNode, node.target)) {
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.index)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -660,7 +660,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
       if (node.leftBracket == null) {
         throw new InsufficientContextException();
       }
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -716,7 +716,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     if (identical(_oldNode, node.typeArguments)) {
       return _parser.parseTypeArgumentList();
     } else if (node.elements.contains(_oldNode)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -732,9 +732,9 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
 
   ASTNode visitMapLiteralEntry(MapLiteralEntry node) {
     if (identical(_oldNode, node.key)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     } else if (identical(_oldNode, node.value)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -772,7 +772,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     if (identical(_oldNode, node.name)) {
       return _parser.parseLabel();
     } else if (identical(_oldNode, node.expression)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -795,7 +795,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
 
   ASTNode visitParenthesizedExpression(ParenthesizedExpression node) {
     if (identical(_oldNode, node.expression)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -867,7 +867,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
 
   ASTNode visitReturnStatement(ReturnStatement node) {
     if (identical(_oldNode, node.expression)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     }
     return notAChild(node);
   }
@@ -920,7 +920,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
     if (node.labels.contains(_oldNode)) {
       return _parser.parseLabel();
     } else if (identical(_oldNode, node.expression)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     } else if (node.statements.contains(_oldNode)) {
       return _parser.parseStatement2();
     }
@@ -938,7 +938,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
 
   ASTNode visitSwitchStatement(SwitchStatement node) {
     if (identical(_oldNode, node.expression)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     } else if (node.members.contains(_oldNode)) {
       throw new InsufficientContextException();
     }
@@ -952,7 +952,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
   ASTNode visitThrowExpression(ThrowExpression node) {
     if (identical(_oldNode, node.expression)) {
       if (isCascadeAllowed2(node)) {
-        return _parser.parseExpression2();
+        return _parser.parseExpression3();
       }
       return _parser.parseExpressionWithoutCascade();
     }
@@ -1050,7 +1050,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
 
   ASTNode visitWhileStatement(WhileStatement node) {
     if (identical(_oldNode, node.condition)) {
-      return _parser.parseExpression2();
+      return _parser.parseExpression3();
     } else if (identical(_oldNode, node.body)) {
       return _parser.parseStatement2();
     }
@@ -1382,7 +1382,7 @@ class Parser {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseExpression");
     try {
       _currentToken = token;
-      return parseExpression2();
+      return parseExpression3();
     } finally {
       instrumentation.log();
     }
@@ -1473,9 +1473,9 @@ class Parser {
    */
   Expression parseArgument() {
     if (matchesIdentifier() && matches4(peek(), TokenType.COLON)) {
-      return new NamedExpression(parseLabel(), parseExpression2());
+      return new NamedExpression(parseLabel(), parseExpression3());
     } else {
-      return parseExpression2();
+      return parseExpression3();
     }
   }
 
@@ -1845,7 +1845,7 @@ class Parser {
    *
    * @return the expression that was parsed
    */
-  Expression parseExpression2() {
+  Expression parseExpression3() {
     if (matches(Keyword.THROW)) {
       return parseThrowExpression();
     } else if (matches(Keyword.RETHROW)) {
@@ -1866,7 +1866,7 @@ class Parser {
     } else if (tokenType.isAssignmentOperator) {
       Token operator = andAdvance;
       ensureAssignable(expression);
-      return new AssignmentExpression(expression, operator, parseExpression2());
+      return new AssignmentExpression(expression, operator, parseExpression3());
     }
     return expression;
   }
@@ -2152,9 +2152,9 @@ class Parser {
    * @return the map literal entry that was parsed
    */
   MapLiteralEntry parseMapLiteralEntry() {
-    Expression key = parseExpression2();
+    Expression key = parseExpression3();
     Token separator = expect2(TokenType.COLON);
-    Expression value = parseExpression2();
+    Expression value = parseExpression3();
     return new MapLiteralEntry(key, separator, value);
   }
 
@@ -3183,7 +3183,7 @@ class Parser {
   AssertStatement parseAssertStatement() {
     Token keyword = expect(Keyword.ASSERT);
     Token leftParen = expect2(TokenType.OPEN_PAREN);
-    Expression expression = parseExpression2();
+    Expression expression = parseExpression3();
     if (expression is AssignmentExpression) {
       reportError10(ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT, expression, []);
     } else if (expression is CascadeExpression) {
@@ -3265,7 +3265,7 @@ class Parser {
   Expression parseAssignableSelector(Expression prefix, bool optional) {
     if (matches5(TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = andAdvance;
-      Expression index = parseExpression2();
+      Expression index = parseExpression3();
       Token rightBracket = expect2(TokenType.CLOSE_SQUARE_BRACKET);
       return new IndexExpression.forTarget(prefix, leftBracket, index, rightBracket);
     } else if (matches5(TokenType.PERIOD)) {
@@ -3377,7 +3377,7 @@ class Parser {
       functionName = parseSimpleIdentifier();
     } else if (identical(_currentToken.type, TokenType.OPEN_SQUARE_BRACKET)) {
       Token leftBracket = andAdvance;
-      Expression index = parseExpression2();
+      Expression index = parseExpression3();
       Token rightBracket = expect2(TokenType.CLOSE_SQUARE_BRACKET);
       expression = new IndexExpression.forCascade(period, leftBracket, index, rightBracket);
       period = null;
@@ -4084,7 +4084,7 @@ class Parser {
       Statement body = parseStatement2();
       Token whileKeyword = expect(Keyword.WHILE);
       Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
-      Expression condition = parseExpression2();
+      Expression condition = parseExpression3();
       Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
       Token semicolon = expect2(TokenType.SEMICOLON);
       return new DoStatement(doKeyword, body, whileKeyword, leftParenthesis, condition, rightParenthesis, semicolon);
@@ -4166,9 +4166,9 @@ class Parser {
    */
   List<Expression> parseExpressionList() {
     List<Expression> expressions = new List<Expression>();
-    expressions.add(parseExpression2());
+    expressions.add(parseExpression3());
     while (optional(TokenType.COMMA)) {
-      expressions.add(parseExpression2());
+      expressions.add(parseExpression3());
     }
     return expressions;
   }
@@ -4227,7 +4227,7 @@ class Parser {
     NormalFormalParameter parameter = parseNormalFormalParameter();
     if (matches5(TokenType.EQ)) {
       Token seperator = andAdvance;
-      Expression defaultValue = parseExpression2();
+      Expression defaultValue = parseExpression3();
       if (identical(kind, ParameterKind.NAMED)) {
         reportError12(ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
@@ -4236,7 +4236,7 @@ class Parser {
       return new DefaultFormalParameter(parameter, kind, seperator, defaultValue);
     } else if (matches5(TokenType.COLON)) {
       Token seperator = andAdvance;
-      Expression defaultValue = parseExpression2();
+      Expression defaultValue = parseExpression3();
       if (identical(kind, ParameterKind.POSITIONAL)) {
         reportError12(ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, seperator, []);
       } else if (identical(kind, ParameterKind.REQUIRED)) {
@@ -4286,7 +4286,7 @@ class Parser {
         } else if (isInitializedVariableDeclaration()) {
           variableList = parseVariableDeclarationList(commentAndMetadata);
         } else {
-          initialization = parseExpression2();
+          initialization = parseExpression3();
         }
         if (matches(Keyword.IN)) {
           DeclaredIdentifier loopVariable = null;
@@ -4313,7 +4313,7 @@ class Parser {
             }
           }
           Token inKeyword = expect(Keyword.IN);
-          Expression iterator = parseExpression2();
+          Expression iterator = parseExpression3();
           Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
           Statement body = parseStatement2();
           if (loopVariable == null) {
@@ -4325,7 +4325,7 @@ class Parser {
       Token leftSeparator = expect2(TokenType.SEMICOLON);
       Expression condition = null;
       if (!matches5(TokenType.SEMICOLON)) {
-        condition = parseExpression2();
+        condition = parseExpression3();
       }
       Token rightSeparator = expect2(TokenType.SEMICOLON);
       List<Expression> updaters = null;
@@ -4372,7 +4372,7 @@ class Parser {
         return new EmptyFunctionBody(andAdvance);
       } else if (matches5(TokenType.FUNCTION)) {
         Token functionDefinition = andAdvance;
-        Expression expression = parseExpression2();
+        Expression expression = parseExpression3();
         Token semicolon = null;
         if (!inExpression) {
           semicolon = expect2(TokenType.SEMICOLON);
@@ -4600,7 +4600,7 @@ class Parser {
   Statement parseIfStatement() {
     Token ifKeyword = expect(Keyword.IF);
     Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
-    Expression condition = parseExpression2();
+    Expression condition = parseExpression3();
     Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
     Statement thenStatement = parseStatement2();
     Token elseKeyword = null;
@@ -4757,12 +4757,12 @@ class Parser {
       return new ListLiteral(modifier, typeArguments, leftBracket, null, andAdvance);
     }
     List<Expression> elements = new List<Expression>();
-    elements.add(parseExpression2());
+    elements.add(parseExpression3());
     while (optional(TokenType.COMMA)) {
       if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
         return new ListLiteral(modifier, typeArguments, leftBracket, elements, andAdvance);
       }
-      elements.add(parseExpression2());
+      elements.add(parseExpression3());
     }
     Token rightBracket = expect2(TokenType.CLOSE_SQUARE_BRACKET);
     return new ListLiteral(modifier, typeArguments, leftBracket, elements, rightBracket);
@@ -5058,7 +5058,7 @@ class Parser {
       if (matches4(peek(), TokenType.STRING)) {
         Token afterString = skipStringLiteral(_currentToken.next);
         if (afterString != null && identical(afterString.type, TokenType.COLON)) {
-          return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
+          return new ExpressionStatement(parseExpression3(), expect2(TokenType.SEMICOLON));
         }
       }
       return parseBlock();
@@ -5115,18 +5115,18 @@ class Parser {
             TokenType.OPEN_CURLY_BRACKET,
             TokenType.OPEN_SQUARE_BRACKET,
             TokenType.INDEX])) {
-          return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
+          return new ExpressionStatement(parseExpression3(), expect2(TokenType.SEMICOLON));
         } else if (matches4(peek(), TokenType.IDENTIFIER)) {
           Token afterType = skipTypeName(peek());
           if (afterType != null) {
             if (matches4(afterType, TokenType.OPEN_PAREN) || (matches4(afterType, TokenType.PERIOD) && matches4(afterType.next, TokenType.IDENTIFIER) && matches4(afterType.next.next, TokenType.OPEN_PAREN))) {
-              return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
+              return new ExpressionStatement(parseExpression3(), expect2(TokenType.SEMICOLON));
             }
           }
         }
         return parseVariableDeclarationStatement(commentAndMetadata);
       } else if (identical(keyword, Keyword.NEW) || identical(keyword, Keyword.TRUE) || identical(keyword, Keyword.FALSE) || identical(keyword, Keyword.NULL) || identical(keyword, Keyword.SUPER) || identical(keyword, Keyword.THIS)) {
-        return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
+        return new ExpressionStatement(parseExpression3(), expect2(TokenType.SEMICOLON));
       } else {
         reportError11(ParserErrorCode.MISSING_STATEMENT, []);
         return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
@@ -5141,7 +5141,7 @@ class Parser {
       reportError11(ParserErrorCode.MISSING_STATEMENT, []);
       return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
     } else {
-      return new ExpressionStatement(parseExpression2(), expect2(TokenType.SEMICOLON));
+      return new ExpressionStatement(parseExpression3(), expect2(TokenType.SEMICOLON));
     }
   }
 
@@ -5356,7 +5356,7 @@ class Parser {
         return parseFunctionExpression();
       }
       Token leftParenthesis = andAdvance;
-      Expression expression = parseExpression2();
+      Expression expression = parseExpression3();
       Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
       return new ParenthesizedExpression(leftParenthesis, expression, rightParenthesis);
     } else if (matches5(TokenType.LT)) {
@@ -5460,7 +5460,7 @@ class Parser {
     if (matches5(TokenType.SEMICOLON)) {
       return new ReturnStatement(returnKeyword, null, andAdvance);
     }
-    Expression expression = parseExpression2();
+    Expression expression = parseExpression3();
     Token semicolon = expect2(TokenType.SEMICOLON);
     return new ReturnStatement(returnKeyword, expression, semicolon);
   }
@@ -5557,7 +5557,7 @@ class Parser {
     while (hasMore) {
       if (matches5(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         Token openToken = andAdvance;
-        Expression expression = parseExpression2();
+        Expression expression = parseExpression3();
         Token rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
         elements.add(new InterpolationExpression(openToken, expression, rightBracket));
       } else {
@@ -5624,7 +5624,7 @@ class Parser {
       Set<String> definedLabels = new Set<String>();
       Token keyword = expect(Keyword.SWITCH);
       Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
-      Expression expression = parseExpression2();
+      Expression expression = parseExpression3();
       Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
       Token leftBracket = expect2(TokenType.OPEN_CURLY_BRACKET);
       Token defaultKeyword = null;
@@ -5644,7 +5644,7 @@ class Parser {
         }
         if (matches(Keyword.CASE)) {
           Token caseKeyword = andAdvance;
-          Expression caseExpression = parseExpression2();
+          Expression caseExpression = parseExpression3();
           Token colon = expect2(TokenType.COLON);
           members.add(new SwitchCase(labels, caseKeyword, caseExpression, colon, parseStatements2()));
           if (defaultKeyword != null) {
@@ -5721,7 +5721,7 @@ class Parser {
       reportError12(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, _currentToken, []);
       return new ThrowExpression(keyword, createSyntheticIdentifier());
     }
-    Expression expression = parseExpression2();
+    Expression expression = parseExpression3();
     return new ThrowExpression(keyword, expression);
   }
 
@@ -5923,7 +5923,7 @@ class Parser {
     Expression initializer = null;
     if (matches5(TokenType.EQ)) {
       equals = andAdvance;
-      initializer = parseExpression2();
+      initializer = parseExpression3();
     }
     return new VariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, name, equals, initializer);
   }
@@ -6027,7 +6027,7 @@ class Parser {
     try {
       Token keyword = expect(Keyword.WHILE);
       Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
-      Expression condition = parseExpression2();
+      Expression condition = parseExpression3();
       Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
       return new WhileStatement(keyword, leftParenthesis, condition, rightParenthesis, body);

@@ -3919,7 +3919,7 @@ class DeclarationMatcher extends RecursiveASTVisitor<Object> {
   }
 
   void gatherElements(Element element) {
-    element.accept(new GeneralizingElementVisitor_12(this));
+    element.accept(new GeneralizingElementVisitor_15(this));
   }
 
   /**
@@ -3981,10 +3981,10 @@ class DeclarationMatcher extends RecursiveASTVisitor<Object> {
 class DeclarationMatcher_DeclarationMismatchException extends RuntimeException {
 }
 
-class GeneralizingElementVisitor_12 extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_15 extends GeneralizingElementVisitor<Object> {
   final DeclarationMatcher DeclarationMatcher_this;
 
-  GeneralizingElementVisitor_12(this.DeclarationMatcher_this) : super();
+  GeneralizingElementVisitor_15(this.DeclarationMatcher_this) : super();
 
   Object visitElement(Element element) {
     DeclarationMatcher_this._allElements.add(element);
@@ -9657,7 +9657,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   bool isVariableAccessedInClosure(Element variable, ASTNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_13(result, variable));
+    target.accept(new RecursiveASTVisitor_16(result, variable));
     return result[0];
   }
 
@@ -9671,7 +9671,7 @@ class ResolverVisitor extends ScopedVisitor {
    */
   bool isVariablePotentiallyMutatedIn(Element variable, ASTNode target) {
     List<bool> result = [false];
-    target.accept(new RecursiveASTVisitor_14(result, variable));
+    target.accept(new RecursiveASTVisitor_17(result, variable));
     return result[0];
   }
 
@@ -9828,12 +9828,12 @@ class ResolverVisitor extends ScopedVisitor {
   set enclosingClass_J2DAccessor(__v) => _enclosingClass = __v;
 }
 
-class RecursiveASTVisitor_13 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_16 extends RecursiveASTVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_13(this.result, this.variable) : super();
+  RecursiveASTVisitor_16(this.result, this.variable) : super();
 
   bool _inClosure = false;
 
@@ -9858,12 +9858,12 @@ class RecursiveASTVisitor_13 extends RecursiveASTVisitor<Object> {
   }
 }
 
-class RecursiveASTVisitor_14 extends RecursiveASTVisitor<Object> {
+class RecursiveASTVisitor_17 extends RecursiveASTVisitor<Object> {
   List<bool> result;
 
   Element variable;
 
-  RecursiveASTVisitor_14(this.result, this.variable) : super();
+  RecursiveASTVisitor_17(this.result, this.variable) : super();
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (result[0]) {
@@ -11638,7 +11638,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
     }
     if (body is BlockFunctionBody) {
       List<Type2> result = [null];
-      body.accept(new GeneralizingASTVisitor_15(result));
+      body.accept(new GeneralizingASTVisitor_18(result));
       return result[0];
     }
     return null;
@@ -12001,10 +12001,10 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
   set thisType_J2DAccessor(__v) => _thisType = __v;
 }
 
-class GeneralizingASTVisitor_15 extends GeneralizingASTVisitor<Object> {
+class GeneralizingASTVisitor_18 extends GeneralizingASTVisitor<Object> {
   List<Type2> result;
 
-  GeneralizingASTVisitor_15(this.result) : super();
+  GeneralizingASTVisitor_18(this.result) : super();
 
   Object visitExpression(Expression node) => null;
 
@@ -15145,7 +15145,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
    * @param expression the expression to validate
    */
   void validateInitializerExpression(List<ParameterElement> parameterElements, Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor_18(_typeProvider, this, parameterElements));
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor_21(_typeProvider, this, parameterElements));
     reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
   }
 
@@ -15191,12 +15191,12 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
   }
 }
 
-class ConstantVisitor_18 extends ConstantVisitor {
+class ConstantVisitor_21 extends ConstantVisitor {
   final ConstantVerifier ConstantVerifier_this;
 
   List<ParameterElement> parameterElements;
 
-  ConstantVisitor_18(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super(arg0);
+  ConstantVisitor_21(TypeProvider arg0, this.ConstantVerifier_this, this.parameterElements) : super(arg0);
 
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
@@ -19343,7 +19343,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
           break;
         }
       }
-      current.accept(new GeneralizingElementVisitor_19(target, toCheck));
+      current.accept(new GeneralizingElementVisitor_22(target, toCheck));
       checked.add(current);
     }
   }
@@ -19605,12 +19605,12 @@ class INIT_STATE extends Enum<INIT_STATE> {
   INIT_STATE(String name, int ordinal) : super(name, ordinal);
 }
 
-class GeneralizingElementVisitor_19 extends GeneralizingElementVisitor<Object> {
+class GeneralizingElementVisitor_22 extends GeneralizingElementVisitor<Object> {
   Element target;
 
   List<Element> toCheck;
 
-  GeneralizingElementVisitor_19(this.target, this.toCheck) : super();
+  GeneralizingElementVisitor_22(this.target, this.toCheck) : super();
 
   bool _inClass = false;
 

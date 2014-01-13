@@ -535,7 +535,7 @@ class EngineTestCase extends JUnitTestCase {
     for (int i = 0; i < expectedSize; i++) {
       Object element = list[i];
       Object expectedElement = expectedElements[i];
-      if (!element == expectedElement) {
+      if (element != expectedElement) {
         JUnitTestCase.fail("Expected ${expectedElement} at [${i}]; found ${element}");
       }
     }
@@ -560,7 +560,7 @@ class EngineTestCase extends JUnitTestCase {
     for (int i = 0; i < expectedSize; i++) {
       Object element = array[i];
       Object expectedElement = expectedElements[i];
-      if (!element == expectedElement) {
+      if (element != expectedElement) {
         JUnitTestCase.fail("Expected ${expectedElement} at [${i}]; found ${element}");
       }
     }
