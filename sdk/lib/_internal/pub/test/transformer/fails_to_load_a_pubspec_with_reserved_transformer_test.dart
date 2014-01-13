@@ -13,11 +13,11 @@ import '../serve/utils.dart';
 main() {
   initConfig();
 
-  integration("fails to load a pubspec with reserved transformer config", () {
+  integration("fails to load a pubspec with reserved transformer", () {
     d.dir(appPath, [
       d.pubspec({
         "name": "myapp",
-        "transformers": [{"myapp/src/transformer": {'include': 'something'}}]
+        "transformers": ["\$nonexistent"]
       }),
       d.dir("lib", [d.dir("src", [
         d.file("transformer.dart", REWRITE_TRANSFORMER)
@@ -30,8 +30,8 @@ main() {
     expect(pub.nextErrLine(), completion(equals('Error in pubspec for package '
         '"myapp" loaded from pubspec.yaml:')));
     expect(pub.nextErrLine(), completion(equals('Invalid transformer '
-       'identifier for "transformers.myapp/src/transformer": Transformer '
-       'configuration may not include reserved key "include".')));
+       'identifier for "transformers.\$nonexistent": Unsupported built-in '
+       'transformer \$nonexistent.')));
     pub.shouldExit(1);
   });
 }

@@ -22,14 +22,19 @@ import '../dart.dart' as dart;
 import '../io.dart';
 import '../package.dart';
 import '../package_graph.dart';
+import '../utils.dart';
+
+/// The set of all valid configuration options for this transformer.
+final _validOptions = new Set<String>.from([
+  'commandLineOptions', 'checked', 'minify', 'verbose', 'environment',
+  'analyzeAll', 'suppressWarnings', 'suppressHints', 'terse'
+]);
 
 /// A [Transformer] that uses dart2js's library API to transform Dart
 /// entrypoints in "web" to JavaScript.
 class Dart2JSTransformer extends Transformer {
   final PackageGraph _graph;
-
-  /// The mode that the transformer is running in.
-  final BarbackMode _mode;
+  final BarbackSettings _settings;
 
   /// The [AssetId]s the transformer has discovered so far. Used by pub build
   /// to determine where to copy the JS bootstrap files.
@@ -46,7 +51,18 @@ class Dart2JSTransformer extends Transformer {
   /// is here: https://code.google.com/p/dart/issues/detail?id=14730.
   Future _running;
 
-  Dart2JSTransformer(this._graph, this._mode);
+  Dart2JSTransformer.withSettings(this._graph, this._settings) {
+    var invalidOptions = _settings.configuration.keys.toSet()
+        .difference(_validOptions);
+    if (invalidOptions.isEmpty) return;
+
+    throw new FormatException("Unrecognized dart2js "
+        "${pluralize('option', invalidOptions.length)} "
+        "${toSentence(invalidOptions.map((option) => '"$option"'))}.");
+  }
+
+  Dart2JSTransformer(PackageGraph graph, BarbackMode mode)
+      : this.withSettings(graph, new BarbackSettings({}, mode));
 
   /// Only ".dart" files within "web/" are processed.
   Future<bool> isPrimary(Asset asset) {
@@ -96,7 +112,6 @@ class Dart2JSTransformer extends Transformer {
       entrypoints.add(id);
 
       var entrypoint = path.join(_graph.packages[id.package].dir, id.path);
-      var packageRoot = path.join(_graph.entrypoint.root.dir, "packages");
 
       // TODO(rnystrom): Should have more sophisticated error-handling here.
       // Need to report compile errors to the user in an easily visible way.
@@ -104,8 +119,17 @@ class Dart2JSTransformer extends Transformer {
       // path so they can understand them.
       return Chain.track(dart.compile(
           entrypoint, provider,
-          packageRoot: packageRoot,
-          minify: _mode == BarbackMode.RELEASE)).then((_) {
+          commandLineOptions: _configCommandLineOptions,
+          checked: _configBool('checked'),
+          minify: _configBool(
+              'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
+          verbose: _configBool('verbose'),
+          environment: _configEnvironment,
+          packageRoot: path.join(_graph.entrypoint.root.dir, "packages"),
+          analyzeAll: _configBool('analyzeAll'),
+          suppressWarnings: _configBool('suppressWarnings'),
+          suppressHints: _configBool('suppressHints'),
+          terse: _configBool('terse'))).then((_) {
         stopwatch.stop();
         transform.logger.info("Took ${stopwatch.elapsed} to compile $id.");
       });
@@ -113,6 +137,46 @@ class Dart2JSTransformer extends Transformer {
       completer.complete();
       _running = null;
     });
+  }
+
+  /// Parses and returns the "commandLineOptions" configuration option.
+  List<String> get _configCommandLineOptions {
+    if (!_settings.configuration.containsKey('commandLineOptions')) return null;
+
+    var options = _settings.configuration['commandLineOptions'];
+    if (options is List && options.every((option) => option is String)) {
+      return options;
+    }
+
+    throw new FormatException('Invalid value for '
+        '\$dart2js.commandLineOptions: ${JSON.encode(options)} (expected list '
+        'of strings).');
+  }
+
+  /// Parses and returns the "environment" configuration option.
+  Map<String, String> get _configEnvironment {
+    if (!_settings.configuration.containsKey('environment')) return null;
+
+    var environment = _settings.configuration['environment'];
+    if (environment is Map &&
+        environment.keys.every((key) => key is String) &&
+        environment.values.every((key) => key is String)) {
+      return environment;
+    }
+
+    throw new FormatException('Invalid value for \$dart2js.environment: '
+        '${JSON.encode(environment)} (expected map from strings to strings).');
+  }
+
+  /// Parses and returns a boolean configuration option.
+  ///
+  /// [defaultsTo] is the default value of the option.
+  bool _configBool(String name, {bool defaultsTo: false}) {
+    if (!_settings.configuration.containsKey(name)) return defaultsTo;
+    var value = _settings.configuration[name];
+    if (value is bool) return value;
+    throw new FormatException('Invalid value for \$dart2js.$name: '
+        '${JSON.encode(value)} (expected true or false).');
   }
 }
 

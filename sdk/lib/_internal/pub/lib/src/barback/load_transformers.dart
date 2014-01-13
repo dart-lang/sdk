@@ -75,14 +75,10 @@ Iterable initialize(Uri uri, Map configuration, BarbackMode mode) {
     var constructor = getConstructor(classMirror, 'asPlugin');
     if (constructor == null) return null;
     if (constructor.parameters.isEmpty) {
-      if (configuration != null) return null;
+      if (configuration.isNotEmpty) return null;
       return classMirror.newInstance(const Symbol('asPlugin'), []).reflectee;
     }
     if (constructor.parameters.length != 1) return null;
-
-    // If the constructor expects configuration and none was passed, it defaults
-    // to an empty map.
-    if (configuration == null) configuration = {};
 
     return classMirror.newInstance(const Symbol('asPlugin'),
         [new BarbackSettings(configuration, mode)]).reflectee;

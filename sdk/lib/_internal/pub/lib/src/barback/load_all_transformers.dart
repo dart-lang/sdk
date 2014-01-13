@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
+import 'dart2js_transformer.dart';
 import 'load_transformers.dart';
 import 'rewrite_import_transformer.dart';
 import 'server.dart';
@@ -161,6 +162,7 @@ Map<String, Set<String>> _computeOrderingDeps(PackageGraph graph) {
 /// Returns the set of transformer dependencies for [package].
 Set<String> _transformerDeps(PackageGraph graph, String package) =>
   unionAll(graph.packages[package].pubspec.transformers)
+      .where((id) => !id.isBuiltInTransformer)
       .map((id) => id.package).toSet();
 
 /// Returns an [ApplicationException] describing an ordering dependency cycle
@@ -199,6 +201,7 @@ Map<String, Set<TransformerId>> _computePackageTransformers(
   for (var package in graph.packages.values) {
     for (var phase in package.pubspec.transformers) {
       for (var id in phase) {
+        if (id.isBuiltInTransformer) continue;
         packageTransformers[id.package].add(id);
       }
     }
@@ -208,6 +211,7 @@ Map<String, Set<TransformerId>> _computePackageTransformers(
 
 /// A class that loads transformers defined in specific files.
 class _TransformerLoader {
+  final PackageGraph _graph;
   final BarbackServer _server;
 
   /// The mode that pub is running barback in.
@@ -222,8 +226,8 @@ class _TransformerLoader {
   /// Used for error reporting.
   final _transformerUsers = new Map<Pair<String, String>, Set<String>>();
 
-  _TransformerLoader(this._server, this._mode, PackageGraph graph) {
-    for (var package in graph.packages.values) {
+  _TransformerLoader(this._server, this._mode, this._graph) {
+    for (var package in _graph.packages.values) {
       for (var id in unionAll(package.pubspec.transformers)) {
         _transformerUsers.putIfAbsent(
             new Pair(id.package, id.path), () => new Set<String>())
@@ -249,7 +253,7 @@ class _TransformerLoader {
       }
 
       var message = "No transformers";
-      if (id.configuration != null) {
+      if (id.configuration.isNotEmpty) {
         message += " that accept configuration";
       }
 
@@ -273,7 +277,18 @@ class _TransformerLoader {
   /// It's an error to call this before [load] is called with [id] and the
   /// future it returns has completed.
   Set<Transformer> transformersFor(TransformerId id) {
-    assert(_transformers.containsKey(id));
+    if (_transformers.containsKey(id)) return _transformers[id];
+
+    assert(id.package == '\$dart2js');
+    var transformer;
+    try {
+      transformer = new Dart2JSTransformer.withSettings(
+          _graph, new BarbackSettings(id.configuration, _mode));
+    } on FormatException catch (error, stackTrace) {
+      fail(error.message, error, stackTrace);
+    }
+
+    _transformers[id] = new Set.from([transformer]);
     return _transformers[id];
   }
 }
