@@ -4026,6 +4026,16 @@ class MaterializeObjectInstr : public Definition {
     return (*values_)[i];
   }
 
+  // SelectRepresentations pass is run once more while MaterializeObject
+  // instructions are still in the graph. To avoid any redundant boxing
+  // operations inserted by that pass we should indicate that this
+  // instruction can cope with any representation as it is essentially
+  // an environment use.
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(0 <= idx && idx < InputCount());
+    return kNoRepresentation;
+  }
+
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
