@@ -367,7 +367,7 @@ class SourceVisitor implements ASTVisitor {
   final twoSlashes = new RegExp(r'//[^/]');
 
   /// A weight for potential breakpoints.
-  int breakWeight = null;
+  int breakWeight = DEFAULT_SPACE_WEIGHT;
 
   /// Original pre-format selection information (may be null).
   final Selection preSelection;
@@ -1464,7 +1464,7 @@ class SourceVisitor implements ASTVisitor {
       }
       leadingSpaces = 0;
       allowLineLeadingSpaces = false;
-      breakWeight = null;
+      breakWeight = DEFAULT_SPACE_WEIGHT;
     }
   }
 

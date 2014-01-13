@@ -1223,6 +1223,9 @@ main() {
     List<Chunk> breakLine(Line line, int maxLength) =>
         new SimpleLineBreaker(maxLength).breakLine(line);
 
+    String printLine(Line line, int maxLength) =>
+        new SimpleLineBreaker(maxLength).printLine(line);
+
     Line line(List tokens) {
       var line = new Line();
       tokens.forEach((t) =>
@@ -1239,6 +1242,15 @@ main() {
     // 'foo|1|bar|1|baz|1|foo|1|bar|1|baz'
     final LINE_1 = line(['foo', SP_1, 'bar', SP_1, 'baz', SP_1,
                          'foo', SP_1, 'bar', SP_1, 'baz']);
+
+    // '  foo|1|bar|1|baz|1|foo|1|bar|1|baz'
+    final LINE_2 = line(['  foo', SP_1, 'bar', SP_1, 'baz', SP_1,
+                         'foo', SP_1, 'bar', SP_1, 'baz']);
+
+    test('breakLine - 0', () {
+      var chunks = breakLine(line(['  foo']), 8);
+      expectTextsEqual(chunks, ['  foo']);
+    });
 
     test('breakLine - 1', () {
       var chunks = breakLine(LINE_1, 1);
@@ -1258,6 +1270,31 @@ main() {
     test('breakLine - 4', () {
       var chunks = breakLine(LINE_1, 12);
       expectTextsEqual(chunks, ['foo bar baz', 'foo bar baz']);
+    });
+
+    test('breakLine - 5', () {
+      var chunks = breakLine(LINE_2, 16);
+      expectTextsEqual(chunks, ['  foo bar baz', 'foo bar baz']);
+    });
+
+    test('printLine - 1', () {
+      var line = printLine(LINE_1, 1);
+      expect(line, 'foo\nbar\nbaz\nfoo\nbar\nbaz');
+    });
+
+    test('printLine - 2', () {
+      var line = printLine(LINE_1, 4);
+      expect(line, 'foo\nbar\nbaz\nfoo\nbar\nbaz');
+    });
+
+    test('printLine - 3', () {
+      var line = printLine(LINE_1, 8);
+      expect(line, 'foo bar\nbaz foo\nbar baz');
+    });
+
+    test('printLine - 4', () {
+      var line = printLine(LINE_1, 12);
+      expect(line, 'foo bar baz\nfoo bar baz');
     });
 
   });

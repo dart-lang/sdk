@@ -63,7 +63,20 @@ class SimpleLineBreaker extends LinePrinter {
   SimpleLineBreaker(this.maxLength);
 
   String printLine(Line line) {
-    //TODO(pquitslund): implement
+    var buf = new StringBuffer();
+    var chunks = breakLine(line);
+    for (var i = 0; i < chunks.length; ++i) {
+      if (i > 0) {
+        buf.write(indent(chunks[i]));
+      } else {
+        buf.write(chunks[i]);
+      }
+    }
+    return buf.toString();
+  }
+
+  String indent(Chunk chunk) {
+    return '\n' + chunk.toString();
   }
 
   List<Chunk> breakLine(Line line) {
@@ -93,7 +106,9 @@ class SimpleLineBreaker extends LinePrinter {
         if (work.fits(tok)) {
           work.add(tok);
         } else {
-          current.add(work);
+          if (!isWhitespace(work)) {
+            current.add(work);
+          }
           if (current.length > 0) {
             chunks.add(current);
             current = new Chunk(maxLength: maxLength);
@@ -110,6 +125,11 @@ class SimpleLineBreaker extends LinePrinter {
       chunks.add(current);
     }
     return chunks;
+  }
+
+  bool isWhitespace(Chunk chunk) {
+    var str = chunk.buffer.toString();
+    return str.lastIndexOf(new RegExp(r"(\w+)")) == str.length - 1;
   }
 
   /// Test whether this token is a good start for a new working chunk
@@ -148,7 +168,7 @@ abstract class LineText {
 /// A working piece of text used in calculating line breaks
 class Chunk implements LineText {
 
-  final buffer = new StringBuffer();
+  final StringBuffer buffer = new StringBuffer();
 
   int maxLength;
   SpaceToken start;
@@ -167,7 +187,7 @@ class Chunk implements LineText {
     text.addTo(this);
   }
 
-  String toString() => buffer.toString().trim();
+  String toString() => buffer.toString();
 
   void addTo(Chunk chunk) {
     chunk.buffer.write(start.value);
@@ -226,7 +246,7 @@ class SourceWriter {
 
   SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE,
       int maxLineLength: 80}) {
-    linePrinter = new SimpleLinePrinter();
+    linePrinter = new SimpleLineBreaker(maxLineLength);
     currentLine = new Line(indent: indentCount, printer: linePrinter);
   }
 
@@ -269,7 +289,7 @@ class SourceWriter {
     spaces(1);
   }
 
-  void spaces(n, {breakWeight: null}) {
+  void spaces(n, {breakWeight: DEFAULT_SPACE_WEIGHT}) {
     currentLine.addSpaces(n, breakWeight: breakWeight);
   }
 
