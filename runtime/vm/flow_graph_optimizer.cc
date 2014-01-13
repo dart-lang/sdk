@@ -8196,7 +8196,9 @@ void AllocationSinking::Optimize() {
     MaterializeObjectInstr* mat = materializations_[i];
     for (intptr_t j = 0; j < mat->InputCount(); j++) {
       Definition* defn = mat->InputAt(j)->definition();
-      if (defn->IsBoxDouble()) {
+      if (defn->IsBoxDouble() ||
+          defn->IsBoxFloat32x4() ||
+          defn->IsBoxInt32x4()) {
         mat->InputAt(j)->BindTo(defn->InputAt(0)->definition());
       }
     }

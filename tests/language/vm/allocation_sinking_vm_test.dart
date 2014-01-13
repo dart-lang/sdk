@@ -4,6 +4,7 @@
 // Test allocation sinking optimization.
 // VMOptions=--optimization-counter-threshold=10 --no-use-osr
 
+import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 class Point {
@@ -19,6 +20,22 @@ class Point {
 class C {
   var p;
   C(this.p);
+}
+
+
+class Pointx4 {
+  var x, y;
+
+  Pointx4(this.x, this.y);
+
+  operator * (other) {
+    return x * other.x + y * other.y;
+  }
+}
+
+class Cx4 {
+  var p;
+  Cx4(this.p);
 }
 
 class D {
@@ -52,6 +69,13 @@ test1(c, x, y) {
   var a = new Point(x - 0.5, y + 0.5);
   var b = new Point(x + 0.5, y + 0.8);
   var d = new Point(c.p * a, c.p * b);
+  return d * d;
+}
+
+test1x4(c, x, y, z, w) {
+  var a = new Pointx4(x - z, y + w);
+  var b = new Pointx4(x + w, y + z);
+  var d = new Pointx4(c.p * a, c.p * b);
   return d * d;
 }
 
@@ -144,12 +168,22 @@ main() {
 
   // Compute initial values.
   final x0 = test1(c, 11.11, 22.22);
+  var fc = new Cx4(new Pointx4(new Float32x4(1.0, 1.0, 1.0, 1.0),
+                               new Float32x4(1.0, 1.0, 1.0, 1.0)));
+  final fx0 = test1x4(fc, new Float32x4(1.0, 1.0, 1.0, 1.0),
+                          new Float32x4(1.0, 1.0, 1.0, 1.0),
+                          new Float32x4(1.0, 1.0, 1.0, 1.0),
+                          new Float32x4(1.0, 1.0, 1.0, 1.0));
   final y0 = testForwardingThroughEffects(c, 11.11, 22.22);
   final z0 = testIdentity(c.p);
 
   // Force optimization.
   for (var i = 0; i < 100; i++) {
     test1(c, i.toDouble(), i.toDouble());
+    test1x4(fc, new Float32x4(1.0, 1.0, 1.0, 1.0),
+                new Float32x4(1.0, 1.0, 1.0, 1.0),
+                new Float32x4(1.0, 1.0, 1.0, 1.0),
+                new Float32x4(1.0, 1.0, 1.0, 1.0));
     testForwardingThroughEffects(c, i.toDouble(), i.toDouble());
     testIdentity(c.p);
     foo2();
