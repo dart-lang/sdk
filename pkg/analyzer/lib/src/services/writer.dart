@@ -10,9 +10,10 @@ class Line {
   final tokens = <LineToken>[];
   final bool useTabs;
   final int spacesPerIndent;
+  final int indent;
   final LinePrinter printer;
 
-  Line({indent: 0, this.useTabs: false, this.spacesPerIndent: 2,
+  Line({this.indent: 0, this.useTabs: false, this.spacesPerIndent: 2,
       this.printer: const SimpleLinePrinter()}) {
     if (indent > 0) {
       _indent(indent);
@@ -54,20 +55,30 @@ abstract class LinePrinter {
 }
 
 
+typedef String Indenter(int n);
+
+
 /// A simple line breaking [LinePrinter]
 class SimpleLineBreaker extends LinePrinter {
 
+  static final NO_OP_INDENTER = (n) => '';
+
   final chunks = <Chunk>[];
   final int maxLength;
+  Indenter indenter;
 
-  SimpleLineBreaker(this.maxLength);
+  SimpleLineBreaker(this.maxLength, [this.indenter]) {
+    if (indenter == null) {
+      indenter = NO_OP_INDENTER;
+    }
+  }
 
   String printLine(Line line) {
     var buf = new StringBuffer();
     var chunks = breakLine(line);
     for (var i = 0; i < chunks.length; ++i) {
       if (i > 0) {
-        buf.write(indent(chunks[i]));
+        buf.write(indent(chunks[i], line.indent));
       } else {
         buf.write(chunks[i]);
       }
@@ -75,9 +86,8 @@ class SimpleLineBreaker extends LinePrinter {
     return buf.toString();
   }
 
-  String indent(Chunk chunk) {
-    return '\n' + chunk.toString();
-  }
+  String indent(Chunk chunk, int level) =>
+      '\n' + indenter(level + 2) + chunk.toString();
 
   List<Chunk> breakLine(Line line) {
 
@@ -245,8 +255,10 @@ class SourceWriter {
   LineToken _lastToken;
 
   SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE,
-      int maxLineLength: 80}) {
-    linePrinter = new SimpleLineBreaker(maxLineLength);
+      bool useTabs: false, int spacesPerIndent: 2, int maxLineLength: 80}) {
+//    linePrinter = new SimpleLineBreaker(maxLineLength, (n) =>
+//        getIndentString(n, useTabs: useTabs, spacesPerIndent: spacesPerIndent));
+    linePrinter = new SimpleLinePrinter();
     currentLine = new Line(indent: indentCount, printer: linePrinter);
   }
 
@@ -347,8 +359,9 @@ const TABS = const [
 ];
 
 
-String getIndentString(int indentWidth, {bool useTabs: false}) =>
-    useTabs ? getTabs(indentWidth) : getSpaces(indentWidth);
+String getIndentString(int indentWidth, {bool useTabs: false,
+  int spacesPerIndent: 2}) => useTabs ? getTabs(indentWidth) :
+    getSpaces(indentWidth * spacesPerIndent);
 
 String getSpaces(int n) => n < SPACES.length ? SPACES[n] : repeat(' ', n);
 

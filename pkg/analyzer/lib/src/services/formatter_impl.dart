@@ -382,7 +382,9 @@ class SourceVisitor implements ASTVisitor {
   /// the visited nodes to the given [writer].
   SourceVisitor(FormatterOptions options, this.lineInfo, this.preSelection):
       writer = new SourceWriter(indentCount: options.initialIndentationLevel,
-                                lineSeparator: options.lineSeparator),
+                                lineSeparator: options.lineSeparator,
+                                useTabs: options.tabsForIndent,
+                                spacesPerIndent: options.spacesPerIndent),
       codeTransforms = options.codeTransforms;
 
   visitAdjacentStrings(AdjacentStrings node) {

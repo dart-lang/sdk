@@ -1304,8 +1304,8 @@ main() {
 
     test('indentString', () {
       expect(getIndentString(0), '');
-      expect(getIndentString(1), ' ');
-      expect(getIndentString(4), '    ');
+      expect(getIndentString(1), '  ');
+      expect(getIndentString(4), '        ');
     });
 
     test('indentString (tabbed)', () {
