@@ -415,9 +415,14 @@ class CompilationProcess {
   onUrl(String url) {
     objectUrls.add(url);
     clear();
-    String wrapper =
-        'function dartPrint(msg) { self.postMessage(msg); };'
-        'self.importScripts("$url");';
+    String wrapper = '''
+// Fool isolate_helper.dart so it does not think this is an isolate.
+var window = self;
+function dartPrint(msg) {
+  self.postMessage(msg);
+};
+self.importScripts("$url");
+''';
     var wrapperUrl =
         Url.createObjectUrl(new Blob([wrapper], 'application/javascript'));
     objectUrls.add(wrapperUrl);
