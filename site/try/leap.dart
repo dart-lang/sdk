@@ -7,31 +7,37 @@ library trydart.main;
 import 'dart:async';
 import 'dart:html';
 import 'dart:isolate';
-import 'dart:uri';
 
-import '../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart'
+import '../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart'
   show
+    EOF_TOKEN,
     StringScanner,
-    EOF_TOKEN;
+    Token;
 
-import '../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart'
-  as scanner;
+import '../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart'
+    as scanner;
+
+import '../../sdk/lib/_internal/compiler/implementation/source_file.dart' show
+    StringSourceFile;
 
 import 'decoration.dart';
 import 'themes.dart';
 
+import 'isolate_legacy.dart';
+
 @lazy import 'compiler_isolate.dart';
 
-const lazy = const DeferredLibrary('compiler_isolate');
+// const lazy = const DeferredLibrary('compiler_isolate');
+const lazy = null;
 
-var inputPre;
-var outputDiv;
-var hackDiv;
-var outputFrame;
-var compilerTimer;
-var compilerPort;
-var observer;
-var cacheStatusElement;
+DivElement inputPre;
+PreElement outputDiv;
+DivElement hackDiv;
+IFrameElement outputFrame;
+Timer compilerTimer;
+SendPort compilerPort;
+MutationObserver observer;
+SpanElement cacheStatusElement;
 bool alwaysRunInWorker = window.localStorage['alwaysRunInWorker'] == 'true';
 bool verboseCompiler = window.localStorage['verboseCompiler'] == 'true';
 bool minified = window.localStorage['minified'] == 'true';
@@ -47,7 +53,7 @@ const String INDENT = '\u{a0}\u{a0}';
 onKeyUp(KeyboardEvent e) {
   if (e.keyCode == 13) {
     e.preventDefault();
-    DomSelection selection = window.getSelection();
+    Selection selection = window.getSelection();
     if (selection.isCollapsed && selection.anchorNode is Text) {
       Text text = selection.anchorNode;
       int offset = selection.anchorOffset;
@@ -74,7 +80,7 @@ onMutation(List<MutationRecord> mutations, MutationObserver observer) {
   // Discard clean-up mutations.
   observer.takeRecords();
 
-  DomSelection selection = window.getSelection();
+  Selection selection = window.getSelection();
 
   while (!mutations.isEmpty) {
     for (MutationRecord record in mutations) {
@@ -155,15 +161,16 @@ onMutation(List<MutationRecord> mutations, MutationObserver observer) {
     // }
     int type = node.nodeType;
     if (type == Node.TEXT_NODE || type == Node.CDATA_SECTION_NODE) {
+      CharacterData text = node;
       if (anchorNode == node) {
         hasSelection = true;
         anchorOffset = selection.anchorOffset + offset;
         return;
       }
-      offset += node.length;
+      offset += text.length;
     }
 
-    var child = node.$dom_firstChild;
+    var child = node.firstChild;
     while (child != null) {
       walk4(child);
       if (hasSelection) return;
@@ -178,15 +185,17 @@ onMutation(List<MutationRecord> mutations, MutationObserver observer) {
   inputPre.nodes.clear();
   inputPre.appendText(currentSource);
   if (hasSelection) {
-    selection.collapse(inputPre.$dom_firstChild, anchorOffset);
+    selection.collapse(inputPre.firstChild, anchorOffset);
   }
 
   isMalformedInput = false;
-  for (Node node in new List.from(inputPre.nodes)) {
-    if (node is! Text) continue;
+  for (var n in new List.from(inputPre.nodes)) {
+    if (n is! Text) continue;
+    Text node = n;
     String text = node.text;
 
-    var token = new StringScanner(text, includeComments: true).tokenize();
+    Token token = new StringScanner(
+        new StringSourceFile('', text), includeComments: true).tokenize();
     int offset = 0;
     for (;token.kind != EOF_TOKEN; token = token.next) {
       Decoration decoration = getDecoration(token);
@@ -200,8 +209,8 @@ onMutation(List<MutationRecord> mutations, MutationObserver observer) {
       }
       int splitPoint = token.charOffset - offset;
       Text str = node.splitText(splitPoint);
-      Text after = str.splitText(token.slowCharCount);
-      offset += splitPoint + token.slowCharCount;
+      Text after = str.splitText(token.charCount);
+      offset += splitPoint + token.charCount;
       inputPre.insertBefore(after, node.nextNode);
       inputPre.insertBefore(decoration.applyTo(str), after);
 
@@ -226,7 +235,7 @@ onMutation(List<MutationRecord> mutations, MutationObserver observer) {
 
 addDiagnostic(String kind, String message, int begin, int end) {
   observer.disconnect();
-  DomSelection selection = window.getSelection();
+  Selection selection = window.getSelection();
   int offset = 0;
   int anchorOffset = 0;
   bool hasSelection = false;
@@ -236,12 +245,13 @@ addDiagnostic(String kind, String message, int begin, int end) {
     // TODO(ahe): Use TreeWalker when that is exposed.
     int type = node.nodeType;
     if (type == Node.TEXT_NODE || type == Node.CDATA_SECTION_NODE) {
+      CharacterData cdata = node;
       // print('walking: ${node.data}');
       if (anchorNode == node) {
         hasSelection = true;
         anchorOffset = selection.anchorOffset + offset;
       }
-      int newOffset = offset + node.length;
+      int newOffset = offset + cdata.length;
       if (offset <= begin && begin < newOffset) {
         hasSelection = node == anchorNode;
         anchorOffset = selection.anchorOffset;
@@ -264,10 +274,11 @@ addDiagnostic(String kind, String message, int begin, int end) {
       }
       offset = newOffset;
     } else if (type == Node.ELEMENT_NODE) {
-      if (node.classes.contains('alert')) return;
+      Element element = node;
+      if (element.classes.contains('alert')) return;
     }
 
-    var child = node.$dom_firstChild;
+    var child = node.firstChild;
     while(child != null && !foundNode) {
       walk4(child);
       child = child.nextNode;
@@ -356,12 +367,12 @@ class CompilationProcess {
     if (verboseCompiler) options.add('--verbose');
     if (minified) options.add('--minify');
     if (onlyAnalyze) options.add('--analyze-only');
-    compilerPort.send(['options', options], receivePort.toSendPort());
+    compilerPort.send([['options', options], receivePort.sendPort]);
     console.appendHtml('<i class="icon-spinner icon-spin"></i>');
     console.appendText(' Compiling Dart program...\n');
     outputFrame.style.display = 'none';
-    receivePort.receive(onMessage);
-    compilerPort.send(source, receivePort.toSendPort());
+    receivePort.listen(onMessage);
+    compilerPort.send([source, receivePort.sendPort]);
   }
 
   void dispose() {
@@ -369,7 +380,7 @@ class CompilationProcess {
     objectUrls.forEach(Url.revokeObjectUrl);
   }
 
-  onMessage(message, _) {
+  onMessage(message) {
     String kind = message is String ? message : message[0];
     var data = (message is List && message.length == 2) ? message[1] : null;
     switch (kind) {
@@ -516,8 +527,8 @@ class CompilationProcess {
 }
 
 Decoration getDecoration(scanner.Token token) {
-  String tokenValue = token.slowToString();
-  String tokenInfo = token.info.value.slowToString();
+  String tokenValue = token.value;
+  String tokenInfo = token.info.value;
   if (tokenInfo == 'string') return currentTheme.string;
   // if (tokenInfo == 'identifier') return identifier;
   if (tokenInfo == 'keyword') return currentTheme.keyword;
@@ -570,16 +581,13 @@ const String NO_NON_DOM_HTTP_REQUEST =
     'spawnFunction does not support HttpRequest';
 
 
-checkHttpRequest() {
-  port.receive((String uri, SendPort replyTo) {
-    try {
-      new HttpRequest();
-      replyTo.send(HAS_NON_DOM_HTTP_REQUEST);
-    } catch (e, trace) {
-      replyTo.send(NO_NON_DOM_HTTP_REQUEST);
-    }
-    port.close();
-  });
+checkHttpRequest(SendPort replyTo) {
+  try {
+    new HttpRequest();
+    replyTo.send(HAS_NON_DOM_HTTP_REQUEST);
+  } catch (e, trace) {
+    replyTo.send(NO_NON_DOM_HTTP_REQUEST);
+  }
 }
 
 main() {
@@ -588,23 +596,35 @@ main() {
   }
 
   buildUI();
-  spawnFunction(checkHttpRequest).call('').then((reply) {
-    var compilerFuture;
+  spawnFunction(checkHttpRequest).first.then((reply) {
+    ReceivePort port;
     if (reply == HAS_NON_DOM_HTTP_REQUEST) {
-      compilerFuture = spawnFunction(compilerIsolate);
+      port = spawnFunction(compilerIsolate);
     } else {
-      compilerFuture = spawnDomFunction(compilerIsolate);
+      port = spawnDomFunction(compilerIsolate);
     }
-    if (compilerFuture is! Future) {
-      compilerFuture = new Future.value(compilerFuture);
-    }
-    compilerFuture.then((port) {
-      String sdk = query('link[rel="dart-sdk"]').href;
-      print('Using Dart SDK: $sdk');
-      port.call(sdk).then((_) {
-        compilerPort = port;
-        onMutation([], observer);
-      });
+    LinkElement link = query('link[rel="dart-sdk"]');
+    String sdk = link.href;
+    print('Using Dart SDK: $sdk');
+    int messageCount = 0;
+    SendPort sendPort;
+    port.listen((message) {
+      messageCount++;
+      switch (messageCount) {
+        case 1:
+          sendPort = message as SendPort;
+          sendPort.send([sdk, port.sendPort]);
+          break;
+        case 2:
+          // Acknowledged Receiving the SDK URI.
+          compilerPort = sendPort;
+          onMutation([], observer);
+          break;
+        default:
+          // TODO(ahe): Close [port]?
+          print('Unexpected message received: $message');
+          break;
+      }
     });
   });
 }
@@ -667,7 +687,8 @@ buildUI() {
         ..appendText(EXAMPLE_FIBONACCI);
   }));
   inspirationTabs.append(htmlGroup);
-  inspirationTabs.append(benchmarkGroup);
+  // TODO(ahe): Restore benchmarks.
+  // inspirationTabs.append(benchmarkGroup);
 
   htmlGroup.append(
       buildTab('Hello, World!', 'EXAMPLE_HELLO_HTML', (_) {
@@ -689,8 +710,10 @@ buildUI() {
 
   benchmarkGroup.append(buildTab('DeltaBlue', 'BENCHMARK_DELTA_BLUE', (_) {
     inputPre.contentEditable = 'false';
-    String deltaBlueUri = query('link[rel="benchmark-DeltaBlue"]').href;
-    String benchmarkBaseUri = query('link[rel="benchmark-base"]').href;
+    LinkElement link = query('link[rel="benchmark-DeltaBlue"]');
+    String deltaBlueUri = link.href;
+    link = query('link[rel="benchmark-base"]');
+    String benchmarkBaseUri = link.href;
     HttpRequest.getString(benchmarkBaseUri).then((String benchmarkBase) {
       HttpRequest.getString(deltaBlueUri).then((String deltaBlue) {
         benchmarkBase = benchmarkBase.replaceFirst(
@@ -708,8 +731,10 @@ buildUI() {
 
   benchmarkGroup.append(buildTab('Richards', 'BENCHMARK_RICHARDS', (_) {
     inputPre.contentEditable = 'false';
-    String richardsUri = query('link[rel="benchmark-Richards"]').href;
-    String benchmarkBaseUri = query('link[rel="benchmark-base"]').href;
+    LinkElement link = query('link[rel="benchmark-Richards"]');
+    String richardsUri = link.href;
+    link = query('link[rel="benchmark-base"]');
+    String benchmarkBaseUri = link.href;
     HttpRequest.getString(benchmarkBaseUri).then((String benchmarkBase) {
       HttpRequest.getString(richardsUri).then((String richards) {
         benchmarkBase = benchmarkBase.replaceFirst(
@@ -838,7 +863,7 @@ buildUI() {
   observer = new MutationObserver(onMutation)
       ..observe(inputPre, childList: true, characterData: true, subtree: true);
 
-  window.setImmediate(() {
+  scheduleMicrotask(() {
     inputPre.appendText(window.localStorage['currentSource']);
   });
 
@@ -859,7 +884,8 @@ void openSettings(MouseEvent event) {
   document.body.append(backdrop);
 
   void updateCodeFont(Event e) {
-    codeFont = e.target.value;
+    TextInputElement target = e.target;
+    codeFont = target.value;
     inputPre.style.font = codeFont;
     backdrop.style.opacity = '0.0';
   }
@@ -897,7 +923,8 @@ void openSettings(MouseEvent event) {
 
   buildCheckBox(String text, bool defaultValue, void action(Event e)) {
     var checkBox = new CheckboxInputElement()
-        ..defaultChecked = defaultValue
+        // TODO(ahe): Used to be ..defaultChecked = defaultValue
+        ..checked = defaultValue
         ..onChange.listen(action);
     return new LabelElement()
         ..classes.add('checkbox')
@@ -905,26 +932,28 @@ void openSettings(MouseEvent event) {
         ..appendText(' $text');
   }
 
+  bool isChecked(CheckboxInputElement checkBox) => checkBox.checked;
+
   // TODO(ahe): Build abstraction for flags/options.
   fieldSet.append(
       buildCheckBox(
           'Always run in Worker thread.', alwaysRunInWorker,
-          (Event e) { alwaysRunInWorker = e.target.checked; }));
+          (Event e) { alwaysRunInWorker = isChecked(e.target); }));
 
   fieldSet.append(
       buildCheckBox(
           'Verbose compiler output.', verboseCompiler,
-          (Event e) { verboseCompiler = e.target.checked; }));
+          (Event e) { verboseCompiler = isChecked(e.target); }));
 
   fieldSet.append(
       buildCheckBox(
           'Generate compact (minified) JavaScript.', minified,
-          (Event e) { minified = e.target.checked; }));
+          (Event e) { minified = isChecked(e.target); }));
 
   fieldSet.append(
       buildCheckBox(
           'Only analyze program.', onlyAnalyze,
-          (Event e) { onlyAnalyze = e.target.checked; }));
+          (Event e) { onlyAnalyze = isChecked(e.target); }));
 
   fieldSet.append(new LabelElement()..appendText('Code font:'));
   var textInput = new TextInputElement();
@@ -1017,7 +1046,7 @@ String cacheStatus() {
 
 void updateCacheStatus() {
   cacheStatusElement.nodes.clear();
-  String status = window.applicationCache.status;
+  int status = window.applicationCache.status;
   if (status == ApplicationCache.UPDATEREADY) {
     cacheStatusElement.appendText('New version of Try Dart! ready: ');
     cacheStatusElement.append(
@@ -1039,8 +1068,19 @@ void updateCacheStatus() {
   }
 }
 
-void compilerIsolate() {
-  lazy.load().then((_) => port.receive(compile));
+void compilerIsolate(SendPort port) {
+  // TODO(ahe): Restore when restoring deferred loading.
+  // lazy.load().then((_) => port.listen(compile));
+  ReceivePort replyTo = new ReceivePort();
+  port.send(replyTo.sendPort);
+  replyTo.listen((message) {
+    List list = message as List;
+    try {
+      compile(list[0], list[1]);
+    } catch (exception, stack) {
+      port.send('$exception\n$stack');
+    }
+  });
 }
 
 final String outputHelper =

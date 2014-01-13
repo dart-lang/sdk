@@ -7,10 +7,9 @@ library compiler_isolate;
 import 'dart:async';
 import 'dart:html';
 import 'dart:isolate';
-import 'dart:uri';
-import 'dart:json' show parse;
+import 'dart:convert' show JSON;
 
-import '../sdk/lib/_internal/compiler/compiler.dart' as compiler;
+import '../../sdk/lib/_internal/compiler/compiler.dart' as compiler;
 
 const bool THROW_ON_ERROR = false;
 
@@ -22,13 +21,16 @@ List options = [];
 compile(source, SendPort replyTo) {
   if (sdkLocation == null) {
     // The first message received gives us the URI of this web app.
-    if (source.endsWith('/sdk.dart')) {
+    if (source.endsWith('/sdk.json')) {
       var request = new HttpRequest();
       request.open('GET', source, async: false);
       request.send(null);
+      if (request.status != 200) {
+        throw 'SDK not found at $source';
+      }
       sdkLocation = Uri.parse('sdk:/sdk/');
-      parse(request.responseText).forEach((file, content) {
-        cachedSources[Uri.parse('sdk:/$file')] = content;
+      JSON.decode(request.responseText).forEach((file, content) {
+        cachedSources[Uri.parse(file)] = content;
       });
     } else {
       sdkLocation = Uri.parse(source);
@@ -79,7 +81,7 @@ compile(source, SendPort replyTo) {
       throw new Exception('Throw on error');
     }
   }
-  compiler.compile(new Uri('memory:/main.dart'),
+  compiler.compile(Uri.parse('memory:/main.dart'),
                    sdkLocation,
                    null,
                    inputProvider,

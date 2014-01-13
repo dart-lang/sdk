@@ -6,7 +6,7 @@
 # https://developers.google.com/appengine/docs/python/config/appconfig
 
 application: try-dart-lang
-version: 5
+version: 5-sdk1-0
 runtime: python27
 api_version: 1
 threadsafe: yes
@@ -29,9 +29,9 @@ handlers:
   upload: nossl.appcache
   secure: never
 
-- url: /(.*\.(html|js|png|css|dart))
+- url: /(.*\.(html|js|png|css|dart|json))
   static_files: \1
-  upload: (.*\.(html|js|png|css|dart))
+  upload: (.*\.(html|js|png|css|dart|json))
   secure: never
 
 - url: /css/fonts/

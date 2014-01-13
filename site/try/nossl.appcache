@@ -1,9 +1,9 @@
+CACHE MANIFEST
 # Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-CACHE MANIFEST
-# Version 5
+# Version 5-sdk1-0 <-- CHANGE THIS when you have a new version
 
 CACHE:
 index.html
@@ -12,13 +12,9 @@ leap.dart.js
 
 iframe.html
 iframe.js
-benchmarks/benchmark_base.dart
 dart-icon.png
-benchmarks/Richards.dart
-benchmarks/DeltaBlue.dart
 dart-iphone5.png
-part.js
-sdk.dart
+sdk.json
 
 /css/fonts/fontawesome-webfont.woff?v=3.0.1
 
