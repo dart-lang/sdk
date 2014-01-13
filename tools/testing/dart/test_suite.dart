@@ -1010,16 +1010,21 @@ class StandardTestSuite extends TestSuite {
           dart2JsBootstrapDependencies, compilerPath, args,
           environmentOverrides);
 
+      var javascriptFile = '$tempDir/out.js';
+      if (configuration['csp']) {
+        javascriptFile = '$tempDir/out.precompiled.js';
+      }
+
       List<Command> commands = <Command>[command];
       if (info.hasCompileError) {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
       } else if (configuration['runtime'] == 'd8') {
         commands.add(CommandBuilder.instance.getJSCommandlineCommand(
-            "d8", d8FileName, ['$tempDir/out.js'], environmentOverrides));
+            "d8", d8FileName, [javascriptFile], environmentOverrides));
       } else if (configuration['runtime'] == 'jsshell') {
         commands.add(CommandBuilder.instance.getJSCommandlineCommand(
-            "jsshell", jsShellFileName, ['$tempDir/out.js'],
+            "jsshell", jsShellFileName, [javascriptFile],
             environmentOverrides));
       }
       return commands;
