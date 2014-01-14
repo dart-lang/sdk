@@ -32,7 +32,7 @@ abstract class BaseRequest {
   int _contentLength = -1;
 
   set contentLength(int value) {
-    _baseCheckFinalized();
+    _checkFinalized();
     _contentLength = value;
   }
 
@@ -42,7 +42,7 @@ abstract class BaseRequest {
   bool _persistentConnection = true;
 
   set persistentConnection(bool value) {
-    _baseCheckFinalized();
+    _checkFinalized();
     _persistentConnection = value;
   }
 
@@ -52,7 +52,7 @@ abstract class BaseRequest {
   bool _followRedirects = true;
 
   set followRedirects(bool value) {
-    _baseCheckFinalized();
+    _checkFinalized();
     _followRedirects = value;
   }
 
@@ -63,7 +63,7 @@ abstract class BaseRequest {
   int _maxRedirects = 5;
 
   set maxRedirects(int value) {
-    _baseCheckFinalized();
+    _checkFinalized();
     _maxRedirects = value;
   }
 
@@ -123,8 +123,7 @@ abstract class BaseRequest {
   }
 
   // Throws an error if this request has been finalized.
-  // TODO(nweiz): rename to _checkFinalized once 16029 is resolved
-  void _baseCheckFinalized() {
+  void _checkFinalized() {
     if (!finalized) return;
     throw new StateError("Can't modify a finalized Request.");
   }
