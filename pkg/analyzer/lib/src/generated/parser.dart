@@ -224,6 +224,10 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
 
   ASTNode visitAssignmentExpression(AssignmentExpression node) {
     if (identical(_oldNode, node.leftHandSide)) {
+      // TODO(brianwilkerson) If the assignment is part of a cascade section, then we don't have a
+      // single parse method that will work. Otherwise, we can parse a conditional expression, but
+      // need to ensure that the resulting expression is assignable.
+      // return parser.parseConditionalExpression();
       throw new InsufficientContextException();
     } else if (identical(_oldNode, node.rightHandSide)) {
       if (isCascadeAllowed(node)) {
@@ -509,6 +513,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
   }
 
   ASTNode visitFormalParameterList(FormalParameterList node) {
+    // We don't know which kind of parameter to parse.
     throw new InsufficientContextException();
   }
 
@@ -756,6 +761,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
       }
       return _parser.parseSimpleIdentifier();
     } else if (identical(_oldNode, node.body)) {
+      //return parser.parseFunctionBody();
       throw new InsufficientContextException();
     }
     return notAChild(node);
@@ -1076,6 +1082,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
    * @return `true` if the right-hand side can be a cascade expression
    */
   bool isCascadeAllowed(AssignmentExpression node) {
+    // TODO(brianwilkerson) Implement this method.
     throw new InsufficientContextException();
   }
 
@@ -1086,6 +1093,7 @@ class IncrementalParseDispatcher implements ASTVisitor<ASTNode> {
    * @return `true` if the expression can be a cascade expression
    */
   bool isCascadeAllowed2(ThrowExpression node) {
+    // TODO(brianwilkerson) Implement this method.
     throw new InsufficientContextException();
   }
 
@@ -1187,20 +1195,33 @@ class IncrementalParser {
   ASTNode reparse(ASTNode originalStructure, Token leftToken, Token rightToken, int originalStart, int originalEnd) {
     ASTNode oldNode = null;
     ASTNode newNode = null;
+    //
+    // Find the first token that needs to be re-parsed.
+    //
     Token firstToken = leftToken.next;
     if (identical(firstToken, rightToken)) {
+      // If there are no new tokens, then we need to include at least one copied node in the range.
       firstToken = leftToken;
     }
+    //
+    // Find the smallest AST node that encompasses the range of re-scanned tokens.
+    //
     if (originalEnd < originalStart) {
       oldNode = new NodeLocator.con1(originalStart).searchWithin(originalStructure);
     } else {
       oldNode = new NodeLocator.con2(originalStart, originalEnd).searchWithin(originalStructure);
     }
+    //
+    // Find the token at which parsing is to begin.
+    //
     int originalOffset = oldNode.offset;
     Token parseToken = findTokenAt(firstToken, originalOffset);
     if (parseToken == null) {
       return null;
     }
+    //
+    // Parse the appropriate AST structure starting at the appropriate place.
+    //
     Parser parser = new Parser(_source, _errorListener);
     parser.currentToken = parseToken;
     while (newNode == null) {
@@ -1214,6 +1235,9 @@ class IncrementalParser {
       try {
         IncrementalParseDispatcher dispatcher = new IncrementalParseDispatcher(parser, oldNode);
         newNode = parent.accept(dispatcher);
+        //
+        // Validate that the new node can replace the old node.
+        //
         Token mappedToken = _tokenMap.get(oldNode.endToken.next);
         if (mappedToken == null || mappedToken.offset != newNode.endToken.next.offset || newNode.offset != oldNode.offset) {
           advanceToParent = true;
@@ -1232,7 +1256,11 @@ class IncrementalParser {
       }
     }
     _updatedNode = newNode;
+    //
+    // Replace the old node with the new node in a copy of the original AST structure.
+    //
     if (identical(oldNode, originalStructure)) {
+      // We ended up re-parsing the whole structure, so there's no need for a copy.
       ResolutionCopier.copyResolutionData(oldNode, newNode);
       return newNode;
     }
@@ -1476,6 +1504,10 @@ class Parser {
    * @return the argument that was parsed
    */
   Expression parseArgument() {
+    //
+    // Both namedArgument and expression can start with an identifier, but only namedArgument can
+    // have an identifier followed by a colon.
+    //
     if (matchesIdentifier() && matches4(peek(), TokenType.COLON)) {
       return new NamedExpression(parseLabel(), parseExpression3());
     } else {
@@ -1503,6 +1535,10 @@ class Parser {
     if (matches5(TokenType.CLOSE_PAREN)) {
       return new ArgumentList(leftParenthesis, arguments, andAdvance);
     }
+    //
+    // Even though unnamed arguments must all appear before any named arguments, we allow them to
+    // appear in any order so that we can recover faster.
+    //
     Expression argument = parseArgument();
     arguments.add(argument);
     bool foundNamedArgument = argument is NamedExpression;
@@ -1512,6 +1548,7 @@ class Parser {
       arguments.add(argument);
       if (foundNamedArgument) {
         if (!generatedError && argument is! NamedExpression) {
+          // Report the error, once, but allow the arguments to be in any order in the AST.
           reportError11(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, []);
           generatedError = true;
         }
@@ -1519,6 +1556,9 @@ class Parser {
         foundNamedArgument = true;
       }
     }
+    // TODO(brianwilkerson) Recovery: Look at the left parenthesis to see whether there is a
+    // matching right parenthesis. If there is, then we're more likely missing a comma and should
+    // go back to parsing arguments.
     Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
     return new ArgumentList(leftParenthesis, arguments, rightParenthesis);
   }
@@ -1568,6 +1608,7 @@ class Parser {
         statements.add(statement);
       }
       if (identical(_currentToken, statementStart)) {
+        // Ensure that we are making progress and report an error if we're not.
         reportError12(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
         advance();
       }
@@ -1611,13 +1652,22 @@ class Parser {
         validateModifiersForGetterOrSetterOrMethod(modifiers);
         return parseMethodDeclaration(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, returnType);
       } else {
+        //
+        // We have found an error of some kind. Try to recover.
+        //
         if (matchesIdentifier()) {
           if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+            //
+            // We appear to have a variable declaration with a type of "void".
+            //
             reportError10(ParserErrorCode.VOID_VARIABLE, returnType, []);
             return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), returnType);
           }
         }
         if (isOperator(_currentToken)) {
+          //
+          // We appear to have found an operator declaration without the 'operator' keyword.
+          //
           validateModifiersForOperator(modifiers);
           return parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType);
         }
@@ -1635,6 +1685,9 @@ class Parser {
       return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (!matchesIdentifier()) {
       if (isOperator(_currentToken)) {
+        //
+        // We appear to have found an operator declaration without the 'operator' keyword.
+        //
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
       }
@@ -1669,12 +1722,25 @@ class Parser {
       return parseOperator(commentAndMetadata, modifiers.externalKeyword, type);
     } else if (!matchesIdentifier()) {
       if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+        //
+        // We appear to have found an incomplete declaration at the end of the class. At this point
+        // it consists of a type name, so we'll treat it as a field declaration with a missing
+        // field name and semicolon.
+        //
         return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), type);
       }
       if (isOperator(_currentToken)) {
+        //
+        // We appear to have found an operator declaration without the 'operator' keyword.
+        //
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, type);
       }
+      //
+      // We appear to have found an incomplete declaration before another declaration.
+      // At this point it consists of a type name, so we'll treat it as a field declaration
+      // with a missing field name and semicolon.
+      //
       reportError12(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
       try {
         lockErrorListener();
@@ -1724,6 +1790,10 @@ class Parser {
     if (matches5(TokenType.SCRIPT_TAG)) {
       scriptTag = new ScriptTag(andAdvance);
     }
+    //
+    // Even though all directives must appear before declarations and must occur in a given order,
+    // we allow directives and declarations to occur in any order so that we can recover better.
+    //
     bool libraryDirectiveFound = false;
     bool partOfDirectiveFound = false;
     bool partDirectiveFound = false;
@@ -1855,6 +1925,11 @@ class Parser {
     } else if (matches(Keyword.RETHROW)) {
       return parseRethrowExpression();
     }
+    //
+    // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
+    // expression and then determine whether it is followed by an assignmentOperator, checking for
+    // conformance to the restricted grammar after making that determination.
+    //
     Expression expression = parseConditionalExpression();
     TokenType tokenType = _currentToken.type;
     if (identical(tokenType, TokenType.PERIOD_PERIOD)) {
@@ -1893,6 +1968,11 @@ class Parser {
     } else if (matches(Keyword.RETHROW)) {
       return parseRethrowExpression();
     }
+    //
+    // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
+    // expression and then determine whether it is followed by an assignmentOperator, checking for
+    // conformance to the restricted grammar after making that determination.
+    //
     Expression expression = parseConditionalExpression();
     if (_currentToken.type.isAssignmentOperator) {
       Token operator = andAdvance;
@@ -1948,6 +2028,11 @@ class Parser {
     if (matches5(TokenType.CLOSE_PAREN)) {
       return new FormalParameterList(leftParenthesis, null, null, null, andAdvance);
     }
+    //
+    // Even though it is invalid to have default parameters outside of brackets, required parameters
+    // inside of brackets, or multiple groups of default and named parameters, we allow all of these
+    // cases so that we can recover better.
+    //
     List<FormalParameter> parameters = new List<FormalParameter>();
     List<FormalParameter> normalParameters = new List<FormalParameter>();
     List<FormalParameter> positionalParameters = new List<FormalParameter>();
@@ -1968,6 +2053,7 @@ class Parser {
       if (firstParameter) {
         firstParameter = false;
       } else if (!optional(TokenType.COMMA)) {
+        // TODO(brianwilkerson) The token is wrong, we need to recover from this case.
         if (getEndToken(leftParenthesis) != null) {
           reportError11(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
         } else {
@@ -1976,6 +2062,9 @@ class Parser {
         }
       }
       initialToken = _currentToken;
+      //
+      // Handle the beginning of parameter groups.
+      //
       if (matches5(TokenType.OPEN_SQUARE_BRACKET)) {
         wasOptionalParameter = true;
         if (leftSquareBracket != null && !reportedMuliplePositionalGroups) {
@@ -2003,12 +2092,19 @@ class Parser {
         currentParameters = namedParameters;
         kind = ParameterKind.NAMED;
       }
+      //
+      // Parse and record the parameter.
+      //
       FormalParameter parameter = parseFormalParameter(kind);
       parameters.add(parameter);
       currentParameters.add(parameter);
       if (identical(kind, ParameterKind.REQUIRED) && wasOptionalParameter) {
         reportError10(ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, parameter, []);
       }
+      //
+      // Handle the end of parameter groups.
+      //
+      // TODO(brianwilkerson) Improve the detection and reporting of missing and mismatched delimiters.
       if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
         rightSquareBracket = andAdvance;
         currentParameters = normalParameters;
@@ -2038,12 +2134,18 @@ class Parser {
       }
     } while (!matches5(TokenType.CLOSE_PAREN) && initialToken != _currentToken);
     Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
+    //
+    // Check that the groups were closed correctly.
+    //
     if (leftSquareBracket != null && rightSquareBracket == null) {
       reportError11(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
     }
     if (leftCurlyBracket != null && rightCurlyBracket == null) {
       reportError11(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
     }
+    //
+    // Build the parameter list.
+    //
     if (leftSquareBracket == null) {
       leftSquareBracket = leftCurlyBracket;
     }
@@ -2542,15 +2644,20 @@ class Parser {
    */
   bool couldBeStartOfCompilationUnitMember() {
     if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART)) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+      // This looks like the start of a directive
       return true;
     } else if (matches(Keyword.CLASS)) {
+      // This looks like the start of a class definition
       return true;
     } else if (matches(Keyword.TYPEDEF) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
+      // This looks like the start of a typedef
       return true;
     } else if (matches(Keyword.VOID) || ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) || (matches(Keyword.OPERATOR) && isOperator(peek()))) {
+      // This looks like the start of a function
       return true;
     } else if (matchesIdentifier()) {
       if (matches4(peek(), TokenType.OPEN_PAREN)) {
+        // This looks like the start of a function
         return true;
       }
       Token token = skipReturnType(_currentToken);
@@ -2572,6 +2679,10 @@ class Parser {
   SimpleIdentifier createSyntheticIdentifier() {
     Token syntheticToken;
     if (identical(_currentToken.type, TokenType.KEYWORD)) {
+      // Consider current keyword token as an identifier.
+      // It is not always true, e.g. "^is T" where "^" is place the place for synthetic identifier.
+      // By creating SyntheticStringToken we can distinguish a real identifier from synthetic.
+      // In the code completion behavior will depend on a cursor position - before or on "is".
       syntheticToken = injectToken(new SyntheticStringToken(TokenType.IDENTIFIER, _currentToken.lexeme, _currentToken.offset));
     } else {
       syntheticToken = createSyntheticToken2(TokenType.IDENTIFIER);
@@ -2633,6 +2744,8 @@ class Parser {
     if (matches(keyword)) {
       return andAdvance;
     }
+    // Remove uses of this method in favor of matches?
+    // Pass in the error code to use to report the error?
     reportError11(ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
     return _currentToken;
   }
@@ -2648,6 +2761,8 @@ class Parser {
     if (matches5(type)) {
       return andAdvance;
     }
+    // Remove uses of this method in favor of matches?
+    // Pass in the error code to use to report the error?
     if (identical(type, TokenType.SEMICOLON)) {
       reportError12(ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [type.lexeme]);
     } else {
@@ -2786,10 +2901,13 @@ class Parser {
     }
     Token afterReturnType = skipTypeName(_currentToken);
     if (afterReturnType == null) {
+      // There was no return type, but it is optional, so go back to where we started.
       afterReturnType = _currentToken;
     }
     Token afterIdentifier = skipSimpleIdentifier(afterReturnType);
     if (afterIdentifier == null) {
+      // It's possible that we parsed the function name as if it were a type name, so see whether
+      // it makes sense if we assume that there is no type.
       afterIdentifier = skipSimpleIdentifier(_currentToken);
     }
     if (afterIdentifier == null) {
@@ -2798,6 +2916,8 @@ class Parser {
     if (isFunctionExpression(afterIdentifier)) {
       return true;
     }
+    // It's possible that we have found a getter. While this isn't valid at this point we test for
+    // it in order to recover better.
     if (matches(Keyword.GET)) {
       Token afterName = skipSimpleIdentifier(_currentToken.next);
       if (afterName == null) {
@@ -2860,17 +2980,22 @@ class Parser {
    */
   bool isInitializedVariableDeclaration() {
     if (matches(Keyword.FINAL) || matches(Keyword.VAR)) {
+      // An expression cannot start with a keyword other than 'const', 'rethrow', or 'throw'.
       return true;
     }
     if (matches(Keyword.CONST)) {
+      // Look to see whether we might be at the start of a list or map literal, otherwise this
+      // should be the start of a variable declaration.
       return !matchesAny(peek(), [
           TokenType.LT,
           TokenType.OPEN_CURLY_BRACKET,
           TokenType.OPEN_SQUARE_BRACKET,
           TokenType.INDEX]);
     }
+    // We know that we have an identifier, and need to see whether it might be a type name.
     Token token = skipTypeName(_currentToken);
     if (token == null) {
+      // There was no type name, so this can't be a declaration.
       return false;
     }
     token = skipSimpleIdentifier(token);
@@ -2920,16 +3045,20 @@ class Parser {
    * @return `true` if the given token appears to be the beginning of an operator declaration
    */
   bool isOperator(Token startToken) {
+    // Accept any operator here, even if it is not user definable.
     if (!startToken.isOperator) {
       return false;
     }
+    // Token "=" means that it is actually field initializer.
     if (identical(startToken.type, TokenType.EQ)) {
       return false;
     }
+    // Consume all operator tokens.
     Token token = startToken.next;
     while (token.isOperator) {
       token = token.next;
     }
+    // Formal parameter list is expect now.
     return matches4(token, TokenType.OPEN_PAREN);
   }
 
@@ -3220,6 +3349,11 @@ class Parser {
     if (matches(Keyword.SUPER)) {
       return parseAssignableSelector(new SuperExpression(andAdvance), false);
     }
+    //
+    // A primary expression can start with an identifier. We resolve the ambiguity by determining
+    // whether the primary consists of anything other than an identifier and/or is followed by an
+    // assignableSelector.
+    //
     Expression expression = parsePrimaryExpression();
     bool isOptional = primaryAllowed || expression is SimpleIdentifier;
     while (true) {
@@ -3277,6 +3411,7 @@ class Parser {
       return new PropertyAccess(prefix, period, parseSimpleIdentifier());
     } else {
       if (!optional) {
+        // Report the missing selector.
         reportError11(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, []);
       }
       return prefix;
@@ -3396,6 +3531,7 @@ class Parser {
           period = null;
           functionName = null;
         } else if (expression == null) {
+          // It should not be possible to get here.
           expression = new MethodInvocation(expression, period, createSyntheticIdentifier(), parseArgumentList());
         } else {
           expression = new FunctionExpressionInvocation(expression, parseArgumentList());
@@ -3463,6 +3599,10 @@ class Parser {
     if (matches5(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
+    //
+    // Parse the clauses. The parser accepts clauses in any order, but will generate errors if they
+    // are not in the order required by the specification.
+    //
     ExtendsClause extendsClause = null;
     WithClause withClause = null;
     ImplementsClause implementsClause = null;
@@ -3504,10 +3644,16 @@ class Parser {
     if (withClause != null && extendsClause == null) {
       reportError12(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
     }
+    //
+    // Look for and skip over the extra-lingual 'native' specification.
+    //
     NativeClause nativeClause = null;
     if (matches2(_NATIVE) && matches4(peek(), TokenType.STRING)) {
       nativeClause = parseNativeClause();
     }
+    //
+    // Parse the body of the class.
+    //
     Token leftBracket = null;
     List<ClassMember> members = null;
     Token rightBracket = null;
@@ -3677,6 +3823,7 @@ class Parser {
    * @return the comment reference that was parsed, or `null` if no reference could be found
    */
   CommentReference parseCommentReference(String referenceSource, int sourceOffset) {
+    // TODO(brianwilkerson) The errors are not getting the right offset/length and are being duplicated.
     if (referenceSource.length == 0) {
       return null;
     }
@@ -3710,6 +3857,10 @@ class Parser {
         }
         return new CommentReference(newKeyword, identifier);
       } else if (matches3(firstToken, Keyword.THIS) || matches3(firstToken, Keyword.NULL) || matches3(firstToken, Keyword.TRUE) || matches3(firstToken, Keyword.FALSE)) {
+        // TODO(brianwilkerson) If we want to support this we will need to extend the definition
+        // of CommentReference to take an expression rather than an identifier. For now we just
+        // ignore it to reduce the number of errors produced, but that's probably not a valid
+        // long term approach.
         return null;
       }
     } on JavaException catch (exception) {
@@ -3808,8 +3959,14 @@ class Parser {
         validateModifiersForTopLevelFunction(modifiers);
         return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
       } else {
+        //
+        // We have found an error of some kind. Try to recover.
+        //
         if (matchesIdentifier()) {
           if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+            //
+            // We appear to have a variable declaration with a type of "void".
+            //
             reportError10(ParserErrorCode.VOID_VARIABLE, returnType, []);
             return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
           }
@@ -3845,6 +4002,7 @@ class Parser {
     } else if (matches5(TokenType.AT)) {
       return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), returnType), expect2(TokenType.SEMICOLON));
     } else if (!matchesIdentifier()) {
+      // TODO(brianwilkerson) Generalize this error. We could also be parsing a top-level variable at this point.
       reportError12(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       Token semicolon;
       if (matches5(TokenType.SEMICOLON)) {
@@ -4028,6 +4186,8 @@ class Parser {
     } else if (matches(Keyword.PART)) {
       return parsePartDirective(commentAndMetadata);
     } else {
+      // Internal error: this method should not have been invoked if the current token was something
+      // other than one of the above.
       throw new IllegalStateException("parseDirective invoked in an invalid state; currentToken = ${_currentToken}");
     }
   }
@@ -4296,6 +4456,7 @@ class Parser {
           DeclaredIdentifier loopVariable = null;
           SimpleIdentifier identifier = null;
           if (variableList == null) {
+            // We found: <expression> 'in'
             reportError11(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
           } else {
             NodeList<VariableDeclaration> variables = variableList.variables;
@@ -4399,6 +4560,7 @@ class Parser {
         }
         return new NativeFunctionBody(nativeToken, stringLiteral, expect2(TokenType.SEMICOLON));
       } else {
+        // Invalid function body
         reportError11(emptyErrorCode, []);
         return new EmptyFunctionBody(createSyntheticToken2(TokenType.SEMICOLON));
       }
@@ -4452,6 +4614,11 @@ class Parser {
     } else {
       body = new EmptyFunctionBody(expect2(TokenType.SEMICOLON));
     }
+    //    if (!isStatement && matches(TokenType.SEMICOLON)) {
+    //      // TODO(brianwilkerson) Improve this error message.
+    //      reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken.getLexeme());
+    //      advance();
+    //    }
     return new FunctionDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, externalKeyword, returnType, keyword, name, new FunctionExpression(parameters, body));
   }
 
@@ -4529,6 +4696,9 @@ class Parser {
       return new FunctionTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
     } else if (!matches5(TokenType.OPEN_PAREN)) {
       reportError11(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
+      // TODO(brianwilkerson) Recover from this error. At the very least we should skip to the start
+      // of the next valid compilation unit member, allowing for the possibility of finding the
+      // typedef parameters before that point.
       return new FunctionTypeAlias(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, new FormalParameterList(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN)), createSyntheticToken2(TokenType.SEMICOLON));
     }
     FormalParameterList parameters = parseFormalParameterList();
@@ -4721,6 +4891,8 @@ class Parser {
     if (matchesIdentifier()) {
       return parseLibraryIdentifier();
     } else if (matches5(TokenType.STRING)) {
+      // TODO(brianwilkerson) Recovery: This should be extended to handle arbitrary tokens until we
+      // can find a token that can start a compilation unit member.
       StringLiteral string = parseStringLiteral();
       reportError10(ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME, string, []);
     } else {
@@ -4746,6 +4918,7 @@ class Parser {
    * @return the list literal that was parsed
    */
   ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
+    // may be empty list literal
     if (matches5(TokenType.INDEX)) {
       BeginToken leftBracket = new BeginToken(TokenType.OPEN_SQUARE_BRACKET, _currentToken.offset);
       Token rightBracket = new Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
@@ -4756,6 +4929,7 @@ class Parser {
       _currentToken = _currentToken.next;
       return new ListLiteral(modifier, typeArguments, leftBracket, null, rightBracket);
     }
+    // open
     Token leftBracket = expect2(TokenType.OPEN_SQUARE_BRACKET);
     if (matches5(TokenType.CLOSE_SQUARE_BRACKET)) {
       return new ListLiteral(modifier, typeArguments, leftBracket, null, andAdvance);
@@ -5057,6 +5231,7 @@ class Parser {
    * @return the non-labeled statement that was parsed
    */
   Statement parseNonLabeledStatement() {
+    // TODO(brianwilkerson) Pass the comment and metadata on where appropriate.
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
     if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
       if (matches4(peek(), TokenType.STRING)) {
@@ -5068,6 +5243,7 @@ class Parser {
       return parseBlock();
     } else if (matches5(TokenType.KEYWORD) && !(_currentToken as KeywordToken).keyword.isPseudoKeyword) {
       Keyword keyword = (_currentToken as KeywordToken).keyword;
+      // TODO(jwren) compute some metrics to figure out a better order for this if-then sequence to optimize performance
       if (identical(keyword, Keyword.ASSERT)) {
         return parseAssertStatement();
       } else if (identical(keyword, Keyword.BREAK)) {
@@ -5102,15 +5278,26 @@ class Parser {
             TokenType.FUNCTION])) {
           return parseFunctionDeclarationStatement2(commentAndMetadata, returnType);
         } else {
+          //
+          // We have found an error of some kind. Try to recover.
+          //
           if (matchesIdentifier()) {
             if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
+              //
+              // We appear to have a variable declaration with a type of "void".
+              //
               reportError10(ParserErrorCode.VOID_VARIABLE, returnType, []);
               return parseVariableDeclarationStatement(commentAndMetadata);
             }
           } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+            //
+            // We appear to have found an incomplete statement at the end of a block. Parse it as a
+            // variable declaration.
+            //
             return parseVariableDeclarationStatement2(commentAndMetadata, null, returnType);
           }
           reportError11(ParserErrorCode.MISSING_STATEMENT, []);
+          // TODO(brianwilkerson) Recover from this error.
           return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
         }
       } else if (identical(keyword, Keyword.CONST)) {
@@ -5132,6 +5319,9 @@ class Parser {
       } else if (identical(keyword, Keyword.NEW) || identical(keyword, Keyword.TRUE) || identical(keyword, Keyword.FALSE) || identical(keyword, Keyword.NULL) || identical(keyword, Keyword.SUPER) || identical(keyword, Keyword.THIS)) {
         return new ExpressionStatement(parseExpression3(), expect2(TokenType.SEMICOLON));
       } else {
+        //
+        // We have found an error of some kind. Try to recover.
+        //
         reportError11(ParserErrorCode.MISSING_STATEMENT, []);
         return new EmptyStatement(createSyntheticToken2(TokenType.SEMICOLON));
       }
@@ -5350,6 +5540,16 @@ class Parser {
     } else if (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.INDEX)) {
       return parseListLiteral(null, null);
     } else if (matchesIdentifier()) {
+      // TODO(brianwilkerson) The code below was an attempt to recover from an error case, but it
+      // needs to be applied as a recovery only after we know that parsing it as an identifier
+      // doesn't work. Leaving the code as a reminder of how to recover.
+      //      if (isFunctionExpression(peek())) {
+      //        //
+      //        // Function expressions were allowed to have names at one point, but this is now illegal.
+      //        //
+      //        reportError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, getAndAdvance());
+      //        return parseFunctionExpression();
+      //      }
       return parsePrefixedIdentifier();
     } else if (matches(Keyword.NEW)) {
       return parseNewExpression();
@@ -5368,6 +5568,10 @@ class Parser {
     } else if (matches5(TokenType.QUESTION)) {
       return parseArgumentDefinitionTest();
     } else if (matches(Keyword.VOID)) {
+      //
+      // Recover from having a return type of "void" where a return type is not expected.
+      //
+      // TODO(brianwilkerson) Improve this error message.
       reportError11(ParserErrorCode.UNEXPECTED_TOKEN, [_currentToken.lexeme]);
       advance();
       return parsePrimaryExpression();
@@ -5662,6 +5866,8 @@ class Parser {
           Token colon = expect2(TokenType.COLON);
           members.add(new SwitchDefault(labels, defaultKeyword, colon, parseStatements2()));
         } else {
+          // We need to advance, otherwise we could end up in an infinite loop, but this could be a
+          // lot smarter about recovering from the error.
           reportError11(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, []);
           while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !matches(Keyword.CASE) && !matches(Keyword.DEFAULT)) {
             advance();
@@ -5878,6 +6084,10 @@ class Parser {
       Token operator = andAdvance;
       if (matches(Keyword.SUPER)) {
         if (matches4(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches4(peek(), TokenType.PERIOD)) {
+          //     "prefixOperator unaryExpression"
+          // --> "prefixOperator postfixExpression"
+          // --> "prefixOperator primary                    selector*"
+          // --> "prefixOperator 'super' assignableSelector selector*"
           return new PrefixExpression(operator, parseUnaryExpression());
         }
         return new PrefixExpression(operator, new SuperExpression(andAdvance));
@@ -5887,8 +6097,14 @@ class Parser {
       Token operator = andAdvance;
       if (matches(Keyword.SUPER)) {
         if (matches4(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches4(peek(), TokenType.PERIOD)) {
+          // --> "prefixOperator 'super' assignableSelector selector*"
           return new PrefixExpression(operator, parseUnaryExpression());
         }
+        //
+        // Even though it is not valid to use an incrementing operator ('++' or '--') before 'super',
+        // we can (and therefore must) interpret "--super" as semantically equivalent to "-(-super)".
+        // Unfortunately, we cannot do the same for "++super" because "+super" is also not valid.
+        //
         if (identical(operator.type, TokenType.MINUS_MINUS)) {
           int offset = operator.offset;
           Token firstOperator = new Token(TokenType.MINUS, offset);
@@ -5898,6 +6114,7 @@ class Parser {
           operator.previous.setNext(firstOperator);
           return new PrefixExpression(firstOperator, new PrefixExpression(secondOperator, new SuperExpression(andAdvance)));
         } else {
+          // Invalid operator before 'super'
           reportError11(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, [operator.lexeme]);
           return new PrefixExpression(operator, new SuperExpression(andAdvance));
         }
@@ -5989,7 +6206,14 @@ class Parser {
    * @return the variable declaration statement that was parsed
    */
   VariableDeclarationStatement parseVariableDeclarationStatement(CommentAndMetadata commentAndMetadata) {
+    //    Token startToken = currentToken;
     VariableDeclarationList variableList = parseVariableDeclarationList(commentAndMetadata);
+    //    if (!matches(TokenType.SEMICOLON)) {
+    //      if (matches(startToken, Keyword.VAR) && isTypedIdentifier(startToken.getNext())) {
+    //        // TODO(brianwilkerson) This appears to be of the form "var type variable". We should do
+    //        // a better job of recovering in this case.
+    //      }
+    //    }
     Token semicolon = expect2(TokenType.SEMICOLON);
     return new VariableDeclarationStatement(variableList, semicolon);
   }
@@ -6136,9 +6360,11 @@ class Parser {
       Token next = startToken.next;
       if (matchesIdentifier2(next)) {
         Token next2 = next.next;
+        // "Type parameter" or "Type<" or "prefix.Type"
         if (matchesIdentifier2(next2) || matches4(next2, TokenType.LT) || matches4(next2, TokenType.PERIOD)) {
           return skipTypeName(next);
         }
+        // "parameter"
         return next;
       }
     } else if (matches3(startToken, Keyword.VAR)) {
@@ -6197,18 +6423,29 @@ class Parser {
     if (matches4(next, TokenType.CLOSE_PAREN)) {
       return next.next;
     }
+    //
+    // Look to see whether the token after the open parenthesis is something that should only occur
+    // at the beginning of a parameter list.
+    //
     if (matchesAny(next, [
         TokenType.AT,
         TokenType.OPEN_SQUARE_BRACKET,
         TokenType.OPEN_CURLY_BRACKET]) || matches3(next, Keyword.VOID) || (matchesIdentifier2(next) && (matchesAny(next.next, [TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
       return skipPastMatchingToken(startToken);
     }
+    //
+    // Look to see whether the first parameter is a function typed parameter without a return type.
+    //
     if (matchesIdentifier2(next) && matches4(next.next, TokenType.OPEN_PAREN)) {
       Token afterParameters = skipFormalParameterList(next.next);
       if (afterParameters != null && (matchesAny(afterParameters, [TokenType.COMMA, TokenType.CLOSE_PAREN]))) {
         return skipPastMatchingToken(startToken);
       }
     }
+    //
+    // Look to see whether the first parameter has a type or is a function typed parameter with a
+    // return type.
+    //
     Token afterType = skipFinalConstVarOrType(next);
     if (afterType == null) {
       return null;
@@ -6328,6 +6565,11 @@ class Parser {
       if (identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         token = token.next;
         type = token.type;
+        //
+        // Rather than verify that the following tokens represent a valid expression, we simply skip
+        // tokens until we reach the end of the interpolation, being careful to handle nested string
+        // literals.
+        //
         int bracketNestingLevel = 1;
         while (bracketNestingLevel > 0) {
           if (identical(type, TokenType.EOF)) {
@@ -6484,6 +6726,10 @@ class Parser {
     if (!matches4(startToken, TokenType.LT)) {
       return null;
     }
+    //
+    // We can't skip a type parameter because it can be preceeded by metadata, so we just assume
+    // that everything before the matching end token is valid.
+    //
     int depth = 1;
     Token next = startToken.next;
     while (depth > 0) {
@@ -6532,9 +6778,18 @@ class Parser {
       builder.appendChar(currentChar);
       return index + 1;
     }
+    //
+    // We have found an escape sequence, so we parse the string to determine what kind of escape
+    // sequence and what character to add to the builder.
+    //
     int length = lexeme.length;
     int currentIndex = index + 1;
     if (currentIndex >= length) {
+      // Illegal escape sequence: no char after escape
+      // This cannot actually happen because it would require the escape character to be the last
+      // character in the string, but if it were it would escape the closing quote, leaving the
+      // string unclosed.
+      // reportError(ParserErrorCode.MISSING_CHAR_IN_ESCAPE_SEQUENCE);
       return length;
     }
     currentChar = lexeme.codeUnitAt(currentIndex);
@@ -6552,12 +6807,14 @@ class Parser {
       builder.appendChar(0xB);
     } else if (currentChar == 0x78) {
       if (currentIndex + 2 >= length) {
+        // Illegal escape sequence: not enough hex digits
         reportError11(ParserErrorCode.INVALID_HEX_ESCAPE, []);
         return length;
       }
       int firstDigit = lexeme.codeUnitAt(currentIndex + 1);
       int secondDigit = lexeme.codeUnitAt(currentIndex + 2);
       if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit)) {
+        // Illegal escape sequence: invalid hex digit
         reportError11(ParserErrorCode.INVALID_HEX_ESCAPE, []);
       } else {
         builder.appendChar(((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)));
@@ -6566,6 +6823,7 @@ class Parser {
     } else if (currentChar == 0x75) {
       currentIndex++;
       if (currentIndex >= length) {
+        // Illegal escape sequence: not enough hex digits
         reportError11(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         return length;
       }
@@ -6573,6 +6831,7 @@ class Parser {
       if (currentChar == 0x7B) {
         currentIndex++;
         if (currentIndex >= length) {
+          // Illegal escape sequence: incomplete escape
           reportError11(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length;
         }
@@ -6581,6 +6840,7 @@ class Parser {
         int value = 0;
         while (currentChar != 0x7D) {
           if (!isHexDigit(currentChar)) {
+            // Illegal escape sequence: invalid hex digit
             reportError11(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             currentIndex++;
             while (currentIndex < length && lexeme.codeUnitAt(currentIndex) != 0x7D) {
@@ -6592,18 +6852,21 @@ class Parser {
           value = (value << 4) + Character.digit(currentChar, 16);
           currentIndex++;
           if (currentIndex >= length) {
+            // Illegal escape sequence: incomplete escape
             reportError11(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             return length;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
         if (digitCount < 1 || digitCount > 6) {
+          // Illegal escape sequence: not enough or too many hex digits
           reportError11(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         }
         appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
         return currentIndex + 1;
       } else {
         if (currentIndex + 3 >= length) {
+          // Illegal escape sequence: not enough hex digits
           reportError11(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
           return length;
         }
@@ -6612,6 +6875,7 @@ class Parser {
         int thirdDigit = lexeme.codeUnitAt(currentIndex + 2);
         int fourthDigit = lexeme.codeUnitAt(currentIndex + 3);
         if (!isHexDigit(firstDigit) || !isHexDigit(secondDigit) || !isHexDigit(thirdDigit) || !isHexDigit(fourthDigit)) {
+          // Illegal escape sequence: invalid hex digits
           reportError11(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
         } else {
           appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), (((((Character.digit(firstDigit, 16) << 4) + Character.digit(secondDigit, 16)) << 4) + Character.digit(thirdDigit, 16)) << 4) + Character.digit(fourthDigit, 16), index, currentIndex + 3);
@@ -8169,6 +8433,9 @@ class ResolutionCopier implements ASTVisitor<bool> {
       this._toNode = toNode;
       return fromNode.accept(this);
     }
+    //
+    // Check for a simple transformation caused by entering a period.
+    //
     if (toNode is PrefixedIdentifier) {
       SimpleIdentifier prefix = toNode.prefix;
       if (fromNode.runtimeType == prefix.runtimeType) {
@@ -8257,6 +8524,8 @@ class ResolutionCopier implements ASTVisitor<bool> {
  * AST node (and all of it's children) to a writer.
  */
 class ToFormattedSourceVisitor implements ASTVisitor<Object> {
+  static String COMMENTS_KEY = "List of comments before statement";
+
   /**
    * The writer to which the source is to be written.
    */
@@ -8448,9 +8717,11 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     ScriptTag scriptTag = node.scriptTag;
     NodeList<Directive> directives = node.directives;
     visit(scriptTag);
+    // directives
     String prefix = scriptTag == null ? "" : " ";
     visitList7(prefix, directives, "\n");
     nl();
+    // declarations
     prefix = scriptTag == null && directives.isEmpty ? "" : "\n";
     visitList7(prefix, node.declarations, "\n\n");
     return null;
@@ -9164,6 +9435,18 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     indent();
   }
 
+  void printLeadingComments(Statement statement) {
+    List<String> comments = statement.getProperty(COMMENTS_KEY) as List<String>;
+    if (comments == null) {
+      return;
+    }
+    for (String comment in comments) {
+      _writer.print(comment);
+      _writer.print("\n");
+      indent();
+    }
+  }
+
   /**
    * Safely visit the given node.
    *
@@ -9269,10 +9552,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     if (nodes != null) {
       int size = nodes.length;
       if (size != 0) {
+        // prefix
         _writer.print(prefix);
         if (prefix.endsWith("\n")) {
           indent();
         }
+        // nodes
         bool newLineSeparator = separator.endsWith("\n");
         for (int i = 0; i < size; i++) {
           if (i > 0) {
@@ -9281,8 +9566,13 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
               indent();
             }
           }
-          nodes[i].accept(this);
+          ASTNode node = nodes[i];
+          if (node is Statement) {
+            printLeadingComments(node);
+          }
+          node.accept(this);
         }
+        // suffix
         _writer.print(suffix);
       }
     }

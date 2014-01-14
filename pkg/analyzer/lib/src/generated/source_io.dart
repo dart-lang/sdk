@@ -111,11 +111,17 @@ class FileBasedSource implements Source {
   bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
 
   void getContents(Source_ContentReceiver receiver) {
+    //
+    // First check to see whether our content cache has an override for our contents.
+    //
     String contents = _contentCache.getContents(this);
     if (contents != null) {
       receiver.accept2(contents, _contentCache.getModificationStamp(this));
       return;
     }
+    //
+    // If not, read the contents from the file using native I/O.
+    //
     getContentsFromFile(receiver);
   }
 
@@ -255,11 +261,14 @@ class PackageUriResolver extends UriResolver {
     String relPath;
     int index = path.indexOf('/');
     if (index == -1) {
+      // No slash
       pkgName = path;
       relPath = "";
     } else if (index == 0) {
+      // Leading slash is invalid
       return null;
     } else {
+      // <pkgName>/<relPath>
       pkgName = path.substring(0, index);
       relPath = path.substring(index + 1);
     }

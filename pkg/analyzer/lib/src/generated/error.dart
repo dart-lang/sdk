@@ -440,10 +440,12 @@ class AnalysisError {
     if (identical(obj, this)) {
       return true;
     }
+    // prepare other AnalysisError
     if (obj is! AnalysisError) {
       return false;
     }
     AnalysisError other = obj as AnalysisError;
+    // Quick checks.
     if (errorCode != other.errorCode) {
       return false;
     }
@@ -453,12 +455,14 @@ class AnalysisError {
     if (isStaticOnly != other.isStaticOnly) {
       return false;
     }
+    // Deep checks.
     if (_message != other._message) {
       return false;
     }
     if (source != other.source) {
       return false;
     }
+    // OK
     return true;
   }
 
@@ -518,6 +522,7 @@ class AnalysisError {
     builder.append("..");
     builder.append(_offset + _length - 1);
     builder.append("): ");
+    //builder.append("(" + lineNumber + ":" + columnNumber + "): ");
     builder.append(_message);
     return builder.toString();
   }

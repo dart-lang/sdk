@@ -650,12 +650,23 @@ class IncrementalScanner extends Scanner {
    * @param insertedLength the number of characters added to the modified source
    */
   Token rescan(Token originalStream, int index, int removedLength, int insertedLength) {
+    //
+    // Copy all of the tokens in the originalStream whose end is less than the replacement start.
+    // (If the replacement start is equal to the end of an existing token, then it means that the
+    // existing token might have been modified, so we need to rescan it.)
+    //
     while (originalStream.type != TokenType.EOF && originalStream.end < index) {
       originalStream = copyAndAdvance(originalStream, 0);
     }
     Token oldFirst = originalStream;
     Token oldLeftToken = originalStream.previous;
     _leftToken = tail;
+    //
+    // Skip tokens in the original stream until we find a token whose offset is greater than the end
+    // of the removed region. (If the end of the removed region is equal to the beginning of an
+    // existing token, then it means that the existing token might have been modified, so we need to
+    // rescan it.)
+    //
     int removedEnd = index + (removedLength == 0 ? 0 : removedLength - 1);
     while (originalStream.type != TokenType.EOF && originalStream.offset <= removedEnd) {
       originalStream = originalStream.next;
@@ -670,16 +681,33 @@ class IncrementalScanner extends Scanner {
       oldLast = originalStream.previous;
       oldRightToken = originalStream;
     }
+    //
+    // Compute the delta between the character index of characters after the modified region in the
+    // original source and the index of the corresponding character in the modified source.
+    //
     int delta = insertedLength - removedLength;
+    //
+    // Compute the range of characters that are known to need to be rescanned. If the index is
+    // within an existing token, then we need to start at the beginning of the token.
+    //
     int scanStart = Math.min(oldFirst.offset, index);
     int oldEnd = oldLast.end + delta - 1;
     int newEnd = index + insertedLength - 1;
     int scanEnd = Math.max(newEnd, oldEnd);
+    //
+    // Starting at the start of the scan region, scan tokens from the modifiedSource until the end
+    // of the just scanned token is greater than or equal to end of the scan region in the modified
+    // source. Include trailing characters of any token that was split as a result of inserted text,
+    // as in "ab" --> "a.b".
+    //
     _reader.offset = scanStart - 1;
     int next = _reader.advance();
     while (next != -1 && _reader.offset <= scanEnd) {
       next = bigSwitch(next);
     }
+    //
+    // Copy the remaining tokens in the original stream, but apply the delta to the token's offset.
+    //
     if (identical(originalStream.type, TokenType.EOF)) {
       copyAndAdvance(originalStream, delta);
       _rightToken = tail;
@@ -693,6 +721,12 @@ class IncrementalScanner extends Scanner {
       Token eof = copyAndAdvance(originalStream, delta);
       eof.setNextWithoutSettingPrevious(eof);
     }
+    //
+    // If the index is immediately after an existing token and the inserted characters did not
+    // change that original token, then adjust the leftToken to be the next token. For example, in
+    // "a; c;" --> "a;b c;", the leftToken was ";", but this code advances it to "b" since "b" is
+    // the first new token.
+    //
     Token newFirst = _leftToken.next;
     while (newFirst != _rightToken && oldFirst != oldRightToken && newFirst.type != TokenType.EOF && equals3(oldFirst, newFirst)) {
       _tokenMap.put(oldFirst, newFirst);
@@ -710,6 +744,12 @@ class IncrementalScanner extends Scanner {
       newLast = newLast.previous;
     }
     _hasNonWhitespaceChange2 = _leftToken.next != _rightToken || oldLeftToken.next != oldRightToken;
+    //
+    // TODO(brianwilkerson) Begin tokens are not getting associated with the corresponding end
+    //     tokens (because the end tokens have not been copied when we're copying the begin tokens).
+    //     This could have implications for parsing.
+    // TODO(brianwilkerson) Update the lineInfo.
+    //
     return firstToken;
   }
 
@@ -1089,9 +1129,11 @@ class Scanner {
   }
 
   void appendCommentToken(TokenType type, String value) {
+    // Ignore comment tokens if client specified that it doesn't need them.
     if (!_preserveComments) {
       return;
     }
+    // OK, remember comment tokens.
     if (_firstComment == null) {
       _firstComment = new StringToken(type, value, _tokenStart);
       _lastComment = _firstComment;
@@ -1128,6 +1170,7 @@ class Scanner {
       _firstComment = null;
       _lastComment = null;
     }
+    // The EOF token points to itself so that there is always infinite look-ahead.
     eofToken.setNext(eofToken);
     _tail = _tail.setNext(eofToken);
     if (_stackEnd >= 0) {
@@ -1205,6 +1248,10 @@ class Scanner {
       _hasUnmatchedGroups2 = true;
       _groupingStack.removeAt(_stackEnd--);
     }
+    //
+    // We should never get to this point because we wouldn't be inside a string interpolation
+    // expression unless we had previously found the start of the expression.
+    //
     return null;
   }
 
@@ -1241,6 +1288,7 @@ class Scanner {
   }
 
   int tokenizeAmpersand(int next) {
+    // && &= &
     next = _reader.advance();
     if (next == 0x26) {
       appendToken2(TokenType.AMPERSAND_AMPERSAND);
@@ -1255,6 +1303,7 @@ class Scanner {
   }
 
   int tokenizeBar(int next) {
+    // | || |=
     next = _reader.advance();
     if (next == 0x7C) {
       appendToken2(TokenType.BAR_BAR);
@@ -1284,6 +1333,7 @@ class Scanner {
   }
 
   int tokenizeEquals(int next) {
+    // = == =>
     next = _reader.advance();
     if (next == 0x3D) {
       appendToken2(TokenType.EQ_EQ);
@@ -1297,6 +1347,7 @@ class Scanner {
   }
 
   int tokenizeExclamation(int next) {
+    // ! !=
     next = _reader.advance();
     if (next == 0x3D) {
       appendToken2(TokenType.BANG_EQ);
@@ -1354,6 +1405,7 @@ class Scanner {
   }
 
   int tokenizeGreaterThan(int next) {
+    // > >= >> >>=
     next = _reader.advance();
     if (0x3D == next) {
       appendToken2(TokenType.GT_EQ);
@@ -1474,6 +1526,7 @@ class Scanner {
   }
 
   int tokenizeLessThan(int next) {
+    // < <= << <<=
     next = _reader.advance();
     if (0x3D == next) {
       appendToken2(TokenType.LT_EQ);
@@ -1487,6 +1540,7 @@ class Scanner {
   }
 
   int tokenizeMinus(int next) {
+    // - -- -=
     next = _reader.advance();
     if (next == 0x2D) {
       appendToken2(TokenType.MINUS_MINUS);
@@ -1651,6 +1705,7 @@ class Scanner {
   }
 
   int tokenizeOpenSquareBracket(int next) {
+    // [ []  []=
     next = _reader.advance();
     if (next == 0x5D) {
       return select(0x3D, TokenType.INDEX_EQ, TokenType.INDEX);
@@ -1663,6 +1718,7 @@ class Scanner {
   int tokenizePercent(int next) => select(0x3D, TokenType.PERCENT_EQ, TokenType.PERCENT);
 
   int tokenizePlus(int next) {
+    // + ++ +=
     next = _reader.advance();
     if (0x2B == next) {
       appendToken2(TokenType.PLUS_PLUS);
@@ -1750,8 +1806,10 @@ class Scanner {
     if (quoteChar == next) {
       next = _reader.advance();
       if (quoteChar == next) {
+        // Multiline string.
         return tokenizeMultiLineString(quoteChar, start, raw);
       } else {
+        // Empty string.
         appendStringToken(TokenType.STRING, _reader.getString(start, -1));
         return next;
       }
@@ -1774,6 +1832,7 @@ class Scanner {
   }
 
   int tokenizeTag(int next) {
+    // # or #!.*[\n\r]
     if (_reader.offset == 0) {
       if (_reader.peek() == 0x21) {
         do {
@@ -1788,6 +1847,7 @@ class Scanner {
   }
 
   int tokenizeTilde(int next) {
+    // ~ ~/ ~/=
     next = _reader.advance();
     if (next == 0x2F) {
       return select(0x3D, TokenType.TILDE_SLASH_EQ, TokenType.TILDE_SLASH);

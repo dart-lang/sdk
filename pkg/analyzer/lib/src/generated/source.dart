@@ -196,6 +196,7 @@ class SourceFactory {
       return null;
     }
     try {
+      // Force the creation of an escaped URI to deal with spaces, etc.
       return resolveUri2(containingSource, parseUriWithException(containedUri));
     } on URISyntaxException catch (exception) {
       return null;
@@ -896,6 +897,8 @@ class ContentCache {
     } else {
       int newStamp = JavaSystem.currentTimeMillis();
       int oldStamp = javaMapPut(_stampMap, source, newStamp);
+      // Occasionally, if this method is called in rapid succession, the timestamps are equal.
+      // Guard against this by artificially incrementing the new timestamp
       if (newStamp == oldStamp) {
         _stampMap[source] = newStamp + 1;
       }

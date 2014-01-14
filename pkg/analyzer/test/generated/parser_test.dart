@@ -31,6 +31,8 @@ import 'element_test.dart' show ElementFactory;
  */
 class SimpleParserTest extends ParserTestCase {
   void fail_parseCommentReference_this() {
+    // This fails because we are returning null from the method and asserting that the return value
+    // is not null.
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["this", 5], "");
     SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(SimpleIdentifier, reference.identifier);
     JUnitTestCase.assertNotNull(identifier.token);
@@ -832,6 +834,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseClassMember_constructor_withInitializers() {
+    // TODO(brianwilkerson) Test other kinds of class members: fields, getters and setters.
     ConstructorDeclaration constructor = ParserTestCase.parse("parseClassMember", <Object> ["C"], "C(_, _\$, this.__) : _a = _ + _\$ {}");
     JUnitTestCase.assertNotNull(constructor.body);
     JUnitTestCase.assertNotNull(constructor.separator);
@@ -1965,6 +1968,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseExpression_assign() {
+    // TODO(brianwilkerson) Implement more tests for this method.
     AssignmentExpression expression = ParserTestCase.parse5("parseExpression", "x = y", []);
     JUnitTestCase.assertNotNull(expression.leftHandSide);
     JUnitTestCase.assertNotNull(expression.operator);
@@ -2009,6 +2013,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseExpressionWithoutCascade_assign() {
+    // TODO(brianwilkerson) Implement more tests for this method.
     AssignmentExpression expression = ParserTestCase.parse5("parseExpressionWithoutCascade", "x = y", []);
     JUnitTestCase.assertNotNull(expression.leftHandSide);
     JUnitTestCase.assertNotNull(expression.operator);
@@ -3091,6 +3096,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseNonLabeledStatement_const_map_nonEmpty() {
+    // TODO(brianwilkerson) Implement more tests for this method.
     ExpressionStatement statement = ParserTestCase.parse5("parseNonLabeledStatement", "const {'a' : 1};", []);
     JUnitTestCase.assertNotNull(statement.expression);
   }
@@ -3675,6 +3681,7 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseStatement_functionDeclaration() {
+    // TODO(brianwilkerson) Implement more tests for this method.
     FunctionDeclarationStatement statement = ParserTestCase.parse5("parseStatement", "int f(a, b) {};", []);
     JUnitTestCase.assertNotNull(statement.functionDeclaration);
   }
@@ -4484,8 +4491,14 @@ class SimpleParserTest extends ParserTestCase {
    */
   bool isFunctionExpression(String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
+    //
+    // Scan the source.
+    //
     Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     Token tokenStream = scanner.tokenize();
+    //
+    // Parse the source.
+    //
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "isFunctionExpression", <Object> [tokenStream], tokenStream) as bool;
   }
@@ -4528,8 +4541,14 @@ class SimpleParserTest extends ParserTestCase {
    */
   Token skip(String methodName, String source) {
     GatheringErrorListener listener = new GatheringErrorListener();
+    //
+    // Scan the source.
+    //
     Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     Token tokenStream = scanner.tokenize();
+    //
+    // Parse the source.
+    //
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, methodName, <Object> [tokenStream], tokenStream) as Token;
   }
@@ -6775,15 +6794,24 @@ class ComplexParserTest extends ParserTestCase {
   void test_assignableExpression_arguments_normal_chain() {
     PropertyAccess propertyAccess1 = ParserTestCase.parseExpression("a(b)(c).d(e).f", []);
     JUnitTestCase.assertEquals("f", propertyAccess1.propertyName.name);
+    //
+    // a(b)(c).d(e)
+    //
     MethodInvocation invocation2 = EngineTestCase.assertInstanceOf(MethodInvocation, propertyAccess1.target);
     JUnitTestCase.assertEquals("d", invocation2.methodName.name);
     ArgumentList argumentList2 = invocation2.argumentList;
     JUnitTestCase.assertNotNull(argumentList2);
     EngineTestCase.assertSize(1, argumentList2.arguments);
+    //
+    // a(b)(c)
+    //
     FunctionExpressionInvocation invocation3 = EngineTestCase.assertInstanceOf(FunctionExpressionInvocation, invocation2.target);
     ArgumentList argumentList3 = invocation3.argumentList;
     JUnitTestCase.assertNotNull(argumentList3);
     EngineTestCase.assertSize(1, argumentList3.arguments);
+    //
+    // a(b)
+    //
     MethodInvocation invocation4 = EngineTestCase.assertInstanceOf(MethodInvocation, invocation3.function);
     JUnitTestCase.assertEquals("a", invocation4.methodName.name);
     ArgumentList argumentList4 = invocation4.argumentList;
@@ -7467,12 +7495,21 @@ class ParserTestCase extends EngineTestCase {
    *           scanning and parsing the source do not match the expected errors
    */
   static Object invokeParserMethod(String methodName, List<Object> objects, String source, GatheringErrorListener listener) {
+    //
+    // Scan the source.
+    //
     Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    //
+    // Parse the source.
+    //
     Parser parser = new Parser(null, listener);
     parser.parseFunctionBodies = _parseFunctionBodies;
     Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
+    //
+    // Partially test the results.
+    //
     if (!listener.hasErrors()) {
       JUnitTestCase.assertNotNull(result);
     }
@@ -9182,130 +9219,194 @@ class RecoveryParserTest extends ParserTestCase {
 
 class IncrementalParserTest extends EngineTestCase {
   void test_delete_everything() {
+    // "f() => a + b;"
+    // ""
     assertParse("", "f() => a + b;", "", "");
   }
 
   void test_delete_identifier_beginning() {
+    // "f() => abs + b;"
+    // "f() => s + b;"
     assertParse("f() => ", "ab", "", "s + b;");
   }
 
   void test_delete_identifier_end() {
+    // "f() => abs + b;"
+    // "f() => a + b;"
     assertParse("f() => a", "bs", "", " + b;");
   }
 
   void test_delete_identifier_middle() {
+    // "f() => abs + b;"
+    // "f() => as + b;"
     assertParse("f() => a", "b", "", "s + b;");
   }
 
   void test_delete_mergeTokens() {
+    // "f() => a + b + c;"
+    // "f() => ac;"
     assertParse("f() => a", " + b + ", "", "c;");
   }
 
   void test_insert_afterIdentifier1() {
+    // "f() => a + b;"
+    // "f() => abs + b;"
     assertParse("f() => a", "", "bs", " + b;");
   }
 
   void test_insert_afterIdentifier2() {
+    // "f() => a + b;"
+    // "f() => a + bar;"
     assertParse("f() => a + b", "", "ar", ";");
   }
 
   void test_insert_beforeIdentifier1() {
+    // "f() => a + b;"
+    // "f() => xa + b;"
     assertParse("f() => ", "", "x", "a + b;");
   }
 
   void test_insert_beforeIdentifier2() {
+    // "f() => a + b;"
+    // "f() => a + xb;"
     assertParse("f() => a + ", "", "x", "b;");
   }
 
   void test_insert_convertOneFunctionToTwo() {
+    // "f() {}"
+    // "f() => 0; g() {}"
     assertParse("f()", "", " => 0; g()", " {}");
   }
 
   void test_insert_end() {
+    // "class A {}"
+    // "class A {} class B {}"
     assertParse("class A {}", "", " class B {}", "");
   }
 
   void test_insert_insideIdentifier() {
+    // "f() => cob;"
+    // "f() => cow.b;"
     assertParse("f() => co", "", "w.", "b;");
   }
 
   void test_insert_newIdentifier1() {
+    // "f() => a; c;"
+    // "f() => a; b c;"
     assertParse("f() => a;", "", " b", " c;");
   }
 
   void test_insert_newIdentifier2() {
+    // "f() => a;  c;"
+    // "f() => a;b  c;"
     assertParse("f() => a;", "", "b", "  c;");
   }
 
   void test_insert_newIdentifier3() {
+    // "/** A simple function. */ f() => a; c;"
+    // "/** A simple function. */ f() => a; b c;"
     assertParse("/** A simple function. */ f() => a;", "", " b", " c;");
   }
 
   void test_insert_newIdentifier4() {
+    // "/** An [A]. */ class A {} class B { m() { return 1; } }"
+    // "/** An [A]. */ class A {} class B { m() { return 1 + 2; } }"
     assertParse("/** An [A]. */ class A {} class B { m() { return 1", "", " + 2", "; } }");
   }
 
   void test_insert_period() {
+    // "f() => a + b;"
+    // "f() => a + b.;"
     assertParse("f() => a + b", "", ".", ";");
   }
 
   void test_insert_period_betweenIdentifiers1() {
+    // "f() => a b;"
+    // "f() => a. b;"
     assertParse("f() => a", "", ".", " b;");
   }
 
   void test_insert_period_betweenIdentifiers2() {
+    // "f() => a b;"
+    // "f() => a .b;"
     assertParse("f() => a ", "", ".", "b;");
   }
 
   void test_insert_period_betweenIdentifiers3() {
+    // "f() => a  b;"
+    // "f() => a . b;"
     assertParse("f() => a ", "", ".", " b;");
   }
 
   void test_insert_period_insideExistingIdentifier() {
+    // "f() => ab;"
+    // "f() => a.b;"
     assertParse("f() => a", "", ".", "b;");
   }
 
   void test_insert_periodAndIdentifier() {
+    // "f() => a + b;"
+    // "f() => a + b.x;"
     assertParse("f() => a + b", "", ".x", ";");
   }
 
   void test_insert_simpleToComplexExression() {
+    // "/** An [A]. */ class A {} class B { m() => 1; }"
+    // "/** An [A]. */ class A {} class B { m() => 1 + 2; }"
     assertParse("/** An [A]. */ class A {} class B { m() => 1", "", " + 2", "; }");
   }
 
   void test_insert_whitespace_end() {
+    // "f() => a + b;"
+    // "f() => a + b; "
     assertParse("f() => a + b;", "", " ", "");
   }
 
   void test_insert_whitespace_end_multiple() {
+    // "f() => a + b;"
+    // "f() => a + b;  "
     assertParse("f() => a + b;", "", "  ", "");
   }
 
   void test_insert_whitespace_middle() {
+    // "f() => a + b;"
+    // "f() => a  + b;"
     assertParse("f() => a", "", " ", " + b;");
   }
 
   void test_replace_identifier_beginning() {
+    // "f() => bell + b;"
+    // "f() => fell + b;"
     assertParse("f() => ", "b", "f", "ell + b;");
   }
 
   void test_replace_identifier_end() {
+    // "f() => bell + b;"
+    // "f() => belt + b;"
     assertParse("f() => bel", "l", "t", " + b;");
   }
 
   void test_replace_identifier_middle() {
+    // "f() => first + b;"
+    // "f() => frost + b;"
     assertParse("f() => f", "ir", "ro", "st + b;");
   }
 
   void test_replace_multiple_partialFirstAndLast() {
+    // "f() => aa + bb;"
+    // "f() => ab * ab;"
     assertParse("f() => a", "a + b", "b * a", "b;");
   }
 
   void test_replace_operator_oneForMany() {
+    // "f() => a + b;"
+    // "f() => a * c - b;"
     assertParse("f() => a ", "+", "* c -", " b;");
   }
 
   void test_replace_operator_oneForOne() {
+    // "f() => a + b;"
+    // "f() => a * b;"
     assertParse("f() => a ", "+", "*", " b;");
   }
 
@@ -9319,10 +9420,16 @@ class IncrementalParserTest extends EngineTestCase {
    * @param suffix the unchanged text after the edit region
    */
   void assertParse(String prefix, String removed, String added, String suffix) {
+    //
+    // Compute the information needed to perform the test.
+    //
     String originalContents = "${prefix}${removed}${suffix}";
     String modifiedContents = "${prefix}${added}${suffix}";
     int replaceStart = prefix.length;
     Source source = new TestSource();
+    //
+    // Parse the original contents.
+    //
     GatheringErrorListener originalListener = new GatheringErrorListener();
     Scanner originalScanner = new Scanner(source, new CharSequenceReader(new CharSequence(originalContents)), originalListener);
     Token originalTokens = originalScanner.tokenize();
@@ -9330,6 +9437,9 @@ class IncrementalParserTest extends EngineTestCase {
     Parser originalParser = new Parser(source, originalListener);
     CompilationUnit originalUnit = originalParser.parseCompilationUnit(originalTokens);
     JUnitTestCase.assertNotNull(originalUnit);
+    //
+    // Parse the modified contents.
+    //
     GatheringErrorListener modifiedListener = new GatheringErrorListener();
     Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), modifiedListener);
     Token modifiedTokens = modifiedScanner.tokenize();
@@ -9337,6 +9447,9 @@ class IncrementalParserTest extends EngineTestCase {
     Parser modifiedParser = new Parser(source, modifiedListener);
     CompilationUnit modifiedUnit = modifiedParser.parseCompilationUnit(modifiedTokens);
     JUnitTestCase.assertNotNull(modifiedUnit);
+    //
+    // Incrementally parse the modified contents.
+    //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
     IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), incrementalListener);
     Token incrementalTokens = incrementalScanner.rescan(originalTokens, replaceStart, removed.length, added.length);
@@ -9344,6 +9457,10 @@ class IncrementalParserTest extends EngineTestCase {
     IncrementalParser incrementalParser = new IncrementalParser(source, incrementalScanner.tokenMap, incrementalListener);
     CompilationUnit incrementalUnit = incrementalParser.reparse(originalUnit, incrementalScanner.leftToken, incrementalScanner.rightToken, replaceStart, prefix.length + removed.length);
     JUnitTestCase.assertNotNull(incrementalUnit);
+    //
+    // Validate that the results of the incremental parse are the same as the full parse of the
+    // modified source.
+    //
     JUnitTestCase.assertTrue(ASTComparator.equals4(modifiedUnit, incrementalUnit));
   }
 
@@ -9487,15 +9604,22 @@ class IncrementalParserTest extends EngineTestCase {
  */
 class ErrorParserTest extends ParserTestCase {
   void fail_expectedListOrMapLiteral() {
+    // It isn't clear that this test can ever pass. The parser is currently create a synthetic list
+    // literal in this case, but isSynthetic() isn't overridden for ListLiteral. The problem is that
+    // the synthetic list literals that are being created are not always zero length (because they
+    // could have type parameters), which violates the contract of isSynthetic().
     TypedLiteral literal = ParserTestCase.parse4("parseListOrMapLiteral", <Object> [null], "1", [ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL]);
     JUnitTestCase.assertTrue(literal.isSynthetic);
   }
 
   void fail_illegalAssignmentToNonAssignable_superAssigned() {
+    // TODO(brianwilkerson) When this test starts to pass, remove the test
+    // test_illegalAssignmentToNonAssignable_superAssigned.
     ParserTestCase.parseExpression("super = x;", [ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);
   }
 
   void fail_invalidCommentReference__new_nonIdentifier() {
+    // This test fails because the method parseCommentReference returns null.
     ParserTestCase.parse4("parseCommentReference", <Object> ["new 42", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
   }
 
@@ -9504,6 +9628,7 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void fail_invalidCommentReference__nonNew_nonIdentifier() {
+    // This test fails because the method parseCommentReference returns null.
     ParserTestCase.parse4("parseCommentReference", <Object> ["42", 0], "", [ParserErrorCode.INVALID_COMMENT_REFERENCE]);
   }
 
@@ -9512,14 +9637,20 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void fail_missingClosingParenthesis() {
+    // It is possible that it is not possible to generate this error (that it's being reported in
+    // code that cannot actually be reached), but that hasn't been proven yet.
     ParserTestCase.parse5("parseFormalParameterList", "(int a, int b ;", [ParserErrorCode.MISSING_CLOSING_PARENTHESIS]);
   }
 
   void fail_missingFunctionParameters_local_nonVoid_block() {
+    // The parser does not recognize this as a function declaration, so it tries to parse it as an
+    // expression statement. It isn't clear what the best error message is in this case.
     ParserTestCase.parseStatement("int f { return x;}", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
   }
 
   void fail_missingFunctionParameters_local_nonVoid_expression() {
+    // The parser does not recognize this as a function declaration, so it tries to parse it as an
+    // expression statement. It isn't clear what the best error message is in this case.
     ParserTestCase.parseStatement("int f => x;", [ParserErrorCode.MISSING_FUNCTION_PARAMETERS]);
   }
 
@@ -9529,14 +9660,19 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void fail_unexpectedToken_invalidPostfixExpression() {
+    // Note: this might not be the right error to produce, but some error should be produced
     ParserTestCase.parseExpression("f()++", [ParserErrorCode.UNEXPECTED_TOKEN]);
   }
 
   void fail_varAndType_local() {
+    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but this would be a
+    // better error message.
     ParserTestCase.parseStatement("var int x;", [ParserErrorCode.VAR_AND_TYPE]);
   }
 
   void fail_varAndType_parameter() {
+    // This is currently reporting EXPECTED_TOKEN for a missing semicolon, but this would be a
+    // better error message.
     ParserTestCase.parse5("parseFormalParameterList", "(var int x)", [ParserErrorCode.VAR_AND_TYPE]);
   }
 
@@ -9951,6 +10087,9 @@ class ErrorParserTest extends ParserTestCase {
   }
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
+    // TODO(brianwilkerson) When the test fail_illegalAssignmentToNonAssignable_superAssigned starts
+    // to pass, remove this test (there should only be one error generated, but we're keeping this
+    // test until that time so that we can catch other forms of regressions).
     ParserTestCase.parseExpression("super = x;", [
         ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
         ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE]);

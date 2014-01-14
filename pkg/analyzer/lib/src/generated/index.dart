@@ -171,9 +171,11 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   bool aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement) {
     context = unwrapContext(context);
+    // may be already removed in other thread
     if (isRemovedContext(context)) {
       return false;
     }
+    // validate unit
     if (unitElement == null) {
       return false;
     }
@@ -185,27 +187,34 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (definingUnitElement == null) {
       return false;
     }
+    // prepare sources
     Source library = definingUnitElement.source;
     Source unit = unitElement.source;
+    // special handling for the defining library unit
     if (unit == library) {
+      // prepare new parts
       Set<Source> newParts = new Set();
       for (CompilationUnitElement part in libraryElement.parts) {
         newParts.add(part.source);
       }
+      // prepare old parts
       Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
       if (libraryToUnits == null) {
         libraryToUnits = {};
         _contextToLibraryToUnits[context] = libraryToUnits;
       }
       Set<Source> oldParts = libraryToUnits[library];
+      // check if some parts are not in the library now
       if (oldParts != null) {
         Set<Source> noParts = oldParts.difference(newParts);
         for (Source noPart in noParts) {
           removeLocations(context, library, noPart);
         }
       }
+      // remember new parts
       libraryToUnits[library] = newParts;
     }
+    // remember libraries in which unit is used
     Map<Source, Set<Source>> unitToLibraries = _contextToUnitToLibraries[context];
     if (unitToLibraries == null) {
       unitToLibraries = {};
@@ -217,7 +226,9 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
       unitToLibraries[unit] = libraries;
     }
     libraries.add(library);
+    // remove locations
     removeLocations(context, library, unit);
+    // remove keys
     {
       Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
       if (sourceToKeys != null) {
@@ -225,15 +236,19 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
         sourceToKeys.remove(source2);
       }
     }
+    // OK, we can index
     return true;
   }
 
   bool aboutToIndex2(AnalysisContext context, Source source) {
     context = unwrapContext(context);
+    // may be already removed in other thread
     if (isRemovedContext(context)) {
       return false;
     }
+    // remove locations
     removeLocations(context, source, source);
+    // remove keys
     {
       Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
       if (sourceToKeys != null) {
@@ -241,6 +256,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
         sourceToKeys.remove(source2);
       }
     }
+    // OK, we can index
     return true;
   }
 
@@ -294,15 +310,18 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
       return;
     }
     location = location.clone();
+    // at the index level we don't care about Member(s)
     if (element is Member) {
       element = (element as Member).baseElement;
     }
+    // prepare information
     AnalysisContext elementContext = element.context;
     AnalysisContext locationContext = location.element.context;
     Source elementSource = element.source;
     Source locationSource = location.element.source;
     Source elementLibrarySource = getLibrarySourceOrNull(element);
     Source locationLibrarySource = getLibrarySourceOrNull(location.element);
+    // sanity check
     if (locationContext == null) {
       return;
     }
@@ -315,12 +334,14 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (elementSource == null && element is! NameElementImpl && element is! UniverseElementImpl) {
       return;
     }
+    // may be already removed in other thread
     if (isRemovedContext(elementContext)) {
       return;
     }
     if (isRemovedContext(locationContext)) {
       return;
     }
+    // record: key -> location(s)
     MemoryIndexStoreImpl_ElementRelationKey key = getCanonicalKey(element, relationship);
     {
       Set<Location> locations = _keyToLocations.remove(key);
@@ -334,9 +355,12 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
       locations.add(location);
       _locationCount++;
     }
+    // record: location -> key
     location.internalKey = key;
+    // prepare source pairs
     MemoryIndexStoreImpl_Source2 elementSource2 = new MemoryIndexStoreImpl_Source2(elementLibrarySource, elementSource);
     MemoryIndexStoreImpl_Source2 locationSource2 = new MemoryIndexStoreImpl_Source2(locationLibrarySource, locationSource);
+    // record: element source -> keys
     {
       Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[elementContext];
       if (sourceToKeys == null) {
@@ -352,6 +376,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
       keys.remove(key);
       keys.add(key);
     }
+    // record: location source -> locations
     {
       Map<MemoryIndexStoreImpl_Source2, List<Location>> sourceToLocations = _contextToSourceToLocations[locationContext];
       if (sourceToLocations == null) {
@@ -372,8 +397,10 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (context == null) {
       return;
     }
+    // mark as removed
     markRemovedContext(context);
     removeSources(context, null);
+    // remove context
     _contextToSourceToKeys.remove(context);
     _contextToSourceToLocations.remove(context);
     _contextToLibraryToUnits.remove(context);
@@ -385,13 +412,16 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (context == null) {
       return;
     }
+    // remove locations defined in source
     Map<Source, Set<Source>> unitToLibraries = _contextToUnitToLibraries[context];
     if (unitToLibraries != null) {
       Set<Source> libraries = unitToLibraries.remove(unit);
       if (libraries != null) {
         for (Source library in libraries) {
           MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
+          // remove locations defined in source
           removeLocations(context, library, unit);
+          // remove keys for elements defined in source
           Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
           if (sourceToKeys != null) {
             Set<MemoryIndexStoreImpl_ElementRelationKey> keys = sourceToKeys.remove(source2);
@@ -417,6 +447,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (context == null) {
       return;
     }
+    // remove sources #1
     Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
     if (sourceToKeys != null) {
       List<MemoryIndexStoreImpl_Source2> sources = [];
@@ -427,6 +458,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
         }
       }
     }
+    // remove sources #2
     Map<MemoryIndexStoreImpl_Source2, List<Location>> sourceToLocations = _contextToSourceToLocations[context];
     if (sourceToLocations != null) {
       List<MemoryIndexStoreImpl_Source2> sources = [];
@@ -485,6 +517,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
           if (relLocations != null) {
             relLocations.remove(location);
             _locationCount--;
+            // no locations with this key
             if (relLocations.isEmpty) {
               _canonicalKeys.remove(key);
               _keyToLocations.remove(key);
@@ -877,17 +910,21 @@ class OperationProcessor {
    */
   void run() {
     {
+      // This processor is, or was, already running on a different thread.
       if (_state != ProcessorState.READY) {
         throw new IllegalStateException("Operation processors can only be run one time");
       }
+      // OK, run.
       _state = ProcessorState.RUNNING;
     }
     try {
       while (isRunning) {
+        // wait for operation
         IndexOperation operation = null;
         {
           operation = _queue.dequeue(_WAIT_DURATION);
         }
+        // perform operation
         if (operation != null) {
           try {
             operation.performOperation();
@@ -1464,9 +1501,11 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    */
   static IndexContributor_ImportElementInfo getImportElementInfo(SimpleIdentifier prefixNode) {
     IndexContributor_ImportElementInfo info = new IndexContributor_ImportElementInfo();
+    // prepare environment
     ASTNode parent = prefixNode.parent;
     CompilationUnit unit = prefixNode.getAncestor(CompilationUnit);
     LibraryElement libraryElement = unit.element.library;
+    // prepare used element
     Element usedElement = null;
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent;
@@ -1478,9 +1517,11 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       usedElement = invocation.methodName.staticElement;
       info._periodEnd = invocation.period.end;
     }
+    // we need used Element
     if (usedElement == null) {
       return null;
     }
+    // find ImportElement
     String prefix = prefixNode.name;
     Map<ImportElement, Set<Element>> importElementsMap = {};
     info._element = getImportElement2(libraryElement, prefix, usedElement, importElementsMap);
@@ -1495,6 +1536,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    *         with given "usedElement".
    */
   static ImportElement getImportElement2(LibraryElement libraryElement, String prefix, Element usedElement, Map<ImportElement, Set<Element>> importElementsMap) {
+    // validate Element
     if (usedElement == null) {
       return null;
     }
@@ -1502,11 +1544,14 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       return null;
     }
     LibraryElement usedLibrary = usedElement.library;
+    // find ImportElement that imports used library with used prefix
     List<ImportElement> candidates = null;
     for (ImportElement importElement in libraryElement.imports) {
+      // required library
       if (importElement.importedLibrary != usedLibrary) {
         continue;
       }
+      // required prefix
       PrefixElement prefixElement = importElement.prefix;
       if (prefix == null) {
         if (prefixElement != null) {
@@ -1520,20 +1565,25 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
           continue;
         }
       }
+      // no combinators => only possible candidate
       if (importElement.combinators.length == 0) {
         return importElement;
       }
+      // OK, we have candidate
       if (candidates == null) {
         candidates = [];
       }
       candidates.add(importElement);
     }
+    // no candidates, probably element is defined in this library
     if (candidates == null) {
       return null;
     }
+    // one candidate
     if (candidates.length == 1) {
       return candidates[0];
     }
+    // ensure that each ImportElement has set of elements
     for (ImportElement importElement in candidates) {
       if (importElementsMap.containsKey(importElement)) {
         continue;
@@ -1542,11 +1592,13 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       Set<Element> elements = new Set();
       importElementsMap[importElement] = elements;
     }
+    // use import namespace to choose correct one
     for (MapEntry<ImportElement, Set<Element>> entry in getMapEntrySet(importElementsMap)) {
       if (entry.getValue().contains(usedElement)) {
         return entry.getKey();
       }
     }
+    // not found
     return null;
   }
 
@@ -1588,20 +1640,25 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    * @return the [Location] with the type of the assigned value
    */
   static Location getLocationWithTypeAssignedToField(SimpleIdentifier identifier, Element element, Location location) {
+    // we need accessor
     if (element is! PropertyAccessorElement) {
       return location;
     }
     PropertyAccessorElement accessor = element as PropertyAccessorElement;
+    // should be setter
     if (!accessor.isSetter) {
       return location;
     }
+    // accessor should be synthetic, i.e. field normal
     if (!accessor.isSynthetic) {
       return location;
     }
+    // should be LHS of assignment
     ASTNode parent;
     {
       ASTNode node = identifier;
       parent = node.parent;
+      // new T().field = x;
       if (parent is PropertyAccess) {
         PropertyAccess propertyAccess = parent as PropertyAccess;
         if (identical(propertyAccess.propertyName, node)) {
@@ -1609,6 +1666,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
           parent = propertyAccess.parent;
         }
       }
+      // obj.field = x;
       if (parent is PrefixedIdentifier) {
         PrefixedIdentifier prefixedIdentifier = parent as PrefixedIdentifier;
         if (identical(prefixedIdentifier.identifier, node)) {
@@ -1617,11 +1675,13 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
         }
       }
     }
+    // OK, remember the type
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent as AssignmentExpression;
       Expression rhs = assignment.rightHandSide;
       location = getLocationWithExpressionType(location, rhs);
     }
+    // done
     return location;
   }
 
@@ -1784,6 +1844,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
 
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElement element = node.element;
+    // define
     {
       Location location;
       if (node.name != null) {
@@ -1796,6 +1857,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       }
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
+    // visit children
     enterScope(element);
     try {
       return super.visitConstructorDeclaration(node);
@@ -1931,15 +1993,20 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElementImpl(node.name);
     Location location = createLocation2(node);
+    // name in declaration
     if (node.inDeclarationContext()) {
       recordRelationship(nameElement, IndexConstants.IS_DEFINED_BY, location);
       return null;
     }
+    // prepare information
     Element element = node.bestElement;
+    // qualified name reference
     recordQualifiedMemberReference(node, element, nameElement, location);
+    // stop if already handled
     if (isAlreadyHandledName(node)) {
       return null;
     }
+    // record specific relations
     if (element is ClassElement || element is FunctionElement || element is FunctionTypeAliasElement || element is LabelElement || element is TypeParameterElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element is FieldElement) {
@@ -2011,12 +2078,14 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
 
   Object visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = node.element;
+    // record declaration
     {
       SimpleIdentifier name = node.name;
       Location location = createLocation2(name);
       location = getLocationWithExpressionType(location, node.initializer);
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
+    // visit
     enterScope(element);
     try {
       return super.visitVariableDeclaration(node);
@@ -2028,6 +2097,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   Object visitVariableDeclarationList(VariableDeclarationList node) {
     NodeList<VariableDeclaration> variables = node.variables;
     if (variables != null) {
+      // use first VariableDeclaration as Element for Location(s) in type
       {
         TypeName type = node.type;
         if (type != null) {
@@ -2038,10 +2108,12 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
             } finally {
               exitScope();
             }
+            // only one iteration
             break;
           }
         }
       }
+      // visit variables
       variables.accept(this);
     }
     return null;
@@ -2144,7 +2216,9 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    * Record reference to the given operator [Element] and name.
    */
   void recordOperatorReference(Token operator, Element element) {
+    // prepare location
     Location location = createLocation4(operator);
+    // record name reference
     {
       String name = operator.lexeme;
       if (name == "++") {
@@ -2160,6 +2234,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       Relationship relationship = element != null ? IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED : IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED;
       recordRelationship(nameElement, relationship, location);
     }
+    // record element reference
     if (element != null) {
       recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
     }
@@ -2415,6 +2490,7 @@ class AngularDartIndexContributor extends GeneralizingASTVisitor<Object> {
         }
       }
     }
+    // stop visiting
     return null;
   }
 
@@ -2435,7 +2511,20 @@ class AngularDartIndexContributor extends GeneralizingASTVisitor<Object> {
         int offset = property.fieldNameOffset;
         int length = field.name.length;
         Location location = new Location(property, offset, length);
-        _store.recordRelationship(field, IndexConstants.IS_REFERENCED_BY, location);
+        // getter reference
+        if (property.propertyKind.callsGetter()) {
+          PropertyAccessorElement getter = field.getter;
+          if (getter != null) {
+            _store.recordRelationship(getter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+          }
+        }
+        // setter reference
+        if (property.propertyKind.callsSetter()) {
+          PropertyAccessorElement setter = field.setter;
+          if (setter != null) {
+            _store.recordRelationship(setter, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+          }
+        }
       }
     }
   }

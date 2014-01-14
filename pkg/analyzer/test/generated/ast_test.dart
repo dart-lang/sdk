@@ -91,42 +91,49 @@ class NodeLocatorTest extends ParserTestCase {
 class IndexExpressionTest extends EngineTestCase {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] += ?
     ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
     JUnitTestCase.assertTrue(expression.inGetterContext());
   }
 
   void test_inGetterContext_assignment_simple_left() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] = ?
     ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
     JUnitTestCase.assertFalse(expression.inGetterContext());
   }
 
   void test_inGetterContext_nonAssignment() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] + ?
     ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
     JUnitTestCase.assertTrue(expression.inGetterContext());
   }
 
   void test_inSetterContext_assignment_compound_left() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] += ?
     ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_assignment_compound_right() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // ? += a[i]
     ASTFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_assignment_simple_left() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] = ?
     ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_assignment_simple_right() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // ? = a[i]
     ASTFactory.assignmentExpression(null, TokenType.EQ, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
@@ -134,29 +141,34 @@ class IndexExpressionTest extends EngineTestCase {
   void test_inSetterContext_nonAssignment() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
+    // a[i] + ?
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_postfix() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
+    // a[i]++
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_prefix_bang() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // !a[i]
     ASTFactory.prefixExpression(TokenType.BANG, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_prefix_minusMinus() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // --a[i]
     ASTFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_prefix_plusPlus() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // ++a[i]
     ASTFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }

@@ -18,6 +18,9 @@ import 'test_support.dart';
 
 class KeywordStateTest extends JUnitTestCase {
   void test_KeywordState() {
+    //
+    // Generate the test data to be scanned.
+    //
     List<Keyword> keywords = Keyword.values;
     int keywordCount = keywords.length;
     List<String> textToTest = new List<String>(keywordCount * 3);
@@ -27,6 +30,9 @@ class KeywordStateTest extends JUnitTestCase {
       textToTest[i + keywordCount] = "${syntax}x";
       textToTest[i + keywordCount * 2] = syntax.substring(0, syntax.length - 1);
     }
+    //
+    // Scan each of the identifiers.
+    //
     KeywordState firstState = KeywordState.KEYWORD_STATE;
     for (int i = 0; i < textToTest.length; i++) {
       String text = textToTest[i];
@@ -38,12 +44,15 @@ class KeywordStateTest extends JUnitTestCase {
         index++;
       }
       if (i < keywordCount) {
+        // keyword
         JUnitTestCase.assertNotNull(state);
         JUnitTestCase.assertNotNull(state.keyword());
         JUnitTestCase.assertEquals(keywords[i], state.keyword());
       } else if (i < keywordCount * 2) {
+        // keyword + "x"
         JUnitTestCase.assertNull(state);
       } else {
+        // keyword.substring(0, keyword.length() - 1)
         JUnitTestCase.assertNotNull(state);
       }
     }
@@ -1043,6 +1052,9 @@ class ScannerTest extends JUnitTestCase {
   }
 
   void assertComment(TokenType commentType, String source) {
+    //
+    // Test without a trailing end-of-line marker
+    //
     Token token = scan(source);
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.EOF, token.type);
@@ -1052,6 +1064,9 @@ class ScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(0, comment.offset);
     JUnitTestCase.assertEquals(source.length, comment.length);
     JUnitTestCase.assertEquals(source, comment.lexeme);
+    //
+    // Test with a trailing end-of-line marker
+    //
     token = scan("${source}\n");
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.EOF, token.type);
@@ -1131,8 +1146,10 @@ class ScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(source.length, originalToken.length);
     JUnitTestCase.assertEquals(source, originalToken.lexeme);
     if (identical(expectedType, TokenType.SCRIPT_TAG)) {
+      // Adding space before the script tag is not allowed, and adding text at the end changes nothing.
       return originalToken;
     } else if (identical(expectedType, TokenType.SINGLE_LINE_COMMENT)) {
+      // Adding space to an end-of-line comment changes the comment.
       Token tokenWithSpaces = scan(" ${source}");
       JUnitTestCase.assertNotNull(tokenWithSpaces);
       JUnitTestCase.assertEquals(expectedType, tokenWithSpaces.type);
@@ -1896,30 +1913,40 @@ class IncrementalScannerTest extends EngineTestCase {
   Token _incrementalTokens;
 
   void test_delete_identifier_beginning() {
+    // "abs + b;"
+    // "s + b;")
     scan("", "ab", "", "s + b;");
     assertTokens(-1, 1, ["s", "+", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_delete_identifier_end() {
+    // "abs + b;"
+    // "a + b;")
     scan("a", "bs", "", " + b;");
     assertTokens(-1, 1, ["a", "+", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_delete_identifier_middle() {
+    // "abs + b;"
+    // "as + b;")
     scan("a", "b", "", "s + b;");
     assertTokens(-1, 1, ["as", "+", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_delete_mergeTokens() {
+    // "a + b + c;"
+    // "ac;")
     scan("a", " + b + ", "", "c;");
     assertTokens(-1, 1, ["ac", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_afterIdentifier1() {
+    // "a + b;"
+    // "abs + b;"
     scan("a", "", "bs", " + b;");
     assertTokens(-1, 1, ["abs", "+", "b", ";"]);
     assertReplaced(1, "+");
@@ -1927,48 +1954,64 @@ class IncrementalScannerTest extends EngineTestCase {
   }
 
   void test_insert_afterIdentifier2() {
+    // "a + b;"
+    // "a + by;"
     scan("a + b", "", "y", ";");
     assertTokens(1, 3, ["a", "+", "by", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_beforeIdentifier() {
+    // "a + b;"
+    // "a + xb;")
     scan("a + ", "", "x", "b;");
     assertTokens(1, 3, ["a", "+", "xb", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_beforeIdentifier_firstToken() {
+    // "a + b;"
+    // "xa + b;"
     scan("", "", "x", "a + b;");
     assertTokens(-1, 1, ["xa", "+", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_convertOneFunctionToTwo() {
+    // "f() {}"
+    // "f() => 0; g() {}"
     scan("f()", "", " => 0; g()", " {}");
     assertTokens(2, 9, ["f", "(", ")", "=>", "0", ";", "g", "(", ")", "{", "}"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_end() {
+    // "class A {}"
+    // "class A {} class B {}"
     scan("class A {}", "", " class B {}", "");
     assertTokens(3, 8, ["class", "A", "{", "}", "class", "B", "{", "}"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_insideIdentifier() {
+    // "cob;"
+    // "cow.b;"
     scan("co", "", "w.", "b;");
     assertTokens(-1, 3, ["cow", ".", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_newIdentifier1() {
+    // "a;  c;"
+    // "a; b c;"
     scan("a; ", "", "b", " c;");
     assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_newIdentifier2() {
+    // "a;  c;"
+    // "a;b  c;"
     scan("a;", "", "b", "  c;");
     assertTokens(1, 3, ["a", ";", "b", "c", ";"]);
     assertReplaced(1, ";");
@@ -1976,105 +2019,141 @@ class IncrementalScannerTest extends EngineTestCase {
   }
 
   void test_insert_period() {
+    // "a + b;"
+    // "a + b.;"
     scan("a + b", "", ".", ";");
     assertTokens(2, 4, ["a", "+", "b", ".", ";"]);
   }
 
   void test_insert_period_betweenIdentifiers1() {
+    // "a b;"
+    // "a. b;"
     scan("a", "", ".", " b;");
     assertTokens(0, 2, ["a", ".", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_period_betweenIdentifiers2() {
+    // "a b;"
+    // "a .b;"
     scan("a ", "", ".", "b;");
     assertTokens(0, 2, ["a", ".", "b", ";"]);
   }
 
   void test_insert_period_betweenIdentifiers3() {
+    // "a  b;"
+    // "a . b;"
     scan("a ", "", ".", " b;");
     assertTokens(0, 2, ["a", ".", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_period_insideExistingIdentifier() {
+    // "ab;"
+    // "a.b;"
     scan("a", "", ".", "b;");
     assertTokens(-1, 3, ["a", ".", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_periodAndIdentifier() {
+    // "a + b;"
+    // "a + b.x;"
     scan("a + b", "", ".x", ";");
     assertTokens(2, 5, ["a", "+", "b", ".", "x", ";"]);
   }
 
   void test_insert_whitespace_beginning_beforeToken() {
+    // "a + b;"
+    // " a + b;"
     scan("", "", " ", "a + b;");
     assertTokens(0, 1, ["a", "+", "b", ";"]);
     JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_whitespace_betweenTokens() {
+    // "a + b;"
+    // "a  + b;"
     scan("a ", "", " ", "+ b;");
     assertTokens(1, 2, ["a", "+", "b", ";"]);
     JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_whitespace_end_afterToken() {
+    // "a + b;"
+    // "a + b; "
     scan("a + b;", "", " ", "");
     assertTokens(3, 4, ["a", "+", "b", ";"]);
     JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_whitespace_end_afterWhitespace() {
+    // "a + b; "
+    // "a + b;  "
     scan("a + b; ", "", " ", "");
     assertTokens(3, 4, ["a", "+", "b", ";"]);
     JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_insert_whitespace_withMultipleComments() {
+    // "//comment", "//comment2", "a + b;"
+    // "//comment", "//comment2", "a  + b;"
     scan(EngineTestCase.createSource(["//comment", "//comment2", "a"]), "", " ", " + b;");
     assertTokens(1, 2, ["a", "+", "b", ";"]);
     JUnitTestCase.assertFalse(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_replace_identifier_beginning() {
+    // "bell + b;"
+    // "fell + b;")
     scan("", "b", "f", "ell + b;");
     assertTokens(-1, 1, ["fell", "+", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_replace_identifier_end() {
+    // "bell + b;"
+    // "belt + b;")
     scan("bel", "l", "t", " + b;");
     assertTokens(-1, 1, ["belt", "+", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_replace_identifier_middle() {
+    // "first + b;"
+    // "frost + b;")
     scan("f", "ir", "ro", "st + b;");
     assertTokens(-1, 1, ["frost", "+", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_replace_multiple_partialFirstAndLast() {
+    // "aa + bb;"
+    // "ab * ab;")
     scan("a", "a + b", "b * a", "b;");
     assertTokens(-1, 3, ["ab", "*", "ab", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_replace_operator_oneForMany() {
+    // "a + b;"
+    // "a * c - b;")
     scan("a ", "+", "* c -", " b;");
     assertTokens(0, 4, ["a", "*", "c", "-", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_replace_operator_oneForOne() {
+    // "a + b;"
+    // "a * b;")
     scan("a ", "+", "*", " b;");
     assertTokens(0, 2, ["a", "*", "b", ";"]);
     JUnitTestCase.assertTrue(_incrementalScanner.hasNonWhitespaceChange());
   }
 
   void test_tokenMap() {
+    // "main() {a + b;}"
+    // "main() { a + b;}"
     scan("main() {", "", " ", "a + b;}");
     TokenMap tokenMap = _incrementalScanner.tokenMap;
     Token oldToken = _originalTokens;
@@ -2160,21 +2239,37 @@ class IncrementalScannerTest extends EngineTestCase {
    * @param suffix the unchanged text after the edit region
    */
   void scan(String prefix, String removed, String added, String suffix) {
+    //
+    // Compute the information needed to perform the test.
+    //
     String originalContents = "${prefix}${removed}${suffix}";
     String modifiedContents = "${prefix}${added}${suffix}";
     int replaceStart = prefix.length;
     Source source = new TestSource();
+    //
+    // Scan the original contents.
+    //
     GatheringErrorListener originalListener = new GatheringErrorListener();
     Scanner originalScanner = new Scanner(source, new CharSequenceReader(new CharSequence(originalContents)), originalListener);
     _originalTokens = originalScanner.tokenize();
     JUnitTestCase.assertNotNull(_originalTokens);
+    //
+    // Scan the modified contents.
+    //
     GatheringErrorListener modifiedListener = new GatheringErrorListener();
     Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), modifiedListener);
     Token modifiedTokens = modifiedScanner.tokenize();
     JUnitTestCase.assertNotNull(modifiedTokens);
+    //
+    // Incrementally scan the modified contents.
+    //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
     _incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), incrementalListener);
     _incrementalTokens = _incrementalScanner.rescan(_originalTokens, replaceStart, removed.length, added.length);
+    //
+    // Validate that the results of the incremental scan are the same as the full scan of the
+    // modified source.
+    //
     Token incrementalToken = _incrementalTokens;
     JUnitTestCase.assertNotNull(incrementalToken);
     while (incrementalToken.type != TokenType.EOF && modifiedTokens.type != TokenType.EOF) {

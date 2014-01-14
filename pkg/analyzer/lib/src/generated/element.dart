@@ -1989,11 +1989,27 @@ class AngularPropertyKind extends Enum<AngularPropertyKind> {
    * `<=>` - Treat the DOM attribute value as an expression. Set up a watch on both outside as well
    * as component scope to keep the source and destination in sync. (cost: 2 watches)
    */
-  static final AngularPropertyKind TWO_WAY = new AngularPropertyKind('TWO_WAY', 4);
+  static final AngularPropertyKind TWO_WAY = new AngularPropertyKind_TWO_WAY('TWO_WAY', 4);
 
   static final List<AngularPropertyKind> values = [ATTR, CALLBACK, ONE_WAY, ONE_WAY_ONE_TIME, TWO_WAY];
 
+  /**
+   * Returns `true` if property of this kind calls field getter.
+   */
+  bool callsGetter() => false;
+
+  /**
+   * Returns `true` if property of this kind calls field setter.
+   */
+  bool callsSetter() => true;
+
   AngularPropertyKind(String name, int ordinal) : super(name, ordinal);
+}
+
+class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
+  AngularPropertyKind_TWO_WAY(String name, int ordinal) : super(name, ordinal);
+
+  bool callsGetter() => true;
 }
 
 /**
@@ -2495,6 +2511,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   ElementImpl getChild(String identifier) {
+    //
+    // The casts in this method are safe because the set methods would have thrown a CCE if any of
+    // the elements in the arrays were not of the expected types.
+    //
     for (PropertyAccessorElement accessor in _accessors) {
       if ((accessor as PropertyAccessorElementImpl).identifier == identifier) {
         return accessor as PropertyAccessorElementImpl;
@@ -2571,6 +2591,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   ClassDeclaration get node => getNode2(ClassDeclaration);
 
   PropertyAccessorElement getSetter(String setterName) {
+    // TODO (jwren) revisit- should we append '=' here or require clients to include it?
+    // Do we need the check for isSetter below?
     if (!setterName.endsWith("=")) {
       setterName += '=';
     }
@@ -2603,15 +2625,18 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     while (!classesToVisit.isEmpty) {
       ClassElement currentElement = classesToVisit.removeAt(0);
       if (visitedClasses.add(currentElement)) {
+        // check fields
         for (FieldElement field in currentElement.fields) {
           if (!field.isFinal && !field.isConst && !field.isStatic && !field.isSynthetic) {
             return true;
           }
         }
+        // check mixins
         for (InterfaceType mixinType in currentElement.mixins) {
           ClassElement mixinElement = mixinType.element;
           classesToVisit.add(mixinElement);
         }
+        // check super
         InterfaceType supertype = currentElement.supertype;
         if (supertype != null) {
           ClassElement superElement = supertype.element;
@@ -2621,6 +2646,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         }
       }
     }
+    // not found
     return false;
   }
 
@@ -2958,6 +2984,10 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   List<PropertyAccessorElement> get accessors => _accessors;
 
   ElementImpl getChild(String identifier) {
+    //
+    // The casts in this method are safe because the set methods would have thrown a CCE if any of
+    // the elements in the arrays were not of the expected types.
+    //
     for (PropertyAccessorElement accessor in _accessors) {
       if ((accessor as PropertyAccessorElementImpl).identifier == identifier) {
         return accessor as PropertyAccessorElementImpl;
@@ -3227,15 +3257,18 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
   bool get isConst => hasModifier(Modifier.CONST);
 
   bool get isDefaultConstructor {
+    // unnamed
     String name = this.name;
     if (name != null && name.length != 0) {
       return false;
     }
+    // no required parameters
     for (ParameterElement parameter in parameters) {
       if (identical(parameter.parameterKind, ParameterKind.REQUIRED)) {
         return false;
       }
     }
+    // OK, can be used as default constructor
     return true;
   }
 
@@ -3567,6 +3600,8 @@ abstract class ElementImpl implements Element {
   CompilationUnit get unit => context.resolveCompilationUnit(source, library);
 
   int get hashCode {
+    // TODO: We might want to re-visit this optimization in the future.
+    // We cache the hash code value as this is a very frequently called method.
     if (_cachedHashCode == 0) {
       _cachedHashCode = location.hashCode;
     }
@@ -3884,6 +3919,7 @@ class ElementLocationImpl implements ElementLocation {
    * @return `true` if the given components are equal when the source type's are ignored
    */
   bool equalSourceComponents(String left, String right) {
+    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
     if (left == null) {
       return right == null;
     } else if (right == null) {
@@ -3906,6 +3942,7 @@ class ElementLocationImpl implements ElementLocation {
    * @return the hash code of the given encoded source component
    */
   int hashSourceComponent(String sourceComponent) {
+    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
     if (sourceComponent.length <= 1) {
       return sourceComponent.hashCode;
     }
@@ -4812,19 +4849,23 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   static bool isUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
     if (!visitedLibraries.contains(library)) {
       visitedLibraries.add(library);
+      // Check the defining compilation unit.
       if (timeStamp < library.definingCompilationUnit.source.modificationStamp) {
         return false;
       }
+      // Check the parted compilation units.
       for (CompilationUnitElement element in library.parts) {
         if (timeStamp < element.source.modificationStamp) {
           return false;
         }
       }
+      // Check the imported libraries.
       for (LibraryElement importedLibrary in library.importedLibraries) {
         if (!isUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
           return false;
         }
       }
+      // Check the exported libraries.
       for (LibraryElement exportedLibrary in library.exportedLibraries) {
         if (!isUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
           return false;
@@ -5049,15 +5090,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * Recursively fills set of visible libraries for [getVisibleElementsLibraries].
    */
   void addVisibleLibraries(Set<LibraryElement> visibleLibraries, bool includeExports) {
+    // maybe already processed
     if (!visibleLibraries.add(this)) {
       return;
     }
+    // add imported libraries
     for (ImportElement importElement in _imports) {
       LibraryElement importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         (importedLibrary as LibraryElementImpl).addVisibleLibraries(visibleLibraries, true);
       }
     }
+    // add exported libraries
     if (includeExports) {
       for (ExportElement exportElement in _exports) {
         LibraryElement exportedLibrary = exportElement.exportedLibrary;
@@ -6487,6 +6531,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     }
     FunctionType baseType = baseConstructor.type;
     if (baseType == null) {
+      // TODO(brianwilkerson) We need to understand when this can happen.
       return baseConstructor;
     }
     List<Type2> argumentTypes = definingType.typeArguments;
@@ -6495,6 +6540,8 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     if (baseType == substitutedType) {
       return baseConstructor;
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new ConstructorMember(baseConstructor, definingType);
   }
 
@@ -6570,12 +6617,18 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   ExecutableElement get baseElement => super.baseElement as ExecutableElement;
 
   List<FunctionElement> get functions {
+    //
+    // Elements within this element should have type parameters substituted, just like this element.
+    //
     throw new UnsupportedOperationException();
   }
 
   List<LabelElement> get labels => baseElement.labels;
 
   List<LocalVariableElement> get localVariables {
+    //
+    // Elements within this element should have type parameters substituted, just like this element.
+    //
     throw new UnsupportedOperationException();
   }
 
@@ -6601,6 +6654,8 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   bool get isStatic => baseElement.isStatic;
 
   void visitChildren(ElementVisitor visitor) {
+    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
+    // safely invoke them.
     super.visitChildren(visitor);
     safelyVisitChildren(baseElement.functions, visitor);
     safelyVisitChildren(labels, visitor);
@@ -6657,6 +6712,8 @@ class FieldMember extends VariableMember implements FieldElement {
     if (baseType == substitutedType) {
       return baseField;
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new FieldMember(baseField, definingType);
   }
 
@@ -6845,6 +6902,8 @@ class MethodMember extends ExecutableMember implements MethodElement {
     if (baseType == substitutedType) {
       return baseMethod;
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new MethodMember(baseMethod, definingType);
   }
 
@@ -6911,6 +6970,8 @@ class ParameterMember extends VariableMember implements ParameterElement {
     if (baseParameter == null || definingType.typeArguments.length == 0) {
       return baseParameter;
     }
+    // Check if parameter type depends on defining type type arguments.
+    // It is possible that we did not resolve field formal parameter yet, so skip this check for it.
     bool isFieldFormal = baseParameter is FieldFormalParameterElement;
     if (!isFieldFormal) {
       Type2 baseType = baseParameter.type;
@@ -6921,6 +6982,8 @@ class ParameterMember extends VariableMember implements ParameterElement {
         return baseParameter;
       }
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     if (isFieldFormal) {
       return new FieldFormalParameterMember(baseParameter as FieldFormalParameterElement, definingType);
     }
@@ -7034,6 +7097,8 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     if (baseType == substitutedType) {
       return baseAccessor;
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new PropertyAccessorMember(baseAccessor, definingType);
   }
 
@@ -7120,6 +7185,9 @@ abstract class VariableMember extends Member implements VariableElement {
   VariableElement get baseElement => super.baseElement as VariableElement;
 
   FunctionElement get initializer {
+    //
+    // Elements within this element should have type parameters substituted, just like this element.
+    //
     throw new UnsupportedOperationException();
   }
 
@@ -7132,6 +7200,8 @@ abstract class VariableMember extends Member implements VariableElement {
   bool get isFinal => baseElement.isFinal;
 
   void visitChildren(ElementVisitor visitor) {
+    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
+    // safely invoke them.
     super.visitChildren(visitor);
     safelyVisitChild(baseElement.initializer, visitor);
   }
@@ -7223,9 +7293,11 @@ class DynamicTypeImpl extends TypeImpl {
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
 
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // T is S
     if (identical(this, type)) {
       return true;
     }
+    // else
     return withDynamic;
   }
 
@@ -7292,6 +7364,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   String get displayName {
     String name = this.name;
     if (name == null || name.length == 0) {
+      // TODO(brianwilkerson) Determine whether function types should ever have an empty name.
       List<Type2> normalParameterTypes = this.normalParameterTypes;
       List<Type2> optionalParameterTypes = this.optionalParameterTypes;
       Map<String, Type2> namedParameterTypes = this.namedParameterTypes;
@@ -7404,10 +7477,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   List<ParameterElement> get parameters {
     List<ParameterElement> baseParameters = this.baseParameters;
+    // no parameters, quick return
     int parameterCount = baseParameters.length;
     if (parameterCount == 0) {
       return baseParameters;
     }
+    // create specialized parameters
     List<ParameterElement> specializedParameters = new List<ParameterElement>(parameterCount);
     for (int i = 0; i < parameterCount; i++) {
       specializedParameters[i] = ParameterMember.from(baseParameters[i], this);
@@ -7418,6 +7493,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   Type2 get returnType {
     Type2 baseReturnType = this.baseReturnType;
     if (baseReturnType == null) {
+      // TODO(brianwilkerson) This is a patch. The return type should never be null and we need to
+      // understand why it is and fix it.
       return DynamicTypeImpl.instance;
     }
     return baseReturnType.substitute2(typeArguments, TypeParameterTypeImpl.getTypes(typeParameters));
@@ -7439,9 +7516,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (element == null) {
       return 0;
     }
+    // Reference the arrays of parameters
     List<Type2> normalParameterTypes = this.normalParameterTypes;
     List<Type2> optionalParameterTypes = this.optionalParameterTypes;
     Iterable<Type2> namedParameterTypes = this.namedParameterTypes.values;
+    // Generate the hashCode
     int hashCode = returnType.hashCode;
     for (int i = 0; i < normalParameterTypes.length; i++) {
       hashCode = (hashCode << 1) + normalParameterTypes[i].hashCode;
@@ -7456,6 +7535,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // trivial base cases
     if (type == null) {
       return false;
     } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
@@ -7471,10 +7551,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<Type2> tOpTypes = t.optionalParameterTypes;
     List<Type2> sTypes = s.normalParameterTypes;
     List<Type2> sOpTypes = s.optionalParameterTypes;
+    // If one function has positional and the other has named parameters, return false.
     if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) || (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
       return false;
     }
+    // named parameters case
     if (t.namedParameterTypes.length > 0) {
+      // check that the number of required parameters are equal, and check that every t_i is
+      // more specific than every s_i
       if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
         return false;
       } else if (t.normalParameterTypes.length > 0) {
@@ -7486,9 +7570,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       Map<String, Type2> namedTypesT = t.namedParameterTypes;
       Map<String, Type2> namedTypesS = s.namedParameterTypes;
+      // if k >= m is false, return false: the passed function type has more named parameter types than this
       if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
+      // Loop through each element in S verifying that T has a matching parameter name and that the
+      // corresponding type is more specific then the type in S.
       JavaIterator<MapEntry<String, Type2>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
       while (iteratorS.hasNext) {
         MapEntry<String, Type2> entryS = iteratorS.next();
@@ -7503,18 +7590,25 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (s.namedParameterTypes.length > 0) {
       return false;
     } else {
+      // positional parameter case
       int tArgLength = tTypes.length + tOpTypes.length;
       int sArgLength = sTypes.length + sOpTypes.length;
+      // Check that the total number of parameters in t is greater than or equal to the number of
+      // parameters in s and that the number of required parameters in s is greater than or equal to
+      // the number of required parameters in t.
       if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
         return false;
       }
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
           if (!(tTypes[i] as TypeImpl).isMoreSpecificThan3(sTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
       } else {
+        // Else, we do have positional parameters, copy required and positional parameter types into
+        // arrays to do the compare (for loop below).
         List<Type2> tAllTypes = new List<Type2>(sArgLength);
         for (int i = 0; i < tTypes.length; i++) {
           tAllTypes[i] = tTypes[i];
@@ -7637,16 +7731,21 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return false;
     }
     FunctionTypeImpl otherType = object as FunctionTypeImpl;
+    // If the visitedTypePairs already has the pair (this, type), use the elements to determine equality
     ElementPair elementPair = new ElementPair(element, otherType.element);
     if (!visitedElementPairs.add(elementPair)) {
       return elementPair.firstElt == elementPair.secondElt;
     }
+    // Compute the result
     bool result = TypeImpl.equalArrays(normalParameterTypes, otherType.normalParameterTypes, visitedElementPairs) && TypeImpl.equalArrays(optionalParameterTypes, otherType.optionalParameterTypes, visitedElementPairs) && equals2(namedParameterTypes, otherType.namedParameterTypes, visitedElementPairs) && (returnType as TypeImpl).internalEquals(otherType.returnType, visitedElementPairs);
+    // Remove the pair from our visited pairs list
     visitedElementPairs.remove(elementPair);
+    // Return the result
     return result;
   }
 
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // trivial base cases
     if (type == null) {
       return false;
     } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
@@ -7662,10 +7761,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<Type2> tOpTypes = t.optionalParameterTypes;
     List<Type2> sTypes = s.normalParameterTypes;
     List<Type2> sOpTypes = s.optionalParameterTypes;
+    // If one function has positional and the other has named parameters, return false.
     if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) || (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
       return false;
     }
+    // named parameters case
     if (t.namedParameterTypes.length > 0) {
+      // check that the number of required parameters are equal, and check that every t_i is
+      // assignable to every s_i
       if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
         return false;
       } else if (t.normalParameterTypes.length > 0) {
@@ -7677,9 +7780,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       Map<String, Type2> namedTypesT = t.namedParameterTypes;
       Map<String, Type2> namedTypesS = s.namedParameterTypes;
+      // if k >= m is false, return false: the passed function type has more named parameter types than this
       if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
+      // Loop through each element in S verifying that T has a matching parameter name and that the
+      // corresponding type is assignable to the type in S.
       JavaIterator<MapEntry<String, Type2>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
       while (iteratorS.hasNext) {
         MapEntry<String, Type2> entryS = iteratorS.next();
@@ -7694,18 +7800,25 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (s.namedParameterTypes.length > 0) {
       return false;
     } else {
+      // positional parameter case
       int tArgLength = tTypes.length + tOpTypes.length;
       int sArgLength = sTypes.length + sOpTypes.length;
+      // Check that the total number of parameters in t is greater than or equal to the number of
+      // parameters in s and that the number of required parameters in s is greater than or equal to
+      // the number of required parameters in t.
       if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
         return false;
       }
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
           if (!(tTypes[i] as TypeImpl).isAssignableTo2(sTypes[i], visitedTypePairs)) {
             return false;
           }
         }
       } else {
+        // Else, we do have positional parameters, copy required and positional parameter types into
+        // arrays to do the compare (for loop below).
         List<Type2> tAllTypes = new List<Type2>(sArgLength);
         for (int i = 0; i < tTypes.length; i++) {
           tAllTypes[i] = tTypes[i];
@@ -7794,6 +7907,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   static int computeLongestInheritancePathToObject2(InterfaceType type, int depth, Set<ClassElement> visitedClasses) {
     ClassElement classElement = type.element;
+    // Object case
     if (classElement.supertype == null || visitedClasses.contains(classElement)) {
       return depth;
     }
@@ -7803,6 +7917,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       List<InterfaceType> superinterfaces = classElement.interfaces;
       int pathLength;
       if (superinterfaces.length > 0) {
+        // loop through each of the superinterfaces recursively calling this method and keeping track
+        // of the longest path to return
         for (InterfaceType superinterface in superinterfaces) {
           pathLength = computeLongestInheritancePathToObject2(superinterface, depth + 1, visitedClasses);
           if (pathLength > longestPath) {
@@ -7810,6 +7926,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           }
         }
       }
+      // finally, perform this same check on the super type
+      // TODO(brianwilkerson) Does this also need to add in the number of mixin classes?
       InterfaceType supertype = classElement.supertype;
       pathLength = computeLongestInheritancePathToObject2(supertype, depth + 1, visitedClasses);
       if (pathLength > longestPath) {
@@ -7899,6 +8017,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     List<Type2> lubArguments = new List<Type2>(argumentCount);
     for (int i = 0; i < argumentCount; i++) {
+      //
+      // Ideally we would take the least upper bound of the two argument types, but this can cause
+      // an infinite recursion (such as when finding the least upper bound of String and num).
+      //
       if (firstArguments[i] == secondArguments[i]) {
         lubArguments[i] = firstArguments[i];
       }
@@ -7952,6 +8074,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         break;
       }
     }
+    // If there is at least one non-dynamic type, then list them out
     if (!allDynamic) {
       JavaStringBuilder builder = new JavaStringBuilder();
       builder.append(name);
@@ -7990,23 +8113,31 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   Type2 getLeastUpperBound(Type2 type) {
+    // quick check for self
     if (identical(type, this)) {
       return this;
     }
+    // dynamic
     Type2 dynamicType = DynamicTypeImpl.instance;
     if (identical(this, dynamicType) || identical(type, dynamicType)) {
       return dynamicType;
     }
+    // TODO (jwren) opportunity here for a better, faster algorithm if this turns out to be a bottle-neck
     if (type is! InterfaceType) {
       return null;
     }
+    // new names to match up with the spec
     InterfaceType i = this;
     InterfaceType j = type as InterfaceType;
+    // compute set of supertypes
     Set<InterfaceType> si = computeSuperinterfaceSet(i);
     Set<InterfaceType> sj = computeSuperinterfaceSet(j);
+    // union si with i and sj with j
     si.add(i);
     sj.add(j);
+    // compute intersection, reference as set 's'
     List<InterfaceType> s = intersection(si, sj);
+    // for each element in Set s, compute the largest inheritance path to Object
     List<int> depths = new List<int>.filled(s.length, 0);
     int maxDepth = 0;
     for (int n = 0; n < s.length; n++) {
@@ -8015,6 +8146,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         maxDepth = depths[n];
       }
     }
+    // ensure that the currently computed maxDepth is unique,
+    // otherwise, decrement and test for uniqueness again
     for (; maxDepth >= 0; maxDepth--) {
       int indexOfLeastUpperBound = -1;
       int numberOfTypesAtMaxDepth = 0;
@@ -8028,6 +8161,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return s[indexOfLeastUpperBound];
       }
     }
+    // illegal state, log and return null- Object at maxDepth == 0 should always return itself as
+    // the least upper bound.
+    // TODO (jwren) log the error state
     return null;
   }
 
@@ -8092,42 +8228,62 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     InterfaceType j = type;
     ClassElement jElement = j.element;
     InterfaceType supertype = jElement.supertype;
+    //
+    // If J has no direct supertype then it is Object, and Object has no direct supertypes.
+    //
     if (supertype == null) {
       return false;
     }
+    //
+    // I is listed in the extends clause of J.
+    //
     List<Type2> jArgs = j.typeArguments;
     List<Type2> jVars = jElement.type.typeArguments;
     supertype = supertype.substitute2(jArgs, jVars);
     if (supertype == i) {
       return true;
     }
+    //
+    // I is listed in the implements clause of J.
+    //
     for (InterfaceType interfaceType in jElement.interfaces) {
       interfaceType = interfaceType.substitute2(jArgs, jVars);
       if (interfaceType == i) {
         return true;
       }
     }
+    //
+    // I is listed in the with clause of J.
+    //
     for (InterfaceType mixinType in jElement.mixins) {
       mixinType = mixinType.substitute2(jArgs, jVars);
       if (mixinType == i) {
         return true;
       }
     }
+    //
+    // J is a mixin application of the mixin of I.
+    //
+    // TODO(brianwilkerson) Determine whether this needs to be implemented or whether it is covered
+    // by the case above.
     return false;
   }
 
   bool get isObject => element.supertype == null;
 
   ConstructorElement lookUpConstructor(String constructorName, LibraryElement library) {
+    // prepare base ConstructorElement
     ConstructorElement constructorElement;
     if (constructorName == null) {
       constructorElement = element.unnamedConstructor;
     } else {
       constructorElement = element.getNamedConstructor(constructorName);
     }
+    // not found or not accessible
     if (constructorElement == null || !constructorElement.isAccessibleIn(library)) {
       return null;
     }
+    // return member
     return ConstructorMember.from(constructorElement, this);
   }
 
@@ -8281,6 +8437,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    //
+    // S is dynamic.
+    // The test to determine whether S is dynamic is done here because dynamic is not an instance of
+    // InterfaceType.
+    //
     if (identical(type, DynamicTypeImpl.instance)) {
       return true;
     } else if (type is! InterfaceType) {
@@ -8290,6 +8451,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    //
+    // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S
+    //
     if (identical(type, DynamicTypeImpl.instance)) {
       return true;
     } else if (type is TypeParameterType) {
@@ -8310,12 +8474,26 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   bool isMoreSpecificThan2(InterfaceType s, Set<ClassElement> visitedClasses, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    //
+    // A type T is more specific than a type S, written T << S,  if one of the following conditions
+    // is met:
+    //
+    // Reflexivity: T is S.
+    //
     if (this == s) {
       return true;
     }
+    //
+    // T is bottom. (This case is handled by the class BottomTypeImpl.)
+    //
+    // Direct supertype: S is a direct supertype of T.
+    //
     if (s.isDirectSupertypeOf(this)) {
       return true;
     }
+    //
+    // Covariance: T is of the form I<T1, ..., Tn> and S is of the form I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
+    //
     ClassElement tElement = this.element;
     ClassElement sElement = s.element;
     if (tElement == sElement) {
@@ -8331,11 +8509,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       return true;
     }
+    //
+    // Transitivity: T << U and U << S.
+    //
+    // First check for infinite loops
     ClassElement element = this.element;
     if (element == null || visitedClasses.contains(element)) {
       return false;
     }
     visitedClasses.add(element);
+    // Iterate over all of the types U that are more specific than T because they are direct
+    // supertypes of T and return true if any of them are more specific than S.
     InterfaceType supertype = superclass;
     if (supertype != null && (supertype as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic, visitedTypePairs)) {
       return true;
@@ -8364,12 +8548,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (typeT == typeS) {
       return true;
     } else if (elementT == typeS.element) {
+      // For each of the type arguments return true if all type args from T is a subtype of all
+      // types from S.
       List<Type2> typeTArgs = typeT.typeArguments;
       List<Type2> typeSArgs = typeS.typeArguments;
       if (typeTArgs.length != typeSArgs.length) {
+        // This case covers the case where two objects are being compared that have a different
+        // number of parameterized types.
         return false;
       }
       for (int i = 0; i < typeTArgs.length; i++) {
+        // Recursively call isSubtypeOf the type arguments and return false if the T argument is not
+        // a subtype of the S argument.
         if (!(typeTArgs[i] as TypeImpl).isSubtypeOf3(typeSArgs[i], visitedTypePairs)) {
           return false;
         }
@@ -8379,6 +8569,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     InterfaceType supertype = superclass;
+    // The type is Object, return false.
     if (supertype != null && (supertype as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses, visitedTypePairs)) {
       return true;
     }
@@ -8508,6 +8699,7 @@ abstract class TypeImpl implements Type2 {
    * @return `true` if this type is more specific than the given type
    */
   bool isMoreSpecificThan3(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // If the visitedTypePairs already has the pair (this, type), return false
     TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
     if (!visitedTypePairs.add(typePair)) {
       return false;
@@ -8533,6 +8725,7 @@ abstract class TypeImpl implements Type2 {
    * @return `true` if this type is a subtype of the given type
    */
   bool isSubtypeOf3(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // If the visitedTypePairs already has the pair (this, type), return false
     TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
     if (!visitedTypePairs.add(typePair)) {
       return false;
@@ -8665,12 +8858,22 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => this == object;
 
   bool internalIsMoreSpecificThan(Type2 s, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    //
+    // A type T is more specific than a type S, written T << S,  if one of the following conditions
+    // is met:
+    //
+    // Reflexivity: T is S.
+    //
     if (this == s) {
       return true;
     }
+    // S is bottom.
+    //
     if (s.isBottom) {
       return true;
     }
+    // S is dynamic.
+    //
     if (s.isDynamic) {
       return true;
     }
@@ -8680,24 +8883,35 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan3(type, true, new Set<TypeImpl_TypePair>());
 
   bool isMoreSpecificThan4(Type2 s, Set<Type2> visitedTypes, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // T is a type parameter and S is the upper bound of T.
+    //
     Type2 bound = element.bound;
     if (s == bound) {
       return true;
     }
+    // T is a type parameter and S is Object.
+    //
     if (s.isObject) {
       return true;
     }
+    // We need upper bound to continue.
     if (bound == null) {
       return false;
     }
+    //
+    // Transitivity: T << U and U << S.
+    //
     if (bound is TypeParameterTypeImpl) {
       TypeParameterTypeImpl boundTypeParameter = bound;
+      // First check for infinite loops
       if (visitedTypes.contains(bound)) {
         return false;
       }
       visitedTypes.add(bound);
+      // Then check upper bound.
       return boundTypeParameter.isMoreSpecificThan4(s, visitedTypes, withDynamic, visitedTypePairs);
     }
+    // Check interface type.
     return (bound as TypeImpl).isMoreSpecificThan3(s, withDynamic, visitedTypePairs);
   }
 }

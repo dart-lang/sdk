@@ -1040,10 +1040,13 @@ class ArgumentList extends ASTNode {
    */
   ParameterElement getPropagatedParameterElementFor(Expression expression) {
     if (_correspondingPropagatedParameters == null) {
+      // Either the AST structure has not been resolved or the invocation of which this list is a
+      // part could not be resolved.
       return null;
     }
     int index = _arguments.indexOf(expression);
     if (index < 0) {
+      // The expression isn't a child of this node.
       return null;
     }
     return _correspondingPropagatedParameters[index];
@@ -1064,10 +1067,13 @@ class ArgumentList extends ASTNode {
    */
   ParameterElement getStaticParameterElementFor(Expression expression) {
     if (_correspondingStaticParameters == null) {
+      // Either the AST structure has not been resolved or the invocation of which this list is a
+      // part could not be resolved.
       return null;
     }
     int index = _arguments.indexOf(expression);
     if (index < 0) {
+      // The expression isn't a child of this node.
       return null;
     }
     return _correspondingStaticParameters[index];
@@ -5654,6 +5660,8 @@ class FunctionExpression extends Expression {
     } else if (_body != null) {
       return _body.beginToken;
     }
+    // This should never be reached because external functions must be named, hence either the body
+    // or the name should be non-null.
     throw new IllegalStateException("Non-external functions must have a body");
   }
 
@@ -5670,6 +5678,8 @@ class FunctionExpression extends Expression {
     } else if (_parameters != null) {
       return _parameters.endToken;
     }
+    // This should never be reached because external functions must be named, hence either the body
+    // or the name should be non-null.
     throw new IllegalStateException("Non-external functions must have a body");
   }
 
@@ -6366,6 +6376,9 @@ class ImplementsClause extends ASTNode {
  */
 class ImportDirective extends NamespaceDirective {
   static Comparator<ImportDirective> COMPARATOR = (ImportDirective import1, ImportDirective import2) {
+    //
+    // uri
+    //
     StringLiteral uri1 = import1.uri;
     StringLiteral uri2 = import2.uri;
     String uriStr1 = uri1.stringValue;
@@ -6382,6 +6395,9 @@ class ImportDirective extends NamespaceDirective {
         }
       }
     }
+    //
+    // as
+    //
     SimpleIdentifier prefix1 = import1.prefix;
     SimpleIdentifier prefix2 = import2.prefix;
     String prefixStr1 = prefix1 != null ? prefix1.name : null;
@@ -6398,6 +6414,9 @@ class ImportDirective extends NamespaceDirective {
         }
       }
     }
+    //
+    // hides and shows
+    //
     NodeList<Combinator> combinators1 = import1.combinators;
     List<String> allHides1 = new List<String>();
     List<String> allShows1 = new List<String>();
@@ -6430,12 +6449,14 @@ class ImportDirective extends NamespaceDirective {
         }
       }
     }
+    // test lengths of combinator lists first
     if (allHides1.length != allHides2.length) {
       return allHides1.length - allHides2.length;
     }
     if (allShows1.length != allShows2.length) {
       return allShows1.length - allShows2.length;
     }
+    // next ensure that the lists are equivalent
     if (!javaCollectionContainsAll(allHides1, allHides2)) {
       return -1;
     }
@@ -8532,6 +8553,10 @@ abstract class NormalFormalParameter extends FormalParameter {
   }
 
   void visitChildren(ASTVisitor visitor) {
+    //
+    // Note that subclasses are responsible for visiting the identifier because they often need to
+    // visit other nodes before visiting the identifier.
+    //
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(_comment, visitor);
       _metadata.accept(visitor);
@@ -9880,6 +9905,7 @@ class SimpleIdentifier extends Identifier {
   bool inGetterContext() {
     ASTNode parent = this.parent;
     ASTNode target = this;
+    // skip prefix
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
       if (identical(prefixed.prefix, this)) {
@@ -9895,9 +9921,11 @@ class SimpleIdentifier extends Identifier {
       parent = access.parent;
       target = access;
     }
+    // skip label
     if (parent is Label) {
       return false;
     }
+    // analyze usage
     if (parent is AssignmentExpression) {
       AssignmentExpression expr = parent as AssignmentExpression;
       if (identical(expr.leftHandSide, target) && identical(expr.operator.type, TokenType.EQ)) {
@@ -9919,8 +9947,10 @@ class SimpleIdentifier extends Identifier {
   bool inSetterContext() {
     ASTNode parent = this.parent;
     ASTNode target = this;
+    // skip prefix
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
+      // if this is the prefix, then return false
       if (identical(prefixed.prefix, this)) {
         return false;
       }
@@ -9934,6 +9964,7 @@ class SimpleIdentifier extends Identifier {
       parent = access.parent;
       target = access;
     }
+    // analyze usage
     if (parent is PrefixExpression) {
       return (parent as PrefixExpression).operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
@@ -12006,14 +12037,17 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     }
     while (true) {
       if (node.operator.type == TokenType.AMPERSAND) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand & rightOperand;
         }
       } else if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
+        // boolean or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
           return leftOperand && rightOperand;
         }
       } else if (node.operator.type == TokenType.BANG_EQ) {
+        // numeric, string, boolean, or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
           return leftOperand != rightOperand;
         } else if (leftOperand is int && rightOperand is int) {
@@ -12024,18 +12058,22 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
           return leftOperand != rightOperand;
         }
       } else if (node.operator.type == TokenType.BAR) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand | rightOperand;
         }
       } else if (node.operator.type == TokenType.BAR_BAR) {
+        // boolean or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
           return leftOperand || rightOperand;
         }
       } else if (node.operator.type == TokenType.CARET) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand ^ rightOperand;
         }
       } else if (node.operator.type == TokenType.EQ_EQ) {
+        // numeric, string, boolean, or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
           return identical(leftOperand, rightOperand);
         } else if (leftOperand is int && rightOperand is int) {
@@ -12046,62 +12084,73 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
           return leftOperand == rightOperand;
         }
       } else if (node.operator.type == TokenType.GT) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand.compareTo(rightOperand) > 0;
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand.compareTo(rightOperand) > 0;
         }
       } else if (node.operator.type == TokenType.GT_EQ) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand.compareTo(rightOperand) >= 0;
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand.compareTo(rightOperand) >= 0;
         }
       } else if (node.operator.type == TokenType.GT_GT) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand >> rightOperand;
         }
       } else if (node.operator.type == TokenType.LT) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand.compareTo(rightOperand) < 0;
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand.compareTo(rightOperand) < 0;
         }
       } else if (node.operator.type == TokenType.LT_EQ) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand.compareTo(rightOperand) <= 0;
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand.compareTo(rightOperand) <= 0;
         }
       } else if (node.operator.type == TokenType.LT_LT) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand << rightOperand;
         }
       } else if (node.operator.type == TokenType.MINUS) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand - rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand - rightOperand;
         }
       } else if (node.operator.type == TokenType.PERCENT) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand.remainder(rightOperand);
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand % rightOperand;
         }
       } else if (node.operator.type == TokenType.PLUS) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand + rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand + rightOperand;
         }
       } else if (node.operator.type == TokenType.STAR) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           return leftOperand * rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
           return leftOperand * rightOperand;
         }
       } else if (node.operator.type == TokenType.SLASH) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           if (rightOperand != 0) {
             return leftOperand ~/ rightOperand;
@@ -12112,6 +12161,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
           return leftOperand / rightOperand;
         }
       } else if (node.operator.type == TokenType.TILDE_SLASH) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           if (rightOperand != 0) {
             return leftOperand ~/ rightOperand;
@@ -12124,6 +12174,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
       }
       break;
     }
+    // TODO(brianwilkerson) This doesn't handle numeric conversions.
     return visitExpression(node);
   }
 
@@ -12227,6 +12278,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   }
 
   Object visitSymbolLiteral(SymbolLiteral node) {
+    // TODO(brianwilkerson) This isn't optimal because a Symbol is not a String.
     JavaStringBuilder builder = new JavaStringBuilder();
     for (Token component in node.components) {
       if (builder.length > 0) {
@@ -12244,6 +12296,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
    * @return the constant value of the static constant
    */
   Object getConstantValue(Element element) {
+    // TODO(brianwilkerson) Implement this
     if (element is FieldElement) {
       FieldElement field = element;
       if (field.isStatic && field.isConst) {
@@ -12279,18 +12332,21 @@ class ElementLocator {
    * @return the associated element, or `null` if none is found
    */
   static Element locate2(ASTNode node, int offset) {
+    // try to get Element from node
     {
       Element nodeElement = locate(node);
       if (nodeElement != null) {
         return nodeElement;
       }
     }
+    // try to get Angular specific Element
     {
       Element element = null;
       if (element != null) {
         return element;
       }
     }
+    // no Element
     return null;
   }
 }
@@ -12313,6 +12369,7 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
 
   Element visitIdentifier(Identifier node) {
     ASTNode parent = node.parent;
+    // Extra work to map Constructor Declarations to their associated Constructor Elements
     if (parent is ConstructorDeclaration) {
       ConstructorDeclaration decl = parent;
       Identifier returnType = decl.returnType;
@@ -12734,6 +12791,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
     } on NodeLocator_NodeFoundException catch (exception) {
       throw exception;
     } on JavaException catch (exception) {
+      // Ignore the exception and proceed in order to visit the rest of the structure.
       AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
     }
     if (start <= _startOffset && _endOffset <= end) {
@@ -15969,6 +16027,10 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
     Token mappedToken = map(node.token);
     if (mappedToken == null) {
+      // This only happens for SimpleIdentifiers created by the parser as part of scanning
+      // documentation comments (the tokens for those identifiers are not in the original token
+      // stream and hence do not get copied). This extra check can be removed if the scanner is
+      // changed to scan documentation comments for the parser.
       mappedToken = node.token;
     }
     SimpleIdentifier copy = new SimpleIdentifier(mappedToken);
@@ -16258,6 +16320,7 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
 
   bool isInRange(ASTNode node) {
     if (_position < 0) {
+      // if source position is not set then all nodes are in range
       return true;
     }
     return node.end < _position;

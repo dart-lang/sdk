@@ -107,9 +107,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   void assertErrors2(List<ErrorCode> expectedErrorCodes) {
     JavaStringBuilder builder = new JavaStringBuilder();
+    //
+    // Verify that the expected error codes have a non-empty message.
+    //
     for (ErrorCode errorCode in expectedErrorCodes) {
       JUnitTestCase.assertFalseMsg("Empty error code message", errorCode.message.isEmpty);
     }
+    //
+    // Compute the expected number of each type of error.
+    //
     Map<ErrorCode, int> expectedCounts = new Map<ErrorCode, int>();
     for (ErrorCode code in expectedErrorCodes) {
       int count = expectedCounts[code];
@@ -120,6 +126,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
       }
       expectedCounts[code] = count;
     }
+    //
+    // Compute the actual number of each type of error.
+    //
     Map<ErrorCode, List<AnalysisError>> errorsByCode = new Map<ErrorCode, List<AnalysisError>>();
     for (AnalysisError error in _errors) {
       ErrorCode code = error.errorCode;
@@ -130,6 +139,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
       }
       list.add(error);
     }
+    //
+    // Compare the expected and actual number of each type of error.
+    //
     for (MapEntry<ErrorCode, int> entry in getMapEntrySet(expectedCounts)) {
       ErrorCode code = entry.getKey();
       int expectedCount = entry.getValue();
@@ -153,6 +165,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
         builder.append(actualCount);
       }
     }
+    //
+    // Check that there are no more errors in the actual-errors map, otherwise, record message.
+    //
     for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(errorsByCode)) {
       ErrorCode code = entry.getKey();
       List<AnalysisError> actualErrors = entry.getValue();
@@ -516,6 +531,7 @@ class EngineTestCase extends JUnitTestCase {
       int diffAhead = Math.max(0, diffPos - _PRINT_RANGE);
       int diffAfter = Math.min(actual.length, diffPos + _PRINT_RANGE);
       String diffStr = "${actual.substring(diffAhead, diffPos)}^${actual.substring(diffPos, diffAfter)}";
+      // use detailed message
       String message = "Content not as expected: is\n${actual}\nDiffers at pos ${diffPos}: ${diffStr}\nexpected:\n${expected}";
       JUnitTestCase.assertEqualsMsg(message, expected, actual);
     }

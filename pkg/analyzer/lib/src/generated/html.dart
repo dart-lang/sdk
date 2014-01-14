@@ -277,7 +277,9 @@ class HtmlUnitUtils {
    */
   static Element getElementToOpen(HtmlUnit htmlUnit, Expression expression) {
     Element element = getElement(expression);
+    // special cases for Angular
     if (isAngular(htmlUnit)) {
+      // replace artificial controller variable Element with controller ClassElement
       if (element is VariableElement) {
         VariableElement variable = element as VariableElement;
         Type2 type = variable.type;
@@ -286,6 +288,7 @@ class HtmlUnitUtils {
         }
       }
     }
+    // done
     return element;
   }
 
@@ -594,6 +597,7 @@ abstract class XmlNode {
         XmlNode node = iter.next();
         node.parent = this;
       }
+      // This will create ArrayList for exactly given number of elements.
       return new List.from(children);
     }
     return children;
@@ -798,6 +802,7 @@ abstract class AbstractScanner {
 
   void appendEofToken() {
     Token eofToken = new Token.con1(TokenType.EOF, offset);
+    // The EOF token points to itself so that there is always infinite look-ahead.
     eofToken.setNext(eofToken);
     _tail = _tail.setNext(eofToken);
   }
@@ -841,6 +846,7 @@ abstract class AbstractScanner {
         if (c == 0x21) {
           c = advance();
           if (c == 0x2D && peek() == 0x2D) {
+            // handle a comment
             c = advance();
             int dashCount = 1;
             while (c >= 0) {
@@ -855,9 +861,11 @@ abstract class AbstractScanner {
               c = recordStartOfLineAndAdvance(c);
             }
             emit3(TokenType.COMMENT, start, -1);
+            // Capture <!--> and <!---> as tokens but report an error
             if (_tail.length < 7) {
             }
           } else {
+            // handle a declaration
             while (c >= 0) {
               if (c == 0x3E) {
                 c = advance();
@@ -870,6 +878,7 @@ abstract class AbstractScanner {
             }
           }
         } else if (c == 0x3F) {
+          // handle a directive
           while (c >= 0) {
             if (c == 0x3F) {
               c = advance();
@@ -891,9 +900,11 @@ abstract class AbstractScanner {
         } else {
           inBrackets = true;
           emit2(TokenType.LT, start);
+          // ignore whitespace in braces
           while (Character.isWhitespace(c)) {
             c = recordStartOfLineAndAdvance(c);
           }
+          // get tag
           if (Character.isLetterOrDigit(c)) {
             int tagStart = offset;
             c = advance();
@@ -901,6 +912,7 @@ abstract class AbstractScanner {
               c = advance();
             }
             emit3(TokenType.TAG, tagStart, -1);
+            // check tag against passThrough elements
             String tag = _tail.lexeme;
             for (String str in _passThroughElements) {
               if (str == tag) {
@@ -914,6 +926,7 @@ abstract class AbstractScanner {
         emit2(TokenType.GT, start);
         inBrackets = false;
         c = advance();
+        // if passThrough != null, read until we match it
         if (endPassThrough != null) {
           bool endFound = false;
           int len = endPassThrough.length;
@@ -960,6 +973,7 @@ abstract class AbstractScanner {
         }
         emit3(TokenType.TEXT, start, -1);
       } else if (c == 0x22 || c == 0x27) {
+        // read a string
         int endQuote = c;
         c = advance();
         while (c >= 0) {
@@ -971,9 +985,11 @@ abstract class AbstractScanner {
         }
         emit3(TokenType.STRING, start, -1);
       } else if (c == 0x3D) {
+        // a non-char token
         emit2(TokenType.EQ, start);
         c = advance();
       } else if (Character.isWhitespace(c)) {
+        // ignore whitespace in braces
         do {
           c = recordStartOfLineAndAdvance(c);
         } while (Character.isWhitespace(c));
@@ -984,6 +1000,7 @@ abstract class AbstractScanner {
         }
         emit3(TokenType.TAG, start, -1);
       } else {
+        // a non-char token
         emit3(TokenType.TEXT, start, 0);
         c = advance();
       }
@@ -1327,6 +1344,7 @@ class XmlAttributeNode extends XmlNode {
     if (_value == null) {
       return null;
     }
+    //TODO (danrubel): replace HTML character encodings with the actual characters
     String text = _value.lexeme;
     int len = text.length;
     if (len > 0) {
@@ -1564,6 +1582,7 @@ class XmlParser {
         if (_currentToken.type == TokenType.LT) {
           tagNodes.add(parseTagNode());
         } else if (_currentToken.type == TokenType.DECLARATION || _currentToken.type == TokenType.DIRECTIVE || _currentToken.type == TokenType.COMMENT) {
+          // ignored tokens
           _currentToken = _currentToken.next;
         } else if (_currentToken.type == TokenType.EOF) {
           return tagNodes;
@@ -1603,8 +1622,10 @@ class XmlParser {
    * @return the attribute (not `null`)
    */
   XmlAttributeNode parseAttribute() {
+    // Assume the current token is a tag
     Token name = _currentToken;
     _currentToken = _currentToken.next;
+    // Equals sign
     Token equals;
     if (identical(_currentToken.type, TokenType.EQ)) {
       equals = _currentToken;
@@ -1613,6 +1634,7 @@ class XmlParser {
       reportUnexpectedToken();
       equals = insertSyntheticToken(TokenType.EQ);
     }
+    // String value
     Token value;
     if (identical(_currentToken.type, TokenType.STRING)) {
       value = _currentToken;
@@ -1670,6 +1692,7 @@ class XmlParser {
         } else if (_currentToken.type == TokenType.LT_SLASH || _currentToken.type == TokenType.EOF) {
           return nodes;
         } else if (_currentToken.type == TokenType.COMMENT) {
+          // ignored token
           _currentToken = _currentToken.next;
         } else {
           reportUnexpectedToken();
@@ -1687,8 +1710,10 @@ class XmlParser {
    * @return the tag node or `null` if none found
    */
   XmlTagNode parseTagNode() {
+    // Assume that the current node is a tag node start TokenType#LT
     Token nodeStart = _currentToken;
     _currentToken = _currentToken.next;
+    // Get the tag or create a synthetic tag and report an error
     Token tag;
     if (identical(_currentToken.type, TokenType.TAG)) {
       tag = _currentToken;
@@ -1697,7 +1722,9 @@ class XmlParser {
       reportUnexpectedToken();
       tag = insertSyntheticToken(TokenType.TAG);
     }
+    // Parse the attributes
     List<XmlAttributeNode> attributes = parseAttributes();
+    // Token ending attribute list
     Token attributeEnd;
     if (identical(_currentToken.type, TokenType.GT) || identical(_currentToken.type, TokenType.SLASH_GT)) {
       attributeEnd = _currentToken;
@@ -1706,18 +1733,24 @@ class XmlParser {
       reportUnexpectedToken();
       attributeEnd = insertSyntheticToken(TokenType.SLASH_GT);
     }
+    // If the node has no children, then return the node
     if (identical(attributeEnd.type, TokenType.SLASH_GT) || isSelfClosing(tag)) {
       return createTagNode(nodeStart, tag, attributes, attributeEnd, XmlTagNode.NO_TAG_NODES, _currentToken, null, attributeEnd);
     }
+    // Parse the child tag nodes
     List<XmlTagNode> tagNodes = parseChildTagNodes();
+    // Token ending child tag nodes
     Token contentEnd;
     if (identical(_currentToken.type, TokenType.LT_SLASH)) {
       contentEnd = _currentToken;
       _currentToken = _currentToken.next;
     } else {
+      // TODO (danrubel): handle self closing HTML elements by inserting synthetic tokens
+      // but not reporting an error
       reportUnexpectedToken();
       contentEnd = insertSyntheticToken(TokenType.LT_SLASH);
     }
+    // Closing tag
     Token closingTag;
     if (identical(_currentToken.type, TokenType.TAG)) {
       closingTag = _currentToken;
@@ -1726,6 +1759,7 @@ class XmlParser {
       reportUnexpectedToken();
       closingTag = insertSyntheticToken(TokenType.TAG);
     }
+    // Token ending node
     Token nodeEnd;
     if (identical(_currentToken.type, TokenType.GT)) {
       nodeEnd = _currentToken;
@@ -1901,6 +1935,7 @@ class XmlTagNode extends XmlNode {
     if (identical(token, contentEnd)) {
       return "";
     }
+    //TODO (danrubel): handle CDATA and replace HTML character encodings with the actual characters
     String content = token.lexeme;
     token = token.next;
     if (identical(token, contentEnd)) {

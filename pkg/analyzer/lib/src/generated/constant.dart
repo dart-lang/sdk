@@ -334,6 +334,11 @@ class ConstantValueComputer {
       if (!_referenceGraph.isEmpty) {
         List<VariableElement> variablesInCycle = _referenceGraph.findCycle();
         if (variablesInCycle == null) {
+          //
+          // This should not happen. Either the graph should be empty, or there should be at least
+          // one sink, or there should be a cycle. If this does happen we exit to prevent an
+          // infinite loop.
+          //
           AnalysisEngine.instance.logger.logError("Exiting constant value computer with ${_referenceGraph.nodeCount} variables that are neither sinks nor in a cycle");
           return;
         }
@@ -353,6 +358,12 @@ class ConstantValueComputer {
   void computeValueFor(VariableElement variable) {
     VariableDeclaration declaration = _declarationMap[variable];
     if (declaration == null) {
+      //
+      // The declaration will be null when the variable was added to the graph as a result of being
+      // referenced by another variable but is not defined in the compilation units that were added
+      // to this computer. In such cases, the variable should already have a value associated with
+      // it, but we don't bother to check because there's nothing we can do about it at this point.
+      //
       return;
     }
     EvaluationResultImpl result = declaration.initializer.accept(new ConstantVisitor(_typeProvider));
@@ -460,11 +471,13 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     EvaluationResultImpl leftResult = node.leftOperand.accept(this);
     EvaluationResultImpl rightResult = node.rightOperand.accept(this);
     TokenType operatorType = node.operator.type;
+    // 'null' is almost never good operand
     if (operatorType != TokenType.BANG_EQ && operatorType != TokenType.EQ_EQ) {
       if (leftResult is ValidResult && leftResult.isNull || rightResult is ValidResult && rightResult.isNull) {
         return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       }
     }
+    // evaluate operator
     while (true) {
       if (operatorType == TokenType.AMPERSAND) {
         return leftResult.bitAnd(_typeProvider, node, rightResult);
@@ -507,6 +520,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       }
       break;
     }
+    // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
   }
 
@@ -545,6 +559,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
 
   EvaluationResultImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst) {
+      // TODO(brianwilkerson) Figure out which error to report.
       return error(node, null);
     }
     ConstructorElement constructor = node.staticElement;
@@ -591,8 +606,12 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
           }
         }
       }
+      // TODO(brianwilkerson) This doesn't handle fields initialized in an initializer. We should be
+      // able to handle fields initialized by the superclass' constructor fairly easily, but other
+      // initializers will be harder.
       return valid2(definingClass, new GenericState(fieldMap));
     }
+    // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
   }
 
@@ -667,6 +686,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         }
       }
     }
+    // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
   }
 
@@ -679,6 +699,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
   EvaluationResultImpl visitParenthesizedExpression(ParenthesizedExpression node) => node.expression.accept(this);
 
   EvaluationResultImpl visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // validate prefix
     SimpleIdentifier prefixNode = node.prefix;
     Element prefixElement = prefixNode.staticElement;
     if (prefixElement is! PrefixElement) {
@@ -687,6 +708,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
         return error(node, null);
       }
     }
+    // validate prefixed identifier
     return getConstantValue(node, node.staticElement);
   }
 
@@ -705,6 +727,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
       }
       break;
     }
+    // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
   }
 
@@ -772,6 +795,7 @@ class ConstantVisitor extends UnifyingASTVisitor<EvaluationResultImpl> {
     } else if (element is ClassElement || element is FunctionTypeAliasElement) {
       return valid2(_typeProvider.typeType, new TypeState(element));
     }
+    // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
   }
 
@@ -865,10 +889,16 @@ class DirectedGraph<N> {
    * @param tail the node at the tail of the edge
    */
   void addEdge(N head, N tail) {
+    //
+    // First, ensure that the tail is a node known to the graph.
+    //
     Set<N> tails = _edges[tail];
     if (tails == null) {
       _edges[tail] = new Set<N>();
     }
+    //
+    // Then create the edge.
+    //
     tails = _edges[head];
     if (tails == null) {
       tails = new Set<N>();
@@ -1905,6 +1935,7 @@ class DartObjectImpl implements DartObject {
     } else if (result is NumState) {
       return new DartObjectImpl(typeProvider.numType, result);
     }
+    // We should never get here.
     throw new IllegalStateException("add returned a ${result.runtimeType.toString()}");
   }
 
@@ -1989,6 +2020,7 @@ class DartObjectImpl implements DartObject {
     } else if (result is NumState) {
       return new DartObjectImpl(typeProvider.numType, result);
     }
+    // We should never get here.
     throw new IllegalStateException("divide returned a ${result.runtimeType.toString()}");
   }
 
@@ -2176,6 +2208,7 @@ class DartObjectImpl implements DartObject {
     } else if (result is NumState) {
       return new DartObjectImpl(typeProvider.numType, result);
     }
+    // We should never get here.
     throw new IllegalStateException("minus returned a ${result.runtimeType.toString()}");
   }
 
@@ -2195,6 +2228,7 @@ class DartObjectImpl implements DartObject {
     } else if (result is NumState) {
       return new DartObjectImpl(typeProvider.numType, result);
     }
+    // We should never get here.
     throw new IllegalStateException("negated returned a ${result.runtimeType.toString()}");
   }
 
@@ -2248,6 +2282,7 @@ class DartObjectImpl implements DartObject {
     } else if (result is NumState) {
       return new DartObjectImpl(typeProvider.numType, result);
     }
+    // We should never get here.
     throw new IllegalStateException("remainder returned a ${result.runtimeType.toString()}");
   }
 
@@ -2288,6 +2323,7 @@ class DartObjectImpl implements DartObject {
     } else if (result is NumState) {
       return new DartObjectImpl(typeProvider.numType, result);
     }
+    // We should never get here.
     throw new IllegalStateException("times returned a ${result.runtimeType.toString()}");
   }
 
