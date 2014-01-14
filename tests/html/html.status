@@ -158,8 +158,6 @@ xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 || $runtime == ie10 ]
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
-canvas_pixel_array_type_alias_test/types2: Fail # Issue 16069
-canvas_pixel_array_type_alias_test/typed_data: Fail # Issue 16069
 
 [ $runtime == ie9 ]
 event_customevent_test: Fail # Issue 14170

@@ -341,15 +341,30 @@ class _TypedImageData implements ImageData {
 
 ImageData convertNativeToDart_ImageData(nativeImageData) {
 
-  // None of the native getters that return ImageData have the type ImageData
-  // since that is incorrect for FireFox (which returns a plain Object).  So we
-  // need something that tells the compiler that the ImageData class has been
-  // instantiated.
+  // None of the native getters that return ImageData are declared as returning
+  // [ImageData] since that is incorrect for FireFox, which returns a plain
+  // Object.  So we need something that tells the compiler that the ImageData
+  // class has been instantiated.
   // TODO(sra): Remove this when all the ImageData returning APIs have been
   // annotated as returning the union ImageData + Object.
   JS('ImageData', '0');
 
-  if (nativeImageData is ImageData) return nativeImageData;
+  if (nativeImageData is ImageData) {
+
+    // Fix for Issue 16069: on IE, the `data` field is a CanvasPixelArray which
+    // has Array as the constructor property.  This interferes with finding the
+    // correct interceptor.  Fix it by overwriting the constructor property.
+    var data = nativeImageData.data;
+    if (JS('bool', '#.constructor === Array', data)) {
+      if (JS('bool', 'typeof CanvasPixelArray !== "undefined"')) {
+        JS('void', '#.constructor = CanvasPixelArray', data);
+        // This TypedArray property is missing from CanvasPixelArray.
+        JS('void', '#.BYTES_PER_ELEMENT = 1', data);
+      }
+    }
+
+    return nativeImageData;
+  }
 
   // On Firefox the above test fails because [nativeImageData] is a plain
   // object.  So we create a _TypedImageData.
