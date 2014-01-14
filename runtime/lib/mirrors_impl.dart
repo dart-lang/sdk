@@ -199,8 +199,8 @@ class _SyntheticAccessor implements MethodMirror {
   }
 
   List<InstanceMirror> get metadata => emptyList;
-
   String get source => null;
+  SourceLocation get location => throw new UnimplementedError();
 }
 
 class _SyntheticSetterParameter implements ParameterMirror {
@@ -223,6 +223,7 @@ class _SyntheticSetterParameter implements ParameterMirror {
   bool get hasDefaultValue => false;
   InstanceMirror get defaultValue => null;
   List<InstanceMirror> get metadata => emptyList;
+  SourceLocation get location => throw new UnimplementedError();
 }
 
 abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
@@ -567,8 +568,7 @@ class _LocalClassMirror extends _LocalObjectMirror
     if (_cachedStaticMembers == null) {
       var result = new Map<Symbol, MethodMirror>();
       declarations.values.forEach((decl) {
-        if (decl is MethodMirror && decl.isStatic &&
-            !decl.isConstructor && !decl.isAbstract) {
+        if (decl is MethodMirror && decl.isStatic && !decl.isConstructor) {
           result[decl.simpleName] = decl;
         }
         if (decl is VariableMirror && decl.isStatic) {
@@ -1086,7 +1086,7 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
     if (_cachedTopLevelMembers == null) {
       var result = new Map<Symbol, MethodMirror>();
       declarations.values.forEach((decl) {
-        if (decl is MethodMirror && !decl.isAbstract) {
+        if (decl is MethodMirror) {
           result[decl.simpleName] = decl;
         }
         if (decl is VariableMirror) {

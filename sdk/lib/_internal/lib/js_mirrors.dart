@@ -687,6 +687,7 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   final ClassMirror superclass;
   final ClassMirror mixin;
   Symbol _cachedSimpleName;
+  Map<Symbol, MethodMirror> _cachedInstanceMembers;
 
   JsMixinApplication(ClassMirror superclass, ClassMirror mixin,
                      String mangledName)
@@ -720,6 +721,20 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   Map<Symbol, VariableMirror> get __variables => _mixin.__variables;
 
   Map<Symbol, DeclarationMirror> get declarations => mixin.declarations;
+
+  Map<Symbol, MethodMirror> get instanceMembers {
+    if (_cachedInstanceMembers == null) {
+      var result = new Map<Symbol, MethodMirror>();
+      if (superclass != null) {
+        result.addAll(superclass.instanceMembers);
+      }
+      result.addAll(mixin.instanceMembers);
+      _cachedInstanceMembers = result;
+    }
+    return _cachedInstanceMembers;
+  }
+
+  Map<Symbol, MethodMirror> get staticMembers => mixin.staticMembers;
 
   _asRuntimeType() => null;
 
@@ -764,13 +779,6 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   }
 
   List<TypeMirror> get typeArguments => const <TypeMirror>[];
-
-  // TODO(ahe): Implement this.
-  Map<Symbol, MethodMirror> get instanceMembers
-      => throw new UnimplementedError();
-
-  // TODO(ahe): Implement this.
-  Map<Symbol, MethodMirror> get staticMembers => throw new UnimplementedError();
 
   // TODO(ahe): Implement this.
   Function operator [](Symbol name) => throw new UnimplementedError();
@@ -969,6 +977,8 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
   List<JsMethodMirror> _cachedMethods;
   ClassMirror _superclass;
   List<ClassMirror> _cachedSuperinterfaces;
+  Map<Symbol, MethodMirror> _cachedInstanceMembers;
+  Map<Symbol, MethodMirror> _cachedStaticMembers;
 
   JsTypeBoundClassMirror(JsClassMirror originalDeclaration, this._typeArguments)
       : _class = originalDeclaration,
@@ -1094,6 +1104,56 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
         new UnmodifiableMapView<Symbol, DeclarationMirror>(result);
   }
 
+  Map<Symbol, MethodMirror> get staticMembers {
+    if (_cachedStaticMembers == null) {
+      var result = new Map<Symbol, MethodMirror>();
+      declarations.values.forEach((decl) {
+        if (decl is MethodMirror && decl.isStatic && !decl.isConstructor) {
+          result[decl.simpleName] = decl;
+        }
+        if (decl is VariableMirror && decl.isStatic) {
+          var getterName = decl.simpleName;
+          result[getterName] = new JsSyntheticAccessor(
+              this, getterName, true, true, false, decl);
+          if (!decl.isFinal) {
+            var setterName = setterSymbol(decl.simpleName);
+            result[setterName] = new JsSyntheticAccessor(
+                this, setterName, false, true, false, decl);
+          }
+        }
+      });
+      _cachedStaticMembers = result;
+    }
+    return _cachedStaticMembers;
+  }
+
+  Map<Symbol, MethodMirror> get instanceMembers {
+    if (_cachedInstanceMembers == null) {
+      var result = new Map<Symbol, MethodMirror>();
+      if (superclass != null) {
+        result.addAll(superclass.instanceMembers);
+      }
+      declarations.values.forEach((decl) {
+        if (decl is MethodMirror && !decl.isStatic &&
+            !decl.isConstructor && !decl.isAbstract) {
+          result[decl.simpleName] = decl;
+        }
+        if (decl is VariableMirror && !decl.isStatic) {
+          var getterName = decl.simpleName;
+          result[getterName] = new JsSyntheticAccessor(
+              this, getterName, true, false, false, decl);
+          if (!decl.isFinal) {
+            var setterName = setterSymbol(decl.simpleName);
+            result[setterName] = new JsSyntheticAccessor(
+                this, setterName, false, false, false, decl);
+          }
+        }
+      });
+      _cachedInstanceMembers = result;
+    }
+    return _cachedInstanceMembers;
+  }
+
   InstanceMirror setField(Symbol fieldName, Object arg) {
     return _class.setField(fieldName, arg);
   }
@@ -1163,17 +1223,76 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
   Symbol get simpleName => _class.simpleName;
 
   // TODO(ahe): Implement this.
-  Map<Symbol, MethodMirror> get instanceMembers
-      => throw new UnimplementedError();
-
-  // TODO(ahe): Implement this.
-  Map<Symbol, MethodMirror> get staticMembers => throw new UnimplementedError();
-
-  // TODO(ahe): Implement this.
   ClassMirror get mixin => throw new UnimplementedError();
 
   // TODO(ahe): Implement this.
   Function operator [](Symbol name) => throw new UnimplementedError();
+}
+
+class JsSyntheticAccessor implements MethodMirror {
+  final DeclarationMirror owner;
+  final Symbol simpleName;
+  final bool isGetter;
+  final bool isStatic;
+  final bool isTopLevel;
+  final _target;  /// The field or type that introduces the synthetic accessor.
+
+  JsSyntheticAccessor(this.owner,
+                      this.simpleName,
+                      this.isGetter,
+                      this.isStatic,
+                      this.isTopLevel,
+                      this._target);
+
+  bool get isSynthetic => true;
+  bool get isRegularMethod => false;
+  bool get isOperator => false;
+  bool get isConstructor => false;
+  bool get isConstConstructor => false;
+  bool get isGenerativeConstructor => false;
+  bool get isFactoryConstructor => false;
+  bool get isRedirectingConstructor => false;
+  bool get isAbstract => false;
+
+  bool get isSetter => !isGetter;
+  bool get isPrivate => n(simpleName).startsWith('_');
+
+  Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
+  Symbol get constructorName => const Symbol('');
+
+  TypeMirror get returnType => _target.type;
+  List<ParameterMirror> get parameters {
+    if (isGetter) return const [];
+    return new UnmodifiableListView(
+        [new JsSyntheticSetterParameter(this, this._target)]);
+  }
+
+  List<InstanceMirror> get metadata => const [];
+  String get source => null;
+  SourceLocation get location => throw new UnimplementedError();
+}
+
+class JsSyntheticSetterParameter implements ParameterMirror {
+  final DeclarationMirror owner;
+  final VariableMirror _target;
+
+  JsSyntheticSetterParameter(this.owner, this._target);
+
+  Symbol get simpleName => _target.simpleName;
+  Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
+  TypeMirror get type => _target.type;
+
+  bool get isOptional => false;
+  bool get isNamed => false;
+  bool get isStatic => false;
+  bool get isTopLevel => false;
+  bool get isConst => false;
+  bool get isFinal => true;
+  bool get isPrivate => false;
+  bool get hasDefaultValue => false;
+  InstanceMirror get defaultValue => null;
+  List<InstanceMirror> get metadata => const [];
+  SourceLocation get location => throw new UnimplementedError();
 }
 
 class JsClassMirror extends JsTypeMirror with JsObjectMirror
@@ -1197,6 +1316,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   UnmodifiableListView<InstanceMirror> _cachedMetadata;
   UnmodifiableListView<ClassMirror> _cachedSuperinterfaces;
   UnmodifiableListView<TypeVariableMirror> _cachedTypeVariables;
+  Map<Symbol, MethodMirror> _cachedInstanceMembers;
+  Map<Symbol, MethodMirror> _cachedStaticMembers;
 
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
@@ -1358,6 +1479,56 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     typeVariables.forEach((tv) => result[tv.simpleName] = tv);
     return _cachedDeclarations =
         new UnmodifiableMapView<Symbol, DeclarationMirror>(result);
+  }
+
+  Map<Symbol, MethodMirror> get staticMembers {
+    if (_cachedStaticMembers == null) {
+      var result = new Map<Symbol, MethodMirror>();
+      declarations.values.forEach((decl) {
+        if (decl is MethodMirror && decl.isStatic && !decl.isConstructor) {
+          result[decl.simpleName] = decl;
+        }
+        if (decl is VariableMirror && decl.isStatic) {
+          var getterName = decl.simpleName;
+          result[getterName] = new JsSyntheticAccessor(
+              this, getterName, true, true, false, decl);
+          if (!decl.isFinal) {
+            var setterName = setterSymbol(decl.simpleName);
+            result[setterName] = new JsSyntheticAccessor(
+                this, setterName, false, true, false, decl);
+          }
+        }
+      });
+      _cachedStaticMembers = result;
+    }
+    return _cachedStaticMembers;
+  }
+
+  Map<Symbol, MethodMirror> get instanceMembers {
+    if (_cachedInstanceMembers == null) {
+      var result = new Map<Symbol, MethodMirror>();
+      if (superclass != null) {
+        result.addAll(superclass.instanceMembers);
+      }
+      declarations.values.forEach((decl) {
+        if (decl is MethodMirror && !decl.isStatic &&
+            !decl.isConstructor && !decl.isAbstract) {
+          result[decl.simpleName] = decl;
+        }
+        if (decl is VariableMirror && !decl.isStatic) {
+          var getterName = decl.simpleName;
+          result[getterName] = new JsSyntheticAccessor(
+              this, getterName, true, false, false, decl);
+          if (!decl.isFinal) {
+            var setterName = setterSymbol(decl.simpleName);
+            result[setterName] = new JsSyntheticAccessor(
+                this, setterName, false, false, false, decl);
+          }
+        }
+      });
+      _cachedInstanceMembers = result;
+    }
+    return _cachedInstanceMembers;
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
@@ -1554,13 +1725,6 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     }
     return createRuntimeType(_mangledName);
   }
-
-  // TODO(ahe): Implement this.
-  Map<Symbol, MethodMirror> get instanceMembers
-      => throw new UnimplementedError();
-
-  // TODO(ahe): Implement this.
-  Map<Symbol, MethodMirror> get staticMembers => throw new UnimplementedError();
 
   // TODO(ahe): Implement this.
   ClassMirror get mixin => throw new UnimplementedError();
