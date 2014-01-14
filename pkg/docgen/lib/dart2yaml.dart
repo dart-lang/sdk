@@ -7,8 +7,6 @@
  */
 library dart2yaml;
 
-import 'dart:collection';
-
 /**
  * Gets a String representing the input Map in YAML format.
  */
@@ -28,7 +26,7 @@ String getYamlString(Map documentData) {
  */
 void _addLevel(StringBuffer yaml, Map documentData, int level,
                {bool isList: false}) {
-  // The order of the keys could be nondeterministic, but it is insufficient 
+  // The order of the keys could be nondeterministic, but it is insufficient
   // to just sort the keys no matter what, as their order could be significant
   // (i.e. parameters to a method). The order of the keys should be enforced
   // by the caller of this function.
@@ -36,7 +34,7 @@ void _addLevel(StringBuffer yaml, Map documentData, int level,
   keys.forEach((key) {
     _calcSpaces(level, yaml);
     // Only the first entry of the map should be preceeded with a '-' since
-    // the map is a member of an outer list and the map as a whole must be 
+    // the map is a member of an outer list and the map as a whole must be
     // marked as a single member of that list. See example 2.4 at
     // http://www.yaml.org/spec/1.2/spec.html#id2759963
     if (isList && key == keys.first) {

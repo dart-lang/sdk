@@ -17,7 +17,6 @@ List<String> excludedLibraries = [];
  * classes, and members.
  */
 void main(List<String> arguments) {
-  logger.onRecord.listen((record) => print(record.message));
   var results = _initArgParser().parse(arguments);
 
   var includeSdk = results['parse-sdk'] || results['include-sdk'];
@@ -48,8 +47,8 @@ ArgParser _initArgParser() {
       negatable: false,
       callback: (help) {
         if (help) {
-          logger.info(parser.getUsage());
-          logger.info(USAGE);
+          print(parser.getUsage());
+          print('Usage: dart docgen.dart [OPTIONS] fooDir/barFile');
           exit(0);
         }
       });

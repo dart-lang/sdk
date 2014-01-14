@@ -4,6 +4,9 @@
 
 library barback;
 
+import 'src/transform.dart';
+import 'src/transformer.dart';
+
 export 'src/asset.dart';
 export 'src/asset_id.dart';
 export 'src/asset_set.dart';
