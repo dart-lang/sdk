@@ -67,8 +67,6 @@ xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 async_test: Pass, Fail # timers test fails on ie10.
 indexeddb_5_test: Fail # Issue 12893
 js_test: Fail # Issue 14246
-canvas_pixel_array_type_alias_test/types2: Fail # Issue 16069
-canvas_pixel_array_type_alias_test/typed_data: Fail # Issue 16069
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
@@ -160,6 +158,8 @@ xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 || $runtime == ie10 ]
 custom/document_register_type_extensions_test/construction: Fail # Issue 13193
+canvas_pixel_array_type_alias_test/types2: Fail # Issue 16069
+canvas_pixel_array_type_alias_test/typed_data: Fail # Issue 16069
 
 [ $runtime == ie9 ]
 event_customevent_test: Fail # Issue 14170
