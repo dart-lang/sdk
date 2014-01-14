@@ -2623,7 +2623,7 @@ void RawStacktrace::WriteTo(SnapshotWriter* writer,
     SnapshotWriterVisitor visitor(writer);
     visitor.VisitPointers(from(), to());
 
-    writer->Write(expand_inlined_);
+    writer->Write(ptr()->expand_inlined_);
   } else {
     // Stacktraces are not allowed in other snapshot forms.
     writer->SetWriteException(Exceptions::kArgument,
