@@ -116,7 +116,7 @@ class SimpleLineBreaker extends LinePrinter {
         if (work.fits(tok)) {
           work.add(tok);
         } else {
-          if (!isWhitespace(work)) {
+          if (!isAllWhitespace(work)) {
             current.add(work);
           }
           if (current.length > 0) {
@@ -137,10 +137,7 @@ class SimpleLineBreaker extends LinePrinter {
     return chunks;
   }
 
-  bool isWhitespace(Chunk chunk) {
-    var str = chunk.buffer.toString();
-    return str.lastIndexOf(new RegExp(r"(\w+)")) == str.length - 1;
-  }
+  bool isAllWhitespace(Chunk chunk) => isWhitespace(chunk.buffer.toString());
 
   /// Test whether this token is a good start for a new working chunk
   bool goodStart(LineToken tok, Chunk workingChunk) =>
@@ -148,6 +145,9 @@ class SimpleLineBreaker extends LinePrinter {
 
 }
 
+/// Test if this [string] contains only whitespace characters
+bool isWhitespace(String string) => string.codeUnits.every(
+      (c) => c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0D);
 
 /// Special token indicating a line start
 final LINE_START = new SpaceToken(0);

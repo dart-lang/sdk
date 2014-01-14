@@ -1297,6 +1297,19 @@ main() {
       expect(line, 'foo bar baz\nfoo bar baz');
     });
 
+    test('isWhitespace', () {
+      expect(isWhitespace('foo'), false);
+      expect(isWhitespace('  foo'), false);
+      expect(isWhitespace('foo  '), false);
+      expect(isWhitespace(' foo '), false);
+      expect(isWhitespace(' '), true);
+      expect(isWhitespace('  '), true);
+      expect(isWhitespace('\t'), true);
+      expect(isWhitespace('\t\t'), true);
+      expect(isWhitespace('\n'), true);
+      expect(isWhitespace('\r'), true);
+    });
+
   });
 
   /// Helper method tests
