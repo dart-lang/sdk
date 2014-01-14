@@ -731,6 +731,7 @@ void Isolate::Shutdown() {
     // Finalize any weak persistent handles with a non-null referent.
     FinalizeWeakPersistentHandlesVisitor visitor;
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
+    api_state()->prologue_weak_persistent_handles().VisitHandles(&visitor);
 
     CompilerStats::Print();
     if (FLAG_trace_isolates) {

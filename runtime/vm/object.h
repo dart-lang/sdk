@@ -6087,10 +6087,6 @@ class ExternalTypedData : public Instance {
     return (ElementSizeInBytes(cid) * Length());
   }
 
-  void* GetPeer() const {
-    return raw_ptr()->peer_;
-  }
-
   void* DataAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset == 0) ||
            ((byte_offset > 0) && (byte_offset < LengthInBytes())));
@@ -6168,10 +6164,6 @@ class ExternalTypedData : public Instance {
 
   void SetData(uint8_t* data) const {
     raw_ptr()->data_ = data;
-  }
-
-  void SetPeer(void* peer) const {
-    raw_ptr()->peer_ = peer;
   }
 
  private:

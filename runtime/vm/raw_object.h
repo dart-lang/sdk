@@ -1490,7 +1490,6 @@ class RawExternalTypedData : public RawInstance {
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
 
   uint8_t* data_;
-  void* peer_;
 
   friend class TokenStream;
   friend class RawTokenStream;

@@ -16469,7 +16469,6 @@ void TypedData::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
     void* peer, Dart_WeakPersistentHandleFinalizer callback) const {
-  SetPeer(peer);
   return dart::AddFinalizer(*this, peer, callback);
 }
 
