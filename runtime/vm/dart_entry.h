@@ -183,6 +183,8 @@ class DartLibraryCalls : public AllStatic {
   //
   // Returns the value of _id on success, a RawError on failure.
   static RawObject* PortGetId(const Instance& port);
+
+  static bool IsSendPort(const Instance& send_port);
 };
 
 }  // namespace dart

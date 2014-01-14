@@ -25,6 +25,7 @@
     'isolate_patch_cc_file': '<(gen_source_dir)/isolate_patch_gen.cc',
     'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
     'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
+    'service_cc_file': '<(gen_source_dir)/service_gen.cc',
     'snapshot_test_dat_file': '<(gen_source_dir)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
@@ -34,10 +35,17 @@
       'target_name': 'libdart_vm',
       'type': 'static_library',
       'toolsets':['host', 'target'],
+      'dependencies': [
+        'generate_service_cc_file#host'
+      ],
       'includes': [
         'vm_sources.gypi',
         '../platform/platform_headers.gypi',
         '../platform/platform_sources.gypi',
+      ],
+      'sources': [
+        # Include generated source files.
+        '<(service_cc_file)',
       ],
       'sources/': [
         # Exclude all _test.[cc|h] files.
@@ -903,6 +911,36 @@
             '<(snapshot_test_dart_file)',
           ],
           'message': 'Generating ''<(snapshot_test_dat_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_service_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        'service_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_service_cc',
+          'inputs': [
+            '../tools/create_resources.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(service_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_resources.py',
+            '--output', '<(service_cc_file)',
+            '--outer_namespace', 'dart',
+            '--table_name', 'service',
+            '--root_prefix', 'vm/service/',
+            '<@(_sources)'
+          ],
+          'message': 'Generating ''<(service_cc_file)'' file.'
         },
       ]
     },

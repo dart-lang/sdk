@@ -33,6 +33,7 @@ const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
 const char* DartUtils::kUriLibURL = "dart:uri";
 const char* DartUtils::kHttpScheme = "http:";
+const char* DartUtils::kVMServiceLibURL = "dart:vmservice";
 
 const char* DartUtils::kIdFieldName = "_id";
 

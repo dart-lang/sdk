@@ -19,36 +19,18 @@ class VmService {
   // Error message if startup failed.
   static const char* GetErrorMessage();
 
-  static Dart_Port port();
-
-  static bool IsRunning();
-
-  static bool SendIsolateStartupMessage();
-  static bool SendIsolateShutdownMessage();
-
-  static void VmServiceShutdownCallback(void* callback_data);
-
  private:
   static bool _Start(intptr_t server_port);
-  static void _Stop();
   static Dart_Handle GetSource(const char* name);
   static Dart_Handle LoadScript(const char* name);
-  static Dart_Handle LoadSources(Dart_Handle library, const char** names);
   static Dart_Handle LoadSource(Dart_Handle library, const char* name);
   static Dart_Handle LoadResources(Dart_Handle library);
   static Dart_Handle LoadResource(Dart_Handle library, const char* name,
                                   const char* prefix);
-
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
                                        Dart_Handle url);
-
   static void ThreadMain(uword parameters);
-
-  static Dart_Isolate isolate_;
-  static Dart_Port port_;
   static const char* error_msg_;
-  static dart::Monitor* monitor_;
-
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(VmService);
 };

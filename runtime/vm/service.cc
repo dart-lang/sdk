@@ -4,19 +4,395 @@
 
 #include "vm/service.h"
 
+#include "include/dart_api.h"
+
+#include "vm/compiler.h"
 #include "vm/cpu.h"
+#include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/heap_histogram.h"
 #include "vm/isolate.h"
 #include "vm/message.h"
+#include "vm/native_entry.h"
+#include "vm/native_arguments.h"
 #include "vm/object.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/symbols.h"
+
 
 namespace dart {
+
+struct ResourcesEntry {
+  const char* path_;
+  const char* resource_;
+  int length_;
+};
+
+extern ResourcesEntry __service_resources_[];
+
+class Resources {
+ public:
+  static const int kNoSuchInstance = -1;
+  static int ResourceLookup(const char* path, const char** resource) {
+    ResourcesEntry* table = ResourceTable();
+    for (int i = 0; table[i].path_ != NULL; i++) {
+      const ResourcesEntry& entry = table[i];
+      if (strcmp(path, entry.path_) == 0) {
+        *resource = entry.resource_;
+        ASSERT(entry.length_ > 0);
+        return entry.length_;
+      }
+    }
+    return kNoSuchInstance;
+  }
+
+  static const char* Path(int idx) {
+    ASSERT(idx >= 0);
+    ResourcesEntry* entry = At(idx);
+    if (entry == NULL) {
+      return NULL;
+    }
+    ASSERT(entry->path_ != NULL);
+    return entry->path_;
+  }
+
+  static int Length(int idx) {
+    ASSERT(idx >= 0);
+    ResourcesEntry* entry = At(idx);
+    if (entry == NULL) {
+      return kNoSuchInstance;
+    }
+    ASSERT(entry->path_ != NULL);
+    return entry->length_;
+  }
+
+  static const uint8_t* Resource(int idx) {
+    ASSERT(idx >= 0);
+    ResourcesEntry* entry = At(idx);
+    if (entry == NULL) {
+      return NULL;
+    }
+    return reinterpret_cast<const uint8_t*>(entry->resource_);
+  }
+
+ private:
+  static ResourcesEntry* At(int idx) {
+    ASSERT(idx >= 0);
+    ResourcesEntry* table = ResourceTable();
+    for (int i = 0; table[i].path_ != NULL; i++) {
+      if (idx == i) {
+        return &table[i];
+      }
+    }
+    return NULL;
+  }
+
+  static ResourcesEntry* ResourceTable() {
+    return &__service_resources_[0];
+  }
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Resources);
+};
+
+
+static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+
+static void SendServiceMessage(Dart_NativeArguments args) {
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  Isolate* isolate = arguments->isolate();
+  StackZone zone(isolate);
+  HANDLESCOPE(isolate);
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, sp, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(1));
+
+  // Extract SendPort port id.
+  const Object& sp_id_obj = Object::Handle(DartLibraryCalls::PortGetId(sp));
+  if (sp_id_obj.IsError()) {
+    Exceptions::PropagateError(Error::Cast(sp_id_obj));
+  }
+  Integer& id = Integer::Handle();
+  id ^= sp_id_obj.raw();
+  Dart_Port sp_id = static_cast<Dart_Port>(id.AsInt64Value());
+  ASSERT(sp_id != ILLEGAL_PORT);
+
+  // Serialize message.
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator);
+  writer.WriteMessage(message);
+
+  // TODO(turnidge): Throw an exception when the return value is false?
+  PortMap::PostMessage(new Message(sp_id, data, writer.BytesWritten(),
+                                   Message::kOOBPriority));
+}
+
+
+struct VmServiceNativeEntry {
+  const char* name;
+  int num_arguments;
+  Dart_NativeFunction function;
+};
+
+
+static VmServiceNativeEntry _VmServiceNativeEntries[] = {
+  {"VMService_SendServiceMessage", 2, SendServiceMessage}
+};
+
+
+static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
+                                                   int num_arguments,
+                                                   bool* auto_setup_scope) {
+  const Object& obj = Object::Handle(Api::UnwrapHandle(name));
+  if (!obj.IsString()) {
+    return NULL;
+  }
+  const char* function_name = obj.ToCString();
+  ASSERT(function_name != NULL);
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = true;
+  intptr_t n =
+      sizeof(_VmServiceNativeEntries) / sizeof(_VmServiceNativeEntries[0]);
+  for (intptr_t i = 0; i < n; i++) {
+    VmServiceNativeEntry entry = _VmServiceNativeEntries[i];
+    if (!strcmp(function_name, entry.name) &&
+        (num_arguments == entry.num_arguments)) {
+      return entry.function;
+    }
+  }
+  return NULL;
+}
+
+
+Isolate* Service::service_isolate_ = NULL;
+Dart_LibraryTagHandler Service::default_handler_ = NULL;
+Dart_Port Service::port_ = ILLEGAL_PORT;
+
+static Dart_Port ExtractPort(Dart_Handle receivePort) {
+  HANDLESCOPE(Isolate::Current());
+  const Object& unwrapped_rp = Object::Handle(Api::UnwrapHandle(receivePort));
+  const Instance& rp = Instance::Cast(unwrapped_rp);
+  // Extract RawReceivePort port id.
+  const Object& rp_id_obj = Object::Handle(DartLibraryCalls::PortGetId(rp));
+  if (rp_id_obj.IsError()) {
+    return ILLEGAL_PORT;
+  }
+  ASSERT(rp_id_obj.IsSmi() || rp_id_obj.IsMint());
+  const Integer& id = Integer::Cast(rp_id_obj);
+  return static_cast<Dart_Port>(id.AsInt64Value());
+}
+
+
+Isolate* Service::GetServiceIsolate(void* callback_data) {
+  if (service_isolate_ != NULL) {
+    // Already initialized, return service isolate.
+    return service_isolate_;
+  }
+  Dart_ServiceIsolateCreateCalback create_callback =
+    Isolate::ServiceCreateCallback();
+  if (create_callback == NULL) {
+    return NULL;
+  }
+  Isolate::SetCurrent(NULL);
+  char* error = NULL;
+  Isolate* isolate = reinterpret_cast<Isolate*>(
+      create_callback(callback_data, &error));
+  if (isolate == NULL) {
+    return NULL;
+  }
+  Isolate::SetCurrent(isolate);
+  {
+    // Install the dart:vmservice library.
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Library& library =
+        Library::Handle(isolate, isolate->object_store()->root_library());
+    // Isolate is empty.
+    ASSERT(library.IsNull());
+    // Grab embedder tag handler.
+    default_handler_ = isolate->library_tag_handler();
+    ASSERT(default_handler_ != NULL);
+    // Temporarily install our own.
+    isolate->set_library_tag_handler(LibraryTagHandler);
+    // Get script resource.
+    const char* resource = NULL;
+    const char* path = "/vmservice.dart";
+    intptr_t r = Resources::ResourceLookup(path, &resource);
+    ASSERT(r != Resources::kNoSuchInstance);
+    ASSERT(resource != NULL);
+    const String& source_str = String::Handle(
+        String::FromUTF8(reinterpret_cast<const uint8_t*>(resource), r));
+    ASSERT(!source_str.IsNull());
+    const String& url_str = String::Handle(Symbols::DartVMService().raw());
+    library ^= Library::LookupLibrary(url_str);
+    ASSERT(library.IsNull());
+    // Setup library.
+    library = Library::New(url_str);
+    library.Register();
+    const Script& script = Script::Handle(
+      isolate, Script::New(url_str, source_str, RawScript::kLibraryTag));
+    library.SetLoadInProgress();
+    Dart_EnterScope();  // Need to enter scope for tag handler.
+    const Error& error = Error::Handle(isolate,
+                                       Compiler::Compile(library, script));
+    ASSERT(error.IsNull());
+    Dart_ExitScope();
+    library.SetLoaded();
+    // Install embedder default library tag handler again.
+    isolate->set_library_tag_handler(default_handler_);
+    default_handler_ = NULL;
+    library.set_native_entry_resolver(VmServiceNativeResolver);
+  }
+  {
+    // Boot the dart:vmservice library.
+    Dart_EnterScope();
+    Dart_Handle result;
+    Dart_Handle url_str =
+        Dart_NewStringFromCString(Symbols::Name(Symbols::kDartVMServiceId));
+    Dart_Handle library = Dart_LookupLibrary(url_str);
+    ASSERT(Dart_IsLibrary(library));
+    result = Dart_Invoke(library, Dart_NewStringFromCString("boot"), 0, NULL);
+    ASSERT(!Dart_IsError(result));
+    port_ = ExtractPort(result);
+    ASSERT(port_ != ILLEGAL_PORT);
+    Dart_ExitScope();
+  }
+  Isolate::SetCurrent(NULL);
+  service_isolate_ = reinterpret_cast<Isolate*>(isolate);
+  return service_isolate_;
+}
+
+
+// These must be kept in sync with service/constants.dart
+#define VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID 1
+#define VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID 2
+
+
+static RawArray* MakeServiceControlMessage(Dart_Port port_id, intptr_t code,
+                                           const String& name) {
+  const Array& list = Array::Handle(Array::New(4));
+  ASSERT(!list.IsNull());
+  const Integer& code_int = Integer::Handle(Integer::New(code));
+  const Integer& port_int = Integer::Handle(Integer::New(port_id));
+  const Object& send_port = Object::Handle(
+      DartLibraryCalls::NewSendPort(port_id));
+  ASSERT(!send_port.IsNull());
+  list.SetAt(0, code_int);
+  list.SetAt(1, port_int);
+  list.SetAt(2, send_port);
+  list.SetAt(3, name);
+  return list.raw();
+}
+
+
+bool Service::SendIsolateStartupMessage() {
+  if (!IsRunning()) {
+    return false;
+  }
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  HANDLESCOPE(isolate);
+  const String& name = String::Handle(String::New(isolate->name()));
+  ASSERT(!name.IsNull());
+  const Array& list = Array::Handle(
+      MakeServiceControlMessage(Dart_GetMainPortId(),
+                                VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID,
+                                name));
+  ASSERT(!list.IsNull());
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator);
+  writer.WriteMessage(list);
+  intptr_t len = writer.BytesWritten();
+  return PortMap::PostMessage(
+      new Message(port_, data, len, Message::kNormalPriority));
+}
+
+
+bool Service::SendIsolateShutdownMessage() {
+  if (!IsRunning()) {
+    return false;
+  }
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  HANDLESCOPE(isolate);
+  const Array& list = Array::Handle(
+      MakeServiceControlMessage(Dart_GetMainPortId(),
+                                VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID,
+                                String::Handle(String::null())));
+  ASSERT(!list.IsNull());
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator);
+  writer.WriteMessage(list);
+  intptr_t len = writer.BytesWritten();
+  return PortMap::PostMessage(
+      new Message(port_, data, len, Message::kNormalPriority));
+}
+
+
+bool Service::IsRunning() {
+  return port_ != ILLEGAL_PORT;
+}
+
+
+Dart_Handle Service::GetSource(const char* name) {
+  ASSERT(name != NULL);
+  int i = 0;
+  while (true) {
+    const char* path = Resources::Path(i);
+    if (path == NULL) {
+      break;
+    }
+    ASSERT(*path != '\0');
+    // Skip the '/'.
+    path++;
+    if (strcmp(name, path) == 0) {
+      const uint8_t* str = Resources::Resource(i);
+      intptr_t length = Resources::Length(i);
+      return Dart_NewStringFromUTF8(str, length);
+    }
+    i++;
+  }
+  return Dart_Null();
+}
+
+
+Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
+                                       Dart_Handle url) {
+  if (!Dart_IsLibrary(library)) {
+    return Dart_NewApiError("not a library");
+  }
+  if (!Dart_IsString(url)) {
+    return Dart_NewApiError("url is not a string");
+  }
+  const char* url_string = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_string);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  if (tag == Dart_kImportTag) {
+    // Embedder handles all requests for external libraries.
+    ASSERT(default_handler_ != NULL);
+    return default_handler_(tag, library, url);
+  }
+  ASSERT((tag == Dart_kSourceTag) || (tag == Dart_kCanonicalizeUrl));
+  if (tag == Dart_kCanonicalizeUrl) {
+    // url is already canonicalized.
+    return url;
+  }
+  Dart_Handle source = GetSource(url_string);
+  if (Dart_IsError(source)) {
+    return source;
+  }
+  return Dart_LoadSource(library, url, source);
+}
+
 
 typedef void (*ServiceMessageHandler)(Isolate* isolate, JSONStream* stream);
 
@@ -26,13 +402,6 @@ struct ServiceMessageHandlerEntry {
 };
 
 static ServiceMessageHandler FindServiceMessageHandler(const char* command);
-
-
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
 
 static void PostReply(const String& reply, const Instance& reply_port) {
   const Object& id_obj = Object::Handle(

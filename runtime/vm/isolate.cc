@@ -761,7 +761,7 @@ Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
 Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
 Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
 Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
-
+Dart_ServiceIsolateCreateCalback Isolate::service_create_callback_ = NULL;
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   bool visit_prologue_weak_handles,

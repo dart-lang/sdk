@@ -299,6 +299,13 @@ class Isolate : public BaseIsolate {
     return create_callback_;
   }
 
+  static void SetServiceCreateCallback(Dart_ServiceIsolateCreateCalback cb) {
+    service_create_callback_ = cb;
+  }
+  static Dart_ServiceIsolateCreateCalback ServiceCreateCallback() {
+    return service_create_callback_;
+  }
+
   static void SetInterruptCallback(Dart_IsolateInterruptCallback cb) {
     interrupt_callback_ = cb;
   }
@@ -479,6 +486,7 @@ class Isolate : public BaseIsolate {
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
   static Dart_IsolateInterruptCallback vmstats_callback_;
+  static Dart_ServiceIsolateCreateCalback service_create_callback_;
 
   friend class ReusableHandleScope;
   friend class ReusableObjectHandleScope;

@@ -279,6 +279,7 @@ class ObjectPointerVisitor;
   V(DartMath, "dart:math")                                                     \
   V(DartMirrors, "dart:mirrors")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
+  V(DartVMService, "dart:vmservice")                                           \
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \

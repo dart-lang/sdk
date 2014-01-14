@@ -17,6 +17,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/service.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
@@ -84,7 +85,8 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
                            Dart_FileReadCallback file_read,
                            Dart_FileWriteCallback file_write,
                            Dart_FileCloseCallback file_close,
-                           Dart_EntropySource entropy_source) {
+                           Dart_EntropySource entropy_source,
+                           Dart_ServiceIsolateCreateCalback service_create) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized.";
@@ -141,6 +143,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
 
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
+  Isolate::SetServiceCreateCallback(service_create);
   Isolate::SetInterruptCallback(interrupt);
   Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
@@ -244,6 +247,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   if (FLAG_print_class_table) {
     isolate->class_table()->Print();
   }
+  Service::SendIsolateStartupMessage();
   return Error::null();
 }
 
@@ -252,6 +256,7 @@ void Dart::RunShutdownCallback() {
   Isolate* isolate = Isolate::Current();
   void* callback_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
+  Service::SendIsolateShutdownMessage();
   if (callback != NULL) {
     (callback)(callback_data);
   }

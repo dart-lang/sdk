@@ -10,17 +10,11 @@ class RunningIsolates implements MessageRouter {
   RunningIsolates();
 
   void isolateStartup(int portId, SendPort sp, String name) {
-    if (isolates[portId] != null) {
-      throw new StateError('Duplicate isolate startup.');
-    }
     var ri = new RunningIsolate(portId, sp, name);
     isolates[portId] = ri;
   }
 
   void isolateShutdown(int portId, SendPort sp) {
-    if (isolates[portId] == null) {
-      throw new StateError('Unknown isolate.');
-    }
     isolates.remove(portId);
   }
 

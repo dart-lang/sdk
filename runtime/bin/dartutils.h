@@ -216,6 +216,7 @@ class DartUtils {
   static const char* kIOLibPatchURL;
   static const char* kUriLibURL;
   static const char* kHttpScheme;
+  static const char* kVMServiceLibURL;
 
   static const char* kIdFieldName;
 

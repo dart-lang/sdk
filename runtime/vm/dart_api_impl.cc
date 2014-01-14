@@ -27,6 +27,7 @@
 #include "vm/port.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
+#include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/timer.h"
@@ -793,10 +794,12 @@ DART_EXPORT bool Dart_Initialize(
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source) {
+    Dart_EntropySource entropy_source,
+    Dart_ServiceIsolateCreateCalback service_create) {
   const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown,
                                        file_open, file_read, file_write,
-                                       file_close, entropy_source);
+                                       file_close, entropy_source,
+                                       service_create);
   if (err_msg != NULL) {
     OS::PrintErr("Dart_Initialize: %s\n", err_msg);
     return false;
@@ -1168,6 +1171,27 @@ DART_EXPORT Dart_Port Dart_GetMainPortId() {
   return isolate->main_port();
 }
 
+
+DART_EXPORT Dart_Handle Dart_PostMessage(Dart_Handle send_port,
+                                         Dart_Handle object) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Instance& port_instance = Instance::Handle();
+  port_instance ^= Api::UnwrapHandle(send_port);
+  if (!DartLibraryCalls::IsSendPort(port_instance)) {
+    return Api::NewError("send_port is not a SendPort.");
+  }
+  const Object& idObj = Object::Handle(
+  DartLibraryCalls::PortGetId(port_instance));
+  ASSERT(!idObj.IsError());
+  Integer& id = Integer::Handle();
+  id ^= idObj.raw();
+  Dart_Port port = static_cast<Dart_Port>(id.AsInt64Value());
+  if (Dart_Post(port, object)) {
+    return Api::Success();
+  }
+  return Api::NewError("Dart_Post failed.");
+}
 
 // --- Scopes ----
 
@@ -4493,6 +4517,13 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
     isolate->heap()->SetPeer(raw_obj, peer);
   }
   return Api::Success();
+}
+
+
+// --- Service support ---
+
+DART_EXPORT Dart_Isolate Dart_GetServiceIsolate(void* callback_data) {
+  return Api::CastIsolate(Service::GetServiceIsolate(callback_data));
 }
 
 }  // namespace dart

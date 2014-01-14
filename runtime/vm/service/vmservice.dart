@@ -11,7 +11,6 @@ import 'dart:typed_data';
 
 part 'client.dart';
 part 'constants.dart';
-part 'resources.dart';
 part 'running_isolate.dart';
 part 'running_isolates.dart';
 part 'message.dart';
@@ -85,6 +84,12 @@ class VMService extends MessageRouter {
     }
     return runningIsolates.route(message);
   }
+}
+
+RawReceivePort boot() {
+  // Boot the VMService.
+  // Return the port we expect isolate startup and shutdown messages on.
+  return new VMService().receivePort;
 }
 
 void sendServiceMessage(SendPort sp, Object m)

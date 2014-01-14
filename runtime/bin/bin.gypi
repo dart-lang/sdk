@@ -369,6 +369,9 @@
             'python',
             'tools/create_resources.py',
             '--output', '<(resources_cc_file)',
+            '--outer_namespace', 'dart',
+            '--inner_namespace', 'bin',
+            '--table_name', 'service_bin',
             '--root_prefix', 'bin/',
             '<@(_sources)'
           ],
