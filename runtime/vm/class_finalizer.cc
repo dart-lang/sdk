@@ -1408,12 +1408,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
   // Add the mixin type to the interfaces that the mixin application
   // class implements. This is necessary so that type tests work.
   const Array& interfaces = Array::Handle(isolate, Array::New(1));
-  const Type& interface = Type::Handle(isolate, Type::New(
-      mixin_class,
-      Object::null_abstract_type_arguments(),  // Set again below if generic.
-      mixin_app_class.token_pos()));
-  ASSERT(!interface.IsFinalized());
-  interfaces.SetAt(0, interface);
+  interfaces.SetAt(0, mixin_type);
   ASSERT(mixin_app_class.interfaces() == Object::empty_array().raw());
   mixin_app_class.set_interfaces(interfaces);
 
@@ -1473,9 +1468,6 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
           TypeArguments::Handle(isolate, mixin_class.type_parameters());
       const TypeArguments& mixin_type_args = TypeArguments::Handle(isolate,
           TypeArguments::New(num_mixin_type_params));
-      // TODO(regis): Can we share interface type and mixin_type?
-      const TypeArguments& interface_type_args = TypeArguments::Handle(isolate,
-          TypeArguments::New(num_mixin_type_params));
       for (intptr_t i = 0; i < num_mixin_type_params; i++) {
         param ^= mixin_params.TypeAt(i);
         param_name = param.name();
@@ -1489,7 +1481,6 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
                                           param_bound,
                                           param.token_pos());
         cloned_type_params.SetTypeAt(cloned_index, cloned_param);
-        interface_type_args.SetTypeAt(i, cloned_param);
         mixin_type_args.SetTypeAt(i, cloned_param);
         cloned_index++;
       }
@@ -1522,12 +1513,10 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
         }
       }
 
-      // Lastly, set the type arguments of the mixin type and of the single
-      // interface type.
+      // Lastly, set the type arguments of the mixin type, which is also the
+      // single interface type.
       ASSERT(!mixin_type.IsFinalized());
       mixin_type.set_arguments(mixin_type_args);
-      ASSERT(!interface.IsFinalized());
-      interface.set_arguments(interface_type_args);
     }
     mixin_app_class.set_type_parameters(cloned_type_params);
   }
