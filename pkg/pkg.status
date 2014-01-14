@@ -26,7 +26,8 @@ third_party/html5lib/test/browser/browser_test: Skip
 http/test/http_test: Pass, RuntimeError # Issue 15652
 
 [ $runtime == vm ]
-watcher/test/directory_watcher/polling_test: Timeout # Issue 16023
+watcher/test/directory_watcher/polling_test: Skip # Issue 16023
+watcher/test/directory_watcher/mac_os_test: Pass,Fail # Issue 16079
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533

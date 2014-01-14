@@ -89,4 +89,4 @@ LibTest/typed_data/Float32x4/sqrt_A01_t01: Pass, Fail # co19 issue 666.
 Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please triage this failure
 
 [ $runtime == vm ]
-LibTest/isolate/Isolate/spawn_A02_t01: Timeout # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
