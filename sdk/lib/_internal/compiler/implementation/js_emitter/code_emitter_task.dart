@@ -1398,7 +1398,8 @@ mainBuffer.add(r'''
       // TODO(sigurdm): Also find out where to place it.
       mainBuffer.write("\$.libraries_to_load = {");
       for (String constant in compiler.deferredLoadTask.hunksToLoad.keys) {
-        mainBuffer.write("$constant:[");
+        // TODO(sigurdm): Escape these strings.
+        mainBuffer.write('"$constant":[');
         for (OutputUnit outputUnit in
             compiler.deferredLoadTask.hunksToLoad[constant]) {
           mainBuffer.write('"${outputUnit.name}.js", ');
