@@ -61,6 +61,9 @@ import '../util/uri_extras.dart' show
 
 import '../dump_info.dart' as dumpInfo;
 
+import '../deferred_load.dart' show
+    OutputUnit;
+
 part 'class_builder.dart';
 part 'class_emitter.dart';
 part 'code_emitter_helper.dart';

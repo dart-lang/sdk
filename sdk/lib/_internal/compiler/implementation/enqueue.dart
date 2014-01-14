@@ -622,6 +622,7 @@ class ResolutionEnqueuer extends Enqueuer {
       throw new SpannableAssertionFailure(element,
           "Resolution work list is closed. Trying to add $element.");
     }
+
     compiler.world.registerUsedElement(element);
 
     queue.add(new ResolutionWorkItem(element, itemCompilationContextCreator()));
@@ -662,12 +663,13 @@ class ResolutionEnqueuer extends Enqueuer {
 
   void enableIsolateSupport(LibraryElement element) {
     compiler.isolateLibrary = element.patch;
-    var startRootIsolate =
-        compiler.isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE);
-    addToWorkList(startRootIsolate);
-    compiler.globalDependencies.registerDependency(startRootIsolate);
-    addToWorkList(compiler.isolateHelperLibrary.find('_currentIsolate'));
-    addToWorkList(compiler.isolateHelperLibrary.find('_callInIsolate'));
+    for (String name in const [Compiler.START_ROOT_ISOLATE,
+                               '_currentIsolate',
+                               '_callInIsolate']) {
+      Element element = compiler.isolateHelperLibrary.find(name);
+      addToWorkList(element);
+      compiler.globalDependencies.registerDependency(element);
+    }
   }
 
   void enableNoSuchMethod(Element element) {

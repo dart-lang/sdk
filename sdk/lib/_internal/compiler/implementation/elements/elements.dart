@@ -210,6 +210,12 @@ abstract class Element implements Spannable {
   bool isAmbiguous();
   bool isWarnOnUse();
 
+  /// Returns true if this [Element] is a top level element.
+  /// That is, if it is not defined within the scope of a class.
+  ///
+  /// This means whether the enclosing element is a compilation unit.
+  /// With the exception of [ClosureClassElement] that is considered top level
+  /// as all other classes.
   bool isTopLevel();
   bool isAssignable();
   bool isNative();
@@ -706,6 +712,9 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
   Element findLocal(String elementName);
   Element findExported(String elementName);
   void forEachExport(f(Element element));
+
+  /// Returns the imports that import element into this library.
+  Link<Import> getImportsFor(Element element);
 
   bool hasLibraryName();
   String getLibraryName();

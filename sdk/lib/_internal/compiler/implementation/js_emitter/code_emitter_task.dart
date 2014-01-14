@@ -24,16 +24,15 @@ class CodeEmitterTask extends CompilerTask {
   final Namer namer;
   ConstantEmitter constantEmitter;
   NativeEmitter nativeEmitter;
-  CodeBuffer mainBuffer;
-  final CodeBuffer deferredLibrariesBuffer = new CodeBuffer();
+  Map<OutputUnit, CodeBuffer> outputBuffers = new Map<OutputUnit, CodeBuffer>();
   final CodeBuffer deferredConstants = new CodeBuffer();
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
   String classesCollector;
   final Set<ClassElement> neededClasses = new Set<ClassElement>();
-  final List<ClassElement> regularClasses = <ClassElement>[];
-  final List<ClassElement> deferredClasses = <ClassElement>[];
+  final Map<OutputUnit, List<ClassElement>> outputClassLists =
+      new Map<OutputUnit, List<ClassElement>>();
   final List<ClassElement> nativeClasses = <ClassElement>[];
   final Map<String, String> mangledFieldNames = <String, String>{};
   final Map<String, String> mangledGlobalFieldNames = <String, String>{};
@@ -56,6 +55,11 @@ class CodeEmitterTask extends CompilerTask {
   String get space => compiler.enableMinification ? "" : " ";
   String get n => compiler.enableMinification ? "" : "\n";
   String get N => compiler.enableMinification ? "\n" : ";\n";
+
+  CodeBuffer get mainBuffer {
+    return outputBuffers.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
+        () => new CodeBuffer());
+  }
 
   /**
    * List of expressions and statements that will be included in the
@@ -80,20 +84,17 @@ class CodeEmitterTask extends CompilerTask {
    *
    * For supporting deferred loading we keep one list per output unit.
    *
-   * The String determines the outputUnit, either "main" or "deferred"
-   *
    * See [getElementDecriptor].
    */
   // TODO(ahe): Generate statics with their class, and store only libraries in
   // this map.
-  final Map<Element, Map<String, ClassBuilder>> elementDecriptors
-      = new Map<Element, Map<String, ClassBuilder>>();
+  final Map<Element, Map<OutputUnit, ClassBuilder>> elementDescriptors
+      = new Map<Element, Map<OutputUnit, ClassBuilder>>();
 
   final bool generateSourceMap;
 
   CodeEmitterTask(Compiler compiler, Namer namer, this.generateSourceMap)
-      : mainBuffer = new CodeBuffer(),
-        this.namer = namer,
+      : this.namer = namer,
         constantEmitter = new ConstantEmitter(compiler, namer),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
@@ -803,6 +804,7 @@ class CodeEmitterTask extends CompilerTask {
     unneededClasses.add(backend.jsUInt32Class);
     unneededClasses.add(backend.jsUInt31Class);
     unneededClasses.add(backend.jsPositiveIntClass);
+    unneededClasses.add(compiler.dynamicClass);
 
     return (ClassElement cls) => !unneededClasses.contains(cls);
   }
@@ -891,15 +893,29 @@ class CodeEmitterTask extends CompilerTask {
     return null;
   }
 
-  void emitCompileTimeConstants(CodeBuffer eagerBuffer) {
+  void emitCompileTimeConstants(CodeBuffer buffer, OutputUnit outputUnit) {
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission(
         compareConstants);
+    Set<Constant> outputUnitConstants = null;
+    // TODO(sigurdm): We shouldn't run through all constants for every
+    // outputUnit.
     for (Constant constant in constants) {
       if (isConstantInlinedOrAlreadyEmitted(constant)) continue;
+      OutputUnit constantUnit =
+          compiler.deferredLoadTask.outputUnitForConstant(constant);
+      if (constantUnit != outputUnit && constantUnit != null) continue;
+      if (outputUnit != compiler.deferredLoadTask.mainOutputUnit
+          && constantUnit == null) {
+        // The back-end introduces some constants, like "InterceptorConstant" or
+        // some list constants. They are emitted in the main output-unit, and
+        // ignored otherwise.
+        // TODO(sigurdm): We should track those constants.
+        continue;
+      }
+
       String name = namer.constantName(constant);
-      if (constant.isList()) emitMakeConstantListIfNotEmitted(eagerBuffer);
-      CodeBuffer buffer = bufferForConstant(constant, eagerBuffer);
+      if (constant.isList()) emitMakeConstantListIfNotEmitted(buffer);
       jsAst.Expression init = js(
           '${namer.globalObjectForConstant(constant)}.$name = #',
           constantInitializerExpression(constant));
@@ -1094,18 +1110,23 @@ class CodeEmitterTask extends CompilerTask {
 
     for (ClassElement element in sortedClasses) {
       if (typeTestEmitter.rtiNeededClasses.contains(element)) {
-        regularClasses.add(element);
+        // TODO(sigurdm): We might be able to defer some of these.
+        outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
+            () => new List<ClassElement>()).add(element);
       } else if (Elements.isNativeOrExtendsNative(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClasses.add(element);
         if (!element.isNative()) {
-          assert(invariant(element, !isDeferred(element)));
-          regularClasses.add(element);
+          assert(invariant(element,
+                           !compiler.deferredLoadTask.isDeferred(element)));
+          outputClassLists.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
+              () => new List<ClassElement>()).add(element);
         }
-      } else if (isDeferred(element)) {
-        deferredClasses.add(element);
       } else {
-        regularClasses.add(element);
+        outputClassLists.putIfAbsent(
+            compiler.deferredLoadTask.outputUnitForElement(element),
+            () => new List<ClassElement>())
+            .add(element);
       }
     }
   }
@@ -1163,24 +1184,23 @@ mainBuffer.add(r'''
       uri = relativize(
           compiler.sourceMapUri, library.canonicalUri, false);
     }
-    Map<String, ClassBuilder> descriptors =
-        elementDecriptors[library];
+    Map<OutputUnit, ClassBuilder> descriptors =
+        elementDescriptors[library];
 
-    Map<String, CodeBuffer> outputBuffers =
-      {"main": mainBuffer,
-       "deferred": deferredLibrariesBuffer};
-
-    for (String outputUnit in outputBuffers.keys) {
+    for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
       ClassBuilder descriptor =
           descriptors.putIfAbsent(outputUnit, ()
               => new ClassBuilder());
       if (descriptor.properties.isEmpty) continue;
-      bool isDeferred = outputUnit != "main";
+      bool isDeferred =
+          outputUnit != compiler.deferredLoadTask.mainOutputUnit;
       jsAst.Fun metadata = metadataEmitter.buildMetadataFunction(library);
 
       jsAst.ObjectInitializer initializers =
           descriptor.toObjectInitializer();
-      int sizeBefore = outputBuffers[outputUnit].length;
+      CodeBuffer outputBuffer =
+          outputBuffers.putIfAbsent(outputUnit, () => new CodeBuffer());
+      int sizeBefore = outputBuffer.length;
       outputBuffers[outputUnit]
           ..write('["${library.getLibraryName()}",$_')
           ..write('"${uri}",$_')
@@ -1192,7 +1212,7 @@ mainBuffer.add(r'''
           ..write(jsAst.prettyPrint(initializers, compiler))
           ..write(library == compiler.mainApp ? ',${n}1' : "")
           ..write('],$n');
-      int sizeAfter = outputBuffers[outputUnit].length;
+      int sizeAfter = outputBuffer.length;
       compiler.dumpInfoTask.codeSizeCounter
           .countCode(library, sizeAfter - sizeBefore);
     }
@@ -1209,7 +1229,7 @@ mainBuffer.add(r'''
       mainBuffer.add(buildGeneratedBy());
       addComment(HOOKS_API_USAGE, mainBuffer);
 
-      if (!areAnyElementsDeferred) {
+      if (!compiler.deferredLoadTask.splitProgram) {
         mainBuffer.add('(function(${namer.currentIsolate})$_{$n');
       }
 
@@ -1236,10 +1256,10 @@ mainBuffer.add(r'''
 
       emitStaticFunctions();
 
-      if (!regularClasses.isEmpty ||
-          !deferredClasses.isEmpty ||
-          !nativeClasses.isEmpty ||
-          !compiler.codegenWorld.staticFunctionsNeedingGetter.isEmpty) {
+      // Only output the classesCollector if we actually have any classes.
+      if (!(nativeClasses.isEmpty &&
+            compiler.codegenWorld.staticFunctionsNeedingGetter.isEmpty &&
+          outputClassLists.values.every((classList) => classList.isEmpty))) {
         // Shorten the code by using "$$" as temporary.
         classesCollector = r"$$";
         mainBuffer.add('var $classesCollector$_=$_{}$N$n');
@@ -1261,8 +1281,8 @@ mainBuffer.add(r'''
       // emitted until we have emitted all other classes (native or not).
 
       // Might create methodClosures.
-      if (!regularClasses.isEmpty) {
-        for (ClassElement element in regularClasses) {
+      for (List<ClassElement> outputClassList in outputClassLists.values) {
+        for (ClassElement element in outputClassList) {
           generateClass(element, getElementDecriptor(element));
         }
       }
@@ -1270,24 +1290,20 @@ mainBuffer.add(r'''
       nativeEmitter.finishGenerateNativeClasses();
       nativeEmitter.assembleCode(nativeBuffer);
 
-      if (!deferredClasses.isEmpty) {
-        for (ClassElement element in deferredClasses) {
-          generateClass(element, getElementDecriptor(element));
-        }
-      }
 
       // After this assignment we will produce invalid JavaScript code if we use
       // the classesCollector variable.
       classesCollector = 'classesCollector should not be used from now on';
 
-      if (!elementDecriptors.isEmpty) {
+      // TODO(sigurdm): Need to check this for each outputUnit.
+      if (!elementDescriptors.isEmpty) {
         var oldClassesCollector = classesCollector;
         classesCollector = r"$$";
         if (compiler.enableMinification) {
           mainBuffer.write(';');
         }
 
-        for (Element element in elementDecriptors.keys) {
+        for (Element element in elementDescriptors.keys) {
           // TODO(ahe): Should iterate over all libraries.  Otherwise, we will
           // not see libraries that only have fields.
           if (element.isLibrary()) {
@@ -1295,7 +1311,8 @@ mainBuffer.add(r'''
             ClassBuilder builder = new ClassBuilder();
             if (classEmitter.emitFields(
                     library, builder, null, emitStatics: true)) {
-              getElementDescriptorForOutputUnit(library, "main")
+              OutputUnit mainUnit = compiler.deferredLoadTask.mainOutputUnit;
+              getElementDescriptorForOutputUnit(library, mainUnit)
                   .properties.addAll(builder.toObjectInitializer().properties);
             }
           }
@@ -1339,11 +1356,11 @@ mainBuffer.add(r'''
             ..write('([$n');
 
         List<Element> sortedElements =
-            Elements.sortedByPosition(elementDecriptors.keys);
+            Elements.sortedByPosition(elementDescriptors.keys);
 
         Iterable<Element> pendingStatics = sortedElements.where((element) {
             return !element.isLibrary() &&
-                elementDecriptors[element].values.any((descriptor) =>
+                elementDescriptors[element].values.any((descriptor) =>
                     descriptor != null);
         });
 
@@ -1354,7 +1371,7 @@ mainBuffer.add(r'''
         for (LibraryElement library in sortedElements.where((element) =>
             element.isLibrary())) {
           writeLibraryDescriptors(library);
-          elementDecriptors[library] = const {};
+          elementDescriptors[library] = const {};
         }
         if (!pendingStatics.isEmpty) {
           compiler.internalError('Pending statics (see above).');
@@ -1372,7 +1389,23 @@ mainBuffer.add(r'''
       // which may need getInterceptor (and one-shot interceptor) methods, so
       // we have to make sure that [emitGetInterceptorMethods] and
       // [emitOneShotInterceptors] have been called.
-      emitCompileTimeConstants(mainBuffer);
+      emitCompileTimeConstants(
+          mainBuffer, compiler.deferredLoadTask.mainOutputUnit);
+
+      // We write a javascript mapping from DeferredLibrary elements
+      // (really their String argument) to the js hunk to load.
+      // TODO(sigurdm): Create a syntax tree for this.
+      // TODO(sigurdm): Also find out where to place it.
+      mainBuffer.write("\$.libraries_to_load = {");
+      for (String constant in compiler.deferredLoadTask.hunksToLoad.keys) {
+        mainBuffer.write("$constant:[");
+        for (OutputUnit outputUnit in
+            compiler.deferredLoadTask.hunksToLoad[constant]) {
+          mainBuffer.write('"${outputUnit.name}.js", ');
+        }
+        mainBuffer.write("],\n");
+      }
+      mainBuffer.write("}$N");
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
@@ -1444,7 +1477,7 @@ if (typeof $printHelperName === "function") {
       jsAst.FunctionDeclaration precompiledFunctionAst =
           buildPrecompiledFunction();
       emitInitFunction(mainBuffer);
-      if (!areAnyElementsDeferred) {
+      if (!compiler.deferredLoadTask.splitProgram) {
         mainBuffer.add('})()\n');
       } else {
         mainBuffer.add('\n');
@@ -1468,10 +1501,10 @@ if (typeof $printHelperName === "function") {
   }
 
   ClassBuilder getElementDescriptorForOutputUnit(Element element,
-      String outputUnit) {
-    Map<String, ClassBuilder> descriptors =
-        elementDecriptors.putIfAbsent(
-            element, () => new Map<String, ClassBuilder>());
+                                                 OutputUnit outputUnit) {
+    Map<OutputUnit, ClassBuilder> descriptors =
+        elementDescriptors.putIfAbsent(
+            element, () => new Map<OutputUnit, ClassBuilder>());
     return descriptors.putIfAbsent(outputUnit,
         () => new ClassBuilder());
   }
@@ -1492,42 +1525,20 @@ if (typeof $printHelperName === "function") {
     if (owner == null) {
       compiler.internalErrorOnElement(element, 'Owner is null');
     }
-    String outputUnit = isDeferred(element) ? "deferred" : "main";
-    return getElementDescriptorForOutputUnit(owner, outputUnit);
+    return getElementDescriptorForOutputUnit(owner,
+        compiler.deferredLoadTask.outputUnitForElement(element));
   }
-
-  /**
-   * Returns the appropriate buffer for [constant].  If [constant] is
-   * itself an instance of a deferred type (or built from constants
-   * that are instances of deferred types) attempting to use
-   * [constant] before the deferred type has been loaded will not
-   * work, and [constant] itself must be deferred.
-   */
-  CodeBuffer bufferForConstant(Constant constant, CodeBuffer eagerBuffer) {
-    var queue = new Queue()..add(constant);
-    while (!queue.isEmpty) {
-      constant = queue.removeFirst();
-      if (isDeferred(constant.computeType(compiler).element)) {
-        return deferredConstants;
-      }
-      queue.addAll(constant.getDependencies());
-    }
-    return eagerBuffer;
-  }
-
-
 
   void emitDeferredCode() {
-    if (deferredLibrariesBuffer.isEmpty && deferredConstants.isEmpty) return;
+    for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
+      if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) continue;
+      CodeBuffer outputBuffer = outputBuffers.putIfAbsent(outputUnit,
+          () => new CodeBuffer());
 
-    var oldClassesCollector = classesCollector;
-    classesCollector = r"$$";
+      var oldClassesCollector = classesCollector;
+      classesCollector = r"$$";
 
-    // It does not make sense to defer constants if there are no
-    // deferred elements.
-    assert(!deferredLibrariesBuffer.isEmpty);
-
-    var buffer = new CodeBuffer()
+      var buffer = new CodeBuffer()
         ..write(buildGeneratedBy())
         ..write('var old${namer.currentIsolate}$_='
                 '$_${namer.currentIsolate}$N'
@@ -1541,31 +1552,30 @@ if (typeof $printHelperName === "function") {
                 '$classesCollector$_=$_{};$n')
         ..write(getReflectionDataParser(classesCollector, backend))
         ..write('([$n')
-        ..addBuffer(deferredLibrariesBuffer)
+        ..addBuffer(outputBuffer)
         ..write('])$N');
 
-    if (!deferredClasses.isEmpty) {
+      if (outputClassLists.containsKey(outputUnit)) {
+        buffer.write(
+            '$finishClassesName($classesCollector,$_${namer.currentIsolate},'
+            '$_$isolatePropertiesName)$N');
+      }
+
       buffer.write(
-          '$finishClassesName($classesCollector,$_${namer.currentIsolate},'
-          '$_$isolatePropertiesName)$N');
+          // Reset the classesCollector ($$).
+          '$classesCollector$_=${_}null$N$n'
+          '${namer.currentIsolate}$_=${_}old${namer.currentIsolate}$N');
+
+      classesCollector = oldClassesCollector;
+
+      emitCompileTimeConstants(buffer, outputUnit);
+
+      String code = buffer.getText();
+      compiler.outputProvider(outputUnit.name, 'js')
+        ..add(code)
+        ..close();
+      outputSourceMap(compiler.assembledCode, outputUnit.name);
     }
-
-    buffer.write(
-        // Reset the classesCollector ($$).
-        '$classesCollector$_=${_}null$N$n'
-        '${namer.currentIsolate}$_=${_}old${namer.currentIsolate}$N');
-
-    classesCollector = oldClassesCollector;
-
-    if (!deferredConstants.isEmpty) {
-      buffer.addBuffer(deferredConstants);
-    }
-
-    String code = buffer.getText();
-    compiler.outputProvider('part', 'js')
-      ..add(code)
-      ..close();
-    outputSourceMap(compiler.assembledCode, 'part');
   }
 
   String buildGeneratedBy() {
@@ -1591,14 +1601,6 @@ if (typeof $printHelperName === "function") {
     compiler.outputProvider(name, 'js.map')
         ..add(sourceMap)
         ..close();
-  }
-
-  bool isDeferred(Element element) {
-    return compiler.deferredLoadTask.isDeferred(element);
-  }
-
-  bool get areAnyElementsDeferred {
-    return compiler.deferredLoadTask.areAnyElementsDeferred;
   }
 
   void registerReadTypeVariable(TypeVariableElement element) {

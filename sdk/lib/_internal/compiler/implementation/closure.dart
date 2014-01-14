@@ -146,6 +146,13 @@ class ClosureClassElement extends ClassElementX {
    */
   final Element methodElement;
 
+  // A [ClosureClassElement] is nested inside a function or initializer in terms
+  // of [enclosingElement], but still has to be treated as a top-level
+  // element.
+  bool isTopLevel() => true;
+
+  get enclosingElement => methodElement;
+
   accept(ElementVisitor visitor) => visitor.visitClosureClassElement(this);
 }
 

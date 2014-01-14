@@ -495,6 +495,7 @@ class JavaScriptBackend extends Backend {
     implementationClasses[compiler.doubleClass] = jsDoubleClass;
     implementationClasses[compiler.stringClass] = jsStringClass;
     implementationClasses[compiler.listClass] = jsArrayClass;
+    implementationClasses[compiler.nullClass] = jsNullClass;
 
     jsIndexableClass = compiler.findInterceptor('JSIndexable');
     jsMutableIndexableClass = compiler.findInterceptor('JSMutableIndexable');
@@ -1683,15 +1684,6 @@ class JavaScriptBackend extends Backend {
 
     if (!targetsUsed.isEmpty && targetsUsed.contains(element)) {
       return registerNameOf(element);
-    }
-
-    if (element is ClosureClassElement) {
-      // TODO(ahe): Try to fix the enclosing element of ClosureClassElement
-      // instead.
-      ClosureClassElement closureClass = element;
-      if (isNeededForReflection(closureClass.methodElement)) {
-        return registerNameOf(element);
-      }
     }
 
     // TODO(kasperl): Consider caching this information. It is consulted

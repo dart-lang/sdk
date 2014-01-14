@@ -9,9 +9,16 @@
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'memory_source_file_helper.dart';
+import "dart:async";
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        as dart2js;
+
+class FakeOutputStream<T> extends EventSink<T> {
+  void add(T event) {}
+  void addError(T event, [StackTrace stackTrace]) {}
+  void close() {}
+}
 
 void main() {
   Uri script = currentDirectory.resolveUri(Platform.script);
@@ -22,57 +29,126 @@ void main() {
   var handler = new FormattingDiagnosticHandler(provider);
 
   Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   (name, extension) => null,
+                                   (name, extension) => new FakeOutputStream(),
                                    handler.diagnosticHandler,
                                    libraryRoot,
                                    packageRoot,
-                                   ['--analyze-only'],
+                                   [],
                                    {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
     Expect.isNotNull(main, "Could not find 'main'");
     compiler.deferredLoadTask.onResolutionComplete(main);
 
-    var deferredClasses =
-        compiler.deferredLoadTask.allDeferredElements.where((e) => e.isClass())
-        .toSet();
+    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
-    var dateTime = deferredClasses.where((e) => e.name == 'DateTime').single;
+    var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+    var classes = compiler.backend.emitter.neededClasses;
+    var inputElement = classes.where((e) => e.name == 'InputElement').single;
+    var lib1 = compiler.libraries["memory:lib1.dart"];
+    var foo1 = lib1.find("foo1");
+    var lib2 = compiler.libraries["memory:lib2.dart"];
+    var foo2 = lib2.find("foo2");
+    var lib3 = compiler.libraries["memory:lib3.dart"];
+    var foo3 = lib3.find("foo3");
+    var lib4 = compiler.libraries["memory:lib4.dart"];
+    var bar1 = lib4.find("bar1");
+    var bar2 = lib4.find("bar2");
+    var outputClassLists = compiler.backend.emitter.outputClassLists;
 
-    var myClass = deferredClasses.where((e) => e.name == 'MyClass').single;
-
-    var deferredLibrary = compiler.libraries['memory:deferred.dart'];
-
-    Expect.equals(deferredLibrary, myClass.getLibrary());
-    Expect.equals(compiler.coreLibrary, dateTime.declaration.getLibrary());
+    Expect.equals(mainOutputUnit, outputUnitForElement(main));
+    Expect.notEquals(mainOutputUnit, outputUnitForElement(foo1));
+    Expect.notEquals(outputUnitForElement(foo1), outputUnitForElement(foo3));
+    Expect.notEquals(outputUnitForElement(foo2), outputUnitForElement(foo3));
+    Expect.notEquals(outputUnitForElement(foo1), outputUnitForElement(foo2));
+    Expect.notEquals(outputUnitForElement(bar1), outputUnitForElement(bar2));
+    // InputElement is native, so it should not appear on a classList
+    Expect.isFalse(outputClassLists[outputUnitForElement(inputElement)]
+        .contains(inputElement));
   }));
 }
 
+// The main library imports lib1 and lib2 deferred and use lib1.foo1 and
+// lib2.foo2.  This should trigger seperate output units for main, lib1 and
+// lib2.
+//
+// Both lib1 and lib2 import lib3 directly and
+// both use lib3.foo3.  Therefore a shared output unit for lib1 and lib2 should
+// be created.
+//
+// lib1 and lib2 also import lib4 deferred, but lib1 uses lib4.bar1 and lib2
+// uses lib4.bar2.  So two output units should be created for lib4, one for each
+// import.
 const Map MEMORY_SOURCE_FILES = const {
-  'main.dart': """
-import 'dart:async';
+  "main.dart":"""
+import "dart:async";
+@def_main_1 import 'lib1.dart' as l1;
+@def_main_2 import 'lib2.dart' as l2;
 
-@lazy import 'deferred.dart';
+const def_main_1 = const DeferredLibrary("lib1");
+const def_main_2 = const DeferredLibrary("lib2");
 
-const lazy = const DeferredLibrary('deferred');
-
-main() {
-  lazy.load().then((_) {
-    if (42 != new MyClass().foo(87)) throw "not equal";
+void main() {
+  def_main_1.load().then((_) {
+        l1.foo1();
+        new l1.C();
+    def_main_2.load().then((_) {
+        l2.foo2();
+    });
   });
 }
-
 """,
-  'deferred.dart': """
-library deferred;
+  "lib1.dart":"""
+library lib1;
+import "dart:async";
+import "dart:html";
 
-class MyClass {
-  const MyClass();
+import "lib3.dart" as l3;
+@def_1_1 import "lib4.dart" as l4;
 
-  foo(x) {
-    new DateTime.now();
-    return (x - 3) ~/ 2;
-  }
+const def_1_1 = const DeferredLibrary("lib4_1");
+
+class C {}
+
+foo1() {
+  new InputElement();
+  def_1_1.load().then((_) {
+    l4.bar1();
+  });
+  return () {return 1 + l3.foo3();} ();
+}
+""",
+  "lib2.dart":"""
+library lib2;
+import "dart:async";
+import "lib3.dart" as l3;
+@def_2_1 import "lib4.dart" as l4;
+
+const def_2_1 = const DeferredLibrary("lib4_2");
+
+foo2() {
+  def_2_1.load().then((_) {
+    l4.bar2();
+  });
+  return () {return 2+l3.foo3();} ();
+}
+""",
+  "lib3.dart":"""
+library lib3;
+
+foo3() {
+  return () {return 3;} ();
+}
+""",
+  "lib4.dart":"""
+library lib4;
+
+bar1() {
+  return "hello";
+}
+
+bar2() {
+  return 2;
 }
 """,
 };

@@ -26,8 +26,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     hide TreeElementMapping;
 
 import '../../../sdk/lib/_internal/compiler/implementation/deferred_load.dart'
-    show DeferredLoadTask;
-
+    show DeferredLoadTask,
+         OutputUnit;
 
 class WarningMessage {
   Spannable node;
@@ -548,11 +548,12 @@ class CollectingTreeElements extends TreeElementMapping {
   }
 }
 
+// The mock compiler does not split the program in output units.
 class MockDeferredLoadTask extends DeferredLoadTask {
   MockDeferredLoadTask(Compiler compiler) : super(compiler);
 
-  void registerMainApp(LibraryElement mainApp) {
-    // Do nothing.
+  OutputUnit getElementOutputUnit(dynamic dependency) {
+    return mainOutputUnit;
   }
 }
 

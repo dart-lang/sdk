@@ -1065,9 +1065,7 @@ abstract class Compiler implements DiagnosticListener {
       // compile-time constants that are metadata.  This means adding
       // something to the resolution queue.  So we cannot wait with
       // this until after the resolution queue is processed.
-      // TODO(ahe): Clean this up, for example, by not enqueueing
-      // classes only used for metadata.
-      deferredLoadTask.findDeferredLibraries(mainApp);
+      deferredLoadTask.ensureMetadataResolved(this);
     }
 
     log('Resolving...');

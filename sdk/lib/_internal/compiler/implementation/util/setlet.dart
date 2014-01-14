@@ -176,6 +176,18 @@ class Setlet<E> extends IterableBase<E> {
       }
     }
   }
+
+  bool containsAll(Iterable<E> other) {
+    for (E e in other) {
+      if (!this.contains(e)) return false;
+    };
+    return true;
+  }
+
+  clear() {
+    _contents = _MARKER;
+    _extra = null;
+  }
 }
 
 class _SetletMarker {

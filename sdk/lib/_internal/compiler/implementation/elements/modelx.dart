@@ -931,6 +931,8 @@ class LibraryElementX extends ElementX implements LibraryElement {
     exports.forEach((Element e) => f(e));
   }
 
+  Link<Import> getImportsFor(Element element) => importers.getImports(element);
+
   void forEachLocalMember(f(Element element)) {
     if (isPatch) {
       // Patch libraries traverse both origin and injected members.
@@ -1629,6 +1631,8 @@ class ConstructorBodyElementX extends FunctionElementX
   }
 
   Token position() => constructor.position();
+
+  Element getOutermostEnclosingMemberOrTopLevel() => constructor;
 
   accept(ElementVisitor visitor) => visitor.visitConstructorBodyElement(this);
 }
