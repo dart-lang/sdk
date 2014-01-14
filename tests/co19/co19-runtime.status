@@ -81,6 +81,9 @@ LibTest/core/double/toInt_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
+
 
 [ $compiler == none && $runtime == vm && $arch == simarm ]
 LibTest/typed_data/Float32x4/sqrt_A01_t01: Pass, Fail # co19 issue 666.

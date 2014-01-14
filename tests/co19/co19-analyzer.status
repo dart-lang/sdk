@@ -4,6 +4,8 @@
 
 [ $compiler == dartanalyzer ]
 
+LibTest/core/RegExp/firstMatch_A01_t01: Fail
+
 # invalid argument for constant constructor
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 
