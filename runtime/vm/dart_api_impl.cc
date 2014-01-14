@@ -1182,15 +1182,22 @@ DART_EXPORT Dart_Handle Dart_PostMessage(Dart_Handle send_port,
     return Api::NewError("send_port is not a SendPort.");
   }
   const Object& idObj = Object::Handle(
-  DartLibraryCalls::PortGetId(port_instance));
+      DartLibraryCalls::PortGetId(port_instance));
   ASSERT(!idObj.IsError());
   Integer& id = Integer::Handle();
   id ^= idObj.raw();
   Dart_Port port = static_cast<Dart_Port>(id.AsInt64Value());
-  if (Dart_Post(port, object)) {
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator);
+  Object& msg_object = Object::Handle(Api::UnwrapHandle(object));
+  writer.WriteMessage(msg_object);
+  intptr_t len = writer.BytesWritten();
+  bool r = PortMap::PostMessage(
+      new Message(port, data, len, Message::kNormalPriority));
+  if (r) {
     return Api::Success();
   }
-  return Api::NewError("Dart_Post failed.");
+  return Api::NewError("Dart_PostMessage failed.");
 }
 
 // --- Scopes ----
