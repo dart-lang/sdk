@@ -25,14 +25,7 @@ lib/_internal/dartdoc/lib/src/client/client-shared: CompileTimeError
 lib/_internal/dartdoc/lib/src/client/dropdown: CompileTimeError
 lib/_internal/dartdoc/lib/src/client/search: CompileTimeError
 lib/_internal/dartdoc/lib/universe_serializer: CompileTimeError
-lib/_internal/pub/lib/src/barback: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for src/barback.dart)
 lib/_internal/pub/lib/src/command: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for src/command.dart)
-lib/_internal/pub/test/descriptor: Pass, CompileTimeError # Pass necessary, since CompileTimeError is valid for everything in that directory (not only for test/descriptor.dart)
-lib/_internal/pub/test/lish/utils: CompileTimeError
-lib/_internal/pub/test/oauth2/utils: CompileTimeError
-lib/_internal/pub/test/serve/utils: CompileTimeError
-lib/_internal/pub/test/test_pub: CompileTimeError
-lib/_internal/pub/test/validator/utils: CompileTimeError
 lib/js/dart2js/js_dart2js: CompileTimeError
 lib/js/dartium/js_dartium: CompileTimeError
 lib/svg/dart2js/svg_dart2js: CompileTimeError
