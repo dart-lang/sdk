@@ -564,7 +564,7 @@ class Float32List extends _NativeTypedArrayOfDouble native "Float32Array" {
    * Creates a [Float32List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Float32List.fromList(List<num> list) =>
+  factory Float32List.fromList(List<double> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -636,7 +636,7 @@ class Float64List extends _NativeTypedArrayOfDouble native "Float64Array" {
    * Creates a [Float64List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Float64List.fromList(List<num> list) =>
+  factory Float64List.fromList(List<double> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -710,7 +710,7 @@ class Int16List extends _NativeTypedArrayOfInt native "Int16Array" {
    * Creates a [Int16List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Int16List.fromList(List<num> list) =>
+  factory Int16List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -781,7 +781,7 @@ class Int32List extends _NativeTypedArrayOfInt native "Int32Array" {
    * Creates a [Int32List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Int32List.fromList(List<num> list) =>
+  factory Int32List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -852,7 +852,7 @@ class Int8List extends _NativeTypedArrayOfInt native "Int8Array" {
    * Creates a [Int8List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Int8List.fromList(List<num> list) =>
+  factory Int8List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -920,7 +920,7 @@ class Uint16List extends _NativeTypedArrayOfInt native "Uint16Array" {
    * Creates a [Uint16List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Uint16List.fromList(List<num> list) =>
+  factory Uint16List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -991,7 +991,7 @@ class Uint32List extends _NativeTypedArrayOfInt native "Uint32Array" {
    * Creates a [Uint32List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Uint32List.fromList(List<num> list) =>
+  factory Uint32List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -1064,7 +1064,7 @@ class Uint8ClampedList extends _NativeTypedArrayOfInt
    * Creates a [Uint8ClampedList] of the same size as the [elements]
    * list and copies over the values clamping when needed.
    */
-  factory Uint8ClampedList.fromList(List<num> list) =>
+  factory Uint8ClampedList.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -1140,7 +1140,7 @@ class Uint8List extends _NativeTypedArrayOfInt
    * Creates a [Uint8List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Uint8List.fromList(List<num> list) =>
+  factory Uint8List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
