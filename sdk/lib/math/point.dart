@@ -14,6 +14,13 @@ class Point<T extends num> {
 
   String toString() => 'Point($x, $y)';
 
+  /**
+   * A `Point` is only equal to another `Point` with the same coordinates.
+   *
+   * This point is equal to `other` if, and only if,
+   * `other` is a `Point` with
+   * [x] equal to `other.x` and [y] equal to `other.y`.
+   */
   bool operator ==(other) {
     if (other is !Point) return false;
     return x == other.x && y == other.y;
