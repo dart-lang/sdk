@@ -336,6 +336,9 @@ mixin_type_parameters_mixin_test: StaticWarning
 mixin_type_parameters_super_extends_test: StaticWarning
 mixin_type_parameters_super_test: StaticWarning
 mixin_with_two_implicit_constructors_test: StaticWarning
+mixin_bound_test: StaticWarning
+mixin_invalid_bound_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
+mixin_invalid_bound2_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 named_constructor_test/01: StaticWarning
 named_constructor_test/03: StaticWarning
 named_parameters2_test: StaticWarning

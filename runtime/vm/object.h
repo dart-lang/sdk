@@ -4581,9 +4581,9 @@ class BoundedType : public AbstractType {
 class MixinAppType : public AbstractType {
  public:
   // A MixinAppType object is unfinalized by definition, since it is replaced at
-  // class finalization time with a finalized Type or BoundedType object.
+  // class finalization time with a finalized (and possibly malformed or
+  // malbounded) Type object.
   virtual bool IsFinalized() const { return false; }
-  // TODO(regis): Handle malformed and malbounded MixinAppType.
   virtual bool IsMalformed() const { return false; }
   virtual bool IsMalbounded() const { return false; }
   virtual bool IsMalformedOrMalbounded() const { return false; }

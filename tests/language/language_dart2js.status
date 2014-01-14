@@ -52,6 +52,7 @@ malbounded_type_test_test/04: Fail # Issue 14121
 default_factory2_test/01: Fail # Issue 14121
 typevariable_substitution2_test/01: CompileTimeError # Issue 15875
 typevariable_substitution2_test/02: CompileTimeError # Issue 15875
+mixin_bound_test: CompileTimeError # Issue 15875
 
 [ $compiler == dart2js && $unchecked ]
 type_checks_in_factory_method_test: RuntimeError # Issue 12746
@@ -94,6 +95,8 @@ mixin_mixin3_test: Fail # Issue 12605.
 mixin_mixin4_test: Fail # Issue 12605.
 mixin_mixin5_test: Fail # Issue 12605.
 mixin_mixin6_test: Fail # Issue 12605.
+mixin_mixin_bound_test: RuntimeError # Issue 12605.
+mixin_mixin_bound2_test: RuntimeError # Issue 12605.
 
 [ $compiler == dart2js ]
 function_type_alias9_test/00: Crash

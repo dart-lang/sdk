@@ -4495,7 +4495,6 @@ void Parser::ParseInterfaceList(const Class& cls) {
 RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
-  ASSERT(super_type.IsType());  // TODO(regis): Could be a BoundedType.
   const GrowableObjectArray& mixin_types =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();

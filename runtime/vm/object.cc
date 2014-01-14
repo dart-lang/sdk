@@ -2160,8 +2160,6 @@ RawClass* Class::SuperClass() const {
 void Class::set_super_type(const AbstractType& value) const {
   ASSERT(value.IsNull() ||
          (value.IsType() && !value.IsDynamicType()) ||
-         value.IsTypeRef() ||
-         value.IsBoundedType() ||
          value.IsMixinAppType());
   StorePointer(&raw_ptr()->super_type_, value.raw());
 }
@@ -13056,14 +13054,18 @@ void TypeParameter::set_type_state(int8_t state) const {
 
 
 const char* TypeParameter::ToCString() const {
-  const char* format = "TypeParameter: name %s; index: %d; class: %s";
+  const char* format =
+      "TypeParameter: name %s; index: %d; class: %s; bound: %s";
   const char* name_cstr = String::Handle(Name()).ToCString();
   const Class& cls = Class::Handle(parameterized_class());
   const char* cls_cstr =
       cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index(), cls_cstr) + 1;
+  const AbstractType& upper_bound = AbstractType::Handle(bound());
+  const char* bound_cstr = String::Handle(upper_bound.Name()).ToCString();
+  intptr_t len = OS::SNPrint(
+      NULL, 0, format, name_cstr, index(), cls_cstr, bound_cstr) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr);
+  OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr, bound_cstr);
   return chars;
 }
 
