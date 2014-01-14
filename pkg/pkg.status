@@ -279,6 +279,7 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
 docgen/test/single_library_test: Skip # Uses dart:io
+docgen/test/multi_library_test: Skip # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
 
 [ $browser || $runtime == vm ]
@@ -291,6 +292,7 @@ polymer_expressions/test/bindings_test: Fail, Pass # Issue 14445.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 docgen/test/single_library_test: StaticWarning
+docgen/test/multi_library_test: StaticWarning
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
 
 [ $runtime == vm && ($system == windows || $system == macos) ]
