@@ -24,7 +24,7 @@ import 'resubscribable.dart';
 /// succession, it won't report them in the order they occurred. See issue
 /// 14373.
 ///
-/// This also works around issue 14849 in the implementation of
+/// This also works around issues 16003 and 14849 in the implementation of
 /// [Directory.watch].
 class MacOSDirectoryWatcher extends ResubscribableDirectoryWatcher {
   // TODO(nweiz): remove these when issue 15042 is fixed.
@@ -56,7 +56,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// This is used to determine if the [Directory.watch] stream was falsely
   /// closed due to issue 14849. A close caused by events in the past will only
   /// happen before or immediately after the first batch of events.
-  int batches = 0;
+  int _batches = 0;
 
   /// The set of files that are known to exist recursively within the watched
   /// directory.
@@ -129,12 +129,12 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       }
     }
 
-    batches++;
+    _batches++;
 
     _sortEvents(batch).forEach((path, events) {
       var relativePath = p.relative(path, from: directory);
       if (MacOSDirectoryWatcher.logDebugInfo) {
-        print("[$_id] events for $relativePath:\n");
+        print("[$_id] events for $relativePath:");
         for (var event in events) {
           print("[$_id]   ${_formatEvent(event)}");
         }
@@ -168,6 +168,8 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
           _listen(Chain.track(new Directory(path).list(recursive: true)),
               (entity) {
             if (entity is Directory) return;
+            if (_files.contains(path)) return;
+
             _emitEvent(ChangeType.ADD, entity.path);
             _files.add(entity.path);
           }, onError: (e, stackTrace) {
@@ -293,9 +295,14 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
     switch (type) {
       case FileSystemEvent.CREATE:
-        return new ConstructableFileSystemCreateEvent(batch.first.path, isDir);
-      case FileSystemEvent.DELETE:
+        // Issue 16003 means that a CREATE event for a directory can indicate
+        // that the directory was moved and then re-created.
+        // [_eventsBasedOnFileSystem] will handle this correctly by producing a
+        // DELETE event followed by a CREATE event if the directory exists.
+        if (isDir) return null;
         return new ConstructableFileSystemCreateEvent(batch.first.path, false);
+      case FileSystemEvent.DELETE:
+        return new ConstructableFileSystemDeleteEvent(batch.first.path, isDir);
       case FileSystemEvent.MODIFY:
         return new ConstructableFileSystemModifyEvent(
             batch.first.path, isDir, false);
@@ -317,10 +324,12 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     var dirExists = new Directory(path).existsSync();
 
     if (MacOSDirectoryWatcher.logDebugInfo) {
-      print("[$_id] file existed: $fileExisted");
-      print("[$_id] dir existed: $dirExisted");
-      print("[$_id] file exists: $fileExists");
-      print("[$_id] dir exists: $dirExists");
+      print("[$_id] checking file system for "
+          "${p.relative(path, from: directory)}");
+      print("[$_id]   file existed: $fileExisted");
+      print("[$_id]   dir existed: $dirExisted");
+      print("[$_id]   file exists: $fileExists");
+      print("[$_id]   dir exists: $dirExists");
     }
 
     var events = [];
@@ -353,19 +362,24 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
   /// The callback that's run when the [Directory.watch] stream is closed.
   void _onDone() {
+    if (MacOSDirectoryWatcher.logDebugInfo) print("[$_id] stream closed");
+
     _watchSubscription = null;
 
     // If the directory still exists and we haven't seen more than one batch,
     // this is probably issue 14849 rather than a real close event. We should
     // just restart the watcher.
-    if (batches < 2 && new Directory(directory).existsSync()) {
+    if (_batches < 2 && new Directory(directory).existsSync()) {
+      if (MacOSDirectoryWatcher.logDebugInfo) {
+        print("[$_id] fake closure (issue 14849), re-opening stream");
+      }
       _startWatch();
       return;
     }
 
     // FSEvents can fail to report the contents of the directory being removed
-    // when the directory itself is removed, so we need to manually mark the as
-    // removed.
+    // when the directory itself is removed, so we need to manually mark the
+    // files as removed.
     for (var file in _files.toSet()) {
       _emitEvent(ChangeType.REMOVE, file);
     }

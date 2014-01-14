@@ -36,26 +36,25 @@ main() {
     expectAddEvent("dir/newer.txt");
   });
 
-  // TODO(nweiz): re-enable this when issue 16003 is fixed.
-  // test('emits events for many nested files moved out then immediately back in',
-  //     () {
-  //   withPermutations((i, j, k) =>
-  //       writeFile("dir/sub/sub-$i/sub-$j/file-$k.txt"));
+  test('emits events for many nested files moved out then immediately back in',
+      () {
+    withPermutations((i, j, k) =>
+        writeFile("dir/sub/sub-$i/sub-$j/file-$k.txt"));
 
-  //   startWatcher(dir: "dir");
+    startWatcher(dir: "dir");
 
-  //   renameDir("dir/sub", "sub");
-  //   renameDir("sub", "dir/sub");
+    renameDir("dir/sub", "sub");
+    renameDir("sub", "dir/sub");
 
-  //   allowEither(() {
-  //     inAnyOrder(withPermutations((i, j, k) =>
-  //         isRemoveEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
+    allowEither(() {
+      inAnyOrder(withPermutations((i, j, k) =>
+          isRemoveEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
 
-  //     inAnyOrder(withPermutations((i, j, k) =>
-  //         isAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
-  //   }, () {
-  //     inAnyOrder(withPermutations((i, j, k) =>
-  //         isModifyEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
-  //   });
-  // });
+      inAnyOrder(withPermutations((i, j, k) =>
+          isAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
+    }, () {
+      inAnyOrder(withPermutations((i, j, k) =>
+          isModifyEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
+    });
+  });
 }
