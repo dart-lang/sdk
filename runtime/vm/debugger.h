@@ -90,6 +90,8 @@ class CodeBreakpoint {
   void Disable();
   bool IsEnabled() const { return is_enabled_; }
 
+  uword OrigStubAddress() const;
+
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -114,10 +116,7 @@ class CodeBreakpoint {
   CodeBreakpoint* next_;
 
   PcDescriptors::Kind breakpoint_kind_;
-  union {
-    uword target_address_;
-    uint8_t raw[2 * sizeof(uword)];
-  } saved_bytes_;
+  uword saved_value_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);

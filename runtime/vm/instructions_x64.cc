@@ -18,6 +18,12 @@ intptr_t InstructionPattern::IndexFromPPLoad(uword start) {
 }
 
 
+intptr_t InstructionPattern::OffsetFromPPIndex(intptr_t index) {
+  intptr_t offset = Array::element_offset(index);
+  return offset - kHeapObjectTag;
+}
+
+
 bool InstructionPattern::TestBytesWith(const int* data, int num_bytes) const {
   ASSERT(data != NULL);
   const uint8_t* byte_array = reinterpret_cast<const uint8_t*>(start_);

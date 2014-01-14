@@ -220,6 +220,16 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
 }
 
 
+int32_t CodePatcher::GetPoolOffsetAt(uword return_address) {
+  UNREACHABLE();
+  return 0;
+}
+
+
+void CodePatcher::SetPoolOffsetAt(uword return_address, int32_t offset) {
+  UNREACHABLE();
+}
+
 
 void CodePatcher::InsertCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.

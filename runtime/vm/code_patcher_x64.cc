@@ -142,6 +142,43 @@ class StaticCall : public ValueObject {
 };
 
 
+// The expected pattern of a call where the target is loaded from
+// the object pool:
+//  00: 4d 8b 9f imm32  mov R11, [PP + off]
+//  07: 41 ff d3        call R11
+//  10 <- return address
+class PoolPointerCall : public ValueObject {
+ public:
+  explicit PoolPointerCall(uword return_address)
+      : start_(return_address - kCallPatternSize) {
+    ASSERT(IsValid(return_address));
+  }
+
+  static bool IsValid(uword return_address) {
+    uint8_t* code_bytes =
+        reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
+    return (code_bytes[0] == 0x4D) && (code_bytes[1] == 0x8B) &&
+           (code_bytes[2] == 0x9F) &&
+           (code_bytes[7] == 0x41) && (code_bytes[8] == 0xFF) &&
+           (code_bytes[9] == 0xD3);
+  }
+
+  int32_t pp_offset() const {
+    return *reinterpret_cast<int32_t*>(start_ + 3);
+  }
+
+  void set_pp_offset(int32_t offset) const {
+    *reinterpret_cast<int32_t*>(start_ + 3) = offset;
+    CPU::FlushICache(start_, kCallPatternSize);
+  }
+
+ private:
+  static const int kCallPatternSize = 7 + 3;
+  uword start_;
+  DISALLOW_IMPLICIT_CONSTRUCTORS(PoolPointerCall);
+};
+
+
 // The expected code pattern of a Dart closure call:
 //  00: 49 ba imm64     mov R10, immediate 2      ; 10 bytes
 //  10: 4d 8b 9f imm32  mov R11, [PP + off]
@@ -197,6 +234,18 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
   ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address, code);
   call.set_target(new_target);
+}
+
+
+int32_t CodePatcher::GetPoolOffsetAt(uword return_address) {
+  PoolPointerCall call(return_address);
+  return call.pp_offset();
+}
+
+
+void CodePatcher::SetPoolOffsetAt(uword return_address, int32_t offset) {
+  PoolPointerCall call(return_address);
+  call.set_pp_offset(offset);
 }
 
 

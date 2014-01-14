@@ -708,6 +708,7 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
       is_enabled_(false),
       src_bpt_(NULL),
       next_(NULL) {
+  saved_value_ = 0;
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());  // Function must be compiled.
@@ -755,72 +756,6 @@ intptr_t CodeBreakpoint::LineNumber() {
     script.GetTokenLocation(token_pos_, &line_number_, NULL);
   }
   return line_number_;
-}
-
-
-void CodeBreakpoint::PatchCode() {
-  ASSERT(!is_enabled_);
-  switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      saved_bytes_.target_address_ =
-          CodePatcher::GetInstanceCallAt(pc_, code, NULL);
-      CodePatcher::PatchInstanceCallAt(pc_, code,
-                                       StubCode::BreakpointDynamicEntryPoint());
-      break;
-    }
-    case PcDescriptors::kUnoptStaticCall: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      saved_bytes_.target_address_ =
-          CodePatcher::GetStaticCallTargetAt(pc_, code);
-      CodePatcher::PatchStaticCallAt(pc_, code,
-                                     StubCode::BreakpointStaticEntryPoint());
-      break;
-    }
-    case PcDescriptors::kRuntimeCall:
-    case PcDescriptors::kClosureCall:
-    case PcDescriptors::kReturn: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      saved_bytes_.target_address_ =
-          CodePatcher::GetStaticCallTargetAt(pc_, code);
-      CodePatcher::PatchStaticCallAt(pc_, code,
-                                     StubCode::BreakpointRuntimeEntryPoint());
-      break;
-    }
-    default:
-      UNREACHABLE();
-  }
-  is_enabled_ = true;
-}
-
-
-void CodeBreakpoint::RestoreCode() {
-  ASSERT(is_enabled_);
-  switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      CodePatcher::PatchInstanceCallAt(pc_, code,
-                                       saved_bytes_.target_address_);
-      break;
-    }
-    case PcDescriptors::kUnoptStaticCall:
-    case PcDescriptors::kClosureCall:
-    case PcDescriptors::kRuntimeCall:
-    case PcDescriptors::kReturn: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      CodePatcher::PatchStaticCallAt(pc_, code,
-                                     saved_bytes_.target_address_);
-      break;
-    }
-    default:
-      UNREACHABLE();
-  }
-  is_enabled_ = false;
 }
 
 
@@ -1029,14 +964,14 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (intptr_t i = 0; i < desc.Length(); i++) {
-    CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
-    if (bpt != NULL) {
-      // There is already a breakpoint for this address. Make sure
-      // it is enabled.
-      bpt->Enable();
-      continue;
-    }
     if (IsSafePoint(desc.DescriptorKind(i))) {
+      CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
+      if (bpt != NULL) {
+        // There is already a breakpoint for this address. Make sure
+        // it is enabled.
+        bpt->Enable();
+        continue;
+      }
       bpt = new CodeBreakpoint(target_function, i);
       RegisterCodeBreakpoint(bpt);
       bpt->Enable();
@@ -2181,7 +2116,7 @@ CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
 uword Debugger::GetPatchedStubAddress(uword breakpoint_address) {
   CodeBreakpoint* bpt = GetCodeBreakpoint(breakpoint_address);
   if (bpt != NULL) {
-    return bpt->saved_bytes_.target_address_;
+    return bpt->OrigStubAddress();
   }
   UNREACHABLE();
   return 0L;

@@ -5,6 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
+#include "vm/code_patcher.h"
 #include "vm/cpu.h"
 #include "vm/debugger.h"
 #include "vm/instructions.h"
@@ -29,6 +30,72 @@ RawObject* ActivationFrame::GetClosureObject(intptr_t num_actual_args) {
   uword closure_addr = sp() + ((num_actual_args - 1) * kWordSize);
   return reinterpret_cast<RawObject*>(
              *reinterpret_cast<uword*>(closure_addr));
+}
+
+
+uword CodeBreakpoint::OrigStubAddress() const {
+  return saved_value_;
+}
+
+
+void CodeBreakpoint::PatchCode() {
+  ASSERT(!is_enabled_);
+  switch (breakpoint_kind_) {
+    case PcDescriptors::kIcCall: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      saved_value_ = CodePatcher::GetInstanceCallAt(pc_, code, NULL);
+      CodePatcher::PatchInstanceCallAt(pc_, code,
+                                       StubCode::BreakpointDynamicEntryPoint());
+      break;
+    }
+    case PcDescriptors::kUnoptStaticCall: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
+      CodePatcher::PatchStaticCallAt(pc_, code,
+                                     StubCode::BreakpointStaticEntryPoint());
+      break;
+    }
+    case PcDescriptors::kRuntimeCall:
+    case PcDescriptors::kClosureCall:
+    case PcDescriptors::kReturn: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
+      CodePatcher::PatchStaticCallAt(pc_, code,
+                                     StubCode::BreakpointRuntimeEntryPoint());
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+  is_enabled_ = true;
+}
+
+
+void CodeBreakpoint::RestoreCode() {
+  ASSERT(is_enabled_);
+  switch (breakpoint_kind_) {
+    case PcDescriptors::kIcCall: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      CodePatcher::PatchInstanceCallAt(pc_, code, saved_value_);
+      break;
+    }
+    case PcDescriptors::kUnoptStaticCall:
+    case PcDescriptors::kClosureCall:
+    case PcDescriptors::kRuntimeCall:
+    case PcDescriptors::kReturn: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      CodePatcher::PatchStaticCallAt(pc_, code, saved_value_);
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+  is_enabled_ = false;
 }
 
 }  // namespace dart
