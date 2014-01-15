@@ -45,6 +45,59 @@ const List<String> _SKIPPED_ANNOTATIONS = const [
 List<markdown.InlineSyntax> _MARKDOWN_SYNTAXES =
   [new markdown.CodeSyntax(r'\[:\s?((?:.|\n)*?)\s?:\]')];
 
+/// If we can't find the SDK introduction text, which will happen if running
+/// from a snapshot and using --parse-sdk or --include-sdk, then use this
+/// hard-coded version. This should be updated to be consistent with the text
+/// in docgen/doc/sdk-introduction.md
+const _DEFAULT_SDK_INTRODUCTION = """
+Welcome to the Dart API reference documentation,
+covering the official Dart API libraries.
+Some of the most fundamental Dart libraries include:
+
+* [dart:core](#dart:core):
+  Core functionality such as strings, numbers, collections, errors,
+  dates, and URIs.
+* [dart:html](#dart:html):
+  DOM manipulation for web apps.
+* [dart:io](#dart:io):
+  I/O for command-line apps.
+
+Except for dart:core, you must import a library before you can use it.
+Here's an example of importing dart:html, dart:math, and a
+third popular library called
+[polymer.dart](http://www.dartlang.org/polymer-dart/):
+
+    import 'dart:html';
+    import 'dart:math';
+    import 'package:polymer/polymer.dart';
+
+Polymer.dart is an example of a library that isn't
+included in the Dart download,
+but is easy to get and update using the _pub package manager_.
+For information on finding, using, and publishing libraries (and more)
+with pub, see
+[pub.dartlang.org](http://pub.dartlang.org).
+
+The main site for learning and using Dart is
+[www.dartlang.org](http://www.dartlang.org).
+Check out these pages:
+
+  * [Dart homepage](http://www.dartlang.org)
+  * [Tutorials](http://www.dartlang.org/docs/tutorials/)
+  * [Programmer's Guide](http://www.dartlang.org/docs/)
+  * [Samples](http://www.dartlang.org/samples/)
+  * [A Tour of the Dart Libraries](http://www.dartlang.org/docs/dart-up-and-runn
+ing/contents/ch03.html)
+
+This API reference is automatically generated from the source code in the
+[Dart project](https://code.google.com/p/dart/).
+If you'd like to contribute to this documentation, see
+[Contributing](https://code.google.com/p/dart/wiki/Contributing)
+and
+[Writing API Documentation](https://code.google.com/p/dart/wiki/WritingApiDocume
+ntation).
+""";
+
 // TODO(efortuna): The use of this field is odd (this is based on how it was
 // originally used. Try to cleanup.
 /// Index of all indexable items. This also ensures that no class is
@@ -137,7 +190,7 @@ class DummyMirror implements MirrorBased {
     return getDocgenObject(mirrorOwner, owner).docName + '.' + simpleName;
   }
   List<Annotation> _createAnnotations(DeclarationMirror mirror,
-      MirrorBased owner) => null;
+      Library owningLibrary) => null;
 
   bool get isPrivate => mirror == null? false : mirror.isPrivate;
 }
@@ -153,12 +206,12 @@ abstract class MirrorBased {
 
   /// Returns a list of meta annotations assocated with a mirror.
   List<Annotation> _createAnnotations(DeclarationMirror mirror,
-      MirrorBased owner) {
+      Library owningLibrary) {
     var annotationMirrors = mirror.metadata.where((e) =>
         e is dart2js.Dart2JsConstructedConstantMirror);
     var annotations = [];
     annotationMirrors.forEach((annotation) {
-      var docgenAnnotation = new Annotation(annotation, owner);
+      var docgenAnnotation = new Annotation(annotation, owningLibrary);
       if (!_SKIPPED_ANNOTATIONS.contains(
           docgenAnnotation.mirror.qualifiedName)) {
         annotations.add(docgenAnnotation);
@@ -182,13 +235,14 @@ abstract class MirrorBased {
 /// Returned Future completes with true if document generation is successful.
 Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
-    bool parseSdk: false, bool append: false, String introduction: '',
+    bool parseSdk: false, bool append: false, String introFileName: '',
     out: _DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries : const [],
     bool includeDependentPackages: false}) {
   return _Generator.generateDocumentation(files, packageRoot: packageRoot,
       outputToYaml: outputToYaml, includePrivate: includePrivate,
       includeSdk: includeSdk, parseSdk: parseSdk, append: append,
-      introduction: introduction, out: out, excludeLibraries: excludeLibraries,
+      introFileName: introFileName, out: out,
+      excludeLibraries: excludeLibraries,
       includeDependentPackages: includeDependentPackages);
 }
 
@@ -233,7 +287,7 @@ class _Generator {
   static Future<bool> generateDocumentation(List<String> files,
       {String packageRoot, bool outputToYaml: true, bool includePrivate: false,
        bool includeSdk: false, bool parseSdk: false, bool append: false,
-       String introduction: '', out: _DEFAULT_OUTPUT_DIRECTORY,
+       String introFileName: '', out: _DEFAULT_OUTPUT_DIRECTORY,
        List<String> excludeLibraries : const [],
        bool includeDependentPackages: false}) {
     _excluded = excludeLibraries;
@@ -273,7 +327,7 @@ class _Generator {
             (x) => _excluded.contains(x.simpleName));
         _documentLibraries(librariesToDocument, includeSdk: includeSdk,
             outputToYaml: outputToYaml, append: append, parseSdk: parseSdk,
-            introduction: introduction);
+            introFileName: introFileName);
         return true;
       });
   }
@@ -306,7 +360,7 @@ class _Generator {
   /// Creates documentation for filtered libraries.
   static void _documentLibraries(List<LibraryMirror> libs,
       {bool includeSdk: false, bool outputToYaml: true, bool append: false,
-       bool parseSdk: false, String introduction: ''}) {
+       bool parseSdk: false, String introFileName: ''}) {
     libs.forEach((lib) {
       // Files belonging to the SDK have a uri that begins with 'dart:'.
       if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
@@ -341,6 +395,19 @@ class _Generator {
     // This will help the viewer know what libraries are available to read in.
     var libraryMap;
     var linkResolver = (name) => Indexable.globalFixReference(name);
+
+    String readIntroductionFile(String fileName, includeSdk) {
+      var defaultText = includeSdk ? _DEFAULT_SDK_INTRODUCTION : '';
+      var introText = defaultText;
+      if (fileName.isNotEmpty) {
+        var introFile = new File(fileName);
+        introText = introFile.existsSync() ? introFile.readAsStringSync() :
+            defaultText;
+      }
+      return markdown.markdownToHtml(introText,
+          linkResolver: linkResolver, inlineSyntaxes: _MARKDOWN_SYNTAXES);
+    }
+
     if (append) {
       var docsDir = listDir(_outputDirectory);
       if (!docsDir.contains('$_outputDirectory/library_list.json')) {
@@ -352,23 +419,16 @@ class _Generator {
       libraryMap['libraries'].addAll(filteredEntities
           .where((e) => e is Library)
           .map((e) => e.previewMap));
-      if (introduction.isNotEmpty) {
-        var intro = libraryMap['introduction'];
-        if (intro.isNotEmpty) intro += '<br/><br/>';
-        intro += markdown.markdownToHtml(
-            new File(introduction).readAsStringSync(),
-                linkResolver: linkResolver, inlineSyntaxes: _MARKDOWN_SYNTAXES);
-        libraryMap['introduction'] = intro;
-      }
+      var intro = libraryMap['introduction'];
+      var spacing = intro.isEmpty ? '' : '<br/><br/>';
+      libraryMap['introduction'] =
+          "$intro$spacing${readIntroductionFile(introFileName, includeSdk)}";
       outputToYaml = libraryMap['filetype'] == 'yaml';
     } else {
       libraryMap = {
         'libraries' : filteredEntities.where((e) =>
             e is Library).map((e) => e.previewMap).toList(),
-        'introduction' : introduction == '' ?
-            '' : markdown.markdownToHtml(new File(introduction)
-                .readAsStringSync(), linkResolver: linkResolver,
-                    inlineSyntaxes: _MARKDOWN_SYNTAXES),
+        'introduction' : readIntroductionFile(introFileName, includeSdk),
         'filetype' : outputToYaml ? 'yaml' : 'json'
       };
     }
@@ -467,6 +527,8 @@ class _Generator {
       // TODO(efortuna): This logic seems not very robust, but it's from the
       // original version of the code, pre-refactor, so I'm leavingt it for now.
       // Revisit to make more robust.
+      // TODO(efortuna): See lines 303-311 in
+      // https://codereview.chromium.org/116043013/diff/390001/pkg/docgen/lib/docgen.dart
       var type = FileSystemEntity.typeSync(files.first);
       if (type == FileSystemEntityType.DIRECTORY) {
         var files2 = listDir(files.first, recursive: true);
@@ -483,7 +545,7 @@ class _Generator {
       }
      }
     logger.info('Package Root: ${packageRoot}');
-    return packageRoot;
+    return path.normalize(path.absolute(packageRoot));
   }
 
   /// Given the user provided list of items to document, expand all directories
@@ -622,11 +684,11 @@ class Indexable extends MirrorBased {
   }
 
   /** Walk up the owner chain to find the owning library. */
-  Library _getOwningLibrary(Indexable owner) {
-    if (owner is Library) return owner;
+  Library _getOwningLibrary(Indexable indexable) {
+    if (indexable is Library) return indexable;
     // TODO: is this needed?
-    if (owner is DummyMirror) return getDocgenObject(owner.mirror.library);
-    return _getOwningLibrary(owner.owner);
+    if (indexable is DummyMirror) return getDocgenObject(indexable.mirror.library);
+    return _getOwningLibrary(indexable.owner);
   }
 
   static initializeTopLevelLibraries(MirrorSystem mirrorSystem) {
@@ -820,10 +882,10 @@ class Indexable extends MirrorBased {
 
   /// Returns a map of [Parameter] objects constructed from [mirrorList].
   Map<String, Parameter> _createParameters(List<ParameterMirror> mirrorList,
-      [Indexable owner]) {
+      Indexable owner) {
     var data = {};
     mirrorList.forEach((ParameterMirror mirror) {
-      data[mirror.simpleName] = new Parameter(mirror, owner);
+      data[mirror.simpleName] = new Parameter(mirror, _getOwningLibrary(owner));
     });
     return data;
   }
@@ -1330,7 +1392,7 @@ class Class extends Indexable implements Comparable {
     interfaces = superinterfaces.toList();
     variables = _createVariables(classMirror.variables, this);
     methods = _createMethods(classMirror.methods, this);
-    annotations = _createAnnotations(classMirror, this);
+    annotations = _createAnnotations(classMirror, _getOwningLibrary(owner));
     generics = _createGenerics(classMirror);
     isAbstract = classMirror.isAbstract;
     inheritedMethods = new Map<String, Method>();
@@ -1526,8 +1588,8 @@ class Typedef extends Indexable {
     owner = owningLibrary;
     returnType = getDocgenObject(mirror.value.returnType).docName;
     generics = _createGenerics(mirror);
-    parameters = _createParameters(mirror.value.parameters);
-    annotations = _createAnnotations(mirror, this);
+    parameters = _createParameters(mirror.value.parameters, owningLibrary);
+    annotations = _createAnnotations(mirror, owningLibrary);
   }
 
   Map toMap() => {
@@ -1645,7 +1707,7 @@ class Method extends Indexable {
 
   Indexable owner;
 
-  factory Method(MethodMirror mirror, Indexable owner,
+  factory Method(MethodMirror mirror, Indexable owner, // Indexable newOwner.
       [Method methodInheritedFrom]) {
     var method = getDocgenObject(mirror, owner);
     if (method is DummyMirror) {
@@ -1716,7 +1778,8 @@ class Method extends Indexable {
     comment = inheritedMethod._commentToHtml(this);
     _unresolvedComment = inheritedMethod._unresolvedComment;
     commentInheritedFrom = inheritedMethod.commentInheritedFrom == '' ?
-        inheritedMethod.qualifiedName : inheritedMethod.commentInheritedFrom;
+        inheritedMethod.mirror.qualifiedName :
+        inheritedMethod.commentInheritedFrom;
   }
 
   /// Generates a map describing the [Method] object.
@@ -1757,15 +1820,14 @@ class Method extends Indexable {
             linkResolver: linkResolver, inlineSyntaxes: _MARKDOWN_SYNTAXES);
       commentInheritedFrom = methodInheritedFrom.commentInheritedFrom;
       result = comment;
-      //print('result was $comment');
     }
     return result;
   }
 }
 
-/// A class containing properties of a Dart method/function parameter.
+/// Docgen wrapper around the dart2js mirror for a Dart
+/// method/function parameter.
 class Parameter extends MirrorBased {
-
   ParameterMirror mirror;
   String name;
   bool isOptional;
@@ -1773,18 +1835,17 @@ class Parameter extends MirrorBased {
   bool hasDefaultValue;
   Type type;
   String defaultValue;
-
   /// List of the meta annotations on the parameter.
   List<Annotation> annotations;
 
-  Parameter(this.mirror, [Indexable owner]) {
+  Parameter(this.mirror, Library owningLibrary) {
     name = mirror.simpleName;
     isOptional = mirror.isOptional;
     isNamed = mirror.isNamed;
     hasDefaultValue = mirror.hasDefaultValue;
     defaultValue = mirror.defaultValue;
-    type = new Type(mirror.type, owner);
-    annotations = _createAnnotations(mirror, this);
+    type = new Type(mirror.type, owningLibrary);
+    annotations = _createAnnotations(mirror, owningLibrary);
   }
 
   /// Generates a map describing the [Parameter] object.
@@ -1809,7 +1870,8 @@ class Generic extends MirrorBased {
   };
 }
 
-/// Holds the name of a return type, and its generic type parameters.
+/// Docgen wrapper around the mirror for a return type, and/or its generic
+/// type parameters.
 ///
 /// Return types are of a form [outer]<[inner]>.
 /// If there is no [inner] part, [inner] will be an empty list.
@@ -1839,20 +1901,16 @@ class Generic extends MirrorBased {
 ///                      "inner" :
 class Type extends MirrorBased {
   TypeMirror mirror;
-  MirrorBased owner;
+  MirrorBased owningLibrary;
 
-  factory Type(TypeMirror mirror, [MirrorBased owner]) {
-    return new Type._(mirror, owner);
-  }
-
-  Type._(this.mirror, this.owner);
+  Type(this.mirror, this.owningLibrary);
 
   /// Returns a list of [Type] objects constructed from TypeMirrors.
   List<Type> _createTypeGenerics(TypeMirror mirror) {
     if (mirror is ClassMirror && !mirror.isTypedef) {
       var innerList = [];
       mirror.typeArguments.forEach((e) {
-        innerList.add(new Type(e, owner));
+        innerList.add(new Type(e, owningLibrary));
       });
       return innerList;
     }
@@ -1861,8 +1919,8 @@ class Type extends MirrorBased {
 
   Map toMap() {
     // We may encounter types whose corresponding library has not been
-    // processed yet, so look up the owner at the last moment.
-    var result = getDocgenObject(mirror, owner);
+    // processed yet, so look up with the owningLibrary at the last moment.
+    var result = getDocgenObject(mirror, owningLibrary);
     return {
       'outer': result.docName,
       'inner': _createTypeGenerics(mirror).map((e) => e.toMap()).toList(),
@@ -1875,19 +1933,19 @@ class Annotation extends MirrorBased {
   List<String> parameters;
   /// The class of this annotation.
   ClassMirror mirror;
+  Library owningLibrary;
 
-  Annotation(InstanceMirror originalMirror, MirrorBased annotationOwner) {
+  Annotation(InstanceMirror originalMirror, this.owningLibrary) {
     mirror = originalMirror.type;
     parameters = originalMirror.type.variables.values
         .where((e) => e.isFinal)
         .map((e) => originalMirror.getField(e.simpleName).reflectee)
         .where((e) => e != null)
         .toList();
-    owner = annotationOwner;
   }
 
   Map toMap() => {
-    'name': getDocgenObject(mirror, owner).docName,
+    'name': getDocgenObject(mirror, owningLibrary).docName,
     'parameters': parameters
   };
 }

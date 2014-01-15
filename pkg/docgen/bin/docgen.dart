@@ -21,9 +21,7 @@ void main(List<String> arguments) {
 
   var includeSdk = results['parse-sdk'] || results['include-sdk'];
   var scriptDir = path.dirname(Platform.script.toFilePath());
-  var introFile =
-      path.join(path.dirname(scriptDir), 'doc', 'sdk-introduction.md');
-  var introduction = includeSdk ? introFile : results['introduction'];
+  var introduction = includeSdk ? '' : results['introduction'];
   docgen(results.rest.map(path.normalize).toList(),
       packageRoot: results['package-root'],
       outputToYaml: !results['json'],
@@ -31,7 +29,7 @@ void main(List<String> arguments) {
       includeSdk: includeSdk,
       parseSdk: results['parse-sdk'],
       append: results['append'] && new Directory(results['out']).existsSync(),
-      introduction: introduction,
+      introFileName: introduction,
       out: results['out'],
       excludeLibraries: excludedLibraries,
       includeDependentPackages: results['include-dependent-packages']);
@@ -76,7 +74,7 @@ ArgParser _initArgParser() {
       defaultsTo: false, negatable: false);
   parser.addOption('introduction',
       help: 'Adds the provided markdown text file as the introduction'
-        ' for the outputted documentation.', defaultsTo: '');
+        ' for the generated documentation.', defaultsTo: '');
   parser.addOption('out',
       help: 'The name of the output directory.',
       defaultsTo: 'docs');
