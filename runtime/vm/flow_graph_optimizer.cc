@@ -421,14 +421,18 @@ void FlowGraphOptimizer::TryMergeMathUnary(
         ZoneGrowableArray<Value*>* args = new ZoneGrowableArray<Value*>(1);
         args->Add(new Value(curr_instr->value()->definition()));
 
-        // Replace with TruncDivMod.
-        MergedMathInstr* div_mod = new MergedMathInstr(
+        // Replace with SinCos.
+        MergedMathInstr* sin_cos = new MergedMathInstr(
             args,
             curr_instr->DeoptimizationTarget(),
             MergedMathInstr::kSinCos);
-        curr_instr->ReplaceWith(div_mod, current_iterator());
-        other_op->ReplaceUsesWith(div_mod);
+        curr_instr->ReplaceWith(sin_cos, current_iterator());
+        other_op->ReplaceUsesWith(sin_cos);
         other_op->RemoveFromGraph();
+        // Only one merge possible. Because canonicalization happens later,
+        // more candidates are possible.
+        // TODO(srdjan): Allow merging of sin/cos into sincos.
+        break;
       }
     }
   }

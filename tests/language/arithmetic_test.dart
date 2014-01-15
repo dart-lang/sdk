@@ -435,10 +435,15 @@ class ArithmeticTest {
   
   static double sinCosSub(double a) => sin(a) - cos(a);
   
+  static double sinCosAddCos(double a)  => sin(a) * cos(a) + cos(a);
+
   static void testSinCos() {
     var e = sin(1.234) - cos(1.234);
+    var f = sin(1.234) * cos(1.234) + cos(1.234);
+    
     for (var i = 0; i < 20; i++) {
       Expect.approxEquals(e, sinCosSub(1.234));
+      Expect.approxEquals(f, sinCosAddCos(1.234));
     }
     Expect.approxEquals(1.0, sinCosSub(3.14159265));
     Expect.approxEquals(1.0, sinCosSub(3.14159265 / 2.0));
