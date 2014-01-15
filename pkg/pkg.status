@@ -232,6 +232,9 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 barback/test/too_many_open_files_test: Skip # 14220
 third_party/html5lib/test/tokenizer_test: Pass, Slow
 
+[ $arch == simarm && $checked ]
+watcher/test/directory_watcher/linux_test: Skip # Issue 16118
+
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
