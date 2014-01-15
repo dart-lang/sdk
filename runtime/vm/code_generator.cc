@@ -1428,6 +1428,9 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(function.HasCode());
 
   if (CanOptimizeFunction(function, isolate)) {
+    // Reset usage counter for reoptimization before calling optimizer to
+    // prevent recursive triggering of function optimization.
+    function.set_usage_counter(0);
     const Error& error =
         Error::Handle(Compiler::CompileOptimizedFunction(function));
     if (!error.IsNull()) {
@@ -1435,8 +1438,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     }
     const Code& optimized_code = Code::Handle(function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
-    // Reset usage counter for reoptimization.
-    function.set_usage_counter(0);
   }
   arguments.SetReturn(Code::Handle(function.CurrentCode()));
 }
