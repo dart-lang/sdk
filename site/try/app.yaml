@@ -5,11 +5,26 @@
 # App Engine configuration, see:
 # https://developers.google.com/appengine/docs/python/config/appconfig
 
+# The version number should be something like rSVN_REVISION.
+version: remember to edit app.yaml before deploying
+# This version name is used to create a new host, for example,
+# http://r31824.try-dart-lang.appspot.com/, which can be tested before going
+# live at http://try.dartlang.org/.  This is controlled from
+# https://appengine.google.com/deployment?&app_id=s~try-dart-lang
+
 application: try-dart-lang
-version: 5-sdk1-0
 runtime: python27
 api_version: 1
 threadsafe: yes
+
+# Set "Cache-Control" and "Expires" HTTP headers to only cache for one second.
+# We do this because we frequently push new changes and rely on AppCache for
+# caching.  Once files are installed in AppCache, the site launches
+# immediately.
+#
+# Problem: PageSpeed Insights doesn't realize that we use AppCache and keeps
+# nagging about caching.
+# Solution: Ignore its advice about "Leverage browser caching".
 default_expiration: 1s
 
 handlers:
@@ -34,12 +49,15 @@ handlers:
   upload: (.*\.(html|js|png|css|dart|json))
   secure: never
 
-- url: /css/fonts/
-  static_dir: font
+- url: /css/fonts/fontawesome-webfont.woff
+  static_files: fontawesome-webfont.woff
+  upload: fontawesome-webfont.woff
   secure: never
 
-error_handlers:
-  - file: static/not_found.html
+- url: .*
+  static_files: not_found.html
+  upload: not_found.html
+  secure: never
 
 libraries:
 - name: webapp2

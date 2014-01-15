@@ -184,5 +184,13 @@
         'pkg/pkg.gyp:pkg_packages',
       ],
     },
+    {
+      'target_name': 'try',
+      'type': 'none',
+      'dependencies': [
+        'create_sdk',
+        'site/try/build_try.gyp:try_site',
+      ],
+    },
   ],
 }
