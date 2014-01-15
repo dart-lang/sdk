@@ -133,7 +133,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     var node = parse(kind, startToken);
     checkForErrors();
 
-    var formatter = new SourceVisitor(options, lineInfo, selection);
+    var formatter = new SourceVisitor(options, lineInfo, source, selection);
     node.accept(formatter);
 
     var formattedSource = formatter.writer.toString();
@@ -374,18 +374,23 @@ class SourceVisitor implements ASTVisitor {
 
   final bool codeTransforms;
 
+
+  /// The source being formatted (used in interpolation handling)
+  final String source;
+
   /// Post format selection information.
   Selection selection;
 
 
   /// Initialize a newly created visitor to write source code representing
   /// the visited nodes to the given [writer].
-  SourceVisitor(FormatterOptions options, this.lineInfo, this.preSelection):
-      writer = new SourceWriter(indentCount: options.initialIndentationLevel,
+  SourceVisitor(FormatterOptions options, this.lineInfo, this.source,
+    this.preSelection)
+      : writer = new SourceWriter(indentCount: options.initialIndentationLevel,
                                 lineSeparator: options.lineSeparator,
                                 useTabs: options.tabsForIndent,
                                 spacesPerIndent: options.spacesPerIndent),
-      codeTransforms = options.codeTransforms;
+       codeTransforms = options.codeTransforms;
 
   visitAdjacentStrings(AdjacentStrings node) {
     visitNodes(node.strings, separatedBy: space);
@@ -1169,7 +1174,15 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    visitNodes(node.elements);
+    // Ensure that interpolated strings don't get broken up by treating them as
+    // a single String token
+    // Process token (for comments etc. but don't print the lexeme)
+    token(node.beginToken, printToken: (tok) => null);
+    var start = node.beginToken.offset;
+    var end = node.endToken.end;
+    String string = source.substring(start, end);
+    append(string);
+    //visitNodes(node.elements);
   }
 
   visitSuperConstructorInvocation(SuperConstructorInvocation node) {
@@ -1438,7 +1451,8 @@ class SourceVisitor implements ASTVisitor {
     preserveNewlines = true;
   }
 
-  token(Token token, {precededBy(), followedBy(), int minNewlines: 0}) {
+  token(Token token, {precededBy(), followedBy(),
+      printToken(tok), int minNewlines: 0}) {
     if (token != null) {
       if (needsNewline) {
         minNewlines = max(1, minNewlines);
@@ -1451,7 +1465,11 @@ class SourceVisitor implements ASTVisitor {
         precededBy();
       }
       checkForSelectionUpdate(token);
-      append(token.lexeme);
+      if (printToken == null) {
+        append(token.lexeme);
+      } else {
+        printToken(token);
+      }
       if (followedBy != null) {
         followedBy();
       }

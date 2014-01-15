@@ -5,6 +5,10 @@
 library source_writer;
 
 
+/// DEBUG flag indicating whether to use the experimental line-breaker
+const _USE_LINE_BREAKER = false;
+
+
 class Line {
 
   final tokens = <LineToken>[];
@@ -256,9 +260,12 @@ class SourceWriter {
 
   SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE,
       bool useTabs: false, int spacesPerIndent: 2, int maxLineLength: 80}) {
-//    linePrinter = new SimpleLineBreaker(maxLineLength, (n) =>
-//        getIndentString(n, useTabs: useTabs, spacesPerIndent: spacesPerIndent));
-    linePrinter = new SimpleLinePrinter();
+    if (_USE_LINE_BREAKER) {
+      linePrinter = new SimpleLineBreaker(maxLineLength, (n) =>
+          getIndentString(n, useTabs: useTabs, spacesPerIndent: spacesPerIndent));
+    } else {
+      linePrinter = new SimpleLinePrinter();
+    }
     currentLine = new Line(indent: indentCount, printer: linePrinter);
   }
 
