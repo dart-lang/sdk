@@ -40,6 +40,7 @@ class ScheduledStream<T> {
 
   /// The set of all streams forked from this one.
   final _forks = new Set<ScheduledStream<T>>();
+  final _forkControllers = new Set<StreamController<T>>();
 
   /// The queue of values emitted by [_stream] but not yet emitted through
   /// [next].
@@ -72,9 +73,11 @@ class ScheduledStream<T> {
   bool _isNextPending = false;
 
   /// Creates a new scheduled stream wrapping [stream].
-  ScheduledStream(Stream<T> stream)
-      : _stream = stream.asBroadcastStream() {
+  ScheduledStream(this._stream) {
     _subscription = _stream.listen((value) {
+      for (var c in _forkControllers) {
+        c.add(value);
+      }
       if (_hasNextCompleter != null) {
         _hasNextCompleter.complete(true);
         _hasNextCompleter = null;
@@ -89,6 +92,9 @@ class ScheduledStream<T> {
         _pendingValues.add(new Fallible.withValue(value));
       }
     }, onError: (error, stackTrace) {
+      for (var c in _forkControllers) {
+        c.addError(error, stackTrace);
+      }
       if (_hasNextCompleter != null) {
         _hasNextCompleter.completeError(error, stackTrace);
         _hasNextCompleter = null;
@@ -205,11 +211,10 @@ class ScheduledStream<T> {
         controller.addError(valueOrError.error, valueOrError.stackTrace);
       }
     }
-
     if (_isDone) {
       controller.close();
     } else {
-      _stream.pipe(controller);
+      _forkControllers.add(controller);
     }
 
     var fork = new ScheduledStream<T>(controller.stream);
@@ -237,6 +242,11 @@ class ScheduledStream<T> {
   /// Handles a "done" event from the underlying stream, as well as [this] being
   /// closed.
   void _onDone() {
+    for (var c in _forkControllers) {
+      c.close();
+    }
+    _forkControllers.clear();
+
     if (_hasNextCompleter != null) {
       _hasNextCompleter.complete(false);
       _hasNextCompleter = null;
