@@ -49,7 +49,7 @@
             # action is executed.
             '<(PRODUCT_DIR)/dart-sdk/README',
 
-            'leap.dart',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "src"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
@@ -58,7 +58,7 @@
             '<(PRODUCT_DIR)/dart-sdk/bin/dart2js',
             '-v',
             '-Denable_ir=false',
-            'leap.dart',
+            'src/leap.dart',
             '-o<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
           ],
         },
