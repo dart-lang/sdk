@@ -94,4 +94,3 @@ class Object {
    */
   external Type get runtimeType;
 }
-

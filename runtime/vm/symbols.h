@@ -273,8 +273,8 @@ class ObjectPointerVisitor;
   V(DartAsync, "dart:async")                                                   \
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \
+  V(DartCollectionDev, "dart:_collection-dev")                                 \
   V(DartConvert, "dart:convert")                                               \
-  V(DartInternal, "dart:_internal")                                            \
   V(DartIsolate, "dart:isolate")                                               \
   V(DartMath, "dart:math")                                                     \
   V(DartMirrors, "dart:mirrors")                                               \

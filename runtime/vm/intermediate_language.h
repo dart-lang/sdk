@@ -177,7 +177,7 @@ class Range;
   V(_TypedList, get:length, TypedDataLength, 26646119)                         \
   V(_GrowableList, get:length, GrowableArrayLength, 1654255033)                \
   V(_StringBase, get:length, StringBaseLength, 1483549854)                     \
-  V(ListIterator, moveNext, ListIteratorMoveNext, 2062984847)                  \
+  V(ListIterator, moveNext, ListIteratorMoveNext, 881367324)                   \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1155241039)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 195359970)                   \
 

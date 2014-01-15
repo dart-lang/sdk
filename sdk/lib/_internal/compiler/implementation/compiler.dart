@@ -452,7 +452,7 @@ abstract class Compiler implements DiagnosticListener {
   // Initialized after mirrorSystemClass has been resolved.
   FunctionElement mirrorSystemGetNameFunction;
 
-  // Initialized when dart:_internal is loaded.
+  // Initialized when dart:_collection-dev is loaded.
   ClassElement symbolImplementationClass;
 
   // Initialized when symbolImplementationClass has been resolved.
@@ -809,7 +809,7 @@ abstract class Compiler implements DiagnosticListener {
       typedDataLibrary = library;
       typedDataClass =
           findRequiredElement(library, 'TypedData');
-    } else if (uri == new Uri(scheme: 'dart', path: '_internal')) {
+    } else if (uri == new Uri(scheme: 'dart', path: '_collection-dev')) {
       symbolImplementationClass =
           findRequiredElement(library, 'Symbol');
     } else if (uri == new Uri(scheme: 'dart', path: 'async')) {

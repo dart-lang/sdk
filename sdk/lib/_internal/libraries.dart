@@ -130,12 +130,12 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       maturity: Maturity.WEB_STABLE,
       dart2jsPath: "web_sql/dart2js/web_sql_dart2js.dart"),
 
-  "_internal": const LibraryInfo(
-      "internal/internal.dart",
+  "_collection-dev": const LibraryInfo(
+      "_collection_dev/collection_dev.dart",
       category: "Internal",
       documented: false,
       dart2jsPatchPath:
-          "_internal/lib/internal_patch.dart"),
+          "_internal/lib/collection_dev_patch.dart"),
 
   "_js_helper": const LibraryInfo(
       "_internal/lib/js_helper.dart",

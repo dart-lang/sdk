@@ -2664,7 +2664,7 @@ class Library : public Object {
   static RawLibrary* AsyncLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
-  static RawLibrary* InternalLibrary();
+  static RawLibrary* CollectionDevLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MathLibrary();
   static RawLibrary* MirrorsLibrary();

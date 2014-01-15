@@ -9,7 +9,7 @@
 library dart.typed_data;
 
 import 'dart:collection';
-import 'dart:_internal';
+import 'dart:_collection-dev';
 import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper'
     show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
