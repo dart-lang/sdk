@@ -63,7 +63,24 @@ class Message {
     var keys = options.keys.toList();
     var values = options.values.toList();
     var request = [receivePort.sendPort, path, keys, values];
-    sendServiceMessage(sendPort, request);
+    sendIsolateServiceMessage(sendPort, request);
+    return _completer.future;
+  }
+
+  Future<String> sendToVM() {
+    final receivePort = new RawReceivePort();
+    receivePort.handler = (value) {
+      receivePort.close();
+      if (value is Exception) {
+        _completer.completeError(value);
+      } else {
+        _completer.complete(value);
+      }
+    };
+    var keys = options.keys.toList();
+    var values = options.values.toList();
+    var request = [receivePort.sendPort, path, keys, values];
+    sendRootServiceMessage(request);
     return _completer.future;
   }
 
@@ -80,3 +97,9 @@ class Message {
     }));
   }
 }
+
+void sendIsolateServiceMessage(SendPort sp, List m)
+    native "VMService_SendIsolateServiceMessage";
+
+void sendRootServiceMessage(List m)
+    native "VMService_SendRootServiceMessage";

@@ -312,7 +312,7 @@
   <template>
   	<div class="row">
   	  <div class="col-md-1">
-        <img src="img/isolate_icon.png" class="img-polaroid">
+        <img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">
   	  </div>
   	  <div class="col-md-1">{{ isolate }}</div>
   	  <div class="col-md-10">{{ name }}</div>
@@ -345,6 +345,8 @@
         </li>
       </template>
       </ul>
+      (<a href="{{ app.locationManager.absoluteLink('cpu') }}">cpu</a>)
+      
   </template>
   
 </polymer-element><polymer-element name="instance-view" extends="observatory-element">
@@ -588,6 +590,9 @@
     </template>
     <template if="{{ messageType == 'Script' }}">
       <script-view app="{{ app }}" script="{{ message }}"></script-view>
+    </template>
+    <template if="{{ messageType == 'CPU' }}">
+      <json-view json="{{ message }}"></json-view>
     </template>
     <!-- Add new views and message types in the future here. -->
   </template>

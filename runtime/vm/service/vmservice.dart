@@ -82,7 +82,10 @@ class VMService extends MessageRouter {
       _clientCollection(message);
       return message.response;
     }
-    return runningIsolates.route(message);
+    if (message.path[0] == 'isolates') {
+      return runningIsolates.route(message);
+    }
+    return message.sendToVM();
   }
 }
 
@@ -91,6 +94,3 @@ RawReceivePort boot() {
   // Return the port we expect isolate startup and shutdown messages on.
   return new VMService().receivePort;
 }
-
-void sendServiceMessage(SendPort sp, Object m)
-    native "VMService_SendServiceMessage";

@@ -7,6 +7,7 @@
   <link rel="import" href="function_view.html">
   <link rel="import" href="instance_view.html">
   <link rel="import" href="isolate_list.html">
+  <link rel="import" href="json_view.html">
   <link rel="import" href="library_view.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="script_view.html">
@@ -69,6 +70,9 @@
     </template>
     <template if="{{ messageType == 'Script' }}">
       <script-view app="{{ app }}" script="{{ message }}"></script-view>
+    </template>
+    <template if="{{ messageType == 'CPU' }}">
+      <json-view json="{{ message }}"></json-view>
     </template>
     <!-- Add new views and message types in the future here. -->
   </template>

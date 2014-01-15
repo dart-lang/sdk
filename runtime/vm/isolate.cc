@@ -143,7 +143,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
   bool success = true;
   if (message->IsOOB()) {
-    Service::HandleServiceMessage(isolate_, msg);
+    Service::HandleIsolateMessage(isolate_, msg);
   } else {
     const Object& result = Object::Handle(
         DartLibraryCalls::HandleMessage(receive_port, msg));
