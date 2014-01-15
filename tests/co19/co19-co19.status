@@ -11,6 +11,8 @@
 [ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
 
+LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19 issue 668
+
 [ $runtime == vm || $runtime == dartium || $compiler == dart2dart || $compiler == dart2js ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
@@ -54,8 +56,6 @@ LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 [ $runtime == vm || $compiler == dart2js ]
 LibTest/math/exp_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/sin_A01_t01: PASS, FAIL, OK # co19 issue 44
-
-# LibTest/isolate/IsolateStream/contains_A02_t01: FAIL, OK # co19 issue 540
 
 
 [ $runtime == vm || $compiler == none || $compiler == dart2js ]
