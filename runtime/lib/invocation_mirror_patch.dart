@@ -67,7 +67,8 @@ class _InvocationMirror implements Invocation {
         return _positionalArguments = const [];
       }
       // Exclude receiver.
-      _positionalArguments = _arguments.sublist(1, numPositionalArguments);
+      _positionalArguments =
+          new _ImmutableList._from(_arguments, 1, numPositionalArguments - 1);
     }
     return _positionalArguments;
   }

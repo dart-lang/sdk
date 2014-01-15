@@ -110,4 +110,23 @@ DEFINE_NATIVE_ENTRY(List_copyFromObjectArray, 5) {
   return Object::null();
 }
 
+
+// Private factory, expects correct arguments.
+DEFINE_NATIVE_ENTRY(ImmutableList_from, 4) {
+  // Ignore first argument of a thsi factory (type argument).
+  const Array& from_array = Array::CheckedHandle(arguments->NativeArgAt(1));
+  const Smi& smi_offset = Smi::CheckedHandle(arguments->NativeArgAt(2));
+  const Smi& smi_length = Smi::CheckedHandle(arguments->NativeArgAt(3));
+  const intptr_t length = smi_length.Value();
+  const intptr_t offset = smi_offset.Value();
+  const Array& result = Array::Handle(Array::New(length));
+  Object& temp = Object::Handle();
+  for (intptr_t i = 0; i < length; i++) {
+    temp = from_array.At(i + offset);
+    result.SetAt(i, temp);
+  }
+  result.MakeImmutable();
+  return result.raw();
+}
+
 }  // namespace dart

@@ -89,6 +89,7 @@ namespace dart {
   V(List_setIndexed, 3)                                                        \
   V(List_getLength, 1)                                                         \
   V(List_copyFromObjectArray, 5)                                               \
+  V(ImmutableList_from, 4)                                                     \
   V(StringBase_createFromCodePoints, 1)                                        \
   V(StringBase_substringUnchecked, 3)                                          \
   V(StringBuffer_createStringFromUint16Array, 3)                               \
