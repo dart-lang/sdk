@@ -40,7 +40,7 @@ TEST_CASE(IsolateSpawn) {
   // Setup the internal library's 'internalPrint' function.
   // Necessary because asynchronous errors use "print" to print their
   // stack trace.
-  Dart_Handle url = NewString("dart:_collection-dev");
+  Dart_Handle url = NewString("dart:_internal");
   DART_CHECK_VALID(url);
   Dart_Handle internal_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(internal_lib);

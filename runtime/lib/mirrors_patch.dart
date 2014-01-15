@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(ahe): Move _symbol_dev.Symbol to its own "private" library?
-import "dart:_collection-dev" as _symbol_dev;
+import "dart:_internal" as _symbol_dev;
 
 /**
  * Returns a [MirrorSystem] for the current isolate.

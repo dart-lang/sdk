@@ -5,8 +5,6 @@
 library dart.typed_data;
 
 import 'dart:collection';
-import 'dart:_collection-dev';
-import 'dart:math' show Random;
 
 /**
  * A sequence of bytes underlying a typed data object.
@@ -18,7 +16,6 @@ abstract class ByteBuffer {
    * Returns the length of this byte buffer, in bytes.
    */
   int get lengthInBytes;
-
 }
 
 

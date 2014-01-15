@@ -33,8 +33,8 @@ import 'dart:_foreign_helper' show
     RAW_DART_FUNCTION_REF;
 
 import 'dart:_interceptors';
-import 'dart:_collection-dev' as _symbol_dev;
-import 'dart:_collection-dev' show MappedIterable;
+import 'dart:_internal' as _symbol_dev;
+import 'dart:_internal' show MappedIterable;
 
 import 'dart:_js_names' show
     extractKeys,

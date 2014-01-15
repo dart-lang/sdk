@@ -17,7 +17,7 @@ import 'dart:_foreign_helper' show
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_GET_NAME;
 
-import 'dart:_collection-dev' as _symbol_dev;
+import 'dart:_internal' as _symbol_dev;
 
 import 'dart:_js_helper' show
     BoundClosure,

@@ -196,7 +196,7 @@
 library dart.io;
 
 import 'dart:async';
-import 'dart:_collection-dev';
+import 'dart:_internal';
 import 'dart:collection' show HashMap,
                               HashSet,
                               LinkedList,
