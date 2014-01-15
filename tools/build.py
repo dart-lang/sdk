@@ -198,7 +198,7 @@ def Execute(args):
   process = subprocess.Popen(args)
   process.wait()
   if process.returncode != 0:
-    raise Exception(args[0] + " failed")  
+    raise Exception(args[0] + " failed")
 
 
 def CurrentDirectoryBaseName():
@@ -215,11 +215,12 @@ def FilterEmptyXcodebuildSections(process):
 Build settings from command line:
     SYMROOT = .../xcodebuild
 
-=== BUILD AGGREGATE TARGET samples OF PROJECT dart WITH CONFIGURATION ...
+=== BUILD TARGET samples OF PROJECT dart WITH CONFIGURATION ...
+
 Check dependencies
 
-
 === BUILD AGGREGATE TARGET upload_sdk OF PROJECT dart WITH CONFIGURATION ...
+
 Check dependencies
 
 PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
@@ -232,7 +233,7 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
   """
 
   def is_empty_chunk(chunk):
-    empty_chunk = ['Check dependencies', '', '']
+    empty_chunk = ['', 'Check dependencies', '']
     return not chunk or (len(chunk) == 4 and chunk[1:] == empty_chunk)
 
   def unbuffered(callable):
@@ -258,7 +259,7 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
       is_fancy_tty = False
     except AttributeError:
       is_fancy_tty = False
-  pattern = re.compile(r'=== BUILD .* TARGET (.*) OF PROJECT (.*) WITH ' +
+  pattern = re.compile(r'=== BUILD.* TARGET (.*) OF PROJECT (.*) WITH ' +
                        r'CONFIGURATION (.*) ===')
   has_interesting_info = False
   for line in unbuffered(process.stdout.readline):
@@ -288,9 +289,9 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
       print line
     else:
       length = len(chunk)
-      if length == 1 and line != 'Check dependencies':
+      if length == 2 and line != 'Check dependencies':
         has_interesting_info = True
-      elif (length == 2 or length == 3) and line:
+      elif (length == 1 or length == 3) and line:
         has_interesting_info = True
       if has_interesting_info:
         print '\n'.join(chunk)
