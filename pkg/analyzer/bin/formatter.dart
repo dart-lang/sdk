@@ -24,7 +24,9 @@ CodeKind kind;
 bool machineFormat;
 bool overwriteFileContents;
 Selection selection;
-const followLinks = false;
+final List<String> paths = [];
+
+const FOLLOW_LINKS = false;
 
 
 main(args) {
@@ -39,7 +41,8 @@ main(args) {
   if (options.rest.isEmpty) {
     _formatStdin(kind);
   } else {
-    _formatPaths(options.rest);
+    paths.addAll(options.rest);
+    _formatPaths(paths);
   }
 }
 
@@ -96,11 +99,15 @@ _formatResource(resource) {
   }
 }
 
-_formatDirectory(dir) => dir.listSync(followLinks: followLinks)
+_formatDirectory(dir) => dir.listSync(followLinks: FOLLOW_LINKS)
     .forEach((resource) => _formatResource(resource));
 
 _formatFile(file) {
   if (_isDartFile(file)) {
+    if (_isPatchFile(file) && !paths.contains(file.path)) {
+      _log('Skipping patch file "${file.path}"');
+      return;
+    }
     try {
       var buffer = new StringBuffer();
       var rawSource = file.readAsStringSync();
@@ -115,6 +122,8 @@ _formatFile(file) {
     }
   }
 }
+
+_isPatchFile(file) => file.path.endsWith('_patch.dart');
 
 _isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
