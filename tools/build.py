@@ -293,6 +293,8 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
         has_interesting_info = True
       elif (length == 1 or length == 3) and line:
         has_interesting_info = True
+      elif length > 3:
+        has_interesting_info = True
       if has_interesting_info:
         print '\n'.join(chunk)
         chunk = []
