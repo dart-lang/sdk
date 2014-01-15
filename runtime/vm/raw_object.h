@@ -529,8 +529,6 @@ class RawUnresolvedClass : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->ident_);
   }
   intptr_t token_pos_;
-
-  friend class RawType;  // TODO(regis): To temporarily print unfinalized types.
 };
 
 
