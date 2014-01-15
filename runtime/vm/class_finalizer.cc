@@ -577,7 +577,8 @@ void ClassFinalizer::FinalizeTypeArguments(
               cls, super_type_arg, kFinalize, pending_types);
           super_type_args.SetTypeAt(i, super_type_arg);
         }
-        if (!super_type_arg.IsInstantiated()) {
+        if (!super_type_arg.IsBeingFinalized() &&
+            !super_type_arg.IsInstantiated()) {
           Error& error = Error::Handle();
           super_type_arg = super_type_arg.InstantiateFrom(arguments, &error);
           if (!error.IsNull()) {
@@ -745,7 +746,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(
     }
     return type.raw();
   }
-  ASSERT(type.IsResolved());
   ASSERT(finalization >= kFinalize);
 
   if (type.IsTypeRef()) {
@@ -763,6 +763,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
     return TypeRef::New(type);
   }
 
+  ASSERT(type.IsResolved());
   if (FLAG_trace_type_finalization) {
     OS::Print("Finalizing type '%s' for class '%s'\n",
               String::Handle(type.Name()).ToCString(),
@@ -864,11 +865,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
       // argument vector.
       const intptr_t offset = num_type_arguments - num_type_parameters;
       AbstractType& type_arg = AbstractType::Handle(Type::DynamicType());
-      // TODO(regis): Leave the temporary type argument values as null.
-      for (intptr_t i = 0; i < offset; i++) {
-        // Temporarily set the type arguments of the super classes to dynamic.
-        full_arguments.SetTypeAt(i, type_arg);
-      }
+      // Leave the temporary type arguments at indices [0..offset[ as null.
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         // If no type parameters were provided, a raw type is desired, so we
         // create a vector of dynamic.

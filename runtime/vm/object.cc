@@ -3813,8 +3813,7 @@ bool TypeArguments::IsInstantiated(GrowableObjectArray* trail) const {
   const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    ASSERT(!type.IsNull());
-    if (!type.IsInstantiated(trail)) {
+    if (!type.IsBeingFinalized() && !type.IsInstantiated(trail)) {
       return false;
     }
   }
@@ -3978,7 +3977,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    if (!type.IsInstantiated()) {
+    if (!type.IsBeingFinalized() && !type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   bound_error,
                                   trail);
