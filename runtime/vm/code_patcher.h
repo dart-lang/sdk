@@ -76,6 +76,9 @@ class CodePatcher : public AllStatic {
   static void InsertCallAt(uword start, uword target);
 
   static RawObject* GetEdgeCounterAt(uword pc, const Code& code);
+
+  static int32_t GetPoolOffsetAt(uword return_address);
+  static void SetPoolOffsetAt(uword return_address, int32_t offset);
 };
 
 }  // namespace dart

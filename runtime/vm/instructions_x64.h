@@ -39,6 +39,7 @@ class InstructionPattern : public ValueObject {
   virtual int pattern_length_in_bytes() const = 0;
 
   static intptr_t IndexFromPPLoad(uword start);
+  static intptr_t OffsetFromPPIndex(intptr_t index);
 
  protected:
   uword start() const { return start_; }

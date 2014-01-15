@@ -767,6 +767,11 @@ class Assembler : public ValueObject {
     buffer_.FinalizeInstructions(region);
   }
 
+  // Index of constant pool entries pointing to debugger stubs.
+  static const int kBreakpointStaticCPIndex = 5;
+  static const int kBreakpointDynamicCPIndex = 6;
+  static const int kBreakpointRuntimeCPIndex = 7;
+
   void LoadPoolPointer(Register pp);
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
