@@ -513,8 +513,6 @@ class RawClass : public RawObject {
   friend class Object;
   friend class RawInstance;
   friend class RawInstructions;
-  friend class RawType;  // TODO(regis): To temporarily print unfinalized types.
-  friend class RawTypeParameter;  // To temporarily print unfinalized types.
   friend class SnapshotReader;
 };
 

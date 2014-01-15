@@ -11,9 +11,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, error_on_bad_type);
-
-
 #define NEW_OBJECT(type)                                                       \
   ((kind == Snapshot::kFull) ? reader->New##type() : type::New())
 
@@ -241,52 +238,14 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
 }
 
 
-static const char* RawOneByteStringToCString(RawOneByteString* str) {
-  const char* start = reinterpret_cast<char*>(str) - kHeapObjectTag +
-      OneByteString::data_offset();
-  const int len = Smi::Value(*reinterpret_cast<RawSmi**>(
-      reinterpret_cast<uword>(str) - kHeapObjectTag + String::length_offset()));
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-  memmove(chars, start, len);
-  chars[len] = '\0';
-  return chars;
-}
-
-
 void RawType::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Only resolved and finalized types should be written to a snapshot.
-  // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
-  if (FLAG_error_on_bad_type &&
-      (ptr()->type_state_ != RawType::kFinalizedInstantiated) &&
-      (ptr()->type_state_ != RawType::kFinalizedUninstantiated)) {
-    // Print the name of the class of the unfinalized type, as well as the
-    // token location from where it is referred to, making sure not
-    // to allocate any handles. Unfortunately, we cannot print the script name.
-    const intptr_t cid = ClassIdTag::decode(*reinterpret_cast<uword*>(
-        reinterpret_cast<uword>(ptr()->type_class_) - kHeapObjectTag +
-            Object::tags_offset()));
-    if (cid == kUnresolvedClassCid) {
-      OS::Print("Snapshotting unresolved type '%s' at token pos %" Pd "\n",
-                RawOneByteStringToCString(
-                    reinterpret_cast<RawOneByteString*>(
-                        reinterpret_cast<RawUnresolvedClass*>(
-                            ptr()->type_class_)->ptr()->ident_)),
-                ptr()->token_pos_);
-    } else {
-      // Assume cid == kClassId, but it can also be kIllegalCid.
-      OS::Print("Snapshotting unfinalized type '%s' at token pos %" Pd "\n",
-                RawOneByteStringToCString(
-                    reinterpret_cast<RawOneByteString*>(
-                        reinterpret_cast<RawClass*>(
-                            ptr()->type_class_)->ptr()->name_)),
-                ptr()->token_pos_);
-    }
-    UNREACHABLE();
-  }
+  ASSERT((ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
+         (ptr()->type_state_ == RawType::kFinalizedUninstantiated));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -393,24 +352,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Only finalized type parameters should be written to a snapshot.
-  // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
-  if (FLAG_error_on_bad_type &&
-      (ptr()->type_state_ != RawTypeParameter::kFinalizedUninstantiated)) {
-    // Print the name of the unfinalized type parameter, the name of the class
-    // it parameterizes, as well as the token location from where it is referred
-    // to, making sure not to allocate any handles. Unfortunately, we cannot
-    // print the script name.
-    OS::Print("Snapshotting unfinalized type parameter '%s' of class '%s' at "
-              "token pos %" Pd "\n",
-              RawOneByteStringToCString(
-                  reinterpret_cast<RawOneByteString*>(ptr()->name_)),
-              RawOneByteStringToCString(
-                  reinterpret_cast<RawOneByteString*>(
-                      reinterpret_cast<RawClass*>(
-                          ptr()->parameterized_class_)->ptr()->name_)),
-              ptr()->token_pos_);
-    UNREACHABLE();
-  }
+  ASSERT(ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated);
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
