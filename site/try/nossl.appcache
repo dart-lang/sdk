@@ -3,7 +3,7 @@ CACHE MANIFEST
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Version 7 <-- CHANGE THIS when you have a new version
+# Version 7.1 <-- CHANGE THIS when you have a new version
 
 CACHE:
 index.html

@@ -9,7 +9,7 @@ import 'dart:html';
 import 'dart:isolate';
 import 'dart:convert' show JSON;
 
-import '../../sdk/lib/_internal/compiler/compiler.dart' as compiler;
+import '../../../sdk/lib/_internal/compiler/compiler.dart' as compiler;
 
 const bool THROW_ON_ERROR = false;
 
