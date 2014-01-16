@@ -638,6 +638,15 @@ void ClassFinalizer::CheckTypeArgumentBounds(
       continue;
     }
     ASSERT(type_arg.IsFinalized());
+    if (type_arg.IsMalbounded()) {
+      // The type argument itself is already malbounded, independently of the
+      // declared bound, which may be Object.
+      // Propagate the bound error from the type argument to the type.
+      if (bound_error->IsNull()) {
+        *bound_error = type_arg.error();
+        ASSERT(!bound_error->IsNull());
+      }
+    }
     cls_type_param = cls_type_params.TypeAt(i);
     const TypeParameter& type_param = TypeParameter::Cast(cls_type_param);
     ASSERT(type_param.IsFinalized());

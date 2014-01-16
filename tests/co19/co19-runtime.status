@@ -72,12 +72,8 @@ LibTest/core/Uri/Uri_A06_t03: Skip # Timeouts, co19-roll r576: Please triage thi
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # Timeouts
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # Timeouts
 
-
 [ $compiler == none && $runtime == vm && $arch == simarm ]
 LibTest/typed_data/Float32x4/sqrt_A01_t01: Pass, Fail # co19 issue 666.
-
-[ $compiler == none && $checked && ($runtime == vm || $runtime == dartium) ]
-Language/15_Types/1_Static_Types_A03_t01: RuntimeError # Issue 16149
 
 [ $runtime == vm ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
