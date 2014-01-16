@@ -256,9 +256,9 @@ abstract class Process {
   /**
    * On Windows, [kill] kills the process, ignoring the [signal]
    * flag. On Posix systems, [kill] sends [signal] to the
-   * process. Depending on the signal giving, it'll have different
+   * process. Depending on the signal send, it'll have different
    * meanings. When the process terminates as a result of calling
-   * [kill] [onExit] is called.
+   * [kill], the [exitCode] future is completed with the exit code.
    *
    * Returns [:true:] if the process is successfully killed (the
    * signal is successfully sent). Returns [:false:] if the process
