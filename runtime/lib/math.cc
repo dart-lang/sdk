@@ -123,8 +123,23 @@ DEFINE_NATIVE_ENTRY(Random_setupSeed, 2) {
   const TypedData& array = TypedData::Handle(GetRandomStateArray(receiver));
   ASSERT(!seed_int.IsNull());
   ASSERT(!array.IsNull());
-  // TODO(srdjan): Reduce Bigint to 64 bit value.
-  int64_t seed = seed_int.IsBigint() ? 0 : seed_int.AsInt64Value();
+  int64_t seed = 0;
+  if (seed_int.IsBigint()) {
+    const Bigint& mask64 = Bigint::Handle(
+        BigintOperations::NewFromUint64(0xffffffffffffffff));
+    Bigint& big_seed = Bigint::Handle();
+    big_seed ^= seed_int.raw();
+    Bigint& low64 = Bigint::Handle();
+    while (!big_seed.IsZero()) {
+      low64 = BigintOperations::BitAnd(big_seed, mask64);
+      ASSERT(BigintOperations::FitsIntoUint64(low64));
+      seed ^= BigintOperations::ToUint64(low64);
+      big_seed = BigintOperations::ShiftRight(big_seed, 64);
+    }
+  } else {
+    seed = seed_int.AsInt64Value();
+  }
+
   do {
     seed = seed + 0x5A17;
   } while (seed == 0);

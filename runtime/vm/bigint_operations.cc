@@ -704,6 +704,9 @@ uint32_t BigintOperations::TruncateToUint32(const Bigint& bigint) {
 
 
 bool BigintOperations::AbsFitsIntoUint64(const Bigint& bigint) {
+  if (bigint.IsZero()) {
+    return true;
+  }
   intptr_t b_length = bigint.Length();
   intptr_t num_bits = CountBits(bigint.GetChunkAt(b_length - 1));
   num_bits += (kDigitBitSize * (b_length - 1));

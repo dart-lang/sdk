@@ -15,8 +15,6 @@ abstract class Random {
    * Creates a random-number generator. The optional parameter [seed] is used
    * to initialize the internal state of the generator. The implementation of
    * the random stream can change between releases of the library.
-   *
-   * Implementation note: The default implementation uses up to 64-bits of seed.
    */
   external factory Random([int seed]);
 
