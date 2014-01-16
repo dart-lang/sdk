@@ -111,9 +111,9 @@ abstract class num implements Comparable<num> {
    * Truncating division operator.
    *
    * If either operand is a [double] then the result of the truncating division
-   * [:a ~/ b:] is equivalent to [:(a / b).truncate().toInt():].
+   * `a ~/ b` is equivalent to `(a / b).truncate().toInt()`.
    *
-   * If both operands are [int]s then [:a ~/ b:] performs the truncating
+   * If both operands are [int]s then `a ~/ b` performs the truncating
    * integer division.
    */
   int operator ~/(num other);
@@ -194,7 +194,7 @@ abstract class num implements Comparable<num> {
    * Returns the integer closest to `this`.
    *
    * Rounds away from zero when there is no closest integer:
-   *  [:(3.5).round() == 4:] and [:(-3.5).round() == -4:].
+   *  `(3.5).round() == 4` and `(-3.5).round() == -4`.
    *
    * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
    */
@@ -223,40 +223,75 @@ abstract class num implements Comparable<num> {
   int truncate();
 
   /**
-   * Returns the integer value closest to `this`.
+   * Returns the double integer value closest to `this`.
    *
    * Rounds away from zero when there is no closest integer:
-   *  [:(3.5).round() == 4:] and [:(-3.5).round() == -4:].
+   *  `(3.5).roundToDouble() == 4` and `(-3.5).roundToDouble() == -4`.
    *
-   * The result is a double.
+   * If this is already an integer valued double, including `-0.0`, or it is a
+   * non-finite double value, the value is returned unmodified.
+   *
+   * For the purpose of rounding, `-0.0` is considered to be below `0.0`,
+   * and `-0.0` is therefore considered closer to negative numbers than `0.0`.
+   * This means that for a value, `d` in the range `-0.5 < d < 0.0`,
+   * the result is `-0.0`.
+   *
+   * The result is always a double.
+   * If this is a numerically large integer, the result may be an infinite
+   * double.
    */
   double roundToDouble();
 
   /**
-   * Returns the greatest integer value no greater than `this`.
+   * Returns the greatest double integer value no greater than `this`.
    *
-   * The result is a double.
+   * If this is already an integer valued double, including `-0.0`, or it is a
+   * non-finite double value, the value is returned unmodified.
+   *
+   * For the purpose of rounding, `-0.0` is considered to be below `0.0`.
+   * A number `d` in the range `0.0 < d < 1.0` will return `0.0`.
+   *
+   * The result is always a double.
+   * If this is a numerically large integer, the result may be an infinite
+   * double.
    */
   double floorToDouble();
 
   /**
-   * Returns the least integer value no smaller than `this`.
+   * Returns the least double integer value no smaller than `this`.
    *
-   * The result is a double.
+   * If this is already an integer valued double, including `-0.0`, or it is a
+   * non-finite double value, the value is returned unmodified.
+   *
+   * For the purpose of rounding, `-0.0` is considered to be below `0.0`.
+   * A number `d` in the range `-1.0 < d < 0.0` will return `-0.0`.
+   *
+   * The result is always a double.
+   * If this is a numerically large integer, the result may be an infinite
+   * double.
    */
   double ceilToDouble();
 
   /**
-   * Returns the integer obtained by discarding any fractional
-   * digits from `this`.
+   * Returns the double integer value obtained by discarding any fractional
+   * digits from the double value of `this`.
    *
-   * The result is a double.
+   * If this is already an integer valued double, including `-0.0`, or it is a
+   * non-finite double value, the value is returned unmodified.
+   *
+   * For the purpose of rounding, `-0.0` is considered to be below `0.0`.
+   * A number `d` in the range `-1.0 < d < 0.0` will return `-0.0`, and
+   * in the range `0.0 < d < 1.0` it will return 0.0.
+   *
+   * The result is always a double.
+   * If this is a numerically large integer, the result may be an infinite
+   * double.
    */
   double truncateToDouble();
 
   /**
    * Clamps [this] to be in the range [lowerLimit]-[upperLimit]. The comparison
-   * is done using [compareTo] and therefore takes [:-0.0:] into account.
+   * is done using [compareTo] and therefore takes `-0.0` into account.
    * It also implies that [double.NAN] is treated as the maximal double value.
    */
   num clamp(num lowerLimit, num upperLimit);
@@ -286,7 +321,7 @@ abstract class num implements Comparable<num> {
    * point is omitted.
    *
    * The parameter [fractionDigits] must be an integer satisfying:
-   * [:0 <= fractionDigits <= 20:].
+   * `0 <= fractionDigits <= 20`.
    *
    * Examples:
    *
@@ -305,7 +340,7 @@ abstract class num implements Comparable<num> {
    * Converts `this` to a [double] before computing the string representation.
    *
    * If [fractionDigits] is given then it must be an integer satisfying:
-   * [:0 <= fractionDigits <= 20:]. In this case the string contains exactly
+   * `0 <= fractionDigits <= 20`. In this case the string contains exactly
    * [fractionDigits] after the decimal point. Otherwise, without the parameter,
    * the returned string uses the shortest number of digits that accurately
    * represent [this].
@@ -326,7 +361,7 @@ abstract class num implements Comparable<num> {
    * exactly [precision] significant digits.
    *
    * The parameter [precision] must be an integer satisfying:
-   * [:1 <= precision <= 21:].
+   * `1 <= precision <= 21`.
    *
    * Examples:
    *
