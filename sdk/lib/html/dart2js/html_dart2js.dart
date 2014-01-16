@@ -2119,9 +2119,9 @@ abstract class ChildNode extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ChildNode._() { throw new UnsupportedError("Not supported"); }
 
-  Element nextElementSibling;
+  final Element nextElementSibling;
 
-  Element previousElementSibling;
+  final Element previousElementSibling;
 
   void remove();
 }
@@ -19618,17 +19618,17 @@ abstract class NavigatorID extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory NavigatorID._() { throw new UnsupportedError("Not supported"); }
 
-  String appCodeName;
+  final String appCodeName;
 
-  String appName;
+  final String appName;
 
-  String appVersion;
+  final String appVersion;
 
-  String platform;
+  final String platform;
 
-  String product;
+  final String product;
 
-  String userAgent;
+  final String userAgent;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19642,7 +19642,7 @@ abstract class NavigatorOnLine extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory NavigatorOnLine._() { throw new UnsupportedError("Not supported"); }
 
-  bool onLine;
+  final bool onLine;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21015,13 +21015,13 @@ abstract class ParentNode extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ParentNode._() { throw new UnsupportedError("Not supported"); }
 
-  int _childElementCount;
+  final int _childElementCount;
 
-  HtmlCollection _children;
+  final HtmlCollection _children;
 
-  Element _firstElementChild;
+  final Element _firstElementChild;
 
-  Element _lastElementChild;
+  final Element _lastElementChild;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26548,7 +26548,7 @@ abstract class UrlUtils extends Interceptor {
 
   String href;
 
-  String origin;
+  final String origin;
 
   String password;
 
@@ -26576,21 +26576,21 @@ abstract class UrlUtilsReadOnly extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory UrlUtilsReadOnly._() { throw new UnsupportedError("Not supported"); }
 
-  String hash;
+  final String hash;
 
-  String host;
+  final String host;
 
-  String hostname;
+  final String hostname;
 
-  String href;
+  final String href;
 
-  String pathname;
+  final String pathname;
 
-  String port;
+  final String port;
 
-  String protocol;
+  final String protocol;
 
-  String search;
+  final String search;
 
   String toString();
 }

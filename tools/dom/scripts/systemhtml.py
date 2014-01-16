@@ -804,7 +804,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       return
 
     if IsPureInterface(self._interface.id):
-      self._AddInterfaceAttribute(attribute, html_name)
+      self._AddInterfaceAttribute(attribute, html_name, read_only)
       return
 
     # If the attribute is shadowing, we can't generate a shadowing
@@ -870,10 +870,11 @@ class Dart2JSBackend(HtmlDartGenerator):
     if not read_only:
       self._AddRenamingSetter(attribute, html_name)
 
-  def _AddInterfaceAttribute(self, attribute, html_name):
+  def _AddInterfaceAttribute(self, attribute, html_name, read_only):
     self._members_emitter.Emit(
-        '\n  $TYPE $NAME;'
+        '\n  $QUALIFIER$TYPE $NAME;'
         '\n',
+        QUALIFIER='final ' if read_only else '',
         NAME=html_name,
         TYPE=self.SecureOutputType(attribute.type.id))
 

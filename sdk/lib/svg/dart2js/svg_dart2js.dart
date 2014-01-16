@@ -1439,7 +1439,7 @@ abstract class ExternalResourcesRequired extends Interceptor {
   /// Checks if this type is supported on the current platform.
   static bool supported(SvgElement element) => JS('bool', '#.externalResourcesRequired !== undefined && #.externalResourcesRequired.animVal !== undefined', element, element);
 
-  AnimatedBoolean externalResourcesRequired;
+  final AnimatedBoolean externalResourcesRequired;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3012,15 +3012,15 @@ abstract class FilterPrimitiveStandardAttributes extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory FilterPrimitiveStandardAttributes._() { throw new UnsupportedError("Not supported"); }
 
-  AnimatedLength height;
+  final AnimatedLength height;
 
-  AnimatedString result;
+  final AnimatedString result;
 
-  AnimatedLength width;
+  final AnimatedLength width;
 
-  AnimatedLength x;
+  final AnimatedLength x;
 
-  AnimatedLength y;
+  final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3034,9 +3034,9 @@ abstract class FitToViewBox extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory FitToViewBox._() { throw new UnsupportedError("Not supported"); }
 
-  AnimatedPreserveAspectRatio preserveAspectRatio;
+  final AnimatedPreserveAspectRatio preserveAspectRatio;
 
-  AnimatedRect viewBox;
+  final AnimatedRect viewBox;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6401,11 +6401,11 @@ abstract class Tests extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Tests._() { throw new UnsupportedError("Not supported"); }
 
-  StringList requiredExtensions;
+  final StringList requiredExtensions;
 
-  StringList requiredFeatures;
+  final StringList requiredFeatures;
 
-  StringList systemLanguage;
+  final StringList systemLanguage;
 
   bool hasExtension(String extension);
 }
@@ -6842,7 +6842,7 @@ abstract class UriReference extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory UriReference._() { throw new UnsupportedError("Not supported"); }
 
-  AnimatedString href;
+  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
