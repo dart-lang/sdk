@@ -12,6 +12,24 @@
         # Concern: there should really be a dependency on
         # ../../dart.gyp:create_sdk, but this is reported as a cycle by GYP.
       ],
+      'variables': {
+        'try_dart_static_files': [
+          'index.html',
+          'dartlang-style.css',
+          'iframe.html',
+          'iframe.js',
+          'dart-icon.png',
+          'dart-iphone5.png',
+
+          '../../third_party/font-awesome/font-awesome-4.0.3/'
+          'fonts/fontawesome-webfont.woff',
+
+          '../../sdk/lib/_internal/dartdoc/static/favicon.ico',
+
+          '<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
+          '<(SHARED_INTERMEDIATE_DIR)/sdk.json',
+        ],
+      },
       'actions': [
         {
           'action_name': 'sdk_json',
@@ -62,6 +80,26 @@
             '-o<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
           ],
         },
+        {
+          'action_name': 'nossl_appcache',
+          'message': 'Creating nossl.appcache',
+          'inputs': [
+            'add_time_stamp.py',
+            'nossl.appcache',
+            '<@(try_dart_static_files)',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/nossl.appcache',
+          ],
+          # Try Dart! uses AppCache. Cached files are only validated when the
+          # manifest changes (not its timestamp, but its actual contents).
+          'action': [
+            'python',
+            'add_time_stamp.py',
+            'nossl.appcache',
+            '<(SHARED_INTERMEDIATE_DIR)/nossl.appcache',
+          ],
+        },
       ],
       'copies': [
         {
@@ -70,22 +108,8 @@
           # List of files to be copied (creates implicit build dependencies).
           'files': [
             'app.yaml',
-
-            'nossl.appcache',
-            'index.html',
-            'dartlang-style.css',
-            'iframe.html',
-            'iframe.js',
-            'dart-icon.png',
-            'dart-iphone5.png',
-
-            '../../third_party/font-awesome/font-awesome-4.0.3/'
-            'fonts/fontawesome-webfont.woff',
-
-            '../../sdk/lib/_internal/dartdoc/static/favicon.ico',
-
-            '<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
-            '<(SHARED_INTERMEDIATE_DIR)/sdk.json',
+            '<@(try_dart_static_files)',
+            '<(SHARED_INTERMEDIATE_DIR)/nossl.appcache',
           ],
         },
       ],
