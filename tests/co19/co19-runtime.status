@@ -41,33 +41,20 @@ LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t04: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
 
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Issue 12508
+LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
+LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
 [ $compiler == none && $runtime == vm ]
-LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13398
-LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13398
+LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
+LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 
 [ $compiler == none && $runtime == vm && $checked ]
-LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
-
-# Passing for the wrong reasons:
-LibTest/async/Completer/completeError_A03_t02: Pass # No AsyncError anymore. Issue 407 and 463
-LibTest/async/Completer/complete_A02_t02: Pass # No AsyncError anymore. Issue 407 and 463
-LibTest/async/Future/catchError_A01_t01: Pass # No AsyncError anymore. Issue 407 and 463
-LibTest/async/Future/catchError_A01_t02: Pass # No AsyncError anymore. Issue 407 and 463
+LibTest/core/List/removeAt_A02_t01: Fail # co19 issue 670
 
 #end [ $compiler == none && $runtime == vm && $checked ]
 
 [ $compiler == none && $runtime == vm && $mode == debug ]
-LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t01: Pass, Slow
 LibTest/core/List/List_class_A01_t01: Pass, Slow
 
@@ -90,7 +77,7 @@ LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # Timeouts
 LibTest/typed_data/Float32x4/sqrt_A01_t01: Pass, Fail # co19 issue 666.
 
 [ $compiler == none && $checked && ($runtime == vm || $runtime == dartium) ]
-Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please triage this failure
+Language/15_Types/1_Static_Types_A03_t01: RuntimeError # Issue 16149
 
 [ $runtime == vm ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
