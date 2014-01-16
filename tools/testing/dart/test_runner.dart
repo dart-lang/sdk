@@ -724,9 +724,6 @@ class TestCase extends UniqueObject {
     if (!isNegative) {
       this.isNegative = displayName.contains("negative_test");
     }
-    // if (expectedOutcomes.contains(Expectation.TIMEOUT)) {
-    //  throw "TIMEOUT: $displayName";
-    //}
   }
 
   bool get unexpectedOutput {
