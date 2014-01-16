@@ -243,6 +243,8 @@ self.importScripts("$url");
     if (kind == 'verbose info') {
       if (verboseCompiler) {
         consolePrint(message);
+      } else {
+        console.appendText('.');
       }
       return;
     }
