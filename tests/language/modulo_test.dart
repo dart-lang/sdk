@@ -24,7 +24,7 @@ main() {
     } else {
       Expect.equals(i ~/ 10, noDom(i));
     }
-    Expect.equals((i ~/ 10) + (i ~/ 10) + (i % 10), threeOp(i));
+    Expect.equals((i ~/ 10) + (i % 10) + (i % 10), threeOp(i));
     Expect.equals((i ~/ 10) + (i ~/ 12) + (i % 10) + (i % 12), fourOp(i));
     
     // Zero test is done outside the loop.
@@ -60,7 +60,7 @@ noDom(a) {
 
 threeOp(a) {
   var x = a ~/ 10;
-  var y = a ~/ 10;
+  var y = a % 10;
   var z = a % 10;
   return x + y + z;
 }

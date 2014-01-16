@@ -375,6 +375,10 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
         curr_instr->ReplaceWith(div_mod, current_iterator());
         other_binop->ReplaceUsesWith(div_mod);
         other_binop->RemoveFromGraph();
+        // Only one merge possible. Because canonicalization happens later,
+        // more candidates are possible.
+        // TODO(srdjan): Allow merging of trunc-div/mod into truncDivMod.
+        break;
       }
     }
   }
