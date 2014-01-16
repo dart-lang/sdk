@@ -9805,9 +9805,9 @@ AstNode* Parser::ParseSymbolLiteral() {
   } else {
     ErrorMsg("illegal symbol literal");
   }
-  // Lookup class Symbol from collection_dev library and call the
+  // Lookup class Symbol from internal library and call the
   // constructor to create a symbol instance.
-  const Library& lib = Library::Handle(Library::CollectionDevLibrary());
+  const Library& lib = Library::Handle(Library::InternalLibrary());
   const Class& symbol_class = Class::Handle(lib.LookupClass(Symbols::Symbol()));
   ASSERT(!symbol_class.IsNull());
   ArgumentListNode* constr_args = new ArgumentListNode(symbol_pos);

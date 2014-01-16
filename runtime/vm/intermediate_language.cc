@@ -378,7 +378,7 @@ static bool IsRecognizedLibrary(const Library& library) {
   return (library.raw() == Library::CoreLibrary())
       || (library.raw() == Library::MathLibrary())
       || (library.raw() == Library::TypedDataLibrary())
-      || (library.raw() == Library::CollectionDevLibrary());
+      || (library.raw() == Library::InternalLibrary());
 }
 
 

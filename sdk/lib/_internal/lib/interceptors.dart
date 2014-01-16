@@ -5,8 +5,8 @@
 library _interceptors;
 
 import 'dart:collection';
-import 'dart:_collection-dev' hide Symbol;
-import "dart:_collection-dev" as _symbol_dev show Symbol;
+import 'dart:_internal' hide Symbol;
+import "dart:_internal" as _symbol_dev show Symbol;
 import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               Null,
                               JSSyntaxRegExp,

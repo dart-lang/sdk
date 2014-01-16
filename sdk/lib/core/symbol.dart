@@ -20,5 +20,5 @@ class Symbol {
    * possible, use [MirrorsUsed] in "dart:mirrors" to specify which names might
    * be passed to this constructor.
    */
-  const factory Symbol(String name) = _collection_dev.Symbol;
+  const factory Symbol(String name) = internal.Symbol;
 }

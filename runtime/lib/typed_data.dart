@@ -4,6 +4,9 @@
 
 // patch classes for Int8List ..... Float64List and ByteData implementations.
 
+import "dart:_internal";
+import 'dart:math' show Random;
+
 patch class Int8List {
   /* patch */ factory Int8List(int length) {
     return new _Int8Array(length);

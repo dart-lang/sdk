@@ -2,10 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This file contains all sources for the dart:collection-dev library.
+# This file contains all sources for the dart:_internal library.
 {
   'sources': [
-    'collection_dev.dart',
+    'internal.dart',
     # The above file needs to be first as it lists the parts below.
     'iterable.dart',
     'list.dart',

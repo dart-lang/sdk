@@ -8399,8 +8399,8 @@ RawLibrary* Library::CollectionLibrary() {
 }
 
 
-RawLibrary* Library::CollectionDevLibrary() {
-  return Isolate::Current()->object_store()->collection_dev_library();
+RawLibrary* Library::InternalLibrary() {
+  return Isolate::Current()->object_store()->internal_library();
 }
 
 

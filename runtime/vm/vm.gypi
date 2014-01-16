@@ -13,22 +13,22 @@
     'corelib_patch_cc_file': '<(gen_source_dir)/corelib_patch_gen.cc',
     'collection_cc_file': '<(gen_source_dir)/collection_gen.cc',
     'collection_patch_cc_file': '<(gen_source_dir)/collection_patch_gen.cc',
-    'collection_dev_cc_file': '<(gen_source_dir)/collection_dev_gen.cc',
-    'collection_dev_patch_cc_file': '<(gen_source_dir)/collection_dev_patch_gen.cc',
     'convert_cc_file': '<(gen_source_dir)/convert_gen.cc',
     'convert_patch_cc_file': '<(gen_source_dir)/convert_patch_gen.cc',
+    'internal_cc_file': '<(gen_source_dir)/internal_gen.cc',
+    'internal_patch_cc_file': '<(gen_source_dir)/internal_patch_gen.cc',
+    'isolate_cc_file': '<(gen_source_dir)/isolate_gen.cc',
+    'isolate_patch_cc_file': '<(gen_source_dir)/isolate_patch_gen.cc',
     'math_cc_file': '<(gen_source_dir)/math_gen.cc',
     'math_patch_cc_file': '<(gen_source_dir)/math_patch_gen.cc',
     'mirrors_cc_file': '<(gen_source_dir)/mirrors_gen.cc',
     'mirrors_patch_cc_file': '<(gen_source_dir)/mirrors_patch_gen.cc',
-    'isolate_cc_file': '<(gen_source_dir)/isolate_gen.cc',
-    'isolate_patch_cc_file': '<(gen_source_dir)/isolate_patch_gen.cc',
-    'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
-    'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
     'service_cc_file': '<(gen_source_dir)/service_gen.cc',
     'snapshot_test_dat_file': '<(gen_source_dir)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
+    'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
+    'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
   },
   'targets': [
     {
@@ -99,14 +99,14 @@
         'generate_corelib_patch_cc_file#host',
         'generate_collection_cc_file#host',
         'generate_collection_patch_cc_file#host',
-        'generate_collection_dev_cc_file#host',
-        'generate_collection_dev_patch_cc_file#host',
         'generate_convert_cc_file#host',
         'generate_convert_patch_cc_file#host',
-        'generate_math_cc_file#host',
-        'generate_math_patch_cc_file#host',
+        'generate_internal_cc_file#host',
+        'generate_internal_patch_cc_file#host',
         'generate_isolate_cc_file#host',
         'generate_isolate_patch_cc_file#host',
+        'generate_math_cc_file#host',
+        'generate_math_patch_cc_file#host',
         'generate_mirrors_cc_file#host',
         'generate_mirrors_patch_cc_file#host',
         'generate_typed_data_cc_file#host',
@@ -130,14 +130,14 @@
         '<(corelib_patch_cc_file)',
         '<(collection_cc_file)',
         '<(collection_patch_cc_file)',
-        '<(collection_dev_cc_file)',
-        '<(collection_dev_patch_cc_file)',
         '<(convert_cc_file)',
         '<(convert_patch_cc_file)',
-        '<(math_cc_file)',
-        '<(math_patch_cc_file)',
+        '<(internal_cc_file)',
+        '<(internal_patch_cc_file)',
         '<(isolate_cc_file)',
         '<(isolate_patch_cc_file)',
+        '<(math_cc_file)',
+        '<(math_patch_cc_file)',
         '<(mirrors_cc_file)',
         '<(mirrors_patch_cc_file)',
         '<(typed_data_cc_file)',
@@ -203,6 +203,206 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(async_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_async_patch_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        # Load the runtime implementation sources.
+        '../lib/async_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_async_patch_cc',
+          'inputs': [
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(async_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/gen_library_src_paths.py',
+            '--output', '<(async_patch_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::async_patch_paths_',
+            '--library_name', 'dart:async',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(async_patch_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_collection_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        # Load the shared collection library sources.
+        '../../sdk/lib/collection/collection_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_collection_cc',
+          'inputs': [
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(collection_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/gen_library_src_paths.py',
+            '--output', '<(collection_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::collection_source_paths_',
+            '--library_name', 'dart:collection',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(collection_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_collection_patch_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        # Load the runtime implementation sources.
+        '../lib/collection_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_collection_patch_cc',
+          'inputs': [
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(collection_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/gen_library_src_paths.py',
+            '--output', '<(collection_patch_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::collection_patch_paths_',
+            '--library_name', 'dart:collection',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(collection_patch_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_convert_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        # Load the shared convert library sources.
+        '../../sdk/lib/convert/convert_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_convert_cc',
+          'inputs': [
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(convert_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/gen_library_src_paths.py',
+            '--output', '<(convert_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::convert_source_paths_',
+            '--library_name', 'dart:convert',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(convert_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_convert_patch_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        # Load the shared convert library sources.
+        '../lib/convert_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_convert_patch_cc',
+          'inputs': [
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(convert_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/gen_library_src_paths.py',
+            '--output', '<(convert_patch_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::convert_patch_paths_',
+            '--library_name', 'dart:convert',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(convert_patch_cc_file)'' file.'
         },
       ]
     },
@@ -287,52 +487,12 @@
       ]
     },
     {
-      'target_name': 'generate_collection_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the shared collection library sources.
-        '../../sdk/lib/collection/collection_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_collection_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(collection_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(collection_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::collection_source_paths_',
-            '--library_name', 'dart:collection',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(collection_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_collection_dev_patch_cc_file',
+      'target_name': 'generate_internal_patch_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
         # Load the runtime implementation sources.
-        '../lib/collection_dev_sources.gypi',
+        '../lib/internal_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -343,36 +503,36 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_collection_dev_patch_cc',
+          'action_name': 'generate_internal_patch_cc',
           'inputs': [
             '../tools/gen_library_src_paths.py',
             '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(collection_dev_patch_cc_file)',
+            '<(internal_patch_cc_file)',
           ],
           'action': [
             'python',
             'tools/gen_library_src_paths.py',
-            '--output', '<(collection_dev_patch_cc_file)',
+            '--output', '<(internal_patch_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::collection_dev_patch_paths_',
-            '--library_name', 'dart:_collection-dev',
+            '--var_name', 'dart::Bootstrap::internal_patch_paths_',
+            '--library_name', 'dart:_internal',
             '<@(_sources)',
           ],
-          'message': 'Generating ''<(collection_dev_patch_cc_file)'' file.'
+          'message': 'Generating ''<(internal_patch_cc_file)'' file.'
         },
       ]
     },
     {
-      'target_name': 'generate_collection_dev_cc_file',
+      'target_name': 'generate_internal_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        # Load the shared collection_dev library sources.
-        '../../sdk/lib/_collection_dev/collection_dev_sources.gypi',
+        # Load the shared internal library sources.
+        '../../sdk/lib/internal/internal_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -383,36 +543,36 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_collection_dev_cc',
+          'action_name': 'generate_internal_cc',
           'inputs': [
             '../tools/gen_library_src_paths.py',
             '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(collection_dev_cc_file)',
+            '<(internal_cc_file)',
           ],
           'action': [
             'python',
             'tools/gen_library_src_paths.py',
-            '--output', '<(collection_dev_cc_file)',
+            '--output', '<(internal_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::collection_dev_source_paths_',
-            '--library_name', 'dart:_collection-dev',
+            '--var_name', 'dart::Bootstrap::internal_source_paths_',
+            '--library_name', 'dart:_internal',
             '<@(_sources)',
           ],
-          'message': 'Generating ''<(collection_dev_cc_file)'' file.'
+          'message': 'Generating ''<(internal_cc_file)'' file.'
         },
       ]
     },
     {
-      'target_name': 'generate_convert_cc_file',
+      'target_name': 'generate_isolate_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        # Load the shared convert library sources.
-        '../../sdk/lib/convert/convert_sources.gypi',
+        # Load the runtime implementation sources.
+        '../../sdk/lib/isolate/isolate_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -423,36 +583,36 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_convert_cc',
+          'action_name': 'generate_isolate_cc',
           'inputs': [
             '../tools/gen_library_src_paths.py',
             '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(convert_cc_file)',
+            '<(isolate_cc_file)',
           ],
           'action': [
             'python',
             'tools/gen_library_src_paths.py',
-            '--output', '<(convert_cc_file)',
+            '--output', '<(isolate_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::convert_source_paths_',
-            '--library_name', 'dart:convert',
+            '--var_name', 'dart::Bootstrap::isolate_source_paths_',
+            '--library_name', 'dart:isolate',
             '<@(_sources)',
           ],
-          'message': 'Generating ''<(convert_cc_file)'' file.'
+          'message': 'Generating ''<(isolate_cc_file)'' file.'
         },
       ]
     },
     {
-      'target_name': 'generate_convert_patch_cc_file',
+      'target_name': 'generate_isolate_patch_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        # Load the shared convert library sources.
-        '../lib/convert_sources.gypi',
+        # Load the runtime implementation sources.
+        '../lib/isolate_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -463,26 +623,26 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_convert_patch_cc',
+          'action_name': 'generate_isolate_patch_cc',
           'inputs': [
             '../tools/gen_library_src_paths.py',
             '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(convert_patch_cc_file)',
+            '<(isolate_patch_cc_file)',
           ],
           'action': [
             'python',
             'tools/gen_library_src_paths.py',
-            '--output', '<(convert_patch_cc_file)',
+            '--output', '<(isolate_patch_cc_file)',
             '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::convert_patch_paths_',
-            '--library_name', 'dart:convert',
+            '--var_name', 'dart::Bootstrap::isolate_patch_paths_',
+            '--library_name', 'dart:isolate',
             '<@(_sources)',
           ],
-          'message': 'Generating ''<(convert_patch_cc_file)'' file.'
+          'message': 'Generating ''<(isolate_patch_cc_file)'' file.'
         },
       ]
     },
@@ -643,166 +803,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(mirrors_patch_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_isolate_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the runtime implementation sources.
-        '../../sdk/lib/isolate/isolate_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_isolate_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(isolate_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(isolate_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::isolate_source_paths_',
-            '--library_name', 'dart:isolate',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(isolate_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_async_patch_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the runtime implementation sources.
-        '../lib/async_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_async_patch_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(async_patch_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(async_patch_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::async_patch_paths_',
-            '--library_name', 'dart:async',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(async_patch_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_collection_patch_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the runtime implementation sources.
-        '../lib/collection_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_collection_patch_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(collection_patch_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(collection_patch_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::collection_patch_paths_',
-            '--library_name', 'dart:collection',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(collection_patch_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_isolate_patch_cc_file',
-      'type': 'none',
-      'toolsets':['host'],
-      'includes': [
-        # Load the runtime implementation sources.
-        '../lib/isolate_sources.gypi',
-      ],
-      'sources/': [
-        # Exclude all .[cc|h] files.
-        # This is only here for reference. Excludes happen after
-        # variable expansion, so the script has to do its own
-        # exclude processing of the sources being passed.
-        ['exclude', '\\.cc|h$'],
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_isolate_patch_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(isolate_patch_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(isolate_patch_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::isolate_patch_paths_',
-            '--library_name', 'dart:isolate',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(isolate_patch_cc_file)'' file.'
         },
       ]
     },

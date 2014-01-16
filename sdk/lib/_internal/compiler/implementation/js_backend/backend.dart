@@ -1569,7 +1569,7 @@ class JavaScriptBackend extends Backend {
 
   /// Called when resolving the `Symbol` constructor.
   void registerSymbolConstructor(TreeElements elements) {
-    // Make sure that collection_dev.Symbol.validated is registered.
+    // Make sure that _internals.Symbol.validated is registered.
     assert(compiler.symbolValidatedConstructor != null);
     enqueueInResolution(compiler.symbolValidatedConstructor, elements);
   }

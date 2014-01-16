@@ -7,7 +7,7 @@
  */
 library dart.collection;
 
-import 'dart:_collection-dev';
+import 'dart:_internal';
 import 'dart:math' show Random;  // Used by ListMixin.shuffle.
 
 part 'collections.dart';

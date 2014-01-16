@@ -26,8 +26,8 @@ const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* DartUtils::kAsyncLibURL = "dart:async";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
-const char* DartUtils::kCollectionDevLibURL = "dart:_collection-dev";
 const char* DartUtils::kCoreLibURL = "dart:core";
+const char* DartUtils::kInternalLibURL = "dart:_internal";
 const char* DartUtils::kIsolateLibURL = "dart:isolate";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
@@ -679,11 +679,11 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   // Setup the internal library's 'internalPrint' function.
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
-  Dart_Handle url = NewString(kCollectionDevLibURL);
+  Dart_Handle url = NewString(kInternalLibURL);
   DART_CHECK_VALID(url);
-  Dart_Handle collection_dev_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(collection_dev_lib);
-  Dart_Handle result = Dart_SetField(collection_dev_lib,
+  Dart_Handle internal_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(internal_lib);
+  Dart_Handle result = Dart_SetField(internal_lib,
                                      NewString("_printClosure"),
                                      print);
   DART_CHECK_VALID(result);
