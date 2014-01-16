@@ -179,8 +179,11 @@ Map _serializeTransformer(Transformer transformer) {
         return transformer.isPrimary(deserializeAsset(message['asset']));
       } else {
         assert(message['type'] == 'apply');
+
+        // Make sure we return null so that if the transformer's [apply] returns
+        // a non-serializable value it doesn't cause problems.
         return transformer.apply(
-            new ForeignTransform(message['transform']));
+            new ForeignTransform(message['transform'])).then((_) => null);
       }
     });
   });
