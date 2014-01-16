@@ -171,10 +171,6 @@ class Heap {
 
   ObjectSet* CreateAllocatedObjectSet() const;
 
-  // Generates a profile of the current and VM isolate heaps.
-  void Profile(Dart_FileWriteCallback callback, void* stream) const;
-  void ProfileToFile(const char* reason) const;
-
   static const char* GCReasonToString(GCReason gc_reason);
 
   // Associate a peer with an object.  A non-existent peer is equal to NULL.

@@ -437,7 +437,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& receive_port,
 }
 
 
-RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
+RawObject* DartLibraryCalls::NewSendPort(Dart_Port port_id) {
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
   const String& class_name =

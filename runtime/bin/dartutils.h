@@ -104,9 +104,7 @@ class DartUtils {
 
   static void SetIntegerField(Dart_Handle handle,
                               const char* name,
-                              intptr_t val);
-  static intptr_t GetIntegerField(Dart_Handle handle,
-                                  const char* name);
+                              int64_t val);
   static void SetStringField(Dart_Handle handle,
                              const char* name,
                              const char* val);

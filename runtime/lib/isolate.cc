@@ -43,7 +43,7 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 
 // TODO(turnidge): Move to DartLibraryCalls.
-static RawObject* ReceivePortCreate(intptr_t port_id) {
+static RawObject* ReceivePortCreate(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   Function& func =
       Function::Handle(isolate,
@@ -78,7 +78,7 @@ static RawObject* ReceivePortCreate(intptr_t port_id) {
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
   ASSERT(AbstractTypeArguments::CheckedHandle(
       arguments->NativeArgAt(0)).IsNull());
-  intptr_t port_id =
+  Dart_Port port_id =
       PortMap::CreatePort(arguments->isolate()->message_handler());
   const Object& port = Object::Handle(ReceivePortCreate(port_id));
   if (port.IsError()) {

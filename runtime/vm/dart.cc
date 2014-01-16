@@ -29,8 +29,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, heap_profile_initialize, false,
-            "Writes a heap profile on isolate initialization.");
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 
@@ -225,10 +223,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       isolate->heap()->PrintSizes();
       isolate->megamorphic_cache_table()->PrintSizes();
     }
-  }
-
-  if (FLAG_heap_profile_initialize) {
-    isolate->heap()->ProfileToFile("initialize");
   }
 
   Object::VerifyBuiltinVtables();

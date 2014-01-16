@@ -152,26 +152,6 @@ DART_EXPORT void Dart_InitPerfEventsSupport(void* perf_events_file);
 
 
 /*
- * =============
- * Heap Profiler
- * =============
- */
-
-/**
- * Generates a heap profile.
- *
- * \param callback A function pointer that will be repeatedly invoked
- *   with heap profile data.
- * \param stream A pointer that will be passed to the callback.  This
- *   is a convenient way to provide an open stream to the callback.
- *
- * \return Success if the heap profile is successful.
- */
-DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_FileWriteCallback callback,
-                                         void* stream);
-
-
-/*
  * ==================
  * Verification Tools
  * ==================

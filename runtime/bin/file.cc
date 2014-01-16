@@ -333,7 +333,7 @@ void FUNCTION_NAME(File_Truncate)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
-  off64_t return_value = file->Length();
+  int64_t return_value = file->Length();
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value));
   } else {
@@ -347,7 +347,7 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
 void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
   const char* path =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  off64_t return_value = File::LengthFromPath(path);
+  int64_t return_value = File::LengthFromPath(path);
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value));
   } else {
@@ -789,7 +789,7 @@ CObject* File::SetPositionRequest(const CObjectArray& request) {
     File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      off64_t position = CObjectInt32OrInt64ToInt64(request[1]);
+      int64_t position = CObjectInt32OrInt64ToInt64(request[1]);
       if (file->SetPosition(position)) {
         return CObject::True();
       } else {
@@ -829,7 +829,7 @@ CObject* File::LengthRequest(const CObjectArray& request) {
     File* file = CObjectToFilePointer(request[0]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      off64_t return_value = file->Length();
+      int64_t return_value = file->Length();
       if (return_value >= 0) {
         return new CObjectInt64(CObject::NewInt64(return_value));
       } else {
@@ -846,7 +846,7 @@ CObject* File::LengthRequest(const CObjectArray& request) {
 CObject* File::LengthFromPathRequest(const CObjectArray& request) {
   if (request.Length() == 1 && request[0]->IsString()) {
     CObjectString filepath(request[0]);
-    off64_t return_value = File::LengthFromPath(filepath.CString());
+    int64_t return_value = File::LengthFromPath(filepath.CString());
     if (return_value >= 0) {
       return new CObjectInt64(CObject::NewInt64(return_value));
     } else {

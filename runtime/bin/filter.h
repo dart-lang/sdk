@@ -54,7 +54,7 @@ class Filter {
 
 class ZLibDeflateFilter : public Filter {
  public:
-  ZLibDeflateFilter(bool gzip = false, int level = 6)
+  ZLibDeflateFilter(bool gzip = false, int32_t level = 6)
     : gzip_(gzip), level_(level), current_buffer_(NULL) {}
   virtual ~ZLibDeflateFilter();
 
@@ -67,7 +67,7 @@ class ZLibDeflateFilter : public Filter {
 
  private:
   const bool gzip_;
-  const int level_;
+  const int32_t level_;
   uint8_t* current_buffer_;
   z_stream stream_;
 

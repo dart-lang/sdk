@@ -256,7 +256,9 @@ void EventHandlerImplementation::HandleInterruptFd() {
           DartUtils::PostInt32(msg[i].dart_port, 1 << kCloseEvent);
         } else {
           // Setup events to wait for.
-          sd->SetPortAndMask(msg[i].dart_port, msg[i].data);
+          ASSERT((msg[i].data > 0) && (msg[i].data < kIntptrMax));
+          sd->SetPortAndMask(msg[i].dart_port,
+                             static_cast<intptr_t>(msg[i].data));
           UpdateKqueue(kqueue_fd_, sd);
         }
       }
@@ -411,8 +413,10 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     struct timespec* timeout = NULL;
     struct timespec ts;
     if (millis >= 0) {
-      ts.tv_sec = millis / 1000;
-      ts.tv_nsec = (millis - (ts.tv_sec * 1000)) * 1000000;
+      int32_t millis32 = static_cast<int32_t>(millis);
+      int32_t secs = millis32 / 1000;
+      ts.tv_sec = secs;
+      ts.tv_nsec = (millis32 - (secs * 1000)) * 1000000;
       timeout = &ts;
     }
     intptr_t result = TEMP_FAILURE_RETRY(kevent(handler_impl->kqueue_fd_,

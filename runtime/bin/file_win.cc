@@ -72,19 +72,19 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
 }
 
 
-off64_t File::Position() {
+int64_t File::Position() {
   ASSERT(handle_->fd() >= 0);
   return _lseeki64(handle_->fd(), 0, SEEK_CUR);
 }
 
 
-bool File::SetPosition(off64_t position) {
+bool File::SetPosition(int64_t position) {
   ASSERT(handle_->fd() >= 0);
   return _lseeki64(handle_->fd(), position, SEEK_SET) >= 0;
 }
 
 
-bool File::Truncate(off64_t length) {
+bool File::Truncate(int64_t length) {
   ASSERT(handle_->fd() >= 0);
   return _chsize_s(handle_->fd(), length) == 0;
 }
@@ -96,7 +96,7 @@ bool File::Flush() {
 }
 
 
-off64_t File::Length() {
+int64_t File::Length() {
   ASSERT(handle_->fd() >= 0);
   struct __stat64 st;
   if (_fstat64(handle_->fd(), &st) == 0) {
@@ -121,7 +121,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
     return NULL;
   }
   if (((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) {
-    off64_t position = _lseeki64(fd, 0, SEEK_END);
+    int64_t position = _lseeki64(fd, 0, SEEK_END);
     if (position < 0) {
       return NULL;
     }
@@ -343,7 +343,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
 }
 
 
-off64_t File::LengthFromPath(const char* name) {
+int64_t File::LengthFromPath(const char* name) {
   struct __stat64 st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);
   int stat_status = _wstat64(system_name, &st);

@@ -158,7 +158,7 @@ class WriteStream : public ValueObject {
   }
 
   uint8_t* buffer() const { return *buffer_; }
-  int bytes_written() const { return current_ - *buffer_; }
+  intptr_t bytes_written() const { return current_ - *buffer_; }
 
   void set_current(uint8_t* value) { current_ = value; }
 

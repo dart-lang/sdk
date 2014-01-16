@@ -442,8 +442,6 @@ class RawObject {
   friend class GCMarker;
   friend class ExternalTypedData;
   friend class Heap;
-  friend class HeapProfiler;
-  friend class HeapProfilerRootVisitor;
   friend class MarkingVisitor;
   friend class Object;
   friend class ObjectHistogram;

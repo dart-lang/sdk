@@ -170,7 +170,7 @@ class DartLibraryCalls : public AllStatic {
                                   const Instance& dart_message);
 
   // On success returns new SendPort, on failure returns a RawError.
-  static RawObject* NewSendPort(intptr_t port_id);
+  static RawObject* NewSendPort(Dart_Port port_id);
 
   // map[key] = value;
   //
