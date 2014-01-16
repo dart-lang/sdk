@@ -1773,6 +1773,8 @@ class Method extends Indexable {
     return super.docName;
   }
 
+  String get fileName => packagePrefix + docName;
+
   /// Makes sure that the method with an inherited equivalent have comments.
   void ensureCommentFor(Method inheritedMethod) {
     if (comment.isNotEmpty) return;
@@ -1919,15 +1921,12 @@ class Type extends MirrorBased {
     return [];
   }
 
-  Map toMap() {
+  Map toMap() => {
     // We may encounter types whose corresponding library has not been
     // processed yet, so look up with the owningLibrary at the last moment.
-    var result = getDocgenObject(mirror, owningLibrary);
-    return {
-      'outer': result.docName,
-      'inner': _createTypeGenerics(mirror).map((e) => e.toMap()).toList(),
-    };
-  }
+    'outer': getDocgenObject(mirror, owningLibrary).docName,
+    'inner': _createTypeGenerics(mirror).map((e) => e.toMap()).toList(),
+  };
 }
 
 /// Holds the name of the annotation, and its parameters.
