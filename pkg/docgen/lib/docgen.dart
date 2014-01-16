@@ -1442,8 +1442,8 @@ class Class extends Indexable implements Comparable {
 
   /// Returns a list of all the parent classes.
   List<Class> parentChain() {
+    // TODO(efortuna): Seems like we can get rid of this method.
     var parent = superclass == null ? [] : [superclass];
-    parent.addAll(interfaces);
     return parent;
   }
 
@@ -1732,6 +1732,9 @@ class Method extends Indexable {
 
   String get packagePrefix => owner.packagePrefix;
 
+  Method get originallyInheritedFrom => methodInheritedFrom == null ?
+      this : methodInheritedFrom.originallyInheritedFrom;
+
   markdown.Node fixReferenceWithScope(String name) => fixReference(name);
 
   /// Look for the specified name starting with the current member, and
@@ -1765,8 +1768,7 @@ class Method extends Indexable {
     if ((mirror as MethodMirror).isConstructor) {
       // We name constructors specially -- including the class name again and a
       // "-" to separate the constructor from its name (if any).
-      return '${mirror.owner.simpleName.replaceAll(".", "_")}.'
-          '${mirror.owner.simpleName}-${mirror.simpleName}';
+      return '${owner.docName}.${mirror.owner.simpleName}-${mirror.simpleName}';
     }
     return super.docName;
   }
@@ -1778,7 +1780,7 @@ class Method extends Indexable {
     comment = inheritedMethod._commentToHtml(this);
     _unresolvedComment = inheritedMethod._unresolvedComment;
     commentInheritedFrom = inheritedMethod.commentInheritedFrom == '' ?
-        inheritedMethod.mirror.qualifiedName :
+        new DummyMirror(inheritedMethod.mirror).docName :
         inheritedMethod.commentInheritedFrom;
   }
 
@@ -1791,7 +1793,7 @@ class Method extends Indexable {
         commentInheritedFrom == methodInheritedFrom.docName ? ''
         : commentInheritedFrom),
     'inheritedFrom': (methodInheritedFrom == null? '' :
-        methodInheritedFrom.docName),
+        originallyInheritedFrom.docName),
     'static': isStatic.toString(),
     'abstract': isAbstract.toString(),
     'constant': isConst.toString(),
