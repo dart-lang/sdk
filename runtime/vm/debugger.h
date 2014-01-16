@@ -322,6 +322,10 @@ class Debugger {
   // Checks for both user-defined and internal temporary breakpoints.
   bool HasBreakpoint(const Function& func);
 
+  // Returns true if the call at address pc is patched to point to
+  // a debugger stub.
+  bool HasActiveBreakpoint(uword pc);
+
   // Returns a stack trace with frames corresponding to invisible functions
   // omitted. CurrentStackTrace always returns a new trace on the current stack.
   // The trace returned by StackTrace may have been cached; it is suitable for

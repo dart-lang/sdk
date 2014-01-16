@@ -1892,6 +1892,11 @@ void Debugger::SingleStepCallback() {
   if (frame->TokenPos() == Scanner::kDummyTokenIndex) {
     return;
   }
+  // Don't pause for a single step if there is a breakpoint set
+  // at this location.
+  if (HasActiveBreakpoint(frame->pc())) {
+    return;
+  }
 
   if (FLAG_verbose_debug) {
     OS::Print(">>> single step break at %s:%" Pd " (func %s token %" Pd ")\n",
@@ -2098,6 +2103,14 @@ void Debugger::NotifyCompilation(const Function& func) {
       MakeCodeBreakpointsAt(func, bpt);
     }
   }
+}
+
+
+// TODO(hausner): Could potentially make this faster by checking
+// whether the call target at pc is a debugger stub.
+bool Debugger::HasActiveBreakpoint(uword pc) {
+  CodeBreakpoint* bpt = GetCodeBreakpoint(pc);
+  return (bpt != NULL) && (bpt->IsEnabled());
 }
 
 

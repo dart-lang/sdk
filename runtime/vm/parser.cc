@@ -2945,7 +2945,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
 
 
 void Parser::AddEqualityNullCheck() {
-  const intptr_t token_pos = Scanner::kDummyTokenIndex;
+  const intptr_t token_pos = TokenPos();
   AstNode* argument =
       new LoadLocalNode(token_pos,
                         current_block_->scope->parent()->VariableAt(1));
