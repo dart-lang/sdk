@@ -40,7 +40,7 @@ import 'dart:indexed_db';
 import 'dart:isolate';
 import "dart:convert";
 import 'dart:math';
-import 'dart:typed_data';
+import 'dart:_native_typed_data';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
 import 'dart:svg' show Matrix;
