@@ -295,16 +295,46 @@ bool dirExists(String dir) => new Directory(dir).existsSync();
 /// Deletes whatever's at [path], whether it's a file, directory, or symlink. If
 /// it's a directory, it will be deleted recursively.
 void deleteEntry(String path) {
-  if (linkExists(path)) {
-    log.io("Deleting link $path.");
-    new Link(path).deleteSync();
-  } else if (dirExists(path)) {
-    log.io("Deleting directory $path.");
-    new Directory(path).deleteSync(recursive: true);
-  } else if (fileExists(path)) {
-    log.io("Deleting file $path.");
-    new File(path).deleteSync();
+  tryDeleteEntry() {
+    if (linkExists(path)) {
+      log.io("Deleting link $path.");
+      new Link(path).deleteSync();
+    } else if (dirExists(path)) {
+      log.io("Deleting directory $path.");
+      new Directory(path).deleteSync(recursive: true);
+    } else if (fileExists(path)) {
+      log.io("Deleting file $path.");
+      new File(path).deleteSync();
+    }
   }
+
+  if (Platform.operatingSystem != 'windows') {
+    tryDeleteEntry();
+    return;
+  }
+
+  // On Windows, we can fail to delete an entry if it's in use by another
+  // process. The only case where we know this to cause a problem is when
+  // testing "pub serve", since it can poll a file at the same time we try to
+  // delete it in the test process (issue 16129).
+  //
+  // TODO(nweiz): Once issue 14428 is fixed for Windows, remove this special
+  // handling.
+  for (var i = 0; i < 2; i++) {
+    try {
+      tryDeleteEntry();
+    } on FileSystemException catch (error) {
+      // Errno 32 indicates that the deletion failed because the file was in
+      // use.
+      if (error.osError.errorCode != 32) rethrow;
+
+      log.io("Failed to delete entry because it was in use by another process. "
+          "Retrying in 50ms.");
+      sleep(new Duration(milliseconds: 50));
+    }
+  }
+
+  tryDeleteEntry();
 }
 
 /// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
