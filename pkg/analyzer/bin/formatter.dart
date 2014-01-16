@@ -113,7 +113,10 @@ _formatFile(file) {
       var rawSource = file.readAsStringSync();
       var formatted = _format(rawSource, CodeKind.COMPILATION_UNIT);
       if (overwriteFileContents) {
-        file.writeAsStringSync(formatted);
+        // Only touch files files whose contents will be changed
+        if (rawSource != formatted) {
+          file.writeAsStringSync(formatted);
+        }
       } else {
         print(formatted);
       }
