@@ -12,10 +12,6 @@ import 'dart:math' show Random;
  * A sequence of bytes underlying a typed data object.
  * Used to process large quantities of binary or numerical data
  * more efficiently using a typed view.
- *
- * The `ByteBuffer` instances created by this library are the only ones
- * that will work with the `view` constructors.
- * Creating a class implementing `ByteBuffer` will not make it usable.
  */
 abstract class ByteBuffer {
   /**
@@ -23,15 +19,6 @@ abstract class ByteBuffer {
    */
   int get lengthInBytes;
 
-  int get hashCode;
-
-  /**
-   * Is [other] a `ByteBuffer` holding the same memory as this.
-   *
-   * A `ByteBuffer` is only equal to another `ByteBuffer` that
-   * represents the same underlying memory.
-   */
-  bool operator==(Object other);
 }
 
 
@@ -57,10 +44,6 @@ abstract class TypedData {
 
   /**
    * Returns the byte buffer associated with this object.
-   *
-   * The returned object represents the underlying memory.
-   * It may be the same object returned each time, or a new object representing
-   * the same memory.
    */
   ByteBuffer get buffer;
 }
@@ -71,6 +54,8 @@ abstract class TypedData {
  * sequence of bytes.
  */
 class Endianness {
+  const Endianness._(this._littleEndian);
+
   static const Endianness BIG_ENDIAN = const Endianness._(false);
   static const Endianness LITTLE_ENDIAN = const Endianness._(true);
   static final Endianness HOST_ENDIAN =
@@ -78,8 +63,6 @@ class Endianness {
     LITTLE_ENDIAN : BIG_ENDIAN;
 
   final bool _littleEndian;
-
-  const Endianness._(this._littleEndian);
 }
 
 

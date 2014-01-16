@@ -31,21 +31,6 @@ LibTest/collection/HashSet/HashSet_class_A01_t01: RuntimeError, OK # co19 issue 
 LibTest/collection/LinkedHashSet/LinkedHashSet_class_A01_t01: RuntimeError, OK # co19 issue 663
 LibTest/core/Set/IterableBase_A01_t01: RuntimeError, OK # co19 issue 663
 
-LibTest/typed_data/ByteData/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Float32List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Float32x4List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Float64List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Int16List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Int32List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Int64List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Int8List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Uint16List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Uint32List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Uint64List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Uint8ClampedList/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-LibTest/typed_data/Uint8List/buffer_A01_t01: RuntimeError, PASS # co19 issue 669
-
-
 [ $runtime == vm || $runtime == dartium || $compiler == dart2js ]
 LibTest/math/acos_A01_t01: PASS, FAIL, OK # co19 issue 44
 LibTest/math/asin_A01_t01: PASS, FAIL, OK # co19 issue 44

@@ -235,26 +235,26 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-      "{\"type\":\"Class\",\"id\":\"classes\\/1010\",\"name\":\"A\","
+      "{\"type\":\"Class\",\"id\":\"classes\\/1009\",\"name\":\"A\","
       "\"user_name\":\"A\",\"implemented\":false,\"abstract\":false,"
       "\"patch\":false,\"finalized\":true,\"const\":false,\"super\":"
       "{\"type\":\"@Class\",\"id\":\"classes\\/35\",\"name\":\"Object\","
       "\"user_name\":\"Object\"},\"library\":{\"type\":\"@Library\",\"id\":"
       "\"libraries\\/12\",\"name\":\"\",\"user_name\":\"dart:test-lib\"},"
-      "\"fields\":[{\"type\":\"@Field\",\"id\":\"classes\\/1010\\/fields\\/0\","
+      "\"fields\":[{\"type\":\"@Field\",\"id\":\"classes\\/1009\\/fields\\/0\","
       "\"name\":\"a\",\"user_name\":\"a\",\"owner\":{\"type\":\"@Class\","
-      "\"id\":\"classes\\/1010\",\"name\":\"A\",\"user_name\":\"A\"},"
+      "\"id\":\"classes\\/1009\",\"name\":\"A\",\"user_name\":\"A\"},"
       "\"declared_type\":{\"type\":\"@Class\",\"id\":\"classes\\/106\","
       "\"name\":\"dynamic\",\"user_name\":\"dynamic\"},\"static\":false,"
       "\"final\":false,\"const\":false}],\"functions\":["
-      "{\"type\":\"@Function\",\"id\":\"classes\\/1010\\/functions\\/0\","
+      "{\"type\":\"@Function\",\"id\":\"classes\\/1009\\/functions\\/0\","
       "\"name\":\"get:a\",\"user_name\":\"A.a\"},{\"type\":\"@Function\","
-      "\"id\":\"classes\\/1010\\/functions\\/1\",\"name\":\"set:a\","
+      "\"id\":\"classes\\/1009\\/functions\\/1\",\"name\":\"set:a\","
       "\"user_name\":\"A.a=\"},{\"type\":\"@Function\",\"id\":"
-      "\"classes\\/1010\\/functions\\/2\",\"name\":\"b\",\"user_name\":\"A.b\"}"
-      ",{\"type\":\"@Function\",\"id\":\"classes\\/1010\\/functions\\/3\","
+      "\"classes\\/1009\\/functions\\/2\",\"name\":\"b\",\"user_name\":\"A.b\"}"
+      ",{\"type\":\"@Function\",\"id\":\"classes\\/1009\\/functions\\/3\","
       "\"name\":\"c\",\"user_name\":\"A.c\"},{\"type\":\"@Function\",\"id\":"
-      "\"classes\\/1010\\/functions\\/4\",\"name\":\"A.\",\"user_name\":"
+      "\"classes\\/1009\\/functions\\/4\",\"name\":\"A.\",\"user_name\":"
       "\"A.A\"}]}",
       handler.msg());
 
@@ -264,7 +264,7 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-    "{\"type\":\"Function\",\"id\":\"classes\\/1010\\/functions\\/0\",\"name\":"
+    "{\"type\":\"Function\",\"id\":\"classes\\/1009\\/functions\\/0\",\"name\":"
     "\"get:a\",\"user_name\":\"A.a\",\"is_static\":false,\"is_const\":false,"
     "\"is_optimizable\":true,\"is_inlinable\":false,\"kind\":"
     "\"kImplicitGetter\",\"unoptimized_code\":{\"type\":\"null\"},"
@@ -277,9 +277,9 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-    "{\"type\":\"Field\",\"id\":\"classes\\/1010\\/fields\\/0\",\"name\":\"a\","
+    "{\"type\":\"Field\",\"id\":\"classes\\/1009\\/fields\\/0\",\"name\":\"a\","
     "\"user_name\":\"a\",\"owner\":{\"type\":\"@Class\",\"id\":"
-    "\"classes\\/1010\",\"name\":\"A\",\"user_name\":\"A\"},\"declared_type\":"
+    "\"classes\\/1009\",\"name\":\"A\",\"user_name\":\"A\"},\"declared_type\":"
     "{\"type\":\"@Class\",\"id\":\"classes\\/106\",\"name\":\"dynamic\","
     "\"user_name\":\"dynamic\"},\"static\":false,\"final\":false,\"const\":"
     "false,\"guard_nullable\":true,\"guard_class\":{\"type\":\"@Class\","
@@ -293,7 +293,7 @@ TEST_CASE(Service_Classes) {
   handler.HandleNextMessage();
   EXPECT_STREQ(
     "{\"type\":\"Error\",\"text\":\"Invalid sub collection huh\",\"message\":"
-    "{\"arguments\":[\"classes\",\"1010\",\"huh\",\"0\"],\"option_keys\":[],"
+    "{\"arguments\":[\"classes\",\"1009\",\"huh\",\"0\"],\"option_keys\":[],"
     "\"option_values\":[]}}", handler.msg());
 
   // Invalid field request.
@@ -303,7 +303,7 @@ TEST_CASE(Service_Classes) {
   handler.HandleNextMessage();
   EXPECT_STREQ(
     "{\"type\":\"Error\",\"text\":\"Field 9 not found\","
-    "\"message\":{\"arguments\":[\"classes\",\"1010\",\"fields\",\"9\"],"
+    "\"message\":{\"arguments\":[\"classes\",\"1009\",\"fields\",\"9\"],"
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
   // Invalid function request.
@@ -313,7 +313,7 @@ TEST_CASE(Service_Classes) {
   handler.HandleNextMessage();
   EXPECT_STREQ(
     "{\"type\":\"Error\",\"text\":\"Function 9 not found\","
-    "\"message\":{\"arguments\":[\"classes\",\"1010\",\"functions\",\"9\"],"
+    "\"message\":{\"arguments\":[\"classes\",\"1009\",\"functions\",\"9\"],"
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
 
@@ -324,7 +324,7 @@ TEST_CASE(Service_Classes) {
   handler.HandleNextMessage();
   EXPECT_STREQ(
     "{\"type\":\"Error\",\"text\":\"Command too long\",\"message\":"
-    "{\"arguments\":[\"classes\",\"1010\",\"fields\",\"9\",\"x\"],"
+    "{\"arguments\":[\"classes\",\"1009\",\"fields\",\"9\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}",
     handler.msg());
 
@@ -335,7 +335,7 @@ TEST_CASE(Service_Classes) {
   handler.HandleNextMessage();
   EXPECT_STREQ(
     "{\"type\":\"Error\",\"text\":\"Command too long\",\"message\":"
-    "{\"arguments\":[\"classes\",\"1010\",\"functions\",\"9\",\"x\"],"
+    "{\"arguments\":[\"classes\",\"1009\",\"functions\",\"9\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}",
     handler.msg());
 }

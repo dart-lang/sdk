@@ -298,7 +298,7 @@ patch class Int32x4 {
 patch class ByteData {
   /* patch */ factory ByteData(int length) {
     var list = new _Uint8Array(length);
-    return new _ByteDataView(list, 0, length);
+    return new _ByteDataView(list.buffer, 0, length);
   }
 
   /* patch */ factory ByteData.view(ByteBuffer buffer,
@@ -306,13 +306,8 @@ patch class ByteData {
     if (length == null) {
       length = buffer.lengthInBytes - offsetInBytes;
     }
-    _ByteBuffer internalBuffer = buffer;
-    return new _ByteDataView(internalBuffer._typedData, offsetInBytes, length);
+    return new _ByteDataView(buffer, offsetInBytes, length);
   }
-
-  // Called directly from C code.
-  factory ByteData._view(TypedData typedData, int offsetInBytes, int length)
-      => new _ByteDataView(typedData, offsetInBytes, length);
 }
 
 
@@ -559,14 +554,11 @@ abstract class _TypedListBase {
         if (needsClamping) {
           Lists.copy(from, skipCount, this, start, count);
           return;
-        }
-        _ByteBuffer buffer = this.buffer;
-        _ByteBuffer fromBuffer = from.buffer;
-        if (buffer._typedData._setRange(
-                start * elementSizeInBytes + this.offsetInBytes,
-                count * elementSizeInBytes,
-                fromBuffer._typedData,
-                skipCount * elementSizeInBytes + from.offsetInBytes)) {
+        } else if (this.buffer._setRange(
+                     start * elementSizeInBytes + this.offsetInBytes,
+                     count * elementSizeInBytes,
+                     from.buffer,
+                     skipCount * elementSizeInBytes + from.offsetInBytes)) {
           return;
         }
       } else if (from.buffer == this.buffer) {
@@ -615,7 +607,7 @@ abstract class _TypedListBase {
 }
 
 
-abstract class _TypedList extends _TypedListBase {
+abstract class _TypedList extends _TypedListBase implements ByteBuffer {
   // Default method implementing parts of the TypedData interface.
   int get offsetInBytes {
     return 0;
@@ -625,7 +617,9 @@ abstract class _TypedList extends _TypedListBase {
     return length * elementSizeInBytes;
   }
 
-  ByteBuffer get buffer => new _ByteBuffer(this);
+  ByteBuffer get buffer {
+    return this;
+  }
 
   // Methods implementing the collection interface.
 
@@ -2340,14 +2334,11 @@ class _TypedListIterator<E> implements Iterator<E> {
 
 
 class _TypedListView extends _TypedListBase implements TypedData {
-  final TypedData _typedData;
-  final int offsetInBytes;
-  final int length;
-
   _TypedListView(ByteBuffer _buffer, int _offset, int _length)
-      : _typedData = (_buffer as _ByteBuffer)._typedData,
-        offsetInBytes = _offset,
-        length = _length;
+    : _typedData = _buffer,  // This assignment is type safe.
+      offsetInBytes = _offset,
+      length = _length {
+  }
 
   // Method(s) implementing the TypedData interface.
 
@@ -2358,6 +2349,10 @@ class _TypedListView extends _TypedListBase implements TypedData {
   ByteBuffer get buffer {
     return _typedData.buffer;
   }
+
+  final TypedData _typedData;
+  final int offsetInBytes;
+  final int length;
 }
 
 
@@ -3038,16 +3033,13 @@ class _Int32x4ArrayView extends _TypedListView implements Int32x4List {
 
 
 class _ByteDataView implements ByteData {
-  final TypedData _typedData;
-  final int _offset;
-  final int length;
-
-  _ByteDataView(TypedData typedData, int _offsetInBytes, int _lengthInBytes)
-    : _typedData = typedData,
+  _ByteDataView(ByteBuffer _buffer, int _offsetInBytes, int _lengthInBytes)
+    : _typedData = _buffer,  // _buffer is guaranteed to be a TypedData here.
       _offset = _offsetInBytes,
       length = _lengthInBytes {
-    _rangeCheck(typedData.lengthInBytes, _offset, length);
+    _rangeCheck(_buffer.lengthInBytes, _offset, length);
   }
+
 
   // Method(s) implementing TypedData interface.
 
@@ -3319,6 +3311,11 @@ class _ByteDataView implements ByteData {
       native "ByteData_ToEndianFloat32";
   static double _toEndianFloat64(double host_value, bool little_endian)
       native "ByteData_ToEndianFloat64";
+
+
+  final TypedData _typedData;
+  final int _offset;
+  final int length;
 }
 
 
@@ -3409,19 +3406,4 @@ int _defaultIfNull(object, value) {
 void _throwRangeError(int index, int length) {
   String message = "$index must be in the range [0..$length)";
   throw new RangeError(message);
-}
-
-/**
- * Internal implementation of [ByteBuffer].
- */
-class _ByteBuffer implements ByteBuffer {
-  final _TypedList _typedData;
-
-  _ByteBuffer(this._typedData);
-
-  int get lengthInBytes => _typedData.lengthInBytes;
-
-  int get hashCode => _typedData.hashCode;
-  bool operator==(Object other) =>
-      other is _ByteBuffer && identical(_typedData, other._typedData);
 }

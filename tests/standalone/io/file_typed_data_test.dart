@@ -143,8 +143,7 @@ void testWriteInt16ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Int16List.view(typed_data_content.buffer));
+      Expect.listEquals(expected, new Int16List.view(typed_data_content));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
@@ -188,8 +187,7 @@ void testWriteUint16ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Uint16List.view(typed_data_content.buffer));
+      Expect.listEquals(expected, new Uint16List.view(typed_data_content));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
@@ -233,8 +231,7 @@ void testWriteInt32ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Int32List.view(typed_data_content.buffer));
+      Expect.listEquals(expected, new Int32List.view(typed_data_content));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
@@ -278,8 +275,7 @@ void testWriteUint32ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Uint32List.view(typed_data_content.buffer));
+      Expect.listEquals(expected, new Uint32List.view(typed_data_content));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
@@ -323,8 +319,7 @@ void testWriteInt64ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Int64List.view(typed_data_content.buffer));
+      Expect.listEquals(expected, new Int64List.view(typed_data_content));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
@@ -368,8 +363,7 @@ void testWriteUint64ListAndView() {
       for (int i = 0; i < content.length; i++) {
         typed_data_content[i] = content[i];
       }
-      Expect.listEquals(expected,
-                        new Uint64List.view(typed_data_content.buffer));
+      Expect.listEquals(expected, new Uint64List.view(typed_data_content));
       temp.deleteSync(recursive: true);
       asyncEnd();
     });
