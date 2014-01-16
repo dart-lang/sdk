@@ -109,7 +109,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('Null')", # JS date object.
     ],
 
-    'FileReader.result': ["@Creates('String|NativeByteBuffer|Null')"],
+    'FileReader.result': ["@Creates('String|ByteBuffer|Null')"],
 
     'FocusEvent.relatedTarget': [
       "@Creates('Null')",
@@ -208,8 +208,8 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'ImageData.data': [
-      "@Creates('NativeUint8ClampedList')",
-      "@Returns('NativeUint8ClampedList')",
+      "@Creates('Uint8ClampedList')",
+      "@Returns('Uint8ClampedList')",
     ],
 
     'MediaStream.getAudioTracks': [
@@ -300,26 +300,24 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'WebGLRenderingContext.getUniform': [
-      "@Creates('Null|num|String|bool|JSExtendableArray|"
-                "NativeFloat32List|NativeInt32List|NativeUint32List')",
-      "@Returns('Null|num|String|bool|JSExtendableArray|"
-                "NativeFloat32List|NativeInt32List|NativeUint32List')",
+      "@Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List"
+                "|Uint32List')",
+      "@Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List"
+                "|Uint32List')",
     ],
 
     'WebGLRenderingContext.getVertexAttrib': [
-      "@Creates('Null|num|bool|NativeFloat32List|Buffer')",
-      "@Returns('Null|num|bool|NativeFloat32List|Buffer')",
+      "@Creates('Null|num|bool|Float32List|Buffer')",
+      "@Returns('Null|num|bool|Float32List|Buffer')",
     ],
 
     'WebGLRenderingContext.getParameter': [
       # Taken from http://www.khronos.org/registry/webgl/specs/latest/
       # Section 5.14.3 Setting and getting state
-      "@Creates('Null|num|String|bool|JSExtendableArray|"
-                "NativeFloat32List|NativeInt32List|NativeUint32List|"
-                "Framebuffer|Renderbuffer|Texture')",
-      "@Returns('Null|num|String|bool|JSExtendableArray|"
-                "NativeFloat32List|NativeInt32List|NativeUint32List|"
-                "Framebuffer|Renderbuffer|Texture')",
+      "@Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List"
+                "|Uint32List|Framebuffer|Renderbuffer|Texture')",
+      "@Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List"
+                "|Uint32List|Framebuffer|Renderbuffer|Texture')",
     ],
 
     'WebGLRenderingContext.getContextAttributes': [
@@ -327,8 +325,8 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'XMLHttpRequest.response': [
-      "@Creates('NativeByteBuffer|Blob|Document|=Object|JSExtendableArray"
-                "|String|num')",
+      "@Creates('ByteBuffer|Blob|Document|=Object|JSExtendableArray|String"
+                "|num')",
     ],
 }, dart2jsOnly=True)
 

@@ -805,10 +805,10 @@ abstract class Compiler implements DiagnosticListener {
           findRequiredElement(library, 'MirrorSystem');
       mirrorsUsedClass =
           findRequiredElement(library, 'MirrorsUsed');
-    } else if (uri == new Uri(scheme: 'dart', path: '_native_typed_data')) {
+    } else if (uri == new Uri(scheme: 'dart', path: 'typed_data')) {
       typedDataLibrary = library;
       typedDataClass =
-          findRequiredElement(library, 'NativeTypedData');
+          findRequiredElement(library, 'TypedData');
     } else if (uri == new Uri(scheme: 'dart', path: '_collection-dev')) {
       symbolImplementationClass =
           findRequiredElement(library, 'Symbol');

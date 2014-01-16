@@ -977,13 +977,11 @@ class SimpleTypeInferrerVisitor<T>
               elementType, length));
     } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
       int length = findLength(node);
-      FunctionElement constructor = element;
-      constructor = constructor.redirectionTarget;
       T elementType = inferrer.returnTypeOfElement(
-          constructor.getEnclosingClass().lookupMember('[]'));
+          element.getEnclosingClass().lookupMember('[]'));
       return inferrer.concreteTypes.putIfAbsent(
         node, () => types.allocateList(
-          types.nonNullExact(constructor.getEnclosingClass()), node,
+          types.nonNullExact(element.getEnclosingClass()), node,
           outermostElement, elementType, length));
     } else if (element.isFunction() || element.isConstructor()) {
       return returnType;
