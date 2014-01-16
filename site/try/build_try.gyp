@@ -18,8 +18,10 @@
           'dartlang-style.css',
           'iframe.html',
           'iframe.js',
-          'dart-icon.png',
-          'dart-iphone5.png',
+          'dart-icon.png', # iOS icon.
+          'dart-iphone5.png', # iPhone 5 splash screen.
+          'dart-icon-196px.png', # Android icon.
+          'try-dart-screenshot.png', # Google+ screen shot.
 
           '../../third_party/font-awesome/font-awesome-4.0.3/'
           'fonts/fontawesome-webfont.woff',
@@ -87,6 +89,7 @@
             'add_time_stamp.py',
             'nossl.appcache',
             '<@(try_dart_static_files)',
+            'build_try.gyp', # If the list of files changed.
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/nossl.appcache',
