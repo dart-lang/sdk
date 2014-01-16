@@ -126,7 +126,7 @@ DEFINE_NATIVE_ENTRY(Random_setupSeed, 2) {
   int64_t seed = 0;
   if (seed_int.IsBigint()) {
     const Bigint& mask64 = Bigint::Handle(
-        BigintOperations::NewFromUint64(0xffffffffffffffff));
+        BigintOperations::NewFromUint64(0xffffffffffffffffLL));
     Bigint& big_seed = Bigint::Handle();
     big_seed ^= seed_int.raw();
     Bigint& low64 = Bigint::Handle();
