@@ -877,7 +877,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
       List<String> argumentNames = const [];
       if (type == JSInvocationMirror.METHOD) {
         // Note: [argumentNames] are not what the user actually provided, it is
-        // always all the named paramters.
+        // always all the named parameters.
         argumentNames = reflectiveName.split(':').skip(3).toList();
       }
 
