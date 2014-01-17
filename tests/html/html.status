@@ -78,8 +78,6 @@ selectelement_test: Skip # http://dartbug.com/15516
 canvasrenderingcontext2d_test/drawImage_video_element: Pass,Fail # Issue 11836
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11836
 
-touchevent_test/supported: Pass, Fail # Passing on 32.
-
 xhr_test: Pass, Fail # Issue 11884
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 
