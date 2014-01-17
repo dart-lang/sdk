@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Version 1.1}}
+{\large Version 1.11}}
 \author{The Dart Team}
 \begin{document}
 \maketitle
@@ -3114,7 +3114,7 @@ Otherwise:
 A function expression invocation $e_f(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is equivalent to $e_f.call(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 
 \commentary{
-The implication of this definition, and the other definitions involving the method \code{call()}, is that user defined types can be used as function values provided they define a \code{call()} method. The method \code{call()} is special in this regard. The signature of the \code{call()} method determines the signature used when using the object via the built-in invocation syntax.
+The implication of this definition, and the other definitions involving the method \code{call()}, is that user defined types can be used as function values provided they define a \CALL{} method. The method \CALL{} is special in this regard. The signature of the \CALL{} method determines the signature used when using the object via the built-in invocation syntax.
 }
 
 It is a static warning if the static type $F$ of $e_f$ may not be assigned to a function type.  If $F$ is not a function type, the static type of $i$ is \DYNAMIC{}. Otherwise 
@@ -4312,16 +4312,20 @@ Instead, each iteration has its own distinct variable.  The first iteration uses
 \subsubsection{For-in}
 \label{for-in}
 
-A for statement of the form \code{ \FOR{} ($varOrType?$ id \IN{} $e$) $s$} is equivalent to the following code: 
+A for statement of the form \code{ \FOR{} ($finalConstVarOrType?$ id \IN{} $e$) $s$} is equivalent to the following code: 
 
 \begin{dartCode}
 var n0 = $e$.iterator;
 \WHILE{} (n0.moveNext()) \{
-   $varOrType?$ id = n0.current;
+   $finalConstVarOrType?$ id = n0.current;
    $s$ 
 \}
 \end{dartCode}
 where \code{n0} is an identifier that does not occur anywhere in the program.
+
+\commentary{
+Note that in fact, using a  \CONST{} variable would give rise to a compile time error since \cd{n0.current} is not a constant expression.  
+}
  
 \subsection{While}
 \label{while}
