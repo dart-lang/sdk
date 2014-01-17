@@ -814,13 +814,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 }
 
 
-// Gets called from debug stub when code reaches a breakpoint.
-DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
-  ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->SignalBpReached();
-}
-
-
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
   ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->SingleStepCallback();

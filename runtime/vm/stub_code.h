@@ -66,7 +66,6 @@ class RawCode;
   V(ZeroArgsUnoptimizedStaticCall)                                             \
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(OptimizeFunction)                                                          \
-  V(BreakpointDynamic)                                                         \
 
 // class StubEntry is used to describe stub methods generated in dart to
 // abstract out common code executed from generated dart code.

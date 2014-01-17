@@ -105,15 +105,7 @@ Assembler::Assembler(bool use_far_branches)
       patchable_pool_entries_.Add(kNotPatchable);
     }
 
-    // Create fixed object pool entries for debugger stubs.
-    if (StubCode::BreakpointDynamic_entry() != NULL) {
-      intptr_t index =
-          FindExternalLabel(&StubCode::BreakpointDynamicLabel(), kNotPatchable);
-      ASSERT(index == kBreakpointDynamicCPIndex);
-    } else {
-      object_pool_.Add(Object::null_object(), Heap::kOld);
-      patchable_pool_entries_.Add(kNotPatchable);
-    }
+    // Create fixed object pool entry for debugger stub.
     if (StubCode::BreakpointRuntime_entry() != NULL) {
       intptr_t index =
           FindExternalLabel(&StubCode::BreakpointRuntimeLabel(), kNotPatchable);

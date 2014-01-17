@@ -1849,34 +1849,6 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 }
 
 
-//  RBX: Inline cache data array.
-//  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ pushq(RBX);
-  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry, 0);
-  __ popq(RBX);
-  __ LeaveStubFrame();
-
-  // Find out which dispatch stub to call.
-  Label test_two, test_three, test_four;
-  __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
-  __ cmpq(RCX, Immediate(1));
-  __ j(NOT_EQUAL, &test_two, Assembler::kNearJump);
-  __ jmp(&StubCode::OneArgCheckInlineCacheLabel());
-  __ Bind(&test_two);
-  __ cmpl(RCX, Immediate(2));
-  __ j(NOT_EQUAL, &test_three, Assembler::kNearJump);
-  __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
-  __ Bind(&test_three);
-  __ cmpl(RCX, Immediate(3));
-  __ j(NOT_EQUAL, &test_four, Assembler::kNearJump);
-  __ jmp(&StubCode::ThreeArgsCheckInlineCacheLabel());
-  __ Bind(&test_four);
-  __ Stop("Unsupported number of arguments tested.");
-}
-
-
 // Called only from unoptimized code.
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   // Check single stepping.

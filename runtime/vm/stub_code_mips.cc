@@ -2081,37 +2081,6 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 }
 
 
-//  RA: return address (Dart code).
-//  S5: Inline cache data array.
-void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ TraceSimMsg("BreakpointDynamicStub");
-  __ EnterStubFrame();
-  __ Push(S5);
-  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry, 0);
-  __ Pop(S5);
-  __ LeaveStubFrame();
-
-  // Find out which dispatch stub to call.
-  __ lw(T1, FieldAddress(S5, ICData::num_args_tested_offset()));
-
-  Label one_arg, two_args, three_args;
-  __ BranchEqual(T1, 1, &one_arg);
-  __ BranchEqual(T1, 2, &two_args);
-  __ BranchEqual(T1, 3, &three_args);
-  __ Stop("Unsupported number of arguments tested.");
-
-  __ Bind(&one_arg);
-  __ Branch(&StubCode::OneArgCheckInlineCacheLabel());
-  __ Bind(&two_args);
-  __ Branch(&StubCode::TwoArgsCheckInlineCacheLabel());
-  __ Bind(&three_args);
-  __ Branch(&StubCode::ThreeArgsCheckInlineCacheLabel());
-  __ break_(0);
-}
-
-
 // Called only from unoptimized code. All relevant registers have been saved.
 // RA: return address.
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
