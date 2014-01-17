@@ -675,14 +675,12 @@ class ResolverTask extends CompilerTask {
         compiler.reportError(from, MessageKind.CYCLIC_CLASS_HIERARCHY,
                                  {'className': cls.name});
         cls.supertypeLoadState = STATE_DONE;
-        cls.hasIncompleteHierarchy = true;
         cls.allSupertypesAndSelf =
             compiler.objectClass.allSupertypesAndSelf.extendClass(
                 cls.computeType(compiler));
         cls.supertype = cls.allSupertypes.head;
         assert(invariant(from, cls.supertype != null,
             message: 'Missing supertype on cyclic class $cls.'));
-        cls.interfaces = const Link<DartType>();
         return;
       }
       cls.supertypeLoadState = STATE_STARTED;
@@ -701,8 +699,6 @@ class ResolverTask extends CompilerTask {
   // syntax and semantic resolution.
   ClassElement currentlyResolvedClass;
   Queue<ClassElement> pendingClassesToBeResolved = new Queue<ClassElement>();
-  Queue<ClassElement> pendingClassesToBePostProcessed =
-      new Queue<ClassElement>();
 
   /**
    * Resolve the class [element].
@@ -722,17 +718,9 @@ class ResolverTask extends CompilerTask {
     TreeElementMapping mapping = new TreeElementMapping(element);
     resolveClassInternal(element, mapping);
     if (previousResolvedClass == null) {
-      do {
-        while (!pendingClassesToBeResolved.isEmpty) {
-          pendingClassesToBeResolved.removeFirst().ensureResolved(compiler);
-        }
-        while (!pendingClassesToBePostProcessed.isEmpty) {
-          _postProcessClassElement(
-              pendingClassesToBePostProcessed.removeFirst());
-        }
-      } while (!pendingClassesToBeResolved.isEmpty);
-      assert(pendingClassesToBeResolved.isEmpty);
-      assert(pendingClassesToBePostProcessed.isEmpty);
+      while (!pendingClassesToBeResolved.isEmpty) {
+        pendingClassesToBeResolved.removeFirst().ensureResolved(compiler);
+      }
     }
     currentlyResolvedClass = previousResolvedClass;
   }
@@ -759,7 +747,6 @@ class ResolverTask extends CompilerTask {
         visitor.visit(tree);
         element.resolutionState = STATE_DONE;
         compiler.onClassResolved(element);
-        pendingClassesToBePostProcessed.add(element);
       }));
       if (element.isPatched) {
         // Ensure handling patch after origin.
@@ -782,9 +769,6 @@ class ResolverTask extends CompilerTask {
       // TODO(johnniwinther): Check matching type variables and
       // empty extends/implements clauses.
     }
-  }
-
-  void _postProcessClassElement(BaseClassElementX element) {
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
       if (!element.isProxy && metadata.value == compiler.proxyConstant) {
@@ -806,8 +790,6 @@ class ResolverTask extends CompilerTask {
         });
       }
     });
-
-    MembersCreator.computeClassMembers(compiler, element);
   }
 
   void checkClass(ClassElement element) {
@@ -1011,6 +993,7 @@ class ResolverTask extends CompilerTask {
     bool isMinus = false;
     int requiredParameterCount;
     MessageKind messageKind;
+    FunctionSignature signature = function.computeSignature(compiler);
     if (identical(value, 'unary-')) {
       isMinus = true;
       messageKind = MessageKind.MINUS_OPERATOR_BAD_ARITY;
@@ -1112,7 +1095,10 @@ class ResolverTask extends CompilerTask {
         errorMessage,
         {'memberName': contextElement.name,
          'className': contextElement.getEnclosingClass().name});
-    compiler.reportInfo(contextElement, contextMessage);
+    compiler.reportMessage(
+        compiler.spanFromElement(contextElement),
+        contextMessage.error(),
+        Diagnostic.INFO);
   }
 
   void checkValidOverride(Element member, Element superMember) {
@@ -3877,11 +3863,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       }
     }
 
-    if (element.interfaces == null) {
-      element.interfaces = resolveInterfaces(node.interfaces, node.superclass);
-    } else {
-      assert(invariant(element, element.hasIncompleteHierarchy));
-    }
+    assert(element.interfaces == null);
+    element.interfaces = resolveInterfaces(node.interfaces, node.superclass);
     calculateAllSupertypes(element);
 
     if (!element.hasConstructor) {
@@ -3955,7 +3938,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         element.getCompilationUnit(),
         compiler.getNextFreeClassId(),
         node,
-        new Modifiers.withFlags(new NodeList.empty(), Modifiers.FLAG_ABSTRACT));
+        Modifiers.EMPTY);  // TODO(kasperl): Should this be abstract?
     // Create synthetic type variables for the mixin application.
     LinkBuilder<DartType> typeVariablesBuilder = new LinkBuilder<DartType>();
     element.typeVariables.forEach((TypeVariableType type) {
@@ -4027,20 +4010,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // The class that is the result of a mixin application implements
     // the interface of the class that was mixed in so always prepend
     // that to the interface list.
-    if (mixinApplication.interfaces == null) {
-      if (mixinType.kind == TypeKind.INTERFACE) {
-        // Avoid malformed types in the interfaces.
-        interfaces = interfaces.prepend(mixinType);
-      }
-      mixinApplication.interfaces = interfaces;
-    } else {
-      assert(invariant(mixinApplication,
-          mixinApplication.hasIncompleteHierarchy));
-    }
+
+    interfaces = interfaces.prepend(mixinType);
+    assert(mixinApplication.interfaces == null);
+    mixinApplication.interfaces = interfaces;
 
     ClassElement superclass = supertype.element;
     if (mixinType.kind != TypeKind.INTERFACE) {
-      mixinApplication.hasIncompleteHierarchy = true;
       mixinApplication.allSupertypesAndSelf = superclass.allSupertypesAndSelf;
       return;
     }

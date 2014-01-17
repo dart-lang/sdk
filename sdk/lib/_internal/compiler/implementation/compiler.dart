@@ -1542,63 +1542,6 @@ abstract class Compiler implements DiagnosticListener {
       });
     });
   }
-
-  /// Debugging helper for determining whether the current element is declared
-  /// within 'user code'.
-  ///
-  /// See [inUserCode] for what defines 'user code'.
-  bool currentlyInUserCode() {
-    return inUserCode(currentElement);
-  }
-
-  /// Debugging helper for determining whether [element] is declared within
-  /// 'user code'.
-  ///
-  /// What constitutes 'user code' is defined by the URI(s) provided by the
-  /// entry point(s) of compilation or analysis:
-  ///
-  /// If an entrypoint URI uses the 'package' scheme then every library from
-  /// that same package is considered to be in user code. For instance, if
-  /// an entry point URI is 'package:foo/bar.dart' then every library whose
-  /// canonical URI starts with 'package:foo/' is in user code.
-  ///
-  /// If an entrypoint URI uses another scheme than 'package' then every library
-  /// with that scheme is in user code. For instance, an entry point URI is
-  /// 'file:///foo.dart' then every library whose canonical URI scheme is
-  /// 'file' is in user code.
-  bool inUserCode(Element element) {
-    if (element == null) return false;
-    Uri libraryUri = element.getLibrary().canonicalUri;
-    List<Uri> entrypoints = <Uri>[];
-    if (mainApp != null) {
-      entrypoints.add(mainApp.canonicalUri);
-    }
-    if (librariesToAnalyzeWhenRun != null) {
-      entrypoints.addAll(librariesToAnalyzeWhenRun);
-    }
-    if (libraryUri.scheme == 'package') {
-      for (Uri uri in entrypoints) {
-        if (uri.scheme != 'package') continue;
-        int slashPos = libraryUri.path.indexOf('/');
-        if (slashPos != -1) {
-          String packageName = libraryUri.path.substring(0, slashPos + 1);
-          if (uri.path.startsWith(packageName)) {
-            return true;
-          }
-        } else {
-          if (libraryUri.path == uri.path) {
-            return true;
-          }
-        }
-      }
-    } else {
-      for (Uri uri in entrypoints) {
-        if (libraryUri.scheme == uri.scheme) return true;
-      }
-    }
-    return false;
-  }
-
 }
 
 class CompilerTask {

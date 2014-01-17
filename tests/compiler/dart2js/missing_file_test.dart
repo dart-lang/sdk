@@ -18,6 +18,9 @@ import '../../../sdk/lib/_internal/compiler/compiler.dart'
 
 import 'dart:async';
 
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
+
 const MEMORY_SOURCE_FILES = const {
   'main.dart': '''
 
