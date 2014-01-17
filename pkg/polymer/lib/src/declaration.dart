@@ -531,7 +531,17 @@ DeclarationMirror _getProperty(ClassMirror cls, Symbol property) {
       return mirror;
     }
     cls = cls.superclass;
-  } while (cls != null);
+
+    // It's generally a good idea to stop at Object, since we know it doesn't
+    // have what we want.
+    // TODO(jmesserly): This is also a workaround for what appears to be a V8
+    // bug introduced between Chrome 31 and 32. After 32
+    // JsClassMirror.declarations on Object calls
+    // JsClassMirror.typeVariables, which tries to get the _jsConstructor's
+    // .prototype["<>"]. This ends up getting the "" property instead, maybe
+    // because "<>" doesn't exist, and gets ";" which then blows up because
+    // the code later on expects a List of ints.
+  } while (cls != _objectType);
   return null;
 }
 
