@@ -4041,7 +4041,6 @@ abstract class SsaFromAstMixin
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(sourceElement, send, compiler);
         ClassElement cls = element.getEnclosingClass();
-        assert(cls.thisType.element.isNative());
         return inferred.containsAll(compiler)
             ? new TypeMask.nonNullExact(cls.thisType.element)
             : inferred;

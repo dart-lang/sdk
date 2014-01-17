@@ -148,9 +148,9 @@ _convertDartToNative_PrepareForStructuredClone(value) {
 
     // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
     if (e is ImageData) return e;
-    if (e is NativeByteBuffer) return e;
+    if (e is ByteBuffer) return e;
 
-    if (e is NativeTypedData) return e;
+    if (e is TypedData) return e;
 
     if (e is Map) {
       var slot = findSlot(e);
@@ -332,7 +332,7 @@ gl.ContextAttributes convertNativeToDart_ContextAttributes(
 // On Firefox, the returned ImageData is a plain object.
 
 class _TypedImageData implements ImageData {
-  final NativeUint8ClampedList data;
+  final Uint8ClampedList data;
   final int height;
   final int width;
 
@@ -370,7 +370,7 @@ ImageData convertNativeToDart_ImageData(nativeImageData) {
   // object.  So we create a _TypedImageData.
 
   return new _TypedImageData(
-      JS('NativeUint8ClampedList', '#.data', nativeImageData),
+      JS('Uint8ClampedList', '#.data', nativeImageData),
       JS('var', '#.height', nativeImageData),
       JS('var', '#.width', nativeImageData));
 }
@@ -399,7 +399,7 @@ bool isImmutableJavaScriptArray(value) =>
 const String _serializedScriptValue =
     'num|String|bool|'
     'JSExtendableArray|=Object|'
-    'Blob|File|NativeByteBuffer|NativeTypedData'
+    'Blob|File|ByteBuffer|TypedData'
     // TODO(sra): Add Date, RegExp.
     ;
 const annotation_Creates_SerializedScriptValue =

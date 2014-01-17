@@ -32,7 +32,6 @@ import 'dart:indexed_db';
 import 'dart:isolate';
 import "dart:convert";
 import 'dart:math';
-import 'dart:_native_typed_data';
 import 'dart:typed_data';
 import 'dart:svg' as svg;
 import 'dart:svg' show Matrix;
@@ -12839,7 +12838,7 @@ class FileReader extends EventTarget native "FileReader" {
 
   @DomName('FileReader.result')
   @DocsEditable()
-  @Creates('String|NativeByteBuffer|Null')
+  @Creates('String|ByteBuffer|Null')
   final Object result;
 
   @DomName('FileReader.abort')
@@ -14961,7 +14960,7 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Creates('NativeByteBuffer|Blob|Document|=Object|JSExtendableArray|String|num')
+  @Creates('ByteBuffer|Blob|Document|=Object|JSExtendableArray|String|num')
   final dynamic _get_response;
 
   /**
@@ -15418,8 +15417,8 @@ class ImageData extends Interceptor native "ImageData" {
 
   @DomName('ImageData.data')
   @DocsEditable()
-  @Creates('NativeUint8ClampedList')
-  @Returns('NativeUint8ClampedList')
+  @Creates('Uint8ClampedList')
+  @Returns('Uint8ClampedList')
   final List<int> data;
 
   @DomName('ImageData.height')
