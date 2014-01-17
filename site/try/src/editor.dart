@@ -241,8 +241,9 @@ addDiagnostic(String kind, String message, int begin, int end) {
         anchorOffset = selection.anchorOffset;
         Node marker = new Text("");
         node.replaceWith(marker);
-        // TODO(ahe): Don't highlight everything in the node.  Find
-        // the relevant token.
+        // TODO(ahe): Don't highlight everything in the node.  Find the
+        // relevant token (works for now as we create a node for each token,
+        // which is probably not great for performance).
         if (kind == 'error') {
           marker.replaceWith(diagnostic(node, error(message)));
         } else if (kind == 'warning') {
@@ -301,7 +302,7 @@ Decoration getDecoration(Token token) {
     isMalformedInput = true;
     return new DiagnosticDecoration('error', tokenValue);
   }
-  return null;
+  return currentTheme.foreground;
 }
 
 diagnostic(text, tip) {
