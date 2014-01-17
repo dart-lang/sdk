@@ -19,15 +19,6 @@
 namespace dart {
 
 
-// Notes on stack frame walking:
-//
-// The sampling profiler will collect up to Sample::kNumStackFrames stack frames
-// The stack frame walking code uses the frame pointer to traverse the stack.
-// If the VM is compiled without frame pointers (which is the default on
-// recent GCC versions with optimizing enabled) the stack walking code may
-// fail (sometimes leading to a crash).
-//
-
 #if defined(USING_SIMULATOR) || defined(TARGET_OS_WINDOWS) || \
     defined(TARGET_OS_MACOS) || defined(TARGET_OS_ANDROID)
   DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
@@ -39,26 +30,35 @@ DEFINE_FLAG(charp, profile_dir, NULL,
             "Enable writing profile data into specified directory.");
 DEFINE_FLAG(int, profile_period, 1000,
             "Time between profiler samples in microseconds. Minimum 250.");
+DEFINE_FLAG(int, profile_depth, 8,
+            "Maximum number stack frames walked. Minimum 1. Maximum 128.");
 
 bool Profiler::initialized_ = false;
-Monitor* Profiler::monitor_ = NULL;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
 
 void Profiler::InitOnce() {
   const int kMinimumProfilePeriod = 250;
+  const int kMinimumDepth = 1;
+  const int kMaximumDepth = 128;
   if (!FLAG_profile) {
     return;
   }
   ASSERT(!initialized_);
-  initialized_ = true;
-  monitor_ = new Monitor();
-  sample_buffer_ = new SampleBuffer();
-  NativeSymbolResolver::InitOnce();
-  ThreadInterrupter::InitOnce();
+  // Place some sane restrictions on user controlled flags.
   if (FLAG_profile_period < kMinimumProfilePeriod) {
     FLAG_profile_period = kMinimumProfilePeriod;
   }
+  if (FLAG_profile_depth < kMinimumDepth) {
+    FLAG_profile_depth = kMinimumDepth;
+  } else if (FLAG_profile_depth > kMaximumDepth) {
+    FLAG_profile_depth = kMaximumDepth;
+  }
+  Sample::InitOnce();
+  sample_buffer_ = new SampleBuffer();
+  NativeSymbolResolver::InitOnce();
+  ThreadInterrupter::InitOnce();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
+  initialized_ = true;
 }
 
 
@@ -78,7 +78,6 @@ void Profiler::InitProfilingForIsolate(Isolate* isolate, bool shared_buffer) {
   }
   ASSERT(isolate != NULL);
   ASSERT(sample_buffer_ != NULL);
-  MonitorLocker ml(monitor_);
   {
     MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
     SampleBuffer* sample_buffer = sample_buffer_;
@@ -103,7 +102,6 @@ void Profiler::ShutdownProfilingForIsolate(Isolate* isolate) {
   }
   // We do not have a current isolate.
   ASSERT(Isolate::Current() == NULL);
-  MonitorLocker ml(monitor_);
   {
     MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
     IsolateProfilerData* profiler_data = isolate->profiler_data();
@@ -540,16 +538,18 @@ intptr_t Profiler::ProcessSamples(Isolate* isolate,
                                   SampleBuffer* sample_buffer) {
   int64_t start = OS::GetCurrentTimeMillis();
   intptr_t samples = 0;
+  Sample* sample = Sample::Allocate();
   for (intptr_t i = 0; i < sample_buffer->capacity(); i++) {
-    Sample sample = sample_buffer->GetSample(i);
-    if (sample.isolate != isolate) {
+    sample_buffer->CopySample(i, sample);
+    if (sample->isolate() != isolate) {
       continue;
     }
-    if (sample.timestamp == 0) {
+    if (sample->timestamp() == 0) {
       continue;
     }
-    samples += ProcessSample(isolate, code_region_table, &sample);
+    samples += ProcessSample(isolate, code_region_table, sample);
   }
+  free(sample);
   int64_t end = OS::GetCurrentTimeMillis();
   if (FLAG_trace_profiled_isolates) {
     int64_t delta = end - start;
@@ -565,23 +565,21 @@ intptr_t Profiler::ProcessSamples(Isolate* isolate,
 intptr_t Profiler::ProcessSample(Isolate* isolate,
                                  ProfilerCodeRegionTable* code_region_table,
                                 Sample* sample) {
-  Sample::SampleType type = sample->type;
-  if (type != Sample::kIsolateSample) {
+  if (sample->type() != Sample::kIsolateSample) {
     return 0;
   }
-  if (sample->pcs[0] == 0) {
+  if (sample->At(0) == 0) {
     // No frames in this sample.
     return 0;
   }
-  intptr_t i = 0;
   // i points to the leaf (exclusive) PC sample. Do not tick the address.
-  code_region_table->AddTick(sample->pcs[i], true, false);
+  code_region_table->AddTick(sample->At(0), true, false);
   // Give all frames an inclusive tick and tick the address.
-  for (; i < Sample::kNumStackFrames; i++) {
-    if (sample->pcs[i] == 0) {
+  for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
+    if (sample->At(i) == 0) {
       break;
     }
-    code_region_table->AddTick(sample->pcs[i], false, true);
+    code_region_table->AddTick(sample->At(i), false, true);
   }
   return 1;
 }
@@ -645,22 +643,62 @@ IsolateProfilerData::~IsolateProfilerData() {
 }
 
 
+intptr_t Sample::instance_size_ = 0;
+
+void Sample::InitOnce() {
+  ASSERT(FLAG_profile_depth >= 1);
+  instance_size_ =
+     sizeof(Sample) + (sizeof(intptr_t) * FLAG_profile_depth);  // NOLINT.
+}
+
+
+uintptr_t Sample::At(intptr_t i) const {
+  ASSERT(i >= 0);
+  ASSERT(i < FLAG_profile_depth);
+  return pcs_[i];
+}
+
+
+void Sample::SetAt(intptr_t i, uintptr_t pc) {
+  ASSERT(i >= 0);
+  ASSERT(i < FLAG_profile_depth);
+  pcs_[i] = pc;
+}
+
+
 void Sample::Init(SampleType type, Isolate* isolate, int64_t timestamp,
                   ThreadId tid) {
-  this->timestamp = timestamp;
-  this->tid = tid;
-  this->isolate = isolate;
-  for (intptr_t i = 0; i < kNumStackFrames; i++) {
-    pcs[i] = 0;
+  timestamp_ = timestamp;
+  tid_ = tid;
+  isolate_ = isolate;
+  type_ = type;
+  for (int i = 0; i < FLAG_profile_depth; i++) {
+    pcs_[i] = 0;
   }
-  this->type = type;
-  vm_tags = 0;
-  runtime_tags = 0;
 }
+
+
+void Sample::CopyInto(Sample* dst) const {
+  ASSERT(dst != NULL);
+  dst->timestamp_ = timestamp_;
+  dst->tid_ = tid_;
+  dst->isolate_ = isolate_;
+  dst->type_ = type_;
+  for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
+    dst->pcs_[i] = pcs_[i];
+  }
+}
+
+
+Sample* Sample::Allocate() {
+  return reinterpret_cast<Sample*>(malloc(instance_size()));
+}
+
 
 SampleBuffer::SampleBuffer(intptr_t capacity) {
   capacity_ = capacity;
-  samples_ = reinterpret_cast<Sample*>(calloc(capacity, sizeof(Sample)));
+  samples_ = reinterpret_cast<Sample*>(
+      calloc(capacity, Sample::instance_size()));
   cursor_ = 0;
 }
 
@@ -680,7 +718,21 @@ Sample* SampleBuffer::ReserveSample() {
   uintptr_t cursor = AtomicOperations::FetchAndIncrement(&cursor_);
   // Map back into sample buffer range.
   cursor = cursor % capacity_;
-  return &samples_[cursor];
+  return At(cursor);
+}
+
+
+void SampleBuffer::CopySample(intptr_t i, Sample* sample) const {
+  At(i)->CopyInto(sample);
+}
+
+
+Sample* SampleBuffer::At(intptr_t idx) const {
+  ASSERT(idx >= 0);
+  ASSERT(idx < capacity_);
+  intptr_t offset = idx * Sample::instance_size();
+  uint8_t* samples = reinterpret_cast<uint8_t*>(samples_);
+  return reinterpret_cast<Sample*>(samples + offset);
 }
 
 
@@ -698,20 +750,28 @@ ProfilerSampleStackWalker::ProfilerSampleStackWalker(Sample* sample,
     original_sp_(sp),
     lower_bound_(stack_lower) {
   ASSERT(sample_ != NULL);
-  // Zero out the PCs before (re)using the sample.
-  for (int i = 0; i < Sample::kNumStackFrames; i++) {
-    sample_->pcs[i] = 0;
-  }
 }
 
 
+// Notes on stack frame walking:
+//
+// The sampling profiler will collect up to Sample::kNumStackFrames stack frames
+// The stack frame walking code uses the frame pointer to traverse the stack.
+// If the VM is compiled without frame pointers (which is the default on
+// recent GCC versions with optimizing enabled) the stack walking code may
+// fail (sometimes leading to a crash).
+//
+
 int ProfilerSampleStackWalker::walk() {
   const intptr_t kMaxStep = 0x1000;  // 4K.
-  uword* pc = reinterpret_cast<uword*>(original_pc_);
+  const bool kWalkStack = true;  // Walk the stack.
   // Always store the exclusive PC.
-  sample_->pcs[0] = original_pc_;
-#define WALK_STACK
-#if defined(WALK_STACK)
+  sample_->SetAt(0, original_pc_);
+  if (!kWalkStack) {
+    // Not walking the stack, only took exclusive sample.
+    return 1;
+  }
+  uword* pc = reinterpret_cast<uword*>(original_pc_);
   uword* fp = reinterpret_cast<uword*>(original_fp_);
   uword* previous_fp = fp;
   if (original_sp_ > original_fp_) {
@@ -730,8 +790,8 @@ int ProfilerSampleStackWalker::walk() {
     lower_bound_ = original_sp_;
   }
   int i = 0;
-  for (; i < Sample::kNumStackFrames; i++) {
-    sample_->pcs[i] = reinterpret_cast<uintptr_t>(pc);
+  for (; i < FLAG_profile_depth; i++) {
+    sample_->SetAt(i, reinterpret_cast<uintptr_t>(pc));
     if (!ValidFramePointer(fp)) {
       return i + 1;
     }
@@ -749,10 +809,6 @@ int ProfilerSampleStackWalker::walk() {
     lower_bound_ = reinterpret_cast<uintptr_t>(fp);
   }
   return i;
-#else
-  sample_->pcs[0] = reinterpret_cast<uintptr_t>(pc);
-  return 0;
-#endif
 }
 
 
