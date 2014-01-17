@@ -4,11 +4,11 @@
 
 library dart2js.test.memory_compiler;
 
-import 'package:expect/expect.dart';
 import 'memory_source_file_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        show NullSink;
+import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart'
        show Diagnostic, DiagnosticHandler;
@@ -81,10 +81,14 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
                      {DiagnosticHandler diagnosticHandler,
                       List<String> options: const [],
                       Compiler cachedCompiler,
-                      bool showDiagnostics: true}) {
+                      bool showDiagnostics: true,
+                      Uri packageRoot}) {
   Uri script = currentDirectory.resolveUri(Platform.script);
   Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = currentDirectory.resolve('${Platform.packageRoot}/');
+  if (packageRoot == null) {
+    packageRoot = currentDirectory.resolve(
+        appendSlash(nativeToUriPath(Platform.packageRoot)));
+  }
 
   MemorySourceFileProvider provider;
   var readStringFromUri;
