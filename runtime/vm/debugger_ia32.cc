@@ -53,14 +53,7 @@ void CodeBreakpoint::PatchCode() {
                                        StubCode::BreakpointDynamicEntryPoint());
       break;
     }
-    case PcDescriptors::kUnoptStaticCall: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-      CodePatcher::PatchStaticCallAt(pc_, code,
-                                     StubCode::BreakpointStaticEntryPoint());
-      break;
-    }
+    case PcDescriptors::kUnoptStaticCall:
     case PcDescriptors::kRuntimeCall:
     case PcDescriptors::kClosureCall:
     case PcDescriptors::kReturn: {

@@ -815,32 +815,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 
 
 // Gets called from debug stub when code reaches a breakpoint.
-DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
-  ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->SignalBpReached();
-  // Make sure the static function that is about to be called is
-  // compiled. The stub will jump to the entry point without any
-  // further tests.
-  DartFrameIterator iterator;
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
-  const Code& code = Code::Handle(caller_frame->LookupDartCode());
-  ASSERT(!code.is_optimized());
-  const Function& function =
-      Function::Handle(CodePatcher::GetUnoptimizedStaticCallAt(
-          caller_frame->pc(), code, NULL));
-
-  if (!function.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
-  }
-  arguments.SetReturn(Code::ZoneHandle(function.CurrentCode()));
-}
-
-
-// Gets called from debug stub when code reaches a breakpoint.
 DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
   ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->SignalBpReached();

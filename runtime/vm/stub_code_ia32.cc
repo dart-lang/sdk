@@ -1861,34 +1861,6 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 }
 
 
-// ECX: ICData (unoptimized static call).
-// TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-  __ pushl(ECX);  // Preserve ICData for unoptimized call.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ pushl(raw_null);  // Room for result.
-  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
-  __ popl(EAX);  // Code object.
-  __ popl(ECX);  // Restore ICData.
-  __ LeaveFrame();
-
-  // Load arguments descriptor into EDX.
-  __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
-  // Now call the static function. The breakpoint handler function
-  // ensures that the call target is compiled.
-  // Note that we can't just jump to the CallStatic function stub
-  // here since that stub would patch the call site with the
-  // static function address.
-  __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
-  __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(ECX);
-}
-
-
 //  ECX: Inline cache data array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {

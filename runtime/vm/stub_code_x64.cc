@@ -1849,28 +1849,6 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 }
 
 
-//  RBX: ICData (unoptimized static call)
-//  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ pushq(RBX);  // Preserve IC data for unoptimized call.
-  __ pushq(R12);  // Room for result.
-  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
-  __ popq(RAX);  // Code object.
-  __ popq(RBX);  // Restore IC data.
-  __ LeaveStubFrame();
-
-  // Load arguments descriptor into R10.
-  __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
-  // Now call the static function. The breakpoint handler function
-  // ensures that the call target is compiled.
-  __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(RBX);
-}
-
-
 //  RBX: Inline cache data array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {

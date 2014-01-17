@@ -61,16 +61,7 @@ void CodeBreakpoint::PatchCode() {
       CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
       break;
     }
-    case PcDescriptors::kUnoptStaticCall: {
-      int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
-      ASSERT((offset > 0) && ((offset % 8) == 7));
-      saved_value_ = static_cast<uword>(offset);
-      const uint32_t stub_offset =
-          InstructionPattern::OffsetFromPPIndex(
-              Assembler::kBreakpointStaticCPIndex);
-      CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
-      break;
-    }
+    case PcDescriptors::kUnoptStaticCall:
     case PcDescriptors::kRuntimeCall:
     case PcDescriptors::kClosureCall:
     case PcDescriptors::kReturn: {

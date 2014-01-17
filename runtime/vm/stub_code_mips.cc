@@ -1697,6 +1697,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchEqual(T0, 0, &not_stepping);
   // Call single step callback in debugger.
+  __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
@@ -1704,6 +1705,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ lw(S5, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
 
   // Load argument descriptor into S4.
@@ -1969,6 +1971,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchEqual(T0, 0, &not_stepping);
   // Call single step callback in debugger.
+  __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
@@ -1976,6 +1979,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ lw(S5, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
 
 
@@ -2078,35 +2082,6 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 
 
 //  RA: return address (Dart code).
-//  S5: IC data (unoptimized static call).
-void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ TraceSimMsg("BreakpointStaticStub");
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-  // Preserve arguments descriptor and make room for result.
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(TMP, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
-  // Pop code object result and restore arguments descriptor.
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lw(S5, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  __ LeaveStubFrame();
-
-  // Now call the static function. The breakpoint handler function
-  // ensures that the call target is compiled.
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
-  // Load arguments descriptor into S4.
-  __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
-  __ jr(T0);
-}
-
-
-//  RA: return address (Dart code).
 //  S5: Inline cache data array.
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
@@ -2146,11 +2121,13 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchEqual(T0, 0, &not_stepping);
   // Call single step callback in debugger.
+  __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(1 * kWordSize));
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
   __ Ret();
 }
@@ -2419,11 +2396,13 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchEqual(T0, 0, &not_stepping);
   // Call single step callback in debugger.
+  __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(1 * kWordSize));
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
 
   const Register temp1 = T2;
