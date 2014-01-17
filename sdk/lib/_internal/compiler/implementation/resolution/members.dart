@@ -675,12 +675,14 @@ class ResolverTask extends CompilerTask {
         compiler.reportError(from, MessageKind.CYCLIC_CLASS_HIERARCHY,
                                  {'className': cls.name});
         cls.supertypeLoadState = STATE_DONE;
+        cls.hasIncompleteHierarchy = true;
         cls.allSupertypesAndSelf =
             compiler.objectClass.allSupertypesAndSelf.extendClass(
                 cls.computeType(compiler));
         cls.supertype = cls.allSupertypes.head;
         assert(invariant(from, cls.supertype != null,
             message: 'Missing supertype on cyclic class $cls.'));
+        cls.interfaces = const Link<DartType>();
         return;
       }
       cls.supertypeLoadState = STATE_STARTED;
@@ -3875,8 +3877,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       }
     }
 
-    assert(element.interfaces == null);
-    element.interfaces = resolveInterfaces(node.interfaces, node.superclass);
+    if (element.interfaces == null) {
+      element.interfaces = resolveInterfaces(node.interfaces, node.superclass);
+    } else {
+      assert(invariant(element, element.hasIncompleteHierarchy));
+    }
     calculateAllSupertypes(element);
 
     if (!element.hasConstructor) {
@@ -4022,13 +4027,20 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // The class that is the result of a mixin application implements
     // the interface of the class that was mixed in so always prepend
     // that to the interface list.
-
-    interfaces = interfaces.prepend(mixinType);
-    assert(mixinApplication.interfaces == null);
-    mixinApplication.interfaces = interfaces;
+    if (mixinApplication.interfaces == null) {
+      if (mixinType.kind == TypeKind.INTERFACE) {
+        // Avoid malformed types in the interfaces.
+        interfaces = interfaces.prepend(mixinType);
+      }
+      mixinApplication.interfaces = interfaces;
+    } else {
+      assert(invariant(mixinApplication,
+          mixinApplication.hasIncompleteHierarchy));
+    }
 
     ClassElement superclass = supertype.element;
     if (mixinType.kind != TypeKind.INTERFACE) {
+      mixinApplication.hasIncompleteHierarchy = true;
       mixinApplication.allSupertypesAndSelf = superclass.allSupertypesAndSelf;
       return;
     }

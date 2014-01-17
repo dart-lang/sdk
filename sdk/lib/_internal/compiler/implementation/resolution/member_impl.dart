@@ -142,3 +142,58 @@ class InheritedMember implements DeclaredMember {
   }
 }
 
+abstract class AbstractSyntheticMember implements MemberSignature {
+  final Set<Member> inheritedMembers;
+
+  AbstractSyntheticMember(this.inheritedMembers);
+
+  Member get member => inheritedMembers.first;
+
+  Iterable<Member> get declarations => inheritedMembers;
+
+  Name get name => member.name;
+}
+
+
+class SyntheticMember extends AbstractSyntheticMember {
+  final DartType type;
+  final FunctionType functionType;
+
+  SyntheticMember(Set<Member> inheritedMembers,
+                  this.type,
+                  this.functionType)
+      : super(inheritedMembers);
+
+  bool get isSetter => member.isSetter;
+
+  bool get isGetter => member.isGetter;
+
+  bool get isMethod => member.isMethod;
+
+  bool get isErroneous => false;
+
+  String toString() => '${type.getStringAsDeclared('$name')} synthesized '
+                       'from ${inheritedMembers}';
+}
+
+class ErroneousMember extends AbstractSyntheticMember {
+  ErroneousMember(Set<Member> inheritedMembers) : super(inheritedMembers);
+
+  DartType get type => functionType;
+
+  FunctionType get functionType {
+    throw new UnsupportedError('Erroneous members have no type.');
+  }
+
+  bool get isSetter => false;
+
+  bool get isGetter => false;
+
+  bool get isMethod => false;
+
+  bool get isErroneous => true;
+
+  String toString() => "erroneous member '$name' synthesized "
+                       "from ${inheritedMembers}";
+}
+

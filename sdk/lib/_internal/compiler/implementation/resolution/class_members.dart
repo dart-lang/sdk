@@ -29,15 +29,33 @@ class MembersCreator {
   final Compiler compiler;
 
   Map<Name, Member> classMembers = new Map<Name, Member>();
+  Map<Name, MemberSignature> interfaceMembers =
+      new Map<Name, MemberSignature>();
 
   MembersCreator(Compiler this.compiler, ClassElement this.cls);
 
   void computeMembers() {
-    _computeSuperMembers();
-    _computeClassMembers();
+    Map<Name, Set<Member>> inheritedInterfaceMembers =
+        _computeSuperMembers();
+    Map<Name, Member> declaredMembers = _computeClassMembers();
+    _computeInterfaceMembers(inheritedInterfaceMembers, declaredMembers);
   }
 
-  void _computeSuperMembers() {
+  Map<Name, Set<Member>> _computeSuperMembers() {
+    Map<Name, Set<Member>> inheritedInterfaceMembers =
+        new Map<Name, Set<Member>>();
+
+    void inheritInterfaceMembers(InterfaceType supertype) {
+      supertype.element.forEachInterfaceMember((MemberSignature member) {
+        Set<Member> members =
+            inheritedInterfaceMembers.putIfAbsent(
+                member.name, () => new Set<Member>());
+        for (DeclaredMember declaredMember in member.declarations) {
+          members.add(declaredMember.inheritFrom(supertype));
+        }
+      });
+    }
+
     // Inherit class and interface members from superclass.
     InterfaceType superclass = cls.supertype;
     if (superclass != null) {
@@ -48,7 +66,19 @@ class MembersCreator {
           classMembers[member.name] = inherited;
         }
       });
+      inheritInterfaceMembers(superclass);
     }
+
+    // Inherit interface members from superinterfaces.
+    for (Link<DartType> link = cls.interfaces;
+         !link.isEmpty;
+         link = link.tail) {
+      InterfaceType superinterface = link.head;
+      computeClassMembers(compiler, superinterface.element);
+      inheritInterfaceMembers(superinterface);
+    }
+
+    return inheritedInterfaceMembers;
   }
 
   Map<Name, Member> _computeClassMembers() {
@@ -129,10 +159,145 @@ class MembersCreator {
     return declaredMembers;
   }
 
+  void _computeInterfaceMembers(
+        Map<Name, Set<Member>> inheritedInterfaceMembers,
+        Map<Name, Member> declaredMembers) {
+    InterfaceType thisType = cls.thisType;
+    // Compute the interface members by overriding the inherited members with
+    // a declared member or by computing a single, possibly synthesized,
+    // inherited member.
+    inheritedInterfaceMembers.forEach(
+        (Name name, Set<Member> inheritedMembers) {
+      Member declared = declaredMembers[name];
+      if (declared != null) {
+        if (!declared.isStatic) {
+          interfaceMembers[name] = declared;
+        }
+      } else {
+        bool someAreGetters = false;
+        bool allAreGetters = true;
+        Map<DartType, Set<Member>> subtypesOfAllInherited =
+            new Map<DartType, Set<Member>>();
+        outer: for (Member inherited in inheritedMembers) {
+          if (inherited.isGetter) {
+            someAreGetters = true;
+            if (!allAreGetters) break outer;
+          } else {
+            allAreGetters = false;
+            if (someAreGetters) break outer;
+          }
+          for (MemberSignature other in inheritedMembers) {
+            if (!compiler.types.isSubtype(inherited.functionType,
+                                          other.functionType)) {
+              continue outer;
+            }
+          }
+          subtypesOfAllInherited.putIfAbsent(inherited.functionType,
+              () => new Set<Member>()).add(inherited);
+        }
+        if (someAreGetters && !allAreGetters) {
+          interfaceMembers[name] = new ErroneousMember(inheritedMembers);
+        } else if (subtypesOfAllInherited.length == 1) {
+          // All signatures have the same type.
+          Set<Member> members = subtypesOfAllInherited.values.first;
+          MemberSignature inherited = members.first;
+          if (members.length != 1) {
+            // Multiple signatures with the same type => return a
+            // synthesized signature.
+            inherited = new SyntheticMember(
+                members, inherited.type, inherited.functionType);
+          }
+          interfaceMembers[name] = inherited;
+        } else {
+          _inheritedSynthesizedMember(name, inheritedMembers);
+        }
+      }
+    });
+
+    // Add the non-overriding instance methods to the interface members.
+    declaredMembers.forEach((Name name, Member member) {
+      if (!member.isStatic) {
+        interfaceMembers.putIfAbsent(name, () => member);
+      }
+    });
+  }
+
+  /// Create and inherit a synthesized member for [inheritedMembers].
+  void _inheritedSynthesizedMember(Name name,
+                                   Set<Member> inheritedMembers) {
+    // Multiple signatures with different types => create the synthesized
+    // version.
+    int minRequiredParameters;
+    int maxPositionalParameters;
+    Set<String> names = new Set<String>();
+    for (MemberSignature member in inheritedMembers) {
+      int requiredParameters = 0;
+      int optionalParameters = 0;
+      if (member.isSetter) {
+        requiredParameters = 1;
+      }
+      if (member.type.kind == TypeKind.FUNCTION) {
+        FunctionType type = member.type;
+        type.namedParameters.forEach(
+            (String name) => names.add(name));
+        requiredParameters = type.parameterTypes.slowLength();
+        optionalParameters = type.optionalParameterTypes.slowLength();
+      }
+      int positionalParameters = requiredParameters + optionalParameters;
+      if (minRequiredParameters == null ||
+          minRequiredParameters > requiredParameters) {
+        minRequiredParameters = requiredParameters;
+      }
+      if (maxPositionalParameters == null ||
+          maxPositionalParameters < positionalParameters) {
+        maxPositionalParameters = positionalParameters;
+      }
+    }
+    int optionalParameters =
+        maxPositionalParameters - minRequiredParameters;
+    // TODO(johnniwinther): Support function types with both optional
+    // and named parameters?
+    if (optionalParameters == 0 || names.isEmpty) {
+      Link<DartType> requiredParameterTypes = const Link<DartType>();
+      while (--minRequiredParameters >= 0) {
+        requiredParameterTypes =
+            requiredParameterTypes.prepend(compiler.types.dynamicType);
+      }
+      Link<DartType> optionalParameterTypes = const Link<DartType>();
+      while (--optionalParameters >= 0) {
+        optionalParameterTypes =
+            optionalParameterTypes.prepend(compiler.types.dynamicType);
+      }
+      Link<String> namedParameters = const Link<String>();
+      Link<DartType> namedParameterTypes = const Link<DartType>();
+      List<String> namesReversed =
+          names.toList()..sort((a, b) => -a.compareTo(b));
+      for (String name in namesReversed) {
+        namedParameters = namedParameters.prepend(name);
+        namedParameterTypes =
+            namedParameterTypes.prepend(compiler.types.dynamicType);
+      }
+      FunctionType memberType = new FunctionType(
+          compiler.functionClass,
+          compiler.types.dynamicType,
+          requiredParameterTypes,
+          optionalParameterTypes,
+          namedParameters, namedParameterTypes);
+      DartType type = memberType;
+      if (inheritedMembers.first.isGetter ||
+          inheritedMembers.first.isSetter) {
+        type = compiler.types.dynamicType;
+      }
+      interfaceMembers[name] = new SyntheticMember(
+          inheritedMembers, type, memberType);
+    }
+  }
+
   static void computeClassMembers(Compiler compiler, BaseClassElementX cls) {
     if (cls.classMembers != null) return;
     MembersCreator creator = new MembersCreator(compiler, cls);
     creator.computeMembers();
     cls.classMembers = creator.classMembers;
+    cls.interfaceMembers = creator.interfaceMembers;
   }
 }

@@ -909,6 +909,9 @@ abstract class ClassElement extends TypeDeclarationElement
   /// Returns `true` if this class has a @proxy annotation.
   bool get isProxy;
 
+  /// Returns `true` if the class hierarchy for this class contains errors.
+  bool get hasIncompleteHierarchy;
+
   ClassElement ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);
@@ -956,6 +959,12 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Calls [f] with each member of this class.
   void forEachClassMember(f(Member member));
+
+  /// Looks up the member [name] in the interface of this class.
+  MemberSignature lookupInterfaceMember(Name name);
+
+  /// Calls [f] with each member of the interface of this class.
+  void forEachInterfaceMember(f(MemberSignature member));
 }
 
 abstract class MixinApplicationElement extends ClassElement {

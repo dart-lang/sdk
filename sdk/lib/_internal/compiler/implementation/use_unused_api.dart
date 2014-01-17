@@ -194,5 +194,6 @@ usedByTests() {
 
 useElements(elements.ClassElement e, elements.Name n) {
   e.lookupClassMember(null);
+  e.lookupInterfaceMember(null);
   n.isAccessibleFrom(null);
 }
