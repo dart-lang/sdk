@@ -275,8 +275,7 @@ class RuntimeTypes {
     for (DartType instantiatedType in universe.instantiatedTypes) {
       if (instantiatedType.kind == TypeKind.INTERFACE) {
         InterfaceType interface = instantiatedType;
-        InterfaceTypeMember member =
-            interface.lookupMember(Compiler.CALL_OPERATOR_NAME);
+        Member member = interface.lookupMember(Compiler.CALL_OPERATOR_NAME);
         if (member != null) {
           instantiatedTypes.add(member.computeType(compiler));
         }

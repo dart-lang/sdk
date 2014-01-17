@@ -62,9 +62,9 @@ abstract class ElementAccess {
 
 /// An access of a instance member.
 class MemberAccess extends ElementAccess {
-  final InterfaceTypeMember member;
+  final Member member;
 
-  MemberAccess(InterfaceTypeMember this.member);
+  MemberAccess(Member this.member);
 
   Element get element => member.element;
 
@@ -641,12 +641,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           message: "unexpected type kind ${type.kind}."));
       return type;
     }
-    InterfaceTypeMember getMember(DartType type) {
+    Member getMember(DartType type) {
       InterfaceType interface = computeInterfaceType(type);
       return interface.lookupMember(name,
           isSetter: identical(memberKind, MemberKind.SETTER));
     }
-    InterfaceTypeMember member = getMember(receiverType);
+    Member member = getMember(receiverType);
     if (member != null) {
       checkPrivateAccess(node, member.element, name);
       return new MemberAccess(member);

@@ -1767,7 +1767,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   int resolutionState;
   bool get isResolved => resolutionState == STATE_DONE;
   bool isProxy = false;
-  bool hasIncompleteHierarchy = false;
 
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
@@ -1778,9 +1777,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   Link<DartType> get allSupertypes => allSupertypesAndSelf.supertypes;
 
   int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
-
-  Map<Name, Member> classMembers;
-  Map<Name, MemberSignature> interfaceMembers;
 
   BaseClassElementX(String name,
                     Element enclosing,
@@ -2154,18 +2150,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   bool isNative() => nativeTagInfo != null;
   void setNative(String name) {
     nativeTagInfo = name;
-  }
-
-  Member lookupClassMember(Name name) => classMembers[name];
-
-  void forEachClassMember(f(Member member)) {
-    classMembers.forEach((_, member) => f(member));
-  }
-
-  MemberSignature lookupInterfaceMember(Name name) => interfaceMembers[name];
-
-  void forEachInterfaceMember(f(MemberSignature member)) {
-    interfaceMembers.forEach((_, member) => f(member));
   }
 }
 

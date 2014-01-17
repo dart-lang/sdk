@@ -16,8 +16,6 @@ import 'tree/tree.dart' as tree;
 
 import 'util/util.dart' as util;
 
-import 'elements/elements.dart' as elements;
-
 import 'elements/visitor.dart' as elements_visitor;
 
 import 'js/js.dart' as js;
@@ -57,7 +55,6 @@ void main(List<String> arguments) {
   useSsa(null);
   useCodeBuffer(null);
   usedByTests();
-  useElements(null, null);
 }
 
 void useConstant(dart2jslib.Constant constant, dart2jslib.ConstantSystem cs) {
@@ -178,8 +175,6 @@ usedByTests() {
   // most cases, such API can be moved to a test library.
   dart2jslib.World world = null;
   dart2jslib.Compiler compiler = null;
-  compiler.currentlyInUserCode();
-  compiler.inUserCode(null);
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
   world.hasAnyUserDefinedGetter(null);
@@ -190,10 +185,4 @@ usedByTests() {
   new universe.TypedSelector.subtype(null, null);
   new universe.TypedSelector.exact(null, null);
   sourceFileProvider.readStringFromUri(null);
-}
-
-useElements(elements.ClassElement e, elements.Name n) {
-  e.lookupClassMember(null);
-  e.lookupInterfaceMember(null);
-  n.isAccessibleFrom(null);
 }
