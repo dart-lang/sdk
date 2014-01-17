@@ -623,7 +623,7 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:indexed_db'
       || libraryName == 'dart:js'
       || libraryName == 'dart:svg'
-      || libraryName == 'dart:typed_data'
+      || libraryName == 'dart:_native_typed_data'
       || libraryName == 'dart:web_audio'
       || libraryName == 'dart:web_gl'
       || libraryName == 'dart:web_sql') {

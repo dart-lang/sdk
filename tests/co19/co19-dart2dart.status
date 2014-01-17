@@ -73,6 +73,22 @@ LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
+LibTest/typed_data/ByteData/getInt16_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/getInt32_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/getInt64_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/setInt16_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/setInt32_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/setInt64_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/getUint16_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/getUint32_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/getUint64_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/setUint16_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/setUint32_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/setUint64_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/getFloat64_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/setFloat64_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/getFloat32_A01_t01: Fail # issue 16159
+LibTest/typed_data/ByteData/setFloat32_A01_t01: Fail # issue 16159
 
 [ $compiler == dart2dart && $system == windows ]
 LibTest/core/double/operator_remainder_A01_t04: Fail # Result is NaN
