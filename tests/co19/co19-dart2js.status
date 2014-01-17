@@ -100,7 +100,9 @@ LibTest/isolate/ReceivePort/toSendPort_A01_t01: RuntimeError # Issue: 8920
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # http://dartbug.com/12635
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Timeout # co19-roll r651: Please triage this failure
 LibTest/async/Stream/Stream.periodic_A01_t01: Fail, Pass # Issue 16106
+LibTest/core/Stopwatch/elapsedTicks_A01_t01: Fail, Pass # Issue 16106
 LibTest/async/Timer/Timer.periodic_A01_t01: Fail, Pass # Issue 16110
+LibTest/async/Timer/Timer_A01_t01: Fail, Pass # Issue 16110
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
