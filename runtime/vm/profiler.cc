@@ -40,10 +40,6 @@ void Profiler::InitOnce() {
   const int kMinimumProfilePeriod = 250;
   const int kMinimumDepth = 1;
   const int kMaximumDepth = 128;
-  if (!FLAG_profile) {
-    return;
-  }
-  ASSERT(!initialized_);
   // Place some sane restrictions on user controlled flags.
   if (FLAG_profile_period < kMinimumProfilePeriod) {
     FLAG_profile_period = kMinimumProfilePeriod;
@@ -54,6 +50,10 @@ void Profiler::InitOnce() {
     FLAG_profile_depth = kMaximumDepth;
   }
   Sample::InitOnce();
+  if (!FLAG_profile) {
+    return;
+  }
+  ASSERT(!initialized_);
   sample_buffer_ = new SampleBuffer();
   NativeSymbolResolver::InitOnce();
   ThreadInterrupter::InitOnce();
