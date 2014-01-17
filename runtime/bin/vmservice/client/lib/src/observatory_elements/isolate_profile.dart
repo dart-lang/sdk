@@ -4,9 +4,8 @@
 
 library isolate_profile_element;
 
-import 'dart:convert';
 import 'dart:html';
-import 'package:dprof/model.dart' as dprof;
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
@@ -18,85 +17,80 @@ class IsolateProfileElement extends ObservatoryElement {
   final List methodCounts = [10, 20, 50];
   @observable List topInclusiveCodes = toObservable([]);
   @observable List topExclusiveCodes = toObservable([]);
-  @observable bool disassemble = false;
-  void _startRequest() {
-    // TODO(johnmccutchan): Indicate visually.
-    print('Request sent.');
-  }
 
-  void _endRequest() {
-    // TODO(johnmccutchan): Indicate visually.
-    print('Request finished.');
-  }
-
-  methodCountSelectedChanged(oldValue) {
-    print('Refresh top');
+  void enteredView() {
     var isolateId = app.locationManager.currentIsolateId();
     var isolate = app.isolateManager.getIsolate(isolateId);
     if (isolate == null) {
-      print('No isolate found.');
+      return;
     }
     _refreshTopMethods(isolate);
   }
 
-  void toggleDisassemble(Event e, var detail, CheckboxInputElement target) {
-    disassemble = target.checked;
-    print(disassemble);
+  void _startRequest() {
+    // TODO(johnmccutchan): Indicate visually.
+  }
+
+  void _endRequest() {
+    // TODO(johnmccutchan): Indicate visually.
+  }
+
+  methodCountSelectedChanged(oldValue) {;
+    var isolateId = app.locationManager.currentIsolateId();
+    var isolate = app.isolateManager.getIsolate(isolateId);
+    if (isolate == null) {
+      return;
+    }
+    _refreshTopMethods(isolate);
   }
 
   void refreshData(Event e, var detail, Node target) {
     var isolateId = app.locationManager.currentIsolateId();
     var isolate = app.isolateManager.getIsolate(isolateId);
     if (isolate == null) {
-      print('No isolate found.');
+      Logger.root.info('No isolate found.');
+      return;
     }
     var request = '/$isolateId/profile';
     _startRequest();
-    app.requestManager.request(request).then((response) {
-      var profile;
-      try {
-        profile = JSON.decode(response);
-      } catch (e) { print(e); }
-      if ((profile is Map) && (profile['type'] == 'Profile')) {
-        var codes = profile['codes'];
-        var samples = profile['samples'];
-        _loadProfileData(isolate, samples, codes);
-      }
+    app.requestManager.requestMap(request).then((Map profile) {
+      assert(profile['type'] == 'Profile');
+      var samples = profile['samples'];
+      Logger.root.info('Profile contains ${samples} samples.');
+      _loadProfileData(isolate, samples, profile);
       _endRequest();
     }).catchError((e) {
       _endRequest();
     });
   }
 
-  void _loadProfileData(Isolate isolate, int totalSamples, List codes) {
-    isolate.profiler = new dprof.Isolate(0, 0);
-    var loader = new dprof.Loader(isolate.profiler);
-    loader.load(totalSamples, codes);
+  void _loadProfileData(Isolate isolate, int totalSamples, Map response) {
+    isolate.profile = new Profile.fromMap(isolate, response);
     _refreshTopMethods(isolate);
   }
 
   void _refreshTopMethods(Isolate isolate) {
     topExclusiveCodes.clear();
     topInclusiveCodes.clear();
-    if ((isolate == null) || (isolate.profiler == null)) {
+    if ((isolate == null) || (isolate.profile == null)) {
       return;
     }
     var count = methodCounts[methodCountSelected];
-    var topExclusive = isolate.profiler.topExclusive(count);
+    var topExclusive = isolate.profile.topExclusive(count);
     topExclusiveCodes.addAll(topExclusive);
-    var topInclusive = isolate.profiler.topInclusive(count);
+    var topInclusive = isolate.profile.topInclusive(count);
     topInclusiveCodes.addAll(topInclusive);
 
   }
 
-  String codeTicks(dprof.Code code, bool inclusive) {
+  String codeTicks(Code code, bool inclusive) {
     if (code == null) {
       return '';
     }
     return inclusive ? '${code.inclusiveTicks}' : '${code.exclusiveTicks}';
   }
 
-  String codePercent(dprof.Code code, bool inclusive) {
+  String codePercent(Code code, bool inclusive) {
     if (code == null) {
       return '';
     }
@@ -106,44 +100,14 @@ class IsolateProfileElement extends ObservatoryElement {
       return '';
     }
     var ticks = inclusive ? code.inclusiveTicks : code.exclusiveTicks;
-    var total = ticks / isolate.profiler.totalSamples;
+    var total = ticks / isolate.profile.totalSamples;
     return (total * 100.0).toStringAsFixed(2);
   }
 
-  String codeName(dprof.Code code) {
-    if ((code == null) || (code.method == null)) {
+  String codeName(Code code) {
+    if ((code == null) || (code.name == null)) {
       return '';
     }
-    return code.method.name;
-  }
-
-  String instructionTicks(dprof.Instruction instruction) {
-    if (instruction == null) {
-      return '';
-    }
-    if (instruction.ticks == 0) {
-      return '';
-    }
-    return '${instruction.ticks}';
-  }
-
-  String instructionPercent(dprof.Instruction instruction,
-                            dprof.Code code) {
-    if ((instruction == null) || (code == null)) {
-      return '';
-    }
-    if (instruction.ticks == 0) {
-      return '';
-    }
-    var ticks = instruction.ticks;
-    var total = ticks / code.inclusiveTicks;
-    return (total * 100.0).toStringAsFixed(2);
-  }
-
-  String instructionDisplay(dprof.Instruction instruction) {
-    if (instruction == null) {
-      return '';
-    }
-    return instruction.human;
+    return code.name;
   }
 }

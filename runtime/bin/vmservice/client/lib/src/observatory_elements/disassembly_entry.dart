@@ -4,11 +4,12 @@
 
 library disassembly_entry_element;
 
+import 'package:observatory/observatory.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
 @CustomTag('disassembly-entry')
 class DisassemblyEntryElement extends ObservatoryElement {
-  @published Map instruction = toObservable({});
+  @published CodeInstruction instruction;
   DisassemblyEntryElement.created() : super.created();
 }

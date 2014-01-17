@@ -31,6 +31,10 @@ class ObservatoryApplication extends Observable {
       requestManager = new HttpRequestManager(),
       isolateManager = new IsolateManager() {
     _setup();
+    Logger.root.level = Level.INFO;
+    Logger.root.onRecord.listen((LogRecord rec) {
+      print('${rec.level.name}: ${rec.time}: ${rec.message}');
+    });
   }
 
   /// Return the [Isolate] with [id].

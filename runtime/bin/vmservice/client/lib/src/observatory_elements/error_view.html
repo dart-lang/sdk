@@ -6,14 +6,9 @@
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-danger">
-        <div class="panel-heading">Error</div>
+        <div class="panel-heading">{{ error['errorType'] }}</div>
         <div class="panel-body">
-          <template if="{{ (error_obj == null) || (error_obj['type'] != 'LanguageError') }}">
-            <p>{{ error }}</p>
-          </template>
-          <template if="{{ (error_obj != null) && (error_obj['type'] == 'LanguageError') }}">
-            <pre>{{ error_obj['error_msg'] }}</pre>
-          </template>
+          <p>{{ error['text'] }}</p>
         </div>
       </div>
     </div>

@@ -10,8 +10,7 @@ import 'observatory_element.dart';
 /// Displays an Error response.
 @CustomTag('error-view')
 class ErrorViewElement extends ObservatoryElement {
-  @published String error = '';
-  @published var error_obj;
+  @published Map error;
 
   ErrorViewElement.created() : super.created();
 }

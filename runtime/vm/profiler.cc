@@ -292,6 +292,11 @@ class CodeRegion : public ZoneAllocated {
     }
   }
 
+  void DebugPrint() {
+    printf("%s [%" Px ", %" Px ") %s\n", name_, start(), end(),
+           KindToCString(kind_));
+  }
+
   void AddTickAtAddress(uintptr_t pc) {
     const intptr_t length = address_table_->length();
     intptr_t i = 0;

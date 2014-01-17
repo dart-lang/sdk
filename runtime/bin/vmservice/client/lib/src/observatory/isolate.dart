@@ -6,7 +6,8 @@ part of observatory;
 
 /// State for a running isolate.
 class Isolate extends Observable {
-  @observable dprof.Isolate profiler;
+  @observable Profile profile;
+  @observable final List<Code> codes = new List<Code>();
   @observable String id;
   @observable String name;
   @observable final Map<String, ScriptSource> scripts =
@@ -15,4 +16,27 @@ class Isolate extends Observable {
   Isolate(this.id, this.name);
 
   String toString() => '$id $name';
+
+  Code findCodeByAddress(int address) {
+    for (var i = 0; i < codes.length; i++) {
+      if (codes[i].contains(address)) {
+        return codes[i];
+      }
+    }
+  }
+
+  Code findCodeByName(String name) {
+    for (var i = 0; i < codes.length; i++) {
+      if (codes[i].name == name) {
+        return codes[i];
+      }
+    }
+  }
+
+  void resetCodeTicks() {
+    Logger.root.info('Reset all code ticks.');
+    for (var i = 0; i < codes.length; i++) {
+      codes[i].resetTicks();
+    }
+  }
 }

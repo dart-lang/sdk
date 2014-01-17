@@ -17,13 +17,22 @@ abstract class RequestManager extends Observable {
   /// List of responses.
   @observable List<Map> responses = toObservable([]);
 
+  /// Decode [response] into a map.
+  Map decodeResponse(String response) {
+    var m;
+    try {
+      m = JSON.decode(response);
+    } catch (e, st) {
+      setResponseError('$e $st');
+    };
+    return m;
+  }
+
   /// Parse
   void parseResponses(String responseString) {
-    var r;
-    try {
-      r = JSON.decode(responseString);
-    } catch (e) {
-      setResponseError(e.message);
+    var r = decodeResponse(responseString);
+    if (r == null) {
+      return;
     }
     if (r is Map) {
       setResponses([r]);
@@ -45,7 +54,8 @@ abstract class RequestManager extends Observable {
       error = 'No service found. Did you run with --enable-vm-service ?';
     }
     setResponses([{
-      'type': 'RequestError',
+      'type': 'Error',
+      'errorType': 'RequestError',
       'error': error
     }]);
   }
@@ -53,29 +63,130 @@ abstract class RequestManager extends Observable {
   void setResponseError(String message) {
     setResponses([{
       'type': 'Error',
+      'errorType': 'ResponseError',
       'text': message
     }]);
+    Logger.root.severe(message);
   }
 
-  /// Request [requestString] from the VM service. Updates [responses].
+  static final RegExp _codeMatcher = new RegExp(r'/isolates/\d+/code/');
+  static bool isCodeRequest(url) => _codeMatcher.hasMatch(url);
+  static int codeAddressFromRequest(String url) {
+    Match m = _codeMatcher.matchAsPrefix(url);
+    if (m == null) {
+      return 0;
+    }
+    try {
+      var a = int.parse(m.input.substring(m.end), radix: 16);
+      return a;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  static final RegExp _isolateMatcher = new RegExp(r"/isolates/\d+");
+  static String isolatePrefixFromRequest(String url) {
+    Match m = _isolateMatcher.matchAsPrefix(url);
+    if (m == null) {
+      return null;
+    }
+    return m.input.substring(m.start, m.end);
+  }
+
+  static String isolateIdFromRequest(String url) {
+    var prefix = isolatePrefixFromRequest(url);
+    if (prefix == null) {
+      return null;
+    }
+    // Chop off the '/'.
+    return prefix.substring(1);
+  }
+
+  void _setModelResponse(String type, String modelName, dynamic model) {
+    var response = {
+      'type': type,
+      modelName: model
+    };
+    setResponses([response]);
+  }
+
+  /// Handle 'Code' requests
+  void _getCode(String requestString) {
+    var isolateId = isolateIdFromRequest(requestString);
+    if (isolateId == null) {
+      setResponseError('$isolateId is not an isolate id.');
+      return;
+    }
+    var isolate = _application.isolateManager.getIsolate(isolateId);
+    if (isolate == null) {
+      setResponseError('$isolateId could not be found.');
+      return;
+    }
+    var address = codeAddressFromRequest(requestString);
+    if (address == 0) {
+      setResponseError('$requestString is not a valid code request.');
+      return;
+    }
+    var code = isolate.findCodeByAddress(address);
+    if (code != null) {
+      Logger.root.info(
+          'Found code with 0x${address.toRadixString(16)} in isolate.');
+      _setModelResponse('Code', 'code', code);
+      return;
+    }
+    request(requestString).then((responseString) {
+      var map = decodeResponse(responseString);
+      if (map == null) {
+        return;
+      }
+      assert(map['type'] == 'Code');
+      var code = new Code.fromMap(map);
+      Logger.root.info(
+          'Added code with 0x${address.toRadixString(16)} to isolate.');
+      isolate.codes.add(code);
+      _setModelResponse('Code', 'code', code);
+    }).catchError(_requestCatchError);
+  }
+
+  void _requestCatchError(e, st) {
+    if (e is HttpRequest) {
+      setResponseRequestError(e.target);
+    } else {
+      setResponseError('$e $st');
+    }
+  }
+
+  /// Request [request] from the VM service. Updates [responses].
   /// Will trigger [interceptor] if one is set.
   void get(String requestString) {
+    if (isCodeRequest(requestString)) {
+      _getCode(requestString);
+      return;
+    }
     request(requestString).then((responseString) {
       parseResponses(responseString);
-    }).catchError((e) {
-      setResponseRequestError(e.target);
-      return null;
-    });
+    }).catchError(_requestCatchError);
   }
 
   /// Abstract method. Given the [requestString], return a String in the
   /// future which contains the reply from the VM service.
   Future<String> request(String requestString);
+
+  Future<Map> requestMap(String requestString) {
+    return request(requestString).then((response) {
+      try {
+        var m = JSON.decode(response);
+        return m;
+      } catch (e) { }
+      return null;
+    });
+  }
 }
 
 
 class HttpRequestManager extends RequestManager {
   Future<String> request(String requestString) {
+    Logger.root.info('Requesting $requestString');
     return HttpRequest.getString(prefix + requestString);
   }
 }

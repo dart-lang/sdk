@@ -36,6 +36,7 @@ class LocationManager extends Observable {
     }
   }
 
+
   /// Returns the current isolate prefix, i.e. '#/isolates/XX/' if one
   /// is present and null otherwise.
   String currentIsolateAnchorPrefix() {
@@ -85,6 +86,7 @@ class LocationManager extends Observable {
       profile = true;
     } else {
       application.requestManager.get(requestUrl);
+      profile = false;
     }
   }
 

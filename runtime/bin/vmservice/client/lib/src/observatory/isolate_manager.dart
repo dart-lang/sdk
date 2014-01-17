@@ -12,7 +12,7 @@ class IsolateManager extends Observable {
   @observable final Map<String, Isolate> isolates =
       toObservable(new Map<String, Isolate>());
 
-  static bool _foundIsolateInMembers(int id, List<Map> members) {
+  static bool _foundIsolateInMembers(String id, List<Map> members) {
     return members.any((E) => E['id'] == id);
   }
 
@@ -27,8 +27,9 @@ class IsolateManager extends Observable {
   Isolate getIsolate(String id) {
     Isolate isolate = isolates[id];
     if (isolate == null) {
-      isolate = new Isolate(id, '');
+      isolate = new Isolate(id, id);
       isolates[id] = isolate;
+      return isolate;
     }
     return isolate;
   }

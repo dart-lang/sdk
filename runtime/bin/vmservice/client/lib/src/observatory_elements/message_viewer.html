@@ -31,9 +31,8 @@
     <template if="{{ messageType == 'BreakpointList' }}">
       <breakpoint-list app="{{ app }}" msg="{{ message }}"></breakpoint-list>
     </template>
-    <!-- If the message type is a RequestError -->
-    <template if="{{ messageType == 'RequestError' }}">
-      <error-view app="{{ app }}" error="{{ message['error'] }}"></error-view>
+    <template if="{{ messageType == 'Error' }}">
+      <error-view app="{{ app }}" error="{{ message }}"></error-view>
     </template>
     <template if="{{ messageType == 'Library' }}">
       <library-view app="{{ app }}" library="{{ message }}"></library-view>
@@ -66,7 +65,7 @@
       <function-view app="{{ app }}" function="{{ message }}"></function-view>
     </template>
     <template if="{{ messageType == 'Code' }}">
-      <code-view app="{{ app }}" code="{{ message }}"></code-view>
+      <code-view app="{{ app }}" code="{{ message['code'] }}"></code-view>
     </template>
     <template if="{{ messageType == 'Script' }}">
       <script-view app="{{ app }}" script="{{ message }}"></script-view>

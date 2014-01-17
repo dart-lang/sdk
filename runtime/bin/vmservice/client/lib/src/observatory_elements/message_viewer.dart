@@ -4,6 +4,7 @@
 
 library message_viewer_element;
 
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
@@ -16,6 +17,7 @@ class MessageViewerElement extends ObservatoryElement {
     _message = m;
     notifyPropertyChange(#messageType, "", messageType);
     notifyPropertyChange(#members, [], members);
+    Logger.root.info('Viewing message of type \'${message['type']}\'');
   }
 
   MessageViewerElement.created() : super.created();
@@ -24,7 +26,6 @@ class MessageViewerElement extends ObservatoryElement {
     if (message == null || message['type'] == null) {
       return 'Error';
     }
-    print("Received message of type '${message['type']}' :\n$message");
     return message['type'];
   }
 
