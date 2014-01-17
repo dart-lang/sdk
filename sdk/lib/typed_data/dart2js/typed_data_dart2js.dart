@@ -8,28 +8,13 @@
  */
 library dart.typed_data;
 
-import 'dart:collection';
-import 'dart:_internal';
-import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
-import 'dart:_js_helper'
-    show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
-import 'dart:_foreign_helper' show JS, JS_CONST;
+import 'dart:collection' show ListMixin;
+import 'dart:_internal' show FixedLengthListMixin;
+import 'dart:_native_typed_data';
+import 'dart:_foreign_helper' show JS;
 import 'dart:math' as Math;
 
-/**
- * Describes endianness to be used when accessing a sequence of bytes.
- */
-class Endianness {
-  const Endianness(this._littleEndian);
-
-  static const Endianness BIG_ENDIAN = const Endianness(false);
-  static const Endianness LITTLE_ENDIAN = const Endianness(true);
-  static final Endianness HOST_ENDIAN =
-    (new ByteData.view(new Int16List.fromList([1]).buffer)).getInt8(0) == 1 ?
-    LITTLE_ENDIAN : BIG_ENDIAN;
-
-  final bool _littleEndian;
-}
+export 'dart:_native_typed_data' show Endianness;
 
 
 /**
@@ -37,102 +22,35 @@ class Endianness {
  * Used to process large quantities of binary or numerical data
  * more efficiently using a typed view.
  */
-class ByteBuffer native "ArrayBuffer" {
-  @JSName('byteLength')
-  final int lengthInBytes;
+abstract class ByteBuffer {
+  int get lengthInBytes;
 }
+
 
 /**
  * A typed view of a sequence of bytes.
  */
-class TypedData native "ArrayBufferView" {
+abstract class TypedData {
   /**
    * Returns the byte buffer associated with this object.
    */
-  @Creates('ByteBuffer')
-  @Returns('ByteBuffer|Null')
-  final ByteBuffer buffer;
+  ByteBuffer get buffer;
 
   /**
    * Returns the length of this view, in bytes.
    */
-  @JSName('byteLength')
-  final int lengthInBytes;
+  int get lengthInBytes;
 
   /**
    * Returns the offset in bytes into the underlying byte buffer of this view.
    */
-  @JSName('byteOffset')
-  final int offsetInBytes;
+  int get offsetInBytes;
 
   /**
    * Returns the number of bytes in the representation of each element in this
    * list.
    */
-  @JSName('BYTES_PER_ELEMENT')
-  final int elementSizeInBytes;
-
-  void _invalidIndex(int index, int length) {
-    if (index < 0 || index >= length) {
-      throw new RangeError.range(index, 0, length);
-    } else {
-      throw new ArgumentError('Invalid list index $index');
-    }
-  }
-
-  void _checkIndex(int index, int length) {
-    if (JS('bool', '(# >>> 0 != #)', index, index) || index >= length) {
-      _invalidIndex(index, length);
-    }
-  }
-
-  int _checkSublistArguments(int start, int end, int length) {
-    // For `sublist` the [start] and [end] indices are allowed to be equal to
-    // [length]. However, [_checkIndex] only allows indices in the range
-    // 0 .. length - 1. We therefore increment the [length] argument by one
-    // for the [_checkIndex] checks.
-    _checkIndex(start, length + 1);
-    if (end == null) return length;
-    _checkIndex(end, length + 1);
-    if (start > end) throw new RangeError.range(start, 0, end);
-    return end;
-  }
-}
-
-
-// Validates the unnamed constructor length argument.  Checking is necessary
-// because passing unvalidated values to the native constructors can cause
-// conversions or create views.
-int _checkLength(length) {
-  if (length is! int) throw new ArgumentError('Invalid length $length');
-  return length;
-}
-
-// Validates `.view` constructor arguments.  Checking is necessary because
-// passing unvalidated values to the native constructors can cause conversions
-// (e.g. String arguments) or create typed data objects that are not actually
-// views of the input.
-void _checkViewArguments(buffer, offsetInBytes, length) {
-  if (buffer is! ByteBuffer) {
-    throw new ArgumentError('Invalid view buffer');
-  }
-  if (offsetInBytes is! int) {
-    throw new ArgumentError('Invalid view offsetInBytes $offsetInBytes');
-  }
-  if (length != null && length is! int) {
-    throw new ArgumentError('Invalid view length $length');
-  }
-}
-
-// Ensures that [list] is a JavaScript Array or a typed array.  If necessary,
-// returns a copy of the list.
-List _ensureNativeList(List list) {
-  if (list is JSIndexable) return list;
-  List result = new List(list.length);
-  for (int i = 0; i < list.length; i++) {
-    result[i] = list[i];
-  }
-  return result;
+  int get elementSizeInBytes;
 }
 
 
@@ -155,12 +73,12 @@ List _ensureNativeList(List list) {
  *     bdata.setFloat32(0, 3.04);
  *     int huh = bdata.getInt32(0);
  */
-class ByteData extends TypedData native "DataView" {
+abstract class ByteData extends TypedData {
   /**
    * Creates a [ByteData] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory ByteData(int length) => _create1(_checkLength(length));
+  factory ByteData(int length) => new NativeByteData(length);
 
   /**
    * Creates an [ByteData] _view_ of the specified region in the specified
@@ -175,12 +93,10 @@ class ByteData extends TypedData native "DataView" {
    * the length of [buffer].
    */
   factory ByteData.view(ByteBuffer buffer,
-                        [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                        [int offsetInBytes = 0, int length]) =>
+      new NativeByteData.view(buffer, offsetInBytes, length);
+
+  int get elementSizeInBytes => 1;
 
   /**
    * Returns the floating point number represented by the four bytes at
@@ -190,14 +106,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  num getFloat32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _getFloat32(byteOffset, endian._littleEndian);
-
-  int get elementSizeInBytes => 1;
-
-  @JSName('getFloat32')
-  @Returns('num')
-  num _getFloat32(int byteOffset, [bool littleEndian]) native;
+  num getFloat32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the floating point number represented by the eight bytes at
@@ -207,12 +116,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  num getFloat64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _getFloat64(byteOffset, endian._littleEndian);
-
-  @JSName('getFloat64')
-  @Returns('num')
-  num _getFloat64(int byteOffset, [bool littleEndian]) native;
+  num getFloat64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the (possibly negative) integer represented by the two bytes at
@@ -224,12 +128,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  int getInt16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _getInt16(byteOffset, endian._littleEndian);
-
-  @JSName('getInt16')
-  @Returns('int')
-  int _getInt16(int byteOffset, [bool littleEndian]) native;
+  int getInt16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the (possibly negative) integer represented by the four bytes at
@@ -241,12 +140,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  int getInt32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _getInt32(byteOffset, endian._littleEndian);
-
-  @JSName('getInt32')
-  @Returns('int')
-  int _getInt32(int byteOffset, [bool littleEndian]) native;
+  int getInt32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the (possibly negative) integer represented by the eight bytes at
@@ -258,9 +152,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  int getInt64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
-    throw new UnsupportedError("Int64 accessor not supported by dart2js.");
-  }
+  int getInt64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the (possibly negative) integer represented by the byte at the
@@ -270,7 +162,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
    */
-  int getInt8(int byteOffset) native;
+  int getInt8(int byteOffset) ;
 
   /**
    * Returns the positive integer represented by the two bytes starting
@@ -281,12 +173,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  int getUint16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _getUint16(byteOffset, endian._littleEndian);
-
-  @JSName('getUint16')
-  @Returns('JSUInt31')
-  int _getUint16(int byteOffset, [bool littleEndian]) native;
+  int getUint16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the positive integer represented by the four bytes starting
@@ -297,12 +184,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  int getUint32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _getUint32(byteOffset, endian._littleEndian);
-
-  @JSName('getUint32')
-  @Returns('JSUInt32')
-  int _getUint32(int byteOffset, [bool littleEndian]) native;
+  int getUint32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the positive integer represented by the eight bytes starting
@@ -313,9 +195,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  int getUint64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
-    throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
-  }
+  int getUint64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the positive integer represented by the byte at the specified
@@ -325,7 +205,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
    */
-  int getUint8(int byteOffset) native;
+  int getUint8(int byteOffset);
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
@@ -344,11 +224,8 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setFloat32(int byteOffset, num value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _setFloat32(byteOffset, value, endian._littleEndian);
-
-  @JSName('setFloat32')
-  void _setFloat32(int byteOffset, num value, [bool littleEndian]) native;
+  void setFloat32(int byteOffset, num value,
+                  [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
@@ -358,11 +235,8 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setFloat64(int byteOffset, num value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _setFloat64(byteOffset, value, endian._littleEndian);
-
-  @JSName('setFloat64')
-  void _setFloat64(int byteOffset, num value, [bool littleEndian]) native;
+  void setFloat64(int byteOffset, num value,
+                  [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this
@@ -373,11 +247,8 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  void setInt16(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _setInt16(byteOffset, value, endian._littleEndian);
-
-  @JSName('setInt16')
-  void _setInt16(int byteOffset, int value, [bool littleEndian]) native;
+  void setInt16(int byteOffset, int value,
+                [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
@@ -388,11 +259,8 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setInt32(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _setInt32(byteOffset, value, endian._littleEndian);
-
-  @JSName('setInt32')
-  void _setInt32(int byteOffset, int value, [bool littleEndian]) native;
+  void setInt32(int byteOffset, int value,
+                [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
@@ -403,9 +271,8 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setInt64(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) {
-    throw new UnsupportedError("Int64 accessor not supported by dart2js.");
-  }
+  void setInt64(int byteOffset, int value,
+                [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the byte at the specified [byteOffset] in this object to the
@@ -416,7 +283,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * greater than or equal to the length of this object.
    */
-  void setInt8(int byteOffset, int value) native;
+  void setInt8(int byteOffset, int value);
 
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this object
@@ -427,11 +294,8 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  void setUint16(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _setUint16(byteOffset, value, endian._littleEndian);
-
-  @JSName('setUint16')
-  void _setUint16(int byteOffset, int value, [bool littleEndian]) native;
+  void setUint16(int byteOffset, int value,
+                 [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this object
@@ -442,11 +306,8 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setUint32(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
-      _setUint32(byteOffset, value, endian._littleEndian);
-
-  @JSName('setUint32')
-  void _setUint32(int byteOffset, int value, [bool littleEndian]) native;
+  void setUint32(int byteOffset, int value,
+                 [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this object
@@ -457,9 +318,8 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setUint64(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) {
-    throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
-  }
+  void setUint64(int byteOffset, int value,
+                 [Endianness endian=Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the byte at the specified [byteOffset] in this object to the
@@ -470,80 +330,7 @@ class ByteData extends TypedData native "DataView" {
    * Throws [RangeError] if [byteOffset] is negative,
    * or greater than or equal to the length of this object.
    */
-  void setUint8(int byteOffset, int value) native;
-
-  static ByteData _create1(arg) =>
-      JS('ByteData', 'new DataView(new ArrayBuffer(#))', arg);
-
-  static ByteData _create2(arg1, arg2) =>
-      JS('ByteData', 'new DataView(#, #)', arg1, arg2);
-
-  static ByteData _create3(arg1, arg2, arg3) =>
-      JS('ByteData', 'new DataView(#, #, #)', arg1, arg2, arg3);
-}
-
-
-// TODO(sra): Move this type to a public name in a private library so that other
-// platform libraries like dart:html and dart:webaudio can tell a native array
-// from a list that implements the implicit interface.
-abstract class _NativeTypedArray extends TypedData
-    implements JavaScriptIndexingBehavior {
-  int get length => JS("JSUInt32", '#.length', this);
-
-  bool _setRangeFast(int start, int end,
-      _NativeTypedArray source, int skipCount) {
-    int targetLength = this.length;
-    _checkIndex(start, targetLength + 1);
-    _checkIndex(end, targetLength + 1);
-    if (start > end) throw new RangeError.range(start, 0, end);
-    int count = end - start;
-
-    if (skipCount < 0) throw new ArgumentError(skipCount);
-
-    int sourceLength = source.length;
-    if (sourceLength - skipCount < count)  {
-      throw new StateError("Not enough elements");
-    }
-
-    if (skipCount != 0 || sourceLength != count) {
-      // Create a view of the exact subrange that is copied from the source.
-      source = JS('', '#.subarray(#, #)',
-          source, skipCount, skipCount + count);
-    }
-    JS('void', '#.set(#, #)', this, source, start);
-  }
-}
-
-// TODO(sra): Move to private library, like [_NativeTypedArray].
-abstract class _NativeTypedArrayOfDouble
-    extends _NativeTypedArray
-        with ListMixin<double>, FixedLengthListMixin<double>
-    implements List<double> {
-
-  void setRange(int start, int end, Iterable<double> iterable,
-                [int skipCount = 0]) {
-    if (iterable is _NativeTypedArrayOfDouble) {
-      _setRangeFast(start, end, iterable, skipCount);
-      return;
-    }
-    super.setRange(start, end, iterable, skipCount);
-  }
-}
-
-// TODO(sra): Move to private library, like [_NativeTypedArray].
-abstract class _NativeTypedArrayOfInt
-    extends _NativeTypedArray
-        with ListMixin<int>, FixedLengthListMixin<int>
-    implements List<int> {
-
-  void setRange(int start, int end, Iterable<int> iterable,
-                [int skipCount = 0]) {
-    if (iterable is _NativeTypedArrayOfInt) {
-      _setRangeFast(start, end, iterable, skipCount);
-      return;
-    }
-    super.setRange(start, end, iterable, skipCount);
-  }
+  void setUint8(int byteOffset, int value);
 }
 
 
@@ -553,19 +340,19 @@ abstract class _NativeTypedArrayOfInt
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
-class Float32List extends _NativeTypedArrayOfDouble native "Float32Array" {
+abstract class Float32List implements TypedData, List<double> {
   /**
    * Creates a [Float32List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Float32List(int length) => _create1(_checkLength(length));
+  factory Float32List(int length) = NativeFloat32List;
 
   /**
    * Creates a [Float32List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Float32List.fromList(List<double> list) =>
-      _create1(_ensureNativeList(list));
+  factory Float32List.fromList(List<double> elements) =>
+      new NativeFloat32List.fromList(elements);
 
   /**
    * Creates a [Float32List] _view_ of the specified region in the specified
@@ -583,39 +370,10 @@ class Float32List extends _NativeTypedArrayOfDouble native "Float32Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Float32List.view(ByteBuffer buffer,
-                           [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                           [int offsetInBytes = 0, int length]) =>
+      new NativeFloat32List.view(buffer, offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 4;
-
-  num operator[](int index) {
-    _checkIndex(index, length);
-    return JS("num", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, num value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
-
-  List<double> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
-    var source = JS('Float32List', '#.subarray(#, #)', this, start, end);
-    return _create1(source);
-  }
-
-  static Float32List _create1(arg) =>
-      JS('Float32List', 'new Float32Array(#)', arg);
-
-  static Float32List _create2(arg1, arg2) =>
-      JS('Float32List', 'new Float32Array(#, #)', arg1, arg2);
-
-  static Float32List _create3(arg1, arg2, arg3) =>
-      JS('Float32List', 'new Float32Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -625,19 +383,19 @@ class Float32List extends _NativeTypedArrayOfDouble native "Float32Array" {
  * implementation can be considerably more space- and time-efficient than
  * the default [List] implementation.
  */
-class Float64List extends _NativeTypedArrayOfDouble native "Float64Array" {
+abstract class Float64List implements TypedData, List<double> {
   /**
    * Creates a [Float64List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Float64List(int length) => _create1(_checkLength(length));
+  factory Float64List(int length) = NativeFloat64List;
 
   /**
    * Creates a [Float64List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Float64List.fromList(List<double> list) =>
-      _create1(_ensureNativeList(list));
+  factory Float64List.fromList(List<double> elements) =>
+      new NativeFloat64List.fromList(elements);
 
   /**
    * Creates a [Float64List] _view_ of the specified region in the specified
@@ -655,42 +413,10 @@ class Float64List extends _NativeTypedArrayOfDouble native "Float64Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Float64List.view(ByteBuffer buffer,
-                           [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                           [int offsetInBytes = 0, int length]) =>
+      new NativeFloat64List.view(buffer, offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 8;
-
-  num operator[](int index) {
-    _checkIndex(index, length);
-    return JS("num", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, num value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
-
-  List<double> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
-    var source = JS('Float64List', '#.subarray(#, #)', this, start, end);
-    return _create1(source);
-  }
-
-  static Float64List _create1(arg) {
-    return JS('Float64List', 'new Float64Array(#)', arg);
-  }
-
-  static Float64List _create2(arg1, arg2) {
-    return JS('Float64List', 'new Float64Array(#, #)', arg1, arg2);
-  }
-
-  static Float64List _create3(arg1, arg2, arg3) {
-    return JS('Float64List', 'new Float64Array(#, #, #)', arg1, arg2, arg3);
-  }
 }
 
 
@@ -699,19 +425,19 @@ class Float64List extends _NativeTypedArrayOfDouble native "Float64Array" {
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int16List extends _NativeTypedArrayOfInt native "Int16Array" {
+abstract class Int16List extends TypedData implements List<int> {
   /**
    * Creates an [Int16List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Int16List(int length) => _create1(_checkLength(length));
+  factory Int16List(int length) = NativeInt16List;
 
   /**
    * Creates a [Int16List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Int16List.fromList(List<int> list) =>
-      _create1(_ensureNativeList(list));
+  factory Int16List.fromList(List<int> elements) =>
+      new NativeInt16List.fromList(elements);
 
   /**
    * Creates an [Int16List] _view_ of the specified region in the specified
@@ -729,39 +455,10 @@ class Int16List extends _NativeTypedArrayOfInt native "Int16Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Int16List.view(ByteBuffer buffer,
-                         [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                         [int offsetInBytes = 0, int length]) =>
+      new NativeInt16List.view(buffer, offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 2;
-
-  int operator[](int index) {
-    _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
-
-  List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
-    var source = JS('Int16List', '#.subarray(#, #)', this, start, end);
-    return _create1(source);
-  }
-
-  static Int16List _create1(arg) =>
-      JS('Int16List', 'new Int16Array(#)', arg);
-
-  static Int16List _create2(arg1, arg2) =>
-      JS('Int16List', 'new Int16Array(#, #)', arg1, arg2);
-
-  static Int16List _create3(arg1, arg2, arg3) =>
-      JS('Int16List', 'new Int16Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -770,19 +467,19 @@ class Int16List extends _NativeTypedArrayOfInt native "Int16Array" {
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int32List extends _NativeTypedArrayOfInt native "Int32Array" {
+abstract class Int32List implements TypedData, List<int> {
   /**
    * Creates an [Int32List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Int32List(int length) => _create1(_checkLength(length));
+  factory Int32List(int length) = NativeInt32List;
 
   /**
    * Creates a [Int32List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Int32List.fromList(List<int> list) =>
-      _create1(_ensureNativeList(list));
+  factory Int32List.fromList(List<int> elements) =>
+      new NativeInt32List.fromList(elements);
 
   /**
    * Creates an [Int32List] _view_ of the specified region in the specified
@@ -800,39 +497,10 @@ class Int32List extends _NativeTypedArrayOfInt native "Int32Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Int32List.view(ByteBuffer buffer,
-                         [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                         [int offsetInBytes = 0, int length]) =>
+      new NativeInt32List.view(buffer, offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 4;
-
-  int operator[](int index) {
-    _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
-
-  List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
-    var source = JS('Int32List', '#.subarray(#, #)', this, start, end);
-    return _create1(source);
-  }
-
-  static Int32List _create1(arg) =>
-      JS('Int32List', 'new Int32Array(#)', arg);
-
-  static Int32List _create2(arg1, arg2) =>
-      JS('Int32List', 'new Int32Array(#, #)', arg1, arg2);
-
-  static Int32List _create3(arg1, arg2, arg3) =>
-      JS('Int32List', 'new Int32Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -841,19 +509,19 @@ class Int32List extends _NativeTypedArrayOfInt native "Int32Array" {
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Int8List extends _NativeTypedArrayOfInt native "Int8Array" {
+abstract class Int8List implements TypedData, List<int> {
   /**
    * Creates an [Int8List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Int8List(int length) => _create1(_checkLength(length));
+  factory Int8List(int length) = NativeInt8List;
 
   /**
    * Creates a [Int8List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Int8List.fromList(List<int> list) =>
-      _create1(_ensureNativeList(list));
+  factory Int8List.fromList(List<int> elements) =>
+      new NativeInt8List.fromList(elements);
 
   /**
    * Creates an [Int8List] _view_ of the specified region in the specified
@@ -868,39 +536,10 @@ class Int8List extends _NativeTypedArrayOfInt native "Int8Array" {
    * the length of [buffer].
    */
   factory Int8List.view(ByteBuffer buffer,
-                        [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                        [int offsetInBytes = 0, int length])
+      => new NativeInt8List.view(buffer, offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 1;
-
-  int operator[](int index) {
-    _checkIndex(index, length);
-    return JS("int", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
-
-  List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
-    var source = JS('Int8List', '#.subarray(#, #)', this, start, end);
-    return _create1(source);
-  }
-
-  static Int8List _create1(arg) =>
-      JS('Int8List', 'new Int8Array(#)', arg);
-
-  static Int8List _create2(arg1, arg2) =>
-      JS('Int8List', 'new Int8Array(#, #)', arg1, arg2);
-
-  static Int8List _create3(arg1, arg2, arg3) =>
-      JS('Int8List', 'new Int8Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -909,19 +548,19 @@ class Int8List extends _NativeTypedArrayOfInt native "Int8Array" {
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint16List extends _NativeTypedArrayOfInt native "Uint16Array" {
+abstract class Uint16List implements TypedData, List<int> {
   /**
    * Creates a [Uint16List] of the specified length (in elements), all
    * of whose elements are initially zero.
    */
-  factory Uint16List(int length) => _create1(_checkLength(length));
+  factory Uint16List(int length) = NativeUint16List;
 
   /**
    * Creates a [Uint16List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Uint16List.fromList(List<int> list) =>
-      _create1(_ensureNativeList(list));
+  factory Uint16List.fromList(List<int> elements) =>
+      new NativeUint16List.fromList(elements);
 
   /**
    * Creates a [Uint16List] _view_ of the specified region in
@@ -939,39 +578,10 @@ class Uint16List extends _NativeTypedArrayOfInt native "Uint16Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Uint16List.view(ByteBuffer buffer,
-                          [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                          [int offsetInBytes = 0, int length]) =>
+      new NativeUint16List.view(buffer, offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 2;
-
-  int operator[](int index) {
-    _checkIndex(index, length);
-    return JS("JSUInt31", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
-
-  List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
-    var source = JS('Uint16List', '#.subarray(#, #)', this, start, end);
-    return _create1(source);
-  }
-
-  static Uint16List _create1(arg) =>
-      JS('Uint16List', 'new Uint16Array(#)', arg);
-
-  static Uint16List _create2(arg1, arg2) =>
-      JS('Uint16List', 'new Uint16Array(#, #)', arg1, arg2);
-
-  static Uint16List _create3(arg1, arg2, arg3) =>
-      JS('Uint16List', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -980,19 +590,19 @@ class Uint16List extends _NativeTypedArrayOfInt native "Uint16Array" {
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint32List extends _NativeTypedArrayOfInt native "Uint32Array" {
+abstract class Uint32List implements TypedData, List<int> {
   /**
    * Creates a [Uint32List] of the specified length (in elements), all
    * of whose elements are initially zero.
    */
-  factory Uint32List(int length) => _create1(_checkLength(length));
+  factory Uint32List(int length) = NativeUint32List;
 
   /**
    * Creates a [Uint32List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Uint32List.fromList(List<int> list) =>
-      _create1(_ensureNativeList(list));
+  factory Uint32List.fromList(List<int> elements) =>
+      new NativeUint32List.fromList(elements);
 
   /**
    * Creates a [Uint32List] _view_ of the specified region in
@@ -1010,39 +620,10 @@ class Uint32List extends _NativeTypedArrayOfInt native "Uint32Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Uint32List.view(ByteBuffer buffer,
-                          [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                          [int offsetInBytes = 0, int length]) =>
+      new NativeUint32List.view(buffer, offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 4;
-
-  int operator[](int index) {
-    _checkIndex(index, length);
-    return JS("JSUInt32", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
-
-  List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
-    var source = JS('Uint32List', '#.subarray(#, #)', this, start, end);
-    return _create1(source);
-  }
-
-  static Uint32List _create1(arg) =>
-      JS('Uint32List', 'new Uint32Array(#)', arg);
-
-  static Uint32List _create2(arg1, arg2) =>
-      JS('Uint32List', 'new Uint32Array(#, #)', arg1, arg2);
-
-  static Uint32List _create3(arg1, arg2, arg3) =>
-      JS('Uint32List', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -1052,20 +633,19 @@ class Uint32List extends _NativeTypedArrayOfInt native "Uint32Array" {
  * more space- and time-efficient than the default [List] implementation.
  * Indexed store clamps the value to range 0..0xFF.
  */
-class Uint8ClampedList extends _NativeTypedArrayOfInt
-    native "Uint8ClampedArray,CanvasPixelArray" {
+abstract class Uint8ClampedList implements TypedData, List<int> {
   /**
    * Creates a [Uint8ClampedList] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Uint8ClampedList(int length) => _create1(_checkLength(length));
+  factory Uint8ClampedList(int length) = NativeUint8ClampedList;
 
   /**
    * Creates a [Uint8ClampedList] of the same size as the [elements]
    * list and copies over the values clamping when needed.
    */
-  factory Uint8ClampedList.fromList(List<int> list) =>
-      _create1(_ensureNativeList(list));
+  factory Uint8ClampedList.fromList(List<int> elements) =>
+      new NativeUint8ClampedList.fromList(elements);
 
   /**
    * Creates a [Uint8ClampedList] _view_ of the specified region in the
@@ -1080,42 +660,10 @@ class Uint8ClampedList extends _NativeTypedArrayOfInt
    * the length of [buffer].
    */
   factory Uint8ClampedList.view(ByteBuffer buffer,
-                                [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                                [int offsetInBytes = 0, int length]) =>
+      new NativeUint8ClampedList.view(buffer, offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 1;
-
-  int get length => JS("JSUInt32", '#.length', this);
-
-  int operator[](int index) {
-    _checkIndex(index, length);
-    return JS("JSUInt31", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
-
-  List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
-    var source = JS('Uint8ClampedList', '#.subarray(#, #)', this, start, end);
-    return _create1(source);
-  }
-
-  static Uint8ClampedList _create1(arg) =>
-      JS('Uint8ClampedList', 'new Uint8ClampedArray(#)', arg);
-
-  static Uint8ClampedList _create2(arg1, arg2) =>
-      JS('Uint8ClampedList', 'new Uint8ClampedArray(#, #)', arg1, arg2);
-
-  static Uint8ClampedList _create3(arg1, arg2, arg3) =>
-      JS('Uint8ClampedList', 'new Uint8ClampedArray(#, #, #)',
-         arg1, arg2, arg3);
 }
 
 
@@ -1124,24 +672,19 @@ class Uint8ClampedList extends _NativeTypedArrayOfInt
  * For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-class Uint8List extends _NativeTypedArrayOfInt
-    // On some browsers Uint8ClampedArray is a subtype of Uint8Array.  Marking
-    // Uint8List as !nonleaf ensures that the native dispatch correctly handles
-    // the potential for Uint8ClampedArray to 'accidentally' pick up the
-    // dispatch record for Uint8List.
-    native "Uint8Array,!nonleaf" {
+abstract class Uint8List implements TypedData, List<int> {
   /**
    * Creates a [Uint8List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Uint8List(int length) => _create1(_checkLength(length));
+  factory Uint8List(int length) = NativeUint8List;
 
   /**
    * Creates a [Uint8List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Uint8List.fromList(List<int> list) =>
-      _create1(_ensureNativeList(list));
+  factory Uint8List.fromList(List<int> elements) =>
+      new NativeUint8List.fromList(elements);
 
   /**
    * Creates a [Uint8List] _view_ of the specified region in the specified
@@ -1156,41 +699,10 @@ class Uint8List extends _NativeTypedArrayOfInt
    * the length of [buffer].
    */
   factory Uint8List.view(ByteBuffer buffer,
-                         [int offsetInBytes = 0, int length]) {
-    _checkViewArguments(buffer, offsetInBytes, length);
-    return length == null
-        ? _create2(buffer, offsetInBytes)
-        : _create3(buffer, offsetInBytes, length);
-  }
+                         [int offsetInBytes = 0, int length]) =>
+      new NativeUint8List.view(buffer, offsetInBytes, length);
 
   static const int BYTES_PER_ELEMENT = 1;
-
-  int get length => JS("JSUInt32", '#.length', this);
-
-  int operator[](int index) {
-    _checkIndex(index, length);
-    return JS("JSUInt31", "#[#]", this, index);
-  }
-
-  void operator[]=(int index, int value) {
-    _checkIndex(index, length);
-    JS("void", "#[#] = #", this, index, value);
-  }
-
-  List<int> sublist(int start, [int end]) {
-    end = _checkSublistArguments(start, end, length);
-    var source = JS('Uint8List', '#.subarray(#, #)', this, start, end);
-    return _create1(source);
-  }
-
-  static Uint8List _create1(arg) =>
-      JS('Uint8List', 'new Uint8Array(#)', arg);
-
-  static Uint8List _create2(arg1, arg2) =>
-      JS('Uint8List', 'new Uint8Array(#, #)', arg1, arg2);
-
-  static Uint8List _create3(arg1, arg2, arg3) =>
-      JS('Uint8List', 'new Uint8Array(#, #, #)', arg1, arg2, arg3);
 }
 
 
@@ -1199,8 +711,7 @@ class Uint8List extends _NativeTypedArrayOfInt
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-abstract class Int64List extends TypedData
-                         implements JavaScriptIndexingBehavior, List<int> {
+abstract class Int64List extends TypedData implements List<int> {
   /**
    * Creates an [Int64List] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -1245,8 +756,7 @@ abstract class Int64List extends TypedData
  * [TypedData]. For long lists, this implementation can be considerably
  * more space- and time-efficient than the default [List] implementation.
  */
-abstract class Uint64List extends TypedData
-                          implements JavaScriptIndexingBehavior, List<int> {
+abstract class Uint64List extends TypedData implements List<int> {
   /**
    * Creates a [Uint64List] of the specified length (in elements), all
    * of whose elements are initially zero.
@@ -1344,10 +854,10 @@ class Float32x4List
       : _storage = new Float32List(list.length * 4) {
     for (int i = 0; i < list.length; i++) {
       var e = list[i];
-      _storage[(i*4)+0] = e.x;
-      _storage[(i*4)+1] = e.y;
-      _storage[(i*4)+2] = e.z;
-      _storage[(i*4)+3] = e.w;
+      _storage[(i * 4) + 0] = e.x;
+      _storage[(i * 4) + 1] = e.y;
+      _storage[(i * 4) + 2] = e.z;
+      _storage[(i * 4) + 3] = e.w;
     }
   }
 
@@ -1390,24 +900,25 @@ class Float32x4List
 
   Float32x4 operator[](int index) {
     _checkIndex(index, length);
-    double _x = _storage[(index*4)+0];
-    double _y = _storage[(index*4)+1];
-    double _z = _storage[(index*4)+2];
-    double _w = _storage[(index*4)+3];
+    double _x = _storage[(index * 4) + 0];
+    double _y = _storage[(index * 4) + 1];
+    double _z = _storage[(index * 4) + 2];
+    double _w = _storage[(index * 4) + 3];
     return new Float32x4(_x, _y, _z, _w);
   }
 
   void operator[]=(int index, Float32x4 value) {
     _checkIndex(index, length);
-    _storage[(index*4)+0] = value._storage[0];
-    _storage[(index*4)+1] = value._storage[1];
-    _storage[(index*4)+2] = value._storage[2];
-    _storage[(index*4)+3] = value._storage[3];
+    _storage[(index * 4) + 0] = value._storage[0];
+    _storage[(index * 4) + 1] = value._storage[1];
+    _storage[(index * 4) + 2] = value._storage[2];
+    _storage[(index * 4) + 3] = value._storage[3];
   }
 
   List<Float32x4> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
-    return new Float32x4List._externalStorage(_storage.sublist(start*4, end*4));
+    return new Float32x4List._externalStorage(
+        _storage.sublist(start * 4, end * 4));
   }
 }
 
@@ -1462,7 +973,7 @@ class Int32x4List
    * Creates a [Int32x4List] of the specified length (in elements),
    * all of whose elements are initially zero.
    */
-  Int32x4List(int length) : _storage = new Uint32List(length*4);
+  Int32x4List(int length) : _storage = new Uint32List(length * 4);
 
   Int32x4List._externalStorage(Uint32List storage) : _storage = storage;
 
@@ -1470,10 +981,10 @@ class Int32x4List
       : _storage = new Uint32List(list.length * 4) {
     for (int i = 0; i < list.length; i++) {
       var e = list[i];
-      _storage[(i*4)+0] = e.x;
-      _storage[(i*4)+1] = e.y;
-      _storage[(i*4)+2] = e.z;
-      _storage[(i*4)+3] = e.w;
+      _storage[(i * 4) + 0] = e.x;
+      _storage[(i * 4) + 1] = e.y;
+      _storage[(i * 4) + 2] = e.z;
+      _storage[(i * 4) + 3] = e.w;
     }
   }
 
@@ -1516,19 +1027,19 @@ class Int32x4List
 
   Int32x4 operator[](int index) {
     _checkIndex(index, length);
-    int _x = _storage[(index*4)+0];
-    int _y = _storage[(index*4)+1];
-    int _z = _storage[(index*4)+2];
-    int _w = _storage[(index*4)+3];
+    int _x = _storage[(index * 4) + 0];
+    int _y = _storage[(index * 4) + 1];
+    int _z = _storage[(index * 4) + 2];
+    int _w = _storage[(index * 4) + 3];
     return new Int32x4(_x, _y, _z, _w);
   }
 
   void operator[]=(int index, Int32x4 value) {
     _checkIndex(index, length);
-    _storage[(index*4)+0] = value._storage[0];
-    _storage[(index*4)+1] = value._storage[1];
-    _storage[(index*4)+2] = value._storage[2];
-    _storage[(index*4)+3] = value._storage[3];
+    _storage[(index * 4) + 0] = value._storage[0];
+    _storage[(index * 4) + 1] = value._storage[1];
+    _storage[(index * 4) + 2] = value._storage[2];
+    _storage[(index * 4) + 3] = value._storage[3];
   }
 
   List<Int32x4> sublist(int start, [int end]) {

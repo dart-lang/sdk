@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:_native_typed_data';
 import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, JSName, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;

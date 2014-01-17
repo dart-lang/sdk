@@ -106,6 +106,13 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       maturity: Maturity.STABLE,
       dart2jsPath: "typed_data/dart2js/typed_data_dart2js.dart"),
 
+  "_native_typed_data": const LibraryInfo(
+      "typed_data/dart2js/native_typed_data_dart2js.dart",
+      category: "Internal",
+      implementation: true,
+      documented: false,
+      platforms: DART2JS_PLATFORM),
+
   "svg": const LibraryInfo(
       "svg/dartium/svg_dartium.dart",
       category: "Client",
@@ -297,4 +304,3 @@ class Maturity {
   static const Maturity UNSPECIFIED = const Maturity(-1, "Unspecified",
     "The maturity for this library has not been specified.");
 }
-
