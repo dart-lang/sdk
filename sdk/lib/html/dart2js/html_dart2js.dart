@@ -26043,12 +26043,7 @@ class TouchEvent extends UIEvent native "TouchEvent" {
    * Note that touch events are only supported if the user is using a touch
    * device.
    */
-  static bool get supported {
-    if (JS('bool', '"ontouchstart" in window')) {
-      return Device.isEventTypeSupported('TouchEvent');
-    }
-    return false;
-  }
+  static bool get supported => Device.isEventTypeSupported('TouchEvent');
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -28528,12 +28528,7 @@ class TouchEvent extends UIEvent {
    * Note that touch events are only supported if the user is using a touch
    * device.
    */
-  static bool get supported {
-    // Bug #8186 add equivalent 'ontouchstart' check for Dartium.
-    // Basically, this is a fairly common check and it'd be great if it did not
-    // throw exceptions.
-    return Device.isEventTypeSupported('TouchEvent');
-  }
+  static bool get supported => Device.isEventTypeSupported('TouchEvent');
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
