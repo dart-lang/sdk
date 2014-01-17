@@ -30,6 +30,7 @@ import '../scanner/scannerlib.dart' show PartialMetadataAnnotation;
 
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
+import 'class_members.dart' show MembersCreator;
 
 part 'members.dart';
 part 'scope.dart';

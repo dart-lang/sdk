@@ -1778,6 +1778,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
 
   int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
 
+  Map<Name, Member> classMembers;
+
   BaseClassElementX(String name,
                     Element enclosing,
                     this.id,
@@ -2150,6 +2152,12 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   bool isNative() => nativeTagInfo != null;
   void setNative(String name) {
     nativeTagInfo = name;
+  }
+
+  Member lookupClassMember(Name name) => classMembers[name];
+
+  void forEachClassMember(f(Member member)) {
+    classMembers.forEach((_, member) => f(member));
   }
 }
 
