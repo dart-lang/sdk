@@ -395,16 +395,17 @@ Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
 
 
 Dart_CObject* ApiMessageReader::ReadObjectRef() {
-  int64_t value = Read<int64_t>();
-  if ((value & kSmiTagMask) == 0) {
-    int64_t untagged_value = value >> kSmiTagShift;
-    if (kMinInt32 <= untagged_value && untagged_value <= kMaxInt32) {
-      return AllocateDartCObjectInt32(untagged_value);
+  int64_t value64 = Read<int64_t>();
+  if ((value64 & kSmiTagMask) == 0) {
+    int64_t untagged_value = value64 >> kSmiTagShift;
+    if ((kMinInt32 <= untagged_value) && (untagged_value <= kMaxInt32)) {
+      return AllocateDartCObjectInt32(static_cast<int32_t>(untagged_value));
     } else {
       return AllocateDartCObjectInt64(untagged_value);
     }
   }
-  ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
+  ASSERT((value64 <= kIntptrMax) && (value64 >= kIntptrMin));
+  intptr_t value = static_cast<intptr_t>(value64);
   if (IsVMIsolateObject(value)) {
     return ReadVMIsolateObject(value);
   }
@@ -512,12 +513,12 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       return value;
     }
     case kMintCid: {
-      int64_t value = Read<int64_t>();
+      int64_t value64 = Read<int64_t>();
       Dart_CObject* object;
-      if (kMinInt32 <= value && value <= kMaxInt32) {
-        object = AllocateDartCObjectInt32(value);
+      if ((kMinInt32 <= value64) && (value64 <= kMaxInt32)) {
+        object = AllocateDartCObjectInt32(static_cast<int32_t>(value64));
       } else {
-        object = AllocateDartCObjectInt64(value);
+        object = AllocateDartCObjectInt64(value64);
       }
       AddBackRef(object_id, object, kIsDeserialized);
       return object;
@@ -718,16 +719,17 @@ Dart_CObject* ApiMessageReader::ReadObject() {
 
 
 Dart_CObject* ApiMessageReader::ReadObjectImpl() {
-  int64_t value = Read<int64_t>();
-  if ((value & kSmiTagMask) == 0) {
-    int64_t untagged_value = value >> kSmiTagShift;
-    if (kMinInt32 <= untagged_value && untagged_value <= kMaxInt32) {
-      return AllocateDartCObjectInt32(untagged_value);
+  int64_t value64 = Read<int64_t>();
+  if ((value64 & kSmiTagMask) == 0) {
+    int64_t untagged_value = value64 >> kSmiTagShift;
+    if ((kMinInt32 <= untagged_value) && (untagged_value <= kMaxInt32)) {
+      return AllocateDartCObjectInt32(static_cast<int32_t>(untagged_value));
     } else {
       return AllocateDartCObjectInt64(untagged_value);
     }
   }
-  ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
+  ASSERT((value64 <= kIntptrMax) && (value64 >= kIntptrMin));
+  intptr_t value = static_cast<intptr_t>(value64);
   if (IsVMIsolateObject(value)) {
     return ReadVMIsolateObject(value);
   }
@@ -847,7 +849,7 @@ void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
 
 void ApiMessageWriter::WriteSmi(int64_t value) {
   ASSERT(Smi::IsValid64(value));
-  Write<RawObject*>(Smi::New(value));
+  Write<RawObject*>(Smi::New(static_cast<intptr_t>(value)));
 }
 
 

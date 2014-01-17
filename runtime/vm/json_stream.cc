@@ -10,13 +10,15 @@
 
 namespace dart {
 
-JSONStream::JSONStream(intptr_t buf_size) : buffer_(buf_size) {
-  open_objects_ = 0;
-  arguments_ = NULL;
-  num_arguments_ = 0;
-  option_keys_ = NULL;
-  option_values_ = NULL;
-  num_options_ = 0;
+JSONStream::JSONStream(intptr_t buf_size)
+    : open_objects_(0),
+      buffer_(buf_size),
+      reply_port_(ILLEGAL_PORT),
+      arguments_(NULL),
+      num_arguments_(0),
+      option_keys_(NULL),
+      option_values_(NULL),
+      num_options_(0) {
 }
 
 
@@ -178,6 +180,11 @@ void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
   buffer_.AddEscapedString(p);
   buffer_.AddChar('"');
   free(p);
+}
+
+
+void JSONStream::set_reply_port(Dart_Port port) {
+  reply_port_ = port;
 }
 
 

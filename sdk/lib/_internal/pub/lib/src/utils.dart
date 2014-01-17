@@ -202,6 +202,21 @@ String pluralize(String name, int number, {String plural}) {
   return '${name}s';
 }
 
+/// Escapes any regex metacharacters in [string] so that using as a [RegExp]
+/// pattern will match the string literally.
+// TODO(rnystrom): Remove when #4706 is fixed.
+String quoteRegExp(String string) {
+  // Note: make sure "\" is done first so that we don't escape the other
+  // escaped characters. We could do all of the replaces at once with a regexp
+  // but string literal for regex that matches all regex metacharacters would
+  // be a bit hard to read.
+  for (var metacharacter in r"\^$.*+?()[]{}|".split("")) {
+    string = string.replaceAll(metacharacter, "\\$metacharacter");
+  }
+
+  return string;
+}
+
 /// Creates a URL string for [address]:[port].
 ///
 /// Handles properly formatting IPv6 addresses.

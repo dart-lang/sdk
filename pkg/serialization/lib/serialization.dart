@@ -109,7 +109,7 @@
  * of the object, and functions equivalent to the methods on [CustomRule]
  *
  * ## Constant values
- * 
+ *
  * There are cases where the constructor needs values that we can't easily get
  * from the serialized object. For example, we may just want to pass null, or a
  * constant value. To support this, we can specify as constructor fields
@@ -123,7 +123,7 @@
  * addFoo() method for each entry in the list. In these cases, if you are using
  * a BasicRule for the object you can call the setFieldWith() method.
  *
- *       s..addRuleFor(fooHolderInstance).setFieldWith("foo",
+ *       s..addRuleFor(FooHolder).setFieldWith("foo",
  *           (parent, value) => for (var each in value) parent.addFoo(value));
  *
  * ## Writing
@@ -352,7 +352,7 @@ class Serialization {
   /**
    * This writes out an object graph rooted at [object] and returns the result.
    * The [format] parameter determines the form of the result. The default
-   * format returns a String in [json] format.
+   * format is [SimpleMapFormat] and returns a Map.
    */
   write(Object object, {Format format}) {
     return newWriter(format).write(object);
@@ -370,7 +370,7 @@ class Serialization {
    * from the result. The [input] can be of any type that the [Format]
    * reads/writes, but normally will be a [List], [Map], or a simple type.
    * The [format] parameter determines the form of the result. The default
-   * format returns a String in [json] format.
+   * format is [SimpleMapFormat] and expects a Map as input.
    * If there are objects that need to be resolved
    * in the current context, they should be provided in [externals] as a
    * Map from names to values. In particular, in the current implementation
@@ -447,26 +447,22 @@ class Serialization {
     // or we might just be able to validate that they're correctly set up
     // on the other side.
 
-    // Make some bogus rule instances so we have something to feed rule creation
-    // and get their types. If only we had class literals implemented...
-   var basicRule = new BasicRule(reflect(null).type, '', [], [], []);
-
     var meta = new Serialization()
       ..selfDescribing = false
-      ..addRuleFor(new ListRule())
-      ..addRuleFor(new MapRule())
-      ..addRuleFor(new PrimitiveRule())
-      ..addRuleFor(new ListRuleEssential())
-      ..addRuleFor(basicRule,
+      ..addRuleFor(ListRule)
+      ..addRuleFor(MapRule)
+      ..addRuleFor(PrimitiveRule)
+      ..addRuleFor(ListRuleEssential)
+      ..addRuleFor(BasicRule,
           constructorFields: ['type',
             'constructorName',
             'constructorFields', 'regularFields', []],
           fields: [])
       ..addRule(new NamedObjectRule())
       ..addRule(new MirrorRule())
-      ..addRuleFor(new MirrorRule())
-      ..addRuleFor(new SymbolRule())
-      ..addRuleFor(new DateTimeRule());
+      ..addRuleFor(MirrorRule)
+      ..addRuleFor(SymbolRule)
+      ..addRuleFor(DateTimeRule);
     meta.namedObjects = namedObjects;
     return meta;
   }

@@ -298,8 +298,7 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction* parsed_function,
       initial_definitions_(),
       osr_id_(osr_id),
       entry_count_(0),
-      spill_slot_count_(0),
-      fixed_slot_count_(0) {
+      spill_slot_count_(0) {
 }
 
 
@@ -379,7 +378,7 @@ static bool IsRecognizedLibrary(const Library& library) {
   return (library.raw() == Library::CoreLibrary())
       || (library.raw() == Library::MathLibrary())
       || (library.raw() == Library::TypedDataLibrary())
-      || (library.raw() == Library::CollectionDevLibrary());
+      || (library.raw() == Library::InternalLibrary());
 }
 
 

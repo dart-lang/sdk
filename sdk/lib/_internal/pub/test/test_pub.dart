@@ -31,7 +31,6 @@ import '../lib/src/io.dart';
 import '../lib/src/lock_file.dart';
 import '../lib/src/log.dart' as log;
 import '../lib/src/package.dart';
-import '../lib/src/safe_http_server.dart';
 import '../lib/src/source/hosted.dart';
 import '../lib/src/source/path.dart';
 import '../lib/src/source_registry.dart';
@@ -103,7 +102,7 @@ void serve([List<d.Descriptor> contents]) {
 
   schedule(() {
     return _closeServer().then((_) {
-      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
+      return HttpServer.bind("127.0.0.1", 0).then((server) {
         _server = server;
         server.listen((request) {
           currentSchedule.heartbeat();

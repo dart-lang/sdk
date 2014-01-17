@@ -24,7 +24,7 @@ import 'resubscribable.dart';
 /// succession, it won't report them in the order they occurred. See issue
 /// 14373.
 ///
-/// This also works around issues 15458 and 14849 in the implementation of
+/// This also works around issues 16003 and 14849 in the implementation of
 /// [Directory.watch].
 class MacOSDirectoryWatcher extends ResubscribableDirectoryWatcher {
   // TODO(nweiz): remove these when issue 15042 is fixed.
@@ -50,14 +50,6 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   Future get ready => _readyCompleter.future;
   final _readyCompleter = new Completer();
 
-  /// The number of event batches that have been received from
-  /// [Directory.watch].
-  ///
-  /// This is used to determine if the [Directory.watch] stream was falsely
-  /// closed due to issue 14849. A close caused by events in the past will only
-  /// happen before or immediately after the first batch of events.
-  int batches = 0;
-
   /// The set of files that are known to exist recursively within the watched
   /// directory.
   ///
@@ -73,11 +65,17 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// needs to be resubscribed in order to work around issue 14849.
   StreamSubscription<FileSystemEvent> _watchSubscription;
 
-  /// A set of subscriptions that this watcher subscribes to.
-  ///
-  /// These are gathered together so that they may all be canceled when the
-  /// watcher is closed. This does not include [_watchSubscription].
-  final _subscriptions = new Set<StreamSubscription>();
+  /// The subscription to the [Directory.list] call for the initial listing of
+  /// the directory to determine its initial state.
+  StreamSubscription<FileSystemEntity> _initialListSubscription;
+
+  /// The subscription to the [Directory.list] call for listing the contents of
+  /// a subdirectory that was moved into the watched directory.
+  StreamSubscription<FileSystemEntity> _listSubscription;
+
+  /// The timer for tracking how long we wait for an initial batch of bogus
+  /// events (see issue 14373).
+  Timer _bogusEventTimer;
 
   _MacOSDirectoryWatcher(String directory, int parentId)
       : directory = directory,
@@ -85,12 +83,20 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         _id = "$parentId/${_count++}" {
     _startWatch();
 
-    _listen(Chain.track(new Directory(directory).list(recursive: true)),
-        (entity) {
-      if (entity is! Directory) _files.add(entity.path);
-    },
-        onError: _emitError,
-        onDone: () {
+    // Before we're ready to emit events, wait for [_listDir] to complete and
+    // for enough time to elapse that if bogus events (issue 14373) would be
+    // emitted, they will be.
+    //
+    // If we do receive a batch of events, [_onBatch] will ensure that these
+    // futures don't fire and that the directory is re-listed.
+    Future.wait([
+      _listDir().then((_) {
+        if (MacOSDirectoryWatcher.logDebugInfo) {
+          print("[$_id] finished initial directory list");
+        }
+      }),
+      _waitForBogusEvents()
+    ]).then((_) {
       if (MacOSDirectoryWatcher.logDebugInfo) {
         print("[$_id] watcher is ready, known files:");
         for (var file in _files.toSet()) {
@@ -98,20 +104,19 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         }
       }
       _readyCompleter.complete();
-    },
-        cancelOnError: true);
+    });
   }
 
   void close() {
     if (MacOSDirectoryWatcher.logDebugInfo) {
       print("[$_id] watcher is closed");
     }
-    for (var subscription in _subscriptions) {
-      subscription.cancel();
-    }
-    _subscriptions.clear();
     if (_watchSubscription != null) _watchSubscription.cancel();
+    if (_initialListSubscription != null) _initialListSubscription.cancel();
+    if (_listSubscription != null) _listSubscription.cancel();
     _watchSubscription = null;
+    _initialListSubscription = null;
+    _listSubscription = null;
     _eventsController.close();
   }
 
@@ -129,12 +134,33 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       }
     }
 
-    batches++;
+    // If we get a batch of events before we're ready to begin emitting events,
+    // it's probable that it's a batch of pre-watcher events (see issue 14373).
+    // Ignore those events and re-list the directory.
+    if (!isReady) {
+      if (MacOSDirectoryWatcher.logDebugInfo) {
+        print("[$_id] not ready to emit events, re-listing directory");
+      }
+
+      // Cancel the timer because bogus events only occur in the first batch, so
+      // we can fire [ready] as soon as we're done listing the directory.
+      _bogusEventTimer.cancel();
+      _listDir().then((_) {
+        if (MacOSDirectoryWatcher.logDebugInfo) {
+          print("[$_id] watcher is ready, known files:");
+          for (var file in _files.toSet()) {
+            print("[$_id]   ${p.relative(file, from: directory)}");
+          }
+        }
+        _readyCompleter.complete();
+      });
+      return;
+    }
 
     _sortEvents(batch).forEach((path, events) {
       var relativePath = p.relative(path, from: directory);
       if (MacOSDirectoryWatcher.logDebugInfo) {
-        print("[$_id] events for $relativePath:\n");
+        print("[$_id] events for $relativePath:");
         for (var event in events) {
           print("[$_id]   ${_formatEvent(event)}");
         }
@@ -165,9 +191,11 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
           if (_files.containsDir(path)) continue;
 
-          _listen(Chain.track(new Directory(path).list(recursive: true)),
-              (entity) {
+          var stream = Chain.track(new Directory(path).list(recursive: true));
+          _listSubscription = stream.listen((entity) {
             if (entity is Directory) return;
+            if (_files.contains(path)) return;
+
             _emitEvent(ChangeType.ADD, entity.path);
             _files.add(entity.path);
           }, onError: (e, stackTrace) {
@@ -293,12 +321,14 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
     switch (type) {
       case FileSystemEvent.CREATE:
-        return new ConstructableFileSystemCreateEvent(batch.first.path, isDir);
-      case FileSystemEvent.DELETE:
-        // Issue 15458 means that DELETE events for directories can actually
-        // mean CREATE, so we always check the filesystem for them.
+        // Issue 16003 means that a CREATE event for a directory can indicate
+        // that the directory was moved and then re-created.
+        // [_eventsBasedOnFileSystem] will handle this correctly by producing a
+        // DELETE event followed by a CREATE event if the directory exists.
         if (isDir) return null;
         return new ConstructableFileSystemCreateEvent(batch.first.path, false);
+      case FileSystemEvent.DELETE:
+        return new ConstructableFileSystemDeleteEvent(batch.first.path, isDir);
       case FileSystemEvent.MODIFY:
         return new ConstructableFileSystemModifyEvent(
             batch.first.path, isDir, false);
@@ -320,10 +350,12 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     var dirExists = new Directory(path).existsSync();
 
     if (MacOSDirectoryWatcher.logDebugInfo) {
-      print("[$_id] file existed: $fileExisted");
-      print("[$_id] dir existed: $dirExisted");
-      print("[$_id] file exists: $fileExists");
-      print("[$_id] dir exists: $dirExists");
+      print("[$_id] checking file system for "
+          "${p.relative(path, from: directory)}");
+      print("[$_id]   file existed: $fileExisted");
+      print("[$_id]   dir existed: $dirExisted");
+      print("[$_id]   file exists: $fileExists");
+      print("[$_id]   dir exists: $dirExists");
     }
 
     var events = [];
@@ -356,19 +388,24 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
   /// The callback that's run when the [Directory.watch] stream is closed.
   void _onDone() {
+    if (MacOSDirectoryWatcher.logDebugInfo) print("[$_id] stream closed");
+
     _watchSubscription = null;
 
-    // If the directory still exists and we haven't seen more than one batch,
+    // If the directory still exists and we're still expecting bogus events,
     // this is probably issue 14849 rather than a real close event. We should
     // just restart the watcher.
-    if (batches < 2 && new Directory(directory).existsSync()) {
+    if (!isReady && new Directory(directory).existsSync()) {
+      if (MacOSDirectoryWatcher.logDebugInfo) {
+        print("[$_id] fake closure (issue 14849), re-opening stream");
+      }
       _startWatch();
       return;
     }
 
     // FSEvents can fail to report the contents of the directory being removed
-    // when the directory itself is removed, so we need to manually mark the as
-    // removed.
+    // when the directory itself is removed, so we need to manually mark the
+    // files as removed.
     for (var file in _files.toSet()) {
       _emitEvent(ChangeType.REMOVE, file);
     }
@@ -387,6 +424,37 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
         onDone: _onDone);
   }
 
+  /// Starts or restarts listing the watched directory to get an initial picture
+  /// of its state.
+  Future _listDir() {
+    assert(!isReady);
+    if (_initialListSubscription != null) _initialListSubscription.cancel();
+
+    _files.clear();
+    var completer = new Completer();
+    var stream = Chain.track(new Directory(directory).list(recursive: true));
+    _initialListSubscription = stream.listen((entity) {
+      if (entity is! Directory) _files.add(entity.path);
+    },
+        onError: _emitError,
+        onDone: completer.complete,
+        cancelOnError: true);
+    return completer.future;
+  }
+
+  /// Wait 200ms for a batch of bogus events (issue 14373) to come in.
+  ///
+  /// 200ms is short in terms of human interaction, but longer than any Mac OS
+  /// watcher tests take on the bots, so it should be safe to assume that any
+  /// bogus events will be signaled in that time frame.
+  Future _waitForBogusEvents() {
+    var completer = new Completer();
+    _bogusEventTimer = new Timer(
+        new Duration(milliseconds: 200),
+        completer.complete);
+    return completer.future;
+  }
+
   /// Emit an event with the given [type] and [path].
   void _emitEvent(ChangeType type, String path) {
     if (!isReady) return;
@@ -402,18 +470,6 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   void _emitError(error, StackTrace stackTrace) {
     _eventsController.addError(error, stackTrace);
     close();
-  }
-
-  /// Like [Stream.listen], but automatically adds the subscription to
-  /// [_subscriptions] so that it can be canceled when [close] is called.
-  void _listen(Stream stream, void onData(event), {Function onError,
-      void onDone(), bool cancelOnError}) {
-    var subscription;
-    subscription = stream.listen(onData, onError: onError, onDone: () {
-      _subscriptions.remove(subscription);
-      if (onDone != null) onDone();
-    }, cancelOnError: cancelOnError);
-    _subscriptions.add(subscription);
   }
 
   // TODO(nweiz): remove this when issue 15042 is fixed.

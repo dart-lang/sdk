@@ -5,6 +5,7 @@
 #ifndef VM_JSON_STREAM_H_
 #define VM_JSON_STREAM_H_
 
+#include "include/dart_api.h"  // for Dart_Port
 #include "platform/json.h"
 #include "vm/allocation.h"
 
@@ -25,9 +26,12 @@ class JSONStream : ValueObject {
   TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
 
+  void set_reply_port(Dart_Port port);
   void SetArguments(const char** arguments, intptr_t num_arguments);
   void SetOptions(const char** option_keys, const char** option_values,
                   intptr_t num_options);
+
+  Dart_Port reply_port() const { return reply_port_; }
 
   intptr_t num_arguments() const { return num_arguments_; }
   const char* GetArgument(intptr_t i) const {
@@ -77,6 +81,7 @@ class JSONStream : ValueObject {
 
   intptr_t open_objects_;
   TextBuffer buffer_;
+  Dart_Port reply_port_;
   const char** arguments_;
   intptr_t num_arguments_;
   const char** option_keys_;

@@ -129,22 +129,36 @@ class Intl {
   }
 
   /**
-   * Returns a message that can be internationalized. It takes a
-   * [message_str] that will be translated, which may be interpolated
-   * based on one or more variables, a [desc] providing a description of usage
-   * for the [message_str], and a map of [examples] for each data element to be
-   * substituted into the message. For example, if message="Hello, $name", then
-   * examples = {'name': 'Sparky'}. If not using the user's default locale, or
-   * if the locale is not easily detectable, explicitly pass [locale].
-   * The values of [desc] and [examples] are not used at run-time but are only
-   * made available to the translators, so they MUST be simple Strings available
-   * at compile time: no String interpolation or concatenation.
-   * The expected usage of this is inside a function that takes as parameters
-   * the variables used in the interpolated string, and additionally also a
-   * locale (optional).
-   * Ultimately, the information about the enclosing function and its arguments
-   * will be extracted automatically but for the time being it must be passed
-   * explicitly in the [name] and [args] arguments.
+   * Use this for a message that will be translated for different locales. The
+   * expected usage is that this is inside an enclosing function that only
+   * returns the value of this call and provides a scope for the variables that
+   * will be substituted in the message.
+   *
+   * The parameters are a
+   * [message_str] to be translated, which may be interpolated
+   * based on one or more variables, the [name] of the message, which should
+   * match the enclosing function name, the [args] of the enclosing
+   * function, a [desc] providing a description of usage
+   * and a map of [examples] for each interpolated variable. For example
+   *       hello(yourName) => Intl.message(
+   *         "Hello, $yourName",
+   *         name: "hello",
+   *         args: [name],
+   *         desc: "Say hello",
+   *         examples = {"yourName": "Sparky"}.
+   * The source code will be processed via the analyzer to extract out the
+   * message data, so only a subset of valid Dart code is accepted. In
+   * particular, everything must be literal and cannot refer to variables
+   * outside the scope of the enclosing function. The [examples] map must
+   * be a valid const literal map. Similarly, the [desc] argument must
+   * be a single, simple string. These two arguments will not be used at runtime
+   * but will be extracted from
+   * the source code and used as additional data for translators.
+   *
+   * The [name] and [args] arguments are required, and are used at runtime
+   * to look up the localized version and pass the appropriate arguments to it.
+   * We may in the future modify the code during compilation to make manually
+   * passing those arguments unnecessary.
    */
   static String message(String message_str, {final String desc: '',
       final Map examples: const {}, String locale, String name,

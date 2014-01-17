@@ -122,7 +122,7 @@ abstract class BaseRequest {
     });
   }
 
-  /// Throws an error if this request has been finalized.
+  // Throws an error if this request has been finalized.
   void _checkFinalized() {
     if (!finalized) return;
     throw new StateError("Can't modify a finalized Request.");

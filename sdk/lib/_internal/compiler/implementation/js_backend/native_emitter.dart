@@ -457,7 +457,9 @@ class NativeEmitter {
       return false;
     }
 
-    if (backend.classesMixedIntoNativeClasses.contains(element)) return true;
+    if (backend.classesMixedIntoInterceptedClasses.contains(element)) {
+      return true;
+    }
 
     return subtypes[element] != null;
   }

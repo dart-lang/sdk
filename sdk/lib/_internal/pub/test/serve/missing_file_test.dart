@@ -14,7 +14,7 @@ import 'utils.dart';
 
 main() {
   initConfig();
-  integration("responds with a 404 for missing files", () {
+  integration("responds with a 404 for missing source files", () {
     d.dir(appPath, [
       d.appPubspec(),
       d.dir("asset", [
@@ -32,19 +32,17 @@ main() {
     // assets for them.
     pubServe();
 
-    // TODO(rnystrom): When pub serve supports file watching, we'll have to do
-    // something here to specifically disable that so that we can get barback
-    // into the inconsistent state of thinking there is an asset but where the
-    // underlying file does not exist. One option would be configure barback
-    // with an insanely long delay between polling to ensure a poll doesn't
-    // happen.
-
     // Now delete them.
     schedule(() {
       deleteEntry(path.join(sandboxDir, appPath, "asset", "nope.png"));
       deleteEntry(path.join(sandboxDir, appPath, "lib", "nope.dart"));
       deleteEntry(path.join(sandboxDir, appPath, "web", "index.html"));
     }, "delete files");
+
+    // Now request them.
+    // TODO(rnystrom): It's possible for these requests to happen quickly
+    // enough that the file system hasn't notified for the deletions yet. If
+    // that happens, we can probably just add a short delay here.
 
     requestShould404("index.html");
     requestShould404("packages/myapp/nope.dart");

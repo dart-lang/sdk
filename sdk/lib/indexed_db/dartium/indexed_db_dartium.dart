@@ -823,6 +823,11 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   @DocsEditable()
   Request _openCursor(Object key, [String direction]) native "IDBObjectStore_openCursor_Callback";
 
+  @DomName('IDBObjectStore.openKeyCursor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Request openKeyCursor(Object range, String direction) native "IDBObjectStore_openKeyCursor_Callback";
+
   @DomName('IDBObjectStore.put')
   @DocsEditable()
   Request _put(Object value, [Object key]) native "IDBObjectStore_put_Callback";
@@ -1113,6 +1118,11 @@ class VersionChangeEvent extends Event {
   @DocsEditable()
   @Experimental() // untriaged
   String get dataLoss native "IDBVersionChangeEvent_dataLoss_Getter";
+
+  @DomName('IDBVersionChangeEvent.dataLossMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get dataLossMessage native "IDBVersionChangeEvent_dataLossMessage_Getter";
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable()

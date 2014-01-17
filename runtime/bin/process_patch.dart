@@ -198,7 +198,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       throw new ArgumentError("Environment is not a map: $environment");
     }
     if (identical(true, includeParentEnvironment)) {
-      environment = Platform.environment..addAll(environment);
+      environment = new Map.from(Platform.environment)..addAll(environment);
     }
     environment.forEach((key, value) {
       if (key is !String || value is !String) {

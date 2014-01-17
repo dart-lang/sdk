@@ -92,6 +92,13 @@ class Trace implements StackTrace {
   /// If [trace] is a native [StackTrace], its data will be parsed out; if it's
   /// a [Trace], it will be returned as-is.
   factory Trace.from(StackTrace trace) {
+    // Normally explicitly validating null arguments is bad Dart style, but here
+    // the natural failure will only occur when the LazyTrace is materialized,
+    // and we want to provide an error that's more local to the actual problem.
+    if (trace == null) {
+      throw new ArgumentError("Cannot create a Trace from null.");
+    }
+
     if (trace is Trace) return trace;
     if (trace is Chain) return trace.toTrace();
     return new LazyTrace(() => new Trace.parse(trace.toString()));
@@ -126,7 +133,10 @@ class Trace implements StackTrace {
 
   /// Parses a string representation of a Dart VM stack trace.
   Trace.parseVM(String trace)
-      : this(trace.trim().split("\n").map((line) => new Frame.parseVM(line)));
+      : this(trace.trim().split("\n").
+            // TODO(nweiz): remove this when issue 15920 is fixed.
+            where((line) => line.isNotEmpty).
+            map((line) => new Frame.parseVM(line)));
 
   /// Parses a string representation of a Chrome/V8 stack trace.
   Trace.parseV8(String trace)
@@ -161,6 +171,7 @@ class Trace implements StackTrace {
   /// Parses a string representation of a Safari 6.1+ stack trace.
   Trace.parseSafari6_1(String trace)
       : this(trace.trim().split("\n")
+          .where((line) => line.isNotEmpty)
           .map((line) => new Frame.parseSafari6_1(line)));
 
   /// Parses a string representation of a Safari 6.0 stack trace.

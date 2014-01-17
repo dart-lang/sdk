@@ -178,7 +178,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
 }
 
 
-static const ICData& SpecializeICData(const ICData& ic_data, intptr_t cid) {
+static const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid) {
   ASSERT(ic_data.num_args_tested() == 1);
 
   if ((ic_data.NumberOfChecks() == 1) &&
@@ -186,21 +186,23 @@ static const ICData& SpecializeICData(const ICData& ic_data, intptr_t cid) {
     return ic_data;  // Nothing to do
   }
 
-  const ICData& new_ic_data = ICData::ZoneHandle(ICData::New(
-      Function::Handle(ic_data.function()),
-      String::Handle(ic_data.target_name()),
-      Object::empty_array(),  // Dummy argument descriptor.
-      ic_data.deopt_id(),
-      ic_data.num_args_tested()));
-  new_ic_data.set_deopt_reason(ic_data.deopt_reason());
-
   const Function& function =
       Function::Handle(ic_data.GetTargetForReceiverClassId(cid));
+  // TODO(fschneider): Try looking up the function on the class if it is
+  // not found in the ICData.
   if (!function.IsNull()) {
+    const ICData& new_ic_data = ICData::ZoneHandle(ICData::New(
+        Function::Handle(ic_data.function()),
+        String::Handle(ic_data.target_name()),
+        Object::empty_array(),  // Dummy argument descriptor.
+        ic_data.deopt_id(),
+        ic_data.num_args_tested()));
+    new_ic_data.set_deopt_reason(ic_data.deopt_reason());
     new_ic_data.AddReceiverCheck(cid, function);
+    return new_ic_data;
   }
 
-  return new_ic_data;
+  return ic_data;
 }
 
 
@@ -216,7 +218,11 @@ void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
     return;  // No information about receiver was infered.
   }
 
-  const ICData& ic_data = SpecializeICData(call->ic_data(), receiver_cid);
+  const ICData& ic_data = TrySpecializeICData(call->ic_data(), receiver_cid);
+  if (ic_data.raw() == call->ic_data().raw()) {
+    // No specialization.
+    return;
+  }
 
   const bool with_checks = false;
   PolymorphicInstanceCallInstr* specialized =
@@ -369,6 +375,10 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
         curr_instr->ReplaceWith(div_mod, current_iterator());
         other_binop->ReplaceUsesWith(div_mod);
         other_binop->RemoveFromGraph();
+        // Only one merge possible. Because canonicalization happens later,
+        // more candidates are possible.
+        // TODO(srdjan): Allow merging of trunc-div/mod into truncDivMod.
+        break;
       }
     }
   }
@@ -415,14 +425,18 @@ void FlowGraphOptimizer::TryMergeMathUnary(
         ZoneGrowableArray<Value*>* args = new ZoneGrowableArray<Value*>(1);
         args->Add(new Value(curr_instr->value()->definition()));
 
-        // Replace with TruncDivMod.
-        MergedMathInstr* div_mod = new MergedMathInstr(
+        // Replace with SinCos.
+        MergedMathInstr* sin_cos = new MergedMathInstr(
             args,
             curr_instr->DeoptimizationTarget(),
             MergedMathInstr::kSinCos);
-        curr_instr->ReplaceWith(div_mod, current_iterator());
-        other_op->ReplaceUsesWith(div_mod);
+        curr_instr->ReplaceWith(sin_cos, current_iterator());
+        other_op->ReplaceUsesWith(sin_cos);
         other_op->RemoveFromGraph();
+        // Only one merge possible. Because canonicalization happens later,
+        // more candidates are possible.
+        // TODO(srdjan): Allow merging of sin/cos into sincos.
+        break;
       }
     }
   }
@@ -4575,12 +4589,9 @@ void LICM::Optimize() {
           }
           if (inputs_loop_invariant &&
               !current->IsAssertAssignable() &&
-              !current->IsAssertBoolean() &&
-              !current->IsGuardField()) {
+              !current->IsAssertBoolean()) {
             // TODO(fschneider): Enable hoisting of Assert-instructions
             // if it safe to do.
-            // TODO(15652): Hoisting guard-field instructions causes the
-            // optimizing compiler to crash.
             Hoist(&it, pre_header, current);
           } else if (current->IsCheckSmi() &&
                      current->InputAt(0)->definition()->IsPhi()) {
@@ -8190,7 +8201,9 @@ void AllocationSinking::Optimize() {
     MaterializeObjectInstr* mat = materializations_[i];
     for (intptr_t j = 0; j < mat->InputCount(); j++) {
       Definition* defn = mat->InputAt(j)->definition();
-      if (defn->IsBoxDouble()) {
+      if (defn->IsBoxDouble() ||
+          defn->IsBoxFloat32x4() ||
+          defn->IsBoxInt32x4()) {
         mat->InputAt(j)->BindTo(defn->InputAt(0)->definition());
       }
     }

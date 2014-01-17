@@ -5,8 +5,6 @@
 library dart.typed_data;
 
 import 'dart:collection';
-import 'dart:_collection-dev';
-import 'dart:math' show Random;
 
 /**
  * A sequence of bytes underlying a typed data object.

@@ -104,6 +104,16 @@ class Link<T> {
     if (isEmpty) throw new StateError('No elements');
     return head;
   }
+
+  /// Returns true if f returns true for all elements of this list.
+  ///
+  /// Returns true for the empty list.
+  bool every(bool f(T)) {
+    for (Link<T> link = this; !link.isEmpty; link = link.tail){
+      if (!f(link.head)) return false;
+    }
+    return true;
+  }
 }
 
 abstract class LinkBuilder<T> {

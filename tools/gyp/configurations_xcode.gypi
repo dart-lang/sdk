@@ -34,6 +34,8 @@
             '-Wtrigraphs', # Disable Xcode default.
             '-Wreturn-type',
             '-Werror=return-type',
+            # TODO(15922): Enable this flag by default.
+            # '-Wshorten-64-to-32',
           ],
 
           # Generate PIC code as Chrome is switching to this.

@@ -110,4 +110,10 @@ class LocationManager extends Observable {
   String relativeLink(String isolateId, String l) {
     return '#/$isolateId/$l';
   }
+
+  /// Create a request for [l] on [isolateId].
+  @observable
+  String absoluteLink(String l) {
+    return '#/$l';
+  }
 }

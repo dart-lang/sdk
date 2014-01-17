@@ -13,8 +13,9 @@ part of dart.core;
  * Set implementations may consider some elements indistinguishable. These
  * elements are treated as being the same for any operation on the set.
  *
- * The default `Set` implementation, [LinkedHashSet], considers objects
- * indistinguishable if they are equal with regard to [Object.operator==].
+ * The default [Set] implementation, [LinkedHashSet], considers objects
+ * indistinguishable if they are equal with regard to 
+ * operator [Object.==].
  *
  * Sets may be either ordered or unordered. [HashSet] is unordered and
  * doesn't guarantee anything about the order that elements are accessed in by
@@ -23,15 +24,15 @@ part of dart.core;
  * It is generally not allowed to modify the set (add or remove elements) while
  * an operation on the set is being performed, for example during a call to
  * [forEach] or [containsAll]. Nor is it allowed to modify the set while
- * iterating either the set itself or any `Iterable` that is backed by the set,
+ * iterating either the set itself or any [Iterable] that is backed by the set,
  * such as the ones returned by methods like [where] and [map].
  */
 abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   /**
    * Creates an empty [Set].
    *
-   * The created `Set` is a [LinkedHashSet]. As such, it considers elements that
-   * are equal (using `==`) to be indistinguishable, and requires them to
+   * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
+   * are equal (using [==]) to be indistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    */
   factory Set() = LinkedHashSet<E>;
@@ -39,7 +40,7 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   /**
    * Creates an empty identity [Set].
    *
-   * The created `Set` is a [LinkedHashSet] that uses identity as equality
+   * The created [Set] is a [LinkedHashSet] that uses identity as equality
    * relation.
    */
   factory Set.identity() = LinkedHashSet<E>.identity;
@@ -47,8 +48,8 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   /**
    * Creates a [Set] that contains all elements of [other].
    *
-   * The created `Set` is a [LinkedHashSet]. As such, it considers elements that
-   * are equal (using `==`) to be undistinguishable, and requires them to
+   * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
+   * are equal (using [==]) to be undistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
    */
   factory Set.from(Iterable<E> other) = LinkedHashSet<E>.from;
@@ -121,15 +122,15 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   /**
    * Returns a new set which is the intersection between this set and [other].
    *
-   * That is, the returned set contains all the elements of this `Set` that
-   * are also elements of `other` according to `other.contains`.
+   * That is, the returned set contains all the elements of this [Set] that
+   * are also elements of [other] according to `other.contains`.
    */
   Set<E> intersection(Set<Object> other);
 
   /**
    * Returns a new set which contains all the elements of this set and [other].
    *
-   * That is, the returned set contains all the elements of this `Set` and
+   * That is, the returned set contains all the elements of this [Set] and
    * all the elements of [other].
    */
   Set<E> union(Set<E> other);
@@ -137,7 +138,7 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   /**
    * Returns a new set with the the elements of this that are not in [other].
    *
-   * That is, the returned set contains all the elements of this `Set` that
+   * That is, the returned set contains all the elements of this [Set] that
    * are not elements of [other] according to `other.contains`.
    */
   Set<E> difference(Set<E> other);

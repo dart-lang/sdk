@@ -302,7 +302,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
  *
  * If the provided handle is an unhandled exception error, this
  * function will cause the unhandled exception to be rethrown.  This
- * will proceeed in the standard way, walking up Dart frames until an
+ * will proceed in the standard way, walking up Dart frames until an
  * appropriate 'catch' block is found, executing 'finally' blocks,
  * etc.
  *
@@ -315,7 +315,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
  * In either case, when an error is propagated any current scopes
  * created by Dart_EnterScope will be exited.
  *
- * See the additonal discussion under "Propagating Errors" at the
+ * See the additional discussion under "Propagating Errors" at the
  * beginning of this file.
  *
  * \param An error handle (See Dart_IsError)
@@ -661,6 +661,34 @@ typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    void* callback_data,
                                                    char** error);
 
+
+/**
+ * The service isolate creation and initialization callback function.
+ *
+ * This callback, provided by the embedder, is called when the vm
+ * needs to create the service isolate. The callback should create an isolate
+ * by calling Dart_CreateIsolate and prepare the isolate to be used as
+ * the service isolate.
+ *
+ * When the function returns NULL, it is the responsibility of this
+ * function to ensure that Dart_ShutdownIsolate has been called if
+ * required.
+ *
+ * When the function returns NULL, the function should set *error to
+ * a malloc-allocated buffer containing a useful error message.  The
+ * caller of this function (the vm) will make sure that the buffer is
+ * freed.
+ *
+ *
+ * \param error A structure into which the embedder can place a
+ *   C string containing an error message in the case of failures.
+ *
+ * \return The embedder returns NULL if the creation and
+ *   initialization was not successful and the isolate if successful.
+ */
+typedef Dart_Isolate (*Dart_ServiceIsolateCreateCalback)(void* callback_data,
+                                                         char** error);
+
 /**
  * An isolate interrupt callback function.
  *
@@ -769,7 +797,8 @@ DART_EXPORT bool Dart_Initialize(
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source);
+    Dart_EntropySource entropy_source,
+    Dart_ServiceIsolateCreateCalback service_create);
 
 /**
  * Cleanup state in the VM before process termination.
@@ -1064,6 +1093,17 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
  */
 DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id);
 
+
+/**
+ * Posts an object to the send port.
+ *
+ * \param send_port A Dart SendPort.
+ * \param object An object from the current isolate.
+ *
+ * \return Success if no error occurs. Otherwise returns an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_PostMessage(Dart_Handle send_port,
+                                         Dart_Handle object);
 
 /*
  * ======
@@ -1948,7 +1988,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
  * Throws an exception.
  *
  * This function causes a Dart language exception to be thrown. This
- * will proceeed in the standard way, walking up Dart frames until an
+ * will proceed in the standard way, walking up Dart frames until an
  * appropriate 'catch' block is found, executing 'finally' blocks,
  * etc.
  *
@@ -2392,5 +2432,29 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer);
  *   bool.
  */
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
+
+
+/*
+ * =======
+ * Service
+ * =======
+ */
+
+/**
+ * Returns the Service isolate initialized and with the dart:vmservice library
+ * loaded and booted.
+ *
+ * This will call the embedder provided Dart_ServiceIsolateCreateCalback to
+ * create the isolate.
+ *
+ * After obtaining the service isolate the embedder specific glue code can
+ * be loaded in and the isolate can be run by the embedder.
+ *
+ * NOTE: It is not safe to call this from multiple threads concurrently.
+ *
+ * \return Returns NULL if an error occurred.
+ */
+DART_EXPORT Dart_Isolate Dart_GetServiceIsolate(void* callback_data);
+
 
 #endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */

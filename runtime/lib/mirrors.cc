@@ -317,10 +317,15 @@ static RawInstance* CreateClassMirror(const Class& cls,
                                       const AbstractType& type,
                                       const Bool& is_declaration,
                                       const Instance& owner_mirror) {
+  if (type.IsTypeRef()) {
+    AbstractType& ref_type = AbstractType::Handle(TypeRef::Cast(type).type());
+    ASSERT(!ref_type.IsTypeRef());
+    ASSERT(ref_type.IsCanonical());
+    return CreateClassMirror(cls, ref_type, is_declaration, owner_mirror);
+  }
   ASSERT(!cls.IsDynamicClass() && !cls.IsVoidClass());
   ASSERT(!type.IsNull());
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsTypeRef());
 
   if (cls.IsSignatureClass()) {
     if (cls.IsCanonicalSignatureClass()) {
@@ -332,10 +337,16 @@ static RawInstance* CreateClassMirror(const Class& cls,
     }
   }
 
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(Isolate::Current()));
+  if (!error.IsNull()) {
+    ThrowInvokeError(error);
+    UNREACHABLE();
+  }
+
   const Bool& is_generic = Bool::Get(cls.NumTypeParameters() != 0);
   const Bool& is_mixin_app_alias = Bool::Get(cls.is_mixin_app_alias());
 
-  const Array& args = Array::Handle(Array::New(7));
+  const Array& args = Array::Handle(Array::New(8));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
   // We do not set the names of anonymous mixin applications because the mirrors
@@ -345,9 +356,10 @@ static RawInstance* CreateClassMirror(const Class& cls,
     args.SetAt(2, String::Handle(cls.Name()));
   }
   args.SetAt(3, owner_mirror);
-  args.SetAt(4, is_generic);
-  args.SetAt(5, is_mixin_app_alias);
-  args.SetAt(6, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
+  args.SetAt(4, Bool::Get(cls.is_abstract()));
+  args.SetAt(5, is_generic);
+  args.SetAt(6, is_mixin_app_alias);
+  args.SetAt(7, cls.NumTypeParameters() == 0 ? Bool::False() : is_declaration);
   return CreateMirror(Symbols::_LocalClassMirror(), args);
 }
 
@@ -365,9 +377,14 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
 
 
 static RawInstance* CreateTypeMirror(const AbstractType& type) {
+  if (type.IsTypeRef()) {
+    AbstractType& ref_type = AbstractType::Handle(TypeRef::Cast(type).type());
+    ASSERT(!ref_type.IsTypeRef());
+    ASSERT(ref_type.IsCanonical());
+    return CreateTypeMirror(ref_type);
+  }
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
-  ASSERT(!type.IsTypeRef());
   if (type.HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
     // Handle void and dynamic types.
@@ -1260,7 +1277,6 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   const intptr_t num_inherited_args = args.Length() - num_params;
   for (intptr_t i = 0; i < num_params; i++) {
     arg_type ^= args.TypeAt(i + num_inherited_args);
-    arg_type = arg_type.Canonicalize();  // Necessary for recursive types.
     type_mirror = CreateTypeMirror(arg_type);
     result.SetAt(i, type_mirror);
   }

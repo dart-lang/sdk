@@ -1079,9 +1079,13 @@ main() => A.A = 1;
   static const MessageKind MISSING_FACTORY_KEYWORD = const MessageKind(
       "Hint: Did you forget a factory keyword here?");
 
-  static const MessageKind DEFERRED_LIBRARY_NAME_MISMATCH =
+  static const MessageKind DEFERRED_LIBRARY_NOT_FROM_MAIN =
       const MessageKind(
-          "Error: Library name mismatch '#{expectedName}' != '#{actualName}'.");
+          "Info: DeferredLibrary used as an annotation here, "
+          "but not used in the main library. Will not split the output.",
+          howToFix:
+            "Try adding a '@DeferredLibrary(...)' annotation in the main "
+            "library");
 
   static const MessageKind ILLEGAL_STATIC = const MessageKind(
       "Error: Modifier static is only allowed on functions declared in "

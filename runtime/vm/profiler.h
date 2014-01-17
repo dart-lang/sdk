@@ -26,7 +26,7 @@ class Profiler : public AllStatic {
   static void Shutdown();
 
   static void InitProfilingForIsolate(Isolate* isolate,
-                                      bool shared_buffer = false);
+                                      bool shared_buffer = true);
   static void ShutdownProfilingForIsolate(Isolate* isolate);
 
   static void BeginExecution(Isolate* isolate);

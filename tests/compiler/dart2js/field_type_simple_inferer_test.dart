@@ -276,7 +276,7 @@ const String TEST_17 = r"""
       } else {
         a = g;
       }
-      a();
+      a(this);
     }
   }
   main() {

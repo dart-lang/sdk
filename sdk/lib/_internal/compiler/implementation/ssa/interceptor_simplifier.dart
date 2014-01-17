@@ -83,7 +83,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     TypeMask receiverType = instruction.instructionType;
     return interceptedClasses
         .where((cls) => cls != compiler.objectClass)
-        .map((cls) => backend.classesMixedIntoNativeClasses.contains(cls)
+        .map((cls) => backend.classesMixedIntoInterceptedClasses.contains(cls)
             ? new TypeMask.subtype(cls)
             : new TypeMask.subclass(cls))
         .every((mask) => receiverType.intersection(mask, compiler).isEmpty);
@@ -186,7 +186,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       if (interceptedClasses.contains(backend.jsNumberClass)
           && !(interceptedClasses.contains(backend.jsDoubleClass)
                || interceptedClasses.contains(backend.jsIntClass))) {
-        for (var user in node.usedBy) {
+        for (HInstruction user in node.usedBy) {
           if (user is! HInvoke) continue;
           Set<ClassElement> intercepted =
               backend.getInterceptedClassesOn(user.selector.name);
@@ -200,7 +200,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       }
     } else {
       interceptedClasses = new Set<ClassElement>();
-      for (var user in node.usedBy) {
+      for (HInstruction user in node.usedBy) {
         if (user is HIs) {
           // Is-checks can be performed on any intercepted class.
           interceptedClasses.addAll(backend.interceptedClasses);
@@ -215,8 +215,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     HInstruction receiver = node.receiver;
     if (canUseSelfForInterceptor(receiver, interceptedClasses)) {
-      node.block.rewrite(node, receiver);
-      return false;
+      return rewriteToUseSelfAsInterceptor(node, receiver);
     }
 
     // Try computing a constant interceptor.
@@ -252,6 +251,55 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     block.rewrite(user, interceptor);
     block.remove(user);
     return true;
+  }
+
+  bool rewriteToUseSelfAsInterceptor(HInterceptor node, HInstruction receiver) {
+    // `rewrite` below clears `node.usedBy`.
+    List<HInstruction> originalUsers = node.usedBy.toList();
+
+    node.block.rewrite(node, receiver);
+
+    // We have just rewritten:
+    //
+    //     m = getInterceptor(a)
+    //     m.foo$1(a, x)
+    // -->
+    //     m = getInterceptor(a)
+    //     a.foo$1(a, x)
+    //
+    // For the rewritten calls, if the selector matches only methods that ignore
+    // the explicit receiver parameter, replace occurences of the receiver
+    // argument with a dummy receiver '0':
+    //
+    //     a.foo$1(a, x)   -->   a.foo$1(0, x)
+    //
+    JavaScriptBackend backend = compiler.backend;
+    for (HInstruction user in originalUsers) {
+      if (user is HInvokeDynamic) {
+        HInvokeDynamic invoke = user;
+        if (invoke.receiver == receiver &&
+            !backend.isInterceptedMixinSelector(invoke.selector)) {
+          HInstruction receiverArgument = invoke.inputs[1];
+          // TODO(15720): The test here should be
+          //
+          //     invoke.receiver.nonCheck() == receiverArgument.nonCheck()
+          //
+          if (invoke.receiver == receiverArgument) {  // recognize a.foo(a,...)
+            // TODO(15933): Make automatically generated property extraction
+            // closures work with the dummy receiver optimization.
+            if (!invoke.selector.isGetter()) {
+              Constant constant = new DummyReceiverConstant(
+                  receiverArgument.instructionType);
+              HConstant dummy = graph.addConstant(constant, compiler);
+              receiverArgument.usedBy.remove(invoke);
+              invoke.inputs[1] = dummy;
+              dummy.usedBy.add(invoke);
+            }
+          }
+        }
+      }
+    }
+    return false;
   }
 
   bool visitOneShotInterceptor(HOneShotInterceptor node) {

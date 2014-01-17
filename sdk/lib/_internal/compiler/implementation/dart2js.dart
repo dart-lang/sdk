@@ -326,6 +326,8 @@ Future compile(List<String> argv) {
 
   options.add('--source-map=$sourceMapOut');
 
+  List<String> allOutputFiles = new List<String>();
+
   compilationDone(String code) {
     if (analyzeOnly) return;
     if (code == null) {
@@ -337,7 +339,14 @@ Future compile(List<String> argv) {
          'compiled ${inputProvider.dartCharactersRead} characters Dart '
          '-> $totalCharactersWritten characters $outputLanguage '
          'in ${relativize(currentDirectory, out, isWindows)}');
-    if (!explicitOut) {
+    if (diagnosticHandler.verbose) {
+      String input = uriPathToNative(arguments[0]);
+      print('Dart file ($input) compiled to $outputLanguage.');
+      print('Wrote the following files:');
+      for (String filename in allOutputFiles) {
+        print("  $filename");
+      }
+    } else if (!explicitOut) {
       String input = uriPathToNative(arguments[0]);
       String output = relativize(currentDirectory, out, isWindows);
       print('Dart file ($input) compiled to $outputLanguage: $output');
@@ -376,11 +385,14 @@ Future compile(List<String> argv) {
     }
 
     RandomAccessFile output =
-        new File(uriPathToNative(uri.path)).openSync(mode: FileMode.WRITE);
+        new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
+
+    allOutputFiles.add(relativize(currentDirectory, uri, isWindows));
+
     int charactersWritten = 0;
 
     writeStringSync(String data) {
-      // Write the data in chunks of 8kb, otherwise we risk running OOM
+      // Write the data in chunks of 8kb, otherwise we risk running OOM.
       int chunkSize = 8*1024;
 
       int offset = 0;
@@ -445,7 +457,7 @@ void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
     fail('Error: Unhandled scheme ${uri.scheme}.');
   }
-  var file = new File(uriPathToNative(uri.path)).openSync(mode: FileMode.WRITE);
+  var file = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
   file.writeStringSync(text);
   file.closeSync();
 }

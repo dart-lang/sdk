@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 import "dart:async";
@@ -11,6 +12,7 @@ import "dart:isolate";
 // Test the dart:io Link class.
 
 testCreateSync() {
+  asyncStart();
   String base = Directory.systemTemp.createTempSync('dart_link').path;
   if (isRelative(base)) {
     Expect.fail(
@@ -20,10 +22,7 @@ testCreateSync() {
   String link = join(base, 'link');
   String target = join(base, 'target');
   new Directory(target).createSync();
-  print("link: $link");
-  print("target: $target");
   new Link(link).createSync(target);
-  return;
   Expect.equals(FileSystemEntityType.DIRECTORY,
                 FileSystemEntity.typeSync(link));
   Expect.equals(FileSystemEntityType.DIRECTORY,
@@ -150,10 +149,12 @@ testCreateSync() {
       }
     }
     baseDir.deleteSync(recursive: true);
+    asyncEnd();
   });
 }
 
 testCreateLoopingLink() {
+  asyncStart();
   String base = Directory.systemTemp.createTempSync('dart_link').path;
   new Directory(join(base, 'a', 'b', 'c')).create(recursive: true)
     .then((_) =>
@@ -174,8 +175,10 @@ testCreateLoopingLink() {
         new Directory(join(base, 'a', 'b', 'c'))
         .list(recursive: true, followLinks: true)
         .last)
-    .then((_) =>
-        new Directory(base).delete(recursive: true));
+    .whenComplete(() {
+      new Directory(base).deleteSync(recursive: true);
+      asyncEnd();
+    });
 }
 
 testRenameSync() {

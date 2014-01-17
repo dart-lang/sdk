@@ -24,7 +24,9 @@ CodeKind kind;
 bool machineFormat;
 bool overwriteFileContents;
 Selection selection;
-const followLinks = false;
+final List<String> paths = [];
+
+const FOLLOW_LINKS = false;
 
 
 main(args) {
@@ -39,7 +41,8 @@ main(args) {
   if (options.rest.isEmpty) {
     _formatStdin(kind);
   } else {
-    _formatPaths(options.rest);
+    paths.addAll(options.rest);
+    _formatPaths(paths);
   }
 }
 
@@ -96,17 +99,24 @@ _formatResource(resource) {
   }
 }
 
-_formatDirectory(dir) => dir.listSync(followLinks: followLinks)
+_formatDirectory(dir) => dir.listSync(followLinks: FOLLOW_LINKS)
     .forEach((resource) => _formatResource(resource));
 
 _formatFile(file) {
   if (_isDartFile(file)) {
+    if (_isPatchFile(file) && !paths.contains(file.path)) {
+      _log('Skipping patch file "${file.path}"');
+      return;
+    }
     try {
       var buffer = new StringBuffer();
       var rawSource = file.readAsStringSync();
       var formatted = _format(rawSource, CodeKind.COMPILATION_UNIT);
       if (overwriteFileContents) {
-        file.writeAsStringSync(formatted);
+        // Only touch files files whose contents will be changed
+        if (rawSource != formatted) {
+          file.writeAsStringSync(formatted);
+        }
       } else {
         print(formatted);
       }
@@ -115,6 +125,8 @@ _formatFile(file) {
     }
   }
 }
+
+_isPatchFile(file) => file.path.endsWith('_patch.dart');
 
 _isDartFile(file) => dartFileRegExp.hasMatch(path.basename(file.path));
 
@@ -135,12 +147,12 @@ ArgParser _initArgParser() {
             'Do not print reformatted sources to standard output.');
   parser.addOption('kind', abbr: 'k', defaultsTo: 'cu',
       help: 'Specify source snippet kind ("stmt" or "cu")'
-            ' --- [PROVISIONAL API].');
+            ' --- [PROVISIONAL API].', hide: true);
   parser.addFlag('machine', abbr: 'm', negatable: false,
       help: 'Produce output in a format suitable for parsing.');
   parser.addOption('selection', abbr: 's',
       help: 'Specify selection information as an offset,length pair '
-            '(e.g., -s "0,4").');
+            '(e.g., -s "0,4").', hide: true);
   parser.addFlag('transform', abbr: 't', negatable: true,
       help: 'Perform code transformations.');
   parser.addFlag('help', abbr: 'h', negatable: false,
@@ -161,8 +173,8 @@ _printUsage() {
                 'default, $BINARY_NAME prints the reformatted sources to '
                 'standard output.')
         ..write('\n\n')
-        ..write('Supported flags are:')
         ..write('Usage: $BINARY_NAME [flags] [path...]\n\n')
+        ..write('Supported flags are:\n')
         ..write('${argParser.getUsage()}\n\n');
   _log(buffer.toString());
 }

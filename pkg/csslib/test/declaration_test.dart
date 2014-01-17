@@ -258,7 +258,7 @@ void testUnicode() {
 
   final String generated = r'''
 .toggle:after {
-  content: "✔";
+  content: '✔';
   line-height: 43px;
   font-size: 20px;
   color: #d9d9d9;

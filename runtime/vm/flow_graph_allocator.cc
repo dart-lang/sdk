@@ -580,15 +580,19 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
   }
   ConvertAllUses(range);
   if (defn->IsParameter() && (range->spill_slot().stack_index() >= 0)) {
-    // Parameters above the frame pointer consume spill slots and are marked
-    // in stack maps.
-    spill_slots_.Add(range_end);
-    quad_spill_slots_.Add(false);
+    // Parameters above the frame pointer occupy (allocatable) spill slots
+    // and are marked in stack maps.  There are multiple non-interfering
+    // live ranges occupying the same spill slot (e.g., those for different
+    // catch blocks).  Block the spill slot until the latest such live range
+    // endpoint.
+    intptr_t index = range->spill_slot().stack_index();
+    while (index > (spill_slots_.length() - 1)) {
+      spill_slots_.Add(-1);
+      quad_spill_slots_.Add(false);
+    }
+    spill_slots_[index] = Utils::Maximum(spill_slots_[index], range_end);
+    ASSERT(!quad_spill_slots_[index]);
     MarkAsObjectAtSafepoints(range);
-  } else if (defn->IsConstant() && block->IsCatchBlockEntry()) {
-    // Constants at catch block entries consume spill slots.
-    spill_slots_.Add(range_end);
-    quad_spill_slots_.Add(false);
   }
 }
 
@@ -1607,11 +1611,7 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   // Search for a free spill slot among allocated: the value in it should be
   // dead and its type should match (e.g. it should not be a part of the quad if
   // we are allocating normal double slot).
-  // For CPU registers we need to take reserved slots for try-catch into
-  // account.
-  intptr_t idx = register_kind_ == Location::kRegister
-      ? flow_graph_.graph_entry()->fixed_slot_count()
-      : 0;
+  intptr_t idx = 0;
   for (; idx < spill_slots_.length(); idx++) {
     if ((need_quad == quad_spill_slots_[idx]) &&
         (spill_slots_[idx] <= start)) {

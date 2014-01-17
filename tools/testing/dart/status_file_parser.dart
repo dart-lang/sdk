@@ -25,6 +25,7 @@ class Expectation {
   static Expectation STATIC_WARNING = byName('StaticWarning');
   static Expectation MISSING_STATIC_WARNING =
       byName('MissingStaticWarning');
+  static Expectation PUB_GET_ERROR = byName('PubGetError');
 
   // "meta expectations"
   static Expectation OK = byName('Ok');
@@ -66,6 +67,8 @@ class Expectation {
 
       build("MissingStaticWarning", group: fail);
       build("StaticWarning", group: fail);
+
+      build("PubGetError", group: fail);
 
       build("Skip", isMetaExpectation: true);
       build("SkipByDesign", isMetaExpectation: true);
@@ -124,10 +127,19 @@ class Section {
   }
 }
 
-void ReadTestExpectationsInto(TestExpectations expectations,
-                              String statusFilePath,
-                              environment,
-                              onDone) {
+Future<TestExpectations> ReadTestExpectations(List<String> statusFilePaths,
+                                              Map environment) {
+  var testExpectations = new TestExpectations();
+  return Future.wait(statusFilePaths.map((String statusFile) {
+    return ReadTestExpectationsInto(
+        testExpectations, statusFile, environment);
+  })).then((_) => testExpectations);
+}
+
+Future ReadTestExpectationsInto(TestExpectations expectations,
+                                String statusFilePath,
+                                environment) {
+  var completer = new Completer();
   List<Section> sections = new List<Section>();
 
   void sectionsRead() {
@@ -138,10 +150,11 @@ void ReadTestExpectationsInto(TestExpectations expectations,
         }
       }
     }
-    onDone();
+    completer.complete();
   }
 
   ReadConfigurationInto(statusFilePath, sections, sectionsRead);
+  return completer.future;
 }
 
 void ReadConfigurationInto(path, sections, onDone) {

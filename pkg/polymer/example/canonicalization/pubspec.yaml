@@ -1,6 +1,5 @@
 name: canonicalization
 dependencies:
-  polymer:
-    path: ../../
+  polymer: any
 dev_dependencies:
   unittest: any

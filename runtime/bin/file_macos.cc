@@ -78,19 +78,19 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
 }
 
 
-off64_t File::Position() {
+int64_t File::Position() {
   ASSERT(handle_->fd() >= 0);
   return lseek(handle_->fd(), 0, SEEK_CUR);
 }
 
 
-bool File::SetPosition(off64_t position) {
+bool File::SetPosition(int64_t position) {
   ASSERT(handle_->fd() >= 0);
   return lseek(handle_->fd(), position, SEEK_SET) >= 0;
 }
 
 
-bool File::Truncate(off64_t length) {
+bool File::Truncate(int64_t length) {
   ASSERT(handle_->fd() >= 0);
   return TEMP_FAILURE_RETRY_BLOCK_SIGNALS(
       ftruncate(handle_->fd(), length) != -1);
@@ -103,7 +103,7 @@ bool File::Flush() {
 }
 
 
-off64_t File::Length() {
+int64_t File::Length() {
   ASSERT(handle_->fd() >= 0);
   struct stat st;
   if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(fstat(handle_->fd(), &st)) == 0) {
@@ -136,7 +136,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
   }
   FDUtils::SetCloseOnExec(fd);
   if (((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) {
-    off64_t position = lseek(fd, 0, SEEK_END);
+    int64_t position = lseek(fd, 0, SEEK_END);
     if (position < 0) {
       return NULL;
     }
@@ -239,7 +239,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
 }
 
 
-off64_t File::LengthFromPath(const char* name) {
+int64_t File::LengthFromPath(const char* name) {
   struct stat st;
   if (TEMP_FAILURE_RETRY_BLOCK_SIGNALS(stat(name, &st)) == 0) {
     return st.st_size;

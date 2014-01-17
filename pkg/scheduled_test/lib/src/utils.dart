@@ -25,6 +25,81 @@ class Pair<E, F> {
   int get hashCode => first.hashCode ^ last.hashCode;
 }
 
+/// A class that represents a value or an error.
+class Fallible<E> {
+  /// Whether [this] has a [value], as opposed to an [error].
+  final bool hasValue;
+
+  /// Whether [this] has an [error], as opposed to a [value].
+  bool get hasError => !hasValue;
+
+  /// The value.
+  ///
+  /// This will be `null` if [this] has an [error].
+  final E _value;
+
+  /// The value.
+  ///
+  /// This will throw a [StateError] if [this] has an [error].
+  E get value {
+    if (hasValue) return _value;
+    throw new StateError("Fallible has no value.\n"
+        "$_error$_stackTraceSuffix");
+  }
+
+  /// The error.
+  ///
+  /// This will be `null` if [this] has a [value].
+  final _error;
+
+  /// The error.
+  ///
+  /// This will throw a [StateError] if [this] has a [value].
+  get error {
+    if (hasError) return _error;
+    throw new StateError("Fallible has no error.");
+  }
+
+  /// The stack trace for [_error].
+  ///
+  /// This will be `null` if [this] has a [value], or if no stack trace was
+  /// provided.
+  final StackTrace _stackTrace;
+
+  /// The stack trace for [error].
+  ///
+  /// This will throw a [StateError] if [this] has a [value].
+  StackTrace get stackTrace {
+    if (hasError) return _stackTrace;
+    throw new StateError("Fallible has no error.");
+  }
+
+  Fallible.withValue(this._value)
+      : _error = null,
+        _stackTrace = null,
+        hasValue = true;
+
+  Fallible.withError(this._error, [this._stackTrace])
+      : _value = null,
+        hasValue = false;
+
+  /// Returns a completed Future with the same value or error as [this].
+  Future toFuture() {
+    if (hasValue) return new Future.value(value);
+    return new Future.error(error, stackTrace);
+  }
+
+  String toString() {
+    if (hasValue) return "Fallible value: $value";
+    return "Fallible error: $error$_stackTraceSuffix";
+  }
+
+  String get _stackTraceSuffix {
+    if (stackTrace == null) return "";
+    return "\nStack trace:\n${new Chain.forTrace(_stackTrace).terse}";
+  }
+}
+
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
@@ -231,12 +306,5 @@ bool fullMatch(String string, Pattern pattern) {
 /// Returns a string representation of [trace] that has the core and test frames
 /// folded together.
 String terseTraceString(StackTrace trace) {
-  return new Chain(new Chain.forTrace(trace).traces.map((trace) {
-    return trace.foldFrames((frame) {
-      return frame.package == 'scheduled_test' ||
-             frame.package == 'unittest' ||
-             frame.package == 'stack_trace' ||
-             frame.isCore;
-    });
-  })).terse.toString().trim();
+  return new Chain.forTrace(trace).terse.toString().trim();
 }

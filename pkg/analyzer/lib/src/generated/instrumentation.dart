@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
@@ -40,13 +44,13 @@ class Instrumentation {
   /**
    * A builder that will silently ignore all data and logging requests.
    */
-  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_18();
+  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER();
 
   /**
    * An instrumentation logger that can be used when no other instrumentation logger has been
    * configured. This logger will silently ignore all data and logging requests.
    */
-  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_19();
+  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_Instrumentation_NULL_LOGGER();
 
   /**
    * The current instrumentation logger.
@@ -99,7 +103,7 @@ class Instrumentation {
   }
 }
 
-class InstrumentationBuilder_18 implements InstrumentationBuilder {
+class InstrumentationBuilder_Instrumentation_NULL_INSTRUMENTATION_BUILDER implements InstrumentationBuilder {
   InstrumentationBuilder data(String name, bool value) => this;
 
   InstrumentationBuilder data2(String name, int value) => this;
@@ -127,7 +131,7 @@ class InstrumentationBuilder_18 implements InstrumentationBuilder {
   InstrumentationBuilder record(Exception exception) => this;
 }
 
-class InstrumentationLogger_19 implements InstrumentationLogger {
+class InstrumentationLogger_Instrumentation_NULL_LOGGER implements InstrumentationLogger {
   InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }
 

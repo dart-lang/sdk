@@ -78,7 +78,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
   bool _isBound = false;
   bool _hasError = false;
 
-  _StreamSinkImpl(StreamConsumer<T> this._target) {
+  _StreamSinkImpl(this._target) {
     _doneFuture = _doneCompleter.future;
   }
 
@@ -87,9 +87,8 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     _controller.add(data);
   }
 
-  void addError(error, [StackTrace stackTrace]) {
-    _controller.addError(error, stackTrace);
-  }
+  void addError(error, [StackTrace stackTrace]) =>
+      _controller.addError(error, stackTrace);
 
   Future addStream(Stream<T> stream) {
     if (_isBound) {

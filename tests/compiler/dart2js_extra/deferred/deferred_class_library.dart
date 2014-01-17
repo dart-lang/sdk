@@ -20,4 +20,5 @@ class Constant {
   const Constant(this.value);
 
   operator==(other) => other is Constant && value == other.value;
+  get hashCode => 0;
 }

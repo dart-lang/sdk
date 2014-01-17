@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
@@ -87,42 +91,49 @@ class NodeLocatorTest extends ParserTestCase {
 class IndexExpressionTest extends EngineTestCase {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] += ?
     ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
     JUnitTestCase.assertTrue(expression.inGetterContext());
   }
 
   void test_inGetterContext_assignment_simple_left() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] = ?
     ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
     JUnitTestCase.assertFalse(expression.inGetterContext());
   }
 
   void test_inGetterContext_nonAssignment() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] + ?
     ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
     JUnitTestCase.assertTrue(expression.inGetterContext());
   }
 
   void test_inSetterContext_assignment_compound_left() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] += ?
     ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_assignment_compound_right() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // ? += a[i]
     ASTFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_assignment_simple_left() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // a[i] = ?
     ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_assignment_simple_right() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // ? = a[i]
     ASTFactory.assignmentExpression(null, TokenType.EQ, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
@@ -130,29 +141,34 @@ class IndexExpressionTest extends EngineTestCase {
   void test_inSetterContext_nonAssignment() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
+    // a[i] + ?
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_postfix() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
+    // a[i]++
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_prefix_bang() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // !a[i]
     ASTFactory.prefixExpression(TokenType.BANG, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
 
   void test_inSetterContext_prefix_minusMinus() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // --a[i]
     ASTFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
 
   void test_inSetterContext_prefix_plusPlus() {
     IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
+    // ++a[i]
     ASTFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
@@ -212,6 +228,18 @@ class IndexExpressionTest extends EngineTestCase {
 }
 
 class ClassDeclarationTest extends ParserTestCase {
+  void test_getConstructor() {
+    List<ConstructorInitializer> initializers = new List<ConstructorInitializer>();
+    ConstructorDeclaration defaultConstructor = ASTFactory.constructorDeclaration(ASTFactory.identifier3("Test"), null, ASTFactory.formalParameterList([]), initializers);
+    ConstructorDeclaration aConstructor = ASTFactory.constructorDeclaration(ASTFactory.identifier3("Test"), "a", ASTFactory.formalParameterList([]), initializers);
+    ConstructorDeclaration bConstructor = ASTFactory.constructorDeclaration(ASTFactory.identifier3("Test"), "b", ASTFactory.formalParameterList([]), initializers);
+    ClassDeclaration clazz = ASTFactory.classDeclaration(null, "Test", null, null, null, null, [defaultConstructor, aConstructor, bConstructor]);
+    JUnitTestCase.assertSame(defaultConstructor, clazz.getConstructor(null));
+    JUnitTestCase.assertSame(aConstructor, clazz.getConstructor("a"));
+    JUnitTestCase.assertSame(bConstructor, clazz.getConstructor("b"));
+    JUnitTestCase.assertSame(null, clazz.getConstructor("noSuchConstructor"));
+  }
+
   void test_getField() {
     VariableDeclaration aVar = ASTFactory.variableDeclaration("a");
     VariableDeclaration bVar = ASTFactory.variableDeclaration("b");
@@ -225,11 +253,28 @@ class ClassDeclarationTest extends ParserTestCase {
     JUnitTestCase.assertSame(null, clazz.getField("noSuchField"));
   }
 
+  void test_getMethod() {
+    MethodDeclaration aMethod = ASTFactory.methodDeclaration(null, null, null, null, ASTFactory.identifier3("a"), ASTFactory.formalParameterList([]));
+    MethodDeclaration bMethod = ASTFactory.methodDeclaration(null, null, null, null, ASTFactory.identifier3("b"), ASTFactory.formalParameterList([]));
+    ClassDeclaration clazz = ASTFactory.classDeclaration(null, "Test", null, null, null, null, [aMethod, bMethod]);
+    JUnitTestCase.assertSame(aMethod, clazz.getMethod("a"));
+    JUnitTestCase.assertSame(bMethod, clazz.getMethod("b"));
+    JUnitTestCase.assertSame(null, clazz.getMethod("noSuchMethod"));
+  }
+
   static dartSuite() {
     _ut.group('ClassDeclarationTest', () {
+      _ut.test('test_getConstructor', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getConstructor);
+      });
       _ut.test('test_getField', () {
         final __test = new ClassDeclarationTest();
         runJUnitTest(__test, __test.test_getField);
+      });
+      _ut.test('test_getMethod', () {
+        final __test = new ClassDeclarationTest();
+        runJUnitTest(__test, __test.test_getMethod);
       });
     });
   }
@@ -1035,7 +1080,7 @@ class BreadthFirstVisitorTest extends ParserTestCase {
         "}"]);
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
     List<ASTNode> nodes = new List<ASTNode>();
-    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_20(nodes);
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(nodes);
     visitor.visitAllNodes(unit);
     EngineTestCase.assertSize(59, nodes);
     EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
@@ -1055,10 +1100,10 @@ class BreadthFirstVisitorTest extends ParserTestCase {
   }
 }
 
-class BreadthFirstVisitor_20 extends BreadthFirstVisitor<Object> {
+class BreadthFirstVisitor_BreadthFirstVisitorTest_testIt extends BreadthFirstVisitor<Object> {
   List<ASTNode> nodes;
 
-  BreadthFirstVisitor_20(this.nodes) : super();
+  BreadthFirstVisitor_BreadthFirstVisitorTest_testIt(this.nodes) : super();
 
   Object visitNode(ASTNode node) {
     nodes.add(node);
@@ -1889,6 +1934,71 @@ class ConstantEvaluatorTest extends ParserTestCase {
   }
 }
 
+class SimpleStringLiteralTest extends ParserTestCase {
+  void test_getValueOffset() {
+    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.token2("'X'"), "X").valueOffset);
+    JUnitTestCase.assertEquals(1, new SimpleStringLiteral(TokenFactory.token2("\"X\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.token2("\"\"\"X\"\"\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(3, new SimpleStringLiteral(TokenFactory.token2("'''X'''"), "X").valueOffset);
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.token2("r'X'"), "X").valueOffset);
+    JUnitTestCase.assertEquals(2, new SimpleStringLiteral(TokenFactory.token2("r\"X\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.token2("r\"\"\"X\"\"\""), "X").valueOffset);
+    JUnitTestCase.assertEquals(4, new SimpleStringLiteral(TokenFactory.token2("r'''X'''"), "X").valueOffset);
+  }
+
+  void test_isMultiline() {
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("'X'"), "X").isMultiline);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("r'X'"), "X").isMultiline);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("\"X\""), "X").isMultiline);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("r\"X\""), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("'''X'''"), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r'''X'''"), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("\"\"\"X\"\"\""), "X").isMultiline);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r\"\"\"X\"\"\""), "X").isMultiline);
+  }
+
+  void test_isRaw() {
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("'X'"), "X").isRaw);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("\"X\""), "X").isRaw);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("\"\"\"X\"\"\""), "X").isRaw);
+    JUnitTestCase.assertFalse(new SimpleStringLiteral(TokenFactory.token2("'''X'''"), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r'X'"), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r\"X\""), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r\"\"\"X\"\"\""), "X").isRaw);
+    JUnitTestCase.assertTrue(new SimpleStringLiteral(TokenFactory.token2("r'''X'''"), "X").isRaw);
+  }
+
+  void test_simple() {
+    Token token = TokenFactory.token2("'value'");
+    SimpleStringLiteral stringLiteral = new SimpleStringLiteral(token, "value");
+    JUnitTestCase.assertSame(token, stringLiteral.literal);
+    JUnitTestCase.assertSame(token, stringLiteral.beginToken);
+    JUnitTestCase.assertSame(token, stringLiteral.endToken);
+    JUnitTestCase.assertEquals("value", stringLiteral.value);
+  }
+
+  static dartSuite() {
+    _ut.group('SimpleStringLiteralTest', () {
+      _ut.test('test_getValueOffset', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_getValueOffset);
+      });
+      _ut.test('test_isMultiline', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_isMultiline);
+      });
+      _ut.test('test_isRaw', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_isRaw);
+      });
+      _ut.test('test_simple', () {
+        final __test = new SimpleStringLiteralTest();
+        runJUnitTest(__test, __test.test_simple);
+      });
+    });
+  }
+}
+
 class ToSourceVisitorTest extends EngineTestCase {
   void test_visitAdjacentStrings() {
     assertSource("'a' 'b'", ASTFactory.adjacentStrings([ASTFactory.string2("a"), ASTFactory.string2("b")]));
@@ -2099,7 +2209,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitCompilationUnit_directive_declaration() {
-    assertSource("library l; var a;", ASTFactory.compilationUnit4(ASTFactory.list([ASTFactory.libraryDirective2("l") as Directive]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]) as CompilationUnitMember])));
+    assertSource("library l; var a;", ASTFactory.compilationUnit4(ASTFactory.list([ASTFactory.libraryDirective2("l")]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")])])));
   }
 
   void test_visitCompilationUnit_empty() {
@@ -2119,7 +2229,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitCompilationUnit_script_directives_declarations() {
-    assertSource("!#/bin/dartvm library l; var a;", ASTFactory.compilationUnit8("!#/bin/dartvm", ASTFactory.list([ASTFactory.libraryDirective2("l") as Directive]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]) as CompilationUnitMember])));
+    assertSource("!#/bin/dartvm library l; var a;", ASTFactory.compilationUnit8("!#/bin/dartvm", ASTFactory.list([ASTFactory.libraryDirective2("l")]), ASTFactory.list([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")])])));
   }
 
   void test_visitConditionalExpression() {
@@ -2140,7 +2250,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitConstructorDeclaration_multipleInitializers() {
     assertSource("C() : a = b, c = d {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([
-        ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer,
+        ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")),
         ASTFactory.constructorFieldInitializer(false, "c", ASTFactory.identifier3("d"))]), ASTFactory.blockFunctionBody2([])));
   }
 
@@ -2155,7 +2265,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitConstructorDeclaration_singleInitializer() {
-    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer]), ASTFactory.blockFunctionBody2([])));
+    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b"))]), ASTFactory.blockFunctionBody2([])));
   }
 
   void test_visitConstructorFieldInitializer_withoutThis() {
@@ -2219,7 +2329,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitExportDirective_combinator() {
-    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [ASTFactory.showCombinator([ASTFactory.identifier3("A")]) as Combinator]));
+    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [ASTFactory.showCombinator([ASTFactory.identifier3("A")])]));
   }
 
   void test_visitExportDirective_combinators() {
@@ -2363,11 +2473,11 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitForStatement_c() {
-    assertSource("for (; c;) {}", ASTFactory.forStatement(null as Expression, ASTFactory.identifier3("c"), null, ASTFactory.block([])));
+    assertSource("for (; c;) {}", ASTFactory.forStatement(null, ASTFactory.identifier3("c"), null, ASTFactory.block([])));
   }
 
   void test_visitForStatement_cu() {
-    assertSource("for (; c; u) {}", ASTFactory.forStatement(null as Expression, ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (; c; u) {}", ASTFactory.forStatement(null, ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_e() {
@@ -2379,11 +2489,11 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitForStatement_ecu() {
-    assertSource("for (e; c; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (e; c; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_eu() {
-    assertSource("for (e;; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), null, ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (e;; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), null, ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_i() {
@@ -2395,15 +2505,15 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitForStatement_icu() {
-    assertSource("for (var i; c; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (var i; c; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier3("c"), ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_iu() {
-    assertSource("for (var i;; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (var i;; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitForStatement_u() {
-    assertSource("for (;; u) {}", ASTFactory.forStatement(null as Expression, null, ASTFactory.list([ASTFactory.identifier3("u") as Expression]), ASTFactory.block([])));
+    assertSource("for (;; u) {}", ASTFactory.forStatement(null, null, ASTFactory.list([ASTFactory.identifier3("u")]), ASTFactory.block([])));
   }
 
   void test_visitFunctionDeclaration_getter() {
@@ -3981,5 +4091,6 @@ main() {
   IndexExpressionTest.dartSuite();
   NodeListTest.dartSuite();
   SimpleIdentifierTest.dartSuite();
+  SimpleStringLiteralTest.dartSuite();
   VariableDeclarationTest.dartSuite();
 }

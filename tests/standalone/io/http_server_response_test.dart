@@ -288,6 +288,18 @@ void testBadHeaders() {
 }
 
 
+void testWriteCharCode() {
+  testServerRequest((server, request) {
+    // Test that default is latin-1 (only 2 bytes).
+    request.response.writeCharCode(0xFF);
+    request.response.writeCharCode(0xFF);
+    request.response.close().then((_) {
+      server.close();
+    });
+  }, bytes: 2);
+}
+
+
 void main() {
   testResponseDone();
   testResponseAddStream();
@@ -297,4 +309,5 @@ void main() {
   testBadResponseClose();
   testIgnoreRequestData();
   testBadHeaders();
+  testWriteCharCode();
 }

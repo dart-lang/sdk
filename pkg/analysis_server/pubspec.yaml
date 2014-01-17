@@ -1,0 +1,13 @@
+name: analysis_server
+version: 0.0.1
+author: Dart Team <misc@dartlang.org>
+description: An HTTP server that performs analysis of Dart code via web sockets.
+homepage: http://www.dartlang.org
+environment:
+  sdk: ">=1.0.0 <2.0.0"
+dependencies:
+  analyzer: any
+  args: any
+  logging: any
+dev_dependencies:
+  unittest: any

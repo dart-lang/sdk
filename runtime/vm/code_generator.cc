@@ -227,6 +227,11 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
         Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
+  if (type.IsTypeRef()) {
+    type = TypeRef::Cast(type).type();
+    ASSERT(!type.IsTypeRef());
+    ASSERT(type.IsCanonical());
+  }
   ASSERT(!type.IsNull() && type.IsInstantiated());
   arguments.SetReturn(type);
 }
@@ -611,21 +616,40 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
     // Throw a dynamic type error.
     const intptr_t location = GetCallerLocation();
     const AbstractType& src_type = AbstractType::Handle(src_instance.GetType());
-    const String& src_type_name = String::Handle(src_type.UserVisibleName());
+    String& src_type_name = String::Handle(src_type.UserVisibleName());
     String& dst_type_name = String::Handle();
+    Library& dst_type_lib = Library::Handle();
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
           dst_type.InstantiateFrom(instantiator_type_arguments, NULL));
       // Note that instantiated_dst_type may be malbounded.
       dst_type_name = instantiated_dst_type.UserVisibleName();
+      dst_type_lib =
+          Class::Handle(instantiated_dst_type.type_class()).library();
     } else {
       dst_type_name = dst_type.UserVisibleName();
+      dst_type_lib = Class::Handle(dst_type.type_class()).library();
     }
     String& bound_error_message =  String::Handle();
     if (!bound_error.IsNull()) {
       ASSERT(FLAG_enable_type_checks);
       bound_error_message = String::New(bound_error.ToErrorCString());
+    }
+    if (src_type_name.Equals(dst_type_name)) {
+      // Qualify the names with their libraries.
+      String& lib_name = String::Handle();
+      lib_name = Library::Handle(
+          Class::Handle(src_type.type_class()).library()).name();
+      if (lib_name.Length() != 0) {
+        lib_name = String::Concat(lib_name, Symbols::Dot());
+        src_type_name = String::Concat(lib_name, src_type_name);
+      }
+      lib_name = dst_type_lib.name();
+      if (lib_name.Length() != 0) {
+        lib_name = String::Concat(lib_name, Symbols::Dot());
+        dst_type_name = String::Concat(lib_name, dst_type_name);
+      }
     }
     Exceptions::CreateAndThrowTypeError(location, src_type_name, dst_type_name,
                                         dst_name, bound_error_message);
@@ -813,14 +837,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
     }
   }
   arguments.SetReturn(Code::ZoneHandle(function.CurrentCode()));
-}
-
-
-// Gets called from debug stub when code reaches a breakpoint at a return
-// in Dart code.
-DEFINE_RUNTIME_ENTRY(BreakpointReturnHandler, 0) {
-  ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->SignalBpReached();
 }
 
 
@@ -1412,6 +1428,9 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(function.HasCode());
 
   if (CanOptimizeFunction(function, isolate)) {
+    // Reset usage counter for reoptimization before calling optimizer to
+    // prevent recursive triggering of function optimization.
+    function.set_usage_counter(0);
     const Error& error =
         Error::Handle(Compiler::CompileOptimizedFunction(function));
     if (!error.IsNull()) {
@@ -1419,8 +1438,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     }
     const Code& optimized_code = Code::Handle(function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
-    // Reset usage counter for reoptimization.
-    function.set_usage_counter(0);
   }
   arguments.SetReturn(Code::Handle(function.CurrentCode()));
 }

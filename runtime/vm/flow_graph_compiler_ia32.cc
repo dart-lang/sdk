@@ -743,10 +743,18 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
-  if (is_optimizing()) return;
+  if (is_optimizing()) {
+    return;
+  }
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->is_used()) {
-    __ pushl(defn->locs()->out().reg());
+    Location value = defn->locs()->out();
+    if (value.IsRegister()) {
+      __ pushl(value.reg());
+    } else {
+      ASSERT(value.IsStackSlot());
+      __ pushl(value.ToStackSlotAddress());
+    }
   }
 }
 
@@ -1025,7 +1033,6 @@ void FlowGraphCompiler::EmitFrameEntry() {
     intptr_t extra_slots = StackSize()
         - flow_graph().num_stack_locals()
         - flow_graph().num_copied_params();
-    ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
     ASSERT(StackSize() >= 0);

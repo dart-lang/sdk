@@ -442,8 +442,6 @@ class RawObject {
   friend class GCMarker;
   friend class ExternalTypedData;
   friend class Heap;
-  friend class HeapProfiler;
-  friend class HeapProfilerRootVisitor;
   friend class MarkingVisitor;
   friend class Object;
   friend class ObjectHistogram;
@@ -513,8 +511,6 @@ class RawClass : public RawObject {
   friend class Object;
   friend class RawInstance;
   friend class RawInstructions;
-  friend class RawType;  // TODO(regis): To temporarily print unfinalized types.
-  friend class RawTypeParameter;  // To temporarily print unfinalized types.
   friend class SnapshotReader;
 };
 
@@ -531,8 +527,6 @@ class RawUnresolvedClass : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->ident_);
   }
   intptr_t token_pos_;
-
-  friend class RawType;  // TODO(regis): To temporarily print unfinalized types.
 };
 
 
@@ -1191,7 +1185,6 @@ class RawTypeRef : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->type_);
   }
-  bool is_being_checked_;  // Transient field, not snapshotted.
 };
 
 
@@ -1225,7 +1218,6 @@ class RawBoundedType : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->type_parameter_);
   }
-  bool is_being_checked_;  // Transient field, not snapshotted.
 };
 
 
@@ -1492,7 +1484,6 @@ class RawExternalTypedData : public RawInstance {
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
 
   uint8_t* data_;
-  void* peer_;
 
   friend class TokenStream;
   friend class RawTokenStream;

@@ -105,9 +105,13 @@ class ProcessCommand extends Command {
   /** Environment for the command */
   Map<String, String> environmentOverrides;
 
+  /** Working directory for the command */
+  final String workingDirectory;
+
   ProcessCommand._(String displayName, this.executable,
                    this.arguments,
-                   [this.environmentOverrides = null])
+                   [this.environmentOverrides = null,
+                    this.workingDirectory = null])
       : super._(displayName) {
     if (io.Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
@@ -120,6 +124,7 @@ class ProcessCommand extends Command {
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(executable);
+    builder.add(workingDirectory);
     for (var object in arguments) builder.add(object);
     if (environmentOverrides != null) {
       for (var key in environmentOverrides.keys) {
@@ -130,8 +135,8 @@ class ProcessCommand extends Command {
   }
 
   bool _equal(Command other) {
-    if (!super._equal(other)) return false;
-      if (other is ProcessCommand) {
+    if (other is ProcessCommand) {
+      if (!super._equal(other)) return false;
 
       if (hashCode != other.hashCode ||
           executable != other.executable ||
@@ -140,6 +145,7 @@ class ProcessCommand extends Command {
       }
 
       if (!deepJsonCompare(arguments, other.arguments)) return false;
+      if (workingDirectory != other.workingDirectory) return false;
       if (!deepJsonCompare(environmentOverrides, other.environmentOverrides)) {
         return false;
       }
@@ -150,8 +156,12 @@ class ProcessCommand extends Command {
   }
 
   String get reproductionCommand {
-    return ([executable]..addAll(arguments))
+    var command = ([executable]..addAll(arguments))
         .map(escapeCommandLineArgument).join(' ');
+    if (workingDirectory != null) {
+      command = "$command (working directory: $workingDirectory)";
+    }
+    return command;
   }
 
   Future<bool> get outputIsUpToDate => new Future.value(false);
@@ -356,6 +366,213 @@ class JSCommandlineCommand extends ProcessCommand {
                 environmentOverrides);
 }
 
+class PubCommand extends ProcessCommand {
+  final String command;
+
+  PubCommand._(String pubCommand,
+               String pubExecutable,
+               String pubspecYamlDirectory,
+               String pubCacheDirectory)
+      : super._('pub_$pubCommand',
+                new io.File(pubExecutable).absolute.path,
+                [pubCommand],
+                {'PUB_CACHE' : pubCacheDirectory},
+                pubspecYamlDirectory), command = pubCommand;
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(command);
+  }
+
+  bool _equal(Command other) {
+    return
+        other is PubCommand &&
+        super._equal(other) &&
+        command == other.command;
+  }
+}
+
+/* [ScriptCommand]s are executed by dart code. */
+abstract class ScriptCommand extends Command {
+  ScriptCommand._(String displayName) : super._(displayName);
+
+  Future<ScriptCommandOutputImpl> run();
+}
+
+class CleanDirectoryCopyCommand extends ScriptCommand {
+  final String _sourceDirectory;
+  final String _destinationDirectory;
+
+  CleanDirectoryCopyCommand._(this._sourceDirectory, this._destinationDirectory)
+    : super._('dir_copy');
+
+  String get reproductionCommand =>
+      "Copying '$_sourceDirectory' to '$_destinationDirectory'.";
+
+  Future<ScriptCommandOutputImpl> run() {
+    var watch = new Stopwatch()..start();
+
+    var source = new io.Directory(_sourceDirectory);
+    var destination = new io.Directory(_destinationDirectory);
+
+    return destination.exists().then((bool exists) {
+      var cleanDirectoryFuture;
+      if (exists) {
+        cleanDirectoryFuture = destination.delete(recursive: true);
+      } else {
+        cleanDirectoryFuture = new Future.value(null);
+      }
+      return cleanDirectoryFuture.then((_) {
+        return TestUtils.copyDirectory(_sourceDirectory, _destinationDirectory);
+      });
+    }).then((_) {
+      return new ScriptCommandOutputImpl(
+          this, Expectation.PASS, "", watch.elapsed);
+    }).catchError((error) {
+      return new ScriptCommandOutputImpl(
+          this, Expectation.FAIL, "An error occured: $error.", watch.elapsed);
+    });
+  }
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(_sourceDirectory);
+    builder.add(_destinationDirectory);
+  }
+
+  bool _equal(Command other) {
+    return
+        other is CleanDirectoryCopyCommand &&
+        super._equal(other) &&
+        _sourceDirectory == other._sourceDirectory &&
+        _destinationDirectory == other._destinationDirectory;
+  }
+}
+
+class ModifyPubspecYamlCommand extends ScriptCommand {
+  String _pubspecYamlFile;
+  String _destinationFile;
+  Map<String, Map> _dependencyOverrides;
+
+  ModifyPubspecYamlCommand._(this._pubspecYamlFile,
+                             this._destinationFile,
+                             this._dependencyOverrides)
+    : super._("modify_pubspec") {
+    assert(_pubspecYamlFile.endsWith("pubspec.yaml"));
+    assert(_destinationFile.endsWith("pubspec.yaml"));
+  }
+
+  String get reproductionCommand =>
+      "Adding necessary dependency overrides to '$_pubspecYamlFile' "
+      "(destination = $_destinationFile).";
+
+  Future<ScriptCommandOutputImpl> run() {
+    var watch = new Stopwatch()..start();
+
+    var pubspecLockFile =
+        _destinationFile.substring(0, _destinationFile.length - ".yaml".length)
+        + ".lock";
+
+    var file = new io.File(_pubspecYamlFile);
+    var destinationFile = new io.File(_destinationFile);
+    var lockfile = new io.File(pubspecLockFile);
+    return file.readAsString().then((String yamlString) {
+      var dependencyOverrideSection = new StringBuffer();
+      if (_dependencyOverrides.isNotEmpty) {
+        dependencyOverrideSection.write(
+            "\n"
+            "# This section was autogenerated by test.py!\n"
+            "dependency_overrides:\n");
+        _dependencyOverrides.forEach((String packageName, Map override) {
+          dependencyOverrideSection.write("  $packageName:\n");
+          override.forEach((overrideKey, overrideValue) {
+            dependencyOverrideSection.write(
+                "    $overrideKey: $overrideValue\n");
+          });
+        });
+      }
+      var modifiedYamlString = "$yamlString\n$dependencyOverrideSection";
+      return destinationFile.writeAsString(modifiedYamlString).then((_) {
+        lockfile.exists().then((bool lockfileExists) {
+          if (lockfileExists) {
+            return lockfile.delete();
+          }
+        });
+      });
+    }).then((_) {
+      return new ScriptCommandOutputImpl(
+          this, Expectation.PASS, "", watch.elapsed);
+    }).catchError((error) {
+      return new ScriptCommandOutputImpl(
+          this, Expectation.FAIL, "An error occured: $error.", watch.elapsed);
+    });
+  }
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(_pubspecYamlFile);
+    builder.add(_destinationFile);
+    builder.addJson(_dependencyOverrides);
+  }
+
+  bool _equal(Command other) {
+    return
+        other is ModifyPubspecYamlCommand &&
+        super._equal(other) &&
+        _pubspecYamlFile == other._pubspecYamlFile &&
+        _destinationFile == other._destinationFile &&
+        deepJsonCompare(_dependencyOverrides, other._dependencyOverrides);
+  }
+}
+
+/*
+ * [MakeSymlinkCommand] makes a symbolic link to another directory.
+ */
+class MakeSymlinkCommand extends ScriptCommand {
+  String _link;
+  String _target;
+
+  MakeSymlinkCommand._(this._link, this._target) : super._('make_symlink');
+
+  String get reproductionCommand =>
+      "Make symbolic link '$_link' (target: $_target)'.";
+
+  Future<ScriptCommandOutputImpl> run() {
+    var watch = new Stopwatch()..start();
+    var targetFile = new io.Directory(_target);
+    return targetFile.exists().then((bool targetExists) {
+      if (!targetExists) {
+        throw new Exception("Target '$_target' does not exist");
+      }
+      var link = new io.Link(_link);
+
+      return link.exists()
+          .then((bool exists) { if (exists) return link.delete(); })
+          .then((_) => link.create(_target));
+    }).then((_) {
+      return new ScriptCommandOutputImpl(
+          this, Expectation.PASS, "", watch.elapsed);
+    }).catchError((error) {
+      return new ScriptCommandOutputImpl(
+          this, Expectation.FAIL, "An error occured: $error.", watch.elapsed);
+    });
+  }
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(_link);
+    builder.add(_target);
+  }
+
+  bool _equal(Command other) {
+    return
+        other is MakeSymlinkCommand &&
+        super._equal(other) &&
+        _link == other._link &&
+        _target == other._target;
+  }
+}
+
 class CommandBuilder {
   static final CommandBuilder instance = new CommandBuilder._();
 
@@ -418,10 +635,38 @@ class CommandBuilder {
   }
 
   Command getProcessCommand(String displayName, executable, arguments,
-                     [environment = null]) {
+                     [environment = null, workingDirectory = null]) {
     var command = new ProcessCommand._(displayName, executable, arguments,
-                                       environment);
+                                       environment, workingDirectory);
     return _getUniqueCommand(command);
+  }
+
+  Command getCopyCommand(String sourceDirectory, String destinationDirectory) {
+    var command = new CleanDirectoryCopyCommand._(sourceDirectory,
+                                                  destinationDirectory);
+    return _getUniqueCommand(command);
+  }
+
+  Command getPubCommand(String pubCommand,
+                        String pubExecutable,
+                        String pubspecYamlDirectory,
+                        String pubCacheDirectory) {
+    var command = new PubCommand._(pubCommand,
+                                   pubExecutable,
+                                   pubspecYamlDirectory,
+                                   pubCacheDirectory);
+    return _getUniqueCommand(command);
+  }
+
+  Command getMakeSymlinkCommand(String link, String target) {
+    return _getUniqueCommand(new MakeSymlinkCommand._(link, target));
+  }
+
+  Command getModifyPubspecCommand(String pubspecYamlFile, Map depsOverrides,
+                                  {String destinationFile: null}) {
+    if (destinationFile == null) destinationFile = pubspecYamlFile;
+    return _getUniqueCommand(new ModifyPubspecYamlCommand._(
+        pubspecYamlFile, destinationFile, depsOverrides));
   }
 
   Command _getUniqueCommand(Command command) {
@@ -532,8 +777,9 @@ class TestCase extends UniqueObject {
   }
 
   bool get isFinished {
-    return !lastCommandOutput.successful ||
-           commands.length == commandOutputs.length;
+    return commandOutputs.length > 0 &&
+        (!lastCommandOutput.successful ||
+         commands.length == commandOutputs.length);
   }
 }
 
@@ -1323,6 +1569,44 @@ class JsCommandlineOutputImpl extends CommandOutputImpl
   }
 }
 
+class PubCommandOutputImpl extends CommandOutputImpl {
+  PubCommandOutputImpl(PubCommand command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr, Duration time)
+      : super(command, exitCode, timedOut, stdout, stderr, time, false);
+
+  Expectation result(TestCase testCase) {
+    // Handle crashes and timeouts first
+    if (hasCrashed) return Expectation.CRASH;
+    if (hasTimedOut) return Expectation.TIMEOUT;
+
+    if (exitCode == 0) {
+      return Expectation.PASS;
+    } else if ((command as PubCommand).command == 'get') {
+      return Expectation.PUB_GET_ERROR;
+    } else {
+      return Expectation.FAIL;
+    }
+  }
+}
+
+class ScriptCommandOutputImpl extends CommandOutputImpl {
+  final Expectation _result;
+
+  ScriptCommandOutputImpl(ScriptCommand command, this._result,
+                          String scriptExecutionInformation, Duration time)
+      : super(command, 0, false, [], [], time, false) {
+    var lines = scriptExecutionInformation.split("\n");
+    diagnostics.addAll(lines);
+  }
+
+  Expectation result(TestCase testCase) => _result;
+
+  bool get canRunDependendCommands => _result == Expectation.PASS;
+
+  bool get successful => _result == Expectation.PASS;
+
+}
+
 CommandOutput createCommandOutput(Command command,
                                   int exitCode,
                                   bool timedOut,
@@ -1350,6 +1634,9 @@ CommandOutput createCommandOutput(Command command,
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is JSCommandlineCommand) {
     return new JsCommandlineOutputImpl(
+        command, exitCode, timedOut, stdout, stderr, time);
+  } else if (command is PubCommand) {
+    return new PubCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time);
   }
 
@@ -1399,20 +1686,79 @@ class RunningProcess {
         Future processFuture =
             io.Process.start(command.executable,
                              command.arguments,
-                             environment: processEnvironment);
+                             environment: processEnvironment,
+                             workingDirectory: command.workingDirectory);
         processFuture.then((io.Process process) {
+          StreamSubscription stdoutSubscription =
+              _drainStream(process.stdout, stdout);
+          StreamSubscription stderrSubscription =
+              _drainStream(process.stderr, stderr);
+
+          var stdoutCompleter = new Completer();
+          var stderrCompleter = new Completer();
+
+          bool stdoutDone = false;
+          bool stderrDone = false;
+
+          // This timer is used to close stdio to the subprocess once we got
+          // the exitCode. Sometimes descendants of the subprocess keep stdio
+          // handles alive even though the direct subprocess is dead.
+          Timer watchdogTimer;
+
+          closeStdout([_]) {
+            if (!stdoutDone) {
+              stdoutCompleter.complete();
+              stdoutDone = true;
+
+              if (stderrDone && watchdogTimer != null) {
+                watchdogTimer.cancel();
+              }
+            }
+          }
+          closeStderr([_]) {
+            if (!stderrDone) {
+              stderrCompleter.complete();
+              stderrDone = true;
+
+              if (stdoutDone && watchdogTimer != null) {
+                watchdogTimer.cancel();
+              }
+            }
+          }
+
           // Close stdin so that tests that try to block on input will fail.
           process.stdin.close();
           void timeoutHandler() {
             timedOut = true;
             if (process != null) {
-              process.kill();
+              if (!process.kill()) {
+                DebugLogger.error("Unable to kill ${process.pid}");
+              }
             }
           }
-          Future.wait([process.exitCode,
-                       _drainStream(process.stdout, stdout),
-                       _drainStream(process.stderr, stderr)])
-              .then((values) => _commandComplete(values[0]));
+
+          stdoutSubscription.asFuture().then(closeStdout);
+          stderrSubscription.asFuture().then(closeStderr);
+
+          process.exitCode.then((exitCode) {
+            if (!stdoutDone || !stderrDone) {
+              watchdogTimer = new Timer(MAX_STDIO_DELAY, () {
+                DebugLogger.warning(
+                    "$MAX_STDIO_DELAY_PASSED_MESSAGE (command: $command)");
+                watchdogTimer = null;
+                stdoutSubscription.cancel();
+                stderrSubscription.cancel();
+                closeStdout();
+                closeStderr();
+              });
+            }
+
+            Future.wait([stdoutCompleter.future,
+                         stderrCompleter.future]).then((_) {
+              _commandComplete(exitCode);
+            });
+          });
+
           timeoutTimer = new Timer(new Duration(seconds: timeout),
                                    timeoutHandler);
         }).catchError((e) {
@@ -1447,12 +1793,13 @@ class RunningProcess {
     return commandOutput;
   }
 
-  Future _drainStream(Stream<List<int>> source, List<int> destination) {
-    return source.listen(destination.addAll).asFuture();
+  StreamSubscription _drainStream(Stream<List<int>> source,
+                                  List<int> destination) {
+    return source.listen(destination.addAll);
   }
 
   Map<String, String> _createProcessEnvironment() {
-    var environment = io.Platform.environment;
+    var environment = new Map.from(io.Platform.environment);
 
     if (command.environmentOverrides != null) {
       for (var key in command.environmentOverrides.keys) {
@@ -1965,6 +2312,19 @@ class CommandQueue {
       });
     }
   }
+
+  void dumpState() {
+    print("");
+    print("CommandQueue state:");
+    print("  Processes: used: $_numProcesses max: $_maxProcesses");
+    print("  BrowserProcesses: used: $_numBrowserProcesses "
+          "max: $_maxBrowserProcesses");
+    print("  Finishing: $_finishing");
+    print("  Queue (length = ${_runQueue.length}):");
+    for (var command in _runQueue) {
+      print("      $command");
+    }
+  }
 }
 
 
@@ -2047,6 +2407,8 @@ class CommandExecutorImpl implements CommandExecutor {
     } else if (command is AnalysisCommand && batchMode) {
       return _getBatchRunner(command.flavor)
           .runCommand(command.flavor, command, timeout, command.arguments);
+    } else if (command is ScriptCommand) {
+      return command.run();
     } else {
       return new RunningProcess(command, timeout).run();
     }
@@ -2332,6 +2694,7 @@ class ProcessQueue {
     }
 
     var testCaseEnqueuer;
+    CommandQueue commandQueue;
     void setupForRunning(TestCaseEnqueuer testCaseEnqueuer) {
       Timer _debugTimer;
       // If we haven't seen a single test finishing during a 10 minute period
@@ -2349,6 +2712,8 @@ class ProcessQueue {
         _debugTimer = new Timer(debugTimerDuration, () {
           print("The debug timer of test.dart expired. Please report this issue"
                 " to ricow/kustermann and provide the following information:");
+          print("");
+          print("Graph is sealed: ${_graph.isSealed}");
           print("");
           _graph.DumpCounts();
           print("");
@@ -2379,6 +2744,10 @@ class ProcessQueue {
               print("");
             }
           }
+
+          if (commandQueue != null) {
+            commandQueue.dumpState();
+          }
         });
       }
 
@@ -2407,7 +2776,7 @@ class ProcessQueue {
 
       // Run "runnable commands" using [executor] subject to
       // maxProcesses/maxBrowserProcesses constraint
-      var commandQueue = new CommandQueue(
+      commandQueue = new CommandQueue(
           _graph, testCaseEnqueuer, executor, maxProcesses, maxBrowserProcesses,
           verbose);
 

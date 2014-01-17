@@ -12,7 +12,6 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'scheduled_test.dart';
 import 'src/scheduled_server/handler.dart';
-import 'src/scheduled_server/safe_http_server.dart';
 import 'src/utils.dart';
 
 typedef Future ScheduledHandler(HttpRequest request);
@@ -49,7 +48,7 @@ class ScheduledServer {
 
     var scheduledServer;
     scheduledServer = new ScheduledServer._(schedule(() {
-      return Chain.track(SafeHttpServer.bind("127.0.0.1", 0)).then((server) {
+      return Chain.track(HttpServer.bind("127.0.0.1", 0)).then((server) {
         Chain.track(server).listen(scheduledServer._handleRequest,
             onError: currentSchedule.signalError);
         currentSchedule.onComplete.schedule(server.close);

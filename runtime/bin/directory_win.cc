@@ -170,7 +170,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   WIN32_FIND_DATAW find_file_data;
 
   if (lister_ == 0) {
-    if (!listing->path_buffer().AddW(L"\\*")) {
+    const wchar_t* tail = parent_ == NULL ? L"*" : L"\\*";
+    if (!listing->path_buffer().AddW(tail)) {
       done_ = true;
       return kListError;
     }

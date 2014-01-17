@@ -36,5 +36,4 @@ LibTest/isolate/Isolate/spawn_A01_t04: RuntimeError # co19-roll r667: Please tri
 LibTest/isolate/Isolate/spawn_A01_t05: RuntimeError # co19-roll r667: Please triage this failure
 
 [ $compiler == none && $runtime == dartium && $checked ]
-Language/13_Statements/09_Switch_A09_t01: Fail # Please triage this failure (enabled checked mode tests on dartium)
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure

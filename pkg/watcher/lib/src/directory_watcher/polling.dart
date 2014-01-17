@@ -7,7 +7,6 @@ library watcher.directory_watcher.polling;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:crypto/crypto.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../async_queue.dart';
@@ -46,10 +45,10 @@ class _PollingDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   /// directory contents.
   final Duration _pollingDelay;
 
-  /// The previous status of the files in the directory.
+  /// The previous modification times of the files in the directory.
   ///
   /// Used to tell which files have been modified.
-  final _statuses = new Map<String, _FileStatus>();
+  final _lastModifieds = new Map<String, DateTime>();
 
   /// The subscription used while [directory] is being listed.
   ///
@@ -89,7 +88,7 @@ class _PollingDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     // Don't process any remaining files.
     _filesToProcess.clear();
     _polledFiles.clear();
-    _statuses.clear();
+    _lastModifieds.clear();
   }
 
   /// Scans the contents of the directory once to see which files have been
@@ -135,32 +134,25 @@ class _PollingDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
     return getModificationTime(file).then((modified) {
       if (_events.isClosed) return null;
 
-      var lastStatus = _statuses[file];
+      var lastModified = _lastModifieds[file];
 
       // If its modification time hasn't changed, assume the file is unchanged.
-      if (lastStatus != null && lastStatus.modified == modified) {
+      if (lastModified != null && lastModified == modified) {
         // The file is still here.
         _polledFiles.add(file);
         return null;
       }
 
-      return _hashFile(file).then((hash) {
-        if (_events.isClosed) return;
+      if (_events.isClosed) return null;
 
-        var status = new _FileStatus(modified, hash);
-        _statuses[file] = status;
-        _polledFiles.add(file);
+      _lastModifieds[file] = modified;
+      _polledFiles.add(file);
 
-        // Only notify if we're ready to emit events.
-        if (!isReady) return;
+      // Only notify if we're ready to emit events.
+      if (!isReady) return null;
 
-        // And the file is different.
-        var changed = lastStatus == null || !_sameHash(lastStatus.hash, hash);
-        if (!changed) return;
-
-        var type = lastStatus == null ? ChangeType.ADD : ChangeType.MODIFY;
-        _events.add(new WatchEvent(type, file));
-      });
+      var type = lastModified == null ? ChangeType.ADD : ChangeType.MODIFY;
+      _events.add(new WatchEvent(type, file));
     });
   }
 
@@ -169,10 +161,10 @@ class _PollingDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
   Future _completePoll() {
     // Any files that were not seen in the last poll but that we have a
     // status for must have been removed.
-    var removedFiles = _statuses.keys.toSet().difference(_polledFiles);
+    var removedFiles = _lastModifieds.keys.toSet().difference(_polledFiles);
     for (var removed in removedFiles) {
       if (isReady) _events.add(new WatchEvent(ChangeType.REMOVE, removed));
-      _statuses.remove(removed);
+      _lastModifieds.remove(removed);
     }
 
     if (!isReady) _ready.complete();
@@ -183,37 +175,4 @@ class _PollingDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
       _poll();
     });
   }
-
-  /// Calculates the SHA-1 hash of the file at [path].
-  Future<List<int>> _hashFile(String path) {
-    return Chain.track(new File(path).readAsBytes()).then((bytes) {
-      var sha1 = new SHA1();
-      sha1.add(bytes);
-      return sha1.close();
-    });
-  }
-
-  /// Returns `true` if [a] and [b] are the same hash value, i.e. the same
-  /// series of byte values.
-  bool _sameHash(List<int> a, List<int> b) {
-    // Hashes should always be the same size.
-    assert(a.length == b.length);
-
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-
-    return true;
-  }
 }
-
-class _FileStatus {
-  /// The last time the file was modified.
-  DateTime modified;
-
-  /// The SHA-1 hash of the contents of the file.
-  List<int> hash;
-
-  _FileStatus(this.modified, this.hash);
-}
-

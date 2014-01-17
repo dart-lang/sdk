@@ -1860,23 +1860,6 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 }
 
 
-//  R0: return value.
-void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-  __ Push(R0);
-  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry, 0);
-  __ Pop(R0);
-  __ LeaveStubFrame();
-
-  // Instead of returning to the patched Dart function, emulate the
-  // smashed return code pattern and return to the function's caller.
-  __ LeaveDartFrame();
-  __ Ret();
-}
-
-
 //  LR: return address (Dart code).
 //  R5: inline cache data array.
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {

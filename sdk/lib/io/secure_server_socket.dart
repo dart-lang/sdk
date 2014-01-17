@@ -13,7 +13,7 @@ part of dart.io;
 class SecureServerSocket extends Stream<SecureSocket> {
   final RawSecureServerSocket _socket;
 
-  SecureServerSocket._(RawSecureServerSocket this._socket);
+  SecureServerSocket._(this._socket);
 
   /**
    * Returns a future for a [SecureServerSocket]. When the future
@@ -123,9 +123,9 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   bool _closed = false;
 
   RawSecureServerSocket._(RawServerSocket serverSocket,
-                          String this.certificateName,
-                          bool this.requestClientCertificate,
-                          bool this.requireClientCertificate) {
+                          this.certificateName,
+                          this.requestClientCertificate,
+                          this.requireClientCertificate) {
     _socket = serverSocket;
     _controller = new StreamController<RawSecureSocket>(
         sync: true,

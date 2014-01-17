@@ -23,12 +23,26 @@ os_name = utils.GuessOS()
 POSIX_INFO = 'ps -p %s -o args'
 
 EXECUTABLE_NAMES = {
-  'win32': { 'chrome': 'chrome.exe', 'dart': 'dart.exe',
-             'iexplore': 'iexplore.exe', 'firefox': 'firefox.exe'},
-  'linux': { 'chrome': 'chrome', 'dart': 'dart',
-             'firefox': 'firefox.exe'},
-  'macos': { 'chrome': 'Chrome', 'dart': 'dart',
-             'firefox': 'firefox', 'safari': 'Safari' }
+  'win32': {
+    'chrome': 'chrome.exe',
+    'content_shell': 'content_shell.exe',
+    'dart': 'dart.exe',
+    'iexplore': 'iexplore.exe',
+    'firefox': 'firefox.exe'
+  },
+  'linux': {
+    'chrome': 'chrome',
+    'content_shell': 'content_shell',
+    'dart': 'dart',
+    'firefox': 'firefox.exe'
+  },
+  'macos': {
+    'chrome': 'Chrome',
+    'content_shell': 'Content Shell',
+    'dart': 'dart',
+    'firefox': 'firefox',
+    'safari': 'Safari'
+  }
 }
 
 INFO_COMMAND = {
@@ -153,6 +167,7 @@ def KillBrowsers():
   status += Kill('chrome')
   status += Kill('iexplore')
   status += Kill('safari')
+  status += Kill('content_shell')
   return status
 
 def KillDart():

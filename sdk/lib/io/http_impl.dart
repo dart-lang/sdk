@@ -33,10 +33,7 @@ class _HttpIncoming extends Stream<List<int>> {
   // codings.
   int get transferLength => _transferLength;
 
-  _HttpIncoming(_HttpHeaders this.headers,
-                int this._transferLength,
-                Stream<List<int>> this._stream) {
-  }
+  _HttpIncoming(this.headers, this._transferLength, this._stream);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {Function onError,
@@ -67,7 +64,7 @@ abstract class _HttpInboundMessage extends Stream<List<int>> {
   final _HttpIncoming _incoming;
   List<Cookie> _cookies;
 
-  _HttpInboundMessage(_HttpIncoming this._incoming);
+  _HttpInboundMessage(this._incoming);
 
   List<Cookie> get cookies {
     if (_cookies != null) return _cookies;
@@ -90,14 +87,14 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
 
   _HttpSession _session;
 
-  _HttpRequest(_HttpResponse this.response,
-               _HttpIncoming _incoming,
-               _HttpServer this._httpServer,
-               _HttpConnection this._httpConnection)
-      : super(_incoming) {
+  Uri _requestedUri;
+
+  _HttpRequest(this.response, _HttpIncoming _incoming, this._httpServer,
+               this._httpConnection) : super(_incoming) {
     if (headers.protocolVersion == "1.1") {
-      response.headers.chunkedTransferEncoding = true;
-      response.headers.persistentConnection = headers.persistentConnection;
+      response.headers
+          ..chunkedTransferEncoding = true
+          ..persistentConnection = headers.persistentConnection;
     }
 
     if (_httpServer._sessionManagerInstance != null) {
@@ -126,6 +123,27 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   }
 
   Uri get uri => _incoming.uri;
+
+  Uri get requestedUri {
+    if (_requestedUri == null) {
+      var proto = headers['x-forwarded-proto'];
+      var scheme = proto != null ? proto.first :
+          _httpConnection._socket is SecureSocket ? "https" : "http";
+      var host = headers['x-forwarded-host'];
+      if (host != null) {
+        host = host.first;
+      } else {
+        host = headers['host'];
+        if (host != null) {
+          host = host.first;
+        } else {
+          host = "${_httpServer.address.host}:${_httpServer.port}";
+        }
+      }
+      _requestedUri = Uri.parse("$scheme://$host$uri");
+    }
+    return _requestedUri;
+  }
 
   String get method => _incoming.method;
 
@@ -166,10 +184,8 @@ class _HttpClientResponse
 
   List<Cookie> _cookies;
 
-  _HttpClientResponse(_HttpIncoming _incoming,
-                      _HttpClientRequest this._httpRequest,
-                      _HttpClient this._httpClient)
-      : super(_incoming) {
+  _HttpClientResponse(_HttpIncoming _incoming, this._httpRequest,
+                      this._httpClient) : super(_incoming) {
     // Set uri for potential exceptions.
     _incoming.uri = _httpRequest.uri;
   }
@@ -178,6 +194,7 @@ class _HttpClientResponse
   String get reasonPhrase => _incoming.reasonPhrase;
 
   X509Certificate get certificate {
+    // The peerCertificate isn't on a plain socket, so cast to dynamic.
     var socket = _httpRequest._httpClientConnection._socket;
     return socket.peerCertificate;
   }
@@ -234,10 +251,9 @@ class _HttpClientResponse
     }
     return _httpClient._openUrlFromRequest(method, url, _httpRequest)
         .then((request) {
-          request._responseRedirects.addAll(this.redirects);
-          request._responseRedirects.add(new _RedirectInfo(statusCode,
-                                                           method,
-                                                           url));
+          request._responseRedirects
+              ..addAll(this.redirects)
+              ..add(new _RedirectInfo(statusCode, method, url));
           return request.close();
         });
   }
@@ -289,19 +305,13 @@ class _HttpClientResponse
     }
 
     List<String> authChallenge() {
-      if (proxyAuth) {
-        return headers[HttpHeaders.PROXY_AUTHENTICATE];
-      } else {
-        return headers[HttpHeaders.WWW_AUTHENTICATE];
-      }
+      return proxyAuth ? headers[HttpHeaders.PROXY_AUTHENTICATE]
+                       : headers[HttpHeaders.WWW_AUTHENTICATE];
     }
 
     _Credentials findCredentials(_AuthenticationScheme scheme) {
-      if (proxyAuth) {
-        return  _httpClient._findProxyCredentials(_httpRequest._proxy, scheme);
-      } else {
-        return _httpClient._findCredentials(_httpRequest.uri, scheme);
-      }
+      return proxyAuth ? _httpClient._findProxyCredentials(_httpRequest._proxy, scheme)
+                       : _httpClient._findCredentials(_httpRequest.uri, scheme);
     }
 
     void removeCredentials(_Credentials cr) {
@@ -359,10 +369,10 @@ class _HttpClientResponse
           // If the nonce is not set then this is the first authenticate
           // response for these credentials. Set up authentication state.
           if (cr.nonce == null) {
-            cr.nonce = header.parameters["nonce"];
-            cr.algorithm = "MD5";
-            cr.qop = header.parameters["qop"];
-            cr.nonceCount = 0;
+            cr..nonce = header.parameters["nonce"]
+              ..algorithm = "MD5"
+              ..qop = header.parameters["qop"]
+              ..nonceCount = 0;
           }
           // Credentials where found, prepare for retrying the request.
           return retry();
@@ -411,7 +421,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
 
   final _HttpHeaders headers;
 
-  _HttpOutboundMessage(Uri this._uri,
+  _HttpOutboundMessage(this._uri,
                        String protocolVersion,
                        _HttpOutgoing outgoing)
       : _outgoing = outgoing,
@@ -445,18 +455,22 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   }
 
   void write(Object obj) {
+    if (!_headersWritten) _dataSink.encoding = encoding;
     _dataSink.write(obj);
   }
 
   void writeAll(Iterable objects, [String separator = ""]) {
+    if (!_headersWritten) _dataSink.encoding = encoding;
     _dataSink.writeAll(objects, separator);
   }
 
   void writeln([Object obj = ""]) {
+    if (!_headersWritten) _dataSink.encoding = encoding;
     _dataSink.writeln(obj);
   }
 
   void writeCharCode(int charCode) {
+    if (!_headersWritten) _dataSink.encoding = encoding;
     _dataSink.writeCharCode(charCode);
   }
 
@@ -465,21 +479,14 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     _dataSink.add(data);
   }
 
-  void addError(error, [StackTrace stackTrace]) {
-    _dataSink.addError(error, stackTrace);
-  }
+  void addError(error, [StackTrace stackTrace]) =>
+      _dataSink.addError(error, stackTrace);
 
-  Future<T> addStream(Stream<List<int>> stream) {
-    return _dataSink.addStream(stream);
-  }
+  Future<T> addStream(Stream<List<int>> stream) => _dataSink.addStream(stream);
 
-  Future flush() {
-    return _dataSink.flush();
-  }
+  Future flush() => _dataSink.flush();
 
-  Future close() {
-    return _dataSink.close();
-  }
+  Future close() => _dataSink.close();
 
   Future<T> get done => _dataSink.done;
 
@@ -575,7 +582,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
   Completer _completer;
   bool _socketError = false;
 
-  _HttpOutboundConsumer(_HttpOutboundMessage this._outbound);
+  _HttpOutboundConsumer(this._outbound);
 
   void _cancel() {
     if (_subscription != null) {
@@ -813,17 +820,18 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
       bool found = false;
       for (int i = 0; i < cookies.length; i++) {
         if (cookies[i].name.toUpperCase() == _DART_SESSION_ID) {
-          cookies[i].value = session.id;
-          cookies[i].httpOnly = true;
-          cookies[i].path = "/";
+          cookies[i]
+              ..value = session.id
+              ..httpOnly = true
+              ..path = "/";
           found = true;
         }
       }
       if (!found) {
         var cookie = new Cookie(_DART_SESSION_ID, session.id);
-        cookie.httpOnly = true;
-        cookie.path = "/";
-        cookies.add(cookie);
+        cookies.add(cookie
+            ..httpOnly = true
+            ..path = "/");
       }
     }
     // Add all the cookies set to the headers.
@@ -923,12 +931,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   List<RedirectInfo> _responseRedirects = [];
 
-  _HttpClientRequest(_HttpOutgoing outgoing,
-                     Uri uri,
-                     String this.method,
-                     _Proxy this._proxy,
-                     _HttpClient this._httpClient,
-                     _HttpClientConnection this._httpClientConnection)
+  _HttpClientRequest(_HttpOutgoing outgoing, Uri uri, this.method, this._proxy,
+                     this._httpClient, this._httpClientConnection)
       : super(uri, "1.1", outgoing),
         uri = uri {
     // GET and HEAD have 'content-length: 0' by default.
@@ -968,15 +972,12 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   HttpConnectionInfo get connectionInfo => _httpClientConnection.connectionInfo;
 
   void _onIncoming(_HttpIncoming incoming) {
-    var response = new _HttpClientResponse(incoming,
-                                           this,
-                                          _httpClient);
+    var response = new _HttpClientResponse(incoming, this, _httpClient);
     Future<HttpClientResponse> future;
     if (followRedirects && response.isRedirect) {
       if (response.redirects.length < maxRedirects) {
         // Redirect and drain response.
-        future = response.drain()
-          .then((_) => response.redirect());
+        future = response.drain().then((_) => response.redirect());
       } else {
         // End with exception, too many redirects.
         future = response.drain()
@@ -1062,9 +1063,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       StringBuffer sb = new StringBuffer();
       for (int i = 0; i < cookies.length; i++) {
         if (i > 0) sb.write("; ");
-        sb.write(cookies[i].name);
-        sb.write("=");
-        sb.write(cookies[i].value);
+        sb..write(cookies[i].name)..write("=")..write(cookies[i].value);
       }
       headers.add(HttpHeaders.COOKIE, sb.toString());
     }
@@ -1159,7 +1158,7 @@ class _ContentLengthValidator
 
   EventSink<List<int>> _outSink;
 
-  _ContentLengthValidator(int this.expectedContentLength, Uri this.uri);
+  _ContentLengthValidator(this.expectedContentLength, this.uri);
 
   Stream<List<int>> bind(Stream<List<int>> stream) {
     return new Stream.eventTransformed(
@@ -1210,7 +1209,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
   final Completer _doneCompleter = new Completer();
   final Socket socket;
 
-  _HttpOutgoing(Socket this.socket);
+  _HttpOutgoing(this.socket);
 
   Future addStream(Stream<List<int>> stream) {
     return socket.addStream(stream)
@@ -1244,9 +1243,7 @@ class _HttpClientConnection {
   Completer<_HttpIncoming> _nextResponseCompleter;
   Future _streamFuture;
 
-  _HttpClientConnection(String this.key,
-                        Socket this._socket,
-                        _HttpClient this._httpClient,
+  _HttpClientConnection(this.key, this._socket, this._httpClient,
                         [this._proxyTunnel = false])
       : _httpParser = new _HttpParser.responseParser() {
     _socket.pipe(_httpParser);
@@ -1302,9 +1299,10 @@ class _HttpClientConnection {
                                          proxy,
                                          _httpClient,
                                          this);
-    request.headers.host = uri.host;
-    request.headers.port = port;
-    request.headers._add(HttpHeaders.ACCEPT_ENCODING, "gzip");
+    request.headers
+        ..host = uri.host
+        ..port = port
+        .._add(HttpHeaders.ACCEPT_ENCODING, "gzip");
     if (_httpClient.userAgent != null) {
       request.headers._add('user-agent', _httpClient.userAgent);
     }
@@ -1480,9 +1478,10 @@ class _HttpClientConnection {
 }
 
 class _ConnnectionInfo {
-  _ConnnectionInfo(_HttpClientConnection this.connection, _Proxy this.proxy);
   final _HttpClientConnection connection;
   final _Proxy proxy;
+
+  _ConnnectionInfo(this.connection, this.proxy);
 }
 
 
@@ -1586,9 +1585,8 @@ class _HttpClient implements HttpClient {
     _authenticate = f;
   }
 
-  void addCredentials(Uri url, String realm, HttpClientCredentials cr) {
-    _credentials.add(new _SiteCredentials(url, realm, cr));
-  }
+  void addCredentials(Uri url, String realm, HttpClientCredentials cr) =>
+      _credentials.add(new _SiteCredentials(url, realm, cr));
 
   set authenticateProxy(
       Future<bool> f(String host, int port, String scheme, String realm)) {
@@ -1598,9 +1596,8 @@ class _HttpClient implements HttpClient {
   void addProxyCredentials(String host,
                            int port,
                            String realm,
-                           HttpClientCredentials cr) {
-    _proxyCredentials.add(new _ProxyCredentials(host, port, realm, cr));
-  }
+                           HttpClientCredentials cr) =>
+      _proxyCredentials.add(new _ProxyCredentials(host, port, realm, cr));
 
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
@@ -1660,19 +1657,21 @@ class _HttpClient implements HttpClient {
     // construct a full URI from the previous one.
     Uri resolved = previous.uri.resolveUri(uri);
     return openUrl(method, resolved).then((_HttpClientRequest request) {
-          // Only follow redirects if initial request did.
-          request.followRedirects = previous.followRedirects;
-          // Allow same number of redirects.
-          request.maxRedirects = previous.maxRedirects;
+
+          request
+              // Only follow redirects if initial request did.
+              ..followRedirects = previous.followRedirects
+              // Allow same number of redirects.
+              ..maxRedirects = previous.maxRedirects;
           // Copy headers.
           for (var header in previous.headers._headers.keys) {
             if (request.headers[header] == null) {
               request.headers.set(header, previous.headers[header]);
             }
           }
-          request.headers.chunkedTransferEncoding = false;
-          request.contentLength = 0;
-          return request;
+          return request
+              ..headers.chunkedTransferEncoding = false
+              ..contentLength = 0;
         });
   }
 
@@ -1906,7 +1905,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection> {
 
   Future _streamFuture;
 
-  _HttpConnection(Socket this._socket, _HttpServer this._httpServer)
+  _HttpConnection(this._socket, this._httpServer)
       : _httpParser = new _HttpParser.requestParser() {
     _startTimeout();
     _socket.pipe(_httpParser);
@@ -2039,8 +2038,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
                                                     onCancel: close);
   }
 
-  _HttpServer.listenOn(ServerSocket this._serverSocket)
-      : _closeServer = false {
+  _HttpServer.listenOn(this._serverSocket) : _closeServer = false {
     _controller = new StreamController<HttpRequest>(sync: true,
                                                     onCancel: close);
   }
@@ -2115,9 +2113,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
     _sessionManager.sessionTimeout = timeout;
   }
 
-  void _handleRequest(HttpRequest request) {
-    _controller.add(request);
-  }
+  void _handleRequest(HttpRequest request) => _controller.add(request);
 
   void _handleError(error) {
     if (!closed) _controller.addError(error);
@@ -2237,37 +2233,37 @@ class _ProxyConfiguration {
 
 
 class _Proxy {
-  const _Proxy(
-      this.host, this.port, this.username, this.password) : isDirect = false;
-  const _Proxy.direct() : host = null, port = null,
-                          username = null, password = null, isDirect = true;
-
-  bool get isAuthenticated => username != null;
-
   final String host;
   final int port;
   final String username;
   final String password;
   final bool isDirect;
+
+  const _Proxy(this.host, this.port, this.username, this.password)
+      : isDirect = false;
+  const _Proxy.direct() : host = null, port = null,
+                          username = null, password = null, isDirect = true;
+
+  bool get isAuthenticated => username != null;
 }
 
 
 class _HttpConnectionInfo implements HttpConnectionInfo {
+  InternetAddress remoteAddress;
+  int remotePort;
+  int localPort;
+
   static _HttpConnectionInfo create(Socket socket) {
     if (socket == null) return null;
     try {
       _HttpConnectionInfo info = new _HttpConnectionInfo();
-      info.remoteAddress = socket.remoteAddress;
-      info.remotePort = socket.remotePort;
-      info.localPort = socket.port;
-      return info;
+      return info
+          ..remoteAddress = socket.remoteAddress
+          ..remotePort = socket.remotePort
+          ..localPort = socket.port;
     } catch (e) { }
     return null;
   }
-
-  InternetAddress remoteAddress;
-  int remotePort;
-  int localPort;
 }
 
 
@@ -2335,6 +2331,8 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
 
 class _AuthenticationScheme {
+  final int _scheme;
+
   static const UNKNOWN = const _AuthenticationScheme(-1);
   static const BASIC = const _AuthenticationScheme(0);
   static const DIGEST = const _AuthenticationScheme(1);
@@ -2352,8 +2350,6 @@ class _AuthenticationScheme {
     if (this == DIGEST) return "Digest";
     return "Unknown";
   }
-
-  final int _scheme;
 }
 
 
@@ -2378,12 +2374,12 @@ abstract class _Credentials {
       // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
       // now always use UTF-8 encoding.
       _HttpClientDigestCredentials creds = credentials;
-      var hasher = new _MD5();
-      hasher.add(UTF8.encode(creds.username));
-      hasher.add([_CharCode.COLON]);
-      hasher.add(realm.codeUnits);
-      hasher.add([_CharCode.COLON]);
-      hasher.add(UTF8.encode(creds.password));
+      var hasher = new _MD5()
+          ..add(UTF8.encode(creds.username))
+          ..add([_CharCode.COLON])
+          ..add(realm.codeUnits)
+          ..add([_CharCode.COLON])
+          ..add(UTF8.encode(creds.password));
       ha1 = _CryptoUtils.bytesToHex(hasher.close());
     }
   }
@@ -2397,7 +2393,7 @@ class _SiteCredentials extends _Credentials {
   Uri uri;
 
   _SiteCredentials(this.uri, realm, _HttpClientCredentials creds)
-  : super(creds, realm);
+      : super(creds, realm);
 
   bool applies(Uri uri, _AuthenticationScheme scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
@@ -2430,7 +2426,7 @@ class _ProxyCredentials extends _Credentials {
                     this.port,
                     realm,
                     _HttpClientCredentials creds)
-  : super(creds, realm);
+      : super(creds, realm);
 
   bool applies(_Proxy proxy, _AuthenticationScheme scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
@@ -2459,8 +2455,10 @@ abstract class _HttpClientCredentials implements HttpClientCredentials {
 class _HttpClientBasicCredentials
     extends _HttpClientCredentials
     implements HttpClientBasicCredentials {
-  _HttpClientBasicCredentials(this.username,
-                              this.password);
+  String username;
+  String password;
+
+  _HttpClientBasicCredentials(this.username, this.password);
 
   _AuthenticationScheme get scheme => _AuthenticationScheme.BASIC;
 
@@ -2476,75 +2474,75 @@ class _HttpClientBasicCredentials
     return "Basic $auth";
   }
 
-  void authorize(_Credentials _, HttpClientRequest request) {
-    request.headers.set(HttpHeaders.AUTHORIZATION, authorization());
-  }
+  void authorize(_Credentials _, HttpClientRequest request) =>
+      request.headers.set(HttpHeaders.AUTHORIZATION, authorization());
 
-  void authorizeProxy(_ProxyCredentials _, HttpClientRequest request) {
-    request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, authorization());
-  }
-
-  String username;
-  String password;
+  void authorizeProxy(_ProxyCredentials _, HttpClientRequest request) =>
+      request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, authorization());
 }
 
 
 class _HttpClientDigestCredentials
     extends _HttpClientCredentials
     implements HttpClientDigestCredentials {
-  _HttpClientDigestCredentials(this.username,
-                               this.password);
+  String username;
+  String password;
+
+  _HttpClientDigestCredentials(this.username, this.password);
 
   _AuthenticationScheme get scheme => _AuthenticationScheme.DIGEST;
 
   String authorization(_Credentials credentials, _HttpClientRequest request) {
     String requestUri = request._requestUri();
-    _MD5 hasher = new _MD5();
-    hasher.add(request.method.codeUnits);
-    hasher.add([_CharCode.COLON]);
-    hasher.add(requestUri.codeUnits);
+    _MD5 hasher = new _MD5()
+        ..add(request.method.codeUnits)
+        ..add([_CharCode.COLON])
+        ..add(requestUri.codeUnits);
     var ha2 = _CryptoUtils.bytesToHex(hasher.close());
 
     String qop;
     String cnonce;
     String nc;
     var x;
-    hasher = new _MD5();
-    hasher.add(credentials.ha1.codeUnits);
-    hasher.add([_CharCode.COLON]);
+    hasher = new _MD5()
+        ..add(credentials.ha1.codeUnits)
+        ..add([_CharCode.COLON]);
     if (credentials.qop == "auth") {
       qop = credentials.qop;
       cnonce = _CryptoUtils.bytesToHex(_IOCrypto.getRandomBytes(4));
       ++credentials.nonceCount;
       nc = credentials.nonceCount.toRadixString(16);
       nc = "00000000".substring(0, 8 - nc.length + 1) + nc;
-      hasher.add(credentials.nonce.codeUnits);
-      hasher.add([_CharCode.COLON]);
-      hasher.add(nc.codeUnits);
-      hasher.add([_CharCode.COLON]);
-      hasher.add(cnonce.codeUnits);
-      hasher.add([_CharCode.COLON]);
-      hasher.add(credentials.qop.codeUnits);
-      hasher.add([_CharCode.COLON]);
-      hasher.add(ha2.codeUnits);
+      hasher
+          ..add(credentials.nonce.codeUnits)
+          ..add([_CharCode.COLON])
+          ..add(nc.codeUnits)
+          ..add([_CharCode.COLON])
+          ..add(cnonce.codeUnits)
+          ..add([_CharCode.COLON])
+          ..add(credentials.qop.codeUnits)
+          ..add([_CharCode.COLON])
+          ..add(ha2.codeUnits);
     } else {
-      hasher.add(credentials.nonce.codeUnits);
-      hasher.add([_CharCode.COLON]);
-      hasher.add(ha2.codeUnits);
+      hasher
+          ..add(credentials.nonce.codeUnits)
+          ..add([_CharCode.COLON])
+          ..add(ha2.codeUnits);
     }
     var response = _CryptoUtils.bytesToHex(hasher.close());
 
-    StringBuffer buffer = new StringBuffer();
-    buffer.write('Digest ');
-    buffer.write('username="$username"');
-    buffer.write(', realm="${credentials.realm}"');
-    buffer.write(', nonce="${credentials.nonce}"');
-    buffer.write(', uri="$requestUri"');
-    buffer.write(', algorithm="${credentials.algorithm}"');
+    StringBuffer buffer = new StringBuffer()
+        ..write('Digest ')
+        ..write('username="$username"')
+        ..write(', realm="${credentials.realm}"')
+        ..write(', nonce="${credentials.nonce}"')
+        ..write(', uri="$requestUri"')
+        ..write(', algorithm="${credentials.algorithm}"');
     if (qop == "auth") {
-      buffer.write(', qop="$qop"');
-      buffer.write(', cnonce="$cnonce"');
-      buffer.write(', nc="$nc"');
+      buffer
+          ..write(', qop="$qop"')
+          ..write(', cnonce="$cnonce"')
+          ..write(', nc="$nc"');
     }
     buffer.write(', response="$response"');
     return buffer.toString();
@@ -2560,19 +2558,14 @@ class _HttpClientDigestCredentials
     request.headers.set(HttpHeaders.PROXY_AUTHORIZATION,
                         authorization(credentials, request));
   }
-
-  String username;
-  String password;
 }
 
 
 class _RedirectInfo implements RedirectInfo {
-  const _RedirectInfo(int this.statusCode,
-                      String this.method,
-                      Uri this.location);
   final int statusCode;
   final String method;
   final Uri location;
+  const _RedirectInfo(this.statusCode, this.method, this.location);
 }
 
 String _getHttpVersion() {
@@ -2582,5 +2575,3 @@ String _getHttpVersion() {
   version = version.substring(0, index);
   return 'Dart/$version (dart:io)';
 }
-
-

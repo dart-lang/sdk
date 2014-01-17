@@ -80,11 +80,6 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   }
 
   if (lister_ == 0) {
-    if (!listing->path_buffer().Add(File::PathSeparator())) {
-      done_ = true;
-      return kListError;
-    }
-    path_length_ = listing->path_buffer().length();
     do {
       lister_ = reinterpret_cast<intptr_t>(
           opendir(listing->path_buffer().AsString()));
@@ -94,6 +89,12 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
       done_ = true;
       return kListError;
     }
+    if (parent_ != NULL) {
+      if (!listing->path_buffer().Add(File::PathSeparator())) {
+        return kListError;
+      }
+    }
+    path_length_ = listing->path_buffer().length();
   }
   // Reset.
   listing->path_buffer().Reset(path_length_);

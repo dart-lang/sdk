@@ -1,0 +1,35 @@
+Things to test manually:
+
+1. Each sample compiles and run as expected.
+
+2. Check that "add to home screen" works on iOS:
+
+   - Check that "add to home screen" creates a new icon in Safari (Dart logo on
+     white background with rounded corners). The suggested name should be "Try
+     Dart!".
+
+   - Check that the app launches as a full screen app which must be killed
+     separately from Safari.
+
+   - Check that the splash screen shows (Dart logo on white background).
+
+   - Check that the initial view port displays the full page, but that it can
+     be zoomed.
+
+3. Check that "add to home screen" works on Chrome Mobile (Android):
+
+   - Check the menu item "add to home screen" is enabled in Chrome.
+
+   - Check that an icon (Dart logo with transparent background) is added to the
+     Android home screen. The suggested name should be "Try Dart!".
+
+   - Check that the app launches full screen and is separate from Chrome in the
+     task viewer. For now, expect that the icon in task manager is Chrome and
+     the name is just "web app".
+
+4. Check that the site has a nice screen shot on Google+.
+
+   - Validate using http://www.google.com/webmasters/tools/richsnippets
+
+   - Try sharing on Google+. The screen shot should appear before you actually
+     share, so you don't need to actually share.

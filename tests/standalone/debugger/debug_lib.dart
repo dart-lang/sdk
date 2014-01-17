@@ -180,6 +180,67 @@ class Command {
   }
 }
 
+class GetLineTableCmd extends Command {
+  GetLineTableCmd() {
+    template = {"id": 0,
+                "command": "getLineNumberTable",
+                "params": {"isolateId": 0, "libraryId": 0, "url": ""}};
+  }
+
+  void send(Debugger debugger) {
+    assert(debugger.scriptUrl != null);
+    template["params"]["url"] = debugger.scriptUrl;
+    template["params"]["libraryId"] = debugger.libraryId;
+    debugger.sendMessage(template);
+  }
+
+  void matchResponse(Debugger debugger) {
+    super.matchResponse(debugger);
+    List<List<int>> table = getJsonValue(debugger.currentMessage, "result:lines");
+    debugger.tokenToLine = {};
+    for (var line in table) {
+      // Each entry begins with a line number...
+      var lineNumber = line[0];
+      for (var pos = 1; pos < line.length; pos += 2) {
+        // ...and is followed by (token offset, col number) pairs.
+        var tokenOffset = line[pos];
+        debugger.tokenToLine[tokenOffset] = lineNumber;
+      }
+    }
+  }
+}
+
+
+class LineMatcher extends Command {
+  int expectedLineNumber;
+
+  LineMatcher(this.expectedLineNumber) {
+    template = {"id": 0, "command": "getStackTrace", "params": {"isolateId": 0}};
+  }
+
+  void matchResponse(Debugger debugger) {
+    assert(debugger.tokenToLine != null);
+    super.matchResponse(debugger);
+    var msg = debugger.currentMessage;
+    List frames = getJsonValue(msg, "result:callFrames");
+    assert(frames != null);
+    var tokenOffset = frames[0]["location"]["tokenOffset"];
+    assert(tokenOffset != null);
+    var lineNumber = debugger.tokenToLine[tokenOffset];
+    assert(lineNumber != null);
+    if (expectedLineNumber != lineNumber) {
+      debugger.error("Error: expected pause at line $expectedLineNumber "
+                     "but reported line is $lineNumber.");
+      return;
+    }
+    print("Matched line number $lineNumber");
+  }
+}
+
+MatchLine(lineNumber) {
+  return new LineMatcher(lineNumber);
+}
+
 
 class FrameMatcher extends Command {
   int frameIndex;
@@ -201,6 +262,8 @@ class FrameMatcher extends Command {
         // Extract script url of debugged script.
         debugger.scriptUrl = frames[0]["location"]["url"];
         assert(debugger.scriptUrl != null);
+        debugger.libraryId = frames[0]["location"]["libraryId"];
+        assert(debugger.libraryId != null);
       }
     }
     if (frames.length < functionNames.length) {
@@ -220,6 +283,7 @@ class FrameMatcher extends Command {
         return;
       }
     }
+    print("Matched frames: $functionNames");
   }
 }
 
@@ -264,6 +328,7 @@ class LocalsMatcher extends Command {
         return;
       }
     }
+    print("Matched locals ${locals.keys}");
   }
 }
 
@@ -318,6 +383,10 @@ class RunCommand extends Command {
     debugger.sendMessage(template);
     debugger.isPaused = false;
   }
+  void matchResponse(Debugger debugger) {
+    super.matchResponse(debugger);
+    print("Command: ${template['command']}");
+  }
 }
 
 
@@ -342,6 +411,11 @@ class SetBreakpointCommand extends Command {
     template["params"]["line"] = line;
     debugger.sendMessage(template);
   }
+
+  void matchResponse(Debugger debugger) {
+    super.matchResponse(debugger);
+    print("Set breakpoint at line $line");
+  }
 }
 
 SetBreakpoint(int line) => new SetBreakpointCommand(line);
@@ -362,6 +436,7 @@ class DebugScript {
   List entries;
   DebugScript(List scriptEntries) {
     entries = new List.from(scriptEntries.reversed);
+    entries.add(new GetLineTableCmd());
     entries.add(MatchFrame(0, "main"));
   }
   bool get isEmpty => entries.isEmpty;
@@ -388,6 +463,8 @@ class Debugger {
   // Data collected from debug target.
   Map currentMessage = null;  // Currently handled message sent by target.
   String scriptUrl = null;
+  int libraryId = null;
+  Map<int,int> tokenToLine = null;
   bool shutdownEventSeen = false;
   int isolateId = 0;
   bool isPaused = false;

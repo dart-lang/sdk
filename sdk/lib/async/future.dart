@@ -291,25 +291,36 @@ abstract class Future<T> {
   }
 
   /**
-   * When this future completes with a value, then [onValue] is called with this
-   * value. If [this] future is already completed then the invocation of
-   * [onValue] is delayed until the next event-loop iteration.
+   * Register callbacks to be called when this future completes.
    *
-   * Returns a new [Future] `f` which is completed with the result of
-   * invoking [onValue] (if [this] completes with a value) or [onError] (if
-   * [this] completes with an error).
+   * When this future completes with a value,
+   * the [onValue] callback will be called with that value.
+   * If this future is already completed, the callback will not be called
+   * immediately, but will be scheduled in a later microtask.
    *
-   * If the invoked callback throws an exception, the returned future `f` is
-   * completed with the error.
+   * If [onError] is provided, and this future completes with an error,
+   * the `onError` callback is called with that error its stack trace.
+   * The `onError` callback must accept either one argument or two arguments.
+   * If `onError` accepts two arguments,
+   * it is called with both the error and the stack trace,
+   * otherwise it is called with just the error object.
    *
-   * If the invoked callback returns a [Future] `f2` then `f` and `f2` are
-   * chained. That is, `f` is completed with the completion value of `f2`.
+   * Returns a new [Future]
+   * which is completed with the result of the call to `onValue`
+   * (if this future completes with a value)
+   * or to `onError` (if this future completes with an error).
    *
-   * The [onError] callback must be of type `void onError(error)` or
-   * `void onError(error, StackTrace stackTrace)`. If [onError] accepts
-   * two arguments it is called with the stack trace (which could be `null` if
-   * the stream itself received an error without stack trace).
-   * Otherwise it is called with just the error object.
+   * If the invoked callback throws,
+   * the returned future is completed with the thrown error
+   * and a stack trace for the error.
+   * In the case of `onError`,
+   * if the exception thrown is the same as the argument to `onError`,
+   * the throw is considered a rethrow,
+   * and the original stack trace is used instead.
+   *
+   * If the callback returns a [Future],
+   * the future returned by `then` will be completed with
+   * the same result of the future returned by the callback.
    *
    * If [onError] is not given it forwards the error to `f`.
    *
@@ -322,20 +333,29 @@ abstract class Future<T> {
   /**
    * Handles errors emitted by this [Future].
    *
-   * Returns a new [Future] `f`.
+   * This is the asynchronous equivalent of a "catch" block.
    *
-   * When [this] completes with a value, the value is forwarded to `f`
-   * unmodified. That is, `f` completes with the same value.
+   * Returns a new [Future] that will be completed with either the result of
+   * this future or the result of calling the `onError` callback.
    *
-   * When [this] completes with an error, [test] is called with the
-   * error's value. If the invocation returns [true], [onError] is called with
-   * the error. The result of [onError] is handled exactly the same as for
-   * [then]'s [onError].
+   * If this future completes with a value,
+   * the returned future completes with the same value.
    *
-   * If [test] returns false, the exception is not handled by [onError], but is
-   * thrown unmodified, thus forwarding it to `f`.
+   * If this future completes with an error,
+   * then [test] is first called with the error value.
    *
-   * If [test] is omitted, it defaults to a function that always returns true.
+   * If `test` returns false, the exception is not handled by this `catchError`,
+   * and the returned future completes with the same error and stack trace
+   * as this future.
+   *
+   * If `test` returns `true`,
+   * [onError] is called with the error and possibly stack trace,
+   * and the returned future is completed with the result of this call
+   * in exactly the same way as for [then]'s `onError`.
+   *
+   * If `test` is omitted, it defaults to a function that always returns true.
+   * The `test` function should not throw, but if it does, it is handled as
+   * if the the `onError` function had thrown.
    *
    * Example:
    *

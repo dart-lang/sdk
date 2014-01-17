@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
@@ -9,7 +13,7 @@ import 'java_engine.dart';
 import 'utilities_collection.dart';
 import 'source.dart';
 import 'scanner.dart' show Keyword;
-import 'ast.dart' show Identifier, LibraryIdentifier;
+import 'ast.dart';
 import 'sdk.dart' show DartSdk;
 import 'html.dart' show XmlTagNode;
 import 'engine.dart' show AnalysisContext;
@@ -43,6 +47,15 @@ abstract class ClassElement implements Element {
    * @return the constructors declared in this class
    */
   List<ConstructorElement> get constructors;
+
+  /**
+   * Return the field (synthetic or explicit) defined in this class that has the given name, or
+   * `null` if this class does not define a field with the given name.
+   *
+   * @param fieldName the name of the field to be returned
+   * @return the field with the given name that is defined in this class
+   */
+  FieldElement getField(String fieldName);
 
   /**
    * Return an array containing all of the fields declared in this class.
@@ -111,6 +124,16 @@ abstract class ClassElement implements Element {
   ConstructorElement getNamedConstructor(String name);
 
   /**
+   * Return the resolved [ClassDeclaration] node that declares this [ClassElement].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [ClassDeclaration], not `null`.
+   */
+  ClassDeclaration get node;
+
+  /**
    * Return the element representing the setter with the given name that is declared in this class,
    * or `null` if this class does not declare a setter with the given name.
    *
@@ -132,6 +155,13 @@ abstract class ClassElement implements Element {
    * @return the superclass of this class
    */
   InterfaceType get supertype;
+
+  /**
+   * Return an array containing all of the toolkit specific objects attached to this class.
+   *
+   * @return the toolkit objects attached to this class
+   */
+  List<ToolkitObjectElement> get toolkitObjects;
 
   /**
    * Return the type defined by the class.
@@ -331,6 +361,16 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   List<FunctionTypeAliasElement> get functionTypeAliases;
 
   /**
+   * Return the resolved [CompilationUnit] node that declares this element.
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [CompilationUnit], not `null`.
+   */
+  CompilationUnit get node;
+
+  /**
    * Return an array containing all of the top-level variables contained in this compilation unit.
    *
    * @return the top-level variables contained in this compilation unit
@@ -361,6 +401,17 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
  * @coverage dart.engine.element
  */
 abstract class ConstructorElement implements ClassMemberElement, ExecutableElement {
+  /**
+   * Return the resolved [ConstructorDeclaration] node that declares this
+   * [ConstructorElement] .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [ConstructorDeclaration], not `null`.
+   */
+  ConstructorDeclaration get node;
+
   /**
    * Return the constructor to which this constructor is redirecting.
    *
@@ -528,12 +579,33 @@ abstract class Element {
   int get nameOffset;
 
   /**
+   * Return the resolved [ASTNode] node that declares this [Element].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [ASTNode], maybe `null` if [Element] is synthetic or
+   *         isn't contained in a compilation unit, such as a [LibraryElement].
+   */
+  ASTNode get node;
+
+  /**
    * Return the source that contains this element, or `null` if this element is not contained
    * in a source.
    *
    * @return the source that contains this element
    */
   Source get source;
+
+  /**
+   * Return the resolved [CompilationUnit] that declares this [Element].
+   *
+   * This method is expensive, because resolved AST might have been already evicted from cache, so
+   * parsing and resolving will be performed.
+   *
+   * @return the resolved [CompilationUnit], maybe `null` if synthetic [Element].
+   */
+  CompilationUnit get unit;
 
   /**
    * Return `true` if this element, assuming that it is within scope, is accessible to code in
@@ -553,6 +625,22 @@ abstract class Element {
    * @return `true` if this element is deprecated
    */
   bool get isDeprecated;
+
+  /**
+   * Return `true` if this element is private. Private elements are visible only within the
+   * library in which they are declared.
+   *
+   * @return `true` if this element is private
+   */
+  bool get isPrivate;
+
+  /**
+   * Return `true` if this element is public. Public elements are visible within any library
+   * that imports the library in which they are declared.
+   *
+   * @return `true` if this element is public
+   */
+  bool get isPublic;
 
   /**
    * Return `true` if this element is synthetic. A synthetic element is an element that is not
@@ -619,57 +707,78 @@ abstract class ElementAnnotation {
  * @coverage dart.engine.element
  */
 class ElementKind extends Enum<ElementKind> {
-  static final ElementKind CLASS = new ElementKind('CLASS', 0, "class");
+  static final ElementKind ANGULAR_FILTER = new ElementKind('ANGULAR_FILTER', 0, "Angular filter");
 
-  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 1, "compilation unit");
+  static final ElementKind ANGULAR_COMPONENT = new ElementKind('ANGULAR_COMPONENT', 1, "Angular component");
 
-  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 2, "constructor");
+  static final ElementKind ANGULAR_CONTROLLER = new ElementKind('ANGULAR_CONTROLLER', 2, "Angular controller");
 
-  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 3, "<dynamic>");
+  static final ElementKind ANGULAR_DIRECTIVE = new ElementKind('ANGULAR_DIRECTIVE', 3, "Angular directive");
 
-  static final ElementKind EMBEDDED_HTML_SCRIPT = new ElementKind('EMBEDDED_HTML_SCRIPT', 4, "embedded html script");
+  static final ElementKind ANGULAR_MODULE = new ElementKind('ANGULAR_MODULE', 4, "Angular module");
 
-  static final ElementKind ERROR = new ElementKind('ERROR', 5, "<error>");
+  static final ElementKind ANGULAR_PROPERTY = new ElementKind('ANGULAR_PROPERTY', 5, "Angular property");
 
-  static final ElementKind EXPORT = new ElementKind('EXPORT', 6, "export directive");
+  static final ElementKind ANGULAR_SELECTOR = new ElementKind('ANGULAR_SELECTOR', 6, "Angular selector");
 
-  static final ElementKind EXTERNAL_HTML_SCRIPT = new ElementKind('EXTERNAL_HTML_SCRIPT', 7, "external html script");
+  static final ElementKind CLASS = new ElementKind('CLASS', 7, "class");
 
-  static final ElementKind FIELD = new ElementKind('FIELD', 8, "field");
+  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 8, "compilation unit");
 
-  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 9, "function");
+  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 9, "constructor");
 
-  static final ElementKind GETTER = new ElementKind('GETTER', 10, "getter");
+  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 10, "<dynamic>");
 
-  static final ElementKind HTML = new ElementKind('HTML', 11, "html");
+  static final ElementKind EMBEDDED_HTML_SCRIPT = new ElementKind('EMBEDDED_HTML_SCRIPT', 11, "embedded html script");
 
-  static final ElementKind IMPORT = new ElementKind('IMPORT', 12, "import directive");
+  static final ElementKind ERROR = new ElementKind('ERROR', 12, "<error>");
 
-  static final ElementKind LABEL = new ElementKind('LABEL', 13, "label");
+  static final ElementKind EXPORT = new ElementKind('EXPORT', 13, "export directive");
 
-  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 14, "library");
+  static final ElementKind EXTERNAL_HTML_SCRIPT = new ElementKind('EXTERNAL_HTML_SCRIPT', 14, "external html script");
 
-  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 15, "local variable");
+  static final ElementKind FIELD = new ElementKind('FIELD', 15, "field");
 
-  static final ElementKind METHOD = new ElementKind('METHOD', 16, "method");
+  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 16, "function");
 
-  static final ElementKind NAME = new ElementKind('NAME', 17, "<name>");
+  static final ElementKind GETTER = new ElementKind('GETTER', 17, "getter");
 
-  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 18, "parameter");
+  static final ElementKind HTML = new ElementKind('HTML', 18, "html");
 
-  static final ElementKind PREFIX = new ElementKind('PREFIX', 19, "import prefix");
+  static final ElementKind IMPORT = new ElementKind('IMPORT', 19, "import directive");
 
-  static final ElementKind SETTER = new ElementKind('SETTER', 20, "setter");
+  static final ElementKind LABEL = new ElementKind('LABEL', 20, "label");
 
-  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 21, "top level variable");
+  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 21, "library");
 
-  static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 22, "function type alias");
+  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 22, "local variable");
 
-  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 23, "type parameter");
+  static final ElementKind METHOD = new ElementKind('METHOD', 23, "method");
 
-  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 24, "<universe>");
+  static final ElementKind NAME = new ElementKind('NAME', 24, "<name>");
+
+  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 25, "parameter");
+
+  static final ElementKind PREFIX = new ElementKind('PREFIX', 26, "import prefix");
+
+  static final ElementKind SETTER = new ElementKind('SETTER', 27, "setter");
+
+  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 28, "top level variable");
+
+  static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 29, "function type alias");
+
+  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 30, "type parameter");
+
+  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 31, "<universe>");
 
   static final List<ElementKind> values = [
+      ANGULAR_FILTER,
+      ANGULAR_COMPONENT,
+      ANGULAR_CONTROLLER,
+      ANGULAR_DIRECTIVE,
+      ANGULAR_MODULE,
+      ANGULAR_PROPERTY,
+      ANGULAR_SELECTOR,
       CLASS,
       COMPILATION_UNIT,
       CONSTRUCTOR,
@@ -746,6 +855,20 @@ abstract class ElementLocation {
  * @coverage dart.engine.element
  */
 abstract class ElementVisitor<R> {
+  R visitAngularComponentElement(AngularComponentElement element);
+
+  R visitAngularControllerElement(AngularControllerElement element);
+
+  R visitAngularDirectiveElement(AngularDirectiveElement element);
+
+  R visitAngularFilterElement(AngularFilterElement element);
+
+  R visitAngularModuleElement(AngularModuleElement element);
+
+  R visitAngularPropertyElement(AngularPropertyElement element);
+
+  R visitAngularSelectorElement(AngularSelectorElement element);
+
   R visitClassElement(ClassElement element);
 
   R visitCompilationUnitElement(CompilationUnitElement element);
@@ -947,6 +1070,16 @@ abstract class FieldFormalParameterElement implements ParameterElement {
  * @coverage dart.engine.element
  */
 abstract class FunctionElement implements ExecutableElement, LocalElement {
+  /**
+   * Return the resolved [FunctionDeclaration] node that declares this [FunctionElement]
+   * .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [FunctionDeclaration], not `null`.
+   */
+  FunctionDeclaration get node;
 }
 
 /**
@@ -962,6 +1095,17 @@ abstract class FunctionTypeAliasElement implements Element {
    * @return the compilation unit in which this type alias is defined
    */
   CompilationUnitElement get enclosingElement;
+
+  /**
+   * Return the resolved [FunctionTypeAlias] node that declares this
+   * [FunctionTypeAliasElement] .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [FunctionTypeAlias], not `null`.
+   */
+  FunctionTypeAlias get node;
 
   /**
    * Return an array containing all of the parameters defined by this type alias.
@@ -1182,6 +1326,13 @@ abstract class LibraryElement implements Element {
   ClassElement getType(String className);
 
   /**
+   * Return an array containing all directly and indirectly imported libraries.
+   *
+   * @return all directly and indirectly imported libraries
+   */
+  List<LibraryElement> get visibleLibraries;
+
+  /**
    * Answer `true` if this library is an application that can be run in the browser.
    *
    * @return `true` if this library is an application that can be run in the browser
@@ -1246,6 +1397,12 @@ abstract class LocalElement implements Element {
  * @coverage dart.engine.element
  */
 abstract class LocalVariableElement implements LocalElement, VariableElement {
+  /**
+   * Return an array containing all of the toolkit specific objects attached to this variable.
+   *
+   * @return the toolkit objects attached to this variable
+   */
+  List<ToolkitObjectElement> get toolkitObjects;
 }
 
 /**
@@ -1255,6 +1412,16 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
  * @coverage dart.engine.element
  */
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
+  /**
+   * Return the resolved [MethodDeclaration] node that declares this [MethodElement].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [MethodDeclaration], not `null`.
+   */
+  MethodDeclaration get node;
+
   /**
    * Return `true` if this method is abstract. Methods are abstract if they are not external
    * and have no body.
@@ -1508,6 +1675,20 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 }
 
 /**
+ * The interface `ToolkitObjectElement` defines the behavior of elements that represent a
+ * toolkit specific object, such as Angular controller or component. These elements are not based on
+ * the Dart syntax, but on some semantic agreement, such as a special annotation.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class ToolkitObjectElement implements Element {
+  /**
+   * An empty array of toolkit object elements.
+   */
+  static final List<ToolkitObjectElement> EMPTY_ARRAY = new List<ToolkitObjectElement>(0);
+}
+
+/**
  * The interface `TopLevelVariableElement` defines the behavior of elements representing a
  * top-level variable.
  *
@@ -1583,6 +1764,17 @@ abstract class VariableElement implements Element {
   FunctionElement get initializer;
 
   /**
+   * Return the resolved [VariableDeclaration] node that declares this [VariableElement]
+   * .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache, so parsing and
+   * resolving will be performed.
+   *
+   * @return the resolved [VariableDeclaration], not `null`.
+   */
+  VariableDeclaration get node;
+
+  /**
    * Return the declared type of this variable, or `null` if the variable did not have a
    * declared type (such as if it was declared using the keyword 'var').
    *
@@ -1605,6 +1797,235 @@ abstract class VariableElement implements Element {
    * @return `true` if this variable was declared with the 'final' modifier
    */
   bool get isFinal;
+}
+
+/**
+ * The interface `AngularControllerElement` defines the Angular component described by
+ * <code>NgComponent</code> annotation.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularComponentElement implements AngularHasSelectorElement {
+  /**
+   * Return an array containing all of the properties declared by this component.
+   */
+  List<AngularPropertyElement> get properties;
+
+  /**
+   * Returns the CSS file URI.
+   */
+  String get styleUri;
+
+  /**
+   * Return the offset of the [getStyleUri] in the [getSource].
+   *
+   * @return the offset of the style URI
+   */
+  int get styleUriOffset;
+
+  /**
+   * Returns the HTML template URI.
+   */
+  String get templateUri;
+
+  /**
+   * Return the offset of the [getTemplateUri] in the [getSource].
+   *
+   * @return the offset of the template URI
+   */
+  int get templateUriOffset;
+}
+
+/**
+ * The interface `AngularControllerElement` defines the Angular controller described by
+ * <code>NgController</code> annotation.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularControllerElement implements AngularHasSelectorElement {
+}
+
+/**
+ * The interface `AngularDirectiveElement` defines the Angular controller described by
+ * <code>NgDirective</code> annotation.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularDirectiveElement implements AngularHasSelectorElement {
+  /**
+   * Return an array containing all of the properties declared by this directive.
+   */
+  List<AngularPropertyElement> get properties;
+}
+
+/**
+ * The interface `AngularElement` defines the behavior of objects representing information
+ * about an Angular specific element.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularElement implements ToolkitObjectElement {
+}
+
+/**
+ * The interface `AngularFilterElement` defines the Angular filter described by
+ * <code>NgFilter</code> annotation.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularFilterElement implements AngularElement {
+}
+
+/**
+ * The interface `AngularElement` defines the behavior of objects representing information
+ * about an Angular element which is applied conditionally using some [AngularSelectorElement].
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularHasSelectorElement implements AngularElement {
+  /**
+   * Returns the selector specified for this element.
+   *
+   * @return the [AngularSelectorElement] specified for this element
+   */
+  AngularSelectorElement get selector;
+}
+
+/**
+ * The interface `AngularModuleElement` defines a single DI <code>Module</code>.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularModuleElement implements AngularElement {
+  /**
+   * An empty array of module elements.
+   */
+  static final List<AngularModuleElement> EMPTY_ARRAY = [];
+
+  /**
+   * Returns the child modules installed into this module using <code>install</code>.
+   *
+   * @return the installed child modules
+   */
+  List<AngularModuleElement> get childModules;
+
+  /**
+   * Returns the keys injected into this module using <code>type()</code> and <code>value()</code>
+   * invocations.
+   *
+   * @return the injected types
+   */
+  List<ClassElement> get keyTypes;
+}
+
+/**
+ * The interface `AngularPropertyElement` defines a single property in
+ * [AngularComponentElement].
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularPropertyElement implements AngularElement {
+  /**
+   * An empty array of property elements.
+   */
+  static final List<AngularPropertyElement> EMPTY_ARRAY = [];
+
+  /**
+   * Returns the field this property is mapped to.
+   *
+   * @return the field this property is mapped to.
+   */
+  FieldElement get field;
+
+  /**
+   * Return the offset of the field name of this property in the property map.
+   *
+   * @return the offset of the field name of this property
+   */
+  int get fieldNameOffset;
+
+  /**
+   * Returns the kind of this property.
+   *
+   * @return the kind of this property
+   */
+  AngularPropertyKind get propertyKind;
+}
+
+/**
+ * The enumeration `AngularPropertyKind` defines the different kinds of property bindings.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularPropertyKind extends Enum<AngularPropertyKind> {
+  /**
+   * `@` - Map the DOM attribute string. The attribute string will be taken literally or
+   * interpolated if it contains binding {{}} syntax and assigned to the expression. (cost: 0
+   * watches)
+   */
+  static final AngularPropertyKind ATTR = new AngularPropertyKind('ATTR', 0);
+
+  /**
+   * `&` - Treat the DOM attribute value as an expression. Assign a closure function into the field.
+   * This allows the component to control the invocation of the closure. This is useful for passing
+   * expressions into controllers which act like callbacks. (cost: 0 watches)
+   */
+  static final AngularPropertyKind CALLBACK = new AngularPropertyKind('CALLBACK', 1);
+
+  /**
+   * `=>` - Treat the DOM attribute value as an expression. Set up a watch, which will read the
+   * expression in the attribute and assign the value to destination expression. (cost: 1 watch)
+   */
+  static final AngularPropertyKind ONE_WAY = new AngularPropertyKind('ONE_WAY', 2);
+
+  /**
+   * `=>!` - Treat the DOM attribute value as an expression. Set up a one time watch on expression.
+   * Once the expression turns not null it will no longer update. (cost: 1 watches until not null,
+   * then 0 watches)
+   */
+  static final AngularPropertyKind ONE_WAY_ONE_TIME = new AngularPropertyKind('ONE_WAY_ONE_TIME', 3);
+
+  /**
+   * `<=>` - Treat the DOM attribute value as an expression. Set up a watch on both outside as well
+   * as component scope to keep the source and destination in sync. (cost: 2 watches)
+   */
+  static final AngularPropertyKind TWO_WAY = new AngularPropertyKind_TWO_WAY('TWO_WAY', 4);
+
+  static final List<AngularPropertyKind> values = [ATTR, CALLBACK, ONE_WAY, ONE_WAY_ONE_TIME, TWO_WAY];
+
+  /**
+   * Returns `true` if property of this kind calls field getter.
+   */
+  bool callsGetter() => false;
+
+  /**
+   * Returns `true` if property of this kind calls field setter.
+   */
+  bool callsSetter() => true;
+
+  AngularPropertyKind(String name, int ordinal) : super(name, ordinal);
+}
+
+class AngularPropertyKind_TWO_WAY extends AngularPropertyKind {
+  AngularPropertyKind_TWO_WAY(String name, int ordinal) : super(name, ordinal);
+
+  bool callsGetter() => true;
+}
+
+/**
+ * [AngularSelectorElement] is used to decide when Angular object should be applied.
+ *
+ * This class is an [Element] to support renaming component tag names, which are identifiers
+ * in selectors.
+ */
+abstract class AngularSelectorElement implements AngularElement {
+  /**
+   * Checks if the given [XmlTagNode] matches this selector.
+   *
+   * @param node the [XmlTagNode] to check
+   * @return `true` if the given [XmlTagNode] matches, or `false` otherwise
+   */
+  bool apply(XmlTagNode node);
 }
 
 /**
@@ -1665,6 +2086,24 @@ abstract class VariableElement implements Element {
  * @coverage dart.engine.element
  */
 class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
+  R visitAngularComponentElement(AngularComponentElement element) => visitAngularHasSelectorElement(element);
+
+  R visitAngularControllerElement(AngularControllerElement element) => visitAngularHasSelectorElement(element);
+
+  R visitAngularDirectiveElement(AngularDirectiveElement element) => visitAngularHasSelectorElement(element);
+
+  R visitAngularElement(AngularElement element) => visitToolkitObjectElement(element);
+
+  R visitAngularFilterElement(AngularFilterElement element) => visitAngularElement(element);
+
+  R visitAngularHasSelectorElement(AngularHasSelectorElement element) => visitAngularElement(element);
+
+  R visitAngularModuleElement(AngularModuleElement element) => visitAngularElement(element);
+
+  R visitAngularPropertyElement(AngularPropertyElement element) => visitAngularElement(element);
+
+  R visitAngularSelectorElement(AngularSelectorElement element) => visitAngularElement(element);
+
   R visitClassElement(ClassElement element) => visitElement(element);
 
   R visitCompilationUnitElement(CompilationUnitElement element) => visitElement(element);
@@ -1704,11 +2143,11 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   R visitLocalElement(LocalElement element) {
     if (element is LocalVariableElement) {
-      return visitVariableElement(element as LocalVariableElement);
+      return visitVariableElement(element);
     } else if (element is ParameterElement) {
-      return visitVariableElement(element as ParameterElement);
+      return visitVariableElement(element);
     } else if (element is FunctionElement) {
-      return visitExecutableElement(element as FunctionElement);
+      return visitExecutableElement(element);
     }
     return null;
   }
@@ -1726,6 +2165,8 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R visitPropertyAccessorElement(PropertyAccessorElement element) => visitExecutableElement(element);
 
   R visitPropertyInducingElement(PropertyInducingElement element) => visitVariableElement(element);
+
+  R visitToolkitObjectElement(ToolkitObjectElement element) => visitElement(element);
 
   R visitTopLevelVariableElement(TopLevelVariableElement element) => visitPropertyInducingElement(element);
 
@@ -1747,6 +2188,41 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
  * @coverage dart.engine.element
  */
 class RecursiveElementVisitor<R> implements ElementVisitor<R> {
+  R visitAngularComponentElement(AngularComponentElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularControllerElement(AngularControllerElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularDirectiveElement(AngularDirectiveElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularFilterElement(AngularFilterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularModuleElement(AngularModuleElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularPropertyElement(AngularPropertyElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  R visitAngularSelectorElement(AngularSelectorElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
   R visitClassElement(ClassElement element) {
     element.visitChildren(this);
     return null;
@@ -1867,6 +2343,20 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
  * @coverage dart.engine.element
  */
 class SimpleElementVisitor<R> implements ElementVisitor<R> {
+  R visitAngularComponentElement(AngularComponentElement element) => null;
+
+  R visitAngularControllerElement(AngularControllerElement element) => null;
+
+  R visitAngularDirectiveElement(AngularDirectiveElement element) => null;
+
+  R visitAngularFilterElement(AngularFilterElement element) => null;
+
+  R visitAngularModuleElement(AngularModuleElement element) => null;
+
+  R visitAngularPropertyElement(AngularPropertyElement element) => null;
+
+  R visitAngularSelectorElement(AngularSelectorElement element) => null;
+
   R visitClassElement(ClassElement element) => null;
 
   R visitCompilationUnitElement(CompilationUnitElement element) => null;
@@ -1984,6 +2474,11 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   InterfaceType supertype;
 
   /**
+   * An array containing all of the toolkit objects attached to this class.
+   */
+  List<ToolkitObjectElement> _toolkitObjects = ToolkitObjectElement.EMPTY_ARRAY;
+
+  /**
    * The type defined by the class.
    */
   InterfaceType type;
@@ -2016,6 +2511,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   ElementImpl getChild(String identifier) {
+    //
+    // The casts in this method are safe because the set methods would have thrown a CCE if any of
+    // the elements in the arrays were not of the expected types.
+    //
     for (PropertyAccessorElement accessor in _accessors) {
       if ((accessor as PropertyAccessorElementImpl).identifier == identifier) {
         return accessor as PropertyAccessorElementImpl;
@@ -2046,13 +2545,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   List<ConstructorElement> get constructors => _constructors;
 
-  /**
-   * Given some name, this returns the [FieldElement] with the matching name, if there is no
-   * such field, then `null` is returned.
-   *
-   * @param name some name to lookup a field element with
-   * @return the matching field element, or `null` if no such element was found
-   */
   FieldElement getField(String name) {
     for (FieldElement fieldElement in _fields) {
       if (name == fieldElement.name) {
@@ -2096,7 +2588,11 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
+  ClassDeclaration get node => getNode2(ClassDeclaration);
+
   PropertyAccessorElement getSetter(String setterName) {
+    // TODO (jwren) revisit- should we append '=' here or require clients to include it?
+    // Do we need the check for isSetter below?
     if (!setterName.endsWith("=")) {
       setterName += '=';
     }
@@ -2107,6 +2603,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     return null;
   }
+
+  List<ToolkitObjectElement> get toolkitObjects => _toolkitObjects;
 
   List<TypeParameterElement> get typeParameters => _typeParameters;
 
@@ -2127,15 +2625,18 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     while (!classesToVisit.isEmpty) {
       ClassElement currentElement = classesToVisit.removeAt(0);
       if (visitedClasses.add(currentElement)) {
+        // check fields
         for (FieldElement field in currentElement.fields) {
           if (!field.isFinal && !field.isConst && !field.isStatic && !field.isSynthetic) {
             return true;
           }
         }
+        // check mixins
         for (InterfaceType mixinType in currentElement.mixins) {
           ClassElement mixinElement = mixinType.element;
           classesToVisit.add(mixinElement);
         }
+        // check super
         InterfaceType supertype = currentElement.supertype;
         if (supertype != null) {
           ClassElement superElement = supertype.element;
@@ -2145,6 +2646,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         }
       }
     }
+    // not found
     return false;
   }
 
@@ -2313,6 +2815,18 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   /**
+   * Set the toolkit specific information objects attached to this class.
+   *
+   * @param toolkitObjects the toolkit objects attached to this class
+   */
+  void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
+    for (ToolkitObjectElement toolkitObject in toolkitObjects) {
+      (toolkitObject as ToolkitObjectElementImpl).enclosingElement = this;
+    }
+    this._toolkitObjects = toolkitObjects;
+  }
+
+  /**
    * Set whether this class is defined by a typedef construct to correspond to the given value.
    *
    * @param isTypedef `true` if the class is defined by a typedef construct
@@ -2348,6 +2862,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     safelyVisitChildren(_constructors, visitor);
     safelyVisitChildren(_fields, visitor);
     safelyVisitChildren(_methods, visitor);
+    safelyVisitChildren(_toolkitObjects, visitor);
     safelyVisitChildren(_typeParameters, visitor);
   }
 
@@ -2414,6 +2929,11 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   static List<CompilationUnitElement> EMPTY_ARRAY = new List<CompilationUnitElement>(0);
 
   /**
+   * The source that corresponds to this compilation unit.
+   */
+  Source source;
+
+  /**
    * An array containing all of the top-level accessors (getters and setters) contained in this
    * compilation unit.
    */
@@ -2425,14 +2945,9 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   List<FunctionElement> _functions = FunctionElementImpl.EMPTY_ARRAY;
 
   /**
-   * An array containing all of the variables contained in this compilation unit.
+   * A table mapping elements to associated toolkit objects.
    */
-  List<TopLevelVariableElement> _variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
-
-  /**
-   * The source that corresponds to this compilation unit.
-   */
-  Source source;
+  Map<Element, List<ToolkitObjectElement>> _toolkitObjects = {};
 
   /**
    * An array containing all of the function type aliases contained in this compilation unit.
@@ -2443,6 +2958,11 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
    * An array containing all of the types contained in this compilation unit.
    */
   List<ClassElement> _types = ClassElementImpl.EMPTY_ARRAY;
+
+  /**
+   * An array containing all of the variables contained in this compilation unit.
+   */
+  List<TopLevelVariableElement> _variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
 
   /**
    * The URI that is specified by the "part" directive in the enclosing library, or `null` if
@@ -2464,6 +2984,10 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   List<PropertyAccessorElement> get accessors => _accessors;
 
   ElementImpl getChild(String identifier) {
+    //
+    // The casts in this method are safe because the set methods would have thrown a CCE if any of
+    // the elements in the arrays were not of the expected types.
+    //
     for (PropertyAccessorElement accessor in _accessors) {
       if ((accessor as PropertyAccessorElementImpl).identifier == identifier) {
         return accessor as PropertyAccessorElementImpl;
@@ -2499,6 +3023,8 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   List<FunctionTypeAliasElement> get functionTypeAliases => _typeAliases;
 
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
+
+  CompilationUnit get node => unit;
 
   List<TopLevelVariableElement> get topLevelVariables => _variables;
 
@@ -2594,6 +3120,33 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   }
 
   String get identifier => source.encoding;
+
+  /**
+   * Returns the associated toolkit objects.
+   *
+   * @param element the [Element] to get toolkit objects for
+   * @return the associated toolkit objects, may be empty, but not `null`
+   */
+  List<ToolkitObjectElement> getToolkitObjects(Element element) {
+    List<ToolkitObjectElement> objects = _toolkitObjects[element];
+    if (objects != null) {
+      return objects;
+    }
+    return ToolkitObjectElement.EMPTY_ARRAY;
+  }
+
+  /**
+   * Sets the toolkit objects that are associated with the given [Element].
+   *
+   * @param element the [Element] to associate toolkit objects with
+   * @param objects the toolkit objects to associate
+   */
+  void setToolkitObjects(Element element, List<ToolkitObjectElement> objects) {
+    for (ToolkitObjectElement toolkitObject in objects) {
+      (toolkitObject as ToolkitObjectElementImpl).enclosingElement = element;
+    }
+    _toolkitObjects[element] = objects;
+  }
 }
 
 /**
@@ -2699,18 +3252,23 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
 
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
+  ConstructorDeclaration get node => getNode2(ConstructorDeclaration);
+
   bool get isConst => hasModifier(Modifier.CONST);
 
   bool get isDefaultConstructor {
+    // unnamed
     String name = this.name;
     if (name != null && name.length != 0) {
       return false;
     }
+    // no required parameters
     for (ParameterElement parameter in parameters) {
       if (identical(parameter.parameterKind, ParameterKind.REQUIRED)) {
         return false;
       }
     }
+    // OK, can be used as default constructor
     return true;
   }
 
@@ -3001,7 +3559,7 @@ abstract class ElementImpl implements Element {
     while (ancestor != null && !isInstanceOf(ancestor, elementClass)) {
       ancestor = ancestor.enclosingElement;
     }
-    return ancestor as Element;
+    return ancestor;
   }
 
   /**
@@ -3030,6 +3588,8 @@ abstract class ElementImpl implements Element {
 
   String get name => _name;
 
+  ASTNode get node => getNode2(ASTNode);
+
   Source get source {
     if (_enclosingElement == null) {
       return null;
@@ -3037,7 +3597,11 @@ abstract class ElementImpl implements Element {
     return _enclosingElement.source;
   }
 
+  CompilationUnit get unit => context.resolveCompilationUnit(source, library);
+
   int get hashCode {
+    // TODO: We might want to re-visit this optimization in the future.
+    // We cache the hash code value as this is a very frequently called method.
     if (_cachedHashCode == 0) {
       _cachedHashCode = location.hashCode;
     }
@@ -3059,6 +3623,16 @@ abstract class ElementImpl implements Element {
     }
     return false;
   }
+
+  bool get isPrivate {
+    String name = displayName;
+    if (name == null) {
+      return true;
+    }
+    return Identifier.isPrivateName(name);
+  }
+
+  bool get isPublic => !isPrivate;
 
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
 
@@ -3096,12 +3670,37 @@ abstract class ElementImpl implements Element {
   }
 
   /**
+   * Set this [Element] as an enclosing for given.
+   *
+   * @param element the element to enclose, must be [ElementImpl]
+   */
+  void encloseElement(ElementImpl element) {
+    element.enclosingElement = this;
+  }
+
+  /**
    * Return an identifier that uniquely identifies this element among the children of this element's
    * parent.
    *
    * @return an identifier that uniquely identifies this element relative to its parent
    */
   String get identifier => name;
+
+  /**
+   * Return the resolved [ASTNode] of the given type enclosing [getNameOffset].
+   */
+  ASTNode getNode2(Type clazz) {
+    CompilationUnit unit = this.unit;
+    if (unit == null) {
+      return null;
+    }
+    int offset = nameOffset;
+    ASTNode node = new NodeLocator.con1(offset).searchWithin(unit);
+    if (node == null) {
+      return null;
+    }
+    return node.getAncestor(clazz);
+  }
 
   /**
    * Return `true` if this element has the given modifier associated with it.
@@ -3320,6 +3919,7 @@ class ElementLocationImpl implements ElementLocation {
    * @return `true` if the given components are equal when the source type's are ignored
    */
   bool equalSourceComponents(String left, String right) {
+    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
     if (left == null) {
       return right == null;
     } else if (right == null) {
@@ -3342,11 +3942,66 @@ class ElementLocationImpl implements ElementLocation {
    * @return the hash code of the given encoded source component
    */
   int hashSourceComponent(String sourceComponent) {
+    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
     if (sourceComponent.length <= 1) {
       return sourceComponent.hashCode;
     }
     return sourceComponent.substring(1).hashCode;
   }
+}
+
+/**
+ * The class `ElementPair` is a pair of [Element]s. [Object#equals] and
+ * [Object#hashCode] so this class can be used in hashed data structures.
+ */
+class ElementPair {
+  /**
+   * The first [Element]
+   */
+  Element _first;
+
+  /**
+   * The second [Element]
+   */
+  Element _second;
+
+  /**
+   * The sole constructor for this class, taking two [Element]s.
+   *
+   * @param first the first element
+   * @param second the second element
+   */
+  ElementPair(Element first, Element second) {
+    this._first = first;
+    this._second = second;
+  }
+
+  bool operator ==(Object object) {
+    if (identical(object, this)) {
+      return true;
+    }
+    if (object is ElementPair) {
+      ElementPair elementPair = object;
+      return (_first == elementPair._first) && (_second == elementPair._second);
+    }
+    return false;
+  }
+
+  /**
+   * Return the first element.
+   *
+   * @return the first element
+   */
+  Element get firstElt => _first;
+
+  /**
+   * Return the second element
+   *
+   * @return the second element
+   */
+  Element get secondElt => _second;
+
+  int get hashCode => ObjectUtilities.combineHashCodes(_first.hashCode, _second.hashCode);
 }
 
 /**
@@ -3539,12 +4194,34 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
 
   void appendTo(JavaStringBuilder builder) {
     builder.append("(");
+    String closing = null;
+    ParameterKind kind = ParameterKind.REQUIRED;
     int parameterCount = _parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
         builder.append(", ");
       }
-      (_parameters[i] as ParameterElementImpl).appendTo(builder);
+      ParameterElementImpl parameter = _parameters[i] as ParameterElementImpl;
+      ParameterKind parameterKind = parameter.parameterKind;
+      if (parameterKind != kind) {
+        if (closing != null) {
+          builder.append(closing);
+        }
+        if (identical(parameterKind, ParameterKind.POSITIONAL)) {
+          builder.append("[");
+          closing = "]";
+        } else if (identical(parameterKind, ParameterKind.NAMED)) {
+          builder.append("{");
+          closing = "}";
+        } else {
+          closing = null;
+        }
+      }
+      kind = parameterKind;
+      parameter.appendToWithoutDelimiters(builder);
+    }
+    if (closing != null) {
+      builder.append(closing);
     }
     builder.append(")");
     if (type != null) {
@@ -3727,6 +4404,8 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
 
   ElementKind get kind => ElementKind.FUNCTION;
 
+  FunctionDeclaration get node => getNode2(FunctionDeclaration);
+
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
       return null;
@@ -3818,6 +4497,8 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   CompilationUnitElement get enclosingElement => super.enclosingElement as CompilationUnitElement;
 
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
+
+  FunctionTypeAlias get node => getNode2(FunctionTypeAlias);
 
   List<ParameterElement> get parameters => _parameters;
 
@@ -4023,7 +4704,7 @@ abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptEl
    *
    * @param node the XML node from which this element is derived (not `null`)
    */
-  HtmlScriptElementImpl(XmlTagNode node) : super.con2(node.tag.lexeme, node.tag.offset);
+  HtmlScriptElementImpl(XmlTagNode node) : super.con2(node.tag, node.tagToken.offset);
 }
 
 /**
@@ -4032,11 +4713,6 @@ abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptEl
  * @coverage dart.engine.element
  */
 class ImportElementImpl extends ElementImpl implements ImportElement {
-  /**
-   * The offset of this directive, may be `-1` if synthetic.
-   */
-  int _offset = -1;
-
   /**
    * The offset of the character immediately following the last character of this node's URI, may be
    * `-1` if synthetic.
@@ -4073,19 +4749,14 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
 
   /**
    * Initialize a newly created import element.
+   *
+   * @param offset the directive offset, may be `-1` if synthetic.
    */
-  ImportElementImpl() : super.con1(null);
+  ImportElementImpl(int offset) : super.con2(null, offset);
 
   accept(ElementVisitor visitor) => visitor.visitImportElement(this);
 
   ElementKind get kind => ElementKind.IMPORT;
-
-  /**
-   * Set the offset of this directive.
-   */
-  void set offset(int offset) {
-    this._offset = offset;
-  }
 
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
@@ -4097,7 +4768,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
     (importedLibrary as LibraryElementImpl).appendTo(builder);
   }
 
-  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@${_offset}";
+  String get identifier => "${(importedLibrary as LibraryElementImpl).identifier}@${nameOffset}";
 }
 
 /**
@@ -4178,19 +4849,23 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   static bool isUpToDate(LibraryElement library, int timeStamp, Set<LibraryElement> visitedLibraries) {
     if (!visitedLibraries.contains(library)) {
       visitedLibraries.add(library);
+      // Check the defining compilation unit.
       if (timeStamp < library.definingCompilationUnit.source.modificationStamp) {
         return false;
       }
+      // Check the parted compilation units.
       for (CompilationUnitElement element in library.parts) {
         if (timeStamp < element.source.modificationStamp) {
           return false;
         }
       }
+      // Check the imported libraries.
       for (LibraryElement importedLibrary in library.importedLibraries) {
         if (!isUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
           return false;
         }
       }
+      // Check the exported libraries.
       for (LibraryElement exportedLibrary in library.exportedLibraries) {
         if (!isUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
           return false;
@@ -4331,6 +5006,12 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return null;
   }
 
+  List<LibraryElement> get visibleLibraries {
+    Set<LibraryElement> visibleLibraries = new Set();
+    addVisibleLibraries(visibleLibraries, false);
+    return new List.from(visibleLibraries);
+  }
+
   int get hashCode => _definingCompilationUnit.hashCode;
 
   bool get isBrowserApplication => entryPoint != null && isOrImportsBrowserLibrary;
@@ -4406,6 +5087,32 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   String get identifier => _definingCompilationUnit.source.encoding;
 
   /**
+   * Recursively fills set of visible libraries for [getVisibleElementsLibraries].
+   */
+  void addVisibleLibraries(Set<LibraryElement> visibleLibraries, bool includeExports) {
+    // maybe already processed
+    if (!visibleLibraries.add(this)) {
+      return;
+    }
+    // add imported libraries
+    for (ImportElement importElement in _imports) {
+      LibraryElement importedLibrary = importElement.importedLibrary;
+      if (importedLibrary != null) {
+        (importedLibrary as LibraryElementImpl).addVisibleLibraries(visibleLibraries, true);
+      }
+    }
+    // add exported libraries
+    if (includeExports) {
+      for (ExportElement exportElement in _exports) {
+        LibraryElement exportedLibrary = exportElement.exportedLibrary;
+        if (exportedLibrary != null) {
+          (exportedLibrary as LibraryElementImpl).addVisibleLibraries(visibleLibraries, true);
+        }
+      }
+    }
+  }
+
+  /**
    * Answer `true` if the receiver directly or indirectly imports the dart:html libraries.
    *
    * @return `true` if the receiver directly or indirectly imports the dart:html libraries
@@ -4478,6 +5185,14 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
 
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
+  List<ToolkitObjectElement> get toolkitObjects {
+    CompilationUnitElementImpl unit = getAncestor(CompilationUnitElementImpl);
+    if (unit == null) {
+      return ToolkitObjectElement.EMPTY_ARRAY;
+    }
+    return unit.getToolkitObjects(this);
+  }
+
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
       return null;
@@ -4501,6 +5216,19 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
    */
   void markPotentiallyMutatedInScope() {
     _isPotentiallyMutatedInScope2 = true;
+  }
+
+  /**
+   * Set the toolkit specific information objects attached to this variable.
+   *
+   * @param toolkitObjects the toolkit objects attached to this variable
+   */
+  void set toolkitObjects(List<ToolkitObjectElement> toolkitObjects) {
+    CompilationUnitElementImpl unit = getAncestor(CompilationUnitElementImpl);
+    if (unit == null) {
+      return;
+    }
+    unit.setToolkitObjects(this, toolkitObjects);
   }
 
   /**
@@ -4567,6 +5295,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     }
     return super.name;
   }
+
+  MethodDeclaration get node => getNode2(MethodDeclaration);
 
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
@@ -4686,7 +5416,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
    */
   static void add(Set<Element> elements, Element element) {
     if (element is MultiplyDefinedElementImpl) {
-      for (Element conflictingElement in (element as MultiplyDefinedElementImpl).conflictingElements) {
+      for (Element conflictingElement in element.conflictingElements) {
         elements.add(conflictingElement);
       }
     } else {
@@ -4757,9 +5487,13 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   int get nameOffset => -1;
 
+  ASTNode get node => null;
+
   Source get source => null;
 
   Type2 get type => DynamicTypeImpl.instance;
+
+  CompilationUnit get unit => null;
 
   bool isAccessibleIn(LibraryElement library) {
     for (Element element in conflictingElements) {
@@ -4771,6 +5505,16 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   bool get isDeprecated => false;
+
+  bool get isPrivate {
+    String name = displayName;
+    if (name == null) {
+      return false;
+    }
+    return Identifier.isPrivateName(name);
+  }
+
+  bool get isPublic => !isPrivate;
 
   bool get isSynthetic => true;
 
@@ -4959,10 +5703,19 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
       break;
     }
     builder.append(left);
+    appendToWithoutDelimiters(builder);
+    builder.append(right);
+  }
+
+  /**
+   * Append the type and name of this parameter to the given builder.
+   *
+   * @param builder the builder to which the type and name are to be appended
+   */
+  void appendToWithoutDelimiters(JavaStringBuilder builder) {
     builder.append(type);
     builder.append(" ");
     builder.append(displayName);
-    builder.append(right);
   }
 }
 
@@ -5082,6 +5835,19 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
       return "${super.name}=";
     }
     return super.name;
+  }
+
+  ASTNode get node {
+    if (isSynthetic) {
+      return null;
+    }
+    if (enclosingElement is ClassElement) {
+      return getNode2(MethodDeclaration);
+    }
+    if (enclosingElement is CompilationUnitElement) {
+      return getNode2(FunctionDeclaration);
+    }
+    return null;
   }
 
   int get hashCode => ObjectUtilities.combineHashCodes(super.hashCode, isGetter ? 1 : 2);
@@ -5215,6 +5981,22 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 }
 
 /**
+ * Instances of the class `ToolkitObjectElementImpl` implement a `ToolkitObjectElement`.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class ToolkitObjectElementImpl extends ElementImpl implements ToolkitObjectElement {
+  /**
+   * Initialize a newly created toolkit object element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  ToolkitObjectElementImpl(String name, int nameOffset) : super.con2(name, nameOffset);
+}
+
+/**
  * Instances of the class `TopLevelVariableElementImpl` implement a
  * `TopLevelVariableElement`.
  *
@@ -5338,6 +6120,8 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
 
   FunctionElement get initializer => _initializer;
 
+  VariableDeclaration get node => getNode2(VariableDeclaration);
+
   bool get isConst => hasModifier(Modifier.CONST);
 
   bool get isFinal => hasModifier(Modifier.FINAL);
@@ -5411,6 +6195,321 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
 }
 
 /**
+ * Implementation of `AngularComponentElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularComponentElementImpl extends AngularHasSelectorElementImpl implements AngularComponentElement {
+  /**
+   * The array containing all of the properties declared by this component.
+   */
+  List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
+
+  /**
+   * The the CSS file URI.
+   */
+  String styleUri;
+
+  /**
+   * The offset of the [styleUri] in the [getSource].
+   */
+  int styleUriOffset = 0;
+
+  /**
+   * The HTML template URI.
+   */
+  String templateUri;
+
+  /**
+   * The offset of the [templateUri] in the [getSource].
+   */
+  int templateUriOffset = 0;
+
+  /**
+   * Initialize a newly created Angular component to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularComponentElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularComponentElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_COMPONENT;
+
+  List<AngularPropertyElement> get properties => _properties;
+
+  /**
+   * Set an array containing all of the properties declared by this component.
+   *
+   * @param properties the properties to set
+   */
+  void set properties(List<AngularPropertyElement> properties) {
+    for (AngularPropertyElement property in properties) {
+      encloseElement(property as AngularPropertyElementImpl);
+    }
+    this._properties = properties;
+  }
+
+  void visitChildren(ElementVisitor visitor) {
+    safelyVisitChildren(_properties, visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+/**
+ * Implementation of `AngularControllerElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularControllerElementImpl extends AngularHasSelectorElementImpl implements AngularControllerElement {
+  /**
+   * Initialize a newly created Angular controller to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularControllerElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularControllerElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_CONTROLLER;
+}
+
+/**
+ * Implementation of `AngularDirectiveElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implements AngularDirectiveElement {
+  /**
+   * The offset of the annotation that defines this directive.
+   */
+  int _offset = 0;
+
+  /**
+   * The array containing all of the properties declared by this directive.
+   */
+  List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
+
+  /**
+   * Initialize a newly created Angular directive to have the given name.
+   *
+   * @param offset the offset of the annotation that defines this directive
+   */
+  AngularDirectiveElementImpl(int offset) : super(null, -1) {
+    this._offset = offset;
+  }
+
+  accept(ElementVisitor visitor) => visitor.visitAngularDirectiveElement(this);
+
+  String get displayName => selector.displayName;
+
+  ElementKind get kind => ElementKind.ANGULAR_DIRECTIVE;
+
+  List<AngularPropertyElement> get properties => _properties;
+
+  /**
+   * Set an array containing all of the properties declared by this directive.
+   *
+   * @param properties the properties to set
+   */
+  void set properties(List<AngularPropertyElement> properties) {
+    for (AngularPropertyElement property in properties) {
+      encloseElement(property as AngularPropertyElementImpl);
+    }
+    this._properties = properties;
+  }
+
+  void visitChildren(ElementVisitor visitor) {
+    safelyVisitChildren(_properties, visitor);
+    super.visitChildren(visitor);
+  }
+
+  String get identifier => "NgDirective@${_offset}";
+}
+
+/**
+ * Implementation of `AngularElement`.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularElementImpl extends ToolkitObjectElementImpl implements AngularElement {
+  /**
+   * Initialize a newly created Angular element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularElementImpl(String name, int nameOffset) : super(name, nameOffset);
+}
+
+/**
+ * Implementation of `AngularFilterElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularFilterElementImpl extends AngularElementImpl implements AngularFilterElement {
+  /**
+   * Initialize a newly created Angular filter to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularFilterElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularFilterElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_FILTER;
+}
+
+/**
+ * Implementation of `AngularSelectorElement`.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularHasSelectorElementImpl extends AngularElementImpl implements AngularHasSelectorElement {
+  /**
+   * The selector of this element.
+   */
+  AngularSelectorElement _selector;
+
+  /**
+   * Initialize a newly created Angular element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularHasSelectorElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  AngularSelectorElement get selector => _selector;
+
+  /**
+   * Set the selector of this selector-based element.
+   *
+   * @param selector the selector to set
+   */
+  void set selector(AngularSelectorElement selector) {
+    encloseElement(selector as AngularSelectorElementImpl);
+    this._selector = selector;
+  }
+
+  void visitChildren(ElementVisitor visitor) {
+    safelyVisitChild(_selector, visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+/**
+ * Implementation of `AngularModuleElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularModuleElementImpl extends AngularElementImpl implements AngularModuleElement {
+  /**
+   * The array containing all of the child modules.
+   */
+  List<AngularModuleElement> childModules = AngularModuleElement.EMPTY_ARRAY;
+
+  /**
+   * The array containing all of the types used as injection keys.
+   */
+  List<ClassElement> keyTypes = ClassElementImpl.EMPTY_ARRAY;
+
+  /**
+   * Initialize a newly created Angular module.
+   */
+  AngularModuleElementImpl() : super(null, -1);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularModuleElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_MODULE;
+}
+
+/**
+ * Implementation of `AngularPropertyElement`.
+ *
+ * @coverage dart.engine.element
+ */
+class AngularPropertyElementImpl extends AngularElementImpl implements AngularPropertyElement {
+  /**
+   * The [FieldElement] to which this property is bound.
+   */
+  FieldElement field;
+
+  /**
+   * The offset of the field name in the property map.
+   */
+  int fieldNameOffset = -1;
+
+  AngularPropertyKind propertyKind;
+
+  /**
+   * Initialize a newly created Angular property to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularPropertyElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularPropertyElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_PROPERTY;
+}
+
+/**
+ * Implementation of `AngularFilterElement`.
+ *
+ * @coverage dart.engine.element
+ */
+abstract class AngularSelectorElementImpl extends AngularElementImpl implements AngularSelectorElement {
+  /**
+   * Initialize a newly created Angular selector to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  AngularSelectorElementImpl(String name, int nameOffset) : super(name, nameOffset);
+
+  accept(ElementVisitor visitor) => visitor.visitAngularSelectorElement(this);
+
+  ElementKind get kind => ElementKind.ANGULAR_SELECTOR;
+}
+
+/**
+ * Implementation of [AngularSelectorElement] based on presence of attribute.
+ */
+class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
+  HasAttributeSelectorElementImpl(String attributeName, int offset) : super(attributeName, offset);
+
+  bool apply(XmlTagNode node) {
+    String attributeName = name;
+    return node.getAttribute(attributeName) != null;
+  }
+
+  String get displayName => "[${super.displayName}]";
+}
+
+/**
+ * Implementation of [AngularSelectorElement] based on tag name.
+ */
+class IsTagSelectorElementImpl extends AngularSelectorElementImpl {
+  IsTagSelectorElementImpl(String name, int offset) : super(name, offset);
+
+  bool apply(XmlTagNode node) {
+    String tagName = name;
+    return node.tag == tagName;
+  }
+}
+
+/**
  * Instances of the class `ConstructorMember` represent a constructor element defined in a
  * parameterized type where the values of the type parameters are known.
  */
@@ -5432,6 +6531,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     }
     FunctionType baseType = baseConstructor.type;
     if (baseType == null) {
+      // TODO(brianwilkerson) We need to understand when this can happen.
       return baseConstructor;
     }
     List<Type2> argumentTypes = definingType.typeArguments;
@@ -5440,6 +6540,8 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     if (baseType == substitutedType) {
       return baseConstructor;
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new ConstructorMember(baseConstructor, definingType);
   }
 
@@ -5456,6 +6558,8 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   ConstructorElement get baseElement => super.baseElement as ConstructorElement;
 
   ClassElement get enclosingElement => baseElement.enclosingElement;
+
+  ConstructorDeclaration get node => baseElement.node;
 
   ConstructorElement get redirectedConstructor => from(baseElement.redirectedConstructor, definingType);
 
@@ -5513,12 +6617,18 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   ExecutableElement get baseElement => super.baseElement as ExecutableElement;
 
   List<FunctionElement> get functions {
+    //
+    // Elements within this element should have type parameters substituted, just like this element.
+    //
     throw new UnsupportedOperationException();
   }
 
   List<LabelElement> get labels => baseElement.labels;
 
   List<LocalVariableElement> get localVariables {
+    //
+    // Elements within this element should have type parameters substituted, just like this element.
+    //
     throw new UnsupportedOperationException();
   }
 
@@ -5544,6 +6654,8 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   bool get isStatic => baseElement.isStatic;
 
   void visitChildren(ElementVisitor visitor) {
+    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
+    // safely invoke them.
     super.visitChildren(visitor);
     safelyVisitChildren(baseElement.functions, visitor);
     safelyVisitChildren(labels, visitor);
@@ -5600,6 +6712,8 @@ class FieldMember extends VariableMember implements FieldElement {
     if (baseType == substitutedType) {
       return baseField;
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new FieldMember(baseField, definingType);
   }
 
@@ -5679,11 +6793,19 @@ abstract class Member implements Element {
 
   int get nameOffset => _baseElement.nameOffset;
 
+  ASTNode get node => _baseElement.node;
+
   Source get source => _baseElement.source;
+
+  CompilationUnit get unit => _baseElement.unit;
 
   bool isAccessibleIn(LibraryElement library) => _baseElement.isAccessibleIn(library);
 
   bool get isDeprecated => _baseElement.isDeprecated;
+
+  bool get isPrivate => _baseElement.isPrivate;
+
+  bool get isPublic => _baseElement.isPublic;
 
   bool get isSynthetic => _baseElement.isSynthetic;
 
@@ -5733,7 +6855,7 @@ abstract class Member implements Element {
   Type2 substituteFor(Type2 type) {
     List<Type2> argumentTypes = _definingType.typeArguments;
     List<Type2> parameterTypes = TypeParameterTypeImpl.getTypes(_definingType.typeParameters);
-    return type.substitute2(argumentTypes, parameterTypes) as Type2;
+    return type.substitute2(argumentTypes, parameterTypes);
   }
 
   /**
@@ -5780,6 +6902,8 @@ class MethodMember extends ExecutableMember implements MethodElement {
     if (baseType == substitutedType) {
       return baseMethod;
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new MethodMember(baseMethod, definingType);
   }
 
@@ -5796,6 +6920,8 @@ class MethodMember extends ExecutableMember implements MethodElement {
   MethodElement get baseElement => super.baseElement as MethodElement;
 
   ClassElement get enclosingElement => baseElement.enclosingElement;
+
+  MethodDeclaration get node => baseElement.node;
 
   bool get isAbstract => baseElement.isAbstract;
 
@@ -5844,6 +6970,8 @@ class ParameterMember extends VariableMember implements ParameterElement {
     if (baseParameter == null || definingType.typeArguments.length == 0) {
       return baseParameter;
     }
+    // Check if parameter type depends on defining type type arguments.
+    // It is possible that we did not resolve field formal parameter yet, so skip this check for it.
     bool isFieldFormal = baseParameter is FieldFormalParameterElement;
     if (!isFieldFormal) {
       Type2 baseType = baseParameter.type;
@@ -5854,6 +6982,8 @@ class ParameterMember extends VariableMember implements ParameterElement {
         return baseParameter;
       }
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     if (isFieldFormal) {
       return new FieldFormalParameterMember(baseParameter as FieldFormalParameterElement, definingType);
     }
@@ -5874,13 +7004,13 @@ class ParameterMember extends VariableMember implements ParameterElement {
     Element element = baseElement.getAncestor(elementClass);
     ParameterizedType definingType = this.definingType;
     if (definingType is InterfaceType) {
-      InterfaceType definingInterfaceType = definingType as InterfaceType;
+      InterfaceType definingInterfaceType = definingType;
       if (element is ConstructorElement) {
-        return ConstructorMember.from(element as ConstructorElement, definingInterfaceType) as Element;
+        return ConstructorMember.from(element, definingInterfaceType);
       } else if (element is MethodElement) {
-        return MethodMember.from(element as MethodElement, definingInterfaceType) as Element;
+        return MethodMember.from(element, definingInterfaceType);
       } else if (element is PropertyAccessorElement) {
-        return PropertyAccessorMember.from(element as PropertyAccessorElement, definingInterfaceType) as Element;
+        return PropertyAccessorMember.from(element, definingInterfaceType);
       }
     }
     return element;
@@ -5967,6 +7097,8 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     if (baseType == substitutedType) {
       return baseAccessor;
     }
+    // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
+    // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new PropertyAccessorMember(baseAccessor, definingType);
   }
 
@@ -5992,7 +7124,7 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
   PropertyInducingElement get variable {
     PropertyInducingElement variable = baseElement.variable;
     if (variable is FieldElement) {
-      return FieldMember.from(variable as FieldElement, definingType);
+      return FieldMember.from(variable, definingType);
     }
     return variable;
   }
@@ -6053,8 +7185,13 @@ abstract class VariableMember extends Member implements VariableElement {
   VariableElement get baseElement => super.baseElement as VariableElement;
 
   FunctionElement get initializer {
+    //
+    // Elements within this element should have type parameters substituted, just like this element.
+    //
     throw new UnsupportedOperationException();
   }
+
+  VariableDeclaration get node => baseElement.node;
 
   Type2 get type => substituteFor(baseElement.type);
 
@@ -6063,6 +7200,8 @@ abstract class VariableMember extends Member implements VariableElement {
   bool get isFinal => baseElement.isFinal;
 
   void visitChildren(ElementVisitor visitor) {
+    // TODO(brianwilkerson) We need to finish implementing the accessors used below so that we can
+    // safely invoke them.
     super.visitChildren(visitor);
     safelyVisitChild(baseElement.initializer, visitor);
   }
@@ -6100,6 +7239,8 @@ class BottomTypeImpl extends TypeImpl {
   bool isSupertypeOf(Type2 type) => false;
 
   BottomTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
+
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
 
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => true;
 
@@ -6149,10 +7290,14 @@ class DynamicTypeImpl extends TypeImpl {
     return this;
   }
 
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
+
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // T is S
     if (identical(this, type)) {
       return true;
     }
+    // else
     return withDynamic;
   }
 
@@ -6173,10 +7318,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    *
    * @param firstTypes the first map of name/type pairs being compared
    * @param secondTypes the second map of name/type pairs being compared
+   * @param visitedElementPairs a set of visited element pairs
    * @return `true` if all of the name/type pairs in the first map are equal to the
    *         corresponding name/type pairs in the second map
    */
-  static bool equals2(Map<String, Type2> firstTypes, Map<String, Type2> secondTypes) {
+  static bool equals2(Map<String, Type2> firstTypes, Map<String, Type2> secondTypes, Set<ElementPair> visitedElementPairs) {
     if (secondTypes.length != firstTypes.length) {
       return false;
     }
@@ -6185,7 +7331,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     while (firstIterator.hasNext) {
       MapEntry<String, Type2> firstEntry = firstIterator.next();
       MapEntry<String, Type2> secondEntry = secondIterator.next();
-      if (firstEntry.getKey() != secondEntry.getKey() || firstEntry.getValue() != secondEntry.getValue()) {
+      if (firstEntry.getKey() != secondEntry.getKey() || !(firstEntry.getValue() as TypeImpl).internalEquals(secondEntry.getValue(), visitedElementPairs)) {
         return false;
       }
     }
@@ -6213,17 +7359,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   FunctionTypeImpl.con2(FunctionTypeAliasElement element) : super(element, element == null ? null : element.name);
 
-  bool operator ==(Object object) {
-    if (object is! FunctionTypeImpl) {
-      return false;
-    }
-    FunctionTypeImpl otherType = object as FunctionTypeImpl;
-    return (element == otherType.element) && JavaArrays.equals(normalParameterTypes, otherType.normalParameterTypes) && JavaArrays.equals(optionalParameterTypes, otherType.optionalParameterTypes) && equals2(namedParameterTypes, otherType.namedParameterTypes) && (returnType == otherType.returnType);
-  }
+  bool operator ==(Object object) => internalEquals(object, new Set<ElementPair>());
 
   String get displayName {
     String name = this.name;
     if (name == null || name.length == 0) {
+      // TODO(brianwilkerson) Determine whether function types should ever have an empty name.
       List<Type2> normalParameterTypes = this.normalParameterTypes;
       List<Type2> optionalParameterTypes = this.optionalParameterTypes;
       Map<String, Type2> namedParameterTypes = this.namedParameterTypes;
@@ -6336,10 +7477,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   List<ParameterElement> get parameters {
     List<ParameterElement> baseParameters = this.baseParameters;
+    // no parameters, quick return
     int parameterCount = baseParameters.length;
     if (parameterCount == 0) {
       return baseParameters;
     }
+    // create specialized parameters
     List<ParameterElement> specializedParameters = new List<ParameterElement>(parameterCount);
     for (int i = 0; i < parameterCount; i++) {
       specializedParameters[i] = ParameterMember.from(baseParameters[i], this);
@@ -6350,6 +7493,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   Type2 get returnType {
     Type2 baseReturnType = this.baseReturnType;
     if (baseReturnType == null) {
+      // TODO(brianwilkerson) This is a patch. The return type should never be null and we need to
+      // understand why it is and fix it.
       return DynamicTypeImpl.instance;
     }
     return baseReturnType.substitute2(typeArguments, TypeParameterTypeImpl.getTypes(typeParameters));
@@ -6358,7 +7503,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   List<TypeParameterElement> get typeParameters {
     Element element = this.element;
     if (element is FunctionTypeAliasElement) {
-      return (element as FunctionTypeAliasElement).typeParameters;
+      return element.typeParameters;
     }
     ClassElement definingClass = element.getAncestor(ClassElement);
     if (definingClass != null) {
@@ -6368,14 +7513,29 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   int get hashCode {
-    Element element = this.element;
     if (element == null) {
       return 0;
     }
-    return element.hashCode;
+    // Reference the arrays of parameters
+    List<Type2> normalParameterTypes = this.normalParameterTypes;
+    List<Type2> optionalParameterTypes = this.optionalParameterTypes;
+    Iterable<Type2> namedParameterTypes = this.namedParameterTypes.values;
+    // Generate the hashCode
+    int hashCode = returnType.hashCode;
+    for (int i = 0; i < normalParameterTypes.length; i++) {
+      hashCode = (hashCode << 1) + normalParameterTypes[i].hashCode;
+    }
+    for (int i = 0; i < optionalParameterTypes.length; i++) {
+      hashCode = (hashCode << 1) + optionalParameterTypes[i].hashCode;
+    }
+    for (Type2 type in namedParameterTypes) {
+      hashCode = (hashCode << 1) + type.hashCode;
+    }
+    return hashCode;
   }
 
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // trivial base cases
     if (type == null) {
       return false;
     } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
@@ -6391,10 +7551,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<Type2> tOpTypes = t.optionalParameterTypes;
     List<Type2> sTypes = s.normalParameterTypes;
     List<Type2> sOpTypes = s.optionalParameterTypes;
+    // If one function has positional and the other has named parameters, return false.
     if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) || (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
       return false;
     }
+    // named parameters case
     if (t.namedParameterTypes.length > 0) {
+      // check that the number of required parameters are equal, and check that every t_i is
+      // more specific than every s_i
       if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
         return false;
       } else if (t.normalParameterTypes.length > 0) {
@@ -6406,9 +7570,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       Map<String, Type2> namedTypesT = t.namedParameterTypes;
       Map<String, Type2> namedTypesS = s.namedParameterTypes;
+      // if k >= m is false, return false: the passed function type has more named parameter types than this
       if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
+      // Loop through each element in S verifying that T has a matching parameter name and that the
+      // corresponding type is more specific then the type in S.
       JavaIterator<MapEntry<String, Type2>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
       while (iteratorS.hasNext) {
         MapEntry<String, Type2> entryS = iteratorS.next();
@@ -6423,18 +7590,25 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (s.namedParameterTypes.length > 0) {
       return false;
     } else {
+      // positional parameter case
       int tArgLength = tTypes.length + tOpTypes.length;
       int sArgLength = sTypes.length + sOpTypes.length;
+      // Check that the total number of parameters in t is greater than or equal to the number of
+      // parameters in s and that the number of required parameters in s is greater than or equal to
+      // the number of required parameters in t.
       if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
         return false;
       }
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
           if (!(tTypes[i] as TypeImpl).isMoreSpecificThan3(sTypes[i], withDynamic, visitedTypePairs)) {
             return false;
           }
         }
       } else {
+        // Else, we do have positional parameters, copy required and positional parameter types into
+        // arrays to do the compare (for loop below).
         List<Type2> tAllTypes = new List<Type2>(sArgLength);
         for (int i = 0; i < tTypes.length; i++) {
           tAllTypes[i] = tTypes[i];
@@ -6473,7 +7647,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return this;
     }
     Element element = this.element;
-    FunctionTypeImpl newType = (element is ExecutableElement) ? new FunctionTypeImpl.con1(element as ExecutableElement) : new FunctionTypeImpl.con2(element as FunctionTypeAliasElement);
+    FunctionTypeImpl newType = (element is ExecutableElement) ? new FunctionTypeImpl.con1(element) : new FunctionTypeImpl.con2(element as FunctionTypeAliasElement);
     newType.typeArguments = TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
     return newType;
   }
@@ -6546,13 +7720,32 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   List<ParameterElement> get baseParameters {
     Element element = this.element;
     if (element is ExecutableElement) {
-      return (element as ExecutableElement).parameters;
+      return element.parameters;
     } else {
       return (element as FunctionTypeAliasElement).parameters;
     }
   }
 
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
+    if (object is! FunctionTypeImpl) {
+      return false;
+    }
+    FunctionTypeImpl otherType = object as FunctionTypeImpl;
+    // If the visitedTypePairs already has the pair (this, type), use the elements to determine equality
+    ElementPair elementPair = new ElementPair(element, otherType.element);
+    if (!visitedElementPairs.add(elementPair)) {
+      return elementPair.firstElt == elementPair.secondElt;
+    }
+    // Compute the result
+    bool result = TypeImpl.equalArrays(normalParameterTypes, otherType.normalParameterTypes, visitedElementPairs) && TypeImpl.equalArrays(optionalParameterTypes, otherType.optionalParameterTypes, visitedElementPairs) && equals2(namedParameterTypes, otherType.namedParameterTypes, visitedElementPairs) && (returnType as TypeImpl).internalEquals(otherType.returnType, visitedElementPairs);
+    // Remove the pair from our visited pairs list
+    visitedElementPairs.remove(elementPair);
+    // Return the result
+    return result;
+  }
+
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // trivial base cases
     if (type == null) {
       return false;
     } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
@@ -6568,10 +7761,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<Type2> tOpTypes = t.optionalParameterTypes;
     List<Type2> sTypes = s.normalParameterTypes;
     List<Type2> sOpTypes = s.optionalParameterTypes;
+    // If one function has positional and the other has named parameters, return false.
     if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) || (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
       return false;
     }
+    // named parameters case
     if (t.namedParameterTypes.length > 0) {
+      // check that the number of required parameters are equal, and check that every t_i is
+      // assignable to every s_i
       if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
         return false;
       } else if (t.normalParameterTypes.length > 0) {
@@ -6583,9 +7780,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
       Map<String, Type2> namedTypesT = t.namedParameterTypes;
       Map<String, Type2> namedTypesS = s.namedParameterTypes;
+      // if k >= m is false, return false: the passed function type has more named parameter types than this
       if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
+      // Loop through each element in S verifying that T has a matching parameter name and that the
+      // corresponding type is assignable to the type in S.
       JavaIterator<MapEntry<String, Type2>> iteratorS = new JavaIterator(getMapEntrySet(namedTypesS));
       while (iteratorS.hasNext) {
         MapEntry<String, Type2> entryS = iteratorS.next();
@@ -6600,18 +7800,25 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     } else if (s.namedParameterTypes.length > 0) {
       return false;
     } else {
+      // positional parameter case
       int tArgLength = tTypes.length + tOpTypes.length;
       int sArgLength = sTypes.length + sOpTypes.length;
+      // Check that the total number of parameters in t is greater than or equal to the number of
+      // parameters in s and that the number of required parameters in s is greater than or equal to
+      // the number of required parameters in t.
       if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
         return false;
       }
       if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        // No positional arguments, don't copy contents to new array
         for (int i = 0; i < sTypes.length; i++) {
           if (!(tTypes[i] as TypeImpl).isAssignableTo2(sTypes[i], visitedTypePairs)) {
             return false;
           }
         }
       } else {
+        // Else, we do have positional parameters, copy required and positional parameter types into
+        // arrays to do the compare (for loop below).
         List<Type2> tAllTypes = new List<Type2>(sArgLength);
         for (int i = 0; i < tTypes.length; i++) {
           tAllTypes[i] = tTypes[i];
@@ -6646,7 +7853,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   Type2 get baseReturnType {
     Element element = this.element;
     if (element is ExecutableElement) {
-      return (element as ExecutableElement).returnType;
+      return element.returnType;
     } else {
       return (element as FunctionTypeAliasElement).returnType;
     }
@@ -6700,6 +7907,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   static int computeLongestInheritancePathToObject2(InterfaceType type, int depth, Set<ClassElement> visitedClasses) {
     ClassElement classElement = type.element;
+    // Object case
     if (classElement.supertype == null || visitedClasses.contains(classElement)) {
       return depth;
     }
@@ -6709,6 +7917,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       List<InterfaceType> superinterfaces = classElement.interfaces;
       int pathLength;
       if (superinterfaces.length > 0) {
+        // loop through each of the superinterfaces recursively calling this method and keeping track
+        // of the longest path to return
         for (InterfaceType superinterface in superinterfaces) {
           pathLength = computeLongestInheritancePathToObject2(superinterface, depth + 1, visitedClasses);
           if (pathLength > longestPath) {
@@ -6716,6 +7926,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           }
         }
       }
+      // finally, perform this same check on the super type
+      // TODO(brianwilkerson) Does this also need to add in the number of mixin classes?
       InterfaceType supertype = classElement.supertype;
       pathLength = computeLongestInheritancePathToObject2(supertype, depth + 1, visitedClasses);
       if (pathLength > longestPath) {
@@ -6740,7 +7952,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   static Set<InterfaceType> computeSuperinterfaceSet2(InterfaceType type, Set<InterfaceType> set) {
     Element element = type.element;
     if (element != null && element is ClassElement) {
-      ClassElement classElement = element as ClassElement;
+      ClassElement classElement = element;
       List<InterfaceType> superinterfaces = classElement.interfaces;
       for (InterfaceType superinterface in superinterfaces) {
         if (set.add(superinterface)) {
@@ -6805,6 +8017,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     List<Type2> lubArguments = new List<Type2>(argumentCount);
     for (int i = 0; i < argumentCount; i++) {
+      //
+      // Ideally we would take the least upper bound of the two argument types, but this can cause
+      // an infinite recursion (such as when finding the least upper bound of String and num).
+      //
       if (firstArguments[i] == secondArguments[i]) {
         lubArguments[i] = firstArguments[i];
       }
@@ -6837,13 +8053,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   InterfaceTypeImpl.con2(String name) : super(null, name);
 
-  bool operator ==(Object object) {
-    if (object is! InterfaceTypeImpl) {
-      return false;
-    }
-    InterfaceTypeImpl otherType = object as InterfaceTypeImpl;
-    return (element == otherType.element) && JavaArrays.equals(typeArguments, otherType.typeArguments);
-  }
+  bool operator ==(Object object) => internalEquals(object, new Set<ElementPair>());
 
   List<PropertyAccessorElement> get accessors {
     List<PropertyAccessorElement> accessors = element.accessors;
@@ -6864,6 +8074,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         break;
       }
     }
+    // If there is at least one non-dynamic type, then list them out
     if (!allDynamic) {
       JavaStringBuilder builder = new JavaStringBuilder();
       builder.append(name);
@@ -6902,23 +8113,31 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   Type2 getLeastUpperBound(Type2 type) {
+    // quick check for self
     if (identical(type, this)) {
       return this;
     }
+    // dynamic
     Type2 dynamicType = DynamicTypeImpl.instance;
     if (identical(this, dynamicType) || identical(type, dynamicType)) {
       return dynamicType;
     }
+    // TODO (jwren) opportunity here for a better, faster algorithm if this turns out to be a bottle-neck
     if (type is! InterfaceType) {
       return null;
     }
+    // new names to match up with the spec
     InterfaceType i = this;
     InterfaceType j = type as InterfaceType;
+    // compute set of supertypes
     Set<InterfaceType> si = computeSuperinterfaceSet(i);
     Set<InterfaceType> sj = computeSuperinterfaceSet(j);
+    // union si with i and sj with j
     si.add(i);
     sj.add(j);
+    // compute intersection, reference as set 's'
     List<InterfaceType> s = intersection(si, sj);
+    // for each element in Set s, compute the largest inheritance path to Object
     List<int> depths = new List<int>.filled(s.length, 0);
     int maxDepth = 0;
     for (int n = 0; n < s.length; n++) {
@@ -6927,6 +8146,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         maxDepth = depths[n];
       }
     }
+    // ensure that the currently computed maxDepth is unique,
+    // otherwise, decrement and test for uniqueness again
     for (; maxDepth >= 0; maxDepth--) {
       int indexOfLeastUpperBound = -1;
       int numberOfTypesAtMaxDepth = 0;
@@ -6940,6 +8161,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         return s[indexOfLeastUpperBound];
       }
     }
+    // illegal state, log and return null- Object at maxDepth == 0 should always return itself as
+    // the least upper bound.
+    // TODO (jwren) log the error state
     return null;
   }
 
@@ -7004,42 +8228,62 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     InterfaceType j = type;
     ClassElement jElement = j.element;
     InterfaceType supertype = jElement.supertype;
+    //
+    // If J has no direct supertype then it is Object, and Object has no direct supertypes.
+    //
     if (supertype == null) {
       return false;
     }
+    //
+    // I is listed in the extends clause of J.
+    //
     List<Type2> jArgs = j.typeArguments;
     List<Type2> jVars = jElement.type.typeArguments;
     supertype = supertype.substitute2(jArgs, jVars);
     if (supertype == i) {
       return true;
     }
+    //
+    // I is listed in the implements clause of J.
+    //
     for (InterfaceType interfaceType in jElement.interfaces) {
       interfaceType = interfaceType.substitute2(jArgs, jVars);
       if (interfaceType == i) {
         return true;
       }
     }
+    //
+    // I is listed in the with clause of J.
+    //
     for (InterfaceType mixinType in jElement.mixins) {
       mixinType = mixinType.substitute2(jArgs, jVars);
       if (mixinType == i) {
         return true;
       }
     }
+    //
+    // J is a mixin application of the mixin of I.
+    //
+    // TODO(brianwilkerson) Determine whether this needs to be implemented or whether it is covered
+    // by the case above.
     return false;
   }
 
   bool get isObject => element.supertype == null;
 
   ConstructorElement lookUpConstructor(String constructorName, LibraryElement library) {
+    // prepare base ConstructorElement
     ConstructorElement constructorElement;
     if (constructorName == null) {
       constructorElement = element.unnamedConstructor;
     } else {
       constructorElement = element.getNamedConstructor(constructorName);
     }
+    // not found or not accessible
     if (constructorElement == null || !constructorElement.isAccessibleIn(library)) {
       return null;
     }
+    // return member
     return ConstructorMember.from(constructorElement, this);
   }
 
@@ -7184,7 +8428,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
+    if (object is! InterfaceTypeImpl) {
+      return false;
+    }
+    InterfaceTypeImpl otherType = object as InterfaceTypeImpl;
+    return (element == otherType.element) && TypeImpl.equalArrays(typeArguments, otherType.typeArguments, visitedElementPairs);
+  }
+
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    //
+    // S is dynamic.
+    // The test to determine whether S is dynamic is done here because dynamic is not an instance of
+    // InterfaceType.
+    //
     if (identical(type, DynamicTypeImpl.instance)) {
       return true;
     } else if (type is! InterfaceType) {
@@ -7194,6 +8451,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    //
+    // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S
+    //
     if (identical(type, DynamicTypeImpl.instance)) {
       return true;
     } else if (type is TypeParameterType) {
@@ -7214,12 +8474,26 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   bool isMoreSpecificThan2(InterfaceType s, Set<ClassElement> visitedClasses, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    //
+    // A type T is more specific than a type S, written T << S,  if one of the following conditions
+    // is met:
+    //
+    // Reflexivity: T is S.
+    //
     if (this == s) {
       return true;
     }
+    //
+    // T is bottom. (This case is handled by the class BottomTypeImpl.)
+    //
+    // Direct supertype: S is a direct supertype of T.
+    //
     if (s.isDirectSupertypeOf(this)) {
       return true;
     }
+    //
+    // Covariance: T is of the form I<T1, ..., Tn> and S is of the form I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
+    //
     ClassElement tElement = this.element;
     ClassElement sElement = s.element;
     if (tElement == sElement) {
@@ -7235,11 +8509,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       return true;
     }
+    //
+    // Transitivity: T << U and U << S.
+    //
+    // First check for infinite loops
     ClassElement element = this.element;
     if (element == null || visitedClasses.contains(element)) {
       return false;
     }
     visitedClasses.add(element);
+    // Iterate over all of the types U that are more specific than T because they are direct
+    // supertypes of T and return true if any of them are more specific than S.
     InterfaceType supertype = superclass;
     if (supertype != null && (supertype as InterfaceTypeImpl).isMoreSpecificThan2(s, visitedClasses, withDynamic, visitedTypePairs)) {
       return true;
@@ -7268,12 +8548,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (typeT == typeS) {
       return true;
     } else if (elementT == typeS.element) {
+      // For each of the type arguments return true if all type args from T is a subtype of all
+      // types from S.
       List<Type2> typeTArgs = typeT.typeArguments;
       List<Type2> typeSArgs = typeS.typeArguments;
       if (typeTArgs.length != typeSArgs.length) {
+        // This case covers the case where two objects are being compared that have a different
+        // number of parameterized types.
         return false;
       }
       for (int i = 0; i < typeTArgs.length; i++) {
+        // Recursively call isSubtypeOf the type arguments and return false if the T argument is not
+        // a subtype of the S argument.
         if (!(typeTArgs[i] as TypeImpl).isSubtypeOf3(typeSArgs[i], visitedTypePairs)) {
           return false;
         }
@@ -7283,6 +8569,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     InterfaceType supertype = superclass;
+    // The type is Object, return false.
     if (supertype != null && (supertype as InterfaceTypeImpl).isSubtypeOf2(typeS, visitedClasses, visitedTypePairs)) {
       return true;
     }
@@ -7309,6 +8596,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
  * @coverage dart.engine.type
  */
 abstract class TypeImpl implements Type2 {
+  static bool equalArrays(List<Type2> typeArgs1, List<Type2> typeArgs2, Set<ElementPair> visitedElementPairs) {
+    if (typeArgs1.length != typeArgs2.length) {
+      return false;
+    }
+    for (int i = 0; i < typeArgs1.length; i++) {
+      if (!(typeArgs1[i] as TypeImpl).internalEquals(typeArgs2[i], visitedElementPairs)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Return an array containing the results of using the given argument types and parameter types to
    * perform a substitution on all of the given types.
@@ -7400,6 +8699,7 @@ abstract class TypeImpl implements Type2 {
    * @return `true` if this type is more specific than the given type
    */
   bool isMoreSpecificThan3(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // If the visitedTypePairs already has the pair (this, type), return false
     TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
     if (!visitedTypePairs.add(typePair)) {
       return false;
@@ -7425,6 +8725,7 @@ abstract class TypeImpl implements Type2 {
    * @return `true` if this type is a subtype of the given type
    */
   bool isSubtypeOf3(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // If the visitedTypePairs already has the pair (this, type), return false
     TypeImpl_TypePair typePair = new TypeImpl_TypePair(this, type);
     if (!visitedTypePairs.add(typePair)) {
       return false;
@@ -7457,6 +8758,8 @@ abstract class TypeImpl implements Type2 {
     }
   }
 
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs);
+
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs);
 
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs);
@@ -7477,7 +8780,7 @@ class TypeImpl_TypePair {
       return true;
     }
     if (object is TypeImpl_TypePair) {
-      TypeImpl_TypePair typePair = object as TypeImpl_TypePair;
+      TypeImpl_TypePair typePair = object;
       return _firstType == typePair._firstType && _secondType != null && _secondType == typePair._secondType;
     }
     return false;
@@ -7536,7 +8839,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
    */
   TypeParameterTypeImpl(TypeParameterElement element) : super(element, element.name);
 
-  bool operator ==(Object object) => object is TypeParameterTypeImpl && (element == (object as TypeParameterTypeImpl).element);
+  bool operator ==(Object object) => object is TypeParameterTypeImpl && (element == object.element);
 
   TypeParameterElement get element => super.element as TypeParameterElement;
 
@@ -7552,13 +8855,25 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return this;
   }
 
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => this == object;
+
   bool internalIsMoreSpecificThan(Type2 s, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    //
+    // A type T is more specific than a type S, written T << S,  if one of the following conditions
+    // is met:
+    //
+    // Reflexivity: T is S.
+    //
     if (this == s) {
       return true;
     }
+    // S is bottom.
+    //
     if (s.isBottom) {
       return true;
     }
+    // S is dynamic.
+    //
     if (s.isDynamic) {
       return true;
     }
@@ -7568,24 +8883,35 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   bool internalIsSubtypeOf(Type2 type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan3(type, true, new Set<TypeImpl_TypePair>());
 
   bool isMoreSpecificThan4(Type2 s, Set<Type2> visitedTypes, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // T is a type parameter and S is the upper bound of T.
+    //
     Type2 bound = element.bound;
     if (s == bound) {
       return true;
     }
+    // T is a type parameter and S is Object.
+    //
     if (s.isObject) {
       return true;
     }
+    // We need upper bound to continue.
     if (bound == null) {
       return false;
     }
+    //
+    // Transitivity: T << U and U << S.
+    //
     if (bound is TypeParameterTypeImpl) {
-      TypeParameterTypeImpl boundTypeParameter = bound as TypeParameterTypeImpl;
+      TypeParameterTypeImpl boundTypeParameter = bound;
+      // First check for infinite loops
       if (visitedTypes.contains(bound)) {
         return false;
       }
       visitedTypes.add(bound);
+      // Then check upper bound.
       return boundTypeParameter.isMoreSpecificThan4(s, visitedTypes, withDynamic, visitedTypePairs);
     }
+    // Check interface type.
     return (bound as TypeImpl).isMoreSpecificThan3(s, withDynamic, visitedTypePairs);
   }
 }
@@ -7620,6 +8946,8 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   bool get isVoid => true;
 
   VoidTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
+
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) => identical(object, this);
 
   bool internalIsMoreSpecificThan(Type2 type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf(type);
 

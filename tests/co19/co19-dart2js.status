@@ -99,6 +99,8 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 LibTest/isolate/ReceivePort/toSendPort_A01_t01: RuntimeError # Issue: 8920
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # http://dartbug.com/12635
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Timeout # co19-roll r651: Please triage this failure
+LibTest/async/Stream/Stream.periodic_A01_t01: Fail, Pass # Issue 16106
+LibTest/async/Timer/Timer.periodic_A01_t01: Fail, Pass # Issue 16110
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/core/Map/Map_class_A01_t04: Pass, Slow # Issue 8096
@@ -113,6 +115,7 @@ Language/15_Types/8_Parameterized_Types_A03_t07: RuntimeError # co19-roll r607: 
 Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass
 LibTest/core/Uri/Uri_A06_t03: Slow, Pass
+Language/13_Statements/09_Switch_A09_t01: RuntimeError # Issue 16089
 
 [ $compiler == dart2js ]
 LibTest/core/int/operator_GT_A01_t01: RuntimeError, OK # co19 issue 200
@@ -532,6 +535,9 @@ LibTest/typed_data/Uint8List/Uint8List.view_A05_t02: RuntimeError # co19-roll r5
 LibTest/typed_data/Uint8List/Uint8List.view_A05_t03: RuntimeError # co19-roll r559: Please triage this failure
 Utils/tests/Expect/identical_A01_t01: fail # co19-roll r546: Please triage this failure
 
+LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Please triage this failure
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: RuntimeError # Please triage this failure
+
 [ $compiler == dart2js && $checked ]
 Language/12_Expressions/03_Numbers_A05_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/19_Conditional_A04_t03: fail # co19-roll r546: Please triage this failure
@@ -598,6 +604,14 @@ LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # co19-roll r672: Please tr
 LibTest/core/Stopwatch/start_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
+LibTest/core/Stopwatch/start_A01_t01: RuntimeError # Please triage this failure
+LibTest/core/Stopwatch/start_A01_t02: RuntimeError # Please triage this failure
+LibTest/core/Stopwatch/elapsedTicks_A01_t01: RuntimeError # Please triage this failure
+
+LibTest/async/Stream/Stream.periodic_A01_t01: RuntimeError # No Periodic timer
+LibTest/async/Stream/Stream.periodic_A03_t01: RuntimeError # No Periodic timer
+LibTest/async/Timer/Timer.periodic_A01_t01: RuntimeError # No Periodic timer
+LibTest/async/Timer/Timer.periodic_A02_t01: RuntimeError # No Periodic timer
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
@@ -607,7 +621,6 @@ LibTest/core/Stopwatch/elapsedTicks_A01_t03: RuntimeError # co19-roll r672: Plea
 LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
-LibTest/core/Stopwatch/start_A01_t03: RuntimeError # co19-roll r672: Please triage this failure
 LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # co19-roll r672: Please triage this failure
 
 [ $compiler == dart2js && $minified ]

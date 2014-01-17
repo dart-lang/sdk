@@ -225,7 +225,7 @@ void translate(List originals, String locale, Map translations) {
 
 main(List<String> args) {
   if (args.length == 0) {
-    print('Usage: generate_hardcoded_translation [--output-dir=<dir>] '
+    print('Usage: make_hardcoded_translation [--output-dir=<dir>] '
         '[originalFile.json]');
     exit(0);
   }

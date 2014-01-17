@@ -58,3 +58,33 @@ void setUpTimeout() {
     currentSchedule.timeout = new Duration(seconds: 10);
   });
 }
+
+/// Creates a metatest with [body] and asserts that it passes.
+///
+/// This is like [expectTestsPass], but the [test] is set up automatically.
+void expectTestPasses(String description, void body()) =>
+  expectTestsPass(description, () => test('test', body));
+
+/// Creates a metatest that runs [testBody], captures its schedule errors, and
+/// passes them to [validator].
+///
+/// [testBody] is expected to produce an error, while [validator] is expected to
+/// produce none.
+void expectTestFails(String description, void testBody(),
+    void validator(List<ScheduleError> errors)) {
+  expectTestsPass(description, () {
+    var errors;
+    test('test body', () {
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      testBody();
+    });
+
+    test('validate errors', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      validator(errors);
+    });
+  }, passing: ['validate errors']);
+}

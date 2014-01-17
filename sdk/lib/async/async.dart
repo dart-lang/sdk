@@ -6,14 +6,71 @@
  * Support for asynchronous programming,
  * with classes such as Future and Stream.
  *
- * For an introduction to asynchronous programming in Dart, see the
- * [dart:async section of the language tour]
- * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-asynchronous-programming).
+ * Understanding [Future]s and [Stream]s is a prerequisite for
+ * writing just about any Dart program.
+ *
+ * To use this library in your code:
+ *
+ *     import 'dart:async';
+ *
+ * ## Future
+ *
+ * A Future object represents a computation whose return value
+ * might not yet be available.
+ * The Future returns the value of the computation
+ * when it completes at some time in the future.
+ * Futures are often used for potentially lengthy computations
+ * such as I/O and interaction with users.
+ *
+ * Many methods in the Dart libraries return Futures when
+ * performing tasks. For example, when binding an HttpServer
+ * to a host and port, the `bind()` method returns a Future.
+ *
+ *      HttpServer.bind('127.0.0.1', 4444)
+ *          .then((server) => print('${server.isBroadcast}'))
+ *          .catchError(print);
+ *
+ * [Future.then] registers a callback function that runs
+ * when the Future's operation, in this case the `bind()` method,
+ * completes successfully.
+ * The value returned by the operation
+ * is passed into the callback function.
+ * In this example, the `bind()` method returns the HttpServer
+ * object. The callback function prints one of its properties.
+ * [Future.catchError] registers a callback function that
+ * runs if an error occurs within the Future.
+ *
+ * ## Stream
+ *
+ * A Stream provides an asynchronous sequence of data.
+ * Examples of data sequences include user-generated events,
+ * such as mouse clicks, and a stream of bytes read from a file.
+ * The following example opens a file for reading.
+ * [Stream.listen] registers a callback function that runs
+ * each time more data is available.
+ *
+ *     Stream<List<int>> stream = new File('quotes.txt').openRead();
+ *     stream.transform(UTF8.decoder).listen(print);
+ *
+ * The stream emits a sequence of a list of bytes.
+ * The program must interpret the bytes or handle the raw byte data.
+ * Here, the code uses a UTF8 decoder (provided in the `dart:convert` library)
+ * to convert the sequence of bytes into a sequence
+ * of Dart strings.
+ *
+ * Another common use of streams is for user-generated events
+ * in a web app: The following code listens for mouse clicks on a button.
+ *
+ *     querySelector('#myButton').onClick.listen((_) => print('Click.'));
  *
  * ## Other resources
  *
- * * [Using Future Based APIs]
- * (https://www.dartlang.org/articles/using-future-based-apis/): A first look at
+ * * The [dart:async section of the library tour]
+ * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-asynchronous-programming):
+ * A brief overview of asynchronous programming.
+ *
+ * * [Use Future-Based APIs]
+ * (https://www.dartlang.org/docs/tutorials/futures/): A closer look at
  * Futures and how to use them to write asynchronous Dart code.
  *
  * * [Futures and Error Handling]
@@ -32,7 +89,7 @@
 library dart.async;
 
 import "dart:collection";
-import "dart:_collection-dev" show deprecated, printToZone, printToConsole;
+import "dart:_internal" show deprecated, printToZone, printToConsole;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';

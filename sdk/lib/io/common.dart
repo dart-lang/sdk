@@ -16,9 +16,8 @@ const int _OSERROR_RESPONSE_ERROR_CODE = 1;
 const int _OSERROR_RESPONSE_MESSAGE = 2;
 
 // Functions used to receive exceptions from native ports.
-bool _isErrorResponse(response) {
-  return response is List && response[0] != _SUCCESS_RESPONSE;
-}
+bool _isErrorResponse(response) =>
+    response is List && response[0] != _SUCCESS_RESPONSE;
 
 /**
  * Returns an Exception or an Error
@@ -54,27 +53,6 @@ class OSError {
   /** Constant used to indicate that no OS error code is available. */
   static const int noErrorCode = -1;
 
-  /** Creates an OSError object from a message and an errorCode. */
-  const OSError([String this.message = "", int this.errorCode = noErrorCode]);
-
-  /** Converts an OSError object to a string representation. */
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write("OS Error");
-    if (!message.isEmpty) {
-      sb.write(": ");
-      sb.write(message);
-      if (errorCode != noErrorCode) {
-        sb.write(", errno = ");
-        sb.write(errorCode.toString());
-      }
-    } else if (errorCode != noErrorCode) {
-      sb.write(": errno = ");
-      sb.write(errorCode.toString());
-    }
-    return sb.toString();
-  }
-
   /**
     * Error message supplied by the operating system. null if no message is
     * associated with the error.
@@ -86,14 +64,35 @@ class OSError {
     * [noErrorCode] if there is no error code associated with the error.
     */
   final int errorCode;
+
+  /** Creates an OSError object from a message and an errorCode. */
+  const OSError([this.message = "", this.errorCode = noErrorCode]);
+
+  /** Converts an OSError object to a string representation. */
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write("OS Error");
+    if (!message.isEmpty) {
+      sb..write(": ")
+        ..write(message);
+      if (errorCode != noErrorCode) {
+        sb..write(", errno = ")
+          ..write(errorCode.toString());
+      }
+    } else if (errorCode != noErrorCode) {
+      sb..write(": errno = ")
+        ..write(errorCode.toString());
+    }
+    return sb.toString();
+  }
 }
 
 
 // Object for holding a buffer and an offset.
 class _BufferAndStart {
-  _BufferAndStart(List this.buffer, int this.start);
   List buffer;
   int start;
+  _BufferAndStart(this.buffer, this.start);
 }
 
 // Ensure that the input List can be serialized through a native port.

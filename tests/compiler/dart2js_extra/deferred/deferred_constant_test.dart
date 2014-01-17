@@ -13,10 +13,9 @@ const lazy = const DeferredLibrary('deferred_class_library');
 
 main() {
   var x;
-  Expect.isNull(const MyClass());
-  Expect.isNull(const Constant(42));
-  Expect.isNull(const [const Constant(42)]);
-  Expect.isNull(x);
+  Expect.throws(() => const MyClass());
+  Expect.throws(() => const Constant(42));
+  Expect.throws(() => const [const Constant(42)]);
   int counter = 0;
   asyncStart();
   lazy.load().then((bool didLoad) {
@@ -42,7 +41,7 @@ main() {
   });
   Expect.equals(0, counter);
   Expect.isNull(x);
-  Expect.isNull(const Constant(42));
-  Expect.isNull(const [const Constant(42)]);
+  Expect.throws(() => const Constant(42));
+  Expect.throws(() => const [const Constant(42)]);
   Expect.isNull(x);
 }

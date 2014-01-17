@@ -97,7 +97,7 @@ class BasicRule extends SerializationRule {
    *
    * For example, to serialize a Serialization, we need its rules to be
    * individually added rather than just setting the rules field.
-   *      ..addRuleFor(new Serialization()).setFieldWith('rules',
+   *      ..addRuleFor(Serialization).setFieldWith('rules',
    *          (InstanceMirror s, List rules) {
    *            rules.forEach((x) => s.reflectee.addRule(x));
    * Note that the function is passed the owning object as well as the field

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html lang="en" manifest="nossl.appcache" itemscope itemtype="http://schema.org/Product">
+<head>
+<meta charset="utf-8">
+<title>Try Dart!</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="dartlang-style.css">
+<style>
+a.diagnostic {
+  /* position: relative; */
+  color: inherit;
+  border-bottom: 2px dotted red;
+}
+a:hover.diagnostic {
+  text-decoration: none;
+}
+a.diagnostic span {
+  display: none;
+}
+a:hover.diagnostic span {
+  display: block;
+  position: absolute;
+  /* left: 1em; */
+  /* top: 2em; */
+  right: 10px;
+}
+
+.offline {
+  transition: opacity 10s;
+  -webkit-transition: opacity 10s;
+}
+
+.offlineyay {
+  font-weight: bolder;
+  opacity: 0.0;
+}
+</style>
+
+<meta itemprop="name" content="Try Dart!">
+<meta itemprop="description" content="Write and run Dart code in your browser.  Dart is a class-based, object-oriented language with lexical scoping, closures, and optional static typing.">
+<meta name="description" content="Write and run Dart code in your browser.  Dart is a class-based, object-oriented language with lexical scoping, closures, and optional static typing.">
+<meta itemprop="image" content="try-dart-screenshot.png">
+
+<link rel="dart-sdk" href="sdk.json">
+<link rel="benchmark-DeltaBlue" href="benchmarks/DeltaBlue.dart">
+<link rel="benchmark-Richards" href="benchmarks/Richards.dart">
+<link rel="benchmark-base" href="benchmarks/benchmark_base.dart">
+
+<link href="favicon.ico" rel="icon" type="image/x-icon">
+
+<meta name="viewport" content="initial-scale=1.0">
+
+<!-- Chrome Mobile (Android) "Add to home screen" support -->
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="shortcut icon" sizes="196x196" href="dart-icon-196px.png">
+
+<!-- iOS "Add to Home Screen" support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="dart-icon-196px.png">
+<meta names="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-startup-image"
+      media="(device-width: 320px)
+         and (device-height: 568px)
+         and (-webkit-device-pixel-ratio: 2)"
+      href="dart-iphone5.png">
+
+<!-- Enable Google Analytics -->
+<script type="text/javascript">
+/*
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26406144-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+*/
+</script>
+</head>
+<body>
+<div class="navbar navbar-fixed-top">
+<div class="navbar-inner">
+<div class="container">
+<a class="brand" href="//www.dartlang.org/" title="Dart Homepage" target="_blank">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAMAAACeyVWkAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAJxQTFRFAAAAAIvMdsvDAIvMdsvDAIvMdsvDLaTJAIvMOqnHdsvDAIvMdsvDAIvMKaLJdsvDAIvMAIvMdsvDAIvMdsvDdsvDAIvMAIvMAZnFdsvDAILHAIPHAITIAIXJAIfKAIjKAIrLAIrMAIvMAJXHAJjFC5i/I6HENr2yOb6zPr+0TsK4UsO5WbnEWcW8Xsa9Yse+Zsi/asjAc8rCdsvDdt4SRQAAABp0Uk5TABAQICAwMFBgYGBwcICAgI+vr7+/z9/v7+97IXGnAAAAqUlEQVQYV13QxxaCQBBE0VZkjBgAGVEBaVEUM/P//yaTGg5vV3dZANTCZ9BvFAoR93kVC9FnthW6uIPTJ7UkdHaXvS2LXKNBURInyDXPsShbzjU7XCpxhooDVGo5QcQAJmjUco64AY/UcIrowYCTaj5KBZeTaj5JBTc6l11OlQKMf497y1ahefFb3TQfcqtM/fipJF/X9gnDon6/ah/aDDfNOgosNA2b8QdGciZlh/U93AAAAABJRU5ErkJggg==" alt="Dart">
+</a>
+<ul class="nav pull-right"><li><a href="#" id="settings"><i class="icon-cog"></i></a></li></ul>
+
+<ul class="nav hidden-phone">
+<li class="active"><a>Try Dart!</a></li>
+<li><a href="//api.dartlang.org/" target="_blank">API Reference</a></li>
+</ul>
+<form class="navbar-search pull-right hidden-phone" action="//www.dartlang.org/search.html" id="cse-search-box" target="_blank">
+<input type="hidden" name="ie" value="UTF-8">
+<input type="hidden" name="hl" value="en">
+<input type="search" name="q" class="search-query" id="q" autocomplete="off" placeholder="Search">
+</form>
+<ul class="nav pull-right"><li><a><span id="appcache-status" class="offline">offline status</span></a></li></ul>
+
+
+</div>
+</div>
+</div>
+<div class="container-fluid">
+<article class="homepage">
+<section>
+<div class="callouts row-fluid">
+<div class="span6" id="try-dart-column">
+<h2><i class="icon-play"></i> Try Dart! <select id="inspiration"></select></h2>
+</div>
+<div class="span6" id="run-dart-column">
+<h2><i class="icon-cogs"></i> See Dart</h2>
+</div>
+</div>
+</section>
+</article>
+</div>
+
+<div id="settings-dialog" class="modal hide fade">
+  <div class="modal-header">
+    <h3>Settings</h3>
+  </div>
+  <div class="modal-body" id="settings-body">
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn btn-primary" id="settings-done">Done</a>
+  </div>
+</div>
+
+<footer>
+<div class="container">
+<div class="row copyright">
+<div class="span8 offset2">
+<p>
+Except as otherwise <a href="http://code.google.com/policies.html#restrictions">noted</a>, the content of this page is licensed under the <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a>, and code samples are licensed under the <a href="http://code.google.com/google_bsd_license.html">BSD License</a>.
+</p>
+<p>
+<a href="//www.dartlang.org/tos.html">Terms of Service</a> —
+<a href="http://www.google.com/intl/en/policies/privacy/">Privacy Policy</a>
+</p>
+</div>
+</div>
+</div>
+</footer>
+<!--
+<script type="application/javascript" src="https://dart.googlecode.com/svn/branches/bleeding_edge/dart/pkg/browser/lib/dart.js"></script>
+<script type="application/dart" src="leap.dart"></script>
+-->
+<script type="application/javascript" src="leap.dart.js"></script>
+</body>
+</html>

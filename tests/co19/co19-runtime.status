@@ -29,43 +29,32 @@ Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
 
 # All isolate are being ignored at the moment as the library will go through some changes.
-LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
+LibTest/isolate/IsolateStream/any_A02_t01: fail # co19 issue 668
+LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19 issue 668
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
 
+LibTest/isolate/Isolate/spawnUri_A01_t02: Skip # Dart issue 15974
+LibTest/isolate/Isolate/spawnUri_A01_t03: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15617
-LibTest/isolate/Isolate/spawnUri_A02_t02: Timeout # co19-roll r672: Please triage this failure
-LibTest/isolate/Isolate/spawnUri_A02_t03: Timeout # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Dart issue 15974
+LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Dart issue 15974
+LibTest/isolate/Isolate/spawnUri_A02_t04: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
 
-LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
-LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/greaterThan_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
-LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Issue 12508
+LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
+LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
 [ $compiler == none && $runtime == vm ]
-LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # Issue 13398
-LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # Issue 13398
+LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
+LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 
 [ $compiler == none && $runtime == vm && $checked ]
-LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
-
-# Passing for the wrong reasons:
-LibTest/async/Completer/completeError_A03_t02: Pass # No AsyncError anymore. Issue 407 and 463
-LibTest/async/Completer/complete_A02_t02: Pass # No AsyncError anymore. Issue 407 and 463
-LibTest/async/Future/catchError_A01_t01: Pass # No AsyncError anymore. Issue 407 and 463
-LibTest/async/Future/catchError_A01_t02: Pass # No AsyncError anymore. Issue 407 and 463
+LibTest/core/List/removeAt_A02_t01: Fail # co19 issue 670
 
 #end [ $compiler == none && $runtime == vm && $checked ]
 
 [ $compiler == none && $runtime == vm && $mode == debug ]
-LibTest/isolate/IsolateStream/contains_A02_t01: Fail # co19-roll r546: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t01: Pass, Slow
 LibTest/core/List/List_class_A01_t01: Pass, Slow
 
@@ -77,13 +66,14 @@ LibTest/math/log_A01_t01: Fail
 LibTest/core/double/toInt_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simmips) ]
-LibTest/core/Uri/Uri_A06_t03: Pass, Timeout # co19-roll r576: Please triage this failure
+LibTest/core/Uri/Uri_A06_t03: Skip # Timeouts, co19-roll r576: Please triage this failure
+
+[ $compiler == none && $runtime == vm ]
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # Timeouts
+LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # Timeouts
 
 [ $compiler == none && $runtime == vm && $arch == simarm ]
 LibTest/typed_data/Float32x4/sqrt_A01_t01: Pass, Fail # co19 issue 666.
 
-[ $compiler == none && $checked && ($runtime == vm || $runtime == dartium) ]
-Language/15_Types/1_Static_Types_A03_t01: RuntimeError # co19-roll r667: Please triage this failure
-
 [ $runtime == vm ]
-LibTest/isolate/Isolate/spawn_A02_t01: Timeout # co19-roll r672: Please triage this failure
+LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667

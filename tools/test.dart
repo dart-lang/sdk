@@ -191,6 +191,21 @@ void testConfigurations(List<Map> configurations) {
         if (key == 'analyze_library') {
           testSuites.add(new AnalyzeLibraryTestSuite(conf));
         }
+      } else if (conf['compiler'] == 'none' &&
+                 conf['runtime'] == 'vm' &&
+                 key == 'pkgbuild') {
+        if (!conf['use_repository_packages'] && !conf['use_public_packages']) {
+          print("You need to use either --use-repository-packages or "
+                "--use-public-packages with the pkgbuild test suite!");
+          exit(1);
+        }
+        if (!conf['use_sdk']) {
+          print("Running the 'pkgbuild' test suite requires "
+                "passing the '--use-sdk' to test.py");
+          exit(1);
+        }
+        testSuites.add(
+            new PkgBuildTestSuite(conf, 'pkgbuild', 'pkg/pkgbuild.status'));
       }
     }
 

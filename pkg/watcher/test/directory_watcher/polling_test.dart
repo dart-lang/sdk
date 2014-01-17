@@ -19,15 +19,6 @@ main() {
 
   sharedTests();
 
-  test('does not notify if the file contents are unchanged', () {
-    writeFile("a.txt", contents: "same");
-    writeFile("b.txt", contents: "before");
-    startWatcher();
-    writeFile("a.txt", contents: "same");
-    writeFile("b.txt", contents: "after");
-    expectModifyEvent("b.txt");
-  });
-
   test('does not notify if the modification time did not change', () {
     writeFile("a.txt", contents: "before");
     writeFile("b.txt", contents: "before");

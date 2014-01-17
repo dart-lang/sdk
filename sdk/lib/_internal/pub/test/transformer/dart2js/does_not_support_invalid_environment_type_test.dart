@@ -1,0 +1,43 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS d.file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library pub_tests;
+
+import 'package:scheduled_test/scheduled_test.dart';
+
+import '../../descriptor.dart' as d;
+import '../../test_pub.dart';
+import '../../serve/utils.dart';
+
+main() {
+  initConfig();
+
+  integration("doesn't support invalid environment type", () {
+    d.dir(appPath, [
+      d.pubspec({
+        "name": "myapp",
+        "transformers": [{
+          "\$dart2js": {
+            "environment": "foo",
+          }
+        }]
+      }),
+      d.dir("lib", [d.dir("src", [
+        d.file("transformer.dart", REWRITE_TRANSFORMER)
+      ])]),
+      d.dir("web", [d.file("main.dart", "void main() {}")])
+    ]).create();
+
+    createLockFile('myapp', pkg: ['barback']);
+
+    var server = pubServe();
+    expect(server.nextErrLine(), completion(equals('Build error:')));
+    expect(server.nextErrLine(), completion(equals(
+        'Transform Dart2JS on myapp|web/main.dart threw error: '
+            'FormatException: Invalid value for \$dart2js.environment: "foo" '
+            '(expected map from strings to strings).')));
+    requestShould404("main.dart.js");
+    endPubServe();
+  });
+}

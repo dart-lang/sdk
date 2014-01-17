@@ -23,16 +23,6 @@ main() {
         new isInstanceOf<LinuxDirectoryWatcher>());
   });
 
-  test('notifies even if the file contents are unchanged', () {
-    writeFile("a.txt", contents: "same");
-    writeFile("b.txt", contents: "before");
-    startWatcher();
-    writeFile("a.txt", contents: "same");
-    writeFile("b.txt", contents: "after");
-    expectModifyEvent("a.txt");
-    expectModifyEvent("b.txt");
-  });
-
   test('emits events for many nested files moved out then immediately back in',
       () {
     withPermutations((i, j, k) =>
@@ -42,14 +32,15 @@ main() {
     renameDir("dir/sub", "sub");
     renameDir("sub", "dir/sub");
 
-    inAnyOrder(() {
-      withPermutations((i, j, k) =>
-          expectRemoveEvent("dir/sub/sub-$i/sub-$j/file-$k.txt"));
-    });
+    allowEither(() {
+      inAnyOrder(withPermutations((i, j, k) =>
+          isRemoveEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
 
-    inAnyOrder(() {
-      withPermutations((i, j, k) =>
-          expectAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt"));
+      inAnyOrder(withPermutations((i, j, k) =>
+          isAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
+    }, () {
+      inAnyOrder(withPermutations((i, j, k) =>
+          isModifyEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
     });
   });
 }

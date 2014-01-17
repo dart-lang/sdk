@@ -1,21 +1,15 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
 # This file contains all sources for the Resources table.
 {
   'sources': [
-#  VM Service backend sources
-    'vmservice/client.dart',
-    'vmservice/constants.dart',
+# Standalone VM service sources.
     'vmservice/resources.dart',
-    'vmservice/running_isolate.dart',
-    'vmservice/running_isolates.dart',
     'vmservice/server.dart',
-    'vmservice/message.dart',
-    'vmservice/message_router.dart',
-    'vmservice/vmservice.dart',
     'vmservice/vmservice_io.dart',
-# VM Service frontend sources
+# Standalone VM frontend resources.
     'vmservice/client/deployed/web/index.html',
     'vmservice/client/deployed/web/favicon.ico',
     'vmservice/client/deployed/web/index.html_bootstrap.dart.js',

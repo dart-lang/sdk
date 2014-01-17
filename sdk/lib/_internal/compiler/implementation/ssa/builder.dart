@@ -1204,11 +1204,13 @@ abstract class SsaBuilderMixin<N> {
     if (cachedCanBeInlined == false) return false;
 
     bool meetsHardConstraints() {
-      // We cannot inline a method from a deferred library into a method
-      // which isn't deferred.
-      // TODO(ahe): But we should still inline into the same
-      // connected-component of the deferred library.
-      if (compiler.deferredLoadTask.isDeferred(element)) return false;
+      // Don't inline from one output unit to another. If something is deferred
+      // it is to save space in the loading code.
+      var getOutputUnit = compiler.deferredLoadTask.outputUnitForElement;
+      if (getOutputUnit(element) !=
+          getOutputUnit(compiler.currentElement)) {
+        return false;
+      }
       if (compiler.disableInlining) return false;
 
       assert(selector != null
@@ -1511,7 +1513,6 @@ abstract class SsaFromAstMixin
   bool inTryStatement = false;
 
   Constant getConstantForNode(Node node) {
-    ConstantHandler handler = compiler.constantHandler;
     Constant constant = elements.getConstant(node);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));

@@ -72,7 +72,7 @@ LibTest/isolate/ReceivePort/toSendPort_A01_t03: Fail
 LibTest/isolate/SendPort/call_A01_t01: Fail
 LibTest/isolate/SendPort/hashCode_A01_t01: Fail
 LibTest/isolate/SendPort/operator_equality_A01_t01: Fail
-LibTest/isolate/SendPort/send_A01_t01: Pass
+LibTest/isolate/SendPort/send_A01_t01: StaticWarning
 LibTest/isolate/SendPort/send_A02_t01: Fail
 LibTest/isolate/SendPort/send_A02_t04: Fail
 LibTest/isolate/SendPort/send_A02_t05: Fail
@@ -83,7 +83,6 @@ LibTest/isolate/IsolateStream/any_A02_t01: Fail
 LibTest/isolate/IsolateStream/contains_A02_t01: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
 LibTest/isolate/ReceivePort/toSendPort_A01_t02: Fail
-LibTest/isolate/SendPort/send_A01_t01: Fail
 LibTest/isolate/SendPort/send_A02_t02: Fail
 LibTest/isolate/SendPort/send_A02_t03: Fail
 
@@ -130,7 +129,6 @@ Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18:
 
 Language/07_Classes/10_Superinterfaces_A07_t05: StaticWarning # co19-roll r667: Please triage this failure
 LibTest/convert/JsonEncoder/JsonEncoder_A01_t01: StaticWarning # co19-roll r667: Please triage this failure
-LibTest/async/Zone/operator_subscript_A01_t01: StaticWarning # co19-roll r672: Please triage this failure
 
 # co19 issue 656
 LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656

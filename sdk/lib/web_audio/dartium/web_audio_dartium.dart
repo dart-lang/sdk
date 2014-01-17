@@ -2,7 +2,7 @@ library dart.dom.web_audio;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_collection-dev' hide deprecated;
+import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
@@ -230,31 +230,43 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DocsEditable()
   void noteOn(num when) native "AudioBufferSourceNode_noteOn_Callback";
 
-  void start(num when, [num grainOffset, num grainDuration]) {
-    if ((when is num || when == null) && grainOffset == null && grainDuration == null) {
-      _start_1(when);
+  void start([num when, num grainOffset, num grainDuration]) {
+    if (grainDuration != null) {
+      _start_1(when, grainOffset, grainDuration);
       return;
     }
-    if ((grainOffset is num || grainOffset == null) && (when is num || when == null) && grainDuration == null) {
+    if (grainOffset != null) {
       _start_2(when, grainOffset);
       return;
     }
-    if ((grainDuration is num || grainDuration == null) && (grainOffset is num || grainOffset == null) && (when is num || when == null)) {
-      _start_3(when, grainOffset, grainDuration);
+    if (when != null) {
+      _start_3(when);
       return;
     }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    _start_4();
+    return;
   }
 
-  void _start_1(when) native "AudioBufferSourceNode__start_1_Callback";
+  void _start_1(when, grainOffset, grainDuration) native "AudioBufferSourceNode__start_1_Callback";
 
   void _start_2(when, grainOffset) native "AudioBufferSourceNode__start_2_Callback";
 
-  void _start_3(when, grainOffset, grainDuration) native "AudioBufferSourceNode__start_3_Callback";
+  void _start_3(when) native "AudioBufferSourceNode__start_3_Callback";
 
-  @DomName('AudioBufferSourceNode.stop')
-  @DocsEditable()
-  void stop(num when) native "AudioBufferSourceNode_stop_Callback";
+  void _start_4() native "AudioBufferSourceNode__start_4_Callback";
+
+  void stop([num when]) {
+    if (when != null) {
+      _stop_1(when);
+      return;
+    }
+    _stop_2();
+    return;
+  }
+
+  void _stop_1(when) native "AudioBufferSourceNode__stop_1_Callback";
+
+  void _stop_2() native "AudioBufferSourceNode__stop_2_Callback";
 
   /// Stream of `ended` events handled by this [AudioBufferSourceNode].
   @DomName('AudioBufferSourceNode.onended')
@@ -287,10 +299,12 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.AudioContext')
   @DocsEditable()
-  factory AudioContext() => _create();
+  factory AudioContext() {
+    return AudioContext._create_1();
+  }
 
   @DocsEditable()
-  static AudioContext _create() native "AudioContext_constructorCallback";
+  static AudioContext _create_1() native "AudioContext__create_1constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -436,14 +450,17 @@ class AudioContext extends EventTarget {
   @Experimental() // untriaged
   PeriodicWave createPeriodicWave(Float32List real, Float32List imag) native "AudioContext_createPeriodicWave_Callback";
 
-  ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
+  ScriptProcessorNode createScriptProcessor([int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) {
     if (numberOfOutputChannels != null) {
       return _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
     }
     if (numberOfInputChannels != null) {
       return _createScriptProcessor_2(bufferSize, numberOfInputChannels);
     }
-    return _createScriptProcessor_3(bufferSize);
+    if (bufferSize != null) {
+      return _createScriptProcessor_3(bufferSize);
+    }
+    return _createScriptProcessor_4();
   }
 
   ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createScriptProcessor_1_Callback";
@@ -451,6 +468,8 @@ class AudioContext extends EventTarget {
   ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) native "AudioContext__createScriptProcessor_2_Callback";
 
   ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext__createScriptProcessor_3_Callback";
+
+  ScriptProcessorNode _createScriptProcessor_4() native "AudioContext__createScriptProcessor_4_Callback";
 
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
@@ -1158,13 +1177,31 @@ class OscillatorNode extends AudioSourceNode {
   @Experimental() // untriaged
   void setPeriodicWave(PeriodicWave periodicWave) native "OscillatorNode_setPeriodicWave_Callback";
 
-  @DomName('OscillatorNode.start')
-  @DocsEditable()
-  void start(num when) native "OscillatorNode_start_Callback";
+  void start([num when]) {
+    if (when != null) {
+      _start_1(when);
+      return;
+    }
+    _start_2();
+    return;
+  }
 
-  @DomName('OscillatorNode.stop')
-  @DocsEditable()
-  void stop(num when) native "OscillatorNode_stop_Callback";
+  void _start_1(when) native "OscillatorNode__start_1_Callback";
+
+  void _start_2() native "OscillatorNode__start_2_Callback";
+
+  void stop([num when]) {
+    if (when != null) {
+      _stop_1(when);
+      return;
+    }
+    _stop_2();
+    return;
+  }
+
+  void _stop_1(when) native "OscillatorNode__stop_1_Callback";
+
+  void _stop_2() native "OscillatorNode__stop_2_Callback";
 
   /// Stream of `ended` events handled by this [OscillatorNode].
   @DomName('OscillatorNode.onended')

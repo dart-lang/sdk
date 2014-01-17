@@ -50,16 +50,41 @@ abstract class CompilerProvider {
 /// By default, the package root is assumed to be adjacent to [entrypoint], but
 /// if [packageRoot] is passed that will be used instead.
 Future compile(String entrypoint, CompilerProvider provider, {
-    String packageRoot, bool toDart: false, bool minify: true}) {
+    Iterable<String> commandLineOptions,
+    bool checked: false,
+    bool minify: true,
+    bool verbose: false,
+    Map<String, String> environment,
+    String packageRoot,
+    bool analyzeAll: false,
+    bool suppressWarnings: false,
+    bool suppressHints: false,
+    bool terse: false,
+    bool toDart: false}) {
   return syncFuture(() {
     var options = <String>['--categories=Client,Server'];
-    if (toDart) options.add('--output-type=dart');
+    if (checked) options.add('--checked');
     if (minify) options.add('--minify');
+    if (verbose) options.add('--verbose');
+    if (analyzeAll) options.add('--analyze-all');
+    if (suppressWarnings) options.add('--suppress-warnings');
+    if (suppressHints) options.add('--suppress-hints');
+    if (terse) options.add('--terse');
+    if (toDart) options.add('--output-type=dart');
+
+    if (environment != null) {
+      environment.forEach((name, value) {
+        options.add('-D$name=$value');
+      });
+    }
+
+    if (commandLineOptions != null) options.addAll(commandLineOptions);
 
     if (packageRoot == null) {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
     }
 
+    options.add('--asdfsadfsadf');
     return Chain.track(compiler.compile(
         path.toUri(entrypoint),
         path.toUri(appendSlash(_libPath)),

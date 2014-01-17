@@ -23,7 +23,7 @@ part of dart.core;
  * Use one of the properties, such as [inDays],
  * to retrieve the integer value of the Duration in the specified time unit.
  * Note that the returned value is rounded down.
- * For example, 
+ * For example,
  *
  *     Duration aLongWeekend = new Duration(hours:88);
  *     assert(aLongWeekend.inDays == 3);
@@ -223,7 +223,7 @@ class Duration implements Comparable<Duration> {
       if (n >= 10000) return "0$n";
       if (n >= 1000) return "00$n";
       if (n >= 100) return "000$n";
-      if (n > 10) return "0000$n";
+      if (n >= 10) return "0000$n";
       return "00000$n";
     }
     String twoDigits(int n) {

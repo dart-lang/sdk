@@ -13,10 +13,27 @@ namespace dart {
 
 class Instance;
 class Isolate;
+class RawInstance;
 
 class Service : public AllStatic {
  public:
-  static void HandleServiceMessage(Isolate* isolate, const Instance& message);
+  // Handles a message which is not directed to an isolate.
+  static void HandleRootMessage(const Instance& message);
+
+  // Handles a message which is directed to a particular isolate.
+  static void HandleIsolateMessage(Isolate* isolate, const Instance& message);
+
+  static Isolate* GetServiceIsolate(void* callback_data);
+  static bool SendIsolateStartupMessage();
+  static bool SendIsolateShutdownMessage();
+ private:
+  static bool IsRunning();
+  static Isolate* service_isolate_;
+  static Dart_LibraryTagHandler default_handler_;
+  static Dart_Port port_;
+  static Dart_Handle GetSource(const char* name);
+  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
+                                       Dart_Handle url);
 };
 
 }  // namespace dart

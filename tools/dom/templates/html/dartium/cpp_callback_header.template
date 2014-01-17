@@ -47,7 +47,7 @@ public:
 $HANDLERS
 
 private:
-    Dart$(INTERFACE)(Dart_Handle object, Dart_Handle& exception, ScriptExecutionContext* context)
+    Dart$(INTERFACE)(Dart_Handle object, Dart_Handle& exception, ExecutionContext* context)
         : ActiveDOMCallback(context)
         , m_callback(object, exception)
     {

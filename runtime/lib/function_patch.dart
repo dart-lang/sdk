@@ -22,7 +22,7 @@ patch class Function {
     if (numNamedArguments > 0) {
       namedArguments.forEach((name, value) {
         arguments[argumentIndex++] = value;
-        names[nameIndex++] = _collection_dev.Symbol.getName(name);
+        names[nameIndex++] = internal.Symbol.getName(name);
       });
     }
     return _apply(arguments, names);

@@ -4616,7 +4616,7 @@ TEST_CASE(Invoke_Null) {
 
 TEST_CASE(InvokeNoSuchMethod) {
   const char* kScriptChars =
-      "import 'dart:_collection-dev' as _collection_dev;\n"
+      "import 'dart:_internal' as _internal;\n"
       "class Expect {\n"
       "  static equals(a, b) {\n"
       "    if (a != b) {\n"
@@ -4627,7 +4627,7 @@ TEST_CASE(InvokeNoSuchMethod) {
       "class TestClass {\n"
       "  static int fld1 = 0;\n"
       "  void noSuchMethod(Invocation invocation) {\n"
-      "    var name = _collection_dev.Symbol.getName(invocation.memberName);\n"
+      "    var name = _internal.Symbol.getName(invocation.memberName);\n"
       "    if (name == 'fld') {\n"
       "      Expect.equals(true, invocation.isGetter);\n"
       "      Expect.equals(false, invocation.isMethod);\n"

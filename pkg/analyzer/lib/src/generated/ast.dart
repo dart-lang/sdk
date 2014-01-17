@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
@@ -64,7 +68,7 @@ abstract class ASTNode {
     while (node != null && !isInstanceOf(node, enclosingClass)) {
       node = node.parent;
     }
-    return node as ASTNode;
+    return node;
   }
 
   /**
@@ -1036,10 +1040,13 @@ class ArgumentList extends ASTNode {
    */
   ParameterElement getPropagatedParameterElementFor(Expression expression) {
     if (_correspondingPropagatedParameters == null) {
+      // Either the AST structure has not been resolved or the invocation of which this list is a
+      // part could not be resolved.
       return null;
     }
     int index = _arguments.indexOf(expression);
     if (index < 0) {
+      // The expression isn't a child of this node.
       return null;
     }
     return _correspondingPropagatedParameters[index];
@@ -1060,10 +1067,13 @@ class ArgumentList extends ASTNode {
    */
   ParameterElement getStaticParameterElementFor(Expression expression) {
     if (_correspondingStaticParameters == null) {
+      // Either the AST structure has not been resolved or the invocation of which this list is a
+      // part could not be resolved.
       return null;
     }
     int index = _arguments.indexOf(expression);
     if (index < 0) {
+      // The expression isn't a child of this node.
       return null;
     }
     return _correspondingStaticParameters[index];
@@ -2203,6 +2213,28 @@ class ClassDeclaration extends CompilationUnitMember {
 
   accept(ASTVisitor visitor) => visitor.visitClassDeclaration(this);
 
+  /**
+   * Return the constructor declared in the class with the given name.
+   *
+   * @param name the name of the constructor to find, `null` for default
+   * @return the found constructor or `null` if not found
+   */
+  ConstructorDeclaration getConstructor(String name) {
+    for (ClassMember classMember in _members) {
+      if (classMember is ConstructorDeclaration) {
+        ConstructorDeclaration constructor = classMember;
+        SimpleIdentifier constructorName = constructor.name;
+        if (name == null && constructorName == null) {
+          return constructor;
+        }
+        if (constructorName != null && constructorName.name == name) {
+          return constructor;
+        }
+      }
+    }
+    return null;
+  }
+
   ClassElement get element => _name != null ? (_name.staticElement as ClassElement) : null;
 
   Token get endToken => rightBracket;
@@ -2224,7 +2256,7 @@ class ClassDeclaration extends CompilationUnitMember {
   VariableDeclaration getField(String name) {
     for (ClassMember classMember in _members) {
       if (classMember is FieldDeclaration) {
-        FieldDeclaration fieldDeclaration = classMember as FieldDeclaration;
+        FieldDeclaration fieldDeclaration = classMember;
         NodeList<VariableDeclaration> fields = fieldDeclaration.fields.variables;
         for (VariableDeclaration field in fields) {
           SimpleIdentifier fieldName = field.name;
@@ -2251,6 +2283,25 @@ class ClassDeclaration extends CompilationUnitMember {
    * @return the members defined by the class
    */
   NodeList<ClassMember> get members => _members;
+
+  /**
+   * Return the method declared in the class with the given name.
+   *
+   * @param name the name of the method to find
+   * @return the found method or `null` if not found
+   */
+  MethodDeclaration getMethod(String name) {
+    for (ClassMember classMember in _members) {
+      if (classMember is MethodDeclaration) {
+        MethodDeclaration method = classMember;
+        SimpleIdentifier methodName = method.name;
+        if (methodName != null && name == methodName.name) {
+          return method;
+        }
+      }
+    }
+    return null;
+  }
 
   /**
    * Return the name of the class being declared.
@@ -4204,7 +4255,7 @@ class ExportDirective extends NamespaceDirective {
   LibraryElement get uriElement {
     Element element = this.element;
     if (element is ExportElement) {
-      return (element as ExportElement).exportedLibrary;
+      return element.exportedLibrary;
     }
     return null;
   }
@@ -4299,26 +4350,26 @@ abstract class Expression extends ASTNode {
   ParameterElement get propagatedParameterElement {
     ASTNode parent = this.parent;
     if (parent is ArgumentList) {
-      return (parent as ArgumentList).getPropagatedParameterElementFor(this);
+      return parent.getPropagatedParameterElementFor(this);
     } else if (parent is IndexExpression) {
-      IndexExpression indexExpression = parent as IndexExpression;
+      IndexExpression indexExpression = parent;
       if (identical(indexExpression.index, this)) {
         return indexExpression.propagatedParameterElementForIndex;
       }
     } else if (parent is BinaryExpression) {
-      BinaryExpression binaryExpression = parent as BinaryExpression;
+      BinaryExpression binaryExpression = parent;
       if (identical(binaryExpression.rightOperand, this)) {
         return binaryExpression.propagatedParameterElementForRightOperand;
       }
     } else if (parent is AssignmentExpression) {
-      AssignmentExpression assignmentExpression = parent as AssignmentExpression;
+      AssignmentExpression assignmentExpression = parent;
       if (identical(assignmentExpression.rightHandSide, this)) {
         return assignmentExpression.propagatedParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpression) {
-      return (parent as PrefixExpression).propagatedParameterElementForOperand;
+      return parent.propagatedParameterElementForOperand;
     } else if (parent is PostfixExpression) {
-      return (parent as PostfixExpression).propagatedParameterElementForOperand;
+      return parent.propagatedParameterElementForOperand;
     }
     return null;
   }
@@ -4336,26 +4387,26 @@ abstract class Expression extends ASTNode {
   ParameterElement get staticParameterElement {
     ASTNode parent = this.parent;
     if (parent is ArgumentList) {
-      return (parent as ArgumentList).getStaticParameterElementFor(this);
+      return parent.getStaticParameterElementFor(this);
     } else if (parent is IndexExpression) {
-      IndexExpression indexExpression = parent as IndexExpression;
+      IndexExpression indexExpression = parent;
       if (identical(indexExpression.index, this)) {
         return indexExpression.staticParameterElementForIndex;
       }
     } else if (parent is BinaryExpression) {
-      BinaryExpression binaryExpression = parent as BinaryExpression;
+      BinaryExpression binaryExpression = parent;
       if (identical(binaryExpression.rightOperand, this)) {
         return binaryExpression.staticParameterElementForRightOperand;
       }
     } else if (parent is AssignmentExpression) {
-      AssignmentExpression assignmentExpression = parent as AssignmentExpression;
+      AssignmentExpression assignmentExpression = parent;
       if (identical(assignmentExpression.rightHandSide, this)) {
         return assignmentExpression.staticParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpression) {
-      return (parent as PrefixExpression).staticParameterElementForOperand;
+      return parent.staticParameterElementForOperand;
     } else if (parent is PostfixExpression) {
-      return (parent as PostfixExpression).staticParameterElementForOperand;
+      return parent.staticParameterElementForOperand;
     }
     return null;
   }
@@ -5609,6 +5660,8 @@ class FunctionExpression extends Expression {
     } else if (_body != null) {
       return _body.beginToken;
     }
+    // This should never be reached because external functions must be named, hence either the body
+    // or the name should be non-null.
     throw new IllegalStateException("Non-external functions must have a body");
   }
 
@@ -5625,6 +5678,8 @@ class FunctionExpression extends Expression {
     } else if (_parameters != null) {
       return _parameters.endToken;
     }
+    // This should never be reached because external functions must be named, hence either the body
+    // or the name should be non-null.
     throw new IllegalStateException("Non-external functions must have a body");
   }
 
@@ -6321,6 +6376,9 @@ class ImplementsClause extends ASTNode {
  */
 class ImportDirective extends NamespaceDirective {
   static Comparator<ImportDirective> COMPARATOR = (ImportDirective import1, ImportDirective import2) {
+    //
+    // uri
+    //
     StringLiteral uri1 = import1.uri;
     StringLiteral uri2 = import2.uri;
     String uriStr1 = uri1.stringValue;
@@ -6337,6 +6395,9 @@ class ImportDirective extends NamespaceDirective {
         }
       }
     }
+    //
+    // as
+    //
     SimpleIdentifier prefix1 = import1.prefix;
     SimpleIdentifier prefix2 = import2.prefix;
     String prefixStr1 = prefix1 != null ? prefix1.name : null;
@@ -6353,12 +6414,15 @@ class ImportDirective extends NamespaceDirective {
         }
       }
     }
+    //
+    // hides and shows
+    //
     NodeList<Combinator> combinators1 = import1.combinators;
     List<String> allHides1 = new List<String>();
     List<String> allShows1 = new List<String>();
     for (Combinator combinator in combinators1) {
       if (combinator is HideCombinator) {
-        NodeList<SimpleIdentifier> hides = (combinator as HideCombinator).hiddenNames;
+        NodeList<SimpleIdentifier> hides = combinator.hiddenNames;
         for (SimpleIdentifier simpleIdentifier in hides) {
           allHides1.add(simpleIdentifier.name);
         }
@@ -6374,7 +6438,7 @@ class ImportDirective extends NamespaceDirective {
     List<String> allShows2 = new List<String>();
     for (Combinator combinator in combinators2) {
       if (combinator is HideCombinator) {
-        NodeList<SimpleIdentifier> hides = (combinator as HideCombinator).hiddenNames;
+        NodeList<SimpleIdentifier> hides = combinator.hiddenNames;
         for (SimpleIdentifier simpleIdentifier in hides) {
           allHides2.add(simpleIdentifier.name);
         }
@@ -6385,12 +6449,14 @@ class ImportDirective extends NamespaceDirective {
         }
       }
     }
+    // test lengths of combinator lists first
     if (allHides1.length != allHides2.length) {
       return allHides1.length - allHides2.length;
     }
     if (allShows1.length != allShows2.length) {
       return allShows1.length - allShows2.length;
     }
+    // next ensure that the lists are equivalent
     if (!javaCollectionContainsAll(allHides1, allHides2)) {
       return -1;
     }
@@ -6665,7 +6731,7 @@ class IndexExpression extends Expression {
   bool inGetterContext() {
     ASTNode parent = this.parent;
     if (parent is AssignmentExpression) {
-      AssignmentExpression assignment = parent as AssignmentExpression;
+      AssignmentExpression assignment = parent;
       if (identical(assignment.leftHandSide, this) && identical(assignment.operator.type, TokenType.EQ)) {
         return false;
       }
@@ -6686,11 +6752,11 @@ class IndexExpression extends Expression {
   bool inSetterContext() {
     ASTNode parent = this.parent;
     if (parent is PrefixExpression) {
-      return (parent as PrefixExpression).operator.type.isIncrementOperator;
+      return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
       return true;
     } else if (parent is AssignmentExpression) {
-      return identical((parent as AssignmentExpression).leftHandSide, this);
+      return identical(parent.leftHandSide, this);
     }
     return false;
   }
@@ -8197,7 +8263,7 @@ class NamedExpression extends Expression {
   ParameterElement get element {
     Element element = _name.label.staticElement;
     if (element is ParameterElement) {
-      return element as ParameterElement;
+      return element;
     }
     return null;
   }
@@ -8456,7 +8522,7 @@ abstract class NormalFormalParameter extends FormalParameter {
   ParameterKind get kind {
     ASTNode parent = this.parent;
     if (parent is DefaultFormalParameter) {
-      return (parent as DefaultFormalParameter).kind;
+      return parent.kind;
     }
     return ParameterKind.REQUIRED;
   }
@@ -8487,6 +8553,10 @@ abstract class NormalFormalParameter extends FormalParameter {
   }
 
   void visitChildren(ASTVisitor visitor) {
+    //
+    // Note that subclasses are responsible for visiting the identifier because they often need to
+    // visit other nodes before visiting the identifier.
+    //
     if (commentIsBeforeAnnotations()) {
       safelyVisitChild(_comment, visitor);
       _metadata.accept(visitor);
@@ -9795,30 +9865,30 @@ class SimpleIdentifier extends Identifier {
   bool inDeclarationContext() {
     ASTNode parent = this.parent;
     if (parent is CatchClause) {
-      CatchClause clause = parent as CatchClause;
+      CatchClause clause = parent;
       return identical(this, clause.exceptionParameter) || identical(this, clause.stackTraceParameter);
     } else if (parent is ClassDeclaration) {
-      return identical(this, (parent as ClassDeclaration).name);
+      return identical(this, parent.name);
     } else if (parent is ClassTypeAlias) {
-      return identical(this, (parent as ClassTypeAlias).name);
+      return identical(this, parent.name);
     } else if (parent is ConstructorDeclaration) {
-      return identical(this, (parent as ConstructorDeclaration).name);
+      return identical(this, parent.name);
     } else if (parent is DeclaredIdentifier) {
-      return identical(this, (parent as DeclaredIdentifier).identifier);
+      return identical(this, parent.identifier);
     } else if (parent is FunctionDeclaration) {
-      return identical(this, (parent as FunctionDeclaration).name);
+      return identical(this, parent.name);
     } else if (parent is FunctionTypeAlias) {
-      return identical(this, (parent as FunctionTypeAlias).name);
+      return identical(this, parent.name);
     } else if (parent is Label) {
-      return identical(this, (parent as Label).label) && (parent.parent is LabeledStatement);
+      return identical(this, parent.label) && (parent.parent is LabeledStatement);
     } else if (parent is MethodDeclaration) {
-      return identical(this, (parent as MethodDeclaration).name);
+      return identical(this, parent.name);
     } else if (parent is FunctionTypedFormalParameter || parent is SimpleFormalParameter) {
       return identical(this, (parent as NormalFormalParameter).identifier);
     } else if (parent is TypeParameter) {
-      return identical(this, (parent as TypeParameter).name);
+      return identical(this, parent.name);
     } else if (parent is VariableDeclaration) {
-      return identical(this, (parent as VariableDeclaration).name);
+      return identical(this, parent.name);
     }
     return false;
   }
@@ -9835,6 +9905,7 @@ class SimpleIdentifier extends Identifier {
   bool inGetterContext() {
     ASTNode parent = this.parent;
     ASTNode target = this;
+    // skip prefix
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
       if (identical(prefixed.prefix, this)) {
@@ -9850,9 +9921,11 @@ class SimpleIdentifier extends Identifier {
       parent = access.parent;
       target = access;
     }
+    // skip label
     if (parent is Label) {
       return false;
     }
+    // analyze usage
     if (parent is AssignmentExpression) {
       AssignmentExpression expr = parent as AssignmentExpression;
       if (identical(expr.leftHandSide, target) && identical(expr.operator.type, TokenType.EQ)) {
@@ -9874,8 +9947,10 @@ class SimpleIdentifier extends Identifier {
   bool inSetterContext() {
     ASTNode parent = this.parent;
     ASTNode target = this;
+    // skip prefix
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
+      // if this is the prefix, then return false
       if (identical(prefixed.prefix, this)) {
         return false;
       }
@@ -9889,6 +9964,7 @@ class SimpleIdentifier extends Identifier {
       parent = access.parent;
       target = access;
     }
+    // analyze usage
     if (parent is PrefixExpression) {
       return (parent as PrefixExpression).operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
@@ -9951,23 +10027,23 @@ class SimpleIdentifier extends Identifier {
       return null;
     }
     ASTNode parent = this.parent;
-    if (parent is ClassDeclaration && identical((parent as ClassDeclaration).name, this)) {
+    if (parent is ClassDeclaration && identical(parent.name, this)) {
       return validateElement(parent, ClassElement, element);
-    } else if (parent is ClassTypeAlias && identical((parent as ClassTypeAlias).name, this)) {
+    } else if (parent is ClassTypeAlias && identical(parent.name, this)) {
       return validateElement(parent, ClassElement, element);
-    } else if (parent is DeclaredIdentifier && identical((parent as DeclaredIdentifier).identifier, this)) {
+    } else if (parent is DeclaredIdentifier && identical(parent.identifier, this)) {
       return validateElement(parent, LocalVariableElement, element);
-    } else if (parent is FormalParameter && identical((parent as FormalParameter).identifier, this)) {
+    } else if (parent is FormalParameter && identical(parent.identifier, this)) {
       return validateElement(parent, ParameterElement, element);
-    } else if (parent is FunctionDeclaration && identical((parent as FunctionDeclaration).name, this)) {
+    } else if (parent is FunctionDeclaration && identical(parent.name, this)) {
       return validateElement(parent, ExecutableElement, element);
-    } else if (parent is FunctionTypeAlias && identical((parent as FunctionTypeAlias).name, this)) {
+    } else if (parent is FunctionTypeAlias && identical(parent.name, this)) {
       return validateElement(parent, FunctionTypeAliasElement, element);
-    } else if (parent is MethodDeclaration && identical((parent as MethodDeclaration).name, this)) {
+    } else if (parent is MethodDeclaration && identical(parent.name, this)) {
       return validateElement(parent, ExecutableElement, element);
-    } else if (parent is TypeParameter && identical((parent as TypeParameter).name, this)) {
+    } else if (parent is TypeParameter && identical(parent.name, this)) {
       return validateElement(parent, TypeParameterElement, element);
-    } else if (parent is VariableDeclaration && identical((parent as VariableDeclaration).name, this)) {
+    } else if (parent is VariableDeclaration && identical(parent.name, this)) {
       return validateElement(parent, VariableElement, element);
     }
     return element;
@@ -9984,7 +10060,7 @@ class SimpleIdentifier extends Identifier {
  *   | basicStringLiteral
  *
  * rawStringLiteral ::=
- *     '@' basicStringLiteral
+ *     'r' basicStringLiteral
  *
  * simpleStringLiteral ::=
  *     multiLineStringLiteral
@@ -10036,15 +10112,34 @@ class SimpleStringLiteral extends StringLiteral {
   String get value => _value;
 
   /**
+   * Return the offset of the first value character.
+   *
+   * @return the offset of the first value character
+   */
+  int get valueOffset {
+    int valueOffset = 0;
+    if (isRaw) {
+      valueOffset += 1;
+    }
+    if (isMultiline) {
+      valueOffset += 3;
+    } else {
+      valueOffset += 1;
+    }
+    return offset + valueOffset;
+  }
+
+  /**
    * Return `true` if this string literal is a multi-line string.
    *
    * @return `true` if this string literal is a multi-line string
    */
   bool get isMultiline {
-    if (_value.length < 6) {
+    String lexeme = literal.lexeme;
+    if (lexeme.length < 6) {
       return false;
     }
-    return _value.endsWith("\"\"\"") || _value.endsWith("'''");
+    return lexeme.endsWith("\"\"\"") || lexeme.endsWith("'''");
   }
 
   /**
@@ -10052,7 +10147,7 @@ class SimpleStringLiteral extends StringLiteral {
    *
    * @return `true` if this string literal is a raw string
    */
-  bool get isRaw => _value.codeUnitAt(0) == 0x40;
+  bool get isRaw => literal.lexeme.codeUnitAt(0) == 0x72;
 
   bool get isSynthetic => literal.isSynthetic;
 
@@ -11399,7 +11494,7 @@ class VariableDeclaration extends Declaration {
       if (parent != null && parent.parent != null) {
         ASTNode node = parent.parent;
         if (node is AnnotatedNode) {
-          return (node as AnnotatedNode).documentationComment;
+          return node.documentationComment;
         }
       }
     }
@@ -11437,7 +11532,7 @@ class VariableDeclaration extends Declaration {
    */
   bool get isConst {
     ASTNode parent = this.parent;
-    return parent is VariableDeclarationList && (parent as VariableDeclarationList).isConst;
+    return parent is VariableDeclarationList && parent.isConst;
   }
 
   /**
@@ -11449,7 +11544,7 @@ class VariableDeclaration extends Declaration {
    */
   bool get isFinal {
     ASTNode parent = this.parent;
-    return parent is VariableDeclarationList && (parent as VariableDeclarationList).isFinal;
+    return parent is VariableDeclarationList && parent.isFinal;
   }
 
   /**
@@ -11856,14 +11951,14 @@ class BreadthFirstVisitor<R> extends GeneralizingASTVisitor<R> {
   }
 
   BreadthFirstVisitor() {
-    this._childVisitor = new GeneralizingASTVisitor_2(this);
+    this._childVisitor = new GeneralizingASTVisitor_BreadthFirstVisitor(this);
   }
 }
 
-class GeneralizingASTVisitor_2 extends GeneralizingASTVisitor<Object> {
+class GeneralizingASTVisitor_BreadthFirstVisitor extends GeneralizingASTVisitor<Object> {
   final BreadthFirstVisitor BreadthFirstVisitor_this;
 
-  GeneralizingASTVisitor_2(this.BreadthFirstVisitor_this) : super();
+  GeneralizingASTVisitor_BreadthFirstVisitor(this.BreadthFirstVisitor_this) : super();
 
   Object visitNode(ASTNode node) {
     BreadthFirstVisitor_this._queue.add(node);
@@ -11942,124 +12037,144 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     }
     while (true) {
       if (node.operator.type == TokenType.AMPERSAND) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) & (rightOperand as int);
+          return leftOperand & rightOperand;
         }
       } else if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
+        // boolean or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
-          return (leftOperand as bool) && (rightOperand as bool);
+          return leftOperand && rightOperand;
         }
       } else if (node.operator.type == TokenType.BANG_EQ) {
+        // numeric, string, boolean, or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
-          return (leftOperand as bool) != (rightOperand as bool);
+          return leftOperand != rightOperand;
         } else if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) != rightOperand;
+          return leftOperand != rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double) != rightOperand;
+          return leftOperand != rightOperand;
         } else if (leftOperand is String && rightOperand is String) {
-          return (leftOperand as String) != rightOperand;
+          return leftOperand != rightOperand;
         }
       } else if (node.operator.type == TokenType.BAR) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) | (rightOperand as int);
+          return leftOperand | rightOperand;
         }
       } else if (node.operator.type == TokenType.BAR_BAR) {
+        // boolean or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
-          return (leftOperand as bool) || (rightOperand as bool);
+          return leftOperand || rightOperand;
         }
       } else if (node.operator.type == TokenType.CARET) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) ^ (rightOperand as int);
+          return leftOperand ^ rightOperand;
         }
       } else if (node.operator.type == TokenType.EQ_EQ) {
+        // numeric, string, boolean, or {@code null}
         if (leftOperand is bool && rightOperand is bool) {
-          return identical(leftOperand as bool, rightOperand as bool);
+          return identical(leftOperand, rightOperand);
         } else if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) == rightOperand;
+          return leftOperand == rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double) == rightOperand;
+          return leftOperand == rightOperand;
         } else if (leftOperand is String && rightOperand is String) {
-          return (leftOperand as String) == rightOperand;
+          return leftOperand == rightOperand;
         }
       } else if (node.operator.type == TokenType.GT) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int).compareTo(rightOperand as int) > 0;
+          return leftOperand.compareTo(rightOperand) > 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double).compareTo(rightOperand as double) > 0;
+          return leftOperand.compareTo(rightOperand) > 0;
         }
       } else if (node.operator.type == TokenType.GT_EQ) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int).compareTo(rightOperand as int) >= 0;
+          return leftOperand.compareTo(rightOperand) >= 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double).compareTo(rightOperand as double) >= 0;
+          return leftOperand.compareTo(rightOperand) >= 0;
         }
       } else if (node.operator.type == TokenType.GT_GT) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) >> (rightOperand as int);
+          return leftOperand >> rightOperand;
         }
       } else if (node.operator.type == TokenType.LT) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int).compareTo(rightOperand as int) < 0;
+          return leftOperand.compareTo(rightOperand) < 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double).compareTo(rightOperand as double) < 0;
+          return leftOperand.compareTo(rightOperand) < 0;
         }
       } else if (node.operator.type == TokenType.LT_EQ) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int).compareTo(rightOperand as int) <= 0;
+          return leftOperand.compareTo(rightOperand) <= 0;
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double).compareTo(rightOperand as double) <= 0;
+          return leftOperand.compareTo(rightOperand) <= 0;
         }
       } else if (node.operator.type == TokenType.LT_LT) {
+        // integer or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) << (rightOperand as int);
+          return leftOperand << rightOperand;
         }
       } else if (node.operator.type == TokenType.MINUS) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) - (rightOperand as int);
+          return leftOperand - rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double) - (rightOperand as double);
+          return leftOperand - rightOperand;
         }
       } else if (node.operator.type == TokenType.PERCENT) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int).remainder(rightOperand as int);
+          return leftOperand.remainder(rightOperand);
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double) % (rightOperand as double);
+          return leftOperand % rightOperand;
         }
       } else if (node.operator.type == TokenType.PLUS) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) + (rightOperand as int);
+          return leftOperand + rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double) + (rightOperand as double);
+          return leftOperand + rightOperand;
         }
       } else if (node.operator.type == TokenType.STAR) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
-          return (leftOperand as int) * (rightOperand as int);
+          return leftOperand * rightOperand;
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double) * (rightOperand as double);
+          return leftOperand * rightOperand;
         }
       } else if (node.operator.type == TokenType.SLASH) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           if (rightOperand != 0) {
-            return (leftOperand as int) ~/ (rightOperand as int);
+            return leftOperand ~/ rightOperand;
           } else {
-            return (leftOperand as int).toDouble() / (rightOperand as int).toDouble();
+            return leftOperand.toDouble() / rightOperand.toDouble();
           }
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double) / (rightOperand as double);
+          return leftOperand / rightOperand;
         }
       } else if (node.operator.type == TokenType.TILDE_SLASH) {
+        // numeric or {@code null}
         if (leftOperand is int && rightOperand is int) {
           if (rightOperand != 0) {
-            return (leftOperand as int) ~/ (rightOperand as int);
+            return leftOperand ~/ rightOperand;
           } else {
             return 0;
           }
         } else if (leftOperand is double && rightOperand is double) {
-          return (leftOperand as double) ~/ (rightOperand as double);
+          return leftOperand ~/ rightOperand;
         }
       }
       break;
     }
+    // TODO(brianwilkerson) This doesn't handle numeric conversions.
     return visitExpression(node);
   }
 
@@ -12128,15 +12243,15 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
         }
       } else if (node.operator.type == TokenType.TILDE) {
         if (operand is int) {
-          return ~(operand as int);
+          return ~operand;
         }
       } else if (node.operator.type == TokenType.MINUS) {
         if (operand == null) {
           return null;
         } else if (operand is int) {
-          return -(operand as int);
+          return -operand;
         } else if (operand is double) {
-          return -(operand as double);
+          return -operand;
         }
       }
       break;
@@ -12163,6 +12278,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   }
 
   Object visitSymbolLiteral(SymbolLiteral node) {
+    // TODO(brianwilkerson) This isn't optimal because a Symbol is not a String.
     JavaStringBuilder builder = new JavaStringBuilder();
     for (Token component in node.components) {
       if (builder.length > 0) {
@@ -12180,8 +12296,9 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
    * @return the constant value of the static constant
    */
   Object getConstantValue(Element element) {
+    // TODO(brianwilkerson) Implement this
     if (element is FieldElement) {
-      FieldElement field = element as FieldElement;
+      FieldElement field = element;
       if (field.isStatic && field.isConst) {
       }
     }
@@ -12206,6 +12323,32 @@ class ElementLocator {
     ElementLocator_ElementMapper mapper = new ElementLocator_ElementMapper();
     return node.accept(mapper);
   }
+
+  /**
+   * Locate the [Element] associated with the given [ASTNode] and offset.
+   *
+   * @param node the node (not `null`)
+   * @param offset the offset relative to source
+   * @return the associated element, or `null` if none is found
+   */
+  static Element locate2(ASTNode node, int offset) {
+    // try to get Element from node
+    {
+      Element nodeElement = locate(node);
+      if (nodeElement != null) {
+        return nodeElement;
+      }
+    }
+    // try to get Angular specific Element
+    {
+      Element element = null;
+      if (element != null) {
+        return element;
+      }
+    }
+    // no Element
+    return null;
+  }
 }
 
 /**
@@ -12226,8 +12369,9 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
 
   Element visitIdentifier(Identifier node) {
     ASTNode parent = node.parent;
+    // Extra work to map Constructor Declarations to their associated Constructor Elements
     if (parent is ConstructorDeclaration) {
-      ConstructorDeclaration decl = parent as ConstructorDeclaration;
+      ConstructorDeclaration decl = parent;
       Identifier returnType = decl.returnType;
       if (identical(returnType, node)) {
         SimpleIdentifier name = decl.name;
@@ -12236,16 +12380,16 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
         }
         Element element = node.bestElement;
         if (element is ClassElement) {
-          return (element as ClassElement).unnamedConstructor;
+          return element.unnamedConstructor;
         }
       }
     }
     if (parent is LibraryIdentifier) {
-      ASTNode grandParent = (parent as LibraryIdentifier).parent;
+      ASTNode grandParent = parent.parent;
       if (grandParent is PartOfDirective) {
-        Element element = (grandParent as PartOfDirective).element;
+        Element element = grandParent.element;
         if (element is LibraryElement) {
-          return (element as LibraryElement).definingCompilationUnit;
+          return element.definingCompilationUnit;
         }
       }
     }
@@ -12277,7 +12421,7 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
   Element visitStringLiteral(StringLiteral node) {
     ASTNode parent = node.parent;
     if (parent is UriBasedDirective) {
-      return (parent as UriBasedDirective).uriElement;
+      return parent.uriElement;
     }
     return null;
   }
@@ -12647,6 +12791,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
     } on NodeLocator_NodeFoundException catch (exception) {
       throw exception;
     } on JavaException catch (exception) {
+      // Ignore the exception and proceed in order to visit the rest of the structure.
       AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
     }
     if (start <= _startOffset && _endOffset <= end) {
@@ -15882,6 +16027,10 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
     Token mappedToken = map(node.token);
     if (mappedToken == null) {
+      // This only happens for SimpleIdentifiers created by the parser as part of scanning
+      // documentation comments (the tokens for those identifiers are not in the original token
+      // stream and hence do not get copied). This extra check can be removed if the scanner is
+      // changed to scan documentation comments for the parser.
       mappedToken = node.token;
     }
     SimpleIdentifier copy = new SimpleIdentifier(mappedToken);
@@ -15978,7 +16127,7 @@ class IncrementalASTCloner implements ASTVisitor<ASTNode> {
       return null;
     }
     if (identical(node, _oldNode)) {
-      return _newNode as ASTNode;
+      return _newNode;
     }
     return node.accept(this) as ASTNode;
   }
@@ -16162,15 +16311,16 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
         return;
       }
       if (stmt is VariableDeclarationStatement) {
-        addVariables((stmt as VariableDeclarationStatement).variables.variables);
+        addVariables(stmt.variables.variables);
       } else if (stmt is FunctionDeclarationStatement && !_referenceIsWithinLocalFunction) {
-        addToScope((stmt as FunctionDeclarationStatement).functionDeclaration.name);
+        addToScope(stmt.functionDeclaration.name);
       }
     }
   }
 
   bool isInRange(ASTNode node) {
     if (_position < 0) {
+      // if source position is not set then all nodes are in range
       return true;
     }
     return node.end < _position;

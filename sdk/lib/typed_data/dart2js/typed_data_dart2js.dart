@@ -9,7 +9,7 @@
 library dart.typed_data;
 
 import 'dart:collection';
-import 'dart:_collection-dev';
+import 'dart:_internal';
 import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper'
     show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
@@ -100,6 +100,30 @@ class TypedData native "ArrayBufferView" {
 }
 
 
+// Validates the unnamed constructor length argument.  Checking is necessary
+// because passing unvalidated values to the native constructors can cause
+// conversions or create views.
+int _checkLength(length) {
+  if (length is! int) throw new ArgumentError('Invalid length $length');
+  return length;
+}
+
+// Validates `.view` constructor arguments.  Checking is necessary because
+// passing unvalidated values to the native constructors can cause conversions
+// (e.g. String arguments) or create typed data objects that are not actually
+// views of the input.
+void _checkViewArguments(buffer, offsetInBytes, length) {
+  if (buffer is! ByteBuffer) {
+    throw new ArgumentError('Invalid view buffer');
+  }
+  if (offsetInBytes is! int) {
+    throw new ArgumentError('Invalid view offsetInBytes $offsetInBytes');
+  }
+  if (length != null && length is! int) {
+    throw new ArgumentError('Invalid view length $length');
+  }
+}
+
 // Ensures that [list] is a JavaScript Array or a typed array.  If necessary,
 // returns a copy of the list.
 List _ensureNativeList(List list) {
@@ -136,7 +160,7 @@ class ByteData extends TypedData native "DataView" {
    * Creates a [ByteData] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory ByteData(int length) => _create1(length);
+  factory ByteData(int length) => _create1(_checkLength(length));
 
   /**
    * Creates an [ByteData] _view_ of the specified region in the specified
@@ -151,10 +175,12 @@ class ByteData extends TypedData native "DataView" {
    * the length of [buffer].
    */
   factory ByteData.view(ByteBuffer buffer,
-                        [int byteOffset = 0, int byteLength]) =>
-      byteLength == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, byteLength);
+                        [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   /**
    * Returns the floating point number represented by the four bytes at
@@ -532,13 +558,13 @@ class Float32List extends _NativeTypedArrayOfDouble native "Float32Array" {
    * Creates a [Float32List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Float32List(int length) => _create1(length);
+  factory Float32List(int length) => _create1(_checkLength(length));
 
   /**
    * Creates a [Float32List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Float32List.fromList(List<num> list) =>
+  factory Float32List.fromList(List<double> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -557,10 +583,12 @@ class Float32List extends _NativeTypedArrayOfDouble native "Float32Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Float32List.view(ByteBuffer buffer,
-                           [int byteOffset = 0, int length]) =>
-      length == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, length);
+                           [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   static const int BYTES_PER_ELEMENT = 4;
 
@@ -602,13 +630,13 @@ class Float64List extends _NativeTypedArrayOfDouble native "Float64Array" {
    * Creates a [Float64List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Float64List(int length) => _create1(length);
+  factory Float64List(int length) => _create1(_checkLength(length));
 
   /**
    * Creates a [Float64List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Float64List.fromList(List<num> list) =>
+  factory Float64List.fromList(List<double> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -627,10 +655,12 @@ class Float64List extends _NativeTypedArrayOfDouble native "Float64Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Float64List.view(ByteBuffer buffer,
-                           [int byteOffset = 0, int length]) =>
-      length == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, length);
+                           [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   static const int BYTES_PER_ELEMENT = 8;
 
@@ -674,13 +704,13 @@ class Int16List extends _NativeTypedArrayOfInt native "Int16Array" {
    * Creates an [Int16List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Int16List(int length) => _create1(length);
+  factory Int16List(int length) => _create1(_checkLength(length));
 
   /**
    * Creates a [Int16List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Int16List.fromList(List<num> list) =>
+  factory Int16List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -698,10 +728,13 @@ class Int16List extends _NativeTypedArrayOfInt native "Int16Array" {
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * BYTES_PER_ELEMENT.
    */
-  factory Int16List.view(ByteBuffer buffer, [int byteOffset = 0, int length]) =>
-      length == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, length);
+  factory Int16List.view(ByteBuffer buffer,
+                         [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   static const int BYTES_PER_ELEMENT = 2;
 
@@ -742,13 +775,13 @@ class Int32List extends _NativeTypedArrayOfInt native "Int32Array" {
    * Creates an [Int32List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Int32List(int length) => _create1(length);
+  factory Int32List(int length) => _create1(_checkLength(length));
 
   /**
    * Creates a [Int32List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Int32List.fromList(List<num> list) =>
+  factory Int32List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -766,10 +799,13 @@ class Int32List extends _NativeTypedArrayOfInt native "Int32Array" {
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * BYTES_PER_ELEMENT.
    */
-  factory Int32List.view(ByteBuffer buffer, [int byteOffset = 0, int length]) =>
-      length == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, length);
+  factory Int32List.view(ByteBuffer buffer,
+                         [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   static const int BYTES_PER_ELEMENT = 4;
 
@@ -810,13 +846,13 @@ class Int8List extends _NativeTypedArrayOfInt native "Int8Array" {
    * Creates an [Int8List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Int8List(int length) => _create1(length);
+  factory Int8List(int length) => _create1(_checkLength(length));
 
   /**
    * Creates a [Int8List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Int8List.fromList(List<num> list) =>
+  factory Int8List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -831,10 +867,13 @@ class Int8List extends _NativeTypedArrayOfInt native "Int8Array" {
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
    * the length of [buffer].
    */
-  factory Int8List.view(ByteBuffer buffer, [int byteOffset = 0, int length]) =>
-      length == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, length);
+  factory Int8List.view(ByteBuffer buffer,
+                        [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   static const int BYTES_PER_ELEMENT = 1;
 
@@ -875,13 +914,13 @@ class Uint16List extends _NativeTypedArrayOfInt native "Uint16Array" {
    * Creates a [Uint16List] of the specified length (in elements), all
    * of whose elements are initially zero.
    */
-  factory Uint16List(int length) => _create1(length);
+  factory Uint16List(int length) => _create1(_checkLength(length));
 
   /**
    * Creates a [Uint16List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Uint16List.fromList(List<num> list) =>
+  factory Uint16List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -900,10 +939,12 @@ class Uint16List extends _NativeTypedArrayOfInt native "Uint16Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Uint16List.view(ByteBuffer buffer,
-                          [int byteOffset = 0, int length]) =>
-      length == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, length);
+                          [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   static const int BYTES_PER_ELEMENT = 2;
 
@@ -944,13 +985,13 @@ class Uint32List extends _NativeTypedArrayOfInt native "Uint32Array" {
    * Creates a [Uint32List] of the specified length (in elements), all
    * of whose elements are initially zero.
    */
-  factory Uint32List(int length) => _create1(length);
+  factory Uint32List(int length) => _create1(_checkLength(length));
 
   /**
    * Creates a [Uint32List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Uint32List.fromList(List<num> list) =>
+  factory Uint32List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -969,10 +1010,12 @@ class Uint32List extends _NativeTypedArrayOfInt native "Uint32Array" {
    * BYTES_PER_ELEMENT.
    */
   factory Uint32List.view(ByteBuffer buffer,
-                          [int byteOffset = 0, int length]) =>
-      length == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, length);
+                          [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   static const int BYTES_PER_ELEMENT = 4;
 
@@ -1015,13 +1058,13 @@ class Uint8ClampedList extends _NativeTypedArrayOfInt
    * Creates a [Uint8ClampedList] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Uint8ClampedList(int length) => _create1(length);
+  factory Uint8ClampedList(int length) => _create1(_checkLength(length));
 
   /**
    * Creates a [Uint8ClampedList] of the same size as the [elements]
    * list and copies over the values clamping when needed.
    */
-  factory Uint8ClampedList.fromList(List<num> list) =>
+  factory Uint8ClampedList.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -1037,10 +1080,12 @@ class Uint8ClampedList extends _NativeTypedArrayOfInt
    * the length of [buffer].
    */
   factory Uint8ClampedList.view(ByteBuffer buffer,
-                                [int byteOffset = 0, int length]) =>
-      length == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, length);
+                                [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   static const int BYTES_PER_ELEMENT = 1;
 
@@ -1089,13 +1134,13 @@ class Uint8List extends _NativeTypedArrayOfInt
    * Creates a [Uint8List] of the specified length (in elements), all of
    * whose elements are initially zero.
    */
-  factory Uint8List(int length) => _create1(length);
+  factory Uint8List(int length) => _create1(_checkLength(length));
 
   /**
    * Creates a [Uint8List] with the same size as the [elements] list
    * and copies over the elements.
    */
-  factory Uint8List.fromList(List<num> list) =>
+  factory Uint8List.fromList(List<int> list) =>
       _create1(_ensureNativeList(list));
 
   /**
@@ -1111,10 +1156,12 @@ class Uint8List extends _NativeTypedArrayOfInt
    * the length of [buffer].
    */
   factory Uint8List.view(ByteBuffer buffer,
-                         [int byteOffset = 0, int length]) =>
-      length == null
-          ? _create2(buffer, byteOffset)
-          : _create3(buffer, byteOffset, length);
+                         [int offsetInBytes = 0, int length]) {
+    _checkViewArguments(buffer, offsetInBytes, length);
+    return length == null
+        ? _create2(buffer, offsetInBytes)
+        : _create3(buffer, offsetInBytes, length);
+  }
 
   static const int BYTES_PER_ELEMENT = 1;
 

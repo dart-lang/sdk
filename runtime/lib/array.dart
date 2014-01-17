@@ -291,6 +291,9 @@ class _ImmutableList<E> implements List<E> {
         "ImmutableArray can only be allocated by the VM");
   }
 
+  factory _ImmutableList._from(List from, int offset, int length)
+      native "ImmutableList_from";
+
   E operator [](int index) native "List_getIndexed";
 
   void operator []=(int index, E value) {

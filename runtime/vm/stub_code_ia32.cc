@@ -1889,25 +1889,6 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 }
 
 
-//  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-  __ pushl(EAX);
-  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry, 0);
-  __ popl(EAX);
-  __ LeaveFrame();
-
-  // Instead of returning to the patched Dart function, emulate the
-  // smashed return code pattern and return to the function's caller.
-  __ popl(ECX);  // Discard return address to patched dart code.
-  // Execute function epilog code that was smashed in the Dart code.
-  __ LeaveFrame();
-  __ ret();
-}
-
-
 //  ECX: Inline cache data array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {

@@ -13,23 +13,29 @@ namespace bin {
 
 void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
   Dart_Handle count_obj = Dart_GetNativeArgument(args, 0);
-  int64_t count = 0;
-  if (!DartUtils::GetInt64Value(count_obj, &count)) {
+  const int64_t kMaxRandomBytes = 4096;
+  int64_t count64 = 0;
+  if (!DartUtils::GetInt64Value(count_obj, &count64) ||
+      (count64 < 0) || (count64 > kMaxRandomBytes)) {
     Dart_Handle error =
-        DartUtils::NewString("Invalid argument, must be an int.");
+        DartUtils::NewString("Invalid argument: count must be a positive int "
+                             "less than or equal to 4096.");
     Dart_ThrowException(error);
   }
+  intptr_t count = static_cast<intptr_t>(count64);
   uint8_t* buffer = new uint8_t[count];
   ASSERT(buffer != NULL);
   if (!Crypto::GetRandomBytes(count, buffer)) {
     delete[] buffer;
     Dart_ThrowException(DartUtils::NewDartOSError());
+    UNREACHABLE();
   }
   Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, count);
   if (Dart_IsError(result)) {
     delete[] buffer;
     Dart_Handle error = DartUtils::NewString("Failed to allocate storage.");
     Dart_ThrowException(error);
+    UNREACHABLE();
   }
   Dart_ListSetAsBytes(result, 0, buffer, count);
   Dart_SetReturnValue(args, result);

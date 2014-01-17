@@ -27,10 +27,11 @@ class IOClient extends BaseClient {
 
     return Chain.track(_inner.openUrl(request.method, request.url))
         .then((ioRequest) {
-      ioRequest.followRedirects = request.followRedirects;
-      ioRequest.maxRedirects = request.maxRedirects;
-      ioRequest.contentLength = request.contentLength;
-      ioRequest.persistentConnection = request.persistentConnection;
+      ioRequest
+          ..followRedirects = request.followRedirects
+          ..maxRedirects = request.maxRedirects
+          ..contentLength = request.contentLength
+          ..persistentConnection = request.persistentConnection;
       request.headers.forEach((name, value) {
         ioRequest.headers.set(name, value);
       });

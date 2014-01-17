@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
@@ -19,18 +23,18 @@ abstract class LocalSourcePredicate {
   /**
    * Instance of [LocalSourcePredicate] that always returns `false`.
    */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_15();
+  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
 
   /**
    * Instance of [LocalSourcePredicate] that always returns `true`.
    */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_16();
+  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
 
   /**
    * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
    * except of SDK.
    */
-  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_17();
+  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_NOT_SDK();
 
   /**
    * Determines if the given [Source] is local.
@@ -41,15 +45,15 @@ abstract class LocalSourcePredicate {
   bool isLocal(Source source);
 }
 
-class LocalSourcePredicate_15 implements LocalSourcePredicate {
+class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
   bool isLocal(Source source) => false;
 }
 
-class LocalSourcePredicate_16 implements LocalSourcePredicate {
+class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
   bool isLocal(Source source) => true;
 }
 
-class LocalSourcePredicate_17 implements LocalSourcePredicate {
+class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
   bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
 }
 
@@ -107,11 +111,17 @@ class FileBasedSource implements Source {
   bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
 
   void getContents(Source_ContentReceiver receiver) {
+    //
+    // First check to see whether our content cache has an override for our contents.
+    //
     String contents = _contentCache.getContents(this);
     if (contents != null) {
       receiver.accept2(contents, _contentCache.getModificationStamp(this));
       return;
     }
+    //
+    // If not, read the contents from the file using native I/O.
+    //
     getContentsFromFile(receiver);
   }
 
@@ -251,11 +261,14 @@ class PackageUriResolver extends UriResolver {
     String relPath;
     int index = path.indexOf('/');
     if (index == -1) {
+      // No slash
       pkgName = path;
       relPath = "";
     } else if (index == 0) {
+      // Leading slash is invalid
       return null;
     } else {
+      // <pkgName>/<relPath>
       pkgName = path.substring(0, index);
       relPath = path.substring(index + 1);
     }
@@ -272,7 +285,7 @@ class PackageUriResolver extends UriResolver {
 
   Uri restoreAbsolute(Source source) {
     if (source is FileBasedSource) {
-      String sourcePath = (source as FileBasedSource).file.getPath();
+      String sourcePath = source.file.getPath();
       for (JavaFile packagesDirectory in _packagesDirectories) {
         List<JavaFile> pkgFolders = packagesDirectory.listFiles();
         if (pkgFolders != null) {
@@ -379,7 +392,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
 
   bool contains(Source source) => source.fullName.startsWith(_path);
 
-  bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && (obj as DirectoryBasedSourceContainer).path == path;
+  bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && obj.path == path;
 
   /**
    * Answer the receiver's path, used to determine if a source is contained in the receiver.

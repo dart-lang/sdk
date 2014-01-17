@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
@@ -450,15 +454,26 @@ class SdkLibrariesReader {
   /**
    * Return the library map read from the given source.
    *
+   * @param file the [File] of the library file
+   * @param libraryFileContents the contents from the library file
    * @return the library map read from the given source
    */
-  LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
+  LibraryMap readFrom(JavaFile file, String libraryFileContents) => readFrom2(new FileBasedSource.con2(null, file, UriKind.FILE_URI), libraryFileContents);
+
+  /**
+   * Return the library map read from the given source.
+   *
+   * @param source the source of the library file
+   * @param libraryFileContents the contents from the library file
+   * @return the library map read from the given source
+   */
+  LibraryMap readFrom2(Source source, String libraryFileContents) {
     BooleanErrorListener errorListener = new BooleanErrorListener();
-    Source source = new FileBasedSource.con2(null, librariesFile, UriKind.FILE_URI);
     Scanner scanner = new Scanner(source, new CharSequenceReader(new CharSequence(libraryFileContents)), errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder = new SdkLibrariesReader_LibraryBuilder();
+    // If any syntactic errors were found then don't try to visit the AST structure.
     if (!errorListener.errorReported) {
       unit.accept(libraryBuilder);
     }
@@ -511,18 +526,18 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
     String libraryName = null;
     Expression key = node.key;
     if (key is SimpleStringLiteral) {
-      libraryName = "${_LIBRARY_PREFIX}${(key as SimpleStringLiteral).value}";
+      libraryName = "${_LIBRARY_PREFIX}${key.value}";
     }
     Expression value = node.value;
     if (value is InstanceCreationExpression) {
       SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
-      List<Expression> arguments = (value as InstanceCreationExpression).argumentList.arguments;
+      List<Expression> arguments = value.argumentList.arguments;
       for (Expression argument in arguments) {
         if (argument is SimpleStringLiteral) {
-          library.path = (argument as SimpleStringLiteral).value;
+          library.path = argument.value;
         } else if (argument is NamedExpression) {
-          String name = (argument as NamedExpression).name.label.name;
-          Expression expression = (argument as NamedExpression).expression;
+          String name = argument.name.label.name;
+          Expression expression = argument.expression;
           if (name == _CATEGORY) {
             library.category = (expression as SimpleStringLiteral).value;
           } else if (name == _IMPLEMENTATION) {
@@ -531,7 +546,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
             library.documented = (expression as BooleanLiteral).value;
           } else if (name == _PLATFORMS) {
             if (expression is SimpleIdentifier) {
-              String identifier = (expression as SimpleIdentifier).name;
+              String identifier = expression.name;
               if (identifier == _VM_PLATFORM) {
                 library.setVmLibrary();
               } else {

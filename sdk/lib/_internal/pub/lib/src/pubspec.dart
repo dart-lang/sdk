@@ -177,7 +177,7 @@ class Pubspec {
             "$field.$library",
             () => new TransformerId.parse(library, configuration));
 
-        if (id.package != name &&
+        if (id.package != name && !id.isBuiltInTransformer &&
             !dependencies.any((ref) => ref.name == id.package)) {
           _error('"$field.$library" refers to a package that\'s not listed in '
               '"dependencies".');

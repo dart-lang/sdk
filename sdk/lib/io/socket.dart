@@ -16,7 +16,7 @@ class InternetAddressType {
 
   final int _value;
 
-  const InternetAddressType._(int this._value);
+  const InternetAddressType._(this._value);
 
   factory InternetAddressType._from(int value) {
     if (value == 0) return IP_V4;
@@ -304,8 +304,9 @@ class SocketDirection {
   static const SocketDirection RECEIVE = const SocketDirection._(0);
   static const SocketDirection SEND = const SocketDirection._(1);
   static const SocketDirection BOTH = const SocketDirection._(2);
-  const SocketDirection._(this._value);
   final _value;
+
+  const SocketDirection._(this._value);
 }
 
 /**
@@ -327,9 +328,9 @@ class SocketOption {
   static const SocketOption _IP_MULTICAST_HOPS = const SocketOption._(2);
   static const SocketOption _IP_MULTICAST_IF = const SocketOption._(3);
   static const SocketOption _IP_BROADCAST = const SocketOption._(4);
+  final _value;
 
   const SocketOption._(this._value);
-  final _value;
 }
 
 /**
@@ -340,8 +341,9 @@ class RawSocketEvent {
   static const RawSocketEvent WRITE = const RawSocketEvent._(1);
   static const RawSocketEvent READ_CLOSED = const RawSocketEvent._(2);
   static const RawSocketEvent CLOSED = const RawSocketEvent._(3);
-  const RawSocketEvent._(this._value);
   final int _value;
+
+  const RawSocketEvent._(this._value);
   String toString() {
     return ['RawSocketEvent:READ',
             'RawSocketEvent:WRITE',
@@ -355,6 +357,20 @@ class RawSocketEvent {
  * events signaled by the system. It's a [Stream] of [RawSocketEvent]s.
  */
 abstract class RawSocket implements Stream<RawSocketEvent> {
+  /**
+   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.READ]
+   * events. Default is [true].
+   */
+  bool readEventsEnabled;
+
+  /**
+   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.WRITE]
+   * events. Default is [true].
+   * This is a one-shot listener, and writeEventsEnabled must be set
+   * to true again to receive another write event.
+   */
+  bool writeEventsEnabled;
+
   /**
    * Creates a new socket connection to the host and port and returns a [Future]
    * that will complete with either a [RawSocket] once connected or an error
@@ -429,20 +445,6 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * can result in a [RawSocketEvent.READ_CLOSED] event.
    */
   void shutdown(SocketDirection direction);
-
-  /**
-   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.READ]
-   * events. Default is [true].
-   */
-  bool readEventsEnabled;
-
-  /**
-   * Set or get, if the [RawSocket] should listen for [RawSocketEvent.WRITE]
-   * events. Default is [true].
-   * This is a one-shot listener, and writeEventsEnabled must be set
-   * to true again to receive another write event.
-   */
-  bool writeEventsEnabled;
 
   /**
    * Use [setOption] to customize the [RawSocket]. See [SocketOption] for
@@ -535,58 +537,6 @@ class Datagram {
  */
 abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /**
-   * Creates a new raw datagram socket binding it to an address and
-   * port.
-   */
-  external static Future<RawDatagramSocket> bind(
-      host, int port, {bool reuseAddress: true});
-
-  /**
-   * Returns the port used by this socket.
-   */
-  int get port;
-
-  /**
-   * Returns the address used by this socket.
-   */
-  InternetAddress get address;
-
-  /**
-   * Close the datagram socket.
-   */
-  void close();
-
-  /**
-   * Send a datagram.
-   *
-   * Returns the number of bytes written. This will always be either
-   * the size of [buffer] or `0`.
-   */
-  int send(List<int> buffer, InternetAddress address, int port);
-
-  /**
-   * Receive a datagram. If there are no datagrams available `null` is
-   * returned.
-   */
-  Datagram receive();
-
-  /**
-   * Join a multicast group.
-   *
-   * If an error occur when trying to join the multicast group an
-   * exception is thrown.
-   */
-  void joinMulticast(InternetAddress group, {NetworkInterface interface});
-
-  /**
-   * Leave a multicast group.
-   *
-   * If an error occur when trying to join the multicase group an
-   * exception is thrown.
-   */
-  void leaveMulticast(InternetAddress group, {NetworkInterface interface});
-
-  /**
    * Set or get, if the [RawDatagramSocket] should listen for
    * [RawSocketEvent.READ] events. Default is [true].
    */
@@ -638,6 +588,58 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
    * instead.
    */
   bool broadcastEnabled;
+
+  /**
+   * Creates a new raw datagram socket binding it to an address and
+   * port.
+   */
+  external static Future<RawDatagramSocket> bind(
+      host, int port, {bool reuseAddress: true});
+
+  /**
+   * Returns the port used by this socket.
+   */
+  int get port;
+
+  /**
+   * Returns the address used by this socket.
+   */
+  InternetAddress get address;
+
+  /**
+   * Close the datagram socket.
+   */
+  void close();
+
+  /**
+   * Send a datagram.
+   *
+   * Returns the number of bytes written. This will always be either
+   * the size of [buffer] or `0`.
+   */
+  int send(List<int> buffer, InternetAddress address, int port);
+
+  /**
+   * Receive a datagram. If there are no datagrams available `null` is
+   * returned.
+   */
+  Datagram receive();
+
+  /**
+   * Join a multicast group.
+   *
+   * If an error occur when trying to join the multicast group an
+   * exception is thrown.
+   */
+  void joinMulticast(InternetAddress group, {NetworkInterface interface});
+
+  /**
+   * Leave a multicast group.
+   *
+   * If an error occur when trying to join the multicase group an
+   * exception is thrown.
+   */
+  void leaveMulticast(InternetAddress group, {NetworkInterface interface});
 }
 
 
@@ -647,10 +649,7 @@ class SocketException implements IOException {
   final InternetAddress address;
   final int port;
 
-  const SocketException(String this.message,
-                        {OSError this.osError,
-                         InternetAddress this.address,
-                         int this.port});
+  const SocketException(this.message, {this.osError, this.address, this.port});
 
   String toString() {
     StringBuffer sb = new StringBuffer();

@@ -34,7 +34,6 @@ class RawCode;
   V(DeoptimizeLazy)                                                            \
   V(BreakpointRuntime)                                                         \
   V(BreakpointStatic)                                                          \
-  V(BreakpointReturn)                                                          \
   V(DebugStepCheck)                                                            \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \

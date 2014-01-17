@@ -5,7 +5,7 @@
 part of dart.core;
 
 /**
- * An instant in time, such as July 20, 1969, 8:18pm PST.
+ * An instant in time, such as July 20, 1969, 8:18pm GMT.
  *
  * Create a DateTime object by using one of the constructors
  * or by parsing a correctly formatted string,

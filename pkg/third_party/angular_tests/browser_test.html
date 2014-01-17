@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="dart.unittest" content="full-stack-traces">
+  <title> browser_test.dart </title>
+  <style>
+     .unittest-table { font-family:monospace; border:1px; }
+     .unittest-pass { background: #6b3;}
+     .unittest-fail { background: #d55;}
+     .unittest-error { background: #a11;}
+  </style>
+  <script src="/packages/shadow_dom/shadow_dom.debug.js"></script>
+</head>
+<body>
+  <h1> Running browser_test.dart </h1>
+  <script type="text/javascript"
+      src="/packages/unittest/test_controller.js"></script>
+  <script type="text/javascript"
+      src="/packages/browser/interop.js"></script>
+  %TEST_SCRIPTS%
+</body>
+</html>

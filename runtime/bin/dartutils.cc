@@ -26,13 +26,14 @@ const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* DartUtils::kAsyncLibURL = "dart:async";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
-const char* DartUtils::kCollectionDevLibURL = "dart:_collection-dev";
 const char* DartUtils::kCoreLibURL = "dart:core";
+const char* DartUtils::kInternalLibURL = "dart:_internal";
 const char* DartUtils::kIsolateLibURL = "dart:isolate";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
 const char* DartUtils::kUriLibURL = "dart:uri";
 const char* DartUtils::kHttpScheme = "http:";
+const char* DartUtils::kVMServiceLibURL = "dart:vmservice";
 
 const char* DartUtils::kIdFieldName = "_id";
 
@@ -126,20 +127,11 @@ bool DartUtils::GetBooleanValue(Dart_Handle bool_obj) {
 
 void DartUtils::SetIntegerField(Dart_Handle handle,
                                 const char* name,
-                                intptr_t val) {
+                                int64_t val) {
   Dart_Handle result = Dart_SetField(handle,
                                      NewString(name),
                                      Dart_NewInteger(val));
   if (Dart_IsError(result)) Dart_PropagateError(result);
-}
-
-
-intptr_t DartUtils::GetIntegerField(Dart_Handle handle,
-                                    const char* name) {
-  Dart_Handle result = Dart_GetField(handle, NewString(name));
-  if (Dart_IsError(result)) Dart_PropagateError(result);
-  intptr_t value = DartUtils::GetIntegerValue(result);
-  return value;
 }
 
 
@@ -223,19 +215,24 @@ void* DartUtils::OpenFile(const char* name, bool write) {
 
 
 void DartUtils::ReadFile(const uint8_t** data,
-                         intptr_t* file_len,
+                         intptr_t* len,
                          void* stream) {
   ASSERT(data != NULL);
-  ASSERT(file_len != NULL);
+  ASSERT(len != NULL);
   ASSERT(stream != NULL);
   File* file_stream = reinterpret_cast<File*>(stream);
-  *file_len = file_stream->Length();
-  ASSERT(*file_len > 0);
-  uint8_t* text_buffer = reinterpret_cast<uint8_t*>(malloc(*file_len));
-  ASSERT(text_buffer != NULL);
-  if (!file_stream->ReadFully(text_buffer, *file_len)) {
+  int64_t file_len = file_stream->Length();
+  if ((file_len < 0) || (file_len > kIntptrMax)) {
     *data = NULL;
-    *file_len = -1;  // Indicates read was not successful.
+    *len = -1;  // Indicates read was not successful.
+    return;
+  }
+  *len = static_cast<intptr_t>(file_len);
+  uint8_t* text_buffer = reinterpret_cast<uint8_t*>(malloc(*len));
+  ASSERT(text_buffer != NULL);
+  if (!file_stream->ReadFully(text_buffer, *len)) {
+    *data = NULL;
+    *len = -1;  // Indicates read was not successful.
     return;
   }
   *data = text_buffer;
@@ -299,7 +296,7 @@ Dart_Handle MakeHttpRequest(Dart_Handle uri, Dart_Handle builtin_lib,
   if (Dart_IsError(result)) {
     return result;
   }
-  intptr_t responseCode = DartUtils::GetIntegerValue(result);
+  int64_t responseCode = DartUtils::GetIntegerValue(result);
   if (responseCode != HttpResponseCodeOK) {
     // Return error.
     Dart_Handle responseStatus =
@@ -682,11 +679,11 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   // Setup the internal library's 'internalPrint' function.
   Dart_Handle print = Dart_Invoke(
       builtin_lib, NewString("_getPrintClosure"), 0, NULL);
-  Dart_Handle url = NewString(kCollectionDevLibURL);
+  Dart_Handle url = NewString(kInternalLibURL);
   DART_CHECK_VALID(url);
-  Dart_Handle collection_dev_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(collection_dev_lib);
-  Dart_Handle result = Dart_SetField(collection_dev_lib,
+  Dart_Handle internal_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(internal_lib);
+  Dart_Handle result = Dart_SetField(internal_lib,
                                      NewString("_printClosure"),
                                      print);
   DART_CHECK_VALID(result);
@@ -1034,10 +1031,10 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
   // Make sure that we do not have an integer overflow here. Actual check
   // against max elements will be done at the time of writing, as the constant
   // is not part of the public API.
-  if (length > kIntptrMax) {
+  if ((length < 0) || (length > kIntptrMax)) {
     return NULL;
   }
-  uint8_t* data = IOBuffer::Allocate(length);
+  uint8_t* data = IOBuffer::Allocate(static_cast<intptr_t>(length));
   ASSERT(data != NULL);
   return NewExternalUint8Array(
       static_cast<intptr_t>(length), data, data, IOBuffer::Finalizer);

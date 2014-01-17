@@ -769,7 +769,7 @@ class _JsonStringifier {
    */
   bool stringifyJsonValue(final object) {
     if (object is num) {
-      // TODO: use writeOn.
+      if (!object.isFinite) return false;
       sink.write(numberToString(object));
       return true;
     } else if (identical(object, true)) {

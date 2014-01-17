@@ -48,8 +48,8 @@ abstract class double extends num {
   /**
    * Truncating division operator.
    *
-   * The result of the truncating division [:a ~/ b:] is equivalent to
-   * [:(a / b).truncate():].
+   * The result of the truncating division `a ~/ b` is equivalent to
+   * `(a / b).truncate()`.
    */
   int operator ~/(num other);
 
@@ -72,7 +72,7 @@ abstract class double extends num {
    * Returns the integer closest to `this`.
    *
    * Rounds away from zero when there is no closest integer:
-   *  [:(3.5).round() == 4:] and [:(-3.5).round() == -4:].
+   *  `(3.5).round() == 4` and `(-3.5).round() == -4`.
    *
    * If `this` is not finite (`NaN` or infinity), throws an [UnsupportedError].
    */
@@ -101,32 +101,53 @@ abstract class double extends num {
   int truncate();
 
   /**
-   * Returns the integer value, as a double, closest to `this`.
+   * Returns the integer double value closest to `this`.
    *
    * Rounds away from zero when there is no closest integer:
-   *  [:(3.5).round() == 4:] and [:(-3.5).round() == -4:].
+   *  `(3.5).roundToDouble() == 4` and `(-3.5).roundToDouble() == -4`.
+   *
+   * If this is already an integer valued double, including `-0.0`, or it is not
+   * a finite value, the value is returned unmodified.
+   *
+   * For the purpose of rounding, `-0.0` is considered to be below `0.0`,
+   * and `-0.0` is therefore considered closer to negative numbers than `0.0`.
+   * This means that for a value, `d` in the range `-0.5 < d < 0.0`,
+   * the result is `-0.0`.
    */
   double roundToDouble();
 
   /**
-   * Returns the greatest integer value no greater than `this`.
+   * Returns the greatest integer double value no greater than `this`.
    *
-   * The result is a double.
+   * If this is already an integer valued double, including `-0.0`, or it is not
+   * a finite value, the value is returned unmodified.
+   *
+   * For the purpose of rounding, `-0.0` is considered to be below `0.0`.
+   * A number `d` in the range `0.0 < d < 1.0` will return `0.0`.
    */
   double floorToDouble();
 
   /**
-   * Returns the least integer value no smaller than `this`.
+   * Returns the least integer double value no smaller than `this`.
    *
-   * The result is a double.
+   * If this is already an integer valued double, including `-0.0`, or it is not
+   * a finite value, the value is returned unmodified.
+   *
+   * For the purpose of rounding, `-0.0` is considered to be below `0.0`.
+   * A number `d` in the range `-1.0 < d < 0.0` will return `-0.0`.
    */
   double ceilToDouble();
 
   /**
-   * Returns the integer obtained by discarding any fractional
+   * Returns the integer double value obtained by discarding any fractional
    * digits from `this`.
    *
-   * The result is a double.
+   * If this is already an integer valued double, including `-0.0`, or it is not
+   * a finite value, the value is returned unmodified.
+   *
+   * For the purpose of rounding, `-0.0` is considered to be below `0.0`.
+   * A number `d` in the range `-1.0 < d < 0.0` will return `-0.0`, and
+   * in the range `0.0 < d < 1.0` it will return 0.0.
    */
   double truncateToDouble();
 
@@ -140,8 +161,8 @@ abstract class double extends num {
    * Returns "Infinity" and "-Infinity" for positive and negative Infinity.
    * Returns "-0.0" for negative zero.
    *
-   * It should always be the case that if [:d:] is a [double], then
-   * [:d == double.parse(d.toString()):].
+   * For all doubles, `d`, converting to a string and parsing the string back
+   * gives the same value again: `d == double.parse(d.toString())`.
    */
   String toString();
 

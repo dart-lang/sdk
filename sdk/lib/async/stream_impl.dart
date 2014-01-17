@@ -952,6 +952,7 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
     }
     if (_state == _STATE_FOUND) {
       _state = _STATE_MOVING;
+      _current = null;
       _futureOrPrefetch = new _Future<bool>();
       return _futureOrPrefetch;
     } else {

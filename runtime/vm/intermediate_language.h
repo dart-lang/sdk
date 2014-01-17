@@ -177,7 +177,7 @@ class Range;
   V(_TypedList, get:length, TypedDataLength, 26646119)                         \
   V(_GrowableList, get:length, GrowableArrayLength, 1654255033)                \
   V(_StringBase, get:length, StringBaseLength, 1483549854)                     \
-  V(ListIterator, moveNext, ListIteratorMoveNext, 881367324)                   \
+  V(ListIterator, moveNext, ListIteratorMoveNext, 2062984847)                  \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1155241039)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 195359970)                   \
 
@@ -1416,14 +1416,6 @@ class GraphEntryInstr : public BlockEntryInstr {
     spill_slot_count_ = count;
   }
 
-  // Number of stack slots reserved for compiling try-catch. For functions
-  // without try-catch, this is 0. Otherwise, it is the number of local
-  // variables.
-  intptr_t fixed_slot_count() const { return fixed_slot_count_; }
-  void set_fixed_slot_count(intptr_t count) {
-    ASSERT(count >= 0);
-    fixed_slot_count_ = count;
-  }
   TargetEntryInstr* normal_entry() const { return normal_entry_; }
 
   const ParsedFunction& parsed_function() const {
@@ -1447,7 +1439,6 @@ class GraphEntryInstr : public BlockEntryInstr {
   const intptr_t osr_id_;
   intptr_t entry_count_;
   intptr_t spill_slot_count_;
-  intptr_t fixed_slot_count_;  // For try-catch in optimized code.
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
@@ -4033,6 +4024,16 @@ class MaterializeObjectInstr : public Definition {
 
   virtual Value* InputAt(intptr_t i) const {
     return (*values_)[i];
+  }
+
+  // SelectRepresentations pass is run once more while MaterializeObject
+  // instructions are still in the graph. To avoid any redundant boxing
+  // operations inserted by that pass we should indicate that this
+  // instruction can cope with any representation as it is essentially
+  // an environment use.
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(0 <= idx && idx < InputCount());
+    return kNoRepresentation;
   }
 
   virtual bool CanDeoptimize() const { return false; }

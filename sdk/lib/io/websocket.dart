@@ -109,6 +109,22 @@ abstract class WebSocket implements Stream, StreamSink {
   static const int CLOSED = 3;
 
   /**
+   * Set and get the interval for sending ping signals. If a ping message is not
+   * answered by a pong message from the peer, the `WebSocket` is assumed
+   * disconnected and the connection is closed with a
+   * [WebSocketStatus.GOING_AWAY] close code. When a ping signal is sent, the
+   * pong message must be received within [pingInterval].
+   *
+   * There are never two outstanding pings at any given time, and the next ping
+   * timer starts when the pong is received.
+   *
+   * Set the [pingInterval] to `null` to disable sending ping messages.
+   *
+   * The default value is `null`.
+   */
+  Duration pingInterval;
+
+  /**
    * Create a new web socket connection. The URL supplied in [url]
    * must use the scheme [:ws:] or [:wss:]. The [protocols] argument is
    * specifying the subprotocols the client is willing to speak.
@@ -150,22 +166,6 @@ abstract class WebSocket implements Stream, StreamSink {
   String get closeReason;
 
   /**
-   * Set and get the interval for sending ping signals. If a ping message is not
-   * answered by a pong message from the peer, the `WebSocket` is assumed
-   * disconnected and the connection is closed with a
-   * [WebSocketStatus.GOING_AWAY] close code. When a ping signal is sent, the
-   * pong message must be received within [pingInterval].
-   *
-   * There are never two outstanding pings at any given time, and the next ping
-   * timer starts when the pong is received.
-   *
-   * Set the [pingInterval] to `null` to disable sending ping messages.
-   *
-   * The default value is `null`.
-   */
-  Duration pingInterval;
-
-  /**
    * Closes the web socket connection. Set the optional [code] and [reason]
    * arguments to send close information to the remote peer. If they are
    * omitted, the peer will see [WebSocketStatus.NO_STATUS_RECEIVED] code
@@ -189,7 +189,7 @@ abstract class WebSocket implements Stream, StreamSink {
 
 
 class WebSocketException implements IOException {
-  const WebSocketException([String this.message = ""]);
-  String toString() => "WebSocketException: $message";
   final String message;
+  const WebSocketException([this.message = ""]);
+  String toString() => "WebSocketException: $message";
 }

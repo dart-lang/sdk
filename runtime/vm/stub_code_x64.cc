@@ -1871,19 +1871,6 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 }
 
 
-//  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ pushq(RAX);
-  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry, 0);
-  __ popq(RAX);
-  __ LeaveStubFrame();
-  __ popq(R11);  // discard return address of call to this stub.
-  __ LeaveDartFrame();
-  __ ret();
-}
-
-
 //  RBX: Inline cache data array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {

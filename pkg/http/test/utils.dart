@@ -12,8 +12,6 @@ import 'package:http/src/byte_stream.dart';
 import 'package:http/src/utils.dart';
 import 'package:unittest/unittest.dart';
 
-import 'safe_http_server.dart';
-
 /// The current server instance.
 HttpServer _server;
 
@@ -25,7 +23,7 @@ Uri get dummyUrl => Uri.parse('http://dartlang.org/');
 
 /// Starts a new HTTP server.
 Future startServer() {
-  return SafeHttpServer.bind("localhost", 0).then((s) {
+  return HttpServer.bind("localhost", 0).then((s) {
     _server = s;
     s.listen((request) {
       var path = request.uri.path;

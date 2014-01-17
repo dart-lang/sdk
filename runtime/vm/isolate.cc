@@ -143,7 +143,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
   bool success = true;
   if (message->IsOOB()) {
-    Service::HandleServiceMessage(isolate_, msg);
+    Service::HandleIsolateMessage(isolate_, msg);
   } else {
     const Object& result = Object::Handle(
         DartLibraryCalls::HandleMessage(receive_port, msg));
@@ -731,6 +731,7 @@ void Isolate::Shutdown() {
     // Finalize any weak persistent handles with a non-null referent.
     FinalizeWeakPersistentHandlesVisitor visitor;
     api_state()->weak_persistent_handles().VisitHandles(&visitor);
+    api_state()->prologue_weak_persistent_handles().VisitHandles(&visitor);
 
     CompilerStats::Print();
     if (FLAG_trace_isolates) {
@@ -760,7 +761,7 @@ Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
 Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
 Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
 Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
-
+Dart_ServiceIsolateCreateCalback Isolate::service_create_callback_ = NULL;
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   bool visit_prologue_weak_handles,

@@ -255,11 +255,6 @@ const uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
 typedef intptr_t word;
 typedef uintptr_t uword;
 
-#if defined(TARGET_OS_WINDOWS) || defined(TARGET_OS_MACOS)
-// off64_t is not defined on Windows or Mac OS.
-typedef int64_t off64_t;
-#endif
-
 // Byte sizes.
 const int kWordSize = sizeof(word);
 const int kDoubleSize = sizeof(double);  // NOLINT
@@ -469,12 +464,12 @@ inline D bit_copy(const S& source) {
 #if !defined(TEMP_FAILURE_RETRY)
 // TEMP_FAILURE_RETRY is defined in unistd.h on some platforms. The
 // definition below is copied from Linux and adapted to avoid lint
-// errors (type long int changed to int64_t and do/while split on
+// errors (type long int changed to intptr_t and do/while split on
 // separate lines with body in {}s).
 #define TEMP_FAILURE_RETRY(expression)                                         \
-    ({ int64_t __result;                                                       \
+    ({ intptr_t __result;                                                      \
        do {                                                                    \
-         __result = static_cast<int64_t>(expression);                          \
+         __result = (expression);                                              \
        } while (__result == -1L && errno == EINTR);                            \
        __result; })
 #endif  // !defined(TEMP_FAILURE_RETRY)

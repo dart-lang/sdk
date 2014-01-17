@@ -264,7 +264,7 @@ static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
   }
   if (print_text_field) {
     buf->Printf(",\"text\":\"");
-    const intptr_t max_chars = 250;
+    const intptr_t max_chars = 1024;
     FormatTextualValue(buf, object, max_chars, true);
     buf->Printf("\"");
   }

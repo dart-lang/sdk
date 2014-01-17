@@ -128,6 +128,10 @@ main() {
   });
 
   group('help', () {
+    integration('shows global help if no command is given', () {
+      schedulePub(args: ['help'], output: USAGE_STRING);
+    });
+
     integration('shows help for a command', () {
       schedulePub(args: ['help', 'get'],
           output: '''

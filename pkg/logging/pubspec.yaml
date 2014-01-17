@@ -1,5 +1,5 @@
 name: logging
-version: 0.9.1
+version: 0.9.1+1
 author: Dart Team <misc@dartlang.org>
 description: >
   Provides APIs for debugging and error logging. This library introduces

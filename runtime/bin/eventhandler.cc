@@ -92,11 +92,21 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   } else {
     id = Socket::GetSocketIdNativeField(sender);
   }
+  // Get the _id field out of the port.
   Dart_Handle handle = Dart_GetNativeArgument(args, 1);
-  Dart_Port dart_port =
-      DartUtils::GetIntegerField(handle, DartUtils::kIdFieldName);
+  handle = Dart_GetField(handle, DartUtils::NewString(DartUtils::kIdFieldName));
+  if (Dart_IsError(handle)) {
+    Dart_PropagateError(handle);
+    UNREACHABLE();
+  }
+  Dart_Port dart_port;
+  handle = Dart_IntegerToInt64(handle, &dart_port);
+  if (Dart_IsError(handle)) {
+    Dart_PropagateError(handle);
+    UNREACHABLE();
+  }
   int64_t data = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
-  if (id == kTimerId && data == 0) {
+  if ((id == kTimerId) && (data == 0)) {
     // This is a 0-timer. Simply queue a 'null' on the port.
     DartUtils::PostNull(dart_port);
   } else {

@@ -6,3 +6,165 @@ A
 <<<
 class A {
 }
+>>> dartbug.com/15876
+// fisk
+import "dart:typed_data";
+
+main() {
+  ByteData byteData = new ByteData(1);
+  print(byteData is ByteData);
+  print(byteData.elementSizeInBytes);
+}
+<<<
+// fisk
+import "dart:typed_data";
+
+main() {
+  ByteData byteData = new ByteData(1);
+  print(byteData is ByteData);
+  print(byteData.elementSizeInBytes);
+}
+>>>
+/**
+ * Y.
+ */
+abstract class Y = String;
+<<<
+/**
+ * Y.
+ */
+abstract class Y = String;
+>>>
+external void printToConsole(String line);
+<<<
+external void printToConsole(String line);
+>>>
+void set foo(int bar) {
+}
+
+int get baz => null;
+<<<
+void set foo(int bar) {
+}
+
+int get baz => null;
+>>>
+@deprecated
+library foo;
+
+@deprecated
+import 'dart:io';
+
+@deprecated
+export 'dart:io';
+
+class NoInline {
+  const NoInline();
+}
+
+@NoInline()
+int foo(@NoInline() bar) => bar + 42;
+
+class Z<@NoInline() Y> {
+
+}
+
+@NoInline()
+typedef void X(y);
+
+@NoInline()
+class Y = X;
+
+@NoInline()
+class X {
+
+  @NoInline()
+  var _x;
+
+  @NoInline()
+  X.y() {
+    @NoInline()
+    const y = null;
+  }
+
+  @NoInline()
+  factory X(@NoInline() x) => null;
+
+  @NoInline()
+  int x() => null;
+}
+<<<
+@deprecated
+library foo;
+
+@deprecated
+import 'dart:io';
+
+@deprecated
+export 'dart:io';
+
+class NoInline {
+  const NoInline();
+}
+
+@NoInline()
+int foo(@NoInline() bar) => bar + 42;
+
+class Z<@NoInline() Y> {
+
+}
+
+@NoInline()
+typedef void X(y);
+
+@NoInline()
+class Y = X;
+
+@NoInline()
+class X {
+
+  @NoInline()
+  var _x;
+
+  @NoInline()
+  X.y() {
+    @NoInline()
+    const y = null;
+  }
+
+  @NoInline()
+  factory X(@NoInline() x) => null;
+
+  @NoInline()
+  int x() => null;
+}
+>>>
+Object get _globalState => null;
+
+set _globalState(Object val) {
+}
+<<<
+Object get _globalState => null;
+
+set _globalState(Object val) {
+}
+>>>
+var x = #foo;
+var y=#foo.bar.baz;
+<<<
+var x = #foo;
+var y = #foo.bar.baz;
+>>>
+class Zounds extends Object native "Zapp" {
+}
+<<<
+class Zounds extends Object native "Zapp" {
+}
+>>>
+@DomName('DatabaseCallback')
+@Experimental() // deprecated
+typedef void DatabaseCallback(database);
+<<<
+@DomName('DatabaseCallback')
+@Experimental() // deprecated
+typedef void DatabaseCallback(database);

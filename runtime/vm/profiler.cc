@@ -32,7 +32,7 @@ namespace dart {
     defined(TARGET_OS_MACOS) || defined(TARGET_OS_ANDROID)
   DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
 #else
-  DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
+  DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 #endif
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 DEFINE_FLAG(charp, profile_dir, NULL,
@@ -112,7 +112,6 @@ void Profiler::ShutdownProfilingForIsolate(Isolate* isolate) {
       return;
     }
     isolate->set_profiler_data(NULL);
-    profiler_data->set_sample_buffer(NULL);
     delete profiler_data;
     if (FLAG_trace_profiled_isolates) {
       OS::Print("Profiler Shutdown %p %s\n", isolate, isolate->name());
@@ -133,13 +132,6 @@ void Profiler::BeginExecution(Isolate* isolate) {
   if (profiler_data == NULL) {
     return;
   }
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  if (sample_buffer == NULL) {
-    return;
-  }
-  Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(Sample::kIsolateStart, isolate, OS::GetCurrentTimeMicros(),
-               Thread::GetCurrentThreadId());
   ThreadInterrupter::Register(RecordSampleInterruptCallback, isolate);
 }
 
@@ -153,17 +145,6 @@ void Profiler::EndExecution(Isolate* isolate) {
   }
   ASSERT(initialized_);
   ThreadInterrupter::Unregister();
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
-    return;
-  }
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  if (sample_buffer == NULL) {
-    return;
-  }
-  Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(Sample::kIsolateStop, isolate, OS::GetCurrentTimeMicros(),
-               Thread::GetCurrentThreadId());
 }
 
 
@@ -649,6 +630,7 @@ void Profiler::WriteProfile(Isolate* isolate) {
 
 IsolateProfilerData::IsolateProfilerData(SampleBuffer* sample_buffer,
                                          bool own_sample_buffer) {
+  ASSERT(sample_buffer != NULL);
   sample_buffer_ = sample_buffer;
   own_sample_buffer_ = own_sample_buffer;
 }

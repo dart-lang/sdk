@@ -6,7 +6,6 @@ library utils;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:stack_trace/stack_trace.dart';
@@ -197,23 +196,6 @@ class Pair<E, F> {
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
   future.then(completer.complete, onError: completer.completeError);
-}
-
-// TOOD(nweiz): Get rid of this once https://codereview.chromium.org/11293132/
-// is in.
-/// Runs [fn] for each element in [input] in order, moving to the next element
-/// only when the [Future] returned by [fn] completes. Returns a [Future] that
-/// completes when all elements have been processed.
-///
-/// The return values of all [Future]s are discarded. Any errors will cause the
-/// iteration to stop and will be piped through the return value.
-Future forEachFuture(Iterable input, Future fn(element)) {
-  var iterator = input.iterator;
-  Future nextElement(_) {
-    if (!iterator.moveNext()) return new Future.value();
-    return fn(iterator.current).then(nextElement);
-  }
-  return nextElement(null);
 }
 
 /// Like [Future.sync], but wraps the Future in [Chain.track] as well.

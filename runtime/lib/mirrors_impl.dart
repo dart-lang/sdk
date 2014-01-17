@@ -199,8 +199,8 @@ class _SyntheticAccessor implements MethodMirror {
   }
 
   List<InstanceMirror> get metadata => emptyList;
-
   String get source => null;
+  SourceLocation get location => throw new UnimplementedError();
 }
 
 class _SyntheticSetterParameter implements ParameterMirror {
@@ -222,6 +222,8 @@ class _SyntheticSetterParameter implements ParameterMirror {
   bool get isPrivate => false;
   bool get hasDefaultValue => false;
   InstanceMirror get defaultValue => null;
+  List<InstanceMirror> get metadata => emptyList;
+  SourceLocation get location => throw new UnimplementedError();
 }
 
 abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
@@ -437,6 +439,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   final Type _reflectedType;
   Symbol _simpleName;
   DeclarationMirror _owner;
+  final bool isAbstract;
   final bool _isGeneric;
   final bool _isMixinAlias;
   final bool _isGenericDeclaration;
@@ -446,6 +449,7 @@ class _LocalClassMirror extends _LocalObjectMirror
                     reflectedType,
                     String simpleName,
                     this._owner,
+                    this.isAbstract,
                     this._isGeneric,
                     this._isMixinAlias,
                     this._isGenericDeclaration)
@@ -564,8 +568,7 @@ class _LocalClassMirror extends _LocalObjectMirror
     if (_cachedStaticMembers == null) {
       var result = new Map<Symbol, MethodMirror>();
       declarations.values.forEach((decl) {
-        if (decl is MethodMirror && decl.isStatic &&
-            !decl.isConstructor && !decl.isAbstract) {
+        if (decl is MethodMirror && decl.isStatic && !decl.isConstructor) {
           result[decl.simpleName] = decl;
         }
         if (decl is VariableMirror && decl.isStatic) {
@@ -579,7 +582,8 @@ class _LocalClassMirror extends _LocalObjectMirror
           }
         }
       });
-      _cachedStaticMembers = result;
+      _cachedStaticMembers =
+          new _UnmodifiableMapView<Symbol, MethodMirror>(result);
     }
     return _cachedStaticMembers;
   }
@@ -607,7 +611,8 @@ class _LocalClassMirror extends _LocalObjectMirror
           }
         }
       });
-      _cachedInstanceMembers = result;
+      _cachedInstanceMembers =
+          new _UnmodifiableMapView<Symbol, MethodMirror>(result);
     }
     return _cachedInstanceMembers;
   }
@@ -804,7 +809,7 @@ class _LocalClassMirror extends _LocalObjectMirror
 class _LocalFunctionTypeMirror extends _LocalClassMirror
     implements FunctionTypeMirror {
   _LocalFunctionTypeMirror(reflectee, reflectedType)
-      : super(reflectee, reflectedType, null, null, false, false, false);
+      : super(reflectee, reflectedType, null, null, false, false, false, false);
 
   bool get _isAnonymousMixinApplication => false;
 
@@ -1078,28 +1083,27 @@ class _LocalLibraryMirror extends _LocalObjectMirror implements LibraryMirror {
 
   var _cachedTopLevelMembers;
   Map<Symbol, MethodMirror> get topLevelMembers {
-    if (_cachedTopLevelMembers != null) return _cachedTopLevelMembers;
-    var result = new Map<Symbol, MethodMirror>();
-    declarations.values.forEach((decl) {
-      if (decl is MethodMirror && !decl.isAbstract) {
-        result[decl.simpleName] = decl;
-      }
-      if (decl is VariableMirror) {
-        var getterName = decl.simpleName;
-        result[getterName] =
-            new _SyntheticAccessor(this, getterName, true, true, true, decl);
-        if (!decl.isFinal) {
-          var setterName = _asSetter(decl.simpleName, this);
-          result[setterName] = new _SyntheticAccessor(
-              this, setterName, false, true, true, decl);
+    if (_cachedTopLevelMembers == null) {
+      var result = new Map<Symbol, MethodMirror>();
+      declarations.values.forEach((decl) {
+        if (decl is MethodMirror) {
+          result[decl.simpleName] = decl;
         }
-      }
-      // if (decl is TypeMirror) {
-      //  var getterName = decl.simpleName;
-      //  result[getterName] = new _SyntheticTypeGetter(this, getterName, decl);
-      // }
-    });
-    return _cachedTopLevelMembers = result;
+        if (decl is VariableMirror) {
+          var getterName = decl.simpleName;
+          result[getterName] =
+              new _SyntheticAccessor(this, getterName, true, true, true, decl);
+          if (!decl.isFinal) {
+            var setterName = _asSetter(decl.simpleName, this);
+            result[setterName] = new _SyntheticAccessor(
+                this, setterName, false, true, true, decl);
+          }
+        }
+      });
+      _cachedTopLevelMembers =
+          new _UnmodifiableMapView<Symbol, MethodMirror>(result);
+    }
+    return _cachedTopLevelMembers;
   }
 
 

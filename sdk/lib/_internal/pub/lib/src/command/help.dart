@@ -20,7 +20,7 @@ class HelpCommand extends PubCommand {
 
   Future onRun() {
     if (commandOptions.rest.isEmpty) {
-      printUsage();
+      PubCommand.printGlobalUsage();
     } else {
       var name = commandOptions.rest[0];
       var command = PubCommand.commands[name];

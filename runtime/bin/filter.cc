@@ -60,18 +60,19 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
     Dart_ThrowException(DartUtils::NewInternalError(
         "Failed to get 'gzip' parameter"));
   }
-  int64_t level;
-  if (Dart_IsError(Dart_IntegerToInt64(level_obj, &level))) {
+  int64_t level = 0;
+  Dart_Handle result = Dart_IntegerToInt64(level_obj, &level);
+  if (Dart_IsError(result) || (level < kMinInt32) || (level > kMaxInt32)) {
     Dart_ThrowException(DartUtils::NewInternalError(
         "Failed to get 'level' parameter"));
   }
-  Filter* filter = new ZLibDeflateFilter(gzip, level);
+  Filter* filter = new ZLibDeflateFilter(gzip, static_cast<int32_t>(level));
   if (filter == NULL || !filter->Init()) {
     delete filter;
     Dart_ThrowException(DartUtils::NewInternalError(
         "Failed to create ZLibDeflateFilter"));
   }
-  Dart_Handle result = Filter::SetFilterPointerNativeField(filter_obj, filter);
+  result = Filter::SetFilterPointerNativeField(filter_obj, filter);
   if (Dart_IsError(result)) {
     delete filter;
     Dart_PropagateError(result);

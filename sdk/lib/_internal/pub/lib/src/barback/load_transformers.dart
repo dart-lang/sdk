@@ -66,7 +66,7 @@ Iterable initialize(Uri uri, Map configuration, BarbackMode mode) {
     if (declaration is! ClassMirror) return null;
     var classMirror = declaration;
     if (classMirror.isPrivate) return null;
-    if (isAbstract(classMirror)) return null;
+    if (classMirror.isAbstract) return null;
     if (!classIsA(classMirror, transformerClass) &&
         !classIsA(classMirror, groupClass)) {
       return null;
@@ -75,14 +75,10 @@ Iterable initialize(Uri uri, Map configuration, BarbackMode mode) {
     var constructor = getConstructor(classMirror, 'asPlugin');
     if (constructor == null) return null;
     if (constructor.parameters.isEmpty) {
-      if (configuration != null) return null;
+      if (configuration.isNotEmpty) return null;
       return classMirror.newInstance(const Symbol('asPlugin'), []).reflectee;
     }
     if (constructor.parameters.length != 1) return null;
-
-    // If the constructor expects configuration and none was passed, it defaults
-    // to an empty map.
-    if (configuration == null) configuration = {};
 
     return classMirror.newInstance(const Symbol('asPlugin'),
         [new BarbackSettings(configuration, mode)]).reflectee;
@@ -164,11 +160,6 @@ bool classIsA(ClassMirror mirror, ClassMirror superclass) {
       mirror.superinterfaces.any((int) => classIsA(int, superclass));
 }
 
-// TODO(nweiz): get rid of this when issue 12826 is fixed.
-/// Returns whether or not [mirror] is an abstract class.
-bool isAbstract(ClassMirror mirror) => mirror.declarations.values
-    .any((member) => member is MethodMirror && member.isAbstract);
-
 /// Converts [transformerOrGroup] into a serializable map.
 Map _serializeTransformerOrGroup(transformerOrGroup) {
   if (transformerOrGroup is Transformer) {
@@ -188,8 +179,11 @@ Map _serializeTransformer(Transformer transformer) {
         return transformer.isPrimary(deserializeAsset(message['asset']));
       } else {
         assert(message['type'] == 'apply');
+
+        // Make sure we return null so that if the transformer's [apply] returns
+        // a non-serializable value it doesn't cause problems.
         return transformer.apply(
-            new ForeignTransform(message['transform']));
+            new ForeignTransform(message['transform'])).then((_) => null);
       }
     });
   });

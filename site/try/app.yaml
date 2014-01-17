@@ -1,0 +1,64 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# App Engine configuration, see:
+# https://developers.google.com/appengine/docs/python/config/appconfig
+
+# The version number should be something like rSVN_REVISION.
+version: remember to edit app.yaml before deploying
+# This version name is used to create a new host, for example,
+# http://r31824.try-dart-lang.appspot.com/, which can be tested before going
+# live at http://try.dartlang.org/.  This is controlled from
+# https://appengine.google.com/deployment?&app_id=s~try-dart-lang
+
+application: try-dart-lang
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+# Set "Cache-Control" and "Expires" HTTP headers to only cache for one second.
+# We do this because we frequently push new changes and rely on AppCache for
+# caching.  Once files are installed in AppCache, the site launches
+# immediately.
+#
+# Problem: PageSpeed Insights doesn't realize that we use AppCache and keeps
+# nagging about caching.
+# Solution: Ignore its advice about "Leverage browser caching".
+default_expiration: 1s
+
+handlers:
+
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+  secure: never
+
+- url: /
+  static_files: index.html
+  upload: index.html
+  secure: never
+
+- url: /nossl.appcache
+  static_files: nossl.appcache
+  upload: nossl.appcache
+  secure: never
+
+- url: /(.*\.(html|js|png|css|dart|json))
+  static_files: \1
+  upload: (.*\.(html|js|png|css|dart|json))
+  secure: never
+
+- url: /css/fonts/fontawesome-webfont.woff
+  static_files: fontawesome-webfont.woff
+  upload: fontawesome-webfont.woff
+  secure: never
+
+- url: .*
+  static_files: not_found.html
+  upload: not_found.html
+  secure: never
+
+libraries:
+- name: webapp2
+  version: "2.5.2"

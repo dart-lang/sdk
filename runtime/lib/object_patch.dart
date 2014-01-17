@@ -4,7 +4,7 @@
 
 patch class Object {
 
-  // The VM has it's own implemention of equals.
+  // The VM has its own implementation of equals.
   bool operator ==(other) native "Object_equals";
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
@@ -43,7 +43,7 @@ patch class Object {
 
   /* patch */ noSuchMethod(Invocation invocation) {
     return _noSuchMethod(invocation.isMethod,
-                         _collection_dev.Symbol.getName(invocation.memberName),
+                         internal.Symbol.getName(invocation.memberName),
                          invocation._type,
                          invocation.positionalArguments,
                          _symbolMapToStringMap(invocation.namedArguments));
@@ -66,7 +66,7 @@ patch class Object {
   static _symbolMapToStringMap(Map<Symbol, dynamic> map) {
     var result = new Map<String, dynamic>();
     map.forEach((Symbol key, value) {
-      result[_collection_dev.Symbol.getName(key)] = value;
+      result[internal.Symbol.getName(key)] = value;
     });
     return result;
   }

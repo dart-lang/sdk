@@ -104,9 +104,7 @@ class DartUtils {
 
   static void SetIntegerField(Dart_Handle handle,
                               const char* name,
-                              intptr_t val);
-  static intptr_t GetIntegerField(Dart_Handle handle,
-                                  const char* name);
+                              int64_t val);
   static void SetStringField(Dart_Handle handle,
                              const char* name,
                              const char* val);
@@ -209,13 +207,14 @@ class DartUtils {
   static const char* kDartExtensionScheme;
   static const char* kAsyncLibURL;
   static const char* kBuiltinLibURL;
-  static const char* kCollectionDevLibURL;
   static const char* kCoreLibURL;
+  static const char* kInternalLibURL;
   static const char* kIsolateLibURL;
   static const char* kIOLibURL;
   static const char* kIOLibPatchURL;
   static const char* kUriLibURL;
   static const char* kHttpScheme;
+  static const char* kVMServiceLibURL;
 
   static const char* kIdFieldName;
 

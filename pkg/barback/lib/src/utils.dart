@@ -9,67 +9,79 @@ import 'dart:typed_data';
 
 import 'package:stack_trace/stack_trace.dart';
 
-/// A pair of values.
-class Pair<E, F> {
-  E first;
-  F last;
+/// A class that represents a value or an error.
+class Fallible<E> {
+  /// Whether [this] has a [value], as opposed to an [error].
+  final bool hasValue;
 
-  Pair(this.first, this.last);
+  /// Whether [this] has an [error], as opposed to a [value].
+  bool get hasError => !hasValue;
 
-  String toString() => '($first, $last)';
-
-  bool operator==(other) {
-    if (other is! Pair) return false;
-    return other.first == first && other.last == last;
-  }
-
-  int get hashCode => first.hashCode ^ last.hashCode;
-}
-
-/// A class that represents one and only one of two types of values.
-class Either<E, F> {
-  /// Whether this is a value of type `E`.
-  final bool isFirst;
-
-  /// Whether this is a value of type `F`.
-  bool get isSecond => !isFirst;
-
-  /// The value, either of type `E` or `F`.
-  final _value;
-
-  /// The value of type `E`.
+  /// The value.
   ///
-  /// It's an error to access this is this is of type `F`.
-  E get first {
-    assert(isFirst);
-    return _value;
-  }
+  /// This will be `null` if [this] has an [error].
+  final E _value;
 
-  /// The value of type `F`.
+  /// The value.
   ///
-  /// It's an error to access this is this is of type `E`.
-  F get second {
-    assert(isSecond);
-    return _value;
+  /// This will throw a [StateError] if [this] has an [error].
+  E get value {
+    if (hasValue) return _value;
+    throw new StateError("Fallible has no value.\n"
+        "$_error$_stackTraceSuffix");
   }
 
-  /// Creates an [Either] with type `E`.
-  Either.withFirst(this._value)
-      : isFirst = true;
-
-  /// Creates an [Either] with type `F`.
-  Either.withSecond(this._value)
-      : isFirst = false;
-
-  /// Runs [whenFirst] or [whenSecond] depending on the type of [this].
+  /// The error.
   ///
-  /// Returns the result of whichvever function was run.
-  match(whenFirst(E value), whenSecond(F value)) {
-    if (isFirst) return whenFirst(first);
-    return whenSecond(second);
+  /// This will be `null` if [this] has a [value].
+  final _error;
+
+  /// The error.
+  ///
+  /// This will throw a [StateError] if [this] has a [value].
+  get error {
+    if (hasError) return _error;
+    throw new StateError("Fallible has no error.");
   }
 
-  String toString() => "$_value (${isFirst? 'first' : 'second'})";
+  /// The stack trace for [_error].
+  ///
+  /// This will be `null` if [this] has a [value], or if no stack trace was
+  /// provided.
+  final StackTrace _stackTrace;
+
+  /// The stack trace for [error].
+  ///
+  /// This will throw a [StateError] if [this] has a [value].
+  StackTrace get stackTrace {
+    if (hasError) return _stackTrace;
+    throw new StateError("Fallible has no error.");
+  }
+
+  Fallible.withValue(this._value)
+      : _error = null,
+        _stackTrace = null,
+        hasValue = true;
+
+  Fallible.withError(this._error, [this._stackTrace])
+      : _value = null,
+        hasValue = false;
+
+  /// Returns a completed Future with the same value or error as [this].
+  Future toFuture() {
+    if (hasValue) return new Future.value(value);
+    return new Future.error(error, stackTrace);
+  }
+
+  String toString() {
+    if (hasValue) return "Fallible value: $value";
+    return "Fallible error: $error$_stackTraceSuffix";
+  }
+
+  String get _stackTraceSuffix {
+    if (stackTrace == null) return "";
+    return "\nStack trace:\n${new Chain.forTrace(_stackTrace).terse}";
+  }
 }
 
 /// Converts a number in the range [0-255] to a two digit hex string.

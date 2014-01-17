@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
@@ -103,9 +107,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   void assertErrors2(List<ErrorCode> expectedErrorCodes) {
     JavaStringBuilder builder = new JavaStringBuilder();
+    //
+    // Verify that the expected error codes have a non-empty message.
+    //
     for (ErrorCode errorCode in expectedErrorCodes) {
       JUnitTestCase.assertFalseMsg("Empty error code message", errorCode.message.isEmpty);
     }
+    //
+    // Compute the expected number of each type of error.
+    //
     Map<ErrorCode, int> expectedCounts = new Map<ErrorCode, int>();
     for (ErrorCode code in expectedErrorCodes) {
       int count = expectedCounts[code];
@@ -116,6 +126,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
       }
       expectedCounts[code] = count;
     }
+    //
+    // Compute the actual number of each type of error.
+    //
     Map<ErrorCode, List<AnalysisError>> errorsByCode = new Map<ErrorCode, List<AnalysisError>>();
     for (AnalysisError error in _errors) {
       ErrorCode code = error.errorCode;
@@ -126,6 +139,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
       }
       list.add(error);
     }
+    //
+    // Compare the expected and actual number of each type of error.
+    //
     for (MapEntry<ErrorCode, int> entry in getMapEntrySet(expectedCounts)) {
       ErrorCode code = entry.getKey();
       int expectedCount = entry.getValue();
@@ -149,6 +165,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
         builder.append(actualCount);
       }
     }
+    //
+    // Check that there are no more errors in the actual-errors map, otherwise, record message.
+    //
     for (MapEntry<ErrorCode, List<AnalysisError>> entry in getMapEntrySet(errorsByCode)) {
       ErrorCode code = entry.getKey();
       List<AnalysisError> actualErrors = entry.getValue();
@@ -421,6 +440,22 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
+   * Assert that the given collection is non-`null` and has the expected number of elements.
+   *
+   * @param expectedSize the expected number of elements
+   * @param c the collection being tested
+   * @throws AssertionFailedError if the list is `null` or does not have the expected number
+   *           of elements
+   */
+  static void assertCollectionSize(int expectedSize, Iterable c) {
+    if (c == null) {
+      JUnitTestCase.fail("Expected collection of size ${expectedSize}; found null");
+    } else if (c.length != expectedSize) {
+      JUnitTestCase.fail("Expected collection of size ${expectedSize}; contained ${c.length} elements");
+    }
+  }
+
+  /**
    * Assert that the given array is non-`null` and contains the expected elements. The
    * elements can appear in any order.
    *
@@ -496,6 +531,7 @@ class EngineTestCase extends JUnitTestCase {
       int diffAhead = Math.max(0, diffPos - _PRINT_RANGE);
       int diffAfter = Math.min(actual.length, diffPos + _PRINT_RANGE);
       String diffStr = "${actual.substring(diffAhead, diffPos)}^${actual.substring(diffPos, diffAfter)}";
+      // use detailed message
       String message = "Content not as expected: is\n${actual}\nDiffers at pos ${diffPos}: ${diffStr}\nexpected:\n${expected}";
       JUnitTestCase.assertEqualsMsg(message, expected, actual);
     }
@@ -519,7 +555,7 @@ class EngineTestCase extends JUnitTestCase {
     for (int i = 0; i < expectedSize; i++) {
       Object element = list[i];
       Object expectedElement = expectedElements[i];
-      if (!element == expectedElement) {
+      if (element != expectedElement) {
         JUnitTestCase.fail("Expected ${expectedElement} at [${i}]; found ${element}");
       }
     }
@@ -544,7 +580,7 @@ class EngineTestCase extends JUnitTestCase {
     for (int i = 0; i < expectedSize; i++) {
       Object element = array[i];
       Object expectedElement = expectedElements[i];
-      if (!element == expectedElement) {
+      if (element != expectedElement) {
         JUnitTestCase.fail("Expected ${expectedElement} at [${i}]; found ${element}");
       }
     }
@@ -585,7 +621,7 @@ class EngineTestCase extends JUnitTestCase {
     if (!isInstanceOf(object, expectedClass)) {
       JUnitTestCase.fail("Expected instance of ${expectedClass.toString()}, found ${(object == null ? "null" : object.runtimeType.toString())}");
     }
-    return object as Object;
+    return object;
   }
 
   /**
@@ -616,26 +652,10 @@ class EngineTestCase extends JUnitTestCase {
     JUnitTestCase.assertEquals(expectedToken.type, actualToken.type);
     if (expectedToken is KeywordToken) {
       assertInstanceOf(KeywordToken, actualToken);
-      JUnitTestCase.assertEquals((expectedToken as KeywordToken).keyword, (actualToken as KeywordToken).keyword);
+      JUnitTestCase.assertEquals(expectedToken.keyword, (actualToken as KeywordToken).keyword);
     } else if (expectedToken is StringToken) {
       assertInstanceOf(StringToken, actualToken);
-      JUnitTestCase.assertEquals((expectedToken as StringToken).lexeme, (actualToken as StringToken).lexeme);
-    }
-  }
-
-  /**
-   * Assert that the given collection is non-`null` and has the expected number of elements.
-   *
-   * @param expectedSize the expected number of elements
-   * @param c the collection being tested
-   * @throws AssertionFailedError if the list is `null` or does not have the expected number
-   *           of elements
-   */
-  static void assertCollectionSize(int expectedSize, Iterable c) {
-    if (c == null) {
-      JUnitTestCase.fail("Expected collection of size ${expectedSize}; found null");
-    } else if (c.length != expectedSize) {
-      JUnitTestCase.fail("Expected collection of size ${expectedSize}; contained ${c.length} elements");
+      JUnitTestCase.assertEquals(expectedToken.lexeme, (actualToken as StringToken).lexeme);
     }
   }
 

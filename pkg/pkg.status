@@ -23,8 +23,6 @@ polymer/test/event_path_test: Pass, Fail # Issue 15766
 third_party/html5lib/test/dom_compat_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 
-http/test/http_test: Pass, RuntimeError # Issue 15652
-
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
@@ -32,6 +30,8 @@ collection/test/equality_test/03: Fail # Issue 1533
 collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
+third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
+third_party/angular_tests/browser_test/core/parser/parser: Fail # Issue 15915
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
 [ $compiler == dart2js && $checked ]
@@ -72,6 +72,7 @@ polymer/test/register_test: Skip #uses dart:html
 polymer/test/take_attributes_test: Skip #uses dart:html
 polymer/test/template_distribute_dynamic_test: Skip #uses dart:html
 polymer/test/unbind_test: Skip # uses dart:html
+third_party/angular_tests/browser_test: Skip # uses dart:html
 
 [$compiler == dart2dart]
 *: Skip
@@ -123,12 +124,16 @@ unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
 
+third_party/angular_tests/browser_test: StaticWarning # Issue 15890
+
 [ $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip
 # them in the analyzer.
 unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
+
+third_party/angular_tests/browser_test: StaticWarning # Issue 15890
 
 [ $compiler == dart2js && $runtime == none]
 polymer/example/canonicalization: Skip
@@ -183,6 +188,7 @@ intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
+intl/test/message_extraction/examples_parsing_test: Fail, OK # Users dart:io
 oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
 oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
@@ -190,30 +196,14 @@ oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
+third_party/angular_tests/vm_test: Skip # Uses dart:io
 watcher/test/*: Fail, OK # Uses dart:io.
 
-scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/file_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/nothing_test: Fail # http://dartbug.com/8440
-scheduled_test/test/descriptor/pattern_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/*: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_future_matchers_test: Fail # http://dartbug.com/8440
 scheduled_test/test/scheduled_process_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/abort_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/current_schedule_current_task_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/current_schedule_errors_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/current_schedule_state_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/nested_task_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/on_complete_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/on_exception_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/out_of_band_task_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/set_up_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/signal_error_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/simple_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/task_return_value_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
-scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/*: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_stream/stream_matcher_test: Fail # http://dartbug.com/8440
 
 
 */test/analyzer_test: Skip  # No need to run analysis tests on browser bots
@@ -239,6 +229,9 @@ unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2J
 [ $arch == simarm || $arch == simmips ]
 barback/test/too_many_open_files_test: Skip # 14220
 third_party/html5lib/test/tokenizer_test: Pass, Slow
+
+[ $arch == simarm && $checked ]
+watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
@@ -283,6 +276,7 @@ third_party/html5lib/test/browser/browser_test: Skip
 
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
 docgen/test/single_library_test: Skip # Uses dart:io
+docgen/test/multi_library_test: Skip # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
 
 [ $browser || $runtime == vm ]
@@ -295,18 +289,8 @@ polymer_expressions/test/bindings_test: Fail, Pass # Issue 14445.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 docgen/test/single_library_test: StaticWarning
-http_server/test/http_body_test: StaticWarning
-http_server/test/http_multipart_test: StaticWarning
-http_server/test/virtual_directory_test: StaticWarning
-http_server/test/virtual_host_test: StaticWarning
-http/test/client_test: StaticWarning
-http/test/http_test: StaticWarning
-http/test/mock_client_test: StaticWarning
-http/test/multipart_test: StaticWarning
-http/test/request_test: StaticWarning
-http/test/streamed_request_test: StaticWarning
+docgen/test/multi_library_test: StaticWarning
 unittest/test/matchers_test: StaticWarning, OK # testing error creating abstract class
-unittest/test/mock_test: StaticWarning, OK # testing unimplemented members
 
 [ $runtime == vm && ($system == windows || $system == macos) ]
 watcher/test/*/linux_test: Skip
@@ -314,5 +298,39 @@ watcher/test/*/linux_test: Skip
 [ $runtime == vm && ($system == windows || $system == linux) ]
 watcher/test/*/mac_os_test: Skip
 
-[ $runtime == vm && $system == macos ]
-watcher/test/directory_watcher/mac_os_test: Pass, Fail # Issue 15024
+[ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == ie10 ]
+# Various issues due to limited browser testing in Angular.
+third_party/angular_tests/*: Skip
+
+[ $unchecked ]
+third_party/angular_tests/browser_test/angular: Skip # Requires checked mode.
+third_party/angular_tests/browser_test/core/scope: Skip # Requires checked mode.
+third_party/angular_tests/browser_test/core/zone: Skip # Requires checked mode.
+
+[ $use_repository_packages ]
+analyzer/test/error_test: PubGetError
+analyzer/test/generated/ast_test: PubGetError
+analyzer/test/generated/element_test: PubGetError
+analyzer/test/generated/parser_test: PubGetError
+analyzer/test/generated/resolver_test: PubGetError
+analyzer/test/generated/scanner_test: PubGetError
+analyzer/test/options_test: PubGetError
+analyzer/test/parse_compilation_unit_test: PubGetError
+analyzer/test/services/formatter_test: PubGetError
+args/test/args_test: PubGetError
+args/test/command_test: PubGetError
+args/test/parse_all_test: PubGetError
+args/test/parse_test: PubGetError
+args/test/usage_test: PubGetError
+async/test/stream_zip_test: PubGetError
+async/test/stream_zip_zone_test: PubGetError
+collection/test/algorithms_test: PubGetError
+collection/test/iterable_zip_test: PubGetError
+collection/test/priority_queue_test: PubGetError
+collection/test/unmodifiable_collection_test: PubGetError
+collection/test/wrapper_test: PubGetError
+stack_trace/test/chain_test: PubGetError
+stack_trace/test/frame_test: PubGetError
+stack_trace/test/trace_test: PubGetError
+stack_trace/test/vm_test: PubGetError
+

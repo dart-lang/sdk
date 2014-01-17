@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
@@ -17,18 +21,18 @@ abstract class LocalSourcePredicate {
   /**
    * Instance of [LocalSourcePredicate] that always returns `false`.
    */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_15();
+  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
 
   /**
    * Instance of [LocalSourcePredicate] that always returns `true`.
    */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_16();
+  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
 
   /**
    * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
    * except of SDK.
    */
-  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_17();
+  static final LocalSourcePredicate NOT_SDK = new LocalSourcePredicate_NOT_SDK();
 
   /**
    * Determines if the given [Source] is local.
@@ -39,15 +43,15 @@ abstract class LocalSourcePredicate {
   bool isLocal(Source source);
 }
 
-class LocalSourcePredicate_15 implements LocalSourcePredicate {
+class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
   bool isLocal(Source source) => false;
 }
 
-class LocalSourcePredicate_16 implements LocalSourcePredicate {
+class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
   bool isLocal(Source source) => true;
 }
 
-class LocalSourcePredicate_17 implements LocalSourcePredicate {
+class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
   bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
 }
 
@@ -162,7 +166,7 @@ class SourceFactory {
   DartSdk get dartSdk {
     for (UriResolver resolver in _resolvers) {
       if (resolver is DartUriResolver) {
-        DartUriResolver dartUriResolver = resolver as DartUriResolver;
+        DartUriResolver dartUriResolver = resolver;
         return dartUriResolver.dartSdk;
       }
     }
@@ -192,6 +196,7 @@ class SourceFactory {
       return null;
     }
     try {
+      // Force the creation of an escaped URI to deal with spaces, etc.
       return resolveUri2(containingSource, parseUriWithException(containedUri));
     } on URISyntaxException catch (exception) {
       return null;
@@ -892,6 +897,8 @@ class ContentCache {
     } else {
       int newStamp = JavaSystem.currentTimeMillis();
       int oldStamp = javaMapPut(_stampMap, source, newStamp);
+      // Occasionally, if this method is called in rapid succession, the timestamps are equal.
+      // Guard against this by artificially incrementing the new timestamp
       if (newStamp == oldStamp) {
         _stampMap[source] = newStamp + 1;
       }

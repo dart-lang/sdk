@@ -149,6 +149,36 @@ void main() {
       expect(frame.member, equals('VW.call\$0'));
     });
 
+    test('parses a basic eval stack frame correctly', () {
+      var frame = new Frame.parseV8("    at eval (eval at <anonymous> "
+          "(http://pub.dartlang.org/stuff.dart.js:560:28))");
+      expect(frame.uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('eval'));
+    });
+
+    test('parses an eval stack frame with inner position info correctly', () {
+      var frame = new Frame.parseV8("    at eval (eval at <anonymous> "
+          "(http://pub.dartlang.org/stuff.dart.js:560:28), <anonymous>:3:28)");
+      expect(frame.uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('eval'));
+    });
+
+    test('parses a nested eval stack frame correctly', () {
+      var frame = new Frame.parseV8("    at eval (eval at <anonymous> "
+          "(eval at sub (http://pub.dartlang.org/stuff.dart.js:560:28)))");
+      expect(frame.uri,
+          equals(Uri.parse("http://pub.dartlang.org/stuff.dart.js")));
+      expect(frame.line, equals(560));
+      expect(frame.column, equals(28));
+      expect(frame.member, equals('eval'));
+    });
+
     test('converts "<anonymous>" to "<fn>"', () {
       String parsedMember(String member) =>
           new Frame.parseV8('    at $member (foo:0:0)').member;

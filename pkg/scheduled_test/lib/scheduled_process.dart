@@ -65,14 +65,18 @@ class ScheduledProcess {
 
   /// Whether the user has scheduled the end of this process by calling either
   /// [shouldExit] or [kill].
-  var _endScheduled = false;
+  bool get _endScheduled => _scheduledExitTask != null;
 
-  /// The task that runs immediately before this process is scheduled to end. If
-  /// the process ends during this task, we treat that as expected.
-  Task _taskBeforeEnd;
+  /// The task where this process is scheduled to exit -- either by waiting to
+  /// exit ([shouldExit]) or by killing the process ([kill]).
+  ///
+  /// It's legal for the process to exit before this task runs. This can happen
+  /// for example if there's still standard output to read from the process
+  /// after it exits.
+  Task _scheduledExitTask;
 
-  /// Whether the process is expected to terminate at this point.
-  var _endExpected = false;
+  /// The task during which the process actually exited.
+  Task _actualExitTask;
 
   /// Schedules a process to start. [executable], [arguments],
   /// [workingDirectory], and [environment] have the same meaning as for
@@ -173,26 +177,8 @@ class ScheduledProcess {
     // queue where the process will be killed, rather than blocking the tasks
     // queue waiting for the process to exit.
     _process.then((p) => Chain.track(p.exitCode)).then((exitCode) {
-      if (_endExpected) {
-        exitCodeCompleter.complete(exitCode);
-        return;
-      }
-
-      wrapFuture(pumpEventQueue().then((_) {
-        if (currentSchedule.currentTask != _taskBeforeEnd) return null;
-        // If we're one task before the end was scheduled, wait for that task
-        // to complete and pump the event queue so that _endExpected will be
-        // set.
-        return _taskBeforeEnd.result.then((_) => pumpEventQueue());
-      }).then((_) {
-        exitCodeCompleter.complete(exitCode);
-
-        if (!_endExpected) {
-          fail("Process '$description' ended earlier than scheduled "
-               "with exit code $exitCode.");
-        }
-      }), "waiting to reach shouldExit() or kill() for process "
-          "'$description'");
+      _actualExitTask = currentSchedule.currentTask;
+      exitCodeCompleter.complete(exitCode);
     });
   }
 
@@ -224,7 +210,6 @@ class ScheduledProcess {
       var killedPrematurely = false;
       if (!_exitCode.hasValue) {
         killedPrematurely = true;
-        _endExpected = true;
         _process.value.kill(ProcessSignal.SIGKILL);
         // Ensure that the onException queue waits for the process to actually
         // exit after being killed.
@@ -239,9 +224,22 @@ class ScheduledProcess {
         var stdout = results[0].join("\n");
         var stderr = results[1].join("\n");
 
-        var exitDescription = killedPrematurely
-            ? "Process was killed prematurely."
-            : "Process exited with exit code ${_exitCode.value}.";
+        var exitDescription;
+        if (killedPrematurely) {
+          exitDescription = "Process was killed prematurely.";
+        } else {
+          exitDescription = "Process exited with exit code ${_exitCode.value}";
+          if (_actualExitTask != _scheduledExitTask) {
+            var taskString = _actualExitTask.toString();
+            if (taskString.contains("\n")) {
+              exitDescription += " in task:\n${prefixLines(taskString)}";
+            } else {
+              exitDescription += " in task $taskString";
+            }
+          }
+          exitDescription += ".";
+        }
+
         currentSchedule.addDebugInfo(
             "Results of running '$description':\n"
             "$exitDescription\n"
@@ -329,14 +327,12 @@ class ScheduledProcess {
       throw new StateError("shouldExit() or kill() already called.");
     }
 
-    _endScheduled = true;
-    _taskBeforeEnd = currentSchedule.tasks.contents.last;
     schedule(() {
-      _endExpected = true;
       return _process
           .then((p) => p.kill(ProcessSignal.SIGKILL))
           .then((_) => _exitCode);
     }, "waiting for process '$description' to die");
+    _scheduledExitTask = currentSchedule.tasks.contents.last;
   }
 
   /// Waits for the process to exit, and verifies that the exit code matches
@@ -346,15 +342,13 @@ class ScheduledProcess {
       throw new StateError("shouldExit() or kill() already called.");
     }
 
-    _endScheduled = true;
-    _taskBeforeEnd = currentSchedule.tasks.contents.last;
     schedule(() {
-      _endExpected = true;
       return _exitCode.then((exitCode) {
         if (expectedExitCode != null) {
           expect(exitCode, equals(expectedExitCode));
         }
       });
     }, "waiting for process '$description' to exit");
+    _scheduledExitTask = currentSchedule.tasks.contents.last;
   }
 }

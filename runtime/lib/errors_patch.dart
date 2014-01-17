@@ -216,7 +216,7 @@ patch class NoSuchMethodError {
     var args_message = args_mismatch ? " with matching arguments" : "";
     var msg;
     var memberName =
-        (_memberName == null) ? "" :_collection_dev.Symbol.getName(_memberName);
+        (_memberName == null) ? "" : internal.Symbol.getName(_memberName);
     switch (level) {
       case _InvocationMirror._DYNAMIC: {
         if (_receiver == null) {
@@ -276,7 +276,7 @@ patch class NoSuchMethodError {
         if (i > 0) {
           actual_buf.write(", ");
         }
-        actual_buf.write(_collection_dev.Symbol.getName(key));
+        actual_buf.write(internal.Symbol.getName(key));
         actual_buf.write(": ");
         actual_buf.write(Error.safeToString(value));
         i++;
@@ -293,7 +293,7 @@ patch class NoSuchMethodError {
       receiver_str = Error.safeToString(_receiver);
     }
     var memberName =
-        (_memberName == null) ? "" :_collection_dev.Symbol.getName(_memberName);
+        (_memberName == null) ? "" : internal.Symbol.getName(_memberName);
     if (!args_mismatch) {
       msg_buf.write(
           "NoSuchMethodError : method not found: '$memberName'\n"

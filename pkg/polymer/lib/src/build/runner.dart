@@ -47,9 +47,16 @@ class BarbackOptions {
    */
   final bool machineFormat;
 
+  /**
+   * Whether to follow symlinks when listing directories. By default this is
+   * false because directories have symlinks for the packages directory created
+   * by pub, but it can be turned on for custom uses of this library.
+   */
+  final bool followLinks;
+
   BarbackOptions(this.phases, this.outDir, {currentPackage, packageDirs,
       this.transformTests: false, this.transformPolymerDependencies: false,
-      this.machineFormat: false})
+      this.machineFormat: false, this.followLinks: false})
       : currentPackage = (currentPackage != null
           ? currentPackage : readCurrentPackageFromPubspec()),
         packageDirs = (packageDirs != null
@@ -110,9 +117,8 @@ Map<String, String> _readPackageDirsFromPub(String currentPackage) {
 // TODO(sigmund): consider computing this list by recursively parsing
 // pubspec.yaml files in the `Options.packageDirs`.
 final Set<String> _polymerPackageDependencies = [
-    'analyzer', 'args', 'barback', 'browser', 'csslib',
-    'custom_element', 'fancy_syntax', 'html5lib', 'html_import', 'js',
-    'logging', 'meta', 'mutation_observer', 'observe', 'path'
+    'analyzer', 'args', 'barback', 'browser', 'custom_element', 'html5lib',
+    'html_import', 'js', 'logging', 'mutation_observer', 'observe', 'path'
     'polymer_expressions', 'serialization', 'shadow_dom', 'source_maps',
     'stack_trace', 'template_binding', 'unittest', 'unmodifiable_collection',
     'yaml'].toSet();
@@ -124,7 +130,7 @@ Iterable<String> _listPackageDir(String package, String subDir,
   if (packageDir == null) return const [];
   var dir = new Directory(path.join(packageDir, subDir));
   if (!dir.existsSync()) return const [];
-  return dir.listSync(recursive: true, followLinks: false)
+  return dir.listSync(recursive: true, followLinks: options.followLinks)
       .where((f) => f is File)
       .map((f) => path.relative(f.path, from: packageDir));
 }

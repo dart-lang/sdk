@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-//import 'dart:io';
+import 'dart:io';
 
+import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
@@ -11,23 +12,31 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/services/formatter_impl.dart';
 import 'package:analyzer/src/services/writer.dart';
 
+// Test data location ('pkg/analyzer/test/services/data')
+final TEST_DATA_DIR = join(dirname(fromUri(Platform.script)), 'data');
+
 main() {
 
-//TODO(pquitslund): disabled pending build investigation
+  /// Data-driven statement tests
+  group('stmt_tests.data', () {
+    runTests('stmt_tests.data', (input, expectedOutput) {
+      expect(formatStatement(input) + '\n', equals(expectedOutput));
+    });
+  });
 
-//  /// Data driven statement tests
-//  group('stmt_tests.data', () {
-//    runTests(new File('data/stmt_tests.data'), (input, expectedOutput) {
-//      expect(formatStatement(input) + '\n', equals(expectedOutput));
-//    });
-//  });
-//
-//  /// Data driven compilation unit tests
-//  group('cu_tests.data', () {
-//    runTests(new File('data/cu_tests.data'), (input, expectedOutput) {
-//      expectCUFormatsTo(input, expectedOutput);
-//    });
-//  });
+  /// Data-driven compilation unit tests
+  group('cu_tests.data', () {
+    runTests('cu_tests.data', (input, expectedOutput) {
+      expectCUFormatsTo(input, expectedOutput);
+    });
+  });
+
+  /// Data-driven Style Guide acceptance tests
+  group('style_guide_tests.data', () {
+    runTests('style_guide_tests.data', (input, expectedOutput) {
+      expectCUFormatsTo(input, expectedOutput);
+    });
+  });
 
   /// Formatter tests
   group('formatter', () {
@@ -1168,7 +1177,6 @@ main() {
 
   });
 
-
   /// Writer tests
   group('writer', () {
 
@@ -1208,13 +1216,109 @@ main() {
   });
 
 
+
+  /// Line breaker tests
+  group('linebreaker', () {
+
+    List<Chunk> breakLine(Line line, int maxLength) =>
+        new SimpleLineBreaker(maxLength).breakLine(line);
+
+    String printLine(Line line, int maxLength) =>
+        new SimpleLineBreaker(maxLength).printLine(line);
+
+    Line line(List tokens) {
+      var line = new Line();
+      tokens.forEach((t) =>
+          line.addToken(t is LineToken ? t : new LineToken(t)));
+      return line;
+    }
+
+    expectTextsEqual(List<Chunk> chunks, List<String> texts) {
+      expect(chunks.map((chunk) => chunk.toString()), orderedEquals(texts));
+    }
+
+    final SP_1 = new SpaceToken(1, breakWeight: 1);
+
+    // 'foo|1|bar|1|baz|1|foo|1|bar|1|baz'
+    final LINE_1 = line(['foo', SP_1, 'bar', SP_1, 'baz', SP_1,
+                         'foo', SP_1, 'bar', SP_1, 'baz']);
+
+    // '  foo|1|bar|1|baz|1|foo|1|bar|1|baz'
+    final LINE_2 = line(['  foo', SP_1, 'bar', SP_1, 'baz', SP_1,
+                         'foo', SP_1, 'bar', SP_1, 'baz']);
+
+    test('breakLine - 0', () {
+      var chunks = breakLine(line(['  foo']), 8);
+      expectTextsEqual(chunks, ['  foo']);
+    });
+
+    test('breakLine - 1', () {
+      var chunks = breakLine(LINE_1, 1);
+      expectTextsEqual(chunks, ['foo', 'bar', 'baz', 'foo', 'bar', 'baz']);
+    });
+
+    test('breakLine - 2', () {
+      var chunks = breakLine(LINE_1, 4);
+      expectTextsEqual(chunks, ['foo', 'bar', 'baz', 'foo', 'bar', 'baz']);
+    });
+
+    test('breakLine - 3', () {
+      var chunks = breakLine(LINE_1, 8);
+      expectTextsEqual(chunks, ['foo bar', 'baz foo', 'bar baz']);
+    });
+
+    test('breakLine - 4', () {
+      var chunks = breakLine(LINE_1, 12);
+      expectTextsEqual(chunks, ['foo bar baz', 'foo bar baz']);
+    });
+
+    test('breakLine - 5', () {
+      var chunks = breakLine(LINE_2, 16);
+      expectTextsEqual(chunks, ['  foo bar baz', 'foo bar baz']);
+    });
+
+    test('printLine - 1', () {
+      var line = printLine(LINE_1, 1);
+      expect(line, 'foo\nbar\nbaz\nfoo\nbar\nbaz');
+    });
+
+    test('printLine - 2', () {
+      var line = printLine(LINE_1, 4);
+      expect(line, 'foo\nbar\nbaz\nfoo\nbar\nbaz');
+    });
+
+    test('printLine - 3', () {
+      var line = printLine(LINE_1, 8);
+      expect(line, 'foo bar\nbaz foo\nbar baz');
+    });
+
+    test('printLine - 4', () {
+      var line = printLine(LINE_1, 12);
+      expect(line, 'foo bar baz\nfoo bar baz');
+    });
+
+    test('isWhitespace', () {
+      expect(isWhitespace('foo'), false);
+      expect(isWhitespace('  foo'), false);
+      expect(isWhitespace('foo  '), false);
+      expect(isWhitespace(' foo '), false);
+      expect(isWhitespace(' '), true);
+      expect(isWhitespace('  '), true);
+      expect(isWhitespace('\t'), true);
+      expect(isWhitespace('\t\t'), true);
+      expect(isWhitespace('\n'), true);
+      expect(isWhitespace('\r'), true);
+    });
+
+  });
+
   /// Helper method tests
   group('helpers', () {
 
     test('indentString', () {
       expect(getIndentString(0), '');
-      expect(getIndentString(1), ' ');
-      expect(getIndentString(4), '    ');
+      expect(getIndentString(1), '  ');
+      expect(getIndentString(4), '        ');
     });
 
     test('indentString (tabbed)', () {
@@ -1308,17 +1412,19 @@ expectStmtFormatsTo(src, expected, {transforms: true}) =>
     expect(formatStatement(src, options:
       new FormatterOptions(codeTransforms: transforms)), equals(expected));
 
-runTests(testFile, expectClause(input, output)) {
+
+runTests(testFileName, expectClause(input, output)) {
 
   var testIndex = 1;
+  var testFile = new File(join(TEST_DATA_DIR, testFileName));
   var lines = testFile.readAsLinesSync();
 
   for (var i = 1; i < lines.length; ++i) {
     var input = '', expectedOutput = '';
-    while(lines[i] != '<<<') {
+    while(!lines[i].startsWith('<<<')) {
       input += lines[i++] + '\n';
     }
-    while(++i < lines.length && lines[i] != '>>>') {
+    while(++i < lines.length && !lines[i].startsWith('>>>')) {
       expectedOutput += lines[i] + '\n';
     }
     test('test - (${testIndex++})', () {

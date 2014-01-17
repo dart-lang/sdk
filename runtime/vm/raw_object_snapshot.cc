@@ -11,9 +11,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, error_on_bad_type);
-
-
 #define NEW_OBJECT(type)                                                       \
   ((kind == Snapshot::kFull) ? reader->New##type() : type::New())
 
@@ -241,52 +238,14 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
 }
 
 
-static const char* RawOneByteStringToCString(RawOneByteString* str) {
-  const char* start = reinterpret_cast<char*>(str) - kHeapObjectTag +
-      OneByteString::data_offset();
-  const int len = Smi::Value(*reinterpret_cast<RawSmi**>(
-      reinterpret_cast<uword>(str) - kHeapObjectTag + String::length_offset()));
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-  memmove(chars, start, len);
-  chars[len] = '\0';
-  return chars;
-}
-
-
 void RawType::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Only resolved and finalized types should be written to a snapshot.
-  // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
-  if (FLAG_error_on_bad_type &&
-      (ptr()->type_state_ != RawType::kFinalizedInstantiated) &&
-      (ptr()->type_state_ != RawType::kFinalizedUninstantiated)) {
-    // Print the name of the class of the unfinalized type, as well as the
-    // token location from where it is referred to, making sure not
-    // to allocate any handles. Unfortunately, we cannot print the script name.
-    const intptr_t cid = ClassIdTag::decode(*reinterpret_cast<uword*>(
-        reinterpret_cast<uword>(ptr()->type_class_) - kHeapObjectTag +
-            Object::tags_offset()));
-    if (cid == kUnresolvedClassCid) {
-      OS::Print("Snapshotting unresolved type '%s' at token pos %" Pd "\n",
-                RawOneByteStringToCString(
-                    reinterpret_cast<RawOneByteString*>(
-                        reinterpret_cast<RawUnresolvedClass*>(
-                            ptr()->type_class_)->ptr()->ident_)),
-                ptr()->token_pos_);
-    } else {
-      // Assume cid == kClassId, but it can also be kIllegalCid.
-      OS::Print("Snapshotting unfinalized type '%s' at token pos %" Pd "\n",
-                RawOneByteStringToCString(
-                    reinterpret_cast<RawOneByteString*>(
-                        reinterpret_cast<RawClass*>(
-                            ptr()->type_class_)->ptr()->name_)),
-                ptr()->token_pos_);
-    }
-    UNREACHABLE();
-  }
+  ASSERT((ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
+         (ptr()->type_state_ == RawType::kFinalizedUninstantiated));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -330,8 +289,6 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
     type_ref.StorePointer((type_ref.raw()->from() + i),
                           reader->ObjectHandle()->raw());
   }
-
-  type_ref.set_is_being_checked(false);
 
   return type_ref.raw();
 }
@@ -395,24 +352,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Only finalized type parameters should be written to a snapshot.
-  // TODO(regis): Replace the test below by an ASSERT() or remove the flag test.
-  if (FLAG_error_on_bad_type &&
-      (ptr()->type_state_ != RawTypeParameter::kFinalizedUninstantiated)) {
-    // Print the name of the unfinalized type parameter, the name of the class
-    // it parameterizes, as well as the token location from where it is referred
-    // to, making sure not to allocate any handles. Unfortunately, we cannot
-    // print the script name.
-    OS::Print("Snapshotting unfinalized type parameter '%s' of class '%s' at "
-              "token pos %" Pd "\n",
-              RawOneByteStringToCString(
-                  reinterpret_cast<RawOneByteString*>(ptr()->name_)),
-              RawOneByteStringToCString(
-                  reinterpret_cast<RawOneByteString*>(
-                      reinterpret_cast<RawClass*>(
-                          ptr()->parameterized_class_)->ptr()->name_)),
-              ptr()->token_pos_);
-    UNREACHABLE();
-  }
+  ASSERT(ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated);
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -456,8 +396,6 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
     bounded_type.StorePointer((bounded_type.raw()->from() + i),
                               reader->ObjectHandle()->raw());
   }
-
-  bounded_type.set_is_being_checked(false);
 
   return bounded_type.raw();
 }
@@ -1688,15 +1626,48 @@ RawInstance* Instance::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
-  UNREACHABLE();
-  return Instance::null();
+  ASSERT(reader != NULL);
+
+  // Create an Instance object or get canonical one if it is a canonical
+  // constant.
+  Instance& obj = Instance::ZoneHandle(reader->isolate(), Instance::null());
+  if (kind == Snapshot::kFull) {
+    obj = reader->NewInstance();
+  } else {
+    obj ^= Object::Allocate(kInstanceCid,
+                            Instance::InstanceSize(),
+                            HEAP_SPACE(kind));
+    // When reading a script snapshot we need to canonicalize only those object
+    // references that are objects from the core library (loaded from a
+    // full snapshot). Objects that are only in the script need not be
+    // canonicalized as they are already canonical.
+    // When reading a message snapshot we always have to canonicalize.
+    if (RawObject::IsCanonical(tags) &&
+        (RawObject::IsCreatedFromSnapshot(tags) ||
+         (kind == Snapshot::kMessage))) {
+      obj = obj.CheckAndCanonicalize(NULL);
+    }
+  }
+  reader->AddBackRef(object_id, &obj, kIsDeserialized);
+
+  // Set the object tags.
+  obj.set_tags(tags);
+
+  return obj.raw();
 }
 
 
 void RawInstance::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kInstanceCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 }
 
 
@@ -2565,6 +2536,9 @@ RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
     array ^= reader->ReadObjectRef();
     result.set_catch_pc_offset_array(array);
 
+    bool expand_inlined = reader->Read<bool>();
+    result.set_expand_inlined(expand_inlined);
+
     return result.raw();
   }
   UNREACHABLE();  // Stacktraces are not sent in a snapshot.
@@ -2587,11 +2561,11 @@ void RawStacktrace::WriteTo(SnapshotWriter* writer,
     writer->WriteIndexedObject(kStacktraceCid);
     writer->WriteIntptrValue(writer->GetObjectTags(this));
 
-    // There are no non object pointer fields.
-
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer);
     visitor.VisitPointers(from(), to());
+
+    writer->Write(ptr()->expand_inlined_);
   } else {
     // Stacktraces are not allowed in other snapshot forms.
     writer->SetWriteException(Exceptions::kArgument,

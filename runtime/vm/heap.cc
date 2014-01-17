@@ -8,7 +8,6 @@
 #include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/heap_histogram.h"
-#include "vm/heap_profiler.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_set.h"
@@ -318,45 +317,6 @@ intptr_t Heap::UsedInWords(Space space) const {
 intptr_t Heap::CapacityInWords(Space space) const {
   return space == kNew ? new_space_->CapacityInWords() :
                          old_space_->CapacityInWords();
-}
-
-
-void Heap::Profile(Dart_FileWriteCallback callback, void* stream) const {
-  HeapProfiler profiler(callback, stream);
-
-  // Dump the root set.
-  HeapProfilerRootVisitor root_visitor(&profiler);
-  Isolate* isolate = Isolate::Current();
-  Isolate* vm_isolate = Dart::vm_isolate();
-  isolate->VisitObjectPointers(&root_visitor, false,
-                               StackFrameIterator::kDontValidateFrames);
-  HeapProfilerWeakRootVisitor weak_root_visitor(&root_visitor);
-  isolate->VisitWeakPersistentHandles(&weak_root_visitor, true);
-
-  // Dump the current and VM isolate heaps.
-  HeapProfilerObjectVisitor object_visitor(isolate, &profiler);
-  isolate->heap()->IterateObjects(&object_visitor);
-  vm_isolate->heap()->IterateObjects(&object_visitor);
-}
-
-
-void Heap::ProfileToFile(const char* reason) const {
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  ASSERT(file_open != NULL);
-  Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-  ASSERT(file_write != NULL);
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-  ASSERT(file_close != NULL);
-  Isolate* isolate = Isolate::Current();
-  const char* format = "%s-%s.hprof";
-  intptr_t len = OS::SNPrint(NULL, 0, format, isolate->name(), reason);
-  char* filename = isolate->current_zone()->Alloc<char>(len + 1);
-  OS::SNPrint(filename, len + 1, format, isolate->name(), reason);
-  void* file = (*file_open)(filename, true);
-  if (file != NULL) {
-    Profile(file_write, file);
-    (*file_close)(file);
-  }
 }
 
 

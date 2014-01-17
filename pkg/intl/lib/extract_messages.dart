@@ -147,7 +147,9 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
    */
   void visitMethodDeclaration(MethodDeclaration node) {
     parameters = node.parameters;
-    if (parameters == null) parameters = new FormalParameterList(null, [], null, null, null);
+    if (parameters == null) {
+      parameters = new FormalParameterList(null, [], null, null, null);
+    }
     name = node.name.name;
     super.visitMethodDeclaration(node);
   }
@@ -158,7 +160,9 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
    */
   void visitFunctionDeclaration(FunctionDeclaration node) {
     parameters = node.functionExpression.parameters;
-    if (parameters == null) parameters = new FormalParameterList(null, [], null, null, null);
+    if (parameters == null) {
+      parameters = new FormalParameterList(null, [], null, null, null);
+    }
     name = node.name.name;
     super.visitFunctionDeclaration(node);
   }
@@ -225,8 +229,11 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     for (var namedArgument in arguments.where((x) => x is NamedExpression)) {
       var name = namedArgument.name.label.name;
       var exp = namedArgument.expression;
-      var string = exp is SimpleStringLiteral ? exp.value : exp.toString();
-      setAttribute(message, name, string);
+      var evaluator = new ConstantEvaluator();
+      var basicValue = exp.accept(evaluator);
+      var value = basicValue == ConstantEvaluator.NOT_A_CONSTANT ?
+          exp.toString() : basicValue;
+      setAttribute(message, name, value);
     }
     return message;
   }
@@ -254,7 +261,7 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
       }
     }
 
-    void setValue(MainMessage message, String fieldName, String fieldValue) {
+    void setValue(MainMessage message, String fieldName, Object fieldValue) {
       message[fieldName] = fieldValue;
     }
 

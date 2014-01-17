@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:scheduled_test/scheduled_test.dart';
+import 'package:watcher/src/utils.dart';
 
 import '../utils.dart';
 
@@ -51,6 +52,19 @@ sharedTests() {
     expectModifyEvent("file.txt");
   });
 
+  test('notifies even if the file contents are unchanged', () {
+    writeFile("a.txt", contents: "same");
+    writeFile("b.txt", contents: "before");
+    startWatcher();
+
+    writeFile("a.txt", contents: "same");
+    writeFile("b.txt", contents: "after");
+    inAnyOrder([
+      isModifyEvent("a.txt"),
+      isModifyEvent("b.txt")
+    ]);
+  });
+
   test('when the watched directory is deleted, removes all files', () {
     writeFile("dir/a.txt");
     writeFile("dir/b.txt");
@@ -58,10 +72,10 @@ sharedTests() {
     startWatcher(dir: "dir");
 
     deleteDir("dir");
-    inAnyOrder(() {
-      expectRemoveEvent("dir/a.txt");
-      expectRemoveEvent("dir/b.txt");
-    });
+    inAnyOrder([
+      isRemoveEvent("dir/a.txt"),
+      isRemoveEvent("dir/b.txt")
+    ]);
   });
 
   group("moves", () {
@@ -70,10 +84,10 @@ sharedTests() {
       startWatcher();
       renameFile("old.txt", "new.txt");
 
-      inAnyOrder(() {
-        expectAddEvent("new.txt");
-        expectRemoveEvent("old.txt");
-      });
+      inAnyOrder([
+        isAddEvent("new.txt"),
+        isRemoveEvent("old.txt")
+      ]);
     });
 
     test('notifies when a file is moved from outside the watched directory',
@@ -95,6 +109,13 @@ sharedTests() {
     });
   });
 
+  // Most of the time, when multiple filesystem actions happen in sequence,
+  // they'll be batched together and the watcher will see them all at once.
+  // These tests verify that the watcher normalizes and combine these events
+  // properly. However, very occasionally the events will be reported in
+  // separate batches, and the watcher will report them as though they occurred
+  // far apart in time, so each of these tests has a "backup case" to allow for
+  // that as well.
   group("clustered changes", () {
     test("doesn't notify when a file is created and then immediately removed",
         () {
@@ -102,7 +123,12 @@ sharedTests() {
       writeFile("file.txt");
       deleteFile("file.txt");
 
-      // [startWatcher] will assert that no events were fired.
+      // Backup case.
+      startClosingEventStream();
+      allowEvents(() {
+        expectAddEvent("file.txt");
+        expectRemoveEvent("file.txt");
+      });
     });
 
     test("reports a modification when a file is deleted and then immediately "
@@ -112,7 +138,14 @@ sharedTests() {
 
       deleteFile("file.txt");
       writeFile("file.txt", contents: "re-created");
-      expectModifyEvent("file.txt");
+
+      allowEither(() {
+        expectModifyEvent("file.txt");
+      }, () {
+        // Backup case.
+        expectRemoveEvent("file.txt");
+        expectAddEvent("file.txt");
+      });
     });
 
     test("reports a modification when a file is moved and then immediately "
@@ -122,9 +155,17 @@ sharedTests() {
 
       renameFile("old.txt", "new.txt");
       writeFile("old.txt", contents: "re-created");
-      inAnyOrder(() {
-        expectModifyEvent("old.txt");
+
+      allowEither(() {
+        inAnyOrder([
+          isModifyEvent("old.txt"),
+          isAddEvent("new.txt")
+        ]);
+      }, () {
+        // Backup case.
+        expectRemoveEvent("old.txt");
         expectAddEvent("new.txt");
+        expectAddEvent("old.txt");
       });
     });
 
@@ -135,6 +176,10 @@ sharedTests() {
 
       writeFile("file.txt", contents: "modified");
       deleteFile("file.txt");
+
+      // Backup case.
+      allowModifyEvent("file.txt");
+
       expectRemoveEvent("file.txt");
     });
 
@@ -144,7 +189,12 @@ sharedTests() {
 
       writeFile("file.txt");
       writeFile("file.txt", contents: "modified");
+
       expectAddEvent("file.txt");
+
+      // Backup case.
+      startClosingEventStream();
+      allowModifyEvent("file.txt");
     });
   });
 
@@ -161,10 +211,10 @@ sharedTests() {
       startWatcher();
 
       renameDir("old", "new");
-      inAnyOrder(() {
-        expectRemoveEvent("old/file.txt");
-        expectAddEvent("new/file.txt");
-      });
+      inAnyOrder([
+        isRemoveEvent("old/file.txt"),
+        isAddEvent("new/file.txt")
+      ]);
 
       writeFile("new/file.txt", contents: "modified");
       expectModifyEvent("new/file.txt");
@@ -178,10 +228,8 @@ sharedTests() {
       startWatcher(dir: "dir");
       renameDir("sub", "dir/sub");
 
-      inAnyOrder(() {
-        withPermutations((i, j, k)  =>
-            expectAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt"));
-      });
+      inAnyOrder(withPermutations((i, j, k)  =>
+          isAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
     });
 
     test('emits events for many nested files removed at once', () {
@@ -197,10 +245,8 @@ sharedTests() {
       // directory.
       renameDir("dir/sub", "sub");
 
-      inAnyOrder(() {
-        withPermutations((i, j, k) =>
-            expectRemoveEvent("dir/sub/sub-$i/sub-$j/file-$k.txt"));
-      });
+      inAnyOrder(withPermutations((i, j, k) =>
+          isRemoveEvent("dir/sub/sub-$i/sub-$j/file-$k.txt")));
     });
 
     test('emits events for many nested files moved at once', () {
@@ -211,12 +257,12 @@ sharedTests() {
       startWatcher(dir: "dir");
       renameDir("dir/old", "dir/new");
 
-      inAnyOrder(() {
-        withPermutations((i, j, k) {
-          expectRemoveEvent("dir/old/sub-$i/sub-$j/file-$k.txt");
-          expectAddEvent("dir/new/sub-$i/sub-$j/file-$k.txt");
-        });
-      });
+      inAnyOrder(unionAll(withPermutations((i, j, k) {
+        return new Set.from([
+          isRemoveEvent("dir/old/sub-$i/sub-$j/file-$k.txt"),
+          isAddEvent("dir/new/sub-$i/sub-$j/file-$k.txt")
+        ]);
+      })));
     });
 
     test("emits events for many files added at once in a subdirectory with the "
@@ -228,11 +274,11 @@ sharedTests() {
 
       deleteFile("dir/sub");
       renameDir("old", "dir/sub");
-      inAnyOrder(() {
-        expectRemoveEvent("dir/sub");
-        withPermutations((i, j, k)  =>
-            expectAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt"));
-      });
+
+      var events = withPermutations((i, j, k)  =>
+          isAddEvent("dir/sub/sub-$i/sub-$j/file-$k.txt"));
+      events.add(isRemoveEvent("dir/sub"));
+      inAnyOrder(events);
     });
   });
 }

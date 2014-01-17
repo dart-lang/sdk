@@ -137,7 +137,7 @@ main() {
   });
 
   group('typed_arrays', () {
-    var array_buffer = new Uint8List(16);
+    var array_buffer = new Uint8List(16).buffer;
     var view_a = new Float32List.view(array_buffer, 0, 4);
     var view_b = new Uint8List.view(array_buffer, 1, 13);
     var typed_arrays_list = [view_a, array_buffer, view_b];

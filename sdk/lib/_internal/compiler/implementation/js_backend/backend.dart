@@ -165,11 +165,20 @@ class JavaScriptBackend extends Backend {
    * know whether a send must be intercepted or not.
    */
   final Map<String, Set<Element>> interceptedElements;
-  // TODO(sra): Not all methods in the Set always require an interceptor.  A
-  // method may be mixed into a true interceptor *and* a plain class. For the
-  // method to work on the interceptor class it needs to use the explicit
-  // receiver.  This constrains the call on a known plain receiver to pass the
-  // explicit receiver.  https://code.google.com/p/dart/issues/detail?id=8942
+
+  /**
+   * The members of mixin classes that are mixed into an instantiated
+   * interceptor class.  This is a cached subset of [interceptedElements].
+   *
+   * Mixin methods are not specialized for the class they are mixed into.
+   * Methods mixed into intercepted classes thus always make use of the explicit
+   * receiver argument, even when mixed into non-interceptor classes.
+   *
+   * These members must be invoked with a correct explicit receiver even when
+   * the receiver is not an intercepted class.
+   */
+  final Map<String, Set<Element>> interceptedMixinElements =
+      new Map<String, Set<Element>>();
 
   /**
    * A map of specialized versions of the [getInterceptorMethod].
@@ -187,10 +196,11 @@ class JavaScriptBackend extends Backend {
   final Set<ClassElement> _interceptedClasses = new Set<ClassElement>();
 
   /**
-   * Set of classes used as mixins on native classes.  Methods on these classes
-   * might also be mixed in to non-native classes.
+   * Set of classes used as mixins on intercepted (native and primitive)
+   * classes.  Methods on these classes might also be mixed in to regular Dart
+   * (unintercepted) classes.
    */
-  final Set<ClassElement> classesMixedIntoNativeClasses =
+  final Set<ClassElement> classesMixedIntoInterceptedClasses =
       new Set<ClassElement>();
 
   /**
@@ -328,7 +338,7 @@ class JavaScriptBackend extends Backend {
     if (element == null) return false;
     if (Elements.isNativeOrExtendsNative(element)) return true;
     if (interceptedClasses.contains(element)) return true;
-    if (classesMixedIntoNativeClasses.contains(element)) return true;
+    if (classesMixedIntoInterceptedClasses.contains(element)) return true;
     return false;
   }
 
@@ -368,6 +378,29 @@ class JavaScriptBackend extends Backend {
     return interceptedElements[selector.name] != null;
   }
 
+  /**
+   * Returns `true` iff [selector] matches an element defined in a class mixed
+   * into an intercepted class.  These selectors are not eligible for the 'dummy
+   * explicit receiver' optimization.
+   */
+  bool isInterceptedMixinSelector(Selector selector) {
+    Set<Element> elements = interceptedMixinElements.putIfAbsent(
+        selector.name,
+        () {
+          Set<Element> elements = interceptedElements[selector.name];
+          if (elements == null) return null;
+          return elements
+              .where((element) =>
+                  classesMixedIntoInterceptedClasses.contains(
+                      element.getEnclosingClass()))
+              .toSet();
+        });
+
+    if (elements == null) return false;
+    if (elements.isEmpty) return false;
+    return elements.any((element) => selector.applies(element, compiler));
+  }
+
   final Map<String, Set<ClassElement>> interceptedClassesCache =
       new Map<String, Set<ClassElement>>();
 
@@ -388,7 +421,7 @@ class JavaScriptBackend extends Backend {
             || interceptedClasses.contains(classElement)) {
           result.add(classElement);
         }
-        if (classesMixedIntoNativeClasses.contains(classElement)) {
+        if (classesMixedIntoInterceptedClasses.contains(classElement)) {
           Set<ClassElement> nativeSubclasses =
               nativeSubclassesOfMixin(classElement);
           if (nativeSubclasses != null) result.addAll(nativeSubclasses);
@@ -462,6 +495,7 @@ class JavaScriptBackend extends Backend {
     implementationClasses[compiler.doubleClass] = jsDoubleClass;
     implementationClasses[compiler.stringClass] = jsStringClass;
     implementationClasses[compiler.listClass] = jsArrayClass;
+    implementationClasses[compiler.nullClass] = jsNullClass;
 
     jsIndexableClass = compiler.findInterceptor('JSIndexable');
     jsMutableIndexableClass = compiler.findInterceptor('JSMutableIndexable');
@@ -562,7 +596,7 @@ class JavaScriptBackend extends Backend {
       for (; cls != null; cls = cls.superclass) {
         if (cls.isMixinApplication) {
           MixinApplicationElement mixinApplication = cls;
-          classesMixedIntoNativeClasses.add(mixinApplication.mixin);
+          classesMixedIntoInterceptedClasses.add(mixinApplication.mixin);
         }
       }
     }
@@ -1008,33 +1042,15 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerRequiredType(DartType type, Element enclosingElement) {
-    /**
-     * If [argument] has type variables or is a type variable, this
-     * method registers a RTI dependency between the class where the
-     * type variable is defined (that is the enclosing class of the
-     * current element being resolved) and the class of [annotation].
-     * If the class of [annotation] requires RTI, then the class of
-     * the type variable does too.
-     */
-    void analyzeTypeArgument(DartType annotation, DartType argument) {
-      if (argument == null) return;
-      if (argument.element.isTypeVariable()) {
-        ClassElement enclosing = argument.element.getEnclosingClass();
-        assert(enclosing == enclosingElement.getEnclosingClass().declaration);
-        rti.registerRtiDependency(annotation.element, enclosing);
-      } else if (argument is InterfaceType) {
-        InterfaceType type = argument;
-        type.typeArguments.forEach((DartType argument) {
-          analyzeTypeArgument(annotation, argument);
-        });
-      }
-    }
-
-    if (type is InterfaceType) {
-      InterfaceType itf = type;
-      itf.typeArguments.forEach((DartType argument) {
-        analyzeTypeArgument(type, argument);
-      });
+    // If [argument] has type variables or is a type variable, this method
+    // registers a RTI dependency between the class where the type variable is
+    // defined (that is the enclosing class of the current element being
+    // resolved) and the class of [type]. If the class of [type] requires RTI,
+    // then the class of the type variable does too.
+    ClassElement contextClass = Types.getClassContext(type);
+    if (contextClass != null) {
+      assert(contextClass == enclosingElement.getEnclosingClass().declaration);
+      rti.registerRtiDependency(type.element, contextClass);
     }
   }
 
@@ -1553,7 +1569,7 @@ class JavaScriptBackend extends Backend {
 
   /// Called when resolving the `Symbol` constructor.
   void registerSymbolConstructor(TreeElements elements) {
-    // Make sure that collection_dev.Symbol.validated is registered.
+    // Make sure that _internals.Symbol.validated is registered.
     assert(compiler.symbolValidatedConstructor != null);
     enqueueInResolution(compiler.symbolValidatedConstructor, elements);
   }
@@ -1668,15 +1684,6 @@ class JavaScriptBackend extends Backend {
 
     if (!targetsUsed.isEmpty && targetsUsed.contains(element)) {
       return registerNameOf(element);
-    }
-
-    if (element is ClosureClassElement) {
-      // TODO(ahe): Try to fix the enclosing element of ClosureClassElement
-      // instead.
-      ClosureClassElement closureClass = element;
-      if (isNeededForReflection(closureClass.methodElement)) {
-        return registerNameOf(element);
-      }
     }
 
     // TODO(kasperl): Consider caching this information. It is consulted
@@ -1854,6 +1861,8 @@ class ConstantCopier implements ConstantVisitor {
   void visitType(TypeConstant constant) => copy(constant);
 
   void visitInterceptor(InterceptorConstant constant) => copy(constant);
+
+  void visitDummyReceiver(DummyReceiverConstant constant) => copy(constant);
 
   void visitList(ListConstant constant) {
     copy(constant.entries);

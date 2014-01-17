@@ -33,7 +33,7 @@ library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_collection-dev' hide Symbol, deprecated;
+import 'dart:_internal' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -48,6 +48,7 @@ import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
+import 'dart:svg' show Matrix;
 import 'dart:web_audio' as web_audio;
 
 export 'dart:math' show Rectangle, Point;

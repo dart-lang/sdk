@@ -10,6 +10,7 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
+import 'barback/dart2js_transformer.dart';
 import 'barback/load_all_transformers.dart';
 import 'barback/pub_package_provider.dart';
 import 'barback/server.dart';
@@ -42,6 +43,9 @@ export 'barback/sources.dart' show WatcherType;
 /// incremented to synchronize with that.
 final supportedVersion = new Version(0, 11, 0);
 
+/// A list of the names of all built-in transformers that pub exposes.
+const _BUILT_IN_TRANSFORMERS = const ['\$dart2js'];
+
 /// An identifier for a transformer and the configuration that will be passed to
 /// it.
 ///
@@ -63,8 +67,11 @@ class TransformerId {
 
   /// The configuration to pass to the transformer.
   ///
-  /// This will be null if no configuration was provided.
+  /// This will be an empty map if no configuration was provided.
   final Map configuration;
+
+  /// Whether this ID points to a built-in transformer exposed by pub.
+  bool get isBuiltInTransformer => package.startsWith('\$');
 
   /// Parses a transformer identifier.
   ///
@@ -85,13 +92,11 @@ class TransformerId {
     return new TransformerId(parts.first, parts.last, configuration);
   }
 
-  TransformerId(this.package, this.path, this.configuration) {
-    if (configuration == null) return;
-    for (var reserved in ['include', 'exclude']) {
-      if (!configuration.containsKey(reserved)) continue;
-      throw new FormatException('Transformer configuration may not include '
-          'reserved key "$reserved".');
-    }
+  TransformerId(this.package, this.path, Map configuration)
+      : configuration = configuration == null ? {} : configuration {
+    if (!package.startsWith('\$')) return;
+    if (_BUILT_IN_TRANSFORMERS.contains(package)) return;
+    throw new FormatException('Unsupported built-in transformer $package.');
   }
 
   // TODO(nweiz): support deep equality on [configuration] as well.
@@ -134,6 +139,19 @@ class TransformerId {
 Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
     BarbackMode mode, {Iterable<Transformer> builtInTransformers,
     WatcherType watcher: WatcherType.AUTO}) {
+
+  // If the entrypoint package manually configures the dart2js transformer,
+  // remove it from the built-in transformer list.
+  //
+  // TODO(nweiz): if/when we support more built-in transformers, make this more
+  // general.
+  var containsDart2Js = graph.entrypoint.root.pubspec.transformers.any(
+      (transformers) => transformers.any((id) => id.package == '\$dart2js'));
+  if (containsDart2Js) {
+    builtInTransformers = builtInTransformers.where(
+        (transformer) => transformer is! Dart2JSTransformer);
+  }
+
   var provider = new PubPackageProvider(graph);
   var barback = new Barback(provider);
 

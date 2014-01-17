@@ -35,7 +35,7 @@ class ObjectPointerVisitor {
     VisitPointers(p, (p + len - 1));
   }
 
-  void VisitPointer(RawObject** p) { VisitPointers(p , p); }
+  void VisitPointer(RawObject** p) { VisitPointers(p, p); }
 
  private:
   Isolate* isolate_;

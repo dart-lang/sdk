@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
@@ -134,6 +138,86 @@ class BooleanErrorListener implements AnalysisErrorListener {
 }
 
 /**
+ * The enumeration `AngularCode` defines Angular specific problems.
+ */
+class AngularCode extends Enum<AngularCode> implements ErrorCode {
+  static final AngularCode CANNOT_PARSE_SELECTOR = new AngularCode.con1('CANNOT_PARSE_SELECTOR', 0, "The selector '%s' cannot be parsed");
+
+  static final AngularCode EXPECTED_IDENTIFIER = new AngularCode.con1('EXPECTED_IDENTIFIER', 1, "Expected an identifier");
+
+  static final AngularCode EXPECTED_IN = new AngularCode.con1('EXPECTED_IN', 2, "Expected 'in' keyword");
+
+  static final AngularCode INVALID_PROPERTY_KIND = new AngularCode.con1('INVALID_PROPERTY_KIND', 3, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'");
+
+  static final AngularCode INVALID_PROPERTY_FIELD = new AngularCode.con1('INVALID_PROPERTY_FIELD', 4, "Unknown property field '%s'");
+
+  static final AngularCode INVALID_PROPERTY_MAP = new AngularCode.con1('INVALID_PROPERTY_MAP', 5, "Argument 'map' must be a constant map literal");
+
+  static final AngularCode INVALID_PROPERTY_NAME = new AngularCode.con1('INVALID_PROPERTY_NAME', 6, "Property name must be a string literal");
+
+  static final AngularCode INVALID_PROPERTY_SPEC = new AngularCode.con1('INVALID_PROPERTY_SPEC', 7, "Property binding specification must be a string literal");
+
+  static final AngularCode MISSING_CSS_URL = new AngularCode.con1('MISSING_CSS_URL', 8, "Argument 'cssUrl' must be provided");
+
+  static final AngularCode MISSING_NAME = new AngularCode.con1('MISSING_NAME', 9, "Argument 'name' must be provided");
+
+  static final AngularCode MISSING_PUBLISH_AS = new AngularCode.con1('MISSING_PUBLISH_AS', 10, "Argument 'publishAs' must be provided");
+
+  static final AngularCode MISSING_TEMPLATE_URL = new AngularCode.con1('MISSING_TEMPLATE_URL', 11, "Argument 'templateUrl' must be provided");
+
+  static final AngularCode MISSING_SELECTOR = new AngularCode.con1('MISSING_SELECTOR', 12, "Argument 'selector' must be provided");
+
+  static final List<AngularCode> values = [
+      CANNOT_PARSE_SELECTOR,
+      EXPECTED_IDENTIFIER,
+      EXPECTED_IN,
+      INVALID_PROPERTY_KIND,
+      INVALID_PROPERTY_FIELD,
+      INVALID_PROPERTY_MAP,
+      INVALID_PROPERTY_NAME,
+      INVALID_PROPERTY_SPEC,
+      MISSING_CSS_URL,
+      MISSING_NAME,
+      MISSING_PUBLISH_AS,
+      MISSING_TEMPLATE_URL,
+      MISSING_SELECTOR];
+
+  /**
+   * The template used to create the message to be displayed for this error.
+   */
+  final String message;
+
+  /**
+   * The template used to create the correction to be displayed for this error, or `null` if
+   * there is no correction information for this error.
+   */
+  String correction2;
+
+  /**
+   * Initialize a newly created error code to have the given message.
+   *
+   * @param message the message template used to create the message to be displayed for the error
+   */
+  AngularCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
+
+  /**
+   * Initialize a newly created error code to have the given message and correction.
+   *
+   * @param message the template used to create the message to be displayed for the error
+   * @param correction the template used to create the correction to be displayed for the error
+   */
+  AngularCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
+    this.correction2 = correction;
+  }
+
+  String get correction => correction2;
+
+  ErrorSeverity get errorSeverity => ErrorType.TOOLKIT.severity;
+
+  ErrorType get type => ErrorType.TOOLKIT;
+}
+
+/**
  * Instances of the class `ErrorReporter` wrap an error listener with utility methods used to
  * create the errors being reported.
  *
@@ -197,8 +281,8 @@ class ErrorReporter {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError2(ErrorCode errorCode, ASTNode node, List<Object> arguments) {
-    reportError4(errorCode, node.offset, node.length, arguments);
+  void reportError3(ErrorCode errorCode, ASTNode node, List<Object> arguments) {
+    reportError5(errorCode, node.offset, node.length, arguments);
   }
 
   /**
@@ -208,8 +292,8 @@ class ErrorReporter {
    * @param element the element which name should be used as the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError3(ErrorCode errorCode, Element element, List<Object> arguments) {
-    reportError4(errorCode, element.nameOffset, element.displayName.length, arguments);
+  void reportError4(ErrorCode errorCode, Element element, List<Object> arguments) {
+    reportError5(errorCode, element.nameOffset, element.displayName.length, arguments);
   }
 
   /**
@@ -220,7 +304,7 @@ class ErrorReporter {
    * @param length the length of the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError4(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
+  void reportError5(ErrorCode errorCode, int offset, int length, List<Object> arguments) {
     _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
   }
 
@@ -231,8 +315,8 @@ class ErrorReporter {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportError5(ErrorCode errorCode, Token token, List<Object> arguments) {
-    reportError4(errorCode, token.offset, token.length, arguments);
+  void reportError6(ErrorCode errorCode, Token token, List<Object> arguments) {
+    reportError5(errorCode, token.offset, token.length, arguments);
   }
 
   /**
@@ -356,10 +440,12 @@ class AnalysisError {
     if (identical(obj, this)) {
       return true;
     }
+    // prepare other AnalysisError
     if (obj is! AnalysisError) {
       return false;
     }
     AnalysisError other = obj as AnalysisError;
+    // Quick checks.
     if (errorCode != other.errorCode) {
       return false;
     }
@@ -369,12 +455,14 @@ class AnalysisError {
     if (isStaticOnly != other.isStaticOnly) {
       return false;
     }
+    // Deep checks.
     if (_message != other._message) {
       return false;
     }
     if (source != other.source) {
       return false;
     }
+    // OK
     return true;
   }
 
@@ -434,6 +522,7 @@ class AnalysisError {
     builder.append("..");
     builder.append(_offset + _length - 1);
     builder.append("): ");
+    //builder.append("(" + lineNumber + ":" + columnNumber + "): ");
     builder.append(_message);
     return builder.toString();
   }
@@ -556,6 +645,15 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
   static final HintCode IS_NOT_INT = new HintCode.con1('IS_NOT_INT', 9, "When compiled to JS, this test might return false when the left hand side is a double");
 
   /**
+   * Generate a hint for methods or functions that have a return type, but do not have a non-void
+   * return statement on all branches. At the end of methods or functions with no return, Dart
+   * implicitly returns `null`, avoiding these implicit returns is considered a best practice.
+   *
+   * @param returnType the name of the declared return type
+   */
+  static final HintCode MISSING_RETURN = new HintCode.con2('MISSING_RETURN', 10, "This function declares a return type of '%s', but does not end with a return statement.", "Either add a return statement or change the return type to 'void'.");
+
+  /**
    * It is not in best practice to declare a private method that happens to override the method in a
    * superclass- depending on where the superclass is (either in the same library, or out of the
    * same library), behavior can be different.
@@ -564,24 +662,24 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param memberName some private member name
    * @param className the class name where the member is overriding the functionality
    */
-  static final HintCode OVERRIDDING_PRIVATE_MEMBER = new HintCode.con1('OVERRIDDING_PRIVATE_MEMBER', 10, "The %s '%s' does not override the definition from '%s' because it is private and in a different library");
+  static final HintCode OVERRIDDING_PRIVATE_MEMBER = new HintCode.con1('OVERRIDDING_PRIVATE_MEMBER', 11, "The %s '%s' does not override the definition from '%s' because it is private and in a different library");
 
   /**
    * Hint for classes that override equals, but not hashCode.
    *
    * @param className the name of the current class
    */
-  static final HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = new HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 11, "The class '%s' overrides 'operator==', but not 'get hashCode'");
+  static final HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = new HintCode.con1('OVERRIDE_EQUALS_BUT_NOT_HASH_CODE', 12, "The class '%s' overrides 'operator==', but not 'get hashCode'");
 
   /**
    * Type checks of the type `x is! Null` should be done with `x != null`.
    */
-  static final HintCode TYPE_CHECK_IS_NOT_NULL = new HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 12, "Tests for non-null should be done with '!= null'");
+  static final HintCode TYPE_CHECK_IS_NOT_NULL = new HintCode.con1('TYPE_CHECK_IS_NOT_NULL', 13, "Tests for non-null should be done with '!= null'");
 
   /**
    * Type checks of the type `x is Null` should be done with `x == null`.
    */
-  static final HintCode TYPE_CHECK_IS_NULL = new HintCode.con1('TYPE_CHECK_IS_NULL', 13, "Tests for null should be done with '== null'");
+  static final HintCode TYPE_CHECK_IS_NULL = new HintCode.con1('TYPE_CHECK_IS_NULL', 14, "Tests for null should be done with '== null'");
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_GETTER] or
@@ -593,7 +691,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_GETTER
    * @see StaticWarningCode#UNDEFINED_GETTER
    */
-  static final HintCode UNDEFINED_GETTER = new HintCode.con1('UNDEFINED_GETTER', 14, StaticTypeWarningCode.UNDEFINED_GETTER.message);
+  static final HintCode UNDEFINED_GETTER = new HintCode.con1('UNDEFINED_GETTER', 15, StaticTypeWarningCode.UNDEFINED_GETTER.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_METHOD] would
@@ -603,7 +701,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param typeName the resolved type name that the method lookup is happening on
    * @see StaticTypeWarningCode#UNDEFINED_METHOD
    */
-  static final HintCode UNDEFINED_METHOD = new HintCode.con1('UNDEFINED_METHOD', 15, StaticTypeWarningCode.UNDEFINED_METHOD.message);
+  static final HintCode UNDEFINED_METHOD = new HintCode.con1('UNDEFINED_METHOD', 16, StaticTypeWarningCode.UNDEFINED_METHOD.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_OPERATOR]
@@ -613,7 +711,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the operator is being looked for
    * @see StaticTypeWarningCode#UNDEFINED_OPERATOR
    */
-  static final HintCode UNDEFINED_OPERATOR = new HintCode.con1('UNDEFINED_OPERATOR', 16, StaticTypeWarningCode.UNDEFINED_OPERATOR.message);
+  static final HintCode UNDEFINED_OPERATOR = new HintCode.con1('UNDEFINED_OPERATOR', 17, StaticTypeWarningCode.UNDEFINED_OPERATOR.message);
 
   /**
    * This hint is generated anywhere where the [StaticTypeWarningCode#UNDEFINED_SETTER] or
@@ -625,27 +723,27 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @see StaticTypeWarningCode#UNDEFINED_SETTER
    * @see StaticWarningCode#UNDEFINED_SETTER
    */
-  static final HintCode UNDEFINED_SETTER = new HintCode.con1('UNDEFINED_SETTER', 17, StaticTypeWarningCode.UNDEFINED_SETTER.message);
+  static final HintCode UNDEFINED_SETTER = new HintCode.con1('UNDEFINED_SETTER', 18, StaticTypeWarningCode.UNDEFINED_SETTER.message);
 
   /**
    * Unnecessary cast.
    */
-  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 18, "Unnecessary cast");
+  static final HintCode UNNECESSARY_CAST = new HintCode.con1('UNNECESSARY_CAST', 19, "Unnecessary cast");
 
   /**
    * Unnecessary type checks, the result is always true.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 19, "Unnecessary type check, the result is always false");
+  static final HintCode UNNECESSARY_TYPE_CHECK_FALSE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_FALSE', 20, "Unnecessary type check, the result is always false");
 
   /**
    * Unnecessary type checks, the result is always false.
    */
-  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 20, "Unnecessary type check, the result is always true");
+  static final HintCode UNNECESSARY_TYPE_CHECK_TRUE = new HintCode.con1('UNNECESSARY_TYPE_CHECK_TRUE', 21, "Unnecessary type check, the result is always true");
 
   /**
    * Unused imports are imports which are never not used.
    */
-  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 21, "Unused import");
+  static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 22, "Unused import");
 
   static final List<HintCode> values = [
       DEAD_CODE,
@@ -658,6 +756,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
       IS_INT,
       IS_NOT_DOUBLE,
       IS_NOT_INT,
+      MISSING_RETURN,
       OVERRIDDING_PRIVATE_MEMBER,
       OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
       TYPE_CHECK_IS_NOT_NULL,
@@ -680,7 +779,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction3;
+  String correction4;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -696,10 +795,10 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   HintCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction3 = correction;
+    this.correction4 = correction;
   }
 
-  String get correction => correction3;
+  String get correction => correction4;
 
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;
 
@@ -795,6 +894,11 @@ class ErrorType extends Enum<ErrorType> {
    */
   static final ErrorType SYNTACTIC_ERROR = new ErrorType('SYNTACTIC_ERROR', 6, ErrorSeverity.ERROR);
 
+  /**
+   * Toolkit specific semantic problems.
+   */
+  static final ErrorType TOOLKIT = new ErrorType('TOOLKIT', 7, ErrorSeverity.INFO);
+
   static final List<ErrorType> values = [
       TODO,
       HINT,
@@ -802,7 +906,8 @@ class ErrorType extends Enum<ErrorType> {
       PUB_SUGGESTION,
       STATIC_WARNING,
       STATIC_TYPE_WARNING,
-      SYNTACTIC_ERROR];
+      SYNTACTIC_ERROR,
+      TOOLKIT];
 
   /**
    * The severity of this type of error.
@@ -2144,7 +2249,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction2;
+  String correction3;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -2160,10 +2265,10 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param correction the template used to create the correction to be displayed for the error
    */
   CompileTimeErrorCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction2 = correction;
+    this.correction3 = correction;
   }
 
-  String get correction => correction2;
+  String get correction => correction3;
 
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
 
@@ -2214,7 +2319,7 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction5;
+  String correction6;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -2230,10 +2335,10 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   PubSuggestionCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction5 = correction;
+    this.correction6 = correction;
   }
 
-  String get correction => correction5;
+  String get correction => correction6;
 
   ErrorSeverity get errorSeverity => ErrorType.PUB_SUGGESTION.severity;
 
@@ -3104,7 +3209,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction7;
+  String correction8;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -3120,10 +3225,10 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   StaticWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction7 = correction;
+    this.correction8 = correction;
   }
 
-  String get correction => correction7;
+  String get correction => correction8;
 
   ErrorSeverity get errorSeverity => ErrorType.STATIC_WARNING.severity;
 
@@ -3140,7 +3245,7 @@ abstract class AnalysisErrorListener {
   /**
    * An error listener that ignores errors that are reported to it.
    */
-  static final AnalysisErrorListener NULL_LISTENER = new AnalysisErrorListener_6();
+  static final AnalysisErrorListener NULL_LISTENER = new AnalysisErrorListener_NULL_LISTENER();
 
   /**
    * This method is invoked when an error has been found by the analysis engine.
@@ -3150,7 +3255,7 @@ abstract class AnalysisErrorListener {
   void onError(AnalysisError error);
 }
 
-class AnalysisErrorListener_6 implements AnalysisErrorListener {
+class AnalysisErrorListener_NULL_LISTENER implements AnalysisErrorListener {
   void onError(AnalysisError event) {
   }
 }
@@ -3191,7 +3296,7 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction4;
+  String correction5;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -3207,10 +3312,10 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   HtmlWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction4 = correction;
+    this.correction5 = correction;
   }
 
-  String get correction => correction4;
+  String get correction => correction5;
 
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
 
@@ -3518,7 +3623,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction6;
+  String correction7;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -3534,10 +3639,10 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param correction the template used to create the correction to be displayed for the error
    */
   StaticTypeWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction6 = correction;
+    this.correction7 = correction;
   }
 
-  String get correction => correction6;
+  String get correction => correction7;
 
   ErrorSeverity get errorSeverity => ErrorType.STATIC_TYPE_WARNING.severity;
 

@@ -23,19 +23,13 @@ class JavaSystemIO {
       return '\n';
     }
     if (name == 'com.google.dart.sdk') {
-      String value = Platform.environment['DART_SDK'];
-      if (value != null) {
-        _properties[name] = value;
-        return value;
-      }
-    }
-    if (name == 'com.google.dart.sdk') {
       String exec = Platform.executable;
       if (exec.length != 0) {
         String sdkPath;
-        // may be "xcodebuild/ReleaseIA32/dart" with "dart-sdk" sibling
+        // may be "xcodebuild/ReleaseIA32/dart" with "sdk" sibling
         {
-          sdkPath = pathos.join(pathos.dirname(exec), "dart-sdk");
+          var outDir = pathos.dirname(pathos.dirname(exec));
+          sdkPath = pathos.join(pathos.dirname(outDir), "sdk");
           if (new Directory(sdkPath).existsSync()) {
             _properties[name] = sdkPath;
             return sdkPath;

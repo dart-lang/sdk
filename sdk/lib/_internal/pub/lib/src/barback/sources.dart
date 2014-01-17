@@ -50,6 +50,16 @@ Future watchSources(PackageGraph graph, Barback barback,
         var parts = path.split(event.path);
         if (parts.contains("packages") || parts.contains("assets")) return;
 
+        // Skip ".js" files that were (most likely) compiled from nearby ".dart"
+        // files. These are created by the Editor's "Run as JavaScript" command
+        // and are written directly into the package's directory. When pub's
+        // dart2js transformer then tries to create the same file name, we get
+        // a build error. To avoid that, just don't consider that file to be a
+        // source.
+        // TODO(rnystrom): Remove this when the Editor no longer generates .js
+        // files. See #15859.
+        if (event.path.endsWith(".dart.js")) return;
+
         var id = new AssetId(package.name,
             path.relative(event.path, from: package.dir));
         if (event.type == ChangeType.REMOVE) {
@@ -89,6 +99,16 @@ List<AssetId> _listAssets(Entrypoint entrypoint, Package package) {
 
       // Skip directories.
       if (!fileExists(entry)) continue;
+
+      // Skip ".js" files that were (most likely) compiled from nearby ".dart"
+      // files. These are created by the Editor's "Run as JavaScript" command
+      // and are written directly into the package's directory. When pub's
+      // dart2js transformer then tries to create the same file name, we get
+      // a build error. To avoid that, just don't consider that file to be a
+      // source.
+      // TODO(rnystrom): Remove this when the Editor no longer generates .js
+      // files. See #15859.
+      if (entry.endsWith(".dart.js")) continue;
 
       var id = new AssetId(package.name,
           path.relative(entry, from: package.dir));

@@ -88,19 +88,16 @@ void renamePlaceholders(
     // TODO(smok): Do not rename type if it is in platform library or
     // js-helpers.
     StringBuffer result = new StringBuffer(renameElement(type.element));
-    if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
-      if (!interfaceType.treatAsRaw) {
-        result.write('<');
-        Link<DartType> argumentsLink = interfaceType.typeArguments;
-        result.write(renameType(argumentsLink.head, renameElement));
-        for (Link<DartType> link = argumentsLink.tail; !link.isEmpty;
-             link = link.tail) {
-          result.write(',');
-          result.write(renameType(link.head, renameElement));
-        }
-        result.write('>');
+    if (type is GenericType && !type.treatAsRaw) {
+      result.write('<');
+      Link<DartType> argumentsLink = type.typeArguments;
+      result.write(renameType(argumentsLink.head, renameElement));
+      for (Link<DartType> link = argumentsLink.tail; !link.isEmpty;
+           link = link.tail) {
+        result.write(',');
+        result.write(renameType(link.head, renameElement));
       }
+      result.write('>');
     }
     return result.toString();
   }

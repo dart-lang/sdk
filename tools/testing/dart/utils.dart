@@ -10,6 +10,15 @@ import 'dart:convert';
 
 part 'legacy_path.dart';
 
+// This is the maximum time we expect stdout/stderr of subprocesses to deliver
+// data after we've got the exitCode.
+const Duration MAX_STDIO_DELAY = const Duration(seconds: 30);
+
+String MAX_STDIO_DELAY_PASSED_MESSAGE =
+"""Not waiting for stdout/stderr from subprocess anymore 
+($MAX_STDIO_DELAY passed). Please note that this could be an indicator 
+that there is a hanging process which we were unable to kill.""";
+
 class DebugLogger {
   static IOSink _sink;
 
@@ -231,6 +240,19 @@ class HashCodeBuilder {
 
   void add(Object object) {
     _value = ((_value * 31) ^ object.hashCode)  & 0x3FFFFFFF;
+  }
+
+  void addJson(Object object) {
+    if (object == null || object is num || object is String) {
+      add(object);
+    } else if (object is List) {
+      object.forEach(addJson);
+    } else if (object is Map) {
+      object.forEach((k, v) { addJson(k); addJson(value); });
+    } else {
+      throw new Exception("Can't build hashcode for non json-like object "
+          "(${object.runtimeType})");
+    }
   }
 
   int get value => _value;

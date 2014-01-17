@@ -1,0 +1,9 @@
+name: compiler_unsupported
+version: 0.7.0
+author: Dart2js Team <compiler-dev@dartlang.org>
+homepage: http://www.dartlang.org
+description: >
+  This is an unsupported copy of the dart2js source. The API of this package
+  can and will change in unpredictable and incompatible ways.
+environment:
+  sdk: ">=1.0.0 <2.0.0"

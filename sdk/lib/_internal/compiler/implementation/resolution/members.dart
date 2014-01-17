@@ -8,6 +8,11 @@ abstract class TreeElements {
   Element get currentElement;
   Setlet<Node> get superUses;
 
+  /// Iterables of the dependencies that this [TreeElement] records of
+  /// [currentElement].
+  Iterable<Element> get allElements;
+  Iterable<Constant> get allConstants;
+
   /// A set of additional dependencies.  See [registerDependency] below.
   Setlet<Element> get otherDependencies;
 
@@ -69,6 +74,7 @@ class TreeElementMapping implements TreeElements {
       new Map<VariableElement, List<Node>>();
   final Map<Node, Map<VariableElement, List<Node>>> accessedByClosureIn =
       new Map<Node, Map<VariableElement, List<Node>>>();
+  final Setlet<Element> elements = new Setlet<Element>();
 
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
@@ -97,6 +103,7 @@ class TreeElementMapping implements TreeElements {
     //                  getTreeElement(node) == null,
     //                  message: '${getTreeElement(node)}; $element'));
 
+    elements.add(element);
     setTreeElement(node, element);
   }
 
@@ -235,6 +242,10 @@ class TreeElementMapping implements TreeElements {
   }
 
   String toString() => 'TreeElementMapping($currentElement)';
+
+  Iterable<Element> get allElements => elements;
+
+  Iterable<Constant> get allConstants => constants.values;
 }
 
 class ResolverTask extends CompilerTask {

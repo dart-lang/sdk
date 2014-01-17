@@ -65,6 +65,7 @@ testNoIncludeEnvironment() {
   asyncStart();
   var env = Platform.environment;
   Expect.isTrue(env.containsKey('PATH'));
+  env = new Map.from(env);
   env.remove('PATH');
   runEnvironmentProcess(env, "PATH", false, (output) {
     Expect.isTrue(output.startsWith("null"));

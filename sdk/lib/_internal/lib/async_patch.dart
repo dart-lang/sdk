@@ -30,18 +30,32 @@ patch class _AsyncRun {
 
 patch class DeferredLibrary {
   patch Future<bool> load() {
-    return _load(libraryName, uri);
+    List hunkNames = new List();
+    if (JS('bool', '\$.libraries_to_load[#] === undefined', libraryName)) {
+      return new Future(() => false);
+    }
+    for (int index = 0;
+         index < JS('int', '\$.libraries_to_load[#].length', libraryName);
+         ++index) {
+      hunkNames.add(JS('String', '\$.libraries_to_load[#][#]',
+                       libraryName, index));
+    }
+    Iterable<Future<bool>> allLoads =
+        hunkNames.map((libraryName) => _load(libraryName, uri));
+    return Future.wait(allLoads).then((results) {
+      return results.any((x) => x);
+    });
   }
 }
 
 // TODO(ahe): This should not only apply to this isolate.
 final Map<String, Future<bool>> _loadedLibraries = <String, Future<bool>>{};
 
-Future<bool> _load(String libraryName, String uri) {
+Future<bool> _load(String hunkName, String uri) {
   // TODO(ahe): Validate libraryName.  Kasper points out that you want
   // to be able to experiment with the effect of toggling @DeferLoad,
   // so perhaps we should silently ignore "bad" library names.
-  Future<bool> future = _loadedLibraries[libraryName];
+  Future<bool> future = _loadedLibraries[hunkName];
   if (future != null) {
     return future.then((_) => false);
   }
@@ -49,8 +63,8 @@ Future<bool> _load(String libraryName, String uri) {
   if (Primitives.isJsshell) {
     // TODO(ahe): Move this code to a JavaScript command helper script that is
     // not included in generated output.
-    return _loadedLibraries[libraryName] = new Future<bool>(() {
-      if (uri == null) uri = 'part.js';
+    return _loadedLibraries[hunkName] = new Future<bool>(() {
+      if (uri == null) uri = '$hunkName';
       // Create a new function to avoid getting access to current function
       // context.
       JS('void', '(new Function(#))()', 'loadRelativeToScript("$uri")');
@@ -59,11 +73,11 @@ Future<bool> _load(String libraryName, String uri) {
   } else if (Primitives.isD8) {
     // TODO(ahe): Move this code to a JavaScript command helper script that is
     // not included in generated output.
-    return _loadedLibraries[libraryName] = new Future<bool>(() {
+    return _loadedLibraries[hunkName] = new Future<bool>(() {
       if (uri == null) {
         uri = IsolateNatives.computeThisScriptD8();
         int index = uri.lastIndexOf('/');
-        uri = '${uri.substring(0, index + 1)}part.js';
+        uri = '${uri.substring(0, index + 1)}$hunkName';
       }
       // Create a new function to avoid getting access to current function
       // context.
@@ -72,12 +86,12 @@ Future<bool> _load(String libraryName, String uri) {
     });
   }
 
-  return _loadedLibraries[libraryName] = new Future<bool>(() {
+  return _loadedLibraries[hunkName] = new Future<bool>(() {
     Completer completer = new Completer<bool>();
     if (uri == null) {
       uri = IsolateNatives.thisScript;
       int index = uri.lastIndexOf('/');
-      uri = '${uri.substring(0, index + 1)}part.js';
+      uri = '${uri.substring(0, index + 1)}$hunkName';
     }
 
     // Inject a script tag.

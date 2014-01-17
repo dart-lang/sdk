@@ -28,17 +28,5 @@ $!MEMBERS
    * Note that touch events are only supported if the user is using a touch
    * device.
    */
-  static bool get supported {
-$if DART2JS
-    if (JS('bool', '"ontouchstart" in window')) {
-      return Device.isEventTypeSupported('TouchEvent');
-    }
-    return false;
-$else
-    // Bug #8186 add equivalent 'ontouchstart' check for Dartium.
-    // Basically, this is a fairly common check and it'd be great if it did not
-    // throw exceptions.
-    return Device.isEventTypeSupported('TouchEvent');
-$endif
-  }
+  static bool get supported => Device.isEventTypeSupported('TouchEvent');
 }

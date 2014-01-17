@@ -2945,7 +2945,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
 
 
 void Parser::AddEqualityNullCheck() {
-  const intptr_t token_pos = Scanner::kDummyTokenIndex;
+  const intptr_t token_pos = TokenPos();
   AstNode* argument =
       new LoadLocalNode(token_pos,
                         current_block_->scope->parent()->VariableAt(1));
@@ -4495,7 +4495,6 @@ void Parser::ParseInterfaceList(const Class& cls) {
 RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   TRACE_PARSER("ParseMixins");
   ASSERT(CurrentToken() == Token::kWITH);
-  ASSERT(super_type.IsType());  // TODO(regis): Could be a BoundedType.
   const GrowableObjectArray& mixin_types =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   AbstractType& mixin_type = AbstractType::Handle();
@@ -9806,9 +9805,9 @@ AstNode* Parser::ParseSymbolLiteral() {
   } else {
     ErrorMsg("illegal symbol literal");
   }
-  // Lookup class Symbol from collection_dev library and call the
+  // Lookup class Symbol from internal library and call the
   // constructor to create a symbol instance.
-  const Library& lib = Library::Handle(Library::CollectionDevLibrary());
+  const Library& lib = Library::Handle(Library::InternalLibrary());
   const Class& symbol_class = Class::Handle(lib.LookupClass(Symbols::Symbol()));
   ASSERT(!symbol_class.IsNull());
   ArgumentListNode* constr_args = new ArgumentListNode(symbol_pos);

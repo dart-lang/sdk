@@ -424,16 +424,6 @@ static Dart_Handle CreateRuntimeOptions(CommandLineOptions* options) {
 }
 
 
-#define CHECK_RESULT(result)                                                   \
-  if (Dart_IsError(result)) {                                                  \
-    *error = strdup(Dart_GetError(result));                                    \
-    *is_compile_error = Dart_IsCompilationError(result);                       \
-    Dart_ExitScope();                                                          \
-    Dart_ShutdownIsolate();                                                    \
-    return NULL;                                                               \
-  }                                                                            \
-
-
 static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   uint8_t* utf8_array;
   intptr_t utf8_len;
@@ -465,6 +455,15 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   return result;
 }
 
+
+#define CHECK_RESULT(result)                                                   \
+  if (Dart_IsError(result)) {                                                  \
+    *error = strdup(Dart_GetError(result));                                    \
+    *is_compile_error = Dart_IsCompilationError(result);                       \
+    Dart_ExitScope();                                                          \
+    Dart_ShutdownIsolate();                                                    \
+    return NULL;                                                               \
+  }                                                                            \
 
 // Returns true on success, false on failure.
 static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
@@ -524,25 +523,22 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     return NULL;
   }
 
+
   Platform::SetPackageRoot(package_root);
-  Dart_Handle io_lib_url = DartUtils::NewString("dart:io");
+  Dart_Handle io_lib_url = DartUtils::NewString(DartUtils::kIOLibURL);
   CHECK_RESULT(io_lib_url);
   Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
   CHECK_RESULT(io_lib);
-  Dart_Handle platform_class_name = DartUtils::NewString("Platform");
-  CHECK_RESULT(platform_class_name);
-  Dart_Handle platform_type =
-      Dart_GetType(io_lib, platform_class_name, 0, NULL);
+  Dart_Handle platform_type = DartUtils::GetDartType(DartUtils::kIOLibURL,
+                                                     "Platform");
   CHECK_RESULT(platform_type);
-  Dart_Handle script_name_name = DartUtils::NewString("_nativeScript");
-  CHECK_RESULT(script_name_name);
+  Dart_Handle script_name = DartUtils::NewString("_nativeScript");
+  CHECK_RESULT(script_name);
   Dart_Handle dart_script = DartUtils::NewString(script_uri);
   CHECK_RESULT(dart_script);
   Dart_Handle set_script_name =
-      Dart_SetField(platform_type, script_name_name, dart_script);
+      Dart_SetField(platform_type, script_name, dart_script);
   CHECK_RESULT(set_script_name);
-
-  VmService::SendIsolateStartupMessage();
 
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
@@ -558,6 +554,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   return isolate;
 }
 
+#undef CHECK_RESULT
 
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
@@ -583,6 +580,64 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                      &is_compile_error);
 }
 
+
+#define CHECK_RESULT(result)                                                   \
+  if (Dart_IsError(result)) {                                                  \
+    *error = strdup(Dart_GetError(result));                                    \
+    Dart_ExitScope();                                                          \
+    Dart_ShutdownIsolate();                                                    \
+    return NULL;                                                               \
+  }                                                                            \
+
+static Dart_Isolate CreateServiceIsolate(void* data, char** error) {
+  const char* script_uri = DartUtils::kVMServiceLibURL;
+  IsolateData* isolate_data = new IsolateData(script_uri);
+  Dart_Isolate isolate =
+      Dart_CreateIsolate(script_uri, "main", snapshot_buffer, isolate_data,
+                         error);
+  if (isolate == NULL) {
+    return NULL;
+  }
+  Dart_EnterScope();
+  if (snapshot_buffer != NULL) {
+    // Setup the native resolver as the snapshot does not carry it.
+    Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
+    Builtin::SetNativeResolver(Builtin::kIOLibrary);
+  }
+  // Set up the library tag handler for this isolate.
+  Dart_Handle result = Dart_SetLibraryTagHandler(DartUtils::LibraryTagHandler);
+  CHECK_RESULT(result);
+  result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+  CHECK_RESULT(result);
+  // Prepare builtin and its dependent libraries for use to resolve URIs.
+  Dart_Handle builtin_lib =
+      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+  CHECK_RESULT(builtin_lib);
+  // Prepare for script loading by setting up the 'print' and 'timer'
+  // closures and setting up 'package root' for URI resolution.
+  result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
+  CHECK_RESULT(result);
+  Platform::SetPackageRoot(package_root);
+  Dart_Handle io_lib_url = DartUtils::NewString(DartUtils::kIOLibURL);
+  CHECK_RESULT(io_lib_url);
+  Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
+  CHECK_RESULT(io_lib);
+  Dart_Handle platform_type = DartUtils::GetDartType(DartUtils::kIOLibURL,
+                                                     "Platform");
+  CHECK_RESULT(platform_type);
+  Dart_Handle script_name = DartUtils::NewString("_nativeScript");
+  CHECK_RESULT(script_name);
+  Dart_Handle dart_script = DartUtils::NewString(script_uri);
+  CHECK_RESULT(dart_script);
+  Dart_Handle set_script_name =
+      Dart_SetField(platform_type, script_name, dart_script);
+  CHECK_RESULT(set_script_name);
+  Dart_ExitScope();
+  Dart_ExitIsolate();
+  return isolate;
+}
+
+#undef CHECK_RESULT
 
 static void PrintVersion() {
   Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
@@ -716,7 +771,6 @@ static void DartExitOnError(Dart_Handle error) {
 
 
 static void ShutdownIsolate(void* callback_data) {
-  VmService::VmServiceShutdownCallback(callback_data);
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
   delete isolate_data;
 }
@@ -812,7 +866,8 @@ void main(int argc, char** argv) {
                        DartUtils::ReadFile,
                        DartUtils::WriteFile,
                        DartUtils::CloseFile,
-                       DartUtils::EntropySource)) {
+                       DartUtils::EntropySource,
+                       CreateServiceIsolate)) {
     fprintf(stderr, "%s", "VM initialization failed\n");
     fflush(stderr);
     exit(kErrorExitCode);

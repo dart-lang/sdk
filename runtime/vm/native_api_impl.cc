@@ -80,20 +80,6 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
 }
 
 
-// --- Heap Profiler ---
-
-DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_FileWriteCallback callback,
-                                         void* stream) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  if (callback == NULL) {
-    RETURN_NULL_ERROR(callback);
-  }
-  isolate->heap()->Profile(callback, stream);
-  return Api::Success();
-}
-
-
 // --- Verification tools ---
 
 static void CompileAll(Isolate* isolate, Dart_Handle* result) {

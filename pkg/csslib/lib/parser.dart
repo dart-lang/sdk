@@ -1494,6 +1494,9 @@ class _Parser {
           value = double.parse(termToken.text);
           break;
         case TokenKind.SINGLE_QUOTE:
+          value = processQuotedString(false);
+          value = "'${_escapeString(value, single: true)}'";
+          return new LiteralTerm(value, value, _makeSpan(start));
         case TokenKind.DOUBLE_QUOTE:
           value = processQuotedString(false);
           value = '"${_escapeString(value)}"';
@@ -2129,6 +2132,9 @@ class _Parser {
       value = double.parse("${unary}${t.text}");
       break;
     case TokenKind.SINGLE_QUOTE:
+      value = processQuotedString(false);
+      value = "'${_escapeString(value, single: true)}'";
+      return new LiteralTerm(value, value, _makeSpan(start));
     case TokenKind.DOUBLE_QUOTE:
       value = processQuotedString(false);
       value = '"${_escapeString(value)}"';

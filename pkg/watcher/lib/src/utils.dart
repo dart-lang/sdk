@@ -73,6 +73,18 @@ Stream futureStream(Future<Stream> future, {bool broadcast: false}) {
 /// under the covers.
 Future newFuture(callback()) => new Future.value().then((_) => callback());
 
+/// Returns a [Future] that completes after pumping the event queue [times]
+/// times. By default, this should pump the event queue enough times to allow
+/// any code to run, as long as it's not waiting on some external event.
+Future pumpEventQueue([int times=20]) {
+  if (times == 0) return new Future.value();
+  // We use a delayed future to allow microtask events to finish. The
+  // Future.value or Future() constructors use scheduleMicrotask themselves and
+  // would therefore not wait for microtask callbacks that are scheduled after
+  // invoking this method.
+  return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
+}
+
 /// A stream transformer that batches all events that are sent at the same time.
 ///
 /// When multiple events are synchronously added to a stream controller, the

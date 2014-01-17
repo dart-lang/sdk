@@ -40,15 +40,15 @@ class _InvocationMirror implements Invocation {
     if (_functionName.startsWith("get:")) {
       _type = _GETTER;
       _memberName =
-          new _collection_dev.Symbol.unvalidated(_functionName.substring(4));
+          new internal.Symbol.unvalidated(_functionName.substring(4));
     } else if (_functionName.startsWith("set:")) {
       _type = _SETTER;
       _memberName =
-          new _collection_dev.Symbol.unvalidated(
+          new internal.Symbol.unvalidated(
               _functionName.substring(4) + "=");
     } else {
       _type = _isSuperInvocation ? (_SUPER << _CALL_SHIFT) | _METHOD : _METHOD;
-      _memberName = new _collection_dev.Symbol.unvalidated(_functionName);
+      _memberName = new internal.Symbol.unvalidated(_functionName);
     }
   }
 
@@ -67,7 +67,8 @@ class _InvocationMirror implements Invocation {
         return _positionalArguments = const [];
       }
       // Exclude receiver.
-      _positionalArguments = _arguments.sublist(1, numPositionalArguments);
+      _positionalArguments =
+          new _ImmutableList._from(_arguments, 1, numPositionalArguments - 1);
     }
     return _positionalArguments;
   }
@@ -84,7 +85,7 @@ class _InvocationMirror implements Invocation {
       for (int i = 0; i < numNamedArguments; i++) {
         String arg_name = _argumentsDescriptor[2 + 2*i];
         var arg_value = _arguments[_argumentsDescriptor[3 + 2*i]];
-        _namedArguments[new _collection_dev.Symbol.unvalidated(arg_name)] =
+        _namedArguments[new internal.Symbol.unvalidated(arg_name)] =
             arg_value;
       }
     }

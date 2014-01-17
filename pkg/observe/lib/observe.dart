@@ -76,6 +76,20 @@
  * form into the second form automatically, to get the best of both worlds.
  */
 library observe;
+import 'src/bind_property.dart';
+import 'src/change_notifier.dart';
+import 'src/change_record.dart';
+import 'src/compound_path_observer.dart';
+import 'src/list_path_observer.dart';
+import 'src/list_diff.dart';
+import 'src/metadata.dart';
+import 'src/observable.dart';
+import 'src/observable_box.dart';
+import 'src/observable_list.dart';
+import 'src/observable_map.dart';
+import 'src/path_observer.dart';
+import 'src/to_observable.dart';
+
 
 export 'src/bind_property.dart';
 export 'src/change_notifier.dart';

@@ -31,7 +31,7 @@ Future<String> provideInput(Uri uri) {
   var source = SOURCES[uri.path];
   if (source == null) {
     // Not one of our source files, so assume it's a built-in.
-    source = new File(uriPathToNative(uri.path)).readAsStringSync();
+    source = new File(uri.toFilePath()).readAsStringSync();
   }
 
   // Deliver the input asynchronously.

@@ -33,13 +33,13 @@ class MockClient extends BaseClient {
   MockClient(MockClientHandler fn)
     : this._((baseRequest, bodyStream) {
       return bodyStream.toBytes().then((bodyBytes) {
-        var request = new Request(baseRequest.method, baseRequest.url);
-        request.persistentConnection = baseRequest.persistentConnection;
-        request.followRedirects = baseRequest.followRedirects;
-        request.maxRedirects = baseRequest.maxRedirects;
-        request.headers.addAll(baseRequest.headers);
-        request.bodyBytes = bodyBytes;
-        request.finalize();
+        var request = new Request(baseRequest.method, baseRequest.url)
+            ..persistentConnection = baseRequest.persistentConnection
+            ..followRedirects = baseRequest.followRedirects
+            ..maxRedirects = baseRequest.maxRedirects
+            ..headers.addAll(baseRequest.headers)
+            ..bodyBytes = bodyBytes
+            ..finalize();
 
         return fn(request);
       }).then((response) {

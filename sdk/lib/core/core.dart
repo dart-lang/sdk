@@ -153,8 +153,8 @@
 library dart.core;
 
 import "dart:collection";
-import "dart:_collection-dev" hide Symbol;
-import "dart:_collection-dev" as _collection_dev;
+import "dart:_internal" hide Symbol;
+import "dart:_internal" as internal show Symbol;
 import "dart:convert" show UTF8, LATIN1, Encoding;
 import "dart:math" show Random;  // Used by List.shuffle.
 

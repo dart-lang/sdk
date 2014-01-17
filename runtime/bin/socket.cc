@@ -53,7 +53,7 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
   Dart_Handle port_arg = Dart_GetNativeArgument(args, 2);
   int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
-  intptr_t socket = Socket::CreateConnect(addr, port);
+  intptr_t socket = Socket::CreateConnect(addr, static_cast<intptr_t>(port));
   OSError error;
   if (socket >= 0) {
     Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
@@ -70,7 +70,9 @@ void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   Dart_Handle port_arg = Dart_GetNativeArgument(args, 2);
   int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
   bool reuse_addr = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
-  intptr_t socket = Socket::CreateBindDatagram(&addr, port, reuse_addr);
+  intptr_t socket = Socket::CreateBindDatagram(&addr,
+                                               static_cast<intptr_t>(port),
+                                               reuse_addr);
   if (socket >= 0) {
     Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
     Dart_SetReturnValue(args, Dart_True());
