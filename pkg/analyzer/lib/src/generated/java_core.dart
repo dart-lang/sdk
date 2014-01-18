@@ -2,9 +2,18 @@ library java.core;
 
 import "dart:math" as math;
 
+final Stopwatch nanoTimeStopwatch = new Stopwatch();
+
 class JavaSystem {
   static int currentTimeMillis() {
     return (new DateTime.now()).millisecondsSinceEpoch;
+  }
+
+  static int nanoTime() {
+    if (!nanoTimeStopwatch.isRunning) {
+      nanoTimeStopwatch.start();
+    }
+    return nanoTimeStopwatch.elapsedMicroseconds * 1000;
   }
 
   static void arraycopy(List src, int srcPos, List dest, int destPos, int length) {

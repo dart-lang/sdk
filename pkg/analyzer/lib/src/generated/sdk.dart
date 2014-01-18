@@ -8,6 +8,7 @@
 library engine.sdk;
 
 import 'source.dart' show ContentCache, Source, UriKind;
+import 'ast.dart';
 import 'engine.dart' show AnalysisContext;
 
 /**
@@ -191,6 +192,87 @@ class SdkLibraryImpl implements SdkLibrary {
    */
   void setVmLibrary() {
     _platforms |= VM_PLATFORM;
+  }
+}
+
+class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
+  /**
+   * The prefix added to the name of a library to form the URI used in code to reference the
+   * library.
+   */
+  static String _LIBRARY_PREFIX = "dart:";
+
+  /**
+   * The name of the optional parameter used to indicate whether the library is an implementation
+   * library.
+   */
+  static String _IMPLEMENTATION = "implementation";
+
+  /**
+   * The name of the optional parameter used to indicate whether the library is documented.
+   */
+  static String _DOCUMENTED = "documented";
+
+  /**
+   * The name of the optional parameter used to specify the category of the library.
+   */
+  static String _CATEGORY = "category";
+
+  /**
+   * The name of the optional parameter used to specify the platforms on which the library can be
+   * used.
+   */
+  static String _PLATFORMS = "platforms";
+
+  /**
+   * The value of the [PLATFORMS] parameter used to specify that the library can
+   * be used on the VM.
+   */
+  static String _VM_PLATFORM = "VM_PLATFORM";
+
+  /**
+   * The library map that is populated by visiting the AST structure parsed from the contents of
+   * the libraries file.
+   */
+  final LibraryMap librariesMap = new LibraryMap();
+
+  Object visitMapLiteralEntry(MapLiteralEntry node) {
+    String libraryName = null;
+    Expression key = node.key;
+    if (key is SimpleStringLiteral) {
+      libraryName = "${_LIBRARY_PREFIX}${key.value}";
+    }
+    Expression value = node.value;
+    if (value is InstanceCreationExpression) {
+      SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
+      List<Expression> arguments = value.argumentList.arguments;
+      for (Expression argument in arguments) {
+        if (argument is SimpleStringLiteral) {
+          library.path = argument.value;
+        } else if (argument is NamedExpression) {
+          String name = argument.name.label.name;
+          Expression expression = argument.expression;
+          if (name == _CATEGORY) {
+            library.category = (expression as SimpleStringLiteral).value;
+          } else if (name == _IMPLEMENTATION) {
+            library.implementation = (expression as BooleanLiteral).value;
+          } else if (name == _DOCUMENTED) {
+            library.documented = (expression as BooleanLiteral).value;
+          } else if (name == _PLATFORMS) {
+            if (expression is SimpleIdentifier) {
+              String identifier = expression.name;
+              if (identifier == _VM_PLATFORM) {
+                library.setVmLibrary();
+              } else {
+                library.setDart2JsLibrary();
+              }
+            }
+          }
+        }
+      }
+      librariesMap.setLibrary(libraryName, library);
+    }
+    return null;
   }
 }
 

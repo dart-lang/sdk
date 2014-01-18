@@ -10009,7 +10009,7 @@ class SimpleIdentifier extends Identifier {
    */
   Element validateElement(ASTNode parent, Type expectedClass, Element element) {
     if (!isInstanceOf(element, expectedClass)) {
-      AnalysisEngine.instance.logger.logInformation2("Internal error: attempting to set the name of a ${parent.runtimeType.toString()} to a ${element.runtimeType.toString()}", new JavaException());
+      AnalysisEngine.instance.logger.logInformation3("Internal error: attempting to set the name of a ${parent.runtimeType.toString()} to a ${element.runtimeType.toString()}", new JavaException());
       return null;
     }
     return element;
@@ -12369,6 +12369,25 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
 
   Element visitIdentifier(Identifier node) {
     ASTNode parent = node.parent;
+    // Type name in InstanceCreationExpression
+    {
+      ASTNode typeNameCandidate = parent;
+      // new prefix.node[.constructorName]()
+      if (typeNameCandidate is PrefixedIdentifier) {
+        PrefixedIdentifier prefixedIdentifier = typeNameCandidate as PrefixedIdentifier;
+        if (identical(prefixedIdentifier.identifier, node)) {
+          typeNameCandidate = prefixedIdentifier.parent;
+        }
+      }
+      // new typeName[.constructorName]()
+      if (typeNameCandidate is TypeName) {
+        TypeName typeName = typeNameCandidate as TypeName;
+        if (typeName.parent is ConstructorName) {
+          ConstructorName constructorName = typeName.parent as ConstructorName;
+          return constructorName.staticElement;
+        }
+      }
+    }
     // Extra work to map Constructor Declarations to their associated Constructor Elements
     if (parent is ConstructorDeclaration) {
       ConstructorDeclaration decl = parent;
@@ -12771,7 +12790,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
       node.accept(this);
     } on NodeLocator_NodeFoundException catch (exception) {
     } on JavaException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset (${_startOffset} - ${_endOffset})", exception);
+      AnalysisEngine.instance.logger.logInformation3("Unable to locate element at offset (${_startOffset} - ${_endOffset})", exception);
       return null;
     }
     return _foundNode;
@@ -12792,7 +12811,7 @@ class NodeLocator extends UnifyingASTVisitor<Object> {
       throw exception;
     } on JavaException catch (exception) {
       // Ignore the exception and proceed in order to visit the rest of the structure.
-      AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
+      AnalysisEngine.instance.logger.logInformation3("Exception caught while traversing an AST structure.", exception);
     }
     if (start <= _startOffset && _endOffset <= end) {
       _foundNode = node;

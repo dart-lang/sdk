@@ -190,27 +190,6 @@ class DirectoryBasedDartSdk implements DartSdk {
     _analysisContext.applyChanges(changeSet);
   }
 
-  /**
-   * Initialize a newly created SDK to represent the Dart SDK installed in the given directory.
-   *
-   * Added in order to test AnalysisContextImpl2.
-   *
-   * @param sdkDirectory the directory containing the SDK
-   */
-  DirectoryBasedDartSdk.con1(JavaFile sdkDirectory, bool ignored) {
-    this._sdkDirectory = sdkDirectory.getAbsoluteFile();
-    initializeSdk();
-    initializeLibraryMap();
-    _analysisContext = new AnalysisContextImpl();
-    _analysisContext.sourceFactory = new SourceFactory.con2([new DartUriResolver(this)]);
-    List<String> uris = this.uris;
-    ChangeSet changeSet = new ChangeSet();
-    for (String uri in uris) {
-      changeSet.added(_analysisContext.sourceFactory.forUri(uri));
-    }
-    _analysisContext.applyChanges(changeSet);
-  }
-
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) => new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
 
   AnalysisContext get context => _analysisContext;
@@ -478,86 +457,5 @@ class SdkLibrariesReader {
       unit.accept(libraryBuilder);
     }
     return libraryBuilder.librariesMap;
-  }
-}
-
-class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
-  /**
-   * The prefix added to the name of a library to form the URI used in code to reference the
-   * library.
-   */
-  static String _LIBRARY_PREFIX = "dart:";
-
-  /**
-   * The name of the optional parameter used to indicate whether the library is an implementation
-   * library.
-   */
-  static String _IMPLEMENTATION = "implementation";
-
-  /**
-   * The name of the optional parameter used to indicate whether the library is documented.
-   */
-  static String _DOCUMENTED = "documented";
-
-  /**
-   * The name of the optional parameter used to specify the category of the library.
-   */
-  static String _CATEGORY = "category";
-
-  /**
-   * The name of the optional parameter used to specify the platforms on which the library can be
-   * used.
-   */
-  static String _PLATFORMS = "platforms";
-
-  /**
-   * The value of the [PLATFORMS] parameter used to specify that the library can
-   * be used on the VM.
-   */
-  static String _VM_PLATFORM = "VM_PLATFORM";
-
-  /**
-   * The library map that is populated by visiting the AST structure parsed from the contents of
-   * the libraries file.
-   */
-  final LibraryMap librariesMap = new LibraryMap();
-
-  Object visitMapLiteralEntry(MapLiteralEntry node) {
-    String libraryName = null;
-    Expression key = node.key;
-    if (key is SimpleStringLiteral) {
-      libraryName = "${_LIBRARY_PREFIX}${key.value}";
-    }
-    Expression value = node.value;
-    if (value is InstanceCreationExpression) {
-      SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
-      List<Expression> arguments = value.argumentList.arguments;
-      for (Expression argument in arguments) {
-        if (argument is SimpleStringLiteral) {
-          library.path = argument.value;
-        } else if (argument is NamedExpression) {
-          String name = argument.name.label.name;
-          Expression expression = argument.expression;
-          if (name == _CATEGORY) {
-            library.category = (expression as SimpleStringLiteral).value;
-          } else if (name == _IMPLEMENTATION) {
-            library.implementation = (expression as BooleanLiteral).value;
-          } else if (name == _DOCUMENTED) {
-            library.documented = (expression as BooleanLiteral).value;
-          } else if (name == _PLATFORMS) {
-            if (expression is SimpleIdentifier) {
-              String identifier = expression.name;
-              if (identifier == _VM_PLATFORM) {
-                library.setVmLibrary();
-              } else {
-                library.setDart2JsLibrary();
-              }
-            }
-          }
-        }
-      }
-      librariesMap.setLibrary(libraryName, library);
-    }
-    return null;
   }
 }

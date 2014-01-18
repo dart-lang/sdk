@@ -264,6 +264,10 @@ class AngularCompilationUnitBuilder {
         // process annotations
         NodeList<Annotation> annotations = _classDeclaration.metadata;
         for (Annotation annotation in annotations) {
+          // verify annotation
+          if (annotation.arguments == null) {
+            continue;
+          }
           this._annotation = annotation;
           // @NgFilter
           if (isAngularAnnotation2(_NG_FILTER)) {
