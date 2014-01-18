@@ -204,6 +204,7 @@ label_test: Skip
 
 
 [ $compiler == dart2dart ]
+osr_test: RuntimeError # OK to fail with unreachable code.
 regress_13494_test: Fail # Issue 13494
 malformed_test/none: CompileTimeError # Issue 12695
 mixin_super_constructor_named_test: Fail # Issue 12631
