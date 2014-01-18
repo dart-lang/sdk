@@ -85,20 +85,21 @@ positional_parameters_type_test/02: MissingRuntimeError, OK
 issue13474_test: RuntimeError, OK
 
 [ $compiler == dart2js && $minified ]
-cyclic_type_test: Fail # Issue 12605.
-cyclic_type2_test: Fail # Issue 12605.
-f_bounded_quantification4_test: Fail # Issue 12605.
-f_bounded_quantification5_test: Fail # Issue 12605.
-mixin_generic_test: Fail # Issue 12605.
-mixin_mixin2_test: Fail # Issue 12605.
-mixin_mixin3_test: Fail # Issue 12605.
-mixin_mixin4_test: Fail # Issue 12605.
-mixin_mixin5_test: Fail # Issue 12605.
-mixin_mixin6_test: Fail # Issue 12605.
-mixin_mixin_bound_test: RuntimeError # Issue 12605.
-mixin_mixin_bound2_test: RuntimeError # Issue 12605.
+cyclic_type_test: Fail # Issue 12605
+cyclic_type2_test: Fail # Issue 12605
+f_bounded_quantification4_test: Fail # Issue 12605
+f_bounded_quantification5_test: Fail # Issue 12605
+mixin_generic_test: Fail # Issue 12605
+mixin_mixin2_test: Fail # Issue 12605
+mixin_mixin3_test: Fail # Issue 12605
+mixin_mixin4_test: Fail # Issue 12605
+mixin_mixin5_test: Fail # Issue 12605
+mixin_mixin6_test: Fail # Issue 12605
+mixin_mixin_bound_test: RuntimeError # Issue 12605
+mixin_mixin_bound2_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js ]
+type_variable_conflict2_test/01: RuntimeError # Issue 16180
 function_type_alias9_test/00: Crash
 malformed_test/none: RuntimeError # Issue 12695
 branch_canonicalization_test: RuntimeError # Issue 638.
@@ -204,6 +205,10 @@ label_test: Skip
 
 
 [ $compiler == dart2dart ]
+type_variable_conflict2_test/02: MissingCompileTimeError # Issue 16180
+type_variable_conflict2_test/06: MissingCompileTimeError # Issue 16180
+type_variable_conflict2_test/08: MissingCompileTimeError # Issue 16180
+type_variable_conflict2_test/10: MissingCompileTimeError # Issue 16180
 osr_test: RuntimeError # OK to fail with unreachable code.
 regress_13494_test: Fail # Issue 13494
 malformed_test/none: CompileTimeError # Issue 12695
@@ -313,6 +318,7 @@ many_overridden_no_such_method_test: Pass, Fail # Issue 13078
 overridden_no_such_method_test: Pass, Fail # Issue 13078
 no_such_method_test: Pass, Fail # Issue 13078
 type_variable_typedef_test: Fail # Issue 11467
+type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 import_core_prefix_test: Pass
 prefix22_test: Pass

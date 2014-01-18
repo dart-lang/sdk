@@ -459,6 +459,10 @@ type_argument_in_super_type_test: StaticWarning
 typed_selector2_test: StaticWarning
 type_variable_identifier_expression_test: StaticWarning
 type_variable_scope2_test: StaticWarning
+type_variable_conflict2_test/02: MissingCompileTimeError
+type_variable_conflict2_test/06: MissingCompileTimeError
+type_variable_conflict2_test/08: MissingCompileTimeError
+type_variable_conflict2_test/10: MissingCompileTimeError
 unary_plus_negative_test: CompileTimeError
 unbound_getter_test: StaticWarning
 unhandled_exception_negative_test: CompileTimeError

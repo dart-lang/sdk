@@ -8349,9 +8349,18 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
       if (left->IsPrimaryNode()) {
-        if (left->AsPrimaryNode()->primary().IsFunction()) {
-          left = LoadClosure(left->AsPrimaryNode());
-        } else if (left->AsPrimaryNode()->primary().IsTypeParameter()) {
+        PrimaryNode* primary_node = left->AsPrimaryNode();
+        const intptr_t primary_pos = primary_node->token_pos();
+        if (primary_node->primary().IsFunction()) {
+          left = LoadClosure(primary_node);
+        } else if (primary_node->primary().IsTypeParameter()) {
+          if (current_function().is_static()) {
+            const String& name = String::ZoneHandle(
+                TypeParameter::Cast(primary_node->primary()).name());
+            ErrorMsg(primary_pos,
+                     "cannot access type parameter '%s' from static function",
+                     name.ToCString());
+          }
           if (current_block_->scope->function_level() > 0) {
             // Make sure that the instantiator is captured.
             CaptureInstantiator();
@@ -8359,14 +8368,14 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           TypeParameter& type_parameter = TypeParameter::ZoneHandle();
           type_parameter ^= ClassFinalizer::FinalizeType(
               current_class(),
-              TypeParameter::Cast(left->AsPrimaryNode()->primary()),
+              TypeParameter::Cast(primary_node->primary()),
               ClassFinalizer::kCanonicalize);
           ASSERT(!type_parameter.IsMalformed());
           left = new TypeNode(primary->token_pos(), type_parameter);
         } else {
           // Super field access handled in ParseSuperFieldAccess(),
           // super calls handled in ParseSuperCall().
-          ASSERT(!left->AsPrimaryNode()->IsSuper());
+          ASSERT(!primary_node->IsSuper());
           left = LoadFieldIfUnresolved(left);
         }
       }
@@ -8415,20 +8424,28 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       ExpectToken(Token::kRBRACK);
       AstNode* array = left;
       if (left->IsPrimaryNode()) {
-        PrimaryNode* primary = left->AsPrimaryNode();
-        if (primary->primary().IsFunction()) {
-          array = LoadClosure(primary);
-        } else if (primary->primary().IsClass()) {
-          const Class& type_class = Class::Cast(primary->primary());
+        PrimaryNode* primary_node = left->AsPrimaryNode();
+        const intptr_t primary_pos = primary_node->token_pos();
+        if (primary_node->primary().IsFunction()) {
+          array = LoadClosure(primary_node);
+        } else if (primary_node->primary().IsClass()) {
+          const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(
               Type::New(type_class, TypeArguments::Handle(),
-                        primary->token_pos(), Heap::kOld));
+                        primary_pos, Heap::kOld));
           type ^= ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
-          array = new TypeNode(primary->token_pos(), type);
-        } else if (primary->primary().IsTypeParameter()) {
+          array = new TypeNode(primary_pos, type);
+        } else if (primary_node->primary().IsTypeParameter()) {
+          if (current_function().is_static()) {
+            const String& name = String::ZoneHandle(
+                TypeParameter::Cast(primary_node->primary()).name());
+            ErrorMsg(primary_pos,
+                     "cannot access type parameter '%s' from static function",
+                     name.ToCString());
+          }
           if (current_block_->scope->function_level() > 0) {
             // Make sure that the instantiator is captured.
             CaptureInstantiator();
@@ -8436,10 +8453,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           TypeParameter& type_parameter = TypeParameter::ZoneHandle();
           type_parameter ^= ClassFinalizer::FinalizeType(
               current_class(),
-              TypeParameter::Cast(primary->primary()),
+              TypeParameter::Cast(primary_node->primary()),
               ClassFinalizer::kCanonicalize);
           ASSERT(!type_parameter.IsMalformed());
-          array = new TypeNode(primary->token_pos(), type_parameter);
+          array = new TypeNode(primary_pos, type_parameter);
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -8450,10 +8467,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                       Class::ZoneHandle());
     } else if (CurrentToken() == Token::kLPAREN) {
       if (left->IsPrimaryNode()) {
-        PrimaryNode* primary = left->AsPrimaryNode();
-        const intptr_t primary_pos = primary->token_pos();
-        if (primary->primary().IsFunction()) {
-          const Function& func = Function::Cast(primary->primary());
+        PrimaryNode* primary_node = left->AsPrimaryNode();
+        const intptr_t primary_pos = primary_node->token_pos();
+        if (primary_node->primary().IsFunction()) {
+          const Function& func = Function::Cast(primary_node->primary());
           const String& func_name = String::ZoneHandle(func.name());
           if (func.is_static()) {
             // Parse static function call.
@@ -8469,14 +8486,15 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             }
             selector = ParseInstanceCall(LoadReceiver(primary_pos), func_name);
           }
-        } else if (primary->primary().IsString()) {
+        } else if (primary_node->primary().IsString()) {
           // Primary is an unresolved name.
-          if (primary->IsSuper()) {
-            ErrorMsg(primary->token_pos(), "illegal use of super");
+          if (primary_node->IsSuper()) {
+            ErrorMsg(primary_pos, "illegal use of super");
           }
-          String& name = String::CheckedZoneHandle(primary->primary().raw());
+          String& name = String::CheckedZoneHandle(
+              primary_node->primary().raw());
           if (current_function().is_static()) {
-            selector = ThrowNoSuchMethodError(primary->token_pos(),
+            selector = ThrowNoSuchMethodError(primary_pos,
                                               current_class(),
                                               name,
                                               NULL,  // No arguments.
@@ -8485,30 +8503,29 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                               NULL);  // No existing function.
           } else {
             // Treat as call to unresolved (instance) method.
-            AstNode* receiver = LoadReceiver(primary->token_pos());
-            selector = ParseInstanceCall(receiver, name);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos), name);
           }
-        } else if (primary->primary().IsTypeParameter()) {
-          // TODO(regis): Issue 13134.  Make sure the error message is the
-          // one we want here and add a test covering this code.
+        } else if (primary_node->primary().IsTypeParameter()) {
           const String& name = String::ZoneHandle(
-              TypeParameter::Cast(primary->primary()).name());
-          selector = ThrowNoSuchMethodError(primary->token_pos(),
-                                            current_class(),
-                                            name,
-                                            NULL,  // No arguments.
-                                            InvocationMirror::kStatic,
-                                            InvocationMirror::kMethod,
-                                            NULL);  // No existing function.
-        } else if (primary->primary().IsClass()) {
-          const Class& type_class = Class::Cast(primary->primary());
+              TypeParameter::Cast(primary_node->primary()).name());
+          if (current_function().is_static()) {
+            // Treat as this.T(), because T is in scope.
+            ErrorMsg(primary_pos,
+                     "cannot access type parameter '%s' from static function",
+                     name.ToCString());
+          } else {
+            // Treat as call to unresolved (instance) method.
+            selector = ParseInstanceCall(LoadReceiver(primary_pos), name);
+          }
+        } else if (primary_node->primary().IsClass()) {
+          const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(Type::New(
-              type_class, TypeArguments::Handle(), primary->token_pos()));
+              type_class, TypeArguments::Handle(), primary_pos));
           type ^= ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
-          selector = new TypeNode(primary->token_pos(), type);
+          selector = new TypeNode(primary_pos, type);
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -8521,20 +8538,28 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       // No (more) selectors to parse.
       left = LoadFieldIfUnresolved(left);
       if (left->IsPrimaryNode()) {
-        PrimaryNode* primary = left->AsPrimaryNode();
-        if (primary->primary().IsFunction()) {
+        PrimaryNode* primary_node = left->AsPrimaryNode();
+        const intptr_t primary_pos = primary->token_pos();
+        if (primary_node->primary().IsFunction()) {
           // Treat as implicit closure.
-          left = LoadClosure(primary);
-        } else if (primary->primary().IsClass()) {
-          const Class& type_class = Class::Cast(primary->primary());
+          left = LoadClosure(primary_node);
+        } else if (primary_node->primary().IsClass()) {
+          const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(Type::New(
-              type_class, TypeArguments::Handle(), primary->token_pos()));
+              type_class, TypeArguments::Handle(), primary_pos));
           type = ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
-          left = new TypeNode(primary->token_pos(), type);
-        } else if (primary->primary().IsTypeParameter()) {
+          left = new TypeNode(primary_pos, type);
+        } else if (primary_node->primary().IsTypeParameter()) {
+          if (current_function().is_static()) {
+            const String& name = String::ZoneHandle(
+                TypeParameter::Cast(primary_node->primary()).name());
+            ErrorMsg(primary_pos,
+                     "cannot access type parameter '%s' from static function",
+                     name.ToCString());
+          }
           if (current_block_->scope->function_level() > 0) {
             // Make sure that the instantiator is captured.
             CaptureInstantiator();
@@ -8542,14 +8567,14 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           TypeParameter& type_parameter = TypeParameter::ZoneHandle();
           type_parameter ^= ClassFinalizer::FinalizeType(
               current_class(),
-              TypeParameter::Cast(primary->primary()),
+              TypeParameter::Cast(primary_node->primary()),
               ClassFinalizer::kCanonicalize);
           ASSERT(!type_parameter.IsMalformed());
-          left = new TypeNode(primary->token_pos(), type_parameter);
-        } else if (primary->IsSuper()) {
+          left = new TypeNode(primary_pos, type_parameter);
+        } else if (primary_node->IsSuper()) {
           // Return "super" to handle unary super operator calls,
           // or to report illegal use of "super" otherwise.
-          left = primary;
+          left = primary_node;
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -9229,6 +9254,7 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
   }
   if (resolved->IsPrimaryNode()) {
     PrimaryNode* primary = resolved->AsPrimaryNode();
+    const intptr_t primary_pos = primary->token_pos();
     if (primary->primary().IsString()) {
       // We got an unresolved name. If we are compiling a static
       // method, evaluation of an unresolved identifier causes a
@@ -9257,12 +9283,12 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
     } else if (primary->primary().IsClass()) {
       const Class& type_class = Class::Cast(primary->primary());
       AbstractType& type = Type::ZoneHandle(
-          Type::New(type_class, TypeArguments::Handle(), primary->token_pos()));
+          Type::New(type_class, TypeArguments::Handle(), primary_pos));
       type ^= ClassFinalizer::FinalizeType(
           current_class(), type, ClassFinalizer::kCanonicalize);
       // Type may be malbounded, but not malformed.
       ASSERT(!type.IsMalformed());
-      resolved = new TypeNode(primary->token_pos(), type);
+      resolved = new TypeNode(primary_pos, type);
     }
   }
   return resolved;
