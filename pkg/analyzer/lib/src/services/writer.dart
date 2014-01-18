@@ -95,6 +95,8 @@ class SimpleLineBreaker extends LinePrinter {
 
   List<Chunk> breakLine(Line line) {
 
+    var tokens = preprocess(line.tokens);
+
     var chunks = <Chunk>[];
 
     // The current unbroken line
@@ -104,7 +106,7 @@ class SimpleLineBreaker extends LinePrinter {
     // absorbed into 'current'
     var work = new Chunk(maxLength: maxLength);
 
-    line.tokens.forEach((tok) {
+    tokens.forEach((tok) {
 
       if (goodStart(tok, work)) {
         if (current.fits(work)) {
@@ -140,6 +142,37 @@ class SimpleLineBreaker extends LinePrinter {
     }
     return chunks;
   }
+
+  static List<LineToken> preprocess(List<LineToken> tok) {
+
+    var tokens = <LineToken>[];
+    var curr;
+
+    tok.forEach((token){
+      if (token is! SpaceToken) {
+        if (curr == null) {
+          curr = token;
+        } else {
+          curr = merge(curr, token);
+        }
+      } else {
+        if (curr != null) {
+          tokens.add(curr);
+          curr = null;
+        }
+        tokens.add(token);
+      }
+    });
+
+    if (curr != null) {
+      tokens.add(curr);
+    }
+
+    return tokens;
+  }
+
+  static LineToken merge(LineToken first, LineToken second) =>
+      new LineToken(first.value + second.value);
 
   bool isAllWhitespace(Chunk chunk) => isWhitespace(chunk.buffer.toString());
 

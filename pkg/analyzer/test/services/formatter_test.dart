@@ -1237,6 +1237,11 @@ main() {
       expect(chunks.map((chunk) => chunk.toString()), orderedEquals(texts));
     }
 
+    expectTokensEqual(List<LineToken> tokens, List<String> texts) {
+      expect(tokens.map((token) => token.toString()), orderedEquals(texts));
+    }
+
+
     final SP_1 = new SpaceToken(1, breakWeight: 1);
 
     // 'foo|1|bar|1|baz|1|foo|1|bar|1|baz'
@@ -1308,6 +1313,24 @@ main() {
       expect(isWhitespace('\t\t'), true);
       expect(isWhitespace('\n'), true);
       expect(isWhitespace('\r'), true);
+    });
+
+    test('preprocess - 1', () {
+      var tokens = line(['f', 'o', 'o', SP_1, 'b', 'a', 'r']).tokens;
+      var processed = SimpleLineBreaker.preprocess(tokens);
+      expectTokensEqual(processed, ['foo', ' ', 'bar']);
+    });
+
+    test('preprocess - 2', () {
+      var tokens = line(['f', 'o', 'o', SP_1, SP_1, 'b', 'a', 'r']).tokens;
+      var processed = SimpleLineBreaker.preprocess(tokens);
+      expectTokensEqual(processed, ['foo', ' ', ' ', 'bar']);
+    });
+
+    test('preprocess - 3', () {
+      var tokens = line(['f', 'o', 'o', SP_1, 'b', 'a', 'r', SP_1]).tokens;
+      var processed = SimpleLineBreaker.preprocess(tokens);
+      expectTokensEqual(processed, ['foo', ' ', 'bar', ' ']);
     });
 
   });
