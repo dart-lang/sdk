@@ -583,7 +583,7 @@ class TokenKind {
 
   /**
    * Match color name, case insensitive match and return the associated color
-   * entry from _EXTENDED_COLOR_NAMES list, return [null] if not found.
+   * entry from _EXTENDED_COLOR_NAMES list, return [:null:] if not found.
    */
   static Map matchColorName(String text) {
     var name = text.toLowerCase();

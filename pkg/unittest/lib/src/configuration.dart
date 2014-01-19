@@ -23,7 +23,7 @@ abstract class Configuration {
   Configuration.blank();
 
   /**
-   * If [true], tests are started automatically. Otherwise [runTests]
+   * If [:true:], tests are started automatically. Otherwise [runTests]
    * must be called explicitly after tests are set up.
    */
   bool get autoStart => true;

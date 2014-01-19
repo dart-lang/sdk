@@ -3150,7 +3150,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   /**
    * Try to resolve the constructor that is referred to by [node].
    * Note: this function may return an ErroneousFunctionElement instead of
-   * [null], if there is no corresponding constructor, class or library.
+   * [:null:], if there is no corresponding constructor, class or library.
    */
   FunctionElement resolveConstructor(NewExpression node) {
     return node.accept(new ConstructorResolver(compiler, this));

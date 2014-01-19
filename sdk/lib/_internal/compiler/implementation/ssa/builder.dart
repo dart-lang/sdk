@@ -317,7 +317,7 @@ class LocalsHandler {
 
   /**
    * Returns true if the local can be accessed directly. Boxed variables or
-   * captured variables that are stored in the closure-field return [false].
+   * captured variables that are stored in the closure-field return [:false:].
    */
   bool isAccessedDirectly(Element element) {
     assert(element != null);

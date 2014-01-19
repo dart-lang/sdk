@@ -724,7 +724,7 @@ class Namer implements ClosureNamer {
 
   /**
    * Return a string to be used as the runtime name of this class (instead of
-   * the class name) or [null] if the class name should be used.
+   * the class name) or [:null:] if the class name should be used.
    */
   String getPrimitiveInterceptorRuntimeName(Element cls) {
     JavaScriptBackend backend = compiler.backend;

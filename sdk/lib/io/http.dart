@@ -846,7 +846,7 @@ abstract class HttpRequest implements Stream<List<int>> {
   /**
    * Information about the client connection (read-only).
    *
-   * Returns [null] if the socket is not available.
+   * Returns [:null:] if the socket is not available.
    */
   HttpConnectionInfo get connectionInfo;
 
@@ -970,8 +970,8 @@ abstract class HttpResponse implements IOSink {
   Future<Socket> detachSocket();
 
   /**
-   * Gets information about the client connection. Returns [null] if the socket
-   * is not available.
+   * Gets information about the client connection. Returns [:null:] if the
+   * socket is not available.
    */
   HttpConnectionInfo get connectionInfo;
 }
@@ -1146,10 +1146,10 @@ abstract class HttpClient {
    *
    * The function returns a [Future] which should complete when the
    * authentication has been resolved. If credentials cannot be
-   * provided the [Future] should complete with [false]. If
+   * provided the [Future] should complete with [:false:]. If
    * credentials are available the function should add these using
    * [addCredentials] before completing the [Future] with the value
-   * [true].
+   * [:true:].
    *
    * If the [Future] completes with true the request will be retried
    * using the updated credentials. Otherwise response processing will
@@ -1253,12 +1253,12 @@ abstract class HttpClient {
    *
    * The function returns a [Future] which should complete when the
    * authentication has been resolved. If credentials cannot be
-   * provided the [Future] should complete with [false]. If
+   * provided the [Future] should complete with [:false:]. If
    * credentials are available the function should add these using
    * [addProxyCredentials] before completing the [Future] with the value
-   * [true].
+   * [:true:].
    *
-   * If the [Future] completes with [true] the request will be retried
+   * If the [Future] completes with [:true:] the request will be retried
    * using the updated credentials. Otherwise response processing will
    * continue normally.
    */
@@ -1282,8 +1282,8 @@ abstract class HttpClient {
    * server returns a server certificate that cannot be authenticated, the
    * callback is called asynchronously with the [X509Certificate] object and
    * the server's hostname and port.  If the value of [badCertificateCallback]
-   * is [null], the bad certificate is rejected, as if the callback
-   * returned [false]
+   * is [:null:], the bad certificate is rejected, as if the callback
+   * returned [:false:]
    *
    * If the callback returns true, the secure connection is accepted and the
    * [:Future<HttpClientRequest>:] that was returned from the call making the
@@ -1418,7 +1418,7 @@ abstract class HttpClientRequest implements IOSink {
   Future<HttpClientResponse> close();
 
   /**
-   * Get information about the client connection. Returns [null] if the socket
+   * Get information about the client connection. Returns [:null:] if the socket
    * is not available.
    */
   HttpConnectionInfo get connectionInfo;
@@ -1478,8 +1478,8 @@ abstract class HttpClientResponse implements Stream<List<int>> {
    * request. However, any body sent with the request will not be
    * part of the redirection request.
    *
-   * If [followLoops] is set to [true], redirect will follow the redirect,
-   * even if the URL was already visited. The default value is [false].
+   * If [followLoops] is set to [:true:], redirect will follow the redirect,
+   * even if the URL was already visited. The default value is [:false:].
    *
    * [redirect] will ignore [maxRedirects] and will always perform the redirect.
    */
@@ -1515,7 +1515,7 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   X509Certificate get certificate;
 
   /**
-   * Gets information about the client connection. Returns [null] if the socket
+   * Gets information about the client connection. Returns [:null:] if the socket
    * is not available.
    */
   HttpConnectionInfo get connectionInfo;

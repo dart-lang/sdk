@@ -265,16 +265,16 @@ class _FilterSink extends ByteConversionSink {
 abstract class _Filter {
   /**
    * Call to process a chunk of data. A call to [process] should only be made
-   * when [processed] returns [null].
+   * when [processed] returns [:null:].
    */
   void process(List<int> data, int start, int end);
 
   /**
    * Get a chunk of processed data. When there are no more data available,
-   * [processed] will return [null]. Set [flush] to [false] for non-final
+   * [processed] will return [:null:]. Set [flush] to [:false:] for non-final
    * calls to improve performance of some filters.
    *
-   * The last call to [processed] should have [end] set to [true]. This will make
+   * The last call to [processed] should have [end] set to [:true:]. This will make
    * sure a 'end' packet is written on the stream.
    */
   List<int> processed({bool flush: true, bool end: false});

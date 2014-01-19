@@ -428,7 +428,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   }
 
   /**
-   * Get the first key in the map. Returns [null] if the map is empty.
+   * Get the first key in the map. Returns [:null:] if the map is empty.
    */
   K firstKey() {
     if (_root == null) return null;
@@ -436,7 +436,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   }
 
   /**
-   * Get the last key in the map. Returns [null] if the map is empty.
+   * Get the last key in the map. Returns [:null:] if the map is empty.
    */
   K lastKey() {
     if (_root == null) return null;
@@ -445,7 +445,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
 
   /**
    * Get the last key in the map that is strictly smaller than [key]. Returns
-   * [null] if no key was not found.
+   * [:null:] if no key was not found.
    */
   K lastKeyBefore(K key) {
     if (key == null) throw new ArgumentError(key);
@@ -462,7 +462,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
 
   /**
    * Get the first key in the map that is strictly larger than [key]. Returns
-   * [null] if no key was not found.
+   * [:null:] if no key was not found.
    */
   K firstKeyAfter(K key) {
     if (key == null) throw new ArgumentError(key);

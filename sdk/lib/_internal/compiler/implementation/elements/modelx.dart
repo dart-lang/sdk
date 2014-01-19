@@ -298,7 +298,7 @@ abstract class ElementX implements Element {
 /**
  * Represents an unresolvable or duplicated element.
  *
- * An [ErroneousElement] is used instead of [null] to provide additional
+ * An [ErroneousElement] is used instead of [:null:] to provide additional
  * information about the error that caused the element to be unresolvable
  * or otherwise invalid.
  *
