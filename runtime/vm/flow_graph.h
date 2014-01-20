@@ -223,11 +223,6 @@ class FlowGraph : public ZoneAllocated {
       GrowableArray<intptr_t>* parent,
       GrowableArray<intptr_t>* label);
 
-  void InitializeOsrLocals(GrowableArray<Definition*>* env);
-  void InitializeOsrLocalRange(GrowableArray<Definition*>* env,
-                               RawObject** base,
-                               intptr_t count);
-
   void Rename(GrowableArray<PhiInstr*>* live_phis,
               VariableLivenessAnalysis* variable_liveness,
               ZoneGrowableArray<Definition*>* inlining_parameters);
