@@ -890,6 +890,8 @@ class RawPcDescriptors : public RawObject {
 
   // Variable length data follows here.
   intptr_t data_[0];
+
+  friend class Object;
 };
 
 

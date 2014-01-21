@@ -89,6 +89,7 @@ String* Object::null_string_ = NULL;
 Instance* Object::null_instance_ = NULL;
 AbstractTypeArguments* Object::null_abstract_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
+PcDescriptors* Object::empty_descriptors_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
 Instance* Object::unknown_constant_ = NULL;
@@ -435,6 +436,7 @@ void Object::InitOnce() {
   null_instance_ = Instance::ReadOnlyHandle();
   null_abstract_type_arguments_ = AbstractTypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
+  empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
   sentinel_ = Instance::ReadOnlyHandle();
   transition_sentinel_ = Instance::ReadOnlyHandle();
   unknown_constant_ =  Instance::ReadOnlyHandle();
@@ -642,8 +644,20 @@ void Object::InitOnce() {
     Array::initializeHandle(
         empty_array_,
         reinterpret_cast<RawArray*>(address + kHeapObjectTag));
-    empty_array_->raw()->ptr()->length_ = Smi::New(0);
+    empty_array_->raw_ptr()->length_ = Smi::New(0);
   }
+
+  // Allocate and initialize the empty_descriptors instance.
+  {
+    uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
+    InitializeObject(address, kPcDescriptorsCid,
+                     PcDescriptors::InstanceSize(0));
+    PcDescriptors::initializeHandle(
+        empty_descriptors_,
+        reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
+    empty_descriptors_->raw_ptr()->length_ = Smi::New(0);
+  }
+
 
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_abstract();
@@ -9882,6 +9896,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_is_optimized(false);
     result.set_is_alive(true);
     result.set_comments(Comments::New(0));
+    result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
 }
