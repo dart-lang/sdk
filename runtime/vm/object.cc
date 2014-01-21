@@ -12577,7 +12577,9 @@ RawAbstractType* Type::Canonicalize(GrowableObjectArray* trail) const {
   // Canonicalize the type arguments.
   AbstractTypeArguments& type_args =
       AbstractTypeArguments::Handle(isolate, arguments());
-  ASSERT(type_args.IsNull() || (type_args.Length() == cls.NumTypeArguments()));
+  // In case the type is first canonicalized at runtime, its type argument
+  // vector may be longer than necessary. This is not an issue.
+  ASSERT(type_args.IsNull() || (type_args.Length() >= cls.NumTypeArguments()));
   type_args = type_args.Canonicalize(trail);
   set_arguments(type_args);
   // The type needs to be added to the list. Grow the list if it is full.
