@@ -17,7 +17,7 @@
 
 namespace dart {
 
-static const intptr_t kPos = Scanner::kDummyTokenIndex;
+static const intptr_t kPos = Scanner::kNoSourcePos;
 
 
 CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
@@ -25,7 +25,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   const String& function_name = String::ZoneHandle(Symbols::New("test"));
   Class& cls = Class::ZoneHandle();
   const Script& script = Script::Handle();
-  cls = Class::New(function_name, script, Scanner::kDummyTokenIndex);
+  cls = Class::New(function_name, script, Scanner::kNoSourcePos);
   const Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, false, false, false, cls, 0));

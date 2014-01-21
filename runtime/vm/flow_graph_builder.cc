@@ -970,7 +970,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // No debugger check is done in native functions or for return
   // statements for which there is no associated source position.
   const Function& function = owner()->parsed_function()->function();
-  if ((node->token_pos() != Scanner::kDummyTokenIndex) &&
+  if ((node->token_pos() != Scanner::kNoSourcePos) &&
       !function.is_native()) {
     AddInstruction(new DebugStepCheckInstr(node->token_pos(),
                                            PcDescriptors::kReturn));

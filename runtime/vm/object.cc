@@ -967,7 +967,7 @@ RawError* Object::Init(Isolate* isolate) {
   // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
   type ^= Type::New(Object::Handle(cls.raw()),
                     TypeArguments::Handle(),
-                    Scanner::kDummyTokenIndex);
+                    Scanner::kNoSourcePos);
   type.SetIsFinalized();
   type ^= type.Canonicalize();
   object_store->set_array_type(type);
@@ -1662,7 +1662,7 @@ RawAbstractType* Class::RareType() const {
   const Type& type = Type::Handle(Type::New(
       *this,
       Object::null_abstract_type_arguments(),
-      Scanner::kDummyTokenIndex));
+      Scanner::kNoSourcePos));
   return ClassFinalizer::FinalizeType(*this,
                                       type,
                                       ClassFinalizer::kCanonicalize);
@@ -1674,7 +1674,7 @@ RawAbstractType* Class::DeclarationType() const {
   const Type& type = Type::Handle(Type::New(
       *this,
       args,
-      Scanner::kDummyTokenIndex));
+      Scanner::kNoSourcePos));
   return ClassFinalizer::FinalizeType(*this,
                                       type,
                                       ClassFinalizer::kCanonicalize);
@@ -1706,7 +1706,7 @@ RawClass* Class::New() {
   result.set_num_type_arguments(0);
   result.set_num_own_type_arguments(0);
   result.set_num_native_fields(0);
-  result.set_token_pos(Scanner::kDummyTokenIndex);
+  result.set_token_pos(Scanner::kNoSourcePos);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -2502,7 +2502,7 @@ static RawPatchClass* MakeTempPatchClass(const Class& cls,
 
   const String& src_class_name = String::Handle(Symbols::New(":internal"));
   const Class& src_class = Class::Handle(
-      Class::New(src_class_name, script, Scanner::kDummyTokenIndex));
+      Class::New(src_class_name, script, Scanner::kNoSourcePos));
   src_class.set_is_finalized();
   src_class.set_library(lib);
   return PatchClass::New(cls, src_class);
@@ -2627,7 +2627,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_own_type_arguments(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
-  result.set_token_pos(Scanner::kDummyTokenIndex);
+  result.set_token_pos(Scanner::kNoSourcePos);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -2717,7 +2717,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
                                   int field_count) {
   Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    cls = New(name, Script::Handle(), Scanner::kDummyTokenIndex);
+    cls = New(name, Script::Handle(), Scanner::kNoSourcePos);
     cls.SetFields(Object::empty_array());
     cls.SetFunctions(Object::empty_array());
     // Set super class to Object.
@@ -11545,7 +11545,7 @@ RawType* Instance::GetType() const {
     if (cls.NumTypeArguments() > 0) {
       type_arguments = GetTypeArguments();
     }
-    type = Type::New(cls, type_arguments, Scanner::kDummyTokenIndex);
+    type = Type::New(cls, type_arguments, Scanner::kNoSourcePos);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
@@ -11737,7 +11737,7 @@ const char* Instance::ToCString() const {
       type_arguments = GetTypeArguments();
     }
     const Type& type =
-        Type::Handle(Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
+        Type::Handle(Type::New(cls, type_arguments, Scanner::kNoSourcePos));
     const String& type_name = String::Handle(type.UserVisibleName());
     // Calculate the size of the string.
     intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;
@@ -12287,7 +12287,7 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
     const TypeArguments& no_type_arguments = TypeArguments::Handle();
     type ^= Type::New(Object::Handle(type_class.raw()),
                       no_type_arguments,
-                      Scanner::kDummyTokenIndex);
+                      Scanner::kNoSourcePos);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }

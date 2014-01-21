@@ -14,18 +14,18 @@ TEST_CASE(LocalScope) {
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New("a"));
   LocalVariable* var_a =
-      new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
+      new LocalVariable(Scanner::kNoSourcePos, a, dynamic_type);
   LocalVariable* inner_var_a =
-      new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
+      new LocalVariable(Scanner::kNoSourcePos, a, dynamic_type);
   const String& b = String::ZoneHandle(Symbols::New("b"));
   LocalVariable* var_b =
-      new LocalVariable(Scanner::kDummyTokenIndex, b, dynamic_type);
+      new LocalVariable(Scanner::kNoSourcePos, b, dynamic_type);
   const String& c = String::ZoneHandle(Symbols::New("c"));
   LocalVariable* var_c =
-      new LocalVariable(Scanner::kDummyTokenIndex, c, dynamic_type);
+      new LocalVariable(Scanner::kNoSourcePos, c, dynamic_type);
   const String& L = String::ZoneHandle(Symbols::New("L"));
   SourceLabel* label_L =
-      new SourceLabel(Scanner::kDummyTokenIndex, L, SourceLabel::kFor);
+      new SourceLabel(Scanner::kNoSourcePos, L, SourceLabel::kFor);
 
   LocalScope* outer_scope = new LocalScope(NULL, 0, 0);
   LocalScope* inner_scope1 = new LocalScope(outer_scope, 0, 0);

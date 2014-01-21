@@ -25,7 +25,7 @@ static RawLibrary* CreateDummyLibrary(const String& library_name) {
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
   const Class& cls = Class::Handle(
-      Class::New(class_name, script, Scanner::kDummyTokenIndex));
+      Class::New(class_name, script, Scanner::kNoSourcePos));
   cls.set_is_synthesized_class();  // Dummy class for testing.
   return cls.raw();
 }
@@ -2275,17 +2275,17 @@ TEST_CASE(ContextScope) {
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New("a"));
   LocalVariable* var_a =
-      new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
+      new LocalVariable(Scanner::kNoSourcePos, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(Symbols::New("b"));
   LocalVariable* var_b =
-      new LocalVariable(Scanner::kDummyTokenIndex, b, dynamic_type);
+      new LocalVariable(Scanner::kNoSourcePos, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(Symbols::New("c"));
   LocalVariable* var_c =
-      new LocalVariable(Scanner::kDummyTokenIndex, c, dynamic_type);
+      new LocalVariable(Scanner::kNoSourcePos, c, dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.

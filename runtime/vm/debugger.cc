@@ -702,7 +702,7 @@ static bool IsSafeDescKind(PcDescriptors::Kind kind) {
 
 static bool IsSafePoint(const PcDescriptors& desc, intptr_t i) {
   return IsSafeDescKind(desc.DescriptorKind(i)) &&
-         (desc.TokenPos(i) != Scanner::kDummyTokenIndex);
+         (desc.TokenPos(i) != Scanner::kNoSourcePos);
 }
 
 
@@ -1894,7 +1894,7 @@ void Debugger::SingleStepCallback() {
   if (!IsDebuggable(func)) {
     return;
   }
-  if (frame->TokenPos() == Scanner::kDummyTokenIndex) {
+  if (frame->TokenPos() == Scanner::kNoSourcePos) {
     return;
   }
   // Don't pause for a single step if there is a breakpoint set

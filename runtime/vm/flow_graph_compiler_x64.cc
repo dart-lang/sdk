@@ -1447,7 +1447,7 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     } else {
       __ CallPatchable(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    if (token_pos != Scanner::kDummyTokenIndex) {
+    if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                            Isolate::kNoDeoptId,
                            token_pos);
@@ -1473,7 +1473,7 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     } else {
       __ CallPatchable(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    if (token_pos != Scanner::kDummyTokenIndex) {
+    if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
                            Isolate::kNoDeoptId,
                            token_pos);

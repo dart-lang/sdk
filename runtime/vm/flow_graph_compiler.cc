@@ -238,7 +238,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
       // control the placement.
       AddCurrentDescriptor(PcDescriptors::kDeopt,
                            instr->deopt_id(),
-                           Scanner::kDummyTokenIndex);
+                           Scanner::kNoSourcePos);
     }
     AllocateRegistersLocally(instr);
   } else if (instr->MayThrow()  &&

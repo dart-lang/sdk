@@ -1181,7 +1181,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
       new LoadInstanceFieldNode(ident_pos, load_receiver, field);
 
   ReturnNode* return_node =
-      new ReturnNode(Scanner::kDummyTokenIndex, load_field);
+      new ReturnNode(Scanner::kNoSourcePos, load_field);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -1225,7 +1225,7 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   StoreInstanceFieldNode* store_field =
       new StoreInstanceFieldNode(ident_pos, receiver, field, value);
   current_block_->statements->Add(store_field);
-  current_block_->statements->Add(new ReturnNode(Scanner::kDummyTokenIndex));
+  current_block_->statements->Add(new ReturnNode(Scanner::kNoSourcePos));
   return CloseBlock();
 }
 
@@ -1235,7 +1235,6 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
   ParamList params;
 
   const intptr_t ident_pos = func.token_pos();
-  const intptr_t invisible_pos = Scanner::kDummyTokenIndex;
   ASSERT(func.token_pos() == 0);
   ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(current_class()), ident_pos);
@@ -1256,7 +1255,7 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
       load_receiver,
       NULL);
 
-  ReturnNode* return_node = new ReturnNode(invisible_pos, closure);
+  ReturnNode* return_node = new ReturnNode(Scanner::kNoSourcePos, closure);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -2421,15 +2420,16 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   ASSERT(func.IsConstructor());
   ASSERT(func.Owner() == current_class().raw());
   const intptr_t ctor_pos = TokenPos();
-  const intptr_t dummy_pos = Scanner::kDummyTokenIndex;
   OpenFunctionBlock(func);
 
   LocalVariable* receiver = new LocalVariable(
-      dummy_pos, Symbols::This(), *ReceiverType(current_class()));
+      Scanner::kNoSourcePos, Symbols::This(), *ReceiverType(current_class()));
   current_block_->scope->AddVariable(receiver);
 
-  LocalVariable* phase_parameter = new LocalVariable(
-      dummy_pos, Symbols::PhaseParameter(), Type::ZoneHandle(Type::SmiType()));
+  LocalVariable* phase_parameter =
+      new LocalVariable(Scanner::kNoSourcePos,
+                        Symbols::PhaseParameter(),
+                        Type::ZoneHandle(Type::SmiType()));
   current_block_->scope->AddVariable(phase_parameter);
 
   // Parse expressions of instance fields that have an explicit
@@ -2465,25 +2465,25 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 
     // Prepare user-defined arguments to be forwarded to super call.
     // The first user-defined argument is at position 2.
-    forwarding_args = new ArgumentListNode(dummy_pos);
+    forwarding_args = new ArgumentListNode(Scanner::kNoSourcePos);
     for (int i = 2; i < func.NumParameters(); i++) {
       LocalVariable* param = new LocalVariable(
-          dummy_pos,
+          Scanner::kNoSourcePos,
           String::ZoneHandle(func.ParameterNameAt(i)),
           Type::ZoneHandle(Type::DynamicType()));
       current_block_->scope->AddVariable(param);
-      forwarding_args->Add(new LoadLocalNode(dummy_pos, param));
+      forwarding_args->Add(new LoadLocalNode(Scanner::kNoSourcePos, param));
     }
   }
 
   GenerateSuperConstructorCall(current_class(),
-                               dummy_pos,
+                               Scanner::kNoSourcePos,
                                receiver,
                                forwarding_args);
   CheckFieldsInitialized(current_class());
 
   // Empty constructor body.
-  current_block_->statements->Add(new ReturnNode(dummy_pos));
+  current_block_->statements->Add(new ReturnNode(Scanner::kNoSourcePos));
   SequenceNode* statements = CloseBlock();
   return statements;
 }
@@ -2644,19 +2644,19 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     // Generate guard around the initializer code.
     LocalVariable* phase_param = LookupPhaseParameter();
     AstNode* phase_value = new
-        LoadLocalNode(Scanner::kDummyTokenIndex, phase_param);
+        LoadLocalNode(Scanner::kNoSourcePos, phase_param);
     AstNode* phase_check = new BinaryOpNode(
-        Scanner::kDummyTokenIndex, Token::kBIT_AND, phase_value,
-        new LiteralNode(Scanner::kDummyTokenIndex,
+        Scanner::kNoSourcePos, Token::kBIT_AND, phase_value,
+        new LiteralNode(Scanner::kNoSourcePos,
                         Smi::ZoneHandle(Smi::New(Function::kCtorPhaseInit))));
     AstNode* comparison =
-        new ComparisonNode(Scanner::kDummyTokenIndex,
+        new ComparisonNode(Scanner::kNoSourcePos,
                            Token::kNE_STRICT,
                            phase_check,
                            new LiteralNode(TokenPos(),
                                            Smi::ZoneHandle(Smi::New(0))));
     AstNode* guarded_init_statements =
-        new IfNode(Scanner::kDummyTokenIndex,
+        new IfNode(Scanner::kNoSourcePos,
                    comparison,
                    init_statements,
                    NULL);
@@ -2775,20 +2775,20 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     // Generate guard around the constructor body code.
     LocalVariable* phase_param = LookupPhaseParameter();
     AstNode* phase_value =
-        new LoadLocalNode(Scanner::kDummyTokenIndex, phase_param);
+        new LoadLocalNode(Scanner::kNoSourcePos, phase_param);
     AstNode* phase_check =
-        new BinaryOpNode(Scanner::kDummyTokenIndex, Token::kBIT_AND,
+        new BinaryOpNode(Scanner::kNoSourcePos, Token::kBIT_AND,
             phase_value,
-            new LiteralNode(Scanner::kDummyTokenIndex,
+            new LiteralNode(Scanner::kNoSourcePos,
                 Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
     AstNode* comparison =
-        new ComparisonNode(Scanner::kDummyTokenIndex,
+        new ComparisonNode(Scanner::kNoSourcePos,
                            Token::kNE_STRICT,
                            phase_check,
                            new LiteralNode(body_pos,
                                            Smi::ZoneHandle(Smi::New(0))));
     AstNode* guarded_block_statements =
-        new IfNode(Scanner::kDummyTokenIndex, comparison, ctor_block, NULL);
+        new IfNode(Scanner::kNoSourcePos, comparison, ctor_block, NULL);
     current_block_->statements->Add(guarded_block_statements);
   }
   current_block_->statements->Add(new ReturnNode(func.end_token_pos()));
@@ -2959,23 +2959,24 @@ SequenceNode* Parser::ParseFunc(const Function& func,
 
 
 void Parser::AddEqualityNullCheck() {
-  const intptr_t dummy_pos = Scanner::kDummyTokenIndex;
   AstNode* argument =
-      new LoadLocalNode(dummy_pos,
+      new LoadLocalNode(Scanner::kNoSourcePos,
                         current_block_->scope->parent()->VariableAt(1));
   LiteralNode* null_operand =
-      new LiteralNode(dummy_pos, Instance::ZoneHandle());
-  ComparisonNode* check_arg = new ComparisonNode(dummy_pos,
-                                                 Token::kEQ_STRICT,
-                                                 argument,
-                                                 null_operand);
-  ComparisonNode* result = new ComparisonNode(dummy_pos,
-                                              Token::kEQ_STRICT,
-                                              LoadReceiver(dummy_pos),
-                                              null_operand);
-  SequenceNode* arg_is_null = new SequenceNode(dummy_pos, NULL);
-  arg_is_null->Add(new ReturnNode(dummy_pos, result));
-  IfNode* if_arg_null = new IfNode(dummy_pos,
+      new LiteralNode(Scanner::kNoSourcePos, Instance::ZoneHandle());
+  ComparisonNode* check_arg =
+      new ComparisonNode(Scanner::kNoSourcePos,
+                         Token::kEQ_STRICT,
+                         argument,
+                         null_operand);
+  ComparisonNode* result =
+      new ComparisonNode(Scanner::kNoSourcePos,
+                         Token::kEQ_STRICT,
+                         LoadReceiver(Scanner::kNoSourcePos),
+                         null_operand);
+  SequenceNode* arg_is_null = new SequenceNode(Scanner::kNoSourcePos, NULL);
+  arg_is_null->Add(new ReturnNode(Scanner::kNoSourcePos, result));
+  IfNode* if_arg_null = new IfNode(Scanner::kNoSourcePos,
                                    check_arg,
                                    arg_is_null,
                                    NULL);
