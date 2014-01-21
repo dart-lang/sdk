@@ -20,7 +20,8 @@ import '../dart2jslib.dart' show InterfaceType,
                                  FunctionType,
                                  Selector,
                                  Constant,
-                                 Compiler;
+                                 Compiler,
+                                 isPrivateName;
 
 import '../dart_types.dart';
 
@@ -31,6 +32,8 @@ import '../scanner/scannerlib.dart' show Token,
 import '../ordered_typeset.dart' show OrderedTypeSet;
 
 import 'visitor.dart' show ElementVisitor;
+
+part 'names.dart';
 
 const int STATE_NOT_STARTED = 0;
 const int STATE_STARTED = 1;
@@ -910,6 +913,9 @@ abstract class ClassElement extends TypeDeclarationElement
   /// Returns `true` if this class has a @proxy annotation.
   bool get isProxy;
 
+  /// Returns `true` if the class hierarchy for this class contains errors.
+  bool get hasIncompleteHierarchy;
+
   ClassElement ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);
@@ -951,6 +957,18 @@ abstract class ClassElement extends TypeDeclarationElement
   void forEachBackendMember(void f(Element member));
 
   Link<DartType> computeTypeParameters(Compiler compiler);
+
+  /// Looks up the member [name] in this class.
+  Member lookupClassMember(Name name);
+
+  /// Calls [f] with each member of this class.
+  void forEachClassMember(f(Member member));
+
+  /// Looks up the member [name] in the interface of this class.
+  MemberSignature lookupInterfaceMember(Name name);
+
+  /// Calls [f] with each member of the interface of this class.
+  void forEachInterfaceMember(f(MemberSignature member));
 }
 
 abstract class MixinApplicationElement extends ClassElement {
@@ -1014,3 +1032,77 @@ abstract class MetadataAnnotation implements Spannable {
 }
 
 abstract class VoidElement extends Element {}
+
+/// A [MemberSignature] is a member of an interface.
+///
+/// A signature is either a method or a getter or setter, possibly implicitly
+/// defined by a field declarations. Fields themselves are not members of an
+/// interface.
+///
+/// A [MemberSignature] may be defined by a member declaration or may be
+/// synthetized from a set of declarations.
+abstract class MemberSignature {
+  /// The name of this member.
+  Name get name;
+
+  /// The type of the member when accessed. For getters and setters this is the
+  /// return type and argument type, respectively. For methods the type is the
+  /// [functionType] defined by the return type and parameters.
+  DartType get type;
+
+  /// The function type of the member. For a getter `Foo get foo` this is
+  /// `() -> Foo`, for a setter `void set foo(Foo _)` this is `(Foo) -> void`.
+  /// For methods the function type is defined by the return type and
+  /// parameters.
+  FunctionType get functionType;
+
+  /// Returns `true` if this member is a getter, possibly implictly defined by a
+  /// field declaration.
+  bool get isGetter;
+
+  /// Returns `true` if this member is a setter, possibly implictly defined by a
+  /// field declaration.
+  bool get isSetter;
+
+  /// Returns `true` if this member is a method, that is neither a getter nor
+  /// setter.
+  bool get isMethod;
+
+  /// Returns an iterable of the declarations that define this member.
+  Iterable<Member> get declarations;
+}
+
+/// A [Member] is a member of a class, that is either a method or a getter or
+/// setter, possibly implicitly defined by a field declarations. Fields
+/// themselves are not members of a class.
+///
+/// A [Member] of a class also defines a signature which is a member of the
+/// corresponding interface type.
+///
+/// A [Member] is implicitly concrete. An abstract declaration only declares
+/// a signature in the interface of its class.
+///
+/// A [Member] is always declared by an [Element] which is accessibly through
+/// the [element] getter.
+abstract class Member extends MemberSignature {
+  /// The [Element] that declared this member, possibly implicitly in case of
+  /// a getter or setter defined by a field.
+  Element get element;
+
+  /// The instance of the class that declared this member.
+  ///
+  /// For instance:
+  ///   class A<T> { T m() {} }
+  ///   class B<S> extends A<S> {}
+  /// The declarer of `m` in `A` is `A<T>` whereas the declarer of `m` in `B` is
+  /// `A<S>`.
+  InterfaceType get declarer;
+
+  /// Returns `true` if this member is static.
+  bool get isStatic;
+
+  /// Returns `true` if this member is a getter or setter implicitly declared
+  /// by a field.
+  bool get isDeclaredByField;
+}
+

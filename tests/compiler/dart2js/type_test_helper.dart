@@ -5,9 +5,18 @@
 library type_test_helper;
 
 import 'dart:async';
-import "package:expect/expect.dart";
+import 'package:expect/expect.dart';
+import 'compiler_helper.dart' as mock;
+import 'memory_compiler.dart' as memory;
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
-import "compiler_helper.dart";
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+    show Compiler;
+import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
+    show Element,
+         TypeDeclarationElement,
+         ClassElement;
+import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart'
+    show Link, LinkBuilder;
 
 GenericType instantiate(TypeDeclarationElement element,
                         List<DartType> arguments) {
@@ -20,35 +29,56 @@ GenericType instantiate(TypeDeclarationElement element,
 }
 
 class TypeEnvironment {
-  final MockCompiler compiler;
+  final Compiler compiler;
 
   static Future<TypeEnvironment> create(
-      String source, {bool expectNoErrors: false,
+      String source, {bool useMockCompiler: true,
+                      bool expectNoErrors: false,
                       bool expectNoWarningsOrErrors: false}) {
-    var uri = new Uri(scheme: 'source');
-    MockCompiler compiler = compilerFor('''
-        main() {}
-        $source''',
-        uri,
-        analyzeAll: true,
-        analyzeOnly: true);
+    Uri uri;
+    Function getErrors;
+    Function getWarnings;
+    Compiler compiler;
+    if (useMockCompiler) {
+      uri = new Uri(scheme: 'source');
+      mock.MockCompiler mockCompiler = mock.compilerFor('''
+          main() {}
+          $source''',
+          uri,
+          analyzeAll: true,
+          analyzeOnly: true);
+      getErrors = () => mockCompiler.errors;
+      getWarnings = () => mockCompiler.warnings;
+      compiler = mockCompiler;
+    } else {
+      memory.DiagnosticCollector collector = new memory.DiagnosticCollector();
+      uri = Uri.parse('memory:main.dart');
+      compiler = memory.compilerFor(
+          {'main.dart': source},
+          diagnosticHandler: collector,
+          options: ['--analyze-all', '--analyze-only']);
+      getErrors = () => collector.errors;
+      getWarnings = () => collector.warnings;
+    }
     return compiler.runCompiler(uri).then((_) {
       if (expectNoErrors || expectNoWarningsOrErrors) {
-        Expect.isTrue(compiler.errors.isEmpty,
-            'Unexpected errors: ${compiler.errors}');
+        var errors = getErrors();
+        Expect.isTrue(errors.isEmpty,
+            'Unexpected errors: ${errors}');
       }
       if (expectNoWarningsOrErrors) {
-        Expect.isTrue(compiler.warnings.isEmpty,
-            'Unexpected warnings: ${compiler.warnings}');
+        var warnings = getWarnings();
+        Expect.isTrue(warnings.isEmpty,
+            'Unexpected warnings: ${warnings}');
       }
       return new TypeEnvironment._(compiler);
     });
   }
 
-  TypeEnvironment._(MockCompiler this.compiler);
+  TypeEnvironment._(Compiler this.compiler);
 
   Element getElement(String name) {
-    var element = findElement(compiler, name);
+    var element = compiler.mainApp.find(name);
     Expect.isNotNull(element);
     if (element.isClass()) {
       element.ensureResolved(compiler);
@@ -87,12 +117,12 @@ class TypeEnvironment {
 
   FunctionType functionType(DartType returnType,
                             List<DartType> parameters,
-                            {List<DartType> optionalParameter,
+                            {List<DartType> optionalParameters,
                              Map<String,DartType> namedParameters}) {
     Link<DartType> parameterTypes =
         new Link<DartType>.fromList(parameters);
-    Link<DartType> optionalParameterTypes = optionalParameter != null
-        ? new Link<DartType>.fromList(optionalParameter)
+    Link<DartType> optionalParameterTypes = optionalParameters != null
+        ? new Link<DartType>.fromList(optionalParameters)
         : const Link<DartType>();
     var namedParameterNames = new LinkBuilder<String>();
     var namedParameterTypes = new LinkBuilder<DartType>();
