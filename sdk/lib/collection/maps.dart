@@ -4,7 +4,7 @@
 
 part of dart.collection;
 
-/*
+/**
  * Helper class which implements complex [Map] operations
  * in term of basic ones ([Map.keys], [Map.operator []],
  * [Map.operator []=] and [Map.remove].)  Not all methods are

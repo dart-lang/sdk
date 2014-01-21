@@ -237,7 +237,7 @@ class _TypeTest<T> {
   bool test(v) => v is T;
 }
 
-/*
+/**
  * A [Map] of objects that can be ordered relative to each other.
  *
  * The map is based on a self-balancing binary tree. It allows most operations
