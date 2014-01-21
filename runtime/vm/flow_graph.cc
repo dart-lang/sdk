@@ -1012,7 +1012,7 @@ void FlowGraph::RemoveRedefinitions() {
 // Find the natural loop for the back edge m->n and attach loop information
 // to block n (loop header). The algorithm is described in "Advanced Compiler
 // Design & Implementation" (Muchnick) p192.
-void FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) {
+BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) {
   GrowableArray<BlockEntryInstr*> stack;
   BitVector* loop = new BitVector(preorder_.length());
 
@@ -1032,12 +1032,7 @@ void FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) {
       }
     }
   }
-  n->set_loop_info(loop);
-  if (FLAG_trace_optimization) {
-    for (BitVector::Iterator it(loop); !it.Done(); it.Advance()) {
-      OS::Print("  B%" Pd "\n", preorder_[it.Current()]->block_id());
-    }
-  }
+  return loop;
 }
 
 
@@ -1056,12 +1051,35 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() {
           OS::Print("Back edge B%" Pd " -> B%" Pd "\n", pred->block_id(),
                     block->block_id());
         }
-        FindLoop(pred, block);
-        loop_headers->Add(block);
+        BitVector* loop_info = FindLoop(pred, block);
+        // Loops that share the same loop header are treated as one loop.
+        BlockEntryInstr* header = NULL;
+        for (intptr_t i = 0; i < loop_headers->length(); ++i) {
+          if ((*loop_headers)[i] == block) {
+            header = (*loop_headers)[i];
+            break;
+          }
+        }
+        if (header != NULL) {
+          header->loop_info()->AddAll(loop_info);
+        } else {
+          block->set_loop_info(loop_info);
+          loop_headers->Add(block);
+        }
       }
     }
   }
-
+  if (FLAG_trace_optimization) {
+    for (intptr_t i = 0; i < loop_headers->length(); ++i) {
+      BlockEntryInstr* header = (*loop_headers)[i];
+      OS::Print("Loop header B%" Pd "\n", header->block_id());
+      for (BitVector::Iterator it(header->loop_info());
+           !it.Done();
+           it.Advance()) {
+        OS::Print("  B%" Pd "\n", preorder_[it.Current()]->block_id());
+       }
+    }
+  }
   return loop_headers;
 }
 

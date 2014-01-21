@@ -247,7 +247,9 @@ class FlowGraph : public ZoneAllocated {
   // Find the natural loop for the back edge m->n and attach loop
   // information to block n (loop header). The algorithm is described in
   // "Advanced Compiler Design & Implementation" (Muchnick) p192.
-  void FindLoop(BlockEntryInstr* m, BlockEntryInstr* n);
+  // Returns a BitVector indexed by block pre-order number where each bit
+  // indicates membership in the loop.
+  BitVector* FindLoop(BlockEntryInstr* m, BlockEntryInstr* n);
 
   // Finds natural loops in the flow graph and attaches a list of loop
   // body blocks for each loop header.
