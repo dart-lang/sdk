@@ -1442,9 +1442,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
       __ BranchLinkPatchable(
           &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
+    if (token_pos != Scanner::kDummyTokenIndex) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
     __ TraceSimMsg("EqualityRegConstCompare return");
     __ lw(reg, Address(SP, 1 * kWordSize));  // Restore 'reg'.
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
@@ -1471,9 +1473,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
+    if (token_pos != Scanner::kDummyTokenIndex) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
     __ TraceSimMsg("EqualityRegRegCompare return");
     // Stub returns result in CMPRES1. If it is 0, then left and right are
     // equal.

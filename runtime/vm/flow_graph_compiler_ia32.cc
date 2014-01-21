@@ -1412,9 +1412,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     } else {
       __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
+    if (token_pos != Scanner::kDummyTokenIndex) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
     __ popl(reg);  // Discard constant.
     __ popl(reg);  // Restore 'reg'.
     return;
@@ -1436,9 +1438,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     } else {
       __ call(&StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
+    if (token_pos != Scanner::kDummyTokenIndex) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ popl(right);
     __ popl(left);

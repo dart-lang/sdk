@@ -690,13 +690,19 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 }
 
 
-static bool IsSafePoint(PcDescriptors::Kind kind) {
+static bool IsSafeDescKind(PcDescriptors::Kind kind) {
   return ((kind == PcDescriptors::kIcCall) ||
           (kind == PcDescriptors::kOptStaticCall) ||
           (kind == PcDescriptors::kUnoptStaticCall) ||
           (kind == PcDescriptors::kClosureCall) ||
           (kind == PcDescriptors::kReturn) ||
           (kind == PcDescriptors::kRuntimeCall));
+}
+
+
+static bool IsSafePoint(const PcDescriptors& desc, intptr_t i) {
+  return IsSafeDescKind(desc.DescriptorKind(i)) &&
+         (desc.TokenPos(i) != Scanner::kDummyTokenIndex);
 }
 
 
@@ -715,11 +721,11 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(pc_desc_index < desc.Length());
   token_pos_ = desc.TokenPos(pc_desc_index);
-  ASSERT(token_pos_ >= 0);
+  ASSERT(token_pos_ > 0);
   pc_ = desc.PC(pc_desc_index);
   ASSERT(pc_ != 0);
   breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
-  ASSERT(IsSafePoint(breakpoint_kind_));
+  ASSERT(IsSafeDescKind(breakpoint_kind_));
 }
 
 
@@ -964,7 +970,7 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (intptr_t i = 0; i < desc.Length(); i++) {
-    if (IsSafePoint(desc.DescriptorKind(i))) {
+    if (IsSafePoint(desc, i)) {
       CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
       if (bpt != NULL) {
         // There is already a breakpoint for this address. Make sure
@@ -1259,7 +1265,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
       // This descriptor is before the first acceptable token position.
       continue;
     }
-    if (IsSafePoint(desc.DescriptorKind(i))) {
+    if (IsSafePoint(desc, i)) {
       if (desc_token_pos < best_fit_pos) {
         // So far, this descriptor has the lowest token position after
         // the first acceptable token position.
@@ -1296,8 +1302,7 @@ void Debugger::MakeCodeBreakpointsAt(const Function& func,
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (intptr_t i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
-    if ((desc_token_pos == bpt->token_pos_) &&
-        IsSafePoint(desc.DescriptorKind(i))) {
+    if ((desc_token_pos == bpt->token_pos_) && IsSafePoint(desc, i)) {
       CodeBreakpoint* code_bpt = GetCodeBreakpoint(desc.PC(i));
       if (code_bpt == NULL) {
         // No code breakpoint for this code exists; create one.

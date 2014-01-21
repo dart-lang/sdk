@@ -967,9 +967,11 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // Call to stub that checks whether the debugger is in single
   // step mode. This call must happen before the contexts are
   // unchained so that captured variables can be inspected.
-  // No debugger check is done in native functions.
+  // No debugger check is done in native functions or for return
+  // statements for which there is no associated source position.
   const Function& function = owner()->parsed_function()->function();
-  if (!function.is_native()) {
+  if ((node->token_pos() != Scanner::kDummyTokenIndex) &&
+      !function.is_native()) {
     AddInstruction(new DebugStepCheckInstr(node->token_pos(),
                                            PcDescriptors::kReturn));
   }
