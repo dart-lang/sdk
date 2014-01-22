@@ -42,6 +42,9 @@ cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 
+[ $arch == simmips ]
+cc/Service_Coverage: Skip # Dart bug 16250
+
 [ $compiler == dart2js ]
 dart/mirrored_compilation_error_test: Skip # VM-specific flag
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
