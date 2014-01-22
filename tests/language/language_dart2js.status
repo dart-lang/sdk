@@ -209,7 +209,6 @@ type_variable_conflict2_test/02: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/06: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/08: MissingCompileTimeError # Issue 16180
 type_variable_conflict2_test/10: MissingCompileTimeError # Issue 16180
-osr_test: RuntimeError # OK to fail with unreachable code.
 regress_13494_test: Fail # Issue 13494
 malformed_test/none: CompileTimeError # Issue 12695
 mixin_super_constructor_named_test: Fail # Issue 12631
