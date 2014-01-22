@@ -32,25 +32,6 @@
             </td>
         </tr>
     </table>
-    <blockquote><strong>Top Inclusive</strong></blockquote>
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th>Ticks</th>
-          <th>Percent</th>
-          <th>Method</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr template repeat="{{ code in topInclusiveCodes }}">
-            <td>{{ codeTicks(code, true) }}</td>
-            <td>{{ codePercent(code, true) }}</td>
-            <td>
-            <span>{{ codeName(code) }}</span>
-            <code-ref app="{{ app }}" ref="{{ code.codeRef }}"></code-ref>
-            </td>
-        </tr>
-    </table>
   </template>
   <script type="application/dart" src="isolate_profile.dart"></script>
 </polymer-element>

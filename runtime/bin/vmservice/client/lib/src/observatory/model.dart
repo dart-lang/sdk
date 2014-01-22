@@ -244,3 +244,104 @@ class Profile {
     return inclusive.sublist(0, count);
   }
 }
+
+class ScriptLine extends Observable {
+  @observable final int line;
+  @observable int hits = -1;
+  @observable String text = '';
+  /// Is this a line of executable code?
+  bool get executable => hits >= 0;
+  /// Has this line executed before?
+  bool get covered => hits > 0;
+  ScriptLine(this.line);
+}
+
+class Script extends Observable {
+  @observable String kind = null;
+  @observable Map scriptRef = toObservable({});
+  @observable Map libraryRef = toObservable({});
+  @observable final List<ScriptLine> lines =
+      toObservable(new List<ScriptLine>());
+  bool _needsSource = true;
+  bool get needsSource => _needsSource;
+  Script.fromMap(Map map) {
+    scriptRef = toObservable({
+      'id': map['id'],
+      'name': map['name'],
+      'user_name': map['user_name']
+    });
+    libraryRef = toObservable(map['library']);
+    kind = map['kind'];
+    _processSource(map['source']);
+  }
+
+  // Iterable of lines for display. Skips line '0'.
+  @observable Iterable get linesForDisplay {
+    return lines.skip(1);
+  }
+
+  // Fetch (possibly create) the ScriptLine for [lineNumber].
+  ScriptLine _getLine(int lineNumber) {
+    assert(lineNumber != 0);
+    if (lineNumber >= lines.length) {
+      // Grow lines list.
+      lines.length = lineNumber + 1;
+    }
+    var line = lines[lineNumber];
+    if (line == null) {
+      // Create this line.
+      line = new ScriptLine(lineNumber);
+      lines[lineNumber] = line;
+    }
+    return line;
+  }
+
+  void _processSource(String source) {
+    if (source == null) {
+      return;
+    }
+    Logger.root.info('Loading source for ${scriptRef['name']}');
+    var sourceLines = source.split('\n');
+    _needsSource = sourceLines.length == 0;
+    for (var i = 0; i < sourceLines.length; i++) {
+      var line = _getLine(i + 1);
+      line.text = sourceLines[i];
+    }
+  }
+
+  void _processCoverageHits(List hits) {
+    for (var i = 0; i < hits.length; i += 2) {
+      var line = _getLine(hits[i]);
+      line.hits = hits[i + 1];
+    }
+    notifyPropertyChange(#coveredPercentageFormatted, '',
+                         coveredPercentageFormatted());
+  }
+
+  /// What percentage of lines in this script have been covered?
+  @observable double coveredPercentage() {
+    int coveredLines = 0;
+    int executableLines = 0;
+    for (var line in lines) {
+      if (line == null) {
+        continue;
+      }
+      if (!line.executable) {
+        continue;
+      }
+      executableLines++;
+      if (!line.covered) {
+        continue;
+      }
+      coveredLines++;
+    }
+    if (executableLines == 0) {
+      return 0.0;
+    }
+    return (coveredLines / executableLines) * 100.0;
+  }
+
+  @observable String coveredPercentageFormatted() {
+    return '(' + coveredPercentage().toStringAsFixed(1) + '% covered)';
+  }
+}

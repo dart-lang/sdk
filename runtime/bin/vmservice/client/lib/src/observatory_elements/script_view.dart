@@ -4,13 +4,41 @@
 
 library script_view_element;
 
+import 'dart:html';
+import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
 /// Displays an Error response.
 @CustomTag('script-view')
 class ScriptViewElement extends ObservatoryElement {
-  @published Map script;
+  @published Script script;
+
+  String hitsStyle(ScriptLine line) {
+    if (line.hits == -1) {
+      return 'min-width:32px;';
+    } else if (line.hits == 0) {
+      return 'min-width:32px;background-color:red';
+    }
+    return 'min-width:32px;background-color:green';
+  }
+
+  void refreshCoverage(Event e, var detail, Node target) {
+    var isolateId = app.locationManager.currentIsolateId();
+    var isolate = app.isolateManager.getIsolate(isolateId);
+    if (isolate == null) {
+      Logger.root.info('No isolate found.');
+      return;
+    }
+    var request = '/$isolateId/coverage';
+    app.requestManager.requestMap(request).then((Map coverage) {
+      assert(coverage['type'] == 'CodeCoverage');
+      isolate.updateCoverage(coverage['coverage']);
+      notifyPropertyChange(#hitsStyle, "", hitsStyle);
+    }).catchError((e, st) {
+      print('refreshCoverage $e $st');
+    });
+  }
 
   ScriptViewElement.created() : super.created();
 }

@@ -7,11 +7,11 @@ part of observatory;
 /// State for a running isolate.
 class Isolate extends Observable {
   @observable Profile profile;
+  @observable final Map<String, Script> scripts =
+      toObservable(new Map<String, Script>());
   @observable final List<Code> codes = new List<Code>();
   @observable String id;
   @observable String name;
-  @observable final Map<String, ScriptSource> scripts =
-      toObservable(new Map<String, ScriptSource>());
 
   Isolate(this.id, this.name);
 
@@ -37,6 +37,19 @@ class Isolate extends Observable {
     Logger.root.info('Reset all code ticks.');
     for (var i = 0; i < codes.length; i++) {
       codes[i].resetTicks();
+    }
+  }
+
+  void updateCoverage(List coverages) {
+    for (var coverage in coverages) {
+      var id = coverage['script']['id'];
+      var script = scripts[id];
+      if (script == null) {
+        script = new Script.fromMap(coverage['script']);
+        scripts[id] = script;
+      }
+      assert(script != null);
+      script._processCoverageHits(coverage['hits']);
     }
   }
 }

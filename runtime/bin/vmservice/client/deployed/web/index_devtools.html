@@ -477,28 +477,30 @@
 
   </template>
   
-</polymer-element><polymer-element name="source-view" extends="observatory-element">
-  <template>
+</polymer-element><polymer-element name="script-view" extends="observatory-element">
+<template>
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <div class="panel-heading">{{ source.url }}</div>
+      <div class="panel-heading">
+      <button on-click="{{refreshCoverage}}">Refresh Coverage</button>
+      {{ script.scriptRef['user_name'] }}
+      {{ script.coveredPercentageFormatted() }}
+      </div>
       <div class="panel-body">
-        <div class="row">
-          <div><strong>Source</strong></div>
-        </div>
-        <pre>        <template repeat="{{ line in source.lines }}">{{line.paddedLine}} {{line.src}}
-        </template>
-        </pre>
+        <table style="width:100%">
+          <tbody>
+          <tr template="" repeat="{{ line in script.linesForDisplay }}">
+            <td style="{{ hitsStyle(line) }}">  </td>
+            <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
+            <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;">{{line.text}}</td>
+          </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
-  </template>
-  
-</polymer-element><polymer-element name="script-view" extends="observatory-element">
-  <template>
-    <source-view app="{{ app }}" source="{{ script['source'] }}"></source-view>
-  </template>
-  
+</template>
+
 </polymer-element><polymer-element name="stack-trace" extends="observatory-element">
   <template>
   <div class="alert alert-info">Stack Trace</div>
@@ -576,7 +578,7 @@
       <code-view app="{{ app }}" code="{{ message['code'] }}"></code-view>
     </template>
     <template if="{{ messageType == 'Script' }}">
-      <script-view app="{{ app }}" script="{{ message }}"></script-view>
+      <script-view app="{{ app }}" script="{{ message['script'] }}"></script-view>
     </template>
     <template if="{{ messageType == 'CPU' }}">
       <json-view json="{{ message }}"></json-view>
@@ -584,14 +586,27 @@
     <!-- Add new views and message types in the future here. -->
   </template>
   
+</polymer-element><polymer-element name="navigation-bar-isolate" extends="observatory-element">
+    <template>
+      <ul class="nav navbar-nav">
+        <li><a href="{{ currentIsolateLink('') }}"> {{currentIsolateName()}}</a></li>
+        <template repeat="{{link in links}}">
+          <li><a href="{{ currentIsolateLink(link) }}">{{ link }}</a></li>
+        </template>
+      </ul>
+    </template>
+  
 </polymer-element><polymer-element name="navigation-bar" extends="observatory-element">
   <template>
     <nav class="navbar navbar-default" role="navigation">
       <div class="navbar-header">
-        <a class="navbar-brand" href="">Observatory</a>
+        <a class="navbar-brand" href="#/isolates">Observatory</a>
       </div>
-      <div class="collapse navbar-collapse navbar-ex1-collapse">
-      </div>
+      <template if="{{ app.locationManager.hasCurrentIsolate }}">
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+          <navigation-bar-isolate app="{{ app }}"></navigation-bar-isolate>
+        </div>
+      </template>
     </nav>
   </template>
   
@@ -625,25 +640,6 @@
             </td>
         </tr>
     </tbody></table>
-    <blockquote><strong>Top Inclusive</strong></blockquote>
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th>Ticks</th>
-          <th>Percent</th>
-          <th>Method</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr template="" repeat="{{ code in topInclusiveCodes }}">
-            <td>{{ codeTicks(code, true) }}</td>
-            <td>{{ codePercent(code, true) }}</td>
-            <td>
-            <span>{{ codeName(code) }}</span>
-            <code-ref app="{{ app }}" ref="{{ code.codeRef }}"></code-ref>
-            </td>
-        </tr>
-    </tbody></table>
   </template>
   
 </polymer-element>
@@ -651,9 +647,6 @@
   <template>
     <template repeat="{{ message in app.requestManager.responses }}">
       <message-viewer app="{{ app }}" message="{{ message }}"></message-viewer>
-      <collapsible-content>
-        <!-- <json-view json="{{ message }}"></json-view> -->
-      </collapsible-content>
     </template>
   </template>
   

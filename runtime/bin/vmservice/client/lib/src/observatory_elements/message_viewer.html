@@ -11,7 +11,6 @@
   <link rel="import" href="library_view.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="script_view.html">
-  <link rel="import" href="source_view.html">
   <link rel="import" href="stack_trace.html">
 </head>
 <polymer-element name="message-viewer" extends="observatory-element">
@@ -68,7 +67,7 @@
       <code-view app="{{ app }}" code="{{ message['code'] }}"></code-view>
     </template>
     <template if="{{ messageType == 'Script' }}">
-      <script-view app="{{ app }}" script="{{ message }}"></script-view>
+      <script-view app="{{ app }}" script="{{ message['script'] }}"></script-view>
     </template>
     <template if="{{ messageType == 'CPU' }}">
       <json-view json="{{ message }}"></json-view>

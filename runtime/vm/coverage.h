@@ -17,10 +17,12 @@ class Class;
 class Function;
 class Isolate;
 class JSONArray;
+class JSONStream;
 
 class CodeCoverage : public AllStatic {
  public:
   static void Write(Isolate* isolate);
+  static void PrintToJSONStream(Isolate* isolate, JSONStream* stream);
 
  private:
   static void PrintClass(const Class& cls, const JSONArray& arr);

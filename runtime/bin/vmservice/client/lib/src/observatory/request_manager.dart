@@ -102,6 +102,18 @@ abstract class RequestManager extends Observable {
     return prefix.substring(1);
   }
 
+  static final RegExp _scriptMatcher = new RegExp(r'/isolates/\d+/scripts/.+');
+  static bool isScriptRequest(url) => _scriptMatcher.hasMatch(url);
+  static final RegExp _scriptPrefixMatcher =
+      new RegExp(r'/isolates/\d+/');
+  static String scriptUrlFromRequest(String url) {
+    var m = _scriptPrefixMatcher.matchAsPrefix(url);
+    if (m == null) {
+      return null;
+    }
+    return m.input.substring(m.end);
+  }
+
   void _setModelResponse(String type, String modelName, dynamic model) {
     var response = {
       'type': type,
@@ -148,6 +160,50 @@ abstract class RequestManager extends Observable {
     }).catchError(_requestCatchError);
   }
 
+  void _getScript(String requestString) {
+    var isolateId = isolateIdFromRequest(requestString);
+    if (isolateId == null) {
+      setResponseError('$isolateId is not an isolate id.');
+      return;
+    }
+    var isolate = _application.isolateManager.getIsolate(isolateId);
+    if (isolate == null) {
+      setResponseError('$isolateId could not be found.');
+      return;
+    }
+    var url = scriptUrlFromRequest(requestString);
+    if (url == null) {
+      setResponseError('$requestString is not a valid script request.');
+      return;
+    }
+    var script = isolate.scripts[url];
+    if ((script != null) && !script.needsSource) {
+      Logger.root.info('Found script ${script.scriptRef['name']} in isolate');
+      _setModelResponse('Script', 'script', script);
+      return;
+    }
+    if (script != null) {
+      // The isolate has the script but no script source code.
+      requestMap(requestString).then((response) {
+        assert(response['type'] == 'Script');
+        script._processSource(response['source']);
+        Logger.root.info(
+            'Grabbed script ${script.scriptRef['name']} source.');
+        _setModelResponse('Script', 'script', script);
+      });
+      return;
+    }
+    // New script.
+    requestMap(requestString).then((response) {
+      assert(response['type'] == 'Script');
+      var script = new Script.fromMap(response);
+      Logger.root.info(
+          'Added script ${script.scriptRef['name']} to isolate.');
+      _setModelResponse('Script', 'script', script);
+      isolate.scripts[url] = script;
+    });
+  }
+
   void _requestCatchError(e, st) {
     if (e is HttpRequest) {
       setResponseRequestError(e.target);
@@ -161,6 +217,10 @@ abstract class RequestManager extends Observable {
   void get(String requestString) {
     if (isCodeRequest(requestString)) {
       _getCode(requestString);
+      return;
+    }
+    if (isScriptRequest(requestString)) {
+      _getScript(requestString);
       return;
     }
     request(requestString).then((responseString) {

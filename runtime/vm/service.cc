@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 
 #include "vm/compiler.h"
+#include "vm/coverage.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
@@ -1043,11 +1044,17 @@ static bool HandleProfile(Isolate* isolate, JSONStream* js) {
   return true;
 }
 
+static bool HandleCoverage(Isolate* isolate, JSONStream* js) {
+  CodeCoverage::PrintToJSONStream(isolate, js);
+  return true;
+}
+
 
 static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "_echo", HandleIsolateEcho },
   { "classes", HandleClasses },
   { "code", HandleCode },
+  { "coverage", HandleCoverage },
   { "debug", HandleDebug },
   { "libraries", HandleLibraries },
   { "library", HandleLibrary },
