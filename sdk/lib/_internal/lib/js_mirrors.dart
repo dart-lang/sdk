@@ -516,6 +516,7 @@ TypeMirror reflectType(Type key) {
 TypeMirror reflectClassByMangledName(String mangledName) {
   String unmangledName = mangledGlobalNames[mangledName];
   if (mangledName == 'dynamic') return JsMirrorSystem._dynamicType;
+  if (mangledName == 'void') return JsMirrorSystem._voidType;
   if (unmangledName == null) unmangledName = mangledName;
   return reflectClassByName(s(unmangledName), mangledName);
 }
@@ -2386,8 +2387,17 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
       var typeArgument = getTypeArgument(index);
       if (typeArgument is JsTypeVariableMirror)
         return '${typeArgument._metadataIndex}';
-      assert(typeArgument is JsClassMirror ||
-             typeArgument is JsTypeBoundClassMirror);
+      if (typeArgument is! JsClassMirror &&
+          typeArgument is! JsTypeBoundClassMirror) {
+        if (typeArgument == JsMirrorSystem._dynamicType) {
+          return 'dynamic';
+        } else if (typeArgument == JsMirrorSystem._voidType) {
+          return 'void';
+        } else {
+          // TODO(ahe): This case shouldn't happen.
+          return 'dynamic';
+        }
+      }
       return typeArgument._mangledName;
     }
     representation =
