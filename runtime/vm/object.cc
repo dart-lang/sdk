@@ -285,15 +285,26 @@ RawString* String::IdentifierPrettyName(const String& name) {
   intptr_t start = 0;
   intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
   bool is_setter = false;
-
   for (intptr_t i = start; i < len; i++) {
     if (unmangled_name.CharAt(i) == ':') {
+      if (start != 0) {
+        // Reset and break.
+        start = 0;
+        dot_pos = -1;
+        break;
+      }
       ASSERT(start == 0);  // Only one : is possible in getters or setters.
       if (unmangled_name.CharAt(0) == 's') {
         is_setter = true;
       }
       start = i + 1;
     } else if (unmangled_name.CharAt(i) == '.') {
+      if (dot_pos != -1) {
+        // Reset and break.
+        start = 0;
+        dot_pos = -1;
+        break;
+      }
       ASSERT(dot_pos == -1);  // Only one dot is supported.
       dot_pos = i;
     }
@@ -1472,6 +1483,11 @@ RawObject* Object::Allocate(intptr_t cls_id,
     Exceptions::Throw(exception);
     UNREACHABLE();
   }
+  if (space == Heap::kNew) {
+    isolate->class_table()->UpdateAllocatedNew(cls_id, size);
+  } else {
+    isolate->class_table()->UpdateAllocatedOld(cls_id, size);
+  }
   NoGCScope no_gc;
   InitializeObject(address, cls_id, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
@@ -1540,75 +1556,8 @@ RawString* Class::Name() const {
 
 
 RawString* Class::UserVisibleName() const {
-  if (FLAG_show_internal_names) {
-    return Name();
-  }
-  switch (id()) {
-    case kIntegerCid:
-    case kSmiCid:
-    case kMintCid:
-    case kBigintCid:
-      return Symbols::Int().raw();
-    case kDoubleCid:
-      return Symbols::Double().raw();
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
-      return Symbols::New("String");
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kGrowableObjectArrayCid:
-      return Symbols::List().raw();
-    case kFloat32x4Cid:
-      return Symbols::Float32x4().raw();
-    case kInt32x4Cid:
-      return Symbols::Int32x4().raw();
-    case kTypedDataInt8ArrayCid:
-    case kExternalTypedDataInt8ArrayCid:
-      return Symbols::Int8List().raw();
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-      return Symbols::Uint8List().raw();
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return Symbols::Uint8ClampedList().raw();
-    case kTypedDataInt16ArrayCid:
-    case kExternalTypedDataInt16ArrayCid:
-      return Symbols::Int16List().raw();
-    case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint16ArrayCid:
-      return Symbols::Uint16List().raw();
-    case kTypedDataInt32ArrayCid:
-    case kExternalTypedDataInt32ArrayCid:
-      return Symbols::Int32List().raw();
-    case kTypedDataUint32ArrayCid:
-    case kExternalTypedDataUint32ArrayCid:
-      return Symbols::Uint32List().raw();
-    case kTypedDataInt64ArrayCid:
-    case kExternalTypedDataInt64ArrayCid:
-      return Symbols::Int64List().raw();
-    case kTypedDataUint64ArrayCid:
-    case kExternalTypedDataUint64ArrayCid:
-      return Symbols::Uint64List().raw();
-    case kTypedDataFloat32x4ArrayCid:
-    case kExternalTypedDataFloat32x4ArrayCid:
-      return Symbols::Float32x4List().raw();
-    case kTypedDataFloat32ArrayCid:
-    case kExternalTypedDataFloat32ArrayCid:
-      return Symbols::Float32List().raw();
-    case kTypedDataFloat64ArrayCid:
-    case kExternalTypedDataFloat64ArrayCid:
-      return Symbols::Float64List().raw();
-    default:
-      if (!IsCanonicalSignatureClass()) {
-        const String& name = String::Handle(Name());
-        return String::IdentifierPrettyName(name);
-      } else {
-        return Name();
-      }
-  }
-  UNREACHABLE();
+  ASSERT(raw_ptr()->user_name_ != String::null());
+  return raw_ptr()->user_name_;
 }
 
 
@@ -2792,6 +2741,159 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
 void Class::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
+  if (raw_ptr()->user_name_ == String::null()) {
+    // TODO(johnmccutchan): Eagerly set user name for VM isolate classes,
+    // lazily set user name for the other classes.
+    // Generate and set user_name.
+    const String& user_name = String::Handle(GenerateUserVisibleName());
+    set_user_name(user_name);
+  }
+}
+
+
+void Class::set_user_name(const String& value) const {
+  StorePointer(&raw_ptr()->user_name_, value.raw());
+}
+
+
+RawString* Class::GenerateUserVisibleName() const {
+  if (FLAG_show_internal_names) {
+    return Name();
+  }
+  switch (id()) {
+    case kNullCid:
+      return Symbols::Null().raw();
+    case kDynamicCid:
+      return Symbols::Dynamic().raw();
+    case kVoidCid:
+      return Symbols::Void().raw();
+    case kClassCid:
+      return Symbols::Class().raw();
+    case kUnresolvedClassCid:
+      return Symbols::UnresolvedClass().raw();
+    case kTypeArgumentsCid:
+      return Symbols::TypeArguments().raw();
+    case kInstantiatedTypeArgumentsCid:
+      return Symbols::InstantiatedTypeArguments().raw();
+    case kPatchClassCid:
+      return Symbols::PatchClass().raw();
+    case kFunctionCid:
+      return Symbols::Function().raw();
+    case kClosureDataCid:
+      return Symbols::ClosureData().raw();
+    case kRedirectionDataCid:
+      return Symbols::RedirectionData().raw();
+    case kFieldCid:
+      return Symbols::Field().raw();
+    case kLiteralTokenCid:
+      return Symbols::LiteralToken().raw();
+    case kTokenStreamCid:
+      return Symbols::TokenStream().raw();
+    case kScriptCid:
+      return Symbols::Script().raw();
+    case kLibraryCid:
+      return Symbols::Library().raw();
+    case kLibraryPrefixCid:
+      return Symbols::LibraryPrefix().raw();
+    case kNamespaceCid:
+      return Symbols::Namespace().raw();
+    case kCodeCid:
+      return Symbols::Code().raw();
+    case kInstructionsCid:
+      return Symbols::Instructions().raw();
+    case kPcDescriptorsCid:
+      return Symbols::PcDescriptors().raw();
+    case kStackmapCid:
+      return Symbols::Stackmap().raw();
+    case kLocalVarDescriptorsCid:
+      return Symbols::LocalVarDescriptors().raw();
+    case kExceptionHandlersCid:
+      return Symbols::ExceptionHandlers().raw();
+    case kDeoptInfoCid:
+      return Symbols::DeoptInfo().raw();
+    case kContextCid:
+      return Symbols::Context().raw();
+    case kContextScopeCid:
+      return Symbols::ContextScope().raw();
+    case kICDataCid:
+      return Symbols::ICData().raw();
+    case kMegamorphicCacheCid:
+      return Symbols::MegamorphicCache().raw();
+    case kSubtypeTestCacheCid:
+      return Symbols::SubtypeTestCache().raw();
+    case kApiErrorCid:
+      return Symbols::ApiError().raw();
+    case kLanguageErrorCid:
+      return Symbols::LanguageError().raw();
+    case kUnhandledExceptionCid:
+      return Symbols::UnhandledException().raw();
+    case kUnwindErrorCid:
+      return Symbols::UnwindError().raw();
+    case kIntegerCid:
+    case kSmiCid:
+    case kMintCid:
+    case kBigintCid:
+      return Symbols::Int().raw();
+    case kDoubleCid:
+      return Symbols::Double().raw();
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
+      return Symbols::_String().raw();
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kGrowableObjectArrayCid:
+      return Symbols::List().raw();
+    case kFloat32x4Cid:
+      return Symbols::Float32x4().raw();
+    case kInt32x4Cid:
+      return Symbols::Int32x4().raw();
+    case kTypedDataInt8ArrayCid:
+    case kExternalTypedDataInt8ArrayCid:
+      return Symbols::Int8List().raw();
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+      return Symbols::Uint8List().raw();
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return Symbols::Uint8ClampedList().raw();
+    case kTypedDataInt16ArrayCid:
+    case kExternalTypedDataInt16ArrayCid:
+      return Symbols::Int16List().raw();
+    case kTypedDataUint16ArrayCid:
+    case kExternalTypedDataUint16ArrayCid:
+      return Symbols::Uint16List().raw();
+    case kTypedDataInt32ArrayCid:
+    case kExternalTypedDataInt32ArrayCid:
+      return Symbols::Int32List().raw();
+    case kTypedDataUint32ArrayCid:
+    case kExternalTypedDataUint32ArrayCid:
+      return Symbols::Uint32List().raw();
+    case kTypedDataInt64ArrayCid:
+    case kExternalTypedDataInt64ArrayCid:
+      return Symbols::Int64List().raw();
+    case kTypedDataUint64ArrayCid:
+    case kExternalTypedDataUint64ArrayCid:
+      return Symbols::Uint64List().raw();
+    case kTypedDataFloat32x4ArrayCid:
+    case kExternalTypedDataFloat32x4ArrayCid:
+      return Symbols::Float32x4List().raw();
+    case kTypedDataFloat32ArrayCid:
+    case kExternalTypedDataFloat32ArrayCid:
+      return Symbols::Float32List().raw();
+    case kTypedDataFloat64ArrayCid:
+    case kExternalTypedDataFloat64ArrayCid:
+      return Symbols::Float64List().raw();
+    default:
+      if (!IsCanonicalSignatureClass()) {
+        const String& name = String::Handle(Name());
+        return String::IdentifierPrettyName(name);
+      } else {
+        return Name();
+      }
+  }
+  UNREACHABLE();
 }
 
 

@@ -16,6 +16,7 @@ class ServiceRefElement extends ObservatoryElement {
   void refChanged(oldValue) {
     notifyPropertyChange(#url, "", url);
     notifyPropertyChange(#name, [], name);
+    notifyPropertyChange(#hoverText, "", hoverText);
   }
 
   String get url {
@@ -25,6 +26,15 @@ class ServiceRefElement extends ObservatoryElement {
     return '';
   }
 
+  String get hoverText {
+    if (ref == null) {
+      return '';
+    }
+    // Return the VM name by default.
+    var name = ref['name'];
+    return name != null ? name : '';
+  }
+
   String get name {
     if (ref == null) {
       return '';
@@ -32,6 +42,8 @@ class ServiceRefElement extends ObservatoryElement {
     String name_key = internal ? 'name' : 'user_name';
     if (ref[name_key] != null) {
       return ref[name_key];
+    } else if (ref['name'] != null) {
+      return ref['name'];
     }
     return '';
   }

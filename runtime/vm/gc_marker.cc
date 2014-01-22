@@ -128,6 +128,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       : ObjectPointerVisitor(isolate),
         heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
+        class_table_(isolate->class_table()),
         page_space_(page_space),
         marking_stack_(marking_stack),
         visiting_old_object_(NULL),
@@ -226,6 +227,11 @@ class MarkingVisitor : public ObjectPointerVisitor {
       }
       return;
     }
+    if (RawObject::IsVariableSizeClassId(raw_obj->GetClassId())) {
+      class_table_->UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
+    } else {
+      class_table_->UpdateLiveOld(raw_obj->GetClassId(), 0);
+    }
 
     MarkAndPush(raw_obj);
   }
@@ -257,6 +263,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
   Heap* heap_;
   Heap* vm_heap_;
+  ClassTable* class_table_;
   PageSpace* page_space_;
   MarkingStack* marking_stack_;
   RawObject* visiting_old_object_;

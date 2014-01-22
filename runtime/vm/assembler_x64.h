@@ -827,6 +827,13 @@ class Assembler : public ValueObject {
   //   L:
   static const intptr_t kEntryPointToPcMarkerOffset = 9;
 
+  void UpdateAllocationStats(intptr_t cid,
+                             Heap::Space space = Heap::kNew);
+
+  void UpdateAllocationStatsWithSize(intptr_t cid,
+                                     Register size_reg,
+                                     Heap::Space space = Heap::kNew);
+
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.

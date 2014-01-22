@@ -265,7 +265,6 @@ class PostMessageRequestManager extends RequestManager {
     if (name != 'observatoryData') {
       return;
     }
-    print('Got reply $id $data');
     var completer = _outstandingRequests[id];
     if (completer != null) {
       _outstandingRequests.remove(id);

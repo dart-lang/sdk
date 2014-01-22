@@ -5,6 +5,7 @@
   <link rel="import" href="error_view.html">
   <link rel="import" href="field_view.html">
   <link rel="import" href="function_view.html">
+  <link rel="import" href="heap_profile.html">
   <link rel="import" href="instance_view.html">
   <link rel="import" href="isolate_list.html">
   <link rel="import" href="json_view.html">
@@ -68,6 +69,9 @@
     </template>
     <template if="{{ messageType == 'Script' }}">
       <script-view app="{{ app }}" script="{{ message['script'] }}"></script-view>
+    </template>
+    <template if="{{ messageType == 'AllocationProfile' }}">
+      <heap-profile app="{{ app }}" profile="{{ message }}"></heap-profile>
     </template>
     <template if="{{ messageType == 'CPU' }}">
       <json-view json="{{ message }}"></json-view>

@@ -1677,7 +1677,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ TryAllocate(compiler->double_class(),
                      slow_path->entry_label(),
                      Assembler::kFarJump,
-                     temp);
+                     temp,
+                     temp2);
       __ Bind(slow_path->exit_label());
       __ movl(temp2, temp);
       __ StoreIntoObject(instance_reg,
@@ -1726,7 +1727,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ TryAllocate(compiler->double_class(),
                    slow_path->entry_label(),
                    Assembler::kFarJump,
-                   temp);
+                   temp,
+                   temp2);
     __ Bind(slow_path->exit_label());
     __ movl(temp2, temp);
     __ StoreIntoObject(instance_reg,
@@ -1974,7 +1976,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ TryAllocate(compiler->double_class(),
                    slow_path->entry_label(),
                    Assembler::kFarJump,
-                   result);
+                   result,
+                   temp);
     __ Bind(slow_path->exit_label());
     __ movl(temp, FieldAddress(instance_reg, offset_in_bytes()));
     __ movsd(value, FieldAddress(temp, Double::value_offset()));
@@ -2857,7 +2860,8 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TryAllocate(compiler->double_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
-                 out_reg);
+                 out_reg,
+                 kNoRegister);
   __ Bind(slow_path->exit_label());
   __ movsd(FieldAddress(out_reg, Double::value_offset()), value);
 }
@@ -2964,7 +2968,8 @@ void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TryAllocate(compiler->float32x4_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
-                 out_reg);
+                 out_reg,
+                 kNoRegister);
   __ Bind(slow_path->exit_label());
   __ movups(FieldAddress(out_reg, Float32x4::value_offset()), value);
 }
@@ -3058,7 +3063,8 @@ void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TryAllocate(compiler->int32x4_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
-                 out_reg);
+                 out_reg,
+                 kNoRegister);
   __ Bind(slow_path->exit_label());
   __ movups(FieldAddress(out_reg, Int32x4::value_offset()), value);
 }
@@ -4682,7 +4688,8 @@ void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Class::ZoneHandle(Isolate::Current()->object_store()->mint_class()),
       slow_path->entry_label(),
       Assembler::kFarJump,
-      out_reg);
+      out_reg,
+      kNoRegister);
   __ Bind(slow_path->exit_label());
   __ movsd(FieldAddress(out_reg, Mint::value_offset()), value);
   __ Bind(&done);

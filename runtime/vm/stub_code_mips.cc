@@ -713,6 +713,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // T0: Points to new space object.
     __ sw(T2, Address(T0, Scavenger::top_offset()));
     __ addiu(V0, V0, Immediate(kHeapObjectTag));
+    // T1: Size of allocation in bytes.
+    __ subu(T1, T2, V0);
+    __ UpdateAllocationStatsWithSize(kArrayCid, T1, T5);
 
     // V0: new object start as a tagged pointer.
     // A0: array element type.
@@ -1115,6 +1118,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T3: next object start.
     __ sw(T3, Address(T5, 0));
     __ addiu(V0, V0, Immediate(kHeapObjectTag));
+    __ UpdateAllocationStatsWithSize(context_class.id(), T2, T5);
 
     // Calculate the size tag.
     // V0: new object.
@@ -1397,6 +1401,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // Set the type arguments in the new object.
       __ sw(T1, Address(T2, cls.type_arguments_field_offset()));
     }
+    __ UpdateAllocationStats(cls.id(), T5);
     // Done allocating and initializing the instance.
     // T2: new object still missing its heap tag.
     __ Ret();
@@ -1486,6 +1491,16 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
     __ sw(T3, Address(T5));
+    if (is_implicit_instance_closure) {
+      // This closure allocates a context, update allocation stats.
+      // T3: context size.
+      __ LoadImmediate(T3, context_size);
+      // T5: Clobbered.
+     __ UpdateAllocationStatsWithSize(kContextCid, T3, T5);
+    }
+    // The closure allocation is attributed to the signature class.
+    // T5: Will be clobbered.
+    __ UpdateAllocationStats(cls.id(), T5);
 
     // T2: new closure object.
     // T4: new context object (only if is_implicit_closure).

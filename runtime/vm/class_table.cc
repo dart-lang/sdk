@@ -5,6 +5,7 @@
 #include "vm/class_table.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
+#include "vm/heap.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"
@@ -14,7 +15,9 @@ namespace dart {
 DEFINE_FLAG(bool, print_class_table, false, "Print initial class table.");
 
 ClassTable::ClassTable()
-    : top_(kNumPredefinedCids), capacity_(0), table_(NULL) {
+    : top_(kNumPredefinedCids), capacity_(0), table_(NULL),
+      class_heap_stats_table_(NULL),
+      predefined_class_heap_stats_table_(NULL) {
   if (Dart::vm_isolate() == NULL) {
     capacity_ = initial_capacity_;
     table_ = reinterpret_cast<RawClass**>(
@@ -31,12 +34,24 @@ ClassTable::ClassTable()
     table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
     table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
     table_[kVoidCid] = vm_class_table->At(kVoidCid);
+    class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
+        calloc(capacity_, sizeof(ClassHeapStats)));  // NOLINT
+    for (intptr_t i = 0; i < capacity_; i++) {
+      class_heap_stats_table_[i].Initialize();
+    }
+  }
+  predefined_class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
+        calloc(kNumPredefinedCids, sizeof(ClassHeapStats)));  // NOLINT
+  for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
+    predefined_class_heap_stats_table_[i].Initialize();
   }
 }
 
 
 ClassTable::~ClassTable() {
   free(table_);
+  free(predefined_class_heap_stats_table_);
+  free(class_heap_stats_table_);
 }
 
 
@@ -62,11 +77,16 @@ void ClassTable::Register(const Class& cls) {
       intptr_t new_capacity = capacity_ + capacity_increment_;
       RawClass** new_table = reinterpret_cast<RawClass**>(
           realloc(table_, new_capacity * sizeof(RawClass*)));  // NOLINT
+      ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
+          realloc(class_heap_stats_table_,
+                  new_capacity * sizeof(ClassHeapStats)));  // NOLINT
       for (intptr_t i = capacity_; i < new_capacity; i++) {
         new_table[i] = NULL;
+        new_stats_table[i].Initialize();
       }
       capacity_ = new_capacity;
       table_ = new_table;
+      class_heap_stats_table_ = new_stats_table;
     }
     ASSERT(top_ < capacity_);
     cls.set_id(top_);
@@ -110,5 +130,214 @@ void ClassTable::PrintToJSONStream(JSONStream* stream) {
     }
   }
 }
+
+
+void ClassHeapStats::Initialize() {
+  allocated_before_gc_old_space = 0;
+  allocated_before_gc_new_space = 0;
+  allocated_size_before_gc_old_space = 0;
+  allocated_size_before_gc_new_space = 0;
+  live_after_gc_old_space = 0;
+  live_after_gc_new_space = 0;
+  live_size_after_gc_old_space = 0;
+  live_size_after_gc_new_space = 0;
+  allocated_since_gc_new_space = 0;
+  allocated_since_gc_old_space = 0;
+  allocated_size_since_gc_new_space = 0;
+  allocated_size_since_gc_old_space = 0;
+}
+
+
+void ClassHeapStats::ResetAtNewGC() {
+  allocated_before_gc_new_space = live_after_gc_new_space +
+                                  allocated_since_gc_new_space;
+  allocated_size_before_gc_new_space = live_size_after_gc_new_space +
+                                       allocated_size_since_gc_new_space;
+  live_after_gc_new_space = 0;
+  live_size_after_gc_new_space = 0;
+  allocated_since_gc_new_space = 0;
+  allocated_size_since_gc_new_space = 0;
+}
+
+
+void ClassHeapStats::ResetAtOldGC() {
+  allocated_before_gc_old_space = live_after_gc_old_space +
+                                  allocated_since_gc_old_space;
+  allocated_size_before_gc_old_space = live_size_after_gc_old_space +
+                                       allocated_size_since_gc_old_space;
+  live_after_gc_old_space = 0;
+  live_size_after_gc_old_space = 0;
+  allocated_since_gc_old_space = 0;
+  allocated_size_since_gc_old_space = 0;
+}
+
+
+void ClassHeapStats::UpdateSize(intptr_t instance_size) {
+  ASSERT(instance_size > 0);
+  // For classes with fixed instance size we do not emit code to update
+  // the size statistics. Update them here.
+  allocated_size_before_gc_old_space =
+      allocated_before_gc_old_space * instance_size;
+  allocated_size_before_gc_new_space =
+      allocated_before_gc_new_space * instance_size;
+  live_size_after_gc_old_space =
+      live_after_gc_old_space * instance_size;
+  live_size_after_gc_new_space =
+      live_after_gc_new_space * instance_size;
+  allocated_size_since_gc_new_space =
+      allocated_since_gc_new_space * instance_size;
+  allocated_size_since_gc_old_space =
+      allocated_since_gc_old_space * instance_size;
+}
+
+
+void ClassHeapStats::PrintTOJSONArray(const Class& cls, JSONArray* array) {
+  JSONObject obj(array);
+  obj.AddProperty("type", "ClassHeapStats");
+  obj.AddProperty("class", cls);
+  {
+    JSONArray new_stats(&obj, "new");
+    new_stats.AddValue(allocated_before_gc_new_space);
+    new_stats.AddValue(allocated_size_before_gc_new_space);
+    new_stats.AddValue(live_after_gc_new_space);
+    new_stats.AddValue(live_size_after_gc_new_space);
+    new_stats.AddValue(allocated_since_gc_new_space);
+    new_stats.AddValue(allocated_size_since_gc_new_space);
+  }
+  {
+    JSONArray old_stats(&obj, "old");
+    old_stats.AddValue(allocated_before_gc_old_space);
+    old_stats.AddValue(allocated_size_before_gc_old_space);
+    old_stats.AddValue(live_after_gc_old_space);
+    old_stats.AddValue(live_size_after_gc_old_space);
+    old_stats.AddValue(allocated_since_gc_old_space);
+    old_stats.AddValue(allocated_size_since_gc_old_space);
+  }
+}
+
+
+void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = StatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size != 0);
+  stats->allocated_since_gc_new_space++;
+  stats->allocated_size_since_gc_new_space += size;
+}
+
+
+void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = StatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size != 0);
+  stats->allocated_since_gc_old_space++;
+  stats->allocated_size_since_gc_old_space += size;
+}
+
+
+bool ClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
+  return !RawObject::IsVariableSizeClassId(cid);
+}
+
+
+ClassHeapStats* ClassTable::StatsAt(intptr_t cid) {
+  ASSERT(cid > 0);
+  if (cid < kNumPredefinedCids) {
+    return &predefined_class_heap_stats_table_[cid];
+  }
+  ASSERT(cid < top_);
+  return &class_heap_stats_table_[cid];
+}
+
+
+void ClassTable::ResetCountersOld() {
+  for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
+    predefined_class_heap_stats_table_[i].ResetAtOldGC();
+  }
+  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+    class_heap_stats_table_[i].ResetAtOldGC();
+  }
+}
+
+
+void ClassTable::ResetCountersNew() {
+  for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
+    predefined_class_heap_stats_table_[i].ResetAtNewGC();
+  }
+  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+    class_heap_stats_table_[i].ResetAtNewGC();
+  }
+}
+
+
+void ClassTable::AllocationProfilePrintToJSONStream(JSONStream* stream) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  Heap* heap = isolate->heap();
+  ASSERT(heap != NULL);
+  JSONObject obj(stream);
+  obj.AddProperty("type", "AllocationProfile");
+  {
+    JSONObject heaps(&obj, "heaps");
+    {
+      heap->PrintToJSONObject(Heap::kNew, &heaps);
+    }
+    {
+      heap->PrintToJSONObject(Heap::kOld, &heaps);
+    }
+  }
+  {
+    Class& cls = Class::Handle();
+    JSONArray arr(&obj, "members");
+    for (intptr_t i = 1; i < kNumPredefinedCids; i++) {
+      if (!HasValidClassAt(i) || (i == kFreeListElement) || (i == kSmiCid)) {
+        continue;
+      }
+      cls = At(i);
+      if (!(cls.is_finalized() || cls.is_prefinalized())) {
+        // Not finalized.
+        continue;
+      }
+      if (ShouldUpdateSizeForClassId(i)) {
+        intptr_t instance_size = cls.instance_size();
+        predefined_class_heap_stats_table_[i].UpdateSize(instance_size);
+      }
+      predefined_class_heap_stats_table_[i].PrintTOJSONArray(cls, &arr);
+    }
+    for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+      if (!HasValidClassAt(i)) {
+        continue;
+      }
+      cls = At(i);
+      if (!(cls.is_finalized() || cls.is_prefinalized())) {
+        // Not finalized.
+        continue;
+      }
+      if (ShouldUpdateSizeForClassId(i)) {
+        intptr_t instance_size = cls.instance_size();
+        class_heap_stats_table_[i].UpdateSize(instance_size);
+      }
+      class_heap_stats_table_[i].PrintTOJSONArray(cls, &arr);
+    }
+  }
+}
+
+
+void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = StatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size >= 0);
+  stats->live_after_gc_old_space++;
+  stats->live_size_after_gc_old_space += size;
+}
+
+
+void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = StatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size >= 0);
+  stats->live_after_gc_new_space++;
+  stats->live_size_after_gc_new_space += size;
+}
+
 
 }  // namespace dart

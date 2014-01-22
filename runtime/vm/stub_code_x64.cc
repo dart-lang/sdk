@@ -591,6 +591,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // R13: Points to new space object.
     __ movq(Address(R13, Scavenger::top_offset()), R12);
     __ addq(RAX, Immediate(kHeapObjectTag));
+    // R13: Size of allocation in bytes.
+    __ movq(R13, R12);
+    __ subq(R13, RAX);
+    __ UpdateAllocationStatsWithSize(kArrayCid, R13);
 
     // RAX: new object start as a tagged pointer.
     // R12: new object end address.
@@ -945,6 +949,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ movq(RDI, Immediate(heap->TopAddress()));
     __ movq(Address(RDI, 0), R13);
     __ addq(RAX, Immediate(kHeapObjectTag));
+    // R13: Size of allocation in bytes.
+    __ subq(R13, RAX);
+    __ UpdateAllocationStatsWithSize(context_class.id(), R13);
 
     // Calculate the size tag.
     // RAX: new object.
@@ -1144,6 +1151,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // next object start and initialize the object.
     __ movq(RDI, Immediate(heap->TopAddress()));
     __ movq(Address(RDI, 0), RBX);
+    __ UpdateAllocationStats(cls.id());
 
     if (is_cls_parameterized) {
       // Initialize the type arguments field in the object.
@@ -1307,6 +1315,17 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // next object start and initialize the object.
     __ movq(RDI, Immediate(heap->TopAddress()));
     __ movq(Address(RDI, 0), R13);
+
+    // RAX: new closure object.
+    // RBX: new context object (only if is_implicit_closure).
+    if (is_implicit_instance_closure) {
+      // This closure allocates a context, update allocation stats.
+      // RDI: context size.
+      __ movq(RDI, Immediate(context_size));
+     __ UpdateAllocationStatsWithSize(kContextCid, RDI);
+    }
+    // The closure allocation is attributed to the signature class.
+    __ UpdateAllocationStats(cls.id());
 
     // RAX: new closure object.
     // RBX: new context object (only if is_implicit_closure).

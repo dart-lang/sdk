@@ -50,4 +50,22 @@ class ObservatoryApplication extends Observable {
     }
     return isolate.name;
   }
+
+  static const int KB = 1024;
+  static const int MB = KB * 1024;
+  static String scaledSizeUnits(int x) {
+    if (x > 2 * MB) {
+      var y = x / MB;
+      return '${y.toStringAsFixed(1)} MB';
+    } else if (x > 2 * KB) {
+      var y = x / KB;
+      return '${y.toStringAsFixed(1)} KB';
+    }
+    var y = x.toDouble();
+    return '${y.toStringAsFixed(1)} B';
+  }
+
+  static String timeUnits(double x) {
+    return x.toStringAsFixed(4);
+  }
 }

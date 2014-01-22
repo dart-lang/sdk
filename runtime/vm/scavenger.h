@@ -18,6 +18,7 @@ namespace dart {
 // Forward declarations.
 class Heap;
 class Isolate;
+class JSONObject;
 class ScavengerVisitor;
 
 DECLARE_FLAG(bool, gc_at_alloc);
@@ -88,6 +89,24 @@ class Scavenger {
   }
 
   void WriteProtect(bool read_only);
+
+  void AddGCTime(int64_t micros) {
+    gc_time_micros_ += micros;
+  }
+
+  int64_t gc_time_micros() const {
+    return gc_time_micros_;
+  }
+
+  void IncrementCollections() {
+    collections_++;
+  }
+
+  intptr_t collections() const {
+    return collections_;
+  }
+
+  void PrintToJSONObject(JSONObject* object);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -171,6 +190,9 @@ class Scavenger {
   bool scavenging_;
   // Keep track whether the scavenge had a promotion failure.
   bool had_promotion_failure_;
+
+  int64_t gc_time_micros_;
+  intptr_t collections_;
 
   friend class ScavengerVisitor;
   friend class ScavengerWeakVisitor;

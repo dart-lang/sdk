@@ -403,6 +403,7 @@ class RawObject {
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
   static bool IsInternalVMdefinedClassId(intptr_t index);
+  static bool IsVariableSizeClassId(intptr_t index);
 
   static intptr_t NumberOfTypedDataClasses();
 
@@ -442,6 +443,7 @@ class RawObject {
   friend class GCMarker;
   friend class ExternalTypedData;
   friend class Heap;
+  friend class ClassStatsVisitor;
   friend class MarkingVisitor;
   friend class Object;
   friend class ObjectHistogram;
@@ -450,6 +452,7 @@ class RawObject {
   friend class RawInstance;
   friend class RawTypedData;
   friend class Scavenger;
+  friend class ScavengerVisitor;
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
@@ -474,6 +477,7 @@ class RawClass : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
+  RawString* user_name_;
   RawArray* functions_;
   RawArray* fields_;
   RawArray* offset_in_words_to_field_;
@@ -1735,6 +1739,29 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
 inline bool RawObject::IsInternalVMdefinedClassId(intptr_t index) {
   return ((index < kNumPredefinedCids) &&
           !RawObject::IsTypedDataViewClassId(index));
+}
+
+
+
+inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
+  return (index == kArrayCid) ||
+         (index == kImmutableArrayCid) ||
+         RawObject::IsOneByteStringClassId(index) ||
+         RawObject::IsTwoByteStringClassId(index) ||
+         RawObject::IsTypedDataClassId(index) ||
+         (index == kContextCid) ||
+         (index == kTypeArgumentsCid) ||
+         (index == kInstructionsCid) ||
+         (index == kPcDescriptorsCid) ||
+         (index == kStackmapCid) ||
+         (index == kLocalVarDescriptorsCid) ||
+         (index == kExceptionHandlersCid) ||
+         (index == kDeoptInfoCid) ||
+         (index == kCodeCid) ||
+         (index == kContextScopeCid) ||
+         (index == kInstanceCid) ||
+         (index == kBigintCid) ||
+         (index == kJSRegExpCid);
 }
 
 

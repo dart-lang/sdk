@@ -974,6 +974,7 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
     }
   }
 
+
   // Check it is a predefined symbol in the VM isolate.
   id = Symbols::LookupVMSymbol(rawobj);
   if (id != kInvalidIndex) {

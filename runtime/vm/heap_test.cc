@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
+#include "vm/dart_api_impl.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/unit_test.h"
@@ -46,4 +47,118 @@ TEST_CASE(LargeSweep) {
   Dart_ExitScope();
   heap->CollectGarbage(Heap::kOld);
 }
+
+class ClassHeapStatsTestHelper {
+ public:
+  static ClassHeapStats* GetHeapStatsForCid(ClassTable* class_table,
+                                            intptr_t cid) {
+    return class_table->StatsAt(cid);
+  }
+
+  static void DumpClassHeapStats(ClassHeapStats* stats) {
+    printf("%" Pd " ", stats->allocated_since_gc_new_space);
+    printf("%" Pd " ", stats->live_after_gc_new_space);
+    printf("%" Pd " ", stats->allocated_before_gc_new_space);
+    printf("\n");
+  }
+};
+
+
+static RawClass* GetClass(const Library& lib, const char* name) {
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New(name))));
+  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  return cls.raw();
 }
+
+
+TEST_CASE(ClassHeapStats) {
+  const char* kScriptChars =
+  "class A {\n"
+  "  var a;\n"
+  "  var b;\n"
+  "}\n"
+  ""
+  "main() {\n"
+  "  var x = new A();\n"
+  "  return new A();\n"
+  "}\n";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  Heap* heap = isolate->heap();
+  Dart_EnterScope();
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(!Dart_IsNull(result));
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  const Class& cls = Class::Handle(GetClass(lib, "A"));
+  ASSERT(!cls.IsNull());
+  intptr_t cid = cls.id();
+  ClassHeapStats* class_stats =
+      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table,
+                                                   cid);
+  // Verify preconditions:
+  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
+  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
+  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  EXPECT_EQ(0, class_stats->allocated_before_gc_new_space);
+  EXPECT_EQ(0, class_stats->live_after_gc_new_space);
+  // Class allocated twice since GC from new space.
+  EXPECT_EQ(2, class_stats->allocated_since_gc_new_space);
+  // Perform GC.
+  heap->CollectGarbage(Heap::kNew);
+  // Verify postconditions:
+  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
+  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
+  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  // Total allocations before GC.
+  EXPECT_EQ(2, class_stats->allocated_before_gc_new_space);
+  // Only one survived.
+  EXPECT_EQ(1, class_stats->live_after_gc_new_space);
+  EXPECT_EQ(0, class_stats->allocated_since_gc_new_space);
+  // Perform GC. The following is heavily dependent on the behaviour
+  // of the GC: Retained instance of A will be promoted.
+  heap->CollectGarbage(Heap::kNew);
+  // Verify postconditions:
+  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
+  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
+  // Promotion counted as an allocation from old space.
+  EXPECT_EQ(1, class_stats->allocated_since_gc_old_space);
+  // There was one instance allocated before GC.
+  EXPECT_EQ(1, class_stats->allocated_before_gc_new_space);
+  // There are no instances allocated in new space after GC.
+  EXPECT_EQ(0, class_stats->live_after_gc_new_space);
+  // No new allocations.
+  EXPECT_EQ(0, class_stats->allocated_since_gc_new_space);
+  // Perform a GC on new space.
+  heap->CollectGarbage(Heap::kNew);
+  // There were no instances allocated before GC.
+  EXPECT_EQ(0, class_stats->allocated_before_gc_new_space);
+  // There are no instances allocated in new space after GC.
+  EXPECT_EQ(0, class_stats->live_after_gc_new_space);
+  // No new allocations.
+  EXPECT_EQ(0, class_stats->allocated_since_gc_new_space);
+  heap->CollectGarbage(Heap::kOld);
+  // Verify postconditions:
+  EXPECT_EQ(1, class_stats->allocated_before_gc_old_space);
+  EXPECT_EQ(1, class_stats->live_after_gc_old_space);
+  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  // Exit scope, freeing instance.
+  Dart_ExitScope();
+  // Perform GC.
+  heap->CollectGarbage(Heap::kOld);
+  // Verify postconditions:
+  EXPECT_EQ(1, class_stats->allocated_before_gc_old_space);
+  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
+  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+  // Perform GC.
+  heap->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(0, class_stats->allocated_before_gc_old_space);
+  EXPECT_EQ(0, class_stats->live_after_gc_old_space);
+  EXPECT_EQ(0, class_stats->allocated_since_gc_old_space);
+}
+
+}  // namespace dart.

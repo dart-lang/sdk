@@ -734,13 +734,23 @@ class Assembler : public ValueObject {
   // RawInstruction object corresponding to the code running in the frame.
   static const intptr_t kEntryPointToPcMarkerOffset = Instr::kPCReadOffset;
 
+  void UpdateAllocationStats(intptr_t cid,
+                             Register temp_reg,
+                             Heap::Space space = Heap::kNew);
+
+  void UpdateAllocationStatsWithSize(intptr_t cid,
+                                     Register size_reg,
+                                     Register temp_reg,
+                                     Heap::Space space = Heap::kNew);
+
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.
   // Only the tags field of the object is initialized.
   void TryAllocate(const Class& cls,
                    Label* failure,
-                   Register instance_reg);
+                   Register instance_reg,
+                   Register temp_reg);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);

@@ -33,7 +33,7 @@
   
 </polymer-element><polymer-element name="class-ref" extends="service-ref">
 <template>
-  <a href="{{ url }}">{{ name }}</a>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </template>
 
 </polymer-element>
@@ -62,11 +62,11 @@
   <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
   <class-ref app="{{ app }}" ref="{{ ref['declared_type'] }}"></class-ref>
   </template>
-  <a href="{{ url }}">{{ name }}</a>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </div>
 </template>  </polymer-element><polymer-element name="function-ref" extends="service-ref">
 <template>
-  <a href="{{ url }}">{{ name }}</a>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </template>
 
 </polymer-element><polymer-element name="instance-ref" extends="service-ref">
@@ -300,7 +300,7 @@
   <template>
   	<div class="row">
   	  <div class="col-md-1">
-        <img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">
+        <img src="img/isolate_icon.png" class="img-polaroid">
   	  </div>
   	  <div class="col-md-1">{{ isolate }}</div>
   	  <div class="col-md-10">{{ name }}</div>
@@ -318,6 +318,9 @@
       </div>
       <div class="col-md-1">
         <a href="{{ app.locationManager.relativeLink(isolate, 'profile') }}">Profile</a>
+      </div>
+      <div class="col-md-1">
+        <a href="{{ app.locationManager.relativeLink(isolate, 'allocationprofile') }}">Allocation Profile</a>
       </div>
   	  <div class="col-md-8"></div>
     </div>
@@ -477,6 +480,49 @@
 
   </template>
   
+</polymer-element><polymer-element name="heap-profile" extends="observatory-element">
+<template>
+  <div>
+  <button type="button" on-click="{{refreshData}}">Refresh</button>
+  </div>
+  <div>
+  <span>New Space </span>
+  <span>{{ status(true) }}</span>
+  </div>
+  <div>
+  <span>Old Space </span>
+  <span>{{ status(false) }}</span>
+  </div>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="1">Current (new)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="2">Allocated since GC (new)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="3">Total before last GC (new)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="4">Total after last GC (new)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="5">Current (old)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="6">Allocated since GC (old)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="7">Total before last GC (old)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="8">Total after last GC (old)</button></th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr template="" repeat="{{ cls in sortedProfile }}">
+      <td><class-ref app="{{ app }}" ref="{{ cls['class'] }}"></class-ref></td>
+      <td>{{ current(cls, true) }}</td>
+      <td>{{ allocated(cls, true) }}</td>
+      <td>{{ beforeGC(cls, true) }}</td>
+      <td>{{ afterGC(cls, true) }}</td>
+      <td>{{ current(cls, false) }}</td>
+      <td>{{ allocated(cls, false) }}</td>
+      <td>{{ beforeGC(cls, false) }}</td>
+      <td>{{ afterGC(cls, false) }}</td>
+    </tr>
+    </tbody>
+  </table>
+</template>
+
 </polymer-element><polymer-element name="script-view" extends="observatory-element">
 <template>
   <div class="row">
@@ -579,6 +625,9 @@
     </template>
     <template if="{{ messageType == 'Script' }}">
       <script-view app="{{ app }}" script="{{ message['script'] }}"></script-view>
+    </template>
+    <template if="{{ messageType == 'AllocationProfile' }}">
+      <heap-profile app="{{ app }}" profile="{{ message }}"></heap-profile>
     </template>
     <template if="{{ messageType == 'CPU' }}">
       <json-view json="{{ message }}"></json-view>

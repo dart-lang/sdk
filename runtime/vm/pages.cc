@@ -131,7 +131,9 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       sweeping_(false),
       page_space_controller_(FLAG_heap_growth_space_ratio,
                              FLAG_heap_growth_rate,
-                             FLAG_heap_growth_time_ratio) {
+                             FLAG_heap_growth_time_ratio),
+      gc_time_micros_(0),
+      collections_(0) {
 }
 
 
@@ -388,6 +390,19 @@ void PageSpace::WriteProtect(bool read_only) {
     page->WriteProtect(read_only);
     page = page->next();
   }
+}
+
+
+void PageSpace::PrintToJSONObject(JSONObject* object) {
+  JSONObject space(object, "old");
+  space.AddProperty("type", "PageSpace");
+  space.AddProperty("id", "heaps/old");
+  space.AddProperty("name", "PageSpace");
+  space.AddProperty("user_name", "old");
+  space.AddProperty("collections", collections());
+  space.AddProperty("used", UsedInWords() * kWordSize);
+  space.AddProperty("capacity", CapacityInWords() * kWordSize);
+  space.AddProperty("time", RoundMicrosecondsToSeconds(gc_time_micros()));
 }
 
 

@@ -598,6 +598,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // EDI: Points to new space object.
     __ movl(Address(EDI, Scavenger::top_offset()), EBX);
     __ addl(EAX, Immediate(kHeapObjectTag));
+    // EDI: Size of allocation in bytes.
+    __ movl(EDI, EBX);
+    __ subl(EDI, EAX);
+    __ UpdateAllocationStatsWithSize(kArrayCid, EDI, kNoRegister);
 
     // EAX: new object start as a tagged pointer.
     // EBX: new object end address.
@@ -940,6 +944,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EDX: number of context variables.
     __ movl(Address::Absolute(heap->TopAddress()), EBX);
     __ addl(EAX, Immediate(kHeapObjectTag));
+    // EBX: Size of allocation in bytes.
+    __ subl(EBX, EAX);
+    __ UpdateAllocationStatsWithSize(context_class.id(), EBX, kNoRegister);
 
     // Calculate the size tag.
     // EAX: new object.
@@ -1141,12 +1148,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
-      __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+      __ j(ABOVE_EQUAL, &slow_case);
     }
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ movl(Address::Absolute(heap->TopAddress()), EBX);
+    __ UpdateAllocationStats(cls.id(), EDI);
 
     if (is_cls_parameterized) {
       // Initialize the type arguments field in the object.
@@ -1311,6 +1319,18 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
     __ movl(Address::Absolute(heap->TopAddress()), EBX);
+    // EAX: new closure object.
+    // ECX: new context object (only if is_implicit_closure).
+    if (is_implicit_instance_closure) {
+      // This closure allocates a context, update allocation stats.
+      // EBX: context size.
+      __ movl(EBX, Immediate(context_size));
+      // EDX: Clobbered.
+     __ UpdateAllocationStatsWithSize(kContextCid, EBX, EDX);
+    }
+    // The closure allocation is attributed to the signature class.
+    // EDX: Will be clobbered.
+    __ UpdateAllocationStats(cls.id(), EDX);
 
     // EAX: new closure object.
     // ECX: new context object (only if is_implicit_closure).
@@ -1323,7 +1343,6 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Initialize the function field in the object.
     // EAX: new closure object.
     // ECX: new context object (only if is_implicit_closure).
-    // EBX: next object start.
     __ LoadObject(EDX, func);  // Load function of closure to be allocated.
     __ movl(Address(EAX, Closure::function_offset()), EDX);
 

@@ -17,6 +17,7 @@ DECLARE_FLAG(bool, always_drop_code);
 
 // Forward declarations.
 class Heap;
+class JSONObject;
 class ObjectPointerVisitor;
 
 // A page containing old generation objects.
@@ -219,6 +220,24 @@ class PageSpace {
 
   void WriteProtect(bool read_only);
 
+  void AddGCTime(int64_t micros) {
+    gc_time_micros_ += micros;
+  }
+
+  int64_t gc_time_micros() const {
+    return gc_time_micros_;
+  }
+
+  void IncrementCollections() {
+    collections_++;
+  }
+
+  intptr_t collections() const {
+    return collections_;
+  }
+
+  void PrintToJSONObject(JSONObject* object);
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -266,6 +285,9 @@ class PageSpace {
   bool sweeping_;
 
   PageSpaceController page_space_controller_;
+
+  int64_t gc_time_micros_;
+  intptr_t collections_;
 
   friend class PageSpaceController;
 

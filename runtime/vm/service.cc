@@ -1050,8 +1050,15 @@ static bool HandleCoverage(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
+  isolate->class_table()->AllocationProfilePrintToJSONStream(js);
+  return true;
+}
+
+
 static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "_echo", HandleIsolateEcho },
+  { "allocationprofile", HandleAllocationProfile },
   { "classes", HandleClasses },
   { "code", HandleCode },
   { "coverage", HandleCoverage },

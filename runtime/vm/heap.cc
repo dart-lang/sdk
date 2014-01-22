@@ -164,6 +164,7 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
   switch (space) {
     case kNew: {
       RecordBeforeGC(kNew, kNewSpace);
+      UpdateClassHeapStatsBeforeGC(kNew);
       new_space_->Scavenge(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
@@ -177,6 +178,7 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
     case kCode: {
       bool promotion_failure = new_space_->HadPromotionFailure();
       RecordBeforeGC(kOld, promotion_failure ? kPromotionFailure : kOldSpace);
+      UpdateClassHeapStatsBeforeGC(kOld);
       old_space_->MarkSweep(invoke_api_callbacks);
       RecordAfterGC();
       PrintStats();
@@ -196,6 +198,17 @@ void Heap::UpdateObjectHistogram() {
 }
 
 
+void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  if (space == kNew) {
+    class_table->ResetCountersNew();
+  } else {
+    class_table->ResetCountersOld();
+  }
+}
+
+
 void Heap::CollectGarbage(Space space) {
   ApiCallbacks api_callbacks;
   if (space == kOld) {
@@ -209,10 +222,12 @@ void Heap::CollectGarbage(Space space) {
 
 void Heap::CollectAllGarbage() {
   RecordBeforeGC(kNew, kFull);
+  UpdateClassHeapStatsBeforeGC(kNew);
   new_space_->Scavenge(kInvokeApiCallbacks);
   RecordAfterGC();
   PrintStats();
   RecordBeforeGC(kOld, kFull);
+  UpdateClassHeapStatsBeforeGC(kOld);
   old_space_->MarkSweep(kInvokeApiCallbacks);
   RecordAfterGC();
   PrintStats();
@@ -320,6 +335,22 @@ intptr_t Heap::CapacityInWords(Space space) const {
 }
 
 
+int64_t Heap::GCTimeInMicros(Space space) const {
+  if (space == kNew) {
+    return new_space_->gc_time_micros();
+  }
+  return old_space_->gc_time_micros();
+}
+
+
+intptr_t Heap::Collections(Space space) const {
+  if (space == kNew) {
+    return new_space_->collections();
+  }
+  return old_space_->collections();
+}
+
+
 const char* Heap::GCReasonToString(GCReason gc_reason) {
   switch (gc_reason) {
     case kNewSpace:
@@ -371,6 +402,15 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
 }
 
 
+void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
+  if (space == kNew) {
+    new_space_->PrintToJSONObject(object);
+  } else {
+    old_space_->PrintToJSONObject(object);
+  }
+}
+
+
 void Heap::RecordBeforeGC(Space space, GCReason reason) {
   ASSERT(!gc_in_progress_);
   gc_in_progress_ = true;
@@ -395,6 +435,14 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
 
 void Heap::RecordAfterGC() {
   stats_.after_.micros_ = OS::GetCurrentTimeMicros();
+  int64_t delta = stats_.after_.micros_ - stats_.before_.micros_;
+  if (stats_.space_ == kNew) {
+    new_space_->AddGCTime(delta);
+    new_space_->IncrementCollections();
+  } else {
+    old_space_->AddGCTime(delta);
+    old_space_->IncrementCollections();
+  }
   stats_.after_.new_used_in_words_ = new_space_->UsedInWords();
   stats_.after_.new_capacity_in_words_ = new_space_->CapacityInWords();
   stats_.after_.old_used_in_words_ = old_space_->UsedInWords();

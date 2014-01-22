@@ -1103,6 +1103,8 @@ class Class : public Object {
   class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
 
   void set_name(const String& value) const;
+  void set_user_name(const String& value) const;
+  RawString* GenerateUserVisibleName() const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
   void set_state_bits(intptr_t bits) const;

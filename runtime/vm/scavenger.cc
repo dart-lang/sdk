@@ -185,11 +185,14 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         delay_set_.erase(ret.first, ret.second);
       }
       intptr_t size = raw_obj->Size();
+      intptr_t cid = raw_obj->GetClassId();
+      ClassTable* class_table = isolate()->class_table();
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
         new_addr = scavenger_->TryAllocate(size);
+        class_table->UpdateLiveNew(cid, size);
       } else {
         // TODO(iposva): Experiment with less aggressive promotion. For example
         // a coin toss determines if an object is promoted or whether it should
@@ -203,6 +206,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
           bytes_promoted_ += size;
+          class_table->UpdateAllocatedOld(cid, size);
         } else if (!scavenger_->had_promotion_failure_) {
           // Signal a promotion failure and set the growth policy for
           // this, and all subsequent promotion allocations, to force
@@ -213,15 +217,18 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           if (new_addr != 0) {
             scavenger_->PushToPromotedStack(new_addr);
             bytes_promoted_ += size;
+            class_table->UpdateAllocatedOld(cid, size);
           } else {
             // Promotion did not succeed. Copy into the to space
             // instead.
             new_addr = scavenger_->TryAllocate(size);
+            class_table->UpdateLiveNew(cid, size);
           }
         } else {
           ASSERT(growth_policy_ == PageSpace::kForceGrowth);
           // Promotion did not succeed. Copy into the to space instead.
           new_addr = scavenger_->TryAllocate(size);
+          class_table->UpdateLiveNew(cid, size);
         }
       }
       // During a scavenge we always succeed to at least copy all of the
@@ -311,7 +318,9 @@ Scavenger::Scavenger(Heap* heap,
                      uword object_alignment)
     : heap_(heap),
       object_alignment_(object_alignment),
-      scavenging_(false) {
+      scavenging_(false),
+      gc_time_micros_(0),
+      collections_(0) {
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
@@ -705,6 +714,19 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
 void Scavenger::WriteProtect(bool read_only) {
   space_->Protect(
       read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+}
+
+
+void Scavenger::PrintToJSONObject(JSONObject* object) {
+  JSONObject space(object, "new");
+  space.AddProperty("type", "@Scavenger");
+  space.AddProperty("id", "heaps/new");
+  space.AddProperty("name", "Scavenger");
+  space.AddProperty("user_name", "new");
+  space.AddProperty("collections", collections());
+  space.AddProperty("used", UsedInWords() * kWordSize);
+  space.AddProperty("capacity", CapacityInWords() * kWordSize);
+  space.AddProperty("time", RoundMicrosecondsToSeconds(gc_time_micros()));
 }
 
 
