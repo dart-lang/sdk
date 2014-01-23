@@ -41,4 +41,9 @@ class AnalysisLogger implements Logger {
   void logInformation2(String message, Exception exception) {
     baseLogger.info(message, exception);
   }
+
+  @override
+  void logInformation3(String message, Exception exception) {
+    baseLogger.info(message, exception);
+  }
 }
