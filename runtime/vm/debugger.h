@@ -74,10 +74,10 @@ class SourceBreakpoint {
 // function gets compiled as a regular function and as a closure.
 class CodeBreakpoint {
  public:
-  CodeBreakpoint(const Function& func, intptr_t pc_desc_index);
+  CodeBreakpoint(const Code& code, intptr_t pc_desc_index);
   ~CodeBreakpoint();
 
-  RawFunction* function() const { return function_; }
+  RawFunction* function() const;
   uword pc() const { return pc_; }
   intptr_t token_pos() const { return token_pos_; }
   bool IsInternal() const { return src_bpt_ == NULL; }
@@ -105,7 +105,7 @@ class CodeBreakpoint {
   void PatchCode();
   void RestoreCode();
 
-  RawFunction* function_;
+  RawCode* code_;
   intptr_t pc_desc_index_;
   intptr_t token_pos_;
   uword pc_;
@@ -318,9 +318,10 @@ class Debugger {
   // Called from Runtime when a breakpoint in Dart code is reached.
   void BreakpointCallback();
 
-  // Returns true if there is at least one breakpoint set in func.
+  // Returns true if there is at least one breakpoint set in func or code.
   // Checks for both user-defined and internal temporary breakpoints.
   bool HasBreakpoint(const Function& func);
+  bool HasBreakpoint(const Code& code);
 
   // Returns true if the call at address pc is patched to point to
   // a debugger stub.

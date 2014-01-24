@@ -156,7 +156,7 @@ void SourceBreakpoint::PrintToJSONStream(JSONStream* stream) {
 
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
 }
 
 
@@ -261,6 +261,18 @@ bool Debugger::HasBreakpoint(const Function& func) {
   CodeBreakpoint* cbpt = code_breakpoints_;
   while (cbpt != NULL) {
     if (func.raw() == cbpt->function()) {
+      return true;
+    }
+    cbpt = cbpt->next_;
+  }
+  return false;
+}
+
+
+bool Debugger::HasBreakpoint(const Code& code) {
+  CodeBreakpoint* cbpt = code_breakpoints_;
+  while (cbpt != NULL) {
+    if (code.raw() == cbpt->code_) {
       return true;
     }
     cbpt = cbpt->next_;
@@ -706,8 +718,8 @@ static bool IsSafePoint(const PcDescriptors& desc, intptr_t i) {
 }
 
 
-CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
-    : function_(func.raw()),
+CodeBreakpoint::CodeBreakpoint(const Code& code, intptr_t pc_desc_index)
+    : code_(code.raw()),
       pc_desc_index_(pc_desc_index),
       pc_(0),
       line_number_(-1),
@@ -715,9 +727,7 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
       src_bpt_(NULL),
       next_(NULL) {
   saved_value_ = 0;
-  ASSERT(!func.HasOptimizedCode());
-  Code& code = Code::Handle(func.unoptimized_code());
-  ASSERT(!code.IsNull());  // Function must be compiled.
+  ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(pc_desc_index < desc.Length());
   token_pos_ = desc.TokenPos(pc_desc_index);
@@ -734,7 +744,7 @@ CodeBreakpoint::~CodeBreakpoint() {
   ASSERT(!IsEnabled());
   // Poison the data so we catch use after free errors.
 #ifdef DEBUG
-  function_ = Function::null();
+  code_ = Code::null();
   pc_ = 0ul;
   src_bpt_ = NULL;
   next_ = NULL;
@@ -743,8 +753,13 @@ CodeBreakpoint::~CodeBreakpoint() {
 }
 
 
+RawFunction* CodeBreakpoint::function() const {
+  return Code::Handle(code_).function();
+}
+
+
 RawScript* CodeBreakpoint::SourceCode() {
-  const Function& func = Function::Handle(function_);
+  const Function& func = Function::Handle(this->function());
   return func.script();
 }
 
@@ -964,10 +979,12 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
       return;
     }
   }
-  DeoptimizeWorld();
-  ASSERT(!target_function.HasOptimizedCode());
+  // Hang on to the code object before deoptimizing, in case deoptimization
+  // might cause the GC to run.
   Code& code = Code::Handle(target_function.unoptimized_code());
   ASSERT(!code.IsNull());
+  DeoptimizeWorld();
+  ASSERT(!target_function.HasOptimizedCode());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (intptr_t i = 0; i < desc.Length(); i++) {
     if (IsSafePoint(desc, i)) {
@@ -978,7 +995,7 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
         bpt->Enable();
         continue;
       }
-      bpt = new CodeBreakpoint(target_function, i);
+      bpt = new CodeBreakpoint(code, i);
       RegisterCodeBreakpoint(bpt);
       bpt->Enable();
     }
@@ -1306,7 +1323,7 @@ void Debugger::MakeCodeBreakpointsAt(const Function& func,
       CodeBreakpoint* code_bpt = GetCodeBreakpoint(desc.PC(i));
       if (code_bpt == NULL) {
         // No code breakpoint for this code exists; create one.
-        code_bpt = new CodeBreakpoint(func, i);
+        code_bpt = new CodeBreakpoint(code, i);
         RegisterCodeBreakpoint(code_bpt);
       }
       code_bpt->set_src_bpt(bpt);

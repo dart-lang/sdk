@@ -9863,6 +9863,11 @@ void Code::set_static_calls_target_table(const Array& value) const {
 }
 
 
+bool Code::HasBreakpoint() const {
+  return Isolate::Current()->debugger()->HasBreakpoint(*this);
+}
+
+
 RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const {
   ASSERT(is_optimized());
   const Instructions& instrs = Instructions::Handle(instructions());

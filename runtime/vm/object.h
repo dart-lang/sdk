@@ -3230,6 +3230,9 @@ class Code : public Object {
     return offset < static_cast<uword>(instr.size());
   }
 
+  // Returns true if there is a debugger breakpoint set in this code object.
+  bool HasBreakpoint() const;
+
   RawPcDescriptors* pc_descriptors() const {
     return raw_ptr()->pc_descriptors_;
   }

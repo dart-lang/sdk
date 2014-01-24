@@ -36,8 +36,7 @@ RawObject* ActivationFrame::GetClosureObject(intptr_t num_actual_args) {
 
 
 uword CodeBreakpoint::OrigStubAddress() const {
-  const Code& code =
-      Code::Handle(Function::Handle(function_).unoptimized_code());
+  const Code& code = Code::Handle(code_);
   const Array& object_pool = Array::Handle(code.ObjectPool());
   uword offset = saved_value_ + kHeapObjectTag;
   ASSERT((offset % kWordSize) == 0);
