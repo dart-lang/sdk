@@ -50,13 +50,14 @@ DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
     "How many times we allow deoptimization before we disallow optimization.");
 DEFINE_FLAG(int, deoptimization_counter_licm_threshold, 8,
     "How many times we allow deoptimization before we disable LICM.");
-DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
+DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
+DEFINE_FLAG(bool, print_flow_graph_optimized, false,
+            "Print the IR flow graph when optimizing.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
+DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
-DECLARE_FLAG(bool, print_flow_graph);
-DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 
 // Compile a function. Should call only if the function has not been compiled.

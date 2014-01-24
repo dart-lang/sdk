@@ -51,11 +51,11 @@ DEFINE_FLAG(bool, trace_optimized_ic_calls, false,
     "Trace IC calls in optimized code.");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
+DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
-DECLARE_FLAG(bool, trace_type_checks);
 
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
@@ -432,7 +432,12 @@ static void UpdateTypeTestCache(
   // Since the test is expensive, don't do it unless necessary.
   // The list of disallowed cases will decrease as they are implemented in
   // inlined assembly.
-  if (new_cache.IsNull()) return;
+  if (new_cache.IsNull()) {
+    if (FLAG_trace_type_checks) {
+      OS::Print("UpdateTypeTestCache: cache is null\n");
+    }
+    return;
+  }
   // Instantiator type arguments may be canonicalized later.
   AbstractTypeArguments& instantiator_type_arguments =
       AbstractTypeArguments::Handle(incoming_instantiator_type_arguments.raw());
