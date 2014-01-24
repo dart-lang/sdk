@@ -201,6 +201,7 @@ static void FormatTextualValue(dart::TextBuffer* buf,
                                Dart_Handle object,
                                intptr_t max_chars,
                                bool expand_list) {
+  ASSERT(!Dart_IsError(object));
   if (Dart_IsList(object)) {
     if (expand_list) {
       FormatTextualListValue(buf, object, max_chars);
@@ -213,15 +214,17 @@ static void FormatTextualValue(dart::TextBuffer* buf,
     buf->Printf("\\\"");
     FormatEncodedCharsTrunc(buf, object, max_chars);
     buf->Printf("\\\"");
-  } else {
+  } else if (Dart_IsNumber(object) || Dart_IsBoolean(object)) {
     Dart_Handle text = Dart_ToString(object);
-    if (Dart_IsNull(text)) {
-      buf->Printf("null");
-    } else if (Dart_IsError(text)) {
-      buf->Printf("#ERROR");
-    } else {
-      FormatEncodedCharsTrunc(buf, text, max_chars);
-    }
+    ASSERT(!Dart_IsNull(text) && !Dart_IsError(text));
+    FormatEncodedCharsTrunc(buf, text, max_chars);
+  } else {
+    Dart_Handle type = Dart_InstanceGetType(object);
+    ASSERT_NOT_ERROR(type);
+    type = Dart_ToString(type);
+    ASSERT_NOT_ERROR(type);
+    buf->Printf("object of type ");
+    FormatEncodedCharsTrunc(buf, type, max_chars);
   }
 }
 
