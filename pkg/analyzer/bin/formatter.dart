@@ -63,7 +63,7 @@ _readOptions(options) {
   selection = _parseSelection(options[SELECTION_FLAG]);
   formatterSettings =
       new FormatterOptions(codeTransforms: options[TRANSFORM_FLAG],
-          pageWidth: _toInt(options[MAX_LINE_FLAG]));
+          pageWidth: _parseLineLength(options[MAX_LINE_FLAG]));
 }
 
 CodeKind _parseKind(kindOption) {
@@ -74,6 +74,21 @@ CodeKind _parseKind(kindOption) {
       return CodeKind.COMPILATION_UNIT;
   }
 }
+
+int _parseLineLength(String lengthOption) {
+  var length = _toInt(lengthOption);
+  if (length == null) {
+    var val = lengthOption.toUpperCase();
+    if (val == 'INF' || val == 'INFINITY') {
+      length = -1;
+    } else {
+      throw new FormatterException('Line length is specified as an Integer or '
+          'the value "Inf".');
+    }
+  }
+  return length;
+}
+
 
 Selection _parseSelection(selectionOption) {
   if (selectionOption != null) {
@@ -159,10 +174,11 @@ ArgParser _initArgParser() {
   parser.addFlag(TRANSFORM_FLAG, abbr: 't', negatable: false,
       help: 'Perform code transformations.');
   parser.addOption(MAX_LINE_FLAG, abbr: 'l', defaultsTo: '80',
-      help: 'Wrap lines longer than this length.');
+      help: 'Wrap lines longer than this length. '
+            'To never wrap, specify "Infinity" or "Inf" for short.');
   parser.addOption(KIND_FLAG, abbr: 'k', defaultsTo: 'cu',
-      help: 'Specify source snippet kind ("stmt" or "cu")'
-            ' --- [PROVISIONAL API].', hide: true);
+      help: 'Specify source snippet kind ("stmt" or "cu") '
+            '--- [PROVISIONAL API].', hide: true);
   parser.addOption(SELECTION_FLAG, abbr: 's',
       help: 'Specify selection information as an offset,length pair '
             '(e.g., -s "0,4").', hide: true);

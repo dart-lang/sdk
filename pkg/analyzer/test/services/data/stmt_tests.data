@@ -36,7 +36,8 @@ for (x in xs) {
 >>> TODO(pquitslund): FIX
 var primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71];
 <<<
-var primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71];
+var primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59,
+    61, 67, 71];
 >>> TODO(pquitslund): placeholder for when we turn the real line breaker on
 blah() {
   print('blah blah blah blah blah blah blah blah blah blah blah blah blah blah $foo');

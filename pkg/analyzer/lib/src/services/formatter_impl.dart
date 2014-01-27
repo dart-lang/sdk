@@ -388,6 +388,7 @@ class SourceVisitor implements ASTVisitor {
     this.preSelection)
       : writer = new SourceWriter(indentCount: options.initialIndentationLevel,
                                 lineSeparator: options.lineSeparator,
+                                maxLineLength: options.pageWidth,
                                 useTabs: options.tabsForIndent,
                                 spacesPerIndent: options.spacesPerIndent),
        codeTransforms = options.codeTransforms;

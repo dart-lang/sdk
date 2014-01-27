@@ -5,9 +5,6 @@
 library source_writer;
 
 
-/// DEBUG flag indicating whether to use the experimental line-breaker
-const _USE_LINE_BREAKER = false;
-
 
 class Line {
 
@@ -122,10 +119,9 @@ class SimpleLineBreaker extends LinePrinter {
         if (work.fits(tok)) {
           work.add(tok);
         } else {
-          if (!isAllWhitespace(work)) {
+          if (!isAllWhitespace(work) || isLineStart(current)) {
             current.add(work);
-          }
-          if (current.length > 0) {
+          } else if (current.length > 0) {
             chunks.add(current);
             current = new Chunk(maxLength: maxLength);
           }
@@ -175,6 +171,8 @@ class SimpleLineBreaker extends LinePrinter {
       new LineToken(first.value + second.value);
 
   bool isAllWhitespace(Chunk chunk) => isWhitespace(chunk.buffer.toString());
+
+  bool isLineStart(chunk) => chunk.length == 0 && chunk.start == LINE_START;
 
   /// Test whether this token is a good start for a new working chunk
   bool goodStart(LineToken tok, Chunk workingChunk) =>
@@ -293,7 +291,7 @@ class SourceWriter {
 
   SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE,
       bool useTabs: false, int spacesPerIndent: 2, int maxLineLength: 80}) {
-    if (_USE_LINE_BREAKER) {
+    if (maxLineLength > 0) {
       linePrinter = new SimpleLineBreaker(maxLineLength, (n) =>
           getIndentString(n, useTabs: useTabs, spacesPerIndent: spacesPerIndent));
     } else {
