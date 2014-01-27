@@ -233,23 +233,19 @@ class ContainerBuilder extends CodeEmitterHelper {
     // If the method is intercepted, the stub gets the
     // receiver explicitely and we need to pass it to the getter call.
     bool isInterceptedMethod = backend.isInterceptedMethod(member);
-    bool isInterceptorClass =
-        backend.isInterceptorClass(member.getEnclosingClass());
 
     const String receiverArgumentName = r'$receiver';
 
     jsAst.Expression buildGetter() {
-      jsAst.Expression receiver =
-          js(isInterceptorClass ? receiverArgumentName : 'this');
       if (member.isGetter()) {
         String getterName = namer.getterName(member);
-        return receiver[getterName](
-            isInterceptedMethod ?
-            <jsAst.Expression>[receiver] :
-            <jsAst.Expression>[]);
+        return js('this')[getterName](
+            isInterceptedMethod
+                ? <jsAst.Expression>[js(receiverArgumentName)]
+                : <jsAst.Expression>[]);
       } else {
         String fieldName = namer.instanceFieldPropertyName(member);
-        return receiver[fieldName];
+        return js('this')[fieldName];
       }
     }
 
