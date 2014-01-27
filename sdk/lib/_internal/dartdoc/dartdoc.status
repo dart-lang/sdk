@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 test/markdown_test: Pass
-test/dartdoc_test: Pass
+test/dartdoc_test: Pass, Slow  # Issue 16311
 test/dartdoc_search_test: Pass, Skip
 
 # Dartdoc only runs on the VM, so just rule out all compilers.
