@@ -19,11 +19,13 @@ Future<String> getVersion(var rootPath) {
 Future<String> getSnapshotGenerationFile(var args, var rootPath) {
   var dart2js = rootPath.resolve(args["dart2js_main"]);
   var dartdoc = rootPath.resolve(args["dartdoc_main"]);
+  var docgen = rootPath.resolve(args["docgen_main"]);
   return getVersion(rootPath).then((version) {
     var snapshotGenerationText =
 """
 import '${dart2js.toFilePath(windows: false)}' as dart2jsMain;
 import '${dartdoc.toFilePath(windows: false)}' as dartdocMain;
+import '${docgen.toFilePath(windows: false)}' as docgenMain;
 import 'dart:io';
 
 void main(List<String> arguments) {
@@ -34,6 +36,8 @@ void main(List<String> arguments) {
     dart2jsMain.main(arguments.skip(1).toList());
   } else if (tool == "dartdoc") {
     dartdocMain.main(arguments.skip(1).toList());
+  } else if (tool == "docgen") {
+    docgenMain.main(arguments.skip(1).toList());
   }
 }
 
@@ -72,6 +76,9 @@ Future createSnapshot(var dart_file, var packageRoot) {
                       dart_file])
       .then((result) {
         if (result.exitCode != 0) {
+          print("Could not generate snapshot: result code ${result.exitCode}");
+          print(result.stdout);
+          print(result.stderr);
           throw "Could not generate snapshot";
         }
       });
@@ -80,11 +87,14 @@ Future createSnapshot(var dart_file, var packageRoot) {
 /**
  * Takes the following arguments:
  * --output_dir=val     The full path to the output_dir.
- * --dart2js_main=val   The path to the dart2js main script releative to root.
+ * --dart2js_main=val   The path to the dart2js main script relative to root.
+ * --dartdoc_main=val   The path to the dartdoc main script relative to root.
+ * --docgen_main=val    The path to the docgen main script relative to root.
+ * --package-root=val   The package-root used to find packages for the snapshot.
  */
 void main(List<String> arguments) {
   var validArguments = ["--output_dir", "--dart2js_main", "--dartdoc_main",
-                        "--package_root"];
+                        "--docgen_main", "--package_root"];
   var args = {};
   for (var argument in arguments) {
     var argumentSplit = argument.split("=");
@@ -96,6 +106,7 @@ void main(List<String> arguments) {
   }
   if (!args.containsKey("dart2js_main")) throw "Please specify dart2js_main";
   if (!args.containsKey("dartdoc_main")) throw "Please specify dartdoc_main";
+  if (!args.containsKey("docgen_main")) throw "Please specify docgen_main";
   if (!args.containsKey("output_dir")) throw "Please specify output_dir";
   if (!args.containsKey("package_root")) throw "Please specify package_root";
 

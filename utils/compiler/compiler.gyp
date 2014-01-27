@@ -35,6 +35,7 @@
             '--output_dir=<(SHARED_INTERMEDIATE_DIR)',
             '--dart2js_main=sdk/lib/_internal/compiler/implementation/dart2js.dart',
             '--dartdoc_main=sdk/lib/_internal/dartdoc/bin/dartdoc.dart',
+            '--docgen_main=pkg/docgen/bin/docgen.dart',
             '--package_root=<(PRODUCT_DIR)/packages/',
           ],
         },

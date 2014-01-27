@@ -1,5 +1,5 @@
 @echo off
-REM Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+REM Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 REM for details. All rights reserved. Use of this source code is governed by a
 REM BSD-style license that can be found in the LICENSE file.
 
@@ -17,7 +17,7 @@ for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
 rem Remove trailing backslash if there is one
 IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
-set DARTDOC=%SDK_DIR%\lib\_internal\dartdoc\bin\dartdoc.dart
+set DOCGEN=%SDK_DIR%\pkg\docgen\bin\docgen.dart
 set DART=%BIN_DIR%\dart
 set SNAPSHOT=%BIN_DIR%\snapshots\utils_wrapper.dart.snapshot
 
@@ -27,7 +27,7 @@ set BUILD_DIR=%SDK_DIR%\..\build\%DART_CONFIGURATION%
 if exist "%SNAPSHOT%" (
   "%DART%" "%SNAPSHOT%" "dartdoc" "--library-root=%SDK_DIR%" %*
 ) else (
-  "%BUILD_DIR%\dart-sdk\bin\dart" "--package-root=%BUILD_DIR%\packages" "%DARTDOC%" %*
+  "%BUILD_DIR%\dart-sdk\bin\dart" "--package-root=%BUILD_DIR%\packages" "%DOCGEN%" %*
 )
 
 endlocal

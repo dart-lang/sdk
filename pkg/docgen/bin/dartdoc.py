@@ -87,7 +87,7 @@ def GenerateAllDocs(docgen_options):
 # from the SDK and includes only the ones from pkg. So right now our only option
 # is to do everything in one pass.
   doc_dir = join(DART_DIR, 'pkg')
-  cmd_lst = [DART_EXECUTABLE, '--old_gen_heap_size=1024',
+  cmd_lst = [DART_EXECUTABLE, 
       '--package-root=%s' % PACKAGE_ROOT, 'docgen.dart', '--include-sdk' ]
   cmd_str = ' '.join(AddUserDocgenOptions(cmd_lst, docgen_options, True))
   # Try to run all pkg docs together at once as it's fastest.
