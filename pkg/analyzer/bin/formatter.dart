@@ -26,6 +26,16 @@ bool overwriteFileContents;
 Selection selection;
 final List<String> paths = [];
 
+
+const HELP_FLAG = 'help';
+const KIND_FLAG = 'kind';
+const MACHINE_FLAG = 'machine';
+const WRITE_FLAG = 'write';
+const SELECTION_FLAG = 'selection';
+const TRANSFORM_FLAG = 'transform';
+const MAX_LINE_FLAG = 'max_line_length';
+
+
 const FOLLOW_LINKS = false;
 
 
@@ -47,12 +57,13 @@ main(args) {
 }
 
 _readOptions(options) {
-  kind = _parseKind(options['kind']);
-  machineFormat = options['machine'];
-  overwriteFileContents = options['write'];
-  selection = _parseSelection(options['selection']);
+  kind = _parseKind(options[KIND_FLAG]);
+  machineFormat = options[MACHINE_FLAG];
+  overwriteFileContents = options[WRITE_FLAG];
+  selection = _parseSelection(options[SELECTION_FLAG]);
   formatterSettings =
-      new FormatterOptions(codeTransforms: options['transform']);
+      new FormatterOptions(codeTransforms: options[TRANSFORM_FLAG],
+          pageWidth: _toInt(options[MAX_LINE_FLAG]));
 }
 
 CodeKind _parseKind(kindOption) {
@@ -142,20 +153,22 @@ _formatStdin(kind) {
 ArgParser _initArgParser() {
   // NOTE: these flags are placeholders only!
   var parser = new ArgParser();
-  parser.addFlag('write', abbr: 'w', negatable: false,
+  parser.addFlag(WRITE_FLAG, abbr: 'w', negatable: false,
       help: 'Write reformatted sources to files (overwriting contents).  '
             'Do not print reformatted sources to standard output.');
-  parser.addOption('kind', abbr: 'k', defaultsTo: 'cu',
+  parser.addFlag(TRANSFORM_FLAG, abbr: 't', negatable: false,
+      help: 'Perform code transformations.');
+  parser.addOption(MAX_LINE_FLAG, abbr: 'l', defaultsTo: '80',
+      help: 'Wrap lines longer than this length.');
+  parser.addOption(KIND_FLAG, abbr: 'k', defaultsTo: 'cu',
       help: 'Specify source snippet kind ("stmt" or "cu")'
             ' --- [PROVISIONAL API].', hide: true);
-  parser.addFlag('machine', abbr: 'm', negatable: false,
-      help: 'Produce output in a format suitable for parsing.');
-  parser.addOption('selection', abbr: 's',
+  parser.addOption(SELECTION_FLAG, abbr: 's',
       help: 'Specify selection information as an offset,length pair '
             '(e.g., -s "0,4").', hide: true);
-  parser.addFlag('transform', abbr: 't', negatable: true,
-      help: 'Perform code transformations.');
-  parser.addFlag('help', abbr: 'h', negatable: false,
+  parser.addFlag(MACHINE_FLAG, abbr: 'm', negatable: false,
+      help: 'Produce output in a format suitable for parsing.');
+  parser.addFlag(HELP_FLAG, abbr: 'h', negatable: false,
       help: 'Print this usage information.');
   return parser;
 }
