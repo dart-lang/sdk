@@ -12,60 +12,63 @@ import 'package:unittest/unittest.dart';
 import '../../../third_party/pkg/angular/test/angular_spec.dart' as test_0;
 import '../../../third_party/pkg/angular/test/bootstrap_spec.dart' as test_1;
 import '../../../third_party/pkg/angular/test/core/cache_spec.dart' as test_2;
-import '../../../third_party/pkg/angular/test/core/interpolate_spec.dart' as test_3;
-import '../../../third_party/pkg/angular/test/core/parser/generated_getter_setter_spec.dart' as test_4;
-import '../../../third_party/pkg/angular/test/core/parser/lexer_spec.dart' as test_5;
-import '../../../third_party/pkg/angular/test/core/parser/parser_spec.dart' as test_6;
-import '../../../third_party/pkg/angular/test/core/parser/static_parser_spec.dart' as test_7;
-import '../../../third_party/pkg/angular/test/core/registry_spec.dart' as test_8;
-import '../../../third_party/pkg/angular/test/core/scope_spec.dart' as test_9;
-import '../../../third_party/pkg/angular/test/core/templateurl_spec.dart' as test_10;
-import '../../../third_party/pkg/angular/test/core/zone_spec.dart' as test_11;
-import '../../../third_party/pkg/angular/test/core_dom/block_spec.dart' as test_12;
-import '../../../third_party/pkg/angular/test/core_dom/compiler_spec.dart' as test_13;
-import '../../../third_party/pkg/angular/test/core_dom/cookies_spec.dart' as test_14;
-import '../../../third_party/pkg/angular/test/core_dom/directive_spec.dart' as test_15;
-import '../../../third_party/pkg/angular/test/core_dom/http_spec.dart' as test_16;
-import '../../../third_party/pkg/angular/test/core_dom/ng_mustache_spec.dart' as test_17;
-import '../../../third_party/pkg/angular/test/core_dom/node_cursor_spec.dart' as test_18;
-import '../../../third_party/pkg/angular/test/core_dom/selector_spec.dart' as test_19;
-import '../../../third_party/pkg/angular/test/core_dom/shadow_root_options_spec.dart' as test_20;
-import '../../../third_party/pkg/angular/test/directive/input_select_spec.dart' as test_21;
-import '../../../third_party/pkg/angular/test/directive/ng_a_spec.dart' as test_22;
-import '../../../third_party/pkg/angular/test/directive/ng_bind_html_spec.dart' as test_23;
-import '../../../third_party/pkg/angular/test/directive/ng_bind_spec.dart' as test_24;
-import '../../../third_party/pkg/angular/test/directive/ng_bind_template_spec.dart' as test_25;
-import '../../../third_party/pkg/angular/test/directive/ng_class_spec.dart' as test_26;
-import '../../../third_party/pkg/angular/test/directive/ng_cloak_spec.dart' as test_27;
-import '../../../third_party/pkg/angular/test/directive/ng_events_spec.dart' as test_28;
-import '../../../third_party/pkg/angular/test/directive/ng_form_spec.dart' as test_29;
-import '../../../third_party/pkg/angular/test/directive/ng_if_spec.dart' as test_30;
-import '../../../third_party/pkg/angular/test/directive/ng_include_spec.dart' as test_31;
-import '../../../third_party/pkg/angular/test/directive/ng_model_spec.dart' as test_32;
-import '../../../third_party/pkg/angular/test/directive/ng_non_bindable_spec.dart' as test_33;
-import '../../../third_party/pkg/angular/test/directive/ng_switch_spec.dart' as test_34;
-import '../../../third_party/pkg/angular/test/directive/ng_repeat_spec.dart' as test_35;
-import '../../../third_party/pkg/angular/test/directive/ng_show_hide_spec.dart' as test_36;
-import '../../../third_party/pkg/angular/test/directive/ng_src_boolean_spec.dart' as test_37;
-import '../../../third_party/pkg/angular/test/directive/ng_style_spec.dart' as test_38;
-import '../../../third_party/pkg/angular/test/directive/ng_template_spec.dart' as test_39;
-import '../../../third_party/pkg/angular/test/filter/currency_spec.dart' as test_40;
-import '../../../third_party/pkg/angular/test/filter/date_spec.dart' as test_41;
-import '../../../third_party/pkg/angular/test/filter/filter_spec.dart' as test_42;
-import '../../../third_party/pkg/angular/test/filter/json_spec.dart' as test_43;
-import '../../../third_party/pkg/angular/test/filter/limit_to_spec.dart' as test_44;
-import '../../../third_party/pkg/angular/test/filter/lowercase_spec.dart' as test_45;
-import '../../../third_party/pkg/angular/test/filter/number_spec.dart' as test_46;
-import '../../../third_party/pkg/angular/test/filter/order_by_spec.dart' as test_47;
-import '../../../third_party/pkg/angular/test/filter/uppercase_spec.dart' as test_48;
-import '../../../third_party/pkg/angular/test/introspection_spec.dart' as test_49;
-import '../../../third_party/pkg/angular/test/mock/http_backend_spec.dart' as test_50;
-import '../../../third_party/pkg/angular/test/mock/test_bed_spec.dart' as test_51;
-import '../../../third_party/pkg/angular/test/mock/zone_spec.dart' as test_52;
-import '../../../third_party/pkg/angular/test/routing/ng_bind_route_spec.dart' as test_53;
-import '../../../third_party/pkg/angular/test/routing/ng_view_spec.dart' as test_54;
-import '../../../third_party/pkg/angular/test/routing/routing_spec.dart' as test_55;
-import '../../../third_party/pkg/angular/test/_specs_spec.dart' as test_56;
+import '../../../third_party/pkg/angular/test/core/core_directive_spec.dart' as test_3;
+import '../../../third_party/pkg/angular/test/core/interpolate_spec.dart' as test_4;
+import '../../../third_party/pkg/angular/test/core/parser/generated_getter_setter_spec.dart' as test_5;
+import '../../../third_party/pkg/angular/test/core/parser/lexer_spec.dart' as test_6;
+import '../../../third_party/pkg/angular/test/core/parser/parser_spec.dart' as test_7;
+import '../../../third_party/pkg/angular/test/core/parser/static_parser_spec.dart' as test_8;
+import '../../../third_party/pkg/angular/test/core/registry_spec.dart' as test_9;
+import '../../../third_party/pkg/angular/test/core/scope_spec.dart' as test_10;
+import '../../../third_party/pkg/angular/test/core/templateurl_spec.dart' as test_11;
+import '../../../third_party/pkg/angular/test/core/zone_spec.dart' as test_12;
+import '../../../third_party/pkg/angular/test/core_dom/block_spec.dart' as test_13;
+import '../../../third_party/pkg/angular/test/core_dom/compiler_spec.dart' as test_14;
+import '../../../third_party/pkg/angular/test/core_dom/cookies_spec.dart' as test_15;
+import '../../../third_party/pkg/angular/test/core_dom/directive_spec.dart' as test_16;
+import '../../../third_party/pkg/angular/test/core_dom/http_spec.dart' as test_17;
+import '../../../third_party/pkg/angular/test/core_dom/ng_mustache_spec.dart' as test_18;
+import '../../../third_party/pkg/angular/test/core_dom/node_cursor_spec.dart' as test_19;
+import '../../../third_party/pkg/angular/test/core_dom/selector_spec.dart' as test_20;
+import '../../../third_party/pkg/angular/test/core_dom/shadow_root_options_spec.dart' as test_21;
+import '../../../third_party/pkg/angular/test/directive/input_select_spec.dart' as test_22;
+import '../../../third_party/pkg/angular/test/directive/ng_a_spec.dart' as test_23;
+import '../../../third_party/pkg/angular/test/directive/ng_bind_html_spec.dart' as test_24;
+import '../../../third_party/pkg/angular/test/directive/ng_bind_spec.dart' as test_25;
+import '../../../third_party/pkg/angular/test/directive/ng_bind_template_spec.dart' as test_26;
+import '../../../third_party/pkg/angular/test/directive/ng_class_spec.dart' as test_27;
+import '../../../third_party/pkg/angular/test/directive/ng_cloak_spec.dart' as test_28;
+import '../../../third_party/pkg/angular/test/directive/ng_events_spec.dart' as test_29;
+import '../../../third_party/pkg/angular/test/directive/ng_form_spec.dart' as test_30;
+import '../../../third_party/pkg/angular/test/directive/ng_if_spec.dart' as test_31;
+import '../../../third_party/pkg/angular/test/directive/ng_include_spec.dart' as test_32;
+import '../../../third_party/pkg/angular/test/directive/ng_model_spec.dart' as test_33;
+import '../../../third_party/pkg/angular/test/directive/ng_model_validators_spec.dart' as test_34;
+import '../../../third_party/pkg/angular/test/directive/ng_non_bindable_spec.dart' as test_35;
+import '../../../third_party/pkg/angular/test/directive/ng_pluralize_spec.dart' as test_36;
+import '../../../third_party/pkg/angular/test/directive/ng_repeat_spec.dart' as test_37;
+import '../../../third_party/pkg/angular/test/directive/ng_show_hide_spec.dart' as test_38;
+import '../../../third_party/pkg/angular/test/directive/ng_src_boolean_spec.dart' as test_39;
+import '../../../third_party/pkg/angular/test/directive/ng_style_spec.dart' as test_40;
+import '../../../third_party/pkg/angular/test/directive/ng_switch_spec.dart' as test_41;
+import '../../../third_party/pkg/angular/test/directive/ng_template_spec.dart' as test_42;
+import '../../../third_party/pkg/angular/test/filter/currency_spec.dart' as test_43;
+import '../../../third_party/pkg/angular/test/filter/date_spec.dart' as test_44;
+import '../../../third_party/pkg/angular/test/filter/filter_spec.dart' as test_45;
+import '../../../third_party/pkg/angular/test/filter/json_spec.dart' as test_46;
+import '../../../third_party/pkg/angular/test/filter/limit_to_spec.dart' as test_47;
+import '../../../third_party/pkg/angular/test/filter/lowercase_spec.dart' as test_48;
+import '../../../third_party/pkg/angular/test/filter/number_spec.dart' as test_49;
+import '../../../third_party/pkg/angular/test/filter/order_by_spec.dart' as test_50;
+import '../../../third_party/pkg/angular/test/filter/uppercase_spec.dart' as test_51;
+import '../../../third_party/pkg/angular/test/introspection_spec.dart' as test_52;
+import '../../../third_party/pkg/angular/test/mock/http_backend_spec.dart' as test_53;
+import '../../../third_party/pkg/angular/test/mock/test_bed_spec.dart' as test_54;
+import '../../../third_party/pkg/angular/test/mock/zone_spec.dart' as test_55;
+import '../../../third_party/pkg/angular/test/routing/ng_bind_route_spec.dart' as test_56;
+import '../../../third_party/pkg/angular/test/routing/ng_view_spec.dart' as test_57;
+import '../../../third_party/pkg/angular/test/routing/routing_spec.dart' as test_58;
+import '../../../third_party/pkg/angular/test/_specs_spec.dart' as test_59;
 
 main() {
   useHtmlIndividualConfiguration();
@@ -86,219 +89,231 @@ main() {
     test_2.main();
   });
 
-  group('core/interpolate', () {
+  group('core/core_directive', () {
     test_3.main();
   });
 
-  group('core/parser/generated_getter_setter', () {
+  group('core/interpolate', () {
     test_4.main();
   });
 
-  group('core/parser/lexer', () {
+  group('core/parser/generated_getter_setter', () {
     test_5.main();
   });
 
-  group('core/parser/parser', () {
+  group('core/parser/lexer', () {
     test_6.main();
   });
 
-  group('core/parser/static_parser', () {
+  group('core/parser/parser', () {
     test_7.main();
   });
 
-  group('core/registry', () {
+  group('core/parser/static_parser', () {
     test_8.main();
   });
 
-  group('core/scope', () {
+  group('core/registry', () {
     test_9.main();
   });
 
-  group('core/templateurl', () {
+  group('core/scope', () {
     test_10.main();
   });
 
-  group('core/zone', () {
+  group('core/templateurl', () {
     test_11.main();
   });
 
-  group('core_dom/block', () {
+  group('core/zone', () {
     test_12.main();
   });
 
-  group('core_dom/compiler', () {
+  group('core_dom/block', () {
     test_13.main();
   });
 
-  group('core_dom/cookies', () {
+  group('core_dom/compiler', () {
     test_14.main();
   });
 
-  group('core_dom/directive', () {
+  group('core_dom/cookies', () {
     test_15.main();
   });
 
-  group('core_dom/http', () {
+  group('core_dom/directive', () {
     test_16.main();
   });
 
-  group('core_dom/ng_mustache', () {
+  group('core_dom/http', () {
     test_17.main();
   });
 
-  group('core_dom/node_cursor', () {
+  group('core_dom/ng_mustache', () {
     test_18.main();
   });
 
-  group('core_dom/selector', () {
+  group('core_dom/node_cursor', () {
     test_19.main();
   });
 
-  group('core_dom/shadow_root_options', () {
+  group('core_dom/selector', () {
     test_20.main();
   });
 
-  group('directive/input_select', () {
+  group('core_dom/shadow_root_options', () {
     test_21.main();
   });
 
-  group('directive/ng_a', () {
+  group('directive/input_select', () {
     test_22.main();
   });
 
-  group('directive/ng_bind_html', () {
+  group('directive/ng_a', () {
     test_23.main();
   });
 
-  group('directive/ng_bind', () {
+  group('directive/ng_bind_html', () {
     test_24.main();
   });
 
-  group('directive/ng_bind_template', () {
+  group('directive/ng_bind', () {
     test_25.main();
   });
 
-  group('directive/ng_class', () {
+  group('directive/ng_bind_template', () {
     test_26.main();
   });
 
-  group('directive/ng_cloak', () {
+  group('directive/ng_class', () {
     test_27.main();
   });
 
-  group('directive/ng_events', () {
+  group('directive/ng_cloak', () {
     test_28.main();
   });
 
-  group('directive/ng_form', () {
+  group('directive/ng_events', () {
     test_29.main();
   });
 
-  group('directive/ng_if', () {
+  group('directive/ng_form', () {
     test_30.main();
   });
 
-  group('directive/ng_include', () {
+  group('directive/ng_if', () {
     test_31.main();
   });
 
-  group('directive/ng_model', () {
+  group('directive/ng_include', () {
     test_32.main();
   });
 
-  group('directive/ng_non_bindable', () {
+  group('directive/ng_model', () {
     test_33.main();
   });
 
-  group('directive/ng_switch', () {
+  group('directive/ng_model_validators', () {
     test_34.main();
   });
 
-  group('directive/ng_repeat', () {
+  group('directive/ng_non_bindable', () {
     test_35.main();
   });
 
-  group('directive/ng_show_hide', () {
+  group('directive/ng_pluralize', () {
     test_36.main();
   });
 
-  group('directive/ng_src_boolean', () {
+  group('directive/ng_repeat', () {
     test_37.main();
   });
 
-  group('directive/ng_style', () {
+  group('directive/ng_show_hide', () {
     test_38.main();
   });
 
-  group('directive/ng_template', () {
+  group('directive/ng_src_boolean', () {
     test_39.main();
   });
 
-  group('filter/currency', () {
+  group('directive/ng_style', () {
     test_40.main();
   });
 
-  group('filter/date', () {
+  group('directive/ng_switch', () {
     test_41.main();
   });
 
-  group('filter/filter', () {
+  group('directive/ng_template', () {
     test_42.main();
   });
 
-  group('filter/json', () {
+  group('filter/currency', () {
     test_43.main();
   });
 
-  group('filter/limit_to', () {
+  group('filter/date', () {
     test_44.main();
   });
 
-  group('filter/lowercase', () {
+  group('filter/filter', () {
     test_45.main();
   });
 
-  group('filter/number', () {
+  group('filter/json', () {
     test_46.main();
   });
 
-  group('filter/order_by', () {
+  group('filter/limit_to', () {
     test_47.main();
   });
 
-  group('filter/uppercase', () {
+  group('filter/lowercase', () {
     test_48.main();
   });
 
-  group('introspection', () {
+  group('filter/number', () {
     test_49.main();
   });
 
-  group('mock/http_backend', () {
+  group('filter/order_by', () {
     test_50.main();
   });
 
-  group('mock/test_bed', () {
+  group('filter/uppercase', () {
     test_51.main();
   });
 
-  group('mock/zone', () {
+  group('introspection', () {
     test_52.main();
   });
 
-  group('routing/ng_bind_route', () {
+  group('mock/http_backend', () {
     test_53.main();
   });
 
-  group('routing/ng_view', () {
+  group('mock/test_bed', () {
     test_54.main();
   });
 
-  group('routing/routing', () {
+  group('mock/zone', () {
     test_55.main();
   });
 
-  group('_specs', () {
+  group('routing/ng_bind_route', () {
     test_56.main();
+  });
+
+  group('routing/ng_view', () {
+    test_57.main();
+  });
+
+  group('routing/routing', () {
+    test_58.main();
+  });
+
+  group('_specs', () {
+    test_59.main();
   });
 }

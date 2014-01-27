@@ -31,7 +31,7 @@ collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
-third_party/angular_tests/browser_test/core/parser/parser: Fail # Issue 15915
+third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
 [ $compiler == dart2js && $checked ]
