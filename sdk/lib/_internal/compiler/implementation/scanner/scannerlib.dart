@@ -26,7 +26,7 @@ import '../tree/tree.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
 import '../source_file.dart' show SourceFile, Utf8BytesSourceFile;
-import 'dart:convert' show UTF8;
+import 'dart:convert' show UTF8, UNICODE_BOM_CHARACTER_RUNE;
 import 'dart:typed_data' show Uint8List;
 
 part 'class_element_parser.dart';

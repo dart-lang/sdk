@@ -23,6 +23,8 @@ mixin_forwarding_constructor2_test: Fail # Issue 13641
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 
+unicode_bom_test: Fail # Issue 16067
+
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 

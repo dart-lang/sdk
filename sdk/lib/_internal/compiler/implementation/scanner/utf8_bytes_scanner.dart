@@ -69,6 +69,8 @@ class Utf8BytesScanner extends ArrayBasedScanner {
       : bytes = file.slowUtf8Bytes(),
         super(file, includeComments) {
     ensureZeroTermination();
+    // Skip a leading BOM.
+    if (_containsBomAt(0)) byteOffset += 3;
   }
 
   /**
@@ -93,6 +95,15 @@ class Utf8BytesScanner extends ArrayBasedScanner {
       newBytes[bytes.length] = 0;
       bytes = newBytes;
     }
+  }
+
+  bool _containsBomAt(int offset) {
+    const BOM_UTF8 = const [0xEF, 0xBB, 0xBF];
+
+    return offset + 3 < bytes.length &&
+        bytes[offset] == BOM_UTF8[0] &&
+        bytes[offset + 1] == BOM_UTF8[1] &&
+        bytes[offset + 2] == BOM_UTF8[2];
   }
 
   int advance() => bytes[++byteOffset];
@@ -120,6 +131,13 @@ class Utf8BytesScanner extends ArrayBasedScanner {
     // TODO(lry): measurably slow, decode creates first a Utf8Decoder and a
     // _Utf8Decoder instance. Also the sublist is eagerly allocated.
     String codePoint = UTF8.decode(bytes.sublist(startOffset, end));
+    if (codePoint.length == 0) {
+      // The UTF-8 decoder discards leading BOM characters.
+      // TODO(floitsch): don't just assume that removed characters were the
+      // BOM.
+      assert(_containsBomAt(startOffset));
+      codePoint = new String.fromCharCode(UNICODE_BOM_CHARACTER_RUNE);
+    }
     if (codePoint.length == 1) {
       if (advance) {
         utf8Slack += (numBytes - 1);
