@@ -15,6 +15,7 @@
 #include "vm/profiler.h"
 #include "vm/signal_handler.h"
 #include "vm/simulator.h"
+#include "vm/stack_frame.h"
 
 namespace dart {
 
@@ -819,13 +820,13 @@ int ProfilerSampleStackWalker::walk() {
 
 uword* ProfilerSampleStackWalker::CallerPC(uword* fp) {
   ASSERT(fp != NULL);
-  return reinterpret_cast<uword*>(*(fp + 1));
+  return reinterpret_cast<uword*>(*(fp + kSavedCallerPcSlotFromFp));
 }
 
 
 uword* ProfilerSampleStackWalker::CallerFP(uword* fp) {
   ASSERT(fp != NULL);
-  return reinterpret_cast<uword*>(*fp);
+  return reinterpret_cast<uword*>(*(fp + kSavedCallerFpSlotFromFp));
 }
 
 
