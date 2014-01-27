@@ -660,13 +660,18 @@ class Debugger {
       });
     }
     var targetPid = targetProcess.pid;
-    print("Sending kill signal to process $targetPid...");
-    targetProcess.kill();
-    // If the process was already dead exitCode is already
+    if (errorsDetected || !shutdownEventSeen) {
+      print("Sending kill signal to process $targetPid...");
+      targetProcess.kill();
+    }
+    // If the process was already dead, exitCode is
     // available and we call exit() in the next event loop cycle.
     // Otherwise this will wait for the process to exit.
     targetProcess.exitCode.then((exitCode) {
       print("process $targetPid terminated with exit code $exitCode.");
+      if (exitCode != 0) {
+        error("Error: target process died with exit code $exitCode");
+      }
       if (errorsDetected) {
         print("\n===== Errors detected: =====");
         for (int i = 0; i < errors.length; i++) print(errors[i]);
