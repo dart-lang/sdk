@@ -212,6 +212,40 @@ testPhiMultipleRepresentations(f, arr) {
   return v + w;
 }
 
+testIndexedNoAlias(a) {
+  a[0] = 1;
+  a[1] = 2;
+  a[2] = 3;
+  return a[0] + a[1];
+}
+
+testIndexedAliasedStore(a, b) {
+  a[0] = 1;
+  a[1] = 2;
+  if (a == b) {
+    b[0] = 3;
+  }
+  return a[0] + a[1];
+}
+
+testIndexedAliasedStore1(a, b) {
+  a[0] = 1;
+  a[1] = 2;
+  if (a == b) {
+    b[0] = 3;
+  }
+  return a[0] + a[1];
+}
+
+testIndexedAliasedStore2(a, b, i) {
+  a[0] = 1;
+  a[1] = 2;
+  if (a == b) {
+    b[i] = 3;
+  }
+  return a[0] + a[1];
+}
+var indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 main() {
   final fixed = new List(10);
@@ -262,5 +296,16 @@ main() {
   final escape = new List(1);
   for (var i = 0; i < 20; i++) {
     fakeAliasing(escape);
+  }
+
+  final array = new List(3);
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(3, testIndexedNoAlias(array));
+  }
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(5, testIndexedAliasedStore1(array, array));
+  }
+  for (var i = 0; i < 20; i++) {
+    Expect.equals(4, testIndexedAliasedStore2(array, array, indices[1]));
   }
 }

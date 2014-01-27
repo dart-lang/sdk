@@ -297,15 +297,15 @@ void FlowGraphOptimizer::AppendLoadIndexedForMerged(Definition* instr,
                                                     intptr_t ix,
                                                     intptr_t cid) {
   const intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(cid);
-  ConstantInstr* index_instr = new ConstantInstr(Smi::Handle(Smi::New(ix)));
-  flow_graph()->InsertAfter(instr, index_instr, NULL, Definition::kValue);
+  ConstantInstr* index_instr =
+      flow_graph()->GetConstant(Smi::Handle(Smi::New(ix)));
   LoadIndexedInstr* load = new LoadIndexedInstr(new Value(instr),
                                                 new Value(index_instr),
                                                 index_scale,
                                                 cid,
                                                 Isolate::kNoDeoptId);
   instr->ReplaceUsesWith(load);
-  flow_graph()->InsertAfter(index_instr, load, NULL, Definition::kValue);
+  flow_graph()->InsertAfter(instr, load, NULL, Definition::kValue);
 }
 
 
@@ -4624,29 +4624,34 @@ class Alias : public ValueObject {
   // TODO(vegorov): incorporate type of array into alias to disambiguate
   // different typed data and normal arrays.
   static Alias Indexes() {
-    return Alias(kIndexesAlias);
+    return Alias(kIndexesAlias, 0);
+  }
+
+  static Alias ConstantIndex(intptr_t id) {
+    ASSERT(id != 0);
+    return Alias(kConstantIndex, id);
   }
 
   // Field load/stores alias each other only when they access the same field.
   // AliasedSet assigns ids to a combination of instance and field during
   // the optimization phase.
   static Alias Field(intptr_t id) {
-    ASSERT(id >= kFirstFieldAlias);
-    return Alias(id * 2 + 1);
+    ASSERT(id != 0);
+    return Alias(kFieldAlias, id);
   }
 
   // VMField load/stores alias each other when field offset matches.
   // TODO(vegorov) storing a context variable does not alias loading array
   // length.
   static Alias VMField(intptr_t offset_in_bytes) {
+    ASSERT(offset_in_bytes >= 0);
     const intptr_t idx = offset_in_bytes / kWordSize;
-    ASSERT(idx >= kFirstFieldAlias);
-    return Alias(idx * 2);
+    return Alias(kVMFieldAlias, idx);
   }
 
   // Current context load/stores alias each other.
   static Alias CurrentContext() {
-    return Alias(kCurrentContextAlias);
+    return Alias(kCurrentContextAlias, 0);
   }
 
   // Operation does not alias anything.
@@ -4661,19 +4666,44 @@ class Alias : public ValueObject {
   // Convert this alias to a positive array index.
   intptr_t ToIndex() const {
     ASSERT(!IsNone());
-    return alias_ - kAliasBase;
+    return alias_;
   }
 
  private:
+  enum {
+    // Number of bits required to encode Kind value.
+    // The payload occupies the rest of the bits, but leaves the MSB (sign bit)
+    // empty so that the resulting encoded value is always a positive integer.
+    kBitsForKind = 3,
+    kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind - 1,
+  };
+
+  enum Kind {
+    kNoneAlias = -1,
+    kCurrentContextAlias = 0,
+    kIndexesAlias = 1,
+    kFieldAlias = 2,
+    kVMFieldAlias = 3,
+    kConstantIndex = 4,
+    kNumKinds = kConstantIndex + 1
+  };
+  COMPILE_ASSERT(kNumKinds < ((1 << kBitsForKind) - 1), InvalidBitFieldSize);
+
   explicit Alias(intptr_t alias) : alias_(alias) { }
 
-  enum {
-    kNoneAlias = -2,
-    kCurrentContextAlias = -1,
-    kIndexesAlias = 0,
-    kFirstFieldAlias = kIndexesAlias + 1,
-    kAliasBase = kCurrentContextAlias
-  };
+  Alias(Kind kind, uword payload)
+      : alias_(KindField::encode(kind) | PayloadField::encode(payload)) { }
+
+  uword payload() const {
+    return PayloadField::decode(alias_);
+  }
+
+  Kind kind() const {
+    return IsNone() ? kNoneAlias : KindField::decode(alias_);
+  }
+
+  typedef BitField<Kind, 0, kBitsForKind> KindField;
+  typedef BitField<uword, kBitsForKind, kBitsForPayload> PayloadField;
 
   const intptr_t alias_;
 };
@@ -4992,11 +5022,19 @@ class AliasedSet : public ZoneAllocated {
         sets_(),
         aliased_by_effects_(new BitVector(places->length())),
         max_field_id_(0),
-        field_ids_() { }
+        field_ids_(),
+        max_index_id_(0),
+        index_ids_() { }
 
   Alias ComputeAlias(Place* place) {
     switch (place->kind()) {
       case Place::kIndexed:
+        if (place->index()->IsConstant()) {
+          const Object& index = place->index()->AsConstant()->value();
+          if (index.IsSmi()) {
+            return Alias::ConstantIndex(GetIndexId(Smi::Cast(index).Value()));
+          }
+        }
         return Alias::Indexes();
       case Place::kField:
         return Alias::Field(
@@ -5014,7 +5052,15 @@ class AliasedSet : public ZoneAllocated {
   }
 
   Alias ComputeAliasForStore(Instruction* instr) {
-    if (instr->IsStoreIndexed()) {
+    StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
+    if (store_indexed != NULL) {
+      if (store_indexed->index()->definition()->IsConstant()) {
+        const Object& index =
+            store_indexed->index()->definition()->AsConstant()->value();
+        if (index.IsSmi()) {
+          return Alias::ConstantIndex(GetIndexId(Smi::Cast(index).Value()));
+        }
+      }
       return Alias::Indexes();
     }
 
@@ -5045,7 +5091,8 @@ class AliasedSet : public ZoneAllocated {
 
   BitVector* Get(const Alias alias) {
     const intptr_t idx = alias.ToIndex();
-    return (idx < sets_.length()) ? sets_[idx] : NULL;
+    BitVector* ret = (idx < sets_.length()) ? sets_[idx] : NULL;
+    return ret;
   }
 
   void AddRepresentative(Place* place) {
@@ -5057,9 +5104,25 @@ class AliasedSet : public ZoneAllocated {
     }
   }
 
+  void EnsureAliasingForIndexes() {
+    BitVector* indexes = Get(Alias::Indexes());
+    if (indexes == NULL) {
+      return;
+    }
+
+    // Constant indexes alias all non-constant indexes and non-constant
+    // indexes alias all constant indexes. Ids start at 1.
+    for (intptr_t id = 1; id <= max_index_id_; id++) {
+      BitVector* const_indexes = Get(Alias::ConstantIndex(id));
+      if (const_indexes != NULL) {
+        const_indexes->AddAll(indexes);
+        indexes->AddAll(const_indexes);
+      }
+    }
+  }
+
   void AddIdForAlias(const Alias alias, intptr_t place_id) {
     const intptr_t idx = alias.ToIndex();
-
     while (sets_.length() <= idx) {
       sets_.Add(NULL);
     }
@@ -5135,6 +5198,16 @@ class AliasedSet : public ZoneAllocated {
     if (id == 0) {
       id = ++max_field_id_;
       field_ids_.Insert(FieldIdPair(FieldIdPair::Key(instance_id, &field), id));
+    }
+    return id;
+  }
+
+  intptr_t GetIndexId(intptr_t index) {
+    intptr_t id = index_ids_.Lookup(index);
+    if (id == 0) {
+      // Zero is used to indicate element not found. The first id is one.
+      id = ++max_index_id_;
+      index_ids_.Insert(IndexIdPair(index, id));
     }
     return id;
   }
@@ -5241,6 +5314,35 @@ class AliasedSet : public ZoneAllocated {
     Value value_;
   };
 
+  class IndexIdPair {
+   public:
+    typedef intptr_t Key;
+    typedef intptr_t Value;
+    typedef IndexIdPair Pair;
+
+    IndexIdPair(Key key, Value value) : key_(key), value_(value) { }
+
+    static Key KeyOf(IndexIdPair kv) {
+      return kv.key_;
+    }
+
+    static Value ValueOf(IndexIdPair kv) {
+      return kv.value_;
+    }
+
+    static intptr_t Hashcode(Key key) {
+      return key;
+    }
+
+    static inline bool IsKeyEqual(IndexIdPair kv, Key key) {
+      return KeyOf(kv) == key;
+    }
+
+   private:
+    Key key_;
+    Value value_;
+  };
+
   const ZoneGrowableArray<Place*>& places_;
 
   const PhiPlaceMoves* phi_moves_;
@@ -5254,6 +5356,9 @@ class AliasedSet : public ZoneAllocated {
   // Table mapping static field to their id used during optimization pass.
   intptr_t max_field_id_;
   DirectChainedHashMap<FieldIdPair> field_ids_;
+
+  intptr_t max_index_id_;
+  DirectChainedHashMap<IndexIdPair> index_ids_;
 };
 
 
@@ -5393,6 +5498,8 @@ static AliasedSet* NumberPlaces(
     Place* place = (*places)[i];
     aliased_set->AddRepresentative(place);
   }
+
+  aliased_set->EnsureAliasingForIndexes();
 
   return aliased_set;
 }
