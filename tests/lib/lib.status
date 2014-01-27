@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $checked && $compiler != dartanalyzer && $compiler != dart2analyzer ]
+mirrors/regress_16321_test/01: CompileTimeError, OK # Only a compile-time error in checked mode.
+
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 convert/ascii_test: Skip # http://dartbug.com/15498
 convert/streamed_conversion_json_utf8_encode_test: Skip # http://dartbug.com/15498

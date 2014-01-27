@@ -8945,8 +8945,11 @@ RawObject* Parser::EvaluateConstConstructorCall(
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
-      // not optimizable.
-      current_function().SetIsOptimizable(false);
+      // not optimizable. Unless we are evaluating metadata, in which case there
+      // is no current function.
+      if (!parsing_metadata_) {
+        current_function().SetIsOptimizable(false);
+      }
       if (result.IsUnhandledException()) {
         return result.raw();
       } else {
