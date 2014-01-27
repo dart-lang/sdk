@@ -244,9 +244,7 @@ String _filePathFromUri(String userUri) {
       return uri.toFilePath();
       break;
     case 'dart-ext':
-      return new Uri(scheme: 'file',
-                     host: uri.host,
-                     path: uri.path).toFilePath();
+      return new Uri.file(uri.path).toFilePath();
       break;
     case 'package':
       return _filePathFromPackageUri(uri);
