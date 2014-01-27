@@ -298,8 +298,6 @@ compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 malformed2_test/01: Fail, OK
 
-unicode_bom_test: Fail # Issue 16067
-
 [ $compiler == dart2dart && $checked ]
 # Dart VM problems
 malbounded_type_cast_test: Fail # Issue 14123
