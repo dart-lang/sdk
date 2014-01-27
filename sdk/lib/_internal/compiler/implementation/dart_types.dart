@@ -983,6 +983,10 @@ abstract class AbstractTypeRelation extends DartTypeVisitor<bool, DartType> {
 
   bool invalidTypeVariableBounds(DartType bound, DartType s);
 
+  /// Handle as dynamic for both subtype and more specific relation to avoid
+  /// spurious errors from malformed types.
+  bool visitMalformedType(MalformedType t, DartType s) => true;
+
   bool visitInterfaceType(InterfaceType t, DartType s) {
 
     // TODO(johnniwinther): Currently needed since literal types like int,

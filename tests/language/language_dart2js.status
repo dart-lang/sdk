@@ -100,7 +100,6 @@ mixin_mixin_bound2_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js ]
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
-function_type_alias9_test/00: Crash
 malformed_test/none: RuntimeError # Issue 12695
 branch_canonicalization_test: RuntimeError # Issue 638.
 identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
@@ -165,8 +164,6 @@ expect_test: RuntimeError, OK # Issue 13080
 null_test/none: RuntimeError  # Issue 12482
 
 [ $compiler == dart2js || $compiler == dart2dart ]
-
-function_type_alias9_test/00: Crash # Issue 15237
 mixin_invalid_inheritance2_test/03: Crash # Issue 15237
 
 [ ($compiler == dart2js || $compiler == dart2dart) && $checked ]
