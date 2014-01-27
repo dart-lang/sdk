@@ -31,7 +31,6 @@ collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
-third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
 [ $compiler == dart2js && $checked ]
@@ -125,6 +124,7 @@ unittest/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
 
 third_party/angular_tests/browser_test: StaticWarning # Issue 15890
+third_party/angular_tests/browser_test: Skip # Issue 16346
 
 [ $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip
@@ -197,6 +197,7 @@ observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/*: Fail, OK # Uses dart:io.
 third_party/angular_tests/vm_test: Skip # Uses dart:io
+third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
 watcher/test/*: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/*: Fail # http://dartbug.com/8440
