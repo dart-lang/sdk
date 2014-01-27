@@ -1,0 +1,53 @@
+#!/bin/bash
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Run dartfmt.dart on the Dart VM. This script assumes the Dart SDK's directory
+# structure.
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
+
+SNAPSHOT="$BIN_DIR/snapshots/dartfmt.dart.snapshot"
+
+if test -f "$SNAPSHOT"; then
+  # We are running the snapshot in the built SDK.
+  DART="$BIN_DIR/dart"
+  exec "$DART" "$SNAPSHOT" "$@"
+else
+  # We are running dartfmt from source in the development repo.
+  if [ -z "$DART_CONFIGURATION" ];
+  then
+    DART_CONFIGURATION="ReleaseIA32"
+  fi
+
+  # TODO(pquitslund): this bit seems wrong, but was cribbed verbatim from pub
+  # Need to revisit and fix
+  if [[ `uname` == 'Darwin' ]];
+  then
+    BUILD_DIR="$SDK_DIR/../xcodebuild/$DART_CONFIGURATION"
+  else
+    BUILD_DIR="$SDK_DIR/../out/$DART_CONFIGURATION"
+  fi
+
+  DART="$BUILD_DIR/dart-sdk/bin/dart"
+  PKG_DIR="$BUILD_DIR/packages"
+  DARTFMT="$SDK_DIR/../pkg/analyzer/bin/formatter.dart"
+
+  exec "$DART" "--package-root=$PKG_DIR" "$DARTFMT" "$@"
+fi
