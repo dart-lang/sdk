@@ -5110,12 +5110,20 @@ class AliasedSet : public ZoneAllocated {
       return;
     }
 
-    // Constant indexes alias all non-constant indexes and non-constant
-    // indexes alias all constant indexes. Ids start at 1.
+    // Constant indexes alias all non-constant indexes.
+    // Non-constant indexes alias all constant indexes.
+    // First update alias set for const-indices, then
+    // update set for all indices. Ids start at 1.
     for (intptr_t id = 1; id <= max_index_id_; id++) {
       BitVector* const_indexes = Get(Alias::ConstantIndex(id));
       if (const_indexes != NULL) {
         const_indexes->AddAll(indexes);
+      }
+    }
+
+    for (intptr_t id = 1; id <= max_index_id_; id++) {
+      BitVector* const_indexes = Get(Alias::ConstantIndex(id));
+      if (const_indexes != NULL) {
         indexes->AddAll(const_indexes);
       }
     }
