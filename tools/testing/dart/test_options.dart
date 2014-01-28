@@ -390,7 +390,7 @@ Note: currently only implemented for dart2js.''',
               'status files.',
               ['--builder-tag'],
               [],
-              null),
+              ''),
           new _TestOptionSpecification(
               'vm_options',
               'Extra options to send to the vm when running',

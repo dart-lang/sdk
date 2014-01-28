@@ -19,5 +19,4 @@ pkg/stack_trace: PubGetError
 pkg/watcher: PubGetError # Issue 16026
 
 [ $builder_tag == russian ]
-samples/third_party/angular_todo: Fail # Issue 16356 
 samples/third_party/pop-pop-win: Fail # Issue 16356
