@@ -230,8 +230,8 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     var checked = check.checkedInput;
     while (checked is HCheck) {
       HInstruction next = checked.checkedInput;
-      if (generateAtUseSite.contains(next)) break;
       checked = next;
+      if (!generateAtUseSite.contains(next)) break;
     }
     return checked;
   }
