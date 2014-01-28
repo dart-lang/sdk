@@ -84,7 +84,6 @@ Future compile(String entrypoint, CompilerProvider provider, {
       packageRoot = path.join(path.dirname(entrypoint), 'packages');
     }
 
-    options.add('--asdfsadfsadf');
     return Chain.track(compiler.compile(
         path.toUri(entrypoint),
         path.toUri(appendSlash(_libPath)),
