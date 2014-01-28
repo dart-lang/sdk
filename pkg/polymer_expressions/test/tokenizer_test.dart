@@ -109,6 +109,17 @@ main() {
           t(GROUPER_TOKEN, '}')]);
     });
 
+    test('should tokenize lists', () {
+      expectTokens("[1, 'a', b]", [
+          t(GROUPER_TOKEN, '['),
+          t(INTEGER_TOKEN, '1'),
+          t(COMMA_TOKEN, ','),
+          t(STRING_TOKEN, 'a'),
+          t(COMMA_TOKEN, ','),
+          t(IDENTIFIER_TOKEN, 'b'),
+          t(GROUPER_TOKEN, ']')]);
+    });
+
     test('should tokenize integers', () {
       expectTokens('123', [t(INTEGER_TOKEN, '123')]);
       expectTokens('+123', [t(OPERATOR_TOKEN, '+'), t(INTEGER_TOKEN, '123')]);

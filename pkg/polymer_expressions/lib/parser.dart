@@ -30,9 +30,9 @@ class Parser {
   }
 
   _advance([int kind, String value]) {
-    if ((kind != null && _token.kind != kind)
-        || (value != null && _token.value != value)) {
-      throw new ParseException("Expected $value: $_token");
+    if ((kind != null && (_token == null || _token.kind != kind))
+        || (value != null && (_token == null || _token.value != value))) {
+      throw new ParseException("Expected kind $kind ($value): $_token");
     }
     _iterator.moveNext();
   }
@@ -160,6 +160,8 @@ class Parser {
           return _parseParenthesized();
         } else if (_token.value == '{') {
           return _parseMapLiteral();
+        } else if (_token.value == '[') {
+          return _parseListLiteral();
         }
         return null;
       case COLON_TOKEN:
@@ -169,6 +171,19 @@ class Parser {
       default:
         return null;
     }
+  }
+
+  ListLiteral _parseListLiteral() {
+    var items = [];
+    do {
+      _advance();
+      if (_token.kind == GROUPER_TOKEN && _token.value == ']') {
+        break;
+      }
+      items.add(_parseExpression());
+    } while(_token != null && _token.value == ',');
+    _advance(GROUPER_TOKEN, ']');
+    return new ListLiteral(items);
   }
 
   MapLiteral _parseMapLiteral() {

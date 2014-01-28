@@ -56,6 +56,10 @@ main() {
       expectEval('null', null);
     });
 
+    test('should return a literal list', () {
+      expectEval('[1, 2, 3]', equals([1, 2, 3]));
+    });
+
     test('should return a literal map', () {
       expectEval('{"a": 1}', equals(new Map.from({'a': 1})));
       expectEval('{"a": 1}', containsPair('a', 1));

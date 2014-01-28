@@ -210,5 +210,13 @@ main() {
           getter(mapLiteral([mapLiteralEntry(literal('a'), literal(1))]),
               'length'));
     });
+
+    test('should parse list literals', () {
+      expectParse('[1, "a", b]',
+          listLiteral([literal(1), literal('a'), ident('b')]));
+      expectParse('[[1, 2], [3, 4]]',
+          listLiteral([listLiteral([literal(1), literal(2)]),
+                       listLiteral([literal(3), literal(4)])]));
+    });
   });
 }

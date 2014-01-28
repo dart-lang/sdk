@@ -10,6 +10,7 @@ import 'visitor.dart';
 
 EmptyExpression empty() => const EmptyExpression();
 Literal literal(v) => new Literal(v);
+ListLiteral listLiteral(List<Expression> items) => new ListLiteral(items);
 MapLiteral mapLiteral(List<MapLiteralEntry> entries) => new MapLiteral(entries);
 MapLiteralEntry mapLiteralEntry(Literal key, Expression value) =>
     new MapLiteralEntry(key, value);
@@ -83,6 +84,20 @@ class Literal<T> extends Expression {
   bool operator ==(o) => o is Literal<T> && o.value == value;
 
   int get hashCode => value.hashCode;
+}
+
+class ListLiteral extends Expression {
+  final List<Expression> items;
+
+  ListLiteral(this.items);
+
+  accept(Visitor v) => v.visitListLiteral(this);
+
+  String toString() => "$items";
+
+  bool operator ==(o) => o is ListLiteral && _listEquals(o.items, items);
+
+  int get hashCode => _hashList(items);
 }
 
 class MapLiteral extends Expression {
