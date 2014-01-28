@@ -221,6 +221,13 @@ main() {
       expect(comprehension.iterable, orderedEquals([1, 2, 3]));
     });
 
+    test('should evaluate complex "in" expressions', () {
+      var holder = new ListHolder([1, 2, 3]);
+      var scope = new Scope(variables: {'holder': holder});
+      var comprehension = eval(parse('item in holder.items'), scope);
+      expect(comprehension.iterable, orderedEquals([1, 2, 3]));
+    });
+
     test('should handle null iterators in "in" expressions', () {
       var scope = new Scope(variables: {'items': null});
       var comprehension = eval(parse('item in items'), scope);
@@ -364,6 +371,12 @@ class Foo extends ChangeNotifier {
   Foo({name, this.age, this.child, this.items}) : _name = name;
 
   int x() => age * age;
+}
+
+@reflectable
+class ListHolder {
+  List items;
+  ListHolder(this.items);
 }
 
 parseInt([int radix = 10]) => new IntToString(radix: radix);
