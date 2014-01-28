@@ -71,9 +71,6 @@ js_test: Fail # Issue 14246
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
-[ $compiler == dart2js && $runtime == chrome ]
-selectelement_test: Skip # http://dartbug.com/15516
-
 [ $runtime == chrome ]
 canvasrenderingcontext2d_test/drawImage_video_element: Pass,Fail # Issue 11836
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11836
