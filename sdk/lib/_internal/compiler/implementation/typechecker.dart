@@ -159,6 +159,22 @@ class TypeLiteralAccess extends ElementAccess {
   String toString() => 'TypeLiteralAccess($element)';
 }
 
+
+/// An access to the 'call' method of a function type.
+class FunctionCallAccess implements ElementAccess {
+  final Element element;
+  final DartType type;
+
+  const FunctionCallAccess(this.element, this.type);
+
+  DartType computeType(Compiler compiler) => type;
+
+  bool isCallable(Compiler compiler) => true;
+
+  String toString() => 'FunctionAccess($element, $type)';
+}
+
+
 /// An is-expression that potentially promotes a variable.
 class TypePromotion {
   final Send node;
@@ -623,7 +639,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (receiverType.treatAsDynamic) {
       return const DynamicAccess();
     }
-    InterfaceType computeInterfaceType(DartType type) {
+
+    // Compute the unaliased type of the first non type variable bound of
+    // [type].
+    DartType computeUnaliasedBound(DartType type) {
       DartType originalType = type;
       while (identical(type.kind, TypeKind.TYPE_VARIABLE)) {
         TypeVariableType variable = type;
@@ -632,24 +651,50 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           type = compiler.objectClass.rawType;
         }
       }
-      if (type.kind == TypeKind.FUNCTION || type.kind == TypeKind.TYPEDEF) {
-        // TODO(karlklose): handle calling `call` on the function type. Do we
-        // have to type-check the arguments against the function type?
-        type = compiler.functionClass.rawType;
+      return type.unalias(compiler);
+    }
+
+    // Compute the interface type of [type]. For type variable it is the
+    // interface type of the bound, for function types and typedefs it is the
+    // `Function` type.
+    InterfaceType computeInterfaceType(DartType type) {
+      if (type.kind == TypeKind.FUNCTION) {
+         type = compiler.functionClass.rawType;
       }
       assert(invariant(node, type.kind == TypeKind.INTERFACE,
           message: "unexpected type kind ${type.kind}."));
       return type;
     }
-    InterfaceTypeMember getMember(DartType type) {
-      InterfaceType interface = computeInterfaceType(type);
-      return interface.lookupMember(name,
+
+    // Compute the access of [name] on [type]. This function takes the special
+    // 'call' method into account.
+    ElementAccess getAccess(DartType unaliasedBound, InterfaceType interface) {
+      InterfaceTypeMember member = interface.lookupMember(name,
           isSetter: identical(memberKind, MemberKind.SETTER));
+      if (member != null) {
+        return new MemberAccess(member);
+      }
+      if (name == 'call' && memberKind != MemberKind.SETTER) {
+        if (unaliasedBound.kind == TypeKind.FUNCTION) {
+          // This is an access the implicit 'call' method of a function type.
+          return new FunctionCallAccess(receiverElement, unaliasedBound);
+        }
+        if (types.isSubtype(interface, compiler.functionClass.rawType)) {
+          // This is an access of the special 'call' method implicitly defined
+          // on 'Function'. This method can be called with any arguments, which
+          // we ensure by giving it the type 'dynamic'.
+          return new FunctionCallAccess(null, types.dynamicType);
+        }
+      }
+      return null;
     }
-    InterfaceTypeMember member = getMember(receiverType);
-    if (member != null) {
-      checkPrivateAccess(node, member.element, name);
-      return new MemberAccess(member);
+
+    DartType unaliasedBound = computeUnaliasedBound(receiverType);
+    InterfaceType interface = computeInterfaceType(unaliasedBound);
+    ElementAccess access = getAccess(unaliasedBound, interface);
+    if (access != null) {
+      checkPrivateAccess(node, access.element, name);
+      return access;
     }
     if (receiverElement != null &&
         (receiverElement.isVariable() || receiverElement.isParameter())) {
@@ -658,7 +703,9 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         while (!typePromotions.isEmpty) {
           TypePromotion typePromotion = typePromotions.head;
           if (!typePromotion.isValid) {
-            if (getMember(typePromotion.type) != null) {
+            DartType unaliasedBound = computeUnaliasedBound(typePromotion.type);
+            InterfaceType interface = computeInterfaceType(unaliasedBound);
+            if (getAccess(unaliasedBound, interface) != null) {
               reportTypePromotionHint(typePromotion);
             }
           }
@@ -666,7 +713,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
       }
     }
-    InterfaceType interface = computeInterfaceType(receiverType);
     if (!interface.element.isProxy) {
       switch (memberKind) {
         case MemberKind.METHOD:
@@ -700,7 +746,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     Link<Node> arguments = send.arguments;
     DartType unaliasedType = type.unalias(compiler);
     if (identical(unaliasedType.kind, TypeKind.FUNCTION)) {
-      assert(invariant(send, element != null, message: 'No element for $send'));
       bool error = false;
       FunctionType funType = unaliasedType;
       Link<DartType> parameterTypes = funType.parameterTypes;
@@ -767,6 +812,19 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             {'argumentType': parameterTypes.head});
       }
       if (error) {
+        // TODO(johnniwinther): Improve access to declaring element and handle
+        // synthesized member signatures. Currently function typed instance
+        // members provide no access to there own name.
+        if (element == null) {
+          element = type.element;
+        } else if (type.element.isTypedef()) {
+          if (element != null) {
+            reportTypeInfo(element,
+                           MessageKind.THIS_IS_THE_DECLARATION,
+                           {'name': element.name});
+          }
+          element = type.element;
+        }
         reportTypeInfo(element, MessageKind.THIS_IS_THE_METHOD);
       }
     } else {
@@ -778,6 +836,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
   }
 
+  // Analyze the invocation [node] of [elementAccess].
+  //
+  // If provided [argumentTypes] is filled with the argument types during
+  // analysis.
   DartType analyzeInvocation(Send node, ElementAccess elementAccess,
                              [LinkBuilder<DartType> argumentTypes]) {
     DartType type = elementAccess.computeType(compiler);

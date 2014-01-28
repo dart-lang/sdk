@@ -149,6 +149,9 @@ class MessageKind {
       "Warning: '#{name}' is declared private within library "
       "'#{libraryName}'.");
 
+  static const MessageKind THIS_IS_THE_DECLARATION = const MessageKind(
+      "Info: This is the declaration of '#{name}'.");
+
   static const MessageKind THIS_IS_THE_METHOD = const MessageKind(
       "Info: This is the method declaration.");
 

@@ -1256,6 +1256,8 @@ class VariableListElementX extends ElementX implements VariableListElement {
           // We found exactly one FunctionExpression
           functionSignature =
               compiler.resolveFunctionExpression(this, functionExpression);
+          // TODO(johnniwinther): Use the parameter's [VariableElement] instead
+          // of [functionClass].
           type = compiler.computeFunctionType(compiler.functionClass,
                                               functionSignature);
         } else {
@@ -1581,7 +1583,14 @@ class FunctionElementX extends ElementX implements FunctionElement {
     return cachedNode;
   }
 
-  Token position() => cachedNode.getBeginToken();
+  Token position() {
+    // Use the name as position if this is not an unnamed closure.
+    if (cachedNode.name != null) {
+      return cachedNode.name.getBeginToken();
+    } else {
+      return cachedNode.getBeginToken();
+    }
+  }
 
   FunctionElement asFunctionElement() => this;
 
