@@ -323,6 +323,7 @@ void ActivationFrame::GetPcDescriptors() {
 // Compute token_pos_ and pc_desc_index_.
 intptr_t ActivationFrame::TokenPos() {
   if (token_pos_ < 0) {
+    token_pos_ = Scanner::kNoSourcePos;
     GetPcDescriptors();
     for (intptr_t i = 0; i < pc_desc_.Length(); i++) {
       if (pc_desc_.PC(i) == pc_) {
