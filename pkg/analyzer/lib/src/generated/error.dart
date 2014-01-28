@@ -143,76 +143,87 @@ class BooleanErrorListener implements AnalysisErrorListener {
 class AngularCode extends Enum<AngularCode> implements ErrorCode {
   static final AngularCode CANNOT_PARSE_SELECTOR = new AngularCode.con1('CANNOT_PARSE_SELECTOR', 0, "The selector '%s' cannot be parsed");
 
-  static final AngularCode EXPECTED_IDENTIFIER = new AngularCode.con1('EXPECTED_IDENTIFIER', 1, "Expected an identifier");
+  static final AngularCode INVALID_PROPERTY_KIND = new AngularCode.con1('INVALID_PROPERTY_KIND', 1, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'");
 
-  static final AngularCode EXPECTED_IN = new AngularCode.con1('EXPECTED_IN', 2, "Expected 'in' keyword");
+  static final AngularCode INVALID_PROPERTY_FIELD = new AngularCode.con1('INVALID_PROPERTY_FIELD', 2, "Unknown property field '%s'");
 
-  static final AngularCode INVALID_PROPERTY_KIND = new AngularCode.con1('INVALID_PROPERTY_KIND', 3, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'");
+  static final AngularCode INVALID_PROPERTY_MAP = new AngularCode.con1('INVALID_PROPERTY_MAP', 3, "Argument 'map' must be a constant map literal");
 
-  static final AngularCode INVALID_PROPERTY_FIELD = new AngularCode.con1('INVALID_PROPERTY_FIELD', 4, "Unknown property field '%s'");
+  static final AngularCode INVALID_PROPERTY_NAME = new AngularCode.con1('INVALID_PROPERTY_NAME', 4, "Property name must be a string literal");
 
-  static final AngularCode INVALID_PROPERTY_MAP = new AngularCode.con1('INVALID_PROPERTY_MAP', 5, "Argument 'map' must be a constant map literal");
+  static final AngularCode INVALID_PROPERTY_SPEC = new AngularCode.con1('INVALID_PROPERTY_SPEC', 5, "Property binding specification must be a string literal");
 
-  static final AngularCode INVALID_PROPERTY_NAME = new AngularCode.con1('INVALID_PROPERTY_NAME', 6, "Property name must be a string literal");
+  static final AngularCode INVALID_REPEAT_SYNTAX = new AngularCode.con1('INVALID_REPEAT_SYNTAX', 6, "Expected statement in form '_item_ in _collection_ [tracked by _id_]'");
 
-  static final AngularCode INVALID_PROPERTY_SPEC = new AngularCode.con1('INVALID_PROPERTY_SPEC', 7, "Property binding specification must be a string literal");
+  static final AngularCode INVALID_REPEAT_ITEM_SYNTAX = new AngularCode.con1('INVALID_REPEAT_ITEM_SYNTAX', 7, "Item must by identifier or in '(_key_, _value_)' pair.");
 
-  static final AngularCode MISSING_CSS_URL = new AngularCode.con1('MISSING_CSS_URL', 8, "Argument 'cssUrl' must be provided");
+  static final AngularCode INVALID_URI = new AngularCode.con1('INVALID_URI', 8, "Invalid URI syntax: '%s'");
 
-  static final AngularCode MISSING_NAME = new AngularCode.con1('MISSING_NAME', 9, "Argument 'name' must be provided");
+  static final AngularCode MISSING_CSS_URL = new AngularCode.con1('MISSING_CSS_URL', 9, "Argument 'cssUrl' must be provided");
 
-  static final AngularCode MISSING_PUBLISH_AS = new AngularCode.con1('MISSING_PUBLISH_AS', 10, "Argument 'publishAs' must be provided");
+  static final AngularCode MISSING_FILTER_COLON = new AngularCode.con1('MISSING_FILTER_COLON', 10, "Missing ':' before filter argument");
 
-  static final AngularCode MISSING_TEMPLATE_URL = new AngularCode.con1('MISSING_TEMPLATE_URL', 11, "Argument 'templateUrl' must be provided");
+  static final AngularCode MISSING_NAME = new AngularCode.con1('MISSING_NAME', 11, "Argument 'name' must be provided");
 
-  static final AngularCode MISSING_SELECTOR = new AngularCode.con1('MISSING_SELECTOR', 12, "Argument 'selector' must be provided");
+  static final AngularCode MISSING_PUBLISH_AS = new AngularCode.con1('MISSING_PUBLISH_AS', 12, "Argument 'publishAs' must be provided");
+
+  static final AngularCode MISSING_TEMPLATE_URL = new AngularCode.con1('MISSING_TEMPLATE_URL', 13, "Argument 'templateUrl' must be provided");
+
+  static final AngularCode MISSING_SELECTOR = new AngularCode.con1('MISSING_SELECTOR', 14, "Argument 'selector' must be provided");
+
+  static final AngularCode URI_DOES_NOT_EXIST = new AngularCode.con1('URI_DOES_NOT_EXIST', 15, "Target of URI does not exist: '%s'");
 
   static final List<AngularCode> values = [
       CANNOT_PARSE_SELECTOR,
-      EXPECTED_IDENTIFIER,
-      EXPECTED_IN,
       INVALID_PROPERTY_KIND,
       INVALID_PROPERTY_FIELD,
       INVALID_PROPERTY_MAP,
       INVALID_PROPERTY_NAME,
       INVALID_PROPERTY_SPEC,
+      INVALID_REPEAT_SYNTAX,
+      INVALID_REPEAT_ITEM_SYNTAX,
+      INVALID_URI,
       MISSING_CSS_URL,
+      MISSING_FILTER_COLON,
       MISSING_NAME,
       MISSING_PUBLISH_AS,
       MISSING_TEMPLATE_URL,
-      MISSING_SELECTOR];
+      MISSING_SELECTOR,
+      URI_DOES_NOT_EXIST];
 
   /**
    * The template used to create the message to be displayed for this error.
    */
-  final String message;
+  String _message;
 
   /**
-   * The template used to create the correction to be displayed for this error, or `null` if
-   * there is no correction information for this error.
+   * The severity of the problem.
    */
-  String correction2;
+  ErrorSeverity _severity;
 
   /**
    * Initialize a newly created error code to have the given message.
    *
    * @param message the message template used to create the message to be displayed for the error
    */
-  AngularCode.con1(String name, int ordinal, this.message) : super(name, ordinal);
+  AngularCode.con1(String name, int ordinal, String message) : this.con2(name, ordinal, message, ErrorSeverity.WARNING);
 
   /**
-   * Initialize a newly created error code to have the given message and correction.
+   * Initialize a newly created error code to have the given message.
    *
-   * @param message the template used to create the message to be displayed for the error
-   * @param correction the template used to create the correction to be displayed for the error
+   * @param message the message template used to create the message to be displayed for the error
+   * @param severity the severity of the problem
    */
-  AngularCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction2 = correction;
+  AngularCode.con2(String name, int ordinal, String message, ErrorSeverity severity) : super(name, ordinal) {
+    this._message = message;
+    this._severity = severity;
   }
 
-  String get correction => correction2;
+  String get correction => null;
 
-  ErrorSeverity get errorSeverity => ErrorType.TOOLKIT.severity;
+  ErrorSeverity get errorSeverity => _severity;
+
+  String get message => _message;
 
   ErrorType get type => ErrorType.TOOLKIT;
 }
@@ -779,7 +790,7 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction4;
+  String correction3;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -795,10 +806,10 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   HintCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction4 = correction;
+    this.correction3 = correction;
   }
 
-  String get correction => correction4;
+  String get correction => correction3;
 
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;
 
@@ -2249,7 +2260,7 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction3;
+  String correction2;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -2265,10 +2276,10 @@ class CompileTimeErrorCode extends Enum<CompileTimeErrorCode> implements ErrorCo
    * @param correction the template used to create the correction to be displayed for the error
    */
   CompileTimeErrorCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction3 = correction;
+    this.correction2 = correction;
   }
 
-  String get correction => correction3;
+  String get correction => correction2;
 
   ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
 
@@ -2319,7 +2330,7 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction6;
+  String correction5;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -2335,10 +2346,10 @@ class PubSuggestionCode extends Enum<PubSuggestionCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   PubSuggestionCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction6 = correction;
+    this.correction5 = correction;
   }
 
-  String get correction => correction6;
+  String get correction => correction5;
 
   ErrorSeverity get errorSeverity => ErrorType.PUB_SUGGESTION.severity;
 
@@ -3209,7 +3220,7 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction8;
+  String correction7;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -3225,10 +3236,10 @@ class StaticWarningCode extends Enum<StaticWarningCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   StaticWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction8 = correction;
+    this.correction7 = correction;
   }
 
-  String get correction => correction8;
+  String get correction => correction7;
 
   ErrorSeverity get errorSeverity => ErrorType.STATIC_WARNING.severity;
 
@@ -3296,7 +3307,7 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction5;
+  String correction4;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -3312,10 +3323,10 @@ class HtmlWarningCode extends Enum<HtmlWarningCode> implements ErrorCode {
    * @param correction the template used to create the correction to be displayed for the error
    */
   HtmlWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction5 = correction;
+    this.correction4 = correction;
   }
 
-  String get correction => correction5;
+  String get correction => correction4;
 
   ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
 
@@ -3623,7 +3634,7 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * The template used to create the correction to be displayed for this error, or `null` if
    * there is no correction information for this error.
    */
-  String correction7;
+  String correction6;
 
   /**
    * Initialize a newly created error code to have the given message.
@@ -3639,10 +3650,10 @@ class StaticTypeWarningCode extends Enum<StaticTypeWarningCode> implements Error
    * @param correction the template used to create the correction to be displayed for the error
    */
   StaticTypeWarningCode.con2(String name, int ordinal, this.message, String correction) : super(name, ordinal) {
-    this.correction7 = correction;
+    this.correction6 = correction;
   }
 
-  String get correction => correction7;
+  String get correction => correction6;
 
   ErrorSeverity get errorSeverity => ErrorType.STATIC_TYPE_WARNING.severity;
 

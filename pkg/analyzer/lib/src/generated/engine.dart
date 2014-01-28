@@ -14,13 +14,13 @@ import 'utilities_general.dart';
 import 'instrumentation.dart';
 import 'error.dart';
 import 'source.dart';
-import 'scanner.dart' show Token, Scanner, CharSequenceReader, CharacterReader, IncrementalScanner;
+import 'scanner.dart';
 import 'ast.dart';
 import 'parser.dart' show Parser, IncrementalParser;
 import 'sdk.dart' show DartSdk;
 import 'element.dart';
 import 'resolver.dart';
-import 'html.dart' show XmlTagNode, XmlAttributeNode, RecursiveXmlVisitor, HtmlScanner, HtmlScanResult, HtmlParser, HtmlParseResult, HtmlScriptTagNode, HtmlUnit;
+import 'html.dart' as ht;
 
 /**
  * The unique instance of the class `AnalysisEngine` serves as the entry point for the
@@ -408,6 +408,16 @@ abstract class AnalysisContext {
   List<Source> getLibrariesDependingOn(Source librarySource);
 
   /**
+   * Return the [AngularElement]s accessible in the library defined by the given source, or an
+   * empty array if given source is not a library, not resolved or cannot be analyzed for some
+   * reason.
+   *
+   * @param source the source defining the library whose [AngularElement]s is to be returned
+   * @return the [AngularElement]s accessible in the library defined by the given source
+   */
+  List<AngularElement> getLibraryAngularElements(Source source);
+
+  /**
    * Return the element model corresponding to the library defined by the given source, or
    * `null` if the element model does not currently exist or if the library cannot be analyzed
    * for some reason.
@@ -477,7 +487,7 @@ abstract class AnalysisContext {
    * @return a fully resolved HTML unit
    * @see #resolveHtmlUnit(Source)
    */
-  HtmlUnit getResolvedHtmlUnit(Source htmlSource);
+  ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource);
 
   /**
    * Return the source factory used to create the sources that can be analyzed in this context.
@@ -542,7 +552,7 @@ abstract class AnalysisContext {
    * @return the parse result (not `null`)
    * @throws AnalysisException if the analysis could not be performed
    */
-  HtmlUnit parseHtmlUnit(Source source);
+  ht.HtmlUnit parseHtmlUnit(Source source);
 
   /**
    * Perform the next unit of work required to keep the analysis results up-to-date and return
@@ -587,7 +597,7 @@ abstract class AnalysisContext {
    * @return the result of resolving the AST structure representing the content of the source
    * @throws AnalysisException if the analysis could not be performed
    */
-  HtmlUnit resolveHtmlUnit(Source htmlSource);
+  ht.HtmlUnit resolveHtmlUnit(Source htmlSource);
 
   /**
    * Set the set of analysis options controlling the behavior of this context to the given options.
@@ -825,7 +835,7 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
    *
    * @return the fully resolved HTML that changed as a result of the analysis
    */
-  HtmlUnit get htmlUnit;
+  ht.HtmlUnit get htmlUnit;
 
   /**
    * Return the source for which the result is being reported.
@@ -1045,6 +1055,7 @@ class AnalysisCache {
    * @param entry the entry to be associated with the source
    */
   void put(Source source, SourceEntry entry) {
+    (entry as SourceEntryImpl).fixExceptionState();
     _sourceMap[source] = entry;
   }
 
@@ -1213,6 +1224,12 @@ class CacheState extends Enum<CacheState> {
  * @coverage dart.engine
  */
 abstract class DartEntry implements SourceEntry {
+  /**
+   * The data descriptor representing the Angular elements accessible in the library. This data is
+   * only available for Dart files that are the defining compilation unit of a library.
+   */
+  static final DataDescriptor<List<AngularElement>> ANGULAR_ELEMENTS = new DataDescriptor<List<AngularElement>>("DartEntry.ANGULAR_ELEMENTS");
+
   /**
    * The data descriptor representing the library element for the library. This data is only
    * available for Dart files that are the defining compilation unit of a library.
@@ -1448,6 +1465,17 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   LibraryElement _element;
 
   /**
+   * The state of the cached [angularElements].
+   */
+  CacheState _angularElementsState = CacheState.INVALID;
+
+  /**
+   * The array of Angular elements accessible in the library, or an empty array if the elements are
+   * not currently cached.
+   */
+  List<AngularElement> _angularElements = AngularElement.EMPTY_ARRAY;
+
+  /**
    * The state of the cached public namespace.
    */
   CacheState _publicNamespaceState = CacheState.INVALID;
@@ -1588,7 +1616,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   CacheState getState(DataDescriptor descriptor) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
+    if (identical(descriptor, DartEntry.ANGULAR_ELEMENTS)) {
+      return _angularElementsState;
+    } else if (identical(descriptor, DartEntry.ELEMENT)) {
       return _elementState;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
       return _exportedLibrariesState;
@@ -1640,7 +1670,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   Object getValue(DataDescriptor descriptor) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
+    if (identical(descriptor, DartEntry.ANGULAR_ELEMENTS)) {
+      return _angularElements;
+    } else if (identical(descriptor, DartEntry.ELEMENT)) {
       return _element;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
       return _exportedLibraries;
@@ -1783,6 +1815,51 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   /**
+   * Record that an error occurred while attempting to resolve the directives in the source
+   * represented by this entry.
+   */
+  void recordDependencyError() {
+    _exportedLibraries = Source.EMPTY_ARRAY;
+    _exportedLibrariesState = CacheState.ERROR;
+    _importedLibraries = Source.EMPTY_ARRAY;
+    _importedLibrariesState = CacheState.ERROR;
+    _includedParts = Source.EMPTY_ARRAY;
+    _includedPartsState = CacheState.ERROR;
+  }
+
+  /**
+   * Record that the information related to resolving dependencies for the associated source is
+   * about to be computed by the current thread.
+   */
+  void recordDependencyInProcess() {
+    if (_exportedLibrariesState != CacheState.VALID) {
+      _exportedLibrariesState = CacheState.IN_PROCESS;
+    }
+    if (_importedLibrariesState != CacheState.VALID) {
+      _importedLibrariesState = CacheState.IN_PROCESS;
+    }
+    if (_includedPartsState != CacheState.VALID) {
+      _includedPartsState = CacheState.IN_PROCESS;
+    }
+  }
+
+  /**
+   * Record that an in-process dependency resolution has stopped without recording results because
+   * the results were invalidated before they could be recorded.
+   */
+  void recordDependencyNotInProcess() {
+    if (identical(_exportedLibrariesState, CacheState.IN_PROCESS)) {
+      _exportedLibrariesState = CacheState.INVALID;
+    }
+    if (identical(_importedLibrariesState, CacheState.IN_PROCESS)) {
+      _importedLibrariesState = CacheState.INVALID;
+    }
+    if (identical(_includedPartsState, CacheState.IN_PROCESS)) {
+      _includedPartsState = CacheState.INVALID;
+    }
+  }
+
+  /**
    * Record that an error occurred while attempting to scan or parse the entry represented by this
    * entry. This will set the state of all information, including any resolution-based information,
    * as being in error.
@@ -1796,12 +1873,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _parsedUnit = null;
     _parsedUnitAccessed = false;
     _parsedUnitState = CacheState.ERROR;
-    _exportedLibraries = Source.EMPTY_ARRAY;
-    _exportedLibrariesState = CacheState.ERROR;
-    _importedLibraries = Source.EMPTY_ARRAY;
-    _importedLibrariesState = CacheState.ERROR;
-    _includedParts = Source.EMPTY_ARRAY;
-    _includedPartsState = CacheState.ERROR;
+    recordDependencyError();
     recordResolutionError();
   }
 
@@ -1822,15 +1894,6 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (_parsedUnitState != CacheState.VALID) {
       _parsedUnitState = CacheState.IN_PROCESS;
     }
-    if (_exportedLibrariesState != CacheState.VALID) {
-      _exportedLibrariesState = CacheState.IN_PROCESS;
-    }
-    if (_importedLibrariesState != CacheState.VALID) {
-      _importedLibrariesState = CacheState.IN_PROCESS;
-    }
-    if (_includedPartsState != CacheState.VALID) {
-      _includedPartsState = CacheState.IN_PROCESS;
-    }
   }
 
   /**
@@ -1850,15 +1913,6 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     if (identical(_parsedUnitState, CacheState.IN_PROCESS)) {
       _parsedUnitState = CacheState.INVALID;
     }
-    if (identical(_exportedLibrariesState, CacheState.IN_PROCESS)) {
-      _exportedLibrariesState = CacheState.INVALID;
-    }
-    if (identical(_importedLibrariesState, CacheState.IN_PROCESS)) {
-      _importedLibrariesState = CacheState.INVALID;
-    }
-    if (identical(_includedPartsState, CacheState.IN_PROCESS)) {
-      _includedPartsState = CacheState.INVALID;
-    }
   }
 
   /**
@@ -1867,6 +1921,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * not change the state of any parse results.
    */
   void recordResolutionError() {
+    _angularElements = AngularElement.EMPTY_ARRAY;
+    _angularElementsState = CacheState.ERROR;
     _element = null;
     _elementState = CacheState.ERROR;
     _bitmask = 0;
@@ -1882,6 +1938,9 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * invalidated before they could be recorded.
    */
   void recordResolutionNotInProcess() {
+    if (identical(_angularElementsState, CacheState.IN_PROCESS)) {
+      _angularElementsState = CacheState.INVALID;
+    }
     if (identical(_elementState, CacheState.IN_PROCESS)) {
       _elementState = CacheState.INVALID;
     }
@@ -1952,7 +2011,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   void setState(DataDescriptor descriptor, CacheState state) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
+    if (identical(descriptor, DartEntry.ANGULAR_ELEMENTS)) {
+      _angularElements = updatedValue(state, _angularElements, AngularElement.EMPTY_ARRAY);
+      _angularElementsState = state;
+    } else if (identical(descriptor, DartEntry.ELEMENT)) {
       _element = updatedValue(state, _element, null);
       _elementState = state;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
@@ -2020,7 +2082,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 
   void setValue(DataDescriptor descriptor, Object value) {
-    if (identical(descriptor, DartEntry.ELEMENT)) {
+    if (identical(descriptor, DartEntry.ANGULAR_ELEMENTS)) {
+      _angularElements = value as List<AngularElement>;
+      _angularElementsState = CacheState.VALID;
+    } else if (identical(descriptor, DartEntry.ELEMENT)) {
       _element = value as LibraryElement;
       _elementState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.EXPORTED_LIBRARIES)) {
@@ -2105,8 +2170,12 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     _publicNamespace = other._publicNamespace;
     _clientServerState = other._clientServerState;
     _launchableState = other._launchableState;
+    _angularElementsState = other._angularElementsState;
+    _angularElements = other._angularElements;
     _bitmask = other._bitmask;
   }
+
+  bool hasErrorState() => super.hasErrorState() || identical(_sourceKindState, CacheState.ERROR) || identical(_parsedUnitState, CacheState.ERROR) || identical(_parseErrorsState, CacheState.ERROR) || identical(_importedLibrariesState, CacheState.ERROR) || identical(_exportedLibrariesState, CacheState.ERROR) || identical(_includedPartsState, CacheState.ERROR) || identical(_elementState, CacheState.ERROR) || identical(_angularElementsState, CacheState.ERROR) || identical(_publicNamespaceState, CacheState.ERROR) || identical(_clientServerState, CacheState.ERROR) || identical(_launchableState, CacheState.ERROR) || _resolutionState.hasErrorState();
 
   void writeOn(JavaStringBuilder builder) {
     builder.append("Dart: ");
@@ -2133,6 +2202,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     builder.append(_clientServerState);
     builder.append("; launchable = ");
     builder.append(_launchableState);
+    builder.append("; angularElements = ");
+    builder.append(_angularElementsState);
     _resolutionState.writeOn(builder);
   }
 
@@ -2140,6 +2211,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    * Invalidate all of the resolution information associated with the compilation unit.
    */
   void discardCachedResolutionInformation() {
+    _angularElements = AngularElement.EMPTY_ARRAY;
+    _angularElementsState = CacheState.INVALID;
     _element = null;
     _elementState = CacheState.INVALID;
     _includedParts = Source.EMPTY_ARRAY;
@@ -2298,6 +2371,8 @@ class DartEntryImpl_ResolutionState {
     }
   }
 
+  bool hasErrorState() => identical(_resolvedUnitState, CacheState.ERROR) || identical(_resolutionErrorsState, CacheState.ERROR) || identical(_verificationErrorsState, CacheState.ERROR) || identical(_hintsState, CacheState.ERROR) || (_nextState != null && _nextState.hasErrorState());
+
   /**
    * Invalidate all of the resolution information associated with the compilation unit.
    */
@@ -2408,6 +2483,11 @@ class DataDescriptor<E> {
  */
 abstract class HtmlEntry implements SourceEntry {
   /**
+   * The data descriptor representing the errors reported during Angular resolution.
+   */
+  static final DataDescriptor<List<AnalysisError>> ANGULAR_ERRORS = new DataDescriptor<List<AnalysisError>>("HtmlEntry.ANGULAR_ERRORS");
+
+  /**
    * The data descriptor representing the HTML element.
    */
   static final DataDescriptor<HtmlElement> ELEMENT = new DataDescriptor<HtmlElement>("HtmlEntry.ELEMENT");
@@ -2425,7 +2505,7 @@ abstract class HtmlEntry implements SourceEntry {
   /**
    * The data descriptor representing the parsed AST structure.
    */
-  static final DataDescriptor<HtmlUnit> PARSED_UNIT = new DataDescriptor<HtmlUnit>("HtmlEntry.PARSED_UNIT");
+  static final DataDescriptor<ht.HtmlUnit> PARSED_UNIT = new DataDescriptor<ht.HtmlUnit>("HtmlEntry.PARSED_UNIT");
 
   /**
    * The data descriptor representing the list of referenced libraries.
@@ -2461,7 +2541,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   /**
    * The parsed HTML unit, or `null` if the parsed HTML unit is not currently cached.
    */
-  HtmlUnit _parsedUnit;
+  ht.HtmlUnit _parsedUnit;
 
   /**
    * The state of the cached parse errors.
@@ -2507,6 +2587,17 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   HtmlElement _element;
 
   /**
+   * The state of the Angular resolution errors.
+   */
+  CacheState _angularErrorsState = CacheState.INVALID;
+
+  /**
+   * The hints produced while performing Angular resolution, or an empty array if the error are not
+   * currently cached.
+   */
+  List<AnalysisError> _angularErrors = AnalysisError.NO_ERRORS;
+
+  /**
    * The state of the cached hints.
    */
   CacheState _hintsState = CacheState.INVALID;
@@ -2519,14 +2610,25 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
 
   List<AnalysisError> get allErrors {
     List<AnalysisError> errors = new List<AnalysisError>();
-    for (AnalysisError error in _parseErrors) {
-      errors.add(error);
+    if (_parseErrors != null) {
+      for (AnalysisError error in _parseErrors) {
+        errors.add(error);
+      }
     }
-    for (AnalysisError error in _resolutionErrors) {
-      errors.add(error);
+    if (_resolutionErrors != null) {
+      for (AnalysisError error in _resolutionErrors) {
+        errors.add(error);
+      }
     }
-    for (AnalysisError error in _hints) {
-      errors.add(error);
+    if (_angularErrors != null) {
+      for (AnalysisError error in _angularErrors) {
+        errors.add(error);
+      }
+    }
+    if (_hints != null) {
+      for (AnalysisError error in _hints) {
+        errors.add(error);
+      }
     }
     if (errors.length == 0) {
       return AnalysisError.NO_ERRORS;
@@ -2537,7 +2639,9 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   SourceKind get kind => SourceKind.HTML;
 
   CacheState getState(DataDescriptor descriptor) {
-    if (identical(descriptor, HtmlEntry.ELEMENT)) {
+    if (identical(descriptor, HtmlEntry.ANGULAR_ERRORS)) {
+      return _angularErrorsState;
+    } else if (identical(descriptor, HtmlEntry.ELEMENT)) {
       return _elementState;
     } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
       return _parseErrorsState;
@@ -2554,7 +2658,9 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   Object getValue(DataDescriptor descriptor) {
-    if (identical(descriptor, HtmlEntry.ELEMENT)) {
+    if (identical(descriptor, HtmlEntry.ANGULAR_ERRORS)) {
+      return _angularErrors;
+    } else if (identical(descriptor, HtmlEntry.ELEMENT)) {
       return _element;
     } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
       return _parseErrors;
@@ -2591,6 +2697,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * Invalidate all of the resolution information associated with the HTML file.
    */
   void invalidateAllResolutionInformation() {
+    _angularErrors = AnalysisError.NO_ERRORS;
+    _angularErrorsState = CacheState.INVALID;
     _element = null;
     _elementState = CacheState.INVALID;
     _resolutionErrors = AnalysisError.NO_ERRORS;
@@ -2616,13 +2724,17 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
    * this entry.
    */
   void recordResolutionError() {
+    setState(HtmlEntry.ANGULAR_ERRORS, CacheState.ERROR);
     setState(HtmlEntry.ELEMENT, CacheState.ERROR);
     setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.ERROR);
     setState(HtmlEntry.HINTS, CacheState.ERROR);
   }
 
   void setState(DataDescriptor descriptor, CacheState state) {
-    if (identical(descriptor, HtmlEntry.ELEMENT)) {
+    if (identical(descriptor, HtmlEntry.ANGULAR_ERRORS)) {
+      _angularErrors = updatedValue(state, _angularErrors, null);
+      _angularErrorsState = state;
+    } else if (identical(descriptor, HtmlEntry.ELEMENT)) {
       _element = updatedValue(state, _element, null);
       _elementState = state;
     } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
@@ -2646,14 +2758,17 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 
   void setValue(DataDescriptor descriptor, Object value) {
-    if (identical(descriptor, HtmlEntry.ELEMENT)) {
+    if (identical(descriptor, HtmlEntry.ANGULAR_ERRORS)) {
+      _angularErrors = value as List<AnalysisError>;
+      _angularErrorsState = CacheState.VALID;
+    } else if (identical(descriptor, HtmlEntry.ELEMENT)) {
       _element = value as HtmlElement;
       _elementState = CacheState.VALID;
     } else if (identical(descriptor, HtmlEntry.PARSE_ERRORS)) {
       _parseErrors = value as List<AnalysisError>;
       _parseErrorsState = CacheState.VALID;
     } else if (identical(descriptor, HtmlEntry.PARSED_UNIT)) {
-      _parsedUnit = value as HtmlUnit;
+      _parsedUnit = value as ht.HtmlUnit;
       _parsedUnitState = CacheState.VALID;
     } else if (identical(descriptor, HtmlEntry.REFERENCED_LIBRARIES)) {
       _referencedLibraries = value == null ? Source.EMPTY_ARRAY : (value as List<Source>);
@@ -2672,6 +2787,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   void copyFrom(SourceEntryImpl entry) {
     super.copyFrom(entry);
     HtmlEntryImpl other = entry as HtmlEntryImpl;
+    _angularErrorsState = other._angularErrorsState;
+    _angularErrors = other._angularErrors;
     _parseErrorsState = other._parseErrorsState;
     _parseErrors = other._parseErrors;
     _parsedUnitState = other._parsedUnitState;
@@ -2686,6 +2803,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     _hintsState = other._hintsState;
   }
 
+  bool hasErrorState() => super.hasErrorState() || identical(_parsedUnitState, CacheState.ERROR) || identical(_parseErrorsState, CacheState.ERROR) || identical(_resolutionErrorsState, CacheState.ERROR) || identical(_referencedLibrariesState, CacheState.ERROR) || identical(_elementState, CacheState.ERROR) || identical(_angularErrorsState, CacheState.ERROR) || identical(_hintsState, CacheState.ERROR);
+
   void writeOn(JavaStringBuilder builder) {
     builder.append("Html: ");
     super.writeOn(builder);
@@ -2699,6 +2818,8 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
     builder.append(_referencedLibrariesState);
     builder.append("; element = ");
     builder.append(_elementState);
+    builder.append("; angularErrors = ");
+    builder.append(_angularErrorsState);
   }
 }
 
@@ -2824,6 +2945,23 @@ abstract class SourceEntryImpl implements SourceEntry {
    */
   LineInfo _lineInfo;
 
+  /**
+   * Fix the state of the [exception] to match the current state of the entry.
+   */
+  void fixExceptionState() {
+    if (hasErrorState()) {
+      if (exception == null) {
+        //
+        // This code should never be reached, but is a fail-safe in case an exception is not
+        // recorded when it should be.
+        //
+        exception = new AnalysisException.con1("State set to ERROR without setting an exception");
+      }
+    } else {
+      exception = null;
+    }
+  }
+
   int get modificationTime => _modificationTime;
 
   CacheState getState(DataDescriptor descriptor) {
@@ -2903,9 +3041,17 @@ abstract class SourceEntryImpl implements SourceEntry {
    */
   void copyFrom(SourceEntryImpl entry) {
     _modificationTime = entry._modificationTime;
+    exception = entry.exception;
     _lineInfoState = entry._lineInfoState;
     _lineInfo = entry._lineInfo;
   }
+
+  /**
+   * Return `true` if the state of any data value is [CacheState#ERROR].
+   *
+   * @return `true` if the state of any data value is [CacheState#ERROR]
+   */
+  bool hasErrorState() => identical(_lineInfoState, CacheState.ERROR);
 
   /**
    * Given that some data is being transitioned to the given state, return the value that should be
@@ -3229,11 +3375,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return AnalysisError.NO_ERRORS;
   }
 
-  List<Source> computeExportedLibraries(Source source) => getDartParseData2(source, DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+  List<Source> computeExportedLibraries(Source source) => getDartDependencyData2(source, DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_ARRAY);
 
   HtmlElement computeHtmlElement(Source source) => getHtmlResolutionData(source, HtmlEntry.ELEMENT, null);
 
-  List<Source> computeImportedLibraries(Source source) => getDartParseData2(source, DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
+  List<Source> computeImportedLibraries(Source source) => getDartDependencyData2(source, DartEntry.IMPORTED_LIBRARIES, Source.EMPTY_ARRAY);
 
   SourceKind computeKindOf(Source source) {
     SourceEntry sourceEntry = getReadableSourceEntry(source);
@@ -3293,7 +3439,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       throw new AnalysisException.con1("computeResolvableHtmlUnit invoked for non-HTML file: ${source.fullName}");
     }
     htmlEntry = cacheHtmlParseData(source, htmlEntry, HtmlEntry.PARSED_UNIT);
-    HtmlUnit unit = htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
+    ht.HtmlUnit unit = htmlEntry.getValue(HtmlEntry.PARSED_UNIT);
     if (unit == null) {
       throw new AnalysisException.con1("Internal error: computeResolvableHtmlUnit could not parse ${source.fullName}");
     }
@@ -3477,6 +3623,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  List<AngularElement> getLibraryAngularElements(Source source) {
+    SourceEntry sourceEntry = getReadableSourceEntry(source);
+    if (sourceEntry is DartEntry) {
+      return sourceEntry.getValue(DartEntry.ANGULAR_ELEMENTS);
+    }
+    return AngularElement.EMPTY_ARRAY;
+  }
+
   LibraryElement getLibraryElement(Source source) {
     SourceEntry sourceEntry = getReadableSourceEntry(source);
     if (sourceEntry is DartEntry) {
@@ -3586,7 +3740,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return null;
   }
 
-  HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
+  ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     SourceEntry sourceEntry = getReadableSourceEntry(htmlSource);
     if (sourceEntry is HtmlEntry) {
       HtmlEntry htmlEntry = sourceEntry;
@@ -3718,7 +3872,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   CompilationUnit parseCompilationUnit(Source source) => getDartParseData2(source, DartEntry.PARSED_UNIT, null);
 
-  HtmlUnit parseHtmlUnit(Source source) => getHtmlParseData(source, HtmlEntry.PARSED_UNIT, null);
+  ht.HtmlUnit parseHtmlUnit(Source source) => getHtmlParseData(source, HtmlEntry.PARSED_UNIT, null);
 
   AnalysisResult performAnalysisTask() {
     int getStart = JavaSystem.currentTimeMillis();
@@ -3776,7 +3930,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   CompilationUnit resolveCompilationUnit2(Source unitSource, Source librarySource) => getDartResolutionData2(unitSource, librarySource, DartEntry.RESOLVED_UNIT, null);
 
-  HtmlUnit resolveHtmlUnit(Source htmlSource) {
+  ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     computeHtmlElement(htmlSource);
     return parseHtmlUnit(htmlSource);
   }
@@ -3959,6 +4113,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
                 dartCopy.setValue2(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
                 if (identical(source, librarySource)) {
                   recordElementData(dartCopy, library.libraryElement, htmlSource);
+                  recordAngularComponents(library, dartCopy);
                 }
               } else {
                 dartCopy.recordResolutionError();
@@ -4057,7 +4212,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (dartEntry == null) {
           // This shouldn't be possible because we should never have performed the task if the
           // source didn't represent a Dart file, but check to be safe.
-          throw new AnalysisException.con1("Internal error: attempting to reolve non-Dart file as a Dart file: ${source.fullName}");
+          throw new AnalysisException.con1("Internal error: attempting to resolve non-Dart file as a Dart file: ${source.fullName}");
         }
         int sourceTime = source.modificationStamp;
         int resultTime = library.getModificationTime(source);
@@ -4069,6 +4224,34 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return allTimesMatch;
+  }
+
+  /**
+   * Given a source for a Dart file, return a cache entry in which the data represented by the given
+   * descriptor is available. This method assumes that the data can be produced by resolving the
+   * directives in the source if they are not already cached.
+   *
+   * @param source the source representing the Dart file
+   * @param dartEntry the cache entry associated with the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return a cache entry containing the required data
+   * @throws AnalysisException if data could not be returned because the source could not be
+   *           resolved
+   */
+  DartEntry cacheDartDependencyData(Source source, DartEntry dartEntry, DataDescriptor descriptor) {
+    //
+    // Check to see whether we already have the information being requested.
+    //
+    CacheState state = dartEntry.getState(descriptor);
+    while (state != CacheState.ERROR && state != CacheState.VALID) {
+      //
+      // If not, compute the information. Unless the modification date of the source continues to
+      // change, this loop will eventually terminate.
+      //
+      dartEntry = new ResolveDartDependenciesTask(this, source).perform(_resultRecorder) as DartEntry;
+      state = dartEntry.getState(descriptor);
+    }
+    return dartEntry;
   }
 
   /**
@@ -4346,6 +4529,42 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Given a source for a Dart file, return the data represented by the given descriptor that is
+   * associated with that source. This method assumes that the data can be produced by resolving the
+   * directives in the source if they are not already cached.
+   *
+   * @param source the source representing the Dart file
+   * @param dartEntry the cache entry associated with the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @return the requested data about the given source
+   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   */
+  Object getDartDependencyData(Source source, DartEntry dartEntry, DataDescriptor descriptor) {
+    dartEntry = cacheDartDependencyData(source, dartEntry, descriptor);
+    return dartEntry.getValue(descriptor);
+  }
+
+  /**
+   * Given a source for a Dart file, return the data represented by the given descriptor that is
+   * associated with that source, or the given default value if the source is not a Dart file. This
+   * method assumes that the data can be produced by resolving the directives in the source if they
+   * are not already cached.
+   *
+   * @param source the source representing the Dart file
+   * @param descriptor the descriptor representing the data to be returned
+   * @param defaultValue the value to be returned if the source is not a Dart file
+   * @return the requested data about the given source
+   * @throws AnalysisException if data could not be returned because the source could not be parsed
+   */
+  Object getDartDependencyData2(Source source, DataDescriptor descriptor, Object defaultValue) {
+    DartEntry dartEntry = getReadableDartEntry(source);
+    if (dartEntry == null) {
+      return defaultValue;
+    }
+    return getDartDependencyData(source, dartEntry, descriptor);
+  }
+
+  /**
    * Given a source for a Dart file and the library that contains it, return the data represented by
    * the given descriptor that is associated with that source. This method assumes that the data can
    * be produced by generating hints for the library if it is not already cached.
@@ -4558,6 +4777,43 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           return task;
         }
       }
+      //
+      // Look for HTML sources that should be resolved as Angular templates.
+      //
+      for (MapEntry<Source, SourceEntry> entry in _cache.entrySet()) {
+        SourceEntry sourceEntry = entry.getValue();
+        if (sourceEntry is DartEntry) {
+          DartEntry dartEntry = sourceEntry;
+          List<AngularElement> angularElements = dartEntry.getValue(DartEntry.ANGULAR_ELEMENTS);
+          for (AngularElement angularElement in angularElements) {
+            // prepare Angular component
+            if (angularElement is! AngularComponentElement) {
+              continue;
+            }
+            AngularComponentElement component = angularElement as AngularComponentElement;
+            // prepare HTML template
+            Source templateSource = component.templateSource;
+            if (templateSource == null) {
+              continue;
+            }
+            // prepare HTML template entry
+            HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
+            if (htmlEntry == null) {
+              continue;
+            }
+            // we need an entry with invalid Angular errors
+            CacheState angularErrorsState = htmlEntry.getState(HtmlEntry.ANGULAR_ERRORS);
+            if (angularErrorsState != CacheState.INVALID) {
+              continue;
+            }
+            // do Angular component resolution
+            HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.IN_PROCESS);
+            _cache.put(templateSource, htmlCopy);
+            return new ResolveAngularComponentTemplateTask(this, templateSource, component, angularElements);
+          }
+        }
+      }
       return null;
     }
   }
@@ -4600,6 +4856,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           _cache.put(source, dartCopy);
           return new ParseDartTask(this, source);
         }
+      }
+      CacheState exportState = dartEntry.getState(DartEntry.EXPORTED_LIBRARIES);
+      if (identical(exportState, CacheState.INVALID) || (isPriority && identical(exportState, CacheState.FLUSHED))) {
+        DartEntryImpl dartCopy = dartEntry.writableCopy;
+        dartCopy.setState(DartEntry.EXPORTED_LIBRARIES, CacheState.IN_PROCESS);
+        _cache.put(source, dartCopy);
+        return new ResolveDartDependenciesTask(this, source);
       }
       for (Source librarySource in getLibrariesContaining(source)) {
         SourceEntry libraryEntry = _cache.get(librarySource);
@@ -4965,6 +5228,50 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Updates [HtmlEntry]s that correspond to the previously known and new Angular components.
+   *
+   * @param library the [Library] that was resolved
+   * @param dartCopy the [DartEntryImpl] to record new Angular components
+   */
+  void recordAngularComponents(Library library, DartEntryImpl dartCopy) {
+    // reset old Angular errors
+    List<AngularElement> oldAngularElements = dartCopy.getValue(DartEntry.ANGULAR_ELEMENTS);
+    if (oldAngularElements != null) {
+      for (AngularElement angularElement in oldAngularElements) {
+        if (angularElement is AngularComponentElement) {
+          AngularComponentElement component = angularElement;
+          Source templateSource = component.templateSource;
+          if (templateSource != null) {
+            HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
+            HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+            htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, AnalysisError.NO_ERRORS);
+            _cache.put(templateSource, htmlCopy);
+            // notify about (disappeared) HTML errors
+            ChangeNoticeImpl notice = getNotice(templateSource);
+            notice.setErrors(htmlCopy.allErrors, computeLineInfo(templateSource));
+          }
+        }
+      }
+    }
+    // invalidate new Angular errors
+    List<AngularElement> newAngularElements = library.angularElements;
+    for (AngularElement angularElement in newAngularElements) {
+      if (angularElement is AngularComponentElement) {
+        AngularComponentElement component = angularElement;
+        Source templateSource = component.templateSource;
+        if (templateSource != null) {
+          HtmlEntry htmlEntry = getReadableHtmlEntry(templateSource);
+          HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+          htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
+          _cache.put(templateSource, htmlCopy);
+        }
+      }
+    }
+    // remember Angular elements to resolve HTML templates later
+    dartCopy.setValue(DartEntry.ANGULAR_ELEMENTS, newAngularElements);
+  }
+
+  /**
    * Given a cache entry and a library element, record the library element and other information
    * gleaned from the element in the cache entry.
    *
@@ -4978,6 +5285,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     dartCopy.setValue(DartEntry.IS_CLIENT, isClient(library, htmlSource, new Set<LibraryElement>()));
     List<Source> unitSources = new List<Source>();
     unitSources.add(library.definingCompilationUnit.source);
+    // TODO(brianwilkerson) Understand why we're doing this both here and in
+    // ResolveDartDependenciesTask and whether we should also be capturing the imported and exported
+    // sources here.
     for (CompilationUnitElement part in library.parts) {
       Source partSource = part.source;
       unitSources.add(partSource);
@@ -5220,9 +5530,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
           dartCopy.setValue(DartEntry.PARSED_UNIT, task.compilationUnit);
           dartCopy.setValue(DartEntry.PARSE_ERRORS, task.errors);
-          dartCopy.setValue(DartEntry.EXPORTED_LIBRARIES, task.exportedSources);
-          dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, task.importedSources);
-          dartCopy.setValue(DartEntry.INCLUDED_PARTS, task.includedSources);
           ChangeNoticeImpl notice = getNotice(source);
           notice.setErrors(dartEntry.allErrors, lineInfo);
           // Verify that the incrementally parsed and resolved unit in the incremental cache
@@ -5297,7 +5604,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         HtmlEntryImpl htmlCopy = (sourceEntry as HtmlEntry).writableCopy;
         if (thrownException == null) {
           LineInfo lineInfo = task.lineInfo;
-          HtmlUnit unit = task.htmlUnit;
+          ht.HtmlUnit unit = task.htmlUnit;
           htmlCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
           htmlCopy.setValue(HtmlEntry.PARSED_UNIT, unit);
           htmlCopy.setValue(HtmlEntry.PARSE_ERRORS, task.errors);
@@ -5349,6 +5656,157 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Record the results produced by performing a [ResolveAngularComponentTemplateTask]. If the
+   * results were computed from data that is now out-of-date, then the results will not be recorded.
+   *
+   * @param task the task that was performed
+   * @throws AnalysisException if the results could not be recorded
+   */
+  HtmlEntry recordResolveAngularComponentTemplateTaskResults(ResolveAngularComponentTemplateTask task) {
+    Source source = task.source;
+    AnalysisException thrownException = task.exception;
+    HtmlEntry htmlEntry = null;
+    {
+      SourceEntry sourceEntry = _cache.get(source);
+      if (sourceEntry is! HtmlEntry) {
+        // This shouldn't be possible because we should never have performed the task if the source
+        // didn't represent an HTML file, but check to be safe.
+        throw new AnalysisException.con1("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
+      }
+      htmlEntry = sourceEntry as HtmlEntry;
+      _cache.accessed(source);
+      int sourceTime = source.modificationStamp;
+      int resultTime = task.modificationTime;
+      if (sourceTime == resultTime) {
+        if (htmlEntry.modificationTime != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          htmlEntry = getReadableHtmlEntry(source);
+          if (htmlEntry == null) {
+            throw new AnalysisException.con1("An HTML file became a non-HTML file: ${source.fullName}");
+          }
+        }
+        HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+        if (thrownException == null) {
+          htmlCopy.setValue(HtmlEntry.ANGULAR_ERRORS, task.resolutionErrors);
+          ChangeNoticeImpl notice = getNotice(source);
+          notice.htmlUnit = task.resolvedUnit;
+          notice.setErrors(htmlCopy.allErrors, htmlCopy.getValue(SourceEntry.LINE_INFO));
+        } else {
+          htmlCopy.recordResolutionError();
+        }
+        htmlCopy.exception = thrownException;
+        _cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      } else {
+        HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
+        if (thrownException == null || resultTime >= 0) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+          if (identical(htmlCopy.getState(HtmlEntry.ANGULAR_ERRORS), CacheState.IN_PROCESS)) {
+            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
+          }
+          if (identical(htmlCopy.getState(HtmlEntry.ELEMENT), CacheState.IN_PROCESS)) {
+            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
+          }
+          if (identical(htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS), CacheState.IN_PROCESS)) {
+            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
+          }
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          htmlCopy.recordResolutionError();
+        }
+        htmlCopy.exception = thrownException;
+        _cache.put(source, htmlCopy);
+        htmlEntry = htmlCopy;
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return htmlEntry;
+  }
+
+  /**
+   * Record the results produced by performing a [ResolveDartDependenciesTask]. If the results
+   * were computed from data that is now out-of-date, then the results will not be recorded.
+   *
+   * @param task the task that was performed
+   * @return an entry containing the computed results
+   * @throws AnalysisException if the results could not be recorded
+   */
+  DartEntry recordResolveDartDependenciesTaskResults(ResolveDartDependenciesTask task) {
+    Source source = task.source;
+    AnalysisException thrownException = task.exception;
+    DartEntry dartEntry = null;
+    {
+      SourceEntry sourceEntry = _cache.get(source);
+      if (sourceEntry is! DartEntry) {
+        // This shouldn't be possible because we should never have performed the task if the source
+        // didn't represent a Dart file, but check to be safe.
+        throw new AnalysisException.con1("Internal error: attempting to resolve Dart dependencies in a non-Dart file: ${source.fullName}");
+      }
+      dartEntry = sourceEntry as DartEntry;
+      _cache.accessed(source);
+      int sourceTime = source.modificationStamp;
+      int resultTime = task.modificationTime;
+      if (sourceTime == resultTime) {
+        if (dartEntry.modificationTime != sourceTime) {
+          // The source has changed without the context being notified. Simulate notification.
+          sourceChanged(source);
+          dartEntry = getReadableDartEntry(source);
+          if (dartEntry == null) {
+            throw new AnalysisException.con1("A Dart file became a non-Dart file: ${source.fullName}");
+          }
+        }
+        DartEntryImpl dartCopy = dartEntry.writableCopy;
+        if (thrownException == null) {
+          dartCopy.setValue(DartEntry.EXPORTED_LIBRARIES, task.exportedSources);
+          dartCopy.setValue(DartEntry.IMPORTED_LIBRARIES, task.importedSources);
+          dartCopy.setValue(DartEntry.INCLUDED_PARTS, task.includedSources);
+        } else {
+          dartCopy.recordDependencyError();
+        }
+        dartCopy.exception = thrownException;
+        _cache.put(source, dartCopy);
+        dartEntry = dartCopy;
+      } else {
+        logInformation2("Dependency resolution results discarded for ${debuggingString(source)}; sourceTime = ${sourceTime}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}", thrownException);
+        DartEntryImpl dartCopy = dartEntry.writableCopy;
+        if (thrownException == null || resultTime >= 0) {
+          //
+          // The analysis was performed on out-of-date sources. Mark the cache so that the sources
+          // will be re-analyzed using the up-to-date sources.
+          //
+          dartCopy.recordDependencyNotInProcess();
+        } else {
+          //
+          // We could not determine whether the sources were up-to-date or out-of-date. Mark the
+          // cache so that we won't attempt to re-analyze the sources until there's a good chance
+          // that we'll be able to do so without error.
+          //
+          dartCopy.setState(DartEntry.EXPORTED_LIBRARIES, CacheState.ERROR);
+          dartCopy.setState(DartEntry.IMPORTED_LIBRARIES, CacheState.ERROR);
+          dartCopy.setState(DartEntry.INCLUDED_PARTS, CacheState.ERROR);
+        }
+        dartCopy.exception = thrownException;
+        _cache.put(source, dartCopy);
+        dartEntry = dartCopy;
+      }
+    }
+    if (thrownException != null) {
+      throw thrownException;
+    }
+    return dartEntry;
+  }
+
+  /**
    * Record the results produced by performing a [ResolveDartUnitTask]. If the results were
    * computed from data that is now out-of-date, then the results will not be recorded.
    *
@@ -5366,7 +5824,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (sourceEntry is! DartEntry) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent a Dart file, but check to be safe.
-        throw new AnalysisException.con1("Internal error: attempting to reolve non-Dart file as a Dart file: ${unitSource.fullName}");
+        throw new AnalysisException.con1("Internal error: attempting to resolve non-Dart file as a Dart file: ${unitSource.fullName}");
       }
       dartEntry = sourceEntry as DartEntry;
       _cache.accessed(unitSource);
@@ -5437,7 +5895,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (sourceEntry is! HtmlEntry) {
         // This shouldn't be possible because we should never have performed the task if the source
         // didn't represent an HTML file, but check to be safe.
-        throw new AnalysisException.con1("Internal error: attempting to reolve non-HTML file as an HTML file: ${source.fullName}");
+        throw new AnalysisException.con1("Internal error: attempting to resolve non-HTML file as an HTML file: ${source.fullName}");
       }
       htmlEntry = sourceEntry as HtmlEntry;
       _cache.accessed(source);
@@ -5644,6 +6102,10 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder implements AnalysisTaskVisi
 
   HtmlEntry visitParseHtmlTask(ParseHtmlTask task) => AnalysisContextImpl_this.recordParseHtmlTaskResults(task);
 
+  HtmlEntry visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task) => AnalysisContextImpl_this.recordResolveAngularComponentTemplateTaskResults(task);
+
+  DartEntry visitResolveDartDependenciesTask(ResolveDartDependenciesTask task) => AnalysisContextImpl_this.recordResolveDartDependenciesTaskResults(task);
+
   DartEntry visitResolveDartLibraryTask(ResolveDartLibraryTask task) => AnalysisContextImpl_this.recordResolveDartLibraryTaskResults(task);
 
   SourceEntry visitResolveDartUnitTask(ResolveDartUnitTask task) => AnalysisContextImpl_this.recordResolveDartUnitTaskResults(task);
@@ -5780,7 +6242,7 @@ class ChangeNoticeImpl implements ChangeNotice {
    * The fully resolved HTML that changed as a result of the analysis, or `null` if the HTML
    * was not changed.
    */
-  HtmlUnit htmlUnit;
+  ht.HtmlUnit htmlUnit;
 
   /**
    * The errors that changed as a result of the analysis, or `null` if errors were not
@@ -6039,7 +6501,7 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
     }
   }
 
-  HtmlUnit parseHtmlUnit(Source source) {
+  ht.HtmlUnit parseHtmlUnit(Source source) {
     if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.parseHtmlUnit(source);
     } else {
@@ -6079,7 +6541,7 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
     }
   }
 
-  HtmlUnit resolveHtmlUnit(Source unitSource) {
+  ht.HtmlUnit resolveHtmlUnit(Source unitSource) {
     if (unitSource.isInSystemLibrary) {
       return _sdkAnalysisContext.resolveHtmlUnit(unitSource);
     } else {
@@ -6600,6 +7062,16 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  List<AngularElement> getLibraryAngularElements(Source source) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibraryAngularElements");
+    try {
+      instrumentation.metric3("contextId", _contextId);
+      return _basis.getLibraryAngularElements(source);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
   LibraryElement getLibraryElement(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getLibraryElement");
     try {
@@ -6660,7 +7132,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
+  ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-getResolvedHtmlUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
@@ -6732,7 +7204,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  HtmlUnit parseHtmlUnit(Source source) {
+  ht.HtmlUnit parseHtmlUnit(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-parseHtmlUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
@@ -6789,7 +7261,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  HtmlUnit resolveHtmlUnit(Source htmlSource) {
+  ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     InstrumentationBuilder instrumentation = Instrumentation.builder2("Analysis-resolveHtmlUnit");
     try {
       instrumentation.metric3("contextId", _contextId);
@@ -7211,21 +7683,21 @@ class ResolvableCompilationUnit extends TimestampedData<CompilationUnit> {
  * by any other objects and for which we have modification stamp information. It is used by the
  * [ResolveHtmlTask] to resolve an HTML source.
  */
-class ResolvableHtmlUnit extends TimestampedData<HtmlUnit> {
+class ResolvableHtmlUnit extends TimestampedData<ht.HtmlUnit> {
   /**
    * Initialize a newly created holder to hold the given values.
    *
    * @param modificationTime the modification time of the source from which the AST was created
    * @param unit the AST that was created from the source
    */
-  ResolvableHtmlUnit(int modificationTime, HtmlUnit unit) : super(modificationTime, unit);
+  ResolvableHtmlUnit(int modificationTime, ht.HtmlUnit unit) : super(modificationTime, unit);
 
   /**
    * Return the AST that was created from the source.
    *
    * @return the AST that was created from the source
    */
-  HtmlUnit get compilationUnit => data;
+  ht.HtmlUnit get compilationUnit => data;
 }
 
 /**
@@ -7250,6 +7722,726 @@ class TimestampedData<E> {
    * @param unit the data that was created from the source
    */
   TimestampedData(this.modificationTime, this.data);
+}
+
+/**
+ * Instances of the class [AngularHtmlUnitResolver] resolve Angular specific expressions.
+ */
+class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
+  static int _OPENING_DELIMITER_CHAR = 0x7B;
+
+  static int _CLOSING_DELIMITER_CHAR = 0x7D;
+
+  static String _OPENING_DELIMITER = "{{";
+
+  static String _CLOSING_DELIMITER = "}}";
+
+  static int _OPENING_DELIMITER_LENGTH = _OPENING_DELIMITER.length;
+
+  static int _CLOSING_DELIMITER_LENGTH = _CLOSING_DELIMITER.length;
+
+  static String _NG_APP = "ng-app";
+
+  /**
+   * Checks if given [Element] is an artificial local variable and returns corresponding
+   * [AngularElement], or `null` otherwise.
+   */
+  static AngularElement getAngularElement(Element element) {
+    // may be artificial local variable, replace with AngularElement
+    if (element is LocalVariableElement) {
+      LocalVariableElement local = element;
+      List<ToolkitObjectElement> toolkitObjects = local.toolkitObjects;
+      if (toolkitObjects.length == 1 && toolkitObjects[0] is AngularElement) {
+        return toolkitObjects[0] as AngularElement;
+      }
+    }
+    // not a special Element
+    return null;
+  }
+
+  /**
+   * @return `true` if the given [HtmlUnit] has <code>ng-app</code> annotation.
+   */
+  static bool hasAngularAnnotation(ht.HtmlUnit htmlUnit) {
+    try {
+      htmlUnit.accept(new RecursiveXmlVisitor_AngularHtmlUnitResolver_hasAngularAnnotation());
+    } on AngularHtmlUnitResolver_FoundAppError catch (e) {
+      return true;
+    }
+    return false;
+  }
+
+  static SimpleIdentifier createIdentifier(String name, int offset) {
+    StringToken token = createStringToken(name, offset);
+    return new SimpleIdentifier(token);
+  }
+
+  static StringToken createStringToken(String name, int offset) => new StringToken(TokenType.IDENTIFIER, name, offset);
+
+  InternalAnalysisContext _context;
+
+  TypeProvider _typeProvider;
+
+  AnalysisErrorListener _errorListener;
+
+  Source _source;
+
+  LineInfo _lineInfo;
+
+  ht.HtmlUnit _unit;
+
+  List<AngularElement> _angularElements;
+
+  List<NgProcessor> _processors = [];
+
+  LibraryElementImpl _libraryElement;
+
+  CompilationUnitElementImpl _unitElement;
+
+  FunctionElementImpl _functionElement;
+
+  ResolverVisitor _resolver;
+
+  bool _isAngular = false;
+
+  List<LocalVariableElementImpl> _definedVariables = [];
+
+  Set<LibraryElement> _injectedLibraries = new Set();
+
+  Scope _topNameScope;
+
+  Scope _nameScope;
+
+  AngularHtmlUnitResolver(InternalAnalysisContext context, AnalysisErrorListener errorListener, Source source, LineInfo lineInfo, ht.HtmlUnit unit) {
+    this._context = context;
+    this._typeProvider = context.typeProvider;
+    this._errorListener = errorListener;
+    this._source = source;
+    this._lineInfo = lineInfo;
+    this._unit = unit;
+  }
+
+  /**
+   * Resolves [source] as an [AngularComponentElement] template file.
+   *
+   * @param angularElements the [AngularElement]s accessible in the component's library, not
+   *          `null`
+   * @param component the [AngularComponentElement] to resolve template for, not `null`
+   */
+  void resolveComponentTemplate(List<AngularElement> angularElements, AngularComponentElement component) {
+    _isAngular = true;
+    resolveInternal(angularElements, component);
+  }
+
+  /**
+   * Resolves [source] as an entry-point HTML file, that references an external Dart script.
+   */
+  void resolveEntryPoint() {
+    // check if Angular at all
+    if (!hasAngularAnnotation(_unit)) {
+      return;
+    }
+    // prepare accessible Angular elements
+    List<AngularElement> angularElements;
+    {
+      // prepare external Dart script source
+      Source dartSource = getDartSource(_unit);
+      if (dartSource == null) {
+        return;
+      }
+      // ensure resolved
+      _context.resolveCompilationUnit2(dartSource, dartSource);
+      // get cached Angular elements
+      angularElements = _context.getLibraryAngularElements(dartSource);
+    }
+    // perform resolution
+    resolveInternal(angularElements, null);
+  }
+
+  Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
+    parseEmbeddedExpressions2(node);
+    resolveExpressions(node.expressions);
+    return super.visitXmlAttributeNode(node);
+  }
+
+  Object visitXmlTagNode(ht.XmlTagNode node) {
+    bool wasAngular = _isAngular;
+    try {
+      // new Angular context
+      if (node.getAttribute(_NG_APP) != null) {
+        _isAngular = true;
+        visitModelDirectives(node);
+      }
+      // not Angular
+      if (!_isAngular) {
+        return super.visitXmlTagNode(node);
+      }
+      // process node in separate name scope
+      _nameScope = _resolver.pushNameScope();
+      try {
+        parseEmbeddedExpressions3(node);
+        // apply processors
+        for (NgProcessor processor in _processors) {
+          if (processor.canApply(node)) {
+            processor.apply(this, node);
+          }
+        }
+        // resolve expressions
+        resolveExpressions(node.expressions);
+        // process children
+        return super.visitXmlTagNode(node);
+      } finally {
+        _resolver.popNameScope();
+      }
+    } finally {
+      _isAngular = wasAngular;
+    }
+  }
+
+  /**
+   * Creates new [LocalVariableElementImpl] with given type and identifier.
+   *
+   * @param type the [Type] of the variable
+   * @param identifier the identifier to create variable for
+   * @return the new [LocalVariableElementImpl]
+   */
+  LocalVariableElementImpl createLocalVariable(Type2 type, SimpleIdentifier identifier) {
+    LocalVariableElementImpl variable = new LocalVariableElementImpl(identifier);
+    _definedVariables.add(variable);
+    variable.type = type;
+    return variable;
+  }
+
+  /**
+   * Creates new [LocalVariableElementImpl] with given name and type.
+   *
+   * @param type the [Type] of the variable
+   * @param name the name of the variable
+   * @return the new [LocalVariableElementImpl]
+   */
+  LocalVariableElementImpl createLocalVariable2(Type2 type, String name) {
+    SimpleIdentifier identifier = createIdentifier(name, 0);
+    return createLocalVariable(type, identifier);
+  }
+
+  /**
+   * Declares the given [LocalVariableElementImpl] in the [topNameScope].
+   */
+  void defineTopVariable(LocalVariableElementImpl variable) {
+    recordDefinedVariable(variable);
+    _topNameScope.define(variable);
+    recordTypeLibraryInjected(variable);
+  }
+
+  /**
+   * Declares the given [LocalVariableElementImpl] in the current [nameScope].
+   */
+  void defineVariable(LocalVariableElementImpl variable) {
+    recordDefinedVariable(variable);
+    _nameScope.define(variable);
+    recordTypeLibraryInjected(variable);
+  }
+
+  /**
+   * @return the [AngularElement] with the given name, maybe `null`.
+   */
+  AngularElement findAngularElement(String name) {
+    for (AngularElement element in _angularElements) {
+      if (name == element.name) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return the [TypeProvider] of the [AnalysisContext].
+   */
+  TypeProvider get typeProvider => _typeProvider;
+
+  /**
+   * Parses given [String] as an [Expression] at the given offset.
+   */
+  Expression parseExpression(String contents, int offset) => parseExpression2(contents, 0, contents.length, offset);
+
+  Expression parseExpression2(String contents, int startIndex, int endIndex, int offset) {
+    Token token = scanDart(contents, startIndex, endIndex, offset);
+    return parseExpression3(token);
+  }
+
+  Expression parseExpression3(Token token) => ht.HtmlParser.parseEmbeddedExpression(_source, token, _errorListener);
+
+  /**
+   * Reports given [ErrorCode] at the given [ASTNode].
+   */
+  void reportError(ASTNode node, ErrorCode errorCode, List<Object> arguments) {
+    reportError7(node.offset, node.length, errorCode, arguments);
+  }
+
+  /**
+   * Reports given [ErrorCode] at the given position.
+   */
+  void reportError7(int offset, int length, ErrorCode errorCode, List<Object> arguments) {
+    _errorListener.onError(new AnalysisError.con2(_source, offset, length, errorCode, arguments));
+  }
+
+  /**
+   * Resolves given [ASTNode] using [resolver].
+   */
+  void resolveNode(ASTNode node) {
+    node.accept(_resolver);
+  }
+
+  Token scanDart(String contents, int startIndex, int endIndex, int offset) => ht.HtmlParser.scanDartSource(_source, _lineInfo, contents.substring(startIndex, endIndex), offset + startIndex, _errorListener);
+
+  /**
+   * Puts into [libraryElement] an artificial [LibraryElementImpl] for this HTML
+   * [Source].
+   */
+  void createLibraryElement() {
+    // create CompilationUnitElementImpl
+    String unitName = _source.shortName;
+    _unitElement = new CompilationUnitElementImpl(unitName);
+    _unitElement.source = _source;
+    // create LibraryElementImpl
+    _libraryElement = new LibraryElementImpl(_context, null);
+    _libraryElement.definingCompilationUnit = _unitElement;
+    // create FunctionElementImpl
+    _functionElement = new FunctionElementImpl.con2(0);
+    _unitElement.functions = <FunctionElement> [_functionElement];
+  }
+
+  /**
+   * Creates new [NgProcessor] for the given [AngularElement], maybe `null` if not
+   * supported.
+   */
+  NgProcessor createProcessor(AngularElement element) {
+    if (element is AngularComponentElement) {
+      AngularComponentElement component = element;
+      return new NgComponentElementProcessor(component);
+    }
+    if (element is AngularControllerElement) {
+      AngularControllerElement controller = element;
+      return new NgControllerElementProcessor(controller);
+    }
+    if (element is AngularDirectiveElement) {
+      AngularDirectiveElement directive = element;
+      return new NgDirectiveElementProcessor(directive);
+    }
+    return null;
+  }
+
+  /**
+   * Puts into [resolver] an [ResolverVisitor] to resolve [Expression]s in
+   * [source].
+   */
+  void createResolver() {
+    InheritanceManager inheritanceManager = new InheritanceManager(_libraryElement);
+    _resolver = new ResolverVisitor.con2(_libraryElement, _source, _typeProvider, inheritanceManager, _errorListener);
+    _topNameScope = _resolver.pushNameScope();
+  }
+
+  /**
+   * Returns the external Dart script [Source] referenced by the given [HtmlUnit].
+   */
+  Source getDartSource(ht.HtmlUnit unit) {
+    for (HtmlScriptElement script in unit.element.scripts) {
+      if (script is ExternalHtmlScriptElement) {
+        Source scriptSource = script.scriptSource;
+        if (scriptSource != null) {
+          return scriptSource;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Parse the value of the given token for embedded expressions, and add any embedded expressions
+   * that are found to the given list of expressions.
+   *
+   * @param expressions the list to which embedded expressions are to be added
+   * @param token the token whose value is to be parsed
+   */
+  void parseEmbeddedExpressions(List<ht.EmbeddedExpression> expressions, ht.Token token) {
+    // prepare Token information
+    String lexeme = token.lexeme;
+    int offset = token.offset;
+    // find expressions between {{ and }}
+    int startIndex = StringUtilities.indexOf2(lexeme, 0, _OPENING_DELIMITER_CHAR, _OPENING_DELIMITER_CHAR);
+    while (startIndex >= 0) {
+      int endIndex = StringUtilities.indexOf2(lexeme, startIndex + _OPENING_DELIMITER_LENGTH, _CLOSING_DELIMITER_CHAR, _CLOSING_DELIMITER_CHAR);
+      if (endIndex < 0) {
+        // TODO(brianwilkerson) Should we report this error or will it be reported by something else?
+        return;
+      } else if (startIndex + _OPENING_DELIMITER_LENGTH < endIndex) {
+        startIndex += _OPENING_DELIMITER_LENGTH;
+        Expression expression = parseExpression2(lexeme, startIndex, endIndex, offset);
+        expressions.add(new ht.EmbeddedExpression(startIndex, expression, endIndex));
+      }
+      startIndex = StringUtilities.indexOf2(lexeme, endIndex + _CLOSING_DELIMITER_LENGTH, _OPENING_DELIMITER_CHAR, _OPENING_DELIMITER_CHAR);
+    }
+  }
+
+  void parseEmbeddedExpressions2(ht.XmlAttributeNode node) {
+    List<ht.EmbeddedExpression> expressions = new List<ht.EmbeddedExpression>();
+    parseEmbeddedExpressions(expressions, node.valueToken);
+    if (!expressions.isEmpty) {
+      node.expressions = new List.from(expressions);
+    }
+  }
+
+  void parseEmbeddedExpressions3(ht.XmlTagNode node) {
+    List<ht.EmbeddedExpression> expressions = new List<ht.EmbeddedExpression>();
+    ht.Token token = node.attributeEnd;
+    ht.Token endToken = node.endToken;
+    bool inChild = false;
+    while (token != endToken) {
+      for (ht.XmlTagNode child in node.tagNodes) {
+        if (identical(token, child.beginToken)) {
+          inChild = true;
+          break;
+        }
+        if (identical(token, child.endToken)) {
+          inChild = false;
+          break;
+        }
+      }
+      if (!inChild && identical(token.type, ht.TokenType.TEXT)) {
+        parseEmbeddedExpressions(expressions, token);
+      }
+      token = token.next;
+    }
+    node.expressions = new List.from(expressions);
+  }
+
+  void recordDefinedVariable(LocalVariableElementImpl variable) {
+    _definedVariables.add(variable);
+    _functionElement.localVariables = new List.from(_definedVariables);
+  }
+
+  /**
+   * When we inject variable, we give access to the library of its type.
+   */
+  void recordTypeLibraryInjected(LocalVariableElementImpl variable) {
+    LibraryElement typeLibrary = variable.type.element.library;
+    _injectedLibraries.add(typeLibrary);
+  }
+
+  void resolveExpressions(List<ht.EmbeddedExpression> expressions) {
+    for (ht.EmbeddedExpression embeddedExpression in expressions) {
+      Expression expression = embeddedExpression.expression;
+      resolveNode(expression);
+    }
+  }
+
+  /**
+   * Resolves Angular specific expressions and elements in the [source].
+   *
+   * @param angularElements the [AngularElement]s accessible in the component's library, not
+   *          `null`
+   * @param component the [AngularComponentElement] to resolve template for, maybe
+   *          `null` if not a component template
+   */
+  void resolveInternal(List<AngularElement> angularElements, AngularComponentElement component) {
+    this._angularElements = angularElements;
+    // add built-in processors
+    _processors.add(NgModelProcessor.INSTANCE);
+    // _processors.add(NgRepeatProcessor.INSTANCE);
+    // add accessible processors
+    for (AngularElement angularElement in angularElements) {
+      NgProcessor processor = createProcessor(angularElement);
+      if (processor != null) {
+        _processors.add(processor);
+      }
+    }
+    // prepare Dart library
+    createLibraryElement();
+    _unit.compilationUnitElement = _libraryElement.definingCompilationUnit;
+    // prepare Dart resolver
+    createResolver();
+    // may be resolving component template
+    LocalVariableElementImpl componentVariable = null;
+    if (component != null) {
+      ClassElement componentClassElement = component.enclosingElement as ClassElement;
+      InterfaceType componentType = componentClassElement.type;
+      componentVariable = createLocalVariable2(componentType, component.name);
+      defineTopVariable(componentVariable);
+      componentVariable.toolkitObjects = <AngularElement> [component];
+    }
+    // run this HTML visitor
+    _unit.accept(this);
+    // simulate imports for injects
+    {
+      List<ImportElement> imports = [];
+      for (LibraryElement injectedLibrary in _injectedLibraries) {
+        ImportElementImpl importElement = new ImportElementImpl(-1);
+        importElement.importedLibrary = injectedLibrary;
+        imports.add(importElement);
+      }
+      _libraryElement.imports = new List.from(imports);
+    }
+    // push conditional errors
+    for (ProxyConditionalAnalysisError conditionalCode in _resolver.proxyConditionalAnalysisErrors) {
+      _resolver.reportError(conditionalCode.analysisError);
+    }
+  }
+
+  /**
+   * The "ng-model" directive is special, it contributes to the top-level name scope. These models
+   * can be used before actual "ng-model" attribute in HTML. So, we need to define them once we
+   * found [NG_APP] context.
+   */
+  void visitModelDirectives(ht.XmlTagNode appNode) {
+    appNode.accept(new RecursiveXmlVisitor_AngularHtmlUnitResolver_visitModelDirectives(this));
+  }
+}
+
+class AngularHtmlUnitResolver_FoundAppError extends Error {
+}
+
+class RecursiveXmlVisitor_AngularHtmlUnitResolver_hasAngularAnnotation extends ht.RecursiveXmlVisitor<Object> {
+  Object visitXmlTagNode(ht.XmlTagNode node) {
+    if (node.getAttribute(AngularHtmlUnitResolver._NG_APP) != null) {
+      throw new AngularHtmlUnitResolver_FoundAppError();
+    }
+    return super.visitXmlTagNode(node);
+  }
+}
+
+class RecursiveXmlVisitor_AngularHtmlUnitResolver_visitModelDirectives extends ht.RecursiveXmlVisitor<Object> {
+  final AngularHtmlUnitResolver AngularHtmlUnitResolver_this;
+
+  RecursiveXmlVisitor_AngularHtmlUnitResolver_visitModelDirectives(this.AngularHtmlUnitResolver_this) : super();
+
+  Object visitXmlTagNode(ht.XmlTagNode node) {
+    NgModelProcessor directive = NgModelProcessor.INSTANCE;
+    if (directive.canApply(node)) {
+      directive.applyTopDeclarations(AngularHtmlUnitResolver_this, node);
+    }
+    return super.visitXmlTagNode(node);
+  }
+}
+
+/**
+ * Recursively visits [HtmlUnit] and every embedded [Expression].
+ */
+abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
+  /**
+   * Visits the given [Expression]s embedded into tag or attribute.
+   *
+   * @param expression the [Expression] to visit, not `null`
+   */
+  void visitExpression(Expression expression);
+
+  Object visitXmlAttributeNode(ht.XmlAttributeNode node) {
+    visitExpressions(node.expressions);
+    return super.visitXmlAttributeNode(node);
+  }
+
+  Object visitXmlTagNode(ht.XmlTagNode node) {
+    visitExpressions(node.expressions);
+    return super.visitXmlTagNode(node);
+  }
+
+  /**
+   * Visits [Expression]s of the given [EmbeddedExpression]s.
+   */
+  void visitExpressions(List<ht.EmbeddedExpression> expressions) {
+    for (ht.EmbeddedExpression embeddedExpression in expressions) {
+      Expression expression = embeddedExpression.expression;
+      visitExpression(expression);
+    }
+  }
+}
+
+/**
+ * [NgComponentElementProcessor] applies [AngularComponentElement] by parsing mapped
+ * attributes as expressions.
+ */
+class NgComponentElementProcessor extends NgDirectiveProcessor {
+  AngularComponentElement _element;
+
+  NgComponentElementProcessor(AngularComponentElement element) {
+    this._element = element;
+  }
+
+  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
+    node.element = _element.selector;
+    for (AngularPropertyElement property in _element.properties) {
+      String name = property.name;
+      ht.XmlAttributeNode attribute = node.getAttribute(name);
+      if (attribute != null) {
+        attribute.element = property;
+        // resolve if binding
+        if (property.propertyKind != AngularPropertyKind.ATTR) {
+          Expression expression = parseExpression(resolver, attribute);
+          resolver.resolveNode(expression);
+          setExpression(attribute, expression);
+        }
+      }
+    }
+  }
+
+  bool canApply(ht.XmlTagNode node) => _element.selector.apply(node);
+}
+
+/**
+ * [NgControllerElementProcessor] applies [AngularControllerElement].
+ */
+class NgControllerElementProcessor extends NgProcessor {
+  AngularControllerElement _element;
+
+  NgControllerElementProcessor(AngularControllerElement element) {
+    this._element = element;
+  }
+
+  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
+    InterfaceType type = (_element.enclosingElement as ClassElement).type;
+    String name = _element.name;
+    LocalVariableElementImpl variable = resolver.createLocalVariable2(type, name);
+    resolver.defineVariable(variable);
+    variable.toolkitObjects = <AngularElement> [_element];
+  }
+
+  bool canApply(ht.XmlTagNode node) => _element.selector.apply(node);
+}
+
+/**
+ * [NgDirectiveElementProcessor] applies [AngularDirectiveElement] by parsing mapped
+ * attributes as expressions.
+ */
+class NgDirectiveElementProcessor extends NgDirectiveProcessor {
+  AngularDirectiveElement _element;
+
+  NgDirectiveElementProcessor(AngularDirectiveElement element) {
+    this._element = element;
+  }
+
+  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
+    for (AngularPropertyElement property in _element.properties) {
+      // prepare attribute name
+      String name = property.name;
+      if (name == ".") {
+        AngularSelectorElement selector = _element.selector;
+        if (selector is HasAttributeSelectorElementImpl) {
+          name = selector.name;
+        }
+      }
+      // resolve attribute expression
+      ht.XmlAttributeNode attribute = node.getAttribute(name);
+      if (attribute != null) {
+        attribute.element = property;
+        // resolve if binding
+        if (property.propertyKind != AngularPropertyKind.ATTR) {
+          Expression expression = parseExpression(resolver, attribute);
+          resolver.resolveNode(expression);
+          setExpression(attribute, expression);
+        }
+      }
+    }
+  }
+
+  bool canApply(ht.XmlTagNode node) => _element.selector.apply(node);
+}
+
+/**
+ * [NgDirectiveProcessor] describes any <code>NgDirective</code> annotation instance.
+ */
+abstract class NgDirectiveProcessor extends NgProcessor {
+  static ht.EmbeddedExpression newEmbeddedExpression(Expression e) => new ht.EmbeddedExpression(e.offset, e, e.end);
+
+  Expression parseExpression(AngularHtmlUnitResolver resolver, ht.XmlAttributeNode attribute) {
+    int offset = attribute.valueToken.offset + 1;
+    String value = attribute.text;
+    Token token = resolver.scanDart(value, 0, value.length, offset);
+    return resolver.parseExpression3(token);
+  }
+
+  /**
+   * Sets single [Expression] for [XmlAttributeNode].
+   */
+  void setExpression(ht.XmlAttributeNode attribute, Expression expression) {
+    attribute.expressions = <ht.EmbeddedExpression> [newEmbeddedExpression(expression)];
+  }
+
+  /**
+   * Sets [Expression]s for [XmlAttributeNode].
+   */
+  void setExpressions(ht.XmlAttributeNode attribute, List<Expression> expressions) {
+    List<ht.EmbeddedExpression> embExpressions = [];
+    for (Expression expression in expressions) {
+      embExpressions.add(newEmbeddedExpression(expression));
+    }
+    attribute.expressions = new List.from(embExpressions);
+  }
+}
+
+/**
+ * [NgModelProcessor] describes built-in <code>NgModel</code> directive.
+ */
+class NgModelProcessor extends NgDirectiveProcessor {
+  static String _NG_MODEL = "ng-model";
+
+  static NgModelProcessor INSTANCE = new NgModelProcessor();
+
+  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
+    ht.XmlAttributeNode attribute = node.getAttribute(_NG_MODEL);
+    Expression expression = parseExpression(resolver, attribute);
+    // identifiers have been already handled by "apply top"
+    if (expression is SimpleIdentifier) {
+      return;
+    }
+    // resolve
+    resolver.resolveNode(expression);
+    // remember expression
+    setExpression(attribute, expression);
+  }
+
+  bool canApply(ht.XmlTagNode node) => node.getAttribute(_NG_MODEL) != null;
+
+  /**
+   * This method is used to define top-level [VariableElement]s for each "ng-model" with
+   * simple identifier model.
+   */
+  void applyTopDeclarations(AngularHtmlUnitResolver resolver, ht.XmlTagNode node) {
+    ht.XmlAttributeNode attribute = node.getAttribute(_NG_MODEL);
+    Expression expression = parseExpression(resolver, attribute);
+    // if not identifier, then not a top-level model, delay until "apply"
+    if (expression is! SimpleIdentifier) {
+      return;
+    }
+    SimpleIdentifier identifier = expression as SimpleIdentifier;
+    // define variable Element
+    InterfaceType type = resolver.typeProvider.stringType;
+    LocalVariableElementImpl element = resolver.createLocalVariable(type, identifier);
+    resolver.defineTopVariable(element);
+    // remember expression
+    identifier.staticElement = element;
+    identifier.staticType = type;
+    setExpression(attribute, identifier);
+  }
+}
+
+/**
+ * [NgProcessor] is used to apply an Angular feature.
+ */
+abstract class NgProcessor {
+  /**
+   * Applies this [NgProcessor] to the resolver.
+   *
+   * @param resolver the [AngularHtmlUnitResolver] to apply to, not `null`
+   * @param node the [XmlTagNode] to apply within, not `null`
+   */
+  void apply(AngularHtmlUnitResolver resolver, ht.XmlTagNode node);
+
+  /**
+   * Checks if this processor can be applied to the given [XmlTagNode].
+   *
+   * @param node the [XmlTagNode] to check
+   * @return `true` if this processor can be applied, or `false` otherwise
+   */
+  bool canApply(ht.XmlTagNode node);
 }
 
 /**
@@ -7392,6 +8584,24 @@ abstract class AnalysisTaskVisitor<E> {
    * @throws AnalysisException if the visitor throws an exception for some reason
    */
   E visitParseHtmlTask(ParseHtmlTask task);
+
+  /**
+   * Visit a [ResolveAngularComponentTemplateTask].
+   *
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  E visitResolveAngularComponentTemplateTask(ResolveAngularComponentTemplateTask task);
+
+  /**
+   * Visit a [ResolveDartDependenciesTask].
+   *
+   * @param task the task to be visited
+   * @return the result of visiting the task
+   * @throws AnalysisException if the visitor throws an exception for some reason
+   */
+  E visitResolveDartDependenciesTask(ResolveDartDependenciesTask task);
 
   /**
    * Visit a [ResolveDartLibraryTask].
@@ -7728,21 +8938,6 @@ class ParseDartTask extends AnalysisTask {
   bool _hasLibraryDirective2 = false;
 
   /**
-   * A set containing the sources referenced by 'export' directives.
-   */
-  Set<Source> _exportedSources = new Set<Source>();
-
-  /**
-   * A set containing the sources referenced by 'import' directives.
-   */
-  Set<Source> _importedSources = new Set<Source>();
-
-  /**
-   * A set containing the sources referenced by 'part' directives.
-   */
-  Set<Source> _includedSources = new Set<Source>();
-
-  /**
    * Initialize a newly created task to perform analysis within the given context.
    *
    * @param context the context in which the task is to be performed
@@ -7767,30 +8962,6 @@ class ParseDartTask extends AnalysisTask {
    * @return the errors that were produced by scanning and parsing the source
    */
   List<AnalysisError> get errors => _errors;
-
-  /**
-   * Return an array containing the sources referenced by 'export' directives, or an empty array if
-   * the task has not yet been performed or if an exception occurred.
-   *
-   * @return an array containing the sources referenced by 'export' directives
-   */
-  List<Source> get exportedSources => toArray(_exportedSources);
-
-  /**
-   * Return an array containing the sources referenced by 'import' directives, or an empty array if
-   * the task has not yet been performed or if an exception occurred.
-   *
-   * @return an array containing the sources referenced by 'import' directives
-   */
-  List<Source> get importedSources => toArray(_importedSources);
-
-  /**
-   * Return an array containing the sources referenced by 'part' directives, or an empty array if
-   * the task has not yet been performed or if an exception occurred.
-   *
-   * @return an array containing the sources referenced by 'part' directives
-   */
-  List<Source> get includedSources => toArray(_includedSources);
 
   /**
    * Return the line information that was produced, or `null` if the task has not yet been
@@ -7857,23 +9028,8 @@ class ParseDartTask extends AnalysisTask {
       _unit = parser.parseCompilationUnit(token[0]);
       _errors = errorListener.getErrors2(source);
       for (Directive directive in _unit.directives) {
-        if (directive is ExportDirective) {
-          Source exportSource = resolveSource(source, directive);
-          if (exportSource != null) {
-            _exportedSources.add(exportSource);
-          }
-        } else if (directive is ImportDirective) {
-          Source importSource = resolveSource(source, directive);
-          if (importSource != null) {
-            _importedSources.add(importSource);
-          }
-        } else if (directive is LibraryDirective) {
+        if (directive is LibraryDirective) {
           _hasLibraryDirective2 = true;
-        } else if (directive is PartDirective) {
-          Source partSource = resolveSource(source, directive);
-          if (partSource != null) {
-            _includedSources.add(partSource);
-          }
         } else if (directive is PartOfDirective) {
           _hasPartOfDirective2 = true;
         }
@@ -7882,46 +9038,6 @@ class ParseDartTask extends AnalysisTask {
     } finally {
       timeCounterParse.stop();
     }
-  }
-
-  /**
-   * Return the result of resolving the URI of the given URI-based directive against the URI of the
-   * given library, or `null` if the URI is not valid.
-   *
-   * @param librarySource the source representing the library containing the directive
-   * @param directive the directive which URI should be resolved
-   * @return the result of resolving the URI against the URI of the library
-   */
-  Source resolveSource(Source librarySource, UriBasedDirective directive) {
-    StringLiteral uriLiteral = directive.uri;
-    if (uriLiteral is StringInterpolation) {
-      return null;
-    }
-    String uriContent = uriLiteral.stringValue.trim();
-    if (uriContent == null) {
-      return null;
-    }
-    uriContent = Uri.encodeFull(uriContent);
-    try {
-      parseUriWithException(uriContent);
-      return context.sourceFactory.resolveUri(librarySource, uriContent);
-    } on URISyntaxException catch (exception) {
-      return null;
-    }
-  }
-
-  /**
-   * Efficiently convert the given set of sources to an array.
-   *
-   * @param sources the set to be converted
-   * @return an array containing all of the sources in the given set
-   */
-  List<Source> toArray(Set<Source> sources) {
-    int size = sources.length;
-    if (size == 0) {
-      return Source.EMPTY_ARRAY;
-    }
-    return new List.from(sources);
   }
 }
 
@@ -7978,7 +9094,7 @@ class ParseHtmlTask extends AnalysisTask {
   /**
    * The HTML unit that was produced by parsing the source.
    */
-  HtmlUnit _unit;
+  ht.HtmlUnit _unit;
 
   /**
    * The errors that were produced by scanning and parsing the source.
@@ -8034,7 +9150,7 @@ class ParseHtmlTask extends AnalysisTask {
    *
    * @return the HTML unit that was produced by parsing the source
    */
-  HtmlUnit get htmlUnit => _unit;
+  ht.HtmlUnit get htmlUnit => _unit;
 
   /**
    * Return the line information that was produced, or `null` if the task has not yet been
@@ -8067,17 +9183,17 @@ class ParseHtmlTask extends AnalysisTask {
   }
 
   void internalPerform() {
-    HtmlScanner scanner = new HtmlScanner(source);
+    ht.HtmlScanner scanner = new ht.HtmlScanner(source);
     try {
       source.getContents(scanner);
     } on JavaException catch (exception) {
       throw new AnalysisException.con3(exception);
     }
-    HtmlScanResult scannerResult = scanner.result;
+    ht.HtmlScanResult scannerResult = scanner.result;
     _modificationTime = scannerResult.modificationTime;
     _lineInfo = new LineInfo(scannerResult.lineStarts);
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    HtmlParseResult result = new HtmlParser(source, errorListener).parse(scannerResult);
+    ht.HtmlParseResult result = new ht.HtmlParser(source, errorListener).parse(scannerResult);
     _unit = result.htmlUnit;
     _errors = errorListener.getErrors2(source);
     _referencedLibraries = librarySources;
@@ -8098,16 +9214,16 @@ class ParseHtmlTask extends AnalysisTask {
   }
 }
 
-class RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources extends ht.RecursiveXmlVisitor<Object> {
   final ParseHtmlTask ParseHtmlTask_this;
 
   List<Source> libraries;
 
   RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources(this.ParseHtmlTask_this, this.libraries) : super();
 
-  Object visitHtmlScriptTagNode(HtmlScriptTagNode node) {
-    XmlAttributeNode scriptAttribute = null;
-    for (XmlAttributeNode attribute in node.attributes) {
+  Object visitHtmlScriptTagNode(ht.HtmlScriptTagNode node) {
+    ht.XmlAttributeNode scriptAttribute = null;
+    for (ht.XmlAttributeNode attribute in node.attributes) {
       if (javaStringEqualsIgnoreCase(attribute.name, ParseHtmlTask._ATTRIBUTE_SRC)) {
         scriptAttribute = attribute;
       }
@@ -8124,6 +9240,246 @@ class RecursiveXmlVisitor_ParseHtmlTask_getLibrarySources extends RecursiveXmlVi
       }
     }
     return super.visitHtmlScriptTagNode(node);
+  }
+}
+
+/**
+ * Instances of the class `ResolveAngularComponentTemplateTask` resolve HTML template
+ * referenced by [AngularComponentElement].
+ */
+class ResolveAngularComponentTemplateTask extends AnalysisTask {
+  /**
+   * The [AngularComponentElement] to resolve template for.
+   */
+  AngularComponentElement _component;
+
+  /**
+   * All Angular elements accessible in the component library.
+   */
+  List<AngularElement> _angularElements;
+
+  /**
+   * The source to be resolved.
+   */
+  final Source source;
+
+  /**
+   * The time at which the contents of the source were last modified.
+   */
+  int _modificationTime = -1;
+
+  /**
+   * The [HtmlUnit] that was resolved by this task.
+   */
+  ht.HtmlUnit _resolvedUnit;
+
+  /**
+   * The resolution errors that were discovered while resolving the source.
+   */
+  List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
+
+  /**
+   * Initialize a newly created task to perform analysis within the given context.
+   *
+   * @param context the context in which the task is to be performed
+   * @param source the source to be resolved
+   * @param component the component that uses this HTML template, not `null`
+   * @param angularElements all Angular elements accessible in the component library
+   */
+  ResolveAngularComponentTemplateTask(InternalAnalysisContext context, this.source, AngularComponentElement component, List<AngularElement> angularElements) : super(context) {
+    this._component = component;
+    this._angularElements = angularElements;
+  }
+
+  accept(AnalysisTaskVisitor visitor) => visitor.visitResolveAngularComponentTemplateTask(this);
+
+  /**
+   * Return the time at which the contents of the source that was parsed were last modified, or a
+   * negative value if the task has not yet been performed or if an exception occurred.
+   *
+   * @return the time at which the contents of the source that was parsed were last modified
+   */
+  int get modificationTime => _modificationTime;
+
+  List<AnalysisError> get resolutionErrors => _resolutionErrors;
+
+  /**
+   * Return the [HtmlUnit] that was resolved by this task.
+   *
+   * @return the [HtmlUnit] that was resolved by this task
+   */
+  ht.HtmlUnit get resolvedUnit => _resolvedUnit;
+
+  String get taskDescription => "resolving Angular template ${source}";
+
+  void internalPerform() {
+    ResolvableHtmlUnit resolvableHtmlUnit = context.computeResolvableHtmlUnit(source);
+    ht.HtmlUnit unit = resolvableHtmlUnit.compilationUnit;
+    if (unit == null) {
+      throw new AnalysisException.con1("Internal error: computeResolvableHtmlUnit returned a value without a parsed HTML unit");
+    }
+    _modificationTime = resolvableHtmlUnit.modificationTime;
+    // prepare for resolution
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    LineInfo lineInfo = context.getLineInfo(source);
+    // do resolve
+    AngularHtmlUnitResolver resolver = new AngularHtmlUnitResolver(context, errorListener, source, lineInfo, unit);
+    resolver.resolveComponentTemplate(_angularElements, _component);
+    // remember errors
+    _resolutionErrors = errorListener.getErrors2(source);
+    // remember resolved unit
+    _resolvedUnit = unit;
+  }
+}
+
+/**
+ * Instances of the class `ResolveDartDependenciesTask` resolve the import, export, and part
+ * directives in a single source.
+ */
+class ResolveDartDependenciesTask extends AnalysisTask {
+  /**
+   * The source containing the directives to be resolved.
+   */
+  final Source source;
+
+  /**
+   * The time at which the contents of the source were last modified.
+   */
+  int _modificationTime = -1;
+
+  /**
+   * A set containing the sources referenced by 'export' directives.
+   */
+  Set<Source> _exportedSources = new Set<Source>();
+
+  /**
+   * A set containing the sources referenced by 'import' directives.
+   */
+  Set<Source> _importedSources = new Set<Source>();
+
+  /**
+   * A set containing the sources referenced by 'part' directives.
+   */
+  Set<Source> _includedSources = new Set<Source>();
+
+  /**
+   * Initialize a newly created task to perform analysis within the given context.
+   *
+   * @param context the context in which the task is to be performed
+   * @param source the source to be parsed
+   */
+  ResolveDartDependenciesTask(InternalAnalysisContext context, this.source) : super(context);
+
+  accept(AnalysisTaskVisitor visitor) => visitor.visitResolveDartDependenciesTask(this);
+
+  /**
+   * Return an array containing the sources referenced by 'export' directives, or an empty array if
+   * the task has not yet been performed or if an exception occurred.
+   *
+   * @return an array containing the sources referenced by 'export' directives
+   */
+  List<Source> get exportedSources => toArray(_exportedSources);
+
+  /**
+   * Return an array containing the sources referenced by 'import' directives, or an empty array if
+   * the task has not yet been performed or if an exception occurred.
+   *
+   * @return an array containing the sources referenced by 'import' directives
+   */
+  List<Source> get importedSources => toArray(_importedSources);
+
+  /**
+   * Return an array containing the sources referenced by 'part' directives, or an empty array if
+   * the task has not yet been performed or if an exception occurred.
+   *
+   * @return an array containing the sources referenced by 'part' directives
+   */
+  List<Source> get includedSources => toArray(_includedSources);
+
+  /**
+   * Return the time at which the contents of the source that was parsed were last modified, or a
+   * negative value if the task has not yet been performed or if an exception occurred.
+   *
+   * @return the time at which the contents of the source that was parsed were last modified
+   */
+  int get modificationTime => _modificationTime;
+
+  String get taskDescription {
+    if (source == null) {
+      return "resolve dart dependencies null source";
+    }
+    return "resolve dart dependencies ${source.fullName}";
+  }
+
+  void internalPerform() {
+    ResolvableCompilationUnit unit = context.computeResolvableCompilationUnit(source);
+    _modificationTime = unit.modificationTime;
+    //
+    // Then parse the token stream.
+    //
+    TimeCounter_TimeCounterHandle timeCounterParse = PerformanceStatistics.parse.start();
+    try {
+      for (Directive directive in unit.compilationUnit.directives) {
+        if (directive is ExportDirective) {
+          Source exportSource = resolveSource(source, directive);
+          if (exportSource != null) {
+            _exportedSources.add(exportSource);
+          }
+        } else if (directive is ImportDirective) {
+          Source importSource = resolveSource(source, directive);
+          if (importSource != null) {
+            _importedSources.add(importSource);
+          }
+        } else if (directive is PartDirective) {
+          Source partSource = resolveSource(source, directive);
+          if (partSource != null) {
+            _includedSources.add(partSource);
+          }
+        }
+      }
+    } finally {
+      timeCounterParse.stop();
+    }
+  }
+
+  /**
+   * Return the result of resolving the URI of the given URI-based directive against the URI of the
+   * given library, or `null` if the URI is not valid.
+   *
+   * @param librarySource the source representing the library containing the directive
+   * @param directive the directive which URI should be resolved
+   * @return the result of resolving the URI against the URI of the library
+   */
+  Source resolveSource(Source librarySource, UriBasedDirective directive) {
+    StringLiteral uriLiteral = directive.uri;
+    if (uriLiteral is StringInterpolation) {
+      return null;
+    }
+    String uriContent = uriLiteral.stringValue.trim();
+    if (uriContent == null) {
+      return null;
+    }
+    uriContent = Uri.encodeFull(uriContent);
+    try {
+      parseUriWithException(uriContent);
+      return context.sourceFactory.resolveUri(librarySource, uriContent);
+    } on URISyntaxException catch (exception) {
+      return null;
+    }
+  }
+
+  /**
+   * Efficiently convert the given set of sources to an array.
+   *
+   * @param sources the set to be converted
+   * @return an array containing all of the sources in the given set
+   */
+  List<Source> toArray(Set<Source> sources) {
+    int size = sources.length;
+    if (size == 0) {
+      return Source.EMPTY_ARRAY;
+    }
+    return new List.from(sources);
   }
 }
 
@@ -8334,7 +9690,7 @@ class ResolveHtmlTask extends AnalysisTask {
   /**
    * The [HtmlUnit] that was resolved by this task.
    */
-  HtmlUnit _resolvedUnit;
+  ht.HtmlUnit _resolvedUnit;
 
   /**
    * The element produced by resolving the source.
@@ -8373,7 +9729,7 @@ class ResolveHtmlTask extends AnalysisTask {
    *
    * @return the [HtmlUnit] that was resolved by this task
    */
-  HtmlUnit get resolvedUnit => _resolvedUnit;
+  ht.HtmlUnit get resolvedUnit => _resolvedUnit;
 
   String get taskDescription {
     if (source == null) {
@@ -8384,7 +9740,7 @@ class ResolveHtmlTask extends AnalysisTask {
 
   void internalPerform() {
     ResolvableHtmlUnit resolvableHtmlUnit = context.computeResolvableHtmlUnit(source);
-    HtmlUnit unit = resolvableHtmlUnit.compilationUnit;
+    ht.HtmlUnit unit = resolvableHtmlUnit.compilationUnit;
     if (unit == null) {
       throw new AnalysisException.con1("Internal error: computeResolvableHtmlUnit returned a value without a parsed HTML unit");
     }
@@ -8394,7 +9750,7 @@ class ResolveHtmlTask extends AnalysisTask {
     _element = builder.buildHtmlElement2(source, _modificationTime, unit);
     // resolve toolkit-specific features
     LineInfo lineInfo = context.getLineInfo(source);
-//    new AngularHtmlUnitResolver(context, builder.errorListener, source, lineInfo).resolve(unit);
+    new AngularHtmlUnitResolver(context, builder.errorListener, source, lineInfo, unit).resolveEntryPoint();
     // record all resolution errors
     _resolutionErrors = builder.errorListener.getErrors2(source);
     // remember resolved unit

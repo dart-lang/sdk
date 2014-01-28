@@ -715,68 +715,65 @@ class ElementKind extends Enum<ElementKind> {
 
   static final ElementKind ANGULAR_DIRECTIVE = new ElementKind('ANGULAR_DIRECTIVE', 3, "Angular directive");
 
-  static final ElementKind ANGULAR_MODULE = new ElementKind('ANGULAR_MODULE', 4, "Angular module");
+  static final ElementKind ANGULAR_PROPERTY = new ElementKind('ANGULAR_PROPERTY', 4, "Angular property");
 
-  static final ElementKind ANGULAR_PROPERTY = new ElementKind('ANGULAR_PROPERTY', 5, "Angular property");
+  static final ElementKind ANGULAR_SELECTOR = new ElementKind('ANGULAR_SELECTOR', 5, "Angular selector");
 
-  static final ElementKind ANGULAR_SELECTOR = new ElementKind('ANGULAR_SELECTOR', 6, "Angular selector");
+  static final ElementKind CLASS = new ElementKind('CLASS', 6, "class");
 
-  static final ElementKind CLASS = new ElementKind('CLASS', 7, "class");
+  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 7, "compilation unit");
 
-  static final ElementKind COMPILATION_UNIT = new ElementKind('COMPILATION_UNIT', 8, "compilation unit");
+  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 8, "constructor");
 
-  static final ElementKind CONSTRUCTOR = new ElementKind('CONSTRUCTOR', 9, "constructor");
+  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 9, "<dynamic>");
 
-  static final ElementKind DYNAMIC = new ElementKind('DYNAMIC', 10, "<dynamic>");
+  static final ElementKind EMBEDDED_HTML_SCRIPT = new ElementKind('EMBEDDED_HTML_SCRIPT', 10, "embedded html script");
 
-  static final ElementKind EMBEDDED_HTML_SCRIPT = new ElementKind('EMBEDDED_HTML_SCRIPT', 11, "embedded html script");
+  static final ElementKind ERROR = new ElementKind('ERROR', 11, "<error>");
 
-  static final ElementKind ERROR = new ElementKind('ERROR', 12, "<error>");
+  static final ElementKind EXPORT = new ElementKind('EXPORT', 12, "export directive");
 
-  static final ElementKind EXPORT = new ElementKind('EXPORT', 13, "export directive");
+  static final ElementKind EXTERNAL_HTML_SCRIPT = new ElementKind('EXTERNAL_HTML_SCRIPT', 13, "external html script");
 
-  static final ElementKind EXTERNAL_HTML_SCRIPT = new ElementKind('EXTERNAL_HTML_SCRIPT', 14, "external html script");
+  static final ElementKind FIELD = new ElementKind('FIELD', 14, "field");
 
-  static final ElementKind FIELD = new ElementKind('FIELD', 15, "field");
+  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 15, "function");
 
-  static final ElementKind FUNCTION = new ElementKind('FUNCTION', 16, "function");
+  static final ElementKind GETTER = new ElementKind('GETTER', 16, "getter");
 
-  static final ElementKind GETTER = new ElementKind('GETTER', 17, "getter");
+  static final ElementKind HTML = new ElementKind('HTML', 17, "html");
 
-  static final ElementKind HTML = new ElementKind('HTML', 18, "html");
+  static final ElementKind IMPORT = new ElementKind('IMPORT', 18, "import directive");
 
-  static final ElementKind IMPORT = new ElementKind('IMPORT', 19, "import directive");
+  static final ElementKind LABEL = new ElementKind('LABEL', 19, "label");
 
-  static final ElementKind LABEL = new ElementKind('LABEL', 20, "label");
+  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 20, "library");
 
-  static final ElementKind LIBRARY = new ElementKind('LIBRARY', 21, "library");
+  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 21, "local variable");
 
-  static final ElementKind LOCAL_VARIABLE = new ElementKind('LOCAL_VARIABLE', 22, "local variable");
+  static final ElementKind METHOD = new ElementKind('METHOD', 22, "method");
 
-  static final ElementKind METHOD = new ElementKind('METHOD', 23, "method");
+  static final ElementKind NAME = new ElementKind('NAME', 23, "<name>");
 
-  static final ElementKind NAME = new ElementKind('NAME', 24, "<name>");
+  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 24, "parameter");
 
-  static final ElementKind PARAMETER = new ElementKind('PARAMETER', 25, "parameter");
+  static final ElementKind PREFIX = new ElementKind('PREFIX', 25, "import prefix");
 
-  static final ElementKind PREFIX = new ElementKind('PREFIX', 26, "import prefix");
+  static final ElementKind SETTER = new ElementKind('SETTER', 26, "setter");
 
-  static final ElementKind SETTER = new ElementKind('SETTER', 27, "setter");
+  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 27, "top level variable");
 
-  static final ElementKind TOP_LEVEL_VARIABLE = new ElementKind('TOP_LEVEL_VARIABLE', 28, "top level variable");
+  static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 28, "function type alias");
 
-  static final ElementKind FUNCTION_TYPE_ALIAS = new ElementKind('FUNCTION_TYPE_ALIAS', 29, "function type alias");
+  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 29, "type parameter");
 
-  static final ElementKind TYPE_PARAMETER = new ElementKind('TYPE_PARAMETER', 30, "type parameter");
-
-  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 31, "<universe>");
+  static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 30, "<universe>");
 
   static final List<ElementKind> values = [
       ANGULAR_FILTER,
       ANGULAR_COMPONENT,
       ANGULAR_CONTROLLER,
       ANGULAR_DIRECTIVE,
-      ANGULAR_MODULE,
       ANGULAR_PROPERTY,
       ANGULAR_SELECTOR,
       CLASS,
@@ -862,8 +859,6 @@ abstract class ElementVisitor<R> {
   R visitAngularDirectiveElement(AngularDirectiveElement element);
 
   R visitAngularFilterElement(AngularFilterElement element);
-
-  R visitAngularModuleElement(AngularModuleElement element);
 
   R visitAngularPropertyElement(AngularPropertyElement element);
 
@@ -1326,11 +1321,25 @@ abstract class LibraryElement implements Element {
   ClassElement getType(String className);
 
   /**
+   * Return an array containing all of the compilation units this library consists of. This includes
+   * the defining compilation unit and units included using the `part` directive.
+   *
+   * @return the compilation units this library consists of
+   */
+  List<CompilationUnitElement> get units;
+
+  /**
    * Return an array containing all directly and indirectly imported libraries.
    *
    * @return all directly and indirectly imported libraries
    */
   List<LibraryElement> get visibleLibraries;
+
+  /**
+   * Return `true` if the defining compilation unit of this library contains at least one
+   * import directive whose URI uses the "dart-ext" scheme.
+   */
+  bool hasExtUri();
 
   /**
    * Answer `true` if this library is an application that can be run in the browser.
@@ -1824,6 +1833,11 @@ abstract class AngularComponentElement implements AngularHasSelectorElement {
   int get styleUriOffset;
 
   /**
+   * Returns the HTML template [Source], `null` if not resolved.
+   */
+  Source get templateSource;
+
+  /**
    * Returns the HTML template URI.
    */
   String get templateUri;
@@ -1865,6 +1879,10 @@ abstract class AngularDirectiveElement implements AngularHasSelectorElement {
  * @coverage dart.engine.element
  */
 abstract class AngularElement implements ToolkitObjectElement {
+  /**
+   * An empty array of angular elements.
+   */
+  static final List<AngularElement> EMPTY_ARRAY = new List<AngularElement>(0);
 }
 
 /**
@@ -1889,33 +1907,6 @@ abstract class AngularHasSelectorElement implements AngularElement {
    * @return the [AngularSelectorElement] specified for this element
    */
   AngularSelectorElement get selector;
-}
-
-/**
- * The interface `AngularModuleElement` defines a single DI <code>Module</code>.
- *
- * @coverage dart.engine.element
- */
-abstract class AngularModuleElement implements AngularElement {
-  /**
-   * An empty array of module elements.
-   */
-  static final List<AngularModuleElement> EMPTY_ARRAY = [];
-
-  /**
-   * Returns the child modules installed into this module using <code>install</code>.
-   *
-   * @return the installed child modules
-   */
-  List<AngularModuleElement> get childModules;
-
-  /**
-   * Returns the keys injected into this module using <code>type()</code> and <code>value()</code>
-   * invocations.
-   *
-   * @return the injected types
-   */
-  List<ClassElement> get keyTypes;
 }
 
 /**
@@ -2098,8 +2089,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   R visitAngularHasSelectorElement(AngularHasSelectorElement element) => visitAngularElement(element);
 
-  R visitAngularModuleElement(AngularModuleElement element) => visitAngularElement(element);
-
   R visitAngularPropertyElement(AngularPropertyElement element) => visitAngularElement(element);
 
   R visitAngularSelectorElement(AngularSelectorElement element) => visitAngularElement(element);
@@ -2204,11 +2193,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   R visitAngularFilterElement(AngularFilterElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  R visitAngularModuleElement(AngularModuleElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -2350,8 +2334,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitAngularDirectiveElement(AngularDirectiveElement element) => null;
 
   R visitAngularFilterElement(AngularFilterElement element) => null;
-
-  R visitAngularModuleElement(AngularModuleElement element) => null;
 
   R visitAngularPropertyElement(AngularPropertyElement element) => null;
 
@@ -2593,7 +2575,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   PropertyAccessorElement getSetter(String setterName) {
     // TODO (jwren) revisit- should we append '=' here or require clients to include it?
     // Do we need the check for isSetter below?
-    if (!setterName.endsWith("=")) {
+    if (!StringUtilities.endsWithChar(setterName, 0x3D)) {
       setterName += '=';
     }
     for (PropertyAccessorElement accessor in _accessors) {
@@ -3142,9 +3124,6 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
    * @param objects the toolkit objects to associate
    */
   void setToolkitObjects(Element element, List<ToolkitObjectElement> objects) {
-    for (ToolkitObjectElement toolkitObject in objects) {
-      (toolkitObject as ToolkitObjectElementImpl).enclosingElement = element;
-    }
     _toolkitObjects[element] = objects;
   }
 }
@@ -4651,7 +4630,15 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
 
   accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
 
-  bool operator ==(Object object) => runtimeType == object.runtimeType && source == (object as CompilationUnitElementImpl).source;
+  bool operator ==(Object object) {
+    if (identical(object, this)) {
+      return true;
+    }
+    if (object == null) {
+      return false;
+    }
+    return runtimeType == object.runtimeType && source == (object as HtmlElementImpl).source;
+  }
 
   ElementKind get kind => ElementKind.HTML;
 
@@ -5006,11 +4993,20 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return null;
   }
 
+  List<CompilationUnitElement> get units {
+    List<CompilationUnitElement> units = new List<CompilationUnitElement>(1 + _parts.length);
+    units[0] = _definingCompilationUnit;
+    JavaSystem.arraycopy(_parts, 0, units, 1, _parts.length);
+    return units;
+  }
+
   List<LibraryElement> get visibleLibraries {
     Set<LibraryElement> visibleLibraries = new Set();
     addVisibleLibraries(visibleLibraries, false);
     return new List.from(visibleLibraries);
   }
+
+  bool hasExtUri() => hasModifier(Modifier.HAS_EXT_URI);
 
   int get hashCode => _definingCompilationUnit.hashCode;
 
@@ -5018,7 +5014,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   bool get isDartCore => name == "dart.core";
 
-  bool get isInSdk => name.startsWith("dart.");
+  bool get isInSdk => StringUtilities.startsWith5(name, 0, 0x64, 0x61, 0x72, 0x74, 0x2E);
 
   bool isUpToDate2(int timeStamp) {
     Set<LibraryElement> visitedLibraries = new Set();
@@ -5045,6 +5041,15 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       (exportElement as ExportElementImpl).enclosingElement = this;
     }
     this._exports = exports;
+  }
+
+  /**
+   * Set whether this library has an import of a "dart-ext" URI to the given value.
+   *
+   * @param hasExtUri `true` if this library has an import of a "dart-ext" URI
+   */
+  void set hasExtUri2(bool hasExtUri) {
+    setModifier(Modifier.HAS_EXT_URI, hasExtUri);
   }
 
   /**
@@ -5344,27 +5349,59 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
  * @coverage dart.engine.element
  */
 class Modifier extends Enum<Modifier> {
+  /**
+   * Indicates that the modifier 'abstract' was applied to the element.
+   */
   static final Modifier ABSTRACT = new Modifier('ABSTRACT', 0);
 
+  /**
+   * Indicates that the modifier 'const' was applied to the element.
+   */
   static final Modifier CONST = new Modifier('CONST', 1);
 
+  /**
+   * Indicates that the modifier 'factory' was applied to the element.
+   */
   static final Modifier FACTORY = new Modifier('FACTORY', 2);
 
+  /**
+   * Indicates that the modifier 'final' was applied to the element.
+   */
   static final Modifier FINAL = new Modifier('FINAL', 3);
 
+  /**
+   * Indicates that the pseudo-modifier 'get' was applied to the element.
+   */
   static final Modifier GETTER = new Modifier('GETTER', 4);
 
-  static final Modifier MIXIN = new Modifier('MIXIN', 5);
+  /**
+   * A flag used for libraries indicating that the defining compilation unit contains at least one
+   * import directive whose URI uses the "dart-ext" scheme.
+   */
+  static final Modifier HAS_EXT_URI = new Modifier('HAS_EXT_URI', 5);
 
-  static final Modifier REFERENCES_SUPER = new Modifier('REFERENCES_SUPER', 6);
+  static final Modifier MIXIN = new Modifier('MIXIN', 6);
 
-  static final Modifier SETTER = new Modifier('SETTER', 7);
+  static final Modifier REFERENCES_SUPER = new Modifier('REFERENCES_SUPER', 7);
 
-  static final Modifier STATIC = new Modifier('STATIC', 8);
+  /**
+   * Indicates that the pseudo-modifier 'set' was applied to the element.
+   */
+  static final Modifier SETTER = new Modifier('SETTER', 8);
 
-  static final Modifier SYNTHETIC = new Modifier('SYNTHETIC', 9);
+  /**
+   * Indicates that the modifier 'static' was applied to the element.
+   */
+  static final Modifier STATIC = new Modifier('STATIC', 9);
 
-  static final Modifier TYPEDEF = new Modifier('TYPEDEF', 10);
+  /**
+   * Indicates that the element does not appear in the source code but was implicitly created. For
+   * example, if a class does not define any constructors, an implicit zero-argument constructor
+   * will be created and it will be marked as being synthetic.
+   */
+  static final Modifier SYNTHETIC = new Modifier('SYNTHETIC', 10);
+
+  static final Modifier TYPEDEF = new Modifier('TYPEDEF', 11);
 
   static final List<Modifier> values = [
       ABSTRACT,
@@ -5372,6 +5409,7 @@ class Modifier extends Enum<Modifier> {
       FACTORY,
       FINAL,
       GETTER,
+      HAS_EXT_URI,
       MIXIN,
       REFERENCES_SUPER,
       SETTER,
@@ -6221,6 +6259,11 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
   String templateUri;
 
   /**
+   * The HTML template source.
+   */
+  Source templateSource;
+
+  /**
    * The offset of the [templateUri] in the [getSource].
    */
   int templateUriOffset = 0;
@@ -6403,32 +6446,6 @@ abstract class AngularHasSelectorElementImpl extends AngularElementImpl implemen
     safelyVisitChild(_selector, visitor);
     super.visitChildren(visitor);
   }
-}
-
-/**
- * Implementation of `AngularModuleElement`.
- *
- * @coverage dart.engine.element
- */
-class AngularModuleElementImpl extends AngularElementImpl implements AngularModuleElement {
-  /**
-   * The array containing all of the child modules.
-   */
-  List<AngularModuleElement> childModules = AngularModuleElement.EMPTY_ARRAY;
-
-  /**
-   * The array containing all of the types used as injection keys.
-   */
-  List<ClassElement> keyTypes = ClassElementImpl.EMPTY_ARRAY;
-
-  /**
-   * Initialize a newly created Angular module.
-   */
-  AngularModuleElementImpl() : super(null, -1);
-
-  accept(ElementVisitor visitor) => visitor.visitAngularModuleElement(this);
-
-  ElementKind get kind => ElementKind.ANGULAR_MODULE;
 }
 
 /**

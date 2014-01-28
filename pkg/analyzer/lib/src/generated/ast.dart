@@ -6137,7 +6137,7 @@ abstract class Identifier extends Expression {
    * @param name the name being tested
    * @return `true` if the given name is private
    */
-  static bool isPrivateName(String name) => name.startsWith("_");
+  static bool isPrivateName(String name) => StringUtilities.startsWithChar(name, 0x5F);
 
   /**
    * Return the best element available for this operator. If resolution was able to find a better
@@ -10139,7 +10139,7 @@ class SimpleStringLiteral extends StringLiteral {
     if (lexeme.length < 6) {
       return false;
     }
-    return lexeme.endsWith("\"\"\"") || lexeme.endsWith("'''");
+    return StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) || StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27);
   }
 
   /**
