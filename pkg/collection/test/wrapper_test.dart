@@ -37,6 +37,10 @@ abstract class Expector {
   noSuchMethod(Invocation m) => new _Equals(equals = getWrappedObject((m2) {
     testInvocations(m, m2);
   }));
+
+  toString() => new _Equals(equals = getWrappedObject((m2) {
+    testInvocations(TO_STRING_INVOCATION, m2);
+  }));
 }
 
 // An object with a field called "equals", only introduced into the
@@ -46,6 +50,27 @@ class _Equals {
   _Equals(this.equals);
 }
 
+class SyntheticInvocation implements Invocation {
+  static const int METHOD = 0x00;
+  static const int GETTER = 0x01;
+  static const int SETTER = 0x02;
+  final Symbol memberName;
+  final List positionalArguments;
+  final Map namedArguments;
+  final int _type;
+  const SyntheticInvocation(this.memberName,
+                            this.positionalArguments,
+                            this.namedArguments,
+                            this._type);
+  bool get isMethod => _type == METHOD;
+
+  bool get isGetter => _type == GETTER;
+
+  bool get isSetter => _type == SETTER;
+
+  bool get isAccessor => isGetter || isSetter;
+}
+
 // Parameterization of noSuchMethod.
 class NSM {
   Function _action;
@@ -53,11 +78,15 @@ class NSM {
   noSuchMethod(Invocation i) => _action(i);
 }
 
+const TO_STRING_INVOCATION = const SyntheticInvocation(
+  #toString, const[], const{}, SyntheticInvocation.METHOD);
+
 // LikeNSM, but has types Iterable, Set and List to allow it as
 // argument to DelegatingIterable/Set/List.
 class IterableNSM extends NSM implements Iterable, Set, List, Queue {
   IterableNSM(action(Invocation i)) : super(action);
   noSuchMethod(Invocation i) => super.noSuchMethod(i);  // Silence warnings
+  toString() => super.noSuchMethod(TO_STRING_INVOCATION);
 }
 
 // Expector that wraps in DelegatingIterable.
@@ -92,6 +121,7 @@ class QueueExpector extends Expector {
 class MapNSM extends NSM implements Map {
   MapNSM(action(Invocation i)) : super(action);
   noSuchMethod(Invocation i) => super.noSuchMethod(i);
+  toString() => super.noSuchMethod(TO_STRING_INVOCATION);
 }
 
 // Expector that wraps in DelegatingMap.
@@ -146,6 +176,7 @@ void main() {
     expect.toList(growable: true).equals.toList(growable: true);
     expect.toList(growable: false).equals.toList(growable: false);
     expect.toSet().equals.toSet();
+    expect.toString().equals.toString();
     expect.where(func1).equals.where(func1);
   }
 
@@ -231,6 +262,7 @@ void main() {
     expect.putIfAbsent(val, func0).equals.putIfAbsent(val, func0);
     expect.remove(val).equals.remove(val);
     expect.values.equals.values;
+    expect.toString().equals.toString();
   }
 
   test("Iterable", () {

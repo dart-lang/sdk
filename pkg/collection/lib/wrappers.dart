@@ -89,6 +89,8 @@ class DelegatingIterable<E> implements Iterable<E> {
   Set<E> toSet() => _base.toSet();
 
   Iterable<E> where(bool test(E element)) => _base.where(test);
+
+  String toString() => _base.toString();
 }
 
 
@@ -331,4 +333,6 @@ class DelegatingMap<K, V> implements Map<K, V> {
   V remove(Object key) => _base.remove(key);
 
   Iterable<V> get values => _base.values;
+
+  String toString() => _base.toString();
 }
