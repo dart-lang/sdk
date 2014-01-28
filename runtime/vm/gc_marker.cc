@@ -160,7 +160,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       ASSERT(!raw_key->IsWatched());
       raw_key->SetWatchedBit();
     }
-    delay_set_.insert(std::make_pair(raw_key, raw_weak));
+    delay_set_.insert(DelaySet::value_type(raw_key, raw_weak));
   }
 
   void Finalize() {
