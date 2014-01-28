@@ -6,7 +6,7 @@ part of mime;
 
 
 // TODO(ajohnsen): Use sorted list and binary search?
-Map<String, String> _defaultExtensionMap = const <String, String>{
+const Map<String, String> _DEFAULT_EXTENSION_MAP = const <String, String>{
 '123':'application/vnd.lotus-1-2-3',
 '3dml':'text/vnd.in3d.3dml',
 '3ds':'image/x-3ds',
