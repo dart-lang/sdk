@@ -6,6 +6,7 @@
 
 #include <map>
 #include <utility>
+#include <vector>
 
 #include "vm/allocation.h"
 #include "vm/dart_api_state.h"
@@ -193,10 +194,14 @@ class MarkingVisitor : public ObjectPointerVisitor {
       std::pair<DelaySet::iterator, DelaySet::iterator> ret;
       // Visit all elements with a key equal to raw_obj.
       ret = delay_set_.equal_range(raw_obj);
-      for (DelaySet::iterator it = ret.first; it != ret.second; ++it) {
+      // Create a copy of the range in a temporary vector to iterate over it
+      // while delay_set_ may be modified.
+      std::vector<DelaySet::value_type> temp_copy(ret.first, ret.second);
+      delay_set_.erase(ret.first, ret.second);
+      for (std::vector<DelaySet::value_type>::iterator it = temp_copy.begin();
+           it != temp_copy.end(); ++it) {
         it->second->VisitPointers(this);
       }
-      delay_set_.erase(ret.first, ret.second);
       raw_obj->ClearWatchedBit();
     }
     marking_stack_->Push(raw_obj);
