@@ -15,7 +15,7 @@ main() {
       d.appPubspec(),
       d.dir('web', [
         d.file('file1.dart', 'var main = () => print("hello");'),
-        d.file('file2.dart', 'void main(arg) => print("hello");'),
+        d.file('file2.dart', 'void main(arg1, arg2, arg3) => print("hello");'),
         d.file('file3.dart', 'class Foo { void main() => print("hello"); }'),
         d.file('file4.dart', 'var foo;')
       ])

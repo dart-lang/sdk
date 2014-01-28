@@ -106,11 +106,14 @@ String get _libPath {
 
 /// Returns whether [dart] looks like an entrypoint file.
 bool isEntrypoint(CompilationUnit dart) {
+  // Allow two or fewer arguments so that entrypoints intended for use with
+  // [spawnUri] get counted.
+  //
   // TODO(nweiz): this misses the case where a Dart file doesn't contain main(),
   // but it parts in another file that does.
   return dart.declarations.any((node) {
     return node is FunctionDeclaration && node.name.name == "main" &&
-        node.functionExpression.parameters.parameters.isEmpty;
+        node.functionExpression.parameters.parameters.length <= 2;
   });
 }
 
