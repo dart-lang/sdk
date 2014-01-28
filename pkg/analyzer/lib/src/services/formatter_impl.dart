@@ -531,14 +531,7 @@ class SourceVisitor implements ASTVisitor {
   visitClassTypeAlias(ClassTypeAlias node) {
     preserveLeadingNewlines();
     visitNodes(node.metadata, followedBy: newlines);
-    //TODO(pquitslund): the following _should_ work (dartbug.com/15912)
-    //modifier(node.abstractKeyword);
-    // ... in the meantime we use this workaround
-    var prev = node.keyword.previous;
-    if (prev is KeywordToken && prev.keyword == Keyword.ABSTRACT) {
-      token(prev);
-      space();
-    }
+    modifier(node.abstractKeyword);
     token(node.keyword);
     space();
     visit(node.name);

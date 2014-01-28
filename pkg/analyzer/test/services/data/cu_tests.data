@@ -177,3 +177,7 @@ import 'package:sdasdsasadasd/ass/sadasdas/sadasdsad_asdasd_asdsada_adsasdasdsa.
 <<<
 import 'package:sdasdsasadasd/ass/sadasdas/sadasdsad_asdasd_asdsada_adsasdasdsa.dart'
     as sass;
+>>> dartbug.com/15912
+abstract class ListBase<E> = Object with ListMixin<E>;
+<<<
+abstract class ListBase<E> = Object with ListMixin<E>;
