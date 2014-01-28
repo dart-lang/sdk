@@ -152,11 +152,15 @@ class SimpleLineBreaker extends LinePrinter {
           curr = merge(curr, token);
         }
       } else {
-        if (curr != null) {
-          tokens.add(curr);
-          curr = null;
+        if (isNonbreaking(token)) {
+          curr = merge(curr, token);
+        } else {
+          if (curr != null) {
+            tokens.add(curr);
+            curr = null;
+          }
+          tokens.add(token);
         }
-        tokens.add(token);
       }
     });
 
@@ -166,6 +170,9 @@ class SimpleLineBreaker extends LinePrinter {
 
     return tokens;
   }
+
+  static bool isNonbreaking(SpaceToken token) =>
+      token.breakWeight == UNBREAKABLE_SPACE_WEIGHT;
 
   static LineToken merge(LineToken first, LineToken second) =>
       new LineToken(first.value + second.value);
@@ -187,7 +194,8 @@ bool isWhitespace(String string) => string.codeUnits.every(
 /// Special token indicating a line start
 final LINE_START = new SpaceToken(0);
 
-const DEFAULT_SPACE_WEIGHT = -1;
+const DEFAULT_SPACE_WEIGHT = 0;
+const UNBREAKABLE_SPACE_WEIGHT = -1;
 
 /// Simple non-breaking printer
 class SimpleLinePrinter extends LinePrinter {
