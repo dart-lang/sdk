@@ -525,16 +525,17 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
         _modificationCount = tree._modificationCount {
     int compare = tree._splay(startKey);
     _splayCount = tree._splayCount;
-    _findLeftMostDescendent(compare < 0 ? tree._root.right : tree._root);
+    if (compare < 0) {
+      // Don't include the root, start at the next element after the root.
+      _findLeftMostDescendent(tree._root.right);
+    } else {
+      _workList.add(tree._root);
+    }
   }
 
   T get current {
     if (_currentNode == null) return null;
     return _getValue(_currentNode);
-  }
-
-  _SplayTreeNode _findStartNode(T key) {
-
   }
 
   void _findLeftMostDescendent(_SplayTreeNode node) {
