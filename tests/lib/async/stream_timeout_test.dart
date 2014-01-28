@@ -100,8 +100,10 @@ main() {
     Stream tos = c.stream.timeout(halfSec, onTimeout: (_) {
       int elapsed = sw.elapsedMilliseconds;
       if (elapsed > 250) {
-        // This should not happen.
+        // This should not happen, but it does occasionally.
+        // Starving the periodic timer has made the test useless.
         print("Periodic timer of 5 ms delayed $elapsed ms.");
+        return;
       }
       fail("Timeout not prevented by events");
       throw "ERROR";
@@ -125,8 +127,10 @@ main() {
     Stream tos = c.stream.timeout(halfSec, onTimeout: (_) {
       int elapsed = sw.elapsedMilliseconds;
       if (elapsed > 250) {
-        // This should not happen.
+        // This should not happen, but it does occasionally.
+        // Starving the periodic timer has made the test useless.
         print("Periodic timer of 5 ms delayed $elapsed ms.");
+        return;
       }
       fail("Timeout not prevented by errors");
     });
