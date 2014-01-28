@@ -384,6 +384,14 @@ Note: currently only implemented for dart2js.''',
               [],
               null),
           new _TestOptionSpecification(
+              'builder_tag',
+              'Machine specific options that is not captured by the regular '
+              'test options. Used to be able to make sane updates to the '
+              'status files.',
+              ['--builder-tag'],
+              [],
+              null),
+          new _TestOptionSpecification(
               'vm_options',
               'Extra options to send to the vm when running',
               ['--vm-options'],
