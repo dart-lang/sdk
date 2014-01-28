@@ -139,16 +139,6 @@ class X {
   int x() => null;
 }
 >>>
-Object get _globalState => null;
-
-set _globalState(Object val) {
-}
-<<<
-Object get _globalState => null;
-
-set _globalState(Object val) {
-}
->>>
 var x = #foo;
 var y=#foo.bar.baz;
 <<<
@@ -181,3 +171,19 @@ import 'package:sdasdsasadasd/ass/sadasdas/sadasdsad_asdasd_asdsada_adsasdasdsa.
 abstract class ListBase<E> = Object with ListMixin<E>;
 <<<
 abstract class ListBase<E> = Object with ListMixin<E>;
+>>> dartbug.com/15914
+Object get _globalState => null;
+
+set _globalState(Object val) {
+}
+
+void setX(x) {
+}
+<<<
+Object get _globalState => null;
+
+set _globalState(Object val) {
+}
+
+void setX(x) {
+}

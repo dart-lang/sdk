@@ -831,16 +831,7 @@ class SourceVisitor implements ASTVisitor {
     preserveLeadingNewlines();
     visitNodes(node.metadata, followedBy: newlines);
     modifier(node.externalKeyword);
-    //TODO(pquitslund): remove this workaround once setter functions
-    //have their return types properly set (dartbug.com/15914)
-    if (node.returnType == null && node.propertyKeyword != null) {
-      var previous = node.propertyKeyword.previous;
-      if (previous is KeywordToken && previous.keyword == Keyword.VOID) {
-        modifier(previous);
-      }
-    } else {
-      visitNode(node.returnType, followedBy: space);
-    }
+    visitNode(node.returnType, followedBy: space);
     modifier(node.propertyKeyword);
     visit(node.name);
     visit(node.functionExpression);
