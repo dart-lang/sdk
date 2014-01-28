@@ -237,6 +237,13 @@ abstract class QueueTest {
     Expect.listEquals(
         [6, 8, 9, 1, 2, 4, 5, 6, 8, 9, 10, 1, 2, 4, 5, 6, 8, 9, 10, 1, 2, 4, 5],
         queue.toList());
+
+    // Regression test: http://dartbug.com/16270
+    // These should all do nothing, and should not throw.
+    Queue emptyQueue = newQueue();
+    emptyQueue.remove(0);
+    emptyQueue.removeWhere((x) => null);
+    emptyQueue.retainWhere((x) => null);
   }
 
   void testLarge() {

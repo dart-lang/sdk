@@ -8,7 +8,7 @@ part of dart.core;
  * The annotation `@Deprecated('expires when')` marks a feature as deprecated.
  *
  * The annotation `@deprecated` is a shorthand for deprecating until
- * to an unspecified "next release".
+ * an unspecified "next release".
  *
  * The intent of the `@Deprecated` annotation is to inform users of a feature
  * that they should change their code, even if it is currently still working
