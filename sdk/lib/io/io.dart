@@ -80,11 +80,12 @@
  *       process.exitCode.then(print);
  *     });
  *
- * Using `start()` returns a Future, which completes with a [Process] object when
- * the process has started. This [Process] object allows you to interact with the
- * process while it is running. Using `run()` returns a Future, which completes with
- * a [ProcessResult] object when the spawned process has terminated. This
- * [ProcessResult] object collects the output and exit code from the process. 
+ * Using `start()` returns a Future, which completes with a [Process] object
+ * when the process has started. This [Process] object allows you to interact
+ * with the process while it is running. Using `run()` returns a Future, which
+ * completes with a [ProcessResult] object when the spawned process has
+ * terminated. This [ProcessResult] object collects the output and exit code
+ * from the process.
  *
  * When using `start()`,
  * you need to read all data coming on the stdout and stderr streams otherwise
@@ -92,8 +93,8 @@
  *
  * ## WebSocket
  *
- * The [WebSocket] class provides support for the web socket protocol. This allows
- * full-duplex communications between client and server applications.
+ * The [WebSocket] class provides support for the web socket protocol. This
+ * allows full-duplex communications between client and server applications.
  * Use the WebSocket class in the `dart:html` library for web clients.
  *
  * A web socket server uses a normal HTTP server for accepting web socket
@@ -147,7 +148,7 @@
  *
  * A client connects a Socket using the `connect()` method,
  * which returns a Future.
- * Using `write()`, `writeln()`, or `writeAll()` are the easiest ways to 
+ * Using `write()`, `writeln()`, or `writeAll()` are the easiest ways to
  * send data over the socket.
  * For example:
  *

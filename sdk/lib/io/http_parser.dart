@@ -845,7 +845,7 @@ class _HttpParser
     return result;
   }
 
-  _reset() {
+  void _reset() {
     if (_state == _State.UPGRADED) return;
     _state = _State.START;
     _messageType = _MessageType.UNDETERMINED;
@@ -869,7 +869,7 @@ class _HttpParser
     _headers = null;
   }
 
-  _releaseBuffer() {
+  void _releaseBuffer() {
     _buffer = null;
     _index = null;
   }

@@ -60,6 +60,8 @@ class _HttpSession implements HttpSession {
   int get length => _data.length;
   bool get isEmpty => _data.isEmpty;
   bool get isNotEmpty => _data.isNotEmpty;
+
+  String toString() => 'HttpSession id:$id $_data';
 }
 
 // Private class used to manage all the active sessions. The sessions are stored
