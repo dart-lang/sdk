@@ -19,6 +19,7 @@ abstract class Visitor {
   visitIdentifier(Identifier i);
   visitBinaryOperator(BinaryOperator o);
   visitUnaryOperator(UnaryOperator o);
+  visitTernaryOperator(TernaryOperator o);
   visitInExpression(InExpression c);
 }
 
@@ -78,6 +79,13 @@ abstract class RecursiveVisitor extends Visitor {
 
   visitUnaryOperator(UnaryOperator o) {
     visit(o.child);
+    visitExpression(o);
+  }
+
+  visitTernaryOperator(TernaryOperator o) {
+    visit(o.condition);
+    visit(o.trueExpr);
+    visit(o.falseExpr);
     visitExpression(o);
   }
 

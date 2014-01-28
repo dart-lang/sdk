@@ -108,6 +108,18 @@ main() {
       expectEval('false && false', false);
     });
 
+    test('should evaulate ternary operators', () {
+      expectEval('true ? 1 : 2', 1);
+      expectEval('false ? 1 : 2', 2);
+      expectEval('true ? true ? 1 : 2 : 3', 1);
+      expectEval('true ? false ? 1 : 2 : 3', 2);
+      expectEval('false ? true ? 1 : 2 : 3', 3);
+      expectEval('false ? 1 : true ? 2 : 3', 2);
+      expectEval('false ? 1 : false ? 2 : 3', 3);
+      expectEval('null ? 1 : 2', 2);
+      expect(() => eval(parse('42 ? 1 : 2'), null), throws);
+    });
+
     test('should invoke a method on the model', () {
       var foo = new Foo(name: 'foo', age: 2);
       expectEval('x()', foo.x(), foo);

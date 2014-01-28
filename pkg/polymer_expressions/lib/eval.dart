@@ -370,6 +370,17 @@ class ObserverBuilder extends Visitor {
     return unary;
   }
 
+  visitTernaryOperator(TernaryOperator o) {
+    var condition = visit(o.condition);
+    var trueExpr = visit(o.trueExpr);
+    var falseExpr = visit(o.falseExpr);
+    var ternary = new TernaryObserver(o, condition, trueExpr, falseExpr);
+    condition._parent = ternary;
+    trueExpr._parent = ternary;
+    falseExpr._parent = ternary;
+    return ternary;
+  }
+
   visitInExpression(InExpression i) {
     // don't visit the left. It's an identifier, but we don't want to evaluate
     // it, we just want to add it to the comprehension object
@@ -522,6 +533,24 @@ class BinaryObserver extends ExpressionObserver<BinaryOperator>
   }
 
   accept(Visitor v) => v.visitBinaryOperator(this);
+
+}
+
+class TernaryObserver extends ExpressionObserver<TernaryOperator>
+    implements TernaryOperator {
+
+  final ExpressionObserver condition;
+  final ExpressionObserver trueExpr;
+  final ExpressionObserver falseExpr;
+
+  TernaryObserver(TernaryOperator expr, this.condition, this.trueExpr,
+      this.falseExpr) : super(expr);
+
+  _updateSelf(Scope scope) {
+    _value = _toBool(condition._value) ? trueExpr._value : falseExpr._value;
+  }
+
+  accept(Visitor v) => v.visitTernaryOperator(this);
 
 }
 

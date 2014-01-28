@@ -66,6 +66,8 @@ class Parser {
         left = _makeInvokeOrGetter(left, right);
       } else if (_token.kind == KEYWORD_TOKEN && _token.value == 'in') {
         left = _parseComprehension(left);
+      } else if (_token.kind == OPERATOR_TOKEN && _token.value == '?') {
+        left = _parseTernary(left);
       } else if (_token.kind == OPERATOR_TOKEN
           && _token.precedence >= precedence) {
         left = _parseBinary(left);
@@ -124,6 +126,14 @@ class Parser {
     return _parsePrimary();
   }
 
+  Expression _parseTernary(condition) {
+    _advance(OPERATOR_TOKEN, '?');
+    var trueExpr = _parseExpression();
+    _advance(COLON_TOKEN);
+    var falseExpr = _parseExpression();
+    return _astFactory.ternary(condition, trueExpr, falseExpr);
+  }
+
   Expression _parsePrimary() {
     var kind = _token.kind;
     switch (kind) {
@@ -152,6 +162,10 @@ class Parser {
           return _parseMapLiteral();
         }
         return null;
+      case COLON_TOKEN:
+        // TODO(justinfagnani): We need better errors throughout the parser, and
+        // we should be throwing ParseErrors to be caught by the caller
+        throw new ArgumentError('unexpected token ":"');
       default:
         return null;
     }

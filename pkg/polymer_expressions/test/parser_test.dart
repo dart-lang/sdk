@@ -161,6 +161,13 @@ main() {
           index(ident('c'), ident('d'))));
     });
 
+    test('should parse ternary operators', () {
+      expectParse('a ? b : c', ternary(ident('a'), ident('b'), ident('c')));
+      expectParse('a.a ? b.a : c.a', ternary(getter(ident('a'), 'a'),
+          getter(ident('b'), 'a'), getter(ident('c'), 'a')));
+      expect(() => parse('a + 1 ? b + 1 :: c.d + 3'), throws);
+    });
+
     test('should parse a filter chain', () {
       expectParse('a | b | c', binary(binary(ident('a'), '|', ident('b')),
           '|', ident('c')));
