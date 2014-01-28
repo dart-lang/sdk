@@ -812,22 +812,16 @@ String yamlToString(data) {
   return buffer.toString();
 }
 
-// Get a string description of an exception.
-//
-// Most exception types have a "message" property. We prefer this since
-// it skips the "Exception:", "HttpException:", etc. prefix that calling
-// toString() adds. But, alas, "message" isn't actually defined in the
-// base Exception type so there's no easy way to know if it's available
-// short of a giant pile of type tests for each known exception type.
-//
-// So just try it. If it throws, default to toString().
-String getErrorMessage(error) {
-  try {
-    return error.message;
-  } on NoSuchMethodError catch (_) {
-    return error.toString();
-  }
-}
+/// A regular expression to match the exception prefix that some exceptions'
+/// [Object.toString] values contain.
+final _exceptionPrefix = new RegExp(r'^([A-Z][a-zA-Z]*)?(Exception|Error): ');
+
+/// Get a string description of an exception.
+///
+/// Many exceptions include the exception class name at the beginning of their
+/// [toString], so we remove that if it exists.
+String getErrorMessage(error) =>
+  error.toString().replaceFirst(_exceptionPrefix, '');
 
 /// An exception class for exceptions that are intended to be seen by the user.
 /// These exceptions won't have any debugging information printed when they're
