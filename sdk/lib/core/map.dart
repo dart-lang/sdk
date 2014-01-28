@@ -5,23 +5,34 @@
 part of dart.core;
 
 /**
- * An unordered collection of key-value pairs, from which you retrieve a value
+ * An collection of key-value pairs, from which you retrieve a value
  * by using its associated key.
  *
  * Each key can occur at most once in a map.
  *
+ * Maps, and their keys and values, can be iterated.
+ * The order of iteration is defined by the individual type of map.
+ * Examples:
+ *
+ * * The plain [HashMap] is unordered (no order is guaranteed),
+ * * the [LinkedHashMap] iterates in key insertion order,
+ * * and a sorted my like [SplayTreeMap] iterates the keys in sorted order.
+ *
  * It is generally not allowed to modify the map (add or remove keys) while
  * an operation is being performed on the map, for example in functions called
  * during a [forEach] or [putIfAbsent] call.
- * Modifying the map while iterating the keys or values will also most likely
- * break the iteration.
+ * Modifying the map while iterating the keys or values
+ * may also break the iteration.
  */
 abstract class Map<K, V> {
   /**
    * Creates a Map instance with the default implementation, [LinkedHashMap].
    *
+   * This constructor is equivalent to the non-const map literal `<K,V>{}`.
+   *
    * A `LinkedHashMap` requires the keys to implement compatible
    * `operator==` and `hashCode`, and it allows null as a key.
+   * It iterates in key insertion order.
    */
   factory Map() = LinkedHashMap<K, V>;
 
@@ -31,6 +42,7 @@ abstract class Map<K, V> {
    *
    * A `LinkedHashMap` requires the keys to implement compatible
    * `operator==` and `hashCode`, and it allows null as a key.
+   * It iterates in key insertion order.
    */
   factory Map.from(Map<K, V> other) = LinkedHashMap<K, V>.from;
 
@@ -38,6 +50,7 @@ abstract class Map<K, V> {
    * Creates an identity map with the default implementation, [LinkedHashMap].
    *
    * The returned map allows `null` as a key.
+   * It iterates in key insertion order.
    */
   factory Map.identity() = LinkedHashMap<K, V>.identity;
 
@@ -48,6 +61,7 @@ abstract class Map<K, V> {
    * The created map is a [LinkedHashMap].
    * A `LinkedHashMap` requires the keys to implement compatible
    * `operator==` and `hashCode`, and it allows null as a key.
+   * It iterates in key insertion order.
    *
    * For each element of the [iterable] this constructor computes a key-value
    * pair, by applying [key] and [value] respectively.
@@ -86,6 +100,7 @@ abstract class Map<K, V> {
    * The created map is a [LinkedHashMap].
    * A `LinkedHashMap` requires the keys to implement compatible
    * `operator==` and `hashCode`, and it allows null as a key.
+   * It iterates in key insertion order.
    *
    * This constructor iterates over [keys] and [values] and maps each element of
    * [keys] to the corresponding element of [values].
@@ -98,7 +113,7 @@ abstract class Map<K, V> {
    * If [keys] contains the same object multiple times, the last occurrence
    * overwrites the previous value.
    *
-   * It is an error if the two [Iterable]s don't have the same length.
+   * The two [Iterable]s must have the same length.
    */
   factory Map.fromIterables(Iterable<K> keys, Iterable<V> values)
       = LinkedHashMap<K, V>.fromIterables;
@@ -123,6 +138,9 @@ abstract class Map<K, V> {
 
   /**
    * Associates the [key] with the given [value].
+   *
+   * If the key was already in the map, its associated value is changed.
+   * Otherwise the key-value pair is added to the map.
    */
   void operator []=(K key, V value);
 
@@ -164,13 +182,15 @@ abstract class Map<K, V> {
 
   /**
    * Removes all pairs from the map.
+   *
+   * After this, the map is empty.
    */
   void clear();
 
   /**
    * Applies [f] to each {key, value} pair of the map.
    *
-   * It is an error to add or remove keys from the map during iteration.
+   * Adding or removing keys from the map during iteration is not allowed.
    */
   void forEach(void f(K key, V value));
 
@@ -179,11 +199,18 @@ abstract class Map<K, V> {
    *
    * The returned iterable has efficient `length` and `contains` operations,
    * based on [length] and [containsKey] of the map.
+   *
+   * The order of iteration is defined by the individual `Map` implementation,
+   * but must be consistent between changes to the map.
    */
   Iterable<K> get keys;
 
   /**
    * The values of [this].
+   *
+   * The values are iterated in the order of their corresponding keys.
+   * This means that iterating [keys] and [values] in parrallel will
+   * provided matching pairs of keys and values.
    *
    * The returned iterable has an efficient `length` method based on the
    * [length] of the map.
