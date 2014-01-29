@@ -1442,6 +1442,15 @@ main() {
 }
 """]);
 
+  static const MessageKind EQUAL_MAP_ENTRY_KEY = const MessageKind(
+      "Warning: An entry with the same key already exists in the map.",
+      howToFix: "Try removing the previous entry or changing the key in one "
+                "of the entries.",
+      examples: const ["""
+main() {
+  var m = const {'foo': 1, 'foo': 2};
+}"""]);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 
