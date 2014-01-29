@@ -298,7 +298,7 @@ abstract class ElementX implements Element {
 /**
  * Represents an unresolvable or duplicated element.
  *
- * An [ErroneousElement] is used instead of [null] to provide additional
+ * An [ErroneousElement] is used instead of [:null:] to provide additional
  * information about the error that caused the element to be unresolvable
  * or otherwise invalid.
  *
@@ -1256,6 +1256,8 @@ class VariableListElementX extends ElementX implements VariableListElement {
           // We found exactly one FunctionExpression
           functionSignature =
               compiler.resolveFunctionExpression(this, functionExpression);
+          // TODO(johnniwinther): Use the parameter's [VariableElement] instead
+          // of [functionClass].
           type = compiler.computeFunctionType(compiler.functionClass,
                                               functionSignature);
         } else {
@@ -1581,7 +1583,14 @@ class FunctionElementX extends ElementX implements FunctionElement {
     return cachedNode;
   }
 
-  Token position() => cachedNode.getBeginToken();
+  Token position() {
+    // Use the name as position if this is not an unnamed closure.
+    if (cachedNode.name != null) {
+      return cachedNode.name.getBeginToken();
+    } else {
+      return cachedNode.getBeginToken();
+    }
+  }
 
   FunctionElement asFunctionElement() => this;
 
@@ -1767,6 +1776,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   int resolutionState;
   bool get isResolved => resolutionState == STATE_DONE;
   bool isProxy = false;
+  bool hasIncompleteHierarchy = false;
 
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
@@ -1777,6 +1787,9 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   Link<DartType> get allSupertypes => allSupertypesAndSelf.supertypes;
 
   int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
+
+  Map<Name, Member> classMembers;
+  Map<Name, MemberSignature> interfaceMembers;
 
   BaseClassElementX(String name,
                     Element enclosing,
@@ -2150,6 +2163,18 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   bool isNative() => nativeTagInfo != null;
   void setNative(String name) {
     nativeTagInfo = name;
+  }
+
+  Member lookupClassMember(Name name) => classMembers[name];
+
+  void forEachClassMember(f(Member member)) {
+    classMembers.forEach((_, member) => f(member));
+  }
+
+  MemberSignature lookupInterfaceMember(Name name) => interfaceMembers[name];
+
+  void forEachInterfaceMember(f(MemberSignature member)) {
+    interfaceMembers.forEach((_, member) => f(member));
   }
 }
 

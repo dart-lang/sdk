@@ -1051,6 +1051,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     intptr_t extra_slots = StackSize()
         - flow_graph().num_stack_locals()
         - flow_graph().num_copied_params();
+    ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
     ASSERT(StackSize() >= 0);
@@ -1441,9 +1442,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
       __ BranchLinkPatchable(
           &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
+    if (token_pos != Scanner::kNoSourcePos) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
     __ TraceSimMsg("EqualityRegConstCompare return");
     __ lw(reg, Address(SP, 1 * kWordSize));  // Restore 'reg'.
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
@@ -1470,9 +1473,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
+    if (token_pos != Scanner::kNoSourcePos) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
     __ TraceSimMsg("EqualityRegRegCompare return");
     // Stub returns result in CMPRES1. If it is 0, then left and right are
     // equal.

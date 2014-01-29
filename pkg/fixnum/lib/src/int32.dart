@@ -270,7 +270,7 @@ class Int32 implements IntX {
   }
 
   /**
-   * Returns [true] if this [Int32] has the same numeric value as the
+   * Returns [:true:] if this [Int32] has the same numeric value as the
    * given object.  The argument may be an [int] or an [IntX].
    */
   bool operator ==(other) {

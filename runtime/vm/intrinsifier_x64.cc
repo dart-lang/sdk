@@ -78,7 +78,7 @@ void Intrinsifier::List_Allocate(Assembler* assembler) {
   __ movq(R13, Immediate(heap->TopAddress()));
   __ movq(Address(R13, 0), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
-
+  __ UpdateAllocationStatsWithSize(kArrayCid, RDI);
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
   // RDI: allocation size.
@@ -259,6 +259,7 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // Set the length field in the growable array object to 0.
   __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()),
           Immediate(0));
+  __ UpdateAllocationStats(kGrowableObjectArrayCid);
   __ ret();  // returns the newly allocated object in RAX.
 
   __ Bind(&fall_through);
@@ -446,7 +447,7 @@ void Intrinsifier::GrowableList_add(Assembler* assembler) {
   __ movq(R13, Immediate(heap->TopAddress()));                                 \
   __ movq(Address(R13, 0), RCX);                                               \
   __ addq(RAX, Immediate(kHeapObjectTag));                                     \
-                                                                               \
+  __ UpdateAllocationStatsWithSize(cid, RDI);                                  \
   /* Initialize the tags. */                                                   \
   /* RAX: new object start as a tagged pointer. */                             \
   /* RCX: new object end address. */                                           \
@@ -1469,6 +1470,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ movq(R13, Immediate(heap->TopAddress()));
   __ movq(Address(R13, 0), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kOneByteStringCid, RDI);
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.

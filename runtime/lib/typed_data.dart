@@ -13,11 +13,8 @@ patch class Int8List {
   }
 
   /* patch */ factory Int8List.fromList(List<int> elements) {
-    var result = new _Int8Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Int8Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Int8List.view(ByteBuffer buffer,
@@ -33,11 +30,8 @@ patch class Uint8List {
   }
 
   /* patch */ factory Uint8List.fromList(List<int> elements) {
-    var result = new _Uint8Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Uint8Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Uint8List.view(ByteBuffer buffer,
@@ -53,11 +47,8 @@ patch class Uint8ClampedList {
   }
 
   /* patch */ factory Uint8ClampedList.fromList(List<int> elements) {
-    var result = new _Uint8ClampedArray(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Uint8ClampedArray(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Uint8ClampedList.view(ByteBuffer buffer,
@@ -76,11 +67,8 @@ patch class Int16List {
   }
 
   /* patch */ factory Int16List.fromList(List<int> elements) {
-    var result = new _Int16Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Int16Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Int16List.view(ByteBuffer buffer,
@@ -96,11 +84,8 @@ patch class Uint16List {
   }
 
   /* patch */ factory Uint16List.fromList(List<int> elements) {
-    var result = new _Uint16Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Uint16Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Uint16List.view(ByteBuffer buffer,
@@ -116,11 +101,8 @@ patch class Int32List {
   }
 
   /* patch */ factory Int32List.fromList(List<int> elements) {
-    var result = new _Int32Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Int32Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Int32List.view(ByteBuffer buffer,
@@ -136,11 +118,8 @@ patch class Uint32List {
   }
 
   /* patch */ factory Uint32List.fromList(List<int> elements) {
-    var result = new _Uint32Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Uint32Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Uint32List.view(ByteBuffer buffer,
@@ -156,11 +135,8 @@ patch class Int64List {
   }
 
   /* patch */ factory Int64List.fromList(List<int> elements) {
-    var result = new _Int64Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Int64Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Int64List.view(ByteBuffer buffer,
@@ -176,11 +152,8 @@ patch class Uint64List {
   }
 
   /* patch */ factory Uint64List.fromList(List<int> elements) {
-    var result = new _Uint64Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Uint64Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Uint64List.view(ByteBuffer buffer,
@@ -196,11 +169,8 @@ patch class Float32List {
   }
 
   /* patch */ factory Float32List.fromList(List<double> elements) {
-    var result = new _Float32Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Float32Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Float32List.view(ByteBuffer buffer,
@@ -216,11 +186,8 @@ patch class Float64List {
   }
 
   /* patch */ factory Float64List.fromList(List<double> elements) {
-    var result = new _Float64Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Float64Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Float64List.view(ByteBuffer buffer,
@@ -235,11 +202,8 @@ patch class Float32x4List {
   }
 
   /* patch */ factory Float32x4List.fromList(List<Float32x4> elements) {
-    var result = new _Float32x4Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Float32x4Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Float32x4List.view(ByteBuffer buffer,
@@ -255,11 +219,8 @@ patch class Int32x4List {
   }
 
   /* patch */ factory Int32x4List.fromList(List<Int32x4> elements) {
-    var result = new _Int32x4Array(elements.length);
-    for (int i = 0; i < elements.length; i++) {
-      result[i] = elements[i];
-    }
-    return result;
+    return new _Int32x4Array(elements.length)
+        ..setRange(0, elements.length, elements);
   }
 
   /* patch */ factory Int32x4List.view(ByteBuffer buffer,

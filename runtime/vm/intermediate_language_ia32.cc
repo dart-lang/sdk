@@ -1613,7 +1613,7 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -1677,7 +1677,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ TryAllocate(compiler->double_class(),
                      slow_path->entry_label(),
                      Assembler::kFarJump,
-                     temp);
+                     temp,
+                     temp2);
       __ Bind(slow_path->exit_label());
       __ movl(temp2, temp);
       __ StoreIntoObject(instance_reg,
@@ -1726,7 +1727,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ TryAllocate(compiler->double_class(),
                    slow_path->entry_label(),
                    Assembler::kFarJump,
-                   temp);
+                   temp,
+                   temp2);
     __ Bind(slow_path->exit_label());
     __ movl(temp2, temp);
     __ StoreIntoObject(instance_reg,
@@ -1897,7 +1899,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -1974,7 +1976,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ TryAllocate(compiler->double_class(),
                    slow_path->entry_label(),
                    Assembler::kFarJump,
-                   result);
+                   result,
+                   temp);
     __ Bind(slow_path->exit_label());
     __ movl(temp, FieldAddress(instance_reg, offset_in_bytes()));
     __ movsd(value, FieldAddress(temp, Double::value_offset()));
@@ -2857,7 +2860,8 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TryAllocate(compiler->double_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
-                 out_reg);
+                 out_reg,
+                 kNoRegister);
   __ Bind(slow_path->exit_label());
   __ movsd(FieldAddress(out_reg, Double::value_offset()), value);
 }
@@ -2939,7 +2943,7 @@ class BoxFloat32x4SlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -2964,7 +2968,8 @@ void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TryAllocate(compiler->float32x4_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
-                 out_reg);
+                 out_reg,
+                 kNoRegister);
   __ Bind(slow_path->exit_label());
   __ movups(FieldAddress(out_reg, Float32x4::value_offset()), value);
 }
@@ -3033,7 +3038,7 @@ class BoxInt32x4SlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -3058,7 +3063,8 @@ void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TryAllocate(compiler->int32x4_class(),
                  slow_path->entry_label(),
                  Assembler::kFarJump,
-                 out_reg);
+                 out_reg,
+                 kNoRegister);
   __ Bind(slow_path->exit_label());
   __ movups(FieldAddress(out_reg, Int32x4::value_offset()), value);
 }
@@ -4635,7 +4641,7 @@ class BoxIntegerSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -4682,7 +4688,8 @@ void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Class::ZoneHandle(Isolate::Current()->object_store()->mint_class()),
       slow_path->entry_label(),
       Assembler::kFarJump,
-      out_reg);
+      out_reg,
+      kNoRegister);
   __ Bind(slow_path->exit_label());
   __ movsd(FieldAddress(out_reg, Mint::value_offset()), value);
   __ Bind(&done);
@@ -4934,7 +4941,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // code that matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id_,
-                                   Scanner::kDummyTokenIndex);
+                                   Scanner::kNoSourcePos);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4957,7 +4964,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // pattern.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Scanner::kDummyTokenIndex);
+                                   Scanner::kNoSourcePos);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());

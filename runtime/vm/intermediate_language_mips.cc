@@ -1679,7 +1679,7 @@ class StoreInstanceFieldSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -1741,7 +1741,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->AddSlowPathCode(slow_path);
       __ TryAllocate(compiler->double_class(),
                      slow_path->entry_label(),
-                     temp);
+                     temp,
+                     temp2);
       __ Bind(slow_path->exit_label());
       __ mov(temp2, temp);
       __ StoreIntoObject(instance_reg,
@@ -1785,7 +1786,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ TryAllocate(compiler->double_class(),
                    slow_path->entry_label(),
-                   temp);
+                   temp,
+                   temp2);
     __ Bind(slow_path->exit_label());
     __ mov(temp2, temp);
     __ StoreIntoObject(instance_reg,
@@ -1960,7 +1962,7 @@ class BoxDoubleSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
@@ -2039,7 +2041,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ TryAllocate(compiler->double_class(),
                    slow_path->entry_label(),
-                   result_reg);
+                   result_reg,
+                   temp);
     __ Bind(slow_path->exit_label());
     __ lw(temp, FieldAddress(instance_reg, offset_in_bytes()));
     __ LoadDFromOffset(value, temp, Double::value_offset() - kHeapObjectTag);
@@ -2897,12 +2900,13 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BoxDoubleInstr::MakeLocationSummary(bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* summary =
       new LocationSummary(kNumInputs,
                           kNumTemps,
                           LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_temp(0, Location::RequiresRegister());
   summary->set_out(Location::RequiresRegister());
   return summary;
 }
@@ -2917,7 +2921,8 @@ void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ TryAllocate(compiler->double_class(),
                  slow_path->entry_label(),
-                 out_reg);
+                 out_reg,
+                 locs()->temp(0).reg());
   __ Bind(slow_path->exit_label());
   __ StoreDToOffset(value, out_reg, Double::value_offset() - kHeapObjectTag);
 }
@@ -3993,7 +3998,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // sites, which matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id_,
-                                   Scanner::kDummyTokenIndex);
+                                   Scanner::kNoSourcePos);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4017,7 +4022,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // the end of the pattern.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Scanner::kDummyTokenIndex);
+                                   Scanner::kNoSourcePos);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());

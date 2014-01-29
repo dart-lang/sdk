@@ -623,10 +623,12 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     // R0: potential new object start.
+    // R3: array size.
     // R7: potential next object start.
     // R8: Points to new space object.
     __ StoreToOffset(kWord, R7, R8, Scavenger::top_offset());
     __ add(R0, R0, ShifterOperand(kHeapObjectTag));
+    __ UpdateAllocationStatsWithSize(kArrayCid, R3, R8);
 
     // R0: new object start as a tagged pointer.
     // R1: array element type.
@@ -959,6 +961,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     __ str(R3, Address(R5, 0));
     __ add(R0, R0, ShifterOperand(kHeapObjectTag));
+    __ UpdateAllocationStatsWithSize(context_class.id(), R2, R5);
 
     // Calculate the size tag.
     // R0: new object.
@@ -1141,6 +1144,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ str(R3, Address(R5, 0));
+    __ UpdateAllocationStats(cls.id(), R5);
 
     if (is_cls_parameterized) {
       // Initialize the type arguments field in the object.
@@ -1305,6 +1309,17 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
     __ str(R3, Address(R5, 0));
+
+    if (is_implicit_instance_closure) {
+      // This closure allocates a context, update allocation stats.
+      // R3: context size.
+      __ LoadImmediate(R3, context_size);
+      // R5: Clobbered.
+     __ UpdateAllocationStatsWithSize(kContextCid, R3, R5);
+    }
+    // The closure allocation is attributed to the signature class.
+    // R5: Will be clobbered.
+    __ UpdateAllocationStats(cls.id(), R5);
 
     // R2: new closure object.
     // R4: new context object (only if is_implicit_closure).
@@ -1833,53 +1848,6 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ PopList((1 << R0) | (1 << R4) | (1 << R5));
   __ LeaveStubFrame();
   __ bx(R0);
-}
-
-
-//  LR: return address (Dart code).
-//  R5: IC data (unoptimized static call).
-void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
-  // Preserve arguments descriptor and make room for result.
-  __ PushList((1 << R0) | (1 << R5));
-  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
-  // Pop code object result and restore arguments descriptor.
-  __ PopList((1 << R0) | (1 << R5));
-  __ LeaveStubFrame();
-
-  // Now call the static function. The breakpoint handler function
-  // ensures that the call target is compiled.
-  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
-  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
-  // Load arguments descriptor into R4.
-  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
-  __ bx(R0);
-}
-
-
-//  LR: return address (Dart code).
-//  R5: inline cache data array.
-void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-  __ Push(R5);
-  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry, 0);
-  __ Pop(R5);
-  __ LeaveStubFrame();
-
-  // Find out which dispatch stub to call.
-  __ ldr(IP, FieldAddress(R5, ICData::num_args_tested_offset()));
-  __ cmp(IP, ShifterOperand(1));
-  __ Branch(&StubCode::OneArgCheckInlineCacheLabel(), EQ);
-  __ cmp(IP, ShifterOperand(2));
-  __ Branch(&StubCode::TwoArgsCheckInlineCacheLabel(), EQ);
-  __ cmp(IP, ShifterOperand(3));
-  __ Branch(&StubCode::ThreeArgsCheckInlineCacheLabel(), EQ);
-  __ Stop("Unsupported number of arguments tested.");
 }
 
 

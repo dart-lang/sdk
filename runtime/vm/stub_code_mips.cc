@@ -713,6 +713,9 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // T0: Points to new space object.
     __ sw(T2, Address(T0, Scavenger::top_offset()));
     __ addiu(V0, V0, Immediate(kHeapObjectTag));
+    // T1: Size of allocation in bytes.
+    __ subu(T1, T2, V0);
+    __ UpdateAllocationStatsWithSize(kArrayCid, T1, T5);
 
     // V0: new object start as a tagged pointer.
     // A0: array element type.
@@ -1115,6 +1118,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T3: next object start.
     __ sw(T3, Address(T5, 0));
     __ addiu(V0, V0, Immediate(kHeapObjectTag));
+    __ UpdateAllocationStatsWithSize(context_class.id(), T2, T5);
 
     // Calculate the size tag.
     // V0: new object.
@@ -1397,6 +1401,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // Set the type arguments in the new object.
       __ sw(T1, Address(T2, cls.type_arguments_field_offset()));
     }
+    __ UpdateAllocationStats(cls.id(), T5);
     // Done allocating and initializing the instance.
     // T2: new object still missing its heap tag.
     __ Ret();
@@ -1486,6 +1491,16 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
     __ sw(T3, Address(T5));
+    if (is_implicit_instance_closure) {
+      // This closure allocates a context, update allocation stats.
+      // T3: context size.
+      __ LoadImmediate(T3, context_size);
+      // T5: Clobbered.
+     __ UpdateAllocationStatsWithSize(kContextCid, T3, T5);
+    }
+    // The closure allocation is attributed to the signature class.
+    // T5: Will be clobbered.
+    __ UpdateAllocationStats(cls.id(), T5);
 
     // T2: new closure object.
     // T4: new context object (only if is_implicit_closure).
@@ -1697,6 +1712,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchEqual(T0, 0, &not_stepping);
   // Call single step callback in debugger.
+  __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
@@ -1704,6 +1720,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ lw(S5, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
 
   // Load argument descriptor into S4.
@@ -1969,6 +1986,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchEqual(T0, 0, &not_stepping);
   // Call single step callback in debugger.
+  __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
@@ -1976,6 +1994,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ lw(S5, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
 
 
@@ -2077,66 +2096,6 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 }
 
 
-//  RA: return address (Dart code).
-//  S5: IC data (unoptimized static call).
-void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ TraceSimMsg("BreakpointStaticStub");
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ EnterStubFrame();
-  // Preserve arguments descriptor and make room for result.
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(TMP, Address(SP, 0 * kWordSize));
-  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
-  // Pop code object result and restore arguments descriptor.
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lw(S5, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  __ LeaveStubFrame();
-
-  // Now call the static function. The breakpoint handler function
-  // ensures that the call target is compiled.
-  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
-  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
-  // Load arguments descriptor into S4.
-  __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
-  __ jr(T0);
-}
-
-
-//  RA: return address (Dart code).
-//  S5: Inline cache data array.
-void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  __ TraceSimMsg("BreakpointDynamicStub");
-  __ EnterStubFrame();
-  __ Push(S5);
-  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry, 0);
-  __ Pop(S5);
-  __ LeaveStubFrame();
-
-  // Find out which dispatch stub to call.
-  __ lw(T1, FieldAddress(S5, ICData::num_args_tested_offset()));
-
-  Label one_arg, two_args, three_args;
-  __ BranchEqual(T1, 1, &one_arg);
-  __ BranchEqual(T1, 2, &two_args);
-  __ BranchEqual(T1, 3, &three_args);
-  __ Stop("Unsupported number of arguments tested.");
-
-  __ Bind(&one_arg);
-  __ Branch(&StubCode::OneArgCheckInlineCacheLabel());
-  __ Bind(&two_args);
-  __ Branch(&StubCode::TwoArgsCheckInlineCacheLabel());
-  __ Bind(&three_args);
-  __ Branch(&StubCode::ThreeArgsCheckInlineCacheLabel());
-  __ break_(0);
-}
-
-
 // Called only from unoptimized code. All relevant registers have been saved.
 // RA: return address.
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
@@ -2146,11 +2105,13 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchEqual(T0, 0, &not_stepping);
   // Call single step callback in debugger.
+  __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(1 * kWordSize));
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
   __ Ret();
 }
@@ -2419,11 +2380,13 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
   __ BranchEqual(T0, 0, &not_stepping);
   // Call single step callback in debugger.
+  __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(1 * kWordSize));
+  __ LeaveStubFrame();
   __ Bind(&not_stepping);
 
   const Register temp1 = T2;

@@ -17,7 +17,7 @@
     </thead>
     <tbody>
       <tr template repeat="{{ frame in trace['members'] }}">
-        <td>{{$index}}</td>
+        <td></td>
         <td><function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref></td>
         <td><script-ref app="{{ app }}" ref="{{ frame['script'] }}"></script-ref></td>
         <td>{{ frame['line'] }}</td>

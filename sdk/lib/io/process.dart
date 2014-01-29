@@ -97,7 +97,7 @@ abstract class Process {
    *
    * On Linux and Mac a normal exit code will be a positive value in
    * the range [0..255]. If the process was terminated due to a signal
-   * the exit code will be a negative value in the range [-255..0[,
+   * the exit code will be a negative value in the range [-255..-1],
    * where the absolute value of the exit code is the signal
    * number. For example, if a process crashes due to a segmentation
    * violation the exit code will be -11, as the signal SIGSEGV has the
@@ -254,16 +254,14 @@ abstract class Process {
   int get pid;
 
   /**
-   * On Windows, [kill] kills the process, ignoring the [signal]
-   * flag. On Posix systems, [kill] sends [signal] to the
-   * process. Depending on the signal send, it'll have different
-   * meanings. When the process terminates as a result of calling
-   * [kill], the [exitCode] future is completed with the exit code.
+   * On Linux and Mac OS, [kill] sends [signal] to the process. When the process
+   * terminates as a result of calling [kill], the value for [exitCode] may be a
+   * negative number corresponding to the provided [signal].
    *
-   * Returns [:true:] if the process is successfully killed (the
-   * signal is successfully sent). Returns [:false:] if the process
-   * could not be killed (the signal could not be sent). Usually,
-   * a [:false:] return value from kill means that the process is
+   * On Windows, [kill] kills the process, ignoring the [signal] flag.
+   *
+   * Returns [:true:] if the signal is successfully sent and process is killed.
+   * Otherwise the signal could not be sent, usually meaning that the process is
    * already dead.
    */
   bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]);

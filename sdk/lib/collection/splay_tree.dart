@@ -237,7 +237,7 @@ class _TypeTest<T> {
   bool test(v) => v is T;
 }
 
-/*
+/**
  * A [Map] of objects that can be ordered relative to each other.
  *
  * The map is based on a self-balancing binary tree. It allows most operations
@@ -428,7 +428,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   }
 
   /**
-   * Get the first key in the map. Returns [null] if the map is empty.
+   * Get the first key in the map. Returns [:null:] if the map is empty.
    */
   K firstKey() {
     if (_root == null) return null;
@@ -436,7 +436,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   }
 
   /**
-   * Get the last key in the map. Returns [null] if the map is empty.
+   * Get the last key in the map. Returns [:null:] if the map is empty.
    */
   K lastKey() {
     if (_root == null) return null;
@@ -445,7 +445,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
 
   /**
    * Get the last key in the map that is strictly smaller than [key]. Returns
-   * [null] if no key was not found.
+   * [:null:] if no key was not found.
    */
   K lastKeyBefore(K key) {
     if (key == null) throw new ArgumentError(key);
@@ -462,7 +462,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
 
   /**
    * Get the first key in the map that is strictly larger than [key]. Returns
-   * [null] if no key was not found.
+   * [:null:] if no key was not found.
    */
   K firstKeyAfter(K key) {
     if (key == null) throw new ArgumentError(key);
@@ -525,16 +525,17 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
         _modificationCount = tree._modificationCount {
     int compare = tree._splay(startKey);
     _splayCount = tree._splayCount;
-    _findLeftMostDescendent(compare < 0 ? tree._root.right : tree._root);
+    if (compare < 0) {
+      // Don't include the root, start at the next element after the root.
+      _findLeftMostDescendent(tree._root.right);
+    } else {
+      _workList.add(tree._root);
+    }
   }
 
   T get current {
     if (_currentNode == null) return null;
     return _getValue(_currentNode);
-  }
-
-  _SplayTreeNode _findStartNode(T key) {
-
   }
 
   void _findLeftMostDescendent(_SplayTreeNode node) {

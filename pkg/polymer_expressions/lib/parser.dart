@@ -30,9 +30,9 @@ class Parser {
   }
 
   _advance([int kind, String value]) {
-    if ((kind != null && _token.kind != kind)
-        || (value != null && _token.value != value)) {
-      throw new ParseException("Expected $value: $_token");
+    if ((kind != null && (_token == null || _token.kind != kind))
+        || (value != null && (_token == null || _token.value != value))) {
+      throw new ParseException("Expected kind $kind ($value): $_token");
     }
     _iterator.moveNext();
   }
@@ -66,6 +66,8 @@ class Parser {
         left = _makeInvokeOrGetter(left, right);
       } else if (_token.kind == KEYWORD_TOKEN && _token.value == 'in') {
         left = _parseComprehension(left);
+      } else if (_token.kind == OPERATOR_TOKEN && _token.value == '?') {
+        left = _parseTernary(left);
       } else if (_token.kind == OPERATOR_TOKEN
           && _token.precedence >= precedence) {
         left = _parseBinary(left);
@@ -124,6 +126,14 @@ class Parser {
     return _parsePrimary();
   }
 
+  Expression _parseTernary(condition) {
+    _advance(OPERATOR_TOKEN, '?');
+    var trueExpr = _parseExpression();
+    _advance(COLON_TOKEN);
+    var falseExpr = _parseExpression();
+    return _astFactory.ternary(condition, trueExpr, falseExpr);
+  }
+
   Expression _parsePrimary() {
     var kind = _token.kind;
     switch (kind) {
@@ -150,11 +160,30 @@ class Parser {
           return _parseParenthesized();
         } else if (_token.value == '{') {
           return _parseMapLiteral();
+        } else if (_token.value == '[') {
+          return _parseListLiteral();
         }
         return null;
+      case COLON_TOKEN:
+        // TODO(justinfagnani): We need better errors throughout the parser, and
+        // we should be throwing ParseErrors to be caught by the caller
+        throw new ArgumentError('unexpected token ":"');
       default:
         return null;
     }
+  }
+
+  ListLiteral _parseListLiteral() {
+    var items = [];
+    do {
+      _advance();
+      if (_token.kind == GROUPER_TOKEN && _token.value == ']') {
+        break;
+      }
+      items.add(_parseExpression());
+    } while(_token != null && _token.value == ',');
+    _advance(GROUPER_TOKEN, ']');
+    return new ListLiteral(items);
   }
 
   MapLiteral _parseMapLiteral() {

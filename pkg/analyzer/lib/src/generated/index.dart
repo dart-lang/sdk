@@ -9,12 +9,13 @@ library engine.index;
 
 import 'dart:collection' show Queue;
 import 'java_core.dart';
+import 'java_engine.dart';
 import 'source.dart';
 import 'scanner.dart' show Token;
 import 'ast.dart';
 import 'element.dart';
 import 'resolver.dart' show Namespace, NamespaceBuilder;
-import 'engine.dart' show AnalysisEngine, AnalysisContext, InstrumentedAnalysisContextImpl;
+import 'engine.dart' show AnalysisEngine, AnalysisContext, InstrumentedAnalysisContextImpl, AngularHtmlUnitResolver;
 import 'html.dart' as ht;
 
 /**
@@ -1209,10 +1210,20 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
    */
   AngularHtmlIndexContributor(IndexStore store) {
     this._store = store;
-    _indexContributor = new IndexContributor(store);
+    _indexContributor = new IndexContributor_AngularHtmlIndexContributor(store, this);
   }
 
   void visitExpression(Expression expression) {
+    // NgFilter
+    if (expression is SimpleIdentifier) {
+      SimpleIdentifier identifier = expression;
+      Element element = identifier.bestElement;
+      if (element is AngularElement) {
+        _store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, createLocation(identifier));
+        return;
+      }
+    }
+    // index as a normal Dart expression
     expression.accept(_indexContributor);
   }
 
@@ -1227,7 +1238,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     Element element = node.element;
     if (element != null) {
       ht.Token nameToken = node.nameToken;
-      Location location = createLocation(nameToken);
+      Location location = createLocation2(nameToken);
       _store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     }
     return super.visitXmlAttributeNode(node);
@@ -1237,13 +1248,32 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
     Element element = node.element;
     if (element != null) {
       ht.Token tagToken = node.tagToken;
-      Location location = createLocation(tagToken);
+      Location location = createLocation2(tagToken);
       _store.recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     }
     return super.visitXmlTagNode(node);
   }
 
-  Location createLocation(ht.Token token) => new Location(_htmlUnitElement, token.offset, token.length);
+  Location createLocation(SimpleIdentifier identifier) => new Location(_htmlUnitElement, identifier.offset, identifier.length);
+
+  Location createLocation2(ht.Token token) => new Location(_htmlUnitElement, token.offset, token.length);
+}
+
+class IndexContributor_AngularHtmlIndexContributor extends IndexContributor {
+  final AngularHtmlIndexContributor AngularHtmlIndexContributor_this;
+
+  IndexContributor_AngularHtmlIndexContributor(IndexStore arg0, this.AngularHtmlIndexContributor_this) : super(arg0);
+
+  Element peekElement() => AngularHtmlIndexContributor_this._htmlUnitElement;
+
+  void recordRelationship(Element element, Relationship relationship, Location location) {
+    AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
+    if (angularElement != null) {
+      element = angularElement;
+      relationship = IndexConstants.IS_REFERENCED_BY;
+    }
+    super.recordRelationship(element, relationship, location);
+  }
 }
 
 /**
@@ -1771,7 +1801,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
           InterfaceType superType = element.supertype;
           if (superType != null) {
             ClassElement objectElement = superType.element;
-            recordRelationship(objectElement, IndexConstants.IS_EXTENDED_BY, createLocation3(node.name.offset, 0));
+            recordRelationship(objectElement, IndexConstants.IS_EXTENDED_BY, createLocation4(node.name.offset, 0));
           }
         }
       }
@@ -1850,10 +1880,10 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       if (node.name != null) {
         int start = node.period.offset;
         int end = node.name.end;
-        location = createLocation3(start, end - start);
+        location = createLocation4(start, end - start);
       } else {
         int start = node.returnType.end;
-        location = createLocation3(start, 0);
+        location = createLocation4(start, 0);
       }
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -1872,10 +1902,10 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     if (node.name != null) {
       int start = node.period.offset;
       int end = node.name.end;
-      location = createLocation3(start, end - start);
+      location = createLocation4(start, end - start);
     } else {
       int start = node.type.end;
-      location = createLocation3(start, 0);
+      location = createLocation4(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitConstructorName(node);
@@ -1930,7 +1960,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     MethodElement element = node.bestElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
-      Location location = createLocation4(operator);
+      Location location = createLocation5(operator);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
     }
     return super.visitIndexExpression(node);
@@ -1950,7 +1980,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     SimpleIdentifier name = node.methodName;
     Element element = name.bestElement;
     if (element is MethodElement) {
-      Location location = createLocation2(name);
+      Location location = createLocation3(name);
       Relationship relationship;
       if (node.target != null) {
         relationship = IndexConstants.IS_INVOKED_BY_QUALIFIED;
@@ -1960,7 +1990,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       recordRelationship(element, relationship, location);
     }
     if (element is FunctionElement) {
-      Location location = createLocation2(name);
+      Location location = createLocation3(name);
       recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
     }
     recordImportElementReferenceWithoutPrefix(name);
@@ -1969,13 +1999,13 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
 
   Object visitPartDirective(PartDirective node) {
     Element element = node.element;
-    Location location = createLocation2(node.uri);
+    Location location = createLocation3(node.uri);
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitPartDirective(node);
   }
 
   Object visitPartOfDirective(PartOfDirective node) {
-    Location location = createLocation2(node.libraryName);
+    Location location = createLocation3(node.libraryName);
     recordRelationship(node.element, IndexConstants.IS_REFERENCED_BY, location);
     return null;
   }
@@ -1992,7 +2022,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
 
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     Element nameElement = new NameElementImpl(node.name);
-    Location location = createLocation2(node);
+    Location location = createLocation3(node);
     // name in declaration
     if (node.inDeclarationContext()) {
       recordRelationship(nameElement, IndexConstants.IS_DEFINED_BY, location);
@@ -2048,10 +2078,10 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     if (node.constructorName != null) {
       int start = node.period.offset;
       int end = node.constructorName.end;
-      location = createLocation3(start, end - start);
+      location = createLocation4(start, end - start);
     } else {
       int start = node.keyword.end;
-      location = createLocation3(start, 0);
+      location = createLocation4(start, 0);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitSuperConstructorInvocation(node);
@@ -2081,7 +2111,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     // record declaration
     {
       SimpleIdentifier name = node.name;
-      Location location = createLocation2(name);
+      Location location = createLocation3(name);
       location = getLocationWithExpressionType(location, node.initializer);
       recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
     }
@@ -2120,9 +2150,18 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   }
 
   /**
+   * Record the given relationship between the given [Element] and [Location].
+   */
+  void recordRelationship(Element element, Relationship relationship, Location location) {
+    if (element != null && location != null) {
+      _store.recordRelationship(element, relationship, location);
+    }
+  }
+
+  /**
    * @return the [Location] representing location of the [ASTNode].
    */
-  Location createLocation2(ASTNode node) => createLocation3(node.offset, node.length);
+  Location createLocation3(ASTNode node) => createLocation4(node.offset, node.length);
 
   /**
    * @param offset the offset of the location within [Source]
@@ -2130,7 +2169,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    * @return the [Location] representing the given offset and length within the inner-most
    *         [Element].
    */
-  Location createLocation3(int offset, int length) {
+  Location createLocation4(int offset, int length) {
     Element element = peekElement();
     return new Location(element, offset, length);
   }
@@ -2138,7 +2177,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   /**
    * @return the [Location] representing location of the [Token].
    */
-  Location createLocation4(Token token) => createLocation3(token.offset, token.length);
+  Location createLocation5(Token token) => createLocation4(token.offset, token.length);
 
   /**
    * Exit the current scope.
@@ -2182,7 +2221,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     Element element = node.staticElement;
     ImportElement importElement = getImportElement2(_libraryElement, null, element, _importElementsMap);
     if (importElement != null) {
-      Location location = createLocation3(node.offset, 0);
+      Location location = createLocation4(node.offset, 0);
       recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -2196,7 +2235,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
     if (info != null) {
       int offset = prefixNode.offset;
       int length = info._periodEnd - offset;
-      Location location = createLocation3(offset, length);
+      Location location = createLocation4(offset, length);
       recordRelationship(info._element, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -2207,7 +2246,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    */
   void recordLibraryReference(UriBasedDirective node, LibraryElement library) {
     if (library != null) {
-      Location location = createLocation2(node.uri);
+      Location location = createLocation3(node.uri);
       recordRelationship(library.definingCompilationUnit, IndexConstants.IS_REFERENCED_BY, location);
     }
   }
@@ -2217,7 +2256,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
    */
   void recordOperatorReference(Token operator, Element element) {
     // prepare location
-    Location location = createLocation4(operator);
+    Location location = createLocation5(operator);
     // record name reference
     {
       String name = operator.lexeme;
@@ -2227,7 +2266,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       if (name == "--") {
         name = "-";
       }
-      if (name.endsWith("=") && name != "==") {
+      if (StringUtilities.endsWithChar(name, 0x3D) && name != "==") {
         name = name.substring(0, name.length - 1);
       }
       Element nameElement = new NameElementImpl(name);
@@ -2252,15 +2291,6 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
   }
 
   /**
-   * Record the given relationship between the given [Element] and [Location].
-   */
-  void recordRelationship(Element element, Relationship relationship, Location location) {
-    if (element != null && location != null) {
-      _store.recordRelationship(element, relationship, location);
-    }
-  }
-
-  /**
    * Records extends/implements relationships between given [ClassElement] and [Type] of
    * "superNode".
    */
@@ -2269,7 +2299,7 @@ class IndexContributor extends GeneralizingASTVisitor<Object> {
       Identifier superName = superNode.name;
       if (superName != null) {
         Element superElement = superName.staticElement;
-        recordRelationship(superElement, relationship, createLocation2(superNode));
+        recordRelationship(superElement, relationship, createLocation3(superNode));
       }
     }
   }

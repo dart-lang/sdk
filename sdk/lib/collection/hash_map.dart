@@ -24,10 +24,17 @@ typedef int _Hasher<K>(K object);
  * must be the same for objects that are considered equal by `==`.
  *
  * The map allows `null` as a key.
+ *
+ * Iterating the map's keys, values or entries (through [forEach])
+ * may happen in any order.
+ * The itearation order only changes when the map is modified.
+ * Values are iterated in the same order as their associated keys,
+ * so iterating the [keys] and [values] in parallel
+ * will give matching key and value pairs.
  */
 abstract class HashMap<K, V> implements Map<K, V> {
   /**
-   * Creates a hash-table based [Map].
+   * Creates an unordered hash-table based [Map].
    *
    * The created map is not ordered in any way. When iterating the keys or
    * values, the iteration order is unspecified except that it will stay the
@@ -54,9 +61,10 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * of an object, or what it compares equal to, should not change while the
    * object is in the table. If it does change, the result is unpredictable.
    *
-   * It is generally the case that if you supply one of [equals] and [hashCode],
-   * you also want to supply the other. The only common exception is to pass
-   * [identical] as the equality and use the default hash code.
+   * If you supply one of [equals] and [hashCode],
+   * you should generally also to supply the other.
+   * An example would be using [identical] and [identityHashCode],
+   * which is equivalent to using the shorthand [HashMap.identity]).
    */
   external factory HashMap({bool equals(K key1, K key2),
                             int hashCode(K key),

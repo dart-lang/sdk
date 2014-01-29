@@ -33,7 +33,7 @@
   
 </polymer-element><polymer-element name="class-ref" extends="service-ref">
 <template>
-  <a href="{{ url }}">{{ name }}</a>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </template>
 
 </polymer-element>
@@ -42,14 +42,9 @@
     <div class="row">
     <div class="col-md-8 col-md-offset-2">
       <div class="panel panel-danger">
-        <div class="panel-heading">Error</div>
+        <div class="panel-heading">{{ error['errorType'] }}</div>
         <div class="panel-body">
-          <template if="{{ (error_obj == null) || (error_obj['type'] != 'LanguageError') }}">
-            <p>{{ error }}</p>
-          </template>
-          <template if="{{ (error_obj != null) &amp;&amp; (error_obj['type'] == 'LanguageError') }}">
-            <pre>{{ error_obj['error_msg'] }}</pre>
-          </template>
+          <p>{{ error['text'] }}</p>
         </div>
       </div>
     </div>
@@ -67,11 +62,11 @@
   <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
   <class-ref app="{{ app }}" ref="{{ ref['declared_type'] }}"></class-ref>
   </template>
-  <a href="{{ url }}">{{ name }}</a>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </div>
 </template>  </polymer-element><polymer-element name="function-ref" extends="service-ref">
 <template>
-  <a href="{{ url }}">{{ name }}</a>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </template>
 
 </polymer-element><polymer-element name="instance-ref" extends="service-ref">
@@ -171,18 +166,11 @@
 </polymer-element><polymer-element name="disassembly-entry" extends="observatory-element">
   <template>
   <div class="row">
-    <template if="{{ instruction['type'] == 'DisassembledInstructionComment' }}">
-      <div class="col-md-2"></div>
-      <div class="col-md-2"></div>
-      <div class="col-md-4"><code>{{ instruction['comment'] }}</code></div>
-    </template>
-    <template if="{{ instruction['type'] == 'DisassembledInstruction' }}">
-      <div class="col-md-2"></div>
-      <div class="col-md-2">{{ instruction['pc'] }}</div>
+      <div class="col-md-2">{{ instruction.formattedTicks() }}</div>
+      <div class="col-md-2">{{ instruction.formattedAddress() }}</div>
       <div class="col-md-4">
-        <code>{{ instruction['hex'] }} {{ instruction['human'] }}</code>
+        <code>{{ instruction.machine }} {{ instruction.human }}</code>
       </div>
-    </template>
   </div>
   </template>
   
@@ -192,7 +180,7 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="{{ cssPanelClass }}">
         <div class="panel-heading">
-          <function-ref app="{{ app }}" ref="{{ code['function'] }}"></function-ref>
+          <function-ref app="{{ app }}" ref="{{ code.functionRef }}"></function-ref>
         </div>
         <div class="panel-body">
           <div class="row">
@@ -200,7 +188,7 @@
               <div class="col-md-2"><strong>Address</strong></div>
               <div><strong>Instruction</strong></div>
           </div>
-          <template repeat="{{ instruction in code['disassembly'] }}">
+          <template repeat="{{ instruction in code.instructions }}">
             <disassembly-entry instruction="{{ instruction }}">
             </disassembly-entry>
           </template>
@@ -312,7 +300,7 @@
   <template>
   	<div class="row">
   	  <div class="col-md-1">
-        <img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">
+        <img src="img/isolate_icon.png" class="img-polaroid">
   	  </div>
   	  <div class="col-md-1">{{ isolate }}</div>
   	  <div class="col-md-10">{{ name }}</div>
@@ -330,6 +318,9 @@
       </div>
       <div class="col-md-1">
         <a href="{{ app.locationManager.relativeLink(isolate, 'profile') }}">Profile</a>
+      </div>
+      <div class="col-md-1">
+        <a href="{{ app.locationManager.relativeLink(isolate, 'allocationprofile') }}">Allocation Profile</a>
       </div>
   	  <div class="col-md-8"></div>
     </div>
@@ -489,28 +480,73 @@
 
   </template>
   
-</polymer-element><polymer-element name="source-view" extends="observatory-element">
-  <template>
+</polymer-element><polymer-element name="heap-profile" extends="observatory-element">
+<template>
+  <div>
+  <button type="button" on-click="{{refreshData}}">Refresh</button>
+  </div>
+  <div>
+  <span>New Space </span>
+  <span>{{ status(true) }}</span>
+  </div>
+  <div>
+  <span>Old Space </span>
+  <span>{{ status(false) }}</span>
+  </div>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Class</th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="1">Current (new)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="2">Allocated since GC (new)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="3">Total before last GC (new)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="4">Total after last GC (new)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="5">Current (old)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="6">Allocated since GC (old)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="7">Total before last GC (old)</button></th>
+        <th><button on-click="{{changeSortColumn}}" data-msg="8">Total after last GC (old)</button></th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr template="" repeat="{{ cls in sortedProfile }}">
+      <td><class-ref app="{{ app }}" ref="{{ cls['class'] }}"></class-ref></td>
+      <td>{{ current(cls, true) }}</td>
+      <td>{{ allocated(cls, true) }}</td>
+      <td>{{ beforeGC(cls, true) }}</td>
+      <td>{{ afterGC(cls, true) }}</td>
+      <td>{{ current(cls, false) }}</td>
+      <td>{{ allocated(cls, false) }}</td>
+      <td>{{ beforeGC(cls, false) }}</td>
+      <td>{{ afterGC(cls, false) }}</td>
+    </tr>
+    </tbody>
+  </table>
+</template>
+
+</polymer-element><polymer-element name="script-view" extends="observatory-element">
+<template>
   <div class="row">
     <div class="col-md-8 col-md-offset-2">
-      <div class="panel-heading">{{ source.url }}</div>
+      <div class="panel-heading">
+      <button on-click="{{refreshCoverage}}">Refresh Coverage</button>
+      {{ script.scriptRef['user_name'] }}
+      {{ script.coveredPercentageFormatted() }}
+      </div>
       <div class="panel-body">
-        <div class="row">
-          <div><strong>Source</strong></div>
-        </div>
-        <pre>        <template repeat="{{ line in source.lines }}">{{line.paddedLine}} {{line.src}}
-        </template>
-        </pre>
+        <table style="width:100%">
+          <tbody>
+          <tr template="" repeat="{{ line in script.linesForDisplay }}">
+            <td style="{{ hitsStyle(line) }}">  </td>
+            <td style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;white-space: nowrap;">{{line.line}}</td>
+            <td width="99%" style="font-family: consolas, courier, monospace;font-size: 1em;line-height: 1.2em;">{{line.text}}</td>
+          </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
-  </template>
-  
-</polymer-element><polymer-element name="script-view" extends="observatory-element">
-  <template>
-    <source-view app="{{ app }}" source="{{ script['source'] }}"></source-view>
-  </template>
-  
+</template>
+
 </polymer-element><polymer-element name="stack-trace" extends="observatory-element">
   <template>
   <div class="alert alert-info">Stack Trace</div>
@@ -525,7 +561,7 @@
     </thead>
     <tbody>
       <tr template="" repeat="{{ frame in trace['members'] }}">
-        <td>{{$index}}</td>
+        <td></td>
         <td><function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref></td>
         <td><script-ref app="{{ app }}" ref="{{ frame['script'] }}"></script-ref></td>
         <td>{{ frame['line'] }}</td>
@@ -551,9 +587,8 @@
     <template if="{{ messageType == 'BreakpointList' }}">
       <breakpoint-list app="{{ app }}" msg="{{ message }}"></breakpoint-list>
     </template>
-    <!-- If the message type is a RequestError -->
-    <template if="{{ messageType == 'RequestError' }}">
-      <error-view app="{{ app }}" error="{{ message['error'] }}"></error-view>
+    <template if="{{ messageType == 'Error' }}">
+      <error-view app="{{ app }}" error="{{ message }}"></error-view>
     </template>
     <template if="{{ messageType == 'Library' }}">
       <library-view app="{{ app }}" library="{{ message }}"></library-view>
@@ -586,10 +621,13 @@
       <function-view app="{{ app }}" function="{{ message }}"></function-view>
     </template>
     <template if="{{ messageType == 'Code' }}">
-      <code-view app="{{ app }}" code="{{ message }}"></code-view>
+      <code-view app="{{ app }}" code="{{ message['code'] }}"></code-view>
     </template>
     <template if="{{ messageType == 'Script' }}">
-      <script-view app="{{ app }}" script="{{ message }}"></script-view>
+      <script-view app="{{ app }}" script="{{ message['script'] }}"></script-view>
+    </template>
+    <template if="{{ messageType == 'AllocationProfile' }}">
+      <heap-profile app="{{ app }}" profile="{{ message }}"></heap-profile>
     </template>
     <template if="{{ messageType == 'CPU' }}">
       <json-view json="{{ message }}"></json-view>
@@ -597,14 +635,27 @@
     <!-- Add new views and message types in the future here. -->
   </template>
   
+</polymer-element><polymer-element name="navigation-bar-isolate" extends="observatory-element">
+    <template>
+      <ul class="nav navbar-nav">
+        <li><a href="{{ currentIsolateLink('') }}"> {{currentIsolateName()}}</a></li>
+        <template repeat="{{link in links}}">
+          <li><a href="{{ currentIsolateLink(link) }}">{{ link }}</a></li>
+        </template>
+      </ul>
+    </template>
+  
 </polymer-element><polymer-element name="navigation-bar" extends="observatory-element">
   <template>
     <nav class="navbar navbar-default" role="navigation">
       <div class="navbar-header">
-        <a class="navbar-brand" href="">Observatory</a>
+        <a class="navbar-brand" href="#/isolates">Observatory</a>
       </div>
-      <div class="collapse navbar-collapse navbar-ex1-collapse">
-      </div>
+      <template if="{{ app.locationManager.hasCurrentIsolate }}">
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+          <navigation-bar-isolate app="{{ app }}"></navigation-bar-isolate>
+        </div>
+      </template>
     </nav>
   </template>
   
@@ -619,22 +670,6 @@
       </select>
       <span>methods</span>
     </div>
-    <blockquote><strong>Top Inclusive</strong></blockquote>
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th>Ticks</th>
-          <th>Percent</th>
-          <th>Method</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr template="" repeat="{{ code in topInclusiveCodes }}">
-            <td>{{ codeTicks(code, true) }}</td>
-            <td>{{ codePercent(code, true) }}</td>
-            <td>{{ codeName(code) }}</td>
-        </tr>
-    </tbody></table>
     <blockquote><strong>Top Exclusive</strong></blockquote>
     <table class="table table-hover">
       <thead>
@@ -648,7 +683,10 @@
         <tr template="" repeat="{{ code in topExclusiveCodes }}">
             <td>{{ codeTicks(code, false) }}</td>
             <td>{{ codePercent(code, false) }}</td>
-            <td>{{ codeName(code) }}</td>
+            <td>
+            <span>{{ codeName(code) }}</span>
+            <code-ref app="{{ app }}" ref="{{ code.codeRef }}"></code-ref>
+            </td>
         </tr>
     </tbody></table>
   </template>
@@ -658,9 +696,6 @@
   <template>
     <template repeat="{{ message in app.requestManager.responses }}">
       <message-viewer app="{{ app }}" message="{{ message }}"></message-viewer>
-      <collapsible-content>
-        <!-- <json-view json="{{ message }}"></json-view> -->
-      </collapsible-content>
     </template>
   </template>
   

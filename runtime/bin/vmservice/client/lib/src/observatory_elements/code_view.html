@@ -9,7 +9,7 @@
     <div class="col-md-8 col-md-offset-2">
       <div class="{{ cssPanelClass }}">
         <div class="panel-heading">
-          <function-ref app="{{ app }}" ref="{{ code['function'] }}"></function-ref>
+          <function-ref app="{{ app }}" ref="{{ code.functionRef }}"></function-ref>
         </div>
         <div class="panel-body">
           <div class="row">
@@ -17,7 +17,7 @@
               <div class="col-md-2"><strong>Address</strong></div>
               <div><strong>Instruction</strong></div>
           </div>
-          <template repeat="{{ instruction in code['disassembly'] }}">
+          <template repeat="{{ instruction in code.instructions }}">
             <disassembly-entry instruction="{{ instruction }}">
             </disassembly-entry>
           </template>

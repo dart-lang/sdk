@@ -76,6 +76,7 @@ void Intrinsifier::List_Allocate(Assembler* assembler) {
   // next object start and initialize the object.
   __ movl(Address::Absolute(heap->TopAddress()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kArrayCid, EDI, kNoRegister);
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
@@ -303,6 +304,7 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // Set the length field in the growable array object to 0.
   __ movl(FieldAddress(EAX, GrowableObjectArray::length_offset()),
           Immediate(0));
+  __ UpdateAllocationStats(kGrowableObjectArrayCid, EBX);
   __ ret();  // returns the newly allocated object in EAX.
 
   __ Bind(&fall_through);
@@ -492,6 +494,7 @@ void Intrinsifier::GrowableList_add(Assembler* assembler) {
   /* next object start and initialize the object. */                           \
   __ movl(Address::Absolute(heap->TopAddress()), EBX);                         \
   __ addl(EAX, Immediate(kHeapObjectTag));                                     \
+  __ UpdateAllocationStatsWithSize(cid, EDI, kNoRegister);                     \
                                                                                \
   /* Initialize the tags. */                                                   \
   /* EAX: new object start as a tagged pointer. */                             \
@@ -856,7 +859,8 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   __ TryAllocate(mint_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 EAX);  // Result register.
+                 EAX,  // Result register.
+                 kNoRegister);
   // EBX and EDI are not objects but integer values.
   __ movl(FieldAddress(EAX, Mint::value_offset()), EBX);
   __ movl(FieldAddress(EAX, Mint::value_offset() + kWordSize), EDI);
@@ -1177,7 +1181,8 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 EAX);  // Result register.
+                 EAX,  // Result register.
+                 EBX);
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1222,7 +1227,8 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 EAX);  // Result register.
+                 EAX,  // Result register.
+                 EBX);
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1242,7 +1248,8 @@ void Intrinsifier::Double_fromInteger(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 EAX);  // Result register.
+                 EAX,  // Result register.
+                 EBX);
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&fall_through);
@@ -1315,7 +1322,8 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  Assembler::kNearJump,
-                 EAX);  // Result register.
+                 EAX,  // Result register.
+                 EBX);
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
   __ Bind(&is_smi);
@@ -1555,6 +1563,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // next object start and initialize the object.
   __ movl(Address::Absolute(heap->TopAddress()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
+
+  __ UpdateAllocationStatsWithSize(kOneByteStringCid, EDI, kNoRegister);
 
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.

@@ -368,6 +368,11 @@ class Object {
     return *empty_array_;
   }
 
+  static const PcDescriptors& empty_descriptors() {
+    ASSERT(empty_descriptors_ != NULL);
+    return *empty_descriptors_;
+  }
+
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
   // "uninitialized" fields.
@@ -614,6 +619,7 @@ class Object {
   static Instance* null_instance_;
   static AbstractTypeArguments* null_abstract_type_arguments_;
   static Array* empty_array_;
+  static PcDescriptors* empty_descriptors_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
   static Instance* unknown_constant_;
@@ -1097,6 +1103,8 @@ class Class : public Object {
   class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
 
   void set_name(const String& value) const;
+  void set_user_name(const String& value) const;
+  RawString* GenerateUserVisibleName() const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
   void set_state_bits(intptr_t bits) const;
@@ -2992,6 +3000,7 @@ class PcDescriptors : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;
+  friend class Object;
 };
 
 
@@ -3220,6 +3229,9 @@ class Code : public Object {
     const uword offset = addr - instr.EntryPoint();
     return offset < static_cast<uword>(instr.size());
   }
+
+  // Returns true if there is a debugger breakpoint set in this code object.
+  bool HasBreakpoint() const;
 
   RawPcDescriptors* pc_descriptors() const {
     return raw_ptr()->pc_descriptors_;

@@ -58,6 +58,15 @@ main() {
           t(IDENTIFIER_TOKEN, 'b')]);
     });
 
+    test('should tokenize a ternary operator', () {
+      expectTokens('a ? b : c', [
+          t(IDENTIFIER_TOKEN, 'a'),
+          t(OPERATOR_TOKEN, '?'),
+          t(IDENTIFIER_TOKEN, 'b'),
+          t(COLON_TOKEN, ':'),
+          t(IDENTIFIER_TOKEN, 'c')]);
+    });
+
     test('should tokenize an iterate expression with "in" keyword', () {
       expectTokens('item in items', [
           t(IDENTIFIER_TOKEN, 'item'),
@@ -98,6 +107,17 @@ main() {
           t(COLON_TOKEN, ':'),
           t(IDENTIFIER_TOKEN, 'b'),
           t(GROUPER_TOKEN, '}')]);
+    });
+
+    test('should tokenize lists', () {
+      expectTokens("[1, 'a', b]", [
+          t(GROUPER_TOKEN, '['),
+          t(INTEGER_TOKEN, '1'),
+          t(COMMA_TOKEN, ','),
+          t(STRING_TOKEN, 'a'),
+          t(COMMA_TOKEN, ','),
+          t(IDENTIFIER_TOKEN, 'b'),
+          t(GROUPER_TOKEN, ']')]);
     });
 
     test('should tokenize integers', () {
@@ -153,11 +173,11 @@ class MatcherList extends Matcher {
     for (int i = 0; i < o.length; i++) {
       var state = new Map();
       if (!matchers[i].matches(o[i], state)) {
-        matchState = {
+        matchState.addAll({
           'index': i,
           'value': o[i],
           'state': state,
-        };
+        });
         return false;
       }
     }

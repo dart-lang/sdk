@@ -125,6 +125,8 @@ class DartBackend extends Backend {
   final Map<Node, String> renames;
   final Map<LibraryElement, String> imports;
   final Map<ClassNode, List<Node>> memberNodes;
+  Map<Element, LibraryElement> reexportingLibraries;
+
   // TODO(zarah) Maybe change this to a command-line option.
   // Right now, it is set by the tests.
   bool useMirrorHelperLibrary = false;
@@ -193,6 +195,7 @@ class DartBackend extends Backend {
         renames = new Map<Node, String>(),
         imports = new Map<LibraryElement, String>(),
         memberNodes = new Map<ClassNode, List<Node>>(),
+        reexportingLibraries = <Element, LibraryElement>{},
         forceStripTypes = strips.indexOf('types') != -1,
         stripAsserts = strips.indexOf('asserts') != -1,
         super(compiler);
@@ -265,6 +268,16 @@ class DartBackend extends Backend {
         // those names.
         fixedMemberNames.add(element.name);
       });
+      for (Element export in library.exports) {
+        if (!library.isInternalLibrary &&
+            export.getLibrary().isInternalLibrary) {
+          // If an element of an internal library is reexported by a platform
+          // library, we have to import the reexporting library instead of the
+          // internal library, because the internal library is an
+          // implementation detail of dart2js.
+          reexportingLibraries[export] = library;
+        }
+      }
     }
     // As of now names of named optionals are not renamed. Therefore add all
     // field names used as named optionals into [fixedMemberNames].
@@ -444,7 +457,8 @@ class DartBackend extends Backend {
             && isSafeToRemoveTypeDeclarations(classMembers));
     renamePlaceholders(
         compiler, collector, renames, imports,
-        fixedMemberNames, shouldCutDeclarationTypes,
+        fixedMemberNames, reexportingLibraries,
+        shouldCutDeclarationTypes,
         uniqueGlobalNaming: useMirrorHelperLibrary);
 
     // Sort elements.

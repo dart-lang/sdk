@@ -27,9 +27,7 @@ set BUILD_DIR=%SDK_DIR%\..\build\%DART_CONFIGURATION%
 if exist "%SNAPSHOT%" (
   "%DART%" "%SNAPSHOT%" "dartdoc" "--library-root=%SDK_DIR%" %*
 ) else (
-  :: The trailing forward slash in --package-root is required because of issue
-  :: 9499.
-  "%BUILD_DIR%\dart-sdk\bin\dart" "--package-root=%BUILD_DIR%\packages/" "%DARTDOC%" %*
+  "%BUILD_DIR%\dart-sdk\bin\dart" "--package-root=%BUILD_DIR%\packages" "%DARTDOC%" %*
 )
 
 endlocal

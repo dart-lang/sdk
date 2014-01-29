@@ -160,6 +160,14 @@ class ClassEmitter extends CodeEmitterHelper {
             }
 
             int getterCode = 0;
+            if (needsAccessor && backend.fieldHasInterceptedGetter(field)) {
+              task.interceptorEmitter.interceptorInvocationNames.add(
+                  namer.getterName(field));
+            }
+            if (needsAccessor && backend.fieldHasInterceptedGetter(field)) {
+              task.interceptorEmitter.interceptorInvocationNames.add(
+                  namer.setterName(field));
+            }
             if (needsGetter) {
               if (field.isInstanceMember()) {
                 // 01:  function() { return this.field; }

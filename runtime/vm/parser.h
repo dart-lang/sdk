@@ -389,6 +389,7 @@ class Parser : public ValueObject {
                                GrowableArray<Field*>* initialized_fields,
                                Field* field);
   void GenerateSuperConstructorCall(const Class& cls,
+                                    intptr_t supercall_pos,
                                     LocalVariable* receiver,
                                     ArgumentListNode* forwarding_args);
   AstNode* ParseSuperInitializer(const Class& cls, LocalVariable* receiver);

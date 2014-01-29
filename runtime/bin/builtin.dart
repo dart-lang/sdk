@@ -244,7 +244,9 @@ String _filePathFromUri(String userUri) {
       return uri.toFilePath();
       break;
     case 'dart-ext':
-      return new Uri(scheme: 'file',
+      // Relative file URIs don't start with file:///.
+      var scheme = (uri.path.startsWith('/') ? 'file' : '');
+      return new Uri(scheme: scheme,
                      host: uri.host,
                      path: uri.path).toFilePath();
       break;

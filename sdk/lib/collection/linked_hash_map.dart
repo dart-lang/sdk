@@ -7,8 +7,13 @@ part of dart.collection;
 /**
  * A hash-table based implementation of [Map].
  *
- * Keys insertion order is remembered, and keys are iterated in insertion order.
+ * The insertion order of keys is remembered,
+ * and keys are iterated in the order they were insertion into the map.
  * Values are iterated in their corresponding key's order.
+ * Changing a key's value, when the key is already in the map,
+ * does not change the iteration order,
+ * but removing the key and adding it again
+ * will make it be last in the iteration order.
  *
  * The keys of a `LinkedHashMap` must have consistent [Object.operator==]
  * and [Object.hashCode] implementations. This means that the `==` operator
@@ -19,6 +24,35 @@ part of dart.collection;
  * The map allows `null` as a key.
  */
 abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
+  /**
+   * Creates an insertion-ordered hash-table based [Map].
+   *
+   * If [equals] is provided, it is used to compare the keys in the table with
+   * new keys. If [equals] is omitted, the key's own [Object.operator==] is used
+   * instead.
+   *
+   * Similar, if [hashCode] is provided, it is used to produce a hash value
+   * for keys in order to place them in the hash table. If it is omitted, the
+   * key's own [Object.hashCode] is used.
+   *
+   * If using methods like [operator[]], [remove] and [containsKey] together
+   * with a custom equality and hashcode, an extra `isValidKey` function
+   * can be supplied. This function is called before calling [equals] or
+   * [hashCode] with an argument that may not be a [K] instance, and if the
+   * call returns false, the key is assumed to not be in the set.
+   * The [isValidKey] function defaults to just testing if the object is a
+   * [K] instance.
+   *
+   * The used `equals` and `hashCode` method should always be consistent,
+   * so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
+   * of an object, or what it compares equal to, should not change while the
+   * object is in the table. If it does change, the result is unpredictable.
+   *
+   * If you supply one of [equals] and [hashCode],
+   * you should generally also to supply the other.
+   * An example would be using [identical] and [identityHashCode],
+   * which is equivalent to using the shorthand [LinkedHashMap.identity]).
+   */
   external factory LinkedHashMap({ bool equals(K key1, K key2),
                                    int hashCode(K key),
                                    bool isValidKey(potentialKey) });

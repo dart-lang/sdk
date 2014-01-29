@@ -359,13 +359,13 @@ class RawSocketEvent {
 abstract class RawSocket implements Stream<RawSocketEvent> {
   /**
    * Set or get, if the [RawSocket] should listen for [RawSocketEvent.READ]
-   * events. Default is [true].
+   * events. Default is [:true:].
    */
   bool readEventsEnabled;
 
   /**
    * Set or get, if the [RawSocket] should listen for [RawSocketEvent.WRITE]
-   * events. Default is [true].
+   * events. Default is [:true:].
    * This is a one-shot listener, and writeEventsEnabled must be set
    * to true again to receive another write event.
    */
@@ -392,7 +392,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * Read up to [len] bytes from the socket. This function is
    * non-blocking and will only return data if data is available. The
    * number of bytes read can be less then [len] if fewer bytes are
-   * available for immediate reading. If no data is available [null]
+   * available for immediate reading. If no data is available [:null:]
    * is returned.
    */
   List<int> read([int len]);
@@ -450,7 +450,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * Use [setOption] to customize the [RawSocket]. See [SocketOption] for
    * available options.
    *
-   * Returns [true] if the option was set successfully, false otherwise.
+   * Returns [:true:] if the option was set successfully, false otherwise.
    */
   bool setOption(SocketOption option, bool enabled);
 }
@@ -487,7 +487,7 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * Use [setOption] to customize the [RawSocket]. See [SocketOption] for
    * available options.
    *
-   * Returns [true] if the option was set successfully, false otherwise.
+   * Returns [:true:] if the option was set successfully, false otherwise.
    */
   bool setOption(SocketOption option, bool enabled);
 
@@ -538,13 +538,13 @@ class Datagram {
 abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /**
    * Set or get, if the [RawDatagramSocket] should listen for
-   * [RawSocketEvent.READ] events. Default is [true].
+   * [RawSocketEvent.READ] events. Default is [:true:].
    */
   bool readEventsEnabled;
 
   /**
    * Set or get, if the [RawDatagramSocket] should listen for
-   * [RawSocketEvent.WRITE] events. Default is [true].  This is a
+   * [RawSocketEvent.WRITE] events. Default is [:true:].  This is a
    * one-shot listener, and writeEventsEnabled must be set to true
    * again to receive another write event.
    */

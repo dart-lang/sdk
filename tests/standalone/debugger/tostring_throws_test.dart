@@ -18,11 +18,12 @@ class Foo {
   }
 }
 
+// Make sure Foo.toString() does not get called.
 var testScript = [
   MatchFrame(0, "main"),
   SetBreakpoint(12),
   Resume(),
   MatchFrame(0, "main"),
-  MatchLocals({"foo": "#ERROR"}),
+  MatchLocals({"foo": "object of type Foo"}),
   Resume(),
 ];

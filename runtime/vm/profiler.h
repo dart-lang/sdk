@@ -17,7 +17,8 @@ namespace dart {
 class JSONArray;
 class JSONStream;
 class ProfilerCodeRegionTable;
-struct Sample;
+class Sample;
+class SampleBuffer;
 
 // Profiler
 class Profiler : public AllStatic {
@@ -81,22 +82,47 @@ class IsolateProfilerData {
 
 
 // Profile sample.
-struct Sample {
-  static const intptr_t kNumStackFrames = 6;
+class Sample {
+ public:
   enum SampleType {
-    kIsolateStart,
-    kIsolateStop,
     kIsolateSample,
   };
-  int64_t timestamp;
-  ThreadId tid;
-  Isolate* isolate;
-  uintptr_t pcs[kNumStackFrames];
-  SampleType type;
-  uint16_t vm_tags;
-  uint16_t runtime_tags;
 
+  static void InitOnce();
+
+  uintptr_t At(intptr_t i) const;
+  void SetAt(intptr_t i, uintptr_t pc);
   void Init(SampleType type, Isolate* isolate, int64_t timestamp, ThreadId tid);
+  void CopyInto(Sample* dst) const;
+
+  static Sample* Allocate();
+  static intptr_t instance_size() {
+    return instance_size_;
+  }
+
+  SampleType type() const {
+    return type_;
+  }
+
+  Isolate* isolate() const {
+    return isolate_;
+  }
+
+  int64_t timestamp() const {
+    return timestamp_;
+  }
+
+ private:
+  static intptr_t instance_size_;
+  int64_t timestamp_;
+  ThreadId tid_;
+  Isolate* isolate_;
+  SampleType type_;
+  // Note: This class has a size determined at run-time. The pcs_ array
+  // must be the final field.
+  uintptr_t pcs_[0];
+
+  DISALLOW_COPY_AND_ASSIGN(Sample);
 };
 
 
@@ -109,14 +135,9 @@ class SampleBuffer {
   ~SampleBuffer();
 
   intptr_t capacity() const { return capacity_; }
-
   Sample* ReserveSample();
-
-  Sample GetSample(intptr_t i) const {
-    ASSERT(i >= 0);
-    ASSERT(i < capacity_);
-    return samples_[i];
-  }
+  void CopySample(intptr_t i, Sample* sample) const;
+  Sample* At(intptr_t idx) const;
 
  private:
   Sample* samples_;

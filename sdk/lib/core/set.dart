@@ -14,12 +14,16 @@ part of dart.core;
  * elements are treated as being the same for any operation on the set.
  *
  * The default [Set] implementation, [LinkedHashSet], considers objects
- * indistinguishable if they are equal with regard to 
+ * indistinguishable if they are equal with regard to
  * operator [Object.==].
  *
- * Sets may be either ordered or unordered. [HashSet] is unordered and
- * doesn't guarantee anything about the order that elements are accessed in by
- * iteration. [LinkedHashSet] iterates in the insertion order of its elements.
+ * Iterating over elements of a set may be either unordered
+ * or ordered in some way. Examples:
+ *
+ * * A [HashSet] is unordered, which means that its iteration order is
+ *   uspecified,
+ * * [LinkedHashSet] iterates in the insertion order of its elements, and
+ * * a sorted set like [SplayTreeSet] iterates the elements in sorted order.
  *
  * It is generally not allowed to modify the set (add or remove elements) while
  * an operation on the set is being performed, for example during a call to
@@ -31,9 +35,12 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
   /**
    * Creates an empty [Set].
    *
-   * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
-   * are equal (using [==]) to be indistinguishable, and requires them to
-   * have a compatible [Object.hashCode] implementation.
+   * The created [Set] is a plain [LinkedHashSet].
+   * As such, it considers elements that are equal (using [==]) to be
+   * indistinguishable, and requires them to have a compatible
+   * [Object.hashCode] implementation.
+   *
+   * The set is equivalent to one created by `new LinkedHashSet<E>()`.
    */
   factory Set() = LinkedHashSet<E>;
 
@@ -42,6 +49,8 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
    *
    * The created [Set] is a [LinkedHashSet] that uses identity as equality
    * relation.
+   *
+   * The set is equivalent to one created by `new LinkedHashSet<E>.identity()`.
    */
   factory Set.identity() = LinkedHashSet<E>.identity;
 
@@ -51,8 +60,18 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
    * The created [Set] is a [LinkedHashSet]. As such, it considers elements that
    * are equal (using [==]) to be undistinguishable, and requires them to
    * have a compatible [Object.hashCode] implementation.
+   *
+   * The set is equivalent to one created by `new LinkedHashSet<E>.from(other)`.
    */
   factory Set.from(Iterable<E> other) = LinkedHashSet<E>.from;
+
+  /**
+   * Provides an iterator that iterates over the elements of this set.
+   *
+   * The order of iteration is defined by the individual `Set` implementation,
+   * but must be consistent between changes to the set.
+   */
+  Iterator<E> get iterator;
 
   /**
    * Returns true if [value] is in the set.

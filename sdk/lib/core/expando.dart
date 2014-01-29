@@ -11,7 +11,7 @@ class Expando<T> {
 
   /**
    * The name of the this [Expando] as passed to the constructor. If
-   * no name was passed to the constructor, the name is [null].
+   * no name was passed to the constructor, the name is [:null:].
    */
   final String name;
 
@@ -31,7 +31,7 @@ class Expando<T> {
   /**
    * Gets the value of this [Expando]'s property on the given
    * object. If the object hasn't been expanded, the method returns
-   * [null].
+   * [:null:].
    */
   external T operator [](Object object);
 

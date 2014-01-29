@@ -128,7 +128,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
                                                     &bound_error);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
-    OS::Print("Object.instanceOf: result %s\n", result_str);
+    OS::Print("Native Object.instanceOf: result %s\n", result_str);
     const Type& instance_type = Type::Handle(instance.GetType());
     OS::Print("  instance type: %s\n",
               String::Handle(instance_type.Name()).ToCString());

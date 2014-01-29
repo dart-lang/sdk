@@ -18,7 +18,7 @@
 
 namespace dart {
 
-static const intptr_t kPos = Scanner::kDummyTokenIndex;
+static const intptr_t kPos = Scanner::kNoSourcePos;
 
 
 CODEGEN_TEST_GENERATE(SimpleReturnCodegen, test) {

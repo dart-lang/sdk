@@ -5,17 +5,15 @@
 library code_view_element;
 
 import 'package:polymer/polymer.dart';
+import 'package:observatory/observatory.dart';
 import 'observatory_element.dart';
 
 @CustomTag('code-view')
 class CodeViewElement extends ObservatoryElement {
-  @published Map code = toObservable({});
+  @published Code code;
   CodeViewElement.created() : super.created();
 
   String get cssPanelClass {
-    if (code != null && code['is_optimized'] != null) {
-      return 'panel panel-success';
-    }
-    return 'panel panel-warning';
+    return 'panel panel-success';
   }
 }

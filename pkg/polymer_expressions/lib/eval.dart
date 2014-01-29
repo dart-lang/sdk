@@ -336,6 +336,13 @@ class ObserverBuilder extends Visitor {
 
   visitLiteral(Literal l) => new LiteralObserver(l);
 
+  visitListLiteral(ListLiteral l) {
+    var items = l.items.map(visit).toList(growable: false);
+    var list = new ListLiteralObserver(l, items);
+    items.forEach((e) => e._parent = list);
+    return list;
+  }
+
   visitMapLiteral(MapLiteral l) {
     var entries = l.entries.map(visit).toList(growable: false);
     var map = new MapLiteralObserver(l, entries);
@@ -368,6 +375,17 @@ class ObserverBuilder extends Visitor {
     var unary = new UnaryObserver(o, expr);
     expr._parent = unary;
     return unary;
+  }
+
+  visitTernaryOperator(TernaryOperator o) {
+    var condition = visit(o.condition);
+    var trueExpr = visit(o.trueExpr);
+    var falseExpr = visit(o.falseExpr);
+    var ternary = new TernaryObserver(o, condition, trueExpr, falseExpr);
+    condition._parent = ternary;
+    trueExpr._parent = ternary;
+    falseExpr._parent = ternary;
+    return ternary;
   }
 
   visitInExpression(InExpression i) {
@@ -405,6 +423,20 @@ class LiteralObserver extends ExpressionObserver<Literal> implements Literal {
   }
 
   accept(Visitor v) => v.visitLiteral(this);
+}
+
+class ListLiteralObserver extends ExpressionObserver<ListLiteral>
+    implements ListLiteral {
+
+  final List<ExpressionObserver> items;
+
+  ListLiteralObserver(ListLiteral value, this.items) : super(value);
+
+  _updateSelf(Scope scope) {
+    _value = items.map((i) => i._value).toList(growable: false);
+  }
+
+  accept(Visitor v) => v.visitListLiteral(this);
 }
 
 class MapLiteralObserver extends ExpressionObserver<MapLiteral>
@@ -522,6 +554,24 @@ class BinaryObserver extends ExpressionObserver<BinaryOperator>
   }
 
   accept(Visitor v) => v.visitBinaryOperator(this);
+
+}
+
+class TernaryObserver extends ExpressionObserver<TernaryOperator>
+    implements TernaryOperator {
+
+  final ExpressionObserver condition;
+  final ExpressionObserver trueExpr;
+  final ExpressionObserver falseExpr;
+
+  TernaryObserver(TernaryOperator expr, this.condition, this.trueExpr,
+      this.falseExpr) : super(expr);
+
+  _updateSelf(Scope scope) {
+    _value = _toBool(condition._value) ? trueExpr._value : falseExpr._value;
+  }
+
+  accept(Visitor v) => v.visitTernaryOperator(this);
 
 }
 

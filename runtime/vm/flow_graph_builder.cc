@@ -34,9 +34,6 @@ DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis.");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
-DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
-DEFINE_FLAG(bool, print_flow_graph_optimized, false,
-            "Print the IR flow graph when optimizing.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -967,9 +964,11 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // Call to stub that checks whether the debugger is in single
   // step mode. This call must happen before the contexts are
   // unchained so that captured variables can be inspected.
-  // No debugger check is done in native functions.
+  // No debugger check is done in native functions or for return
+  // statements for which there is no associated source position.
   const Function& function = owner()->parsed_function()->function();
-  if (!function.is_native()) {
+  if ((node->token_pos() != Scanner::kNoSourcePos) &&
+      !function.is_native()) {
     AddInstruction(new DebugStepCheckInstr(node->token_pos(),
                                            PcDescriptors::kReturn));
   }

@@ -18,12 +18,40 @@ part of dart.collection;
  *
  * The set allows `null` as an element.
  *
+ * Iteration of elements is done in element insertion order.
+ * An element that was added after another will occur later in the iteration.
+ * Adding an element that is already in the set
+ * does not change its position in the iteration order,
+ * but removing an element and adding it again,
+ * will make it the last element of an iteration.
+ *
  * Most simple operations on `HashSet` are done in (potentially amortized)
  * constant time: [add], [contains], [remove], and [length], provided the hash
  * codes of objects are well distributed..
  */
 abstract class LinkedHashSet<E> implements HashSet<E> {
-
+  /**
+   * Create an insertion-ordered hash set using the provided
+   * [equals] and [hashCode].
+   *
+   * The provided [equals] must define a stable equivalence relation, and
+   * [hashCode] must be consistent with [equals]. If the [equals] or [hashCode]
+   * methods won't work on all objects, but only to instances of E, the
+   * [isValidKey] predicate can be used to restrict the keys that they are
+   * applied to. Any key for which [isValidKey] returns false is automatically
+   * assumed to not be in the set.
+   *
+   * If [equals] or [hashCode] are omitted, the set uses
+   * the objects' intrinsic [Object.operator==] and [Object.hashCode],
+   *
+   * If [isValidKey] is omitted, it defaults to testing if the object is an
+   * [E] instance.
+   *
+   * If you supply one of [equals] and [hashCode],
+   * you should generally also to supply the other.
+   * An example would be using [identical] and [identityHashCode],
+   * which is equivalent to using the shorthand [LinkedSet.identity]).
+   */
   external factory LinkedHashSet({ bool equals(E e1, E e2),
                                    int hashCode(E e),
                                    bool isValidKey(potentialKey) });
@@ -37,8 +65,19 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    */
   external factory LinkedHashSet.identity();
 
-
   factory LinkedHashSet.from(Iterable<E> iterable) {
     return new LinkedHashSet<E>()..addAll(iterable);
   }
+
+  /**
+   * Executes a function on each element of the set.
+   *
+   * The elements are iterated in insertion order.
+   */
+  void forEach(void action(E element));
+
+  /**
+   * Provides an iterator that iterates over the elements in insertion order.
+   */
+  Iterator<E> get iterator;
 }

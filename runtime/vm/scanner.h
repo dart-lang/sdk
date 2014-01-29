@@ -42,7 +42,7 @@ class Scanner : ValueObject {
   };
 
   // Dummy token index reflecting an unknown source position.
-  static const intptr_t kDummyTokenIndex = 0;
+  static const intptr_t kNoSourcePos = 0;
 
   // Character used to indicate a private identifier.
   static const char kPrivateIdentifierStart  = '_';

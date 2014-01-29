@@ -129,6 +129,7 @@ abstract class PubCommand {
       var message;
 
       log.error(getErrorMessage(error));
+      log.fine("Exception type: ${error.runtimeType}");
 
       if (options['trace'] || !isUserFacingException(error)) {
         log.error(chain.terse);

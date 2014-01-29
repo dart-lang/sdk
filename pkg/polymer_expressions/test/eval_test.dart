@@ -56,6 +56,10 @@ main() {
       expectEval('null', null);
     });
 
+    test('should return a literal list', () {
+      expectEval('[1, 2, 3]', equals([1, 2, 3]));
+    });
+
     test('should return a literal map', () {
       expectEval('{"a": 1}', equals(new Map.from({'a': 1})));
       expectEval('{"a": 1}', containsPair('a', 1));
@@ -106,6 +110,21 @@ main() {
       expectEval('true && false', false);
       expectEval('false && true', false);
       expectEval('false && false', false);
+    });
+
+    test('should evaulate ternary operators', () {
+      expectEval('true ? 1 : 2', 1);
+      expectEval('false ? 1 : 2', 2);
+      expectEval('true ? true ? 1 : 2 : 3', 1);
+      expectEval('true ? false ? 1 : 2 : 3', 2);
+      expectEval('false ? true ? 1 : 2 : 3', 3);
+      expectEval('false ? 1 : true ? 2 : 3', 2);
+      expectEval('false ? 1 : false ? 2 : 3', 3);
+      expectEval('null ? 1 : 2', 2);
+      // TODO(justinfagnani): re-enable and check for an EvalError when
+      // we implement the final bool conversion rules and this expression
+      // throws in both checked and unchecked mode
+//      expect(() => eval(parse('42 ? 1 : 2'), null), throws);
     });
 
     test('should invoke a method on the model', () {
@@ -199,6 +218,13 @@ main() {
     test('should evaluate an "in" expression', () {
       var scope = new Scope(variables: {'items': [1, 2, 3]});
       var comprehension = eval(parse('item in items'), scope);
+      expect(comprehension.iterable, orderedEquals([1, 2, 3]));
+    });
+
+    test('should evaluate complex "in" expressions', () {
+      var holder = new ListHolder([1, 2, 3]);
+      var scope = new Scope(variables: {'holder': holder});
+      var comprehension = eval(parse('item in holder.items'), scope);
       expect(comprehension.iterable, orderedEquals([1, 2, 3]));
     });
 
@@ -345,6 +371,12 @@ class Foo extends ChangeNotifier {
   Foo({name, this.age, this.child, this.items}) : _name = name;
 
   int x() => age * age;
+}
+
+@reflectable
+class ListHolder {
+  List items;
+  ListHolder(this.items);
 }
 
 parseInt([int radix = 10]) => new IntToString(radix: radix);

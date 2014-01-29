@@ -10,6 +10,7 @@ import 'visitor.dart';
 
 EmptyExpression empty() => const EmptyExpression();
 Literal literal(v) => new Literal(v);
+ListLiteral listLiteral(List<Expression> items) => new ListLiteral(items);
 MapLiteral mapLiteral(List<MapLiteralEntry> entries) => new MapLiteral(entries);
 MapLiteralEntry mapLiteralEntry(Literal key, Expression value) =>
     new MapLiteralEntry(key, value);
@@ -23,7 +24,8 @@ Index index(Expression e, Expression a) => new Index(e, a);
 Invoke invoke(Expression e, String m, List<Expression> a) =>
     new Invoke(e, m, a);
 InExpression inExpr(Expression l, Expression r) => new InExpression(l, r);
-
+TernaryOperator ternary(Expression c, Expression t, Expression f) =>
+    new TernaryOperator(c, t, f);
 
 class AstFactory {
   EmptyExpression empty() => const EmptyExpression();
@@ -45,6 +47,9 @@ class AstFactory {
 
   BinaryOperator binary(Expression l, String op, Expression r) =>
       new BinaryOperator(l, op, r);
+
+  TernaryOperator ternary(Expression c, Expression t, Expression f) =>
+      new TernaryOperator(c, t, f);
 
   Getter getter(Expression g, String n) => new Getter(g, n);
 
@@ -79,6 +84,20 @@ class Literal<T> extends Expression {
   bool operator ==(o) => o is Literal<T> && o.value == value;
 
   int get hashCode => value.hashCode;
+}
+
+class ListLiteral extends Expression {
+  final List<Expression> items;
+
+  ListLiteral(this.items);
+
+  accept(Visitor v) => v.visitListLiteral(this);
+
+  String toString() => "$items";
+
+  bool operator ==(o) => o is ListLiteral && _listEquals(o.items, items);
+
+  int get hashCode => _hashList(items);
 }
 
 class MapLiteral extends Expression {
@@ -171,6 +190,26 @@ class BinaryOperator extends Expression {
 
   int get hashCode => _JenkinsSmiHash.hash3(operator.hashCode, left.hashCode,
       right.hashCode);
+}
+
+class TernaryOperator extends Expression {
+  final Expression condition;
+  final Expression trueExpr;
+  final Expression falseExpr;
+
+  TernaryOperator(this.condition, this.trueExpr, this.falseExpr);
+
+  accept(Visitor v) => v.visitTernaryOperator(this);
+
+  String toString() => '($condition ? $trueExpr : $falseExpr)';
+
+  bool operator ==(o) => o is TernaryOperator
+      && o.condition == condition
+      && o.trueExpr == trueExpr
+      && o.falseExpr == falseExpr;
+
+  int get hashCode => _JenkinsSmiHash.hash3(condition.hashCode,
+      trueExpr.hashCode, falseExpr.hashCode);
 }
 
 class InExpression extends Expression {

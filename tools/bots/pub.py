@@ -15,7 +15,7 @@ import sys
 
 import bot
 
-PUB_BUILDER = r'pub-(linux|mac|win)(-russian)?'
+PUB_BUILDER = r'pub-(linux|mac|win)(-(russian))?'
 
 def PubConfig(name, is_buildbot):
   """Returns info for the current buildbot based on the name of the builder.
@@ -29,9 +29,11 @@ def PubConfig(name, is_buildbot):
     return None
 
   system = pub_pattern.group(1)
+  locale = pub_pattern.group(3)
   if system == 'win': system = 'windows'
 
-  return bot.BuildInfo('none', 'vm', 'release', system, checked=True)
+  return bot.BuildInfo('none', 'vm', 'release', system, checked=True,
+                       builder_tag=locale)
 
 
 def PubSteps(build_info):
@@ -41,17 +43,19 @@ def PubSteps(build_info):
     print 'Building package-root: %s' % (' '.join(args))
     bot.RunProcess(args)
 
-  bot.RunTest('pub', build_info, ['--write-test-outcome-log',
-      'pub', 'pkg', 'dartdoc', 'docs'])
+  common_args = ['--write-test-outcome-log']
+  if build_info.builder_tag:
+    common_args.append('--builder-tag=%s' % build_info.builder_tag)
+                 
+  bot.RunTest('pub', build_info,
+              common_args + ['pub', 'pkg', 'dartdoc', 'docs'])
 
   pkgbuild_build_info = bot.BuildInfo('none', 'vm', 'release',
       build_info.system, checked=False)
   bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info,
-      ['--append_logs', '--write-test-outcome-log',
-       '--use-repository-packages', 'pkgbuild'])
+      common_args + ['--append_logs', '--use-repository-packages', 'pkgbuild'])
   bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info,
-      ['--append_logs', '--write-test-outcome-log',
-       '--use-public-packages', 'pkgbuild'])
+      common_args + ['--append_logs', '--use-public-packages', 'pkgbuild'])
 
 if __name__ == '__main__':
   bot.RunBot(PubConfig, PubSteps)

@@ -367,7 +367,7 @@ class SourceVisitor implements ASTVisitor {
   final twoSlashes = new RegExp(r'//[^/]');
 
   /// A weight for potential breakpoints.
-  int breakWeight = DEFAULT_SPACE_WEIGHT;
+  int currentBreakWeight = DEFAULT_SPACE_WEIGHT;
 
   /// Original pre-format selection information (may be null).
   final Selection preSelection;
@@ -388,6 +388,7 @@ class SourceVisitor implements ASTVisitor {
     this.preSelection)
       : writer = new SourceWriter(indentCount: options.initialIndentationLevel,
                                 lineSeparator: options.lineSeparator,
+                                maxLineLength: options.pageWidth,
                                 useTabs: options.tabsForIndent,
                                 spacesPerIndent: options.spacesPerIndent),
        codeTransforms = options.codeTransforms;
@@ -530,14 +531,7 @@ class SourceVisitor implements ASTVisitor {
   visitClassTypeAlias(ClassTypeAlias node) {
     preserveLeadingNewlines();
     visitNodes(node.metadata, followedBy: newlines);
-    //TODO(pquitslund): the following _should_ work (dartbug.com/15912)
-    //modifier(node.abstractKeyword);
-    // ... in the meantime we use this workaround
-    var prev = node.keyword.previous;
-    if (prev is KeywordToken && prev.keyword == Keyword.ABSTRACT) {
-      token(prev);
-      space();
-    }
+    modifier(node.abstractKeyword);
     token(node.keyword);
     space();
     visit(node.name);
@@ -837,16 +831,7 @@ class SourceVisitor implements ASTVisitor {
     preserveLeadingNewlines();
     visitNodes(node.metadata, followedBy: newlines);
     modifier(node.externalKeyword);
-    //TODO(pquitslund): remove this workaround once setter functions
-    //have their return types properly set (dartbug.com/15914)
-    if (node.returnType == null && node.propertyKeyword != null) {
-      var previous = node.propertyKeyword.previous;
-      if (previous is KeywordToken && previous.keyword == Keyword.VOID) {
-        modifier(previous);
-      }
-    } else {
-      visitNode(node.returnType, followedBy: space);
-    }
+    visitNode(node.returnType, followedBy: space);
     modifier(node.propertyKeyword);
     visit(node.name);
     visit(node.functionExpression);
@@ -922,7 +907,7 @@ class SourceVisitor implements ASTVisitor {
   visitImportDirective(ImportDirective node) {
     visitNodes(node.metadata, followedBy: newlines);
     token(node.keyword);
-    space();
+    nonBreakingSpace();
     visit(node.uri);
     token(node.asToken, precededBy: space, followedBy: space);
     allowContinuedLines((){
@@ -1480,11 +1465,11 @@ class SourceVisitor implements ASTVisitor {
   emitSpaces() {
     if (leadingSpaces > 0) {
       if (allowLineLeadingSpaces || !writer.currentLine.isWhitespace()) {
-        writer.spaces(leadingSpaces, breakWeight: breakWeight);
+        writer.spaces(leadingSpaces, breakWeight: currentBreakWeight);
       }
       leadingSpaces = 0;
       allowLineLeadingSpaces = false;
-      breakWeight = DEFAULT_SPACE_WEIGHT;
+      currentBreakWeight = DEFAULT_SPACE_WEIGHT;
     }
   }
 
@@ -1502,20 +1487,19 @@ class SourceVisitor implements ASTVisitor {
     }
   }
 
-  /// Emit a non-breakable space. If [allowLineLeading] is specified, spaces
+  /// Emit a non-breakable space.
+  nonBreakingSpace() {
+    space(breakWeight: UNBREAKABLE_SPACE_WEIGHT);
+  }
+
+  /// Emit a space. If [allowLineLeading] is specified, spaces
   /// will be preserved at the start of a line (in addition to the
   /// indent-level), otherwise line-leading spaces will be ignored.
-  space({n: 1, allowLineLeading: false}) {
+  space({n: 1, allowLineLeading: false, breakWeight: DEFAULT_SPACE_WEIGHT}) {
     //TODO(pquitslund): replace with a proper space token
     leadingSpaces+=n;
     allowLineLeadingSpaces = allowLineLeading;
-  }
-
-  /// Mark a breakable space
-  breakableSpace() {
-    space();
-    breakWeight =
-        countNewlinesBetween(previousToken, previousToken.next) > 0 ? 1 : 0;
+    currentBreakWeight = breakWeight;
   }
 
   /// Append the given [string] to the source writer if it's non-null.

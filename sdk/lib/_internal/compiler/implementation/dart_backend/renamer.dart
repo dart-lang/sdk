@@ -8,6 +8,7 @@ Comparator get _compareNodes =>
     compareBy((n) => n.getBeginToken().charOffset);
 
 typedef String _Renamer(Renamable renamable);
+
 abstract class Renamable {
   final int RENAMABLE_TYPE_ELEMENT = 1;
   final int RENAMABLE_TYPE_MEMBER = 2;
@@ -67,6 +68,7 @@ void renamePlaceholders(
     Map<Node, String> renames,
     Map<LibraryElement, String> imports,
     Set<String> fixedMemberNames,
+    Map<Element, LibraryElement> reexportingLibraries,
     bool cutDeclarationTypes,
     {bool uniqueGlobalNaming: false}) {
   final Map<LibraryElement, Map<String, String>> renamed
@@ -135,11 +137,16 @@ void renamePlaceholders(
     if (identical(element.getLibrary(), compiler.coreLibrary)) {
       return originalName;
     }
-    if (library.isPlatformLibrary && !library.isInternalLibrary) {
+    if (library.isPlatformLibrary) {
       assert(element.isTopLevel());
-      final prefix =
-          imports.putIfAbsent(library, () => generateUniqueName('p'));
-      return '$prefix.$originalName';
+      if (reexportingLibraries.containsKey(element)) {
+        library = reexportingLibraries[element];
+      }
+      if (!library.isInternalLibrary) {
+        final prefix =
+            imports.putIfAbsent(library, () => generateUniqueName('p'));
+        return '$prefix.$originalName';
+      }
     }
 
     return rename(library, originalName);

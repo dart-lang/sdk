@@ -27,7 +27,7 @@ static Function* CreateFunction(const char* name) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const Script& script = Script::Handle();
   const Class& owner_class =
-      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
+      Class::Handle(Class::New(class_name, script, Scanner::kNoSourcePos));
   const Library& lib = Library::Handle(Library::New(class_name));
   owner_class.set_library(lib);
   const String& function_name = String::ZoneHandle(Symbols::New(name));

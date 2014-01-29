@@ -223,11 +223,6 @@ class FlowGraph : public ZoneAllocated {
       GrowableArray<intptr_t>* parent,
       GrowableArray<intptr_t>* label);
 
-  void InitializeOsrLocals(GrowableArray<Definition*>* env);
-  void InitializeOsrLocalRange(GrowableArray<Definition*>* env,
-                               RawObject** base,
-                               intptr_t count);
-
   void Rename(GrowableArray<PhiInstr*>* live_phis,
               VariableLivenessAnalysis* variable_liveness,
               ZoneGrowableArray<Definition*>* inlining_parameters);
@@ -252,7 +247,9 @@ class FlowGraph : public ZoneAllocated {
   // Find the natural loop for the back edge m->n and attach loop
   // information to block n (loop header). The algorithm is described in
   // "Advanced Compiler Design & Implementation" (Muchnick) p192.
-  void FindLoop(BlockEntryInstr* m, BlockEntryInstr* n);
+  // Returns a BitVector indexed by block pre-order number where each bit
+  // indicates membership in the loop.
+  BitVector* FindLoop(BlockEntryInstr* m, BlockEntryInstr* n);
 
   // Finds natural loops in the flow graph and attaches a list of loop
   // body blocks for each loop header.

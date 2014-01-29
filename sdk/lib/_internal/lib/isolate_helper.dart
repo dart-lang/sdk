@@ -152,7 +152,7 @@ class _Manager {
   /**
    * Whether to use the web-worker JSON-based message serialization protocol. By
    * default this is only used with web workers. For debugging, you can force
-   * using this protocol by changing this field value to [true].
+   * using this protocol by changing this field value to [:true:].
    */
   bool get needSerialization => useWorkers;
 

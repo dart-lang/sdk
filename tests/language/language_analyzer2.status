@@ -24,6 +24,8 @@ assignable_expression_test/22: Fail # Issue 15471
 assignable_expression_test/32: Fail # Issue 15471
 assignable_expression_test/42: Fail # Issue 15471
 
+#unicode_bom_test: Fail # Issue 16314
+
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #
@@ -336,6 +338,9 @@ mixin_type_parameters_mixin_test: StaticWarning
 mixin_type_parameters_super_extends_test: StaticWarning
 mixin_type_parameters_super_test: StaticWarning
 mixin_with_two_implicit_constructors_test: StaticWarning
+mixin_bound_test: StaticWarning
+mixin_invalid_bound_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
+mixin_invalid_bound2_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 named_constructor_test/01: StaticWarning
 named_constructor_test/03: StaticWarning
 named_parameters2_test: StaticWarning
@@ -456,6 +461,10 @@ type_argument_in_super_type_test: StaticWarning
 typed_selector2_test: StaticWarning
 type_variable_identifier_expression_test: StaticWarning
 type_variable_scope2_test: StaticWarning
+type_variable_conflict2_test/02: MissingCompileTimeError
+type_variable_conflict2_test/06: MissingCompileTimeError
+type_variable_conflict2_test/08: MissingCompileTimeError
+type_variable_conflict2_test/10: MissingCompileTimeError
 unary_plus_negative_test: CompileTimeError
 unbound_getter_test: StaticWarning
 unhandled_exception_negative_test: CompileTimeError

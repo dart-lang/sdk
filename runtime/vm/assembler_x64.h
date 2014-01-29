@@ -768,9 +768,7 @@ class Assembler : public ValueObject {
   }
 
   // Index of constant pool entries pointing to debugger stubs.
-  static const int kBreakpointStaticCPIndex = 5;
-  static const int kBreakpointDynamicCPIndex = 6;
-  static const int kBreakpointRuntimeCPIndex = 7;
+  static const int kBreakpointRuntimeCPIndex = 5;
 
   void LoadPoolPointer(Register pp);
 
@@ -828,6 +826,13 @@ class Assembler : public ValueObject {
   //   call L             (size is 5 bytes)
   //   L:
   static const intptr_t kEntryPointToPcMarkerOffset = 9;
+
+  void UpdateAllocationStats(intptr_t cid,
+                             Heap::Space space = Heap::kNew);
+
+  void UpdateAllocationStatsWithSize(intptr_t cid,
+                                     Register size_reg,
+                                     Heap::Space space = Heap::kNew);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

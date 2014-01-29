@@ -63,6 +63,8 @@
             '../../sdk/bin/dart.bat',
             '../../sdk/bin/dart2js',
             '../../sdk/bin/dart2js.bat',
+            '../../sdk/bin/docgen',
+            '../../sdk/bin/docgen.bat',
             '../../tools/only_in_release_mode.py',
             # We sit inside the api_docs directory, so make sure it has run
             # before we do. Otherwise it might run later and delete us.
@@ -76,10 +78,7 @@
             '../../tools/only_in_release_mode.py',
             '<@(_outputs)',
             '--',
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '--old_gen_heap_size=1024',
-            '--package-root=<(PRODUCT_DIR)/packages/',
-            '../../pkg/docgen/bin/docgen.dart',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart-sdk/bin/docgen<(script_suffix)',
             '--out=<(PRODUCT_DIR)/api_docs/docgen',
             '--json',
             '--include-sdk',

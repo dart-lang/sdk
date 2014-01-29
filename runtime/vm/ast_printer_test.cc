@@ -13,7 +13,7 @@
 namespace dart {
 
 TEST_CASE(AstPrinter) {
-  const intptr_t kPos = Scanner::kDummyTokenIndex;
+  const intptr_t kPos = Scanner::kNoSourcePos;
   LocalVariable* v =
       new LocalVariable(kPos,
                         String::ZoneHandle(String::New("wurscht")),

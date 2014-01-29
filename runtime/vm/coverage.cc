@@ -89,6 +89,7 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
     script = function.script();
     saved_url = script.url();
     jsobj.AddProperty("source", saved_url.ToCString());
+    jsobj.AddProperty("script", script);
     JSONArray hits_arr(&jsobj, "hits");
 
     // We stay within this loop while we are seeing functions from the same
@@ -101,6 +102,10 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
         break;
       }
       CompileAndAdd(function, hits_arr);
+      if (function.HasImplicitClosureFunction()) {
+        function = function.ImplicitClosureFunction();
+        CompileAndAdd(function, hits_arr);
+      }
       i++;
     }
   }
@@ -118,6 +123,7 @@ void CodeCoverage::PrintClass(const Class& cls, const JSONArray& jsarr) {
       script = function.script();
       saved_url = script.url();
       jsobj.AddProperty("source", saved_url.ToCString());
+      jsobj.AddProperty("script", script);
       JSONArray hits_arr(&jsobj, "hits");
 
       // We stay within this loop while we are seeing functions from the same
@@ -150,25 +156,7 @@ void CodeCoverage::Write(Isolate* isolate) {
   }
 
   JSONStream stream;
-  {
-    const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-        isolate, isolate->object_store()->libraries());
-    Library& lib = Library::Handle();
-    Class& cls = Class::Handle();
-    JSONArray jsarr(&stream);
-    for (int i = 0; i < libs.Length(); i++) {
-      lib ^= libs.At(i);
-      ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-      while (it.HasNext()) {
-        cls = it.GetNextClass();
-        if (cls.EnsureIsFinalized(isolate) == Error::null()) {
-          // Only classes that have been finalized do have a meaningful list of
-          // functions.
-          PrintClass(cls, jsarr);
-        }
-      }
-    }
-  }
+  PrintToJSONStream(isolate, &stream);
 
   const char* format = "%s/dart-cov-%" Pd "-%" Pd ".json";
   intptr_t pid = OS::ProcessId();
@@ -185,5 +173,31 @@ void CodeCoverage::Write(Isolate* isolate) {
   (*file_write)(stream.buffer()->buf(), stream.buffer()->length(), file);
   (*file_close)(file);
 }
+
+
+void CodeCoverage::PrintToJSONStream(Isolate* isolate, JSONStream* stream) {
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate, isolate->object_store()->libraries());
+  Library& lib = Library::Handle();
+  Class& cls = Class::Handle();
+  JSONObject coverage(stream);
+  coverage.AddProperty("type", "CodeCoverage");
+  {
+    JSONArray jsarr(&coverage, "coverage");
+    for (int i = 0; i < libs.Length(); i++) {
+      lib ^= libs.At(i);
+      ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+      while (it.HasNext()) {
+        cls = it.GetNextClass();
+        if (cls.EnsureIsFinalized(isolate) == Error::null()) {
+          // Only classes that have been finalized do have a meaningful list of
+          // functions.
+          PrintClass(cls, jsarr);
+        }
+      }
+    }
+  }
+}
+
 
 }  // namespace dart

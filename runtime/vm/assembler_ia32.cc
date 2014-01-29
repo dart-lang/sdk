@@ -2279,10 +2279,82 @@ void Assembler::Bind(Label* label) {
 }
 
 
+void Assembler::UpdateAllocationStats(intptr_t cid,
+                                      Register temp_reg,
+                                      Heap::Space space) {
+  ASSERT(cid > 0);
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  if (cid < kNumPredefinedCids) {
+    const uword class_heap_stats_table_address =
+        class_table->PredefinedClassHeapStatsTableAddress();
+    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+    const uword count_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_since_gc_old_space_offset();
+    const Address& count_address = Address::Absolute(
+        class_heap_stats_table_address + class_offset + count_field_offset);
+    incl(count_address);
+  } else {
+    ASSERT(temp_reg != kNoRegister);
+    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+    const uword count_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_since_gc_old_space_offset();
+    // temp_reg gets address of class table pointer.
+    movl(temp_reg, Address::Absolute(class_table->ClassStatsTableAddress()));
+    // Increment allocation count.
+    incl(Address(temp_reg, class_offset + count_field_offset));
+  }
+}
+
+
+void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
+                                              Register size_reg,
+                                              Register temp_reg,
+                                              Heap::Space space) {
+  ASSERT(cid > 0);
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  if (cid < kNumPredefinedCids) {
+    const uword class_heap_stats_table_address =
+        class_table->PredefinedClassHeapStatsTableAddress();
+    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+    const uword count_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_since_gc_old_space_offset();
+    const uword size_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_size_since_gc_old_space_offset();
+    const Address& count_address = Address::Absolute(
+        class_heap_stats_table_address + class_offset + count_field_offset);
+    const Address& size_address = Address::Absolute(
+        class_heap_stats_table_address + class_offset + size_field_offset);
+    incl(count_address);
+    addl(size_address, size_reg);
+  } else {
+    ASSERT(temp_reg != kNoRegister);
+    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+    const uword count_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_since_gc_old_space_offset();
+    const uword size_field_offset = (space == Heap::kNew) ?
+      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
+      ClassHeapStats::allocated_size_since_gc_old_space_offset();
+    // temp_reg gets address of class table pointer.
+    movl(temp_reg, Address::Absolute(class_table->ClassStatsTableAddress()));
+    // Increment allocation count.
+    incl(Address(temp_reg, class_offset + count_field_offset));
+    addl(Address(temp_reg, class_offset + size_field_offset), size_reg);
+  }
+}
+
+
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
                             bool near_jump,
-                            Register instance_reg) {
+                            Register instance_reg,
+                            Register temp_reg) {
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
     Heap* heap = Isolate::Current()->heap();
@@ -2295,6 +2367,7 @@ void Assembler::TryAllocate(const Class& cls,
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movl(Address::Absolute(heap->TopAddress()), instance_reg);
+    UpdateAllocationStats(cls.id(), temp_reg);
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
     uword tags = 0;

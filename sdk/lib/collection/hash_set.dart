@@ -64,7 +64,7 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
 }
 
 /**
- * A [HashSet] is a hash-table based [Set] implementation.
+ * An unordered hash-table based [Set] implementation.
  *
  * The elements of a `HashSet` must have consistent equality
  * and hashCode implementations. This means that the equals operation
@@ -90,15 +90,16 @@ abstract class HashSet<E> implements Set<E> {
    * applied to. Any key for which [isValidKey] returns false is automatically
    * assumed to not be in the set.
    *
-   * If [equals], [hashCode] and [isValidKey] are omitted, the set uses
+   * If [equals] or [hashCode] are omitted, the set uses
    * the objects' intrinsic [Object.operator==] and [Object.hashCode].
    *
    * If [isValidKey] is omitted, it defaults to testing if the object is an
    * [E] instance.
    *
-   * If [equals] is [identical], this creates an identity set. Any hashCode
-   * is compatible with [identical], and it applies to all objects, so
-   * [hashCode] and [isValidKey] can safely be omitted.
+   * If you supply one of [equals] and [hashCode],
+   * you should generally also to supply the other.
+   * An example would be using [identical] and [identityHashCode],
+   * which is equivalent to using the shorthand [LinkedSet.identity]).
    */
   external factory HashSet({ bool equals(E e1, E e2),
                              int hashCode(E e),
@@ -122,4 +123,12 @@ abstract class HashSet<E> implements Set<E> {
   factory HashSet.from(Iterable<E> iterable) {
     return new HashSet<E>()..addAll(iterable);
   }
+
+  /**
+   * Provides an iterator that iterates over the elements of this set.
+   *
+   * The order of iteration is unspecified,
+   * but consistent between changes to the set.
+   */
+  Iterator<E> get iterator;
 }

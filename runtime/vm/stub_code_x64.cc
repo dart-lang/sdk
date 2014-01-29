@@ -591,6 +591,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // R13: Points to new space object.
     __ movq(Address(R13, Scavenger::top_offset()), R12);
     __ addq(RAX, Immediate(kHeapObjectTag));
+    // R13: Size of allocation in bytes.
+    __ movq(R13, R12);
+    __ subq(R13, RAX);
+    __ UpdateAllocationStatsWithSize(kArrayCid, R13);
 
     // RAX: new object start as a tagged pointer.
     // R12: new object end address.
@@ -945,6 +949,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ movq(RDI, Immediate(heap->TopAddress()));
     __ movq(Address(RDI, 0), R13);
     __ addq(RAX, Immediate(kHeapObjectTag));
+    // R13: Size of allocation in bytes.
+    __ subq(R13, RAX);
+    __ UpdateAllocationStatsWithSize(context_class.id(), R13);
 
     // Calculate the size tag.
     // RAX: new object.
@@ -1144,6 +1151,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // next object start and initialize the object.
     __ movq(RDI, Immediate(heap->TopAddress()));
     __ movq(Address(RDI, 0), RBX);
+    __ UpdateAllocationStats(cls.id());
 
     if (is_cls_parameterized) {
       // Initialize the type arguments field in the object.
@@ -1307,6 +1315,17 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // next object start and initialize the object.
     __ movq(RDI, Immediate(heap->TopAddress()));
     __ movq(Address(RDI, 0), R13);
+
+    // RAX: new closure object.
+    // RBX: new context object (only if is_implicit_closure).
+    if (is_implicit_instance_closure) {
+      // This closure allocates a context, update allocation stats.
+      // RDI: context size.
+      __ movq(RDI, Immediate(context_size));
+     __ UpdateAllocationStatsWithSize(kContextCid, RDI);
+    }
+    // The closure allocation is attributed to the signature class.
+    __ UpdateAllocationStats(cls.id());
 
     // RAX: new closure object.
     // RBX: new context object (only if is_implicit_closure).
@@ -1846,56 +1865,6 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ popq(RBX);
   __ LeaveStubFrame();
   __ jmp(RAX);   // Jump to original stub.
-}
-
-
-//  RBX: ICData (unoptimized static call)
-//  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ pushq(RBX);  // Preserve IC data for unoptimized call.
-  __ pushq(R12);  // Room for result.
-  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry, 0);
-  __ popq(RAX);  // Code object.
-  __ popq(RBX);  // Restore IC data.
-  __ LeaveStubFrame();
-
-  // Load arguments descriptor into R10.
-  __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
-  // Now call the static function. The breakpoint handler function
-  // ensures that the call target is compiled.
-  __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jmp(RBX);
-}
-
-
-//  RBX: Inline cache data array.
-//  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ pushq(RBX);
-  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry, 0);
-  __ popq(RBX);
-  __ LeaveStubFrame();
-
-  // Find out which dispatch stub to call.
-  Label test_two, test_three, test_four;
-  __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
-  __ cmpq(RCX, Immediate(1));
-  __ j(NOT_EQUAL, &test_two, Assembler::kNearJump);
-  __ jmp(&StubCode::OneArgCheckInlineCacheLabel());
-  __ Bind(&test_two);
-  __ cmpl(RCX, Immediate(2));
-  __ j(NOT_EQUAL, &test_three, Assembler::kNearJump);
-  __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
-  __ Bind(&test_three);
-  __ cmpl(RCX, Immediate(3));
-  __ j(NOT_EQUAL, &test_four, Assembler::kNearJump);
-  __ jmp(&StubCode::ThreeArgsCheckInlineCacheLabel());
-  __ Bind(&test_four);
-  __ Stop("Unsupported number of arguments tested.");
 }
 
 

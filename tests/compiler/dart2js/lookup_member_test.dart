@@ -30,9 +30,9 @@ void test() {
         V boz;
       }
       """).then((env) {
-    void expect(DartType receiverType, String memberName,
+    void expect(InterfaceType receiverType, String memberName,
                 DartType expectedType) {
-      Member member = receiverType.lookupMember(memberName);
+      InterfaceTypeMember member = receiverType.lookupMember(memberName);
       Expect.isNotNull(member);
       DartType memberType = member.computeType(env.compiler);
       Expect.equals(expectedType, memberType,

@@ -24,7 +24,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const Script& script = Script::Handle();
   const Class& owner_class =
-      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
+      Class::Handle(Class::New(class_name, script, Scanner::kNoSourcePos));
   const String& function_name = String::Handle(Symbols::New("callerFunction"));
   const Function& function = Function::Handle(
       Function::New(function_name, RawFunction::kRegularFunction,

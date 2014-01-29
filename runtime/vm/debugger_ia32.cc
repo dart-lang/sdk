@@ -45,27 +45,12 @@ uword CodeBreakpoint::OrigStubAddress() const {
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      saved_value_ = CodePatcher::GetInstanceCallAt(pc_, code, NULL);
-      CodePatcher::PatchInstanceCallAt(pc_, code,
-                                       StubCode::BreakpointDynamicEntryPoint());
-      break;
-    }
-    case PcDescriptors::kUnoptStaticCall: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-      CodePatcher::PatchStaticCallAt(pc_, code,
-                                     StubCode::BreakpointStaticEntryPoint());
-      break;
-    }
+    case PcDescriptors::kIcCall:
+    case PcDescriptors::kUnoptStaticCall:
     case PcDescriptors::kRuntimeCall:
     case PcDescriptors::kClosureCall:
     case PcDescriptors::kReturn: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
+      const Code& code = Code::Handle(code_);
       saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
       CodePatcher::PatchStaticCallAt(pc_, code,
                                      StubCode::BreakpointRuntimeEntryPoint());
@@ -81,18 +66,12 @@ void CodeBreakpoint::PatchCode() {
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
   switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      CodePatcher::PatchInstanceCallAt(pc_, code, saved_value_);
-      break;
-    }
+    case PcDescriptors::kIcCall:
     case PcDescriptors::kUnoptStaticCall:
     case PcDescriptors::kClosureCall:
     case PcDescriptors::kRuntimeCall:
     case PcDescriptors::kReturn: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
+      const Code& code = Code::Handle(code_);
       CodePatcher::PatchStaticCallAt(pc_, code, saved_value_);
       break;
     }

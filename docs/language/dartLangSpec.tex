@@ -3081,7 +3081,7 @@ If there exists a lexically visible declaration named $id$, let $f_{id}$ be the 
  If $f_{id}$ is a local function, a library function, a library or static getter or a variable then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}).
  \item
 Otherwise, if $f_{id}$ is a static method of the enclosing class $C$, $i$ is equivalent to $C.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
-\item Otherwise, $f_{id}$ is necessarily an instance method or getter of the enclosing class C, and i is equivalent to the ordinary method invocation $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+\item Otherwise, $f_{id}$ is considered equivalent to the ordinary method invocation $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 \end{itemize}
 
 %Otherwise, if there is an accessible (\ref{privacy}) static method named $id$ declared in a superclass $S$ of the immediately enclosing class $C$ then i is equivalent to the static method invocation $S.id(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k})$.  
@@ -3931,7 +3931,9 @@ Let $d$ be the innermost declaration in the enclosing lexical scope whose name i
 
 \begin{itemize}
 \item If $d$ is a class or type alias $T$, the value of $e$ is an instance of class \code{Type} reifying $T$.
-\item If $d$ is a type parameter $T$, then the value of $e$ is the value of the actual type argument corresponding to $T$ that was  passed to the generative constructor that created the current binding of \THIS{}. \commentary{ We are assured that \THIS{} is well defined, because if we were in a static member the reference to $T$ would be a compile-time error (\ref{generics}.)}
+\item If $d$ is a type parameter $T$, then the value of $e$ is the value of the actual type argument corresponding to $T$ that was  passed to the generative constructor that created the current binding of \THIS{}. If, however, $e$ occurs inside a static member, a compile-time error occurs.
+
+%\commentary{ We are assured that \THIS{} is well defined, because if we were in a static member the reference to $T$ is a compile-time error (\ref{generics}.)}
 %\item If $d$ is a library variable then:
 %  \begin{itemize}
 %  \item If $d$ is of one of the forms \code{\VAR{} $v$ = $e_i$;} , \code{$T$ $v$ = $e_i$;} , \code{\FINAL{} $v$ = $e_i$;}  or \code{\FINAL{} $T$ $v$ = $e_i$;} and no value has yet been stored into $v$ then the initializer expression $e_i$ is evaluated. If, during the evaluation of $e_i$, the getter for $v$ is referenced, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r = o$, otherwise let $r = \NULL{}$. In any case, $r$ is stored into $v$. The value of $e$ is $r$. 

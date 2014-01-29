@@ -10,9 +10,9 @@ class Message {
   /// Future of response.
   Future<String> get response => _completer.future;
   /// Path.
-  final List<String> path = new List<String>();
+  final List path = new List();
   /// Options.
-  final Map<String, String> options = new Map<String, String>();
+  final Map options = new Map();
 
   void _setPath(List<String> pathSegments) {
     if (pathSegments == null) {

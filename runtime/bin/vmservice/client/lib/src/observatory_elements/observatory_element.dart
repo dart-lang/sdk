@@ -27,5 +27,7 @@ class ObservatoryElement extends PolymerElement {
   }
 
   @published ObservatoryApplication app;
+  void appChanged(oldValue) {
+  }
   bool get applyAuthorStyles => true;
 }

@@ -36,8 +36,7 @@ RawObject* ActivationFrame::GetClosureObject(intptr_t num_actual_args) {
 
 
 uword CodeBreakpoint::OrigStubAddress() const {
-  const Code& code =
-      Code::Handle(Function::Handle(function_).unoptimized_code());
+  const Code& code = Code::Handle(code_);
   const Array& object_pool = Array::Handle(code.ObjectPool());
   uword offset = saved_value_ + kHeapObjectTag;
   ASSERT((offset % kWordSize) == 0);
@@ -51,26 +50,8 @@ uword CodeBreakpoint::OrigStubAddress() const {
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
   switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall: {
-      int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
-      ASSERT((offset > 0) && ((offset % 8) == 7));
-      saved_value_ = static_cast<uword>(offset);
-      const int32_t stub_offset =
-          InstructionPattern::OffsetFromPPIndex(
-              Assembler::kBreakpointDynamicCPIndex);
-      CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
-      break;
-    }
-    case PcDescriptors::kUnoptStaticCall: {
-      int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
-      ASSERT((offset > 0) && ((offset % 8) == 7));
-      saved_value_ = static_cast<uword>(offset);
-      const uint32_t stub_offset =
-          InstructionPattern::OffsetFromPPIndex(
-              Assembler::kBreakpointStaticCPIndex);
-      CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
-      break;
-    }
+    case PcDescriptors::kIcCall:
+    case PcDescriptors::kUnoptStaticCall:
     case PcDescriptors::kRuntimeCall:
     case PcDescriptors::kClosureCall:
     case PcDescriptors::kReturn: {

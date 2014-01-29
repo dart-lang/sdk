@@ -175,7 +175,7 @@ class Analyzer {
  * expanded.
  */
 class ExpandNestedSelectors extends Visitor {
-  /** Parent [RuleSet] if a nested rule otherwise [null]. */
+  /** Parent [RuleSet] if a nested rule otherwise [:null:]. */
   RuleSet _parentRuleSet;
 
   /** Top-most rule if nested rules. */

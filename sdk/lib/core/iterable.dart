@@ -276,7 +276,7 @@ abstract class Iterable<E> {
   /**
    * Returns the [index]th element.
    *
-   * If `this` has fewer than [index] elements throws a [RangeError].
+   * The [index] must be non-negative and less than [length].
    *
    * Note: if `this` does not have a deterministic iteration order then the
    * function may simply return any element without any iteration if there are

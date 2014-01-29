@@ -239,7 +239,7 @@ class JsObject extends NativeFieldWrapperClass2 {
  * Proxies a JavaScript Function object.
  */
 class JsFunction extends JsObject {
-  JsFunction.internal();
+  JsFunction.internal() : super.internal();
 
   /**
    * Returns a [JsFunction] that captures its 'this' binding and calls [f]

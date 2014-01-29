@@ -14,6 +14,6 @@
   <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
   <class-ref app="{{ app }}" ref="{{ ref['declared_type'] }}"></class-ref>
   </template>
-  <a href="{{ url }}">{{ name }}</a>
+  <a title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
 </div>
 </template> <script type="application/dart" src="field_ref.dart"></script> </polymer-element>

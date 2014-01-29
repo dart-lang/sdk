@@ -33,14 +33,24 @@ void main(args) {
 
     if (options.perf) {
       int totalTime = JavaSystem.currentTimeMillis() - startTime;
-      print("scan:${PerformanceStatistics.scan.result}");
-      print("parse:${PerformanceStatistics.parse.result}");
-      print("resolve:${PerformanceStatistics.resolve.result}");
-      print("errors:${PerformanceStatistics.errors.result}");
-      print("hints:${PerformanceStatistics.hints.result}");
-      print("angular:${PerformanceStatistics.angular.result}");
-      print("instanceof:${instanceOfTimer.elapsedMilliseconds}");
+      int scanTime = PerformanceStatistics.scan.result;
+      int parseTime = PerformanceStatistics.parse.result;
+      int resolveTime = PerformanceStatistics.resolve.result;
+      int errorsTime = PerformanceStatistics.errors.result;
+      int hintsTime = PerformanceStatistics.hints.result;
+      int angularTime = PerformanceStatistics.angular.result;
+      print("scan:$scanTime");
+      print("parse:$parseTime");
+      print("resolve:$resolveTime");
+      print("errors:$errorsTime");
+      print("hints:$hintsTime");
+      print("angular:$angularTime");
+      print("other:${totalTime
+        - (scanTime + parseTime + resolveTime + errorsTime + hintsTime
+           + angularTime)}}");
       print("total:$totalTime");
+      print("");
+      print("Time spent in instanceof = ${instanceOfTimer.elapsedMilliseconds}");
     }
 
     exit(result.ordinal);

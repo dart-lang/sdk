@@ -235,7 +235,7 @@ class PrettyPrinter implements Visitor {
     printLiteral(node, "LiteralInt");
   }
 
-  /** Returns token string value or [null] if token is [null]. */
+  /** Returns token string value or [:null:] if token is [:null:]. */
   tokenToStringOrNull(Token token) => token == null ? null : token.stringValue;
 
   visitLiteralList(LiteralList node) {

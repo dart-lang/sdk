@@ -8,9 +8,6 @@
   <template>
     <template repeat="{{ message in app.requestManager.responses }}">
       <message-viewer app="{{ app }}" message="{{ message }}"></message-viewer>
-      <collapsible-content>
-        <!-- <json-view json="{{ message }}"></json-view> -->
-      </collapsible-content>
     </template>
   </template>
   <script type="application/dart" src="response_viewer.dart"></script>

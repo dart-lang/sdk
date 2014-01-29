@@ -389,7 +389,7 @@ bool RawFunction::SkipCode(RawFunction* raw_fun) {
   if (!code.IsNull() &&  // The function may not have code.
       !code.is_optimized() &&
       (fn.CurrentCode() == fn.unoptimized_code()) &&
-      !fn.HasBreakpoint() &&
+      !code.HasBreakpoint() &&
       (fn.usage_counter() >= 0)) {
     fn.set_usage_counter(fn.usage_counter() / 2);
     if (FLAG_always_drop_code || (fn.usage_counter() == 0)) {

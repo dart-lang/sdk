@@ -57,7 +57,8 @@ main() {
                 testTypedefLookup,
                 testTypeLiteral,
                 testInitializers,
-                testTypePromotionHints];
+                testTypePromotionHints,
+                testFunctionCall];
   for (Function test in tests) {
     setup();
     test();
@@ -664,6 +665,62 @@ void testControlFlow() {
   analyzeTopLevel("int foo() { while(true) { return 1; } }");
   analyzeTopLevel("int foo() { while(true) { return 1; } return 2; }",
                   MessageKind.UNREACHABLE_CODE);
+}
+
+
+void testFunctionCall() {
+  compiler.parseScript(CLASS_WITH_METHODS);
+
+  check(String text, [expectedWarnings]){
+    analyze("""{
+               ClassWithMethods x;
+               int localMethod(String str) { return 0; }
+               String2Int string2int;
+               Function function;
+               SubFunction subFunction;
+               $text
+               }
+               """, warnings: expectedWarnings);
+  }
+
+  check("int k = localMethod.call('');");
+  check("String k = localMethod.call('');", NOT_ASSIGNABLE);
+  check("int k = localMethod.call(0);", NOT_ASSIGNABLE);
+
+  check("int k = ClassWithMethods.staticMethod.call('');");
+  check("String k = ClassWithMethods.staticMethod.call('');", NOT_ASSIGNABLE);
+  check("int k = ClassWithMethods.staticMethod.call(0);", NOT_ASSIGNABLE);
+
+  check("int k = x.instanceMethod.call('');");
+  check("String k = x.instanceMethod.call('');", NOT_ASSIGNABLE);
+  check("int k = x.instanceMethod.call(0);", NOT_ASSIGNABLE);
+
+  check("int k = topLevelMethod.call('');");
+  check("String k = topLevelMethod.call('');", NOT_ASSIGNABLE);
+  check("int k = topLevelMethod.call(0);", NOT_ASSIGNABLE);
+
+  check("((String s) { return 0; }).call('');");
+  check("((String s) { return 0; }).call(0);", NOT_ASSIGNABLE);
+
+  check("(int f(String x)) { int i = f.call(''); } (null);");
+  check("(int f(String x)) { String s = f.call(''); } (null);", NOT_ASSIGNABLE);
+  check("(int f(String x)) { int i = f.call(0); } (null);", NOT_ASSIGNABLE);
+
+  check("int k = string2int.call('');");
+  check("String k = string2int.call('');", NOT_ASSIGNABLE);
+  check("int k = string2int.call(0);", NOT_ASSIGNABLE);
+
+  check("int k = x.string2int.call('');");
+  check("String k = x.string2int.call('');", NOT_ASSIGNABLE);
+  check("int k = x.string2int.call(0);", NOT_ASSIGNABLE);
+
+  check("int k = function.call('');");
+  check("String k = function.call('');");
+  check("int k = function.call(0);");
+
+  check("int k = subFunction.call('');");
+  check("String k = subFunction.call('');");
+  check("int k = subFunction.call(0);");
 }
 
 testNewExpression() {
@@ -1672,6 +1729,10 @@ testTypePromotionHints() {
 }
 
 const CLASS_WITH_METHODS = '''
+typedef int String2Int(String s);
+
+int topLevelMethod(String s) {}
+
 class ClassWithMethods {
   untypedNoArgumentMethod() {}
   untypedOneArgumentMethod(argument) {}
@@ -1691,15 +1752,19 @@ class ClassWithMethods {
   int intField;
 
   static int staticMethod(String str) {}
+  int instanceMethod(String str) {}
 
   void method() {}
+
+  String2Int string2int;
 }
 class I {
   int intMethod();
 }
 class SubClass extends ClassWithMethods implements I {
   void method() {}
-}''';
+}
+class SubFunction implements Function {}''';
 
 Types types;
 MockCompiler compiler;

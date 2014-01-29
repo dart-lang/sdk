@@ -1002,7 +1002,7 @@ class _Parser {
    *      color: red;
    *    }
    *
-   * Return [null] if no selector or [SelectorGroup] if a selector was parsed.
+   * Return [:null:] if no selector or [SelectorGroup] if a selector was parsed.
    */
   SelectorGroup _nestedSelector() {
     Messages oldMessages = messages;

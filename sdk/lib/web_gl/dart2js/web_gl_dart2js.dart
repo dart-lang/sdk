@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:_native_typed_data';
 import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, JSName, Null, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
@@ -2504,8 +2505,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable()
-  @Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
-  @Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
+  @Creates('Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
+  @Returns('Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
   Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')
@@ -2554,8 +2555,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getUniform')
   @DocsEditable()
-  @Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List')
-  @Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List|Uint32List')
+  @Creates('Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
+  @Returns('Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
   Object getUniform(Program program, UniformLocation location) native;
 
   @DomName('WebGLRenderingContext.getUniformLocation')
@@ -2564,8 +2565,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getVertexAttrib')
   @DocsEditable()
-  @Creates('Null|num|bool|Float32List|Buffer')
-  @Returns('Null|num|bool|Float32List|Buffer')
+  @Creates('Null|num|bool|NativeFloat32List|Buffer')
+  @Returns('Null|num|bool|NativeFloat32List|Buffer')
   Object getVertexAttrib(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.getVertexAttribOffset')

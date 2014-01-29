@@ -139,16 +139,6 @@ class X {
   int x() => null;
 }
 >>>
-Object get _globalState => null;
-
-set _globalState(Object val) {
-}
-<<<
-Object get _globalState => null;
-
-set _globalState(Object val) {
-}
->>>
 var x = #foo;
 var y=#foo.bar.baz;
 <<<
@@ -168,3 +158,32 @@ typedef void DatabaseCallback(database);
 @DomName('DatabaseCallback')
 @Experimental() // deprecated
 typedef void DatabaseCallback(database);
+>>> dartbug.com/16366
+import 'package:sdasdsasadasd/ass/sadasdas/sadasdsad_asdasd_asdsada_adsasdasdsa.dart';
+<<<
+import 'package:sdasdsasadasd/ass/sadasdas/sadasdsad_asdasd_asdsada_adsasdasdsa.dart';
+>>>
+import 'package:sdasdsasadasd/ass/sadasdas/sadasdsad_asdasd_asdsada_adsasdasdsa.dart' as sass;
+<<<
+import 'package:sdasdsasadasd/ass/sadasdas/sadasdsad_asdasd_asdsada_adsasdasdsa.dart'
+    as sass;
+>>> dartbug.com/15912
+abstract class ListBase<E> = Object with ListMixin<E>;
+<<<
+abstract class ListBase<E> = Object with ListMixin<E>;
+>>> dartbug.com/15914
+Object get _globalState => null;
+
+set _globalState(Object val) {
+}
+
+void setX(x) {
+}
+<<<
+Object get _globalState => null;
+
+set _globalState(Object val) {
+}
+
+void setX(x) {
+}

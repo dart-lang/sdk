@@ -652,8 +652,6 @@ static const char* step_into_expected_bpts[] = {
       "foo",
         "f1",
       "foo",
-        "X.X.",
-        "X.X.",
       "foo",
         "X.kvmk",
           "f2",

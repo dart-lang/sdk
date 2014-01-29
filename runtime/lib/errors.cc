@@ -10,8 +10,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
-
 // Allocate and throw a new AssertionError.
 // Arg0: index of the first token of the failed assertion.
 // Arg1: index of the first token after the failed assertion.

@@ -5,12 +5,12 @@
 part of mime;
 
 
-MimeTypeResolver _globalResolver = new MimeTypeResolver();
+final MimeTypeResolver _globalResolver = new MimeTypeResolver();
 
 /**
  * The maximum number of bytes needed, to match all default magic-numbers.
  */
-int get defaultMagicNumbersMaxLength => _defaultMagicNumbersMaxLength;
+int get defaultMagicNumbersMaxLength => _DEFAULT_MAGIC_NUMBERS_MAX_LENGTH;
 
 /**
  * Extract the extension from [path] and use that for MIME-type lookup, using
@@ -24,10 +24,8 @@ int get defaultMagicNumbersMaxLength => _defaultMagicNumbersMaxLength;
  * [defaultMagicNumbersMaxLength] bytes was provided, some magic-numbers won't
  * be matched against.
  */
-String lookupMimeType(String path,
-                      {List<int> headerBytes})
-    => _globalResolver.lookup(path, headerBytes: headerBytes);
-
+String lookupMimeType(String path, {List<int> headerBytes}) =>
+    _globalResolver.lookup(path, headerBytes: headerBytes);
 
 /**
  * MIME-type resolver class, used to customize the lookup of mime-types.
@@ -35,7 +33,7 @@ String lookupMimeType(String path,
 class MimeTypeResolver {
   final Map<String, String> _extensionMap = {};
   final List<_MagicNumber> _magicNumbers = [];
-  bool _useDefault;
+  final bool _useDefault;
   int _magicNumbersMaxLength;
 
   /**
@@ -48,7 +46,7 @@ class MimeTypeResolver {
    */
   MimeTypeResolver() :
       _useDefault = true,
-      _magicNumbersMaxLength = _defaultMagicNumbersMaxLength;
+      _magicNumbersMaxLength = _DEFAULT_MAGIC_NUMBERS_MAX_LENGTH;
 
   /**
    * Get the maximum number of bytes required to match all magic numbers, when
@@ -67,14 +65,13 @@ class MimeTypeResolver {
    * [magicNumbersMaxLength] bytes was provided, some magic-numbers won't
    * be matched against.
    */
-  String lookup(String path,
-                {List<int> headerBytes}) {
+  String lookup(String path, {List<int> headerBytes}) {
     String result;
     if (headerBytes != null) {
-      result =_matchMagic(headerBytes, _magicNumbers);
+      result = _matchMagic(headerBytes, _magicNumbers);
       if (result != null) return result;
       if (_useDefault) {
-        result =_matchMagic(headerBytes, _defaultMagicNumbers);
+        result = _matchMagic(headerBytes, _DEFAULT_MAGIC_NUMBERS);
         if (result != null) return result;
       }
     }
@@ -82,7 +79,7 @@ class MimeTypeResolver {
     result = _extensionMap[ext];
     if (result != null) return result;
     if (_useDefault) {
-      result = _defaultExtensionMap[ext];
+      result = _DEFAULT_EXTENSION_MAP[ext];
       if (result != null) return result;
     }
     return null;

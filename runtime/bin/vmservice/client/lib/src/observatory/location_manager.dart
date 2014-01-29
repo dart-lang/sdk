@@ -26,6 +26,8 @@ class LocationManager extends Observable {
         // We just triggered another onHashChange event.
         return;
       }
+      notifyPropertyChange(#hasCurrentIsolate, !hasCurrentIsolate,
+                           hasCurrentIsolate);
       // Request the current anchor.
       requestCurrentHash();
     });
@@ -35,6 +37,7 @@ class LocationManager extends Observable {
       requestCurrentHash();
     }
   }
+
 
   /// Returns the current isolate prefix, i.e. '#/isolates/XX/' if one
   /// is present and null otherwise.
@@ -47,7 +50,7 @@ class LocationManager extends Observable {
   }
 
   /// Predicate, does the current URL have a current isolate ID in it?
-  bool get hasCurrentIsolate {
+  @observable bool get hasCurrentIsolate {
     return currentIsolateAnchorPrefix() != null;
   }
 
@@ -60,6 +63,14 @@ class LocationManager extends Observable {
     }
     // Chop off the '/#'.
     return prefix.substring(2);
+  }
+
+  Isolate currentIsolate() {
+    var id = currentIsolateId();
+    if (id == '') {
+      return null;
+    }
+    return _application.isolateManager.getIsolate(id);
   }
 
   /// If no anchor is set, set the default anchor and return true.
@@ -85,6 +96,7 @@ class LocationManager extends Observable {
       profile = true;
     } else {
       application.requestManager.get(requestUrl);
+      profile = false;
     }
   }
 

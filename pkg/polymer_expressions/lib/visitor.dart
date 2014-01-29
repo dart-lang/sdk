@@ -14,11 +14,13 @@ abstract class Visitor {
   visitIndex(Index i);
   visitInvoke(Invoke i);
   visitLiteral(Literal l);
+  visitListLiteral(ListLiteral l);
   visitMapLiteral(MapLiteral l);
   visitMapLiteralEntry(MapLiteralEntry l);
   visitIdentifier(Identifier i);
   visitBinaryOperator(BinaryOperator o);
   visitUnaryOperator(UnaryOperator o);
+  visitTernaryOperator(TernaryOperator o);
   visitInExpression(InExpression c);
 }
 
@@ -55,6 +57,13 @@ abstract class RecursiveVisitor extends Visitor {
 
   visitLiteral(Literal l) => visitExpression(l);
 
+  visitListLiteral(ListLiteral l) {
+    for (var i in l.items) {
+      visit(i);
+    }
+    visitExpression(l);
+  }
+
   visitMapLiteral(MapLiteral l) {
     for (var e in l.entries) {
       visit(e);
@@ -78,6 +87,13 @@ abstract class RecursiveVisitor extends Visitor {
 
   visitUnaryOperator(UnaryOperator o) {
     visit(o.child);
+    visitExpression(o);
+  }
+
+  visitTernaryOperator(TernaryOperator o) {
+    visit(o.condition);
+    visit(o.trueExpr);
+    visit(o.falseExpr);
     visitExpression(o);
   }
 

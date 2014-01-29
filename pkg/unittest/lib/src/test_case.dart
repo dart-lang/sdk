@@ -37,7 +37,7 @@ class TestCase {
 
   String _result;
   /**
-   * One of [PASS], [FAIL], [ERROR], or [null] if the test hasn't run yet.
+   * One of [PASS], [FAIL], [ERROR], or [:null:] if the test hasn't run yet.
    */
   String get result => _result;
 
@@ -45,7 +45,7 @@ class TestCase {
   bool get passed => _result == PASS;
 
   StackTrace _stackTrace;
-  /** Stack trace associated with this test, or [null] if it succeeded. */
+  /** Stack trace associated with this test, or [:null:] if it succeeded. */
   StackTrace get stackTrace => _stackTrace;
 
   /** The group (or groups) under which this test is running. */

@@ -30,6 +30,7 @@ lib/js/dart2js/js_dart2js: CompileTimeError
 lib/js/dartium/js_dartium: CompileTimeError
 lib/svg/dart2js/svg_dart2js: CompileTimeError
 lib/svg/dartium/svg_dartium: CompileTimeError
+lib/typed_data/dart2js/native_typed_data_dart2js: CompileTimeError
 lib/typed_data/dart2js/typed_data_dart2js: CompileTimeError
 lib/web_audio/dart2js/web_audio_dart2js: CompileTimeError
 lib/web_audio/dartium/web_audio_dartium: CompileTimeError

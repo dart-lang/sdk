@@ -156,7 +156,7 @@ void SourceBreakpoint::PrintToJSONStream(JSONStream* stream) {
 
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
 }
 
 
@@ -269,6 +269,18 @@ bool Debugger::HasBreakpoint(const Function& func) {
 }
 
 
+bool Debugger::HasBreakpoint(const Code& code) {
+  CodeBreakpoint* cbpt = code_breakpoints_;
+  while (cbpt != NULL) {
+    if (code.raw() == cbpt->code_) {
+      return true;
+    }
+    cbpt = cbpt->next_;
+  }
+  return false;
+}
+
+
 void Debugger::PrintBreakpointsToJSONArray(JSONArray* jsarr) const {
   SourceBreakpoint* sbpt = src_breakpoints_;
   while (sbpt != NULL) {
@@ -311,6 +323,7 @@ void ActivationFrame::GetPcDescriptors() {
 // Compute token_pos_ and pc_desc_index_.
 intptr_t ActivationFrame::TokenPos() {
   if (token_pos_ < 0) {
+    token_pos_ = Scanner::kNoSourcePos;
     GetPcDescriptors();
     for (intptr_t i = 0; i < pc_desc_.Length(); i++) {
       if (pc_desc_.PC(i) == pc_) {
@@ -690,7 +703,7 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 }
 
 
-static bool IsSafePoint(PcDescriptors::Kind kind) {
+static bool IsSafeDescKind(PcDescriptors::Kind kind) {
   return ((kind == PcDescriptors::kIcCall) ||
           (kind == PcDescriptors::kOptStaticCall) ||
           (kind == PcDescriptors::kUnoptStaticCall) ||
@@ -700,8 +713,14 @@ static bool IsSafePoint(PcDescriptors::Kind kind) {
 }
 
 
-CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
-    : function_(func.raw()),
+static bool IsSafePoint(const PcDescriptors& desc, intptr_t i) {
+  return IsSafeDescKind(desc.DescriptorKind(i)) &&
+         (desc.TokenPos(i) != Scanner::kNoSourcePos);
+}
+
+
+CodeBreakpoint::CodeBreakpoint(const Code& code, intptr_t pc_desc_index)
+    : code_(code.raw()),
       pc_desc_index_(pc_desc_index),
       pc_(0),
       line_number_(-1),
@@ -709,17 +728,15 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
       src_bpt_(NULL),
       next_(NULL) {
   saved_value_ = 0;
-  ASSERT(!func.HasOptimizedCode());
-  Code& code = Code::Handle(func.unoptimized_code());
-  ASSERT(!code.IsNull());  // Function must be compiled.
+  ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(pc_desc_index < desc.Length());
   token_pos_ = desc.TokenPos(pc_desc_index);
-  ASSERT(token_pos_ >= 0);
+  ASSERT(token_pos_ > 0);
   pc_ = desc.PC(pc_desc_index);
   ASSERT(pc_ != 0);
   breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
-  ASSERT(IsSafePoint(breakpoint_kind_));
+  ASSERT(IsSafeDescKind(breakpoint_kind_));
 }
 
 
@@ -728,7 +745,7 @@ CodeBreakpoint::~CodeBreakpoint() {
   ASSERT(!IsEnabled());
   // Poison the data so we catch use after free errors.
 #ifdef DEBUG
-  function_ = Function::null();
+  code_ = Code::null();
   pc_ = 0ul;
   src_bpt_ = NULL;
   next_ = NULL;
@@ -737,8 +754,13 @@ CodeBreakpoint::~CodeBreakpoint() {
 }
 
 
+RawFunction* CodeBreakpoint::function() const {
+  return Code::Handle(code_).function();
+}
+
+
 RawScript* CodeBreakpoint::SourceCode() {
-  const Function& func = Function::Handle(function_);
+  const Function& func = Function::Handle(this->function());
   return func.script();
 }
 
@@ -958,13 +980,15 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
       return;
     }
   }
-  DeoptimizeWorld();
-  ASSERT(!target_function.HasOptimizedCode());
+  // Hang on to the code object before deoptimizing, in case deoptimization
+  // might cause the GC to run.
   Code& code = Code::Handle(target_function.unoptimized_code());
   ASSERT(!code.IsNull());
+  DeoptimizeWorld();
+  ASSERT(!target_function.HasOptimizedCode());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (intptr_t i = 0; i < desc.Length(); i++) {
-    if (IsSafePoint(desc.DescriptorKind(i))) {
+    if (IsSafePoint(desc, i)) {
       CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
       if (bpt != NULL) {
         // There is already a breakpoint for this address. Make sure
@@ -972,7 +996,7 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
         bpt->Enable();
         continue;
       }
-      bpt = new CodeBreakpoint(target_function, i);
+      bpt = new CodeBreakpoint(code, i);
       RegisterCodeBreakpoint(bpt);
       bpt->Enable();
     }
@@ -1259,7 +1283,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
       // This descriptor is before the first acceptable token position.
       continue;
     }
-    if (IsSafePoint(desc.DescriptorKind(i))) {
+    if (IsSafePoint(desc, i)) {
       if (desc_token_pos < best_fit_pos) {
         // So far, this descriptor has the lowest token position after
         // the first acceptable token position.
@@ -1296,12 +1320,11 @@ void Debugger::MakeCodeBreakpointsAt(const Function& func,
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (intptr_t i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
-    if ((desc_token_pos == bpt->token_pos_) &&
-        IsSafePoint(desc.DescriptorKind(i))) {
+    if ((desc_token_pos == bpt->token_pos_) && IsSafePoint(desc, i)) {
       CodeBreakpoint* code_bpt = GetCodeBreakpoint(desc.PC(i));
       if (code_bpt == NULL) {
         // No code breakpoint for this code exists; create one.
-        code_bpt = new CodeBreakpoint(func, i);
+        code_bpt = new CodeBreakpoint(code, i);
         RegisterCodeBreakpoint(code_bpt);
       }
       code_bpt->set_src_bpt(bpt);
@@ -1889,7 +1912,7 @@ void Debugger::SingleStepCallback() {
   if (!IsDebuggable(func)) {
     return;
   }
-  if (frame->TokenPos() == Scanner::kDummyTokenIndex) {
+  if (frame->TokenPos() == Scanner::kNoSourcePos) {
     return;
   }
   // Don't pause for a single step if there is a breakpoint set

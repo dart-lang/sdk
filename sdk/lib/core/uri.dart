@@ -390,9 +390,9 @@ class Uri {
     segments.skip(firstSegment).forEach((segment) {
       if (segment.contains(new RegExp(r'["*/:<>?\\|]'))) {
         if (argumentError) {
-          throw new ArgumentError("Illegal character in path}");
+          throw new ArgumentError("Illegal character in path");
         } else {
-          throw new UnsupportedError("Illegal character in path}");
+          throw new UnsupportedError("Illegal character in path");
         }
       }
     });

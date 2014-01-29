@@ -77,7 +77,7 @@ class ElementInfoNode implements InfoNode {
   final String kind;
 
   /// The static type of the represented [Element].
-  /// [null] if this kind of element has no type.
+  /// [:null:] if this kind of element has no type.
   final String type;
 
   /// Any extra information to display about the represented [Element].

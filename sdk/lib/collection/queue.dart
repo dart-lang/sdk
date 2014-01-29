@@ -101,16 +101,14 @@ class DoubleLinkedQueueEntry<E> {
   DoubleLinkedQueueEntry<E> _next;
   E _element;
 
-  DoubleLinkedQueueEntry(E e) {
-    _element = e;
-  }
+  DoubleLinkedQueueEntry(E e) : _element = e;
 
-  void _link(DoubleLinkedQueueEntry<E> p,
-             DoubleLinkedQueueEntry<E> n) {
-    _next = n;
-    _previous = p;
-    p._next = this;
-    n._previous = this;
+  void _link(DoubleLinkedQueueEntry<E> previous,
+             DoubleLinkedQueueEntry<E> next) {
+    _next = next;
+    _previous = previous;
+    previous._next = this;
+    next._previous = this;
   }
 
   void append(E e) {
@@ -152,10 +150,11 @@ class DoubleLinkedQueueEntry<E> {
 
 /**
  * A sentinel in a double linked list is used to manipulate the list
- * at both ends. A double linked list has exactly one sentinel, which
- * is the only entry when the list is constructed. Initially, a
- * sentinel has its next and previous entry point to itself. A
- * sentinel does not box any user element.
+ * at both ends.
+ * A double linked list has exactly one sentinel,
+ * which is the only entry when the list is constructed.
+ * Initially, a sentinel has its next and previous entry point to itself.
+ * A sentinel does not box any user element.
  */
 class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
   _DoubleLinkedQueueEntrySentinel() : super(null) {
@@ -172,6 +171,7 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
 
   void set element(E e) {
     // This setter is unreachable.
+    // TODO(lrn): Don't inherit the field if we don't use it.
     assert(false);
   }
 
@@ -184,8 +184,6 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
  * A [Queue] implementation based on a double-linked list.
  *
  * Allows constant time add, remove-at-ends and peek operations.
- *
- * Can do [removeAll] and [retainAll] in linear time.
  */
 class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
   _DoubleLinkedQueueEntrySentinel<E> _sentinel;
@@ -240,7 +238,7 @@ class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
   }
 
   bool remove(Object o) {
-    DoubleLinkedQueueEntry<E> entry = firstEntry();
+    DoubleLinkedQueueEntry<E> entry = _sentinel._next;
     while (!identical(entry, _sentinel)) {
       if (entry.element == o) {
         entry.remove();
@@ -253,7 +251,7 @@ class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
   }
 
   void _filter(bool test(E element), bool removeMatching) {
-    DoubleLinkedQueueEntry<E> entry = firstEntry();
+    DoubleLinkedQueueEntry<E> entry = _sentinel._next;
     while (!identical(entry, _sentinel)) {
       DoubleLinkedQueueEntry<E> next = entry._next;
       if (identical(removeMatching, test(entry.element))) {
@@ -354,9 +352,6 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
  * amortized constant time add operations.
  *
  * The structure is efficient for any queue or stack usage.
- *
- * Operations like [removeAll] and [removeWhere] are very
- * inefficient. If those are needed, use a [DoubleLinkedQueue] instead.
  */
 class ListQueue<E> extends IterableBase<E> implements Queue<E> {
   static const int _INITIAL_CAPACITY = 8;

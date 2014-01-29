@@ -16,7 +16,7 @@ import 'scanner.dart' as sc show Scanner, SubSequenceReader, Token;
 import 'parser.dart' show Parser;
 import 'ast.dart';
 import 'element.dart';
-import 'engine.dart' show AnalysisEngine;
+import 'engine.dart' show AnalysisEngine, AngularHtmlUnitResolver;
 
 /**
  * Instances of the class `Token` represent a token that was scanned from the input. Each
@@ -277,18 +277,12 @@ class HtmlUnitUtils {
    */
   static Element getElementToOpen(HtmlUnit htmlUnit, Expression expression) {
     Element element = getElement(expression);
-    // special cases for Angular
-    if (isAngular(htmlUnit)) {
-      // replace artificial controller variable Element with controller ClassElement
-      if (element is VariableElement) {
-        VariableElement variable = element as VariableElement;
-        Type2 type = variable.type;
-        if (variable.nameOffset == 0 && type is InterfaceType) {
-          element = type.element;
-        }
+    {
+      AngularElement angularElement = AngularHtmlUnitResolver.getAngularElement(element);
+      if (angularElement != null) {
+        return angularElement;
       }
     }
-    // done
     return element;
   }
 
@@ -325,11 +319,6 @@ class HtmlUnitUtils {
     }
     return null;
   }
-
-  /**
-   * Returns `true` if the given [HtmlUnit] has Angular annotation.
-   */
-  static bool isAngular(HtmlUnit htmlUnit) => false; // AngularHtmlUnitResolver.hasAngularAnnotation(htmlUnit);
 
   /**
    * Returns the [Expression] that is part of the given root [ASTNode] and encloses the
@@ -874,7 +863,7 @@ abstract class AbstractScanner {
               c = recordStartOfLineAndAdvance(c);
             }
             emit3(TokenType.DECLARATION, start, -1);
-            if (!_tail.lexeme.endsWith(">")) {
+            if (!StringUtilities.endsWithChar(_tail.lexeme, 0x3E)) {
             }
           }
         } else if (c == 0x3F) {

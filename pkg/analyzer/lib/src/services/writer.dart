@@ -5,9 +5,6 @@
 library source_writer;
 
 
-/// DEBUG flag indicating whether to use the experimental line-breaker
-const _USE_LINE_BREAKER = false;
-
 
 class Line {
 
@@ -95,6 +92,8 @@ class SimpleLineBreaker extends LinePrinter {
 
   List<Chunk> breakLine(Line line) {
 
+    var tokens = preprocess(line.tokens);
+
     var chunks = <Chunk>[];
 
     // The current unbroken line
@@ -104,7 +103,7 @@ class SimpleLineBreaker extends LinePrinter {
     // absorbed into 'current'
     var work = new Chunk(maxLength: maxLength);
 
-    line.tokens.forEach((tok) {
+    tokens.forEach((tok) {
 
       if (goodStart(tok, work)) {
         if (current.fits(work)) {
@@ -120,10 +119,9 @@ class SimpleLineBreaker extends LinePrinter {
         if (work.fits(tok)) {
           work.add(tok);
         } else {
-          if (!isAllWhitespace(work)) {
+          if (!isAllWhitespace(work) || isLineStart(current)) {
             current.add(work);
-          }
-          if (current.length > 0) {
+          } else if (current.length > 0) {
             chunks.add(current);
             current = new Chunk(maxLength: maxLength);
           }
@@ -141,7 +139,47 @@ class SimpleLineBreaker extends LinePrinter {
     return chunks;
   }
 
+  static List<LineToken> preprocess(List<LineToken> tok) {
+
+    var tokens = <LineToken>[];
+    var curr;
+
+    tok.forEach((token){
+      if (token is! SpaceToken) {
+        if (curr == null) {
+          curr = token;
+        } else {
+          curr = merge(curr, token);
+        }
+      } else {
+        if (isNonbreaking(token)) {
+          curr = merge(curr, token);
+        } else {
+          if (curr != null) {
+            tokens.add(curr);
+            curr = null;
+          }
+          tokens.add(token);
+        }
+      }
+    });
+
+    if (curr != null) {
+      tokens.add(curr);
+    }
+
+    return tokens;
+  }
+
+  static bool isNonbreaking(SpaceToken token) =>
+      token.breakWeight == UNBREAKABLE_SPACE_WEIGHT;
+
+  static LineToken merge(LineToken first, LineToken second) =>
+      new LineToken(first.value + second.value);
+
   bool isAllWhitespace(Chunk chunk) => isWhitespace(chunk.buffer.toString());
+
+  bool isLineStart(chunk) => chunk.length == 0 && chunk.start == LINE_START;
 
   /// Test whether this token is a good start for a new working chunk
   bool goodStart(LineToken tok, Chunk workingChunk) =>
@@ -156,7 +194,8 @@ bool isWhitespace(String string) => string.codeUnits.every(
 /// Special token indicating a line start
 final LINE_START = new SpaceToken(0);
 
-const DEFAULT_SPACE_WEIGHT = -1;
+const DEFAULT_SPACE_WEIGHT = 0;
+const UNBREAKABLE_SPACE_WEIGHT = -1;
 
 /// Simple non-breaking printer
 class SimpleLinePrinter extends LinePrinter {
@@ -260,7 +299,7 @@ class SourceWriter {
 
   SourceWriter({this.indentCount: 0, this.lineSeparator: NEW_LINE,
       bool useTabs: false, int spacesPerIndent: 2, int maxLineLength: 80}) {
-    if (_USE_LINE_BREAKER) {
+    if (maxLineLength > 0) {
       linePrinter = new SimpleLineBreaker(maxLineLength, (n) =>
           getIndentString(n, useTabs: useTabs, spacesPerIndent: spacesPerIndent));
     } else {

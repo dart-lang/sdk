@@ -5,13 +5,13 @@
   <link rel="import" href="error_view.html">
   <link rel="import" href="field_view.html">
   <link rel="import" href="function_view.html">
+  <link rel="import" href="heap_profile.html">
   <link rel="import" href="instance_view.html">
   <link rel="import" href="isolate_list.html">
   <link rel="import" href="json_view.html">
   <link rel="import" href="library_view.html">
   <link rel="import" href="observatory_element.html">
   <link rel="import" href="script_view.html">
-  <link rel="import" href="source_view.html">
   <link rel="import" href="stack_trace.html">
 </head>
 <polymer-element name="message-viewer" extends="observatory-element">
@@ -31,9 +31,8 @@
     <template if="{{ messageType == 'BreakpointList' }}">
       <breakpoint-list app="{{ app }}" msg="{{ message }}"></breakpoint-list>
     </template>
-    <!-- If the message type is a RequestError -->
-    <template if="{{ messageType == 'RequestError' }}">
-      <error-view app="{{ app }}" error="{{ message['error'] }}"></error-view>
+    <template if="{{ messageType == 'Error' }}">
+      <error-view app="{{ app }}" error="{{ message }}"></error-view>
     </template>
     <template if="{{ messageType == 'Library' }}">
       <library-view app="{{ app }}" library="{{ message }}"></library-view>
@@ -66,10 +65,13 @@
       <function-view app="{{ app }}" function="{{ message }}"></function-view>
     </template>
     <template if="{{ messageType == 'Code' }}">
-      <code-view app="{{ app }}" code="{{ message }}"></code-view>
+      <code-view app="{{ app }}" code="{{ message['code'] }}"></code-view>
     </template>
     <template if="{{ messageType == 'Script' }}">
-      <script-view app="{{ app }}" script="{{ message }}"></script-view>
+      <script-view app="{{ app }}" script="{{ message['script'] }}"></script-view>
+    </template>
+    <template if="{{ messageType == 'AllocationProfile' }}">
+      <heap-profile app="{{ app }}" profile="{{ message }}"></heap-profile>
     </template>
     <template if="{{ messageType == 'CPU' }}">
       <json-view json="{{ message }}"></json-view>

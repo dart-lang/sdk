@@ -1012,6 +1012,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     intptr_t extra_slots = StackSize()
         - flow_graph().num_stack_locals()
         - flow_graph().num_copied_params();
+    ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
     ASSERT(StackSize() >= 0);
@@ -1392,9 +1393,11 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
       __ BranchLinkPatchable(
           &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
+    if (token_pos != Scanner::kNoSourcePos) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
     __ Drop(1);  // Discard constant.
     __ Pop(reg);  // Restore 'reg'.
     return;
@@ -1418,9 +1421,11 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           &StubCode::UnoptimizedIdenticalWithNumberCheckLabel());
     }
-    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
-                         Isolate::kNoDeoptId,
-                         token_pos);
+    if (token_pos != Scanner::kNoSourcePos) {
+      AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                           Isolate::kNoDeoptId,
+                           token_pos);
+    }
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ Pop(right);
     __ Pop(left);

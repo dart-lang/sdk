@@ -1157,7 +1157,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   TRACE_PARSER("ParseInstanceGetter");
   ParamList params;
   // func.token_pos() points to the name of the field.
-  intptr_t ident_pos = func.token_pos();
+  const intptr_t ident_pos = func.token_pos();
   ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(current_class()), ident_pos);
   ASSERT(func.num_fixed_parameters() == 1);  // receiver.
@@ -1180,7 +1180,8 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   LoadInstanceFieldNode* load_field =
       new LoadInstanceFieldNode(ident_pos, load_receiver, field);
 
-  ReturnNode* return_node = new ReturnNode(ident_pos, load_field);
+  ReturnNode* return_node =
+      new ReturnNode(Scanner::kNoSourcePos, load_field);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -1194,7 +1195,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
 SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   TRACE_PARSER("ParseInstanceSetter");
   // func.token_pos() points to the name of the field.
-  intptr_t ident_pos = func.token_pos();
+  const intptr_t ident_pos = func.token_pos();
   const String& field_name = *CurrentLiteral();
   const Class& field_class = Class::ZoneHandle(func.Owner());
   const Field& field =
@@ -1224,7 +1225,7 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   StoreInstanceFieldNode* store_field =
       new StoreInstanceFieldNode(ident_pos, receiver, field, value);
   current_block_->statements->Add(store_field);
-  current_block_->statements->Add(new ReturnNode(ident_pos));
+  current_block_->statements->Add(new ReturnNode(Scanner::kNoSourcePos));
   return CloseBlock();
 }
 
@@ -1254,7 +1255,7 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
       load_receiver,
       NULL);
 
-  ReturnNode* return_node = new ReturnNode(ident_pos, closure);
+  ReturnNode* return_node = new ReturnNode(Scanner::kNoSourcePos, closure);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -2039,9 +2040,9 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name,
 
 
 void Parser::GenerateSuperConstructorCall(const Class& cls,
+                                          intptr_t supercall_pos,
                                           LocalVariable* receiver,
                                           ArgumentListNode* forwarding_args) {
-  const intptr_t supercall_pos = TokenPos();
   const Class& super_class = Class::Handle(cls.SuperClass());
   // Omit the implicit super() if there is no super class (i.e.
   // we're not compiling class Object), or if the super class is an
@@ -2360,7 +2361,7 @@ void Parser::ParseInitializers(const Class& cls,
   if (!super_init_seen) {
     // Generate implicit super() if we haven't seen an explicit super call
     // or constructor redirection.
-    GenerateSuperConstructorCall(cls, receiver, NULL);
+    GenerateSuperConstructorCall(cls, TokenPos(), receiver, NULL);
   }
   CheckFieldsInitialized(cls);
 }
@@ -2422,11 +2423,13 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   OpenFunctionBlock(func);
 
   LocalVariable* receiver = new LocalVariable(
-      ctor_pos, Symbols::This(), *ReceiverType(current_class()));
+      Scanner::kNoSourcePos, Symbols::This(), *ReceiverType(current_class()));
   current_block_->scope->AddVariable(receiver);
 
-  LocalVariable* phase_parameter = new LocalVariable(
-      ctor_pos, Symbols::PhaseParameter(), Type::ZoneHandle(Type::SmiType()));
+  LocalVariable* phase_parameter =
+      new LocalVariable(Scanner::kNoSourcePos,
+                        Symbols::PhaseParameter(),
+                        Type::ZoneHandle(Type::SmiType()));
   current_block_->scope->AddVariable(phase_parameter);
 
   // Parse expressions of instance fields that have an explicit
@@ -2462,21 +2465,25 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 
     // Prepare user-defined arguments to be forwarded to super call.
     // The first user-defined argument is at position 2.
-    forwarding_args = new ArgumentListNode(ctor_pos);
+    forwarding_args = new ArgumentListNode(Scanner::kNoSourcePos);
     for (int i = 2; i < func.NumParameters(); i++) {
       LocalVariable* param = new LocalVariable(
-          ctor_pos,
+          Scanner::kNoSourcePos,
           String::ZoneHandle(func.ParameterNameAt(i)),
           Type::ZoneHandle(Type::DynamicType()));
       current_block_->scope->AddVariable(param);
-      forwarding_args->Add(new LoadLocalNode(ctor_pos, param));
+      forwarding_args->Add(new LoadLocalNode(Scanner::kNoSourcePos, param));
     }
   }
 
-  GenerateSuperConstructorCall(current_class(), receiver, forwarding_args);
+  GenerateSuperConstructorCall(current_class(),
+                               Scanner::kNoSourcePos,
+                               receiver,
+                               forwarding_args);
   CheckFieldsInitialized(current_class());
 
   // Empty constructor body.
+  current_block_->statements->Add(new ReturnNode(Scanner::kNoSourcePos));
   SequenceNode* statements = CloseBlock();
   return statements;
 }
@@ -2636,18 +2643,23 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   } else if (init_statements->length() > 0) {
     // Generate guard around the initializer code.
     LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new LoadLocalNode(TokenPos(), phase_param);
+    AstNode* phase_value = new
+        LoadLocalNode(Scanner::kNoSourcePos, phase_param);
     AstNode* phase_check = new BinaryOpNode(
-        TokenPos(), Token::kBIT_AND, phase_value,
-        new LiteralNode(TokenPos(),
+        Scanner::kNoSourcePos, Token::kBIT_AND, phase_value,
+        new LiteralNode(Scanner::kNoSourcePos,
                         Smi::ZoneHandle(Smi::New(Function::kCtorPhaseInit))));
     AstNode* comparison =
-        new ComparisonNode(TokenPos(), Token::kNE_STRICT,
+        new ComparisonNode(Scanner::kNoSourcePos,
+                           Token::kNE_STRICT,
                            phase_check,
                            new LiteralNode(TokenPos(),
                                            Smi::ZoneHandle(Smi::New(0))));
     AstNode* guarded_init_statements =
-        new IfNode(TokenPos(), comparison, init_statements, NULL);
+        new IfNode(Scanner::kNoSourcePos,
+                   comparison,
+                   init_statements,
+                   NULL);
     current_block_->statements->Add(guarded_init_statements);
   }
 
@@ -2762,22 +2774,24 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   if (ctor_block->length() > 0) {
     // Generate guard around the constructor body code.
     LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new LoadLocalNode(body_pos, phase_param);
+    AstNode* phase_value =
+        new LoadLocalNode(Scanner::kNoSourcePos, phase_param);
     AstNode* phase_check =
-        new BinaryOpNode(body_pos, Token::kBIT_AND,
+        new BinaryOpNode(Scanner::kNoSourcePos, Token::kBIT_AND,
             phase_value,
-            new LiteralNode(body_pos,
+            new LiteralNode(Scanner::kNoSourcePos,
                 Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
     AstNode* comparison =
-       new ComparisonNode(body_pos, Token::kNE_STRICT,
-                         phase_check,
-                         new LiteralNode(body_pos,
-                                         Smi::ZoneHandle(Smi::New(0))));
+        new ComparisonNode(Scanner::kNoSourcePos,
+                           Token::kNE_STRICT,
+                           phase_check,
+                           new LiteralNode(body_pos,
+                                           Smi::ZoneHandle(Smi::New(0))));
     AstNode* guarded_block_statements =
-        new IfNode(body_pos, comparison, ctor_block, NULL);
+        new IfNode(Scanner::kNoSourcePos, comparison, ctor_block, NULL);
     current_block_->statements->Add(guarded_block_statements);
   }
-
+  current_block_->statements->Add(new ReturnNode(func.end_token_pos()));
   SequenceNode* statements = CloseBlock();
   return statements;
 }
@@ -2945,23 +2959,24 @@ SequenceNode* Parser::ParseFunc(const Function& func,
 
 
 void Parser::AddEqualityNullCheck() {
-  const intptr_t token_pos = TokenPos();
   AstNode* argument =
-      new LoadLocalNode(token_pos,
+      new LoadLocalNode(Scanner::kNoSourcePos,
                         current_block_->scope->parent()->VariableAt(1));
   LiteralNode* null_operand =
-      new LiteralNode(token_pos, Instance::ZoneHandle());
-  ComparisonNode* check_arg = new ComparisonNode(token_pos,
-                                                 Token::kEQ_STRICT,
-                                                 argument,
-                                                 null_operand);
-  ComparisonNode* result = new ComparisonNode(token_pos,
-                                              Token::kEQ_STRICT,
-                                              LoadReceiver(token_pos),
-                                              null_operand);
-  SequenceNode* arg_is_null = new SequenceNode(token_pos, NULL);
-  arg_is_null->Add(new ReturnNode(token_pos, result));
-  IfNode* if_arg_null = new IfNode(token_pos,
+      new LiteralNode(Scanner::kNoSourcePos, Instance::ZoneHandle());
+  ComparisonNode* check_arg =
+      new ComparisonNode(Scanner::kNoSourcePos,
+                         Token::kEQ_STRICT,
+                         argument,
+                         null_operand);
+  ComparisonNode* result =
+      new ComparisonNode(Scanner::kNoSourcePos,
+                         Token::kEQ_STRICT,
+                         LoadReceiver(Scanner::kNoSourcePos),
+                         null_operand);
+  SequenceNode* arg_is_null = new SequenceNode(Scanner::kNoSourcePos, NULL);
+  arg_is_null->Add(new ReturnNode(Scanner::kNoSourcePos, result));
+  IfNode* if_arg_null = new IfNode(Scanner::kNoSourcePos,
                                    check_arg,
                                    arg_is_null,
                                    NULL);
@@ -8349,9 +8364,18 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
       if (left->IsPrimaryNode()) {
-        if (left->AsPrimaryNode()->primary().IsFunction()) {
-          left = LoadClosure(left->AsPrimaryNode());
-        } else if (left->AsPrimaryNode()->primary().IsTypeParameter()) {
+        PrimaryNode* primary_node = left->AsPrimaryNode();
+        const intptr_t primary_pos = primary_node->token_pos();
+        if (primary_node->primary().IsFunction()) {
+          left = LoadClosure(primary_node);
+        } else if (primary_node->primary().IsTypeParameter()) {
+          if (current_function().is_static()) {
+            const String& name = String::ZoneHandle(
+                TypeParameter::Cast(primary_node->primary()).name());
+            ErrorMsg(primary_pos,
+                     "cannot access type parameter '%s' from static function",
+                     name.ToCString());
+          }
           if (current_block_->scope->function_level() > 0) {
             // Make sure that the instantiator is captured.
             CaptureInstantiator();
@@ -8359,14 +8383,14 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           TypeParameter& type_parameter = TypeParameter::ZoneHandle();
           type_parameter ^= ClassFinalizer::FinalizeType(
               current_class(),
-              TypeParameter::Cast(left->AsPrimaryNode()->primary()),
+              TypeParameter::Cast(primary_node->primary()),
               ClassFinalizer::kCanonicalize);
           ASSERT(!type_parameter.IsMalformed());
           left = new TypeNode(primary->token_pos(), type_parameter);
         } else {
           // Super field access handled in ParseSuperFieldAccess(),
           // super calls handled in ParseSuperCall().
-          ASSERT(!left->AsPrimaryNode()->IsSuper());
+          ASSERT(!primary_node->IsSuper());
           left = LoadFieldIfUnresolved(left);
         }
       }
@@ -8415,20 +8439,28 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       ExpectToken(Token::kRBRACK);
       AstNode* array = left;
       if (left->IsPrimaryNode()) {
-        PrimaryNode* primary = left->AsPrimaryNode();
-        if (primary->primary().IsFunction()) {
-          array = LoadClosure(primary);
-        } else if (primary->primary().IsClass()) {
-          const Class& type_class = Class::Cast(primary->primary());
+        PrimaryNode* primary_node = left->AsPrimaryNode();
+        const intptr_t primary_pos = primary_node->token_pos();
+        if (primary_node->primary().IsFunction()) {
+          array = LoadClosure(primary_node);
+        } else if (primary_node->primary().IsClass()) {
+          const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(
               Type::New(type_class, TypeArguments::Handle(),
-                        primary->token_pos(), Heap::kOld));
+                        primary_pos, Heap::kOld));
           type ^= ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
-          array = new TypeNode(primary->token_pos(), type);
-        } else if (primary->primary().IsTypeParameter()) {
+          array = new TypeNode(primary_pos, type);
+        } else if (primary_node->primary().IsTypeParameter()) {
+          if (current_function().is_static()) {
+            const String& name = String::ZoneHandle(
+                TypeParameter::Cast(primary_node->primary()).name());
+            ErrorMsg(primary_pos,
+                     "cannot access type parameter '%s' from static function",
+                     name.ToCString());
+          }
           if (current_block_->scope->function_level() > 0) {
             // Make sure that the instantiator is captured.
             CaptureInstantiator();
@@ -8436,10 +8468,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           TypeParameter& type_parameter = TypeParameter::ZoneHandle();
           type_parameter ^= ClassFinalizer::FinalizeType(
               current_class(),
-              TypeParameter::Cast(primary->primary()),
+              TypeParameter::Cast(primary_node->primary()),
               ClassFinalizer::kCanonicalize);
           ASSERT(!type_parameter.IsMalformed());
-          array = new TypeNode(primary->token_pos(), type_parameter);
+          array = new TypeNode(primary_pos, type_parameter);
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -8450,10 +8482,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                       Class::ZoneHandle());
     } else if (CurrentToken() == Token::kLPAREN) {
       if (left->IsPrimaryNode()) {
-        PrimaryNode* primary = left->AsPrimaryNode();
-        const intptr_t primary_pos = primary->token_pos();
-        if (primary->primary().IsFunction()) {
-          const Function& func = Function::Cast(primary->primary());
+        PrimaryNode* primary_node = left->AsPrimaryNode();
+        const intptr_t primary_pos = primary_node->token_pos();
+        if (primary_node->primary().IsFunction()) {
+          const Function& func = Function::Cast(primary_node->primary());
           const String& func_name = String::ZoneHandle(func.name());
           if (func.is_static()) {
             // Parse static function call.
@@ -8469,14 +8501,15 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             }
             selector = ParseInstanceCall(LoadReceiver(primary_pos), func_name);
           }
-        } else if (primary->primary().IsString()) {
+        } else if (primary_node->primary().IsString()) {
           // Primary is an unresolved name.
-          if (primary->IsSuper()) {
-            ErrorMsg(primary->token_pos(), "illegal use of super");
+          if (primary_node->IsSuper()) {
+            ErrorMsg(primary_pos, "illegal use of super");
           }
-          String& name = String::CheckedZoneHandle(primary->primary().raw());
+          String& name = String::CheckedZoneHandle(
+              primary_node->primary().raw());
           if (current_function().is_static()) {
-            selector = ThrowNoSuchMethodError(primary->token_pos(),
+            selector = ThrowNoSuchMethodError(primary_pos,
                                               current_class(),
                                               name,
                                               NULL,  // No arguments.
@@ -8485,30 +8518,29 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                               NULL);  // No existing function.
           } else {
             // Treat as call to unresolved (instance) method.
-            AstNode* receiver = LoadReceiver(primary->token_pos());
-            selector = ParseInstanceCall(receiver, name);
+            selector = ParseInstanceCall(LoadReceiver(primary_pos), name);
           }
-        } else if (primary->primary().IsTypeParameter()) {
-          // TODO(regis): Issue 13134.  Make sure the error message is the
-          // one we want here and add a test covering this code.
+        } else if (primary_node->primary().IsTypeParameter()) {
           const String& name = String::ZoneHandle(
-              TypeParameter::Cast(primary->primary()).name());
-          selector = ThrowNoSuchMethodError(primary->token_pos(),
-                                            current_class(),
-                                            name,
-                                            NULL,  // No arguments.
-                                            InvocationMirror::kStatic,
-                                            InvocationMirror::kMethod,
-                                            NULL);  // No existing function.
-        } else if (primary->primary().IsClass()) {
-          const Class& type_class = Class::Cast(primary->primary());
+              TypeParameter::Cast(primary_node->primary()).name());
+          if (current_function().is_static()) {
+            // Treat as this.T(), because T is in scope.
+            ErrorMsg(primary_pos,
+                     "cannot access type parameter '%s' from static function",
+                     name.ToCString());
+          } else {
+            // Treat as call to unresolved (instance) method.
+            selector = ParseInstanceCall(LoadReceiver(primary_pos), name);
+          }
+        } else if (primary_node->primary().IsClass()) {
+          const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(Type::New(
-              type_class, TypeArguments::Handle(), primary->token_pos()));
+              type_class, TypeArguments::Handle(), primary_pos));
           type ^= ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
-          selector = new TypeNode(primary->token_pos(), type);
+          selector = new TypeNode(primary_pos, type);
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -8521,20 +8553,28 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
       // No (more) selectors to parse.
       left = LoadFieldIfUnresolved(left);
       if (left->IsPrimaryNode()) {
-        PrimaryNode* primary = left->AsPrimaryNode();
-        if (primary->primary().IsFunction()) {
+        PrimaryNode* primary_node = left->AsPrimaryNode();
+        const intptr_t primary_pos = primary->token_pos();
+        if (primary_node->primary().IsFunction()) {
           // Treat as implicit closure.
-          left = LoadClosure(primary);
-        } else if (primary->primary().IsClass()) {
-          const Class& type_class = Class::Cast(primary->primary());
+          left = LoadClosure(primary_node);
+        } else if (primary_node->primary().IsClass()) {
+          const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(Type::New(
-              type_class, TypeArguments::Handle(), primary->token_pos()));
+              type_class, TypeArguments::Handle(), primary_pos));
           type = ClassFinalizer::FinalizeType(
               current_class(), type, ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
-          left = new TypeNode(primary->token_pos(), type);
-        } else if (primary->primary().IsTypeParameter()) {
+          left = new TypeNode(primary_pos, type);
+        } else if (primary_node->primary().IsTypeParameter()) {
+          if (current_function().is_static()) {
+            const String& name = String::ZoneHandle(
+                TypeParameter::Cast(primary_node->primary()).name());
+            ErrorMsg(primary_pos,
+                     "cannot access type parameter '%s' from static function",
+                     name.ToCString());
+          }
           if (current_block_->scope->function_level() > 0) {
             // Make sure that the instantiator is captured.
             CaptureInstantiator();
@@ -8542,14 +8582,14 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           TypeParameter& type_parameter = TypeParameter::ZoneHandle();
           type_parameter ^= ClassFinalizer::FinalizeType(
               current_class(),
-              TypeParameter::Cast(primary->primary()),
+              TypeParameter::Cast(primary_node->primary()),
               ClassFinalizer::kCanonicalize);
           ASSERT(!type_parameter.IsMalformed());
-          left = new TypeNode(primary->token_pos(), type_parameter);
-        } else if (primary->IsSuper()) {
+          left = new TypeNode(primary_pos, type_parameter);
+        } else if (primary_node->IsSuper()) {
           // Return "super" to handle unary super operator calls,
           // or to report illegal use of "super" otherwise.
-          left = primary;
+          left = primary_node;
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -8905,8 +8945,11 @@ RawObject* Parser::EvaluateConstConstructorCall(
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
-      // not optimizable.
-      current_function().SetIsOptimizable(false);
+      // not optimizable. Unless we are evaluating metadata, in which case there
+      // is no current function.
+      if (!parsing_metadata_) {
+        current_function().SetIsOptimizable(false);
+      }
       if (result.IsUnhandledException()) {
         return result.raw();
       } else {
@@ -9229,6 +9272,7 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
   }
   if (resolved->IsPrimaryNode()) {
     PrimaryNode* primary = resolved->AsPrimaryNode();
+    const intptr_t primary_pos = primary->token_pos();
     if (primary->primary().IsString()) {
       // We got an unresolved name. If we are compiling a static
       // method, evaluation of an unresolved identifier causes a
@@ -9257,12 +9301,12 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
     } else if (primary->primary().IsClass()) {
       const Class& type_class = Class::Cast(primary->primary());
       AbstractType& type = Type::ZoneHandle(
-          Type::New(type_class, TypeArguments::Handle(), primary->token_pos()));
+          Type::New(type_class, TypeArguments::Handle(), primary_pos));
       type ^= ClassFinalizer::FinalizeType(
           current_class(), type, ClassFinalizer::kCanonicalize);
       // Type may be malbounded, but not malformed.
       ASSERT(!type.IsMalformed());
-      resolved = new TypeNode(primary->token_pos(), type);
+      resolved = new TypeNode(primary_pos, type);
     }
   }
   return resolved;

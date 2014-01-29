@@ -24,11 +24,128 @@ class StringUtilities {
     }
     return true;
   }
+  static bool isEmpty(String s) {
+    return s == null || s.isEmpty;
+  }
   static String substringBefore(String str, String separator) {
     if (str == null || str.isEmpty) {
       return str;
     }
     int pos = str.indexOf(separator);
+    if (pos < 0) {
+      return str;
+    }
+    return str.substring(0, pos);
+  }
+  static endsWithChar(String str, int c) {
+    int length = str.length;
+    return length > 0 && str.codeUnitAt(length - 1) == c;
+  }
+  static endsWith3(String str, int c1, int c2, int c3) {
+    var length = str.length;
+    return length >= 3 &&
+        str.codeUnitAt(length - 3) == c1 &&
+        str.codeUnitAt(length - 2) == c2 &&
+        str.codeUnitAt(length - 1) == c3;
+  }
+
+  static startsWithChar(String str, int c) {
+    return str.length != 0 && str.codeUnitAt(0) == c;
+  }
+  static startsWith2(String str, int start, int c1, int c2) {
+    return str.length - start >= 2 &&
+        str.codeUnitAt(start) == c1 &&
+        str.codeUnitAt(start + 1) == c2;
+  }
+  static startsWith3(String str, int start, int c1, int c2, int c3) {
+    return str.length - start >= 3 &&
+        str.codeUnitAt(start) == c1 &&
+        str.codeUnitAt(start + 1) == c2 &&
+        str.codeUnitAt(start + 2) == c3;
+  }
+  static startsWith4(String str, int start, int c1, int c2, int c3, int c4) {
+    return str.length - start >= 4 &&
+        str.codeUnitAt(start) == c1 &&
+        str.codeUnitAt(start + 1) == c2 &&
+        str.codeUnitAt(start + 2) == c3 &&
+        str.codeUnitAt(start + 3) == c4;
+  }
+  static startsWith5(String str, int start, int c1, int c2, int c3, int c4,
+      int c5) {
+    return str.length - start >= 5 &&
+        str.codeUnitAt(start) == c1 &&
+        str.codeUnitAt(start + 1) == c2 &&
+        str.codeUnitAt(start + 2) == c3 &&
+        str.codeUnitAt(start + 3) == c4 &&
+        str.codeUnitAt(start + 4) == c5;
+  }
+  static startsWith6(String str, int start, int c1, int c2, int c3, int c4,
+      int c5, int c6) {
+    return str.length - start >= 6 &&
+        str.codeUnitAt(start) == c1 &&
+        str.codeUnitAt(start + 1) == c2 &&
+        str.codeUnitAt(start + 2) == c3 &&
+        str.codeUnitAt(start + 3) == c4 &&
+        str.codeUnitAt(start + 4) == c5 &&
+        str.codeUnitAt(start + 5) == c6;
+  }
+  static int indexOf1(String str, int start, int c) {
+    int index = start;
+    int last = str.length;
+    while (index < last) {
+      if (str.codeUnitAt(index) == c) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+  static int indexOf2(String str, int start, int c1, int c2) {
+    int index = start;
+    int last = str.length - 1;
+    while (index < last) {
+      if (str.codeUnitAt(index) == c1 && str.codeUnitAt(index + 1) == c2) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+  static int indexOf4(String string, int start, int c1, int c2, int c3, int c4) {
+    int index = start;
+    int last = string.length - 3;
+    while (index < last) {
+      if (string.codeUnitAt(index) == c1 &&
+          string.codeUnitAt(index + 1) == c2 &&
+          string.codeUnitAt(index + 2) == c3 &&
+          string.codeUnitAt(index + 3) == c4) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+  static int indexOf5(String str, int start, int c1, int c2, int c3, int c4,
+                      int c5) {
+    int index = start;
+    int last = str.length - 4;
+    while (index < last) {
+      if (str.codeUnitAt(index) == c1 &&
+          str.codeUnitAt(index + 1) == c2 &&
+          str.codeUnitAt(index + 2) == c3 &&
+          str.codeUnitAt(index + 3) == c4 &&
+          str.codeUnitAt(index + 4) == c5) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
+  }
+  static String substringBeforeChar(String str, int c) {
+    if (isEmpty(str)) {
+      return str;
+    }
+    int pos = indexOf1(str, 0, c);
     if (pos < 0) {
       return str;
     }

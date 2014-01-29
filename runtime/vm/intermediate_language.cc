@@ -298,7 +298,8 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction* parsed_function,
       initial_definitions_(),
       osr_id_(osr_id),
       entry_count_(0),
-      spill_slot_count_(0) {
+      spill_slot_count_(0),
+      fixed_slot_count_(0) {
 }
 
 
@@ -407,6 +408,11 @@ RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
 
 
 bool MethodRecognizer::AlwaysInline(const Function& function) {
+  if (function.IsImplicitGetterFunction() || function.IsGetterFunction() ||
+      function.IsImplicitSetterFunction() || function.IsSetterFunction()) {
+    return true;
+  }
+
   const Class& function_class = Class::Handle(function.Owner());
   const Library& lib = Library::Handle(function_class.library());
   if (!IsRecognizedLibrary(lib)) {
@@ -1820,7 +1826,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id_,
-                                   Scanner::kDummyTokenIndex);
+                                   Scanner::kNoSourcePos);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());

@@ -132,6 +132,55 @@ class ElementLocationImplTest extends EngineTestCase {
   }
 }
 
+class HtmlElementImplTest extends EngineTestCase {
+  void test_equals_differentSource() {
+    AnalysisContextImpl context = createAnalysisContext();
+    HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "indexA.html");
+    HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "indexB.html");
+    JUnitTestCase.assertFalse(elementA == elementB);
+  }
+
+  void test_equals_null() {
+    AnalysisContextImpl context = createAnalysisContext();
+    HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
+    JUnitTestCase.assertFalse(element == null);
+  }
+
+  void test_equals_sameSource() {
+    AnalysisContextImpl context = createAnalysisContext();
+    HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "index.html");
+    HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "index.html");
+    JUnitTestCase.assertTrue(elementA == elementB);
+  }
+
+  void test_equals_self() {
+    AnalysisContextImpl context = createAnalysisContext();
+    HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
+    JUnitTestCase.assertTrue(element == element);
+  }
+
+  static dartSuite() {
+    _ut.group('HtmlElementImplTest', () {
+      _ut.test('test_equals_differentSource', () {
+        final __test = new HtmlElementImplTest();
+        runJUnitTest(__test, __test.test_equals_differentSource);
+      });
+      _ut.test('test_equals_null', () {
+        final __test = new HtmlElementImplTest();
+        runJUnitTest(__test, __test.test_equals_null);
+      });
+      _ut.test('test_equals_sameSource', () {
+        final __test = new HtmlElementImplTest();
+        runJUnitTest(__test, __test.test_equals_sameSource);
+      });
+      _ut.test('test_equals_self', () {
+        final __test = new HtmlElementImplTest();
+        runJUnitTest(__test, __test.test_equals_self);
+      });
+    });
+  }
+}
+
 class MultiplyDefinedElementImplTest extends EngineTestCase {
   void test_fromElements_conflicting() {
     Element firstElement = ElementFactory.localVariableElement2("xx");
@@ -226,6 +275,16 @@ class LibraryElementImplTest extends EngineTestCase {
       JUnitTestCase.assertSame(prefixB, prefixes[0]);
       JUnitTestCase.assertSame(prefixA, prefixes[1]);
     }
+  }
+
+  void test_getUnits() {
+    AnalysisContext context = createAnalysisContext();
+    LibraryElementImpl library = ElementFactory.library(context, "test");
+    CompilationUnitElement unitLib = library.definingCompilationUnit;
+    CompilationUnitElementImpl unitA = ElementFactory.compilationUnit(context, "unit_a.dart");
+    CompilationUnitElementImpl unitB = ElementFactory.compilationUnit(context, "unit_b.dart");
+    library.parts = <CompilationUnitElement> [unitA, unitB];
+    EngineTestCase.assertEqualsIgnoreOrder(<CompilationUnitElement> [unitLib, unitA, unitB], library.units);
   }
 
   void test_getVisibleLibraries_cycle() {
@@ -325,6 +384,10 @@ class LibraryElementImplTest extends EngineTestCase {
       _ut.test('test_getPrefixes', () {
         final __test = new LibraryElementImplTest();
         runJUnitTest(__test, __test.test_getPrefixes);
+      });
+      _ut.test('test_getUnits', () {
+        final __test = new LibraryElementImplTest();
+        runJUnitTest(__test, __test.test_getUnits);
       });
       _ut.test('test_getVisibleLibraries_cycle', () {
         final __test = new LibraryElementImplTest();
@@ -2423,6 +2486,13 @@ class ElementFactory {
 
   static ClassElementImpl classElement2(String typeName, List<String> parameterNames) => classElement(typeName, object.type, parameterNames);
 
+  static CompilationUnitElementImpl compilationUnit(AnalysisContext context, String fileName) {
+    FileBasedSource source = new FileBasedSource.con1(context.sourceFactory.contentCache, FileUtilities2.createFile(fileName));
+    CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
+    unit.source = source;
+    return unit;
+  }
+
   static ConstructorElementImpl constructorElement(ClassElement definingClass, String name, bool isConst, List<Type2> argumentTypes) {
     Type2 type = definingClass.type;
     ConstructorElementImpl constructor = new ConstructorElementImpl(name == null ? null : ASTFactory.identifier3(name));
@@ -2583,6 +2653,13 @@ class ElementFactory {
     return getter;
   }
 
+  static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
+    FileBasedSource source = new FileBasedSource.con1(context.sourceFactory.contentCache, FileUtilities2.createFile(fileName));
+    HtmlElementImpl unit = new HtmlElementImpl(context, fileName);
+    unit.source = source;
+    return unit;
+  }
+
   static ImportElementImpl importFor(LibraryElement importedLibrary, PrefixElement prefix, List<NamespaceCombinator> combinators) {
     ImportElementImpl spec = new ImportElementImpl(0);
     spec.importedLibrary = importedLibrary;
@@ -2593,9 +2670,7 @@ class ElementFactory {
 
   static LibraryElementImpl library(AnalysisContext context, String libraryName) {
     String fileName = "/${libraryName}.dart";
-    FileBasedSource source = new FileBasedSource.con1(context.sourceFactory.contentCache, FileUtilities2.createFile(fileName));
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
-    unit.source = source;
+    CompilationUnitElementImpl unit = compilationUnit(context, fileName);
     LibraryElementImpl library = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = unit;
     return library;
@@ -3915,6 +3990,7 @@ main() {
   ClassElementImplTest.dartSuite();
   ElementLocationImplTest.dartSuite();
   ElementImplTest.dartSuite();
+  HtmlElementImplTest.dartSuite();
   LibraryElementImplTest.dartSuite();
   MultiplyDefinedElementImplTest.dartSuite();
 }
