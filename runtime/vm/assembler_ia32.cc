@@ -869,6 +869,108 @@ void Assembler::shufps(XmmRegister dst, XmmRegister src, const Immediate& imm) {
 }
 
 
+void Assembler::addpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x58);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::negatepd(XmmRegister dst) {
+  static const struct ALIGN16 {
+    uint64_t a;
+    uint64_t b;
+  } double_negate_constant =
+      { 0x8000000000000000LL, 0x8000000000000000LL };
+  xorpd(dst,
+        Address::Absolute(reinterpret_cast<uword>(&double_negate_constant)));
+}
+
+
+void Assembler::subpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x5C);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::mulpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x59);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::divpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x5E);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::abspd(XmmRegister dst) {
+  static const struct ALIGN16 {
+    uint64_t a;
+    uint64_t b;
+  } double_absolute_constant =
+      { 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL };
+  andpd(dst,
+        Address::Absolute(reinterpret_cast<uword>(&double_absolute_constant)));
+}
+
+
+void Assembler::minpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x5D);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::maxpd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x5F);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::sqrtpd(XmmRegister dst) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x51);
+  EmitXmmRegisterOperand(dst, dst);
+}
+
+
+void Assembler::cvtps2pd(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x5A);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
+void Assembler::cvtpd2ps(XmmRegister dst, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x5A);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::subsd(XmmRegister dst, XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF2);
