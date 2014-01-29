@@ -32,10 +32,6 @@ class ObservatoryApplication extends Observable {
       requestManager = new HttpRequestManager(),
       isolateManager = new IsolateManager() {
     _setup();
-    Logger.root.level = Level.INFO;
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print('${rec.level.name}: ${rec.time}: ${rec.message}');
-    });
   }
 
   /// Return the [Isolate] with [id].
@@ -67,6 +63,6 @@ class ObservatoryApplication extends Observable {
   }
 
   static String timeUnits(double x) {
-    return x.toStringAsFixed(4);
+    return x.toStringAsFixed(2);
   }
 }

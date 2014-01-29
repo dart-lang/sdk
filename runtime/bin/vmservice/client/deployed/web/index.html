@@ -1,10 +1,12 @@
-<!DOCTYPE html><html><head><script src="packages/shadow_dom/shadow_dom.debug.js"></script>
-<script src="packages/custom_element/custom-elements.debug.js"></script>
-<script src="packages/browser/interop.js"></script>
+<!DOCTYPE html><html><head>
 
-  <title>Dart VM Observatory</title>
+
   <meta charset="utf-8">
   <link type="text/css" rel="stylesheet" href="bootstrap_css/css/bootstrap.min.css">
+
+  <title>Dart VM Observatory</title>
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  
   
   <script src="index.html_bootstrap.dart.js"></script>
   
@@ -304,7 +306,7 @@
   <template>
     <div class="row">
       <div class="col-md-1">
-        <img src="packages/observatory/src/observatory_elements/img/isolate_icon.png" class="img-polaroid">
+        <img src="img/isolate_icon.png" class="img-polaroid">
       </div>
 
       <div class="col-md-1">{{ isolate.name }}</div>
@@ -556,45 +558,55 @@
   <div>
   <button type="button" on-click="{{refreshData}}">Refresh</button>
   </div>
-  <div>
-  <span>New Space </span>
-  <span>{{ status(true) }}</span>
+  <div class="row">
+    <div id="newPieChart" class="col-md-4" style="height: 400px">
+    </div>
+    <div id="newStatus" class="col-md-2">
+      <table class="table">
+        <tbody>
+          <tr>
+            <td>Collections</td>
+            <td>{{ formattedCollections(true) }}</td>
+          </tr>
+          <tr>
+            <td>Average Collection Time</td>
+            <td>{{ formattedAverage(true) }}</td>
+          </tr>
+          <tr>
+            <td>Cumulative Collection Time</td>
+            <td>{{ formattedTotalCollectionTime(true) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="oldPieChart" class="col-md-4" style="height: 400px">
+    </div>
+    <div id="oldStatus" class="col-md-2">
+      <table class="table">
+        <tbody>
+          <tr>
+            <td>Collections</td>
+            <td>{{ formattedCollections(true) }}</td>
+          </tr>
+          <tr>
+            <td>Average Collection Time</td>
+            <td>{{ formattedAverage(true) }}</td>
+          </tr>
+          <tr>
+            <td>Cumulative Collection Time</td>
+            <td>{{ formattedTotalCollectionTime(true) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div>
-  <span>Old Space </span>
-  <span>{{ status(false) }}</span>
+  <div class="row">
+    <div id="table" class="col-md-12" style="height: 800px"></div>
   </div>
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th>Class</th>
-        <th><button on-click="{{changeSortColumn}}" data-msg="1">Current (new)</button></th>
-        <th><button on-click="{{changeSortColumn}}" data-msg="2">Allocated since GC (new)</button></th>
-        <th><button on-click="{{changeSortColumn}}" data-msg="3">Total before last GC (new)</button></th>
-        <th><button on-click="{{changeSortColumn}}" data-msg="4">Total after last GC (new)</button></th>
-        <th><button on-click="{{changeSortColumn}}" data-msg="5">Current (old)</button></th>
-        <th><button on-click="{{changeSortColumn}}" data-msg="6">Allocated since GC (old)</button></th>
-        <th><button on-click="{{changeSortColumn}}" data-msg="7">Total before last GC (old)</button></th>
-        <th><button on-click="{{changeSortColumn}}" data-msg="8">Total after last GC (old)</button></th>
-      </tr>
-    </thead>
-    <tbody>
-    <tr template="" repeat="{{ cls in sortedProfile }}">
-      <td><class-ref app="{{ app }}" ref="{{ cls['class'] }}"></class-ref></td>
-      <td>{{ current(cls, true) }}</td>
-      <td>{{ allocated(cls, true) }}</td>
-      <td>{{ beforeGC(cls, true) }}</td>
-      <td>{{ afterGC(cls, true) }}</td>
-      <td>{{ current(cls, false) }}</td>
-      <td>{{ allocated(cls, false) }}</td>
-      <td>{{ beforeGC(cls, false) }}</td>
-      <td>{{ afterGC(cls, false) }}</td>
-    </tr>
-    </tbody>
-  </table>
 </template>
 
-</polymer-element><polymer-element name="script-view" extends="observatory-element">
+</polymer-element>
+<polymer-element name="script-view" extends="observatory-element">
 <template>
   <div class="row">
     <div class="col-md-8 col-md-offset-2">

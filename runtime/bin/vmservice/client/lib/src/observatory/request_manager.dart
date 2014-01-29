@@ -56,7 +56,7 @@ abstract class RequestManager extends Observable {
     setResponses([{
       'type': 'Error',
       'errorType': 'RequestError',
-      'error': error
+      'text': error
     }]);
   }
 
@@ -205,7 +205,7 @@ abstract class RequestManager extends Observable {
   }
 
   void _requestCatchError(e, st) {
-    if (e is HttpRequest) {
+    if (e is ProgressEvent) {
       setResponseRequestError(e.target);
     } else {
       setResponseError('$e $st');

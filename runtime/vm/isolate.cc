@@ -823,8 +823,6 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
 
 
 void Isolate::PrintToJSONStream(JSONStream* stream) {
-  fprintf(stderr, "Printing isolate %" Pd "\n",
-                     static_cast<intptr_t>(main_port()));
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Isolate");
   jsobj.AddPropertyF("id", "isolates/%" Pd "",
