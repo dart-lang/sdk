@@ -21,15 +21,15 @@ CallPattern::CallPattern(uword pc, const Code& code)
       args_desc_(Array::Handle()),
       ic_data_(ICData::Handle()) {
   ASSERT(code.ContainsInstructionAt(pc));
-  // Last instruction: jalr RA, TMP(=R1).
-  ASSERT(*(reinterpret_cast<uword*>(end_) - 2) == 0x0020f809);
+  // Last instruction: jalr RA, T9(=R25).
+  ASSERT(*(reinterpret_cast<uword*>(end_) - 2) == 0x0320f809);
   Register reg;
   // The end of the pattern is the instruction after the delay slot of the jalr.
   ic_data_load_end_ =
       InstructionPattern::DecodeLoadWordFromPool(end_ - (2 * Instr::kInstrSize),
                                                  &reg,
                                                  &target_address_pool_index_);
-  ASSERT(reg == TMP);
+  ASSERT(reg == T9);
 }
 
 
@@ -180,9 +180,9 @@ void CallPattern::InsertAt(uword pc, uword target_address) {
   uint16_t target_lo = target_address & 0xffff;
   uint16_t target_hi = target_address >> 16;
 
-  lui->SetImmInstrBits(LUI, ZR, TMP, target_hi);
-  ori->SetImmInstrBits(ORI, TMP, TMP, target_lo);
-  jr->SetSpecialInstrBits(JALR, TMP, ZR, RA);
+  lui->SetImmInstrBits(LUI, ZR, T9, target_hi);
+  ori->SetImmInstrBits(ORI, T9, T9, target_lo);
+  jr->SetSpecialInstrBits(JALR, T9, ZR, RA);
   nop->SetInstructionBits(Instr::kNopInstruction);
 
   ASSERT(kFixedLengthInBytes == 4 * Instr::kInstrSize);
