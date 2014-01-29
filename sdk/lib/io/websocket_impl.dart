@@ -169,17 +169,15 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
         } else {
           assert(_state == PAYLOAD);
           // The payload is not handled one byte at a time but in blocks.
-          int payload = min(lastIndex - index, _remainingPayloadBytes);
-          _remainingPayloadBytes -= payload;
+          int payloadLength = min(lastIndex - index, _remainingPayloadBytes);
+          _remainingPayloadBytes -= payloadLength;
           // Unmask payload if masked.
           if (_masked) {
-            for (int i = index; i < index + payload; i++) {
-              buffer[i] ^= _maskingBytes[_unmaskingIndex++ & 3];
-            }
+            _unmask(index, payloadLength, buffer);
           }
           // Control frame and data frame share _payload builder.
-          _payload.add(new Uint8List.view(buffer.buffer, index, payload));
-          index += payload;
+          _payload.add(new Uint8List.view(buffer.buffer, index, payloadLength));
+          index += payloadLength;
           if (_isControlFrame()) {
             if (_remainingPayloadBytes == 0) _controlFrameEnd();
           } else {
@@ -197,6 +195,43 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
 
       // Move to the next byte.
       index++;
+    }
+  }
+
+  void _unmask(int index, int length, Uint8List buffer) {
+    const int BLOCK_SIZE = 16;
+    // Skip Int32x4-version if message is small.
+    if (length >= BLOCK_SIZE) {
+      // Start by aligning to 16 bytes.
+      final int startOffset = BLOCK_SIZE - (index & 15);
+      final int end = index + startOffset;
+      for (int i = index; i < end; i++) {
+        buffer[i] ^= _maskingBytes[_unmaskingIndex++ & 3];
+      }
+      index += startOffset;
+      length -= startOffset;
+      final int blockCount = length ~/ BLOCK_SIZE;
+      if (blockCount > 0) {
+        // Create mask block.
+        int mask = 0;
+        for (int i = 3; i >= 0; i--) {
+          mask = (mask << 8) | _maskingBytes[(_unmaskingIndex + i) & 3];
+        }
+        Int32x4 blockMask = new Int32x4(mask, mask, mask, mask);
+        Int32x4List blockBuffer = new Int32x4List.view(
+            buffer.buffer, index, blockCount);
+        for (int i = 0; i < blockBuffer.length; i++) {
+          blockBuffer[i] ^= blockMask;
+        }
+        final int bytes = blockCount * BLOCK_SIZE;
+        index += bytes;
+        length -= bytes;
+      }
+    }
+    // Handle end.
+    final int end = index + length;
+    for (int i = index; i < end; i++) {
+      buffer[i] ^= _maskingBytes[_unmaskingIndex++ & 3];
     }
   }
 
@@ -530,27 +565,44 @@ class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
       header.setRange(index, index + 4, maskBytes);
       index += 4;
       if (data != null) {
-        var list;
+        Uint8List list;
         // If this is a text message just do the masking inside the
         // encoded data.
-        if (opcode == _WebSocketOpcode.TEXT) {
+        if (opcode == _WebSocketOpcode.TEXT && data is Uint8List) {
           list = data;
         } else {
-          list = new Uint8List(data.length);
-        }
-        if (data is Uint8List) {
-          for (int i = 0; i < data.length; i++) {
-            list[i] = data[i] ^ maskBytes[i & 3];
-          }
-        } else {
-          for (int i = 0; i < data.length; i++) {
-            if (data[i] < 0 || 255 < data[i]) {
-              throw new ArgumentError(
-                  "List element is not a byte value "
-                  "(value ${data[i]} at index $i)");
+          if (data is Uint8List) {
+            list = new Uint8List.fromList(data);
+          } else {
+            list = new Uint8List(data.length);
+            for (int i = 0; i < data.length; i++) {
+              if (data[i] < 0 || 255 < data[i]) {
+                throw new ArgumentError(
+                    "List element is not a byte value "
+                    "(value ${data[i]} at index $i)");
+              }
+              list[i] = data[i];
             }
-            list[i] = data[i] ^ maskBytes[i & 3];
           }
+        }
+        const int BLOCK_SIZE = 16;
+        int blockCount = list.length ~/ BLOCK_SIZE;
+        if (blockCount > 0) {
+          // Create mask block.
+          int mask = 0;
+          for (int i = 3; i >= 0; i--) {
+            mask = (mask << 8) | maskBytes[i];
+          }
+          Int32x4 blockMask = new Int32x4(mask, mask, mask, mask);
+          Int32x4List blockBuffer = new Int32x4List.view(
+              list.buffer, 0, blockCount);
+          for (int i = 0; i < blockBuffer.length; i++) {
+            blockBuffer[i] ^= blockMask;
+          }
+        }
+        // Handle end.
+        for (int i = blockCount * BLOCK_SIZE; i < list.length; i++) {
+          list[i] ^= maskBytes[i & 3];
         }
         data = list;
       }
