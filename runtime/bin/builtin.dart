@@ -216,14 +216,18 @@ String _resolveUri(String base, String userString) {
     // Relative URIs with scheme dart-ext should be resolved as if with no
     // scheme.
     resolved = baseUri.resolve(uri.path);
-    var path = resolved.path;
     if (resolved.scheme == 'package') {
       // If we are resolving relative to a package URI we go directly to the
       // file path and keep the dart-ext scheme. Otherwise, we will lose the
       // package URI path part.
-      path = _filePathFromPackageUri(resolved);
+      var path = _filePathFromPackageUri(resolved);
+      if (path.startsWith('http:')) {
+        throw "Native extensions not supported in "
+            "packages loaded over http: %path";
+      }
+      resolved = new Uri.file(path);
     }
-    resolved = new Uri(scheme: 'dart-ext', path: path);
+    resolved = new Uri(scheme: 'dart-ext', path: resolved.path);
   } else {
     resolved = baseUri.resolve(userString);
   }
