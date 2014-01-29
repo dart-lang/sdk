@@ -3661,6 +3661,8 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
         scope = Scope.buildEnclosingScope(element),
         super(compiler, mapping);
 
+  DartType get objectType => compiler.objectClass.rawType;
+
   void resolveTypeVariableBounds(NodeList node) {
     if (node == null) return;
 
@@ -3706,7 +3708,7 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
         }
         addDeferredAction(element, checkTypeVariableBound);
       } else {
-        variableElement.bound = compiler.objectClass.computeType(compiler);
+        variableElement.bound = objectType;
       }
       nodeLink = nodeLink.tail;
       typeLink = typeLink.tail;
@@ -4120,15 +4122,15 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (supertype != null) {
       if (identical(supertype.kind, TypeKind.MALFORMED_TYPE)) {
         compiler.reportError(superclass, MessageKind.CANNOT_EXTEND_MALFORMED);
-        return null;
+        return objectType;
       } else if (!identical(supertype.kind, TypeKind.INTERFACE)) {
         compiler.reportError(superclass.typeName,
             MessageKind.CLASS_NAME_EXPECTED);
-        return null;
+        return objectType;
       } else if (isBlackListed(supertype)) {
         compiler.reportError(superclass, MessageKind.CANNOT_EXTEND,
             {'type': supertype});
-        return null;
+        return objectType;
       }
     }
     return supertype;
