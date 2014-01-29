@@ -821,7 +821,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
   ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->SingleStepCallback();
+  isolate->debugger()->DebuggerStepCallback();
 }
 
 

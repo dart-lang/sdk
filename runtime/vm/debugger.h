@@ -364,7 +364,7 @@ class Debugger {
                             const String& field_name);
 
   void SignalBpReached();
-  void SingleStepCallback();
+  void DebuggerStepCallback();
 
   void SignalExceptionThrown(const Instance& exc);
   static void SignalIsolateEvent(EventType type);
@@ -393,7 +393,7 @@ class Debugger {
   intptr_t ResolveBreakpointPos(const Function& func,
                                 intptr_t requested_token_pos);
   void DeoptimizeWorld();
-  void InstrumentForStepping(const Function& target_function);
+  void SetInternalBreakpoints(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Script& script, intptr_t token_pos);
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
                                   intptr_t first_token_pos,
@@ -472,6 +472,11 @@ class Debugger {
 
   // Current stack trace. Valid only while IsPaused().
   DebuggerStackTrace* stack_trace_;
+
+  // When stepping through code, only pause the program if the top
+  // frame corresponds to this fp value, or if the top frame is
+  // lower on the stack.
+  uword stepping_fp_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
 

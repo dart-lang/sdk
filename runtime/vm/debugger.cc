@@ -863,6 +863,7 @@ Debugger::Debugger()
       pause_event_(NULL),
       obj_cache_(NULL),
       stack_trace_(NULL),
+      stepping_fp_(0),
       exc_pause_info_(kNoPauseOnExceptions) {
 }
 
@@ -905,18 +906,18 @@ static RawFunction* ResolveLibraryFunction(
   return Function::null();
 }
 
+
 void Debugger::SetSingleStep() {
-  isolate_->set_single_step(true);
   resume_action_ = kSingleStep;
 }
 
+
 void Debugger::SetStepOver() {
-  isolate_->set_single_step(false);
   resume_action_ = kStepOver;
 }
 
+
 void Debugger::SetStepOut() {
-  isolate_->set_single_step(false);
   resume_action_ = kStepOut;
 }
 
@@ -997,7 +998,7 @@ void Debugger::DeoptimizeWorld() {
 }
 
 
-void Debugger::InstrumentForStepping(const Function& target_function) {
+void Debugger::SetInternalBreakpoints(const Function& target_function) {
   if (target_function.is_native()) {
     // Can't instrument native functions.
     return;
@@ -1595,11 +1596,11 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 
 
 void Debugger::OneTimeBreakAtEntry(const Function& target_function) {
-  InstrumentForStepping(target_function);
+  SetInternalBreakpoints(target_function);
   if (target_function.HasImplicitClosureFunction()) {
     const Function& closure_func =
         Function::Handle(target_function.ImplicitClosureFunction());
-    InstrumentForStepping(closure_func);
+    SetInternalBreakpoints(closure_func);
   }
 }
 
@@ -1915,6 +1916,7 @@ bool Debugger::IsDebuggable(const Function& func) {
 void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
                                  SourceBreakpoint* bpt) {
   resume_action_ = kContinue;
+  stepping_fp_ = 0;
   isolate_->set_single_step(false);
   ASSERT(!IsPaused());
   ASSERT(obj_cache_ == NULL);
@@ -1925,8 +1927,18 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
 }
 
 
-void Debugger::SingleStepCallback() {
-  ASSERT(resume_action_ == kSingleStep);
+static uword DebuggableCallerFP(DebuggerStackTrace* stack_trace) {
+  for (intptr_t i = 1; i < stack_trace->Length(); i++) {
+    ActivationFrame* frame = stack_trace->FrameAt(i);
+    if (frame->IsDebuggable()) {
+      return frame->fp();
+    }
+  }
+  return 0;
+}
+
+
+void Debugger::DebuggerStepCallback() {
   ASSERT(isolate_->single_step());
   // We can't get here unless the debugger event handler enabled
   // single stepping.
@@ -1935,16 +1947,27 @@ void Debugger::SingleStepCallback() {
   if (IsPaused()) return;
 
   // Check whether we are in a Dart function that the user is
-  // interested in.
+  // interested in. If we saved the frame pointer of a stack frame
+  // the user is interested in, we ignore the single step if we are
+  // in a callee of that frame. Note that we assume that the stack
+  // grows towards lower addresses.
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != NULL);
-  const Function& func = frame->function();
-  if (!IsDebuggable(func)) {
+  if ((stepping_fp_ != 0) && (stepping_fp_ > frame->fp())) {
+    return;
+  }
+  // If an "interesting" frame is set, we are either in that frame
+  // or the program has returned from that frame. Let the user set
+  // the "interesting" frame again next time we pause.
+  stepping_fp_ = 0;
+
+  if (!frame->IsDebuggable()) {
     return;
   }
   if (frame->TokenPos() == Scanner::kNoSourcePos) {
     return;
   }
+
   // Don't pause for a single step if there is a breakpoint set
   // at this location.
   if (HasActiveBreakpoint(frame->pc())) {
@@ -1963,14 +1986,15 @@ void Debugger::SingleStepCallback() {
   stack_trace_ = CollectStackTrace();
   SignalPausedEvent(frame, NULL);
 
-  RemoveInternalBreakpoints();
-  if (resume_action_ == kStepOver) {
-    InstrumentForStepping(func);
+  if (resume_action_ == kSingleStep) {
+    isolate_->set_single_step(true);
+    stepping_fp_ = 0;
+  } else if (resume_action_ == kStepOver) {
+    isolate_->set_single_step(true);
+    stepping_fp_ = frame->fp();
   } else if (resume_action_ == kStepOut) {
-    if (stack_trace_->Length() > 1) {
-      ActivationFrame* caller_frame = stack_trace_->FrameAt(1);
-      InstrumentForStepping(caller_frame->function());
-    }
+    isolate_->set_single_step(true);
+    stepping_fp_ = DebuggableCallerFP(stack_trace_);
   }
   stack_trace_ = NULL;
 }
@@ -1980,7 +2004,7 @@ void Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || IsPaused()) {
+  if (ignore_breakpoints_ || IsPaused() || (event_handler_ == NULL)) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
@@ -1990,14 +2014,9 @@ void Debugger::SignalBpReached() {
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
 
-  bool report_bp = true;
-  if (bpt->IsInternal() && !IsDebuggable(top_frame->function())) {
-    report_bp = false;
-  }
   if (FLAG_verbose_debug) {
-    OS::Print(">>> %s %s breakpoint at %s:%" Pd " "
+    OS::Print(">>> hit %s breakpoint at %s:%" Pd " "
               "(token %" Pd ") (address %#" Px ")\n",
-              report_bp ? "hit" : "ignore",
               bpt->IsInternal() ? "internal" : "user",
               String::Handle(bpt->SourceUrl()).ToCString(),
               bpt->LineNumber(),
@@ -2005,38 +2024,23 @@ void Debugger::SignalBpReached() {
               top_frame->pc());
   }
 
-  if (report_bp && (event_handler_ != NULL)) {
-    ASSERT(stack_trace_ == NULL);
-    stack_trace_ = stack_trace;
-    SignalPausedEvent(top_frame, bpt->src_bpt_);
-    stack_trace_ = NULL;
-  }
+  ASSERT(stack_trace_ == NULL);
+  stack_trace_ = stack_trace;
+  SignalPausedEvent(top_frame, bpt->src_bpt_);
+  stack_trace_ = NULL;
 
-  Function& func_to_instrument = Function::Handle();
-  if ((resume_action_ == kStepOver) &&
-      (bpt->breakpoint_kind_ == PcDescriptors::kReturn)) {
-    resume_action_ = kStepOut;
-  }
-  if (resume_action_ == kStepOver) {
-    ASSERT(bpt->breakpoint_kind_ != PcDescriptors::kReturn);
-    func_to_instrument = bpt->function();
+  if (resume_action_ == kSingleStep) {
+    isolate_->set_single_step(true);
+    stepping_fp_ = 0;
+  } else if (resume_action_ == kStepOver) {
+    isolate_->set_single_step(true);
+    stepping_fp_ = top_frame->fp();
   } else if (resume_action_ == kStepOut) {
-    if (stack_trace->Length() > 1) {
-      ActivationFrame* caller_frame = stack_trace->FrameAt(1);
-      func_to_instrument = caller_frame->function().raw();
-    }
-  } else {
-    ASSERT((resume_action_ == kContinue) || (resume_action_ == kSingleStep));
-    // Nothing to do here. Any potential instrumentation will be removed
-    // below. Single stepping is handled by the single step callback.
+    isolate_->set_single_step(true);
+    stepping_fp_ = DebuggableCallerFP(stack_trace);
   }
-
-  if (func_to_instrument.IsNull() ||
-      (func_to_instrument.raw() != bpt->function())) {
-    RemoveInternalBreakpoints();  // *bpt is now invalid.
-  }
-  if (!func_to_instrument.IsNull()) {
-    InstrumentForStepping(func_to_instrument);
+  if (bpt->IsInternal()) {
+    RemoveInternalBreakpoints();
   }
 }
 
