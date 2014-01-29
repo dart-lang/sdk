@@ -426,7 +426,6 @@ class SourceVisitor implements ASTVisitor {
 
   visitAssertStatement(AssertStatement node) {
     token(node.keyword);
-    space();
     token(node.leftParenthesis);
     visit(node.condition);
     token(node.rightParenthesis);

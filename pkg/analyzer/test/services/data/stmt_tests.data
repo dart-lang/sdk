@@ -46,3 +46,7 @@ blah() {
 blah() {
   print('blah blah blah blah blah blah blah blah blah blah blah blah blah blah $foo');
 }
+>>>
+assert(false);
+<<<
+assert(false);
