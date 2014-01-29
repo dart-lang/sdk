@@ -115,58 +115,64 @@ String prettifyStackTrace(StackTrace s,
   int maxLineNoLength = 0;
   int maxColumnNoLength = 0;
 
+  String stackTrace = '$s';
   List<_StackTraceLine> lines = <_StackTraceLine>[];
-  for (String line in '$s'.split('\n')) {
-    index++;
-    if (rangeStart != null && index < rangeStart) continue;
-    if (rangeEnd != null && index > rangeEnd) continue;
-    if (line.isEmpty) continue;
+  for (String line in stackTrace.split('\n')) {
+    try {
+      index++;
+      if (rangeStart != null && index < rangeStart) continue;
+      if (rangeEnd != null && index > rangeEnd) continue;
+      if (line.isEmpty) continue;
 
-    // Strip index.
-    line = line.replaceFirst(new RegExp(r'#\d+\s*'), '');
+      // Strip index.
+      line = line.replaceFirst(new RegExp(r'#\d+\s*'), '');
 
-    int leftParenPos = line.indexOf('(');
-    int rightParenPos = line.indexOf(')', leftParenPos);
-    int lastColon = line.lastIndexOf(':', rightParenPos);
-    int nextToLastColon = line.lastIndexOf(':', lastColon-1);
+      int leftParenPos = line.indexOf('(');
+      int rightParenPos = line.indexOf(')', leftParenPos);
+      int lastColon = line.lastIndexOf(':', rightParenPos);
+      int nextToLastColon = line.lastIndexOf(':', lastColon-1);
 
-    String lineNo;
-    String columnNo;
-    if (nextToLastColon != -1) {
-      lineNo = line.substring(nextToLastColon+1, lastColon);
-      columnNo = line.substring(lastColon+1, rightParenPos);
-      try {
-        int.parse(lineNo);
-      } on FormatException catch (e) {
-        lineNo = columnNo;
+      String lineNo;
+      String columnNo;
+      if (nextToLastColon != -1) {
+        lineNo = line.substring(nextToLastColon+1, lastColon);
+        columnNo = line.substring(lastColon+1, rightParenPos);
+        try {
+          int.parse(lineNo);
+        } on FormatException catch (e) {
+          lineNo = columnNo;
+          columnNo = '';
+          nextToLastColon = lastColon;
+        }
+      } else {
+        lineNo = line.substring(lastColon+1, rightParenPos);
         columnNo = '';
         nextToLastColon = lastColon;
       }
-    } else {
-      lineNo = line.substring(lastColon+1, rightParenPos);
-      columnNo = '';
-      nextToLastColon = lastColon;
-    }
 
-    if (lineNo.length > maxLineNoLength) {
-      maxLineNoLength = lineNo.length;
-    }
-    if (columnNo.length > maxColumnNoLength) {
-      maxColumnNoLength = columnNo.length;
-    }
+      if (lineNo.length > maxLineNoLength) {
+        maxLineNoLength = lineNo.length;
+      }
+      if (columnNo.length > maxColumnNoLength) {
+        maxColumnNoLength = columnNo.length;
+      }
 
-    String file = line.substring(leftParenPos+1, nextToLastColon);
-    if (filePrefix != null && file.startsWith(filePrefix)) {
-      file = file.substring(filePrefix.length);
+      String file = line.substring(leftParenPos+1, nextToLastColon);
+      if (filePrefix != null && file.startsWith(filePrefix)) {
+        file = file.substring(filePrefix.length);
+      }
+      if (file.length > maxFileLength) {
+        maxFileLength = file.length;
+      }
+      String method = line.substring(0, leftParenPos-1);
+      if (lambda != null) {
+        method = method.replaceAll('<anonymous closure>', lambda);
+      }
+      lines.add(new _StackTraceLine(index, file, lineNo, columnNo, method));
+    } catch (e) {
+      print('Error prettifying "$line": $e');
+      return stackTrace;
     }
-    if (file.length > maxFileLength) {
-      maxFileLength = file.length;
-    }
-    String method = line.substring(0, leftParenPos-1);
-    if (lambda != null) {
-      method = method.replaceAll('<anonymous closure>', lambda);
-    }
-    lines.add(new _StackTraceLine(index, file, lineNo, columnNo, method));
   }
 
   StringBuffer sb = new StringBuffer();
@@ -181,7 +187,6 @@ String prettifyStackTrace(StackTrace s,
     sb.write('  $file $lineNo$columnNo $method\n');
     dots = !dots;
   }
-
   return sb.toString();
 }
 
