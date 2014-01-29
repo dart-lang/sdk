@@ -13715,13 +13715,13 @@ class ToSourceVisitor implements ASTVisitor<Object> {
   }
 
   Object visitClassTypeAlias(ClassTypeAlias node) {
+    if (node.abstractKeyword != null) {
+      _writer.print("abstract ");
+    }
     _writer.print("class ");
     visit(node.name);
     visit(node.typeParameters);
     _writer.print(" = ");
-    if (node.abstractKeyword != null) {
-      _writer.print("abstract ");
-    }
     visit(node.superclass);
     visit3(" ", node.withClause);
     visit3(" ", node.implementsClause);

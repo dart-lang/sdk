@@ -152,12 +152,25 @@ class AngularCompilationUnitBuilder {
    * cannot parse.
    */
   static AngularSelectorElement parseSelector(int offset, String text) {
+    // [attribute]
     if (StringUtilities.startsWithChar(text, 0x5B) && StringUtilities.endsWithChar(text, 0x5D)) {
       int nameOffset = offset + "[".length;
       String attributeName = text.substring(1, text.length - 1);
       // TODO(scheglov) report warning if there are spaces between [ and identifier
       return new HasAttributeSelectorElementImpl(attributeName, nameOffset);
     }
+    // tag[attribute]
+    if (StringUtilities.endsWithChar(text, 0x5D)) {
+      int index = StringUtilities.indexOf1(text, 0, 0x5B);
+      if (index != -1) {
+        String tagName = text.substring(0, index);
+        String attributeName = text.substring(index + 1, text.length - 1);
+        if (StringUtilities.isTagName(tagName)) {
+          return new IsTagHasAttributeSelectorElementImpl(tagName, attributeName);
+        }
+      }
+    }
+    // tag
     if (StringUtilities.isTagName(text)) {
       return new IsTagSelectorElementImpl(text, offset);
     }
@@ -398,9 +411,11 @@ class AngularCompilationUnitBuilder {
   void parseNgComponent() {
     bool isValid = true;
     // publishAs
-    if (!hasStringArgument(_PUBLISH_AS)) {
-      reportErrorForAnnotation(AngularCode.MISSING_PUBLISH_AS, []);
-      isValid = false;
+    String name = null;
+    int nameOffset = -1;
+    if (hasStringArgument(_PUBLISH_AS)) {
+      name = getStringArgument(_PUBLISH_AS);
+      nameOffset = getStringArgumentOffset(_PUBLISH_AS);
     }
     // selector
     AngularSelectorElement selector = null;
@@ -416,30 +431,28 @@ class AngularCompilationUnitBuilder {
       }
     }
     // templateUrl
-    if (!hasStringArgument(_TEMPLATE_URL)) {
-      reportErrorForAnnotation(AngularCode.MISSING_TEMPLATE_URL, []);
-      isValid = false;
+    String templateUri = null;
+    int templateUriOffset = -1;
+    if (hasStringArgument(_TEMPLATE_URL)) {
+      templateUri = getStringArgument(_TEMPLATE_URL);
+      templateUriOffset = getStringArgumentOffset(_TEMPLATE_URL);
     }
     // cssUrl
-    if (!hasStringArgument(_CSS_URL)) {
-      reportErrorForAnnotation(AngularCode.MISSING_CSS_URL, []);
-      isValid = false;
+    String styleUri = null;
+    int styleUriOffset = -1;
+    if (hasStringArgument(_CSS_URL)) {
+      styleUri = getStringArgument(_CSS_URL);
+      styleUriOffset = getStringArgumentOffset(_CSS_URL);
     }
     // create
     if (isValid) {
-      String name = getStringArgument(_PUBLISH_AS);
-      int nameOffset = getStringArgumentOffset(_PUBLISH_AS);
-      String templateUri = getStringArgument(_TEMPLATE_URL);
-      int templateUriOffset = getStringArgumentOffset(_TEMPLATE_URL);
-      String styleUri = getStringArgument(_CSS_URL);
-      int styleUriOffset = getStringArgumentOffset(_CSS_URL);
       AngularComponentElementImpl element = new AngularComponentElementImpl(name, nameOffset);
       element.selector = selector;
       element.templateUri = templateUri;
       element.templateUriOffset = templateUriOffset;
       // resolve template URI
       // TODO(scheglov) resolve to HtmlElement to allow F3 ?
-      {
+      if (templateUri != null) {
         try {
           parseUriWithException(templateUri);
           // TODO(scheglov) think if there is better solution
@@ -448,9 +461,14 @@ class AngularCompilationUnitBuilder {
           }
           Source templateSource = _context.sourceFactory.resolveUri(_source, templateUri);
           if (templateSource == null || !templateSource.exists()) {
+            templateSource = _context.sourceFactory.resolveUri(_source, "package:${templateUri}");
+          }
+          if (templateSource == null || !templateSource.exists()) {
             reportErrorForArgument(_TEMPLATE_URL, AngularCode.URI_DOES_NOT_EXIST, [templateUri]);
           }
-          element.templateSource = templateSource;
+          if (AnalysisEngine.isHtmlFileName(templateUri)) {
+            element.templateSource = templateSource;
+          }
         } on URISyntaxException catch (exception) {
           reportErrorForArgument(_TEMPLATE_URL, AngularCode.INVALID_URI, [templateUri]);
         }
@@ -571,11 +589,12 @@ class AngularCompilationUnitBuilder {
       String fieldName = spec.substring(fieldNameOffset);
       fieldNameOffset += specLiteral.valueOffset;
       // prepare field
-      FieldElement field = _classElement.getField(fieldName);
-      if (field == null) {
+      PropertyAccessorElement setter = _classElement.type.lookUpSetter(fieldName, _classElement.library);
+      if (setter == null) {
         reportError2(fieldNameOffset, fieldName.length, AngularCode.INVALID_PROPERTY_FIELD, [fieldName]);
         continue;
       }
+      FieldElement field = setter.variable as FieldElement;
       // add property
       AngularPropertyElementImpl property = new AngularPropertyElementImpl(name, nameOffset);
       property.field = field;
@@ -749,6 +768,12 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
   List<FunctionTypeImpl> _functionTypesToFix = null;
 
   /**
+   * A table mapping field names to field elements for the fields defined in the current class, or
+   * `null` if we are not in the scope of a class.
+   */
+  Map<String, FieldElement> _fieldMap;
+
+  /**
    * Initialize a newly created element builder to build the elements for a compilation unit.
    *
    * @param initialHolder the element holder associated with the compilation unit being built
@@ -788,7 +813,23 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
     ElementHolder holder = new ElementHolder();
     _isValidMixin = true;
     _functionTypesToFix = new List<FunctionTypeImpl>();
-    visitChildren(holder, node);
+    //
+    // Process field declarations before constructors and methods so that field formal parameters
+    // can be correctly resolved to their fields.
+    //
+    ElementHolder previousHolder = _currentHolder;
+    _currentHolder = holder;
+    try {
+      List<ClassMember> nonFields = new List<ClassMember>();
+      node.visitChildren(new UnifyingASTVisitor_ElementBuilder_visitClassDeclaration(this, nonFields));
+      buildFieldMap(holder.fieldsWithoutFlushing);
+      int count = nonFields.length;
+      for (int i = 0; i < count; i++) {
+        nonFields[i].accept(this);
+      }
+    } finally {
+      _currentHolder = previousHolder;
+    }
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl(className);
     List<TypeParameterElement> typeParameters = holder.typeParameters;
@@ -817,6 +858,7 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
     _functionTypesToFix = null;
     _currentHolder.addType(element);
     className.staticElement = element;
+    _fieldMap = null;
     holder.validate();
     return null;
   }
@@ -898,10 +940,15 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
 
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     ElementHolder holder = new ElementHolder();
-    SimpleIdentifier parameterName = node.parameter.identifier;
+    NormalFormalParameter normalParameter = node.parameter;
+    SimpleIdentifier parameterName = normalParameter.identifier;
     ParameterElementImpl parameter;
-    if (node.parameter is FieldFormalParameter) {
+    if (normalParameter is FieldFormalParameter) {
       parameter = new DefaultFieldFormalParameterElementImpl(parameterName);
+      FieldElement field = _fieldMap == null ? null : _fieldMap[parameterName.name];
+      if (field != null) {
+        (parameter as DefaultFieldFormalParameterElementImpl).field = field;
+      }
     } else {
       parameter = new DefaultParameterElementImpl(parameterName);
     }
@@ -925,7 +972,7 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
     setParameterVisibleRange(node, parameter);
     _currentHolder.addParameter(parameter);
     parameterName.staticElement = parameter;
-    node.parameter.accept(this);
+    normalParameter.accept(this);
     holder.validate();
     return null;
   }
@@ -944,10 +991,14 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
+      FieldElement field = _fieldMap == null ? null : _fieldMap[parameterName.name];
       FieldFormalParameterElementImpl parameter = new FieldFormalParameterElementImpl(parameterName);
       parameter.const3 = node.isConst;
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;
+      if (field != null) {
+        parameter.field = field;
+      }
       _currentHolder.addParameter(parameter);
       parameterName.staticElement = parameter;
     }
@@ -1327,6 +1378,21 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
   }
 
   /**
+   * Build the table mapping field names to field elements for the fields defined in the current
+   * class.
+   *
+   * @param fields the field elements defined in the current class
+   */
+  void buildFieldMap(List<FieldElement> fields) {
+    _fieldMap = new Map<String, FieldElement>();
+    int count = fields.length;
+    for (int i = 0; i < count; i++) {
+      FieldElement field = fields[i];
+      _fieldMap[field.name] = field;
+    }
+  }
+
+  /**
    * Creates the [ConstructorElement]s array with the single default constructor element.
    *
    * @param interfaceType the interface type for which to create a default constructor
@@ -1437,6 +1503,26 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
       }
     }
   }
+}
+
+class UnifyingASTVisitor_ElementBuilder_visitClassDeclaration extends UnifyingASTVisitor<Object> {
+  final ElementBuilder ElementBuilder_this;
+
+  List<ClassMember> nonFields;
+
+  UnifyingASTVisitor_ElementBuilder_visitClassDeclaration(this.ElementBuilder_this, this.nonFields) : super();
+
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    nonFields.add(node);
+    return null;
+  }
+
+  Object visitMethodDeclaration(MethodDeclaration node) {
+    nonFields.add(node);
+    return null;
+  }
+
+  Object visitNode(ASTNode node) => node.accept(ElementBuilder_this);
 }
 
 /**
@@ -1590,6 +1676,14 @@ class ElementHolder {
     }
     List<FieldElement> result = new List.from(_fields);
     _fields = null;
+    return result;
+  }
+
+  List<FieldElement> get fieldsWithoutFlushing {
+    if (_fields == null) {
+      return FieldElementImpl.EMPTY_ARRAY;
+    }
+    List<FieldElement> result = new List.from(_fields);
     return result;
   }
 
@@ -5273,25 +5367,19 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     ClassElement classElement = _resolver.enclosingClass;
     if (classElement != null) {
       FieldElement fieldElement = classElement.getField(fieldName);
-      if (fieldElement == null) {
+      if (fieldElement == null || fieldElement.isSynthetic) {
         _resolver.reportError8(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD, node, [fieldName]);
       } else {
         ParameterElement parameterElement = node.element;
         if (parameterElement is FieldFormalParameterElementImpl) {
           FieldFormalParameterElementImpl fieldFormal = parameterElement;
-          fieldFormal.field = fieldElement;
           Type2 declaredType = fieldFormal.type;
           Type2 fieldType = fieldElement.type;
-          if (node.type == null) {
-            fieldFormal.type = fieldType;
-          }
           if (fieldElement.isSynthetic) {
             _resolver.reportError8(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD, node, [fieldName]);
           } else if (fieldElement.isStatic) {
             _resolver.reportError8(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD, node, [fieldName]);
           } else if (declaredType != null && fieldType != null && !declaredType.isAssignableTo(fieldType)) {
-            // TODO(brianwilkerson) We should implement a displayName() method for types that will
-            // work nicely with function types and then use that below.
             _resolver.reportError8(StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, node, [declaredType.displayName, fieldType.displayName]);
           }
         } else {
@@ -5845,13 +5933,6 @@ class ElementResolver extends SimpleASTVisitor<Object> {
   }
 
   Object visitTypeParameter(TypeParameter node) {
-    TypeName bound = node.bound;
-    if (bound != null) {
-      TypeParameterElementImpl typeParameter = node.name.staticElement as TypeParameterElementImpl;
-      if (typeParameter != null) {
-        typeParameter.bound = bound.type;
-      }
-    }
     setMetadata(node.element, node);
     return null;
   }
@@ -8200,17 +8281,6 @@ class Library {
     _directiveUris[directive] = uriContent;
     uriContent = Uri.encodeFull(uriContent);
     if (directive is ImportDirective && uriContent.startsWith(_DART_EXT_SCHEME)) {
-      String uriBase = uriContent.substring(_DART_EXT_SCHEME.length);
-      Source source = _analysisContext.sourceFactory.resolveUri(librarySource, "${uriBase}.dll");
-      if (source == null || !source.exists()) {
-        source = _analysisContext.sourceFactory.resolveUri(librarySource, "${uriBase}.so");
-        if (source == null || !source.exists()) {
-          source = _analysisContext.sourceFactory.resolveUri(librarySource, "${uriBase}.dylib");
-          if (source == null || !source.exists()) {
-            _errorListener.onError(new AnalysisError.con2(librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
-          }
-        }
-      }
       _libraryElement.hasExtUri2 = true;
       return null;
     }
@@ -10772,9 +10842,12 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
 
   /**
    * Replaces the current [Scope] with the enclosing [Scope].
+   *
+   * @return the enclosing [Scope].
    */
-  void popNameScope() {
+  Scope popNameScope() {
     _nameScope = _nameScope.enclosingScope;
+    return _nameScope;
   }
 
   /**
@@ -10785,7 +10858,7 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
   Scope pushNameScope() {
     Scope newScope = new EnclosedScope(_nameScope);
     _nameScope = newScope;
-    return newScope;
+    return _nameScope;
   }
 
   /**
@@ -10835,7 +10908,7 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
     Scope outerScope = _nameScope;
     try {
       _nameScope = new ClassScope(_nameScope, node.element);
-      super.visitClassDeclaration(node);
+      visitClassDeclarationInScope(node);
     } finally {
       _nameScope = outerScope;
     }
@@ -11120,6 +11193,10 @@ abstract class ScopedVisitor extends UnifyingASTVisitor<Object> {
     if (node != null) {
       node.accept(this);
     }
+  }
+
+  void visitClassDeclarationInScope(ClassDeclaration node) {
+    super.visitClassDeclaration(node);
   }
 
   /**
@@ -13831,22 +13908,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
-    super.visitDefaultFormalParameter(node);
-    //    Expression defaultValue = node.getDefaultValue();
-    //    if (defaultValue != null) {
-    //      Type valueType = getType(defaultValue);
-    //      Type parameterType = getType(node.getParameter());
-    //      if (!valueType.isAssignableTo(parameterType)) {
-    // TODO(brianwilkerson) Determine whether this is really an error. I can't find in the spec
-    // anything that says it is, but a side comment from Gilad states that it should be a static
-    // warning.
-    //        resolver.reportError(ResolverErrorCode.?, defaultValue);
-    //      }
-    //    }
-    return null;
-  }
-
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     super.visitFieldFormalParameter(node);
     Element element = node.identifier.staticElement;
@@ -13857,8 +13918,13 @@ class TypeResolverVisitor extends ScopedVisitor {
         Type2 type;
         TypeName typeName = node.type;
         if (typeName == null) {
-          // TODO(brianwilkerson) Find the field's declaration and use it's type.
           type = _dynamicType;
+          if (parameter is FieldFormalParameterElement) {
+            FieldElement fieldElement = (parameter as FieldFormalParameterElement).field;
+            if (fieldElement != null) {
+              type = fieldElement.type;
+            }
+          }
         } else {
           type = getType3(typeName);
         }
@@ -14170,6 +14236,18 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  Object visitTypeParameter(TypeParameter node) {
+    super.visitTypeParameter(node);
+    TypeName bound = node.bound;
+    if (bound != null) {
+      TypeParameterElementImpl typeParameter = node.name.staticElement as TypeParameterElementImpl;
+      if (typeParameter != null) {
+        typeParameter.bound = bound.type;
+      }
+    }
+    return null;
+  }
+
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Type2 declaredType;
@@ -14209,6 +14287,19 @@ class TypeResolverVisitor extends ScopedVisitor {
     } else {
     }
     return null;
+  }
+
+  void visitClassDeclarationInScope(ClassDeclaration node) {
+    //
+    // Process field declarations before constructors and methods so that the types of field formal
+    // parameters can be correctly resolved.
+    //
+    List<ClassMember> nonFields = new List<ClassMember>();
+    node.visitChildren(new UnifyingASTVisitor_TypeResolverVisitor_visitClassDeclarationInScope(this, nonFields));
+    int count = nonFields.length;
+    for (int i = 0; i < count; i++) {
+      nonFields[i].accept(this);
+    }
   }
 
   /**
@@ -14616,6 +14707,26 @@ class RedirectingConstructorKind extends Enum<RedirectingConstructorKind> {
   static final List<RedirectingConstructorKind> values = [CONST, NORMAL];
 
   RedirectingConstructorKind(String name, int ordinal) : super(name, ordinal);
+}
+
+class UnifyingASTVisitor_TypeResolverVisitor_visitClassDeclarationInScope extends UnifyingASTVisitor<Object> {
+  final TypeResolverVisitor TypeResolverVisitor_this;
+
+  List<ClassMember> nonFields;
+
+  UnifyingASTVisitor_TypeResolverVisitor_visitClassDeclarationInScope(this.TypeResolverVisitor_this, this.nonFields) : super();
+
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    nonFields.add(node);
+    return null;
+  }
+
+  Object visitMethodDeclaration(MethodDeclaration node) {
+    nonFields.add(node);
+    return null;
+  }
+
+  Object visitNode(ASTNode node) => node.accept(TypeResolverVisitor_this);
 }
 
 /**
