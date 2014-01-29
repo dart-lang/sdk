@@ -69,7 +69,7 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
 
   final bool _serverSide;
   final List _maskingBytes = new List(4);
-  final BytesBuilder _payload = new BytesBuilder();
+  final List<Uint8List> _payloads = new List<Uint8List>();
 
   _WebSocketProtocolTransformer([this._serverSide = false]);
 
@@ -89,6 +89,27 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
       _eventSink.addError(error, stackTrace);
 
   void close() => _eventSink.close();
+
+  Uint8List _takePayload() {
+    if (_payloads.length == 0) return new Uint8List(0);
+    if (_payloads.length == 1) {
+      Uint8List result = _payloads.single;
+      _payloads.clear();
+      return result;
+    }
+    int length = 0;
+    for (Uint8List payload in _payloads) {
+      length += payload.length;
+    }
+    Uint8List result = new Uint8List(length);
+    int offset = 0;
+    for (Uint8List payload in _payloads) {
+      result.setRange(offset, offset + payload.length, payload);
+      offset += payload.length;
+    }
+    _payloads.clear();
+    return result;
+  }
 
   /**
    * Process data received from the underlying communication channel.
@@ -175,8 +196,9 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
           if (_masked) {
             _unmask(index, payloadLength, buffer);
           }
-          // Control frame and data frame share _payload builder.
-          _payload.add(new Uint8List.view(buffer.buffer, index, payloadLength));
+          // Control frame and data frame share _payloads.
+          _payloads.add(
+              new Uint8List.view(buffer.buffer, index, payloadLength));
           index += payloadLength;
           if (_isControlFrame()) {
             if (_remainingPayloadBytes == 0) _controlFrameEnd();
@@ -285,10 +307,10 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
     if (_fin) {
       switch (_currentMessageType) {
         case _WebSocketMessageType.TEXT:
-          _eventSink.add(UTF8.decode(_payload.takeBytes()));
+          _eventSink.add(UTF8.decode(_takePayload()));
           break;
         case _WebSocketMessageType.BINARY:
-          _eventSink.add(_payload.takeBytes());
+          _eventSink.add(_takePayload());
           break;
       }
       _currentMessageType = _WebSocketMessageType.NONE;
@@ -300,17 +322,17 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
     switch (_opcode) {
       case _WebSocketOpcode.CLOSE:
         closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
-        if (_payload.length > 0) {
-          var bytes = _payload.takeBytes();
-          if (bytes.length == 1) {
+        var payload = _takePayload();
+        if (payload.length > 0) {
+          if (payload.length == 1) {
             throw new WebSocketException("Protocol error");
           }
-          closeCode = bytes[0] << 8 | bytes[1];
+          closeCode = payload[0] << 8 | payload[1];
           if (closeCode == WebSocketStatus.NO_STATUS_RECEIVED) {
             throw new WebSocketException("Protocol error");
           }
-          if (bytes.length > 2) {
-            closeReason = UTF8.decode(bytes.sublist(2));
+          if (payload.length > 2) {
+            closeReason = UTF8.decode(payload.sublist(2));
           }
         }
         _state = CLOSED;
@@ -318,11 +340,11 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
         break;
 
       case _WebSocketOpcode.PING:
-        _eventSink.add(new _WebSocketPing(_payload.takeBytes()));
+        _eventSink.add(new _WebSocketPing(_takePayload()));
         break;
 
       case _WebSocketOpcode.PONG:
-        _eventSink.add(new _WebSocketPong(_payload.takeBytes()));
+        _eventSink.add(new _WebSocketPong(_takePayload()));
         break;
     }
     _prepareForNextFrame();
