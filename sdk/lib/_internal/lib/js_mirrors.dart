@@ -524,6 +524,12 @@ TypeMirror reflectClassByMangledName(String mangledName) {
 var classMirrors;
 
 TypeMirror reflectClassByName(Symbol symbol, String mangledName) {
+  int separatorIndex = mangledName.indexOf('/');
+  if (separatorIndex > -1) {
+    // This is an interceptor name, where the first part is the nice name used
+    // for printing the type name.
+    mangledName = mangledName.substring(separatorIndex + 1);
+  }
   if (classMirrors == null) classMirrors = JsCache.allocate();
   var mirror = JsCache.fetch(classMirrors, mangledName);
   if (mirror != null) return mirror;
