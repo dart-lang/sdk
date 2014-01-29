@@ -50,3 +50,13 @@ blah() {
 assert(false);
 <<<
 assert(false);
+>>> dartbug.com/16384
+fish() => []..add(1)..add(2);
+<<<
+fish() => []
+    ..add(1)
+    ..add(2);
+>>>
+fish() => []..add(1);
+<<<
+fish() => []..add(1);

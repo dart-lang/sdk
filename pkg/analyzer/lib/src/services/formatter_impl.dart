@@ -476,7 +476,10 @@ class SourceVisitor implements ASTVisitor {
   visitCascadeExpression(CascadeExpression node) {
     visit(node.target);
     indent(2);
-    newlines();
+    // Single cascades do not force a linebreak (dartbug.com/16384)
+    if (node.cascadeSections.length > 1) {
+      newlines();
+    }
     visitNodes(node.cascadeSections, separatedBy: newlines);
     unindent(2);
   }
