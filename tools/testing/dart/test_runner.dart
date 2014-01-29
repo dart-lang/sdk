@@ -861,6 +861,8 @@ abstract class CommandOutput {
 
   int get exitCode;
 
+  int get pid;
+
   List<int> get stdout;
 
   List<int> get stderr;
