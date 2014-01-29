@@ -1192,11 +1192,14 @@ class ResolverTask extends CompilerTask {
           compiler.parser.measure(() => element.parseNode(compiler));
       return measure(() => SignatureResolver.analyze(
           compiler, node.parameters, node.returnType, element,
-          // TODO(johnniwinther): Use the [TreeElements] used for resolution of
-          // the method body.
-          new TreeElementMapping(element),
           defaultValuesError: defaultValuesError));
     });
+  }
+
+  FunctionSignature resolveFunctionExpression(Element element,
+                                              FunctionExpression node) {
+    return measure(() => SignatureResolver.analyze(
+      compiler, node.parameters, node.returnType, element));
   }
 
   TreeElements resolveTypedef(TypedefElementX element) {
@@ -3140,28 +3143,28 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   void analyzeConstant(Node node, {bool isConst: true}) {
     addDeferredAction(enclosingElement, () {
-      Constant constant = compiler.constantHandler.compileNodeWithDefinitions(
-          node, mapping, isConst: isConst);
+       Constant constant = compiler.constantHandler.compileNodeWithDefinitions(
+           node, mapping, isConst: isConst);
 
-      // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
-      // a class that will be instantiated outside the program by attaching a
-      // native class dispatch record referencing the interceptor.
-      if (argumentsToJsInterceptorConstant != null &&
-          argumentsToJsInterceptorConstant.contains(node)) {
-        if (constant.isType()) {
-          TypeConstant typeConstant = constant;
-          if (typeConstant.representedType is InterfaceType) {
-            world.registerInstantiatedType(typeConstant.representedType,
-                mapping);
-          } else {
-            compiler.reportError(node,
-                MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-          }
-        } else {
-          compiler.reportError(node,
-              MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-        }
-      }
+       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
+       // a class that will be instantiated outside the program by attaching a
+       // native class dispatch record referencing the interceptor.
+       if (argumentsToJsInterceptorConstant != null &&
+           argumentsToJsInterceptorConstant.contains(node)) {
+         if (constant.isType()) {
+           TypeConstant typeConstant = constant;
+           if (typeConstant.representedType is InterfaceType) {
+             world.registerInstantiatedType(typeConstant.representedType,
+                 mapping);
+           } else {
+             compiler.reportError(node,
+                 MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+           }
+         } else {
+           compiler.reportError(node,
+               MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+         }
+       }
     });
   }
 
@@ -3726,7 +3729,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     resolveTypeVariableBounds(node.typeParameters);
 
     FunctionSignature signature = SignatureResolver.analyze(
-        compiler, node.formals, node.returnType, element, mapping,
+        compiler, node.formals, node.returnType, element,
         defaultValuesError: MessageKind.TYPEDEF_FORMAL_WITH_DEFAULT);
     element.functionSignature = signature;
 

@@ -1189,19 +1189,18 @@ class FieldElementX extends VariableElementX implements FieldElement {
  * Parameters in constructors that directly initialize fields. For example:
  * [:A(this.field):].
  */
-class FieldParameterElementX extends ParameterElementX
+class FieldParameterElementX extends VariableElementX
     implements FieldParameterElement {
   VariableElement fieldElement;
 
   FieldParameterElementX(String name,
-                         Element enclosingElement,
-                         VariableDefinitions variables,
-                         Expression node,
-                         this.fieldElement)
-      : super(name, enclosingElement, ElementKind.FIELD_PARAMETER,
-          variables, node);
+                         this.fieldElement,
+                         VariableListElement variables,
+                         Node node)
+      : super(name, variables, ElementKind.FIELD_PARAMETER, node);
 
   DartType computeType(Compiler compiler) {
+    VariableDefinitions definitions = variables.parseNode(compiler);
     if (definitions.type == null) {
       return fieldElement.computeType(compiler);
     }
@@ -1220,7 +1219,12 @@ class VariableListElementX extends ElementX implements VariableListElement {
   DartType type;
   final Modifiers modifiers;
 
-  FunctionSignature get functionSignature => null;
+  /**
+   * Function signature for a variable with a function type. The signature is
+   * kept to provide full information about parameter names through the mirror
+   * system.
+   */
+  FunctionSignature functionSignature;
 
   VariableListElementX(ElementKind kind,
                        Modifiers this.modifiers,
@@ -1247,7 +1251,22 @@ class VariableListElementX extends ElementX implements VariableListElement {
       if (node.type != null) {
         type = compiler.resolveTypeAnnotation(this, node.type);
       } else {
-        type = compiler.types.dynamicType;
+        // Is node.definitions exactly one FunctionExpression?
+        Link<Node> link = node.definitions.nodes;
+        if (!link.isEmpty &&
+            link.head.asFunctionExpression() != null &&
+            link.tail.isEmpty) {
+          FunctionExpression functionExpression = link.head;
+          // We found exactly one FunctionExpression
+          functionSignature =
+              compiler.resolveFunctionExpression(this, functionExpression);
+          // TODO(johnniwinther): Use the parameter's [VariableElement] instead
+          // of [functionClass].
+          type = compiler.computeFunctionType(compiler.functionClass,
+                                              functionSignature);
+        } else {
+          type = compiler.types.dynamicType;
+        }
       }
     });
     assert(type != null);
@@ -1261,47 +1280,6 @@ class VariableListElementX extends ElementX implements VariableListElement {
   }
 
   accept(ElementVisitor visitor) => visitor.visitVariableListElement(this);
-}
-
-class ParameterElementX extends ElementX
-    implements VariableElement, VariableListElement {
-  VariableDefinitions definitions;
-  Expression cachedNode;
-  DartType type;
-
-  /**
-   * Function signature for a variable with a function type. The signature is
-   * kept to provide full information about parameter names through the mirror
-   * system.
-   */
-  FunctionSignature functionSignature;
-
-  ParameterElementX(String name,
-                    Element enclosingElement,
-                    ElementKind elementKind,
-                    VariableDefinitions definitions,
-                    Expression node)
-      : this.definitions = definitions,
-        this.cachedNode = node,
-        super(name, elementKind, enclosingElement);
-
-  VariableListElement get variables => this;
-
-  Modifiers get modifiers => definitions.modifiers;
-
-  Token position() => cachedNode.getBeginToken();
-
-  Node parseNode(DiagnosticListener listener) => cachedNode;
-
-  DartType computeType(Compiler compiler) {
-    assert(invariant(this, type != null,
-        message: "Parameter type has not been set for $this."));
-    return type;
-  }
-
-  FunctionType get functionType => type;
-
-  accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {

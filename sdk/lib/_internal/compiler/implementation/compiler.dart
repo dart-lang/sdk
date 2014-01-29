@@ -1313,6 +1313,12 @@ abstract class Compiler implements DiagnosticListener {
                               () => resolver.resolveSignature(element));
   }
 
+  FunctionSignature resolveFunctionExpression(Element element,
+                                              FunctionExpression node) {
+    return withCurrentElement(element,
+        () => resolver.resolveFunctionExpression(element, node));
+  }
+
   void resolveTypedef(TypedefElement element) {
     withCurrentElement(element,
                        () => resolver.resolve(element));

@@ -22,7 +22,6 @@ import '../elements/modelx.dart'
          LabelElementX,
          TargetElementX,
          MixinApplicationElementX,
-         ParameterElementX,
          TypeVariableElementX,
          TypedefElementX,
          SynthesizedConstructorElementX;

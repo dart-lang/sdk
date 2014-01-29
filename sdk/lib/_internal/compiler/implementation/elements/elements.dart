@@ -766,7 +766,6 @@ abstract class FieldParameterElement extends VariableElement {
   VariableElement get fieldElement;
 }
 
-// TODO(johnniwinther): Remove this interface.
 abstract class VariableListElement extends Element {
   DartType get type;
   FunctionSignature get functionSignature;

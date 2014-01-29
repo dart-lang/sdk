@@ -323,10 +323,10 @@ class MockCompiler extends Compiler {
     return library;
   }
 
-  void reportWarning(Spannable node, var message) {
+  void reportWarning(Node node, var message) {
     if (message is! Message) message = message.message;
     warnings.add(new WarningMessage(node, message));
-    reportDiagnostic(spanFromSpannable(node),
+    reportDiagnostic(spanFromNode(node),
         'Warning: $message', api.Diagnostic.WARNING);
   }
 
