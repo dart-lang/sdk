@@ -385,6 +385,29 @@ abstract class Zone {
   Zone get _errorZone;
 
   /**
+   * Call to enter the Zone.
+   *
+   * The previous current zone is returned.
+   */
+  static Zone _enter(Zone zone) {
+    assert(zone != null);
+    assert(!identical(zone, _current));
+    Zone previous = _current;
+    _current = zone;
+    return previous;
+  }
+
+  /**
+   * Call to leave the Zone.
+   *
+   * The previous Zone must be provided as `previous`.
+   */
+  static void _leave(Zone previous) {
+    assert(previous != null);
+    Zone._current = previous;
+  }
+
+  /**
    * Retrieves the zone-value associated with [key].
    *
    * If this zone does not contain the value looks up the same key in the
@@ -682,24 +705,22 @@ void _rootHandleUncaughtError(
 dynamic _rootRun(Zone self, ZoneDelegate parent, Zone zone, f()) {
   if (Zone._current == zone) return f();
 
-  Zone old = Zone._current;
+  Zone old = Zone._enter(zone);
   try {
-    Zone._current = zone;
     return f();
   } finally {
-    Zone._current = old;
+    Zone._leave(old);
   }
 }
 
 dynamic _rootRunUnary(Zone self, ZoneDelegate parent, Zone zone, f(arg), arg) {
   if (Zone._current == zone) return f(arg);
 
-  Zone old = Zone._current;
+  Zone old = Zone._enter(zone);
   try {
-    Zone._current = zone;
     return f(arg);
   } finally {
-    Zone._current = old;
+    Zone._leave(old);
   }
 }
 
@@ -707,12 +728,11 @@ dynamic _rootRunBinary(Zone self, ZoneDelegate parent, Zone zone,
                        f(arg1, arg2), arg1, arg2) {
   if (Zone._current == zone) return f(arg1, arg2);
 
-  Zone old = Zone._current;
+  Zone old = Zone._enter(zone);
   try {
-    Zone._current = zone;
     return f(arg1, arg2);
   } finally {
-    Zone._current = old;
+    Zone._leave(old);
   }
 }
 
