@@ -859,16 +859,28 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
                    positionalArguments);
   }
 
-  InstanceMirror _invoke(Symbol name,
-                         int type,
-                         String reflectiveName,
-                         List arguments) {
+  /// Grabs hold of the class-specific invocation cache for the reflectee.
+  /// All reflectees with the same class share the same cache. The cache
+  /// maps reflective names to cached invocation objects with enough decoded
+  /// reflective information to know how to to invoke a specific member.
+  get _classInvocationCache {
     String cacheName = Primitives.mirrorInvokeCacheName;
     var cache = JS('', r'#.constructor[#]', reflectee, cacheName);
     if (cache == null) {
       cache = JsCache.allocate();
       JS('void', r'#.constructor[#] = #', reflectee, cacheName, cache);
     }
+    return cache;
+  }
+
+  /// Invoke the member specified through name and type on the reflectee.
+  /// As a side-effect, this populates the class-specific invocation cache
+  /// for the reflectee.
+  InstanceMirror _invoke(Symbol name,
+                         int type,
+                         String reflectiveName,
+                         List arguments) {
+    var cache = _classInvocationCache;
     var cacheEntry = JsCache.fetch(cache, reflectiveName);
     var result;
     Invocation invocation;
@@ -913,9 +925,92 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     return reflect(arg);
   }
 
+  // JS helpers for getField optimizations.
+  static bool isUndefined(x)
+      => JS('bool', 'typeof # == "undefined"', x);
+  static bool isMissingProbe(Symbol symbol)
+      => JS('bool', 'typeof #.\$p == "undefined"', symbol);
+  static bool isNewFunctionAllowed()
+      => JS('bool', 'typeof dart_precompiled != "function"');
+
+
+  /// The getter cache is specific to this [InstanceMirror]
+  /// and maps reflective names to functions that will invoke
+  /// the corresponding getter on the reflectee. The reflectee
+  /// is passed to the function as the first argument to avoid
+  /// the overhead of fetching it from this mirror repeatedly.
+  /// The cache is lazily initialized to a JS object so we can
+  /// benefit from "map transitions" in the underlying JavaScript
+  /// engine to speed up cache probing.
+  var _getterCache;
+
   InstanceMirror getField(Symbol fieldName) {
-    String reflectiveName = n(fieldName);
-    return _invoke(fieldName, JSInvocationMirror.GETTER, reflectiveName, []);
+    // BUG(16400): This should be a labelled block, but that makes
+    // dart2js crash when merging locals information in the type
+    // inferencing implementation.
+    do {
+      var cache = _getterCache;
+      if (cache == null || isMissingProbe(fieldName)) break;
+      // If the [fieldName] has an associated probe function, we can use
+      // it to read from the getter cache specific to this [InstanceMirror].
+      var getter = JS('', '#.\$p(#)', fieldName, cache);
+      if (isUndefined(getter)) break;
+      // Call the getter passing the reflectee as the first argument.
+      var value = JS('', '#(#)', getter, reflectee);
+      // The getter has an associate cache of the last [InstanceMirror]
+      // returned to avoid repeated invocations of [reflect]. To validate
+      // the cache, we check that the value returned by the getter is the
+      // same value as last time.
+      if (JS('bool', '# === #.v', value, getter)) {
+        return JS('InstanceMirror', '#.m', getter);
+      } else {
+        var result = reflect(value);
+        JS('void', '#.v = #', getter, value);
+        JS('void', '#.m = #', getter, result);
+        return result;
+      }
+    } while (false);
+    return _getFieldSlow(fieldName);
+  }
+
+  InstanceMirror _getFieldSlow(Symbol fieldName) {
+    // First do the slow-case getter invocation. As a side-effect of this,
+    // the invocation cache is filled in so we can query it afterwards.
+    String name = n(fieldName);
+    var result = _invoke(fieldName, JSInvocationMirror.GETTER, name, const []);
+    var cacheEntry = JsCache.fetch(_classInvocationCache, name);
+    if (cacheEntry.isNoSuchMethod || cacheEntry.isIntercepted) {
+      return result;
+    }
+
+    // Make sure we have a getter cache in this [InstanceMirror].
+    var cache = _getterCache;
+    if (cache == null) {
+      cache = _getterCache = JS('=Object', 'Object.create(null)');
+    }
+
+    // Make sure that symbol [fieldName] has a cache probing function ($p).
+    if (isMissingProbe(fieldName)) {
+      var probe = isNewFunctionAllowed()
+          ? JS('', 'new Function("c", "return c." + # + ";")', name)
+          : JS('', 'function (c) { return c[#]; }', name);
+      JS('void', '#.\$p = #', fieldName, probe);
+    }
+
+    // Create a new getter function and install it in the cache.
+    var mangledName = cacheEntry.mangledName;
+    var getter = isNewFunctionAllowed()
+          ? JS('', 'new Function("o", "return o." + # + "();")', mangledName)
+          : JS('', 'function(o) { return o[#](); }', mangledName);
+    JS('void', '#[#] = #', cache, name, getter);
+
+    // Initialize the last value (v) and last mirror (m) on the
+    // newly generated getter to be a sentinel value that is hard
+    // to get hold of through user code.
+    JS('void', '#.v = #.m = #', getter, getter, cache);
+
+    // Return the result of the slow-path getter invocation.
+    return result;
   }
 
   delegate(Invocation invocation) {

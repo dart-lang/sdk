@@ -206,9 +206,10 @@ class JSInvocationMirror implements Invocation {
         throwInvalidReflectionError(_symbol_dev.Symbol.getName(memberName));
       }
       if (isCatchAll) {
-        return new CachedCatchAllInvocation(method, isIntercepted, interceptor);
+        return new CachedCatchAllInvocation(
+            name, method, isIntercepted, interceptor);
       } else {
-        return new CachedInvocation(method, isIntercepted, interceptor);
+        return new CachedInvocation(name, method, isIntercepted, interceptor);
       }
     } else {
       // In this case, receiver doesn't implement name.  So we should
@@ -234,6 +235,9 @@ class JSInvocationMirror implements Invocation {
 }
 
 class CachedInvocation {
+  // The mangled name of this invocation.
+  String mangledName;
+
   /// The JS function to call.
   var jsFunction;
 
@@ -244,7 +248,10 @@ class CachedInvocation {
   /// [Interceptor].
   Interceptor cachedInterceptor;
 
-  CachedInvocation(this.jsFunction, this.isIntercepted, this.cachedInterceptor);
+  CachedInvocation(this.mangledName,
+                   this.jsFunction,
+                   this.isIntercepted,
+                   this.cachedInterceptor);
 
   bool get isNoSuchMethod => false;
 
@@ -265,25 +272,35 @@ class CachedInvocation {
 class CachedCatchAllInvocation extends CachedInvocation {
   final ReflectionInfo info;
 
-  CachedCatchAllInvocation(jsFunction,
+  CachedCatchAllInvocation(String name,
+                           jsFunction,
                            bool isIntercepted,
                            Interceptor cachedInterceptor)
       : info = new ReflectionInfo(jsFunction),
-        super(jsFunction, isIntercepted, cachedInterceptor);
+        super(name, jsFunction, isIntercepted, cachedInterceptor);
 
   invokeOn(Object victim, List arguments) {
     var receiver = victim;
     int providedArgumentCount;
+    int fullParameterCount =
+        info.requiredParameterCount + info.optionalParameterCount;
     if (!isIntercepted) {
-      if (arguments is! JSArray) arguments = new List.from(arguments);
-      providedArgumentCount = arguments.length;
+      if (arguments is JSArray) {
+        providedArgumentCount = arguments.length;
+        // If we need to add extra arguments before calling, we have
+        // to copy the arguments array.
+        if (providedArgumentCount < fullParameterCount) {
+          arguments = new List.from(arguments);
+        }
+      } else {
+        arguments = new List.from(arguments);
+        providedArgumentCount = arguments.length;
+      }
     } else {
       arguments = [victim]..addAll(arguments);
       if (cachedInterceptor != null) receiver = cachedInterceptor;
       providedArgumentCount = arguments.length - 1;
     }
-    int fullParameterCount =
-        info.requiredParameterCount + info.optionalParameterCount;
     if (info.areOptionalParametersNamed &&
         (providedArgumentCount > info.requiredParameterCount)) {
       throw new UnimplementedNoSuchMethodError(
