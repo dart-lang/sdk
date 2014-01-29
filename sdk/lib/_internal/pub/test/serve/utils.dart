@@ -106,7 +106,7 @@ ScheduledProcess startPubServe([Iterable<String> args]) {
 
   // Dart2js can take a long time to compile dart code, so we increase the
   // timeout to cope with that.
-  currentSchedule.timeout = new Duration(seconds: 15);
+  currentSchedule.timeout *= 1.5;
 
   return startPub(args: pubArgs);
 }
