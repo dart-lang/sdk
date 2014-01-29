@@ -998,7 +998,38 @@ main() => new C();"""]);
       "Error: Part header must come before top-level definitions.");
 
   static const MessageKind LIBRARY_NAME_MISMATCH = const MessageKind(
-      "Warning: Expected part of library name '#{libraryName}'.");
+      "Warning: Expected part of library name '#{libraryName}'.",
+      howToFix: "Trying changing the directive to 'part of #{libraryName};'.",
+      examples: const [const {
+'main.dart': """
+library lib.foo;
+
+part 'part.dart';
+
+main() {}
+""",
+
+'part.dart': """
+part of lib.bar;
+"""}]);
+
+  static const MessageKind MISSING_LIBRARY_NAME = const MessageKind(
+      "Warning: Library has no name. Part directive expected library name "
+      "to be '#{libraryName}'.",
+      howToFix: "Trying adding 'library #{libraryName};' to the library.",
+      examples: const [const {
+'main.dart': """
+part 'part.dart';
+
+main() {}
+""",
+
+'part.dart': """
+part of lib.foo;
+"""}]);
+
+  static const MessageKind THIS_IS_THE_PART_OF_TAG = const MessageKind(
+      "Info: This is the part of directive.");
 
   static const MessageKind MISSING_PART_OF_TAG = const MessageKind(
       "Error: This file has no part-of tag, but it is being used as a part.");

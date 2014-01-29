@@ -625,16 +625,20 @@ class CompilationUnitElementX extends ElementX
     }
     partTag = tag;
     LibraryName libraryTag = getLibrary().libraryTag;
+    String actualName = tag.name.toString();
     if (libraryTag != null) {
-      String actualName = tag.name.toString();
       String expectedName = libraryTag.name.toString();
       if (expectedName != actualName) {
-        listener.reportMessage(
-            listener.spanFromSpannable(tag.name),
-            MessageKind.LIBRARY_NAME_MISMATCH.error(
-                {'libraryName': expectedName}),
-            api.Diagnostic.WARNING);
+        listener.reportWarningCode(tag.name,
+            MessageKind.LIBRARY_NAME_MISMATCH,
+            {'libraryName': expectedName});
       }
+    } else {
+      listener.reportWarningCode(getLibrary(),
+          MessageKind.MISSING_LIBRARY_NAME,
+          {'libraryName': actualName});
+      listener.reportInfo(tag.name,
+          MessageKind.THIS_IS_THE_PART_OF_TAG);
     }
   }
 
