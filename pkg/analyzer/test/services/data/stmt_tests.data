@@ -60,3 +60,11 @@ fish() => []
 fish() => []..add(1);
 <<<
 fish() => []..add(1);
+>>> dartbug.com/16382
+var m = { };
+<<<
+var m = {};
+>>>
+var m = {};
+<<<
+var m = {};

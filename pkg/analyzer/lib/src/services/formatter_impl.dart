@@ -1002,12 +1002,14 @@ class SourceVisitor implements ASTVisitor {
     modifier(node.constKeyword);
     visitNode(node.typeArguments, followedBy: space);
     token(node.leftBracket);
-    newlines();
-    indent();
-    visitCommaSeparatedNodes(node.entries, followedBy: newlines);
-    optionalTrailingComma(node.rightBracket);
-    unindent();
-    newlines();
+    if (!node.entries.isEmpty) {
+      newlines();
+      indent();
+      visitCommaSeparatedNodes(node.entries, followedBy: newlines);
+      optionalTrailingComma(node.rightBracket);
+      unindent();
+      newlines();
+    }
     token(node.rightBracket);
   }
 
