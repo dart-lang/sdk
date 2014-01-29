@@ -174,6 +174,8 @@ class ActivationFrame : public ZoneAllocated {
   RawContext* GetSavedEntryContext();
   RawContext* GetSavedCurrentContext();
 
+  void PrintToJSONObject(JSONObject* jsobj);
+
  private:
   intptr_t PcDescIndex();
   intptr_t TryIndex();

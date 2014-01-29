@@ -21,21 +21,6 @@
 
 namespace dart {
 
-class IsolateStartData {
- public:
-  IsolateStartData(char* library_url,
-                   char* class_name,
-                   intptr_t port_id)
-      : library_url_(library_url),
-        class_name_(class_name),
-        port_id_(port_id) {}
-
-  char* library_url_;
-  char* class_name_;
-  intptr_t port_id_;
-};
-
-
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
@@ -204,7 +189,7 @@ static RawObject* Spawn(NativeArguments* arguments, IsolateSpawnState* state) {
 
   // Start the new isolate if it is already marked as runnable.
   MutexLocker ml(state->isolate()->mutex());
-  state->isolate()->set_spawn_data(reinterpret_cast<uword>(state));
+  state->isolate()->set_spawn_state(state);
   if (state->isolate()->is_runnable()) {
     state->isolate()->Run();
   }

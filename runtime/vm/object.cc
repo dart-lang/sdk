@@ -5994,8 +5994,8 @@ const char* Function::ToCString() const {
 
 
 void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  const char* internal_function_name = String::Handle(name()).ToCString();
-  const char* function_name =
+  const char* internal_name = String::Handle(name()).ToCString();
+  const char* user_name =
       String::Handle(QualifiedUserVisibleName()).ToCString();
   Class& cls = Class::Handle(Owner());
   ASSERT(!cls.IsNull());
@@ -6022,8 +6022,8 @@ void Function::PrintToJSONStream(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
-  jsobj.AddProperty("name", internal_function_name);
-  jsobj.AddProperty("user_name", function_name);
+  jsobj.AddProperty("name", internal_name);
+  jsobj.AddProperty("user_name", user_name);
   if (ref) return;
   jsobj.AddProperty("is_static", is_static());
   jsobj.AddProperty("is_const", is_const());
@@ -11856,7 +11856,9 @@ const char* Instance::ToCString() const {
 
 
 const char* Instance::ToUserCString(intptr_t max_len, intptr_t nesting) const {
-  if (raw() == Object::sentinel().raw()) {
+  if (IsNull()) {
+    return "null";
+  } else if (raw() == Object::sentinel().raw()) {
     return "<not initialized>";
   } else if (raw() == Object::transition_sentinel().raw()) {
     return "<being initialized>";
@@ -11867,22 +11869,31 @@ const char* Instance::ToUserCString(intptr_t max_len, intptr_t nesting) const {
 
 
 void Instance::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-  intptr_t id = ring->GetIdForObject(raw());
-
   JSONObject jsobj(stream);
-  jsobj.AddProperty("type", JSONType(ref));
-  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-
   Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("class", cls);
+  jsobj.AddProperty("preview", ToUserCString(40));
 
-  // Set the "preview" property for this instance.
+  // TODO(turnidge): Handle <optimized out> like other null-like values.
   if (IsNull()) {
-    jsobj.AddProperty("preview", "null");
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/null");
+    return;
+  } else if (raw() == Object::sentinel().raw()) {
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/not-initialized");
+    return;
+  } else if (raw() == Object::transition_sentinel().raw()) {
+    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("id", "objects/being-initialized");
+    return;
   } else {
-    jsobj.AddProperty("preview", ToUserCString(40));
+    ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+    intptr_t id = ring->GetIdForObject(raw());
+    jsobj.AddProperty("type", JSONType(ref));
+    jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+    jsobj.AddProperty("class", cls);
   }
+
   if (ref) {
     return;
   }
@@ -13898,7 +13909,12 @@ const char* Smi::ToCString() const {
 
 
 void Smi::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Number::PrintToJSONStream(stream, ref);
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/int/%" Pd "", Value());
+  class Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+  jsobj.AddPropertyF("preview", "%" Pd "", Value());
 }
 
 
@@ -15926,7 +15942,13 @@ const char* Bool::ToCString() const {
 
 
 void Bool::PrintToJSONStream(JSONStream* stream, bool ref) const {
-  Instance::PrintToJSONStream(stream, ref);
+  const char* str = ToCString();
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  jsobj.AddPropertyF("id", "objects/bool/%s", str);
+  class Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+  jsobj.AddPropertyF("preview", "%s", str);
 }
 
 
@@ -16265,8 +16287,7 @@ const char* GrowableObjectArray::ToUserCString(intptr_t max_len,
       break;
     }
     obj = At(i);
-    if (!obj.IsInstance()) {
-      // Bail.
+    if (!obj.IsNull() && !obj.IsInstance()) {
       UNREACHABLE();
       return "[<invalid list>]";
     }

@@ -35,6 +35,7 @@ class Heap;
 class ICData;
 class Instance;
 class IsolateProfilerData;
+class IsolateSpawnState;
 class LongJumpScope;
 class MessageHandler;
 class Mutex;
@@ -237,8 +238,8 @@ class Isolate : public BaseIsolate {
   bool is_runnable() const { return is_runnable_; }
   void set_is_runnable(bool value) { is_runnable_ = value; }
 
-  uword spawn_data() const { return spawn_data_; }
-  void set_spawn_data(uword value) { spawn_data_ = value; }
+  IsolateSpawnState* spawn_state() const { return spawn_state_; }
+  void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
   static const intptr_t kNoDeoptId = -1;
   static const intptr_t kDeoptIdStep = 2;
@@ -378,8 +379,6 @@ class Isolate : public BaseIsolate {
     deopt_context_ = value;
   }
 
-  static char* GetStatus(const char* request);
-
   intptr_t BlockClassFinalization() {
     ASSERT(defer_finalization_count_ >= 0);
     return defer_finalization_count_++;
@@ -407,18 +406,14 @@ class Isolate : public BaseIsolate {
     return profiler_data_;
   }
 
+  void PrintToJSONStream(JSONStream* stream);
+
  private:
   Isolate();
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
 
-  static bool FetchStacktrace();
-  static bool FetchStackFrameDetails();
-  char* GetStatusDetails();
-  char* GetStatusStacktrace();
-  char* GetStatusStackFrame(intptr_t index);
-  char* DoStacktraceInterrupt(Dart_IsolateInterruptCallback cb);
   template<class T> T* AllocateReusableHandle();
 
   static ThreadLocalKey isolate_key;
@@ -450,7 +445,7 @@ class Isolate : public BaseIsolate {
   uword stack_limit_;
   uword saved_stack_limit_;
   MessageHandler* message_handler_;
-  uword spawn_data_;
+  IsolateSpawnState* spawn_state_;
   bool is_runnable_;
   GcPrologueCallbacks gc_prologue_callbacks_;
   GcEpilogueCallbacks gc_epilogue_callbacks_;

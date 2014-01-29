@@ -696,6 +696,36 @@ const char* ActivationFrame::ToCString() {
 }
 
 
+void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
+  intptr_t line = LineNumber();
+  const Script& script = Script::Handle(SourceScript());
+
+  jsobj->AddProperty("script", script);
+  jsobj->AddProperty("line", line);
+  jsobj->AddProperty("col", ColumnNumber());
+  jsobj->AddProperty("function", function());
+  jsobj->AddProperty("code", code());
+
+  // TODO(turnidge): Consider dropping lineString from the frame.
+  String& line_string = String::Handle(script.GetLine(line));
+  jsobj->AddProperty("lineString", line_string.ToCString());
+  {
+    JSONArray jsvars(jsobj, "vars");
+    const int num_vars = NumLocalVariables();
+    for (intptr_t v = 0; v < num_vars; v++) {
+      JSONObject jsvar(&jsvars);
+      String& var_name = String::Handle();
+      Instance& var_value = Instance::Handle();
+      intptr_t unused;
+      VariableAt(v, &var_name, &unused, &unused, &var_value);
+      jsvar.AddProperty("name", var_name.ToCString());
+      jsvar.AddProperty("value", var_value);
+    }
+  }
+}
+
+
+
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
   if (frame->function().is_visible()) {
     trace_.Add(frame);

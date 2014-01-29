@@ -88,6 +88,103 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
+TEST_CASE(Service_Isolate) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+
+  // Get the isolate summary.
+  service_msg = Eval(lib, "[port, [], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+
+  JSONReader reader(handler.msg());
+
+  const int kBufferSize = 128;
+  char buffer[kBufferSize];
+
+  // Check that the response string is somewhat sane.
+
+  // type
+  EXPECT(reader.Seek("type"));
+  EXPECT_EQ(reader.Type(), JSONReader::kString);
+  reader.GetDecodedValueChars(buffer, kBufferSize);
+  EXPECT_STREQ("Isolate", buffer);
+
+  // id
+  EXPECT(reader.Seek("id"));
+  EXPECT_EQ(reader.Type(), JSONReader::kString);
+  reader.GetDecodedValueChars(buffer, kBufferSize);
+  EXPECT_SUBSTRING("isolates/", buffer);
+
+  // heap
+  EXPECT(reader.Seek("heap"));
+  EXPECT_EQ(reader.Type(), JSONReader::kObject);
+
+  // timers
+  EXPECT(reader.Seek("timers"));
+  EXPECT_EQ(reader.Type(), JSONReader::kArray);
+}
+
+
+TEST_CASE(Service_StackTrace) {
+  // TODO(turnidge): Extend this test to cover a non-trivial stack trace.
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "main() {\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port =
+      Api::NewHandle(isolate, DartLibraryCalls::NewSendPort(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Instance& service_msg = Instance::Handle();
+
+  // Get the stacktrace.
+  service_msg = Eval(lib, "[port, ['stacktrace'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ(
+      "{\"type\":\"StackTrace\",\"members\":[]}",
+      handler.msg());
+
+  // Malformed request.
+  service_msg = Eval(lib, "[port, ['stacktrace', 'jamboree'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ(
+      "{\"type\":\"Error\",\"text\":\"Command too long\","
+      "\"message\":{\"arguments\":[\"stacktrace\",\"jamboree\"],"
+      "\"option_keys\":[],\"option_values\":[]}}",
+      handler.msg());
+}
+
+
 TEST_CASE(Service_DebugBreakpoints) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -465,7 +562,7 @@ TEST_CASE(Service_Cpu) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
       "\n"
-      "main() {\n"   // We set breakpoint here.
+      "main() {\n"
       "}";
 
   Isolate* isolate = Isolate::Current();

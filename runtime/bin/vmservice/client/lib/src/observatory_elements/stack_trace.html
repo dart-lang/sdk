@@ -1,29 +1,24 @@
 <head>
-  <link rel="import" href="function_ref.html">
   <link rel="import" href="observatory_element.html">
-  <link rel="import" href="script_ref.html">
+  <link rel="import" href="stack_frame.html">
 </head>
 <polymer-element name="stack-trace" extends="observatory-element">
   <template>
-  <div class="alert alert-info">Stack Trace</div>
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th>Depth</th>
-        <th>Function</th>
-        <th>Script</th>
-        <th>Line</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr template repeat="{{ frame in trace['members'] }}">
-        <td></td>
-        <td><function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref></td>
-        <td><script-ref app="{{ app }}" ref="{{ frame['script'] }}"></script-ref></td>
-        <td>{{ frame['line'] }}</td>
-      </tr>
-    </tbody>
-  </table>
+    <template if="{{ trace['members'].isEmpty }}">
+      <div class="col-md-1"></div>
+      <div class="col-md-11">
+        <em>No stack</em>
+      </div>
+    </template>
+    <template if="{{ trace['members'].isNotEmpty }}">
+      <ul class="list-group">
+        <template repeat="{{ frame in trace['members'] }}">
+          <li class="list-group-item">
+            <stack-frame app="{{ app }}" frame="{{ frame }}"></stack-frame>
+          </li>
+        </template>
+      </ul>
+    </template>
   </template>
   <script type="application/dart" src="stack_trace.dart"></script>
 </polymer-element>

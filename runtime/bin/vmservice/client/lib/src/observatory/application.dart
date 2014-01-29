@@ -15,6 +15,7 @@ class ObservatoryApplication extends Observable {
     locationManager._application = this;
     requestManager._application = this;
     isolateManager._application = this;
+    Isolate._application = this;
     requestManager.interceptor = isolateManager._responseInterceptor;
     locationManager.init();
   }

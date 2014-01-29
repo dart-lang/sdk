@@ -11,70 +11,64 @@
 
 namespace dart {
 
+class JSONObject;
+
 // Timer class allows timing of specific operations in the VM.
 class Timer : public ValueObject {
  public:
-  Timer(bool enabled, const char* message)
+  Timer(bool report, const char* message)
       : start_(0), stop_(0), total_(0),
-        enabled_(enabled), running_(false), message_(message) {}
+        report_(report), running_(false), message_(message) {}
   ~Timer() {}
 
   // Start timer.
   void Start() {
-    if (enabled_) {
-      start_ = OS::GetCurrentTimeMicros();
-      running_ = true;
-    }
+    start_ = OS::GetCurrentTimeMicros();
+    running_ = true;
   }
 
   // Stop timer.
   void Stop() {
-    if (enabled_) {
-      ASSERT(start_ != 0);
-      ASSERT(running());
-      stop_ = OS::GetCurrentTimeMicros();
-      total_ += ElapsedMicros();
-      running_ = false;
-    }
+    ASSERT(start_ != 0);
+    ASSERT(running());
+    stop_ = OS::GetCurrentTimeMicros();
+    total_ += ElapsedMicros();
+    running_ = false;
   }
 
   // Get total cummulative elapsed time in micros.
   int64_t TotalElapsedTime() const {
-    if (enabled_) {
-      int64_t result = total_;
-      return result;
+    int64_t result = total_;
+    if (running_) {
+      int64_t now = OS::GetCurrentTimeMicros();
+      result += (now - start_);
     }
-    return 0;
+    return result;
   }
 
   void Reset() {
-    if (enabled_) {
-      start_ = 0;
-      stop_ = 0;
-      total_ = 0;
-      running_ = false;
-    }
+    start_ = 0;
+    stop_ = 0;
+    total_ = 0;
+    running_ = false;
   }
 
   // Accessors.
-  bool enabled() const { return enabled_; }
+  bool report() const { return report_; }
   bool running() const { return running_; }
   const char* message() const { return message_; }
 
  private:
   int64_t ElapsedMicros() const {
-    if (enabled_) {
-      ASSERT(start_ != 0);
-      ASSERT(stop_ != 0);
-      return stop_ - start_;
-    }
-    return 0;
+    ASSERT(start_ != 0);
+    ASSERT(stop_ != 0);
+    return stop_ - start_;
   }
 
   int64_t start_;
   int64_t stop_;
   int64_t total_;
-  bool enabled_;
+  bool report_;
   bool running_;
   const char* message_;
 
@@ -83,19 +77,13 @@ class Timer : public ValueObject {
 
 // List of per isolate timers.
 #define TIMER_LIST(V)                                                          \
-  V(time_script_loading, "Script Loading : ")                                  \
-  V(time_creating_snapshot, "Snapshot Creation : ")                            \
-  V(time_isolate_initialization, "Isolate initialization : ")                  \
-  V(time_compilation, "Function compilation : ")                               \
-  V(time_bootstrap, "Bootstrap of core classes : ")                            \
-  V(time_total_runtime, "Total runtime for isolate : ")                        \
-
-// Declare command line flags for the timers.
-#define DECLARE_TIMER_FLAG(name, msg)                                          \
-  DECLARE_FLAG(bool, name);
-TIMER_LIST(DECLARE_TIMER_FLAG)
-#undef DECLARE_TIMER_FLAG
-DECLARE_FLAG(bool, time_all);  // In order to turn on all the timer flags.
+  V(time_script_loading, "Script Loading")                                     \
+  V(time_creating_snapshot, "Snapshot Creation")                               \
+  V(time_isolate_initialization, "Isolate initialization")                     \
+  V(time_compilation, "Function compilation")                                  \
+  V(time_bootstrap, "Bootstrap of core classes")                               \
+  V(time_dart_execution, "Dart execution")                                     \
+  V(time_total_runtime, "Total runtime for isolate")                           \
 
 // Maintains a list of timers per isolate.
 class TimerList : public ValueObject {
@@ -111,6 +99,8 @@ class TimerList : public ValueObject {
 
   void ReportTimers();
 
+  void PrintTimersToJSONProperty(JSONObject* jsobj);
+
  private:
 #define TIMER_FIELD(name, msg) Timer name##_;
   TIMER_LIST(TIMER_FIELD)
@@ -121,14 +111,10 @@ class TimerList : public ValueObject {
 
 // Timer Usage.
 #define START_TIMER(name)                                                      \
-  if (FLAG_##name || FLAG_time_all) {                                          \
-    Isolate::Current()->timer_list().name().Start();                           \
-  }
-#define STOP_TIMER(name)                                                       \
-  if (FLAG_##name || FLAG_time_all) {                                          \
-    Isolate::Current()->timer_list().name().Stop();                            \
-  }
+  Isolate::Current()->timer_list().name().Start();
 
+#define STOP_TIMER(name)                                                       \
+  Isolate::Current()->timer_list().name().Stop();
 
 // The class TimerScope is used to start and stop a timer within a scope.
 // It is used as follows:
@@ -167,7 +153,7 @@ class TimerScope : public StackResource {
 };
 
 #define TIMERSCOPE(name)                                                       \
-  TimerScope vm_internal_timer_((FLAG_##name || FLAG_time_all),                \
+  TimerScope vm_internal_timer_(true,                                          \
                                 &(Isolate::Current()->timer_list().name()))
 
 }  // namespace dart

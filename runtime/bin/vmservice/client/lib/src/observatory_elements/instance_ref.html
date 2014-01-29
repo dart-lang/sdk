@@ -6,10 +6,13 @@
 <template>
 <div>
   <template if="{{ (ref['type'] == 'null') }}">
-    {{ "null" }}
+    unexpected null
   </template>
-  <template if="{{ (ref['type'] != 'null') }}">
-  <a href="{{ url }}">{{ name }} </a>
+  <template if="{{ (ref['type'] == '@Null') }}">
+    {{ name }}
+  </template>
+  <template if="{{ (ref['type'] != 'null') && ref['type'] != '@Null' }}">
+    <a href="{{ url }}">{{ name }} </a>
   </template>
  </div>
 </template>

@@ -104,6 +104,9 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
   StartIsolateScope start_scope(isolate_);
   StackZone zone(isolate_);
   HandleScope handle_scope(isolate_);
+  // TODO(turnidge): Rework collection total dart execution.  This can
+  // overcount when other things (gc, compilation) are active.
+  TIMERSCOPE(time_dart_execution);
 
   // If the message is in band we lookup the receive port to dispatch to.  If
   // the receive port is closed, we drop the message without deserializing it.
@@ -300,7 +303,7 @@ Isolate::Isolate()
       stack_limit_(0),
       saved_stack_limit_(0),
       message_handler_(NULL),
-      spawn_data_(0),
+      spawn_state_(NULL),
       is_runnable_(false),
       gc_prologue_callbacks_(),
       gc_epilogue_callbacks_(),
@@ -336,6 +339,7 @@ Isolate::~Isolate() {
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
   delete object_histogram_;
+  delete spawn_state_;
 }
 
 void Isolate::SetCurrent(Isolate* current) {
@@ -498,7 +502,7 @@ bool Isolate::MakeRunnable() {
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
   is_runnable_ = true;
-  IsolateSpawnState* state = reinterpret_cast<IsolateSpawnState*>(spawn_data());
+  IsolateSpawnState* state = spawn_state();
   if (state != NULL) {
     ASSERT(this == state->isolate());
     Run();
@@ -518,9 +522,9 @@ static bool RunIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
   IsolateSpawnState* state = NULL;
   {
+    // TODO(turnidge): Is this locking required here at all anymore?
     MutexLocker ml(isolate->mutex());
-    state = reinterpret_cast<IsolateSpawnState*>(isolate->spawn_data());
-    isolate->set_spawn_data(0);
+    state = isolate->spawn_state();
   }
   {
     StartIsolateScope start_scope(isolate);
@@ -540,8 +544,6 @@ static bool RunIsolate(uword parameter) {
     Object& result = Object::Handle();
     result = state->ResolveFunction();
     bool is_spawn_uri = state->is_spawn_uri();
-    delete state;
-    state = NULL;
     if (result.IsError()) {
       StoreError(isolate, result);
       return false;
@@ -820,199 +822,48 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
 }
 
 
-static Monitor* status_sync = NULL;
-
-
-bool Isolate::FetchStacktrace() {
-  Isolate* isolate = Isolate::Current();
-  MonitorLocker ml(status_sync);
-  DebuggerStackTrace* stack = Debugger::CollectStackTrace();
-  TextBuffer buffer(256);
-  buffer.Printf("{ \"handle\": \"0x%" Px64 "\", \"stacktrace\": [ ",
-                reinterpret_cast<int64_t>(isolate));
-  intptr_t n_frames = stack->Length();
-  String& url = String::Handle();
-  String& function = String::Handle();
-  for (int i = 0; i < n_frames; i++) {
-    if (i > 0) {
-      buffer.Printf(", ");
-    }
-    ActivationFrame* frame = stack->FrameAt(i);
-    url ^= frame->SourceUrl();
-    function ^= frame->function().UserVisibleName();
-    buffer.Printf("{ \"url\": \"%s\", ", url.ToCString());
-    buffer.Printf("\"line\": %" Pd ", ", frame->LineNumber());
-    buffer.Printf("\"function\": \"%s\", ", function.ToCString());
-
-    const Code& code = frame->code();
-    buffer.Printf("\"code\": { ");
-    buffer.Printf("\"alive\": %s, ", code.is_alive() ? "false" : "true");
-    buffer.Printf("\"optimized\": %s }}",
-        code.is_optimized() ? "false" : "true");
-  }
-  buffer.Printf("]}");
-  isolate->stacktrace_ = OS::StrNDup(buffer.buf(), buffer.length());
-  ml.Notify();
-  return true;
-}
-
-
-bool Isolate::FetchStackFrameDetails() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->stack_frame_index_ >= 0);
-  MonitorLocker ml(status_sync);
-  DebuggerStackTrace* stack = Debugger::CollectStackTrace();
-  intptr_t frame_index = isolate->stack_frame_index_;
-  if (frame_index >= stack->Length()) {
-    // Frame no longer available.
-    return false;
-  }
-  ActivationFrame* frame = stack->FrameAt(frame_index);
-  TextBuffer buffer(256);
-  buffer.Printf("{ \"handle\": \"0x%" Px64 "\", \"frame_index\": %" Pd ", ",
-       reinterpret_cast<int64_t>(isolate), frame_index);
-
-  const Code& code = frame->code();
-  buffer.Printf("\"code\": { \"size\": %" Pd ", ", code.Size());
-  buffer.Printf("\"alive\": %s, ", code.is_alive() ? "false" : "true");
-  buffer.Printf("\"optimized\": %s }, ",
-      code.is_optimized() ? "false" : "true");
-  // TODO(tball): add compilation stats (time, etc.), when available.
-
-  buffer.Printf("\"local_vars\": [ ");
-  intptr_t n_local_vars = frame->NumLocalVariables();
-  String& var_name = String::Handle();
-  Instance& value = Instance::Handle();
-  for (int i = 0; i < n_local_vars; i++) {
-    if (i > 0) {
-      buffer.Printf(", ");
-    }
-    intptr_t token_pos, end_pos;
-    frame->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
-    buffer.Printf(
-        "{ \"name\": \"%s\", \"pos\": %" Pd ", \"end_pos\": %" Pd ", "
-        "\"value\": \"%s\" }",
-        var_name.ToCString(), token_pos, end_pos, value.ToCString());
-  }
-  buffer.Printf("]}");
-  isolate->stacktrace_ = OS::StrNDup(buffer.buf(), buffer.length());
-  ml.Notify();
-  return true;
-}
-
-
-char* Isolate::DoStacktraceInterrupt(Dart_IsolateInterruptCallback cb) {
-  ASSERT(stacktrace_ == NULL);
-  SetVmStatsCallback(cb);
-  if (status_sync == NULL) {
-    status_sync = new Monitor();
-  }
-  if (is_runnable()) {
-    ScheduleInterrupts(Isolate::kVmStatusInterrupt);
-    {
-      MonitorLocker ml(status_sync);
-      if (stacktrace_ == NULL) {  // It may already be available.
-        ml.Wait(1000);
-      }
-    }
-    SetVmStatsCallback(NULL);
-  }
-  char* result = stacktrace_;
-  stacktrace_ = NULL;
-  if (result == NULL) {
-    // Return empty stack.
-    TextBuffer buffer(256);
-    buffer.Printf("{ \"handle\": \"0x%" Px64 "\", \"stacktrace\": []}",
-                  reinterpret_cast<int64_t>(this));
-
-    result = OS::StrNDup(buffer.buf(), buffer.length());
-  }
-  ASSERT(result != NULL);
-  // result is freed by VmStats::WebServer().
-  return result;
-}
-
-
-char* Isolate::GetStatusStacktrace() {
-  return DoStacktraceInterrupt(&FetchStacktrace);
-}
-
-char* Isolate::GetStatusStackFrame(intptr_t index) {
-  ASSERT(index >= 0);
-  stack_frame_index_ = index;
-  char* result = DoStacktraceInterrupt(&FetchStackFrameDetails);
-  stack_frame_index_ = -1;
-  return result;
-}
-
-
-// Returns the isolate's general detail information.
-char* Isolate::GetStatusDetails() {
-  const char* format = "{\n"
-      "  \"handle\": \"0x%" Px64 "\",\n"
-      "  \"name\": \"%s\",\n"
-      "  \"port\": %" Pd ",\n"
-      "  \"starttime\": %" Pd ",\n"
-      "  \"stacklimit\": %" Pd ",\n"
-      "  \"newspace\": {\n"
-      "    \"used\": %" Pd ",\n"
-      "    \"capacity\": %" Pd "\n"
-      "  },\n"
-      "  \"oldspace\": {\n"
-      "    \"used\": %" Pd ",\n"
-      "    \"capacity\": %" Pd "\n"
-      "  }\n"
-      "}";
-  char buffer[300];
-  int64_t address = reinterpret_cast<int64_t>(this);
-  int n = OS::SNPrint(buffer, 300, format, address, name(), main_port(),
-                      start_time() / 1000L, saved_stack_limit(),
-                      RoundWordsToKB(heap()->UsedInWords(Heap::kNew)),
-                      RoundWordsToKB(heap()->CapacityInWords(Heap::kNew)),
-                      RoundWordsToKB(heap()->UsedInWords(Heap::kOld)),
-                      RoundWordsToKB(heap()->CapacityInWords(Heap::kOld)));
-  ASSERT(n < 300);
-  return strdup(buffer);
-}
-
-
-char* Isolate::GetStatus(const char* request) {
-  char* p = const_cast<char*>(request);
-  const char* service_type = "/isolate/";
-  ASSERT(!strncmp(p, service_type, strlen(service_type)));
-  p += strlen(service_type);
-
-  // Extract isolate handle.
-  int64_t addr;
-  OS::StringToInt64(p, &addr);
-  // TODO(tball): add validity check when issue 9600 is fixed.
-  Isolate* isolate = reinterpret_cast<Isolate*>(addr);
-  p += strcspn(p, "/");
-
-  // Query "/isolate/<handle>".
-  if (strlen(p) == 0) {
-    return isolate->GetStatusDetails();
-  }
-
-  // Query "/isolate/<handle>/stacktrace"
-  if (!strcmp(p, "/stacktrace")) {
-    return isolate->GetStatusStacktrace();
-  }
-
-  // Query "/isolate/<handle>/stacktrace/<frame-index>"
-  const char* stacktrace_query = "/stacktrace/";
-  int64_t frame_index = -1;
-  if (!strncmp(p, stacktrace_query, strlen(stacktrace_query))) {
-    p += strlen(stacktrace_query);
-    OS::StringToInt64(p, &frame_index);
-    if (frame_index >= 0) {
-      return isolate->GetStatusStackFrame(frame_index);
+void Isolate::PrintToJSONStream(JSONStream* stream) {
+  fprintf(stderr, "Printing isolate %" Pd "\n",
+                     static_cast<intptr_t>(main_port()));
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "Isolate");
+  jsobj.AddPropertyF("id", "isolates/%" Pd "",
+                     static_cast<intptr_t>(main_port()));
+  jsobj.AddPropertyF("name", "%" Pd "",
+                     static_cast<intptr_t>(main_port()));
+  IsolateSpawnState* state = spawn_state();
+  if (state != NULL) {
+    const Object& entry = Object::Handle(this, state->ResolveFunction());
+    if (!entry.IsNull() && entry.IsFunction()) {
+      Function& func = Function::Handle(this);
+      func ^= entry.raw();
+      jsobj.AddProperty("entry", func);
     }
   }
+  {
+    JSONObject jsheap(&jsobj, "heap");
+    jsheap.AddProperty("usedNew", heap()->UsedInWords(Heap::kNew));
+    jsheap.AddProperty("capacityNew", heap()->CapacityInWords(Heap::kNew));
+    jsheap.AddProperty("usedOld", heap()->UsedInWords(Heap::kOld));
+    jsheap.AddProperty("capacityOld", heap()->CapacityInWords(Heap::kOld));
+  }
 
-  // TODO(tball): "/isolate/<handle>/stacktrace/<frame-index>"/disassemble"
+  DebuggerStackTrace* stack = debugger()->StackTrace();
+  if (stack->Length() > 0) {
+    JSONObject jsframe(&jsobj, "topFrame");
 
-  return NULL;  // Unimplemented query.
+    ActivationFrame* frame = stack->FrameAt(0);
+    frame->PrintToJSONObject(&jsobj);
+    // TODO(turnidge): Implement depth differently -- differentiate
+    // inlined frames.
+    jsobj.AddProperty("depth", (intptr_t)0);
+  }
+
+  const Library& lib =
+      Library::Handle(object_store()->root_library());
+  jsobj.AddProperty("rootLib", lib);
+
+  timer_list().PrintTimersToJSONProperty(&jsobj);
 }
 
 

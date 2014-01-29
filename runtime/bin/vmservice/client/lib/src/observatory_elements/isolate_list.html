@@ -3,16 +3,15 @@
 </head>
 <polymer-element name="isolate-list" extends="observatory-element">
   <template>
+      <button type="button" on-click="{{refresh}}">Refresh</button>
       <ul class="list-group">
       <template repeat="{{ isolate in app.isolateManager.isolates.values }}">
       	<li class="list-group-item">
-        <isolate-summary app="{{ app }}" isolate="{{ isolate.id }}"
-        				 name="{{ isolate.name }}"></isolate-summary>
+        <isolate-summary app="{{ app }}" isolate="{{ isolate }}"></isolate-summary>
         </li>
       </template>
       </ul>
       (<a href="{{ app.locationManager.absoluteLink('cpu') }}">cpu</a>)
-      
   </template>
   <script type="application/dart" src="isolate_list.dart"></script>
 </polymer-element>

@@ -24,8 +24,7 @@ class IsolateListTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(1);
-    tester.checkIsolateNameContains('field_script.dart');
-    _isolateId = tester.checkIsolateNameContains('field_script');
+    _isolateId = tester.getIsolateId(0);
   }
 }
 

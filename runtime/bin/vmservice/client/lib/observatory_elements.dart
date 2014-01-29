@@ -27,4 +27,5 @@ export 'package:observatory/src/observatory_elements/response_viewer.dart';
 export 'package:observatory/src/observatory_elements/script_ref.dart';
 export 'package:observatory/src/observatory_elements/script_view.dart';
 export 'package:observatory/src/observatory_elements/service_ref.dart';
+export 'package:observatory/src/observatory_elements/stack_frame.dart';
 export 'package:observatory/src/observatory_elements/stack_trace.dart';

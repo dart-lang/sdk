@@ -196,30 +196,8 @@ class IsolateListTester {
     Expect.isTrue(exists, 'No isolate with id: $id');
   }
 
-  String checkIsolateNameContains(String name) {
-    var exists = false;
-    String id;
-    isolateList['members'].forEach((isolate) {
-      if (isolate['name'].contains(name)) {
-        exists = true;
-        id = isolate['id'];
-      }
-    });
-    Expect.isTrue(exists, 'No isolate with name: $name');
-    return id;
-  }
-
-  void checkIsolateNamePrefix(String id, String name) {
-    var exists = false;
-    isolateList['members'].forEach((isolate) {
-      if (isolate['id'] == id) {
-        exists = true;
-        Expect.isTrue(isolate['name'].startsWith(name),
-                      'Isolate $id does not have name prefix: $name'
-                      ' (was ${isolate['name']})');
-      }
-    });
-    Expect.isTrue(exists, 'No isolate with id: $id');
+  String getIsolateId(int index) {
+    return isolateList['members'][index]['id'];
   }
 }
 
