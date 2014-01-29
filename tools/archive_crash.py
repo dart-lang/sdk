@@ -14,6 +14,7 @@ import shutil
 import sys
 import subprocess
 import tarfile
+import utils
 import uuid
 
 GCS_FOLDER = 'dart-crashes'
@@ -33,6 +34,9 @@ def CopyToGCS(filename):
   print 'Dump now available in %s' % (archived_filename) 
 
 def Main():
+  if utils.GuessOS() != 'linux':
+    print 'Currently only archiving crash dumps on linux'
+    return 0
   print 'Looking for crash dumps'
   num_dumps = 0
   for v in os.listdir('/tmp'):

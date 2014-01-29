@@ -626,11 +626,6 @@ Note: currently only implemented for dart2js.''',
             "--use-public-packages");
     }
 
-    if (config['copy_coredumps'] && Platform.operatingSystem != 'linux') {
-      isValid = false;
-      print("Coredump copying is not yet available on non linux systems");
-    }
-
     return isValid;
   }
 
