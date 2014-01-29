@@ -713,25 +713,29 @@ class ResolverTask extends CompilerTask {
   // 'TypeDeclarationResolver'.
   _resolveTypeDeclaration(TypeDeclarationElement element,
                           resolveTypeDeclaration()) {
-    TypeDeclarationElement previousResolvedTypeDeclaration =
-        currentlyResolvedTypeDeclaration;
-    currentlyResolvedTypeDeclaration = element;
-    var result = resolveTypeDeclaration();
-    if (previousResolvedTypeDeclaration == null) {
-      do {
-        while (!pendingClassesToBeResolved.isEmpty) {
-          pendingClassesToBeResolved.removeFirst().ensureResolved(compiler);
+    return compiler.withCurrentElement(element, () {
+      return measure(() {
+        TypeDeclarationElement previousResolvedTypeDeclaration =
+            currentlyResolvedTypeDeclaration;
+        currentlyResolvedTypeDeclaration = element;
+        var result = resolveTypeDeclaration();
+        if (previousResolvedTypeDeclaration == null) {
+          do {
+            while (!pendingClassesToBeResolved.isEmpty) {
+              pendingClassesToBeResolved.removeFirst().ensureResolved(compiler);
+            }
+            while (!pendingClassesToBePostProcessed.isEmpty) {
+              _postProcessClassElement(
+                  pendingClassesToBePostProcessed.removeFirst());
+            }
+          } while (!pendingClassesToBeResolved.isEmpty);
+          assert(pendingClassesToBeResolved.isEmpty);
+          assert(pendingClassesToBePostProcessed.isEmpty);
         }
-        while (!pendingClassesToBePostProcessed.isEmpty) {
-          _postProcessClassElement(
-              pendingClassesToBePostProcessed.removeFirst());
-        }
-      } while (!pendingClassesToBeResolved.isEmpty);
-      assert(pendingClassesToBeResolved.isEmpty);
-      assert(pendingClassesToBePostProcessed.isEmpty);
-    }
-    currentlyResolvedTypeDeclaration = previousResolvedTypeDeclaration;
-    return result;
+        currentlyResolvedTypeDeclaration = previousResolvedTypeDeclaration;
+        return result;
+      });
+    });
   }
 
   /**
@@ -823,6 +827,10 @@ class ResolverTask extends CompilerTask {
       }
     });
 
+    computeClassMembers(element);
+  }
+
+  void computeClassMembers(ClassElement element) {
     MembersCreator.computeClassMembers(compiler, element);
   }
 

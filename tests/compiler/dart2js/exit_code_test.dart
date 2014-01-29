@@ -17,6 +17,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2js.dart' as entr
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart' as apiimpl;
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/resolution/resolution.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/scanner/scannerlib.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 
@@ -38,12 +39,23 @@ class TestCompiler extends apiimpl.Compiler {
       : super(inputProvider, outputProvider, handler, libraryRoot,
               packageRoot, options, environment) {
     scanner = new TestScanner(this);
+    resolver = new TestResolver(this);
     test('Compiler');
   }
 
   Future<bool> run(Uri uri) {
     test('Compiler.run');
     return super.run(uri);
+  }
+
+  Future scanBuiltinLibraries() {
+    test('Compiler.scanBuiltinLibraries');
+    return super.scanBuiltinLibraries();
+  }
+
+  void initializeSpecialClasses() {
+    test('Compiler.initializeSpecialClasses');
+    super.initializeSpecialClasses();
   }
 
   TreeElements analyzeElement(Element element) {
@@ -109,6 +121,17 @@ class TestScanner extends ScannerTask {
   void scanElements(CompilationUnitElement compilationUnit) {
     compiler.test('ScannerTask.scanElements');
     super.scanElements(compilationUnit);
+  }
+}
+
+class TestResolver extends ResolverTask {
+  TestResolver(TestCompiler compiler) : super(compiler);
+
+  TestCompiler get compiler => super.compiler;
+
+  void computeClassMembers(ClassElement element) {
+    compiler.test('ResolverTask.computeClassMembers');
+    super.computeClassMembers(element);
   }
 }
 
@@ -219,17 +242,25 @@ void main() {
   const tests = const {
     'Compiler': beforeRun,
     'Compiler.run': beforeRun,
+    'Compiler.scanBuiltinLibraries': beforeRun,
+    'Compiler.initializeSpecialClasses': beforeRun,
     'ScannerTask.scanElements': duringRun,
     'Compiler.withCurrentElement': duringRun,
     'Compiler.analyzeElement': duringRun,
     'Compiler.codegen': duringRun,
+    'ResolverTask.computeClassMembers': duringRun,
   };
 
   asyncStart();
   Future.forEach(tests.keys, (marker) {
     return testExitCodes(marker, tests[marker]);
   }).then((_) {
-    Expect.equals(beforeRun.length * 2 + duringRun.length * 4,
+    int countResults(Map runType) {
+      return runType.length *
+             tests.values.where((r) => r == runType).length;
+    }
+
+    Expect.equals(countResults(beforeRun) + countResults(duringRun),
                   checkedResults);
     asyncEnd();
   });
