@@ -128,7 +128,7 @@ main() {
             (dep) => dep.isImport).targetLibrary;
           var aClassMirror = importedLib.classes.values.first;
           expect(aClassMirror.qualifiedName, 'testLib2.foo.B');
-          var exportedClass = getDocgenObject(aClassMirror, library);
+          var exportedClass = Indexable.getDocgenObject(aClassMirror, library);
           expect(exportedClass is Class, isTrue);
 
 
@@ -156,7 +156,7 @@ main() {
             'testLib.bar').targetLibrary;
           aClassMirror = importedLib.classes.values.first;
           expect(aClassMirror.qualifiedName, 'testLib.bar.C');
-          exportedClass = getDocgenObject(aClassMirror, library);
+          exportedClass = Indexable.getDocgenObject(aClassMirror, library);
           expect(exportedClass is Class, isTrue);
           expect(exportedClass.docName, 'testLib.C');
 

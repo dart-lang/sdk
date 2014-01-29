@@ -86,16 +86,14 @@ Check out these pages:
   * [Tutorials](http://www.dartlang.org/docs/tutorials/)
   * [Programmer's Guide](http://www.dartlang.org/docs/)
   * [Samples](http://www.dartlang.org/samples/)
-  * [A Tour of the Dart Libraries](http://www.dartlang.org/docs/dart-up-and-runn
-ing/contents/ch03.html)
+  * [A Tour of the Dart Libraries](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html)
 
 This API reference is automatically generated from the source code in the
 [Dart project](https://code.google.com/p/dart/).
 If you'd like to contribute to this documentation, see
 [Contributing](https://code.google.com/p/dart/wiki/Contributing)
 and
-[Writing API Documentation](https://code.google.com/p/dart/wiki/WritingApiDocume
-ntation).
+[Writing API Documentation](https://code.google.com/p/dart/wiki/WritingApiDocumentation).
 """;
 
 // TODO(efortuna): The use of this field is odd (this is based on how it was
@@ -103,125 +101,6 @@ ntation).
 /// Index of all indexable items. This also ensures that no class is
 /// created more than once.
 Map<String, Indexable> entityMap = new Map<String, Indexable>();
-
-/// Index of all the dart2js mirrors examined to corresponding MirrorBased
-/// docgen objects.
-///
-/// Used for lookup because of the dart2js mirrors exports
-/// issue. The second level map is indexed by owner docName for faster lookup.
-/// Why two levels of lookup? Speed, man. Speed.
-Map<String, Map<String, Set<MirrorBased>>> mirrorToDocgen =
-    new Map<String, Map<String, Set<MirrorBased>>>();
-
-/// Given a Dart2jsMirror, find the corresponding Docgen [MirrorBased] object.
-///
-/// We have this global lookup function to avoid re-implementing looking up the
-/// scoping rules for comment resolution here (it is currently done in mirrors).
-/// If no corresponding MirrorBased object is found, we return a [DummyMirror]
-/// that simply returns the original mirror's qualifiedName while behaving like
-/// a MirrorBased object.
-MirrorBased getDocgenObject(DeclarationMirror mirror, [Indexable owner]) {
-  Map<String, Set<MirrorBased>> docgenObj =
-      mirrorToDocgen[mirror.qualifiedName];
-  if (docgenObj == null) {
-    return new DummyMirror(mirror, owner);
-  }
-
-  Set<MirrorBased> results = new Set<MirrorBased>();
-  var setToExamine = new Set();
-  if (owner != null) {
-    var firstSet = docgenObj[owner.docName];
-    if (firstSet != null) setToExamine.addAll(firstSet);
-    if (Indexable._coreLibrary != null &&
-        docgenObj[Indexable._coreLibrary.docName] != null) {
-      setToExamine.addAll(docgenObj[Indexable._coreLibrary.docName]);
-    }
-  } else {
-    for (var value in docgenObj.values) {
-      setToExamine.addAll(value);
-    }
-  }
-
-  for(MirrorBased mirrorBased in setToExamine) {
-    // This check makes me sad, but Dart doesn't seem to be dynamic enough to
-    // write this another way. Dart2js and the editor didn't like the Type
-    // lookup in a map.
-    if (mirrorBased.mirror.qualifiedName == mirror.qualifiedName &&
-        ((mirror is ClassMirror && mirrorBased is Class)
-        || (mirror is LibraryMirror && mirrorBased is Library)
-        || (mirror is MethodMirror && mirrorBased is Method)
-        || (mirror is VariableMirror && mirrorBased is Variable)
-        || (mirror is TypedefMirror && mirrorBased is Typedef)
-        || (mirror is TypeMirror && mirrorBased is Type)
-        || (mirror is InstanceMirror && mirrorBased is Annotation))) {
-      results.add(mirrorBased);
-    }
-  }
-
-  if (results.length > 0) {
-    return results.first; // This might occur if we didn't specify an "owner."
-  }
-  return new DummyMirror(mirror, owner);
-}
-
-/// For types that we do not explicitly create or have not yet created in our
-/// entity map (like core types).
-class DummyMirror implements MirrorBased {
-  DeclarationMirror mirror;
-  /// The library that contains this element, if any. Used as a hint to help
-  /// determine which object we're referring to when looking up this mirror in
-  /// our map.
-  Indexable owner;
-  DummyMirror(this.mirror, [this.owner]);
-
-  String get docName {
-    if (mirror == null) return '';
-    if (mirror is LibraryMirror) {
-      return mirror.qualifiedName.replaceAll('.','-');
-    }
-    var mirrorOwner = mirror.owner;
-    if (mirrorOwner == null) return mirror.qualifiedName;
-    var simpleName = mirror.simpleName;
-    if (mirror is MethodMirror && (mirror as MethodMirror).isConstructor) {
-      // We name constructors specially -- including the class name again and a
-      // "-" to separate the constructor from its name (if any).
-      simpleName = '${mirrorOwner.simpleName}-$simpleName';
-    }
-    return getDocgenObject(mirrorOwner, owner).docName + '.' + simpleName;
-  }
-  List<Annotation> _createAnnotations(DeclarationMirror mirror,
-      Library owningLibrary) => null;
-
-  bool get isPrivate => mirror == null? false : mirror.isPrivate;
-}
-
-abstract class MirrorBased {
-  DeclarationMirror get mirror;
-  MirrorBased owner;
-
-  /// Returns this object's qualified name, but following the conventions
-  /// we're using in Dartdoc, which is that library names with dots in them
-  /// have them replaced with hyphens.
-  String get docName => owner.docName + '.' + mirror.simpleName;
-
-  /// Returns a list of meta annotations assocated with a mirror.
-  List<Annotation> _createAnnotations(DeclarationMirror mirror,
-      Library owningLibrary) {
-    var annotationMirrors = mirror.metadata.where((e) =>
-        e is dart2js.Dart2JsConstructedConstantMirror);
-    var annotations = [];
-    annotationMirrors.forEach((annotation) {
-      var docgenAnnotation = new Annotation(annotation, owningLibrary);
-      if (!_SKIPPED_ANNOTATIONS.contains(
-          docgenAnnotation.mirror.qualifiedName)) {
-        annotations.add(docgenAnnotation);
-      }
-    });
-    return annotations;
-  }
-
-  bool get isPrivate => false;
-}
 
 /// Docgen constructor initializes the link resolver for markdown parsing.
 /// Also initializes the command line arguments.
@@ -251,13 +130,82 @@ Future<bool> docgen(List<String> files, {String packageRoot,
 Future<MirrorSystem> getMirrorSystem(List<Uri> libraries,
     {String packageRoot, bool parseSdk: false}) {
   if (libraries.isEmpty) throw new StateError('No Libraries.');
-  // Finds the root of SDK library based off the location of docgen.
 
+  // Finds the root of SDK library based off the location of docgen.
   var root = _Generator._rootDirectory;
   var sdkRoot = path.normalize(path.absolute(path.join(root, 'sdk')));
   _Generator.logger.info('SDK Root: ${sdkRoot}');
   return _Generator._analyzeLibraries(libraries, sdkRoot,
       packageRoot: packageRoot);
+}
+
+/// For types that we do not explicitly create or have not yet created in our
+/// entity map (like core types).
+class DummyMirror implements Indexable {
+  DeclarationMirror mirror;
+  /// The library that contains this element, if any. Used as a hint to help
+  /// determine which object we're referring to when looking up this mirror in
+  /// our map.
+  Indexable owner;
+  DummyMirror(this.mirror, [this.owner]);
+
+  String get docName {
+    if (mirror == null) return '';
+    if (mirror is LibraryMirror) {
+      return mirror.qualifiedName.replaceAll('.','-');
+    }
+    var mirrorOwner = mirror.owner;
+    if (mirrorOwner == null) return mirror.qualifiedName;
+    var simpleName = mirror.simpleName;
+    if (mirror is MethodMirror && (mirror as MethodMirror).isConstructor) {
+      // We name constructors specially -- repeating the class name and a
+      // "-" to separate the constructor from its name (if any).
+      simpleName = '${mirrorOwner.simpleName}-$simpleName';
+    }
+    return Indexable.getDocgenObject(mirrorOwner, owner).docName + '.' +
+        simpleName;
+  }
+
+  bool get isPrivate => mirror == null? false : mirror.isPrivate;
+
+  String get packageName {
+    var libMirror = _getOwningLibraryFromMirror(mirror);
+    if (libMirror != null) {
+      return Library._packageName(libMirror);
+    }
+    return '';
+  }
+
+  String get packagePrefix => packageName == null || packageName.isEmpty ?
+      '' : '$packageName/';
+
+  LibraryMirror _getOwningLibraryFromMirror(DeclarationMirror mirror) {
+    if (mirror is LibraryMirror) return mirror;
+    if (mirror == null) return null;
+    return _getOwningLibraryFromMirror(mirror.owner);
+  }
+}
+
+/// Docgen representation of an item to be documented, that wraps around a
+/// dart2js mirror.
+abstract class MirrorBased {
+  DeclarationMirror get mirror;
+
+  /// Returns a list of meta annotations assocated with a mirror.
+  List<Annotation> _createAnnotations(DeclarationMirror mirror,
+      Library owningLibrary) {
+    var annotationMirrors = mirror.metadata.where((e) =>
+        e is dart2js.Dart2JsConstructedConstantMirror);
+    var annotations = [];
+    annotationMirrors.forEach((annotation) {
+      var docgenAnnotation = new Annotation(annotation, owningLibrary);
+      if (!_SKIPPED_ANNOTATIONS.contains(
+          docgenAnnotation.mirror.qualifiedName)) {
+        annotations.add(docgenAnnotation);
+      }
+    });
+    return annotations;
+  }
 }
 
 class _Generator {
@@ -332,7 +280,7 @@ class _Generator {
       });
   }
 
-  /// Writes text to a file in the output directory.
+  /// Writes [text] to a file in the output directory.
   static void _writeToFile(String text, String filename, {bool append: false}) {
     if (text == null) return;
     Directory dir = new Directory(_outputDirectory);
@@ -622,8 +570,9 @@ class _Generator {
     return sdk;
   }
 
-  static bool _isFullChainVisible(MirrorBased item) {
-    // TODO: reconcile with isVisible
+  static bool _isFullChainVisible(Indexable item) {
+    // TODO: reconcile with isVisible.
+    // TODO: Also should be able to take MirrorBased items in general probably.
     var result = _includePrivate || (!item.isPrivate && (item.owner != null ?
         _isFullChainVisible(item.owner) : true));
     return result;
@@ -648,7 +597,7 @@ class _Generator {
 /// the user to be able to search for a method based on its parameter names!
 /// The set of indexable items also includes Typedefs, since the user can refer
 /// to them as concrete entities in a particular scope.
-class Indexable extends MirrorBased {
+abstract class Indexable extends MirrorBased {
   /// The dart:core library, which contains all types that are always available
   /// without import.
   static Library _coreLibrary;
@@ -670,24 +619,31 @@ class Indexable extends MirrorBased {
   /// Map of all the comments for dom elements from MDN.
   static Map _mdn;
 
+  /// Index of all the dart2js mirrors examined to corresponding MirrorBased
+  /// docgen objects.
+  ///
+  /// Used for lookup because of the dart2js mirrors exports
+  /// issue. The second level map is indexed by owner docName for faster lookup.
+  /// Why two levels of lookup? Speed, man. Speed.
+  static Map<String, Map<String, Set<Indexable>>> _mirrorToDocgen =
+      new Map<String, Map<String, Set<Indexable>>>();
+
   Indexable(this.mirror) {
     this.isPrivate = _isHidden(mirror);
 
-    var map = mirrorToDocgen[this.mirror.qualifiedName];
-    if (map == null) map = new Map<String, Set<MirrorBased>>();
+    var map = _mirrorToDocgen[this.mirror.qualifiedName];
+    if (map == null) map = new Map<String, Set<Indexable>>();
 
     var set = map[owner.docName];
-    if (set == null) set = new Set<MirrorBased>();
+    if (set == null) set = new Set<Indexable>();
     set.add(this);
     map[owner.docName] = set;
-    mirrorToDocgen[this.mirror.qualifiedName] = map;
+    _mirrorToDocgen[this.mirror.qualifiedName] = map;
   }
 
   /** Walk up the owner chain to find the owning library. */
   Library _getOwningLibrary(Indexable indexable) {
     if (indexable is Library) return indexable;
-    // TODO: is this needed?
-    if (indexable is DummyMirror) return getDocgenObject(indexable.mirror.library);
     return _getOwningLibrary(indexable.owner);
   }
 
@@ -697,6 +653,11 @@ class Indexable extends MirrorBased {
     _coreLibrary = new Library(_sdkLibraries.singleWhere((lib) =>
         lib.uri.toString().startsWith('dart:core')));
   }
+
+  /// Returns this object's qualified name, but following the conventions
+  /// we're using in Dartdoc, which is that library names with dots in them
+  /// have them replaced with hyphens.
+  String get docName;
 
   markdown.Node fixReferenceWithScope(String name) => null;
 
@@ -747,7 +708,7 @@ class Indexable extends MirrorBased {
 
   String get name => mirror.simpleName;
 
-  MirrorBased get owner => new DummyMirror(mirror.owner);
+  Indexable get owner => new DummyMirror(mirror.owner);
 
   /// Generates MDN comments from database.json.
   String _mdnComment() {
@@ -1084,6 +1045,52 @@ class Indexable extends MirrorBased {
   }
 
   bool get _isVisible => _Generator._includePrivate || !isPrivate;
+
+  /// Given a Dart2jsMirror, find the corresponding Docgen [MirrorBased] object.
+  ///
+  /// We have this global lookup function to avoid re-implementing looking up
+  /// the scoping rules for comment resolution here (it is currently done in
+  /// mirrors). If no corresponding MirrorBased object is found, we return a
+  /// [DummyMirror] that simply returns the original mirror's qualifiedName
+  /// while behaving like a MirrorBased object.
+  static Indexable getDocgenObject(DeclarationMirror mirror,
+    [Indexable owner]) {
+    Map<String, Set<Indexable>> docgenObj =
+        _mirrorToDocgen[mirror.qualifiedName];
+    if (docgenObj == null) {
+      return new DummyMirror(mirror, owner);
+    }
+
+    var setToExamine = new Set();
+    if (owner != null) {
+      var firstSet = docgenObj[owner.docName];
+      if (firstSet != null) setToExamine.addAll(firstSet);
+      if (_coreLibrary != null &&
+          docgenObj[_coreLibrary.docName] != null) {
+        setToExamine.addAll(docgenObj[_coreLibrary.docName]);
+      }
+    } else {
+      for (var value in docgenObj.values) {
+        setToExamine.addAll(value);
+      }
+    }
+
+    Set<Indexable> results = new Set<Indexable>();
+    for(Indexable indexable in setToExamine) {
+      if (indexable.mirror.qualifiedName == mirror.qualifiedName &&
+          indexable._isValidMirror(mirror)) {
+        results.add(indexable);
+      }
+    }
+
+    if (results.length > 0) {
+      // This might occur if we didn't specify an "owner."
+      return results.first;
+    }
+    return new DummyMirror(mirror, owner);
+  }
+
+  bool _isValidMirror(DeclarationMirror mirror);
 }
 
 /// A class containing contents of a Dart library.
@@ -1106,7 +1113,7 @@ class Library extends Indexable {
   /// Returns the [Library] for the given [mirror] if it has already been
   /// created, else creates it.
   factory Library(LibraryMirror mirror) {
-    var library = getDocgenObject(mirror);
+    var library = Indexable.getDocgenObject(mirror);
     if (library is DummyMirror) {
       library = new Library._(mirror);
     }
@@ -1126,10 +1133,9 @@ class Library extends Indexable {
           // but we don't have visibility to that type.
           var mirror = classMirror;
           if (_Generator._includePrivate || !mirror.isPrivate) {
-            entityMap[getDocgenObject(mirror).docName] =
-                new Typedef(mirror, this);
-            typedefs[mirror.simpleName] =
-                entityMap[getDocgenObject(mirror).docName];
+            var aTypedef = new Typedef(mirror, this);
+            entityMap[Indexable.getDocgenObject(mirror).docName] = aTypedef;
+            typedefs[mirror.simpleName] = aTypedef;
           }
         } else {
           var clazz = new Class(classMirror, this);
@@ -1156,7 +1162,7 @@ class Library extends Indexable {
     var lookupFunc = Indexable.determineLookupFunc(name);
     var libraryScope = lookupFunc(mirror, name);
     if (libraryScope != null) {
-      var result = getDocgenObject(libraryScope, this);
+      var result = Indexable.getDocgenObject(libraryScope, this);
       if (result is DummyMirror) return packagePrefix + result.docName;
       return result.packagePrefix + result.docName;
     }
@@ -1172,15 +1178,12 @@ class Library extends Indexable {
     if (hasBeenCheckedForPackage) return packageName;
     hasBeenCheckedForPackage = true;
     if (mirror.uri.scheme != 'file') return '';
-    var filePath = mirror.uri.toFilePath();
     // We assume that we are documenting only libraries under package/lib
-    var rootdir = path.dirname((path.dirname(filePath)));
-    var pubspec = path.join(rootdir, 'pubspec.yaml');
-    packageName = _packageName(pubspec);
+    packageName = _packageName(mirror);
     // Associate the package readme with all the libraries. This is a bit
     // wasteful, but easier than trying to figure out which partial match
     // is best.
-    packageIntro = _packageIntro(rootdir);
+    packageIntro = _packageIntro(_getRootdir(mirror));
     return packageName;
   }
 
@@ -1201,8 +1204,16 @@ class Library extends Indexable {
     return contents;
   }
 
+  /// Given a LibraryMirror that is a library, return the name of the directory
+  /// holding that library.
+  static String _getRootdir(LibraryMirror mirror) =>
+      path.dirname(path.dirname(mirror.uri.toFilePath()));
+
   /// Read a pubspec and return the library name.
-  String _packageName(String pubspecName) {
+  static String _packageName(LibraryMirror mirror) {
+    if (mirror.uri.scheme != 'file') return '';
+    var rootdir = _getRootdir(mirror);
+    var pubspecName = path.join(rootdir, 'pubspec.yaml');
     File pubspec = new File(pubspecName);
     if (!pubspec.existsSync()) return '';
     var contents = pubspec.readAsStringSync();
@@ -1314,10 +1325,23 @@ class Library extends Indexable {
   };
 
   String get typeName => 'library';
+
+  bool _isValidMirror(DeclarationMirror mirror) => mirror is LibraryMirror;
+}
+
+abstract class OwnedIndexable extends Indexable {
+  Indexable owner;
+
+  /// Returns this object's qualified name, but following the conventions
+  /// we're using in Dartdoc, which is that library names with dots in them
+  /// have them replaced with hyphens.
+  String get docName => owner.docName + '.' + mirror.simpleName;
+
+  OwnedIndexable(DeclarationMirror mirror, this.owner) : super(mirror);
 }
 
 /// A class containing contents of a Dart class.
-class Class extends Indexable implements Comparable {
+class Class extends OwnedIndexable implements Comparable {
 
   /// List of the names of interfaces that this class implements.
   List<Class> interfaces = [];
@@ -1348,12 +1372,10 @@ class Class extends Indexable implements Comparable {
   /// Make sure that we don't check for inherited comments more than once.
   bool _commentsEnsured = false;
 
-  Indexable owner;
-
   /// Returns the [Class] for the given [mirror] if it has already been created,
   /// else creates it.
   factory Class(ClassMirror mirror, Library owner) {
-    var clazz = getDocgenObject(mirror, owner);
+    var clazz = Indexable.getDocgenObject(mirror, owner);
     if (clazz is DummyMirror) {
       clazz = new Class._(mirror, owner);
       entityMap[clazz.docName] = clazz;
@@ -1368,7 +1390,7 @@ class Class extends Indexable implements Comparable {
   factory Class._possiblyDifferentOwner(ClassMirror mirror,
       Library originalOwner) {
     if (mirror.owner is LibraryMirror) {
-      var realOwner = getDocgenObject(mirror.owner);
+      var realOwner = Indexable.getDocgenObject(mirror.owner);
       if (realOwner is Library) {
         return new Class(mirror, realOwner);
       } else {
@@ -1379,7 +1401,8 @@ class Class extends Indexable implements Comparable {
     }
   }
 
-  Class._(ClassMirror classMirror, this.owner) : super(classMirror) {
+  Class._(ClassMirror classMirror, Indexable owner) :
+      super(classMirror, owner) {
     inheritedVariables = {};
 
     // The reason we do this madness is the superclass and interface owners may
@@ -1417,7 +1440,7 @@ class Class extends Indexable implements Comparable {
     while (classScope != null) {
       var classFunc = lookupFunc(classScope.mirror, name);
       if (classFunc != null) {
-        return packagePrefix + getDocgenObject(classFunc, owner).docName;
+        return packagePrefix + Indexable.getDocgenObject(classFunc, owner).docName;
       }
       classScope = classScope.superclass;
     }
@@ -1462,12 +1485,12 @@ class Class extends Indexable implements Comparable {
    */
   void addInheritedMethod(Class parent, Class newParent) {
     parent.inheritedMethods.forEach((name, method) {
-      if(!method.isConstructor){
+      if(!method.mirror.isConstructor){
         inheritedMethods[name] = new Method(method.mirror, newParent, method);
       }}
     );
     _allButStatics(parent.methods).forEach((name, method) {
-      if (!method.isConstructor) {
+      if (!method.mirror.isConstructor) {
         inheritedMethods[name] = new Method(method.mirror, newParent, method);
       }}
     );
@@ -1561,9 +1584,11 @@ class Class extends Indexable implements Comparable {
   };
 
   int compareTo(aClass) => name.compareTo(aClass.name);
+
+  bool _isValidMirror(DeclarationMirror mirror) => mirror is ClassMirror;
 }
 
-class Typedef extends Indexable {
+class Typedef extends OwnedIndexable {
   String returnType;
 
   Map<String, Parameter> parameters;
@@ -1577,16 +1602,16 @@ class Typedef extends Indexable {
   /// Returns the [Library] for the given [mirror] if it has already been
   /// created, else creates it.
   factory Typedef(TypedefMirror mirror, Library owningLibrary) {
-    var aTypedef = getDocgenObject(mirror, owningLibrary);
+    var aTypedef = Indexable.getDocgenObject(mirror, owningLibrary);
     if (aTypedef is DummyMirror) {
       aTypedef = new Typedef._(mirror, owningLibrary);
     }
     return aTypedef;
   }
 
-  Typedef._(TypedefMirror mirror, Library owningLibrary) : super(mirror) {
-    owner = owningLibrary;
-    returnType = getDocgenObject(mirror.value.returnType).docName;
+  Typedef._(TypedefMirror mirror, Library owningLibrary) :
+      super(mirror, owningLibrary) {
+    returnType = Indexable.getDocgenObject(mirror.value.returnType).docName;
     generics = _createGenerics(mirror);
     parameters = _createParameters(mirror.value.parameters, owningLibrary);
     annotations = _createAnnotations(mirror, owningLibrary);
@@ -1603,32 +1628,33 @@ class Typedef extends Indexable {
   };
 
   String get typeName => 'typedef';
+
+  bool _isValidMirror(DeclarationMirror mirror) => mirror is TypedefMirror;
 }
 
 /// A class containing properties of a Dart variable.
-class Variable extends Indexable {
+class Variable extends OwnedIndexable {
 
   bool isFinal;
   bool isStatic;
   bool isConst;
   Type type;
   String _variableName;
-  Indexable owner;
 
   /// List of the meta annotations on the variable.
   List<Annotation> annotations;
 
   factory Variable(String variableName, VariableMirror mirror,
       Indexable owner) {
-    var variable = getDocgenObject(mirror);
+    var variable = Indexable.getDocgenObject(mirror);
     if (variable is DummyMirror) {
       return new Variable._(variableName, mirror, owner);
     }
     return variable;
   }
 
-  Variable._(this._variableName, VariableMirror mirror, this.owner) :
-      super(mirror) {
+  Variable._(this._variableName, VariableMirror mirror, Indexable owner) :
+      super(mirror, owner) {
     isFinal = mirror.isFinal;
     isStatic = mirror.isStatic;
     isConst = mirror.isConst;
@@ -1668,7 +1694,7 @@ class Variable extends Indexable {
     var lookupFunc = Indexable.determineLookupFunc(name);
     var result = lookupFunc(mirror, name);
     if (result != null) {
-      result = getDocgenObject(result);
+      result = Indexable.getDocgenObject(result);
       if (result is DummyMirror) return packagePrefix + result.docName;
       return result.packagePrefix + result.docName;
     }
@@ -1681,10 +1707,12 @@ class Variable extends Indexable {
     }
     return super.findElementInScope(name);
   }
+
+  bool _isValidMirror(DeclarationMirror mirror) => mirror is VariableMirror;
 }
 
 /// A class containing properties of a Dart method.
-class Method extends Indexable {
+class Method extends OwnedIndexable {
 
   /// Parameters for this method.
   Map<String, Parameter> parameters;
@@ -1692,10 +1720,6 @@ class Method extends Indexable {
   bool isStatic;
   bool isAbstract;
   bool isConst;
-  bool isConstructor;
-  bool isGetter;
-  bool isSetter;
-  bool isOperator;
   Type returnType;
   Method methodInheritedFrom;
 
@@ -1705,29 +1729,23 @@ class Method extends Indexable {
   /// List of the meta annotations on the method.
   List<Annotation> annotations;
 
-  Indexable owner;
-
   factory Method(MethodMirror mirror, Indexable owner, // Indexable newOwner.
       [Method methodInheritedFrom]) {
-    var method = getDocgenObject(mirror, owner);
+    var method = Indexable.getDocgenObject(mirror, owner);
     if (method is DummyMirror) {
       method = new Method._(mirror, owner, methodInheritedFrom);
     }
     return method;
   }
 
-  Method._(MethodMirror mirror, this.owner, this.methodInheritedFrom)
-      : super(mirror) {
-    this.isStatic = mirror.isStatic;
-    this.isAbstract = mirror.isAbstract;
-    this.isConst = mirror.isConstConstructor;
-    this.returnType = new Type(mirror.returnType, _getOwningLibrary(owner));
-    this.parameters = _createParameters(mirror.parameters, owner);
-    this.annotations = _createAnnotations(mirror, _getOwningLibrary(owner));
-    this.isConstructor = mirror.isConstructor;
-    this.isGetter = mirror.isGetter;
-    this.isSetter = mirror.isSetter;
-    this.isOperator = mirror.isOperator;
+  Method._(MethodMirror mirror, Indexable owner, this.methodInheritedFrom)
+      : super(mirror, owner) {
+    isStatic = mirror.isStatic;
+    isAbstract = mirror.isAbstract;
+    isConst = mirror.isConstConstructor;
+    returnType = new Type(mirror.returnType, _getOwningLibrary(owner));
+    parameters = _createParameters(mirror.parameters, owner);
+    annotations = _createAnnotations(mirror, _getOwningLibrary(owner));
   }
 
   String get packagePrefix => owner.packagePrefix;
@@ -1747,10 +1765,10 @@ class Method extends Indexable {
       // do we check for a dummy mirror returned here and look up with an owner
       // higher ooooor in getDocgenObject do we include more things in our
       // lookup
-      var result = getDocgenObject(memberScope, owner);
+      var result = Indexable.getDocgenObject(memberScope, owner);
       if (result is DummyMirror && owner.owner != null
           && owner.owner is! DummyMirror) {
-        var aresult = getDocgenObject(memberScope, owner.owner);
+        var aresult = Indexable.getDocgenObject(memberScope, owner.owner);
         if (aresult is! DummyMirror) result = aresult;
       }
       if (result is DummyMirror) return packagePrefix + result.docName;
@@ -1804,9 +1822,14 @@ class Method extends Indexable {
     'annotations': annotations.map((a) => a.toMap()).toList()
   };
 
-  String get typeName => isConstructor ? 'constructor' :
-    isGetter ? 'getter' : isSetter ? 'setter' :
-    isOperator ? 'operator' : 'method';
+  String get typeName {
+    MethodMirror theMirror = mirror;
+    if (theMirror.isConstructor) return 'constructor';
+    if (theMirror.isGetter) return 'getter';
+    if (theMirror.isSetter) return'setter';
+    if (theMirror.isOperator) return 'operator';
+    return 'method';
+  }
 
   get comment {
     if (_comment != null) return _comment;
@@ -1827,6 +1850,8 @@ class Method extends Indexable {
     }
     return result;
   }
+
+  bool _isValidMirror(DeclarationMirror mirror) => mirror is MethodMirror;
 }
 
 /// Docgen wrapper around the dart2js mirror for a Dart
@@ -1905,7 +1930,7 @@ class Generic extends MirrorBased {
 ///                      "inner" :
 class Type extends MirrorBased {
   TypeMirror mirror;
-  MirrorBased owningLibrary;
+  Library owningLibrary;
 
   Type(this.mirror, this.owningLibrary);
 
@@ -1921,12 +1946,15 @@ class Type extends MirrorBased {
     return [];
   }
 
-  Map toMap() => {
-    // We may encounter types whose corresponding library has not been
-    // processed yet, so look up with the owningLibrary at the last moment.
-    'outer': getDocgenObject(mirror, owningLibrary).docName,
-    'inner': _createTypeGenerics(mirror).map((e) => e.toMap()).toList(),
-  };
+  Map toMap() {
+    var result = Indexable.getDocgenObject(mirror, owningLibrary);
+    return {
+      // We may encounter types whose corresponding library has not been
+      // processed yet, so look up with the owningLibrary at the last moment.
+      'outer': result.packagePrefix + result.docName,
+      'inner': _createTypeGenerics(mirror).map((e) => e.toMap()).toList(),
+    };
+  }
 }
 
 /// Holds the name of the annotation, and its parameters.
@@ -1946,7 +1974,7 @@ class Annotation extends MirrorBased {
   }
 
   Map toMap() => {
-    'name': getDocgenObject(mirror, owningLibrary).docName,
+    'name': Indexable.getDocgenObject(mirror, owningLibrary).docName,
     'parameters': parameters
   };
 }
