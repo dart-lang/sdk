@@ -744,6 +744,15 @@ class TestCase extends UniqueObject {
     return commandOutputs[commands[commandOutputs.length - 1]];
   }
 
+  Command get lastCommandExecuted {
+    if (commandOutputs.length == 0) {
+      throw new Exception("CommandOutputs is empty, maybe no command was run? ("
+                          "displayName: '$displayName', "
+                          "configurationString: '$configurationString')");
+    }
+    return commands[commandOutputs.length - 1];
+  }
+
   int get timeout {
     if (expectedOutcomes.contains(Expectation.SLOW)) {
       return configuration['timeout'] * SLOW_TIMEOUT_MULTIPLIER;
@@ -871,6 +880,7 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   Duration time;
   List<String> diagnostics;
   bool compilationSkipped;
+  int pid;
 
   /**
    * A flag to indicate we have already printed a warning about ignoring the VM
@@ -885,7 +895,8 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
                     List<int> this.stdout,
                     List<int> this.stderr,
                     Duration this.time,
-                    bool this.compilationSkipped) {
+                    bool this.compilationSkipped,
+                    int this.pid) {
     diagnostics = [];
   }
 
@@ -971,7 +982,8 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
           stdout,
           stderr,
           time,
-          compilationSkipped) {
+          compilationSkipped,
+          0) {
     _failedBecauseOfMissingXDisplay = _didFailBecauseOfMissingXDisplay();
     if (_failedBecauseOfMissingXDisplay) {
       DebugLogger.warning("Warning: Test failure because of missing XDisplay");
@@ -1321,7 +1333,7 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
       Command command, BrowserTestOutput result, this._rawOutcome,
       List<int> stdout, List<int> stderr)
       : super(command, 0, result.didTimeout, stdout, stderr, result.duration,
-              false) {
+              false, 0) {
     _result = result;
   }
 
@@ -1363,7 +1375,8 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
           stdout,
           stderr,
           time,
-          compilationSkipped);
+          compilationSkipped,
+          0);
 
   Expectation result(TestCase testCase) {
     // TODO(kustermann): If we run the analyzer not in batch mode, make sure
@@ -1456,8 +1469,9 @@ class VmCommandOutputImpl extends CommandOutputImpl
   static const DART_VM_EXITCODE_UNCAUGHT_EXCEPTION = 255;
 
   VmCommandOutputImpl(Command command, int exitCode, bool timedOut,
-      List<int> stdout, List<int> stderr, Duration time)
-      : super(command, exitCode, timedOut, stdout, stderr, time, false);
+                      List<int> stdout, List<int> stderr, Duration time,
+                      int pid)
+      : super(command, exitCode, timedOut, stdout, stderr, time, false, pid);
 
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
@@ -1507,7 +1521,7 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
       List<int> stdout, List<int> stderr, Duration time,
       bool compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
-              compilationSkipped);
+              compilationSkipped, 0);
 
   Expectation result(TestCase testCase) {
     // Handle general crash/timeout detection.
@@ -1551,7 +1565,7 @@ class JsCommandlineOutputImpl extends CommandOutputImpl
                               with UnittestSuiteMessagesMixin {
   JsCommandlineOutputImpl(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time)
-      : super(command, exitCode, timedOut, stdout, stderr, time, false);
+      : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
 
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
@@ -1572,7 +1586,7 @@ class JsCommandlineOutputImpl extends CommandOutputImpl
 class PubCommandOutputImpl extends CommandOutputImpl {
   PubCommandOutputImpl(PubCommand command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time)
-      : super(command, exitCode, timedOut, stdout, stderr, time, false);
+  : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
 
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
@@ -1594,7 +1608,7 @@ class ScriptCommandOutputImpl extends CommandOutputImpl {
 
   ScriptCommandOutputImpl(ScriptCommand command, this._result,
                           String scriptExecutionInformation, Duration time)
-      : super(command, 0, false, [], [], time, false) {
+  : super(command, 0, false, [], [], time, false, 0) {
     var lines = scriptExecutionInformation.split("\n");
     diagnostics.addAll(lines);
   }
@@ -1613,7 +1627,8 @@ CommandOutput createCommandOutput(Command command,
                                   List<int> stdout,
                                   List<int> stderr,
                                   Duration time,
-                                  bool compilationSkipped) {
+                                  bool compilationSkipped,
+                                  [int pid = 0]) {
   if (command is ContentShellCommand) {
     return new BrowserCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr,
@@ -1628,7 +1643,7 @@ CommandOutput createCommandOutput(Command command,
         time, compilationSkipped);
   } else if (command is VmCommand) {
     return new VmCommandOutputImpl(
-        command, exitCode, timedOut, stdout, stderr, time);
+        command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
     return new CompilationCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
@@ -1642,7 +1657,7 @@ CommandOutput createCommandOutput(Command command,
 
   return new CommandOutputImpl(
       command, exitCode, timedOut, stdout, stderr,
-      time, compilationSkipped);
+      time, compilationSkipped, pid);
 }
 
 
@@ -1662,6 +1677,7 @@ class RunningProcess {
   bool timedOut = false;
   DateTime startTime;
   Timer timeoutTimer;
+  int pid;
   List<int> stdout = <int>[];
   List<int> stderr = <int>[];
   bool compilationSkipped = false;
@@ -1699,6 +1715,7 @@ class RunningProcess {
 
           bool stdoutDone = false;
           bool stderrDone = false;
+          pid = process.pid;
 
           // This timer is used to close stdio to the subprocess once we got
           // the exitCode. Sometimes descendants of the subprocess keep stdio
@@ -1709,7 +1726,6 @@ class RunningProcess {
             if (!stdoutDone) {
               stdoutCompleter.complete();
               stdoutDone = true;
-
               if (stderrDone && watchdogTimer != null) {
                 watchdogTimer.cancel();
               }
@@ -1789,7 +1805,8 @@ class RunningProcess {
         stdout,
         stderr,
         new DateTime.now().difference(startTime),
-        compilationSkipped);
+        compilationSkipped,
+        pid);
     return commandOutput;
   }
 

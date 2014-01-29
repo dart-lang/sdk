@@ -261,6 +261,10 @@ void testConfigurations(List<Map> configurations) {
   if (firstConf['write_test_outcome_log']) {
     eventListener.add(new TestOutcomeLogWriter());
   }
+  if (firstConf['copy_coredumps']) {
+    eventListener.add(new UnexpectedCrashDumpArchiver());
+  }
+
   eventListener.add(new ExitCodeSetter());
 
   void startProcessQueue() {
