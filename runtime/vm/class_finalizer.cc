@@ -1423,17 +1423,35 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
   // cloning.
   bool has_uninstantiated_bounds = false;
   if ((num_super_type_params + num_mixin_type_params) > 0) {
-    // First, clone the super class type parameters. Rename them so that
-    // there can be no name conflict between the parameters of the super
-    // class and the mixin class.
+    // If the last ampersand in the name of the mixin application class is
+    // doubled, the same type parameters can propagate the type arguments to
+    // the super type and to the mixin type.
+    bool share_type_params = false;
+    if (num_super_type_params == num_mixin_type_params) {
+      const String& name = String::Handle(isolate, mixin_app_class.Name());
+      for (intptr_t i = name.Length() - 1; i > 0; --i) {
+        if (name.CharAt(i) == '&') {
+          if (name.CharAt(i - 1) == '&') {
+            share_type_params = true;
+          }
+          break;
+        }
+      }
+    }
+
     const TypeArguments& cloned_type_params = TypeArguments::Handle(isolate,
-        TypeArguments::New(num_super_type_params + num_mixin_type_params));
+        TypeArguments::New((share_type_params ? 0 : num_super_type_params) +
+                           num_mixin_type_params));
     TypeParameter& param = TypeParameter::Handle(isolate);
     TypeParameter& cloned_param = TypeParameter::Handle(isolate);
     String& param_name = String::Handle(isolate);
     AbstractType& param_bound = AbstractType::Handle(isolate);
     intptr_t cloned_index = 0;
-    if (num_super_type_params > 0) {
+
+    // First, clone the super class type parameters. Rename them so that
+    // there can be no name conflict between the parameters of the super
+    // class and the mixin class.
+    if (!share_type_params && (num_super_type_params > 0)) {
       const TypeArguments& super_type_params =
           TypeArguments::Handle(isolate, super_class.type_parameters());
       const TypeArguments& super_type_args = TypeArguments::Handle(isolate,
@@ -1523,6 +1541,10 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
       // single interface type.
       ASSERT(!mixin_type.IsFinalized());
       mixin_type.set_arguments(mixin_type_args);
+      if (share_type_params) {
+        Type::Cast(super_type).set_arguments(mixin_type_args);
+        ASSERT(!super_type.IsFinalized());
+      }
     }
     mixin_app_class.set_type_parameters(cloned_type_params);
   }
@@ -2377,6 +2399,8 @@ RawType* ClassFinalizer::ResolveMixinAppType(
   Class& mixin_app_class = Class::Handle();
   String& mixin_app_class_name = String::Handle();
   String& mixin_type_class_name = String::Handle();
+  AbstractType& super_type_arg = AbstractType::Handle();
+  AbstractType& mixin_type_arg = AbstractType::Handle();
   const intptr_t depth = mixin_app_type.Depth();
   for (intptr_t i = 0; i < depth; i++) {
     mixin_type = mixin_app_type.MixinTypeAt(i);
@@ -2384,13 +2408,42 @@ RawType* ClassFinalizer::ResolveMixinAppType(
     ResolveType(cls, mixin_type);
     ASSERT(mixin_type.HasResolvedTypeClass());  // Even if malformed.
     ASSERT(mixin_type.IsType());
+    const intptr_t num_super_type_args = type_args.Length();
     CollectTypeArguments(cls, Type::Cast(mixin_type), type_args);
+
+    // If the mixin type has identical type arguments as the super type, they
+    // can share the same type parameters of the mixin application class,
+    // thereby allowing for further optimizations, such as instantiator vector
+    // reuse or sharing of type arguments with the super class.
+    bool share_type_params = (num_super_type_args > 0) &&
+        (type_args.Length() == 2*num_super_type_args);
+    if (share_type_params) {
+      for (intptr_t i = 0; i < num_super_type_args; i++) {
+        super_type_arg ^= type_args.At(i);
+        mixin_type_arg ^= type_args.At(num_super_type_args + i);
+        if (!super_type_arg.Equals(mixin_type_arg)) {
+          share_type_params = false;
+          break;
+        }
+      }
+      if (share_type_params) {
+        // Cut the type argument vector in half.
+        type_args.SetLength(num_super_type_args);
+      }
+    }
 
     // The name of the mixin application class is a combination of
     // the super class name and mixin class name.
     mixin_app_class_name = mixin_super_type.ClassName();
     mixin_app_class_name = String::Concat(mixin_app_class_name,
                                           Symbols::Ampersand());
+    // If the type parameters are shared between the super type and the mixin
+    // type, use two ampersand symbols, so that the class has a different name
+    // and is not reused in a context where this optimization is not possible.
+    if (share_type_params) {
+      mixin_app_class_name = String::Concat(mixin_app_class_name,
+                                            Symbols::Ampersand());
+    }
     mixin_type_class_name = mixin_type.ClassName();
     mixin_app_class_name = String::Concat(mixin_app_class_name,
                                           mixin_type_class_name);
