@@ -5,6 +5,7 @@
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -21,7 +22,7 @@ main() {
     var pub = startPublish(server);
 
     pub.writeLine("n");
-    pub.shouldExit(0);
+    pub.shouldExit(exit_codes.SUCCESS);
     expect(pub.remainingStderr(),
         completion(contains("Package upload canceled.")));
   });

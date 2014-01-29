@@ -46,12 +46,13 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    schedulePub(args: ["build", "--mode", "depeche"],
-        exitCode: 0);
+    schedulePub(args: ["build", "--mode", "depeche"]);
 
     d.dir(appPath, [
       d.dir('build', [
-        d.file('foo.out', 'depeche')
+        d.dir('web', [
+          d.file('foo.out', 'depeche')
+        ])
       ])
     ]).validate();
   });

@@ -32,8 +32,7 @@ main() {
 
     var assetsPath = path.join('web', 'assets');
     schedulePub(args: ['build'],
-        error: getWarningRegExp(assetsPath),
-        exitCode: 0);
+        error: getWarningRegExp(assetsPath));
   });
 
   integration('warns user about assets dir nested anywhere in "web"', () {
@@ -49,8 +48,7 @@ main() {
 
     var assetsPath = path.join('web', 'foo', 'assets');
     schedulePub(args: ['build'],
-        error: getWarningRegExp(assetsPath),
-        exitCode: 0);
+        error: getWarningRegExp(assetsPath));
   });
 
   integration('warns user about assets file in the root of "web"', () {
@@ -64,8 +62,7 @@ main() {
 
     var assetsPath = path.join('web', 'assets');
     schedulePub(args: ['build'],
-        error: getWarningRegExp(assetsPath),
-        exitCode: 0);
+        error: getWarningRegExp(assetsPath));
   });
 
   integration('warns user about assets file nested anywhere in "web"', () {
@@ -81,8 +78,7 @@ main() {
 
     var assetsPath = path.join('web', 'foo', 'assets');
     schedulePub(args: ['build'],
-        error: getWarningRegExp(assetsPath),
-        exitCode: 0);
+        error: getWarningRegExp(assetsPath));
   });
 
   integration('does not warn if no assets dir or file anywhere in "web"', () {
@@ -96,7 +92,6 @@ main() {
 
     schedulePub(args: ['build'],
         error: new RegExp(
-            r'^(?!Warning: Pub reserves paths containing "assets").*$'),
-        exitCode: 0);
+            r'^(?!Warning: Pub reserves paths containing "assets").*$'));
   });
 }

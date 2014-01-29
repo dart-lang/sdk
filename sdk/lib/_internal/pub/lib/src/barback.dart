@@ -8,19 +8,9 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
-import 'package:stack_trace/stack_trace.dart';
 
-import 'barback/dart2js_transformer.dart';
-import 'barback/load_all_transformers.dart';
-import 'barback/pub_package_provider.dart';
-import 'barback/server.dart';
-import 'barback/sources.dart';
-import 'log.dart' as log;
-import 'package_graph.dart';
 import 'utils.dart';
 import 'version.dart';
-
-export 'barback/sources.dart' show WatcherType;
 
 /// The currently supported version of the Barback package that this version of
 /// pub works with.
@@ -124,85 +114,6 @@ class TransformerId {
   }
 }
 
-/// Creates a [BarbackServer] serving on [host] and [port].
-///
-/// This transforms and serves all library and asset files in all packages in
-/// [graph]. It loads any transformer plugins defined in packages in [graph] and
-/// re-runs them as necessary when any input files change.
-///
-/// If [builtInTransformers] is provided, then a phase is added to the end of
-/// each package's cascade including those transformers.
-///
-/// If [watchForUpdates] is true (the default), the server will continually
-/// monitor the app and its dependencies for any updates. Otherwise the state of
-/// the app when the server is started will be maintained.
-Future<BarbackServer> createServer(String host, int port, PackageGraph graph,
-    BarbackMode mode, {Iterable<Transformer> builtInTransformers,
-    WatcherType watcher: WatcherType.AUTO}) {
-
-  // If the entrypoint package manually configures the dart2js transformer,
-  // remove it from the built-in transformer list.
-  //
-  // TODO(nweiz): if/when we support more built-in transformers, make this more
-  // general.
-  var containsDart2Js = graph.entrypoint.root.pubspec.transformers.any(
-      (transformers) => transformers.any((id) => id.package == '\$dart2js'));
-  if (containsDart2Js) {
-    builtInTransformers = builtInTransformers.where(
-        (transformer) => transformer is! Dart2JSTransformer);
-  }
-
-  var provider = new PubPackageProvider(graph);
-  var barback = new Barback(provider);
-
-  barback.log.listen(_log);
-
-  return BarbackServer.bind(host, port, barback, graph.entrypoint.root.name)
-      .then((server) {
-    return syncFuture(() {
-      if (watcher != WatcherType.NONE) {
-        return watchSources(graph, barback, watcher);
-      }
-
-      loadSources(graph, barback);
-    }).then((_) {
-      var completer = new Completer();
-
-      // If any errors get emitted either by barback or by the server, including
-      // non-programmatic barback errors, they should take down the whole
-      // program.
-      var subscriptions = [
-        server.barback.errors.listen((error) {
-          if (error is TransformerException) error = error.error;
-          if (!completer.isCompleted) {
-            completer.completeError(error, new Chain.current());
-          }
-        }),
-        server.barback.results.listen((_) {}, onError: (error, stackTrace) {
-          if (completer.isCompleted) return;
-          completer.completeError(error, stackTrace);
-        }),
-        server.results.listen((_) {}, onError: (error, stackTrace) {
-          if (completer.isCompleted) return;
-          completer.completeError(error, stackTrace);
-        })
-      ];
-
-      loadAllTransformers(server, graph, mode, builtInTransformers).then((_) {
-        if (!completer.isCompleted) completer.complete(server);
-      }).catchError((error, stackTrace) {
-        if (!completer.isCompleted) completer.completeError(error, stackTrace);
-      });
-
-      return completer.future.whenComplete(() {
-        for (var subscription in subscriptions) {
-          subscription.cancel();
-        }
-      });
-    });
-  });
-}
-
 /// Converts [id] to a "package:" URI.
 ///
 /// This will throw an [ArgumentError] if [id] doesn't represent a library in
@@ -268,7 +179,9 @@ AssetId specialUrlToId(Uri url) {
 ///     foo|web/
 ///
 /// Throws a [FormatException] if [id] is not a valid public asset.
-String idtoUrlPath(String entrypoint, AssetId id) {
+// TODO(rnystrom): Get rid of [useWebAsRoot] once pub serve also serves out of
+// the package root directory.
+String idtoUrlPath(String entrypoint, AssetId id, {bool useWebAsRoot: true}) {
   var parts = path.url.split(id.path);
 
   if (parts.length < 2) {
@@ -276,78 +189,37 @@ String idtoUrlPath(String entrypoint, AssetId id) {
         "Can not serve assets from top-level directory.");
   }
 
-  // Each top-level directory gets handled differently.
+  // Map "asset" and "lib" to their shared directories.
   var dir = parts[0];
-  parts = parts.skip(1);
+  var rest = parts.skip(1);
 
-  switch (dir) {
-    case "asset":
-      return path.url.join("/", "assets", id.package, path.url.joinAll(parts));
+  if (dir == "asset") {
+    return path.url.join("/", "assets", id.package, path.url.joinAll(rest));
+  }
 
-    case "lib":
-      return path.url.join("/", "packages", id.package, path.url.joinAll(parts));
+  if (dir == "lib") {
+    return path.url.join("/", "packages", id.package, path.url.joinAll(rest));
+  }
 
-    case "web":
-      if (id.package != entrypoint) {
-        throw new FormatException(
-            'Cannot access "web" directory of non-root packages.');
-      }
-      return path.url.join("/", path.url.joinAll(parts));
-
-    default:
+  if (useWebAsRoot) {
+    if (dir != "web") {
       throw new FormatException('Cannot access assets from "$dir".');
-  }
-}
+    }
 
-/// Log [entry] using Pub's logging infrastructure.
-///
-/// Since both [LogEntry] objects and the message itself often redundantly
-/// show the same context like the file where an error occurred, this tries
-/// to avoid showing redundant data in the entry.
-void _log(LogEntry entry) {
-  messageMentions(String text) {
-    return entry.message.toLowerCase().contains(text.toLowerCase());
+    if (id.package != entrypoint) {
+      throw new FormatException(
+          'Cannot access "web" directory of non-root packages.');
+    }
+
+    return path.url.join("/", path.url.joinAll(rest));
   }
 
-  var prefixParts = [];
-
-  // Show the level (unless the message mentions it).
-  if (!messageMentions(entry.level.name)) {
-    prefixParts.add("${entry.level} from");
+  if (id.package != entrypoint) {
+    throw new FormatException(
+        'Can only access "lib" and "asset" directories of non-entrypoint '
+    'packages.');
   }
 
-  // Show the transformer.
-  prefixParts.add(entry.transform.transformer);
-
-  // Mention the primary input of the transform unless the message seems to.
-  if (!messageMentions(entry.transform.primaryId.path)) {
-    prefixParts.add("on ${entry.transform.primaryId}");
-  }
-
-  // If the relevant asset isn't the primary input, mention it unless the
-  // message already does.
-  if (entry.assetId != entry.transform.primaryId &&
-      !messageMentions(entry.assetId.path)) {
-    prefixParts.add("with input ${entry.assetId}");
-  }
-
-  var prefix = "[${prefixParts.join(' ')}]:";
-  var message = entry.message;
-  if (entry.span != null) {
-    message = entry.span.getLocationMessage(entry.message);
-  }
-
-  switch (entry.level) {
-    case LogLevel.ERROR:
-      log.error("${log.red(prefix)}\n$message");
-      break;
-
-    case LogLevel.WARNING:
-      log.warning("${log.yellow(prefix)}\n$message");
-      break;
-
-    case LogLevel.INFO:
-      log.message("${log.cyan(prefix)}\n$message");
-      break;
-  }
+  // Allow any path in the entrypoint package.
+  return path.url.join("/", path.url.joinAll(parts));
 }

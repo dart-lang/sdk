@@ -5,6 +5,7 @@
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -20,7 +21,7 @@ main() {
     var server = new ScheduledServer();
     var pub = startPublish(server, args: ['--dry-run']);
 
-    pub.shouldExit(0);
+    pub.shouldExit(exit_codes.SUCCESS);
     expect(pub.remainingStderr(), completion(contains(
         'Suggestions:\n* Author "Nathan Weizenbaum" in pubspec.yaml should '
             'have an email address\n'

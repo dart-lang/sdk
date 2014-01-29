@@ -9,6 +9,9 @@
 /// [manpage]: http://www.freebsd.org/cgi/man.cgi?query=sysexits
 library pub.exit_codes;
 
+/// The command completely successfully.
+const SUCCESS = 0;
+
 /// The command was used incorrectly.
 const USAGE = 64;
 

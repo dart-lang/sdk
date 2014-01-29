@@ -6,11 +6,12 @@ library pub_tests;
 
 import 'dart:io';
 
-import '../lib/src/sdk.dart' as sdk;
-
 import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_test.dart';
+
+import '../lib/src/exit_codes.dart' as exit_codes;
+import '../lib/src/sdk.dart' as sdk;
 import 'test_pub.dart';
 
 main() {
@@ -33,6 +34,6 @@ main() {
 
     var pub = new ScheduledProcess.start(pubPath, ['version']);
     expect(pub.nextLine(), completion(startsWith("Pub")));
-    pub.shouldExit(0);
+    pub.shouldExit(exit_codes.SUCCESS);
   });
 }

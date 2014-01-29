@@ -20,19 +20,11 @@ main() {
     ]).create();
 
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built 0 files!"),
-        exitCode: 0);
+        output: new RegExp(r"Built 0 files!"));
 
     d.dir(appPath, [
       d.dir('build', [
-        d.nothing('file1.dart.js'),
-        d.nothing('file1.dart'),
-        d.nothing('file2.dart.js'),
-        d.nothing('file2.dart'),
-        d.nothing('file3.dart.js'),
-        d.nothing('file3.dart'),
-        d.nothing('file4.dart.js'),
-        d.nothing('file4.dart')
+        d.nothing('web')
       ])
     ]).validate();
   });

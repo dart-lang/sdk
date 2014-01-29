@@ -8,12 +8,9 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
-import '../barback/dart_forwarding_transformer.dart';
-import '../barback/dart2js_transformer.dart';
+import '../barback/build_environment.dart';
 import '../barback/pub_package_provider.dart';
-import '../barback.dart' as barback;
 import '../command.dart';
-import '../entrypoint.dart';
 import '../exit_codes.dart' as exit_codes;
 import '../io.dart';
 import '../log.dart' as log;
@@ -65,34 +62,28 @@ class ServeCommand extends PubCommand {
       return flushThenExit(exit_codes.USAGE);
     }
 
-    return entrypoint.loadPackageGraph().then((graph) {
-      var builtInTransformers = [new DartForwardingTransformer(mode)];
-      if (useDart2JS) {
-        builtInTransformers.add(new Dart2JSTransformer(graph, mode));
-        // TODO(rnystrom): Add support for dart2dart transformer here.
-      }
+    var watcherType = commandOptions['force-poll'] ?
+        WatcherType.POLLING : WatcherType.AUTO;
 
-      var watcherType = commandOptions['force-poll'] ?
-          barback.WatcherType.POLLING : barback.WatcherType.AUTO;
-      return barback.createServer(hostname, port, graph, mode,
-          builtInTransformers: builtInTransformers,
-          watcher: watcherType);
-    }).then((server) {
+    return BuildEnvironment.create(entrypoint, hostname, port, mode,
+        watcherType, ["web"].toSet(),
+        useDart2JS: useDart2JS).then((environment) {
+
       // In release mode, strip out .dart files since all relevant ones have
       // been compiled to JavaScript already.
       if (mode == BarbackMode.RELEASE) {
-        server.allowAsset = (url) => !url.path.endsWith(".dart");
+        environment.server.allowAsset = (url) => !url.path.endsWith(".dart");
       }
 
       /// This completer is used to keep pub running (by not completing) and
       /// to pipe fatal errors to pub's top-level error-handling machinery.
       var completer = new Completer();
 
-      server.barback.errors.listen((error) {
+      environment.server.barback.errors.listen((error) {
         log.error(log.red("Build error:\n$error"));
       });
 
-      server.barback.results.listen((result) {
+      environment.server.barback.results.listen((result) {
         if (result.succeeded) {
           // TODO(rnystrom): Report using growl/inotify-send where available.
           log.message("Build completed ${log.green('successfully')}");
@@ -104,7 +95,7 @@ class ServeCommand extends PubCommand {
         if (!completer.isCompleted) completer.completeError(error, stackTrace);
       });
 
-      server.results.listen((result) {
+      environment.server.results.listen((result) {
         if (result.isSuccess) {
           log.message("${log.green('GET')} ${result.url.path} $_arrow "
               "${result.id}");
@@ -123,7 +114,7 @@ class ServeCommand extends PubCommand {
       });
 
       log.message("Serving ${entrypoint.root.name} "
-          "on http://$hostname:${server.port}");
+          "on http://$hostname:${environment.server.port}");
 
       return completer.future;
     });

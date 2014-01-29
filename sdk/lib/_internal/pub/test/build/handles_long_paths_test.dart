@@ -55,15 +55,16 @@ main() {
     ]).create();
 
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built 2 files!"),
-        exitCode: 0);
+        output: new RegExp(r"Built 2 files!"));
 
     d.dir(appPath, [
       d.dir('build', [
-        d.file("index.html", "html"),
-        d.dir('assets', [
-          d.dir('foo', [
-            d.file('foo.txt', 'foo')
+        d.dir('web', [
+          d.file("index.html", "html"),
+          d.dir('assets', [
+            d.dir('foo', [
+              d.file('foo.txt', 'foo')
+            ])
           ])
         ])
       ])

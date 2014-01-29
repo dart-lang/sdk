@@ -57,10 +57,10 @@ class BarbackServer {
 
   /// Creates a new server and binds it to [port] of [host].
   ///
-  /// This server will serve assets from [barback], and use [rootPackage] as the
-  /// root package.
-  static Future<BarbackServer> bind(String host, int port, Barback barback,
-      String rootPackage) {
+  /// This server will serve assets from [barback], and use [rootPackage] as
+  /// the root package.
+  static Future<BarbackServer> bind(String host, int port,
+      Barback barback, String rootPackage) {
     return Chain.track(HttpServer.bind(host, port))
         .then((server) => new BarbackServer._(server, barback, rootPackage));
   }
