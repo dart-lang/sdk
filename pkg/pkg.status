@@ -38,6 +38,7 @@ crypto/test/base64_test: Slow, Pass
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
+collection/test/priority_queue_test: Pass, Slow # Issue 16426
 serialization/test/serialization_test: Skip
 
 [ $runtime == d8 || $runtime == jsshell ]
