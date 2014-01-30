@@ -97,14 +97,9 @@ class ClassEmitter extends CodeEmitterHelper {
                     bool emitStatics: false,
                     bool onlyForRti: false }) {
     assert(!emitStatics || !onlyForRti);
-    bool isClass = false;
-    bool isLibrary = false;
-    if (element.isClass()) {
-      isClass = true;
-    } else if (element.isLibrary()) {
-      isLibrary = false;
+    if (element.isLibrary()) {
       assert(invariant(element, emitStatics));
-    } else {
+    } else if (!element.isClass()) {
       throw new SpannableAssertionFailure(
           element, 'Must be a ClassElement or a LibraryElement');
     }

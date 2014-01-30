@@ -1744,13 +1744,47 @@ class JavaScriptBackend extends Backend {
     return isTypedArray(mask) || mask.containsMask(indexing, compiler);
   }
 
+  /// Returns all static fields that are referenced through [targetsUsed].
+  /// If the target is a library or class all nested static fields are
+  /// included too.
+  Iterable<Element> _findStaticFieldTargets() {
+    List staticFields = [];
+
+    void addFieldsInContainer(ScopeContainerElement container) {
+      container.forEachLocalMember((Element member) {
+        if (!member.isInstanceMember() && member.isField()) {
+          staticFields.add(member);
+        } else if (member.isClass()) {
+          addFieldsInContainer(member);
+        }
+      });
+    }
+
+    for (Element target in targetsUsed) {
+      if (target == null) continue;
+      if (target.isField()) {
+        staticFields.add(target);
+      } else if (target.isLibrary() || target.isClass()) {
+        addFieldsInContainer(target);
+      }
+    }
+    return staticFields;
+  }
+
   /// Called when [enqueuer] is empty, but before it is closed.
   void onQueueEmpty(Enqueuer enqueuer) {
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
       preMirrorsMethodCount = generatedCode.length;
     }
 
-    if (isTreeShakingDisabled) enqueuer.enqueueEverything();
+    if (isTreeShakingDisabled) {
+      enqueuer.enqueueEverything();
+    } else if (!targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
+      // Add all static elements (not classes) that have been requested for
+      // reflection. If there is no mirror-usage these are probably not
+      // necessary, but the backend relies on them being resolved.
+      enqueuer.enqueueReflectiveStaticFields(_findStaticFieldTargets());
+    }
 
     if (mustPreserveNames) compiler.log('Preserving names.');
 
