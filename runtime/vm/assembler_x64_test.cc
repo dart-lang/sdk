@@ -1473,10 +1473,13 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleNegate, assembler) {
     double a;
     double b;
   } constant0 = { 1.0, 2.0 };
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ negatepd(XMM10);
   __ movaps(XMM0, XMM10);
+  __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }
 
@@ -1493,10 +1496,13 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
     double a;
     double b;
   } constant0 = { -1.0, 2.0 };
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ abspd(XMM10);
   __ movaps(XMM0, XMM10);
+  __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }
 
