@@ -13,6 +13,7 @@ const int _SPACE = 32;
 const int _BANG = 33;
 const int _DQ = 34;
 const int _$ = 36;
+const int _PERCENT = 37;
 const int _AMPERSAND = 38;
 const int _SQ = 39;
 const int _OPEN_PAREN = 40;
@@ -50,7 +51,7 @@ const int _CLOSE_CURLY_BRACKET = 125;
 const int _NBSP = 160;
 
 const _OPERATORS = const [_PLUS, _MINUS, _STAR, _SLASH, _BANG, _AMPERSAND,
-                          /*_COMMA,*/ _LT, _EQ, _GT, _QUESTION, _CARET, _BAR];
+                          _PERCENT, _LT, _EQ, _GT, _QUESTION, _CARET, _BAR];
 
 const _GROUPERS = const [_OPEN_PAREN, _CLOSE_PAREN,
                          _OPEN_SQUARE_BRACKET, _CLOSE_SQUARE_BRACKET,
