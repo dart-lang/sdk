@@ -60,8 +60,19 @@ assertion_test: RuntimeError # Issue 12748
 double_to_string_as_exponential2_test: RuntimeError # Issue 12749
 double_to_string_as_fixed2_test: RuntimeError # Issue 12749
 double_to_string_as_precision2_test: RuntimeError # Issue 12749
-list_literal1_test/01: MissingCompileTimeError, OK # Checked mode test.
-map_literal1_test/01: MissingCompileTimeError, OK # Checked mode test.
+generic_test: RuntimeError, OK
+named_parameters_type_test/01: MissingRuntimeError, OK
+named_parameters_type_test/02: MissingRuntimeError, OK
+named_parameters_type_test/03: MissingRuntimeError, OK
+positional_parameters_type_test/01: MissingRuntimeError, OK
+positional_parameters_type_test/02: MissingRuntimeError, OK
+issue13474_test: RuntimeError, OK
+
+[ $compiler == dart2js && $unchecked ]
+# This section is for tests that intentionally have incompatible behavior in
+# unchecked and checked mode. For instance tests for type errors in compile
+# time constants, which cause static type warnings in unchecked mode and
+# compile-time errors in checked mode. -- Issue 16411.
 compile_time_constant_checked_test/02: MissingCompileTimeError, OK
 compile_time_constant_checked2_test/01: MissingCompileTimeError, OK
 compile_time_constant_checked2_test/02: MissingCompileTimeError, OK
@@ -76,13 +87,16 @@ compile_time_constant_checked3_test/04: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/05: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/06: MissingCompileTimeError, OK
 malformed2_test/01: MissingCompileTimeError, OK
-generic_test: RuntimeError, OK
-named_parameters_type_test/01: MissingRuntimeError, OK
-named_parameters_type_test/02: MissingRuntimeError, OK
-named_parameters_type_test/03: MissingRuntimeError, OK
-positional_parameters_type_test/01: MissingRuntimeError, OK
-positional_parameters_type_test/02: MissingRuntimeError, OK
-issue13474_test: RuntimeError, OK
+list_literal1_test/01: MissingCompileTimeError, OK
+map_literal1_test/01: MissingCompileTimeError, OK
+const_constructor2_test/13: MissingCompileTimeError, OK
+const_constructor2_test/14: MissingCompileTimeError, OK
+const_constructor2_test/15: MissingCompileTimeError, OK
+const_constructor2_test/16: MissingCompileTimeError, OK
+const_constructor2_test/17: MissingCompileTimeError, OK
+const_constructor2_test/20: MissingCompileTimeError, OK
+const_constructor2_test/22: MissingCompileTimeError, OK
+const_constructor2_test/24: MissingCompileTimeError, OK
 
 [ $compiler == dart2js && $minified ]
 cyclic_type_test: Fail # Issue 12605
@@ -279,7 +293,7 @@ new_expression_type_args_test/00: Fail # Wrongly reports compile-time error.
 new_expression_type_args_test/01: Fail # Wrongly reports compile-time error.
 
 # Only checked mode reports an error on type assignment
-# problems in compile time constants.
+# problems in compile time constants. -- Issue 16411.
 compile_time_constant_checked_test/02: Fail, OK
 compile_time_constant_checked2_test/01: Fail, OK
 compile_time_constant_checked2_test/02: Fail, OK
@@ -294,6 +308,14 @@ compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
 malformed2_test/01: Fail, OK
+const_constructor2_test/13: Fail, OK
+const_constructor2_test/14: Fail, OK
+const_constructor2_test/15: Fail, OK
+const_constructor2_test/16: Fail, OK
+const_constructor2_test/17: Fail, OK
+const_constructor2_test/20: Fail, OK
+const_constructor2_test/22: Fail, OK
+const_constructor2_test/24: Fail, OK
 
 [ $compiler == dart2dart && $checked ]
 # Dart VM problems

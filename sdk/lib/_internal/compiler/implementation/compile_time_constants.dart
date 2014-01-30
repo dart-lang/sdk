@@ -725,8 +725,8 @@ class CompileTimeConstantEvaluator extends Visitor {
     assert(invariant(node, constructor.isImplementation));
 
     List<Constant> arguments = getArguments(constructor);
-    ConstructorEvaluator evaluator =
-        new ConstructorEvaluator(constructor, handler, compiler);
+    ConstructorEvaluator evaluator = new ConstructorEvaluator(
+        constructedType, constructor, handler, compiler);
     evaluator.evaluateConstructorFieldValues(arguments);
     List<Constant> jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
@@ -772,6 +772,7 @@ class TryCompileTimeConstantEvaluator extends CompileTimeConstantEvaluator {
 }
 
 class ConstructorEvaluator extends CompileTimeConstantEvaluator {
+  final InterfaceType constructedType;
   final FunctionElement constructor;
   final Map<Element, Constant> definitions;
   final Map<Element, Constant> fieldValues;
@@ -781,7 +782,8 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    *
    * Invariant: [constructor] must be an implementation element.
    */
-  ConstructorEvaluator(FunctionElement constructor,
+  ConstructorEvaluator(InterfaceType this.constructedType,
+                       FunctionElement constructor,
                        ConstantHandler handler,
                        Compiler compiler)
       : this.constructor = constructor,
@@ -806,22 +808,21 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     return super.visitSend(send);
   }
 
-  void potentiallyCheckType(Node node, Element element, Constant constant) {
+  void potentiallyCheckType(Node node, DartType type, Constant constant) {
     if (compiler.enableTypeAssertions) {
-      DartType elementType = element.computeType(compiler);
       DartType constantType = constant.computeType(compiler);
-      // TODO(ngeoffray): Handle type parameters.
-      if (elementType.element.isTypeVariable()) return;
-      if (!constantSystem.isSubtype(compiler, constantType, elementType)) {
+      if (!compiler.types.isSubtype(constantType, type)) {
         compiler.reportFatalError(
             node, MessageKind.NOT_ASSIGNABLE.error,
-            {'fromType': elementType, 'toType': constantType});
+            {'fromType': constantType, 'toType': type});
       }
     }
   }
 
   void updateFieldValue(Node node, Element element, Constant constant) {
-    potentiallyCheckType(node, element, constant);
+    DartType elementType =
+        element.computeType(compiler).substByContext(constructedType);
+    potentiallyCheckType(node, elementType, constant);
     fieldValues[element] = constant;
   }
 
@@ -832,12 +833,14 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
    */
   void assignArgumentsToParameters(List<Constant> arguments) {
     // Assign arguments to parameters.
-    FunctionSignature parameters = constructor.computeSignature(compiler);
+    FunctionSignature signature = constructor.computeSignature(compiler);
     int index = 0;
-    parameters.orderedForEachParameter((Element parameter) {
+    signature.orderedForEachParameter((Element parameter) {
+      DartType parameterType =
+          parameter.computeType(compiler).substByContext(constructedType);
       Constant argument = arguments[index++];
       Node node = parameter.parseNode(compiler);
-      potentiallyCheckType(node, parameter, argument);
+      potentiallyCheckType(node, parameterType, argument);
       definitions[parameter] = argument;
       if (parameter.kind == ElementKind.FIELD_PARAMETER) {
         FieldParameterElement fieldParameterElement = parameter;
@@ -849,6 +852,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   void evaluateSuperOrRedirectSend(List<Constant> compiledArguments,
                                    FunctionElement targetConstructor) {
     ConstructorEvaluator evaluator = new ConstructorEvaluator(
+        constructedType.asInstanceOf(targetConstructor.getEnclosingClass()),
         targetConstructor, handler, compiler);
     evaluator.evaluateConstructorFieldValues(compiledArguments);
     // Copy over the fieldValues from the super/redirect-constructor.
