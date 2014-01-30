@@ -13,13 +13,13 @@ custom/js_custom_test: Fail # Issue 14643
 element_offset_test/offset: Pass, Fail # Issue 13296
 custom/template_wrappers_test: Pass, Fail # Test is for Dartium GC issues
 
-[ $compiler == dart2js && $runtime != drt && $browser ]
+[ $compiler == dart2js && $browser ]
+custom/created_callback_test: Fail # Support for created constructor.
+
+# For now dart2js uses the polyfill even on DRT
 custom/document_register_type_extensions_test/namespaces: Fail # Polyfill does not support createElementNS
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
-
-[ $compiler == dart2js && $browser ]
-custom/created_callback_test: Fail # Support for created constructor.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601

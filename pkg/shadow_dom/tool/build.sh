@@ -41,4 +41,5 @@ npm install
 echo '*** Running grunt'
 grunt
 
-echo "*** Revision hash to use in commit message: $REVISIONS"
+echo "*** Saving REVISIONS file"
+echo "$REVISIONS" > ../REVISIONS

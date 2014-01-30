@@ -197,7 +197,7 @@ if (!HTMLElement.prototype.createShadowRoot
       this.push(part);
     }, this);
 
-    if (hasEval && !hasObserve && this.length) {
+    if (hasEval && this.length) {
       this.getValueFrom = this.compiledGetValueFromFn();
     }
   }
@@ -235,15 +235,23 @@ if (!HTMLElement.prototype.createShadowRoot
       return this.join('.');
     },
 
-    getValueFrom: function(obj, observedSet) {
+    getValueFrom: function(obj, directObserver) {
       for (var i = 0; i < this.length; i++) {
         if (obj == null)
           return;
-        if (observedSet)
-          observedSet.observe(obj);
         obj = obj[this[i]];
       }
       return obj;
+    },
+
+    iterateObjects: function(obj, observe) {
+      for (var i = 0; i < this.length; i++) {
+        if (i)
+          obj = obj[this[i - 1]];
+        if (!obj)
+          return;
+        observe(obj);
+      }
     },
 
     compiledGetValueFromFn: function() {
@@ -294,12 +302,13 @@ if (!HTMLElement.prototype.createShadowRoot
 
   function dirtyCheck(observer) {
     var cycles = 0;
-    while (cycles < MAX_DIRTY_CHECK_CYCLES && observer.check()) {
-      observer.report();
+    while (cycles < MAX_DIRTY_CHECK_CYCLES && observer.check_()) {
       cycles++;
     }
     if (global.testingExposeCycleCount)
       global.dirtyCheckCycleCount = cycles;
+
+    return cycles > 0;
   }
 
   function objectIsEmpty(object) {
@@ -352,104 +361,280 @@ if (!HTMLElement.prototype.createShadowRoot
     };
   }
 
-  function copyObject(object, opt_copy) {
-    var copy = opt_copy || (Array.isArray(object) ? [] : {});
-    for (var prop in object) {
-      copy[prop] = object[prop];
-    };
-    if (Array.isArray(object))
-      copy.length = object.length;
-    return copy;
+  var eomTasks = [];
+  function runEOMTasks() {
+    if (!eomTasks.length)
+      return false;
+
+    for (var i = 0; i < eomTasks.length; i++) {
+      eomTasks[i]();
+    }
+    eomTasks.length = 0;
+    return true;
   }
 
-  function Observer(object, callback, target, token) {
-    this.closed = false;
-    this.object = object;
-    this.callback = callback;
-    // TODO(rafaelw): Hold this.target weakly when WeakRef is available.
-    this.target = target;
-    this.token = token;
-    this.reporting = true;
-    if (hasObserve) {
-      var self = this;
-      this.boundInternalCallback = function(records) {
-        self.internalCallback(records);
-      };
+  var runEOM = hasObserve ? (function(){
+    var eomObj = { pingPong: true };
+    var eomRunScheduled = false;
+
+    Object.observe(eomObj, function() {
+      runEOMTasks();
+      eomRunScheduled = false;
+    });
+
+    return function(fn) {
+      eomTasks.push(fn);
+      if (!eomRunScheduled) {
+        eomRunScheduled = true;
+        eomObj.pingPong = !eomObj.pingPong;
+      }
+    };
+  })() :
+  (function() {
+    return function(fn) {
+      eomTasks.push(fn);
+    };
+  })();
+
+  var observedObjectCache = [];
+
+  function newObservedObject() {
+    var observer;
+    var object;
+    var discardRecords = false;
+    var first = true;
+
+    function callback(records) {
+      if (observer && observer.state_ === OPENED && !discardRecords)
+        observer.check_(records);
     }
 
-    addToAll(this);
+    return {
+      open: function(obs) {
+        if (observer)
+          throw Error('ObservedObject in use');
+
+        if (!first)
+          Object.deliverChangeRecords(callback);
+
+        observer = obs;
+        first = false;
+      },
+      observe: function(obj, arrayObserve) {
+        object = obj;
+        if (arrayObserve)
+          Array.observe(object, callback);
+        else
+          Object.observe(object, callback);
+      },
+      deliver: function(discard) {
+        discardRecords = discard;
+        Object.deliverChangeRecords(callback);
+        discardRecords = false;
+      },
+      close: function() {
+        observer = undefined;
+        Object.unobserve(object, callback);
+        observedObjectCache.push(this);
+      }
+    };
+  }
+
+  function getObservedObject(observer, object, arrayObserve) {
+    var dir = observedObjectCache.pop() || newObservedObject();
+    dir.open(observer);
+    dir.observe(object, arrayObserve);
+    return dir;
+  }
+
+  var emptyArray = [];
+  var observedSetCache = [];
+
+  function newObservedSet() {
+    var observers = [];
+    var observerCount = 0;
+    var objects = [];
+    var toRemove = emptyArray;
+    var resetNeeded = false;
+    var resetScheduled = false;
+
+    function observe(obj) {
+      if (!isObject(obj))
+        return;
+
+      var index = toRemove.indexOf(obj);
+      if (index >= 0) {
+        toRemove[index] = undefined;
+        objects.push(obj);
+      } else if (objects.indexOf(obj) < 0) {
+        objects.push(obj);
+        Object.observe(obj, callback);
+      }
+
+      observe(Object.getPrototypeOf(obj));
+    }
+
+    function reset() {
+      resetScheduled = false;
+      if (!resetNeeded)
+        return;
+
+      var objs = toRemove === emptyArray ? [] : toRemove;
+      toRemove = objects;
+      objects = objs;
+
+      var observer;
+      for (var id in observers) {
+        observer = observers[id];
+        if (!observer || observer.state_ != OPENED)
+          continue;
+
+        observer.iterateObjects_(observe);
+      }
+
+      for (var i = 0; i < toRemove.length; i++) {
+        var obj = toRemove[i];
+        if (obj)
+          Object.unobserve(obj, callback);
+      }
+
+      toRemove.length = 0;
+    }
+
+    function scheduleReset() {
+      if (resetScheduled)
+        return;
+
+      resetNeeded = true;
+      resetScheduled = true;
+      runEOM(reset);
+    }
+
+    function callback() {
+      var observer;
+
+      for (var id in observers) {
+        observer = observers[id];
+        if (!observer || observer.state_ != OPENED)
+          continue;
+
+        observer.check_();
+      }
+
+      scheduleReset();
+    }
+
+    var record = {
+      object: undefined,
+      objects: objects,
+      open: function(obs) {
+        observers[obs.id_] = obs;
+        observerCount++;
+        obs.iterateObjects_(observe);
+      },
+      close: function(obs) {
+        var anyLeft = false;
+
+        observers[obs.id_] = undefined;
+        observerCount--;
+
+        if (observerCount) {
+          scheduleReset();
+          return;
+        }
+        resetNeeded = false;
+
+        for (var i = 0; i < objects.length; i++) {
+          Object.unobserve(objects[i], callback);
+          Observer.unobservedCount++;
+        }
+
+        observers.length = 0;
+        objects.length = 0;
+        observedSetCache.push(this);
+      },
+      reset: scheduleReset
+    };
+
+    return record;
+  }
+
+  var lastObservedSet;
+
+  function getObservedSet(observer, obj) {
+    if (!lastObservedSet || lastObservedSet.object !== obj) {
+      lastObservedSet = observedSetCache.pop() || newObservedSet();
+      lastObservedSet.object = obj;
+    }
+    lastObservedSet.open(observer);
+    return lastObservedSet;
+  }
+
+  var UNOPENED = 0;
+  var OPENED = 1;
+  var CLOSED = 2;
+  var RESETTING = 3;
+
+  var nextObserverId = 1;
+
+  function Observer() {
+    this.state_ = UNOPENED;
+    this.callback_ = undefined;
+    this.target_ = undefined; // TODO(rafaelw): Should be WeakRef
+    this.directObserver_ = undefined;
+    this.value_ = undefined;
+    this.id_ = nextObserverId++;
   }
 
   Observer.prototype = {
-    internalCallback: function(records) {
-      if (this.closed)
-        return;
-      if (this.reporting && this.check(records)) {
-        this.report();
-        if (this.testingResults)
-          this.testingResults.anyChanged = true;
-      }
+    open: function(callback, target) {
+      if (this.state_ != UNOPENED)
+        throw Error('Observer has already been opened.');
+
+      addToAll(this);
+      this.callback_ = callback;
+      this.target_ = target;
+      this.state_ = OPENED;
+      this.connect_();
+      return this.value_;
     },
 
     close: function() {
-      if (this.closed)
-        return;
-      if (this.object && typeof this.object.close === 'function')
-        this.object.close();
-
-      this.disconnect();
-      this.object = undefined;
-      this.closed = true;
-    },
-
-    deliver: function(testingResults) {
-      if (this.closed)
-        return;
-      if (hasObserve) {
-        this.testingResults = testingResults;
-        Object.deliverChangeRecords(this.boundInternalCallback);
-        this.testingResults = undefined;
-      } else {
-        dirtyCheck(this);
-      }
-    },
-
-    report: function() {
-      if (!this.reporting)
+      if (this.state_ != OPENED)
         return;
 
-      this.sync(false);
-      if (this.callback) {
-        this.reportArgs.push(this.token);
-        this.invokeCallback(this.reportArgs);
-      }
-      this.reportArgs = undefined;
+      removeFromAll(this);
+      this.state_ = CLOSED;
+      this.disconnect_();
+      this.value_ = undefined;
+      this.callback_ = undefined;
+      this.target_ = undefined;
     },
 
-    invokeCallback: function(args) {
+    deliver: function() {
+      if (this.state_ != OPENED)
+        return;
+
+      dirtyCheck(this);
+    },
+
+    report_: function(changes) {
       try {
-        this.callback.apply(this.target, args);
+        this.callback_.apply(this.target_, changes);
       } catch (ex) {
         Observer._errorThrownDuringCallback = true;
-        console.error('Exception caught during observer callback: ' + (ex.stack || ex));
+        console.error('Exception caught during observer callback: ' +
+                       (ex.stack || ex));
       }
     },
 
-    reset: function() {
-      if (this.closed)
-        return;
-
-      if (hasObserve) {
-        this.reporting = false;
-        Object.deliverChangeRecords(this.boundInternalCallback);
-        this.reporting = true;
-      }
-
-      this.sync(true);
+    discardChanges: function() {
+      this.check_(undefined, true);
+      return this.value_;
     }
   }
 
-  var collectObservers = !hasObserve || global.forceCollectObservers;
+  var collectObservers = !hasObserve;
   var allObservers;
   Observer._allObserversCount = 0;
 
@@ -458,11 +643,15 @@ if (!HTMLElement.prototype.createShadowRoot
   }
 
   function addToAll(observer) {
+    Observer._allObserversCount++;
     if (!collectObservers)
       return;
 
     allObservers.push(observer);
-    Observer._allObserversCount++;
+  }
+
+  function removeFromAll(observer) {
+    Observer._allObserversCount--;
   }
 
   var runningMicrotaskCheckpoint = false;
@@ -486,34 +675,31 @@ if (!HTMLElement.prototype.createShadowRoot
     runningMicrotaskCheckpoint = true;
 
     var cycles = 0;
-    var results = {};
+    var anyChanged, toCheck;
 
     do {
       cycles++;
-      var toCheck = allObservers;
+      toCheck = allObservers;
       allObservers = [];
-      results.anyChanged = false;
+      anyChanged = false;
 
       for (var i = 0; i < toCheck.length; i++) {
         var observer = toCheck[i];
-        if (observer.closed)
+        if (observer.state_ != OPENED)
           continue;
 
-        if (hasObserve) {
-          observer.deliver(results);
-        } else if (observer.check()) {
-          results.anyChanged = true;
-          observer.report();
-        }
+        if (observer.check_())
+          anyChanged = true;
 
         allObservers.push(observer);
       }
-    } while (cycles < MAX_DIRTY_CHECK_CYCLES && results.anyChanged);
+      if (runEOMTasks())
+        anyChanged = true;
+    } while (cycles < MAX_DIRTY_CHECK_CYCLES && anyChanged);
 
     if (global.testingExposeCycleCount)
       global.dirtyCheckCycleCount = cycles;
 
-    Observer._allObserversCount = allObservers.length;
     runningMicrotaskCheckpoint = false;
   };
 
@@ -523,26 +709,38 @@ if (!HTMLElement.prototype.createShadowRoot
     };
   }
 
-  function ObjectObserver(object, callback, target, token) {
-    Observer.call(this, object, callback, target, token);
-    this.connect();
-    this.sync(true);
+  function ObjectObserver(object) {
+    Observer.call(this);
+    this.value_ = object;
+    this.oldObject_ = undefined;
   }
 
   ObjectObserver.prototype = createObject({
     __proto__: Observer.prototype,
 
-    connect: function() {
-      if (hasObserve)
-        Object.observe(this.object, this.boundInternalCallback);
+    arrayObserve: false,
+
+    connect_: function(callback, target) {
+      if (hasObserve) {
+        this.directObserver_ = getObservedObject(this, this.value_,
+                                                 this.arrayObserve);
+      } else {
+        this.oldObject_ = this.copyObject(this.value_);
+      }
+
     },
 
-    sync: function(hard) {
-      if (!hasObserve)
-        this.oldObject = copyObject(this.object);
+    copyObject: function(object) {
+      var copy = Array.isArray(object) ? [] : {};
+      for (var prop in object) {
+        copy[prop] = object[prop];
+      };
+      if (Array.isArray(object))
+        copy.length = object.length;
+      return copy;
     },
 
-    check: function(changeRecords) {
+    check_: function(changeRecords, skipChanges) {
       var diff;
       var oldValues;
       if (hasObserve) {
@@ -550,67 +748,94 @@ if (!HTMLElement.prototype.createShadowRoot
           return false;
 
         oldValues = {};
-        diff = diffObjectFromChangeRecords(this.object, changeRecords,
+        diff = diffObjectFromChangeRecords(this.value_, changeRecords,
                                            oldValues);
       } else {
-        oldValues = this.oldObject;
-        diff = diffObjectFromOldObject(this.object, this.oldObject);
+        oldValues = this.oldObject_;
+        diff = diffObjectFromOldObject(this.value_, this.oldObject_);
       }
 
       if (diffIsEmpty(diff))
         return false;
 
-      this.reportArgs =
-          [diff.added || {}, diff.removed || {}, diff.changed || {}];
-      this.reportArgs.push(function(property) {
-        return oldValues[property];
-      });
+      if (!hasObserve)
+        this.oldObject_ = this.copyObject(this.value_);
+
+      this.report_([
+        diff.added || {},
+        diff.removed || {},
+        diff.changed || {},
+        function(property) {
+          return oldValues[property];
+        }
+      ]);
 
       return true;
     },
 
-    disconnect: function() {
-      if (!hasObserve)
-        this.oldObject = undefined;
-      else if (this.object)
-        Object.unobserve(this.object, this.boundInternalCallback);
+    disconnect_: function() {
+      if (hasObserve) {
+        this.directObserver_.close();
+        this.directObserver_ = undefined;
+      } else {
+        this.oldObject_ = undefined;
+      }
+    },
+
+    deliver: function() {
+      if (this.state_ != OPENED)
+        return;
+
+      if (hasObserve)
+        this.directObserver_.deliver(false);
+      else
+        dirtyCheck(this);
+    },
+
+    discardChanges: function() {
+      if (this.directObserver_)
+        this.directObserver_.deliver(true);
+      else
+        this.oldObject_ = this.copyObject(this.value_);
+
+      return this.value_;
     }
   });
 
-  function ArrayObserver(array, callback, target, token) {
+  function ArrayObserver(array) {
     if (!Array.isArray(array))
       throw Error('Provided object is not an Array');
-    ObjectObserver.call(this, array, callback, target, token);
+    ObjectObserver.call(this, array);
   }
 
   ArrayObserver.prototype = createObject({
+
     __proto__: ObjectObserver.prototype,
 
-    connect: function() {
-      if (hasObserve)
-        Array.observe(this.object, this.boundInternalCallback);
+    arrayObserve: true,
+
+    copyObject: function(arr) {
+      return arr.slice();
     },
 
-    sync: function() {
-      if (!hasObserve)
-        this.oldObject = this.object.slice();
-    },
-
-    check: function(changeRecords) {
+    check_: function(changeRecords) {
       var splices;
       if (hasObserve) {
         if (!changeRecords)
           return false;
-        splices = projectArraySplices(this.object, changeRecords);
+        splices = projectArraySplices(this.value_, changeRecords);
       } else {
-        splices = calcSplices(this.object, 0, this.object.length,
-                              this.oldObject, 0, this.oldObject.length);
+        splices = calcSplices(this.value_, 0, this.value_.length,
+                              this.oldObject_, 0, this.oldObject_.length);
       }
 
       if (!splices || !splices.length)
         return false;
 
-      this.reportArgs = [splices];
+      if (!hasObserve)
+        this.oldObject_ = this.copyObject(this.value_);
+
+      this.report_([splices]);
       return true;
     }
   });
@@ -628,255 +853,247 @@ if (!HTMLElement.prototype.createShadowRoot
     });
   };
 
-  function ObservedSet(callback) {
-    this.arr = [];
-    this.callback = callback;
-    this.isObserved = true;
-  }
+  function PathObserver(object, path) {
+    Observer.call(this);
 
-  // TODO(rafaelw): Consider surfacing a way to avoid observing prototype
-  // ancestors which are expected not to change (e.g. Element, Node...).
-  var objProto = Object.getPrototypeOf({});
-  var arrayProto = Object.getPrototypeOf([]);
-  ObservedSet.prototype = {
-    reset: function() {
-      this.isObserved = !this.isObserved;
-    },
-
-    observe: function(obj) {
-      if (!isObject(obj) || obj === objProto || obj === arrayProto)
-        return;
-      var i = this.arr.indexOf(obj);
-      if (i >= 0 && this.arr[i+1] === this.isObserved)
-        return;
-
-      if (i < 0) {
-        i = this.arr.length;
-        this.arr[i] = obj;
-        Object.observe(obj, this.callback);
-      }
-
-      this.arr[i+1] = this.isObserved;
-      this.observe(Object.getPrototypeOf(obj));
-    },
-
-    cleanup: function() {
-      var i = 0, j = 0;
-      var isObserved = this.isObserved;
-      while(j < this.arr.length) {
-        var obj = this.arr[j];
-        if (this.arr[j + 1] == isObserved) {
-          if (i < j) {
-            this.arr[i] = obj;
-            this.arr[i + 1] = isObserved;
-          }
-          i += 2;
-        } else {
-          Object.unobserve(obj, this.callback);
-        }
-        j += 2;
-      }
-
-      this.arr.length = i;
-    }
-  };
-
-  function PathObserver(object, path, callback, target, token, valueFn,
-                        setValueFn) {
-    var path = path instanceof Path ? path : getPath(path);
-    if (!path || !path.length || !isObject(object)) {
-      this.value_ = path ? path.getValueFrom(object) : undefined;
-      this.value = valueFn ? valueFn(this.value_) : this.value_;
-      this.closed = true;
-      return;
-    }
-
-    Observer.call(this, object, callback, target, token);
-    this.valueFn = valueFn;
-    this.setValueFn = setValueFn;
-    this.path = path;
-
-    this.connect();
-    this.sync(true);
+    this.object_ = object;
+    this.path_ = path instanceof Path ? path : getPath(path);
+    this.directObserver_ = undefined;
   }
 
   PathObserver.prototype = createObject({
     __proto__: Observer.prototype,
 
-    connect: function() {
+    connect_: function() {
       if (hasObserve)
-        this.observedSet = new ObservedSet(this.boundInternalCallback);
+        this.directObserver_ = getObservedSet(this, this.object_);
+
+      this.check_(undefined, true);
     },
 
-    disconnect: function() {
-      this.value = undefined;
+    disconnect_: function() {
       this.value_ = undefined;
-      if (this.observedSet) {
-        this.observedSet.reset();
-        this.observedSet.cleanup();
-        this.observedSet = undefined;
+
+      if (this.directObserver_) {
+        this.directObserver_.close(this);
+        this.directObserver_ = undefined;
       }
     },
 
-    check: function() {
-      // Note: Extracting this to a member function for use here and below
-      // regresses dirty-checking path perf by about 25% =-(.
-      if (this.observedSet)
-        this.observedSet.reset();
+    iterateObjects_: function(observe) {
+      this.path_.iterateObjects(this.object_, observe);
+    },
 
-      this.value_ = this.path.getValueFrom(this.object, this.observedSet);
-
-      if (this.observedSet)
-        this.observedSet.cleanup();
-
-      if (areSameValue(this.value_, this.oldValue_))
+    check_: function(changeRecords, skipChanges) {
+      var oldValue = this.value_;
+      this.value_ = this.path_.getValueFrom(this.object_);
+      if (skipChanges || areSameValue(this.value_, oldValue))
         return false;
 
-      this.value = this.valueFn ? this.valueFn(this.value_) : this.value_;
-      this.reportArgs = [this.value, this.oldValue];
+      this.report_([this.value_, oldValue]);
       return true;
-    },
-
-    sync: function(hard) {
-      if (hard) {
-        if (this.observedSet)
-          this.observedSet.reset();
-
-        this.value_ = this.path.getValueFrom(this.object, this.observedSet);
-        this.value = this.valueFn ? this.valueFn(this.value_) : this.value_;
-
-        if (this.observedSet)
-          this.observedSet.cleanup();
-      }
-
-      this.oldValue_ = this.value_;
-      this.oldValue = this.value;
     },
 
     setValue: function(newValue) {
-      if (!this.path)
-        return;
-      if (typeof this.setValueFn === 'function')
-        newValue = this.setValueFn(newValue);
-      this.path.setValueFrom(this.object, newValue);
+      if (this.path_)
+        this.path_.setValueFrom(this.object_, newValue);
     }
   });
 
-  function CompoundPathObserver(callback, target, token, valueFn) {
-    Observer.call(this, undefined, callback, target, token);
-    this.valueFn = valueFn;
+  function CompoundObserver() {
+    Observer.call(this);
 
-    this.observed = [];
-    this.values = [];
-    this.value = undefined;
-    this.oldValue = undefined;
-    this.oldValues = undefined;
-    this.changeFlags = undefined;
-    this.started = false;
+    this.value_ = [];
+    this.directObserver_ = undefined;
+    this.observed_ = [];
   }
 
-  CompoundPathObserver.prototype = createObject({
-    __proto__: PathObserver.prototype,
+  var observerSentinel = {};
 
-    // TODO(rafaelw): Consider special-casing when |object| is a PathObserver
-    // and path 'value' to avoid explicit observation.
-    addPath: function(object, path) {
-      if (this.started)
-        throw Error('Cannot add more paths once started.');
+  CompoundObserver.prototype = createObject({
+    __proto__: Observer.prototype,
 
-      var path = path instanceof Path ? path : getPath(path);
-      var value = path ? path.getValueFrom(object) : undefined;
+    connect_: function() {
+      this.check_(undefined, true);
 
-      this.observed.push(object, path);
-      this.values.push(value);
-    },
+      if (!hasObserve)
+        return;
 
-    start: function() {
-      this.started = true;
-      this.connect();
-      this.sync(true);
-    },
-
-    getValues: function() {
-      if (this.observedSet)
-        this.observedSet.reset();
-
-      var anyChanged = false;
-      for (var i = 0; i < this.observed.length; i = i+2) {
-        var path = this.observed[i+1];
-        if (!path)
-          continue;
-        var object = this.observed[i];
-        var value = path.getValueFrom(object, this.observedSet);
-        var oldValue = this.values[i/2];
-        if (!areSameValue(value, oldValue)) {
-          if (!anyChanged && !this.valueFn) {
-            this.oldValues = this.oldValues || [];
-            this.changeFlags = this.changeFlags || [];
-            for (var j = 0; j < this.values.length; j++) {
-              this.oldValues[j] = this.values[j];
-              this.changeFlags[j] = false;
-            }
-          }
-
-          if (!this.valueFn)
-            this.changeFlags[i/2] = true;
-
-          this.values[i/2] = value;
-          anyChanged = true;
+      var object;
+      var needsDirectObserver = false;
+      for (var i = 0; i < this.observed_.length; i += 2) {
+        object = this.observed_[i]
+        if (object !== observerSentinel) {
+          needsDirectObserver = true;
+          break;
         }
       }
 
-      if (this.observedSet)
-        this.observedSet.cleanup();
-
-      return anyChanged;
-    },
-
-    check: function() {
-      if (!this.getValues())
+      if (this.directObserver_) {
+        if (needsDirectObserver) {
+          this.directObserver_.reset();
+          return;
+        }
+        this.directObserver_.close();
+        this.directObserver_ = undefined;
         return;
-
-      if (this.valueFn) {
-        this.value = this.valueFn(this.values);
-
-        if (areSameValue(this.value, this.oldValue))
-          return false;
-
-        this.reportArgs = [this.value, this.oldValue];
-      } else {
-        this.reportArgs = [this.values, this.oldValues, this.changeFlags,
-                           this.observed];
       }
 
-      return true;
+      if (needsDirectObserver)
+        this.directObserver_ = getObservedSet(this, object);
     },
 
-    sync: function(hard) {
-      if (hard) {
-        this.getValues();
-        if (this.valueFn)
-          this.value = this.valueFn(this.values);
+    closeObservers_: function() {
+      for (var i = 0; i < this.observed_.length; i += 2) {
+        if (this.observed_[i] === observerSentinel)
+          this.observed_[i + 1].close();
+      }
+      this.observed_.length = 0;
+    },
+
+    disconnect_: function() {
+      this.value_ = undefined;
+
+      if (this.directObserver_) {
+        this.directObserver_.close(this);
+        this.directObserver_ = undefined;
       }
 
-      if (this.valueFn)
-        this.oldValue = this.value;
+      this.closeObservers_();
+    },
+
+    addPath: function(object, path) {
+      if (this.state_ != UNOPENED && this.state_ != RESETTING)
+        throw Error('Cannot add paths once started.');
+
+      this.observed_.push(object, path instanceof Path ? path : getPath(path));
+    },
+
+    addObserver: function(observer) {
+      if (this.state_ != UNOPENED && this.state_ != RESETTING)
+        throw Error('Cannot add observers once started.');
+
+      observer.open(this.deliver, this);
+      this.observed_.push(observerSentinel, observer);
+    },
+
+    startReset: function() {
+      if (this.state_ != OPENED)
+        throw Error('Can only reset while open');
+
+      this.state_ = RESETTING;
+      this.closeObservers_();
+    },
+
+    finishReset: function() {
+      if (this.state_ != RESETTING)
+        throw Error('Can only finishReset after startReset');
+      this.state_ = OPENED;
+      this.connect_();
+
+      return this.value_;
+    },
+
+    iterateObjects_: function(observe) {
+      var object;
+      for (var i = 0; i < this.observed_.length; i += 2) {
+        object = this.observed_[i]
+        if (object !== observerSentinel)
+          this.observed_[i + 1].iterateObjects(object, observe)
+      }
+    },
+
+    check_: function(changeRecords, skipChanges) {
+      var oldValues;
+      for (var i = 0; i < this.observed_.length; i += 2) {
+        var pathOrObserver = this.observed_[i+1];
+        var object = this.observed_[i];
+        var value = object === observerSentinel ?
+            pathOrObserver.discardChanges() :
+            pathOrObserver.getValueFrom(object)
+
+        if (skipChanges) {
+          this.value_[i / 2] = value;
+          continue;
+        }
+
+        if (areSameValue(value, this.value_[i / 2]))
+          continue;
+
+        oldValues = oldValues || [];
+        oldValues[i / 2] = this.value_[i / 2];
+        this.value_[i / 2] = value;
+      }
+
+      if (!oldValues)
+        return false;
+
+      // TODO(rafaelw): Having observed_ as the third callback arg here is
+      // pretty lame API. Fix.
+      this.report_([this.value_, oldValues, this.observed_]);
+      return true;
+    }
+  });
+
+  function identFn(value) { return value; }
+
+  function ObserverTransform(observable, getValueFn, setValueFn,
+                             dontPassThroughSet) {
+    this.callback_ = undefined;
+    this.target_ = undefined;
+    this.value_ = undefined;
+    this.observable_ = observable;
+    this.getValueFn_ = getValueFn || identFn;
+    this.setValueFn_ = setValueFn || identFn;
+    // TODO(rafaelw): This is a temporary hack. PolymerExpressions needs this
+    // at the moment because of a bug in it's dependency tracking.
+    this.dontPassThroughSet_ = dontPassThroughSet;
+  }
+
+  ObserverTransform.prototype = {
+    open: function(callback, target) {
+      this.callback_ = callback;
+      this.target_ = target;
+      this.value_ =
+          this.getValueFn_(this.observable_.open(this.observedCallback_, this));
+      return this.value_;
+    },
+
+    observedCallback_: function(value) {
+      value = this.getValueFn_(value);
+      if (areSameValue(value, this.value_))
+        return;
+      var oldValue = this.value_;
+      this.value_ = value;
+      this.callback_.call(this.target_, this.value_, oldValue);
+    },
+
+    discardChanges: function() {
+      this.value_ = this.getValueFn_(this.observable_.discardChanges());
+      return this.value_;
+    },
+
+    deliver: function() {
+      return this.observable_.deliver();
+    },
+
+    setValue: function(value) {
+      value = this.setValueFn_(value);
+      if (!this.dontPassThroughSet_ && this.observable_.setValue)
+        return this.observable_.setValue(value);
     },
 
     close: function() {
-      if (this.observed) {
-        for (var i = 0; i < this.observed.length; i = i + 2) {
-          var object = this.observed[i];
-          if (object && typeof object.close === 'function')
-            object.close();
-        }
-        this.observed = undefined;
-        this.values = undefined;
-      }
-
-      Observer.prototype.close.call(this);
+      if (this.observable_)
+        this.observable_.close();
+      this.callback_ = undefined;
+      this.target_ = undefined;
+      this.observable_ = undefined;
+      this.value_ = undefined;
+      this.getValueFn_ = undefined;
+      this.setValueFn_ = undefined;
     }
-  });
+  }
 
   var expectedRecordTypes = {};
   expectedRecordTypes[PROP_ADD_TYPE] = true;
@@ -900,40 +1117,31 @@ if (!HTMLElement.prototype.createShadowRoot
     }
   }
 
-  // TODO(rafaelw): It should be possible for the Object.observe case to have
-  // every PathObserver used by defineProperty share a single Object.observe
-  // callback, and thus get() can simply call observer.deliver() and any changes
-  // to any dependent value will be observed.
-  PathObserver.defineProperty = function(target, name, object, path) {
-    // TODO(rafaelw): Validate errors
-    path = getPath(path);
+  Observer.defineComputedProperty = function(target, name, observable) {
     var notify = notifyFunction(target, name);
-
-    var observer = new PathObserver(object, path,
-        function(newValue, oldValue) {
-          if (notify)
-            notify(PROP_UPDATE_TYPE, oldValue);
-        }
-    );
+    var value = observable.open(function(newValue, oldValue) {
+      value = newValue;
+      if (notify)
+        notify(PROP_UPDATE_TYPE, oldValue);
+    });
 
     Object.defineProperty(target, name, {
       get: function() {
-        return path.getValueFrom(object);
+        observable.deliver();
+        return value;
       },
       set: function(newValue) {
-        path.setValueFrom(object, newValue);
+        observable.setValue(newValue);
+        return newValue;
       },
       configurable: true
     });
 
     return {
       close: function() {
-        var oldValue = path.getValueFrom(object);
-        if (notify)
-          observer.deliver();
-        observer.close();
+        observable.close();
         Object.defineProperty(target, name, {
-          value: oldValue,
+          value: value,
           writable: true,
           configurable: true
         });
@@ -1397,6 +1605,7 @@ if (!HTMLElement.prototype.createShadowRoot
   }
 
   global.Observer = Observer;
+  global.Observer.runEOM_ = runEOM;
   global.Observer.hasObjectObserve = hasObserve;
   global.ArrayObserver = ArrayObserver;
   global.ArrayObserver.calculateSplices = function(current, previous) {
@@ -1406,8 +1615,9 @@ if (!HTMLElement.prototype.createShadowRoot
   global.ArraySplice = ArraySplice;
   global.ObjectObserver = ObjectObserver;
   global.PathObserver = PathObserver;
-  global.CompoundPathObserver = CompoundPathObserver;
+  global.CompoundObserver = CompoundObserver;
   global.Path = Path;
+  global.ObserverTransform = ObserverTransform;
 
   // TODO(rafaelw): Only needed for testing until new change record names
   // make it to release.
@@ -1418,7 +1628,7 @@ if (!HTMLElement.prototype.createShadowRoot
     'delete': PROP_DELETE_TYPE,
     splice: ARRAY_SPLICE_TYPE
   };
-})(typeof global !== 'undefined' && global ? global : this || window);
+})(typeof global !== 'undefined' && global && typeof module !== 'undefined' && module ? global : this || window);
 
 /*
  * Copyright 2012 The Polymer Authors. All rights reserved.
@@ -1708,12 +1918,14 @@ window.ShadowDOMPolyfill = {};
   }
 
   var OriginalDOMImplementation = window.DOMImplementation;
+  var OriginalEventTarget = window.EventTarget;
   var OriginalEvent = window.Event;
   var OriginalNode = window.Node;
   var OriginalWindow = window.Window;
   var OriginalRange = window.Range;
   var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
   var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
+  var OriginalSVGElementInstance = window.SVGElementInstance;
 
   function isWrapper(object) {
     return object instanceof wrappers.EventTarget ||
@@ -1726,14 +1938,17 @@ window.ShadowDOMPolyfill = {};
   }
 
   function isNative(object) {
-    return object instanceof OriginalNode ||
+    return OriginalEventTarget && object instanceof OriginalEventTarget ||
+           object instanceof OriginalNode ||
            object instanceof OriginalEvent ||
            object instanceof OriginalWindow ||
            object instanceof OriginalRange ||
            object instanceof OriginalDOMImplementation ||
            object instanceof OriginalCanvasRenderingContext2D ||
            OriginalWebGLRenderingContext &&
-               object instanceof OriginalWebGLRenderingContext;
+               object instanceof OriginalWebGLRenderingContext ||
+           OriginalSVGElementInstance &&
+               object instanceof OriginalSVGElementInstance;
   }
 
   /**
@@ -1832,6 +2047,7 @@ window.ShadowDOMPolyfill = {};
   scope.defineGetter = defineGetter;
   scope.defineWrapGetter = defineWrapGetter;
   scope.forwardMethodsToWrapper = forwardMethodsToWrapper;
+  scope.isWrapper = isWrapper;
   scope.isWrapperFor = isWrapperFor;
   scope.mixin = mixin;
   scope.nativePrototypeTable = nativePrototypeTable;
@@ -2287,6 +2503,7 @@ window.ShadowDOMPolyfill = {};
   var wrappedFuns = new WeakMap();
   var listenersTable = new WeakMap();
   var handledEventsTable = new WeakMap();
+  var currentlyDispatchingEvents = new WeakMap();
   var targetTable = new WeakMap();
   var currentTargetTable = new WeakMap();
   var relatedTargetTable = new WeakMap();
@@ -2458,16 +2675,16 @@ window.ShadowDOMPolyfill = {};
       return;
     handledEventsTable.set(originalEvent, true);
 
-    // Render before dispatching the event to ensure that the event path is
-    // correct.
-    scope.renderAllPending();
-
-    var target = wrap(originalEvent.target);
-    var event = wrap(originalEvent);
-    return dispatchEvent(event, target);
+    return dispatchEvent(wrap(originalEvent), wrap(originalEvent.target));
   }
 
   function dispatchEvent(event, originalWrapperTarget) {
+    if (currentlyDispatchingEvents.get(event))
+      throw new Error('InvalidStateError')
+    currentlyDispatchingEvents.set(event, true);
+
+    // Render to ensure that the event path is correct.
+    scope.renderAllPending();
     var eventPath = retarget(originalWrapperTarget);
 
     // For window load events the load event is dispatched at the window but
@@ -2491,7 +2708,8 @@ window.ShadowDOMPolyfill = {};
     }
 
     eventPhaseTable.set(event, Event.NONE);
-    currentTargetTable.set(event, null);
+    currentTargetTable.delete(event, null);
+    currentlyDispatchingEvents.delete(event);
 
     return event.defaultPrevented;
   }
@@ -2630,7 +2848,12 @@ window.ShadowDOMPolyfill = {};
   };
 
   var OriginalEvent = window.Event;
-  OriginalEvent.prototype.polymerBlackList_ = {returnValue: true};
+  OriginalEvent.prototype.polymerBlackList_ = {
+    returnValue: true,
+    // TODO(arv): keyLocation is part of KeyboardEvent but Firefox does not
+    // support constructable KeyboardEvent so we keep it here for now.
+    keyLocation: true
+  };
 
   /**
    * Creates a new Event wrapper or wraps an existin native Event object.
@@ -2705,14 +2928,16 @@ window.ShadowDOMPolyfill = {};
     if (prototype)
       mixin(GenericEvent.prototype, prototype);
     if (OriginalEvent) {
-      // IE does not support event constructors but FocusEvent can only be
-      // created using new FocusEvent in Firefox.
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=882165
-      if (OriginalEvent.prototype['init' + name]) {
+      // - Old versions of Safari fails on new FocusEvent (and others?).
+      // - IE does not support event constructors.
+      // - createEvent('FocusEvent') throws in Firefox.
+      // => Try the best practice solution first and fallback to the old way
+      // if needed.
+      try {
+        registerWrapper(OriginalEvent, GenericEvent, new OriginalEvent('temp'));
+      } catch (ex) {
         registerWrapper(OriginalEvent, GenericEvent,
                         document.createEvent(name));
-      } else {
-        registerWrapper(OriginalEvent, GenericEvent, new OriginalEvent('temp'));
       }
     }
     return GenericEvent;
@@ -2753,7 +2978,7 @@ window.ShadowDOMPolyfill = {};
 
   var supportsEventConstructors = (function() {
     try {
-      new window.MouseEvent('click');
+      new window.FocusEvent('focus');
     } catch (ex) {
       return false;
     }
@@ -2924,15 +3149,61 @@ window.ShadowDOMPolyfill = {};
       }
     },
     dispatchEvent: function(event) {
-      var target = getTargetToListenAt(this);
+      // We want to use the native dispatchEvent because it triggers the default
+      // actions (like checking a checkbox). However, if there are no listeners
+      // in the composed tree then there are no events that will trigger and
+      // listeners in the non composed tree that are part of the event path are
+      // not notified.
+      //
+      // If we find out that there are no listeners in the composed tree we add
+      // a temporary listener to the target which makes us get called back even
+      // in that case.
+
       var nativeEvent = unwrap(event);
+      var eventType = nativeEvent.type;
+
       // Allow dispatching the same event again. This is safe because if user
       // code calls this during an existing dispatch of the same event the
       // native dispatchEvent throws (that is required by the spec).
       handledEventsTable.set(nativeEvent, false);
-      return target.dispatchEvent_(nativeEvent);
+
+      // Force rendering since we prefer native dispatch and that works on the
+      // composed tree.
+      scope.renderAllPending();
+
+      var tempListener;
+      if (!hasListenerInAncestors(this, eventType)) {
+        tempListener = function() {};
+        this.addEventListener(eventType, tempListener, true);
+      }
+
+      try {
+        return unwrap(this).dispatchEvent_(nativeEvent);
+      } finally {
+        if (tempListener)
+          this.removeEventListener(eventType, tempListener, true);
+      }
     }
   };
+
+  function hasListener(node, type) {
+    var listeners = listenersTable.get(node);
+    if (listeners) {
+      for (var i = 0; i < listeners.length; i++) {
+        if (!listeners[i].removed && listeners[i].type === type)
+          return true;
+      }
+    }
+    return false;
+  }
+
+  function hasListenerInAncestors(target, type) {
+    for (var node = unwrap(target); node; node = node.parentNode) {
+      if (hasListener(wrap(node), type))
+        return true;
+    }
+    return false;
+  }
 
   if (OriginalEventTarget)
     registerWrapper(OriginalEventTarget, EventTarget);
@@ -3081,6 +3352,7 @@ window.ShadowDOMPolyfill = {};
   var assert = scope.assert;
   var defineWrapGetter = scope.defineWrapGetter;
   var enqueueMutation = scope.enqueueMutation;
+  var isWrapper = scope.isWrapper;
   var mixin = scope.mixin;
   var registerTransientObservers = scope.registerTransientObservers;
   var registerWrapper = scope.registerWrapper;
@@ -3254,6 +3526,18 @@ window.ShadowDOMPolyfill = {};
     return df;
   }
 
+  function clearChildNodes(wrapper) {
+    if (wrapper.firstChild_ !== undefined) {
+      var child = wrapper.firstChild_;
+      while (child) {
+        var tmp = child;
+        child = child.nextSibling_;
+        tmp.parentNode_ = tmp.previousSibling_ = tmp.nextSibling_ = undefined;
+      }
+    }
+    wrapper.firstChild_ = wrapper.lastChild_ = undefined;
+  }
+
   function removeAllChildNodes(wrapper) {
     if (wrapper.invalidateShadowRenderer()) {
       var childWrapper = wrapper.firstChild;
@@ -3284,6 +3568,13 @@ window.ShadowDOMPolyfill = {};
   function invalidateParent(node) {
     var p = node.parentNode;
     return p && p.invalidateShadowRenderer();
+  }
+
+  function cleanupNodes(nodes) {
+    for (var i = 0, n; i < nodes.length; i++) {
+      n = nodes[i];
+      n.parentNode.removeChild(n);
+    }
   }
 
   var OriginalNode = window.Node;
@@ -3332,7 +3623,7 @@ window.ShadowDOMPolyfill = {};
      * @private
      */
     this.previousSibling_ = undefined;
-  };
+  }
 
   var OriginalDocumentFragment = window.DocumentFragment;
   var originalAppendChild = OriginalNode.prototype.appendChild;
@@ -3366,8 +3657,19 @@ window.ShadowDOMPolyfill = {};
     insertBefore: function(childWrapper, refWrapper) {
       assertIsNodeWrapper(childWrapper);
 
-      refWrapper = refWrapper || null;
-      refWrapper && assertIsNodeWrapper(refWrapper);
+      var refNode;
+      if (refWrapper) {
+        if (isWrapper(refWrapper)) {
+          refNode = unwrap(refWrapper);
+        } else {
+          refNode = refWrapper;
+          refWrapper = wrap(refNode);
+        }
+      } else {
+        refWrapper = null;
+        refNode = null;
+      }
+
       refWrapper && assert(refWrapper.parentNode === this);
 
       var nodes;
@@ -3384,15 +3686,14 @@ window.ShadowDOMPolyfill = {};
 
       if (useNative) {
         ensureSameOwnerDocument(this, childWrapper);
-        originalInsertBefore.call(this.impl, unwrap(childWrapper),
-                                  unwrap(refWrapper));
+        clearChildNodes(this);
+        originalInsertBefore.call(this.impl, unwrap(childWrapper), refNode);
       } else {
         if (!previousNode)
           this.firstChild_ = nodes[0];
         if (!refWrapper)
           this.lastChild_ = nodes[nodes.length - 1];
 
-        var refNode = unwrap(refWrapper);
         var parentNode = refNode ? refNode.parentNode : this.impl;
 
         // insertBefore refWrapper no matter what the parent is?
@@ -3463,6 +3764,7 @@ window.ShadowDOMPolyfill = {};
         childWrapper.previousSibling_ = childWrapper.nextSibling_ =
             childWrapper.parentNode_ = undefined;
       } else {
+        clearChildNodes(this);
         removeChildOriginalHelper(this.impl, childNode);
       }
 
@@ -3481,14 +3783,20 @@ window.ShadowDOMPolyfill = {};
 
     replaceChild: function(newChildWrapper, oldChildWrapper) {
       assertIsNodeWrapper(newChildWrapper);
-      assertIsNodeWrapper(oldChildWrapper);
+
+      var oldChildNode;
+      if (isWrapper(oldChildWrapper)) {
+        oldChildNode = unwrap(oldChildWrapper);
+      } else {
+        oldChildNode = oldChildWrapper;
+        oldChildWrapper = wrap(oldChildNode);
+      }
 
       if (oldChildWrapper.parentNode !== this) {
         // TODO(arv): DOMException
         throw new Error('NotFoundError');
       }
 
-      var oldChildNode = unwrap(oldChildWrapper);
       var nextNode = oldChildWrapper.nextSibling;
       var previousNode = oldChildWrapper.previousSibling;
       var nodes;
@@ -3522,6 +3830,7 @@ window.ShadowDOMPolyfill = {};
         }
       } else {
         ensureSameOwnerDocument(this, newChildWrapper);
+        clearChildNodes(this);
         originalReplaceChild.call(this.impl, unwrap(newChildWrapper),
                                   oldChildNode);
       }
@@ -3598,7 +3907,9 @@ window.ShadowDOMPolyfill = {};
       // are no shadow trees below or above the context node.
       var s = '';
       for (var child = this.firstChild; child; child = child.nextSibling) {
-        s += child.textContent;
+        if (child.nodeType != Node.COMMENT_NODE) {
+          s += child.textContent;
+        }
       }
       return s;
     },
@@ -3612,6 +3923,7 @@ window.ShadowDOMPolyfill = {};
           this.appendChild(textNode);
         }
       } else {
+        clearChildNodes(this);
         this.impl.textContent = textContent;
       }
 
@@ -3666,6 +3978,43 @@ window.ShadowDOMPolyfill = {};
       // This only wraps, it therefore only operates on the composed DOM and not
       // the logical DOM.
       return originalCompareDocumentPosition.call(this.impl, unwrap(otherNode));
+    },
+
+    normalize: function() {
+      var nodes = snapshotNodeList(this.childNodes);
+      var remNodes = [];
+      var s = '';
+      var modNode;
+
+      for (var i = 0, n; i < nodes.length; i++) {
+        n = nodes[i];
+        if (n.nodeType === Node.TEXT_NODE) {
+          if (!modNode && !n.data.length)
+            this.removeNode(n);
+          else if (!modNode)
+            modNode = n;
+          else {
+            s += n.data;
+            remNodes.push(n);
+          }
+        } else {
+          if (modNode && remNodes.length) {
+            modNode.data += s;
+            cleanUpNodes(remNodes);
+          }
+          remNodes = [];
+          s = '';
+          modNode = null;
+          if (n.childNodes.length)
+            n.normalize();
+        }
+      }
+
+      // handle case where >1 text nodes are the last children
+      if (modNode && remNodes.length) {
+        modNode.data += s;
+        cleanupNodes(remNodes);
+      }
     }
   });
 
@@ -3878,6 +4227,49 @@ window.ShadowDOMPolyfill = {};
   scope.wrappers.CharacterData = CharacterData;
 })(window.ShadowDOMPolyfill);
 
+// Copyright 2014 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var CharacterData = scope.wrappers.CharacterData;
+  var enqueueMutation = scope.enqueueMutation;
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+
+  function toUInt32(x) {
+    return x >>> 0;
+  }
+
+  var OriginalText = window.Text;
+
+  function Text(node) {
+    CharacterData.call(this, node);
+  }
+  Text.prototype = Object.create(CharacterData.prototype);
+  mixin(Text.prototype, {
+    splitText: function(offset) {
+      offset = toUInt32(offset);
+      var s = this.data;
+      if (offset > s.length)
+        throw new Error('IndexSizeError');
+      var head = s.slice(0, offset);
+      var tail = s.slice(offset);
+      this.data = head;
+      var newTextNode = this.ownerDocument.createTextNode(tail);
+      if (this.parentNode)
+        this.parentNode.insertBefore(newTextNode, this.nextSibling);
+      return newTextNode;
+    }
+  });
+
+  registerWrapper(OriginalText, Text, document.createTextNode(''));
+
+  scope.wrappers.Text = Text;
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -3899,12 +4291,16 @@ window.ShadowDOMPolyfill = {};
 
   var OriginalElement = window.Element;
 
-  var matchesName = oneOf(OriginalElement.prototype, [
-    'matches',
+  var matchesNames = [
+    'matches',  // needs to come first.
     'mozMatchesSelector',
     'msMatchesSelector',
     'webkitMatchesSelector',
-  ]);
+  ].filter(function(name) {
+    return OriginalElement.prototype[name];
+  });
+
+  var matchesName = matchesNames[0];
 
   var originalMatches = OriginalElement.prototype[matchesName];
 
@@ -3968,9 +4364,13 @@ window.ShadowDOMPolyfill = {};
     }
   });
 
-  Element.prototype[matchesName] = function(selector) {
-    return this.matches(selector);
-  };
+  matchesNames.forEach(function(name) {
+    if (name !== 'matches') {
+      Element.prototype[name] = function(selector) {
+        return this.matches(selector);
+      };
+    }
+  });
 
   if (OriginalElement.prototype.webkitCreateShadowRoot) {
     Element.prototype.webkitCreateShadowRoot =
@@ -4004,11 +4404,12 @@ window.ShadowDOMPolyfill = {};
   mixin(Element.prototype, ParentNodeInterface);
   mixin(Element.prototype, SelectorsInterface);
 
-  registerWrapper(OriginalElement, Element);
+  registerWrapper(OriginalElement, Element,
+                  document.createElementNS(null, 'x'));
 
   // TODO(arv): Export setterDirtiesAttribute and apply it to more bindings
   // that reflect attributes.
-  scope.matchesName = matchesName;
+  scope.matchesNames = matchesNames;
   scope.wrappers.Element = Element;
 })(window.ShadowDOMPolyfill);
 
@@ -4033,7 +4434,9 @@ window.ShadowDOMPolyfill = {};
   /////////////////////////////////////////////////////////////////////////////
   // innerHTML and outerHTML
 
-  var escapeRegExp = /&|<|"/g;
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#escapingString
+  var escapeAttrRegExp = /[&\u00A0"]/g;
+  var escapeDataRegExp = /[&\u00A0<>]/g;
 
   function escapeReplace(c) {
     switch (c) {
@@ -4041,43 +4444,70 @@ window.ShadowDOMPolyfill = {};
         return '&amp;';
       case '<':
         return '&lt;';
+      case '>':
+        return '&gt;';
       case '"':
         return '&quot;'
+      case '\u00A0':
+        return '&nbsp;';
     }
   }
 
-  function escape(s) {
-    return s.replace(escapeRegExp, escapeReplace);
+  function escapeAttr(s) {
+    return s.replace(escapeAttrRegExp, escapeReplace);
+  }
+
+  function escapeData(s) {
+    return s.replace(escapeDataRegExp, escapeReplace);
+  }
+
+  function makeSet(arr) {
+    var set = {};
+    for (var i = 0; i < arr.length; i++) {
+      set[arr[i]] = true;
+    }
+    return set;
   }
 
   // http://www.whatwg.org/specs/web-apps/current-work/#void-elements
-  var voidElements = {
-    'area': true,
-    'base': true,
-    'br': true,
-    'col': true,
-    'command': true,
-    'embed': true,
-    'hr': true,
-    'img': true,
-    'input': true,
-    'keygen': true,
-    'link': true,
-    'meta': true,
-    'param': true,
-    'source': true,
-    'track': true,
-    'wbr': true
-  };
+  var voidElements = makeSet([
+    'area',
+    'base',
+    'br',
+    'col',
+    'command',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'keygen',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr'
+  ]);
 
-  function getOuterHTML(node) {
+  var plaintextParents = makeSet([
+    'style',
+    'script',
+    'xmp',
+    'iframe',
+    'noembed',
+    'noframes',
+    'plaintext',
+    'noscript'
+  ]);
+
+  function getOuterHTML(node, parentNode) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         var tagName = node.tagName.toLowerCase();
         var s = '<' + tagName;
         var attrs = node.attributes;
         for (var i = 0, attr; attr = attrs[i]; i++) {
-          s += ' ' + attr.name + '="' + escape(attr.value) + '"';
+          s += ' ' + attr.name + '="' + escapeAttr(attr.value) + '"';
         }
         s += '>';
         if (voidElements[tagName])
@@ -4086,10 +4516,14 @@ window.ShadowDOMPolyfill = {};
         return s + getInnerHTML(node) + '</' + tagName + '>';
 
       case Node.TEXT_NODE:
-        return escape(node.nodeValue);
+        var data = node.data;
+        if (parentNode && plaintextParents[parentNode.localName])
+          return data;
+        return escapeData(data);
 
       case Node.COMMENT_NODE:
-        return '<!--' + escape(node.nodeValue) + '-->';
+        return '<!--' + node.data + '-->';
+
       default:
         console.error(node);
         throw new Error('not implemented');
@@ -4099,7 +4533,7 @@ window.ShadowDOMPolyfill = {};
   function getInnerHTML(node) {
     var s = '';
     for (var child = node.firstChild; child; child = child.nextSibling) {
-      s += getOuterHTML(child);
+      s += getOuterHTML(child, node);
     }
     return s;
   }
@@ -4115,6 +4549,9 @@ window.ShadowDOMPolyfill = {};
     }
   }
 
+  // IE11 does not have MSIE in the user agent string.
+  var oldIe = /MSIE/.test(navigator.userAgent);
+
   var OriginalHTMLElement = window.HTMLElement;
 
   function HTMLElement(node) {
@@ -4128,6 +4565,17 @@ window.ShadowDOMPolyfill = {};
       return getInnerHTML(this);
     },
     set innerHTML(value) {
+      // IE9 does not handle set innerHTML correctly on plaintextParents. It
+      // creates element children. For example
+      //
+      //   scriptElement.innerHTML = '<a>test</a>'
+      //
+      // Creates a single HTMLAnchorElement child.
+      if (oldIe && plaintextParents[this.localName]) {
+        this.textContent = value;
+        return;
+      }
+
       var removedNodes = snapshotNodeList(this.childNodes);
 
       if (this.invalidateShadowRenderer())
@@ -4146,18 +4594,56 @@ window.ShadowDOMPolyfill = {};
     },
 
     get outerHTML() {
-      // TODO(arv): This should fallback to HTMLElement_prototype.outerHTML if there
-      // are no shadow trees below or above the context node.
-      return getOuterHTML(this);
+      return getOuterHTML(this, this.parentNode);
     },
     set outerHTML(value) {
       var p = this.parentNode;
       if (p) {
         p.invalidateShadowRenderer();
-        this.impl.outerHTML = value;
+        var df = frag(p, value);
+        p.replaceChild(df, this);
       }
+    },
+
+    insertAdjacentHTML: function(position, text) {
+      var contextElement, refNode;
+      switch (String(position).toLowerCase()) {
+        case 'beforebegin':
+          contextElement = this.parentNode;
+          refNode = this;
+          break;
+        case 'afterend':
+          contextElement = this.parentNode;
+          refNode = this.nextSibling;
+          break;
+        case 'afterbegin':
+          contextElement = this;
+          refNode = this.firstChild;
+          break;
+        case 'beforeend':
+          contextElement = this;
+          refNode = null;
+          break;
+        default:
+          return;
+      }
+
+      var df = frag(contextElement, text);
+      contextElement.insertBefore(df, refNode);
     }
   });
+
+  function frag(contextElement, html) {
+    // TODO(arv): This does not work with SVG and other non HTML elements.
+    var p = unwrap(contextElement.cloneNode(false));
+    p.innerHTML = html;
+    var df = unwrap(document.createDocumentFragment());
+    var c;
+    while (c = p.firstChild) {
+      df.appendChild(c);
+    }
+    return wrap(df);
+  }
 
   function getter(name) {
     return function() {
@@ -4616,6 +5102,138 @@ window.ShadowDOMPolyfill = {};
   scope.wrappers.HTMLUnknownElement = HTMLUnknownElement;
 })(window.ShadowDOMPolyfill);
 
+// Copyright 2014 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var registerObject = scope.registerObject;
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var svgTitleElement = document.createElementNS(SVG_NS, 'title');
+  var SVGTitleElement = registerObject(svgTitleElement);
+  var SVGElement = Object.getPrototypeOf(SVGTitleElement.prototype).constructor;
+
+  scope.wrappers.SVGElement = SVGElement;
+})(window.ShadowDOMPolyfill);
+
+// Copyright 2014 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+
+  var OriginalSVGUseElement = window.SVGUseElement;
+
+  // IE uses SVGElement as parent interface, SVG2 (Blink & Gecko) uses
+  // SVGGraphicsElement. Use the <g> element to get the right prototype.
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var gWrapper = wrap(document.createElementNS(SVG_NS, 'g'));
+  var useElement = document.createElementNS(SVG_NS, 'use');
+  var SVGGElement = gWrapper.constructor;
+  var parentInterfacePrototype = Object.getPrototypeOf(SVGGElement.prototype);
+  var parentInterface = parentInterfacePrototype.constructor;
+
+  function SVGUseElement(impl) {
+    parentInterface.call(this, impl);
+  }
+
+  SVGUseElement.prototype = Object.create(parentInterfacePrototype);
+
+  // Firefox does not expose instanceRoot.
+  if ('instanceRoot' in useElement) {
+    mixin(SVGUseElement.prototype, {
+      get instanceRoot() {
+        return wrap(unwrap(this).instanceRoot);
+      },
+      get animatedInstanceRoot() {
+        return wrap(unwrap(this).animatedInstanceRoot);
+      },
+    });
+  }
+
+  registerWrapper(OriginalSVGUseElement, SVGUseElement, useElement);
+
+  scope.wrappers.SVGUseElement = SVGUseElement;
+})(window.ShadowDOMPolyfill);
+
+// Copyright 2014 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var EventTarget = scope.wrappers.EventTarget;
+  var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
+  var wrap = scope.wrap;
+
+  var OriginalSVGElementInstance = window.SVGElementInstance;
+  if (!OriginalSVGElementInstance)
+    return;
+
+  function SVGElementInstance(impl) {
+    EventTarget.call(this, impl);
+  }
+
+  SVGElementInstance.prototype = Object.create(EventTarget.prototype);
+  mixin(SVGElementInstance.prototype, {
+    /** @type {SVGElement} */
+    get correspondingElement() {
+      return wrap(this.impl.correspondingElement);
+    },
+
+    /** @type {SVGUseElement} */
+    get correspondingUseElement() {
+      return wrap(this.impl.correspondingUseElement);
+    },
+
+    /** @type {SVGElementInstance} */
+    get parentNode() {
+      return wrap(this.impl.parentNode);
+    },
+
+    /** @type {SVGElementInstanceList} */
+    get childNodes() {
+      throw new Error('Not implemented');
+    },
+
+    /** @type {SVGElementInstance} */
+    get firstChild() {
+      return wrap(this.impl.firstChild);
+    },
+
+    /** @type {SVGElementInstance} */
+    get lastChild() {
+      return wrap(this.impl.lastChild);
+    },
+
+    /** @type {SVGElementInstance} */
+    get previousSibling() {
+      return wrap(this.impl.previousSibling);
+    },
+
+    /** @type {SVGElementInstance} */
+    get nextSibling() {
+      return wrap(this.impl.nextSibling);
+    }
+  });
+
+  registerWrapper(OriginalSVGElementInstance, SVGElementInstance);
+
+  scope.wrappers.SVGElementInstance = SVGElementInstance;
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -4785,6 +5403,9 @@ window.ShadowDOMPolyfill = {};
     },
     intersectsNode: function(node) {
       return this.impl.intersectsNode(unwrapIfNeeded(node));
+    },
+    toString: function() {
+      return this.impl.toString();
     }
   };
 
@@ -4819,12 +5440,10 @@ window.ShadowDOMPolyfill = {};
   mixin(DocumentFragment.prototype, SelectorsInterface);
   mixin(DocumentFragment.prototype, GetElementsByInterface);
 
-  var Text = registerObject(document.createTextNode(''));
   var Comment = registerObject(document.createComment(''));
 
   scope.wrappers.Comment = Comment;
   scope.wrappers.DocumentFragment = DocumentFragment;
-  scope.wrappers.Text = Text;
 
 })(window.ShadowDOMPolyfill);
 
@@ -4845,6 +5464,8 @@ window.ShadowDOMPolyfill = {};
 
   var shadowHostTable = new WeakMap();
   var nextOlderShadowTreeTable = new WeakMap();
+
+  var spaceCharRe = /[ \t\n\r\f]/;
 
   function ShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());
@@ -4886,7 +5507,9 @@ window.ShadowDOMPolyfill = {};
     },
 
     getElementById: function(id) {
-      return this.querySelector('#' + id);
+      if (spaceCharRe.test(id))
+        return null;
+      return this.querySelector('[id="' + id + '"]');
     }
   });
 
@@ -5086,10 +5709,18 @@ window.ShadowDOMPolyfill = {};
     if (!(node instanceof Element))
       return false;
 
+    // The native matches function in IE9 does not correctly work with elements
+    // that are not in the document.
+    // TODO(arv): Implement matching in JS.
+    // https://github.com/Polymer/ShadowDOM/issues/361
+    if (select === '*' || select === node.localName)
+      return true;
+
     // TODO(arv): This does not seem right. Need to check for a simple selector.
     if (!selectorMatchRegExp.test(select))
       return false;
 
+    // TODO(arv): This no longer matches the spec.
     if (select[0] === ':' && !allowedPseudoRegExp.test(select))
       return false;
 
@@ -5606,6 +6237,74 @@ window.ShadowDOMPolyfill = {};
 
 })(window.ShadowDOMPolyfill);
 
+// Copyright 2014 The Polymer Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
+
+(function(scope) {
+  'use strict';
+
+  var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
+  var wrap = scope.wrap;
+
+  var OriginalSelection = window.Selection;
+
+  function Selection(impl) {
+    this.impl = impl;
+  }
+  Selection.prototype = {
+    get anchorNode() {
+      return wrap(this.impl.anchorNode);
+    },
+    get focusNode() {
+      return wrap(this.impl.focusNode);
+    },
+    addRange: function(range) {
+      this.impl.addRange(unwrap(range));
+    },
+    collapse: function(node, index) {
+      this.impl.collapse(unwrapIfNeeded(node), index);
+    },
+    containsNode: function(node, allowPartial) {
+      return this.impl.containsNode(unwrapIfNeeded(node), allowPartial);
+    },
+    extend: function(node, offset) {
+      this.impl.extend(unwrapIfNeeded(node), offset);
+    },
+    getRangeAt: function(index) {
+      return wrap(this.impl.getRangeAt(index));
+    },
+    removeRange: function(range) {
+      this.impl.removeRange(unwrap(range));
+    },
+    selectAllChildren: function(node) {
+      this.impl.selectAllChildren(unwrapIfNeeded(node));
+    },
+    toString: function() {
+      return this.impl.toString();
+    }
+  };
+
+  // WebKit extensions. Not implemented.
+  // readonly attribute Node baseNode;
+  // readonly attribute long baseOffset;
+  // readonly attribute Node extentNode;
+  // readonly attribute long extentOffset;
+  // [RaisesException] void setBaseAndExtent([Default=Undefined] optional Node baseNode,
+  //                       [Default=Undefined] optional long baseOffset,
+  //                       [Default=Undefined] optional Node extentNode,
+  //                       [Default=Undefined] optional long extentOffset);
+  // [RaisesException, ImplementedAs=collapse] void setPosition([Default=Undefined] optional Node node,
+  //                  [Default=Undefined] optional long offset);
+
+  registerWrapper(window.Selection, Selection, window.getSelection());
+
+  scope.wrappers.Selection = Selection;
+
+})(window.ShadowDOMPolyfill);
+
 // Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
@@ -5616,14 +6315,17 @@ window.ShadowDOMPolyfill = {};
   var GetElementsByInterface = scope.GetElementsByInterface;
   var Node = scope.wrappers.Node;
   var ParentNodeInterface = scope.ParentNodeInterface;
+  var Selection = scope.wrappers.Selection;
   var SelectorsInterface = scope.SelectorsInterface;
   var ShadowRoot = scope.wrappers.ShadowRoot;
   var defineWrapGetter = scope.defineWrapGetter;
   var elementFromPoint = scope.elementFromPoint;
   var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
-  var matchesName = scope.matchesName;
+  var matchesNames = scope.matchesNames;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var renderAllPending = scope.renderAllPending;
+  var rewrap = scope.rewrap;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapEventTargetMethods = scope.wrapEventTargetMethods;
@@ -5662,7 +6364,7 @@ window.ShadowDOMPolyfill = {};
     'createEventNS',
     'createRange',
     'createTextNode',
-    'getElementById',
+    'getElementById'
   ].forEach(wrapMethod);
 
   var originalAdoptNode = document.adoptNode;
@@ -5689,6 +6391,7 @@ window.ShadowDOMPolyfill = {};
   }
 
   var originalImportNode = document.importNode;
+  var originalGetSelection = document.getSelection;
 
   mixin(Document.prototype, {
     adoptNode: function(node) {
@@ -5710,12 +6413,16 @@ window.ShadowDOMPolyfill = {};
         }
       }
       return clone;
+    },
+    getSelection: function() {
+      renderAllPending();
+      return new Selection(originalGetSelection.call(unwrap(this)));
     }
   });
 
-  if (document.register) {
-    var originalRegister = document.register;
-    Document.prototype.register = function(tagName, object) {
+  if (document.registerElement) {
+    var originalRegisterElement = document.registerElement;
+    Document.prototype.registerElement = function(tagName, object) {
       var prototype = object.prototype;
 
       // If we already used the object as a prototype for another custom
@@ -5759,14 +6466,19 @@ window.ShadowDOMPolyfill = {};
       // and not from the spec since the spec is out of date.
       [
         'createdCallback',
-        'enteredViewCallback',
-        'leftViewCallback',
+        'attachedCallback',
+        'detachedCallback',
         'attributeChangedCallback',
       ].forEach(function(name) {
         var f = prototype[name];
         if (!f)
           return;
         newPrototype[name] = function() {
+          // if this element has been wrapped prior to registration,
+          // the wrapper is stale; in this case rewrap
+          if (!(wrap(this) instanceof CustomElementConstructor)) {
+            rewrap(this);
+          }
           f.apply(wrap(this), arguments);
         };
       });
@@ -5774,9 +6486,8 @@ window.ShadowDOMPolyfill = {};
       var p = {prototype: newPrototype};
       if (object.extends)
         p.extends = object.extends;
-      var nativeConstructor = originalRegister.call(unwrap(this), tagName, p);
 
-      function GeneratedWrapper(node) {
+      function CustomElementConstructor(node) {
         if (!node) {
           if (object.extends) {
             return document.createElement(object.extends, tagName);
@@ -5786,19 +6497,22 @@ window.ShadowDOMPolyfill = {};
         }
         this.impl = node;
       }
-      GeneratedWrapper.prototype = prototype;
-      GeneratedWrapper.prototype.constructor = GeneratedWrapper;
+      CustomElementConstructor.prototype = prototype;
+      CustomElementConstructor.prototype.constructor = CustomElementConstructor;
 
-      scope.constructorTable.set(newPrototype, GeneratedWrapper);
+      scope.constructorTable.set(newPrototype, CustomElementConstructor);
       scope.nativePrototypeTable.set(prototype, newPrototype);
 
-      return GeneratedWrapper;
+      // registration is synchronous so do it last
+      var nativeConstructor = originalRegisterElement.call(unwrap(this),
+          tagName, p);
+      return CustomElementConstructor;
     };
 
     forwardMethodsToWrapper([
       window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
     ], [
-      'register',
+      'registerElement',
     ]);
   }
 
@@ -5821,8 +6535,7 @@ window.ShadowDOMPolyfill = {};
     'querySelectorAll',
     'removeChild',
     'replaceChild',
-    matchesName,
-  ]);
+  ].concat(matchesNames));
 
   forwardMethodsToWrapper([
     window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
@@ -5840,6 +6553,7 @@ window.ShadowDOMPolyfill = {};
     'createTextNode',
     'elementFromPoint',
     'getElementById',
+    'getSelection',
   ]);
 
   mixin(Document.prototype, GetElementsByInterface);
@@ -5920,26 +6634,34 @@ window.ShadowDOMPolyfill = {};
   'use strict';
 
   var EventTarget = scope.wrappers.EventTarget;
+  var Selection = scope.wrappers.Selection;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var renderAllPending = scope.renderAllPending;
   var unwrap = scope.unwrap;
   var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
-  var renderAllPending = scope.renderAllPending;
 
   var OriginalWindow = window.Window;
+  var originalGetComputedStyle = window.getComputedStyle;
+  var originalGetSelection = window.getSelection;
 
   function Window(impl) {
     EventTarget.call(this, impl);
   }
   Window.prototype = Object.create(EventTarget.prototype);
 
-  var originalGetComputedStyle = window.getComputedStyle;
   OriginalWindow.prototype.getComputedStyle = function(el, pseudo) {
-    renderAllPending();
-    return originalGetComputedStyle.call(this || window, unwrapIfNeeded(el),
-                                         pseudo);
+    return wrap(this || window).getComputedStyle(unwrapIfNeeded(el), pseudo);
   };
+
+  OriginalWindow.prototype.getSelection = function() {
+    return wrap(this || window).getSelection();
+  };
+
+  // Work around for https://bugzilla.mozilla.org/show_bug.cgi?id=943065
+  delete window.getComputedStyle;
+  delete window.getSelection;
 
   ['addEventListener', 'removeEventListener', 'dispatchEvent'].forEach(
       function(name) {
@@ -5947,13 +6669,21 @@ window.ShadowDOMPolyfill = {};
           var w = wrap(this || window);
           return w[name].apply(w, arguments);
         };
+
+        // Work around for https://bugzilla.mozilla.org/show_bug.cgi?id=943065
+        delete window[name];
       });
 
   mixin(Window.prototype, {
     getComputedStyle: function(el, pseudo) {
+      renderAllPending();
       return originalGetComputedStyle.call(unwrap(this), unwrapIfNeeded(el),
                                            pseudo);
-    }
+    },
+    getSelection: function() {
+      renderAllPending();
+      return new Selection(originalGetSelection.call(unwrap(this)));
+    },
   });
 
   registerWrapper(OriginalWindow, Window);
@@ -5975,7 +6705,12 @@ window.ShadowDOMPolyfill = {};
   // for.
   var elements = {
     'a': 'HTMLAnchorElement',
-    'applet': 'HTMLAppletElement',
+
+    // Do not create an applet element by default since it shows a warning in
+    // IE.
+    // https://github.com/Polymer/polymer/issues/217
+    // 'applet': 'HTMLAppletElement',
+
     'area': 'HTMLAreaElement',
     'br': 'HTMLBRElement',
     'base': 'HTMLBaseElement',
@@ -6082,6 +6817,10 @@ window.ShadowDOMPolyfill = {};
       }
     }
   });
+
+  // ShadowCSS needs this:
+  window.wrap = window.ShadowDOMPolyfill.wrap;
+  window.unwrap = window.ShadowDOMPolyfill.unwrap;
 
   //TODO(sjmiles): review method alias with Arv
   HTMLElement.prototype.webkitCreateShadowRoot =
@@ -6290,6 +7029,8 @@ var Platform = {};
 */
 (function(scope) {
 
+var loader = scope.loader;
+
 var ShadowCSS = {
   strictStyling: false,
   registry: {},
@@ -6307,14 +7048,8 @@ var ShadowCSS = {
     if (this.strictStyling) {
       this.applyScopeToContent(root, name);
     }
-    // insert @polyfill and @polyfill-rule rules into style elements
-    // scoping process takes care of shimming these
-    this.insertPolyfillDirectives(def.rootStyles);
-    this.insertPolyfillRules(def.rootStyles);
-    var cssText = this.stylesToShimmedCssText(def.scopeStyles, name,
-        typeExtension);
-    // note: we only need to do rootStyles since these are unscoped.
-    cssText += this.extractPolyfillUnscopedRules(def.rootStyles);
+    var cssText = this.stylesToShimmedCssText(def.rootStyles, def.scopeStyles,
+        name, typeExtension);
     // provide shimmedStyle for user extensibility
     def.shimmedStyle = cssTextToStyle(cssText);
     if (root) {
@@ -6327,6 +7062,20 @@ var ShadowCSS = {
     }
     // add style to document
     addCssToDocument(cssText);
+  },
+  // apply @polyfill rules + @host and scope shimming
+  stylesToShimmedCssText: function(rootStyles, scopeStyles, name,
+      typeExtension) {
+    name = name || '';
+    // insert @polyfill and @polyfill-rule rules into style elements
+    // scoping process takes care of shimming these
+    this.insertPolyfillDirectives(rootStyles);
+    this.insertPolyfillRules(rootStyles);
+    var cssText = this.shimAtHost(scopeStyles, name, typeExtension) +
+        this.shimScoping(scopeStyles, name, typeExtension);
+    // note: we only need to do rootStyles since these are unscoped.
+    cssText += this.extractPolyfillUnscopedRules(rootStyles);
+    return cssText;
   },
   registerDefinition: function(root, name, extendsName) {
     var def = this.registry[name] = {
@@ -6446,11 +7195,6 @@ var ShadowCSS = {
     }
     return r;
   },
-  // apply @host and scope shimming
-  stylesToShimmedCssText: function(styles, name, typeExtension) {
-    return this.shimAtHost(styles, name, typeExtension) +
-        this.shimScoping(styles, name, typeExtension);
-  },
   // form: @host { .foo { declarations } }
   // becomes: scopeName.foo { declarations }
   shimAtHost: function(styles, name, typeExtension) {
@@ -6519,11 +7263,16 @@ var ShadowCSS = {
     var cssText = stylesToCssText(styles).replace(hostRuleRe, '');
     cssText = this.insertPolyfillHostInCssText(cssText);
     cssText = this.convertColonHost(cssText);
+    cssText = this.convertColonAncestor(cssText);
+    // TODO(sorvell): deprecated, remove
     cssText = this.convertPseudos(cssText);
+    // TODO(sorvell): deprecated, remove
     cssText = this.convertParts(cssText);
     cssText = this.convertCombinators(cssText);
     var rules = cssToRules(cssText);
-    cssText = this.scopeRules(rules, name, typeExtension);
+    if (name) {
+      cssText = this.scopeRules(rules, name, typeExtension);
+    }
     return cssText;
   },
   convertPseudos: function(cssText) {
@@ -6537,35 +7286,56 @@ var ShadowCSS = {
    *
    * to
    *
+   * scopeName.foo > .bar
+  */
+  convertColonHost: function(cssText) {
+    return this.convertColonRule(cssText, cssColonHostRe,
+        this.colonHostPartReplacer);
+  },
+  /*
+   * convert a rule like :ancestor(.foo) > .bar { }
+   *
+   * to
+   *
    * scopeName.foo > .bar, .foo scopeName > .bar { }
    * 
    * and
    *
-   * :host(.foo:host) .bar { ... }
+   * :ancestor(.foo:host) .bar { ... }
    * 
    * to
    * 
    * scopeName.foo .bar { ... }
   */
-  convertColonHost: function(cssText) {
+  convertColonAncestor: function(cssText) {
+    return this.convertColonRule(cssText, cssColonAncestorRe,
+        this.colonAncestorPartReplacer);
+  },
+  convertColonRule: function(cssText, regExp, partReplacer) {
     // p1 = :host, p2 = contents of (), p3 rest of rule
-    return cssText.replace(cssColonHostRe, function(m, p1, p2, p3) {
+    return cssText.replace(regExp, function(m, p1, p2, p3) {
       p1 = polyfillHostNoCombinator;
       if (p2) {
         var parts = p2.split(','), r = [];
         for (var i=0, l=parts.length, p; (i<l) && (p=parts[i]); i++) {
           p = p.trim();
-          if (p.match(polyfillHost)) {
-            r.push(p1 + p.replace(polyfillHost, '') + p3);
-          } else {
-            r.push(p1 + p + p3 + ', ' + p + ' ' + p1 + p3);
-          }
+          r.push(partReplacer(p1, p, p3));
         }
         return r.join(',');
       } else {
         return p1 + p3;
       }
     });
+  },
+  colonAncestorPartReplacer: function(host, part, suffix) {
+    if (part.match(polyfillHost)) {
+      return this.colonHostPartReplacer(host, part, suffix);
+    } else {
+      return host + part + suffix + ', ' + part + ' ' + host + suffix;
+    }
+  },
+  colonHostPartReplacer: function(host, part, suffix) {
+    return host + part.replace(polyfillHost, '') + suffix;
   },
   /*
    * Convert ^ and ^^ combinators by replacing with space.
@@ -6643,9 +7413,15 @@ var ShadowCSS = {
   },
   insertPolyfillHostInCssText: function(selector) {
     return selector.replace(hostRe, polyfillHost).replace(colonHostRe,
-        polyfillHost);
+        polyfillHost).replace(colonAncestorRe, polyfillAncestor);
   },
   propertiesFromRule: function(rule) {
+    // TODO(sorvell): Safari cssom incorrectly removes quotes from the content
+    // property. (https://bugs.webkit.org/show_bug.cgi?id=118045)
+    if (rule.style.content && !rule.style.content.match(/['"]+/)) {
+      return rule.style.cssText.replace(/content:[^;]*;/g, 'content: \'' + 
+          rule.style.content + '\';');
+    }
     return rule.style.cssText;
   }
 };
@@ -6662,16 +7438,21 @@ var hostRuleRe = /@host[^{]*{(([^}]*?{[^{]*?}[\s\S]*?)+)}/gim,
     cssPartRe = /::part\(([^)]*)\)/gim,
     // note: :host pre-processed to -shadowcsshost.
     polyfillHost = '-shadowcsshost',
-    cssColonHostRe = new RegExp('(' + polyfillHost +
-        ')(?:\\((' +
+    // note: :ancestor pre-processed to -shadowcssancestor.
+    polyfillAncestor = '-shadowcssancestor',
+    parenSuffix = ')(?:\\((' +
         '(?:\\([^)(]*\\)|[^)(]*)+?' +
-        ')\\))?([^,{]*)', 'gim'),
+        ')\\))?([^,{]*)';
+    cssColonHostRe = new RegExp('(' + polyfillHost + parenSuffix, 'gim'),
+    cssColonAncestorRe = new RegExp('(' + polyfillAncestor + parenSuffix, 'gim'),
     selectorReSuffix = '([>\\s~+\[.,{:][\\s\\S]*)?$',
     hostRe = /@host/gim,
     colonHostRe = /\:host/gim,
+    colonAncestorRe = /\:ancestor/gim,
     /* host name without combinator */
     polyfillHostNoCombinator = polyfillHost + '-no-combinator',
     polyfillHostRe = new RegExp(polyfillHost, 'gim');
+    polyfillAncestorRe = new RegExp(polyfillAncestor, 'gim');
 
 function stylesToCssText(styles, preserveComments) {
   var cssText = '';
@@ -6717,6 +7498,7 @@ function getSheet() {
   if (!sheet) {
     sheet = document.createElement("style");
     sheet.setAttribute('ShadowCSSShim', '');
+    sheet.shadowCssShim = true;
   }
   return sheet;
 }
@@ -6724,8 +7506,42 @@ function getSheet() {
 // add polyfill stylesheet to document
 if (window.ShadowDOMPolyfill) {
   addCssToDocument('style { display: none !important; }\n');
-  var head = document.querySelector('head');
+  var doc = wrap(document);
+  var head = doc.querySelector('head');
   head.insertBefore(getSheet(), head.childNodes[0]);
+
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.HTMLImports && !HTMLImports.useNative) {
+      HTMLImports.importer.preloadSelectors += 
+          ', link[rel=stylesheet]:not([nopolyfill])';
+      HTMLImports.parser.parseGeneric = function(elt) {
+        if (elt.shadowCssShim) {
+          return;
+        }
+        var style = elt;
+        if (!elt.hasAttribute('nopolyfill')) {
+          if (elt.__resource) {
+            style = elt.ownerDocument.createElement('style');
+            style.textContent = Platform.loader.resolveUrlsInCssText(
+                elt.__resource, elt.href);
+            // remove links from main document
+            if (elt.ownerDocument === doc) {
+              elt.parentNode.removeChild(elt);
+            }
+          } else {
+            Platform.loader.resolveUrlsInStyle(style);  
+          }
+          var styles = [style];
+          style.textContent = ShadowCSS.stylesToShimmedCssText(styles, styles);
+          style.shadowCssShim = true;
+        }
+        // place in document
+        if (style.parentNode !== head) {
+          head.appendChild(style);
+        }
+      }
+    }
+  });
 }
 
 // exports

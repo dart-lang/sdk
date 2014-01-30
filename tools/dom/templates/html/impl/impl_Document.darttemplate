@@ -51,7 +51,7 @@ $!MEMBERS
   /// Checks if [register] is supported on the current platform.
   bool get supportsRegister {
 $if DART2JS
-    return JS('bool', '("register" in #)', this);
+    return JS('bool', '("registerElement" in #)', this);
 $else
     return true;
 $endif
