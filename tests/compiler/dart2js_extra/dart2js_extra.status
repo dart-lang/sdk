@@ -15,6 +15,9 @@ constant_javascript_semantics4_test: Fail, OK
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
 
+[ $compiler == dart2js && $checked && ($runtime == d8 || $runtime == chrome) ]
+bound_closure_interceptor_type_test: Fail, Pass # v8 issue 3084. https://code.google.com/p/v8/issues/detail?id=3084
+
 [ $compiler == dart2js && $host_checked && $checked == false ]
 # Test that @IrRepresentation yields compile-time errors in host-checked mode.
 # The condition "$checked == false" is to be removed once we build IR in
