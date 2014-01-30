@@ -6,6 +6,7 @@
 library polymer.src.build.common;
 
 import 'dart:async';
+import 'dart:math' show min, max;
 
 import 'package:barback/barback.dart';
 import 'package:html5lib/dom.dart' show Document;
@@ -127,26 +128,47 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
     return null;
   }
 
-  var segments = urlBuilder.split(url);
-  var prefix = segments[0];
-  var entryFolder = !source.path.startsWith('lib/') &&
-      !source.path.startsWith('asset/');
-
-  // URLs of the form "packages/foo/bar" seen under entry folders (like web/,
-  // test/, example/, etc) are resolved as an asset in another package.
-  if (entryFolder && (prefix == 'packages' || prefix == 'assets')) {
-    return _extractOtherPackageId(0, segments, logger, span);
-  }
-
   var targetPath = urlBuilder.normalize(
       urlBuilder.join(urlBuilder.dirname(source.path), url));
+  var segments = urlBuilder.split(targetPath);
+  var sourceSegments = urlBuilder.split(source.path);
+  assert (sourceSegments.length > 0);
+  var topFolder = sourceSegments[0];
+  var entryFolder = topFolder != 'lib' && topFolder != 'asset';
 
-  // Relative URLs of the form "../../packages/foo/bar" in an asset under lib/
-  // or asset/ are also resolved as an asset in another package.
-  segments = urlBuilder.split(targetPath);
-  if (!entryFolder && segments.length > 1 && segments[0] == '..' &&
-      (segments[1] == 'packages' || segments[1] == 'assets')) {
-    return _extractOtherPackageId(1, segments, logger, span);
+  // Find the first 'packages/'  or 'assets/' segment:
+  var packagesIndex = segments.indexOf('packages');
+  var assetsIndex = segments.indexOf('assets');
+  var index = (packagesIndex >= 0 && assetsIndex >= 0)
+      ? min(packagesIndex, assetsIndex)
+      : max(packagesIndex, assetsIndex);
+  if (index > -1) {
+    if (entryFolder) {
+      // URLs of the form "packages/foo/bar" seen under entry folders (like
+      // web/, test/, example/, etc) are resolved as an asset in another
+      // package. 'packages' can be used anywhere, there is no need to walk up
+      // where the entrypoint file was.
+      return _extractOtherPackageId(index, segments, logger, span);
+    } else if (index == 1 && segments[0] == '..') {
+      // Relative URLs of the form "../../packages/foo/bar" in an asset under
+      // lib/ or asset/ are also resolved as an asset in another package, but we
+      // check that the relative path goes all the way out where the packages
+      // folder lives (otherwise the app would not work in Dartium). Since
+      // [targetPath] has been normalized, "packages" or "assets" should be at
+      // index 1.
+      return _extractOtherPackageId(1, segments, logger, span);
+    } else {
+      var prefix = segments[index];
+      var fixedSegments = [];
+      fixedSegments.addAll(sourceSegments.map((_) => '..'));
+      fixedSegments.addAll(segments.sublist(index));
+      var fixedUrl = urlBuilder.joinAll(fixedSegments);
+      logger.error('Invalid url to reach to another package: $url. Path '
+          'reaching to other packages must first reach up all the '
+          'way to the $prefix folder. For example, try changing the url above '
+          'to: $fixedUrl', span: span);
+      return null;
+    }
   }
 
   // Otherwise, resolve as a path in the same package.

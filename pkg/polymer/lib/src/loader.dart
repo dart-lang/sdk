@@ -138,11 +138,16 @@ final _libs = currentMirrorSystem().libraries;
 // root library (see dartbug.com/12612)
 final _rootUri = currentMirrorSystem().isolate.rootLibrary.uri;
 
-final String _packageRoot =
-    path.url.join(path.url.dirname(Uri.parse(window.location.href).path),
-        'packages') + '/';
-
 final Logger _loaderLog = new Logger('polymer.loader');
+
+bool _isHttpStylePackageUrl(Uri uri) {
+  var uriPath = uri.path;
+  return uri.scheme == _rootUri.scheme &&
+      // Don't process cross-domain uris.
+      uri.authority == _rootUri.authority &&
+      uriPath.endsWith('.dart') &&
+      (uriPath.contains('/packages/') || uriPath.startsWith('packages/'));
+}
 
 /**
  * Reads the library at [uriString] (which can be an absolute URI or a relative
@@ -157,10 +162,17 @@ final Logger _loaderLog = new Logger('polymer.loader');
 void _loadLibrary(String uriString) {
   var uri = _rootUri.resolve(uriString);
   var lib = _libs[uri];
-  if (uri.path.startsWith(_packageRoot) && uri.path.endsWith('.dart')) {
-    var packageUri =
-        Uri.parse('package:${uri.path.substring(_packageRoot.length)}');
-    var canonicalLib = _libs[packageUri];
+  if (_isHttpStylePackageUrl(uri)) {
+    // Use package: urls if available. This rule here is more permissive than
+    // how we translate urls in polymer-build, but we expect Dartium to limit
+    // the cases where there are differences. The polymer-build issues an error
+    // when using packages/ inside lib without properly stepping out all the way
+    // to the packages folder. If users don't create symlinks in the source
+    // tree, then Dartium will also complain because it won't find the file seen
+    // in an HTML import.
+    var packagePath = uri.path.substring(
+        uri.path.lastIndexOf('packages/') + 'packages/'.length);
+    var canonicalLib = _libs[Uri.parse('package:$packagePath')];
     if (canonicalLib != null) {
       lib = canonicalLib;
     }
