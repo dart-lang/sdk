@@ -1201,8 +1201,10 @@ class SourceVisitor implements ASTVisitor {
     visitNodes(node.labels, separatedBy: space, followedBy: space);
     token(node.keyword);
     token(node.colon);
-    space();
-    visitNodes(node.statements, separatedBy: space);
+    newlines();
+    indent();
+    visitNodes(node.statements, separatedBy: newlines);
+    unindent();
   }
 
   visitSwitchStatement(SwitchStatement node) {

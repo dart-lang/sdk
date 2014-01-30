@@ -68,3 +68,33 @@ var m = {};
 var m = {};
 <<<
 var m = {};
+>>> Indent cases two spaces and case bodies four spaces (dartbug.com/16406)
+switches() {
+  switch (fruit) {
+    case 'apple':
+    print('delish');
+    break;
+
+    case 'durian':
+    print('stinky');
+    break;
+    default:
+  print('nevermind');
+  break;
+  }
+}
+<<<
+switches() {
+  switch (fruit) {
+    case 'apple':
+      print('delish');
+      break;
+
+    case 'durian':
+      print('stinky');
+      break;
+    default:
+      print('nevermind');
+      break;
+  }
+}
