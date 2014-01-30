@@ -812,9 +812,10 @@ class _WebSocketImpl extends Stream implements WebSocket {
       .then((request) {
         // Setup the initial handshake.
         request.headers
-            ..add(HttpHeaders.CONNECTION, "upgrade")
+            ..add(HttpHeaders.CONNECTION, "Upgrade")
             ..set(HttpHeaders.UPGRADE, "websocket")
             ..set("Sec-WebSocket-Key", nonce)
+            ..set("Cache-Control", "no-cache")
             ..set("Sec-WebSocket-Version", "13");
         if (protocols.isNotEmpty) {
           request.headers.add("Sec-WebSocket-Protocol", protocols);
