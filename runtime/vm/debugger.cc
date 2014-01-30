@@ -1310,11 +1310,19 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   for (intptr_t i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
     ASSERT(desc_token_pos >= 0);
-    if (desc_token_pos < requested_token_pos) {
-      // This descriptor is before the first acceptable token position.
-      continue;
-    }
     if (IsSafePoint(desc, i)) {
+      if ((desc_token_pos < func.token_pos()) ||
+          (desc_token_pos > func.end_token_pos())) {
+        // The position is outside of the function token range. This can
+        // happen in constructors, for initializer expressions that are
+        // inlined in the field declaration.
+        ASSERT(func.IsConstructor());
+        continue;
+      }
+      if (desc_token_pos < requested_token_pos) {
+        // This descriptor is before the first acceptable token position.
+        continue;
+      }
       if (desc_token_pos < best_fit_pos) {
         // So far, this descriptor has the lowest token position after
         // the first acceptable token position.
@@ -1440,6 +1448,22 @@ void Debugger::FindCompiledFunctions(const Script& script,
 }
 
 
+static bool IsDebuggableFunctionKind(const Function& func) {
+  RawFunction::Kind kind = func.kind();
+  if ((kind == RawFunction::kImplicitGetter) ||
+      (kind == RawFunction::kImplicitSetter) ||
+      (kind == RawFunction::kImplicitStaticFinalGetter) ||
+      (kind == RawFunction::kStaticInitializer) ||
+      (kind == RawFunction::kMethodExtractor) ||
+      (kind == RawFunction::kNoSuchMethodDispatcher) ||
+      (kind == RawFunction::kInvokeFieldDispatcher) ||
+      func.IsImplicitConstructor()) {
+    return false;
+  }
+  return true;
+}
+
+
 static void SelectBestFit(Function* best_fit, Function* func) {
   if (best_fit->IsNull()) {
     *best_fit = func->raw();
@@ -1482,7 +1506,8 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
-          if (FunctionContains(function, script, token_pos)) {
+          if (IsDebuggableFunctionKind(function) &&
+              FunctionContains(function, script, token_pos)) {
             SelectBestFit(&best_fit, &function);
           }
         }
@@ -1494,7 +1519,8 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_closures; pos++) {
           function ^= closures.At(pos);
           ASSERT(!function.IsNull());
-          if (FunctionContains(function, script, token_pos)) {
+          if (IsDebuggableFunctionKind(function) &&
+              FunctionContains(function, script, token_pos)) {
             SelectBestFit(&best_fit, &function);
           }
         }
@@ -1891,14 +1917,7 @@ void Debugger::Pause(DebuggerEvent* event) {
 
 
 bool Debugger::IsDebuggable(const Function& func) {
-  RawFunction::Kind fkind = func.kind();
-  if ((fkind == RawFunction::kImplicitGetter) ||
-      (fkind == RawFunction::kImplicitSetter) ||
-      (fkind == RawFunction::kImplicitStaticFinalGetter) ||
-      (fkind == RawFunction::kStaticInitializer) ||
-      (fkind == RawFunction::kMethodExtractor) ||
-      (fkind == RawFunction::kNoSuchMethodDispatcher) ||
-      (fkind == RawFunction::kInvokeFieldDispatcher)) {
+  if (!IsDebuggableFunctionKind(func)) {
     return false;
   }
   const Class& cls = Class::Handle(func.Owner());
