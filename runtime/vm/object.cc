@@ -4977,11 +4977,6 @@ void Function::set_is_optimizable(bool value) const {
 }
 
 
-void Function::set_has_finally(bool value) const {
-  set_kind_tag(HasFinallyBit::update(value, raw_ptr()->kind_tag_));
-}
-
-
 void Function::set_is_native(bool value) const {
   set_kind_tag(NativeBit::update(value, raw_ptr()->kind_tag_));
 }
@@ -5494,7 +5489,6 @@ RawFunction* Function::New(const String& name,
   result.set_optimized_instruction_count(0);
   result.set_optimized_call_site_count(0);
   result.set_is_optimizable(is_native ? false : true);
-  result.set_has_finally(false);
   result.set_is_inlinable(true);
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
