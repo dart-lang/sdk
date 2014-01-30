@@ -201,6 +201,15 @@ checked_null_test: StaticWarning
 checked_setter2_test: StaticWarning
 checked_setter_test: StaticWarning
 closure_type_test: StaticWarning
+compile_time_constant_checked2_test/02: MissingCompileTimeError
+compile_time_constant_checked2_test/03: MissingCompileTimeError
+compile_time_constant_checked2_test/04: MissingCompileTimeError
+compile_time_constant_checked2_test/06: MissingCompileTimeError
+compile_time_constant_checked3_test/02: MissingCompileTimeError
+compile_time_constant_checked3_test/03: MissingCompileTimeError
+compile_time_constant_checked3_test/04: MissingCompileTimeError
+compile_time_constant_checked3_test/06: MissingCompileTimeError
+compile_time_constant_checked_test/02: MissingCompileTimeError
 compile_time_constant_k_test: StaticWarning
 compile_time_constant_o_test: StaticWarning
 const_counter_negative_test: CompileTimeError
@@ -309,6 +318,7 @@ list_test: StaticWarning
 malbounded_type_cast_test: StaticWarning
 malbounded_type_literal_test: StaticWarning
 malformed_type_test: StaticWarning
+malformed2_test/01: MissingCompileTimeError
 map_literal2_negative_test: CompileTimeError
 map_literal3_test: StaticWarning
 map_literal4_test: StaticWarning
@@ -463,24 +473,3 @@ vm/type_cast_vm_test: StaticWarning
 vm/type_vm_test: StaticWarning
 void_type_test: StaticWarning
 
-
-# This section is for tests that intentionally have incompatible behavior in
-# unchecked and checked mode. -- Issue 16391/16392.
-compile_time_constant_checked2_test/02: MissingCompileTimeError
-compile_time_constant_checked2_test/03: MissingCompileTimeError
-compile_time_constant_checked2_test/04: MissingCompileTimeError
-compile_time_constant_checked2_test/06: MissingCompileTimeError
-compile_time_constant_checked3_test/02: MissingCompileTimeError
-compile_time_constant_checked3_test/03: MissingCompileTimeError
-compile_time_constant_checked3_test/04: MissingCompileTimeError
-compile_time_constant_checked3_test/06: MissingCompileTimeError
-compile_time_constant_checked_test/02: MissingCompileTimeError
-malformed2_test/01: MissingCompileTimeError
-const_constructor2_test/13: MissingCompileTimeError
-const_constructor2_test/14: MissingCompileTimeError
-const_constructor2_test/15: MissingCompileTimeError
-const_constructor2_test/16: MissingCompileTimeError
-const_constructor2_test/17: MissingCompileTimeError
-const_constructor2_test/20: MissingCompileTimeError
-const_constructor2_test/22: MissingCompileTimeError
-const_constructor2_test/24: MissingCompileTimeError
