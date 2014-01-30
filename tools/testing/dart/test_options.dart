@@ -335,6 +335,15 @@ Note: currently only implemented for dart2js.''',
               'bool'
               ),
           new _TestOptionSpecification(
+              'copy_coredumps',
+              'If we see a crash that we did not expect, copy the core dumps. '
+              'to /tmp',
+              ['--copy-coredumps'],
+              [],
+              false,
+              'bool'
+              ),
+          new _TestOptionSpecification(
               'local_ip',
               'IP address the http servers should listen on.'
               'This address is also used for browsers to connect.',
@@ -616,6 +625,7 @@ Note: currently only implemented for dart2js.''',
       print("Cannot have both --use-repository-packages and "
             "--use-public-packages");
     }
+
     return isValid;
   }
 
