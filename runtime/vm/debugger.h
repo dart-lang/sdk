@@ -383,10 +383,10 @@ class Debugger {
     kSingleStep
   };
 
-  void FindEquivalentFunctions(const Script& script,
-                               intptr_t start_pos,
-                               intptr_t end_pos,
-                               GrowableObjectArray* function_list);
+  void FindCompiledFunctions(const Script& script,
+                             intptr_t start_pos,
+                             intptr_t end_pos,
+                             GrowableObjectArray* function_list);
   RawFunction* FindBestFit(const Script& script, intptr_t token_pos);
   RawFunction* FindInnermostClosure(const Function& function,
                                     intptr_t token_pos);

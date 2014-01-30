@@ -1367,10 +1367,10 @@ void Debugger::MakeCodeBreakpointsAt(const Function& func,
 }
 
 
-void Debugger::FindEquivalentFunctions(const Script& script,
-                                       intptr_t start_pos,
-                                       intptr_t end_pos,
-                                       GrowableObjectArray* function_list) {
+void Debugger::FindCompiledFunctions(const Script& script,
+                                     intptr_t start_pos,
+                                     intptr_t end_pos,
+                                     GrowableObjectArray* function_list) {
   Class& cls = Class::Handle(isolate_);
   Array& functions = Array::Handle(isolate_);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(isolate_);
@@ -1402,10 +1402,14 @@ void Debugger::FindEquivalentFunctions(const Script& script,
           if ((function.token_pos() == start_pos)
               && (function.end_token_pos() == end_pos)
               && (function.script() == script.raw())) {
-            function_list->Add(function);
+            if (function.HasCode()) {
+              function_list->Add(function);
+            }
             if (function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              function_list->Add(function);
+              if (function.HasCode()) {
+                function_list->Add(function);
+              }
             }
           }
         }
@@ -1419,10 +1423,14 @@ void Debugger::FindEquivalentFunctions(const Script& script,
           if ((function.token_pos() == start_pos)
               && (function.end_token_pos() == end_pos)
               && (function.script() == script.raw())) {
-            function_list->Add(function);
+            if (function.HasCode()) {
+              function_list->Add(function);
+            }
             if (function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              function_list->Add(function);
+              if (function.HasCode()) {
+                function_list->Add(function);
+              }
             }
           }
         }
@@ -1435,25 +1443,11 @@ void Debugger::FindEquivalentFunctions(const Script& script,
 static void SelectBestFit(Function* best_fit, Function* func) {
   if (best_fit->IsNull()) {
     *best_fit = func->raw();
-  }
-  if (func->token_pos() > best_fit->token_pos()) {
-    if (func->end_token_pos() <= best_fit->end_token_pos()) {
-      // func is contained within best_fit. Select it even if it
-      // has not been compiled yet.
+  } else {
+    if ((func->token_pos() > best_fit->token_pos()) &&
+        ((func->end_token_pos() <= best_fit->end_token_pos()))) {
       *best_fit = func->raw();
-      if (func->HasImplicitClosureFunction()) {
-        *func = func->ImplicitClosureFunction();
-        if (func->HasCode()) {
-          *best_fit = func->raw();
-        }
-      }
     }
-  } else if ((func->token_pos() == best_fit->token_pos())
-      && (func->end_token_pos() == best_fit->end_token_pos())
-      && func->HasCode()) {
-    // If func covers the same range, it is considered a better fit if
-    // it has been compiled.
-    *best_fit = func->raw();
   }
 }
 
@@ -1518,10 +1512,23 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
   if (func.IsNull()) {
     return NULL;
   }
-  if (!func.IsNull() && func.HasCode()) {
-    // A function containing this breakpoint location has already
-    // been compiled. We can resolve the breakpoint now.
+  // There may be more than one function object for a given function
+  // in source code. There may be implicit closure functions, and
+  // there may be copies of mixin functions. Collect all compiled
+  // functions whose source code range matches exactly the best fit
+  // function we found.
+  GrowableObjectArray& functions =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  FindCompiledFunctions(script,
+                        func.token_pos(),
+                        func.end_token_pos(),
+                        &functions);
+
+  if (functions.Length() > 0) {
+    // One or more function object containing this breakpoint location
+    // have already been compiled. We can resolve the breakpoint now.
     DeoptimizeWorld();
+    func ^= functions.At(0);
     intptr_t breakpoint_pos = ResolveBreakpointPos(func, token_pos);
     if (breakpoint_pos >= 0) {
       SourceBreakpoint* bpt = GetSourceBreakpoint(script, breakpoint_pos);
@@ -1532,26 +1539,13 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
       bpt = new SourceBreakpoint(nextId(), script, token_pos);
       bpt->SetResolved(func, breakpoint_pos);
       RegisterSourceBreakpoint(bpt);
-      // There may be more than one function object for a given function
-      // in source code. There may be implicit closure functions, and
-      // there may be copies of mixin functions. Collect all functions whose
-      // source code range matches exactly the best fit function we
-      // found.
-      GrowableObjectArray& functions =
-          GrowableObjectArray::Handle(GrowableObjectArray::New());
-      FindEquivalentFunctions(script,
-                              func.token_pos(),
-                              func.end_token_pos(),
-                              &functions);
-      const intptr_t num_functions = functions.Length();
-      // We must have found at least one function: func.
-      ASSERT(num_functions > 0);
+
       // Create code breakpoints for all compiled functions we found.
+      const intptr_t num_functions = functions.Length();
       for (intptr_t i = 0; i < num_functions; i++) {
         func ^= functions.At(i);
-        if (func.HasCode()) {
-          MakeCodeBreakpointsAt(func, bpt);
-        }
+        ASSERT(func.HasCode());
+        MakeCodeBreakpointsAt(func, bpt);
       }
       bpt->Enable();
       SignalBpResolved(bpt);
@@ -2102,9 +2096,9 @@ void Debugger::NotifyCompilation(const Function& func) {
   // need to be set in the newly compiled function.
   Script& script = Script::Handle(isolate_);
   for (SourceBreakpoint* bpt = src_breakpoints_;
-       bpt != NULL;
-       bpt = bpt->next()) {
-       script = bpt->script();
+      bpt != NULL;
+      bpt = bpt->next()) {
+    script = bpt->script();
     if (FunctionContains(func, script, bpt->token_pos())) {
       Function& inner_function = Function::Handle(isolate_);
       inner_function = FindInnermostClosure(func, bpt->token_pos());
