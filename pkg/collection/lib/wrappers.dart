@@ -26,7 +26,7 @@ part "src/unmodifiable_wrappers.dart";
  * iterable object.
  */
 class DelegatingIterable<E> implements Iterable<E> {
-  Iterable<E> _base;
+  final Iterable<E> _base;
 
   /**
    * Create a wrapper that forwards operations to [base].
@@ -295,7 +295,8 @@ class DelegatingQueue<E> extends DelegatingIterable<E> implements Queue<E> {
  * map object.
  */
 class DelegatingMap<K, V> implements Map<K, V> {
-  Map<K, V> _base;
+  final Map<K, V> _base;
+
   DelegatingMap(Map<K, V> base) : _base = base;
 
   V operator [](Object key) => _base[key];
