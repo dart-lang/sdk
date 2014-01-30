@@ -99,7 +99,7 @@ class _DeepMatcher extends Matcher {
 
   // Returns a pair (reason, location)
   List _compareIterables(expected, actual, matcher, depth, location) {
-    if (actual is !Iterable) {
+    if (actual is! Iterable) {
       return ['is not Iterable', location];
     }
     var expectedIterator = expected.iterator;
@@ -133,7 +133,7 @@ class _DeepMatcher extends Matcher {
     bool equal;
     try {
       equal = (expected == actual);
-    } catch (e,s) {
+    } catch (e, s) {
       // TODO(gram): Add a test for this case.
       reason = '== threw "$e"';
       return [reason, location];
@@ -151,7 +151,7 @@ class _DeepMatcher extends Matcher {
           location = result[1];
         }
       } else if (expected is Map && canRecurse) {
-        if (actual is !Map) {
+        if (actual is! Map) {
           reason = 'expected a map';
         } else {
           var err = (expected.length == actual.length) ? '' :
@@ -172,7 +172,7 @@ class _DeepMatcher extends Matcher {
             if (reason == null) {
               for (var key in expected.keys) {
                 var rp = _recursiveMatch(expected[key], actual[key],
-                    "${location}['${key}']", depth+1);
+                    "${location}['${key}']", depth + 1);
                 if (rp != null) {
                   reason = rp[0];
                   location = rp[1];
@@ -202,7 +202,7 @@ class _DeepMatcher extends Matcher {
   }
 
   String _match(expected, actual, Map matchState) {
-    var rp  = _recursiveMatch(expected, actual, '', 0);
+    var rp = _recursiveMatch(expected, actual, '', 0);
     if (rp == null) return null;
     var reason;
     if (rp[0].length > 0) {
@@ -438,7 +438,7 @@ class Throws extends Matcher {
       item();
       return false;
     } catch (e, s) {
-      if (_matcher == null ||_matcher.matches(e, matchState)) {
+      if (_matcher == null || _matcher.matches(e, matchState)) {
         return true;
       } else {
         addStateInfo(matchState, {'exception': e, 'stack': s});

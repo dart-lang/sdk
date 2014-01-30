@@ -64,9 +64,9 @@ class TestCase {
   Completer _testComplete;
 
   TestCase._internal(this.id, this.description, this.testFunction)
-  : currentGroup = _currentContext.fullName,
-    setUp = _currentContext.testSetup,
-    tearDown = _currentContext.testTeardown;
+      : currentGroup = _currentContext.fullName,
+        setUp = _currentContext.testSetup,
+        tearDown = _currentContext.testTeardown;
 
   bool get isComplete => !enabled || result != null;
 

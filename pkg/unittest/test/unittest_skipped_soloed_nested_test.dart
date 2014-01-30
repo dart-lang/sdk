@@ -14,8 +14,7 @@ var testName = 'skipped/soloed nested groups with setup/teardown';
 var testFunction = (_) {
   StringBuffer s = null;
   setUp(() {
-    if (s == null)
-      s = new StringBuffer();
+    if (s == null) s = new StringBuffer();
   });
   test('top level', () {
     s.write('A');

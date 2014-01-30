@@ -46,7 +46,7 @@ class _Message {
   _Message(this.messageType, [this.elapsed = 0, this.body = '']);
 
   factory _Message.fromString(String msg) {
-    if(!msg.startsWith(_PREFIX)) {
+    if (!msg.startsWith(_PREFIX)) {
       return null;
     }
     int idx = msg.indexOf(' ', _PREFIX.length);
@@ -95,7 +95,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
   WindowBase _parentWindow;
 
   /** The time at which tests start. */
-  final Map<int,DateTime> _testStarts;
+  final Map<int, DateTime> _testStarts;
 
   ChildInteractiveHtmlConfiguration() :
       _testStarts = new Map<int,DateTime>();
@@ -119,7 +119,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
         _parentWindow = e.source;
         String search = window.location.search;
         int pos = search.indexOf('t=');
-        String ids = search.substring(pos+2);
+        String ids = search.substring(pos + 2);
         int id = int.parse(ids);
         setSoloTest(id);
         runTests();
@@ -134,7 +134,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
   /** Record the start time of the test. */
   void onTestStart(TestCase testCase) {
     super.onTestStart(testCase);
-    _testStarts[testCase.id]= new DateTime.now();
+    _testStarts[testCase.id] = new DateTime.now();
   }
 
   /**
@@ -165,7 +165,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
     int elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
     if (testCase.stackTrace != null) {
       var message = JSON.encode(testCase.stackTrace.frames.map((frame) {
-        return <String, dynamic>{
+        return <String, dynamic> {
           "uri": frame.uri.toString(),
           "line": frame.line,
           "column": frame.column,
@@ -192,7 +192,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
  * in new functions that create child IFrames and run the real tests.
  */
 class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
-  final Map<int,DateTime> _testStarts;
+  final Map<int, DateTime> _testStarts;
 
 
   /** The stack that was posted back from the child, if any. */
@@ -238,7 +238,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
     // Get the result, do any logging, then do a pass/fail.
     var msg = new _Message.fromString(e.data);
 
-    if(msg == null) {
+    if (msg == null) {
       return;
     }
     if (msg.messageType == _Message.LOG) {
@@ -302,7 +302,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
 
   void onTestStart(TestCase testCase) {
     var id = testCase.id;
-    _testStarts[testCase.id]= new DateTime.now();
+    _testStarts[testCase.id] = new DateTime.now();
     super.onTestStart(testCase);
     _stack = null;
     // Convert the group name to a DOM id.

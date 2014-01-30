@@ -199,7 +199,7 @@ class _InRange extends Matcher {
     this._lowMatchValue, this._highMatchValue);
 
   bool matches(value, Map matchState) {
-    if (value is !num) {
+    if (value is! num) {
       return false;
     }
     if (value < _low || value > _high) {

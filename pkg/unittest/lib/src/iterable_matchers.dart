@@ -145,7 +145,7 @@ abstract class _IterableMatcher extends Matcher {
           add(' not an Iterable');
     } else {
       return super.describeMismatch(item, mismatchDescription, matchState,
-        verbose);
+          verbose);
     }
   }
 }

@@ -24,4 +24,4 @@ var testFunction = (TestConfiguration testConfig) {
   });
 };
 
-var expected =  buildStatusString(1, 0, 0, testName, count: 10);
+var expected = buildStatusString(1, 0, 0, testName, count: 10);
