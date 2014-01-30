@@ -16,6 +16,7 @@ typedef int FunctionTypeDef();
 
 class Bar {
   final FunctionTypeDef gee;
+  Bar() : gee = (() => 499);
 }
 
 main() {
