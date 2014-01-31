@@ -45,9 +45,8 @@ class TextDirection {
    * Returns true if [otherDirection] is known to be different from this
    * direction.
    */
-  bool isDirectionChange(TextDirection otherDirection) {
-    return otherDirection != TextDirection.UNKNOWN && this != otherDirection;
-  }
+  bool isDirectionChange(TextDirection otherDirection) =>
+      otherDirection != TextDirection.UNKNOWN && this != otherDirection;
 }
 
 /**
@@ -198,17 +197,14 @@ class Bidi {
    * will override existing one in behavior (should work on Chrome, FF, and IE
    * since this was ported directly from the Closure version).
    */
-  static String enforceRtlInHtml(String html) {
-    return _enforceInHtmlHelper(html, 'rtl');
-  }
+  static String enforceRtlInHtml(String html) =>
+      _enforceInHtmlHelper(html, 'rtl');
 
   /**
    * Enforce RTL on both end of the given [text] using unicode BiDi formatting
    * characters RLE and PDF.
    */
-  static String enforceRtlInText(String text) {
-    return '$RLE$text$PDF';
-  }
+  static String enforceRtlInText(String text) => '$RLE$text$PDF';
 
   /**
    * Enforce the [html] snippet in LTR directionality regardless of overall
@@ -218,17 +214,14 @@ class Bidi {
    * the whole piece. If the tag already has a direction specified, this new one
    * will override existing one in behavior (tested on FF and IE).
    */
-  static String enforceLtrInHtml(String html) {
-    return _enforceInHtmlHelper(html, 'ltr');
-  }
+  static String enforceLtrInHtml(String html) =>
+      _enforceInHtmlHelper(html, 'ltr');
 
   /**
    * Enforce LTR on both end of the given [text] using unicode BiDi formatting
    * characters LRE and PDF.
    */
-  static String enforceLtrInText(String text) {
-    return '$LRE$text$PDF';
-  }
+  static String enforceLtrInText(String text) => '$LRE$text$PDF';
 
   /**
    * Enforce the [html] snippet in the desired [direction] regardless of overall
@@ -294,16 +287,15 @@ class Bidi {
   // See Issue 2979.
   static String _guardBracketHelper(String str, RegExp regexp, [String before,
       String after]) {
-    StringBuffer buffer = new StringBuffer();
+    var buffer = new StringBuffer();
     var startIndex = 0;
-    Iterable matches = regexp.allMatches(str);
-    for (Match match in matches) {
+    regexp.allMatches(str).forEach((match) {
       buffer..write(str.substring(startIndex, match.start))
             ..write(before)
             ..write(str.substring(match.start, match.end))
             ..write(after);
       startIndex = match.end;
-    }
+    });
     return (buffer..write(str.substring(startIndex))).toString();
   }
 
@@ -382,7 +374,6 @@ class Bidi {
    * text should be laid out in RTL direction. If [isHtml] is true, the string
    * is HTML or HTML-escaped.
    */
-  static bool detectRtlDirectionality(String str, {bool isHtml: false}) {
-    return estimateDirectionOfText(str, isHtml: isHtml) == TextDirection.RTL;
-  }
+  static bool detectRtlDirectionality(String str, {bool isHtml: false}) =>
+      estimateDirectionOfText(str, isHtml: isHtml) == TextDirection.RTL;
 }

@@ -41,6 +41,5 @@ Future initializeDateFormatting(String locale, String url) {
 }
 
 /** Defines how new date symbol entries are created. */
-DateSymbols _createDateSymbol(Map map) {
-  return new DateSymbols.deserializeFromMap(map);
-}
+DateSymbols _createDateSymbol(Map map) =>
+    new DateSymbols.deserializeFromMap(map);

@@ -121,11 +121,7 @@ class Intl {
    * preferences).
    */
   Intl([String aLocale]) {
-    if (aLocale != null) {
-      _locale = aLocale;
-    } else {
-      _locale = getCurrentLocale();
-    }
+    _locale =  aLocale != null ? aLocale : getCurrentLocale();
   }
 
   /**
@@ -177,9 +173,7 @@ class Intl {
    * Return true if the locale exists, or if it is null. The null case
    * is interpreted to mean that we use the default locale.
    */
-  static bool _localeExists(localeName) {
-    return DateFormat.localeExists(localeName);
-  }
+  static bool _localeExists(localeName) => DateFormat.localeExists(localeName);
 
   /**
    * Given [newLocale] return a locale that we have data for that is similar

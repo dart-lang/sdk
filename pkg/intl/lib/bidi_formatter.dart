@@ -172,11 +172,7 @@ class BidiFormatter {
         (contextDirection == TextDirection.RTL &&
           (direction == TextDirection.LTR ||
            Bidi.endsWithLtr(text, isHtml)))) {
-      if (contextDirection == TextDirection.LTR) {
-        return Bidi.LRM;
-      } else {
-        return Bidi.RLM;
-      }
+      return contextDirection == TextDirection.LTR ? Bidi.LRM : Bidi.RLM;
     } else {
       return '';
     }
