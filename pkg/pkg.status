@@ -255,6 +255,8 @@ unittest/test/unittest_completion_test: Fail # 13921
 unittest/test/unittest_correct_callback_test: Fail # 13921
 unittest/test/unittest_exception_test: Fail # 13921
 unittest/test/unittest_excess_callback_test: Fail # 13921
+unittest/test/unittest_group_name_test: Fail # 13921
+unittest/test/unittest_invalid_ops_test: Fail # 13921
 unittest/test/unittest_late_exception_test: Fail # 13921
 unittest/test/unittest_middle_exception_test: Fail # 13921
 unittest/test/unittest_nested_groups_setup_teardown_test: Fail # 13921
@@ -268,7 +270,6 @@ unittest/test/unittest_teardown_test: Fail # 13921
 unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
-unittest/test/unitttest_group_name_test: Fail # 13921
 polymer/test/custom_event_test: Pass, Crash # 14360
 polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
