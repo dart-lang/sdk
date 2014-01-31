@@ -1579,7 +1579,9 @@ class Class extends OwnedIndexable implements Comparable {
   /// superclass of the private superclass.
   String validSuperclass() {
     if (superclass == null) return 'dart.core.Object';
-    if (superclass._isVisible) return dart2js_util.qualifiedNameOf(superclass);
+    if (superclass._isVisible) {
+      return dart2js_util.qualifiedNameOf(superclass.mirror);
+    }
     return superclass.validSuperclass();
   }
 
