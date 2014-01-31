@@ -68,6 +68,8 @@ const DONT_KNOW_HOW_TO_FIX = "";
  * 1. what is wrong, 2. why is it wrong, 3. how do I fix it. However, we
  * combine the first two in [template] and the last in [howToFix].
  */
+// TODO(johnnniwinther): For Infos, consider adding a reference to the
+// error/warning/hint that they belong to.
 class MessageKind {
   /// Should describe what is wrong and why.
   final String template;
@@ -868,10 +870,77 @@ main() => new C();
       "Info: This is the instance member that cannot be overridden "
       "by a static member.");
 
+  static const MessageKind INSTANCE_STATIC_SAME_NAME = const MessageKind(
+      "Warning: Instance member '#{memberName}' and static member of "
+      "superclass '#{className}' have the same name.");
+
+  static const MessageKind INSTANCE_STATIC_SAME_NAME_CONT = const MessageKind(
+      "Info: This is the static member with the same name.");
+
+  static const MessageKind INVALID_OVERRIDE_METHOD = const MessageKind(
+      "Warning: The type '#{declaredType}' of method '#{name}' declared in "
+      "'#{class}' is not a subtype of the overridden method type "
+      "'#{inheritedType}' inherited from '#{inheritedClass}'.");
+
+  static const MessageKind INVALID_OVERRIDDEN_METHOD = const MessageKind(
+      "Info: This is the overridden method '#{name}' declared in class "
+      "'#{class}'.");
+
+  static const MessageKind INVALID_OVERRIDE_GETTER = const MessageKind(
+      "Warning: The type '#{declaredType}' of getter '#{name}' declared in "
+      "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+      "overridden getter inherited from '#{inheritedClass}'.");
+
+  static const MessageKind INVALID_OVERRIDDEN_GETTER = const MessageKind(
+      "Info: This is the overridden getter '#{name}' declared in class "
+      "'#{class}'.");
+
+  static const MessageKind INVALID_OVERRIDE_GETTER_WITH_FIELD =
+      const MessageKind(
+          "Warning: The type '#{declaredType}' of field '#{name}' declared in "
+          "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+          "overridden getter inherited from '#{inheritedClass}'.");
+
+  static const MessageKind INVALID_OVERRIDE_FIELD_WITH_GETTER =
+      const MessageKind(
+          "Warning: The type '#{declaredType}' of getter '#{name}' declared in "
+          "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+          "overridden field inherited from '#{inheritedClass}'.");
+
+  static const MessageKind INVALID_OVERRIDE_SETTER = const MessageKind(
+      "Warning: The type '#{declaredType}' of setter '#{name}' declared in "
+      "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+      "overridden setter inherited from '#{inheritedClass}'.");
+
+  static const MessageKind INVALID_OVERRIDDEN_SETTER = const MessageKind(
+      "Info: This is the overridden setter '#{name}' declared in class "
+      "'#{class}'.");
+
+  static const MessageKind INVALID_OVERRIDE_SETTER_WITH_FIELD =
+      const MessageKind(
+          "Warning: The type '#{declaredType}' of field '#{name}' declared in "
+          "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+          "overridden setter inherited from '#{inheritedClass}'.");
+
+  static const MessageKind INVALID_OVERRIDE_FIELD_WITH_SETTER =
+      const MessageKind(
+          "Warning: The type '#{declaredType}' of setter '#{name}' declared in "
+          "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+          "overridden field inherited from '#{inheritedClass}'.");
+
+  static const MessageKind INVALID_OVERRIDE_FIELD = const MessageKind(
+      "Warning: The type '#{declaredType}' of field '#{name}' declared in "
+      "'#{class}' is not assignable to the type '#{inheritedType}' of the "
+      "overridden field inherited from '#{inheritedClass}'.");
+
+  static const MessageKind INVALID_OVERRIDDEN_FIELD = const MessageKind(
+      "Info: This is the overridden field '#{name}' declared in class "
+      "'#{class}'.");
+
   static const MessageKind CANNOT_OVERRIDE_FIELD_WITH_METHOD =
       const MessageKind(
-          "Error: Method cannot override field '#{memberName}' of "
-          "'#{className}'.");
+          "Error: Method '#{name}' in '#{class}' can't override field from "
+          "'#{inheritedClass}'.");
 
   static const MessageKind CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT =
       const MessageKind(
@@ -879,19 +948,30 @@ main() => new C();
 
   static const MessageKind CANNOT_OVERRIDE_METHOD_WITH_FIELD =
       const MessageKind(
-          "Error: Field cannot override method '#{memberName}' of "
-          "'#{className}'.");
+          "Error: Field '#{name}' in '#{class}' can't override method from "
+          "'#{inheritedClass}'.");
 
   static const MessageKind CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT =
       const MessageKind(
           "Info: This is the method that cannot be overridden by a field.");
 
-  static const MessageKind BAD_ARITY_OVERRIDE = const MessageKind(
-      "Error: Cannot override method '#{memberName}' in '#{className}'; "
-      "the parameters do not match.");
+  static const MessageKind CANNOT_OVERRIDE_GETTER_WITH_METHOD =
+      const MessageKind(
+          "Error: Method '#{name}' in '#{class}' can't override getter from "
+          "'#{inheritedClass}'.");
 
-  static const MessageKind BAD_ARITY_OVERRIDE_CONT = const MessageKind(
-      "Info: This is the method whose parameters do not match.");
+  static const MessageKind CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT =
+      const MessageKind(
+          "Info: This is the getter that cannot be overridden by a method.");
+
+  static const MessageKind CANNOT_OVERRIDE_METHOD_WITH_GETTER =
+      const MessageKind(
+          "Error: Getter '#{name}' in '#{class}' can't override method from "
+          "'#{inheritedClass}'.");
+
+  static const MessageKind CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT =
+      const MessageKind(
+          "Info: This is the method that cannot be overridden by a getter.");
 
   static const MessageKind MISSING_FORMALS = const MessageKind(
       "Error: Formal parameters are missing.");
@@ -1407,22 +1487,105 @@ main() {}
       howToFix: "Consider deleting it.",
       examples: const ["deadCode() {} main() {}"]);
 
+  static const MessageKind ABSTRACT_METHOD = const MessageKind(
+      "Warning: The method '#{name}' has no implementation in "
+      "class '#{class}'.",
+      howToFix: "Try adding a body to '#{name}' or declaring "
+                "'#{class}' to be 'abstract'.",
+      examples: const ["""
+class Class {
+  method();
+}
+main() => new Class();
+"""]);
+
+  static const MessageKind ABSTRACT_GETTER = const MessageKind(
+      "Warning: The getter '#{name}' has no implementation in "
+      "class '#{class}'.",
+      howToFix: "Try adding a body to '#{name}' or declaring "
+                "'#{class}' to be 'abstract'.",
+      examples: const ["""
+class Class {
+  get getter;
+}
+main() => new Class();
+"""]);
+
+  static const MessageKind ABSTRACT_SETTER = const MessageKind(
+      "Warning: The setter '#{name}' has no implementation in "
+      "class '#{class}'.",
+      howToFix: "Try adding a body to '#{name}' or declaring "
+                "'#{class}' to be 'abstract'.",
+      examples: const ["""
+class Class {
+  set setter(_);
+}
+main() => new Class();
+"""]);
+
+  static const MessageKind INHERIT_GETTER_AND_METHOD = const MessageKind(
+      "Warning: The class '#{class}' can't inherit both getters and methods "
+      "by the named '#{name}'.",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const ["""
+class A {
+  get member => null;
+}
+class B {
+  member() {}
+}
+class Class implements A, B {
+}
+main() => new Class();
+"""]);
+
+  static const MessageKind INHERITED_METHOD = const MessageKind(
+      "Info: The inherited method '#{name}' is declared here in class "
+      "'#{class}'.");
+
+  static const MessageKind INHERITED_EXPLICIT_GETTER = const MessageKind(
+      "Info: The inherited getter '#{name}' is declared here in class "
+      "'#{class}'.");
+
+  static const MessageKind INHERITED_IMPLICIT_GETTER = const MessageKind(
+      "Info: The inherited getter '#{name}' is implicitly declared by this "
+      "field in class '#{class}'.");
+
+  static const MessageKind UNIMPLEMENTED_METHOD_ONE = const MessageKind(
+      "Warning: '#{class}' doesn't implement '#{method}' "
+      "declared in '#{declarer}'.",
+      howToFix: "Try adding an implementation of '#{name}' or declaring "
+                "'#{class}' to be 'abstract'.",
+      examples: const ["""
+abstract class I {
+  m();
+}
+class C implements I {}
+main() => new C();
+""", """
+abstract class I {
+  m();
+}
+class C extends I {}
+main() => new C();
+"""]);
+
   static const MessageKind UNIMPLEMENTED_METHOD = const MessageKind(
-      "Warning: '#{class_name}' doesn't implement '#{member_name}'.",
-      howToFix: "Try adding an implementation of '#{member_name}'.",
+      "Warning: '#{class}' doesn't implement '#{method}'.",
+      howToFix: "Try adding an implementation of '#{name}' or declaring "
+                "'#{class}' to be 'abstract'.",
       examples: const ["""
 abstract class I {
   m();
 }
 
-class C implements I {}
-
-class D implements I {
-  m() {}
+abstract class J {
+  m();
 }
 
+class C implements I, J {}
+
 main() {
- new D().m();
  new C();
 }
 """, """
@@ -1430,17 +1593,119 @@ abstract class I {
   m();
 }
 
-class C extends I {}
-
-class D extends I {
-  m() {}
+abstract class J {
+  m();
 }
 
+class C extends I implements J {}
+
 main() {
- new D().m();
  new C();
 }
 """]);
+
+  static const MessageKind UNIMPLEMENTED_METHOD_CONT = const MessageKind(
+      "Info: The method '#{name}' is declared here in class '#{class}'.");
+
+  static const MessageKind UNIMPLEMENTED_SETTER_ONE = const MessageKind(
+      "Warning: '#{class}' doesn't implement the setter '#{name}' "
+      "declared in '#{declarer}'.",
+      howToFix: "Try adding an implementation of '#{name}' or declaring "
+                "'#{class}' to be 'abstract'.",
+      examples: const ["""
+abstract class I {
+  set m(_);
+}
+class C implements I {}
+class D implements I {
+  set m(_) {}
+}
+main() {
+ new D().m = 0;
+ new C();
+}
+"""]);
+
+  static const MessageKind UNIMPLEMENTED_SETTER = const MessageKind(
+      "Warning: '#{class}' doesn't implement the setter '#{name}'.",
+      howToFix: "Try adding an implementation of '#{name}' or declaring "
+                "'#{class}' to be 'abstract'.",
+      examples: const ["""
+abstract class I {
+  set m(_);
+}
+abstract class J {
+  set m(_);
+}
+class C implements I, J {}
+main() => new C();
+""", """
+abstract class I {
+  set m(_);
+}
+abstract class J {
+  set m(_);
+}
+class C extends I implements J {}
+main() => new C();
+"""]);
+
+  static const MessageKind UNIMPLEMENTED_EXPLICIT_SETTER = const MessageKind(
+      "Info: The setter '#{name}' is declared here in class '#{class}'.");
+
+  static const MessageKind UNIMPLEMENTED_IMPLICIT_SETTER = const MessageKind(
+      "Info: The setter '#{name}' is implicitly declared by this field "
+      "in class '#{class}'.");
+
+  static const MessageKind UNIMPLEMENTED_GETTER_ONE = const MessageKind(
+      "Warning: '#{class}' doesn't implement the getter '#{name}' "
+      "declared in '#{declarer}'.",
+      howToFix: "Try adding an implementation of '#{name}' or declaring "
+                "'#{class}' to be 'abstract'.",
+      examples: const ["""
+abstract class I {
+  get m;
+}
+class C implements I {}
+main() => new C();
+""", """
+abstract class I {
+  get m;
+}
+class C extends I {}
+main() => new C();
+"""]);
+
+  static const MessageKind UNIMPLEMENTED_GETTER = const MessageKind(
+      "Warning: '#{class}' doesn't implement the getter '#{name}'.",
+      howToFix: "Try adding an implementation of '#{name}' or declaring "
+                "'#{class}' to be 'abstract'.",
+      examples: const ["""
+abstract class I {
+  get m;
+}
+abstract class J {
+  get m;
+}
+class C implements I, J {}
+main() => new C();
+""", """
+abstract class I {
+  get m;
+}
+abstract class J {
+  get m;
+}
+class C extends I implements J {}
+main() => new C();
+"""]);
+
+  static const MessageKind UNIMPLEMENTED_EXPLICIT_GETTER = const MessageKind(
+      "Info: The getter '#{name}' is declared here in class '#{class}'.");
+
+  static const MessageKind UNIMPLEMENTED_IMPLICIT_GETTER = const MessageKind(
+      "Info: The getter '#{name}' is implicitly declared by this field "
+      "in class '#{class}'.");
 
   static const MessageKind EQUAL_MAP_ENTRY_KEY = const MessageKind(
       "Warning: An entry with the same key already exists in the map.",
@@ -1651,7 +1916,8 @@ class Message {
       });
       assert(invariant(
           CURRENT_ELEMENT_SPANNABLE,
-          !message.contains(new RegExp(r'#\{.+\}')),
+          kind == MessageKind.GENERIC ||
+            !message.contains(new RegExp(r'#\{.+\}')),
           message: 'Missing arguments in error message: "$message"'));
       if (!terse && kind.hasHowToFix) {
         String howToFix = kind.howToFix;

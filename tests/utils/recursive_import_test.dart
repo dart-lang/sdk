@@ -42,7 +42,7 @@ const proxy = const _Proxy();
 const INTERCEPTORS_LIB = """
 library interceptors;
 class JSIndexable {
-  get length;
+  get length {}
 }
 class JSMutableIndexable {}
 class JSArray {

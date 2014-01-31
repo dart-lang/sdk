@@ -54,9 +54,9 @@ main() {
     [],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
-      Expect.equals(1, errors.length);
+      Expect.equals(1, errors.length, 'errors=$errors');
       Expect.equals("Error: Could not find 'main'.", errors[0].toString());
-      Expect.isTrue(warnings.isEmpty);
+      Expect.isTrue(warnings.isEmpty, 'warnings=$warnings');
     });
 
   runCompiler(

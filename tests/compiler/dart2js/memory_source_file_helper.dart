@@ -24,7 +24,7 @@ export '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.
        show SourceFileProvider, FormattingDiagnosticHandler;
 
 class MemorySourceFileProvider extends SourceFileProvider {
-  final Map<String, String> memorySourceFiles;
+  Map<String, String> memorySourceFiles;
 
   MemorySourceFileProvider(Map<String, String> this.memorySourceFiles);
 

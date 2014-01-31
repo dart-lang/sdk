@@ -22,6 +22,8 @@ mixin_forwarding_constructor2_test: Fail # Issue 13641
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
+override_inheritance_mixed_test/08: MissingCompileTimeError # Issue 16137
+override_inheritance_mixed_test/09: MissingCompileTimeError # Issue 16137
 
 unicode_bom_test: Fail # Issue 16067
 

@@ -39,10 +39,6 @@ Language/03_Overview/1_Scoping_A02_t06: Fail # inherited from dart2js
 Language/06_Functions/4_External_Functions_A01_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t01: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t02: Fail # inherited from VM
-Language/07_Classes/3_Setters_A04_t03: Fail # inherited from VM
-Language/07_Classes/3_Setters_A04_t04: Fail # inherited from VM
-Language/07_Classes/3_Setters_A04_t05: Fail # inherited from VM
-Language/07_Classes/3_Setters_A04_t06: Fail # inherited from VM
 Language/07_Classes/3_Setters_A04_t07: Fail # inherited from VM
 Language/12_Expressions/01_Constants_A03_t01: Fail # Issue 13652
 
@@ -92,20 +88,12 @@ LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 
-Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
-
 
 [ $compiler == dart2dart ]
 Language/03_Overview/1_Scoping_A02_t28: Fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A11_t01: fail
-Language/07_Classes/1_Instance_Methods_A01_t01: Fail # co19-roll r559: Please triage this failure
-Language/07_Classes/1_Instance_Methods_A01_t02: Fail # co19-roll r559: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A03_t01: Fail # co19-roll r559: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A03_t02: Fail # co19-roll r559: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A03_t03: Fail # co19-roll r559: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A03_t04: Fail # co19-roll r559: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A10_t01: crash # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A10_t04: crash # co19-roll r587: Please triage this failure
 Language/12_Expressions/01_Constants_A20_t02: fail # co19-roll r546: Please triage this failure

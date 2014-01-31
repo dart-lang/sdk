@@ -181,6 +181,32 @@ proxy_test/06: StaticWarning # Issue 15467
 # test issue 15714
 typevariable_substitution2_test/01: StaticWarning # Issue 15714
 
+# analyzer does not handle @proxy and noSuchMethod correctly
+override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
+override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
+override_inheritance_no_such_method_test/05: StaticWarning # Issue 16132
+
+# missing warning for unimplemented getter/setter
+override_inheritance_abstract_test/13: MissingStaticWarning # Issue 16133
+override_inheritance_abstract_test/26: MissingStaticWarning # Issue 16133
+
+# unexpected warning for override
+override_inheritance_abstract_test/27: StaticWarning # Issue 16134
+override_inheritance_generic_test/03: StaticWarning # Issue 16134
+
+# missing warning for override
+override_inheritance_field_test/10: MissingStaticWarning # Issue 16135
+override_inheritance_field_test/33: MissingStaticWarning # Issue 16135
+override_inheritance_generic_test/04: MissingStaticWarning # Issue 16135
+override_inheritance_generic_test/06: MissingStaticWarning # Issue 16135
+override_inheritance_generic_test/07: MissingStaticWarning # Issue 16135
+override_inheritance_generic_test/09: MissingStaticWarning # Issue 16135
+
+# missing compile-time error for getter/member override
+override_inheritance_mixed_test/08: MissingCompileTimeError # Issue 16136
+override_inheritance_mixed_test/09: MissingCompileTimeError # Issue 16136
+
+
 abstract_exact_selector_test: StaticWarning
 abstract_getter_test: StaticWarning
 abstract_object_method_test: StaticWarning

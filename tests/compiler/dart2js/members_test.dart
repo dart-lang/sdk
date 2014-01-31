@@ -168,7 +168,7 @@ void testClassMembers() {
 
       method() {}
       abstractMethod();
-      static staticMethod() {} 
+      static staticMethod() {}
     }
     class B<T> {
       T field;
@@ -558,7 +558,7 @@ void testClassVsInterfaceMembers() {
       method2() {}
     }
     abstract class B {
-      method1(); 
+      method1();
       method2(a);
     }
     abstract class C extends A implements B {}
@@ -610,7 +610,7 @@ void testMixinMembers() {
       method4(T a) {}
     }
     abstract class B<S> {
-      method1(); 
+      method1();
       method2(a);
       method3(S a) {}
     }
