@@ -279,7 +279,13 @@ class _GroupContext {
 final _rootContext = new _GroupContext();
 _GroupContext _currentContext = _rootContext;
 
-int _currentTestCaseIndex = 0;
+/**
+ * Represents the index of the currently running test case
+ * == -1 implies the test system is not running
+ * == [number of test cases] is a short-lived state flagging that the last test
+ *    has completed
+ */
+int _currentTestCaseIndex = -1;
 
 /** [TestCase] currently being executed. */
 TestCase get currentTestCase =>
@@ -293,7 +299,7 @@ bool _initialized = false;
 String _uncaughtErrorMessage = null;
 
 /** Time since we last gave non-sync code a chance to be scheduled. */
-var _lastBreath = new DateTime.now().millisecondsSinceEpoch;
+int _lastBreath = new DateTime.now().millisecondsSinceEpoch;
 
 /* Test case result strings. */
 // TODO(gram) we should change these constants to use a different string
@@ -313,6 +319,7 @@ const ERROR = 'error';
  * calls.
  */
 void test(String spec, TestFunction body) {
+  _requireNotRunning();
   ensureInitialized();
   if (!_soloTestSeen || _soloNestingLevel > 0) {
     var testcase = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
@@ -341,6 +348,7 @@ void skip_test(String spec, TestFunction body){}
  * fact that they are effectively no-ops.
  */
 void solo_test(String spec, TestFunction body) {
+  _requireNotRunning();
   ensureInitialized();
   if (!_soloTestSeen) {
     _soloTestSeen = true;
@@ -584,6 +592,7 @@ Function protectAsync2(Function callback, {String id}) {
  */
 void group(String description, void body()) {
   ensureInitialized();
+  _requireNotRunning();
   _currentContext = new _GroupContext(_currentContext, description);
   try {
     body();
@@ -601,6 +610,7 @@ void skip_group(String description, void body()) {}
 
 /** Like [solo_test], but for groups. */
 void solo_group(String description, void body()) {
+  _requireNotRunning();
   ensureInitialized();
   if (!_soloTestSeen) {
     _soloTestSeen = true;
@@ -623,6 +633,7 @@ void solo_group(String description, void body()) {
  * case it must return a [Future].
  */
 void setUp(Function setupTest) {
+  _requireNotRunning();
   _currentContext.testSetup = setupTest;
 }
 
@@ -635,6 +646,7 @@ void setUp(Function setupTest) {
  * case it must return a [Future].
  */
 void tearDown(Function teardownTest) {
+  _requireNotRunning();
   _currentContext.testTeardown = teardownTest;
 }
 
@@ -683,6 +695,7 @@ void filterTests(testFilter) {
 
 /** Runs all queued tests, one at a time. */
 void runTests() {
+  _requireNotRunning();
   _ensureInitialized(false);
   _currentTestCaseIndex = 0;
   _config.onStart();
@@ -734,12 +747,14 @@ void _registerException(TestCase testCase, e, [trace]) {
  */
 void _runTest() {
   if (_currentTestCaseIndex >= testCases.length) {
+    assert(_currentTestCaseIndex == testCases.length);
     _completeTests();
   } else {
-    final testCase = testCases[_currentTestCaseIndex];
-    var f = _guardAsync(testCase._run, null, testCase);
+    var testCase = testCases[_currentTestCaseIndex];
+    Future f = _guardAsync(testCase._run, null, testCase);
+    var timeout = unittestConfiguration.timeout;
+
     Timer timer;
-    final Duration timeout = unittestConfiguration.timeout;
     if (timeout != null) {
       try {
         timer = new Timer(timeout, () {
@@ -782,6 +797,7 @@ void _completeTests() {
   _config.onDone(passed > 0 && failed == 0 && errors == 0 &&
       _uncaughtErrorMessage == null);
   _initialized = false;
+  _currentTestCaseIndex = -1;
 }
 
 String _fullSpec(String spec) {
@@ -857,6 +873,12 @@ bool formatStacks = true;
  * the stack trace. Requires formatStacks to be set.
  */
 bool filterStacks = true;
+
+void _requireNotRunning() {
+  if(_currentTestCaseIndex != -1) {
+    throw new StateError('Not allowed when tests are running.');
+  }
+}
 
 /**
  * Returns a Trace object from a StackTrace object or a String, or the
