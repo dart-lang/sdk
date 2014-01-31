@@ -38,3 +38,7 @@ lib/web_gl/dart2js/web_gl_dart2js: CompileTimeError
 lib/web_gl/dartium/web_gl_dartium: CompileTimeError
 lib/web_sql/dart2js/web_sql_dart2js: CompileTimeError
 lib/web_sql/dartium/web_sql_dartium: CompileTimeError
+lib/_internal/compiler/samples/jsonify/jsonify: CompileTimeError # issue 16466
+lib/_internal/compiler/implementation/mirrors/analyze: CompileTimeError # issue 16466
+lib/_internal/compiler/implementation/mirrors/dart2js_mirrors: CompileTimeError # issue 16466
+lib/_internal/dartdoc/lib/src/dart2js_mirrors: CompileTimeError # issue 16466
