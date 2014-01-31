@@ -52,8 +52,9 @@ Map _filterMap(Map<Symbol, dynamic> old_map, bool filter(Symbol key, value)) {
 }
 
 Map _makeMemberMap(List mirrors) {
-  return new _UnmodifiableMapView(
-      new Map<Symbol, dynamic>.fromIterable(mirrors, key: (e) => e.simpleName));
+  return new _UnmodifiableMapView<Symbol, DeclarationMirror>(
+      new Map<Symbol, DeclarationMirror>.fromIterable(
+          mirrors, key: (e) => e.simpleName));
 }
 
 String _n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
@@ -653,7 +654,8 @@ class _LocalClassMirror extends _LocalObjectMirror
       var constructorsList = _computeConstructors(_reflectee);
       var stringName = _n(simpleName);
       constructorsList.forEach((c) => c._patchConstructorName(stringName));
-      _cachedConstructors = _makeMemberMap(constructorsList);
+      _cachedConstructors =
+          new Map.fromIterable(constructorsList, key: (e) => e.simpleName);
     }
     return _cachedConstructors;
   }
