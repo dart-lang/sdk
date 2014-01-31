@@ -8,7 +8,7 @@
 /// doesn't provide this information itself.
 library export_map;
 
-import '../../../compiler/implementation/mirrors/mirrors.dart';
+import '../../../compiler/implementation/mirrors/source_mirrors.dart';
 import '../../../compiler/implementation/mirrors/mirrors_util.dart';
 
 /// A class that tracks which libraries export which other libraries.

@@ -10,9 +10,9 @@ import 'dart:io' show Platform;
 import '../lib/src/export_map.dart';
 import '../../../../../tests/compiler/dart2js/memory_source_file_helper.dart'
        show MemorySourceFileProvider;
-import '../../compiler/implementation/mirrors/mirrors.dart'
+import '../../compiler/implementation/mirrors/source_mirrors.dart'
        show MirrorSystem, LibraryMirror;
-import '../../compiler/implementation/mirrors/dart2js_mirror.dart'
+import '../../compiler/implementation/mirrors/analyze.dart'
        as source_mirrors;
 
 Future<MirrorSystem> mirrorSystemFor(Map<String, String> memorySourceFiles) {

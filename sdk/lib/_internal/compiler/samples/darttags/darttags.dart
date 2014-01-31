@@ -25,14 +25,16 @@
 
 import 'dart:io';
 
-// TODO(ahe): Should be dart:mirrors.
-import '../../implementation/mirrors/mirrors.dart';
+import 'dart:mirrors';
 
 import '../../../libraries.dart'
     show LIBRARIES, LibraryInfo;
 
-import '../../implementation/mirrors/dart2js_mirror.dart'
-    show analyze, BackDoor;
+import '../../implementation/mirrors/analyze.dart'
+    show analyze;
+import '../../implementation/mirrors/dart2js_mirrors.dart'
+    show BackDoor;
+import '../../implementation/mirrors/mirrors_util.dart' show nameOf;
 
 import '../../implementation/filenames.dart';
 import '../../implementation/source_file.dart';
@@ -40,7 +42,7 @@ import '../../implementation/source_file_provider.dart';
 import '../../implementation/util/uri_extras.dart';
 
 const DART2JS = '../../implementation/dart2js.dart';
-const DART2JS_MIRROR = '../../implementation/mirrors/dart2js_mirror.dart';
+const DART2JS_MIRROR = '../../implementation/mirrors/dart2js_mirrors.dart';
 const SDK_ROOT = '../../../../../';
 
 bool isPublicDart2jsLibrary(String name) {
@@ -106,9 +108,9 @@ emitTagsForCompilationUnit(compilationUnit) {
   var buffer = new StringBuffer();
   SourceFile file = handler.provider.sourceFiles['$uri'];
 
-  compilationUnit.members.forEach((DeclarationMirror mirror) {
-    var tagname = mirror.simpleName;
-    var byte_offset = mirror.getBeginToken().charOffset;
+  compilationUnit.declarations.forEach((_, DeclarationMirror mirror) {
+    var tagname = nameOf(mirror);
+    var byte_offset = mirror.location.offset;
     var line_number = file.getLine(byte_offset) + 1;
 
     var lineStart = file.lineStarts[line_number - 1];

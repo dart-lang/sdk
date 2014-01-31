@@ -26,9 +26,11 @@ import 'dart2yaml.dart';
 import 'src/io.dart';
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart'
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirrors.dart'
     as dart2js;
-import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/analyze.dart'
+    as dart2js;
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
     as dart2js_util;
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
@@ -152,15 +154,15 @@ class DummyMirror implements Indexable {
   String get docName {
     if (mirror == null) return '';
     if (mirror is LibraryMirror) {
-      return mirror.qualifiedName.replaceAll('.','-');
+      return dart2js_util.qualifiedNameOf(mirror).replaceAll('.','-');
     }
     var mirrorOwner = mirror.owner;
-    if (mirrorOwner == null) return mirror.qualifiedName;
-    var simpleName = mirror.simpleName;
+    if (mirrorOwner == null) return dart2js_util.qualifiedNameOf(mirror);
+    var simpleName = dart2js_util.nameOf(mirror);
     if (mirror is MethodMirror && (mirror as MethodMirror).isConstructor) {
       // We name constructors specially -- repeating the class name and a
       // "-" to separate the constructor from its name (if any).
-      simpleName = '${mirrorOwner.simpleName}-$simpleName';
+      simpleName = '${dart2js_util.nameOf(mirrorOwner)}-$simpleName';
     }
     return Indexable.getDocgenObject(mirrorOwner, owner).docName + '.' +
         simpleName;
@@ -200,7 +202,7 @@ abstract class MirrorBased {
     annotationMirrors.forEach((annotation) {
       var docgenAnnotation = new Annotation(annotation, owningLibrary);
       if (!_SKIPPED_ANNOTATIONS.contains(
-          docgenAnnotation.mirror.qualifiedName)) {
+          dart2js_util.qualifiedNameOf(docgenAnnotation.mirror))) {
         annotations.add(docgenAnnotation);
       }
     });
@@ -272,7 +274,7 @@ class _Generator {
         librariesToDocument.addAll(
             (includeSdk || parseSdk) ? Indexable._sdkLibraries : []);
         librariesToDocument.removeWhere(
-            (x) => _excluded.contains(x.simpleName));
+            (x) => _excluded.contains(dart2js_util.nameOf(x)));
         _documentLibraries(librariesToDocument, includeSdk: includeSdk,
             outputToYaml: outputToYaml, append: append, parseSdk: parseSdk,
             introFileName: introFileName);
@@ -631,14 +633,14 @@ abstract class Indexable extends MirrorBased {
   Indexable(this.mirror) {
     this.isPrivate = _isHidden(mirror);
 
-    var map = _mirrorToDocgen[this.mirror.qualifiedName];
+    var map = _mirrorToDocgen[dart2js_util.qualifiedNameOf(this.mirror)];
     if (map == null) map = new Map<String, Set<Indexable>>();
 
     var set = map[owner.docName];
     if (set == null) set = new Set<Indexable>();
     set.add(this);
     map[owner.docName] = set;
-    _mirrorToDocgen[this.mirror.qualifiedName] = map;
+    _mirrorToDocgen[dart2js_util.qualifiedNameOf(this.mirror)] = map;
   }
 
   /** Walk up the owner chain to find the owning library. */
@@ -706,7 +708,7 @@ abstract class Indexable extends MirrorBased {
 
   set comment(x) => _comment = x;
 
-  String get name => mirror.simpleName;
+  String get name => dart2js_util.nameOf(mirror);
 
   Indexable get owner => new DummyMirror(mirror.owner);
 
@@ -722,7 +724,7 @@ abstract class Indexable extends MirrorBased {
     // TODO: refactor OOP
     if (this is Library) return '';
     var domAnnotation = this.annotations.firstWhere(
-        (e) => e.mirror.qualifiedName == 'metadata.DomName',
+        (e) => dart2js_util.qualifiedNameOf(e.mirror) == 'metadata.DomName',
         orElse: () => null);
     if (domAnnotation == null) return '';
     var domName = domAnnotation.parameters.single;
@@ -809,13 +811,14 @@ abstract class Indexable extends MirrorBased {
   /// The optional parameter [containingLibrary] is contains data for variables
   /// defined at the top level of a library (potentially for exporting
   /// purposes).
-  Map<String, Variable> _createVariables(Map<String, VariableMirror> mirrorMap,
+  Map<String, Variable> _createVariables(Iterable<VariableMirror> mirrors,
       Indexable owner) {
     var data = {};
     // TODO(janicejl): When map to map feature is created, replace the below
     // with a filter. Issue(#9590).
-    mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
+    mirrors.forEach((VariableMirror mirror) {
       if (_Generator._includePrivate || !_isHidden(mirror)) {
+        var mirrorName = dart2js_util.nameOf(mirror);
         var variable = new Variable(mirrorName, mirror, owner);
         entityMap[variable.docName] = variable;
         data[mirrorName] = entityMap[variable.docName];
@@ -828,14 +831,14 @@ abstract class Indexable extends MirrorBased {
   /// The optional parameter [containingLibrary] is contains data for variables
   /// defined at the top level of a library (potentially for exporting
   /// purposes).
-  Map<String, Method> _createMethods(Map<String, MethodMirror> mirrorMap,
+  Map<String, Method> _createMethods(Iterable<MethodMirror> mirrors,
       Indexable owner) {
     var group = new Map<String, Method>();
-    mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
+    mirrors.forEach((MethodMirror mirror) {
       if (_Generator._includePrivate || !mirror.isPrivate) {
         var method = new Method(mirror, owner);
         entityMap[method.docName] = method;
-        group[mirror.simpleName] = method;
+        group[dart2js_util.nameOf(mirror)] = method;
       }
     });
     return group;
@@ -846,13 +849,14 @@ abstract class Indexable extends MirrorBased {
       Indexable owner) {
     var data = {};
     mirrorList.forEach((ParameterMirror mirror) {
-      data[mirror.simpleName] = new Parameter(mirror, _getOwningLibrary(owner));
+      data[dart2js_util.nameOf(mirror)] =
+          new Parameter(mirror, _getOwningLibrary(owner));
     });
     return data;
   }
 
   /// Returns a map of [Generic] objects constructed from the class mirror.
-  Map<String, Generic> _createGenerics(ClassMirror mirror) {
+  Map<String, Generic> _createGenerics(TypeMirror mirror) {
     return new Map.fromIterable(mirror.typeVariables,
         key: (e) => e.toString(),
         value: (e) => new Generic(e));
@@ -886,11 +890,11 @@ abstract class Indexable extends MirrorBased {
   /// An example that contains ._ is dart._collection.dev
   // This is because LibraryMirror.isPrivate returns `false` all the time.
   bool _isLibraryPrivate(LibraryMirror mirror) {
-    var sdkLibrary = LIBRARIES[mirror.simpleName];
+    var sdkLibrary = LIBRARIES[dart2js_util.nameOf(mirror)];
     if (sdkLibrary != null) {
       return !sdkLibrary.documented;
-    } else if (mirror.simpleName.startsWith('_') ||
-        mirror.simpleName.contains('._')) {
+    } else if (dart2js_util.nameOf(mirror).startsWith('_') ||
+        dart2js_util.nameOf(mirror).contains('._')) {
       return true;
     }
     return false;
@@ -1056,7 +1060,7 @@ abstract class Indexable extends MirrorBased {
   static Indexable getDocgenObject(DeclarationMirror mirror,
     [Indexable owner]) {
     Map<String, Set<Indexable>> docgenObj =
-        _mirrorToDocgen[mirror.qualifiedName];
+        _mirrorToDocgen[dart2js_util.qualifiedNameOf(mirror)];
     if (docgenObj == null) {
       return new DummyMirror(mirror, owner);
     }
@@ -1122,38 +1126,38 @@ class Library extends Indexable {
 
   Library._(LibraryMirror libraryMirror) : super(libraryMirror) {
     var exported = _calcExportedItems(libraryMirror);
-    var exportedClasses = exported['classes']..addAll(libraryMirror.classes);
+    var exportedClasses = _addAll(exported['classes'],
+        dart2js_util.typesOf(libraryMirror.declarations));
     _findPackage(mirror);
     classes = {};
     typedefs = {};
     errors = {};
-    exportedClasses.forEach((String mirrorName, ClassMirror classMirror) {
-        if (classMirror.isTypedef) {
+    exportedClasses.forEach((String mirrorName, TypeMirror mirror) {
+        if (mirror is TypedefMirror) {
           // This is actually a Dart2jsTypedefMirror, and it does define value,
           // but we don't have visibility to that type.
-          var mirror = classMirror;
           if (_Generator._includePrivate || !mirror.isPrivate) {
             var aTypedef = new Typedef(mirror, this);
             entityMap[Indexable.getDocgenObject(mirror).docName] = aTypedef;
-            typedefs[mirror.simpleName] = aTypedef;
+            typedefs[dart2js_util.nameOf(mirror)] = aTypedef;
           }
-        } else {
-          var clazz = new Class(classMirror, this);
+        } else if (mirror is ClassMirror) {
+          var clazz = new Class(mirror, this);
 
           if (clazz.isError()) {
-            errors[classMirror.simpleName] = clazz;
-          } else if (classMirror.isClass) {
-            classes[classMirror.simpleName] = clazz;
+            errors[dart2js_util.nameOf(mirror)] = clazz;
           } else {
-            throw new ArgumentError(
-                '${classMirror.simpleName} - no class type match. ');
+            classes[dart2js_util.nameOf(mirror)] = clazz;
           }
+        } else {
+          throw new ArgumentError(
+              '${dart2js_util.nameOf(mirror)} - no class type match. ');
         }
     });
-    this.functions =  _createMethods(exported['methods']
-      ..addAll(libraryMirror.functions), this);
-    this.variables = _createVariables(exported['variables']
-      ..addAll(libraryMirror.variables), this);
+    this.functions = _createMethods(_addAll(exported['methods'],
+        dart2js_util.methodsOf(libraryMirror.declarations)).values, this);
+    this.variables = _createVariables(_addAll(exported['variables'],
+        dart2js_util.variablesOf(libraryMirror.declarations)).values, this);
   }
 
   /// Look for the specified name starting with the current member, and
@@ -1167,6 +1171,14 @@ class Library extends Indexable {
       return result.packagePrefix + result.docName;
     }
     return super.findElementInScope(name);
+  }
+
+  /// Helper that maps [mirrors] to their simple name in map.
+  Map _addAll(Map map, Iterable<DeclarationMirror> mirrors) {
+    for (var mirror in mirrors) {
+      map[dart2js_util.nameOf(mirror)] = mirror;
+    }
+    return map;
   }
 
   /// For a library's [mirror], determine the name of the package (if any) we
@@ -1237,7 +1249,9 @@ class Library extends Indexable {
 
   String get name => docName;
 
-  String get docName => mirror.qualifiedName.replaceAll('.','-');
+  String get docName {
+    return dart2js_util.qualifiedNameOf(mirror).replaceAll('.','-');
+  }
 
   /// For the given library determine what items (if any) are exported.
   ///
@@ -1257,9 +1271,12 @@ class Library extends Indexable {
       if (!showExport) {
         // Add all items, and then remove the hidden ones.
         // Ex: "export foo hide bar"
-        exports['classes'].addAll(export.targetLibrary.classes);
-        exports['methods'].addAll(export.targetLibrary.functions);
-        exports['variables'].addAll(export.targetLibrary.variables);
+        _addAll(exports['classes'],
+            dart2js_util.typesOf(export.targetLibrary.declarations));
+        _addAll(exports['methods'],
+            dart2js_util.methodsOf(export.targetLibrary.declarations));
+        _addAll(exports['variables'],
+            dart2js_util.variablesOf(export.targetLibrary.declarations));
       }
       for (CombinatorMirror combinator in export.combinators) {
         for (String identifier in combinator.identifiers) {
@@ -1270,7 +1287,7 @@ class Library extends Indexable {
             // (such as the polymer package) are curently broken in this
             // way, so we just produce a warning.
             print('Warning identifier $identifier not found in library '
-                '${export.targetLibrary.qualifiedName}');
+                '${dart2js_util.qualifiedNameOf(export.targetLibrary)}');
           } else {
             var subMap = exports['classes'];
             if (declaration is MethodMirror) {
@@ -1335,7 +1352,7 @@ abstract class OwnedIndexable extends Indexable {
   /// Returns this object's qualified name, but following the conventions
   /// we're using in Dartdoc, which is that library names with dots in them
   /// have them replaced with hyphens.
-  String get docName => owner.docName + '.' + mirror.simpleName;
+  String get docName => owner.docName + '.' + dart2js_util.nameOf(mirror);
 
   OwnedIndexable(DeclarationMirror mirror, this.owner) : super(mirror);
 }
@@ -1413,8 +1430,10 @@ class Class extends OwnedIndexable implements Comparable {
         new Class._possiblyDifferentOwner(classMirror.superclass, owner);
 
     interfaces = superinterfaces.toList();
-    variables = _createVariables(classMirror.variables, this);
-    methods = _createMethods(classMirror.methods, this);
+    variables = _createVariables(
+        dart2js_util.variablesOf(classMirror.declarations), this);
+    methods = _createMethods(
+        dart2js_util.methodsOf(classMirror.declarations), this);
     annotations = _createAnnotations(classMirror, _getOwningLibrary(owner));
     generics = _createGenerics(classMirror);
     isAbstract = classMirror.isAbstract;
@@ -1560,7 +1579,7 @@ class Class extends OwnedIndexable implements Comparable {
   /// superclass of the private superclass.
   String validSuperclass() {
     if (superclass == null) return 'dart.core.Object';
-    if (superclass._isVisible) return superclass.qualifiedName;
+    if (superclass._isVisible) return dart2js_util.qualifiedNameOf(superclass);
     return superclass.validSuperclass();
   }
 
@@ -1611,9 +1630,9 @@ class Typedef extends OwnedIndexable {
 
   Typedef._(TypedefMirror mirror, Library owningLibrary) :
       super(mirror, owningLibrary) {
-    returnType = Indexable.getDocgenObject(mirror.value.returnType).docName;
+    returnType = Indexable.getDocgenObject(mirror.referent.returnType).docName;
     generics = _createGenerics(mirror);
-    parameters = _createParameters(mirror.value.parameters, owningLibrary);
+    parameters = _createParameters(mirror.referent.parameters, owningLibrary);
     annotations = _createAnnotations(mirror, owningLibrary);
   }
 
@@ -1786,7 +1805,8 @@ class Method extends OwnedIndexable {
     if ((mirror as MethodMirror).isConstructor) {
       // We name constructors specially -- including the class name again and a
       // "-" to separate the constructor from its name (if any).
-      return '${owner.docName}.${mirror.owner.simpleName}-${mirror.simpleName}';
+      return '${owner.docName}.${dart2js_util.nameOf(mirror.owner)}-'
+             '${dart2js_util.nameOf(mirror)}';
     }
     return super.docName;
   }
@@ -1868,11 +1888,11 @@ class Parameter extends MirrorBased {
   List<Annotation> annotations;
 
   Parameter(this.mirror, Library owningLibrary) {
-    name = mirror.simpleName;
+    name = dart2js_util.nameOf(mirror);
     isOptional = mirror.isOptional;
     isNamed = mirror.isNamed;
     hasDefaultValue = mirror.hasDefaultValue;
-    defaultValue = mirror.defaultValue;
+    defaultValue = '${mirror.defaultValue}';
     type = new Type(mirror.type, owningLibrary);
     annotations = _createAnnotations(mirror, owningLibrary);
   }
@@ -1895,7 +1915,7 @@ class Generic extends MirrorBased {
   Generic(this.mirror);
   Map toMap() => {
     'name': mirror.toString(),
-    'type': mirror.upperBound.qualifiedName
+    'type': dart2js_util.qualifiedNameOf(mirror.upperBound)
   };
 }
 
@@ -1936,7 +1956,7 @@ class Type extends MirrorBased {
 
   /// Returns a list of [Type] objects constructed from TypeMirrors.
   List<Type> _createTypeGenerics(TypeMirror mirror) {
-    if (mirror is ClassMirror && !mirror.isTypedef) {
+    if (mirror is ClassMirror) {
       var innerList = [];
       mirror.typeArguments.forEach((e) {
         innerList.add(new Type(e, owningLibrary));
@@ -1966,7 +1986,7 @@ class Annotation extends MirrorBased {
 
   Annotation(InstanceMirror originalMirror, this.owningLibrary) {
     mirror = originalMirror.type;
-    parameters = originalMirror.type.variables.values
+    parameters = dart2js_util.variablesOf(originalMirror.type.declarations)
         .where((e) => e.isFinal)
         .map((e) => originalMirror.getField(e.simpleName).reflectee)
         .where((e) => e != null)

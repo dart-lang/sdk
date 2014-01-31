@@ -6,6 +6,8 @@ import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 import '../lib/docgen.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
+    as dart2js_util;
 
 const String DART_LIBRARY = '''
   library test;
@@ -48,8 +50,8 @@ main() {
       file.writeAsStringSync(DART_LIBRARY);
       getMirrorSystem([new Uri.file(fileName)])
         .then(expectAsync1((mirrorSystem) {
-          var testLibraryUri = new Uri(scheme: 'file',
-              path: path.absolute(fileName));
+          var testLibraryUri = new Uri.file(path.absolute(fileName),
+                                            windows: Platform.isWindows);
           var library = new Library(mirrorSystem.libraries[testLibraryUri]);
           expect(library is Library, isTrue);
 
@@ -99,12 +101,14 @@ main() {
           /// Testing fixReference
           // Testing Doc comment for class [A].
           var libraryMirror = mirrorSystem.libraries[testLibraryUri];
-          var classMirror = libraryMirror.classes.values.first;
+          var classMirror =
+              dart2js_util.classesOf(libraryMirror.declarations).first;
           var classDocComment = library.fixReference('A').children.first.text;
           expect(classDocComment, 'test.A');
 
           // Test for linking to parameter [A]
-          var method = Indexable.getDocgenObject(classMirror.methods['doThis']);
+          var method = Indexable.getDocgenObject(
+              classMirror.declarations[dart2js_util.symbolOf('doThis')]);
           var methodParameterDocComment = method.fixReference(
               'A').children.first.text;
           expect(methodParameterDocComment, 'test.A.doThis.A');

@@ -115,7 +115,6 @@ intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
 [ $runtime == vm && $system == windows ]
-docgen/test/single_library_test: Fail # Issue 11985
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 
 [ $compiler == dartanalyzer ]

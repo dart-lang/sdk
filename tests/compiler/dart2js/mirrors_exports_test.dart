@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'dart:async';
 import 'memory_compiler.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
 
 const SOURCE_FILES = const {
 'main.dart': '''
@@ -32,19 +32,19 @@ class B3 {}
 
 void main() {
   asyncTest(() => mirrorSystemFor(SOURCE_FILES).then((MirrorSystem mirrors) {
-    LibraryMirror mainLibrary =
+    LibrarySourceMirror mainLibrary =
         mirrors.libraries[Uri.parse('memory:main.dart')];
     Expect.isNotNull(mainLibrary);
 
-    LibraryMirror aLibrary =
+    LibrarySourceMirror aLibrary =
         mirrors.libraries[Uri.parse('memory:a.dart')];
     Expect.isNotNull(aLibrary);
 
-    LibraryMirror bLibrary =
+    LibrarySourceMirror bLibrary =
         mirrors.libraries[Uri.parse('memory:b.dart')];
     Expect.isNotNull(bLibrary);
 
-    LibraryMirror coreLibrary =
+    LibrarySourceMirror coreLibrary =
         mirrors.libraries[Uri.parse('dart:core')];
     Expect.isNotNull(coreLibrary);
 

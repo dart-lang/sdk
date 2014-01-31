@@ -9,17 +9,14 @@
 library html_diff;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'lib/metadata.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
-import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../sdk/lib/_internal/compiler/implementation/mirrors/analyze.dart';
+import '../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
-import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
-import '../../sdk/lib/html/html_common/metadata.dart';
 
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax
@@ -103,15 +100,15 @@ class HtmlDiff {
           warn('Could not find $libraryUri');
           result.complete(false);
         }
-        for (ClassMirror type in library.classes.values) {
+        for (ClassMirror type in classesOf(library.declarations)) {
           final domTypes = htmlToDomTypes(type);
           if (domTypes.isEmpty) continue;
 
-          htmlTypesToDom.putIfAbsent(type.qualifiedName,
+          htmlTypesToDom.putIfAbsent(qualifiedNameOf(type),
               () => new Set()).addAll(domTypes);
 
-          type.members.forEach(
-              (_, m) => _addMemberDiff(m, domTypes, library.simpleName));
+          membersOf(type.declarations).forEach(
+              (m) => _addMemberDiff(m, domTypes, nameOf(library)));
         }
       }
       result.complete(true);
@@ -125,7 +122,7 @@ class HtmlDiff {
    * `@DomName` type values that correspond to [htmlMember]'s
    * defining type.
    */
-  void _addMemberDiff(MemberMirror htmlMember, List<String> domTypes,
+  void _addMemberDiff(DeclarationMirror htmlMember, List<String> domTypes,
       String libraryName) {
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty) {
@@ -137,7 +134,7 @@ class HtmlDiff {
 
     if (htmlMember == null) return;
     if (!domMembers.isEmpty) {
-      htmlToDom[htmlMember.qualifiedName] = domMembers;
+      htmlToDom[qualifiedNameOf(htmlMember)] = domMembers;
     }
   }
 
@@ -152,7 +149,7 @@ class HtmlDiff {
     final domNameMetadata = findMetadata(htmlType.metadata, 'DomName');
     if (domNameMetadata != null) {
       var domNames = <String>[];
-      var names = domNameMetadata.getField('name');
+      var names = domNameMetadata.getField(symbolOf('name'));
       for (var s in names.reflectee.split(',')) {
         domNames.add(s.trim());
       }
@@ -170,13 +167,14 @@ class HtmlDiff {
    * `@DomName` type values that correspond to [htmlMember]'s
    * defining type.
    */
-  Set<String> htmlToDomMembers(MemberMirror htmlMember, List<String> domTypes) {
+  Set<String> htmlToDomMembers(DeclarationMirror htmlMember,
+                               List<String> domTypes) {
     if (htmlMember.isPrivate) return new Set();
 
     final domNameMetadata = findMetadata(htmlMember.metadata, 'DomName');
     if (domNameMetadata != null) {
       var domNames = <String>[];
-      var names = domNameMetadata.getField('name');
+      var names = domNameMetadata.getField(symbolOf('name'));
       for (var s in names.reflectee.split(',')) {
         domNames.add(s.trim());
       }

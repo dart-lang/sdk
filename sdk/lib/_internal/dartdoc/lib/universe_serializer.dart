@@ -12,10 +12,8 @@ import 'dartdoc.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import 'package:path/path.dart' as path;
-import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
-import '../../compiler/implementation/mirrors/mirrors.dart';
+import '../../compiler/implementation/mirrors/source_mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';
-import '../../libraries.dart';
 
 String _stripUri(String uri) {
   String prefix = "/dart/";
@@ -67,7 +65,8 @@ class Element {
 
   // TODO(jacobr): refactor the code so that lookupMdnComment does not need to
   // be passed to every Element constructor.
-  Element(Mirror mirror, this.kind, this.name, String id, this.comment,
+  Element(DeclarationMirror mirror, this.kind, this.name,
+          String id, this.comment,
       MdnComment lookupMdnComment(Mirror))
       : line = mirror.location.line.toString(),
         id = _escapeId(id),
@@ -114,9 +113,9 @@ class Element {
  */
 bool _optionalBool(bool value) => value == true ? true : null;
 
-Reference _optionalReference(Mirror mirror) {
-  return (mirror != null && mirror.simpleName != "Dynamic_" &&
-      mirror.simpleName != "dynamic") ?
+Reference _optionalReference(DeclarationMirror mirror) {
+  return (mirror != null && nameOf(mirror) != "Dynamic_" &&
+      nameOf(mirror) != "dynamic") ?
         new Reference(mirror) : null;
 }
 
@@ -151,7 +150,7 @@ class LibraryElement extends Element {
    */
   LibraryElement(LibraryMirror mirror,
       {MdnComment lookupMdnComment(Mirror), Set<String> includedChildren})
-      : super(mirror, 'library', _libraryName(mirror), mirror.simpleName,
+      : super(mirror, 'library', _libraryName(mirror), nameOf(mirror),
           computeComment(mirror), lookupMdnComment) {
     var requiredDependencies;
     // We don't need to track our required dependencies when generating a
@@ -159,22 +158,26 @@ class LibraryElement extends Element {
     // another library.
     if (includedChildren == null)
       requiredDependencies = new Map<String, LibrarySubset>();
-    mirror.functions.forEach((childName, childMirror) {
+    methodsOf(mirror.declarations).forEach((childMirror) {
+      var childName = nameOf(childMirror);
       if (includedChildren == null || includedChildren.contains(childName))
         addChild(new MethodElement(childName, childMirror, lookupMdnComment));
     });
 
-    mirror.getters.forEach((childName, childMirror) {
+    gettersOf(mirror.declarations).forEach((childMirror) {
+      var childName = nameOf(childMirror);
       if (includedChildren == null || includedChildren.contains(childName))
         addChild(new GetterElement(childName, childMirror, lookupMdnComment));
     });
 
-    mirror.variables.forEach((childName, childMirror) {
+    variablesOf(mirror.declarations).forEach((childMirror) {
+      var childName = nameOf(childMirror);
       if (includedChildren == null || includedChildren.contains(childName))
         addChild(new VariableElement(childName, childMirror, lookupMdnComment));
     });
 
-    mirror.classes.forEach((className, classMirror) {
+    typesOf(mirror.declarations).forEach((classMirror) {
+      var className = nameOf(classMirror);
       if (includedChildren == null || includedChildren.contains(className)) {
         if (classMirror is TypedefMirror) {
           addChild(new TypedefElement(className, classMirror));
@@ -245,8 +248,8 @@ class LibraryElement extends Element {
  * Returns whether the class implements or extends [Error] or [Exception].
  */
 bool _isThrowable(ClassMirror mirror) {
-  if (mirror.library.uri.toString() == 'dart:core' &&
-      mirror.simpleName == 'Error' || mirror.simpleName == 'Exception')
+  if (getLibrary(mirror).uri.toString() == 'dart:core' &&
+      nameOf(mirror) == 'Error' || nameOf(mirror) == 'Exception')
     return true;
   if (mirror.superclass != null && _isThrowable(mirror.superclass))
     return true;
@@ -277,11 +280,12 @@ class ClassElement extends Element {
    * documentation for elements. [dependencies] is an optional map
    * tracking all classes dependend on by this [ClassElement].
    */
-  ClassElement(ClassMirror mirror,
+  ClassElement(ClassSourceMirror mirror,
       {Map<String, LibrarySubset> dependencies,
        MdnComment lookupMdnComment(Mirror)})
-      : super(mirror, 'class', mirror.simpleName, mirror.simpleName, computeComment(mirror),
-          lookupMdnComment),
+      : super(mirror, 'class', nameOf(mirror),
+              nameOf(mirror), computeComment(mirror),
+              lookupMdnComment),
         superclass = _optionalReference(mirror.superclass),
         isAbstract = _optionalBool(mirror.isAbstract),
         isThrowable = _optionalBool(_isThrowable(mirror)){
@@ -289,10 +293,12 @@ class ClassElement extends Element {
     addCrossLibraryDependencies(clazz) {
       if (clazz == null) return;
 
-      if (mirror.library != clazz.library) {
-        var libraryStub = dependencies.putIfAbsent(clazz.library.simpleName,
-            () => new LibrarySubset(clazz.library));
-        libraryStub.includedChildren.add(clazz.simpleName);
+      var clazzLibrary = getLibrary(clazz);
+      if (getLibrary(mirror) != clazzLibrary) {
+        String name = nameOf(clazz);
+        var libraryStub = dependencies.putIfAbsent(name,
+            () => new LibrarySubset(clazzLibrary));
+        libraryStub.includedChildren.add(name);
       }
 
       for (var interface in clazz.superinterfaces) {
@@ -312,22 +318,24 @@ class ClassElement extends Element {
       this.interfaces.add(_optionalReference(interface));
     }
 
-    mirror.methods.forEach((childName, childMirror) {
-      if (!childMirror.isConstructor && !childMirror.isGetter) {
-        addChild(new MethodElement(childName, childMirror, lookupMdnComment));
-      }
+    methodsOf(mirror.declarations).forEach((childMirror) {
+      String childName = nameOf(childMirror);
+      addChild(new MethodElement(childName, childMirror, lookupMdnComment));
     });
 
-    mirror.getters.forEach((childName, childMirror) {
+    gettersOf(mirror.declarations).forEach((childMirror) {
+      String childName = nameOf(childMirror);
       addChild(new GetterElement(childName, childMirror, lookupMdnComment));
     });
 
-    mirror.variables.forEach((childName, childMirror) {
+    variablesOf(mirror.declarations).forEach((childMirror) {
+      String childName = nameOf(childMirror);
         addChild(new VariableElement(childName, childMirror,
             lookupMdnComment));
     });
 
-    mirror.constructors.forEach((constructorName, methodMirror) {
+    constructorsOf(mirror.declarations).forEach((methodMirror) {
+      String constructorName = nameOf(methodMirror);
       addChild(new MethodElement(constructorName, methodMirror,
           lookupMdnComment, 'constructor'));
     });
@@ -348,8 +356,8 @@ class GetterElement extends Element {
 
   GetterElement(String name, MethodMirror mirror,
       MdnComment lookupMdnComment(Mirror))
-      : super(mirror, 'property', mirror.simpleName, name, computeComment(mirror),
-          lookupMdnComment),
+      : super(mirror, 'property', nameOf(mirror),
+              name, computeComment(mirror), lookupMdnComment),
         ref = _optionalReference(mirror.returnType),
         isStatic = _optionalBool(mirror.isStatic);
 }
@@ -406,12 +414,12 @@ class ParameterElement extends Element {
    */
   final Reference initializedField;
 
-  ParameterElement(ParameterMirror mirror)
-      : super(mirror, 'param', mirror.simpleName, mirror.simpleName, null,
-          null),
+  ParameterElement(ParameterSourceMirror mirror)
+      : super(mirror, 'param', nameOf(mirror),
+              nameOf(mirror), null, null),
         ref = _optionalReference(mirror.type),
         isOptional = _optionalBool(mirror.isOptional),
-        defaultValue = mirror.defaultValue,
+        defaultValue = '${mirror.defaultValue}',
         isNamed = _optionalBool(mirror.isNamed),
         initializedField = _optionalReference(mirror.initializedField) {
 
@@ -425,7 +433,8 @@ class FunctionTypeElement extends Element {
   final Reference returnType;
 
   FunctionTypeElement(FunctionTypeMirror mirror)
-      : super(mirror, 'functiontype', mirror.simpleName, mirror.simpleName, null, null),
+      : super(mirror, 'functiontype', nameOf(mirror),
+              nameOf(mirror), null, null),
         returnType = _optionalReference(mirror.returnType) {
     for (var param in mirror.parameters) {
       addChild(new ParameterElement(param));
@@ -449,10 +458,10 @@ class TypeParameterElement extends Element {
    */
   final Reference upperBound;
 
-  TypeParameterElement(TypeMirror mirror)
-      : super(mirror, 'typeparam', mirror.simpleName, mirror.simpleName, null,
-          null),
-        upperBound = mirror.upperBound != null && !mirror.upperBound.isObject ?
+  TypeParameterElement(TypeVariableMirror mirror)
+      : super(mirror, 'typeparam', nameOf(mirror),
+              nameOf(mirror), null, null),
+        upperBound = mirror.upperBound != null && !isObject(mirror.upperBound) ?
             new Reference(mirror.upperBound) : null;
 }
 
@@ -469,7 +478,7 @@ class VariableElement extends Element {
 
   VariableElement(String name, VariableMirror mirror,
       MdnComment lookupMdnComment(Mirror))
-      : super(mirror, 'variable', mirror.simpleName, name,
+      : super(mirror, 'variable', nameOf(mirror), name,
           computeComment(mirror), lookupMdnComment),
         ref = _optionalReference(mirror.type),
         isStatic = _optionalBool(mirror.isStatic),
@@ -485,10 +494,10 @@ class TypedefElement extends Element {
   final Reference returnType;
 
   TypedefElement(String name, TypedefMirror mirror)
-      : super(mirror, 'typedef', mirror.simpleName, name,
+      : super(mirror, 'typedef', nameOf(mirror), name,
                computeComment(mirror), null),
-        returnType = _optionalReference(mirror.value.returnType) {
-    for (var param in mirror.value.parameters) {
+        returnType = _optionalReference(mirror.referent.returnType) {
+    for (var param in mirror.referent.parameters) {
       addChild(new ParameterElement(param));
     }
     for (var typeVariable in mirror.originalDeclaration.typeVariables) {
@@ -505,7 +514,7 @@ class Reference {
   final String refId;
   List<Reference> arguments;
 
-  Reference(Mirror mirror)
+  Reference(DeclarationMirror mirror)
       : name = displayName(mirror),
         refId = getId(mirror) {
     if (mirror is ClassMirror) {
@@ -522,8 +531,8 @@ class Reference {
   // that this method can work with all element types not just LibraryElements.
   Reference.fromElement(LibraryElement e) : name = e.name, refId = e.id;
 
-  static String getId(Mirror mirror) {
-    String id = _escapeId(mirror.simpleName);
+  static String getId(DeclarationMirror mirror) {
+    String id = _escapeId(nameOf(mirror));
     if (mirror.owner != null) {
       id = '${getId(mirror.owner)}/$id';
     }

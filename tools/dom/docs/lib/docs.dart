@@ -11,7 +11,7 @@
 library docs;
 
 import '../../../../sdk/lib/_internal/dartdoc/lib/src/dart2js_mirrors.dart';
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/src/json_serializer.dart';
@@ -93,15 +93,17 @@ Map _generateJsonFromLibraries(MirrorSystem mirrors) {
 
     var libraryJson = {};
     var sortedClasses = _sortAndFilterMirrors(
-        libMirror.classes.values.toList(), ignoreDocsEditable: true);
+        classesOf(libMirror.declarations).toList(), ignoreDocsEditable: true);
 
     for (ClassMirror classMirror in sortedClasses) {
+      print(' class: $classMirror');
       var classJson = {};
       var sortedMembers = _sortAndFilterMirrors(
-          classMirror.members.values.toList());
+          membersOf(classMirror.declarations).toList());
 
       var membersJson = {};
       for (var memberMirror in sortedMembers) {
+        print('  member: $memberMirror');
         var memberDomName = domNames(memberMirror)[0];
         var memberComment = _splitCommentsByNewline(
             computeUntrimmedCommentAsList(memberMirror));
@@ -136,7 +138,7 @@ Map _generateJsonFromLibraries(MirrorSystem mirrors) {
     }
 
     if (!libraryJson.isEmpty) {
-      convertedJson.putIfAbsent(libMirror.simpleName, () =>
+      convertedJson.putIfAbsent(nameOf(libMirror), () =>
           libraryJson);
     }
   }
@@ -182,7 +184,7 @@ List<String> domNames(DeclarationMirror mirror) {
 
   if (domNameMetadata != null) {
     var domNames = <String>[];
-    var tags = domNameMetadata.getField('name');
+    var tags = domNameMetadata.getField(#name);
     for (var s in tags.reflectee.split(',')) {
       domNames.add(s.trim());
     }

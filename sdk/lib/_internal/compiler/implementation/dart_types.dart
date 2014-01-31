@@ -363,7 +363,7 @@ abstract class GenericType extends DartType {
   TypeDeclarationElement get element;
 
   /// Creates a new instance of this type using the provided type arguments.
-  GenericType _createType(Link<DartType> newTypeArguments);
+  GenericType createInstantiation(Link<DartType> newTypeArguments);
 
   DartType subst(Link<DartType> arguments, Link<DartType> parameters) {
     if (typeArguments.isEmpty) {
@@ -379,7 +379,7 @@ abstract class GenericType extends DartType {
         Types.substTypes(typeArguments, arguments, parameters);
     if (!identical(typeArguments, newTypeArguments)) {
       // Create a new type only if necessary.
-      return _createType(newTypeArguments);
+      return createInstantiation(newTypeArguments);
     }
     return this;
   }
@@ -465,7 +465,7 @@ class InterfaceType extends GenericType {
 
   String get name => element.name;
 
-  InterfaceType _createType(Link<DartType> newTypeArguments) {
+  InterfaceType createInstantiation(Link<DartType> newTypeArguments) {
     return new InterfaceType(element, newTypeArguments);
   }
 
@@ -798,7 +798,7 @@ class TypedefType extends GenericType {
               [Link<DartType> typeArguments = const Link<DartType>()])
       : super(typeArguments);
 
-  TypedefType _createType(Link<DartType> newTypeArguments) {
+  TypedefType createInstantiation(Link<DartType> newTypeArguments) {
     return new TypedefType(element, newTypeArguments);
   }
 
@@ -1717,7 +1717,7 @@ class MoreSpecificSubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       element.typeVariables.forEach((TypeVariableType typeVariable) {
         typeArguments.addLast(constraintMap[typeVariable]);
       });
-      return element.thisType._createType(typeArguments.toLink());
+      return element.thisType.createInstantiation(typeArguments.toLink());
     }
     return null;
   }

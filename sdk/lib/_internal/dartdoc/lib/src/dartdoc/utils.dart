@@ -10,7 +10,7 @@ import 'dart:math' as math;
 
 import 'package:path/path.dart' as pathos;
 
-import '../../../../compiler/implementation/mirrors/mirrors.dart';
+import '../../../../compiler/implementation/mirrors/source_mirrors.dart';
 
 import '../export_map.dart';
 
@@ -57,11 +57,11 @@ String unindent(String text, int indentation) {
 }
 
 /** Sorts the map by the key, doing a case-insensitive comparison. */
-List<Mirror> orderByName(Iterable<Mirror> list) {
+List<Mirror> orderByName(Iterable<DeclarationMirror> list) {
   final elements = new List<Mirror>.from(list);
   elements.sort((a,b) {
-    String aName = a.simpleName.toLowerCase();
-    String bName = b.simpleName.toLowerCase();
+    String aName = MirrorSystem.getName(a.simpleName).toLowerCase();
+    String bName = MirrorSystem.getName(b.simpleName).toLowerCase();
     bool doma = aName.startsWith(r"$dom");
     bool domb = bName.startsWith(r"$dom");
     return doma == domb ? aName.compareTo(bName) : doma ? 1 : -1;

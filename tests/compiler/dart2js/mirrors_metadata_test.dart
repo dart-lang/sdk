@@ -11,12 +11,12 @@ void validateDeclarationComment(String code,
                                 String text,
                                 String trimmedText,
                                 bool isDocComment,
-                                List<String> declarationNames) {
+                                List<Symbol> declarationNames) {
   asyncTest(() => createMirrorSystem(code).then((mirrors) {
     LibraryMirror library = mirrors.libraries[SOURCE_URI];
     Expect.isNotNull(library);
-    for (String declarationName in declarationNames) {
-      DeclarationMirror declaration = library.members[declarationName];
+    for (Symbol declarationName in declarationNames) {
+      DeclarationMirror declaration = library.declarations[declarationName];
       Expect.isNotNull(declaration);
       List<InstanceMirror> metadata = declaration.metadata;
       Expect.isNotNull(metadata);
@@ -30,7 +30,7 @@ void validateDeclarationComment(String code,
   }));
 }
 
-void testDeclarationComment(String declaration, List<String> declarationNames) {
+void testDeclarationComment(String declaration, List<Symbol> declarationNames) {
   String text = 'Single line comment';
   String comment = '// $text';
   String code = '$comment\n$declaration';
@@ -51,18 +51,18 @@ void testDeclarationComment(String declaration, List<String> declarationNames) {
 }
 
 void main() {
-  testDeclarationComment('var field;', ['field']);
-  testDeclarationComment('int field;', ['field']);
-  testDeclarationComment('int field = 0;', ['field']);
-  testDeclarationComment('int field1, field2;', ['field1', 'field2']);
-  testDeclarationComment('final field = 0;', ['field']);
-  testDeclarationComment('final int field = 0;', ['field']);
-  testDeclarationComment('final field1 = 0, field2 = 0;', ['field1', 'field2']);
+  testDeclarationComment('var field;', [#field]);
+  testDeclarationComment('int field;', [#field]);
+  testDeclarationComment('int field = 0;', [#field]);
+  testDeclarationComment('int field1, field2;', [#field1, #field2]);
+  testDeclarationComment('final field = 0;', [#field]);
+  testDeclarationComment('final int field = 0;', [#field]);
+  testDeclarationComment('final field1 = 0, field2 = 0;', [#field1, #field2]);
   testDeclarationComment('final int field1 = 0, field2 = 0;',
-                         ['field1', 'field2']);
-  testDeclarationComment('const field = 0;', ['field']);
-  testDeclarationComment('const int field = 0;', ['field']);
-  testDeclarationComment('const field1 = 0, field2 = 0;', ['field1', 'field2']);
+                         [#field1, #field2]);
+  testDeclarationComment('const field = 0;', [#field]);
+  testDeclarationComment('const int field = 0;', [#field]);
+  testDeclarationComment('const field1 = 0, field2 = 0;', [#field1, #field2]);
   testDeclarationComment('const int field1 = 0, field2 = 0;',
-                         ['field1', 'field2']);
+                         [#field1, #field2]);
 }

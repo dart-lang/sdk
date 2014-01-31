@@ -5,14 +5,15 @@
 import 'dart:io';
 import 'dart:convert';
 
-// TODO(ahe): Should be dart:mirrors.
-import '../../implementation/mirrors/mirrors.dart';
+import 'dart:mirrors';
 
 import '../../../libraries.dart'
     show LIBRARIES, LibraryInfo;
 
-import '../../implementation/mirrors/dart2js_mirror.dart'
-    show analyze, BackDoor;
+import '../../implementation/mirrors/analyze.dart'
+    show analyze;
+import '../../implementation/mirrors/dart2js_mirrors.dart'
+    show BackDoor;
 
 import '../../implementation/filenames.dart';
 import '../../implementation/source_file.dart';
