@@ -2173,14 +2173,15 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
       AbstractTypeArguments::ZoneHandle(node->type().arguments());
   Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
                                                        type_args);
+  Value* num_elements =
+      Bind(new ConstantInstr(Smi::ZoneHandle(Smi::New(node->length()))));
   CreateArrayInstr* create = new CreateArrayInstr(node->token_pos(),
-                                                  node->length(),
-                                                  node->type(),
-                                                  element_type);
+                                                  element_type,
+                                                  num_elements);
   Value* array_val = Bind(create);
 
   { LocalVariable* tmp_var = EnterTempLocalScope(array_val);
-    const intptr_t class_id = create->Type()->ToCid();
+    const intptr_t class_id = kArrayCid;
     const intptr_t deopt_id = Isolate::kNoDeoptId;
     for (int i = 0; i < node->length(); ++i) {
       Value* array = Bind(new LoadLocalInstr(*tmp_var));
@@ -2551,32 +2552,6 @@ void EffectGraphVisitor::BuildConstructorCall(
                          arguments,
                          owner()->ic_data_array()));
 }
-
-
-// Class that recognizes factories and returns corresponding result cid.
-class FactoryRecognizer : public AllStatic {
- public:
-  // Return kDynamicCid if factory is not recognized.
-  static intptr_t ResultCid(const Function& factory) {
-    ASSERT(factory.IsFactory());
-    const Class& function_class = Class::Handle(factory.Owner());
-    const Library& lib = Library::Handle(function_class.library());
-    ASSERT((lib.raw() == Library::CoreLibrary()) ||
-        (lib.raw() == Library::TypedDataLibrary()));
-    const String& factory_name = String::Handle(factory.name());
-#define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
-    if (String::EqualsIgnoringPrivateKey(                                      \
-        factory_name, Symbols::test_factory_symbol())) {                       \
-      ASSERT(factory.CheckSourceFingerprint(fp));                              \
-      return cid;                                                              \
-    }                                                                          \
-
-RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY);
-#undef RECOGNIZE_FACTORY
-
-    return kDynamicCid;
-  }
-};
 
 
 static intptr_t GetResultCidOfListFactory(ConstructorCallNode* node) {

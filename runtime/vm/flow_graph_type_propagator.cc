@@ -922,7 +922,8 @@ CompileType* StoreStaticFieldInstr::ComputeInitialType() const {
 
 
 CompileType CreateArrayInstr::ComputeType() const {
-  return CompileType::FromAbstractType(type(), CompileType::kNonNullable);
+  // TODO(fschneider): Add abstract type and type arguments to the compile type.
+  return CompileType::FromCid(kArrayCid);
 }
 
 

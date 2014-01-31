@@ -271,9 +271,7 @@ class CallSites : public ValueObject {
         }
         StaticCallInstr* static_call = current->AsStaticCall();
         if (static_call != NULL) {
-          if (static_call->function().IsInlineable()) {
-            static_calls_.Add(StaticCallInfo(static_call));
-          }
+          static_calls_.Add(StaticCallInfo(static_call));
           continue;
         }
         PolymorphicInstanceCallInstr* instance_call =

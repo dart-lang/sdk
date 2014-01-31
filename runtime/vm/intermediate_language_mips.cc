@@ -1897,11 +1897,12 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(A0));
+  locs->set_in(1, Location::RegisterLocation(A1));
   locs->set_out(Location::RegisterLocation(V0));
   return locs;
 }
@@ -1911,7 +1912,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("CreateArrayInstr");
   // Allocate the array.  A1 = length, A0 = element type.
   ASSERT(locs()->in(0).reg() == A0);
-  __ LoadImmediate(A1, Smi::RawValue(num_elements()));
+  ASSERT(locs()->in(1).reg() == A1);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,

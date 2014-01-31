@@ -3680,6 +3680,31 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     ConstantInstr* cid_instr = new ConstantInstr(Smi::Handle(Smi::New(cid)));
     ReplaceCall(call, cid_instr);
   }
+
+  if (call->function().IsFactory()) {
+    const Class& function_class = Class::Handle(call->function().Owner());
+    if ((function_class.library() == Library::CoreLibrary()) ||
+        (function_class.library() == Library::TypedDataLibrary())) {
+      intptr_t cid = FactoryRecognizer::ResultCid(call->function());
+      switch (cid) {
+        case kArrayCid: {
+          Value* type = new Value(call->ArgumentAt(0));
+          Value* num_elements = new Value(call->ArgumentAt(1));
+          if (num_elements->BindsToConstant() &&
+              num_elements->BoundConstant().IsSmi()) {
+            intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
+            if (length >= 0 && length <= Array::kMaxElements) {
+              CreateArrayInstr* create_array =
+                  new CreateArrayInstr(call->token_pos(), type, num_elements);
+              ReplaceCall(call, create_array);
+            }
+          }
+        }
+        default:
+          break;
+      }
+    }
+  }
 }
 
 
@@ -7119,11 +7144,15 @@ void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
 void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
   if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
       (instr->instance()->definition()->IsCreateArray())) {
-    const intptr_t length =
+    Value* num_elements =
         instr->instance()->definition()->AsCreateArray()->num_elements();
-    const Object& result = Smi::ZoneHandle(Smi::New(length));
-    SetValue(instr, result);
-    return;
+    if (num_elements->BindsToConstant() &&
+        num_elements->BoundConstant().IsSmi()) {
+      intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
+      const Object& result = Smi::ZoneHandle(Smi::New(length));
+      SetValue(instr, result);
+      return;
+    }
   }
 
   if (instr->IsImmutableLengthLoad()) {

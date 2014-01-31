@@ -1728,11 +1728,12 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(RBX));
+  locs->set_in(1, Location::RegisterLocation(R10));
   locs->set_out(Location::RegisterLocation(RAX));
   return locs;
 }
@@ -1741,7 +1742,7 @@ LocationSummary* CreateArrayInstr::MakeLocationSummary(bool opt) const {
 void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Allocate the array.  R10 = length, RBX = element type.
   ASSERT(locs()->in(0).reg() == RBX);
-  __ LoadImmediate(R10, Immediate(Smi::RawValue(num_elements())), PP);
+  ASSERT(locs()->in(1).reg() == R10);
   compiler->GenerateCall(token_pos(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther,

@@ -49,6 +49,32 @@ class TestGraphVisitor;
   V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 879975401)            \
 
 
+// Class that recognizes factories and returns corresponding result cid.
+class FactoryRecognizer : public AllStatic {
+ public:
+  // Return kDynamicCid if factory is not recognized.
+  static intptr_t ResultCid(const Function& factory) {
+    ASSERT(factory.IsFactory());
+    const Class& function_class = Class::Handle(factory.Owner());
+    const Library& lib = Library::Handle(function_class.library());
+    ASSERT((lib.raw() == Library::CoreLibrary()) ||
+        (lib.raw() == Library::TypedDataLibrary()));
+    const String& factory_name = String::Handle(factory.name());
+#define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
+    if (String::EqualsIgnoringPrivateKey(                                      \
+        factory_name, Symbols::test_factory_symbol())) {                       \
+      ASSERT(factory.CheckSourceFingerprint(fp));                              \
+      return cid;                                                              \
+    }                                                                          \
+
+RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY);
+#undef RECOGNIZE_FACTORY
+
+    return kDynamicCid;
+  }
+};
+
+
 // A class to collect the exits from an inlined function during graph
 // construction so they can be plugged into the caller's flow graph.
 class InlineExitCollector: public ZoneAllocated {

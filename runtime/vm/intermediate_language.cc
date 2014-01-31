@@ -2917,8 +2917,14 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   CreateArrayInstr* create_array = value()->definition()->AsCreateArray();
   ASSERT(create_array != NULL);
   // Check if the string interpolation has only constant inputs.
-  GrowableArray<ConstantInstr*> constants(create_array->num_elements());
-  for (intptr_t i = 0; i < create_array->num_elements(); i++) {
+  Value* num_elements = create_array->num_elements();
+  if (!num_elements->BindsToConstant() ||
+      !num_elements->BoundConstant().IsSmi()) {
+    return this;
+  }
+  intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
+  GrowableArray<ConstantInstr*> constants(length);
+  for (intptr_t i = 0; i < length; i++) {
     constants.Add(NULL);
   }
   for (Value::Iterator it(create_array->input_use_list());
@@ -2944,7 +2950,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   }
   // Interpolate string at compile time.
   const Array& array_argument =
-      Array::Handle(Array::New(create_array->num_elements()));
+      Array::Handle(Array::New(length));
   for (intptr_t i = 0; i < constants.length(); i++) {
     array_argument.SetAt(i, constants[i]->value());
   }
