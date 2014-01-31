@@ -84,4 +84,5 @@ issue13474_test: Pass, Fail # Issue 14651.
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
 typed_message_test: Crash, Fail # Issue 13921, 14400
 vm/optimized_guarded_field_isolates_test: Fail # Issue 13921.
-
+override_inheritance_mixed_test/08: Fail # Issue 16137
+override_inheritance_mixed_test/09: Fail # Issue 16137
