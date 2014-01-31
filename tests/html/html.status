@@ -173,6 +173,8 @@ input_element_test/attributes: Fail # IE returns null while others ''
 xhr_cross_origin_test: Skip # Issue 12920
 xhr_test/json: Fail # IE9 returns null because of unsupported type
 js_test: RuntimeError # Issue 14645
+custom/mirrors_test: pass, fail # Issue 16441
+custom/constructor_calls_created_synchronously_test: pass, fail # Issue 16441
 
 # IE9 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
