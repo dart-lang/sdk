@@ -5,7 +5,6 @@
 library types;
 
 import '../dart2jslib.dart' hide Selector, TypedSelector;
-import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';
