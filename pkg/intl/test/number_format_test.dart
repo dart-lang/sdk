@@ -16,7 +16,7 @@ import 'dart:math';
  * Tests the Numeric formatting library in dart.
  */
 var testNumbers = {
-  "0.001":  0.001,
+  "0.001": 0.001,
   "0.01": 0.01,
   "0.1": 0.1,
   "1": 1,

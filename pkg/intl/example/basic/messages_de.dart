@@ -18,7 +18,7 @@ class MessageLookup extends MessageLookupByLibrary {
   get localeName => 'de';
 
   final messages = {
-    "runAt" : (time, day) => Intl.message("Ausgedruckt am $time am $day.")
+    "runAt": (time, day) => Intl.message("Ausgedruckt am $time am $day.")
   };
 }
 

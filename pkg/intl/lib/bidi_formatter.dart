@@ -108,11 +108,11 @@ class BidiFormatter {
       if (directionChange) {
         spanDirection = ' dir=${direction.spanText}';
       }
-      result= '<span$spanDirection>$text</span>';
+      result = '<span$spanDirection>$text</span>';
     } else {
       result = text;
     }
-    return result + (resetDir? _resetDir(text, direction, isHtml) : '');
+    return result + (resetDir ? _resetDir(text, direction, isHtml) : '');
   }
 
   /**
@@ -143,7 +143,7 @@ class BidiFormatter {
       result = "${marker}$text${Bidi.PDF}";
 
     }
-    return result + (resetDir? _resetDir(text, direction, isHtml) : '');
+    return result + (resetDir ? _resetDir(text, direction, isHtml) : '');
   }
 
   /**

@@ -69,5 +69,5 @@ printForLocale(aDate, intl, operation) {
   var dayFormat = intl.date().add_yMMMMEEEEd();
   var time = hmsFormat.format(aDate);
   var day = dayFormat.format(aDate);
-  Intl.withLocale(intl.locale, () => doThisWithTheOutput(operation(time,day)));
+  Intl.withLocale(intl.locale, () => doThisWithTheOutput(operation(time, day)));
 }

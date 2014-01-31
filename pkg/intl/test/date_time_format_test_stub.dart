@@ -31,7 +31,7 @@ List<String> oddLocales() {
  * Return a set of a few locales to run just the tests on a small sample.
  */
 List smallSetOfLocales() {
-  return allLocales().sublist(0,10);
+  return allLocales().sublist(0, 10);
 }
 
 /**
@@ -52,7 +52,7 @@ void runWith(TestListFunc getSubset, String dir,
   bool initialized = false;
 
   setUp(() {
-    if(initialized) {
+    if (initialized) {
       return null;
     }
     return initFunction("en_US", dir)

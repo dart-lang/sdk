@@ -363,7 +363,7 @@ class Bidi {
           && new RegExp('[\u0591-\u05f2]').hasMatch(str.substring(i-1, i))) {
         buf.write('\u05f3');
       } else {
-        buf.write(str.substring(i, i+1));
+        buf.write(str.substring(i, i + 1));
       }
     }
     return buf.toString();

@@ -10,11 +10,11 @@ import 'package:intl/date_symbol_data_local.dart';
 
 main() {
   test("Locale setting doesn't verify the core locale", () {
-      var de = new Intl('de_DE');
-      expect(de.locale, equals('de_DE'));
+    var de = new Intl('de_DE');
+    expect(de.locale, equals('de_DE'));
   });
 
-  test('DateFormat creation does verify the locale', (){
+  test('DateFormat creation does verify the locale', () {
     // TODO(alanknight): We need to make the locale verification be on a per
     // usage basis rather than once for the entire Intl object. The set of
     // locales covered for messages may be different from that for date
@@ -23,7 +23,7 @@ main() {
       var de = new Intl('de_DE');
       var format = de.date().add_d();
       expect(format.locale, equals('de'));
-     });
+    });
   });
 
   test("Canonicalizing locales", () {

@@ -121,7 +121,7 @@ class Intl {
    * preferences).
    */
   Intl([String aLocale]) {
-    _locale =  aLocale != null ? aLocale : getCurrentLocale();
+    _locale = aLocale != null ? aLocale : getCurrentLocale();
   }
 
   /**
