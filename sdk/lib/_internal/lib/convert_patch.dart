@@ -92,3 +92,8 @@ _convertJsonToDart(json, reviver(key, value)) {
 
   return revive(null, walk(json));
 }
+
+patch class _Utf8Encoder {
+  // Use Uint8List when supported on all platforms.
+  patch static List<int> _createBuffer(int size) => new List<int>(size);
+}
