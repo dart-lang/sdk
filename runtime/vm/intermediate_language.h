@@ -3509,11 +3509,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   bool IsPotentialUnboxedStore() const;
 
-  virtual Representation RequiredInputRepresentation(intptr_t index) const {
-    ASSERT((index == 0) || (index == 1));
-    if ((index == 1) && IsUnboxedStore()) return kUnboxedDouble;
-    return kTagged;
-  }
+  virtual Representation RequiredInputRepresentation(intptr_t index) const;
 
  private:
   friend class FlowGraphOptimizer;  // For ASSERT(initialization_).
@@ -4260,9 +4256,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const Field* field() const { return field_; }
   void set_field(const Field* field) { field_ = field; }
 
-  virtual Representation representation() const {
-    return IsUnboxedLoad() ? kUnboxedDouble : kTagged;
-  }
+  virtual Representation representation() const;
 
   bool IsUnboxedLoad() const;
 

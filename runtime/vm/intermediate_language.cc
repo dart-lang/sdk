@@ -151,6 +151,21 @@ bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
 }
 
 
+Representation LoadFieldInstr::representation() const {
+  if (IsUnboxedLoad()) {
+    const intptr_t cid = field()->UnboxedFieldCid();
+    switch (cid) {
+      case kDoubleCid:
+        return kUnboxedDouble;
+      // TODO(johnmccutchan): Add kFloat32x4Cid here.
+      default:
+        UNREACHABLE();
+    }
+  }
+  return kTagged;
+}
+
+
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
   return FLAG_unbox_double_fields && field().IsUnboxedField();
 }
@@ -158,6 +173,22 @@ bool StoreInstanceFieldInstr::IsUnboxedStore() const {
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
   return FLAG_unbox_double_fields && field().IsPotentialUnboxedField();
+}
+
+
+Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
+  intptr_t index) const {
+  ASSERT((index == 0) || (index == 1));
+  if ((index == 1) && IsUnboxedStore()) {
+    const intptr_t cid = field().UnboxedFieldCid();
+    switch (cid) {
+      case kDoubleCid:
+        return kUnboxedDouble;
+      default:
+        UNREACHABLE();
+    }
+  }
+  return kTagged;
 }
 
 

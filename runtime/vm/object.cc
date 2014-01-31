@@ -6293,6 +6293,19 @@ void Field::set_guarded_list_length(intptr_t list_length) const {
 }
 
 
+bool Field::IsUnboxedField() const {
+  // TODO(johnmccutchan): Add kFloat32x4Cid here.
+  return is_unboxing_candidate() && !is_final() && !is_nullable() &&
+         ((guarded_cid() == kDoubleCid));
+}
+
+
+bool Field::IsPotentialUnboxedField() const {
+  return is_unboxing_candidate() &&
+         (IsUnboxedField() || (!is_final() && (guarded_cid() == kIllegalCid)));
+}
+
+
 const char* Field::ToCString() const {
   if (IsNull()) {
     return "Field::null";

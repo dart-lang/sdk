@@ -2187,17 +2187,14 @@ class Field : public Object {
     return r;
   }
 
-  bool IsUnboxedField() const {
-    return is_unboxing_candidate()
-        && !is_final()
-        && (guarded_cid() == kDoubleCid && !is_nullable());
+  intptr_t UnboxedFieldCid() const {
+    ASSERT(IsUnboxedField());
+    return guarded_cid();
   }
 
-  bool IsPotentialUnboxedField() const {
-    return is_unboxing_candidate()
-        && (IsUnboxedField() ||
-            (!is_final() && (guarded_cid() == kIllegalCid)));
-  }
+  bool IsUnboxedField() const;
+
+  bool IsPotentialUnboxedField() const;
 
   bool is_unboxing_candidate() const {
     return UnboxingCandidateBit::decode(raw_ptr()->kind_bits_);
