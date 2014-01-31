@@ -840,8 +840,8 @@ DEFINE_NATIVE_ENTRY(Float64x2_getY, 1) {
 
 DEFINE_NATIVE_ENTRY(Float64x2_getSignMask, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
-  uint32_t mx = (bit_cast<uint64_t>(self.x()) & 0x8000000000000000) >> 63;
-  uint32_t my = (bit_cast<uint64_t>(self.y()) & 0x8000000000000000) >> 63;
+  uint32_t mx = (bit_cast<uint64_t>(self.x()) & 0x8000000000000000LL) >> 63;
+  uint32_t my = (bit_cast<uint64_t>(self.y()) & 0x8000000000000000LL) >> 63;
   uint32_t value = mx | (my << 1);
   return Integer::New(value);
 }
