@@ -3,17 +3,20 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+16407_test: Fail # Issue 16407
 class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
 no_such_method_test: Fail # Wrong Invocation.memberName.
 deferred/deferred_constant_test: Fail # http://dartbug.com/11138
-
 constant_javascript_semantics4_test: Fail, OK
 
 [ $compiler == dart2js && $checked ]
 variable_type_test/03: Fail, OK
 variable_type_test/01: Fail, OK
+
+[ $compiler == dart2js && $checked && ($runtime == d8 || $runtime == chrome) ]
+bound_closure_interceptor_type_test: Fail, Pass # v8 issue 3084. https://code.google.com/p/v8/issues/detail?id=3084
 
 [ $compiler == dart2js && $host_checked && $checked == false ]
 # Test that @IrRepresentation yields compile-time errors in host-checked mode.

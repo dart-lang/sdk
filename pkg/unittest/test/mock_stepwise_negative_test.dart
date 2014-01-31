@@ -14,8 +14,6 @@ main() {
       logList.add(e);
     }
     int total = 0;
-    logList.stepwiseValidate((log, pos) {
-        return 0;
-    });
+    logList.stepwiseValidate((log, pos) => 0);
   });
 }

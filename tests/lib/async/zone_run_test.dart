@@ -62,4 +62,25 @@ main() {
         events);
     asyncEnd();
   });
+
+  var zone1 = Zone.ROOT.fork();
+  var zone2 = Zone.ROOT.fork();
+  var zone3 = Zone.ROOT.fork();
+  asyncStart();
+  asyncStart();
+  zone1.run(() {
+    var future = new Future.value();
+    zone2.run(() {
+      future.then((_) {
+        Expect.identical(zone2, Zone.current);
+        asyncEnd();
+      });
+    });
+    zone3.run(() {
+      future.then((_) {
+        Expect.identical(zone3, Zone.current);
+        asyncEnd();
+      });
+    });
+  });
 }

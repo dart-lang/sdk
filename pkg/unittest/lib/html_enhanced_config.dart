@@ -68,7 +68,7 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
     final String _CSSID = '_unittestcss_';
 
     var cssElement = document.head.query('#${_CSSID}');
-    if (cssElement == null){
+    if (cssElement == null) {
       cssElement = new StyleElement();
       cssElement.id = _CSSID;
       document.head.append(cssElement);
@@ -148,8 +148,8 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
       // order by group and sort numerically within each group
       var groupedBy = new LinkedHashMap<String, List<TestCase>>();
 
-      for (final t in results){
-        if (!groupedBy.containsKey(t.currentGroup)){
+      for (final t in results) {
+        if (!groupedBy.containsKey(t.currentGroup)) {
           groupedBy[t.currentGroup] = new List<TestCase>();
         }
 
@@ -174,9 +174,9 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
 
         // replace everything but numbers and letters from the group name with
         // '_' so we can use in id and class properties.
-        var safeGroup = test_.currentGroup.replaceAll(nonAlphanumeric,'_');
+        var safeGroup = test_.currentGroup.replaceAll(nonAlphanumeric, '_');
 
-        if (test_.currentGroup != previousGroup){
+        if (test_.currentGroup != previousGroup) {
 
           previousGroup = test_.currentGroup;
 
@@ -208,8 +208,8 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
 
           // 'safeGroup' could be empty
           var grp = (safeGroup == '') ? null : te.query('#${safeGroup}');
-          if (grp != null){
-            grp.onClick.listen((_){
+          if (grp != null) {
+            grp.onClick.listen((_) {
               var row = document.query('.unittest-row-${safeGroup}');
               if (row.attributes['class'].contains('unittest-row ')){
                 document.queryAll('.unittest-row-${safeGroup}').forEach(
@@ -255,8 +255,8 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
     }
 
     if (!test_.isComplete) {
-       addRowElement('${test_.id}', 'NO STATUS', 'Test did not complete.');
-       return;
+      addRowElement('${test_.id}', 'NO STATUS', 'Test did not complete.');
+      return;
     }
 
     addRowElement('${test_.id}', '${test_.result.toUpperCase()}',

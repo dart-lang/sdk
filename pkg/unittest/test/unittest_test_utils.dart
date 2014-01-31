@@ -59,13 +59,13 @@ class TestConfiguration extends Configuration {
 }
 
 makeDelayedSetup(index, s) => () {
-  return new Future.delayed(new Duration(milliseconds:1), () {
+  return new Future.delayed(new Duration(milliseconds: 1), () {
     s.write('l$index U ');
   });
 };
 
 makeDelayedTeardown(index, s) => () {
-  return new Future.delayed(new Duration(milliseconds:1), () {
+  return new Future.delayed(new Duration(milliseconds: 1), () {
     s.write('l$index D ');
   });
 };

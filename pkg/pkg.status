@@ -38,6 +38,7 @@ crypto/test/base64_test: Slow, Pass
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
+collection/test/priority_queue_test: Pass, Slow # Issue 16426
 serialization/test/serialization_test: Skip
 
 [ $runtime == d8 || $runtime == jsshell ]
@@ -95,6 +96,7 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 typed_data/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
+polymer/test/bind_mdv_test: Pass, Fail # Issue 16441
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
@@ -122,6 +124,8 @@ intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
+polymer/example/canonicalization2: Skip
+polymer/example/canonicalization3: Skip
 
 third_party/angular_tests/browser_test: StaticWarning # Issue 15890
 
@@ -131,11 +135,15 @@ third_party/angular_tests/browser_test: StaticWarning # Issue 15890
 unittest/test/mock_regexp_negative_test: Skip
 unittest/test/mock_stepwise_negative_test: Skip
 polymer/example/canonicalization: Skip
+polymer/example/canonicalization2: Skip
+polymer/example/canonicalization3: Skip
 
 third_party/angular_tests/browser_test: StaticWarning # Issue 15890
 
 [ $compiler == dart2js && $runtime == none]
 polymer/example/canonicalization: Skip
+polymer/example/canonicalization2: Skip
+polymer/example/canonicalization3: Skip
 
 [ $compiler == dart2js && $csp ]
 unittest/test/mirror_matchers_test: Skip # Issue 12151
@@ -156,7 +164,11 @@ stack_trace/test/chain_test: Fail # Issues 15171 and 15105
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 polymer/example/component: Fail # Issue 13198
-polymer/example/canonicalization/test/canonicalization_test: Fail, OK # tests development only behavior
+polymer/example/canonicalization/test/dev_test: Fail, OK # tests development only behavior
+polymer/example/canonicalization/test/dev2_test: Fail, OK # tests development only behavior
+polymer/example/canonicalization/test/dev3_test: Fail, OK # tests development only behavior
+polymer/example/canonicalization/test/dir/dev_test: Fail, OK # tests development only behavior
+polymer/example/canonicalization/test/dir/dev2_test: Fail, OK # tests development only behavior
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 docgen/test/single_library_test: Fail # TODO(kasperl): Please triage.
@@ -259,7 +271,11 @@ unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
 unittest/test/unitttest_group_name_test: Fail # 13921
 polymer/test/custom_event_test: Pass, Crash # 14360
-polymer/example/canonicalization/test/canonicalization_deploy_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
+polymer/example/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]
 polymer/test/custom_event_test: Skip # http://dartbug.com/15517

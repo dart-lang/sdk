@@ -22,6 +22,7 @@
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
 
@@ -569,13 +570,15 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
     ASSERT(!path.IsNull());
     ASSERT(!option_keys.IsNull());
     ASSERT(!option_values.IsNull());
-    // Path always has at least one entry in it.
-    ASSERT(path.Length() > 0);
     // Same number of option keys as values.
     ASSERT(option_keys.Length() == option_values.Length());
 
     String& pathSegment = String::Handle();
-    pathSegment ^= path.At(0);
+    if (path.Length() > 0) {
+      pathSegment ^= path.At(0);
+    } else {
+      pathSegment ^= Symbols::Empty().raw();
+    }
     ASSERT(!pathSegment.IsNull());
 
     IsolateMessageHandler handler =
@@ -598,33 +601,29 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Instance& msg) {
 }
 
 
-static bool HandleName(Isolate* isolate, JSONStream* js) {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "IsolateName");
-  jsobj.AddProperty("id", static_cast<intptr_t>(isolate->main_port()));
-  jsobj.AddProperty("name", isolate->name());
+static bool HandleIsolate(Isolate* isolate, JSONStream* js) {
+  isolate->PrintToJSONStream(js);
   return true;
 }
 
 
 static bool HandleStackTrace(Isolate* isolate, JSONStream* js) {
+  if (js->num_arguments() > 1) {
+    PrintError(js, "Command too long");
+    return true;
+  }
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "StackTrace");
   JSONArray jsarr(&jsobj, "members");
-  intptr_t n_frames = stack->Length();
-  String& function = String::Handle();
-  Script& script = Script::Handle();
-  for (int i = 0; i < n_frames; i++) {
+  intptr_t num_frames = stack->Length();
+  for (intptr_t i = 0; i < num_frames; i++) {
     ActivationFrame* frame = stack->FrameAt(i);
-    script ^= frame->SourceScript();
-    function ^= frame->function().UserVisibleName();
     JSONObject jsobj(&jsarr);
-    jsobj.AddProperty("name", function.ToCString());
-    jsobj.AddProperty("script", script);
-    jsobj.AddProperty("line", frame->LineNumber());
-    jsobj.AddProperty("function", frame->function());
-    jsobj.AddProperty("code", frame->code());
+    frame->PrintToJSONObject(&jsobj);
+    // TODO(turnidge): Implement depth differently -- differentiate
+    // inlined frames.
+    jsobj.AddProperty("depth", i);
   }
   return true;
 }
@@ -865,18 +864,6 @@ static bool HandleClasses(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleLibrary(Isolate* isolate, JSONStream* js) {
-  if (js->num_arguments() == 1) {
-    const Library& lib =
-        Library::Handle(isolate->object_store()->root_library());
-    lib.PrintToJSONStream(js, false);
-    return true;
-  }
-  PrintError(js, "Command too long");
-  return true;
-}
-
-
 static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
   // TODO(johnmccutchan): Support fields and functions on libraries.
   REQUIRE_COLLECTION_ID("libraries");
@@ -897,10 +884,58 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
 static bool HandleObjects(Isolate* isolate, JSONStream* js) {
   REQUIRE_COLLECTION_ID("objects");
   ASSERT(js->num_arguments() >= 2);
+  const char* arg = js->GetArgument(1);
+
+  // TODO(turnidge): Handle <optimized out> the same way as other
+  // special nulls.
+  if (strcmp(arg, "null") == 0 ||
+      strcmp(arg, "not-initialized") == 0 ||
+      strcmp(arg, "being-initialized") == 0) {
+    Object::null_object().PrintToJSONStream(js, false);
+    return true;
+
+  } else if (strcmp(arg, "int") == 0) {
+    if (js->num_arguments() < 3) {
+      PrintError(js, "expected 3 arguments but found %" Pd "\n",
+                 js->num_arguments());
+      return true;
+    }
+    int64_t value = 0;
+    if (!OS::StringToInt64(js->GetArgument(2), &value) ||
+        !Smi::IsValid64(value)) {
+      PrintError(js, "integer value too large\n",
+                 js->num_arguments());
+      return true;
+    }
+    const Integer& obj =
+        Integer::Handle(isolate, Smi::New(static_cast<intptr_t>(value)));
+    obj.PrintToJSONStream(js, false);
+    return true;
+
+  } else if (strcmp(arg, "bool") == 0) {
+    if (js->num_arguments() < 3) {
+      PrintError(js, "expected 3 arguments but found %" Pd "\n",
+                 js->num_arguments());
+      return true;
+    }
+    const char* value_str = js->GetArgument(2);
+    bool value = false;
+    if (strcmp(value_str, "false") == 0) {
+      value = false;
+    } else if (strcmp(value_str, "true") == 0) {
+      value = true;
+    } else {
+      PrintError(js, "expected 'true' or 'false' but found %s\n", value_str);
+      return true;
+    }
+    Bool::Get(value).PrintToJSONStream(js, false);
+    return true;
+  }
+
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   intptr_t id = -1;
-  if (!GetIntegerId(js->GetArgument(1), &id)) {
+  if (!GetIntegerId(arg, &id)) {
     Object::null_object().PrintToJSONStream(js, false);
     return true;
   }
@@ -1058,14 +1093,13 @@ static bool HandleAllocationProfile(Isolate* isolate, JSONStream* js) {
 
 static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "_echo", HandleIsolateEcho },
+  { "", HandleIsolate },
   { "allocationprofile", HandleAllocationProfile },
   { "classes", HandleClasses },
   { "code", HandleCode },
   { "coverage", HandleCoverage },
   { "debug", HandleDebug },
   { "libraries", HandleLibraries },
-  { "library", HandleLibrary },
-  { "name", HandleName },
   { "objecthistogram", HandleObjectHistogram},
   { "objects", HandleObjects },
   { "profile", HandleProfile },

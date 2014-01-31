@@ -23,10 +23,10 @@ class RunningIsolates implements MessageRouter {
     var result = {};
     isolates.forEach((portId, runningIsolate) {
       members.add({
-        'type': 'Isolate',
-        'id': 'isolates/$portId',
-        'name': runningIsolate.name,
-        });
+          'type': '@Isolate',
+          'id': 'isolates/$portId',
+          'name': '$portId',
+      });
     });
     result['type'] = 'IsolateList';
     result['members'] = members;
@@ -61,11 +61,6 @@ class RunningIsolates implements MessageRouter {
     }
     // Consume '/isolates/isolateId'
     message.path.removeRange(0, 2);
-    if (message.path.length == 0) {
-      // The message now has an empty path.
-      message.setErrorResponse('Empty path for isolate: /isolates/$isolateId');
-      return message.response;
-    }
     return isolate.route(message);
   }
 }

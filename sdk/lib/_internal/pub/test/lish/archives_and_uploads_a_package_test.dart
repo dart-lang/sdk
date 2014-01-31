@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import 'utils.dart';
@@ -35,7 +36,7 @@ main() {
 
     expect(pub.nextLine(),
         completion(equals('Package test_pkg 1.0.0 uploaded!')));
-    pub.shouldExit(0);
+    pub.shouldExit(exit_codes.SUCCESS);
   });
 
   // TODO(nweiz): Once a multipart/form-data parser in Dart exists, we should

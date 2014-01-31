@@ -187,3 +187,17 @@ set _globalState(Object val) {
 
 void setX(x) {
 }
+>>> dartbug.com/16405
+class ContactImpulse {
+  List<double> normalImpulses = new List<double>(Settings.MAX_MANIFOLD_POINTS);
+  List<double> tangentImpulses = new List<double>(Settings.MAX_MANIFOLD_POINTS);
+
+  ContactImpulse();
+}
+<<<
+class ContactImpulse {
+  List<double> normalImpulses = new List<double>(Settings.MAX_MANIFOLD_POINTS);
+  List<double> tangentImpulses = new List<double>(Settings.MAX_MANIFOLD_POINTS);
+
+  ContactImpulse();
+}

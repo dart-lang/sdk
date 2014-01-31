@@ -86,7 +86,7 @@ int32_t ObjectIdRing::NextSerial() {
 
 
 int32_t ObjectIdRing::AllocateNewId(RawObject* raw_obj) {
-  // TODO(turnidge): Do not enter Smis into the ObjectIdRing.
+  ASSERT(raw_obj->IsHeapObject());
   int32_t id = NextSerial();
   ASSERT(id != kInvalidId);
   int32_t cursor = IndexOfId(id);

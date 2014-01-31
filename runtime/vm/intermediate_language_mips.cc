@@ -82,24 +82,18 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->in(0).reg();
   ASSERT(result == V0);
 #if defined(DEBUG)
-  // TODO(srdjan): Fix for functions with finally clause.
-  // A finally clause may leave a previously pushed return value if it
-  // has its own return instruction. Method that have finally are currently
-  // not optimized.
-  if (!compiler->HasFinally()) {
-    Label stack_ok;
-    __ Comment("Stack Check");
-    __ TraceSimMsg("Stack Check");
-    const intptr_t fp_sp_dist =
-        (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
-    ASSERT(fp_sp_dist <= 0);
-    __ subu(CMPRES1, SP, FP);
+  Label stack_ok;
+  __ Comment("Stack Check");
+  __ TraceSimMsg("Stack Check");
+  const intptr_t fp_sp_dist =
+      (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
+  ASSERT(fp_sp_dist <= 0);
+  __ subu(CMPRES1, SP, FP);
 
-    __ BranchEqual(CMPRES1, fp_sp_dist, &stack_ok);
-    __ break_(0);
+  __ BranchEqual(CMPRES1, fp_sp_dist, &stack_ok);
+  __ break_(0);
 
-    __ Bind(&stack_ok);
-  }
+  __ Bind(&stack_ok);
 #endif
   __ LeaveDartFrameAndReturn();
 }

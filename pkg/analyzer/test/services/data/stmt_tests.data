@@ -46,3 +46,55 @@ blah() {
 blah() {
   print('blah blah blah blah blah blah blah blah blah blah blah blah blah blah $foo');
 }
+>>>
+assert(false);
+<<<
+assert(false);
+>>> dartbug.com/16384
+fish() => []..add(1)..add(2);
+<<<
+fish() => []
+    ..add(1)
+    ..add(2);
+>>>
+fish() => []..add(1);
+<<<
+fish() => []..add(1);
+>>> dartbug.com/16382
+var m = { };
+<<<
+var m = {};
+>>>
+var m = {};
+<<<
+var m = {};
+>>> Indent cases two spaces and case bodies four spaces (dartbug.com/16406)
+switches() {
+  switch (fruit) {
+    case 'apple':
+    print('delish');
+    break;
+
+    case 'durian':
+    print('stinky');
+    break;
+    default:
+  print('nevermind');
+  break;
+  }
+}
+<<<
+switches() {
+  switch (fruit) {
+    case 'apple':
+      print('delish');
+      break;
+
+    case 'durian':
+      print('stinky');
+      break;
+    default:
+      print('nevermind');
+      break;
+  }
+}

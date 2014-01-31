@@ -27,7 +27,7 @@ class IsolateManager extends Observable {
   Isolate getIsolate(String id) {
     Isolate isolate = isolates[id];
     if (isolate == null) {
-      isolate = new Isolate(id, id);
+      isolate = new Isolate.fromId(id);
       isolates[id] = isolate;
       return isolate;
     }
@@ -43,19 +43,18 @@ class IsolateManager extends Observable {
       }
     });
     // Remove them.
-    deadIsolates.forEach((k) {
-      isolates.remove(k);
+    deadIsolates.forEach((id) {
+      isolates.remove(id);
     });
     // Add new isolates.
-    members.forEach((k) {
-      var id = k['id'];
-      var name = k['name'];
-      if (isolates[id] == null) {
-        var isolate = new Isolate(id, name);
+    members.forEach((map) {
+      var id = map['id'];
+      var isolate = isolates[id];
+      if (isolate == null) {
+        isolate = new Isolate.fromMap(map);
         isolates[id] = isolate;
-      } else {
-        isolates[id].name = name;
       }
+      isolate.refresh();
     });
   }
 }

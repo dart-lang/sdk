@@ -39,9 +39,9 @@ class StackTraceTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     Expect.equals('StackTrace', reply['type']);
     List members = reply['members'];
-    Expect.equals('a', members[0]['name']);
+    Expect.equals('a', members[0]['function']['name']);
     _aId = members[0]['code']['id'];
-    Expect.equals('c', members[2]['name']);
+    Expect.equals('c', members[2]['function']['name']);
     _cId = members[2]['code']['id'];
   }
 }
@@ -53,8 +53,8 @@ class IsolateListTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(2);
-    tester.checkIsolateNameContains('isolate_stacktrace_command_script.dart');
-    _isolateId = tester.checkIsolateNameContains('myIsolateName');
+    // TODO(turnidge): Fragile.  Relies on isolate order in response.
+    _isolateId = tester.getIsolateId(1);
   }
 }
 

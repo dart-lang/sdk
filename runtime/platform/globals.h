@@ -73,20 +73,22 @@
 #endif
 
 struct simd128_value_t {
-  float storage[4];
+  union {
+    float float_storage[4];
+    int32_t int_storage[4];
+  };
   simd128_value_t& readFrom(const float* v) {
-    storage[0] = v[0];
-    storage[1] = v[1];
-    storage[2] = v[2];
-    storage[3] = v[3];
+    float_storage[0] = v[0];
+    float_storage[1] = v[1];
+    float_storage[2] = v[2];
+    float_storage[3] = v[3];
     return *this;
   }
   simd128_value_t& readFrom(const int32_t* v) {
-    const float* vv = reinterpret_cast<const float*>(v);
-    storage[0] = vv[0];
-    storage[1] = vv[1];
-    storage[2] = vv[2];
-    storage[3] = vv[3];
+    int_storage[0] = v[0];
+    int_storage[1] = v[1];
+    int_storage[2] = v[2];
+    int_storage[3] = v[3];
     return *this;
   }
   simd128_value_t& readFrom(const simd128_value_t* v) {
@@ -94,17 +96,16 @@ struct simd128_value_t {
     return *this;
   }
   void writeTo(float* v) {
-    v[0] = storage[0];
-    v[1] = storage[1];
-    v[2] = storage[2];
-    v[3] = storage[3];
+    v[0] = float_storage[0];
+    v[1] = float_storage[1];
+    v[2] = float_storage[2];
+    v[3] = float_storage[3];
   }
   void writeTo(int32_t* v) {
-    float* vv = reinterpret_cast<float*>(v);
-    vv[0] = storage[0];
-    vv[1] = storage[1];
-    vv[2] = storage[2];
-    vv[3] = storage[3];
+    v[0] = int_storage[0];
+    v[1] = int_storage[1];
+    v[2] = int_storage[2];
+    v[3] = int_storage[3];
   }
   void writeTo(simd128_value_t* v) {
     *v = *this;

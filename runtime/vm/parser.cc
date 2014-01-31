@@ -6785,12 +6785,19 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
 // Add the inlined finally block to the specified node.
 void Parser::AddFinallyBlockToNode(AstNode* node,
                                    InlinedFinallyNode* finally_node) {
-  if (node->IsReturnNode()) {
-    node->AsReturnNode()->AddInlinedFinallyNode(finally_node);
-  } else {
-    ASSERT(node->IsJumpNode());
-    node->AsJumpNode()->AddInlinedFinallyNode(finally_node);
+  ReturnNode* return_node = node->AsReturnNode();
+  if (return_node != NULL) {
+    return_node->AddInlinedFinallyNode(finally_node);
+    if (return_node->saved_return_value_var() == NULL) {
+      LocalVariable* temp =
+          CreateTempConstVariable(node->token_pos(), "finally_ret_val");
+      return_node->set_saved_return_value_var(temp);
+    }
+    return;
   }
+  JumpNode* jump_node = node->AsJumpNode();
+  ASSERT(jump_node != NULL);
+  jump_node->AddInlinedFinallyNode(finally_node);
 }
 
 
@@ -7053,7 +7060,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // Finally parse the 'finally' block.
   SequenceNode* finally_block = NULL;
   if (CurrentToken() == Token::kFINALLY) {
-    current_function().set_has_finally(true);
     ConsumeToken();  // Consume the 'finally'.
     const intptr_t finally_pos = TokenPos();
     // Add the finally block to the exit points recorded so far.

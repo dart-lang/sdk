@@ -193,7 +193,7 @@ main() {
   });
 
   test('Mocking: No logging', () {
-    var m = new Mock.custom(enableLogging:false);
+    var m = new Mock.custom(enableLogging: false);
     m.Test();
     expect(() => m.getLogs(callsTo('Test')), throwsA((e) => e.toString() ==
         "Exception: Can't retrieve logs when logging was never enabled."));

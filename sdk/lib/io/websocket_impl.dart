@@ -69,7 +69,7 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
 
   final bool _serverSide;
   final List _maskingBytes = new List(4);
-  final BytesBuilder _payload = new BytesBuilder();
+  final List<Uint8List> _payloads = new List<Uint8List>();
 
   _WebSocketProtocolTransformer([this._serverSide = false]);
 
@@ -89,6 +89,27 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
       _eventSink.addError(error, stackTrace);
 
   void close() => _eventSink.close();
+
+  Uint8List _takePayload() {
+    if (_payloads.length == 0) return new Uint8List(0);
+    if (_payloads.length == 1) {
+      Uint8List result = _payloads.single;
+      _payloads.clear();
+      return result;
+    }
+    int length = 0;
+    for (Uint8List payload in _payloads) {
+      length += payload.length;
+    }
+    Uint8List result = new Uint8List(length);
+    int offset = 0;
+    for (Uint8List payload in _payloads) {
+      result.setRange(offset, offset + payload.length, payload);
+      offset += payload.length;
+    }
+    _payloads.clear();
+    return result;
+  }
 
   /**
    * Process data received from the underlying communication channel.
@@ -169,17 +190,16 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
         } else {
           assert(_state == PAYLOAD);
           // The payload is not handled one byte at a time but in blocks.
-          int payload = min(lastIndex - index, _remainingPayloadBytes);
-          _remainingPayloadBytes -= payload;
+          int payloadLength = min(lastIndex - index, _remainingPayloadBytes);
+          _remainingPayloadBytes -= payloadLength;
           // Unmask payload if masked.
           if (_masked) {
-            for (int i = index; i < index + payload; i++) {
-              buffer[i] ^= _maskingBytes[_unmaskingIndex++ & 3];
-            }
+            _unmask(index, payloadLength, buffer);
           }
-          // Control frame and data frame share _payload builder.
-          _payload.add(new Uint8List.view(buffer.buffer, index, payload));
-          index += payload;
+          // Control frame and data frame share _payloads.
+          _payloads.add(
+              new Uint8List.view(buffer.buffer, index, payloadLength));
+          index += payloadLength;
           if (_isControlFrame()) {
             if (_remainingPayloadBytes == 0) _controlFrameEnd();
           } else {
@@ -197,6 +217,43 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
 
       // Move to the next byte.
       index++;
+    }
+  }
+
+  void _unmask(int index, int length, Uint8List buffer) {
+    const int BLOCK_SIZE = 16;
+    // Skip Int32x4-version if message is small.
+    if (length >= BLOCK_SIZE) {
+      // Start by aligning to 16 bytes.
+      final int startOffset = BLOCK_SIZE - (index & 15);
+      final int end = index + startOffset;
+      for (int i = index; i < end; i++) {
+        buffer[i] ^= _maskingBytes[_unmaskingIndex++ & 3];
+      }
+      index += startOffset;
+      length -= startOffset;
+      final int blockCount = length ~/ BLOCK_SIZE;
+      if (blockCount > 0) {
+        // Create mask block.
+        int mask = 0;
+        for (int i = 3; i >= 0; i--) {
+          mask = (mask << 8) | _maskingBytes[(_unmaskingIndex + i) & 3];
+        }
+        Int32x4 blockMask = new Int32x4(mask, mask, mask, mask);
+        Int32x4List blockBuffer = new Int32x4List.view(
+            buffer.buffer, index, blockCount);
+        for (int i = 0; i < blockBuffer.length; i++) {
+          blockBuffer[i] ^= blockMask;
+        }
+        final int bytes = blockCount * BLOCK_SIZE;
+        index += bytes;
+        length -= bytes;
+      }
+    }
+    // Handle end.
+    final int end = index + length;
+    for (int i = index; i < end; i++) {
+      buffer[i] ^= _maskingBytes[_unmaskingIndex++ & 3];
     }
   }
 
@@ -250,10 +307,10 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
     if (_fin) {
       switch (_currentMessageType) {
         case _WebSocketMessageType.TEXT:
-          _eventSink.add(UTF8.decode(_payload.takeBytes()));
+          _eventSink.add(UTF8.decode(_takePayload()));
           break;
         case _WebSocketMessageType.BINARY:
-          _eventSink.add(_payload.takeBytes());
+          _eventSink.add(_takePayload());
           break;
       }
       _currentMessageType = _WebSocketMessageType.NONE;
@@ -265,17 +322,17 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
     switch (_opcode) {
       case _WebSocketOpcode.CLOSE:
         closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
-        if (_payload.length > 0) {
-          var bytes = _payload.takeBytes();
-          if (bytes.length == 1) {
+        var payload = _takePayload();
+        if (payload.length > 0) {
+          if (payload.length == 1) {
             throw new WebSocketException("Protocol error");
           }
-          closeCode = bytes[0] << 8 | bytes[1];
+          closeCode = payload[0] << 8 | payload[1];
           if (closeCode == WebSocketStatus.NO_STATUS_RECEIVED) {
             throw new WebSocketException("Protocol error");
           }
-          if (bytes.length > 2) {
-            closeReason = UTF8.decode(bytes.sublist(2));
+          if (payload.length > 2) {
+            closeReason = UTF8.decode(payload.sublist(2));
           }
         }
         _state = CLOSED;
@@ -283,11 +340,11 @@ class _WebSocketProtocolTransformer implements StreamTransformer, EventSink {
         break;
 
       case _WebSocketOpcode.PING:
-        _eventSink.add(new _WebSocketPing(_payload.takeBytes()));
+        _eventSink.add(new _WebSocketPing(_takePayload()));
         break;
 
       case _WebSocketOpcode.PONG:
-        _eventSink.add(new _WebSocketPong(_payload.takeBytes()));
+        _eventSink.add(new _WebSocketPong(_takePayload()));
         break;
     }
     _prepareForNextFrame();
@@ -530,27 +587,44 @@ class _WebSocketOutgoingTransformer implements StreamTransformer, EventSink {
       header.setRange(index, index + 4, maskBytes);
       index += 4;
       if (data != null) {
-        var list;
+        Uint8List list;
         // If this is a text message just do the masking inside the
         // encoded data.
-        if (opcode == _WebSocketOpcode.TEXT) {
+        if (opcode == _WebSocketOpcode.TEXT && data is Uint8List) {
           list = data;
         } else {
-          list = new Uint8List(data.length);
-        }
-        if (data is Uint8List) {
-          for (int i = 0; i < data.length; i++) {
-            list[i] = data[i] ^ maskBytes[i & 3];
-          }
-        } else {
-          for (int i = 0; i < data.length; i++) {
-            if (data[i] < 0 || 255 < data[i]) {
-              throw new ArgumentError(
-                  "List element is not a byte value "
-                  "(value ${data[i]} at index $i)");
+          if (data is Uint8List) {
+            list = new Uint8List.fromList(data);
+          } else {
+            list = new Uint8List(data.length);
+            for (int i = 0; i < data.length; i++) {
+              if (data[i] < 0 || 255 < data[i]) {
+                throw new ArgumentError(
+                    "List element is not a byte value "
+                    "(value ${data[i]} at index $i)");
+              }
+              list[i] = data[i];
             }
-            list[i] = data[i] ^ maskBytes[i & 3];
           }
+        }
+        const int BLOCK_SIZE = 16;
+        int blockCount = list.length ~/ BLOCK_SIZE;
+        if (blockCount > 0) {
+          // Create mask block.
+          int mask = 0;
+          for (int i = 3; i >= 0; i--) {
+            mask = (mask << 8) | maskBytes[i];
+          }
+          Int32x4 blockMask = new Int32x4(mask, mask, mask, mask);
+          Int32x4List blockBuffer = new Int32x4List.view(
+              list.buffer, 0, blockCount);
+          for (int i = 0; i < blockBuffer.length; i++) {
+            blockBuffer[i] ^= blockMask;
+          }
+        }
+        // Handle end.
+        for (int i = blockCount * BLOCK_SIZE; i < list.length; i++) {
+          list[i] ^= maskBytes[i & 3];
         }
         data = list;
       }
@@ -738,9 +812,10 @@ class _WebSocketImpl extends Stream implements WebSocket {
       .then((request) {
         // Setup the initial handshake.
         request.headers
-            ..add(HttpHeaders.CONNECTION, "upgrade")
+            ..add(HttpHeaders.CONNECTION, "Upgrade")
             ..set(HttpHeaders.UPGRADE, "websocket")
             ..set("Sec-WebSocket-Key", nonce)
+            ..set("Cache-Control", "no-cache")
             ..set("Sec-WebSocket-Version", "13");
         if (protocols.isNotEmpty) {
           request.headers.add("Sec-WebSocket-Protocol", protocols);

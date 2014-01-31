@@ -47,12 +47,13 @@ main() {
     createLockFile('myapp', pkg: ['barback']);
 
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built 1 file!"),
-        exitCode: 0);
+        output: new RegExp(r"Built 1 file!"));
 
     d.dir(appPath, [
       d.dir('build', [
-        d.file('foo.txt', 'release')
+        d.dir('web', [
+          d.file('foo.txt', 'release')
+        ])
       ])
     ]).validate();
   });

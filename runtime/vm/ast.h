@@ -509,11 +509,15 @@ class ReturnNode : public AstNode {
   explicit ReturnNode(intptr_t token_pos)
       : AstNode(token_pos),
         value_(new LiteralNode(token_pos, Instance::ZoneHandle())),
-        inlined_finally_list_() { }
+        inlined_finally_list_(),
+        saved_return_value_var_(NULL) { }
   // Return from a non-void function.
   ReturnNode(intptr_t token_pos,
              AstNode* value)
-      : AstNode(token_pos), value_(value), inlined_finally_list_() {
+      : AstNode(token_pos),
+        value_(value),
+        inlined_finally_list_(),
+        saved_return_value_var_(NULL) {
     ASSERT(value_ != NULL);
   }
 
@@ -529,6 +533,13 @@ class ReturnNode : public AstNode {
     inlined_finally_list_.Add(finally_node);
   }
 
+  LocalVariable* saved_return_value_var() const {
+    return saved_return_value_var_;
+  }
+  void set_saved_return_value_var(LocalVariable* var) {
+    saved_return_value_var_ = var;
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     if (value() != NULL) {
       value()->Visit(visitor);
@@ -540,6 +551,7 @@ class ReturnNode : public AstNode {
  private:
   AstNode* value_;
   GrowableArray<InlinedFinallyNode*> inlined_finally_list_;
+  LocalVariable* saved_return_value_var_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnNode);
 };
@@ -1007,6 +1019,7 @@ class JumpNode : public AstNode {
   Token::Kind kind_;
   SourceLabel* label_;
   GrowableArray<InlinedFinallyNode*> inlined_finally_list_;
+
   DISALLOW_IMPLICIT_CONSTRUCTORS(JumpNode);
 };
 

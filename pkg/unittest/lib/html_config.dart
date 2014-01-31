@@ -30,7 +30,7 @@ void _showResultsInPage(int passed, int failed, int errors,
     }
 
     if (uncaughtError != null) {
-        newBody.write('''<tr>
+      newBody.write('''<tr>
           <td>--</td>
           <td class="unittest-error">ERROR</td>
           <td>Uncaught error: $uncaughtError</td>
@@ -136,7 +136,7 @@ class HtmlConfiguration extends SimpleConfiguration {
     // filtering, which we do with this meta-header.
     var meta = query('meta[name="dart.unittest"]');
     filterStacks = meta == null ? true :
-       !meta.content.contains('full-stack-traces');
+        !meta.content.contains('full-stack-traces');
     _installHandlers();
     window.postMessage('unittest-suite-wait-for-done', '*');
   }

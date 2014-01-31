@@ -5347,7 +5347,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The analysis was performed on out-of-date sources. Mark the cache so that the source
           // will be re-verified using the up-to-date sources.
           //
-          dartCopy.setState2(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.INVALID);
+          //          dartCopy.setState(DartEntry.VERIFICATION_ERRORS, librarySource, CacheState.INVALID);
+          dartCopy.invalidateAllInformation();
+          dartCopy.modificationTime = sourceTime;
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -5446,7 +5448,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               // The analysis was performed on out-of-date sources. Mark the cache so that the sources
               // will be re-analyzed using the up-to-date sources.
               //
-              dartCopy.setState2(DartEntry.HINTS, librarySource, CacheState.INVALID);
+              //              dartCopy.setState(DartEntry.HINTS, librarySource, CacheState.INVALID);
+              dartCopy.invalidateAllInformation();
+              dartCopy.modificationTime = sourceTime;
             } else {
               //
               // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -5549,7 +5553,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The analysis was performed on out-of-date sources. Mark the cache so that the sources
           // will be re-analyzed using the up-to-date sources.
           //
-          dartCopy.recordParseNotInProcess();
+          //          dartCopy.recordParseNotInProcess();
+          dartCopy.invalidateAllInformation();
+          dartCopy.modificationTime = sourceTime;
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -5625,15 +5631,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The analysis was performed on out-of-date sources. Mark the cache so that the sources
           // will be re-analyzed using the up-to-date sources.
           //
-          if (identical(htmlCopy.getState(SourceEntry.LINE_INFO), CacheState.IN_PROCESS)) {
-            htmlCopy.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
-          }
-          if (identical(htmlCopy.getState(HtmlEntry.PARSED_UNIT), CacheState.IN_PROCESS)) {
-            htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.INVALID);
-          }
-          if (identical(htmlCopy.getState(HtmlEntry.REFERENCED_LIBRARIES), CacheState.IN_PROCESS)) {
-            htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.INVALID);
-          }
+          //          if (htmlCopy.getState(SourceEntry.LINE_INFO) == CacheState.IN_PROCESS) {
+          //            htmlCopy.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
+          //          }
+          //          if (htmlCopy.getState(HtmlEntry.PARSED_UNIT) == CacheState.IN_PROCESS) {
+          //            htmlCopy.setState(HtmlEntry.PARSED_UNIT, CacheState.INVALID);
+          //          }
+          //          if (htmlCopy.getState(HtmlEntry.REFERENCED_LIBRARIES) == CacheState.IN_PROCESS) {
+          //            htmlCopy.setState(HtmlEntry.REFERENCED_LIBRARIES, CacheState.INVALID);
+          //          }
+          htmlCopy.invalidateAllInformation();
+          htmlCopy.modificationTime = sourceTime;
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -5705,15 +5713,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The analysis was performed on out-of-date sources. Mark the cache so that the sources
           // will be re-analyzed using the up-to-date sources.
           //
-          if (identical(htmlCopy.getState(HtmlEntry.ANGULAR_ERRORS), CacheState.IN_PROCESS)) {
-            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
-          }
-          if (identical(htmlCopy.getState(HtmlEntry.ELEMENT), CacheState.IN_PROCESS)) {
-            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
-          }
-          if (identical(htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS), CacheState.IN_PROCESS)) {
-            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
-          }
+          //          if (htmlCopy.getState(HtmlEntry.ANGULAR_ERRORS) == CacheState.IN_PROCESS) {
+          //            htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
+          //          }
+          //          if (htmlCopy.getState(HtmlEntry.ELEMENT) == CacheState.IN_PROCESS) {
+          //            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
+          //          }
+          //          if (htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS) == CacheState.IN_PROCESS) {
+          //            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
+          //          }
+          htmlCopy.invalidateAllInformation();
+          htmlCopy.modificationTime = sourceTime;
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -5784,7 +5794,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The analysis was performed on out-of-date sources. Mark the cache so that the sources
           // will be re-analyzed using the up-to-date sources.
           //
-          dartCopy.recordDependencyNotInProcess();
+          //          dartCopy.recordDependencyNotInProcess();
+          dartCopy.invalidateAllInformation();
+          dartCopy.modificationTime = sourceTime;
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -5856,9 +5868,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The analysis was performed on out-of-date sources. Mark the cache so that the sources
           // will be re-analyzed using the up-to-date sources.
           //
-          if (identical(dartCopy.getState(DartEntry.RESOLVED_UNIT), CacheState.IN_PROCESS)) {
-            dartCopy.setState2(DartEntry.RESOLVED_UNIT, librarySource, CacheState.INVALID);
-          }
+          //          if (dartCopy.getState(DartEntry.RESOLVED_UNIT) == CacheState.IN_PROCESS) {
+          //            dartCopy.setState(DartEntry.RESOLVED_UNIT, librarySource, CacheState.INVALID);
+          //          }
+          dartCopy.invalidateAllInformation();
+          dartCopy.modificationTime = sourceTime;
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -5931,12 +5945,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           // The analysis was performed on out-of-date sources. Mark the cache so that the sources
           // will be re-analyzed using the up-to-date sources.
           //
-          if (identical(htmlCopy.getState(HtmlEntry.ELEMENT), CacheState.IN_PROCESS)) {
-            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
-          }
-          if (identical(htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS), CacheState.IN_PROCESS)) {
-            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
-          }
+          //          if (htmlCopy.getState(HtmlEntry.ELEMENT) == CacheState.IN_PROCESS) {
+          //            htmlCopy.setState(HtmlEntry.ELEMENT, CacheState.INVALID);
+          //          }
+          //          if (htmlCopy.getState(HtmlEntry.RESOLUTION_ERRORS) == CacheState.IN_PROCESS) {
+          //            htmlCopy.setState(HtmlEntry.RESOLUTION_ERRORS, CacheState.INVALID);
+          //          }
+          htmlCopy.invalidateAllInformation();
+          htmlCopy.modificationTime = sourceTime;
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -7877,7 +7893,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
         return super.visitXmlTagNode(node);
       }
       // process node in separate name scope
-      _nameScope = _resolver.pushNameScope();
+      pushNameScope();
       try {
         parseEmbeddedExpressions3(node);
         // apply processors
@@ -7891,7 +7907,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
         // process children
         return super.visitXmlTagNode(node);
       } finally {
-        _resolver.popNameScope();
+        popNameScope();
       }
     } finally {
       _isAngular = wasAngular;
@@ -7971,6 +7987,14 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
 
   Expression parseExpression3(Token token) => ht.HtmlParser.parseEmbeddedExpression(_source, token, _errorListener);
 
+  void popNameScope() {
+    _nameScope = _resolver.popNameScope();
+  }
+
+  void pushNameScope() {
+    _nameScope = _resolver.pushNameScope();
+  }
+
   /**
    * Reports given [ErrorCode] at the given [ASTNode].
    */
@@ -8039,6 +8063,13 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
     InheritanceManager inheritanceManager = new InheritanceManager(_libraryElement);
     _resolver = new ResolverVisitor.con2(_libraryElement, _source, _typeProvider, inheritanceManager, _errorListener);
     _topNameScope = _resolver.pushNameScope();
+    // add Scope variables - no type, no location, just to avoid warnings
+    {
+      Type2 type = _typeProvider.dynamicType;
+      _topNameScope.define(createLocalVariable2(type, "\$id"));
+      _topNameScope.define(createLocalVariable2(type, "\$parent"));
+      _topNameScope.define(createLocalVariable2(type, "\$root"));
+    }
   }
 
   /**
@@ -8334,15 +8365,31 @@ class NgDirectiveElementProcessor extends NgDirectiveProcessor {
         attribute.element = property;
         // resolve if binding
         if (property.propertyKind != AngularPropertyKind.ATTR) {
-          Expression expression = parseExpression(resolver, attribute);
-          resolver.resolveNode(expression);
-          setExpression(attribute, expression);
+          resolver.pushNameScope();
+          try {
+            onNgEventDirective(resolver);
+            Expression expression = parseExpression(resolver, attribute);
+            resolver.resolveNode(expression);
+            setExpression(attribute, expression);
+          } finally {
+            resolver.popNameScope();
+          }
         }
       }
     }
   }
 
   bool canApply(ht.XmlTagNode node) => _element.selector.apply(node);
+
+  /**
+   * Support for <code>$event</code> variable in <code>NgEventDirective</code>.
+   */
+  void onNgEventDirective(AngularHtmlUnitResolver resolver) {
+    if (_element.isClass("NgEventDirective")) {
+      Type2 dynamicType = resolver.typeProvider.dynamicType;
+      resolver.defineVariable(resolver.createLocalVariable2(dynamicType, "\$event"));
+    }
+  }
 }
 
 /**

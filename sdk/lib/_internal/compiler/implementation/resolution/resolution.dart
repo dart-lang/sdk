@@ -34,3 +34,4 @@ import 'class_members.dart' show MembersCreator;
 
 part 'members.dart';
 part 'scope.dart';
+part 'signatures.dart';

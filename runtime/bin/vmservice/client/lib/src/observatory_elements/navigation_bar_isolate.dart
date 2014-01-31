@@ -22,7 +22,6 @@ class NavigationBarIsolateElement extends ObservatoryElement {
     if (app == null) {
       return '';
     }
-    print('Fetching name');
     var isolate = app.locationManager.currentIsolate();
     if (isolate == null) {
       return '';

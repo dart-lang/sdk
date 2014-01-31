@@ -434,9 +434,6 @@ class FlowGraphCompiler : public ValueObject {
 
   Environment* SlowPathEnvironmentFor(Instruction* instruction);
 
-  // Returns true if the compiled function has a finally clause.
-  bool HasFinally() const;
-
   intptr_t CurrentTryIndex() const {
     if (current_block_ == NULL) {
       return CatchClauseNode::kInvalidTryIndex;

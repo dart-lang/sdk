@@ -696,6 +696,36 @@ const char* ActivationFrame::ToCString() {
 }
 
 
+void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
+  intptr_t line = LineNumber();
+  const Script& script = Script::Handle(SourceScript());
+
+  jsobj->AddProperty("script", script);
+  jsobj->AddProperty("line", line);
+  jsobj->AddProperty("col", ColumnNumber());
+  jsobj->AddProperty("function", function());
+  jsobj->AddProperty("code", code());
+
+  // TODO(turnidge): Consider dropping lineString from the frame.
+  String& line_string = String::Handle(script.GetLine(line));
+  jsobj->AddProperty("lineString", line_string.ToCString());
+  {
+    JSONArray jsvars(jsobj, "vars");
+    const int num_vars = NumLocalVariables();
+    for (intptr_t v = 0; v < num_vars; v++) {
+      JSONObject jsvar(&jsvars);
+      String& var_name = String::Handle();
+      Instance& var_value = Instance::Handle();
+      intptr_t unused;
+      VariableAt(v, &var_name, &unused, &unused, &var_value);
+      jsvar.AddProperty("name", var_name.ToCString());
+      jsvar.AddProperty("value", var_value);
+    }
+  }
+}
+
+
+
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
   if (frame->function().is_visible()) {
     trace_.Add(frame);
@@ -833,6 +863,7 @@ Debugger::Debugger()
       pause_event_(NULL),
       obj_cache_(NULL),
       stack_trace_(NULL),
+      stepping_fp_(0),
       exc_pause_info_(kNoPauseOnExceptions) {
 }
 
@@ -875,18 +906,18 @@ static RawFunction* ResolveLibraryFunction(
   return Function::null();
 }
 
+
 void Debugger::SetSingleStep() {
-  isolate_->set_single_step(true);
   resume_action_ = kSingleStep;
 }
 
+
 void Debugger::SetStepOver() {
-  isolate_->set_single_step(false);
   resume_action_ = kStepOver;
 }
 
+
 void Debugger::SetStepOut() {
-  isolate_->set_single_step(false);
   resume_action_ = kStepOut;
 }
 
@@ -967,7 +998,7 @@ void Debugger::DeoptimizeWorld() {
 }
 
 
-void Debugger::InstrumentForStepping(const Function& target_function) {
+void Debugger::SetInternalBreakpoints(const Function& target_function) {
   if (target_function.is_native()) {
     // Can't instrument native functions.
     return;
@@ -1279,11 +1310,19 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   for (intptr_t i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
     ASSERT(desc_token_pos >= 0);
-    if (desc_token_pos < requested_token_pos) {
-      // This descriptor is before the first acceptable token position.
-      continue;
-    }
     if (IsSafePoint(desc, i)) {
+      if ((desc_token_pos < func.token_pos()) ||
+          (desc_token_pos > func.end_token_pos())) {
+        // The position is outside of the function token range. This can
+        // happen in constructors, for initializer expressions that are
+        // inlined in the field declaration.
+        ASSERT(func.IsConstructor());
+        continue;
+      }
+      if (desc_token_pos < requested_token_pos) {
+        // This descriptor is before the first acceptable token position.
+        continue;
+      }
       if (desc_token_pos < best_fit_pos) {
         // So far, this descriptor has the lowest token position after
         // the first acceptable token position.
@@ -1336,10 +1375,10 @@ void Debugger::MakeCodeBreakpointsAt(const Function& func,
 }
 
 
-void Debugger::FindEquivalentFunctions(const Script& script,
-                                       intptr_t start_pos,
-                                       intptr_t end_pos,
-                                       GrowableObjectArray* function_list) {
+void Debugger::FindCompiledFunctions(const Script& script,
+                                     intptr_t start_pos,
+                                     intptr_t end_pos,
+                                     GrowableObjectArray* function_list) {
   Class& cls = Class::Handle(isolate_);
   Array& functions = Array::Handle(isolate_);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(isolate_);
@@ -1371,10 +1410,14 @@ void Debugger::FindEquivalentFunctions(const Script& script,
           if ((function.token_pos() == start_pos)
               && (function.end_token_pos() == end_pos)
               && (function.script() == script.raw())) {
-            function_list->Add(function);
+            if (function.HasCode()) {
+              function_list->Add(function);
+            }
             if (function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              function_list->Add(function);
+              if (function.HasCode()) {
+                function_list->Add(function);
+              }
             }
           }
         }
@@ -1388,10 +1431,14 @@ void Debugger::FindEquivalentFunctions(const Script& script,
           if ((function.token_pos() == start_pos)
               && (function.end_token_pos() == end_pos)
               && (function.script() == script.raw())) {
-            function_list->Add(function);
+            if (function.HasCode()) {
+              function_list->Add(function);
+            }
             if (function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              function_list->Add(function);
+              if (function.HasCode()) {
+                function_list->Add(function);
+              }
             }
           }
         }
@@ -1401,28 +1448,30 @@ void Debugger::FindEquivalentFunctions(const Script& script,
 }
 
 
+static bool IsDebuggableFunctionKind(const Function& func) {
+  RawFunction::Kind kind = func.kind();
+  if ((kind == RawFunction::kImplicitGetter) ||
+      (kind == RawFunction::kImplicitSetter) ||
+      (kind == RawFunction::kImplicitStaticFinalGetter) ||
+      (kind == RawFunction::kStaticInitializer) ||
+      (kind == RawFunction::kMethodExtractor) ||
+      (kind == RawFunction::kNoSuchMethodDispatcher) ||
+      (kind == RawFunction::kInvokeFieldDispatcher) ||
+      func.IsImplicitConstructor()) {
+    return false;
+  }
+  return true;
+}
+
+
 static void SelectBestFit(Function* best_fit, Function* func) {
   if (best_fit->IsNull()) {
     *best_fit = func->raw();
-  }
-  if (func->token_pos() > best_fit->token_pos()) {
-    if (func->end_token_pos() <= best_fit->end_token_pos()) {
-      // func is contained within best_fit. Select it even if it
-      // has not been compiled yet.
+  } else {
+    if ((func->token_pos() > best_fit->token_pos()) &&
+        ((func->end_token_pos() <= best_fit->end_token_pos()))) {
       *best_fit = func->raw();
-      if (func->HasImplicitClosureFunction()) {
-        *func = func->ImplicitClosureFunction();
-        if (func->HasCode()) {
-          *best_fit = func->raw();
-        }
-      }
     }
-  } else if ((func->token_pos() == best_fit->token_pos())
-      && (func->end_token_pos() == best_fit->end_token_pos())
-      && func->HasCode()) {
-    // If func covers the same range, it is considered a better fit if
-    // it has been compiled.
-    *best_fit = func->raw();
   }
 }
 
@@ -1457,7 +1506,8 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
-          if (FunctionContains(function, script, token_pos)) {
+          if (IsDebuggableFunctionKind(function) &&
+              FunctionContains(function, script, token_pos)) {
             SelectBestFit(&best_fit, &function);
           }
         }
@@ -1469,7 +1519,8 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         for (intptr_t pos = 0; pos < num_closures; pos++) {
           function ^= closures.At(pos);
           ASSERT(!function.IsNull());
-          if (FunctionContains(function, script, token_pos)) {
+          if (IsDebuggableFunctionKind(function) &&
+              FunctionContains(function, script, token_pos)) {
             SelectBestFit(&best_fit, &function);
           }
         }
@@ -1487,10 +1538,23 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
   if (func.IsNull()) {
     return NULL;
   }
-  if (!func.IsNull() && func.HasCode()) {
-    // A function containing this breakpoint location has already
-    // been compiled. We can resolve the breakpoint now.
+  // There may be more than one function object for a given function
+  // in source code. There may be implicit closure functions, and
+  // there may be copies of mixin functions. Collect all compiled
+  // functions whose source code range matches exactly the best fit
+  // function we found.
+  GrowableObjectArray& functions =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  FindCompiledFunctions(script,
+                        func.token_pos(),
+                        func.end_token_pos(),
+                        &functions);
+
+  if (functions.Length() > 0) {
+    // One or more function object containing this breakpoint location
+    // have already been compiled. We can resolve the breakpoint now.
     DeoptimizeWorld();
+    func ^= functions.At(0);
     intptr_t breakpoint_pos = ResolveBreakpointPos(func, token_pos);
     if (breakpoint_pos >= 0) {
       SourceBreakpoint* bpt = GetSourceBreakpoint(script, breakpoint_pos);
@@ -1501,26 +1565,13 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
       bpt = new SourceBreakpoint(nextId(), script, token_pos);
       bpt->SetResolved(func, breakpoint_pos);
       RegisterSourceBreakpoint(bpt);
-      // There may be more than one function object for a given function
-      // in source code. There may be implicit closure functions, and
-      // there may be copies of mixin functions. Collect all functions whose
-      // source code range matches exactly the best fit function we
-      // found.
-      GrowableObjectArray& functions =
-          GrowableObjectArray::Handle(GrowableObjectArray::New());
-      FindEquivalentFunctions(script,
-                              func.token_pos(),
-                              func.end_token_pos(),
-                              &functions);
-      const intptr_t num_functions = functions.Length();
-      // We must have found at least one function: func.
-      ASSERT(num_functions > 0);
+
       // Create code breakpoints for all compiled functions we found.
+      const intptr_t num_functions = functions.Length();
       for (intptr_t i = 0; i < num_functions; i++) {
         func ^= functions.At(i);
-        if (func.HasCode()) {
-          MakeCodeBreakpointsAt(func, bpt);
-        }
+        ASSERT(func.HasCode());
+        MakeCodeBreakpointsAt(func, bpt);
       }
       bpt->Enable();
       SignalBpResolved(bpt);
@@ -1565,11 +1616,11 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 
 
 void Debugger::OneTimeBreakAtEntry(const Function& target_function) {
-  InstrumentForStepping(target_function);
+  SetInternalBreakpoints(target_function);
   if (target_function.HasImplicitClosureFunction()) {
     const Function& closure_func =
         Function::Handle(target_function.ImplicitClosureFunction());
-    InstrumentForStepping(closure_func);
+    SetInternalBreakpoints(closure_func);
   }
 }
 
@@ -1866,14 +1917,7 @@ void Debugger::Pause(DebuggerEvent* event) {
 
 
 bool Debugger::IsDebuggable(const Function& func) {
-  RawFunction::Kind fkind = func.kind();
-  if ((fkind == RawFunction::kImplicitGetter) ||
-      (fkind == RawFunction::kImplicitSetter) ||
-      (fkind == RawFunction::kImplicitStaticFinalGetter) ||
-      (fkind == RawFunction::kStaticInitializer) ||
-      (fkind == RawFunction::kMethodExtractor) ||
-      (fkind == RawFunction::kNoSuchMethodDispatcher) ||
-      (fkind == RawFunction::kInvokeFieldDispatcher)) {
+  if (!IsDebuggableFunctionKind(func)) {
     return false;
   }
   const Class& cls = Class::Handle(func.Owner());
@@ -1885,6 +1929,7 @@ bool Debugger::IsDebuggable(const Function& func) {
 void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
                                  SourceBreakpoint* bpt) {
   resume_action_ = kContinue;
+  stepping_fp_ = 0;
   isolate_->set_single_step(false);
   ASSERT(!IsPaused());
   ASSERT(obj_cache_ == NULL);
@@ -1895,8 +1940,18 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
 }
 
 
-void Debugger::SingleStepCallback() {
-  ASSERT(resume_action_ == kSingleStep);
+static uword DebuggableCallerFP(DebuggerStackTrace* stack_trace) {
+  for (intptr_t i = 1; i < stack_trace->Length(); i++) {
+    ActivationFrame* frame = stack_trace->FrameAt(i);
+    if (frame->IsDebuggable()) {
+      return frame->fp();
+    }
+  }
+  return 0;
+}
+
+
+void Debugger::DebuggerStepCallback() {
   ASSERT(isolate_->single_step());
   // We can't get here unless the debugger event handler enabled
   // single stepping.
@@ -1905,16 +1960,27 @@ void Debugger::SingleStepCallback() {
   if (IsPaused()) return;
 
   // Check whether we are in a Dart function that the user is
-  // interested in.
+  // interested in. If we saved the frame pointer of a stack frame
+  // the user is interested in, we ignore the single step if we are
+  // in a callee of that frame. Note that we assume that the stack
+  // grows towards lower addresses.
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != NULL);
-  const Function& func = frame->function();
-  if (!IsDebuggable(func)) {
+  if ((stepping_fp_ != 0) && (stepping_fp_ > frame->fp())) {
+    return;
+  }
+  // If an "interesting" frame is set, we are either in that frame
+  // or the program has returned from that frame. Let the user set
+  // the "interesting" frame again next time we pause.
+  stepping_fp_ = 0;
+
+  if (!frame->IsDebuggable()) {
     return;
   }
   if (frame->TokenPos() == Scanner::kNoSourcePos) {
     return;
   }
+
   // Don't pause for a single step if there is a breakpoint set
   // at this location.
   if (HasActiveBreakpoint(frame->pc())) {
@@ -1933,14 +1999,15 @@ void Debugger::SingleStepCallback() {
   stack_trace_ = CollectStackTrace();
   SignalPausedEvent(frame, NULL);
 
-  RemoveInternalBreakpoints();
-  if (resume_action_ == kStepOver) {
-    InstrumentForStepping(func);
+  if (resume_action_ == kSingleStep) {
+    isolate_->set_single_step(true);
+    stepping_fp_ = 0;
+  } else if (resume_action_ == kStepOver) {
+    isolate_->set_single_step(true);
+    stepping_fp_ = frame->fp();
   } else if (resume_action_ == kStepOut) {
-    if (stack_trace_->Length() > 1) {
-      ActivationFrame* caller_frame = stack_trace_->FrameAt(1);
-      InstrumentForStepping(caller_frame->function());
-    }
+    isolate_->set_single_step(true);
+    stepping_fp_ = DebuggableCallerFP(stack_trace_);
   }
   stack_trace_ = NULL;
 }
@@ -1950,7 +2017,7 @@ void Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || IsPaused()) {
+  if (ignore_breakpoints_ || IsPaused() || (event_handler_ == NULL)) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
@@ -1960,14 +2027,9 @@ void Debugger::SignalBpReached() {
   CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(bpt != NULL);
 
-  bool report_bp = true;
-  if (bpt->IsInternal() && !IsDebuggable(top_frame->function())) {
-    report_bp = false;
-  }
   if (FLAG_verbose_debug) {
-    OS::Print(">>> %s %s breakpoint at %s:%" Pd " "
+    OS::Print(">>> hit %s breakpoint at %s:%" Pd " "
               "(token %" Pd ") (address %#" Px ")\n",
-              report_bp ? "hit" : "ignore",
               bpt->IsInternal() ? "internal" : "user",
               String::Handle(bpt->SourceUrl()).ToCString(),
               bpt->LineNumber(),
@@ -1975,38 +2037,23 @@ void Debugger::SignalBpReached() {
               top_frame->pc());
   }
 
-  if (report_bp && (event_handler_ != NULL)) {
-    ASSERT(stack_trace_ == NULL);
-    stack_trace_ = stack_trace;
-    SignalPausedEvent(top_frame, bpt->src_bpt_);
-    stack_trace_ = NULL;
-  }
+  ASSERT(stack_trace_ == NULL);
+  stack_trace_ = stack_trace;
+  SignalPausedEvent(top_frame, bpt->src_bpt_);
+  stack_trace_ = NULL;
 
-  Function& func_to_instrument = Function::Handle();
-  if ((resume_action_ == kStepOver) &&
-      (bpt->breakpoint_kind_ == PcDescriptors::kReturn)) {
-    resume_action_ = kStepOut;
-  }
-  if (resume_action_ == kStepOver) {
-    ASSERT(bpt->breakpoint_kind_ != PcDescriptors::kReturn);
-    func_to_instrument = bpt->function();
+  if (resume_action_ == kSingleStep) {
+    isolate_->set_single_step(true);
+    stepping_fp_ = 0;
+  } else if (resume_action_ == kStepOver) {
+    isolate_->set_single_step(true);
+    stepping_fp_ = top_frame->fp();
   } else if (resume_action_ == kStepOut) {
-    if (stack_trace->Length() > 1) {
-      ActivationFrame* caller_frame = stack_trace->FrameAt(1);
-      func_to_instrument = caller_frame->function().raw();
-    }
-  } else {
-    ASSERT((resume_action_ == kContinue) || (resume_action_ == kSingleStep));
-    // Nothing to do here. Any potential instrumentation will be removed
-    // below. Single stepping is handled by the single step callback.
+    isolate_->set_single_step(true);
+    stepping_fp_ = DebuggableCallerFP(stack_trace);
   }
-
-  if (func_to_instrument.IsNull() ||
-      (func_to_instrument.raw() != bpt->function())) {
-    RemoveInternalBreakpoints();  // *bpt is now invalid.
-  }
-  if (!func_to_instrument.IsNull()) {
-    InstrumentForStepping(func_to_instrument);
+  if (bpt->IsInternal()) {
+    RemoveInternalBreakpoints();
   }
 }
 
@@ -2068,9 +2115,9 @@ void Debugger::NotifyCompilation(const Function& func) {
   // need to be set in the newly compiled function.
   Script& script = Script::Handle(isolate_);
   for (SourceBreakpoint* bpt = src_breakpoints_;
-       bpt != NULL;
-       bpt = bpt->next()) {
-       script = bpt->script();
+      bpt != NULL;
+      bpt = bpt->next()) {
+    script = bpt->script();
     if (FunctionContains(func, script, bpt->token_pos())) {
       Function& inner_function = Function::Handle(isolate_);
       inner_function = FindInnermostClosure(func, bpt->token_pos());

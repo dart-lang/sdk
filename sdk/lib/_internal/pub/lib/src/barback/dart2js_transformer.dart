@@ -23,6 +23,7 @@ import '../io.dart';
 import '../package.dart';
 import '../package_graph.dart';
 import '../utils.dart';
+import 'build_environment.dart';
 
 /// The set of all valid configuration options for this transformer.
 final _validOptions = new Set<String>.from([
@@ -33,13 +34,8 @@ final _validOptions = new Set<String>.from([
 /// A [Transformer] that uses dart2js's library API to transform Dart
 /// entrypoints in "web" to JavaScript.
 class Dart2JSTransformer extends Transformer {
-  final PackageGraph _graph;
+  final BuildEnvironment _environment;
   final BarbackSettings _settings;
-
-  /// The [AssetId]s the transformer has discovered so far. Used by pub build
-  /// to determine where to copy the JS bootstrap files.
-  // TODO(rnystrom): Do something cleaner for this, or eliminate those files.
-  final entrypoints = new Set<AssetId>();
 
   /// If this is non-null, then the transformer is currently being applied, so
   /// subsequent calls to [apply] will wait for this to finish before
@@ -51,7 +47,7 @@ class Dart2JSTransformer extends Transformer {
   /// is here: https://code.google.com/p/dart/issues/detail?id=14730.
   Future _running;
 
-  Dart2JSTransformer.withSettings(this._graph, this._settings) {
+  Dart2JSTransformer.withSettings(this._environment, this._settings) {
     var invalidOptions = _settings.configuration.keys.toSet()
         .difference(_validOptions);
     if (invalidOptions.isEmpty) return;
@@ -61,14 +57,18 @@ class Dart2JSTransformer extends Transformer {
         "${toSentence(invalidOptions.map((option) => '"$option"'))}.");
   }
 
-  Dart2JSTransformer(PackageGraph graph, BarbackMode mode)
-      : this.withSettings(graph, new BarbackSettings({}, mode));
+  Dart2JSTransformer(BuildEnvironment environment, BarbackMode mode)
+      : this.withSettings(environment, new BarbackSettings({}, mode));
 
-  /// Only ".dart" files within "web/" are processed.
+  /// Only ".dart" files within a buildable directory are processed.
   Future<bool> isPrimary(Asset asset) {
-    return new Future.value(
-        asset.id.extension == ".dart" &&
-        asset.id.path.startsWith("web/"));
+    if (asset.id.extension != ".dart") return new Future.value(false);
+
+    for (var dir in ["benchmark", "example", "test", "web"]) {
+      if (asset.id.path.startsWith("$dir/")) return new Future.value(true);
+    }
+
+    return new Future.value(false);
   }
 
   Future apply(Transform transform) {
@@ -91,7 +91,7 @@ class Dart2JSTransformer extends Transformer {
       try {
         var id = transform.primaryInput.id;
         var name = id.path;
-        if (id.package != _graph.entrypoint.root.name) {
+        if (id.package != _environment.rootPackage.name) {
           name += " in ${id.package}";
         }
 
@@ -102,16 +102,15 @@ class Dart2JSTransformer extends Transformer {
         return null;
       }
 
-      var provider = new _BarbackCompilerProvider(_graph, transform);
+      var provider = new _BarbackCompilerProvider(_environment, transform);
 
       // Create a "path" to the entrypoint script. The entrypoint may not
       // actually be on disk, but this gives dart2js a root to resolve
       // relative paths against.
       var id = transform.primaryInput.id;
 
-      entrypoints.add(id);
-
-      var entrypoint = path.join(_graph.packages[id.package].dir, id.path);
+      var entrypoint = path.join(_environment.graph.packages[id.package].dir,
+          id.path);
 
       // TODO(rnystrom): Should have more sophisticated error-handling here.
       // Need to report compile errors to the user in an easily visible way.
@@ -125,7 +124,8 @@ class Dart2JSTransformer extends Transformer {
               'minify', defaultsTo: _settings.mode == BarbackMode.RELEASE),
           verbose: _configBool('verbose'),
           environment: _configEnvironment,
-          packageRoot: path.join(_graph.entrypoint.root.dir, "packages"),
+          packageRoot: path.join(_environment.rootPackage.dir,
+                                 "packages"),
           analyzeAll: _configBool('analyzeAll'),
           suppressWarnings: _configBool('suppressWarnings'),
           suppressHints: _configBool('suppressHints'),
@@ -187,7 +187,7 @@ class Dart2JSTransformer extends Transformer {
 /// difference is that it uses barback's logging code and, more importantly, it
 /// handles missing source files more gracefully.
 class _BarbackCompilerProvider implements dart.CompilerProvider {
-  final PackageGraph _graph;
+  final BuildEnvironment _environment;
   final Transform _transform;
 
   /// The map of previously loaded files.
@@ -221,7 +221,7 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
       compiler.Diagnostic.INFO.ordinal |
       compiler.Diagnostic.VERBOSE_INFO.ordinal;
 
-  _BarbackCompilerProvider(this._graph, this._transform);
+  _BarbackCompilerProvider(this._environment, this._transform);
 
   /// A [CompilerInputProvider] for dart2js.
   Future<String> provideInput(Uri resourceUri) {
@@ -344,14 +344,14 @@ class _BarbackCompilerProvider implements dart.CompilerProvider {
     // See if it's a path to a "public" asset within the root package. All
     // other files in the root package are not visible to transformers, so
     // should be loaded directly from disk.
-    var rootDir = _graph.entrypoint.root.dir;
+    var rootDir = _environment.rootPackage.dir;
     var sourcePath = path.fromUri(url);
     if (isBeneath(sourcePath, path.join(rootDir, "lib")) ||
         isBeneath(sourcePath, path.join(rootDir, "asset")) ||
         isBeneath(sourcePath, path.join(rootDir, "web"))) {
       var relative = path.relative(sourcePath, from: rootDir);
 
-      return new AssetId(_graph.entrypoint.root.name, relative);
+      return new AssetId(_environment.rootPackage.name, relative);
     }
 
     return null;

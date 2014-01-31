@@ -4,8 +4,6 @@
 
 library pub_tests;
 
-import 'dart:convert';
-
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 import '../serve/utils.dart';

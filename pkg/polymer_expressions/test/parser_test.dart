@@ -52,15 +52,14 @@ main() {
       expectParse('-1.23', literal(-1.23));
     });
 
-    test('should parse a plus operator with literals', () {
-      expectParse('1 + 2', binary(literal(1), '+', literal(2)));
-    });
-
     test('should parse binary operators', () {
-      expectParse('a && b', binary(ident('a'), '&&', ident('b')));
-      expectParse('1 && 2', binary(literal(1), '&&', literal(2)));
-      expectParse('false && true', binary(literal(false), '&&', literal(true)));
-      expectParse('false || true', binary(literal(false), '||', literal(true)));
+      var operators = ['+', '-', '*', '/', '%', '^', '==', '!=', '>', '<',
+          '>=', '<=', '||', '&&', '&'];
+      for (var op in operators) {
+        expectParse('a $op b', binary(ident('a'), op, ident('b')));
+        expectParse('1 $op 2', binary(literal(1), op, literal(2)));
+        expectParse('this $op null', binary(ident('this'), op, literal(null)));
+      }
     });
 
     test('should give multiply higher associativity than plus', () {
@@ -69,14 +68,6 @@ main() {
               ident('a'),
               '+',
               binary(ident('b'), '*', ident('c'))));
-    });
-
-    test('should give multiply higher associativity than plus 2', () {
-      expectParse('a * b + c',
-          binary(
-              binary(ident('a'), '*', ident('b')),
-              '+',
-              ident('c')));
     });
 
     test('should parse a dot operator', () {

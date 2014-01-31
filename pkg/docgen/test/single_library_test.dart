@@ -104,7 +104,7 @@ main() {
           expect(classDocComment, 'test.A');
 
           // Test for linking to parameter [A]
-          var method = getDocgenObject(classMirror.methods['doThis']);
+          var method = Indexable.getDocgenObject(classMirror.methods['doThis']);
           var methodParameterDocComment = method.fixReference(
               'A').children.first.text;
           expect(methodParameterDocComment, 'test.A.doThis.A');

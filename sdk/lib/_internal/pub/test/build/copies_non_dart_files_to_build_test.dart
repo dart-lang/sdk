@@ -24,15 +24,16 @@ main() {
     ]).create();
 
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built \d+ files!"),
-        exitCode: 0);
+        output: new RegExp(r"Built 2 files!"));
 
     d.dir(appPath, [
       d.dir('build', [
-        d.nothing('packages'),
-        d.file('file.txt', 'contents'),
-        d.dir('subdir', [
-          d.file('subfile.txt', 'subcontents')
+        d.dir('web', [
+          d.nothing('packages'),
+          d.file('file.txt', 'contents'),
+          d.dir('subdir', [
+            d.file('subfile.txt', 'subcontents')
+          ])
         ])
       ])
     ]).validate();

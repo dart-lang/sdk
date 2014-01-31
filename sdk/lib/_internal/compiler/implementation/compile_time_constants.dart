@@ -300,7 +300,11 @@ class CompileTimeConstantEvaluator extends Visitor {
          link = link.tail) {
       LiteralMapEntry entry = link.head;
       Constant key = evaluateConstant(entry.key);
-      if (!map.containsKey(key)) keys.add(key);
+      if (!map.containsKey(key)) {
+        keys.add(key);
+      } else {
+        compiler.reportWarningCode(entry.key, MessageKind.EQUAL_MAP_ENTRY_KEY);
+      }
       map[key] = evaluateConstant(entry.value);
     }
 

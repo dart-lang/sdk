@@ -8,23 +8,22 @@ import 'dart:async';
 
 import 'package:barback/barback.dart';
 
+import 'build_environment.dart';
 import 'dart2js_transformer.dart';
 import 'load_transformers.dart';
 import 'rewrite_import_transformer.dart';
-import 'server.dart';
 import '../barback.dart';
 import '../package_graph.dart';
 import '../utils.dart';
 
-/// Loads all transformers depended on by packages in [graph].
+/// Loads all transformers depended on by packages in [environment].
 ///
-/// This uses [server] to serve the Dart files from which transformers are
-/// loaded, then adds the transformers to `server.barback`.
+/// This uses [environment]'s server to serve the Dart files from which
+/// transformers are loaded, then adds the transformers to `server.barback`.
 ///
-/// Any [builtInTransformers] that are provided will automatically be added to
-/// the end of the root package's cascade.
-Future loadAllTransformers(BarbackServer server, PackageGraph graph,
-    BarbackMode mode, Iterable<Transformer> builtInTransformers) {
+/// Any built-in transformers that are provided by the environment will
+/// automatically be added to the end of the root package's cascade.
+Future loadAllTransformers(BuildEnvironment environment) {
   // In order to determine in what order we should load transformers, we need to
   // know which transformers depend on which others. This is different than
   // normal package dependencies. Let's begin with some terminology:
@@ -56,21 +55,21 @@ Future loadAllTransformers(BarbackServer server, PackageGraph graph,
   // Add a rewrite transformer for each package, so that we can resolve
   // "package:" imports while loading transformers.
   var rewrite = new RewriteImportTransformer();
-  for (var package in graph.packages.values) {
-    server.barback.updateTransformers(package.name, [[rewrite]]);
+  for (var package in environment.graph.packages.values) {
+    environment.barback.updateTransformers(package.name, [[rewrite]]);
   }
 
-  var orderingDeps = _computeOrderingDeps(graph);
-  var packageTransformers = _computePackageTransformers(graph);
+  var orderingDeps = _computeOrderingDeps(environment.graph);
+  var packageTransformers = _computePackageTransformers(environment.graph);
 
-  var loader = new _TransformerLoader(server, mode, graph);
+  var loader = new _TransformerLoader(environment);
 
   // The packages on which no packages have ordering dependencies -- that is,
   // the packages that don't need to be loaded before any other packages. These
   // packages will be loaded last, since all of their ordering dependencies need
   // to be loaded before they're loaded. However, they'll be traversed by
   // [loadPackage] first.
-  var rootPackages = graph.packages.keys.toSet()
+  var rootPackages = environment.graph.packages.keys.toSet()
       .difference(unionAll(orderingDeps.values));
 
   // The Futures for packages that have been loaded or are being actively loaded
@@ -89,13 +88,13 @@ Future loadAllTransformers(BarbackServer server, PackageGraph graph,
       // phase uses a transformer defined in [package] itself, that transform
       // should be loaded after running all previous phases.
       var transformers = [[rewrite]];
-      return Future.forEach(graph.packages[package].pubspec.transformers,
-          (phase) {
+      return Future.forEach(
+          environment.graph.packages[package].pubspec.transformers, (phase) {
         return Future.wait(phase.where((id) => id.package == package)
             .map(loader.load)).then((_) {
           transformers.add(unionAll(phase.map(
               (id) => loader.transformersFor(id))));
-          server.barback.updateTransformers(package, transformers);
+          environment.barback.updateTransformers(package, transformers);
         });
       }).then((_) {
         // Now that we've applied all the transformers used by [package] via
@@ -111,20 +110,15 @@ Future loadAllTransformers(BarbackServer server, PackageGraph graph,
   return Future.wait(rootPackages.map(loadPackage)).then((_) {
     /// Reset the transformers for each package to get rid of [rewrite], which
     /// is no longer needed.
-    for (var package in graph.packages.values) {
+    for (var package in environment.graph.packages.values) {
       var phases = package.pubspec.transformers.map((phase) {
         return unionAll(phase.map((id) => loader.transformersFor(id)));
       }).toList();
 
-      // The built-in transformers are for dart2js and forwarding assets around
-      // dart2js, and those only apply to the entrypoints in the root package.
-      if (package.name == graph.entrypoint.root.name &&
-          builtInTransformers != null &&
-          builtInTransformers.isNotEmpty) {
-        phases.add(builtInTransformers);
-      }
+      var transformers = environment.getBuiltInTransformers(package);
+      if (transformers != null) phases.add(transformers);
 
-      server.barback.updateTransformers(package.name, phases);
+      environment.barback.updateTransformers(package.name, phases);
     }
   });
 }
@@ -211,11 +205,7 @@ Map<String, Set<TransformerId>> _computePackageTransformers(
 
 /// A class that loads transformers defined in specific files.
 class _TransformerLoader {
-  final PackageGraph _graph;
-  final BarbackServer _server;
-
-  /// The mode that pub is running barback in.
-  final BarbackMode _mode;
+  final BuildEnvironment _environment;
 
   /// The loaded transformers defined in the library identified by each
   /// transformer id.
@@ -226,8 +216,8 @@ class _TransformerLoader {
   /// Used for error reporting.
   final _transformerUsers = new Map<Pair<String, String>, Set<String>>();
 
-  _TransformerLoader(this._server, this._mode, this._graph) {
-    for (var package in _graph.packages.values) {
+  _TransformerLoader(this._environment) {
+    for (var package in _environment.graph.packages.values) {
       for (var id in unionAll(package.pubspec.transformers)) {
         _transformerUsers.putIfAbsent(
             new Pair(id.package, id.path), () => new Set<String>())
@@ -246,7 +236,7 @@ class _TransformerLoader {
 
     // TODO(nweiz): load multiple instances of the same transformer from the
     // same isolate rather than spinning up a separate isolate for each one.
-    return loadTransformers(_server, _mode, id).then((transformers) {
+    return loadTransformers(_environment, id).then((transformers) {
       if (!transformers.isEmpty) {
         _transformers[id] = transformers;
         return;
@@ -282,8 +272,8 @@ class _TransformerLoader {
     assert(id.package == '\$dart2js');
     var transformer;
     try {
-      transformer = new Dart2JSTransformer.withSettings(
-          _graph, new BarbackSettings(id.configuration, _mode));
+      transformer = new Dart2JSTransformer.withSettings(_environment,
+          new BarbackSettings(id.configuration, _environment.mode));
     } on FormatException catch (error, stackTrace) {
       fail(error.message, error, stackTrace);
     }

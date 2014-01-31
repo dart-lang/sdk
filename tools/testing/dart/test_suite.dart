@@ -826,30 +826,30 @@ class StandardTestSuite extends TestSuite {
     }
   }
 
+  static Path _findPubspecYamlFile(Path filePath) {
+    final existsCache = TestUtils.existsCache;
+
+    Path root = TestUtils.dartDir();
+    assert ("$filePath".startsWith("$root"));
+
+    // We start with the parent directory of [filePath] and go up until
+    // the root directory (excluding the root).
+    List<String> segments =
+        filePath.directoryPath.relativeTo(root).segments();
+    while (segments.length > 0) {
+      var pubspecYamlPath =
+          new Path(segments.join('/')).append('pubspec.yaml');
+      if (existsCache.doesFileExist(pubspecYamlPath.toNativePath())) {
+        return root.join(pubspecYamlPath);
+      }
+      segments.removeLast();
+    }
+    return null;
+  }
+
   void enqueueTestCaseFromTestInformation(TestInformation info) {
     var filePath = info.filePath;
     var optionsFromFile = info.optionsFromFile;
-
-    Path findPubspecYamlFile(Path filePath) {
-      final existsCache = TestUtils.existsCache;
-
-      Path root = TestUtils.dartDir();
-      assert ("$filePath".startsWith("$root"));
-
-      // We start with the parent directory of [filePath] and go up until
-      // the root directory (excluding the root).
-      List<String> segments =
-          filePath.directoryPath.relativeTo(root).segments();
-      while (segments.length > 0) {
-        var pubspecYamlPath =
-            new Path(segments.join('/')).append('pubspec.yaml');
-        if (existsCache.doesFileExist(pubspecYamlPath.toNativePath())) {
-          return root.join(pubspecYamlPath);
-        }
-        segments.removeLast();
-      }
-      return null;
-    }
 
     Map buildSpecialPackageRoot(Path pubspecYamlFile) {
       var commands = <Command>[];
@@ -915,7 +915,7 @@ class StandardTestSuite extends TestSuite {
     Path packageRoot;
     if (configuration['use_repository_packages'] ||
         configuration['use_public_packages']) {
-        Path pubspecYamlFile = findPubspecYamlFile(filePath);
+        Path pubspecYamlFile = _findPubspecYamlFile(filePath);
         if (pubspecYamlFile != null) {
           var result = buildSpecialPackageRoot(pubspecYamlFile);
           baseCommands.addAll(result['commands']);
@@ -1238,7 +1238,10 @@ class StandardTestSuite extends TestSuite {
             commands.add(_polymerDeployCommand(
                 customHtmlPath, tempDir, optionsFromFile));
 
-            htmlPath = '$tempDir/test/$nameNoExt.html';
+            Path pubspecYamlFile = _findPubspecYamlFile(filePath);
+            Path homeDir = pubspecYamlFile == null ? dir :
+                pubspecYamlFile.directoryPath;
+            htmlPath = '$tempDir/${dir.relativeTo(homeDir)}/$nameNoExt.html';
             dartWrapperFilename = '${htmlPath}_bootstrap.dart';
             compiledDartWrapperFilename = '$dartWrapperFilename.js';
           } else {

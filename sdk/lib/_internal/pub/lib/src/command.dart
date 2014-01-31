@@ -186,7 +186,7 @@ and include the results in a bug report on http://dartbug.com/new.
         .then((_) {
       // Explicitly exit on success to ensure that any dangling dart:io handles
       // don't cause the process to never terminate.
-      return flushThenExit(0);
+      return flushThenExit(exit_codes.SUCCESS);
     });
   }
 

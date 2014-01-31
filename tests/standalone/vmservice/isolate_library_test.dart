@@ -18,15 +18,15 @@ class LibraryTest extends VmServiceRequestHelper {
   }
 }
 
-class RootLibraryTest extends VmServiceRequestHelper {
-  RootLibraryTest(port, id) :
-      super('http://127.0.0.1:$port/$id/library');
+class IsolateSummaryTest extends VmServiceRequestHelper {
+  IsolateSummaryTest(port, id) :
+      super('http://127.0.0.1:$port/$id/');
 
   String _libId;
   onRequestCompleted(Map reply) {
-    Expect.equals('Library', reply['type']);
-    Expect.equals('isolate_stacktrace_command_script', reply['name']);
-    _libId = reply['id'];
+    Expect.equals('Isolate', reply['type']);
+    Expect.equals('isolate_stacktrace_command_script', reply['rootLib']['name']);
+    _libId = reply['rootLib']['id'];
   }
 }
 
@@ -37,8 +37,8 @@ class IsolateListTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(2);
-    tester.checkIsolateNameContains('isolate_stacktrace_command_script.dart');
-    _isolateId = tester.checkIsolateNameContains('myIsolateName');
+    // TODO(turnidge): Fragile.  Relies on isolate order in response.
+    _isolateId = tester.getIsolateId(1);
   }
 }
 
@@ -47,11 +47,11 @@ main() {
   process.launch().then((port) {
     var test = new IsolateListTest(port);
     test.makeRequest().then((_) {
-      var rootLibraryTest =
-          new RootLibraryTest(port, test._isolateId);
-      rootLibraryTest.makeRequest().then((_) {
+      var isolateSummaryTest =
+          new IsolateSummaryTest(port, test._isolateId);
+      isolateSummaryTest.makeRequest().then((_) {
         var libraryTest = new LibraryTest(port, test._isolateId,
-                                          rootLibraryTest._libId);
+                                          isolateSummaryTest._libId);
         libraryTest.makeRequest().then((_) {
           process.requestExit();
         });

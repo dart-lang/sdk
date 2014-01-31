@@ -2902,9 +2902,7 @@ class NonErrorResolverTest extends ResolverTestCase {
   void test_nativeFunctionBodyInNonSDKCode_function() {
     Source source = addSource(EngineTestCase.createSource(["import 'dart-ext:x';", "int m(a) native 'string';"]));
     resolve(source);
-    // There's no good way to fool the file system into believing that the referenced file exists,
-    // but the test still verifies that the native function body is allowed because of the import.
-    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    assertNoErrors(source);
   }
 
   void test_newWithAbstractClass_factory() {
@@ -12885,12 +12883,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
-  void test_uriDoesNotExist_nativeLibrary() {
-    Source source = addSource(EngineTestCase.createSource(["import 'dart-ext:lib';"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
-  }
-
   void test_uriDoesNotExist_part() {
     Source source = addSource(EngineTestCase.createSource(["part 'unknown.dart';"]));
     resolve(source);
@@ -14297,10 +14289,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_uriDoesNotExist_import);
       });
-      _ut.test('test_uriDoesNotExist_nativeLibrary', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_uriDoesNotExist_nativeLibrary);
-      });
       _ut.test('test_uriDoesNotExist_part', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_uriDoesNotExist_part);
@@ -14948,12 +14936,16 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitFieldFormalParameter() {
-    InterfaceType intType = _typeProvider.intType;
     String fieldName = "f";
+    InterfaceType intType = _typeProvider.intType;
+    FieldElementImpl fieldElement = ElementFactory.fieldElement(fieldName, false, false, false, intType);
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    classA.fields = <FieldElement> [ElementFactory.fieldElement(fieldName, false, false, false, intType)];
+    classA.fields = <FieldElement> [fieldElement];
     FieldFormalParameter parameter = ASTFactory.fieldFormalParameter3(fieldName);
-    parameter.identifier.staticElement = ElementFactory.fieldFormalParameter(parameter.identifier);
+    FieldFormalParameterElementImpl parameterElement = ElementFactory.fieldFormalParameter(parameter.identifier);
+    parameterElement.field = fieldElement;
+    parameterElement.type = intType;
+    parameter.identifier.staticElement = parameterElement;
     resolveInClass(parameter, classA);
     JUnitTestCase.assertSame(intType, parameter.element.type);
   }

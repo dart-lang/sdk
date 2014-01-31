@@ -1416,6 +1416,270 @@ ASSEMBLER_TEST_RUN(SingleFPMoves2, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(PackedDoubleAdd, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 1.0, 2.0 };
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant1 = { 3.0, 4.0 };
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM10, Address(RAX, 0));
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
+  __ movups(XMM11, Address(RAX, 0));
+  __ addpd(XMM10, XMM11);
+  __ movaps(XMM0, XMM10);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleAdd, test) {
+  typedef double (*PackedDoubleAdd)();
+  double res = reinterpret_cast<PackedDoubleAdd>(test->entry())();
+  EXPECT_FLOAT_EQ(4.0, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedDoubleSub, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 1.0, 2.0 };
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant1 = { 3.0, 4.0 };
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM10, Address(RAX, 0));
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
+  __ movups(XMM11, Address(RAX, 0));
+  __ subpd(XMM10, XMM11);
+  __ movaps(XMM0, XMM10);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleSub, test) {
+  typedef double (*PackedDoubleSub)();
+  double res = reinterpret_cast<PackedDoubleSub>(test->entry())();
+  EXPECT_FLOAT_EQ(-2.0, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedDoubleNegate, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 1.0, 2.0 };
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM10, Address(RAX, 0));
+  __ negatepd(XMM10);
+  __ movaps(XMM0, XMM10);
+  __ popq(PP);  // Restore caller's pool pointer.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleNegate, test) {
+  typedef double (*PackedDoubleNegate)();
+  double res = reinterpret_cast<PackedDoubleNegate>(test->entry())();
+  EXPECT_FLOAT_EQ(-1.0, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { -1.0, 2.0 };
+  __ pushq(PP);  // Save caller's pool pointer and load a new one here.
+  __ LoadPoolPointer(PP);
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM10, Address(RAX, 0));
+  __ abspd(XMM10);
+  __ movaps(XMM0, XMM10);
+  __ popq(PP);  // Restore caller's pool pointer.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleAbsolute, test) {
+  typedef double (*PackedDoubleAbsolute)();
+  double res = reinterpret_cast<PackedDoubleAbsolute>(test->entry())();
+  EXPECT_FLOAT_EQ(1.0, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedDoubleMul, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 3.0, 2.0 };
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant1 = { 3.0, 4.0 };
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM10, Address(RAX, 0));
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
+  __ movups(XMM11, Address(RAX, 0));
+  __ mulpd(XMM10, XMM11);
+  __ movaps(XMM0, XMM10);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleMul, test) {
+  typedef double (*PackedDoubleMul)();
+  double res = reinterpret_cast<PackedDoubleMul>(test->entry())();
+  EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedDoubleDiv, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 9.0, 2.0 };
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant1 = { 3.0, 4.0 };
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM10, Address(RAX, 0));
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
+  __ movups(XMM11, Address(RAX, 0));
+  __ divpd(XMM10, XMM11);
+  __ movaps(XMM0, XMM10);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleDiv, test) {
+  typedef double (*PackedDoubleDiv)();
+  double res = reinterpret_cast<PackedDoubleDiv>(test->entry())();
+  EXPECT_FLOAT_EQ(3.0, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedDoubleSqrt, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 16.0, 2.0 };
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM10, Address(RAX, 0));
+  __ sqrtpd(XMM10);
+  __ movaps(XMM0, XMM10);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleSqrt, test) {
+  typedef double (*PackedDoubleSqrt)();
+  double res = reinterpret_cast<PackedDoubleSqrt>(test->entry())();
+  EXPECT_FLOAT_EQ(4.0, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedDoubleMin, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 9.0, 2.0 };
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant1 = { 3.0, 4.0 };
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM10, Address(RAX, 0));
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
+  __ movups(XMM11, Address(RAX, 0));
+  __ minpd(XMM10, XMM11);
+  __ movaps(XMM0, XMM10);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleMin, test) {
+  typedef double (*PackedDoubleMin)();
+  double res = reinterpret_cast<PackedDoubleMin>(test->entry())();
+  EXPECT_FLOAT_EQ(3.0, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedDoubleMax, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 9.0, 2.0 };
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant1 = { 3.0, 4.0 };
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM10, Address(RAX, 0));
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant1)));
+  __ movups(XMM11, Address(RAX, 0));
+  __ maxpd(XMM10, XMM11);
+  __ movaps(XMM0, XMM10);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleMax, test) {
+  typedef double (*PackedDoubleMax)();
+  double res = reinterpret_cast<PackedDoubleMax>(test->entry())();
+  EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedDoubleToSingle, assembler) {
+  static const struct ALIGN16 {
+    double a;
+    double b;
+  } constant0 = { 9.0, 2.0 };
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM11, Address(RAX, 0));
+  __ cvtpd2ps(XMM10, XMM11);
+  __ movaps(XMM0, XMM10);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedDoubleToSingle, test) {
+  typedef float (*PackedDoubleToSingle)();
+  float res = reinterpret_cast<PackedDoubleToSingle>(test->entry())();
+  EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
+}
+
+
+ASSEMBLER_TEST_GENERATE(PackedSingleToDouble, assembler) {
+  static const struct ALIGN16 {
+    float a;
+    float b;
+    float c;
+    float d;
+  } constant0 = { 9.0f, 2.0f, 3.0f, 4.0f };
+  __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
+  __ movups(XMM11, Address(RAX, 0));
+  __ cvtps2pd(XMM10, XMM11);
+  __ movaps(XMM0, XMM10);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(PackedSingleToDouble, test) {
+  typedef double (*PackedSingleToDouble)();
+  double res = reinterpret_cast<PackedSingleToDouble>(test->entry())();
+  EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
+}
+
+
 ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
   __ pushq(RBX);
   __ pushq(RCX);

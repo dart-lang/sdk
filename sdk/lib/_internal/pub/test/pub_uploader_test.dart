@@ -11,6 +11,7 @@ import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
+import '../lib/src/exit_codes.dart' as exit_codes;
 import '../lib/src/io.dart';
 import '../lib/src/utils.dart';
 import 'descriptor.dart' as d;
@@ -40,17 +41,17 @@ main() {
   group('displays usage', () {
     integration('when run with no arguments', () {
       schedulePub(args: ['uploader'],
-          output: USAGE_STRING, exitCode: 64);
+          output: USAGE_STRING, exitCode: exit_codes.USAGE);
     });
 
     integration('when run with only a command', () {
       schedulePub(args: ['uploader', 'add'],
-          output: USAGE_STRING, exitCode: 64);
+          output: USAGE_STRING, exitCode: exit_codes.USAGE);
     });
 
     integration('when run with an invalid command', () {
       schedulePub(args: ['uploader', 'foo', 'email'],
-          output: USAGE_STRING, exitCode: 64);
+          output: USAGE_STRING, exitCode: exit_codes.USAGE);
     });
   });
 
@@ -73,7 +74,7 @@ main() {
     });
 
     expect(pub.nextLine(), completion(equals('Good job!')));
-    pub.shouldExit(0);
+    pub.shouldExit(exit_codes.SUCCESS);
   });
 
   integration('removes an uploader', () {
@@ -91,7 +92,7 @@ main() {
     });
 
     expect(pub.nextLine(), completion(equals('Good job!')));
-    pub.shouldExit(0);
+    pub.shouldExit(exit_codes.SUCCESS);
   });
 
   integration('defaults to the current package', () {
@@ -111,7 +112,7 @@ main() {
     });
 
     expect(pub.nextLine(), completion(equals('Good job!')));
-    pub.shouldExit(0);
+    pub.shouldExit(exit_codes.SUCCESS);
   });
 
   integration('add provides an error', () {

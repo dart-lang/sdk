@@ -18,7 +18,7 @@ import '../barback.dart';
 import '../dart.dart' as dart;
 import '../log.dart' as log;
 import '../utils.dart';
-import 'server.dart';
+import 'build_environment.dart';
 
 /// A Dart script to run in an isolate.
 ///
@@ -362,14 +362,12 @@ Stream callbackStream(Stream callback()) {
 
 /// Load and return all transformers and groups from the library identified by
 /// [id].
-///
-/// [server] is used to serve any Dart files needed to load the transformers.
-Future<Set> loadTransformers(BarbackServer server, BarbackMode mode,
-    TransformerId id) {
-  return id.getAssetId(server.barback).then((assetId) {
+Future<Set> loadTransformers(BuildEnvironment environment, TransformerId id) {
+  return id.getAssetId(environment.barback).then((assetId) {
     var path = assetId.path.replaceFirst('lib/', '');
     // TODO(nweiz): load from a "package:" URI when issue 12474 is fixed.
-    var baseUrl = baseUrlForAddress(server.address, server.port);
+    var baseUrl = baseUrlForAddress(environment.server.address,
+                                    environment.server.port);
     var uri = '$baseUrl/packages/${id.package}/$path';
     var code = 'import "$uri";\n' +
         _TRANSFORMER_ISOLATE.replaceAll('<<URL_BASE>>', baseUrl);
@@ -381,7 +379,7 @@ Future<Set> loadTransformers(BarbackServer server, BarbackMode mode,
         .then((sendPort) {
       return _call(sendPort, {
         'library': uri,
-        'mode': mode.name,
+        'mode': environment.mode.name,
         // TODO(nweiz): support non-JSON-encodable configuration maps.
         'configuration': JSON.encode(id.configuration)
       }).then((transformers) {

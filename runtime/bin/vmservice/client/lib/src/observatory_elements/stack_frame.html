@@ -1,0 +1,36 @@
+<head>
+  <link rel="import" href="function_ref.html">
+  <link rel="import" href="instance_ref.html">
+  <link rel="import" href="observatory_element.html">
+  <link rel="import" href="script_ref.html">
+</head>
+<polymer-element name="stack-frame" extends="observatory-element">
+  <template>
+    <div class="row">
+      <div class="col-md-1"></div>
+      <div class="col-md-1">
+        #{{ frame['depth'] }}
+      </div>
+      <div class="col-md-9">
+        <function-ref app="{{ app }}" ref="{{ frame['function'] }}"></function-ref>
+        ( <script-ref app="{{ app }}" ref="{{ frame['script'] }}"></script-ref>:{{ frame['line'] }} )
+      </div>
+      <div class="col-md-1"></div>
+    </div>
+
+    <template repeat="{{ v in frame['vars'] }}">
+      <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-1">
+          {{ v['name'] }}
+        </div>
+        <div class="col-md-6">
+          <instance-ref app="{{ app }}" ref="{{ v['value'] }}"></instance-ref>
+        </div>
+        <div class="col-md-2"></div>
+      </div>
+    </template>
+
+  </template>
+  <script type="application/dart" src="stack_frame.dart"></script>
+</polymer-element>

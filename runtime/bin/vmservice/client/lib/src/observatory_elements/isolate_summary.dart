@@ -5,12 +5,12 @@
 library isolate_summary_element;
 
 import 'package:polymer/polymer.dart';
+import 'package:observatory/observatory.dart';
 import 'observatory_element.dart';
 
 @CustomTag('isolate-summary')
 class IsolateSummaryElement extends ObservatoryElement {
-  @published String isolate;
-  @published String name = '';
+  @published Isolate isolate;
 
   IsolateSummaryElement.created() : super.created();
 }

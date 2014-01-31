@@ -169,8 +169,8 @@ Configuration get unittestConfiguration {
  * Throws a [StateError] if there is an existing, incompatible value.
  */
 void set unittestConfiguration(Configuration value) {
-  if(!identical(_config, value)) {
-    if(_config != null) {
+  if (!identical(_config, value)) {
+    if (_config != null) {
       throw new StateError('unittestConfiguration has already been set');
     }
     _config = value;
@@ -301,9 +301,9 @@ var _lastBreath = new DateTime.now().millisecondsSinceEpoch;
 // imply that the test fails). We can't do it without also changing
 // the testrunner and test.dart though.
 /// Result string for a passing test case.
-const PASS  = 'pass';
+const PASS = 'pass';
 /// Result string for a failing test case.
-const FAIL  = 'fail';
+const FAIL = 'fail';
 /// Result string for an test case with an error.
 const ERROR = 'error';
 

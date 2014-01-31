@@ -36,12 +36,12 @@ abstract class _RectangleBase<T extends num> {
 
   bool operator ==(other) {
     if (other is !Rectangle) return false;
-    return left == other.left && top == other.top && width == other.width &&
-        height == other.height;
+    return left == other.left && top == other.top && right == other.right &&
+        bottom == other.bottom;
   }
 
   int get hashCode => _JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
-      width.hashCode, height.hashCode);
+      right.hashCode, bottom.hashCode);
 
   /**
    * Computes the intersection of `this` and [other].

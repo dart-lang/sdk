@@ -41,9 +41,7 @@ main() {
     // Doesn't output anything if an error occurred.
     d.dir(appPath, [
       d.dir('build', [
-        d.nothing('file.dart.js'),
-        d.nothing('file.dart'),
-        d.nothing('subdir')
+        d.nothing('web')
       ])
     ]).validate();
   });

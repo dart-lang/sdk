@@ -33,8 +33,7 @@ class IsolateListTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     IsolateListTester tester = new IsolateListTester(reply);
     tester.checkIsolateCount(1);
-    tester.checkIsolateNameContains('unknown_isolate_command_script.dart');
-    _isolateId = reply['members'][0]['id'];
+    _isolateId = tester.getIsolateId(0);
   }
 }
 

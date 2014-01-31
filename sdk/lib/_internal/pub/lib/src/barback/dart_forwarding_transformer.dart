@@ -15,9 +15,7 @@ import '../utils.dart';
 ///
 /// Since the [Dart2JSTransformer] consumes its inputs, this is used in
 /// parallel to make sure the original Dart file is still available for use by
-/// Dartium. In release mode, it's used to the do the exact opposite: it
-/// ensures that no Dart files are emitted, since all that is deployed is the
-/// compiled JavaScript.
+/// Dartium.
 class DartForwardingTransformer extends Transformer {
   /// The mode that the transformer is running in.
   final BarbackMode _mode;
@@ -28,9 +26,7 @@ class DartForwardingTransformer extends Transformer {
 
   Future apply(Transform transform) {
     return newFuture(() {
-      if (_mode != BarbackMode.RELEASE) {
-        transform.addOutput(transform.primaryInput);
-      }
+      transform.addOutput(transform.primaryInput);
     });
   }
 }

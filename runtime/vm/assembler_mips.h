@@ -796,22 +796,22 @@ class Assembler : public ValueObject {
   void BranchPatchable(const ExternalLabel* label) {
     const uint16_t low = Utils::Low16Bits(label->address());
     const uint16_t high = Utils::High16Bits(label->address());
-    lui(TMP, Immediate(high));
-    ori(TMP, TMP, Immediate(low));
-    jr(TMP);
+    lui(T9, Immediate(high));
+    ori(T9, T9, Immediate(low));
+    jr(T9);
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
   void BranchLink(const ExternalLabel* label) {
-    LoadImmediate(TMP, label->address());
-    jalr(TMP);
+    LoadImmediate(T9, label->address());
+    jalr(T9);
   }
 
   void BranchLinkPatchable(const ExternalLabel* label) {
     const int32_t offset =
         Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
-    LoadWordFromPoolOffset(TMP, offset);
-    jalr(TMP);
+    LoadWordFromPoolOffset(T9, offset);
+    jalr(T9);
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 

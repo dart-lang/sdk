@@ -46,12 +46,13 @@ main() {
 
     createLockFile('myapp', pkg: ['barback']);
 
-    schedulePub(args: ["build"],
-        exitCode: 0);
+    schedulePub(args: ["build"]);
 
     d.dir(appPath, [
       d.dir('build', [
-        d.file('foo.out', 'release')
+        d.dir('web', [
+          d.file('foo.out', 'release')
+        ])
       ])
     ]).validate();
   });

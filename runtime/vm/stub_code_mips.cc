@@ -84,8 +84,13 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Set argv in NativeArguments.
   __ addiu(A2, A2, Immediate(exitframe_last_param_slot_from_fp * kWordSize));
 
+
   // Call runtime or redirection via simulator.
-  __ jalr(S5);
+  // We defensively always jalr through T9 because it is sometimes required by
+  // the MIPS ABI.
+  __ mov(T9, S5);
+  __ jalr(T9);
+
     ASSERT(retval_offset == 3 * kWordSize);
   // Retval is next to 1st argument.
   __ delay_slot()->addiu(A3, A2, Immediate(kWordSize));
@@ -206,8 +211,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
   entry = Simulator::RedirectExternalReference(
       entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
-  __ LoadImmediate(T5, entry);
-  __ jalr(T5);
+  __ LoadImmediate(T9, entry);
+  __ jalr(T9);
 #else
   __ BranchLink(&NativeEntry::NativeCallWrapperLabel());
 #endif
@@ -217,7 +222,12 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ Bind(&leaf_call);
   // Call native function or redirection via simulator.
   __ ReserveAlignedFrameSpace(kWordSize);  // Just passing A0.
-  __ jalr(T5);
+
+
+  // We defensively always jalr through T9 because it is sometimes required by
+  // the MIPS ABI.
+  __ mov(T9, T5);
+  __ jalr(T9);
 
   __ Bind(&done);
 
@@ -307,7 +317,11 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ ReserveAlignedFrameSpace(kWordSize);  // Just passing A0.
 
   // Call native function or redirection via simulator.
-  __ jalr(T5);
+
+  // We defensively always jalr through T9 because it is sometimes required by
+  // the MIPS ABI.
+  __ mov(T9, T5);
+  __ jalr(T9);
   __ TraceSimMsg("CallNativeCFunctionStub return");
 
   // Reset exit frame information in Isolate structure.
@@ -1023,6 +1037,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Bind(&done_push_arguments);
 
   // Call the Dart code entrypoint.
+  // We are calling into Dart code, here, so there is no need to call through
+  // T9 to match the ABI.
   __ jalr(A0);  // S4 is the arguments descriptor array.
   __ TraceSimMsg("InvokeDartCodeStub return");
 

@@ -54,6 +54,12 @@ bool get _isReady {
  */
 Future loadCustomElementPolyfill() {
   if (!document.supportsRegister && !js.context.hasProperty('CustomElements')) {
+    if (!MutationObserver.supported) {
+      var script = new ScriptElement()
+          ..src = '/packages/mutation_observer/mutation_observer.js';
+      document.head.append(script);
+    }
+
     var script = new ScriptElement()
         ..src = '/packages/custom_element/custom-elements.debug.js';
     document.head.append(script);

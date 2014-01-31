@@ -19,7 +19,8 @@ void main(List<String> arguments) {
   ArgResults options;
 
   try {
-    options = PubCommand.pubArgParser.parse(arguments);
+    options = PubCommand.pubArgParser.parse(arguments,
+        allowTrailingOptions: true);
   } on FormatException catch (e) {
     log.error(e.message);
     log.error('Run "pub help" to see available options.');

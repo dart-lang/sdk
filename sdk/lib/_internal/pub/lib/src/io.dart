@@ -14,6 +14,7 @@ import 'package:path/path.dart' as path;
 import 'package:http/http.dart' show ByteStream;
 import 'package:stack_trace/stack_trace.dart';
 
+import 'exit_codes.dart' as exit_codes;
 import 'error_group.dart';
 import 'log.dart' as log;
 import 'pool.dart';
@@ -727,7 +728,7 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
     ]);
   }).then((results) {
     var exitCode = results[1];
-    if (exitCode != 0) {
+    if (exitCode != exit_codes.SUCCESS) {
       throw new Exception("Failed to extract .tar.gz stream to $destination "
           "(exit code $exitCode).");
     }
@@ -759,7 +760,7 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
       // path because 7zip says "A full path is not allowed here."
       return runProcess(pathTo7zip, ['e', 'data.tar.gz'], workingDir: tempDir);
     }).then((result) {
-      if (result.exitCode != 0) {
+      if (result.exitCode != exit_codes.SUCCESS) {
         throw new Exception('Could not un-gzip (exit code ${result.exitCode}). '
                 'Error:\n'
             '${result.stdout.join("\n")}\n'
@@ -776,7 +777,7 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
       // Untar the archive into the destination directory.
       return runProcess(pathTo7zip, ['x', tarFile], workingDir: destination);
     }).then((result) {
-      if (result.exitCode != 0) {
+      if (result.exitCode != exit_codes.SUCCESS) {
         throw new Exception('Could not un-tar (exit code ${result.exitCode}). '
                 'Error:\n'
             '${result.stdout.join("\n")}\n'
@@ -855,7 +856,7 @@ class PubProcessResult {
 
   const PubProcessResult(this.stdout, this.stderr, this.exitCode);
 
-  bool get success => exitCode == 0;
+  bool get success => exitCode == exit_codes.SUCCESS;
 }
 
 /// Gets a [Uri] for [uri], which can either already be one, or be a [String].

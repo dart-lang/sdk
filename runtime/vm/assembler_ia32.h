@@ -446,6 +446,18 @@ class Assembler : public ValueObject {
   void set1ps(XmmRegister dst, Register tmp, const Immediate& imm);
   void shufps(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
+  void addpd(XmmRegister dst, XmmRegister src);
+  void negatepd(XmmRegister dst);
+  void subpd(XmmRegister dst, XmmRegister src);
+  void mulpd(XmmRegister dst, XmmRegister src);
+  void divpd(XmmRegister dst, XmmRegister src);
+  void abspd(XmmRegister dst);
+  void minpd(XmmRegister dst, XmmRegister src);
+  void maxpd(XmmRegister dst, XmmRegister src);
+  void sqrtpd(XmmRegister dst);
+  void cvtps2pd(XmmRegister dst, XmmRegister src);
+  void cvtpd2ps(XmmRegister dst, XmmRegister src);
+
   void cvtsi2ss(XmmRegister dst, Register src);
   void cvtsi2sd(XmmRegister dst, Register src);
 

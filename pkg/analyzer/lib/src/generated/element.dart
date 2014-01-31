@@ -1870,6 +1870,11 @@ abstract class AngularDirectiveElement implements AngularHasSelectorElement {
    * Return an array containing all of the properties declared by this directive.
    */
   List<AngularPropertyElement> get properties;
+
+  /**
+   * Checks if this directive is implemented by the class with given name.
+   */
+  bool isClass(String name);
 }
 
 /**
@@ -6354,6 +6359,11 @@ class AngularDirectiveElementImpl extends AngularHasSelectorElementImpl implemen
 
   List<AngularPropertyElement> get properties => _properties;
 
+  bool isClass(String name) {
+    Element enclosing = enclosingElement;
+    return enclosing is ClassElement && enclosing.name == name;
+  }
+
   /**
    * Set an array containing all of the properties declared by this directive.
    *
@@ -6512,6 +6522,19 @@ class HasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
   }
 
   String get displayName => "[${super.displayName}]";
+}
+
+/**
+ * Combination of [IsTagSelectorElementImpl] and [HasAttributeSelectorElementImpl].
+ */
+class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
+  final String tagName;
+
+  final String attributeName;
+
+  IsTagHasAttributeSelectorElementImpl(this.tagName, this.attributeName) : super(null, -1);
+
+  bool apply(XmlTagNode node) => node.tag == tagName && node.getAttribute(attributeName) != null;
 }
 
 /**

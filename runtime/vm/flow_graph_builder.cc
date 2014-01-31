@@ -590,7 +590,7 @@ void EffectGraphVisitor::Goto(JoinEntryInstr* join) {
   } else {
     exit()->Goto(join);
   }
-  exit_ = NULL;
+  CloseFragment();
 }
 
 
@@ -949,16 +949,21 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   ValueGraphVisitor for_value(owner());
   node->value()->Visit(&for_value);
   Append(for_value);
+  Value* return_value = for_value.value();
 
-  for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
-    InlineBailout("EffectGraphVisitor::VisitReturnNode (exception)");
-    EffectGraphVisitor for_effect(owner());
-    node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
-    Append(for_effect);
-    if (!is_open()) {
-      owner()->DeallocateTemps(owner()->temp_count());
-      return;
+  if (node->inlined_finally_list_length() > 0) {
+    LocalVariable* temp = node->saved_return_value_var();
+    Do(BuildStoreLocal(*temp, return_value, kResultNotNeeded));
+    for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
+      InlineBailout("EffectGraphVisitor::VisitReturnNode (exception)");
+      EffectGraphVisitor for_effect(owner());
+      node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
+      Append(for_effect);
+      if (!is_open()) {
+        return;
+      }
     }
+    return_value = Bind(BuildLoadLocal(*temp));
   }
 
   // Call to stub that checks whether the debugger is in single
@@ -973,7 +978,6 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
                                            PcDescriptors::kReturn));
   }
 
-  Value* return_value = for_value.value();
   if (FLAG_enable_type_checks) {
     const bool is_implicit_dynamic_getter =
         (!function.is_static() &&

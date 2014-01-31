@@ -182,6 +182,7 @@ class _UrlNormalizer extends TreeVisitor {
     if (path.isAbsolute(href)) return href;
 
     var id = resolve(sourceId, href, transform.logger, span);
+    if (id == null) return href;
     var primaryId = transform.primaryInput.id;
 
     if (id.path.startsWith('lib/')) {

@@ -3195,6 +3195,9 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
+  // TODO(turnidge): This is a bit simplistic.  It overcounts when
+  // other operations (gc, compilation) are active.
+  TIMERSCOPE(time_dart_execution);
 
   const String& function_name = Api::UnwrapStringHandle(isolate, name);
   if (function_name.IsNull()) {

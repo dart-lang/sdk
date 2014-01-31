@@ -426,7 +426,6 @@ class SourceVisitor implements ASTVisitor {
 
   visitAssertStatement(AssertStatement node) {
     token(node.keyword);
-    space();
     token(node.leftParenthesis);
     visit(node.condition);
     token(node.rightParenthesis);
@@ -477,7 +476,10 @@ class SourceVisitor implements ASTVisitor {
   visitCascadeExpression(CascadeExpression node) {
     visit(node.target);
     indent(2);
-    newlines();
+    // Single cascades do not force a linebreak (dartbug.com/16384)
+    if (node.cascadeSections.length > 1) {
+      newlines();
+    }
     visitNodes(node.cascadeSections, separatedBy: newlines);
     unindent(2);
   }
@@ -1000,12 +1002,14 @@ class SourceVisitor implements ASTVisitor {
     modifier(node.constKeyword);
     visitNode(node.typeArguments, followedBy: space);
     token(node.leftBracket);
-    newlines();
-    indent();
-    visitCommaSeparatedNodes(node.entries, followedBy: newlines);
-    optionalTrailingComma(node.rightBracket);
-    unindent();
-    newlines();
+    if (!node.entries.isEmpty) {
+      newlines();
+      indent();
+      visitCommaSeparatedNodes(node.entries, followedBy: newlines);
+      optionalTrailingComma(node.rightBracket);
+      unindent();
+      newlines();
+    }
     token(node.rightBracket);
   }
 
@@ -1197,8 +1201,10 @@ class SourceVisitor implements ASTVisitor {
     visitNodes(node.labels, separatedBy: space, followedBy: space);
     token(node.keyword);
     token(node.colon);
-    space();
-    visitNodes(node.statements, separatedBy: space);
+    newlines();
+    indent();
+    visitNodes(node.statements, separatedBy: newlines);
+    unindent();
   }
 
   visitSwitchStatement(SwitchStatement node) {

@@ -17,6 +17,10 @@
     }
   });
 
+  // ShadowCSS needs this:
+  window.wrap = window.ShadowDOMPolyfill.wrap;
+  window.unwrap = window.ShadowDOMPolyfill.unwrap;
+
   //TODO(sjmiles): review method alias with Arv
   HTMLElement.prototype.webkitCreateShadowRoot =
       HTMLElement.prototype.createShadowRoot;

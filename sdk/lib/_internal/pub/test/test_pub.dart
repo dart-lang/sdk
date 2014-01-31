@@ -22,6 +22,7 @@ import 'package:unittest/compact_vm_config.dart';
 import 'package:yaml/yaml.dart';
 
 import '../lib/src/entrypoint.dart';
+import '../lib/src/exit_codes.dart' as exit_codes;
 // TODO(rnystrom): Using "gitlib" as the prefix here is ugly, but "git" collides
 // with the git descriptor method. Maybe we should try to clean up the top level
 // scope a bit?
@@ -382,7 +383,7 @@ void scheduleSymlink(String target, String symlink) {
 /// [outputJson]), [error], and [exitCode]. If [outputJson] is given, validates
 /// that pub outputs stringified JSON matching that object.
 void schedulePub({List args, Pattern output, Pattern error, outputJson,
-    Future<Uri> tokenEndpoint, int exitCode: 0}) {
+    Future<Uri> tokenEndpoint, int exitCode: exit_codes.SUCCESS}) {
   // Cannot pass both output and outputJson.
   assert(output == null || outputJson == null);
 

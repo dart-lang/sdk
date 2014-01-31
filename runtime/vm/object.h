@@ -1776,11 +1776,6 @@ class Function : public Object {
   void SetIsOptimizable(bool value) const;
   void SetIsNativeAutoSetupScope(bool value) const;
 
-  bool has_finally() const {
-    return HasFinallyBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_has_finally(bool value) const;
-
   bool is_native() const { return NativeBit::decode(raw_ptr()->kind_tag_); }
   void set_is_native(bool value) const;
 
@@ -1977,10 +1972,9 @@ class Function : public Object {
     kInlinableBit = 9,
     kIntrinsicBit = 10,
     kRecognizedBit = 11,
-    kHasFinallyBit = 12,
-    kNativeBit = 13,
-    kRedirectingBit = 14,
-    kExternalBit = 15,
+    kNativeBit = 12,
+    kRedirectingBit = 13,
+    kExternalBit = 14,
   };
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
@@ -1992,7 +1986,6 @@ class Function : public Object {
   class InlinableBit : public BitField<bool, kInlinableBit, 1> {};
   class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
   class RecognizedBit : public BitField<bool, kRecognizedBit, 1> {};
-  class HasFinallyBit : public BitField<bool, kHasFinallyBit, 1> {};
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
   class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};

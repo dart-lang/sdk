@@ -109,7 +109,7 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
   void close() {
     if (MacOSDirectoryWatcher.logDebugInfo) {
-      print("[$_id] watcher is closed");
+      print("[$_id] watcher is closed\n${new Chain.current().terse}");
     }
     if (_watchSubscription != null) _watchSubscription.cancel();
     if (_initialListSubscription != null) _initialListSubscription.cancel();
@@ -468,6 +468,10 @@ class _MacOSDirectoryWatcher implements ManuallyClosedDirectoryWatcher {
 
   /// Emit an error, then close the watcher.
   void _emitError(error, StackTrace stackTrace) {
+    if (MacOSDirectoryWatcher.logDebugInfo) {
+      print("[$_id] emitting error: $error\n" +
+          "${new Chain.forTrace(stackTrace).terse}");
+    }
     _eventsController.addError(error, stackTrace);
     close();
   }

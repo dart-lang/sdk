@@ -72,12 +72,7 @@ Future compile(String entrypoint, CompilerProvider provider, {
     if (terse) options.add('--terse');
     if (toDart) options.add('--output-type=dart');
 
-    if (environment != null) {
-      environment.forEach((name, value) {
-        options.add('-D$name=$value');
-      });
-    }
-
+    if (environment == null) environment = {};
     if (commandLineOptions != null) options.addAll(commandLineOptions);
 
     if (packageRoot == null) {
@@ -91,7 +86,8 @@ Future compile(String entrypoint, CompilerProvider provider, {
         provider.provideInput,
         provider.handleDiagnostic,
         options,
-        provider.provideOutput));
+        provider.provideOutput,
+        environment));
   });
 }
 

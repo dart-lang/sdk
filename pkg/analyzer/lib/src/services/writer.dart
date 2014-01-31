@@ -232,7 +232,7 @@ class Chunk implements LineText {
     }
   }
 
-  bool fits(LineText text) => length + text.length < maxLength;
+  bool fits(LineText text) => length + text.length <= maxLength;
 
   int get length => start.value.length + buffer.length;
 
@@ -257,11 +257,15 @@ class LineToken implements LineText {
 
   String toString() => value;
 
-  int get length => value.length;
+  int get length => lengthLessNewlines(value);
 
   void addTo(Chunk chunk) {
     chunk.buffer.write(value);
   }
+
+  int lengthLessNewlines(String str) =>
+      str.endsWith('\n') ? str.length - 1 : str.length;
+
 }
 
 

@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
@@ -51,9 +50,15 @@ main() {
 
     d.dir(appPath, [
       d.appPubspec({"browser": "1.0.0"}),
-      d.dir('web', [
+      d.dir('example', [
         d.file('file.dart', 'void main() => print("hello");'),
         d.dir('subdir', [
+          d.file('subfile.dart', 'void main() => print("subhello");')
+        ])
+      ]),
+      d.dir('web', [
+        d.file('file.dart', 'void main() => print("hello");'),
+        d.dir('subweb', [
           d.file('subfile.dart', 'void main() => print("subhello");')
         ])
       ])
@@ -61,27 +66,46 @@ main() {
 
     pubGet();
 
-    schedulePub(args: ["build"],
-        output: new RegExp(r"Built 12 files!"),
-        exitCode: 0);
+    schedulePub(args: ["build", "--all"],
+        output: new RegExp(r"Built 20 files!"));
 
     d.dir(appPath, [
       d.dir('build', [
-        d.matcherFile('file.dart.js', isNot(isEmpty)),
-        d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
-        d.matcherFile('file.dart.js.map', isNot(isEmpty)),
-        d.dir('packages', [d.dir('browser', [
-          d.file('dart.js', 'contents of dart.js'),
-          d.file('interop.js', 'contents of interop.js')
-        ])]),
-        d.dir('subdir', [
+        d.dir('example', [
+          d.matcherFile('file.dart.js', isNot(isEmpty)),
+          d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
+          d.matcherFile('file.dart.js.map', isNot(isEmpty)),
           d.dir('packages', [d.dir('browser', [
             d.file('dart.js', 'contents of dart.js'),
             d.file('interop.js', 'contents of interop.js')
           ])]),
-          d.matcherFile('subfile.dart.js', isNot(isEmpty)),
-          d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
-          d.matcherFile('subfile.dart.js.map', isNot(isEmpty))
+          d.dir('subdir', [
+            d.dir('packages', [d.dir('browser', [
+              d.file('dart.js', 'contents of dart.js'),
+              d.file('interop.js', 'contents of interop.js')
+            ])]),
+            d.matcherFile('subfile.dart.js', isNot(isEmpty)),
+            d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
+            d.matcherFile('subfile.dart.js.map', isNot(isEmpty))
+          ])
+        ]),
+        d.dir('web', [
+          d.matcherFile('file.dart.js', isNot(isEmpty)),
+          d.matcherFile('file.dart.precompiled.js', isNot(isEmpty)),
+          d.matcherFile('file.dart.js.map', isNot(isEmpty)),
+          d.dir('packages', [d.dir('browser', [
+            d.file('dart.js', 'contents of dart.js'),
+            d.file('interop.js', 'contents of interop.js')
+          ])]),
+          d.dir('subweb', [
+            d.dir('packages', [d.dir('browser', [
+              d.file('dart.js', 'contents of dart.js'),
+              d.file('interop.js', 'contents of interop.js')
+            ])]),
+            d.matcherFile('subfile.dart.js', isNot(isEmpty)),
+            d.matcherFile('subfile.dart.precompiled.js', isNot(isEmpty)),
+            d.matcherFile('subfile.dart.js.map', isNot(isEmpty))
+          ])
         ])
       ])
     ]).validate();

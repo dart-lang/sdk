@@ -28,14 +28,15 @@ main() {
     ]).create();
 
     schedulePub(args: ["build"],
-        output: new RegExp(r"Built 6 files!"),
-        exitCode: 0);
+        output: new RegExp(r"Built 6 files!"));
 
     d.dir(appPath, [
       d.dir('build', [
-        d.matcherFile('file.dart.js', isNot(equals('some js code'))),
-        d.dir('subdir', [
-          d.matcherFile('subfile.dart.js', isNot(equals('some js code')))
+        d.dir('web', [
+          d.matcherFile('file.dart.js', isNot(equals('some js code'))),
+          d.dir('subdir', [
+            d.matcherFile('subfile.dart.js', isNot(equals('some js code')))
+          ])
         ])
       ])
     ]).validate();

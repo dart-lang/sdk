@@ -114,12 +114,12 @@ void Assembler::EmitFarJump(int32_t offset, bool link) {
   const uint16_t low = Utils::Low16Bits(offset);
   const uint16_t high = Utils::High16Bits(offset);
   buffer_.EmitFixup(new PatchFarJump());
-  lui(TMP, Immediate(high));
-  ori(TMP, TMP, Immediate(low));
+  lui(T9, Immediate(high));
+  ori(T9, T9, Immediate(low));
   if (link) {
-    EmitRType(SPECIAL, TMP, R0, RA, 0, JALR);
+    EmitRType(SPECIAL, T9, R0, RA, 0, JALR);
   } else {
-    EmitRType(SPECIAL, TMP, R0, R0, 0, JR);
+    EmitRType(SPECIAL, T9, R0, R0, 0, JR);
   }
 }
 

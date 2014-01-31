@@ -4,6 +4,7 @@
 
 library isolate_list_element;
 
+import 'dart:html';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
 
@@ -11,4 +12,10 @@ import 'observatory_element.dart';
 @CustomTag('isolate-list')
 class IsolateListElement extends ObservatoryElement {
   IsolateListElement.created() : super.created();
+  
+  void refresh(Event e, var detail, Node target) {
+    app.isolateManager.isolates.forEach((id, isolate) {
+      isolate.refresh();
+    });
+  }
 }

@@ -25,8 +25,8 @@ class SimpleIterable extends IterableBase {
   bool contains(int val) => count < val ? false : true;
 
   bool any(bool f(element)) {
-    for(var i = 0; i <= count; i++) {
-      if(f(i)) return true;
+    for (var i = 0; i <= count; i++) {
+      if (f(i)) return true;
     }
     return false;
   }

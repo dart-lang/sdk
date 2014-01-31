@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/timer.h"
+#include "vm/json_stream.h"
 
 namespace dart {
 
@@ -25,8 +26,8 @@ TimerList::TimerList()
 
 
 #define TIMER_FIELD_REPORT(name, msg)                                          \
-  if (name().enabled() && name().message() != NULL) {                          \
-    OS::Print("%s %" Pd64 " micros.\n",                                        \
+  if (name().report() && name().message() != NULL) {       \
+    OS::Print("%s :  %" Pd64 " micros.\n",                                     \
               name().message(),                                                \
               name().TotalElapsedTime());                                      \
   }
@@ -34,5 +35,20 @@ void TimerList::ReportTimers() {
   TIMER_LIST(TIMER_FIELD_REPORT);
 }
 #undef TIMER_FIELD_REPORT
+
+
+#define JSON_TIMER(name, msg)                                                  \
+  {                                                                            \
+    JSONObject jsobj(&jsarr);                                                  \
+    jsobj.AddProperty("name", #name);                                          \
+    double seconds = static_cast<double>(name().TotalElapsedTime()) /          \
+        static_cast<double>(kMicrosecondsPerSecond);                           \
+    jsobj.AddProperty("time", seconds);                                        \
+  }
+void TimerList::PrintTimersToJSONProperty(JSONObject* jsobj) {
+  JSONArray jsarr(jsobj, "timers");
+  TIMER_LIST(JSON_TIMER);
+}
+#undef JSON_TIMER
 
 }  // namespace dart

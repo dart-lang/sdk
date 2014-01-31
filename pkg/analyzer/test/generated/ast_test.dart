@@ -2161,11 +2161,11 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitClassTypeAlias_abstract() {
-    assertSource("class C = abstract S with M1;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
+    assertSource("abstract class C = S with M1;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
   }
 
   void test_visitClassTypeAlias_abstract_implements() {
-    assertSource("class C = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
+    assertSource("abstract class C = S with M1 implements I;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
 
   void test_visitClassTypeAlias_generic() {
@@ -2181,11 +2181,11 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitClassTypeAlias_parameters_abstract() {
-    assertSource("class C<E> = abstract S with M1;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
+    assertSource("abstract class C<E> = S with M1;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
   }
 
   void test_visitClassTypeAlias_parameters_abstract_implements() {
-    assertSource("class C<E> = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
+    assertSource("abstract class C<E> = S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
 
   void test_visitClassTypeAlias_parameters_implements() {
