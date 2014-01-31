@@ -76,6 +76,7 @@ struct simd128_value_t {
   union {
     float float_storage[4];
     int32_t int_storage[4];
+    double double_storage[2];
   };
   simd128_value_t& readFrom(const float* v) {
     float_storage[0] = v[0];
@@ -89,6 +90,11 @@ struct simd128_value_t {
     int_storage[1] = v[1];
     int_storage[2] = v[2];
     int_storage[3] = v[3];
+    return *this;
+  }
+  simd128_value_t& readFrom(const double* v) {
+    double_storage[0] = v[0];
+    double_storage[1] = v[1];
     return *this;
   }
   simd128_value_t& readFrom(const simd128_value_t* v) {
@@ -106,6 +112,10 @@ struct simd128_value_t {
     v[1] = int_storage[1];
     v[2] = int_storage[2];
     v[3] = int_storage[3];
+  }
+  void writeTo(double* v) {
+    v[0] = double_storage[0];
+    v[1] = double_storage[1];
   }
   void writeTo(simd128_value_t* v) {
     *v = *this;

@@ -147,6 +147,7 @@ namespace dart {
   V(TypedData_Float64Array_new, 1)                                             \
   V(TypedData_Float32x4Array_new, 1)                                           \
   V(TypedData_Int32x4Array_new, 1)                                             \
+  V(TypedData_Float64x2Array_new, 1)                                           \
   V(ExternalTypedData_Int8Array_new, 1)                                        \
   V(ExternalTypedData_Uint8Array_new, 1)                                       \
   V(ExternalTypedData_Uint8ClampedArray_new, 1)                                \
@@ -160,6 +161,7 @@ namespace dart {
   V(ExternalTypedData_Float64Array_new, 1)                                     \
   V(ExternalTypedData_Float32x4Array_new, 1)                                   \
   V(ExternalTypedData_Int32x4Array_new, 1)                                     \
+  V(ExternalTypedData_Float64x2Array_new, 1)                                   \
   V(TypedData_length, 1)                                                       \
   V(TypedData_setRange, 5)                                                     \
   V(TypedData_GetInt8, 2)                                                      \
@@ -186,6 +188,8 @@ namespace dart {
   V(TypedData_SetFloat32x4, 3)                                                 \
   V(TypedData_GetInt32x4, 2)                                                   \
   V(TypedData_SetInt32x4, 3)                                                   \
+  V(TypedData_GetFloat64x2, 2)                                                 \
+  V(TypedData_SetFloat64x2, 3)                                                 \
   V(ByteData_ToEndianInt16, 2)                                                 \
   V(ByteData_ToEndianUint16, 2)                                                \
   V(ByteData_ToEndianInt32, 2)                                                 \
@@ -197,6 +201,7 @@ namespace dart {
   V(Float32x4_fromDoubles, 5)                                                  \
   V(Float32x4_splat, 2)                                                        \
   V(Float32x4_fromInt32x4Bits, 2)                                              \
+  V(Float32x4_fromFloat64x2, 2)                                                \
   V(Float32x4_zero, 1)                                                         \
   V(Float32x4_add, 2)                                                          \
   V(Float32x4_negate, 1)                                                       \
@@ -228,6 +233,26 @@ namespace dart {
   V(Float32x4_sqrt, 1)                                                         \
   V(Float32x4_reciprocal, 1)                                                   \
   V(Float32x4_reciprocalSqrt, 1)                                               \
+  V(Float64x2_fromDoubles, 3)                                                  \
+  V(Float64x2_splat, 2)                                                        \
+  V(Float64x2_zero, 1)                                                         \
+  V(Float64x2_fromFloat32x4, 2)                                                \
+  V(Float64x2_add, 2)                                                          \
+  V(Float64x2_negate, 1)                                                       \
+  V(Float64x2_sub, 2)                                                          \
+  V(Float64x2_mul, 2)                                                          \
+  V(Float64x2_div, 2)                                                          \
+  V(Float64x2_scale, 2)                                                        \
+  V(Float64x2_abs, 1)                                                          \
+  V(Float64x2_clamp, 3)                                                        \
+  V(Float64x2_getX, 1)                                                         \
+  V(Float64x2_getY, 1)                                                         \
+  V(Float64x2_getSignMask, 1)                                                  \
+  V(Float64x2_setX, 2)                                                         \
+  V(Float64x2_setY, 2)                                                         \
+  V(Float64x2_min, 2)                                                          \
+  V(Float64x2_max, 2)                                                          \
+  V(Float64x2_sqrt, 1)                                                         \
   V(Int32x4_fromInts, 5)                                                       \
   V(Int32x4_fromBools, 5)                                                      \
   V(Int32x4_fromFloat32x4Bits, 2)                                              \

@@ -72,6 +72,25 @@ static RawInstance* EvalF(Dart_Handle lib, const char* fmt, ...) {
 }
 
 
+// Search for the formatted string in buff.
+static void ExpectSubstringF(const char* buff, const char* fmt, ...) {
+  Isolate* isolate = Isolate::Current();
+
+  va_list args;
+  va_start(args, fmt);
+  intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
+  va_end(args);
+
+  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  va_list args2;
+  va_start(args2, fmt);
+  OS::VSNPrint(buffer, (len + 1), fmt, args2);
+  va_end(args2);
+
+  EXPECT_SUBSTRING(buffer, buff);
+}
+
+
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(cls.LookupDynamicFunction(
       String::Handle(String::New(name))));
@@ -331,87 +350,59 @@ TEST_CASE(Service_Classes) {
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
-      "{\"type\":\"Class\",\"id\":\"classes\\/1010\",\"name\":\"A\","
-      "\"user_name\":\"A\",\"implemented\":false,\"abstract\":false,"
-      "\"patch\":false,\"finalized\":true,\"const\":false,\"super\":"
-      "{\"type\":\"@Class\",\"id\":\"classes\\/35\",\"name\":\"Object\","
-      "\"user_name\":\"Object\"},\"library\":{\"type\":\"@Library\",\"id\":"
-      "\"libraries\\/12\",\"name\":\"\",\"user_name\":\"dart:test-lib\"},"
-      "\"fields\":[{\"type\":\"@Field\",\"id\":\"classes\\/1010\\/fields\\/0\","
-      "\"name\":\"a\",\"user_name\":\"a\",\"owner\":{\"type\":\"@Class\","
-      "\"id\":\"classes\\/1010\",\"name\":\"A\",\"user_name\":\"A\"},"
-      "\"declared_type\":{\"type\":\"@Class\",\"id\":\"classes\\/106\","
-      "\"name\":\"dynamic\",\"user_name\":\"dynamic\"},\"static\":false,"
-      "\"final\":false,\"const\":false}],\"functions\":["
-      "{\"type\":\"@Function\",\"id\":\"classes\\/1010\\/functions\\/0\","
-      "\"name\":\"get:a\",\"user_name\":\"A.a\"},{\"type\":\"@Function\","
-      "\"id\":\"classes\\/1010\\/functions\\/1\",\"name\":\"set:a\","
-      "\"user_name\":\"A.a=\"},{\"type\":\"@Function\",\"id\":"
-      "\"classes\\/1010\\/functions\\/2\",\"name\":\"b\",\"user_name\":\"A.b\"}"
-      ",{\"type\":\"@Function\",\"id\":\"classes\\/1010\\/functions\\/3\","
-      "\"name\":\"c\",\"user_name\":\"A.c\"},{\"type\":\"@Function\",\"id\":"
-      "\"classes\\/1010\\/functions\\/4\",\"name\":\"A.\",\"user_name\":"
-      "\"A.A\"}]}",
-      handler.msg());
 
-  // Request function 0 from class A.
+  EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"classes\\/%" Pd "\",\"name\":\"A\",", cid);
+
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '0'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
-    "{\"type\":\"Function\",\"id\":\"classes\\/1010\\/functions\\/0\",\"name\":"
-    "\"get:a\",\"user_name\":\"A.a\",\"is_static\":false,\"is_const\":false,"
-    "\"is_optimizable\":true,\"is_inlinable\":false,\"kind\":"
-    "\"kImplicitGetter\",\"unoptimized_code\":{\"type\":\"null\"},"
-    "\"usage_counter\":0,\"optimized_call_site_count\":0,\"code\":"
-    "{\"type\":\"null\"},\"deoptimizations\":0}", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"Function\"", handler.msg());
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"classes\\/%" Pd "\\/functions\\/0\","
+                   "\"name\":\"get:a\",", cid);
 
   // Request field 0 from class A.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'fields', '0'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
-    "{\"type\":\"Field\",\"id\":\"classes\\/1010\\/fields\\/0\",\"name\":\"a\","
-    "\"user_name\":\"a\",\"owner\":{\"type\":\"@Class\",\"id\":"
-    "\"classes\\/1010\",\"name\":\"A\",\"user_name\":\"A\"},\"declared_type\":"
-    "{\"type\":\"@Class\",\"id\":\"classes\\/106\",\"name\":\"dynamic\","
-    "\"user_name\":\"dynamic\"},\"static\":false,\"final\":false,\"const\":"
-    "false,\"guard_nullable\":true,\"guard_class\":{\"type\":\"@Class\","
-    "\"id\":\"classes\\/105\",\"name\":\"Null\",\"user_name\":\"Null\"},"
-    "\"guard_length\":\"variable\"}", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"Field\"", handler.msg());
+  ExpectSubstringF(handler.msg(),
+                   "\"id\":\"classes\\/%" Pd "\\/fields\\/0\","
+                   "\"name\":\"a\",", cid);
 
   // Invalid sub command.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'huh', '0'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
+  ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Invalid sub collection huh\",\"message\":"
-    "{\"arguments\":[\"classes\",\"1010\",\"huh\",\"0\"],\"option_keys\":[],"
-    "\"option_values\":[]}}", handler.msg());
+    "{\"arguments\":[\"classes\",\"%" Pd "\",\"huh\",\"0\"],\"option_keys\":[],"
+    "\"option_values\":[]}}", cid);
 
   // Invalid field request.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'fields', '9'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
+  ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Field 9 not found\","
-    "\"message\":{\"arguments\":[\"classes\",\"1010\",\"fields\",\"9\"],"
-    "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
+    "\"message\":{\"arguments\":[\"classes\",\"%" Pd "\",\"fields\",\"9\"],"
+    "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function request.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '9'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
+  ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Function 9 not found\","
-    "\"message\":{\"arguments\":[\"classes\",\"1010\",\"functions\",\"9\"],"
-    "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
+    "\"message\":{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"9\"],"
+    "\"option_keys\":[],\"option_values\":[]}}", cid);
 
 
   // Invalid field subcommand.
@@ -419,22 +410,20 @@ TEST_CASE(Service_Classes) {
                              ",[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
+  ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Command too long\",\"message\":"
-    "{\"arguments\":[\"classes\",\"1010\",\"fields\",\"9\",\"x\"],"
-    "\"option_keys\":[],\"option_values\":[]}}",
-    handler.msg());
+    "{\"arguments\":[\"classes\",\"%" Pd "\",\"fields\",\"9\",\"x\"],"
+    "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function request.
   service_msg = EvalF(h_lib, "[port, ['classes', '%" Pd "', 'functions', '9',"
                              "'x'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
+  ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"text\":\"Command too long\",\"message\":"
-    "{\"arguments\":[\"classes\",\"1010\",\"functions\",\"9\",\"x\"],"
-    "\"option_keys\":[],\"option_values\":[]}}",
-    handler.msg());
+    "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"9\",\"x\"],"
+    "\"option_keys\":[],\"option_values\":[]}}", cid);
 }
 
 

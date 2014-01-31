@@ -230,6 +230,23 @@ patch class Int32x4List {
 }
 
 
+patch class Float64x2List {
+  /* patch */ factory Float64x2List(int length) {
+    return new _Float64x2Array(length);
+  }
+
+  /* patch */ factory Float64x2List.fromList(List<Float64x2> elements) {
+    return new _Float64x2Array(elements.length)
+        ..setRange(0, elements.length, elements);
+  }
+
+  /* patch */ factory Float64x2List.view(ByteBuffer buffer,
+                                         [int offsetInBytes = 0, int length]) {
+    return new _Float64x2ArrayView(buffer, offsetInBytes, length);
+  }
+}
+
+
 patch class Float32x4 {
   /* patch */ factory Float32x4(double x, double y, double z, double w) {
     return new _Float32x4(x, y, z, w);
@@ -243,6 +260,9 @@ patch class Float32x4 {
   /* patch */ factory Float32x4.fromInt32x4Bits(Int32x4 x) {
     return new _Float32x4.fromInt32x4Bits(x);
   }
+  /* patch */ factory Float32x4.fromFloat64x2(Float64x2 v) {
+    return new _Float32x4.fromFloat64x2(v);
+  }
 }
 
 
@@ -255,6 +275,25 @@ patch class Int32x4 {
   }
   /* patch */ factory Int32x4.fromFloat32x4Bits(Float32x4 x) {
     return new _Int32x4.fromFloat32x4Bits(x);
+  }
+}
+
+
+patch class Float64x2 {
+  /* patch */ factory Float64x2(double x, double y) {
+    return new _Float64x2(x, y);
+  }
+
+  /* patch */ factory Float64x2.splat(double v) {
+    return new _Float64x2.splat(v);
+  }
+
+  /* patch */ factory Float64x2.zero() {
+    return new _Float64x2.zero();
+  }
+
+  /* patch */ factory Float64x2.fromFloat32x4(Float32x4 v) {
+    return new _Float64x2.fromFloat32x4(v);
   }
 }
 
@@ -630,6 +669,10 @@ abstract class _TypedList extends _TypedListBase implements ByteBuffer {
   Int32x4 _getInt32x4(int offsetInBytes) native "TypedData_GetInt32x4";
   void _setInt32x4(int offsetInBytes, Int32x4 value)
       native "TypedData_SetInt32x4";
+
+  Float64x2 _getFloat64x2(int offsetInBytes) native "TypedData_GetFloat64x2";
+  void _setFloat64x2(int offsetInBytes, Float64x2 value)
+      native "TypedData_SetFloat64x2";
 }
 
 
@@ -1420,6 +1463,67 @@ class _Int32x4Array extends _TypedList implements Int32x4List {
 }
 
 
+class _Float64x2Array extends _TypedList implements Float64x2List {
+  // Factory constructors.
+
+  factory _Float64x2Array(int length) {
+    return _new(length);
+  }
+
+  factory _Float64x2Array.view(ByteBuffer buffer,
+                               [int offsetInBytes = 0, int length]) {
+    if (length == null) {
+      length = (buffer.lengthInBytes - offsetInBytes) ~/
+               Float64x2List.BYTES_PER_ELEMENT;
+    }
+    return new _Float64x2ArrayView(buffer, offsetInBytes, length);
+  }
+
+
+  Float64x2 operator[](int index) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    return _getIndexedFloat64x2(index);
+  }
+
+  void operator[]=(int index, Float64x2 value) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    _setIndexedFloat64x2(index, value);
+  }
+
+  Iterator<Float64x2> get iterator {
+    return new _TypedListIterator<Float64x2>(this);
+  }
+
+
+  // Method(s) implementing the TypedData interface.
+
+  int get elementSizeInBytes {
+    return Float64x2List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  _Float64x2Array _createList(int length) {
+    return _new(length);
+  }
+
+  Float64x2 _getIndexedFloat64x2(int index) {
+    return _getFloat64x2(index * Float64x2List.BYTES_PER_ELEMENT);
+  }
+
+  void _setIndexedFloat64x2(int index, Float64x2 value) {
+    _setFloat64x2(index * Float64x2List.BYTES_PER_ELEMENT, value);
+  }
+
+  static _Float64x2Array _new(int length) native "TypedData_Float64x2Array_new";
+}
+
+
 class _ExternalInt8Array extends _TypedList implements Int8List {
   // Factory constructors.
 
@@ -2111,6 +2215,61 @@ class _ExternalInt32x4Array extends _TypedList implements Int32x4List {
 }
 
 
+class _ExternalFloat64x2Array extends _TypedList implements Float64x2List {
+  // Factory constructors.
+
+  factory _ExternalFloat64x2Array(int length) {
+    return _new(length);
+  }
+
+
+  // Method(s) implementing the List interface.
+
+  Float64x2 operator[](int index) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    return _getIndexedFloat64x2(index);
+  }
+
+  void operator[]=(int index, Float64x2 value) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    _setIndexedFloat64x2(index, value);
+  }
+
+  Iterator<Float64x2> get iterator {
+    return new _TypedListIterator<Float64x2>(this);
+  }
+
+
+  // Method(s) implementing the TypedData interface.
+
+  int get elementSizeInBytes {
+    return Float64x2List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Float64x2List _createList(int length) {
+    return new Float64x2List(length);
+  }
+
+  Float64x2 _getIndexedFloat64x2(int index) {
+    return _getFloat64x2(index * Float64x2List.BYTES_PER_ELEMENT);
+  }
+
+  void _setIndexedFloat64x2(int index, Float64x2 value) {
+    _setFloat64x2(index * Float64x2List.BYTES_PER_ELEMENT, value);
+  }
+
+  static _ExternalFloat64x2Array _new(int length) native
+      "ExternalTypedData_Float64x2Array_new";
+}
+
+
 class _Float32x4 implements Float32x4 {
   factory _Float32x4(double x, double y, double z, double w)
       native "Float32x4_fromDoubles";
@@ -2118,6 +2277,8 @@ class _Float32x4 implements Float32x4 {
   factory _Float32x4.zero() native "Float32x4_zero";
   factory _Float32x4.fromInt32x4Bits(Int32x4 x)
       native "Float32x4_fromInt32x4Bits";
+  factory _Float32x4.fromFloat64x2(Float64x2 v)
+      native "Float32x4_fromFloat64x2";
   Float32x4 operator +(Float32x4 other) {
     return _add(other);
   }
@@ -2269,6 +2430,69 @@ class _Int32x4 implements Int32x4 {
                            Float32x4 falseValue)
       native "Int32x4_select";
 }
+
+
+class _Float64x2 implements Float64x2 {
+  factory _Float64x2(double x, double y) native "Float64x2_fromDoubles";
+  factory _Float64x2.splat(double v) native "Float64x2_splat";
+  factory _Float64x2.zero() native "Float64x2_zero";
+  factory _Float64x2.fromFloat32x4(Float32x4 v) native "Float64x2_fromFloat32x4";
+
+  Float64x2 operator +(Float64x2 other) {
+    return _add(other);
+  }
+  Float64x2 _add(Float64x2 other) native "Float64x2_add";
+  Float64x2 operator -() {
+    return _negate();
+  }
+  Float64x2 _negate() native "Float64x2_negate";
+  Float64x2 operator -(Float64x2 other) {
+    return _sub(other);
+  }
+  Float64x2 _sub(Float64x2 other) native "Float64x2_sub";
+  Float64x2 operator *(Float64x2 other) {
+    return _mul(other);
+  }
+  Float64x2 _mul(Float64x2 other) native "Float64x2_mul";
+  Float64x2 operator /(Float64x2 other) {
+    return _div(other);
+  }
+  Float64x2 _div(Float64x2 other) native "Float64x2_div";
+
+
+  /// Returns a copy of [this] each lane being scaled by [s].
+  Float64x2 scale(double s) native "Float64x2_scale";
+  /// Returns the absolute value of this [Float64x2].
+  Float64x2 abs() native "Float64x2_abs";
+
+  /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
+  Float64x2 clamp(Float64x2 lowerLimit,
+                  Float64x2 upperLimit) native "Float64x2_clamp";
+
+  /// Extracted x value.
+  double get x native "Float64x2_getX";
+  /// Extracted y value.
+  double get y native "Float64x2_getY";
+
+  /// Extract the sign bits from each lane return them in the first 2 bits.
+  int get signMask native "Float64x2_getSignMask";
+
+  /// Returns a new [Float64x2] copied from [this] with a new x value.
+  Float64x2 withX(double x) native "Float64x2_setX";
+  /// Returns a new [Float64x2] copied from [this] with a new y value.
+  Float64x2 withY(double y) native "Float64x2_setY";
+
+  /// Returns the lane-wise minimum value in [this] or [other].
+  Float64x2 min(Float64x2 other) native "Float64x2_min";
+
+  /// Returns the lane-wise maximum value in [this] or [other].
+  Float64x2 max(Float64x2 other) native "Float64x2_max";
+
+  /// Returns the lane-wise square root of [this].
+  Float64x2 sqrt() native "Float64x2_sqrt";
+}
+
+
 
 class _TypedListIterator<E> implements Iterator<E> {
   final List<E> _array;
@@ -2992,6 +3216,58 @@ class _Int32x4ArrayView extends _TypedListView implements Int32x4List {
 
   Int32x4List _createList(int length) {
     return new Int32x4List(length);
+  }
+}
+
+
+class _Float64x2ArrayView extends _TypedListView implements Float64x2List {
+  // Constructor.
+  _Float64x2ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
+    : super(buffer, _offsetInBytes,
+            _defaultIfNull(_length,
+                           ((buffer.lengthInBytes - _offsetInBytes) ~/
+                            Float64x2List.BYTES_PER_ELEMENT))) {
+    _rangeCheck(buffer.lengthInBytes,
+                offsetInBytes,
+                length * Float64x2List.BYTES_PER_ELEMENT);
+    _offsetAlignmentCheck(_offsetInBytes, Float64x2List.BYTES_PER_ELEMENT);
+  }
+
+
+  // Method(s) implementing List interface.
+
+  Float64x2 operator[](int index) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    return _typedData._getFloat64x2(offsetInBytes +
+                                    (index * Float64x2List.BYTES_PER_ELEMENT));
+  }
+
+  void operator[]=(int index, Float64x2 value) {
+    if (index < 0 || index >= length) {
+      _throwRangeError(index, length);
+    }
+    _typedData._setFloat64x2(offsetInBytes +
+                             (index * Float64x2List.BYTES_PER_ELEMENT), value);
+  }
+
+  Iterator<Float64x2> get iterator {
+    return new _TypedListIterator<Float64x2>(this);
+  }
+
+
+  // Method(s) implementing TypedData interface.
+
+  int get elementSizeInBytes {
+    return Float64x2List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Float64x2List _createList(int length) {
+    return new Float64x2List(length);
   }
 }
 

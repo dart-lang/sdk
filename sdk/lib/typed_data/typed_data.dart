@@ -867,6 +867,46 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
 
 
 /**
+ * A fixed-length list of Float64x2 numbers that is viewable as a
+ * [TypedData]. For long lists, this implementation will be considerably more
+ * space- and time-efficient than the default [List] implementation.
+ */
+abstract class Float64x2List implements List<Float64x2>, TypedData {
+  /**
+   * Creates a [Float64x2List] of the specified length (in elements),
+   * all of whose elements are initially zero.
+   */
+  external factory Float64x2List(int length);
+
+  /**
+   * Creates a [Float64x2List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Float64x2List.fromList(List<Float64x2> elements);
+
+  /**
+   * Creates a [Float64x2List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Float64x2List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
+  external factory Float64x2List.view(ByteBuffer buffer,
+                                      [int offsetInBytes = 0, int length]);
+
+  static const int BYTES_PER_ELEMENT = 16;
+}
+
+
+/**
  * Interface of Dart Float32x4 immutable value type and operations.
  * Float32x4 stores 4 32-bit floating point values in "lanes".
  * The lanes are "x", "y", "z", and "w" respectively.
@@ -876,6 +916,7 @@ abstract class Float32x4 {
   external factory Float32x4.splat(double v);
   external factory Float32x4.zero();
   external factory Float32x4.fromInt32x4Bits(Int32x4 x);
+  external factory Float32x4.fromFloat64x2(Float64x2 v);
 
   /// Addition operator.
   Float32x4 operator+(Float32x4 other);
@@ -1543,4 +1584,58 @@ abstract class Int32x4 {
   /// Select bit from [trueValue] when bit in [this] is on.
   /// Select bit from [falseValue] when bit in [this] is off.
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue);
+}
+
+/**
+ * Interface of Dart Float64x2 immutable value type and operations.
+ * Float64x2 stores 2 64-bit floating point values in "lanes".
+ * The lanes are "x" and "y" respectively.
+ */
+abstract class Float64x2 {
+  external factory Float64x2(double x, double y);
+  external factory Float64x2.splat(double v);
+  external factory Float64x2.zero();
+  external factory Float64x2.fromFloat32x4(Float32x4 v);
+
+  /// Addition operator.
+  Float64x2 operator+(Float64x2 other);
+  /// Negate operator.
+  Float64x2 operator-();
+  /// Subtraction operator.
+  Float64x2 operator-(Float64x2 other);
+  /// Multiplication operator.
+  Float64x2 operator*(Float64x2 other);
+  /// Division operator.
+  Float64x2 operator/(Float64x2 other);
+
+  /// Returns a copy of [this] each lane being scaled by [s].
+  Float64x2 scale(double s);
+  /// Returns the absolute value of this [Float64x2].
+  Float64x2 abs();
+
+  /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
+  Float64x2 clamp(Float64x2 lowerLimit,
+                  Float64x2 upperLimit);
+
+  /// Extracted x value.
+  double get x;
+  /// Extracted y value.
+  double get y;
+
+  /// Extract the sign bits from each lane return them in the first 2 bits.
+  int get signMask;
+
+  /// Returns a new [Float64x2] copied from [this] with a new x value.
+  Float64x2 withX(double x);
+  /// Returns a new [Float64x2] copied from [this] with a new y value.
+  Float64x2 withY(double y);
+
+  /// Returns the lane-wise minimum value in [this] or [other].
+  Float64x2 min(Float64x2 other);
+
+  /// Returns the lane-wise maximum value in [this] or [other].
+  Float64x2 max(Float64x2 other);
+
+  /// Returns the lane-wise square root of [this].
+  Float64x2 sqrt();
 }

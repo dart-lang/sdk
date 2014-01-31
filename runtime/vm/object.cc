@@ -1189,6 +1189,9 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Int32x4>();
   object_store->set_int32x4_class(cls);
   RegisterPrivateClass(cls, Symbols::_Int32x4(), lib);
+  cls = Class::New<Float64x2>();
+  object_store->set_float64x2_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Float64x2(), lib);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
@@ -1207,6 +1210,15 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int32x4_type(type);
+
+  cls = Class::New<Instance>(kIllegalCid);
+  RegisterClass(cls, Symbols::Float64x2(), lib);
+  cls.set_num_type_arguments(0);
+  cls.set_num_own_type_arguments(0);
+  cls.set_is_prefinalized();
+  pending_classes.Add(cls);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_float64x2_type(type);
 
   object_store->set_typed_data_classes(typed_data_classes);
 
@@ -1347,6 +1359,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<Int32x4>();
   object_store->set_int32x4_class(cls);
+
+  cls = Class::New<Float64x2>();
+  object_store->set_float64x2_class(cls);
 
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
@@ -16366,7 +16381,7 @@ RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
 
 
 RawFloat32x4* Float32x4::New(simd128_value_t value, Heap::Space space) {
-ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
          Class::null());
   Float32x4& result = Float32x4::Handle();
   {
@@ -16555,6 +16570,86 @@ void Int32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
+RawFloat64x2* Float64x2::New(double value0, double value1, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float64x2_class() !=
+         Class::null());
+  Float64x2& result = Float64x2::Handle();
+  {
+    RawObject* raw = Object::Allocate(Float64x2::kClassId,
+                                      Float64x2::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_x(value0);
+  result.set_y(value1);
+  return result.raw();
+}
+
+
+RawFloat64x2* Float64x2::New(simd128_value_t value, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float64x2_class() !=
+         Class::null());
+  Float64x2& result = Float64x2::Handle();
+  {
+    RawObject* raw = Object::Allocate(Float64x2::kClassId,
+                                      Float64x2::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_value(value);
+  return result.raw();
+}
+
+
+double Float64x2::x() const {
+  return raw_ptr()->value_[0];
+}
+
+
+double Float64x2::y() const {
+  return raw_ptr()->value_[1];
+}
+
+
+void Float64x2::set_x(double x) const {
+  raw_ptr()->value_[0] = x;
+}
+
+
+void Float64x2::set_y(double y) const {
+  raw_ptr()->value_[1] = y;
+}
+
+
+simd128_value_t Float64x2::value() const {
+  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
+}
+
+
+void Float64x2::set_value(simd128_value_t value) const {
+  value.writeTo(&raw_ptr()->value_[0]);
+}
+
+
+const char* Float64x2::ToCString() const {
+  const char* kFormat = "[%f, %f]";
+  double _x = x();
+  double _y = y();
+  // Calculate the size of the string.
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, _x, _y);
+  return chars;
+}
+
+
+void Float64x2::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Instance::PrintToJSONStream(stream, ref);
+}
+
+
 const intptr_t TypedData::element_size[] = {
   1,   // kTypedDataInt8ArrayCid.
   1,   // kTypedDataUint8ArrayCid.
@@ -16569,6 +16664,7 @@ const intptr_t TypedData::element_size[] = {
   8,   // kTypedDataFloat64ArrayCid.
   16,  // kTypedDataFloat32x4ArrayCid.
   16,  // kTypedDataInt32x4ArrayCid.
+  16,  // kTypedDataFloat64x2ArrayCid,
 };
 
 

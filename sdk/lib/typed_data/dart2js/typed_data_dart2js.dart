@@ -814,7 +814,7 @@ class Float32x4List
 
   int get offsetInBytes => _storage.offsetInBytes;
 
-  final int elementSizeInBytes = 16;
+  int get elementSizeInBytes => BYTES_PER_ELEMENT;
 
   void _invalidIndex(int index, int length) {
     if (index < 0 || index >= length) {
@@ -892,7 +892,8 @@ class Float32x4List
    */
   Float32x4List.view(ByteBuffer buffer,
                      [int byteOffset = 0, int length])
-      : _storage = new Float32List.view(buffer, byteOffset, length);
+      : _storage = new Float32List.view(buffer, byteOffset,
+                                        length != null ? length * 4 : null);
 
   static const int BYTES_PER_ELEMENT = 16;
 
@@ -940,7 +941,7 @@ class Int32x4List
 
   int get offsetInBytes => _storage.offsetInBytes;
 
-  final int elementSizeInBytes = 16;
+  int get elementSizeInBytes => BYTES_PER_ELEMENT;
 
   void _invalidIndex(int index, int length) {
     if (index < 0 || index >= length) {
@@ -1019,7 +1020,8 @@ class Int32x4List
    */
   Int32x4List.view(ByteBuffer buffer,
                      [int byteOffset = 0, int length])
-      : _storage = new Uint32List.view(buffer, byteOffset, length);
+      : _storage = new Uint32List.view(buffer, byteOffset,
+                                       length != null ? length * 4 : null);
 
   static const int BYTES_PER_ELEMENT = 16;
 
@@ -1045,6 +1047,127 @@ class Int32x4List
   List<Int32x4> sublist(int start, [int end]) {
     end = _checkSublistArguments(start, end, length);
     return new Int32x4List._externalStorage(_storage.sublist(start*4, end*4));
+  }
+}
+
+
+/**
+ * A fixed-length list of Float64x2 numbers that is viewable as a
+ * [TypedData]. For long lists, this implementation will be considerably more
+ * space- and time-efficient than the default [List] implementation.
+ */
+class Float64x2List
+    extends Object with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
+    implements List<Float64x2>, TypedData {
+
+  final Float64List _storage;
+
+  ByteBuffer get buffer => _storage.buffer;
+
+  int get lengthInBytes => _storage.lengthInBytes;
+
+  int get offsetInBytes => _storage.offsetInBytes;
+
+  int get elementSizeInBytes => BYTES_PER_ELEMENT;
+
+  void _invalidIndex(int index, int length) {
+    if (index < 0 || index >= length) {
+      throw new RangeError.range(index, 0, length);
+    } else {
+      throw new ArgumentError('Invalid list index $index');
+    }
+  }
+
+  void _checkIndex(int index, int length) {
+    if (JS('bool', '(# >>> 0 != #)', index, index) || index >= length) {
+      _invalidIndex(index, length);
+    }
+  }
+
+  int _checkSublistArguments(int start, int end, int length) {
+    // For `sublist` the [start] and [end] indices are allowed to be equal to
+    // [length]. However, [_checkIndex] only allows indices in the range
+    // 0 .. length - 1. We therefore increment the [length] argument by one
+    // for the [_checkIndex] checks.
+    _checkIndex(start, length + 1);
+    if (end == null) return length;
+    _checkIndex(end, length + 1);
+    if (start > end) throw new RangeError.range(start, 0, end);
+    return end;
+  }
+
+  /**
+   * Creates a [Float64x2List] of the specified length (in elements),
+   * all of whose elements are initially zero.
+   */
+  Float64x2List(int length) : _storage = new Float64List(length * 2);
+
+  Float64x2List._externalStorage(Float64List storage) : _storage = storage;
+
+  Float64x2List._slowFromList(List<Float64x2> list)
+      : _storage = new Float64List(list.length * 2) {
+    for (int i = 0; i < list.length; i++) {
+      var e = list[i];
+      _storage[(i * 2) + 0] = e.x;
+      _storage[(i * 2) + 1] = e.y;
+    }
+  }
+
+  /**
+   * Creates a [Float64x2List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  factory Float64x2List.fromList(List<Float64x2> list) {
+    if (list is Float64x2List) {
+      Float64x2List nativeList = list as Float64x2List;
+      return new Float64x2List._externalStorage(
+          new Float64List.fromList(nativeList._storage));
+    } else {
+      return new Float64x2List._slowFromList(list);
+    }
+  }
+
+  /**
+   * Creates a [Float64x2List] _view_ of the specified region in the specified
+   * byte buffer. Changes in the [Float64x2List] will be visible in the byte
+   * buffer and vice versa. If the [offsetInBytes] index of the region is not
+   * specified, it defaults to zero (the first byte in the byte buffer).
+   * If the length is not specified, it defaults to null, which indicates
+   * that the view extends to the end of the byte buffer.
+   *
+   * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
+   * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
+   * the length of [buffer].
+   *
+   * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
+   * BYTES_PER_ELEMENT.
+   */
+  Float64x2List.view(ByteBuffer buffer,
+                     [int byteOffset = 0, int length])
+      : _storage = new Float64List.view(buffer, byteOffset,
+                                        length != null ? length * 2 : null);
+
+  static const int BYTES_PER_ELEMENT = 16;
+
+  int get length => _storage.length ~/ 2;
+
+  Float64x2 operator[](int index) {
+    _checkIndex(index, length);
+    double _x = _storage[(index * 2) + 0];
+    double _y = _storage[(index * 2) + 1];
+    return new Float64x2(_x, _y);
+  }
+
+  void operator[]=(int index, Float64x2 value) {
+    _checkIndex(index, length);
+    _storage[(index * 2) + 0] = value._storage[0];
+    _storage[(index * 2) + 1] = value._storage[1];
+  }
+
+  List<Float64x2> sublist(int start, [int end]) {
+    end = _checkSublistArguments(start, end, length);
+    return new Float64x2List._externalStorage(
+        _storage.sublist(start * 2, end * 2));
   }
 }
 
@@ -1077,6 +1200,14 @@ class Float32x4 {
     _storage[1] = view[1];
     _storage[2] = view[2];
     _storage[3] = view[3];
+  }
+  Float32x4.fromFloat64x2(Float64x2 v) {
+    _storage[0] = v._storage[0];
+    _storage[1] = v._storage[1];
+  }
+
+  String toString() {
+    return '[${_storage[0]}, ${_storage[1]}, ${_storage[2]}, ${_storage[3]}]';
   }
 
    /// Addition operator.
@@ -1665,6 +1796,10 @@ class Int32x4 {
     _storage[3] = view[3];
   }
 
+  String toString() {
+    return '[${_storage[0]}, ${_storage[1]}, ${_storage[2]}, ${_storage[3]}]';
+  }
+
   /// The bit-wise or operator.
   Int32x4 operator|(Int32x4 other) {
     int _x = _storage[0] | other._storage[0];
@@ -2124,3 +2259,126 @@ class Int32x4 {
     return r;
   }
 }
+
+class Float64x2 {
+  final _storage = new Float64List(2);
+
+  Float64x2(double x, double y) {
+    _storage[0] = x;
+    _storage[1] = y;
+  }
+
+  Float64x2.splat(double v) {
+    _storage[0] = v;
+    _storage[1] = v;
+  }
+
+  Float64x2.zero();
+
+  Float64x2.fromFloat32x4(Float32x4 v) {
+    _storage[0] = v._storage[0];
+    _storage[1] = v._storage[1];
+  }
+
+  String toString() {
+    return '[${_storage[0]}, ${_storage[1]}]';
+  }
+
+  /// Addition operator.
+  Float64x2 operator+(Float64x2 other) {
+    return new Float64x2(_storage[0] + other._storage[0],
+                         _storage[1] + other._storage[1]);
+  }
+
+  /// Negate operator.
+  Float64x2 operator-() {
+    return new Float64x2(-_storage[0], -_storage[1]);
+  }
+
+  /// Subtraction operator.
+  Float64x2 operator-(Float64x2 other) {
+    return new Float64x2(_storage[0] - other._storage[0],
+                         _storage[1] - other._storage[1]);
+  }
+  /// Multiplication operator.
+  Float64x2 operator*(Float64x2 other) {
+    return new Float64x2(_storage[0] * other._storage[0],
+                         _storage[1] * other._storage[1]);
+  }
+  /// Division operator.
+  Float64x2 operator/(Float64x2 other) {
+    return new Float64x2(_storage[0] / other._storage[0],
+                         _storage[1] / other._storage[1]);
+  }
+
+  /// Returns a copy of [this] each lane being scaled by [s].
+  Float64x2 scale(double s) {
+    return new Float64x2(_storage[0] * s, _storage[1] * s);
+  }
+
+  /// Returns the absolute value of this [Float64x2].
+  Float64x2 abs() {
+    return new Float64x2(_storage[0].abs(), _storage[1].abs());
+  }
+
+  /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
+  Float64x2 clamp(Float64x2 lowerLimit,
+                  Float64x2 upperLimit) {
+    double _lx = lowerLimit._storage[0];
+    double _ly = lowerLimit._storage[1];
+    double _ux = upperLimit._storage[0];
+    double _uy = upperLimit._storage[1];
+    double _x = _storage[0];
+    double _y = _storage[1];
+    // MAX(MIN(self, upper), lower).
+    _x = _x > _ux ? _ux : _x;
+    _y = _y > _uy ? _uy : _y;
+    _x = _x < _lx ? _lx : _x;
+    _y = _y < _ly ? _ly : _y;
+    return new Float64x2(_x, _y);
+  }
+
+  /// Extracted x value.
+  double get x => _storage[0];
+  /// Extracted y value.
+  double get y => _storage[1];
+
+  /// Extract the sign bits from each lane return them in the first 2 bits.
+  int get signMask {
+    var view = new Uint32List.view(_storage.buffer);
+    var mx = (view[1] & 0x80000000) >> 31;
+    var my = (view[3] & 0x80000000) >> 31;
+    return mx | my << 1;
+  }
+
+  /// Returns a new [Float64x2] copied from [this] with a new x value.
+  Float64x2 withX(double x) {
+    return new Float64x2(x, _storage[1]);
+  }
+
+  /// Returns a new [Float64x2] copied from [this] with a new y value.
+  Float64x2 withY(double y) {
+    return new Float64x2(_storage[0], y);
+  }
+
+  /// Returns the lane-wise minimum value in [this] or [other].
+  Float64x2 min(Float64x2 other) {
+    return new Float64x2(
+        _storage[0] < other._storage[0] ? _storage[0] : other._storage[0],
+        _storage[1] < other._storage[1] ? _storage[1] : other._storage[1]);
+
+  }
+
+  /// Returns the lane-wise maximum value in [this] or [other].
+  Float64x2 max(Float64x2 other) {
+    return new Float64x2(
+        _storage[0] > other._storage[0] ? _storage[0] : other._storage[0],
+        _storage[1] > other._storage[1] ? _storage[1] : other._storage[1]);
+  }
+
+  /// Returns the lane-wise square root of [this].
+  Float64x2 sqrt() {
+      return new Float64x2(Math.sqrt(_storage[0]), Math.sqrt(_storage[1]));
+  }
+}
+

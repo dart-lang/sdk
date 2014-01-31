@@ -300,6 +300,8 @@ TYPED_DATA_NATIVES(GetFloat64, SetFloat64, Double, value, 8, double)
 TYPED_DATA_NATIVES(
     GetFloat32x4, SetFloat32x4, Float32x4, value, 16, simd128_value_t)
 TYPED_DATA_NATIVES(GetInt32x4, SetInt32x4, Int32x4, value, 16, simd128_value_t)
+TYPED_DATA_NATIVES(
+    GetFloat64x2, SetFloat64x2, Float64x2, value, 16, simd128_value_t)
 
 
 DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt16, 2) {

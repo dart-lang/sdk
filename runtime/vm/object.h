@@ -5939,6 +5939,36 @@ class Int32x4 : public Instance {
 };
 
 
+class Float64x2 : public Instance {
+ public:
+  static RawFloat64x2* New(double value0, double value1,
+                           Heap::Space space = Heap::kNew);
+  static RawFloat64x2* New(simd128_value_t value,
+                           Heap::Space space = Heap::kNew);
+
+  double x() const;
+  double y() const;
+
+  void set_x(double x) const;
+  void set_y(double y) const;
+
+  simd128_value_t value() const;
+  void set_value(simd128_value_t value) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawFloat64x2));
+  }
+
+  static intptr_t value_offset() {
+    return OFFSET_OF(RawFloat64x2, value_);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64x2, Instance);
+  friend class Class;
+};
+
+
 class TypedData : public Instance {
  public:
   intptr_t Length() const {
@@ -5987,6 +6017,7 @@ class TypedData : public Instance {
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
   TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
+  TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
 
 #undef TYPED_GETTER_SETTER
 
@@ -6116,7 +6147,8 @@ class ExternalTypedData : public Instance {
   TYPED_GETTER_SETTER(Float32, float)
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Int32x4, simd128_value_t);
+  TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
+  TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
 
 #undef TYPED_GETTER_SETTER
 
