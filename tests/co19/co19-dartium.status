@@ -39,5 +39,7 @@ LibTest/isolate/Isolate/spawn_A01_t03: RuntimeError # co19-roll r667: Please tri
 LibTest/isolate/Isolate/spawn_A01_t04: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/isolate/Isolate/spawn_A01_t05: RuntimeError # co19-roll r667: Please triage this failure
 
+LibTest/async/Timer/Timer_A01_t01: RuntimeError, Pass # Issue 16475
+
 [ $compiler == none && $runtime == dartium && $checked ]
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure
