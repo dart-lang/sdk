@@ -17,13 +17,13 @@ class TestCase {
   final String description;
 
   /** The setup function to call before the test, if any. */
-  Function setUp;
+  final Function _setUp;
 
   /** The teardown function to call after the test, if any. */
-  Function tearDown;
+  final Function _tearDown;
 
   /** The body of the test case. */
-  TestFunction testFunction;
+  final TestFunction _testFunction;
 
   /**
    * Remaining number of callbacks functions that must reach a 'done' state
@@ -63,10 +63,10 @@ class TestCase {
 
   Completer _testComplete;
 
-  TestCase._internal(this.id, this.description, this.testFunction)
+  TestCase._internal(this.id, this.description, this._testFunction)
       : currentGroup = _currentContext.fullName,
-        setUp = _currentContext.testSetup,
-        tearDown = _currentContext.testTeardown;
+        _setUp = _currentContext.testSetup,
+        _tearDown = _currentContext.testTeardown;
 
   bool get isComplete => !enabled || result != null;
 
@@ -97,7 +97,7 @@ class TestCase {
 
     // Avoid calling [new Future] to avoid issue 11911.
     return new Future.value().then((_) {
-      if (setUp != null) return setUp();
+      if (_setUp != null) return _setUp();
     }).catchError(_errorHandler('Setup'))
         .then((_) {
           // Skip the test if setup failed.
@@ -106,7 +106,7 @@ class TestCase {
           _startTime = new DateTime.now();
           _runningTime = null;
           ++_callbackFunctionsOutstanding;
-          return testFunction();
+          return _testFunction();
         })
         .catchError(_errorHandler('Test'))
         .then((_) {
@@ -115,12 +115,12 @@ class TestCase {
             // Outstanding callbacks exist; we need to return a Future.
             _testComplete = new Completer();
             return _testComplete.future.whenComplete(() {
-              if (tearDown != null) {
-                return tearDown();
+              if (_tearDown != null) {
+                return _tearDown();
               }
             }).catchError(_errorHandler('Teardown'));
-          } else if (tearDown != null) {
-            return tearDown();
+          } else if (_tearDown != null) {
+            return _tearDown();
           }
         })
         .catchError(_errorHandler('Teardown'));
