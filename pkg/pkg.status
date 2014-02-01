@@ -106,7 +106,7 @@ typed_data/test/typed_buffers_test: RuntimeError
 
 [ $runtime == ie9 || $runtime == ie10 ]
 polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
-polymer/test/noscript_test: RuntimeError # Issue 13260
+polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
