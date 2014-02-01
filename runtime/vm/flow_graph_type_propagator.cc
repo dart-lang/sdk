@@ -96,7 +96,9 @@ void FlowGraphTypePropagator::Propagate() {
         BranchInstr* branch = instr->AsBranch();
         if (branch != NULL) {
           ConstrainedCompileType* constrained_type = branch->constrained_type();
-          if (constrained_type != NULL) constrained_type->Update();
+          if (constrained_type != NULL) {
+            constrained_type->Update();
+          }
         }
       }
     }
@@ -225,7 +227,7 @@ void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
 ConstrainedCompileType* FlowGraphTypePropagator::MarkNonNullable(
     Definition* def) {
   CompileType* current = TypeOf(def);
-  if (current->is_nullable()) {
+  if (current->is_nullable() && (current->ToCid() != kNullCid)) {
     ConstrainedCompileType* constrained_type =
         new NotNullConstrainedCompileType(current);
     SetTypeOf(def, constrained_type->ToCompileType());
