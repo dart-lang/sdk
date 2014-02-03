@@ -1011,6 +1011,10 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
         // Convert the old target entry to a new join entry.
         TargetEntryInstr* old_target =
             inlined_entries_[i]->AsGraphEntry()->normal_entry();
+        // Unuse all inputs in the the old graph entry since it is not part of
+        // the graph anymore. A new target be created instead.
+        inlined_entries_[i]->AsGraphEntry()->UnuseAllInputs();
+
         JoinEntryInstr* new_join = BranchSimplifier::ToJoinEntry(old_target);
         old_target->ReplaceAsPredecessorWith(new_join);
         for (intptr_t j = 0; j < old_target->dominated_blocks().length(); ++j) {
