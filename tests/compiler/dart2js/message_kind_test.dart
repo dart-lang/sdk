@@ -49,7 +49,14 @@ main() {
   };
   var cachedCompiler;
   asyncTest(() => Future.forEach(examples, (String name) {
+    print("Checking '$name'.");
     Stopwatch sw = new Stopwatch()..start();
+    bool useCachedCompiler = true;
+    if (name == 'MISSING_LIBRARY_NAME') {
+      // TODO(johnniwinther): Found out why we cannot use the cached compiler
+      // for this message kind.
+      cachedCompiler = null;
+    }
     return check(kinds[name], cachedCompiler).
         then((var compiler) {
           cachedCompiler = compiler;

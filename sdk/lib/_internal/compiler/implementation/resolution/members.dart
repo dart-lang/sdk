@@ -947,7 +947,6 @@ class ResolverTask extends CompilerTask {
           }
         }
         checkAbstractField(member);
-        checkValidOverride(member, cls.lookupSuperMember(member.name));
         checkUserDefinableOperator(member);
       });
     });
@@ -966,25 +965,6 @@ class ResolverTask extends CompilerTask {
       for (Element field in nonFinalInstanceFields) {
         compiler.reportInfo(field,
             MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD);
-      }
-    }
-
-    if (!cls.isAbstract) {
-      for (DartType supertype in cls.allSupertypes) {
-        // This must have been reported elsewhere.
-        if (!supertype.element.isClass()) continue;
-        ClassElement superclass = supertype.element;
-        superclass.forEachMember((ClassElement holder, Element member) {
-          if (member.isAbstract) {
-            Element mine = cls.lookupMember(member.name);
-            if (mine == null || mine.isAbstract) {
-              compiler.reportWarningCode(
-                  cls, MessageKind.UNIMPLEMENTED_METHOD,
-                  {'class_name': cls.name, 'member_name': member.name});
-              compiler.reportHint(member, MessageKind.THIS_IS_THE_METHOD, {});
-            }
-          }
-        });
       }
     }
   }
@@ -1139,45 +1119,6 @@ class ResolverTask extends CompilerTask {
     compiler.reportInfo(contextElement, contextMessage);
   }
 
-  void checkValidOverride(Element member, Element superMember) {
-    if (superMember == null) return;
-    if (member.modifiers.isStatic()) {
-      reportErrorWithContext(
-          member, MessageKind.NO_STATIC_OVERRIDE,
-          superMember, MessageKind.NO_STATIC_OVERRIDE_CONT);
-    } else {
-      FunctionElement superFunction = superMember.asFunctionElement();
-      FunctionElement function = member.asFunctionElement();
-      if (superFunction == null || superFunction.isAccessor()) {
-        // Field or accessor in super.
-        if (function != null && !function.isAccessor()) {
-          // But a plain method in this class.
-          reportErrorWithContext(
-              member, MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD,
-              superMember, MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT);
-        }
-      } else {
-        // Instance method in super.
-        if (function == null || function.isAccessor()) {
-          // But a field (or accessor) in this class.
-          reportErrorWithContext(
-              member, MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD,
-              superMember, MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT);
-        } else {
-          // Both are plain instance methods.
-          if (superFunction.requiredParameterCount(compiler) !=
-              function.requiredParameterCount(compiler)) {
-          reportErrorWithContext(
-              member,
-              MessageKind.BAD_ARITY_OVERRIDE,
-              superMember,
-              MessageKind.BAD_ARITY_OVERRIDE_CONT);
-          }
-          // TODO(ahe): Check optional parameters.
-        }
-      }
-    }
-  }
 
   FunctionSignature resolveSignature(FunctionElement element) {
     MessageKind defaultValuesError = null;

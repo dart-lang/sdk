@@ -2006,7 +2006,7 @@ function(reflectee) {
   String get source => throw new UnimplementedError();
 
   // TODO(ahe): Implement this method.
-  InstanceMirror findInContext(Symbol name) {
+  InstanceMirror findInContext(Symbol name, {ifAbsent: null}) {
     throw new UnsupportedError("ClosureMirror.findInContext not yet supported");
   }
 

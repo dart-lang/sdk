@@ -103,10 +103,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     // files must be available to the new diagnostic handler.
     provider = expando[cachedCompiler.provider];
     readStringFromUri = cachedCompiler.provider;
-    provider.memorySourceFiles.clear();
-    memorySourceFiles.forEach((key, value) {
-      provider.memorySourceFiles[key] = value;
-    });
+    provider.memorySourceFiles = memorySourceFiles;
   }
   var handler =
       createDiagnosticHandler(diagnosticHandler, provider, showDiagnostics);

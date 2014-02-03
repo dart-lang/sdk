@@ -1043,7 +1043,7 @@ class _MessageTraverserVisitedMap {
 }
 
 /** Abstract visitor for dart objects that can be sent as isolate messages. */
-class _MessageTraverser {
+abstract class _MessageTraverser {
 
   _MessageTraverserVisitedMap _visited;
   _MessageTraverser() : _visited = new _MessageTraverserVisitedMap();
@@ -1167,7 +1167,7 @@ class _Serializer extends _MessageTraverser {
 }
 
 /** Deserializes arrays created with [_Serializer]. */
-class _Deserializer {
+abstract class _Deserializer {
   Map<int, dynamic> _deserialized;
 
   _Deserializer();

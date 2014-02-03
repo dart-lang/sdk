@@ -54,24 +54,25 @@ class Interceptor {
   operator==(other) {}
   get hashCode => throw 'Interceptor.hashCode not implemented.';
 }
-class JSIndexable {
-  get length {}
+abstract class JSIndexable {
+  get length;
 }
-class JSMutableIndexable {}
-class JSArray<E> implements JSIndexable {
+abstract class JSMutableIndexable {}
+abstract class JSArray<E> implements JSIndexable {
   JSArray() {}
   factory JSArray.typed(a) => a;
   var removeLast;
   var add;
 }
-class JSMutableArray extends JSArray {}
-class JSFixedArray extends JSMutableArray {}
-class JSExtendableArray extends JSMutableArray {}
+abstract class JSMutableArray extends JSArray {}
+abstract class JSFixedArray extends JSMutableArray {}
+abstract class JSExtendableArray extends JSMutableArray {}
 class JSString implements JSIndexable {
   var split;
   var concat;
   operator+(other) {}
   var toString;
+  get length => 0;
 }
 class JSFunction {}
 class JSInt {}

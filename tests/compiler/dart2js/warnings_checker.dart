@@ -29,7 +29,9 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
     Map<int,String> expectedWarnings = {};
     int lineNo = 0;
     for (String line in source.split('\n')) {
-      if (line.contains('///') && line.contains('static type warning')) {
+      if (line.contains('///') &&
+          (line.contains('static type warning') ||
+           line.contains('static warning'))) {
         expectedWarnings[lineNo] = line;
       }
       lineNo++;

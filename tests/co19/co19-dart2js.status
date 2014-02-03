@@ -229,8 +229,6 @@ LibTest/typed_data/ByteData/setUint8_A02_t01: fail # Issue 12989
 LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 LibTest/typed_data/ByteData/setUint8_A02_t02: fail # Issue 12989
 
-Language/14_Libraries_and_Scripts/1_Imports_A04_t01: Fail # co19 Issue 603
-
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, OK # This is not rejected by V8.
@@ -262,6 +260,7 @@ LibTest/math/cos_A01_t01: Fail # co19 issue 44
 #
 [ $compiler == dart2js ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: RuntimeError # compiler cancelled: cannot resolve type T
+Language/07_Classes/3_Setters_A04_t03: RuntimeError # http://dartbug.com/5023
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: RuntimeError # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
@@ -330,10 +329,6 @@ Language/16_Reference/1_Lexical_Rules_A02_t06: MissingCompileTimeError # Checks 
 [ $compiler == dart2js ]
 Language/07_Classes/3_Setters_A04_t01: CompileTimeError # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t02: CompileTimeError # http://dartbug.com/5023
-Language/07_Classes/3_Setters_A04_t03: CompileTimeError # http://dartbug.com/5023
-Language/07_Classes/3_Setters_A04_t04: CompileTimeError # http://dartbug.com/5023
-Language/07_Classes/3_Setters_A04_t05: CompileTimeError # http://dartbug.com/5023
-Language/07_Classes/3_Setters_A04_t06: CompileTimeError # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: CompileTimeError # http://dartbug.com/5023
 
 Language/12_Expressions/01_Constants_A03_t01: CompileTimeError # Issue 13652
@@ -448,12 +443,6 @@ LibTest/typed_data/Int32x4/z_A01_t02: fail # co19-roll r672: Please triage this 
 Language/03_Overview/1_Scoping_A02_t28: fail # co19-roll r559: Please triage this failure
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
-Language/07_Classes/1_Instance_Methods_A01_t01: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/1_Instance_Methods_A01_t02: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A03_t01: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A03_t02: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A03_t03: fail # co19-roll r559: Please triage this failure
-Language/07_Classes/4_Abstract_Instance_Members_A03_t04: fail # co19-roll r559: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A02_t02: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/03_Numbers_A01_t06: fail # co19-roll r546: Please triage this failure
@@ -646,8 +635,6 @@ LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: fail # co19-roll r559: 
 LibTest/typed_data/Uint8List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
 
 [ $compiler == dart2js || $compiler == dart2dart ]
-Language/07_Classes/1_Instance_Methods_A07_t02: CompileTimeError # co19-roll r667: Please triage this failure
-Language/07_Classes/1_Instance_Methods_A03_t06: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/1_Instance_Methods_A07_t01: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A08_t02: fail # co19-roll r587: Please triage this failure
 Language/07_Classes/6_Constructors/2_Factories_A10_t02: fail # co19-roll r587: Please triage this failure
@@ -658,7 +645,6 @@ Language/12_Expressions/07_Maps_A13_t01: MissingCompileTimeError # co19-roll r60
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t17: MissingCompileTimeError # co19-roll r651: Please triage this failure
 Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t18: MissingCompileTimeError # co19-roll r651: Please triage this failure
-Language/14_Libraries_and_Scripts/2_Exports_A05_t03: MissingCompileTimeError # co19-roll r623: Please triage this failure
 Language/15_Types/4_Interface_Types_A11_t04: fail # Issue 14654
 LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
 LibTest/isolate/Isolate/spawnUri_A01_t01: Fail # co19-roll r672: Please triage this failure

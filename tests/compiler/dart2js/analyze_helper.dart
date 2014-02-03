@@ -30,6 +30,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   bool hasWarnings = false;
   bool hasHint = false;
   bool hasErrors = false;
+  bool lastWasWhitelisted = false;
 
   Map<String, Map<String, int>> whiteListMap
       = new Map<String, Map<String, int>>();
@@ -99,6 +100,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
     if (kind == api.Diagnostic.WARNING) {
       if (checkWhiteList(uri, message)) {
         // Suppress whitelisted warnings.
+        lastWasWhitelisted = true;
         return;
       }
       hasWarnings = true;
@@ -106,6 +108,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
     if (kind == api.Diagnostic.HINT) {
       if (checkWhiteList(uri, message)) {
         // Suppress whitelisted hints.
+        lastWasWhitelisted = true;
         return;
       }
       hasHint = true;
@@ -113,10 +116,15 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
     if (kind == api.Diagnostic.ERROR) {
       if (checkWhiteList(uri, message)) {
         // Suppress whitelisted errors.
+        lastWasWhitelisted = true;
         return;
       }
       hasErrors = true;
     }
+    if (kind == api.Diagnostic.INFO && lastWasWhitelisted) {
+      return;
+    }
+    lastWasWhitelisted = false;
     super.diagnosticHandler(uri, begin, end, message, kind);
   }
 }

@@ -606,10 +606,7 @@ class CompilationUnitElementX extends ElementX
   void setPartOf(PartOf tag, DiagnosticListener listener) {
     LibraryElementX library = enclosingElement;
     if (library.entryCompilationUnit == this) {
-      listener.reportMessage(
-          listener.spanFromSpannable(tag),
-          MessageKind.ILLEGAL_DIRECTIVE.error(),
-          api.Diagnostic.WARNING);
+      listener.reportError(tag, MessageKind.ILLEGAL_DIRECTIVE);
       return;
     }
     if (!localMembers.isEmpty) {

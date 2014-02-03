@@ -478,15 +478,22 @@ CheckMessage checkMessage(MessageKind kind, Map arguments) {
   };
 }
 
-/// [expectedWarnings] must be a list of either [MessageKind] or [CheckMessage].
 void compareWarningKinds(String text,
                          List expectedWarnings,
                          List<WarningMessage> foundWarnings) {
+  compareMessageKinds(text, expectedWarnings, foundWarnings, 'warning');
+}
+
+/// [expectedMessages] must be a list of either [MessageKind] or [CheckMessage].
+void compareMessageKinds(String text,
+                         List expectedMessages,
+                         List<WarningMessage> foundMessages,
+                         String kind) {
   var fail = (message) => Expect.fail('$text: $message');
   HasNextIterator expectedIterator =
-      new HasNextIterator(expectedWarnings.iterator);
+      new HasNextIterator(expectedMessages.iterator);
   HasNextIterator<WarningMessage> foundIterator =
-      new HasNextIterator(foundWarnings.iterator);
+      new HasNextIterator(foundMessages.iterator);
   while (expectedIterator.hasNext && foundIterator.hasNext) {
     var expected = expectedIterator.next();
     var found = foundIterator.next();
@@ -496,22 +503,22 @@ void compareWarningKinds(String text,
       String error = expected(found.message);
       Expect.isNull(error, error);
     } else {
-      Expect.fail("Unexpected expectedWarnings value: $expected.");
+      Expect.fail("Unexpected $kind value: $expected.");
     }
   }
   if (expectedIterator.hasNext) {
     do {
       var expected = expectedIterator.next();
       if (expected is CheckMessage) expected = expected(null);
-      print('Expected warning "${expected}" did not occur');
+      print('Expected $kind "${expected}" did not occur');
     } while (expectedIterator.hasNext);
-    fail('Too few warnings');
+    fail('Too few ${kind}s');
   }
   if (foundIterator.hasNext) {
     do {
-      print('Additional warning "${foundIterator.next()}"');
+      print('Additional $kind "${foundIterator.next()}"');
     } while (foundIterator.hasNext);
-    fail('Too many warnings');
+    fail('Too many ${kind}s');
   }
 }
 

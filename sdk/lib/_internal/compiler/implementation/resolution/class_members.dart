@@ -32,13 +32,32 @@ class MembersCreator {
   Map<Name, MemberSignature> interfaceMembers =
       new Map<Name, MemberSignature>();
 
+  Map<dynamic/* Member | Element */, Set<MessageKind>> reportedMessages =
+      new Map<dynamic, Set<MessageKind>>();
+
   MembersCreator(Compiler this.compiler, ClassElement this.cls);
+
+  void reportMessage(var marker, MessageKind kind, report()) {
+    Set<MessageKind> messages =
+        reportedMessages.putIfAbsent(marker,
+            () => new Set<MessageKind>());
+    if (messages.add(kind)) {
+      report();
+    }
+  }
 
   void computeMembers() {
     Map<Name, Set<Member>> inheritedInterfaceMembers =
         _computeSuperMembers();
     Map<Name, Member> declaredMembers = _computeClassMembers();
     _computeInterfaceMembers(inheritedInterfaceMembers, declaredMembers);
+
+    if (!cls.modifiers.isAbstract() &&
+        !declaredMembers.containsKey(const PublicName('noSuchMethod'))) {
+      // Check for unimplemented members on concrete classes that neither have
+      // a `@proxy` annotation nor declare a `noSuchMethod` method.
+      checkInterfaceImplementation();
+    }
   }
 
   Map<Name, Set<Member>> _computeSuperMembers() {
@@ -85,7 +104,9 @@ class MembersCreator {
     Map<Name, Member> declaredMembers = new Map<Name, Member>();
 
     void overrideMember(DeclaredMember declared) {
+      DeclaredMember inherited = classMembers[declared.name];
       classMembers[declared.name] = declared;
+      checkValidOverride(declared, inherited);
     }
 
     if (cls.isMixinApplication) {
@@ -170,6 +191,10 @@ class MembersCreator {
         (Name name, Set<Member> inheritedMembers) {
       Member declared = declaredMembers[name];
       if (declared != null) {
+        // Check that [declaredMember] is a valid override
+        for (Member inherited in inheritedMembers) {
+          checkValidOverride(declared, inherited);
+        }
         if (!declared.isStatic) {
           interfaceMembers[name] = declared;
         }
@@ -196,6 +221,26 @@ class MembersCreator {
               () => new Set<Member>()).add(inherited);
         }
         if (someAreGetters && !allAreGetters) {
+          compiler.reportWarningCode(cls,
+                                     MessageKind.INHERIT_GETTER_AND_METHOD,
+                                     {'class': thisType, 'name': name.text });
+          for (Member inherited in inheritedMembers) {
+            MessageKind kind;
+            if (inherited.isMethod) {
+              kind = MessageKind.INHERITED_METHOD;
+            } else {
+              assert(invariant(cls, inherited.isGetter,
+                  message: 'Conflicting member is neither a method nor a '
+                           'getter.'));
+              if (inherited.isDeclaredByField) {
+                kind = MessageKind.INHERITED_IMPLICIT_GETTER;
+              } else {
+                kind = MessageKind.INHERITED_EXPLICIT_GETTER;
+              }
+            }
+            compiler.reportInfo(inherited.element, kind,
+                {'class': inherited.declarer, 'name': name.text });
+          }
           interfaceMembers[name] = new ErroneousMember(inheritedMembers);
         } else if (subtypesOfAllInherited.length == 1) {
           // All signatures have the same type.
@@ -291,6 +336,215 @@ class MembersCreator {
       interfaceMembers[name] = new SyntheticMember(
           inheritedMembers, type, memberType);
     }
+  }
+
+  /// Checks that a class member exists for every interface member.
+  void checkInterfaceImplementation() {
+    LibraryElement library = cls.getLibrary();
+
+    interfaceMembers.forEach((Name name, MemberSignature interfaceMember) {
+      if (!name.isAccessibleFrom(library)) return;
+      Member classMember = classMembers[name];
+      if (classMember != null) return;
+      if (interfaceMember is DeclaredMember &&
+          interfaceMember.declarer.element == cls) {
+        // Abstract method declared in [cls].
+        MessageKind kind = MessageKind.ABSTRACT_METHOD;
+        if (interfaceMember.isSetter) {
+          kind = MessageKind.ABSTRACT_SETTER;
+        } else if (interfaceMember.isGetter) {
+          kind = MessageKind.ABSTRACT_GETTER;
+        }
+        reportMessage(
+            interfaceMember.element, MessageKind.ABSTRACT_METHOD, () {
+          compiler.reportWarningCode(
+              interfaceMember.element, kind,
+              {'class': cls.name, 'name': name.text});
+        });
+      } else {
+         reportWarning(MessageKind singleKind,
+                       MessageKind multipleKind,
+                       MessageKind explicitlyDeclaredKind,
+                       [MessageKind implicitlyDeclaredKind]) {
+          Member inherited = interfaceMember.declarations.first;
+          reportMessage(
+              interfaceMember, MessageKind.UNIMPLEMENTED_METHOD, () {
+            compiler.reportWarningCode(cls,
+                interfaceMember.declarations.length == 1
+                    ? singleKind : multipleKind,
+                {'class': cls.name,
+                 'name': name.text,
+                 'method': interfaceMember,
+                 'declarer': inherited.declarer});
+            for (Member inherited in interfaceMember.declarations) {
+              compiler.reportInfo(inherited.element,
+                  inherited.isDeclaredByField ?
+                      implicitlyDeclaredKind : explicitlyDeclaredKind,
+                  {'class': inherited.declarer.name,
+                   'name': name.text});
+            }
+          });
+        }
+        if (interfaceMember.isSetter) {
+          reportWarning(MessageKind.UNIMPLEMENTED_SETTER_ONE,
+                        MessageKind.UNIMPLEMENTED_SETTER,
+                        MessageKind.UNIMPLEMENTED_EXPLICIT_SETTER,
+                        MessageKind.UNIMPLEMENTED_IMPLICIT_SETTER);
+        } else if (interfaceMember.isGetter) {
+          reportWarning(MessageKind.UNIMPLEMENTED_GETTER_ONE,
+                        MessageKind.UNIMPLEMENTED_GETTER,
+                        MessageKind.UNIMPLEMENTED_EXPLICIT_GETTER,
+                        MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER);
+        } else if (interfaceMember.isMethod) {
+          reportWarning(MessageKind.UNIMPLEMENTED_METHOD_ONE,
+                        MessageKind.UNIMPLEMENTED_METHOD,
+                        MessageKind.UNIMPLEMENTED_METHOD_CONT);
+        }
+      }
+      // TODO(johnniwinther): If [cls] is not abstract, check that for all
+      // interface members, there is a class member whose type is a subtype of
+      // the interface member.
+    });
+  }
+
+  void checkValidOverride(Member declared, MemberSignature superMember) {
+    if (superMember == null) {
+      // No override.
+      if (!declared.isStatic) {
+        ClassElement superclass = cls.superclass;
+        while (superclass != null) {
+          Member superMember =
+              superclass.lookupClassMember(declared.name);
+          if (superMember != null && superMember.isStatic) {
+            reportMessage(superMember, MessageKind.INSTANCE_STATIC_SAME_NAME,
+                () {
+              compiler.reportWarningCode(
+                  declared.element,
+                  MessageKind.INSTANCE_STATIC_SAME_NAME,
+                  {'memberName': declared.name,
+                    'className': superclass.name});
+              compiler.reportInfo(superMember.element,
+                  MessageKind.INSTANCE_STATIC_SAME_NAME_CONT);
+            });
+            break;
+          }
+          superclass = superclass.superclass;
+        }
+      }
+    } else {
+      assert(declared.name == superMember.name);
+      if (declared.isStatic) {
+        for (Member inherited in superMember.declarations) {
+          reportMessage(
+              inherited.element, MessageKind.NO_STATIC_OVERRIDE, () {
+            reportErrorWithContext(
+                declared.element, MessageKind.NO_STATIC_OVERRIDE,
+                inherited.element, MessageKind.NO_STATIC_OVERRIDE_CONT);
+          });
+        }
+      }
+
+      DartType declaredType = declared.functionType;
+      for (Member inherited in superMember.declarations) {
+
+        void reportError(MessageKind errorKind, MessageKind infoKind) {
+          reportMessage(
+              inherited.element, MessageKind.INVALID_OVERRIDE_METHOD, () {
+            compiler.reportError(declared.element, errorKind,
+                {'name': declared.name.text,
+                 'class': cls.thisType,
+                 'inheritedClass': inherited.declarer});
+            compiler.reportInfo(inherited.element, infoKind,
+                {'name': declared.name.text,
+                 'class': inherited.declarer});
+          });
+        }
+
+        if (declared.isDeclaredByField && inherited.isMethod) {
+          reportError(MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD,
+              MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT);
+        } else if (declared.isMethod && inherited.isDeclaredByField) {
+          reportError(MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD,
+              MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT);
+        } else if (declared.isGetter && inherited.isMethod) {
+          reportError(MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER,
+                      MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT);
+        } else if (declared.isMethod && inherited.isGetter) {
+          reportError(MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD,
+                      MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT);
+        } else {
+          DartType inheritedType = inherited.functionType;
+          if (!compiler.types.isSubtype(declaredType, inheritedType)) {
+            void reportWarning(var marker,
+                               MessageKind warningKind,
+                               MessageKind infoKind) {
+              reportMessage(marker, MessageKind.INVALID_OVERRIDE_METHOD, () {
+                compiler.reportWarningCode(declared.element, warningKind,
+                    {'declaredType': declared.type,
+                     'name': declared.name.text,
+                     'class': cls.thisType,
+                     'inheritedType': inherited.type,
+                     'inheritedClass': inherited.declarer});
+                compiler.reportInfo(inherited.element, infoKind,
+                    {'name': declared.name.text,
+                     'class': inherited.declarer});
+              });
+            }
+            if (declared.isDeclaredByField) {
+              if (inherited.isDeclaredByField) {
+                reportWarning(inherited.element,
+                              MessageKind.INVALID_OVERRIDE_FIELD,
+                              MessageKind.INVALID_OVERRIDDEN_FIELD);
+              } else if (inherited.isGetter) {
+                reportWarning(inherited,
+                              MessageKind.INVALID_OVERRIDE_GETTER_WITH_FIELD,
+                              MessageKind.INVALID_OVERRIDDEN_GETTER);
+              } else if (inherited.isSetter) {
+                reportWarning(inherited,
+                              MessageKind.INVALID_OVERRIDE_SETTER_WITH_FIELD,
+                              MessageKind.INVALID_OVERRIDDEN_SETTER);
+              }
+            } else if (declared.isGetter) {
+              if (inherited.isDeclaredByField) {
+                reportWarning(inherited,
+                              MessageKind.INVALID_OVERRIDE_FIELD_WITH_GETTER,
+                              MessageKind.INVALID_OVERRIDDEN_FIELD);
+              } else {
+                reportWarning(inherited,
+                              MessageKind.INVALID_OVERRIDE_GETTER,
+                              MessageKind.INVALID_OVERRIDDEN_GETTER);
+              }
+            } else if (declared.isSetter) {
+              if (inherited.isDeclaredByField) {
+                reportWarning(inherited,
+                              MessageKind.INVALID_OVERRIDE_FIELD_WITH_SETTER,
+                              MessageKind.INVALID_OVERRIDDEN_FIELD);
+              } else {
+                reportWarning(inherited,
+                              MessageKind.INVALID_OVERRIDE_SETTER,
+                              MessageKind.INVALID_OVERRIDDEN_SETTER);
+              }
+            } else {
+              reportWarning(inherited,
+                            MessageKind.INVALID_OVERRIDE_METHOD,
+                            MessageKind.INVALID_OVERRIDDEN_METHOD);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void reportErrorWithContext(Element errorneousElement,
+                         MessageKind errorMessage,
+                         Element contextElement,
+                         MessageKind contextMessage) {
+    compiler.reportError(
+        errorneousElement,
+        errorMessage,
+        {'memberName': contextElement.name,
+         'className': contextElement.getEnclosingClass().name});
+    compiler.reportInfo(contextElement, contextMessage);
   }
 
   static void computeClassMembers(Compiler compiler, BaseClassElementX cls) {
