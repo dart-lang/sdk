@@ -56,6 +56,7 @@ abstract class I {
   set setter11(String _) => null; /// 31: continued
   set setter12(int _) => null; /// 32: static type warning
   set setter13(int _) => null; /// 33: static type warning
+  set setter13(num _) => null; /// 33a: static type warning
   set setter14(int _) => null; /// 34: static type warning
 }
 
@@ -65,6 +66,7 @@ abstract class J {
   num get getter11 => null; /// 11: continued
   set setter12(String _) => null; /// 32: continued
   set setter13(num _) => null; /// 33: continued
+  set setter13(int _) => null; /// 33a: continued
   set setter14(num _) => null; /// 34: continued
 }
 
@@ -112,6 +114,7 @@ class SubClass extends Class {
   double get getter10 => null; /// 10: continued
   String get getter11 => null; /// 11: continued
   set setter13(double _) => null; /// 33: continued
+  set setter13(double _) => null; /// 33a: continued
   set setter14(String _) => null; /// 34: continued
 }
 

@@ -196,7 +196,6 @@ override_inheritance_generic_test/03: StaticWarning # Issue 16134
 
 # missing warning for override
 override_inheritance_field_test/10: MissingStaticWarning # Issue 16135
-override_inheritance_field_test/33: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/04: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/06: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/07: MissingStaticWarning # Issue 16135
@@ -205,6 +204,10 @@ override_inheritance_generic_test/09: MissingStaticWarning # Issue 16135
 # missing compile-time error for getter/member override
 override_inheritance_mixed_test/08: MissingCompileTimeError # Issue 16136
 override_inheritance_mixed_test/09: MissingCompileTimeError # Issue 16136
+
+# flaky override tests
+override_inheritance_field_test/33: MissingStaticWarning, Pass # Issue 16498
+override_inheritance_field_test/33a: MissingStaticWarning, Pass # Issue 16498
 
 
 abstract_exact_selector_test: StaticWarning

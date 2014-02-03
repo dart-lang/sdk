@@ -33,7 +33,7 @@ class ExportMap {
   bool _isDartLibrary(LibraryMirror lib) => lib.uri.scheme == 'dart';
 
   /// Compute all non-dart: exports in [library].
-  void _computeExports(LibraryMirror library) {
+  void _computeExports(LibrarySourceMirror library) {
     var exportMap = {};
     library.libraryDependencies
         .where((mirror) =>

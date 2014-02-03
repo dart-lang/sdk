@@ -112,7 +112,8 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     const validNames = const ["message", "plural", "gender", "select"];
     if (!validNames.contains(node.methodName.name)) return false;
     if (!(node.target is SimpleIdentifier)) return false;
-    return node.target.token.toString() == "Intl";
+    SimpleIdentifier target = node.target;
+    return target.token.toString() == "Intl";
   }
 
   Message _expectedInstance(String type) {
@@ -404,7 +405,8 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
       return false;
     }
     if (!(node.target is SimpleIdentifier)) return false;
-    return node.target.token.toString() == "Intl";
+    SimpleIdentifier target = node.target;
+    return target.token.toString() == "Intl";
   }
 
   /**
@@ -440,7 +442,7 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
       } on IntlMessageExtractionException catch (e) {
         message = null;
         var err = new StringBuffer()
-            ..writeAll(["Error ", $e, "\nProcessing <", node, ">"])
+            ..writeAll(["Error ", e, "\nProcessing <", node, ">"])
             ..write(_reportErrorLocation(node));
         print(err);
         warnings.add(err);
