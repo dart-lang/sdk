@@ -41,6 +41,9 @@ crypto/test/base64_test: Timeout # Issue 12486
 collection/test/priority_queue_test: Pass, Slow # Issue 16426
 serialization/test/serialization_test: Skip
 
+[ $runtime == jsshell ]
+analyzer/test/generated/element_test: Pass, Slow # Issue 16473
+
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
