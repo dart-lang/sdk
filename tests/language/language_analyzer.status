@@ -195,7 +195,7 @@ override_inheritance_abstract_test/27: StaticWarning # Issue 16134
 override_inheritance_generic_test/03: StaticWarning # Issue 16134
 
 # missing warning for override
-# override_inheritance_field_test/10: MissingStaticWarning # Issue 16135
+override_inheritance_field_test/10: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/04: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/06: MissingStaticWarning # Issue 16135
 override_inheritance_generic_test/07: MissingStaticWarning # Issue 16135
