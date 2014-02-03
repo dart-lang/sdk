@@ -364,7 +364,7 @@ abstract class Int8List implements List<int>, TypedData {
   external factory Int8List(int length);
 
   /**
-   * Creates a [Int8List] with the same size as the [elements] list
+   * Creates a [Int8List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Int8List.fromList(List<int> elements);
@@ -401,7 +401,7 @@ abstract class Uint8List implements List<int>, TypedData {
   external factory Uint8List(int length);
 
   /**
-   * Creates a [Uint8List] with the same size as the [elements] list
+   * Creates a [Uint8List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Uint8List.fromList(List<int> elements);
@@ -476,7 +476,7 @@ abstract class Int16List implements List<int>, TypedData {
   external factory Int16List(int length);
 
   /**
-   * Creates a [Int16List] with the same size as the [elements] list
+   * Creates a [Int16List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Int16List.fromList(List<int> elements);
@@ -494,7 +494,7 @@ abstract class Int16List implements List<int>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Int16List.view(ByteBuffer buffer,
                                   [int offsetInBytes = 0, int length]);
@@ -516,7 +516,7 @@ abstract class Uint16List implements List<int>, TypedData {
   external factory Uint16List(int length);
 
   /**
-   * Creates a [Uint16List] with the same size as the [elements] list
+   * Creates a [Uint16List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Uint16List.fromList(List<int> elements);
@@ -534,7 +534,7 @@ abstract class Uint16List implements List<int>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Uint16List.view(ByteBuffer buffer,
                                    [int offsetInBytes = 0, int length]);
@@ -556,7 +556,7 @@ abstract class Int32List implements List<int>, TypedData {
   external factory Int32List(int length);
 
   /**
-   * Creates a [Int32List] with the same size as the [elements] list
+   * Creates a [Int32List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Int32List.fromList(List<int> elements);
@@ -574,7 +574,7 @@ abstract class Int32List implements List<int>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Int32List.view(ByteBuffer buffer,
                                   [int offsetInBytes = 0, int length]);
@@ -596,7 +596,7 @@ abstract class Uint32List implements List<int>, TypedData {
   external factory Uint32List(int length);
 
   /**
-   * Creates a [Uint32List] with the same size as the [elements] list
+   * Creates a [Uint32List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Uint32List.fromList(List<int> elements);
@@ -614,7 +614,7 @@ abstract class Uint32List implements List<int>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Uint32List.view(ByteBuffer buffer,
                                    [int offsetInBytes = 0, int length]);
@@ -636,7 +636,7 @@ abstract class Int64List implements List<int>, TypedData {
   external factory Int64List(int length);
 
   /**
-   * Creates a [Int64List] with the same size as the [elements] list
+   * Creates a [Int64List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Int64List.fromList(List<int> elements);
@@ -654,7 +654,7 @@ abstract class Int64List implements List<int>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Int64List.view(ByteBuffer buffer,
                                   [int offsetInBytes = 0, int length]);
@@ -676,7 +676,7 @@ abstract class Uint64List implements List<int>, TypedData {
   external factory Uint64List(int length);
 
   /**
-   * Creates a [Uint64List] with the same size as the [elements] list
+   * Creates a [Uint64List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Uint64List.fromList(List<int> elements);
@@ -695,7 +695,7 @@ abstract class Uint64List implements List<int>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Uint64List.view(ByteBuffer buffer,
                                    [int offsetInBytes = 0, int length]);
@@ -718,7 +718,7 @@ abstract class Float32List implements List<double>, TypedData {
   external factory Float32List(int length);
 
   /**
-   * Creates a [Float32List] with the same size as the [elements] list
+   * Creates a [Float32List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Float32List.fromList(List<double> elements);
@@ -736,7 +736,7 @@ abstract class Float32List implements List<double>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Float32List.view(ByteBuffer buffer,
                                     [int offsetInBytes = 0, int length]);
@@ -759,7 +759,7 @@ abstract class Float64List implements List<double>, TypedData {
   external factory Float64List(int length);
 
   /**
-   * Creates a [Float64List] with the same size as the [elements] list
+   * Creates a [Float64List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Float64List.fromList(List<double> elements);
@@ -777,7 +777,7 @@ abstract class Float64List implements List<double>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Float64List.view(ByteBuffer buffer,
                                     [int offsetInBytes = 0, int length]);
@@ -799,7 +799,7 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
   external factory Float32x4List(int length);
 
   /**
-   * Creates a [Float32x4List] with the same size as the [elements] list
+   * Creates a [Float32x4List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Float32x4List.fromList(List<Float32x4> elements);
@@ -817,7 +817,7 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Float32x4List.view(ByteBuffer buffer,
                                       [int offsetInBytes = 0, int length]);
@@ -839,7 +839,7 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
   external factory Int32x4List(int length);
 
   /**
-   * Creates a [Int32x4List] with the same size as the [elements] list
+   * Creates a [Int32x4List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Int32x4List.fromList(List<Int32x4> elements);
@@ -857,7 +857,7 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Int32x4List.view(ByteBuffer buffer,
                                       [int offsetInBytes = 0, int length]);
@@ -874,12 +874,12 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
 abstract class Float64x2List implements List<Float64x2>, TypedData {
   /**
    * Creates a [Float64x2List] of the specified length (in elements),
-   * all of whose elements are initially zero.
+   * all of whose elements have all lanes set to zero.
    */
   external factory Float64x2List(int length);
 
   /**
-   * Creates a [Float64x2List] with the same size as the [elements] list
+   * Creates a [Float64x2List] with the same length as the [elements] list
    * and copies over the elements.
    */
   external factory Float64x2List.fromList(List<Float64x2> elements);
@@ -897,7 +897,7 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
    * the length of [buffer].
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
-   * BYTES_PER_ELEMENT.
+   * [BYTES_PER_ELEMENT].
    */
   external factory Float64x2List.view(ByteBuffer buffer,
                                       [int offsetInBytes = 0, int length]);
@@ -907,7 +907,7 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
 
 
 /**
- * Interface of Dart Float32x4 immutable value type and operations.
+ * Float32x4 immutable value type and operations.
  * Float32x4 stores 4 32-bit floating point values in "lanes".
  * The lanes are "x", "y", "z", and "w" respectively.
  */
@@ -916,6 +916,8 @@ abstract class Float32x4 {
   external factory Float32x4.splat(double v);
   external factory Float32x4.zero();
   external factory Float32x4.fromInt32x4Bits(Int32x4 x);
+  /// Sets the x and y lanes to their respective values in [v] and sets the z
+  /// and w lanes to 0.0.
   external factory Float32x4.fromFloat64x2(Float64x2 v);
 
   /// Addition operator.
@@ -943,12 +945,12 @@ abstract class Float32x4 {
   Int32x4 notEqual(Float32x4 other);
 
   /// Returns a copy of [this] each lane being scaled by [s].
+  /// Equivalent to this * new Float32x4.splat(s)
   Float32x4 scale(double s);
-  /// Returns the absolute value of this [Float32x4].
+  /// Returns the lane-wise absolute value of this [Float32x4].
   Float32x4 abs();
-  /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
-  Float32x4 clamp(Float32x4 lowerLimit,
-                         Float32x4 upperLimit);
+  /// Lane-wise clamp [this] to be in the range [lowerLimit]-[upperLimit].
+  Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit);
 
   /// Extracted x value.
   double get x;
@@ -960,6 +962,10 @@ abstract class Float32x4 {
   double get w;
 
   /// Extract the sign bits from each lane return them in the first 4 bits.
+  /// "x" lane is bit 0.
+  /// "y" lane is bit 1.
+  /// "z" lane is bit 2.
+  /// "w" lane is bit 3.
   int get signMask;
 
   /// Mask passed to [shuffle] or [shuffleMix].
@@ -1255,7 +1261,7 @@ abstract class Float32x4 {
 
 
 /**
- * Interface of Dart Int32x4 and operations.
+ * Int32x4 and operations.
  * Int32x4 stores 4 32-bit bit-masks in "lanes".
  * The lanes are "x", "y", "z", and "w" respectively.
  */
@@ -1285,6 +1291,10 @@ abstract class Int32x4 {
   int get w;
 
   /// Extract the top bit from each lane return them in the first 4 bits.
+  /// "x" lane is bit 0.
+  /// "y" lane is bit 1.
+  /// "z" lane is bit 2.
+  /// "w" lane is bit 3.
   int get signMask;
 
   /// Mask passed to [shuffle] or [shuffleMix].
@@ -1587,7 +1597,7 @@ abstract class Int32x4 {
 }
 
 /**
- * Interface of Dart Float64x2 immutable value type and operations.
+ * Float64x2 immutable value type and operations.
  * Float64x2 stores 2 64-bit floating point values in "lanes".
  * The lanes are "x" and "y" respectively.
  */
@@ -1595,6 +1605,7 @@ abstract class Float64x2 {
   external factory Float64x2(double x, double y);
   external factory Float64x2.splat(double v);
   external factory Float64x2.zero();
+  /// Uses the "x" and "y" lanes from [v].
   external factory Float64x2.fromFloat32x4(Float32x4 v);
 
   /// Addition operator.
@@ -1609,11 +1620,12 @@ abstract class Float64x2 {
   Float64x2 operator/(Float64x2 other);
 
   /// Returns a copy of [this] each lane being scaled by [s].
+  /// Equivalent to this * new Float64x2.splat(s)
   Float64x2 scale(double s);
-  /// Returns the absolute value of this [Float64x2].
+  /// Returns the lane-wise absolute value of this [Float64x2].
   Float64x2 abs();
 
-  /// Clamps [this] to be in the range [lowerLimit]-[upperLimit].
+  /// Lane-wise clamp [this] to be in the range [lowerLimit]-[upperLimit].
   Float64x2 clamp(Float64x2 lowerLimit,
                   Float64x2 upperLimit);
 
@@ -1623,6 +1635,8 @@ abstract class Float64x2 {
   double get y;
 
   /// Extract the sign bits from each lane return them in the first 2 bits.
+  /// "x" lane is bit 0.
+  /// "y" lane is bit 1.
   int get signMask;
 
   /// Returns a new [Float64x2] copied from [this] with a new x value.
