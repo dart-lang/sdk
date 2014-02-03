@@ -295,9 +295,9 @@ main() {
         // Test that we are not pulling cached proxy from the prototype
         // when asking for a proxy for the object.
         final proto = context['someProto'];
-        expect(proto['role'], same('proto'));
+        expect(proto['role'], equals('proto'));
         final obj = context['someObject'];
-        expect(obj['role'], same('object'));
+        expect(obj['role'], equals('object'));
       });
     });
 
