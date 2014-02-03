@@ -654,7 +654,7 @@ Future _doProcess(Function fn, String executable, List<String> args,
     executable = "cmd";
   }
 
-  log.process(executable, args);
+  log.process(executable, args, workingDir == null ? '.' : workingDir);
 
   return Chain.track(fn(executable,
       args,
