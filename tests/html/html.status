@@ -71,6 +71,7 @@ custom/constructor_calls_created_synchronously_test: Fail, Pass # Issue 16441
 custom_elements_test/innerHtml: Fail, Pass # Issue 16441
 custom_elements_test/lifecycle: Fail, Pass # Issue 16441
 custom_elements_test/mixins: Fail, Pass # Issue 16441
+custom/document_register_type_extensions_test/functional: Fail, Pass # Issue 16441
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
