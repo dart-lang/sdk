@@ -67,11 +67,6 @@ xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 async_test: Pass, Fail # timers test fails on ie10.
 indexeddb_5_test: Fail # Issue 12893
 js_test: Fail # Issue 14246
-custom/constructor_calls_created_synchronously_test: Fail, Pass # Issue 16441
-custom_elements_test/innerHtml: Fail, Pass # Issue 16441
-custom_elements_test/lifecycle: Fail, Pass # Issue 16441
-custom_elements_test/mixins: Fail, Pass # Issue 16441
-custom/document_register_type_extensions_test/functional: Fail, Pass # Issue 16441
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
@@ -178,10 +173,6 @@ input_element_test/attributes: Fail # IE returns null while others ''
 xhr_cross_origin_test: Skip # Issue 12920
 xhr_test/json: Fail # IE9 returns null because of unsupported type
 js_test: RuntimeError # Issue 14645
-custom/mirrors_test: pass, fail # Issue 16441
-custom/constructor_calls_created_synchronously_test: pass, fail # Issue 16441
-custom/document_register_basic_test: pass, fail # Issue 16441
-custom/js_custom_test: pass, fail # issue 16441
 
 # IE9 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
