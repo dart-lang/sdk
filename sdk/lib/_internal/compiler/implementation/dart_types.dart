@@ -1216,11 +1216,17 @@ class SubtypeVisitor extends MoreSpecificVisitor {
   bool visitInterfaceType(InterfaceType t, DartType s) {
     if (super.visitInterfaceType(t, s)) return true;
 
-    lookupCall(type) => type.lookupMember(Compiler.CALL_OPERATOR_NAME);
+    InterfaceTypeMember lookupCall(type) =>
+        type.lookupMember(Compiler.CALL_OPERATOR_NAME);
+
+    bool hasCallMethod(type) {
+      InterfaceTypeMember member = lookupCall(type);
+      return member != null && member.element.isFunction();
+    }
 
     if (s is InterfaceType &&
         s.element == compiler.functionClass &&
-        lookupCall(t) != null) {
+        hasCallMethod(t)) {
       return true;
     } else if (s is FunctionType) {
       InterfaceTypeMember call = lookupCall(t);

@@ -907,6 +907,11 @@ abstract class ClassElement extends TypeDeclarationElement
 
   bool isObject(Compiler compiler);
   bool isSubclassOf(ClassElement cls);
+  /// Returns true if `this` explicitly/nominally implements [intrface].
+  ///
+  /// Note that, if [intrface] is the `Function` class, this method returns
+  /// falso for a class that has a `call` method but does not explicitly
+  /// implement `Function`.
   bool implementsInterface(ClassElement intrface);
   bool hasFieldShadowedBy(Element fieldMember);
 

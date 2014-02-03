@@ -603,7 +603,12 @@ class FlatTypeMask implements TypeMask {
   static bool isSubtypeOf(ClassElement x, ClassElement y, Compiler compiler) {
     assert(x.isDeclaration && y.isDeclaration);
     Set<ClassElement> subtypes = compiler.world.subtypesOf(y);
-    return (subtypes != null) ? subtypes.contains(x) : false;
+    if (subtypes != null && subtypes.contains(x)) return true;
+    if (y != compiler.functionClass) return false;
+    // TODO(johnniwinther): Clean this up (function inheritance).
+    Member member =
+        x.lookupInterfaceMember(const PublicName(Compiler.CALL_OPERATOR_NAME));
+    return member != null && member.isMethod;
   }
 
   static Set<ClassElement> commonContainedClasses(FlatTypeMask x,
