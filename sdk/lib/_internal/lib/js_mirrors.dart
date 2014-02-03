@@ -934,26 +934,21 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   // JS helpers for getField optimizations.
   static bool isUndefined(x)
       => JS('bool', 'typeof # == "undefined"', x);
-  static bool isMissingCache(x)
-      => JS('bool', 'typeof # == "number"', x);
   static bool isMissingProbe(Symbol symbol)
       => JS('bool', 'typeof #.\$p == "undefined"', symbol);
-  static bool isEvalAllowed()
+  static bool isNewFunctionAllowed()
       => JS('bool', 'typeof dart_precompiled != "function"');
 
 
-  /// The getter cache is lazily allocated after a couple
-  /// of invocations of [InstanceMirror.getField]. The delay is
-  /// used to avoid too aggressive caching and dynamic function
-  /// generation for rarely used mirrors. The cache is specific to
-  /// this [InstanceMirror] and maps reflective names to functions
-  /// that will invoke the corresponding getter on the reflectee.
-  /// The reflectee is passed to the function as the first argument
-  /// to avoid the overhead of fetching it from this mirror repeatedly.
+  /// The getter cache is specific to this [InstanceMirror]
+  /// and maps reflective names to functions that will invoke
+  /// the corresponding getter on the reflectee. The reflectee
+  /// is passed to the function as the first argument to avoid
+  /// the overhead of fetching it from this mirror repeatedly.
   /// The cache is lazily initialized to a JS object so we can
   /// benefit from "map transitions" in the underlying JavaScript
   /// engine to speed up cache probing.
-  var _getterCache = 4;
+  var _getterCache;
 
   InstanceMirror getField(Symbol fieldName) {
     // BUG(16400): This should be a labelled block, but that makes
@@ -961,7 +956,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // inferencing implementation.
     do {
       var cache = _getterCache;
-      if (isMissingCache(cache) || isMissingProbe(fieldName)) break;
+      if (cache == null || isMissingProbe(fieldName)) break;
       // If the [fieldName] has an associated probe function, we can use
       // it to read from the getter cache specific to this [InstanceMirror].
       var getter = JS('', '#.\$p(#)', fieldName, cache);
@@ -990,29 +985,29 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     String name = n(fieldName);
     var result = _invoke(fieldName, JSInvocationMirror.GETTER, name, const []);
     var cacheEntry = JsCache.fetch(_classInvocationCache, name);
-    if (cacheEntry.isNoSuchMethod) {
+    if (cacheEntry.isNoSuchMethod || cacheEntry.isIntercepted) {
       return result;
     }
 
     // Make sure we have a getter cache in this [InstanceMirror].
     var cache = _getterCache;
-    if (isMissingCache(cache)) {
-      if ((_getterCache = --cache) != 0) return result;
-      cache = _getterCache = JS('=Object', '({})');
+    if (cache == null) {
+      cache = _getterCache = JS('=Object', 'Object.create(null)');
     }
 
     // Make sure that symbol [fieldName] has a cache probing function ($p).
-    bool useEval = isEvalAllowed();
     if (isMissingProbe(fieldName)) {
-      var probe = _newProbeFn(name, useEval);
+      var probe = isNewFunctionAllowed()
+          ? JS('', 'new Function("c", "return c." + # + ";")', name)
+          : JS('', 'function (c) { return c[#]; }', name);
       JS('void', '#.\$p = #', fieldName, probe);
     }
 
     // Create a new getter function and install it in the cache.
     var mangledName = cacheEntry.mangledName;
-    var getter = (cacheEntry.isIntercepted)
-        ? _newInterceptedGetterFn(mangledName, useEval)
-        : _newGetterFn(mangledName, useEval);
+    var getter = isNewFunctionAllowed()
+          ? JS('', 'new Function("o", "return o." + # + "();")', mangledName)
+          : JS('', 'function(o) { return o[#](); }', mangledName);
     JS('void', '#[#] = #', cache, name, getter);
 
     // Initialize the last value (v) and last mirror (m) on the
@@ -1023,53 +1018,6 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // Return the result of the slow-path getter invocation.
     return result;
   }
-
-  _newProbeFn(String id, bool useEval) {
-    if (useEval) {
-      // We give the probe function a name to make it appear nicely in
-      // profiles and when debugging. The name also makes the source code
-      // for the function more "unique" so the underlying JavaScript
-      // engine is less likely to re-use an existing piece of generated
-      // code as the result of calling eval. In return, this leads to
-      // less polymorphic access in the probe function.
-      var body = "(function probe\$$id(c){return c.$id})";
-      return JS('', '(function(b){return eval(b)})(#)', body);
-    } else {
-      return JS('', '(function(n){return(function(c){return c[n]})})(#)', id);
-    }
-  }
-
-  _newGetterFn(String name, bool useEval) {
-    if (!useEval) return _newGetterNoEvalFn(name);
-    // We give the getter function a name that associates it with the
-    // class of the reflectee. This makes it easier to spot in profiles
-    // and when debugging, but it also means that the underlying JavaScript
-    // engine will only share the generated code for accessors on the
-    // same class (through caching of eval'ed code). This makes the
-    // generated call to the getter - e.g. o.get$foo() - much more likely
-    // to be monomorphic and inlineable.
-    String className = JS('String', '#.constructor.name', reflectee);
-    var body = "(function $className\$$name(o){return o.$name()})";
-    return JS('', '(function(b){return eval(b)})(#)', body);
-  }
-
-  _newGetterNoEvalFn(n) => JS('',
-      '(function(n){return(function(o){return o[n]()})})(#)', n);
-
-  _newInterceptedGetterFn(String name, bool useEval) {
-    var object = reflectee;
-    // It is possible that the interceptor for a given object is the object
-    // itself, so it is important not to share the code that captures the
-    // interceptor between multiple different instances of [InstanceMirror].
-    var interceptor = getInterceptor(object);
-    if (!useEval) return _newInterceptGetterNoEvalFn(name, interceptor);
-    String className = JS('String', '#.constructor.name', object);
-    var body = "(function $className\$$name(o){return i.$name(o)})";
-    return JS('', '(function(b,i){return eval(b)})(#,#)', body, interceptor);
-  }
-
-  _newInterceptGetterNoEvalFn(n, i) => JS('',
-      '(function(n,i){return(function(o){return i[n](o)})})(#,#)', n, i);
 
   delegate(Invocation invocation) {
     return JSInvocationMirror.invokeFromMirror(invocation, reflectee);
