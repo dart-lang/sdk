@@ -57,7 +57,9 @@ class TestCase {
   Duration _runningTime;
   Duration get runningTime => _runningTime;
 
-  bool enabled = true;
+  bool _enabled = true;
+
+  bool get enabled => _enabled;
 
   bool _doneTeardown = false;
 
@@ -76,9 +78,9 @@ class TestCase {
     }
     if (result == null || result == PASS) {
       if (e is TestFailure) {
-        fail("$e", stack);
+        _fail("$e", stack);
       } else {
-        error("$stage failed: Caught $e", stack);
+        _error("$stage failed: Caught $e", stack);
       }
     }
   };
@@ -160,11 +162,11 @@ class TestCase {
     }
   }
 
-  void pass() {
+  void _pass() {
     _complete(PASS);
   }
 
-  void fail(String messageText, [StackTrace stack]) {
+  void _fail(String messageText, [StackTrace stack]) {
     if (result != null) {
       String newMessage = (result == PASS)
           ? 'Test failed after initially passing: $messageText'
@@ -176,13 +178,13 @@ class TestCase {
     }
   }
 
-  void error(String messageText, [StackTrace stack]) {
+  void _error(String messageText, [StackTrace stack]) {
     _complete(ERROR, messageText, stack);
   }
 
   void _markCallbackComplete() {
     if (--_callbackFunctionsOutstanding == 0 && !isComplete) {
-      pass();
+      _pass();
     }
   }
 

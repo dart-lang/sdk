@@ -146,7 +146,9 @@ export 'matcher.dart';
 import 'src/utils.dart';
 
 part 'src/configuration.dart';
+part 'src/group_context.dart';
 part 'src/simple_configuration.dart';
+part 'src/spread_args_helper.dart';
 part 'src/test_case.dart';
 
 Configuration _config;
@@ -206,72 +208,6 @@ const int BREATH_INTERVAL = 200;
  */
 int _soloNestingLevel = 0;
 bool _soloTestSeen = false;
-
-/**
- * Setup and teardown functions for a group and its parents, the latter
- * for chaining.
- */
-class _GroupContext {
-  final _GroupContext parent;
-
-  /** Description text of the current test group. */
-  final String _name;
-
-  /** Setup function called before each test in a group. */
-  Function _testSetup;
-
-  get testSetup => _testSetup;
-
-  get parentSetup => (parent == null) ? null : parent.testSetup;
-
-  set testSetup(Function setup) {
-    var preSetup = parentSetup;
-    if (preSetup == null) {
-      _testSetup = setup;
-    } else {
-      _testSetup = () {
-        var f = preSetup();
-        if (f is Future) {
-          return f.then((_) => setup());
-        } else {
-          return setup();
-        }
-      };
-    }
-  }
-
-  /** Teardown function called after each test in a group. */
-  Function _testTeardown;
-
-  get testTeardown => _testTeardown;
-
-  get parentTeardown => (parent == null) ? null : parent.testTeardown;
-
-  set testTeardown(Function teardown) {
-    var postTeardown = parentTeardown;
-    if (postTeardown == null) {
-      _testTeardown = teardown;
-    } else {
-      _testTeardown = () {
-        var f = teardown();
-        if (f is Future) {
-          return f.then((_) => postTeardown());
-        } else {
-          return postTeardown();
-        }
-      };
-    }
-  }
-
-  String get fullName => (parent == null || parent == _rootContext)
-      ? _name
-      : "${parent.fullName}$groupSep$_name";
-
-  _GroupContext([this.parent, this._name = '']) {
-    _testSetup = parentSetup;
-    _testTeardown = parentTeardown;
-  }
-}
 
 // We use a 'dummy' context for the top level to eliminate null
 // checks when querying the context. This allows us to easily
@@ -366,128 +302,6 @@ void solo_test(String spec, TestFunction body) {
 /** Sentinel value for [_SpreadArgsHelper]. */
 class _Sentinel {
   const _Sentinel();
-}
-
-/** Simulates spread arguments using named arguments. */
-// TODO(sigmund): remove this class and simply use a closure with named
-// arguments (if still applicable).
-class _SpreadArgsHelper {
-  final Function callback;
-  final int minExpectedCalls;
-  final int maxExpectedCalls;
-  final Function isDone;
-  final String id;
-  int actualCalls = 0;
-  final TestCase testCase;
-  bool complete;
-  static const sentinel = const _Sentinel();
-
-  _SpreadArgsHelper(Function callback, int minExpected, int maxExpected,
-      Function isDone, String id)
-      : this.callback = callback,
-        minExpectedCalls = minExpected,
-        maxExpectedCalls = (maxExpected == 0 && minExpected > 0)
-            ? minExpected
-            : maxExpected,
-        this.isDone = isDone,
-        this.testCase = currentTestCase,
-        this.id = _makeCallbackId(id, callback) {
-    ensureInitialized();
-    if (testCase == null) {
-      throw new StateError("No valid test. Did you forget to run your test "
-          "inside a call to test()?");
-    }
-
-    if (isDone != null || minExpected > 0) {
-      testCase._callbackFunctionsOutstanding++;
-      complete = false;
-    } else {
-      complete = true;
-    }
-  }
-
-  static String _makeCallbackId(String id, Function callback) {
-    // Try to create a reasonable id.
-    if (id != null) {
-      return "$id ";
-    } else {
-      // If the callback is not an anonymous closure, try to get the
-      // name.
-      var fname = callback.toString();
-      var prefix = "Function '";
-      var pos = fname.indexOf(prefix);
-      if (pos > 0) {
-        pos += prefix.length;
-        var epos = fname.indexOf("'", pos);
-        if (epos > 0) {
-          return "${fname.substring(pos, epos)} ";
-        }
-      }
-    }
-    return '';
-  }
-
-  bool shouldCallBack() {
-    ++actualCalls;
-    if (testCase.isComplete) {
-      // Don't run if the test is done. We don't throw here as this is not
-      // the current test, but we do mark the old test as having an error
-      // if it previously passed.
-      if (testCase.result == PASS) {
-        testCase.error(
-            'Callback ${id}called ($actualCalls) after test case '
-            '${testCase.description} has already been marked as '
-            '${testCase.result}.');
-      }
-      return false;
-    } else if (maxExpectedCalls >= 0 && actualCalls > maxExpectedCalls) {
-      throw new TestFailure('Callback ${id}called more times than expected '
-                            '($maxExpectedCalls).');
-    }
-    return true;
-  }
-
-  void after() {
-    if (!complete) {
-      if (minExpectedCalls > 0 && actualCalls < minExpectedCalls) return;
-      if (isDone != null && !isDone()) return;
-
-      // Mark this callback as complete and remove it from the testcase
-      // oustanding callback count; if that hits zero the testcase is done.
-      complete = true;
-      testCase._markCallbackComplete();
-    }
-  }
-
-  invoke0() {
-    return _guardAsync(
-        () {
-          if (shouldCallBack()) {
-            return callback();
-          }
-        },
-        after, testCase);
-  }
-
-  invoke1(arg1) {
-    return _guardAsync(
-        () {
-          if (shouldCallBack()) {
-            return callback(arg1);
-          }
-        },
-        after, testCase);
-  }
-
-  invoke2(arg1, arg2) {
-    return _guardAsync(
-        () {
-          if (shouldCallBack()) {
-            return callback(arg1, arg2);
-          }
-        },
-        after, testCase);
-  }
 }
 
 /**
@@ -663,7 +477,7 @@ void handleExternalError(e, String message, [stack]) {
   var msg = '$message\nCaught $e';
 
   if (currentTestCase != null) {
-    currentTestCase.error(msg, stack);
+    currentTestCase._error(msg, stack);
   } else {
     _uncaughtErrorMessage = "$msg: $stack";
   }
@@ -736,9 +550,9 @@ void registerException(e, [trace]) {
 void _registerException(TestCase testCase, e, [trace]) {
   String message = (e is TestFailure) ? e.message : 'Caught $e';
   if (testCase.result == null) {
-    testCase.fail(message, trace);
+    testCase._fail(message, trace);
   } else {
-    testCase.error(message, trace);
+    testCase._error(message, trace);
   }
 }
 
@@ -758,7 +572,7 @@ void _runTest() {
     if (timeout != null) {
       try {
         timer = new Timer(timeout, () {
-          testCase.error("Test timed out after ${timeout.inSeconds} seconds.");
+          testCase._error("Test timed out after ${timeout.inSeconds} seconds.");
           _nextTestCase();
         });
       } on UnsupportedError catch (e) {
@@ -840,11 +654,11 @@ void setSoloTest(int id) =>
 void _setTestEnabledState(int testId, bool state) {
   // Try fast path first.
   if (testCases.length > testId && testCases[testId].id == testId) {
-    testCases[testId].enabled = state;
+    testCases[testId]._enabled = state;
   } else {
     for (var i = 0; i < testCases.length; i++) {
       if (testCases[i].id == testId) {
-        testCases[i].enabled = state;
+        testCases[i]._enabled = state;
         break;
       }
     }
