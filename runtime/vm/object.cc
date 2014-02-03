@@ -7433,38 +7433,36 @@ RawString* Script::GetSnippet(intptr_t from_line,
   intptr_t length = src.Length();
   intptr_t line = 1 + line_offset();
   intptr_t column = 1;
-  intptr_t lookahead = 0;
+  intptr_t scan_position = 0;
   intptr_t snippet_start = -1;
   intptr_t snippet_end = -1;
   if (from_line - line_offset() == 1) {
     column += col_offset();
   }
-  char c = src.CharAt(lookahead);
-  while (lookahead != length) {
-    if (snippet_start == -1) {
-      if ((line == from_line) && (column == from_column)) {
-        snippet_start = lookahead;
-      }
-    } else if ((line == to_line) && (column == to_column)) {
-      snippet_end = lookahead;
-      break;
-    }
+
+  while (scan_position != length) {
+    char c = src.CharAt(scan_position);
     if (c == '\n') {
       line++;
       column = 0;
-    }
-    column++;
-    lookahead++;
-    if (lookahead != length) {
-      // Replace '\r' with '\n' and a sequence of '\r' '\n' with a single '\n'.
-      if (src.CharAt(lookahead) == '\r') {
-        c = '\n';
-        if (lookahead + 1 != length && src.CharAt(lookahead) == '\n') {
-          lookahead++;
-        }
-      } else {
-        c = src.CharAt(lookahead);
+    } else if (c == '\r') {
+      line++;
+      column = 0;
+      if ((scan_position + 1 != length) &&
+          (src.CharAt(scan_position + 1) == '\n')) {
+        scan_position++;
       }
+    }
+    scan_position++;
+    column++;
+
+    if (snippet_start == -1) {
+      if ((line == from_line) && (column == from_column)) {
+        snippet_start = scan_position;
+      }
+    } else if ((line == to_line) && (column == to_column)) {
+      snippet_end = scan_position;
+      break;
     }
   }
   String& snippet = String::Handle();
