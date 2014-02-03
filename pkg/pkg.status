@@ -263,6 +263,7 @@ unittest/test/unittest_invalid_ops_test: Fail # 13921
 unittest/test/unittest_late_exception_test: Fail # 13921
 unittest/test/unittest_middle_exception_test: Fail # 13921
 unittest/test/unittest_nested_groups_setup_teardown_test: Fail # 13921
+unittest/test/unittest_protect_async_test: Fail # 13921
 unittest/test/unittest_runtests_without_tests_test: Fail # 13921
 unittest/test/unittest_setup_and_teardown_test: Fail # 13921
 unittest/test/unittest_setup_test: Fail # 13921
