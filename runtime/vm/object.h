@@ -992,6 +992,11 @@ class Class : public Object {
   }
   void set_is_mixin_type_applied() const;
 
+  bool is_fields_marked_nullable() const {
+    return FieldsMarkedNullableBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_fields_marked_nullable() const;
+
   uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
@@ -1089,6 +1094,7 @@ class Class : public Object {
     kMarkedForParsingBit = 8,
     kMixinAppAliasBit = 9,
     kMixinTypeAppliedBit = 10,
+    kFieldsMarkedNullableBit = 11,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1101,6 +1107,8 @@ class Class : public Object {
   class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
   class MixinAppAliasBit : public BitField<bool, kMixinAppAliasBit, 1> {};
   class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
+  class FieldsMarkedNullableBit : public BitField<bool,
+      kFieldsMarkedNullableBit, 1> {};  // NOLINT
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;

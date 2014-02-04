@@ -2963,6 +2963,11 @@ void Class::set_is_mixin_type_applied() const {
 }
 
 
+void Class::set_is_fields_marked_nullable() const {
+  set_state_bits(FieldsMarkedNullableBit::update(true, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(RawClass::kFinalized,
