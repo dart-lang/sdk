@@ -454,9 +454,8 @@ class SourceVisitor implements ASTVisitor {
     token(node.leftBracket);
     indent();
     visitNodes(node.statements, precededBy: newlines, separatedBy: newlines);
-    unindent();
     newlines();
-    token(node.rightBracket);
+    token(node.rightBracket, precededBy: unindent);
   }
 
   visitBlockFunctionBody(BlockFunctionBody node) {
@@ -525,9 +524,8 @@ class SourceVisitor implements ASTVisitor {
     token(node.leftBracket);
     indent();
     visitNodes(node.members, precededBy: newlines, separatedBy: newlines);
-    unindent();
     newlines();
-    token(node.rightBracket);
+    token(node.rightBracket, precededBy: unindent);
   }
 
   visitClassTypeAlias(ClassTypeAlias node) {
@@ -994,8 +992,7 @@ class SourceVisitor implements ASTVisitor {
     indent();
     visitCommaSeparatedNodes(node.elements /*, followedBy: breakableSpace*/);
     optionalTrailingComma(node.rightBracket);
-    unindent();
-    token(node.rightBracket);
+    token(node.rightBracket, precededBy: unindent);
   }
 
   visitMapLiteral(MapLiteral node) {
@@ -1218,8 +1215,8 @@ class SourceVisitor implements ASTVisitor {
     indent();
     newlines();
     visitNodes(node.members, separatedBy: newlines, followedBy: newlines);
-    unindent();
-    token(node.rightBracket);
+    token(node.rightBracket, precededBy: unindent);
+
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
@@ -1442,8 +1439,8 @@ class SourceVisitor implements ASTVisitor {
     preserveNewlines = true;
   }
 
-  token(Token token, {precededBy(), followedBy(),
-      printToken(tok), int minNewlines: 0}) {
+  token(Token token, {precededBy(), followedBy(), printToken(tok),
+      int minNewlines: 0}) {
     if (token != null) {
       if (needsNewline) {
         minNewlines = max(1, minNewlines);
@@ -1512,7 +1509,7 @@ class SourceVisitor implements ASTVisitor {
   append(String string) {
     if (string != null && !string.isEmpty) {
       emitSpaces();
-      writer.print(string);
+      writer.write(string);
     }
   }
 
@@ -1538,8 +1535,7 @@ class SourceVisitor implements ASTVisitor {
       newlines();
       visit(statement);
       newlines();
-      unindent();
-      token(CLOSE_CURLY);
+      token(CLOSE_CURLY, precededBy: unindent);
     } else {
       visit(statement);
     }
@@ -1566,6 +1562,7 @@ class SourceVisitor implements ASTVisitor {
       lines = max(min, countNewlinesBetween(previousToken, currentToken));
       preserveNewlines = false;
     }
+
     emitNewlines(lines);
 
     previousToken =

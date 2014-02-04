@@ -98,3 +98,11 @@ switches() {
       break;
   }
 }
+>>> dartbug.com/16383
+main() {
+  //foo
+}
+<<<
+main() {
+  //foo
+}
