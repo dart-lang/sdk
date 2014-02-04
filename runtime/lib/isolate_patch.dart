@@ -273,3 +273,9 @@ patch class Isolate {
 
   static SendPort _spawnUri(String uri) native "Isolate_spawnUri";
 }
+
+patch class Capability {
+  /* patch */ factory Capability() {
+    throw new UnimplementedError();
+  }
+}

@@ -54,3 +54,9 @@ patch class RawReceivePort {
     return new RawReceivePortImpl(handler);
   }
 }
+
+patch class Capability {
+  patch factory Capability() {
+    throw new UnimplementedError();
+  }
+}

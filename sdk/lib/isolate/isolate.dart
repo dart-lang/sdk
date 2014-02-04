@@ -16,6 +16,8 @@ library dart.isolate;
 
 import "dart:async";
 
+part "capability.dart";
+
 /**
  * Thrown when an isolate cannot be created.
  */
