@@ -202,6 +202,7 @@ convert/json_util_test: Fail # Issue 16109
 [ $compiler == dart2js ]
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 typed_data/int32x4_bigint_test: RuntimeError # Issue 1533
+typed_data/typed_data_load2_test: Fail # Issue 16497
 
 [ $runtime == opera ]
 async/multiple_timer_test: Pass, Fail # Probably issue 14734
