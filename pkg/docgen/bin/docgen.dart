@@ -34,7 +34,8 @@ void main(List<String> arguments) {
       introFileName: introduction,
       out: results['out'],
       excludeLibraries: excludedLibraries,
-      includeDependentPackages: results['include-dependent-packages']);
+      includeDependentPackages: results['include-dependent-packages'],
+      startPage: results['startPage']);
 }
 
 /**
@@ -94,5 +95,12 @@ ArgParser _initArgParser() {
         'in the directory with its pubspec. Includes documentation for all '
         'of its dependent packages.',
       defaultsTo: false, negatable: false);
+  parser.addOption('startPage',
+      help: 'By default the viewer will start at the SDK introduction page.'
+        'To start at some other page, e.g. for a package, provide the name '
+        'of the package in this argument, e.g. --startPage=intl will make '
+        'the start page of the viewer be the intl package.',
+        defaultsTo: null);
+
   return parser;
 }

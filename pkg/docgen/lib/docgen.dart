@@ -118,13 +118,14 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
     bool parseSdk: false, bool append: false, String introFileName: '',
     out: _DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries : const [],
-    bool includeDependentPackages: false}) {
+    bool includeDependentPackages: false, startPage}) {
   return _Generator.generateDocumentation(files, packageRoot: packageRoot,
       outputToYaml: outputToYaml, includePrivate: includePrivate,
       includeSdk: includeSdk, parseSdk: parseSdk, append: append,
       introFileName: introFileName, out: out,
       excludeLibraries: excludeLibraries,
-      includeDependentPackages: includeDependentPackages);
+      includeDependentPackages: includeDependentPackages,
+      startPage: startPage);
 }
 
 /// Analyzes set of libraries by getting a mirror system and triggers the
@@ -239,7 +240,7 @@ class _Generator {
        bool includeSdk: false, bool parseSdk: false, bool append: false,
        String introFileName: '', out: _DEFAULT_OUTPUT_DIRECTORY,
        List<String> excludeLibraries : const [],
-       bool includeDependentPackages: false}) {
+       bool includeDependentPackages: false, startPage}) {
     _excluded = excludeLibraries;
     _includePrivate = includePrivate;
     logger.onRecord.listen((record) => print(record.message));
@@ -277,7 +278,7 @@ class _Generator {
             (x) => _excluded.contains(dart2js_util.nameOf(x)));
         _documentLibraries(librariesToDocument, includeSdk: includeSdk,
             outputToYaml: outputToYaml, append: append, parseSdk: parseSdk,
-            introFileName: introFileName);
+            introFileName: introFileName, startPage: startPage);
         return true;
       });
   }
@@ -310,7 +311,7 @@ class _Generator {
   /// Creates documentation for filtered libraries.
   static void _documentLibraries(List<LibraryMirror> libs,
       {bool includeSdk: false, bool outputToYaml: true, bool append: false,
-       bool parseSdk: false, String introFileName: ''}) {
+       bool parseSdk: false, String introFileName: '', startPage}) {
     libs.forEach((lib) {
       // Files belonging to the SDK have a uri that begins with 'dart:'.
       if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
@@ -382,6 +383,7 @@ class _Generator {
         'filetype' : outputToYaml ? 'yaml' : 'json'
       };
     }
+    if (startPage != null) libraryMap['startPage'] = startPage;
     _writeToFile(JSON.encode(libraryMap), 'library_list.json');
 
     // Output libraries and classes to file after all information is generated.
