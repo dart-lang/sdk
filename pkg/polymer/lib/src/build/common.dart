@@ -117,13 +117,26 @@ abstract class PolymerTransformer {
   String toString() => 'polymer ($runtimeType)';
 }
 
-/** Create an [AssetId] for a [url] seen in the [source] asset. */
+/**
+ * Create an [AssetId] for a [url] seen in the [source] asset. By default this
+ * is used to resolve relative urls that occur in HTML assets, including
+ * cross-package urls of the form "packages/foo/bar.html". Dart-style "package:"
+ * urls are not resolved unless [source] is Dart file (has a .dart extension).
+ */
 // TODO(sigmund): delete once this is part of barback (dartbug.com/12610)
 AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
   if (url == null || url == '') return null;
   var uri = Uri.parse(url);
   var urlBuilder = path.url;
   if (uri.host != '' || uri.scheme != '' || urlBuilder.isAbsolute(url)) {
+    if (source.extension == '.dart' && uri.scheme == 'package') {
+      var index = uri.path.indexOf('/');
+      if (index != -1) {
+        return new AssetId(uri.path.substring(0, index),
+            'lib${uri.path.substring(index)}');
+      }
+    } 
+
     logger.error('absolute paths not allowed: "$url"', span: span);
     return null;
   }

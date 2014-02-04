@@ -21,78 +21,84 @@ const initMethod = const _InitMethodAnnotation();
  *   * set up up polling for observable changes
  *   * initialize Model-Driven Views
  *   * Include some style to prevent flash of unstyled content (FOUC)
- *   * for each library in [libraries], register custom elements labeled with
- *      [CustomTag] and invoke the initialization method on it. If [libraries]
- *      is null, first find all libraries that need to be loaded by scanning for
- *      HTML imports in the main document.
- *
- * The initialization on each library is a top-level function and annotated with
- * [initMethod].
- *
- * The urls in [libraries] can be absolute or relative to
- * `currentMirrorSystem().isolate.rootLibrary.uri`.
+ *   * for each library included transitively from HTML and HTML imports,
+ *   register custom elements declared there (labeled with [CustomTag]) and
+ *   invoke the initialization method on it (top-level functions annotated with
+ *   [initMethod]).
  */
 Zone initPolymer() {
+  // We use this pattern, and not the inline lazy initialization pattern, so we
+  // can help dart2js detect that _discoverInitializers can be tree-shaken for
+  // deployment (and hence all uses of dart:mirrors from this loading logic).
+  // TODO(sigmund): fix polymer's transformers so they can replace initPolymer
+  // by initPolymerOptimized.
+  if (_initializers == null) _initializers = _discoverInitializers();
   if (_useDirtyChecking) {
-    return dirtyCheckZone()..run(_initPolymerOptimized);
+    return dirtyCheckZone()..run(initPolymerOptimized);
   }
 
-  _initPolymerOptimized();
-  return Zone.current;
+  return initPolymerOptimized();
 }
 
 /**
  * Same as [initPolymer], but runs the version that is optimized for deployment
  * to the internet. The biggest difference is it omits the [Zone] that
- * automatically invokes [Observable.dirtyCheck], and the list of libraries must
- * be supplied instead of being dynamically searched for at runtime.
+ * automatically invokes [Observable.dirtyCheck], and the list of initializers
+ * must be supplied instead of being dynamically searched for at runtime using
+ * mirrors.
  */
-// TODO(jmesserly): change the Polymer build step to call this directly.
-void _initPolymerOptimized() {
+Zone initPolymerOptimized() {
   document.register(PolymerDeclaration._TAG, PolymerDeclaration);
 
-  _loadLibraries();
+  for (var initializer in _initializers) {
+    initializer();
+  }
 
   // Run this after user code so they can add to Polymer.veiledElements
   _preventFlashOfUnstyledContent();
 
   customElementsReady.then((_) => Polymer._ready.complete());
+  return Zone.current;
 }
 
 /**
  * Configures [initPolymer] making it optimized for deployment to the internet.
- * With this setup the list of libraries to initialize is supplied instead of
- * being dynamically searched for at runtime. Additionally, after this method is
- * called, [initPolymer] omits the [Zone] that automatically invokes
+ * With this setup the initializer list is supplied instead of being dynamically
+ * searched for at runtime. Additionally, after this method is called,
+ * [initPolymer] omits the [Zone] that automatically invokes
  * [Observable.dirtyCheck].
  */
-void configureForDeployment(List<String> libraries) {
-  _librariesToLoad = libraries;
+void configureForDeployment(List<Function> initializers) {
+  _initializers = initializers;
   _useDirtyChecking = false;
 }
 
 /**
- * Libraries that will be initialized. For each library, the intialization
- * registers any type tagged with a [CustomTag] annotation and calls any
+ * List of initializers that by default will be executed when calling
+ * initPolymer. If null, initPolymer will compute the list of initializers by
+ * crawling HTML imports, searchfing for script tags, and including an
+ * initializer for each type tagged with a [CustomTag] annotation and for each
  * top-level method annotated with [initMethod]. The value of this field is
  * assigned programatically by the code generated from the polymer deploy
- * scripts. During development, the libraries are inferred by crawling HTML
- * imports and searching for script tags.
+ * scripts.
  */
-List<String> _librariesToLoad =
-    _discoverScripts(document, window.location.href);
+List<Function> _initializers;
+
 bool _useDirtyChecking = true;
 
-void _loadLibraries() {
-  for (var lib in _librariesToLoad) {
+List<Function> _discoverInitializers() {
+  var initializers = [];
+  var librariesToLoad = _discoverScripts(document, window.location.href);
+  for (var lib in librariesToLoad) {
     try {
-      _loadLibrary(lib);
+      _loadLibrary(lib, initializers);
     } catch (e, s) {
       // Deliver errors async, so if a single library fails it doesn't prevent
       // other things from loading.
       new Completer().completeError(e, s);
     }
   }
+  return initializers;
 }
 
 /**
@@ -159,7 +165,7 @@ bool _isHttpStylePackageUrl(Uri uri) {
  *   * Registers any [PolymerElement] that is marked with the [CustomTag]
  *     annotation.
  */
-void _loadLibrary(String uriString) {
+void _loadLibrary(String uriString, List<Function> initializers) {
   var uri = _rootUri.resolve(uriString);
   var lib = _libs[uri];
   if (_isHttpStylePackageUrl(uri)) {
@@ -185,7 +191,7 @@ void _loadLibrary(String uriString) {
 
   // Search top-level functions marked with @initMethod
   for (var f in lib.declarations.values.where((d) => d is MethodMirror)) {
-    _maybeInvoke(lib, f);
+    _addInitMethod(lib, f, initializers);
   }
 
   for (var c in lib.declarations.values.where((d) => d is ClassMirror)) {
@@ -193,7 +199,7 @@ void _loadLibrary(String uriString) {
     for (var m in c.metadata) {
       var meta = m.reflectee;
       if (meta is CustomTag) {
-        Polymer.register(meta.tagName, c.reflectedType);
+        initializers.add(() => Polymer.register(meta.tagName, c.reflectedType));
       }
     }
 
@@ -206,7 +212,8 @@ void _loadLibrary(String uriString) {
   }
 }
 
-void _maybeInvoke(ObjectMirror obj, MethodMirror method) {
+void _addInitMethod(ObjectMirror obj, MethodMirror method,
+    List<Function> initializers) {
   var annotationFound = false;
   for (var meta in method.metadata) {
     if (identical(meta.reflectee, initMethod)) {
@@ -225,7 +232,7 @@ void _maybeInvoke(ObjectMirror obj, MethodMirror method) {
         "arguments, ${method.simpleName} expects some.");
     return;
   }
-  obj.invoke(method.simpleName, const []);
+  initializers.add(() => obj.invoke(method.simpleName, const []));
 }
 
 class _InitMethodAnnotation {

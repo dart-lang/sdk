@@ -50,7 +50,6 @@ void main() {
 
           void main() {
             configureForDeployment([
-                'a.dart',
               ]);
             i0.main();
           }
@@ -66,7 +65,52 @@ void main() {
           '</div>',
       'a|web/test.html.scriptUrls':
           '[["a", "web/a.dart"],["a", "web/b.dart"],["a", "web/c.dart"]]',
-      'a|web/d.dart': 'library d;\nmain(){}',
+      'a|web/d.dart': 'library d;\nmain(){}\n@initMethod mD(){}',
+
+      'a|web/a.dart':
+          'import "package:polymer/polymer.dart";\n'
+          '@initMethod mA(){}\n',
+
+      'a|web/b.dart':
+          'export "e.dart";\n'
+          'export "f.dart" show XF1, mF1;\n'
+          'export "g.dart" hide XG1, mG1;\n'
+          'export "h.dart" show XH1, mH1 hide mH1, mH2;\n'
+          '@initMethod mB(){}\n',
+
+      'a|web/c.dart':
+          'import "package:polymer/polymer.dart";\n'
+          'part "c_part.dart"\n'
+          '@CustomTag("x-c2") class XC2 {}\n',
+
+      'a|web/c_part.dart':
+          '@CustomTag("x-c1") class XC1 {}\n',
+
+      'a|web/e.dart':
+          'import "package:polymer/polymer.dart";\n'
+          '@CustomTag("x-e") class XE {}\n'
+          '@initMethod mE(){}\n',
+
+      'a|web/f.dart':
+          'import "package:polymer/polymer.dart";\n'
+          '@CustomTag("x-f1") class XF1 {}\n'
+          '@initMethod mF1(){}\n'
+          '@CustomTag("x-f2") class XF2 {}\n'
+          '@initMethod mF2(){}\n',
+
+      'a|web/g.dart':
+          'import "package:polymer/polymer.dart";\n'
+          '@CustomTag("x-g1") class XG1 {}\n'
+          '@initMethod mG1(){}\n'
+          '@CustomTag("x-g2") class XG2 {}\n'
+          '@initMethod mG2(){}\n',
+
+      'a|web/h.dart':
+          'import "package:polymer/polymer.dart";\n'
+          '@CustomTag("x-h1") class XH1 {}\n'
+          '@initMethod mH1(){}\n'
+          '@CustomTag("x-h2") class XH2 {}\n'
+          '@initMethod mH2(){}\n',
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body><div>'
@@ -84,10 +128,18 @@ void main() {
 
           void main() {
             configureForDeployment([
-                'a.dart',
-                'b.dart',
-                'c.dart',
-                'd.dart',
+                i0.mA,
+                () => Polymer.register('x-e', i1.XE),
+                i1.mE,
+                () => Polymer.register('x-f1', i1.XF1),
+                i1.mF1,
+                () => Polymer.register('x-g2', i1.XG2),
+                i1.mG2,
+                () => Polymer.register('x-h1', i1.XH1),
+                i1.mB,
+                () => Polymer.register('x-c1', i2.XC1),
+                () => Polymer.register('x-c2', i2.XC2),
+                i3.mD,
               ]);
             i3.main();
           }

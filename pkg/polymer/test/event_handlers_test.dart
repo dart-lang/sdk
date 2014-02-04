@@ -109,7 +109,7 @@ main() {
   initPolymer();
 }
 
-@initMethod _init() {
+@initMethod init() {
   useHtmlConfiguration();
 
   setUp(() => Polymer.onReady);
