@@ -10,13 +10,13 @@ void main() {
   asyncStart();
   var c1 = new Capability();
   var c2 = new Capability();
-  Expect.notIdentical(c1, c2);
   Expect.notEquals(c1, c2);
 
   var receive = new RawReceivePort();
   receive.sendPort.send(c1);
   receive.handler = (c3) {
-    Expect.identical(c3, c1);
+    Expect.equals(c3, c1);
+    Expect.notEquals(c3, c2);
     asyncEnd();
   };
 }

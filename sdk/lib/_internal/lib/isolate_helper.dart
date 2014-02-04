@@ -11,7 +11,8 @@ import 'dart:_js_helper' show
     Closure,
     Null,
     Primitives,
-    convertDartClosureToJS;
+    convertDartClosureToJS,
+    random64;
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CREATE_ISOLATE,
@@ -921,6 +922,13 @@ class _JsSerializer extends _Serializer {
     throw "Illegal underlying port $x";
   }
 
+  visitCapability(Capability x) {
+    if (x is CapabilityImpl) {
+      return ['capability', x._id];
+    }
+    throw "Capability not serializable: $x";
+  }
+
   visitNativeJsSendPort(_NativeJsSendPort port) {
     return ['sendport', _globalState.currentManagerId,
         port._isolateId, port._receivePort._id];
@@ -940,6 +948,13 @@ class _JsCopier extends _Copier {
     if (x is _NativeJsSendPort) return visitNativeJsSendPort(x);
     if (x is _WorkerSendPort) return visitWorkerSendPort(x);
     throw "Illegal underlying port $x";
+  }
+
+  visitCapability(Capability x) {
+    if (x is CapabilityImpl) {
+      return new CapabilityImpl._internal(x._id);
+    }
+    throw "Capability not serializable: $x";
   }
 
   SendPort visitNativeJsSendPort(_NativeJsSendPort port) {
@@ -969,6 +984,10 @@ class _JsDeserializer extends _Deserializer {
     } else {
       return new _WorkerSendPort(managerId, isolateId, receivePortId);
     }
+  }
+
+  Capability deserializeCapability(List list) {
+    return new CapabilityImpl._internal(list[1]);
   }
 }
 
@@ -1062,10 +1081,13 @@ abstract class _MessageTraverser {
   }
 
   _dispatch(var x) {
+    // This code likely fails for user classes implementing
+    // SendPort and Capability because it assumes the internal classes.
     if (isPrimitive(x)) return visitPrimitive(x);
     if (x is List) return visitList(x);
     if (x is Map) return visitMap(x);
     if (x is SendPort) return visitSendPort(x);
+    if (x is Capability) return visitCapability(x);
 
     // Overridable fallback.
     return visitObject(x);
@@ -1075,6 +1097,7 @@ abstract class _MessageTraverser {
   visitList(List x);
   visitMap(Map x);
   visitSendPort(SendPort x);
+  visitCapability(Capability x);
 
   visitObject(Object x) {
     // TODO(floitsch): make this a real exception. (which one)?
@@ -1121,6 +1144,8 @@ class _Copier extends _MessageTraverser {
   }
 
   visitSendPort(SendPort x) => throw new UnimplementedError();
+
+  visitCapability(Capability x) => throw new UnimplementedError();
 }
 
 /** Visitor that serializes a message as a JSON array. */
@@ -1164,6 +1189,8 @@ class _Serializer extends _MessageTraverser {
   }
 
   visitSendPort(SendPort x) => throw new UnimplementedError();
+
+  visitCapability(Capability x) => throw new UnimplementedError();
 }
 
 /** Deserializes arrays created with [_Serializer]. */
@@ -1191,6 +1218,7 @@ abstract class _Deserializer {
       case 'list': return _deserializeList(x);
       case 'map': return _deserializeMap(x);
       case 'sendport': return deserializeSendPort(x);
+      case 'capability': return deserializeCapability(x);
       default: return deserializeObject(x);
     }
   }
@@ -1231,6 +1259,8 @@ abstract class _Deserializer {
   }
 
   deserializeSendPort(List x);
+
+  deserializeCapability(List x);
 
   deserializeObject(List x) {
     // TODO(floitsch): Use real exception (which one?).
@@ -1319,3 +1349,41 @@ class TimerImpl implements Timer {
 }
 
 bool hasTimer() => JS('', '#.setTimeout', globalThis) != null;
+
+
+/**
+ * Implementation class for [Capability].
+ *
+ * It has the same name to make it harder for users to distinguish.
+ */
+class CapabilityImpl implements Capability {
+  /** Internal random secret identifying the capability. */
+  final int _id;
+
+  CapabilityImpl() : this._internal(random64());
+
+  CapabilityImpl._internal(this._id);
+
+  int get hashCode {
+    // Thomas Wang 32 bit Mix.
+    // http://www.concentric.net/~Ttwang/tech/inthash.htm
+    // (via https://gist.github.com/badboy/6267743)
+    int hash = _id;
+    hash = (hash >> 0) ^ (hash ~/ 0x100000000);  // To 32 bit from ~64.
+    hash = (~hash + (hash << 15)) & 0xFFFFFFFF;
+    hash ^= hash >> 12;
+    hash = (hash * 5) & 0xFFFFFFFF;
+    hash ^= hash >> 4;
+    hash = (hash * 2057) & 0xFFFFFFFF;
+    hash ^= hash >> 16;
+    return hash;
+  }
+
+  bool operator==(Object other) {
+    if (identical(other, this)) return true;
+    if (other is CapabilityImpl) {
+      return identical(_id, other._id);
+    }
+    return false;
+  }
+}

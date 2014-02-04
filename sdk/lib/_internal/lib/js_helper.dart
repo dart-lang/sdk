@@ -3038,3 +3038,15 @@ class UnimplementedNoSuchMethodError extends Error
 
   String toString() => "Unsupported operation: $_message";
 }
+
+/**
+ * Creates a random number with 64 bits of randomness.
+ *
+ * This will be truncated to the 53 bits available in a double.
+ */
+int random64() {
+  // TODO(lrn): Use a secure random source.
+  int int32a = JS("int", "(Math.random() * 0x100000000) >>> 0");
+  int int32b = JS("int", "(Math.random() * 0x100000000) >>> 0");
+  return int32a + int32b * 0x100000000;
+}
