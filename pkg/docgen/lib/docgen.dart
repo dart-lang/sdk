@@ -1355,6 +1355,8 @@ abstract class OwnedIndexable extends Indexable {
   String get docName => owner.docName + '.' + dart2js_util.nameOf(mirror);
 
   OwnedIndexable(DeclarationMirror mirror, this.owner) : super(mirror);
+
+  String get packagePrefix => owner.packagePrefix;
 }
 
 /// A class containing contents of a Dart class.
@@ -1450,8 +1452,6 @@ class Class extends OwnedIndexable implements Comparable {
     if (this.superclass != null) addInherited(superclass);
     interfaces.forEach((interface) => addInherited(interface));
   }
-
-  String get packagePrefix => owner.packagePrefix;
 
   String _lookupInClassAndSuperclasses(String name) {
     var lookupFunc = Indexable.determineLookupFunc(name);
@@ -1697,8 +1697,6 @@ class Variable extends OwnedIndexable {
     'annotations': annotations.map((a) => a.toMap()).toList()
   };
 
-  String get packagePrefix => owner.packagePrefix;
-
   String get typeName => 'property';
 
   get comment {
@@ -1768,8 +1766,6 @@ class Method extends OwnedIndexable {
     parameters = _createParameters(mirror.parameters, owner);
     annotations = _createAnnotations(mirror, _getOwningLibrary(owner));
   }
-
-  String get packagePrefix => owner.packagePrefix;
 
   Method get originallyInheritedFrom => methodInheritedFrom == null ?
       this : methodInheritedFrom.originallyInheritedFrom;
