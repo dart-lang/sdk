@@ -391,21 +391,13 @@ void createSymlink(String target, String symlink,
 /// symlink to the target. Otherwise, uses the [target] path unmodified.
 void createPackageSymlink(String name, String target, String symlink,
     {bool isSelfLink: false, bool relative: false}) {
-  // See if the package has a "lib" directory.
+  // See if the package has a "lib" directory. If not, there's nothing to
+  // symlink to.
   target = path.join(target, 'lib');
-  log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
-  if (dirExists(target)) {
-    createSymlink(target, symlink, relative: relative);
-    return;
-  }
+  if (!dirExists(target)) return;
 
-  // It's OK for the self link (i.e. the root package) to not have a lib
-  // directory since it may just be a leaf application that only has
-  // code in bin or web.
-  if (!isSelfLink) {
-    log.warning('Warning: Package $name does not have a "lib" directory so '
-                'you will not be able to import any libraries from it.');
-  }
+  log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
+  createSymlink(target, symlink, relative: relative);
 }
 
 /// Whether pub is running from within the Dart SDK, as opposed to from the Dart
