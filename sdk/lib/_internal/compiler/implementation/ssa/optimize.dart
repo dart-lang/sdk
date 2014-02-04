@@ -1706,14 +1706,22 @@ class MemorySet {
   MemorySet(this.compiler);
 
   /**
-   * Returns whether [first] and [second] may alias to the same
-   * object.
+   * Returns whether [first] and [second] always alias to the same object.
+   */
+  bool mustAlias(HInstruction first, HInstruction second) {
+    return first == second;
+  }
+
+  /**
+   * Returns whether [first] and [second] may alias to the same object.
    */
   bool mayAlias(HInstruction first, HInstruction second) {
-    if (first == second) return true;
+    if (mustAlias(first, second)) return true;
     if (isConcrete(first) && isConcrete(second)) return false;
     if (nonEscapingReceivers.contains(first)) return false;
     if (nonEscapingReceivers.contains(second)) return false;
+    // Typed arrays of different types might have a shared buffer.
+    if (couldBeTypedArray(first) && couldBeTypedArray(second)) return true;
     TypeMask intersection = first.instructionType.intersection(
         second.instructionType, compiler);
     if (intersection.isEmpty) return false;
@@ -1728,6 +1736,10 @@ class MemorySet {
     return instruction is HForeignNew
         || instruction is HConstant
         || instruction is HLiteralList;
+  }
+
+  bool couldBeTypedArray(HInstruction receiver) {
+    return compiler.backend.couldBeTypedArray(receiver.instructionType);
   }
 
   /**
@@ -1849,15 +1861,19 @@ class MemorySet {
     nonEscapingReceivers.remove(value);
     keyedValues.forEach((key, values) {
       if (mayAlias(receiver, key)) {
+        // Typed arrays that are views of the same buffer may have different
+        // offsets or element sizes, unless they are the same typed array.
+        bool weakIndex = couldBeTypedArray(key) && !mustAlias(receiver, key);
         values.forEach((otherIndex, otherValue) {
-          if (mayAlias(index, otherIndex)) values[otherIndex] = null;
+          if (weakIndex || mayAlias(index, otherIndex)) {
+            values[otherIndex] = null;
+          }
         });
       }
     });
 
-    JavaScriptBackend backend = compiler.backend;
     // Typed arrays may narrow incoming values.
-    if (backend.couldBeTypedArray(receiver.instructionType)) return;
+    if (couldBeTypedArray(receiver)) return;
 
     Map<HInstruction, HInstruction> map = keyedValues.putIfAbsent(
         receiver, () => <HInstruction, HInstruction> {});
