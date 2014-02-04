@@ -37,7 +37,7 @@ var testFunction = (_) {
 };
 
 var expected = '1:0:3:4:0:::null:'
-  'protectAsync0:Callback called (1) after test case protectAsync0 has already been marked as pass.:'
-  'protectAsync1:Callback called (1) after test case protectAsync1 has already been marked as pass.:'
-  'protectAsync2:Callback called (1) after test case protectAsync2 has already been marked as pass.:'
+  'protectAsync0:Caught Bad state: error during protectAsync0:'
+  'protectAsync1:Caught Bad state: error during protectAsync1: one arg:'
+  'protectAsync2:Caught Bad state: error during protectAsync2: arg1, arg2:'
   'throw away 1:';
