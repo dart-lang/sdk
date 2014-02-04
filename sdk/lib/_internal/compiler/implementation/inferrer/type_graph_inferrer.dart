@@ -17,7 +17,7 @@ import '../native_handler.dart' as native;
 import '../util/util.dart' show Spannable, Setlet;
 import 'simple_types_inferrer.dart';
 import 'ir_type_inferrer.dart';
-import '../dart2jslib.dart' show invariant, Constant;
+import '../dart2jslib.dart' show invariant, Constant, FunctionConstant;
 
 part 'type_graph_nodes.dart';
 part 'closure_tracer.dart';
@@ -555,7 +555,12 @@ class TypeGraphInferrerEngine
             Constant value =
                 compiler.constantHandler.getConstantForVariable(element);
             if (value != null) {
-              type = types.getConcreteTypeFor(value.computeMask(compiler));
+              if (value.isFunction()) {
+                FunctionConstant functionConstant = value;
+                type = types.allocateClosure(node, functionConstant.element);
+              } else {
+                type = types.getConcreteTypeFor(value.computeMask(compiler));
+              }
             }
           }
           recordType(element, type);
