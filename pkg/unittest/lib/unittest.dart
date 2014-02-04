@@ -299,11 +299,6 @@ void solo_test(String spec, TestFunction body) {
   }
 }
 
-/** Sentinel value for [_SpreadArgsHelper]. */
-class _Sentinel {
-  const _Sentinel();
-}
-
 /**
  * Indicate that [callback] is expected to be called a [count] number of times
  * (by default 1). The unittest framework will wait for the callback to run the
@@ -481,12 +476,6 @@ void handleExternalError(e, String message, [stack]) {
   } else {
     _uncaughtErrorMessage = "$msg: $stack";
   }
-}
-
-void rerunTests() {
-  _uncaughtErrorMessage = null;
-  _initialized = true; // We don't want to reset the test array.
-  runTests();
 }
 
 /**
