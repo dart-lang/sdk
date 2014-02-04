@@ -299,6 +299,11 @@ void solo_test(String spec, TestFunction body) {
   }
 }
 
+/** Sentinel value for [_SpreadArgsHelper]. */
+class _Sentinel {
+  const _Sentinel();
+}
+
 /**
  * Indicate that [callback] is expected to be called a [count] number of times
  * (by default 1). The unittest framework will wait for the callback to run the
@@ -366,39 +371,33 @@ Function expectAsyncUntil2(Function callback, Function isDone, {String id}) {
 }
 
 /**
- * *Deprecated*
- *
- * All tests are now run an isolated [Zone].
- *
- * You can safely remove calls to this method.
+ * Wraps the [callback] in a new function and returns that function. The new
+ * function will be able to handle exceptions by directing them to the correct
+ * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
+ * might optionally be called but may never be called during the test.
+ * [callback] should take 0 positional arguments (named arguments are not
+ * supported). [id] can be used to identify the callback in error
+ * messages (for example if it is called after the test case is complete).
  */
-@deprecated
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function protectAsync0(Function callback, {String id}) {
-  return callback;
+  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke0;
 }
 
 /**
- * *Deprecated*
- *
- * All tests are now run an isolated [Zone].
- *
- * You can safely remove calls to this method.
+ * Like [protectAsync0] but [callback] should take 1 positional argument.
  */
-@deprecated
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function protectAsync1(Function callback, {String id}) {
-  return callback;
+  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke1;
 }
 
 /**
- * *Deprecated*
- *
- * All tests are now run an isolated [Zone].
- *
- * You can safely remove calls to this method.
+ * Like [protectAsync0] but [callback] should take 2 positional arguments.
  */
-@deprecated
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function protectAsync2(Function callback, {String id}) {
-  return callback;
+  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke2;
 }
 
 /**
@@ -484,6 +483,12 @@ void handleExternalError(e, String message, [stack]) {
   }
 }
 
+void rerunTests() {
+  _uncaughtErrorMessage = null;
+  _initialized = true; // We don't want to reset the test array.
+  runTests();
+}
+
 /**
  * Filter the tests. [testFilter] can be a [RegExp], a [String] or a
  * predicate function. This is different to enabling/disabling tests
@@ -512,15 +517,24 @@ void runTests() {
 }
 
 /**
- * *Deprecated*
+ * Run [tryBody] guarded in a try-catch block. If an exception is thrown, it is
+ * passed to the corresponding test.
  *
- * All tests are now run an isolated [Zone].
- *
- * You can safely remove calls to this method.
+ * The value returned by [tryBody] (if any) is returned by [guardAsync].
  */
-@deprecated
 guardAsync(Function tryBody) {
-  return tryBody();
+  return _guardAsync(tryBody, null, currentTestCase);
+}
+
+_guardAsync(Function tryBody, Function finallyBody, TestCase testCase) {
+  assert(testCase != null);
+  try {
+    return tryBody();
+  } catch (e, trace) {
+    _registerException(testCase, e, trace);
+  } finally {
+    if (finallyBody != null) finallyBody();
+  }
 }
 
 /**
@@ -551,12 +565,7 @@ void _runTest() {
     _completeTests();
   } else {
     var testCase = testCases[_currentTestCaseIndex];
-    Future f = runZoned(testCase._run, onError: (error, stack) {
-      // TODO(kevmoo) Do a better job of flagging these are async errors.
-      // https://code.google.com/p/dart/issues/detail?id=16530
-      _registerException(testCase, error, stack);
-    });
-
+    Future f = _guardAsync(testCase._run, null, testCase);
     var timeout = unittestConfiguration.timeout;
 
     Timer timer;

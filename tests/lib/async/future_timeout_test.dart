@@ -142,7 +142,6 @@ main() {
   });
 
   test("timeoutZone", () {
-    var initialZone = Zone.current;
     Zone forked;
     int registerCallDelta = 0;
     bool callbackCalled = false;
@@ -170,7 +169,7 @@ main() {
     timedOut.then(expectAsync1((v) {
       expect(callbackCalled, true);
       expect(registerCallDelta, 0);
-      expect(Zone.current, initialZone);
+      expect(Zone.current, Zone.ROOT);
       expect(v, 42);
     }));
   });

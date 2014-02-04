@@ -12,6 +12,7 @@ class _SpreadArgsHelper {
   int actualCalls = 0;
   final TestCase testCase;
   bool complete;
+  static const sentinel = const _Sentinel();
 
   _SpreadArgsHelper(Function callback, int minExpected, int maxExpected,
       Function isDone, String id)
@@ -118,16 +119,5 @@ class _SpreadArgsHelper {
           }
         },
         after, testCase);
-  }
-
-  _guardAsync(Function tryBody, Function finallyBody, TestCase testCase) {
-    assert(testCase != null);
-    try {
-      return tryBody();
-    } catch (e, trace) {
-      _registerException(testCase, e, trace);
-    } finally {
-      if (finallyBody != null) finallyBody();
-    }
   }
 }

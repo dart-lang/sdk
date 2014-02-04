@@ -20,6 +20,7 @@ var testFunction = (_) {
     expect(() => setUp(() {}), throwsStateError);
     expect(() => tearDown(() {}), throwsStateError);
     expect(() => runTests(), throwsStateError);
+    expect(() => rerunTests(), throwsStateError);
   });
 };
 
