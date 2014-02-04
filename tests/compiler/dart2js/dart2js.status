@@ -18,7 +18,9 @@ simple_function_subtype_test: Fail
 
 mirror_final_field_inferrer2_test: Crash, Pass # dartbug.com/15581
 
-simple_inferrer_const_closure_test: Fail # Issue 16448
+simple_inferrer_const_closure_test: Fail # Issue 16507
+simple_inferrer_const_closure2_test: Fail # Issue 16507
+simple_inferrer_global_field_closure_test: Fail # Issue 16507
 
 [ $jscl || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari || $runtime == ie9 || $runtime == opera ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
