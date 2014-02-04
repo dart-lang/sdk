@@ -22,7 +22,9 @@ void main(List<String> arguments) {
   var includeSdk = results['parse-sdk'] || results['include-sdk'];
   var scriptDir = path.dirname(Platform.script.toFilePath());
   var introduction = includeSdk ? '' : results['introduction'];
-  docgen(results.rest.map(path.normalize).toList(),
+  var files = results.rest.map(path.normalize).toList();
+  if (files.isEmpty) _printHelpAndExit();
+  docgen(files,
       packageRoot: results['package-root'],
       outputToYaml: !results['json'],
       includePrivate: results['include-private'],
@@ -36,6 +38,15 @@ void main(List<String> arguments) {
 }
 
 /**
+ * Print help if we are passed the help option or invalid arguments.
+ */
+void _printHelpAndExit() {
+  print(_initArgParser().getUsage());
+  print('Usage: dart docgen.dart [OPTIONS] fooDir/barFile');
+  exit(0);
+}
+
+/**
  * Creates parser for docgen command line arguments.
  */
 ArgParser _initArgParser() {
@@ -44,11 +55,7 @@ ArgParser _initArgParser() {
       help: 'Prints help and usage information.',
       negatable: false,
       callback: (help) {
-        if (help) {
-          print(parser.getUsage());
-          print('Usage: dart docgen.dart [OPTIONS] fooDir/barFile');
-          exit(0);
-        }
+        if (help) _printHelpAndExit();
       });
   parser.addFlag('verbose', abbr: 'v',
       help: 'Output more logging information.', negatable: false,
