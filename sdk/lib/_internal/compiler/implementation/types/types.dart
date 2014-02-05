@@ -13,6 +13,7 @@ import '../universe/universe.dart';
 import 'concrete_types_inferrer.dart' show ConcreteTypesInferrer;
 
 part 'container_type_mask.dart';
+part 'map_type_mask.dart';
 part 'flat_type_mask.dart';
 part 'forwarding_type_mask.dart';
 part 'type_mask.dart';

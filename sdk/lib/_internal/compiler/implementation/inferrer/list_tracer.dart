@@ -9,7 +9,7 @@ part of type_graph_inferrer;
  * change the element type of the list, or let the list escape to code
  * that might change the element type.
  */
-Set<String> okSelectorsSet = new Set<String>.from(
+Set<String> okListSelectorsSet = new Set<String>.from(
   const <String>[
     // From Object.
     '==',
@@ -127,29 +127,31 @@ Set<String> doNotChangeLengthSelectorsSet = new Set<String>.from(
 
 
 class ListTracerVisitor extends TracerVisitor {
-  // The list of found assignments to the container.
-  final List<TypeInformation> assignments = <TypeInformation>[];
+  // The [List] of found assignments to the list.
+  List<TypeInformation> assignments = <TypeInformation>[];
   bool callsGrowableMethod = false;
-  
+
   ListTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
 
-  List<TypeInformation> run() {
+  /**
+   * Returns [true] if the analysis completed successfully, [false] if it
+   * bailed out. In the former case, [assignments] holds a list of
+   * [TypeInformation] nodes that flow into the element type of this list.
+   */
+  bool run() {
     analyze();
-    ListTypeInformation container = tracedType;
+    ListTypeInformation list = tracedType;
     if (continueAnalyzing) {
-      if (!callsGrowableMethod && container.inferredLength == null) {
-        container.inferredLength = container.originalLength;
+      if (!callsGrowableMethod && list.inferredLength == null) {
+        list.inferredLength = list.originalLength;
       }
-      container.flowsInto.addAll(flowsInto);
-      return assignments;
+      list.flowsInto.addAll(flowsInto);
+      return true;
     } else {
       callsGrowableMethod = true;
-      return null;
+      assignments = null;
+      return false;
     }
-  }
-
-  visitMapTypeInformation(MapTypeInformation info) {
-    bailout('Stored in a map');
   }
 
   visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
@@ -169,7 +171,7 @@ class ListTracerVisitor extends TracerVisitor {
     Selector selector = info.selector;
     String selectorName = selector.name;
     if (currentUser == info.receiver) {
-      if (!okSelectorsSet.contains(selectorName)) {
+      if (!okListSelectorsSet.contains(selectorName)) {
         if (selector.isCall()) {
           int positionalLength = info.arguments.positional.length;
           if (selectorName == 'add') {

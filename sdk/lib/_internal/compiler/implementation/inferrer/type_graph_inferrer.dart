@@ -9,7 +9,8 @@ import '../dart_types.dart' show DartType, InterfaceType, TypeKind;
 import '../elements/elements.dart';
 import '../tree/tree.dart' show LiteralList, Node;
 import '../ir/ir_nodes.dart' show IrNode;
-import '../types/types.dart' show TypeMask, ContainerTypeMask, TypesInferrer;
+import '../types/types.dart'
+  show TypeMask, ContainerTypeMask, MapTypeMask, TypesInferrer;
 import '../universe/universe.dart' show Selector, TypedSelector, SideEffects;
 import '../dart2jslib.dart' show Compiler, TreeElementMapping;
 import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
@@ -23,14 +24,15 @@ part 'type_graph_nodes.dart';
 part 'closure_tracer.dart';
 part 'list_tracer.dart';
 part 'node_tracer.dart';
+part 'map_tracer.dart';
 
-bool _VERBOSE = false;
+bool _VERBOSE = true;
 
 /**
  * A set of selector names that [List] implements, that we know return
  * their element type.
  */
-Set<Selector> returnsElementTypeSet = new Set<Selector>.from(
+Set<Selector> returnsListElementTypeSet = new Set<Selector>.from(
   <Selector>[
     new Selector.getter('first', null),
     new Selector.getter('last', null),
@@ -42,10 +44,16 @@ Set<Selector> returnsElementTypeSet = new Set<Selector>.from(
     new Selector.call('removeLast', null, 0)
   ]);
 
-bool returnsElementType(Selector selector) {
+bool returnsListElementType(Selector selector) {
   return (selector.mask != null)
          && selector.mask.isContainer
-         && returnsElementTypeSet.contains(selector.asUntyped);
+         && returnsListElementTypeSet.contains(selector.asUntyped);
+}
+
+bool returnsMapValueType(Selector selector) {
+  return (selector.mask != null)
+         && selector.mask.isMap
+         && selector.isIndex();
 }
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
@@ -57,6 +65,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
 
   /// [ListTypeInformation] for allocated lists.
   final Map<Node, TypeInformation> allocatedLists =
+      new Map<Node, TypeInformation>();
+
+  /// [MapTypeInformation] for allocated Maps.
+  final Map<Node, TypeInformation> allocatedMaps =
       new Map<Node, TypeInformation>();
 
   /// Closures found during the analysis.
@@ -311,12 +323,35 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return result;
   }
 
-  TypeInformation allocateMap(TypeInformation keyType,
-                              TypeInformation valueType,
-                              ConcreteTypeInformation type) {
+  TypeInformation allocateMap(ConcreteTypeInformation type,
+                              Node node,
+                              Element element,
+                              [TypeInformation keyType,
+                              TypeInformation valueType]) {
+    bool isFixed = (type.type == compiler.typesTask.constMapType);
+
+    // transform the key and value into inferrable type informations
+    KeyInMapTypeInformation inferredKeyType =
+        new KeyInMapTypeInformation(keyType);
+    ValueInMapTypeInformation inferredValueType =
+        new ValueInMapTypeInformation(valueType);
+    if (isFixed) {
+      inferredValueType.inferred = inferredKeyType.inferred = true;
+    }
+    MapTypeMask mask = new MapTypeMask(type.type,
+                                       node,
+                                       element,
+                                       isFixed ? keyType.type
+                                               : dynamicType.type,
+                                       isFixed ? valueType.type
+                                               : dynamicType.type);
+
     MapTypeInformation map =
-        new MapTypeInformation(keyType, valueType, type.type);
-    allocatedTypes.add(map);
+      new MapTypeInformation(inferredKeyType, inferredValueType, mask);
+
+    allocatedTypes.add(inferredKeyType);
+    allocatedTypes.add(inferredValueType);
+    allocatedMaps[node] = map;
     return map;
   }
 
@@ -441,12 +476,11 @@ class TypeGraphInferrerEngine
   TypeGraphInferrerEngine(Compiler compiler, this.mainElement)
         : super(compiler, new TypeInformationSystem(compiler));
 
-  void analyzeContainer(ListTypeInformation info) {
+  void analyzeListAndEnqueue(ListTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
     ListTracerVisitor tracer = new ListTracerVisitor(info, this);
-    List<TypeInformation> newAssignments = tracer.run();
-    if (newAssignments == null) {
+    if (!tracer.run()) {
       return;
     }
     info.bailedOut = false;
@@ -455,7 +489,26 @@ class TypeGraphInferrerEngine
     if (info.originalContainerType.forwardTo == fixedListType) {
       info.checksGrowable = tracer.callsGrowableMethod;
     }
-    newAssignments.forEach(info.elementType.addAssignment);
+    tracer.assignments.forEach(info.elementType.addAssignment);
+    // Enqueue the list for later refinement
+    workQueue.add(info);
+    workQueue.add(info.elementType);
+  }
+
+  void analyzeMapAndEnqueue(MapTypeInformation info) {
+    if (info.analyzed) return;
+    info.analyzed = true;
+    MapTracerVisitor tracer = new MapTracerVisitor(info, this);
+    if (!tracer.run()) return;
+    info.bailedOut = false;
+    info.keyType.inferred = true;
+    tracer.keyAssignments.forEach(info.keyType.addAssignment);
+    workQueue.add(info.keyType);
+    info.valueType.inferred = true;
+    tracer.valueAssignments.forEach(info.valueType.addAssignment);
+    // Enqueue the map for later refinement
+    workQueue.add(info.valueType);
+    workQueue.add(info);
   }
 
   void runOverAllElements() {
@@ -480,10 +533,13 @@ class TypeGraphInferrerEngine
     // Try to infer element types of lists.
     types.allocatedLists.values.forEach((ListTypeInformation info) {
       if (info.elementType.inferred) return;
-      analyzeContainer(info);
-      if (info.bailedOut) return;
-      workQueue.add(info);
-      workQueue.add(info.elementType);
+      analyzeListAndEnqueue(info);
+    });
+
+    // Try to infer the key and value types for maps.
+    types.allocatedMaps.values.forEach((MapTypeInformation info) {
+      if (info.keyType.inferred && info.valueType.inferred) return;
+      analyzeMapAndEnqueue(info);
     });
 
     types.allocatedClosures.forEach((info) {
@@ -498,8 +554,8 @@ class TypeGraphInferrerEngine
       });
     });
 
-    // Reset all nodes that use lists that have been inferred, as well
-    // as nodes that use elements fetched from these lists. The
+    // Reset all nodes that use lists/maps that have been inferred, as well
+    // as nodes that use elements fetched from these lists/maps. The
     // workset for a new run of the analysis will be these nodes.
     Set<TypeInformation> seenTypes = new Set<TypeInformation>();
     while (!workQueue.isEmpty) {
@@ -518,6 +574,11 @@ class TypeGraphInferrerEngine
         print('${info.type} '
               'for ${info.originalContainerType.allocationNode} '
               'at ${info.originalContainerType.allocationElement}');
+      });
+      types.allocatedMaps.values.forEach((MapTypeInformation info) {
+        print('${info.type} '
+              'for ${(info.type as MapTypeMask).allocationNode} '
+              'at ${(info.type as MapTypeMask).allocationElement}');
       });
     }
 
@@ -980,10 +1041,16 @@ class TypeGraphInferrer implements TypesInferrer {
     if (selector.isSetter() || selector.isIndexSet()) {
       return compiler.typesTask.dynamicType;
     }
-    if (returnsElementType(selector)) {
+    if (returnsListElementType(selector)) {
       ContainerTypeMask mask = selector.mask;
       TypeMask elementType = mask.elementType;
       return elementType == null ? compiler.typesTask.dynamicType : elementType;
+    }
+    if (returnsMapValueType(selector)) {
+      MapTypeMask mask = selector.mask;
+      TypeMask valueType = mask.valueType;
+      return valueType == null ? compiler.typesTask.dynamicType
+                               : valueType.nullable();
     }
 
     TypeMask result = const TypeMask.nonNullEmpty();

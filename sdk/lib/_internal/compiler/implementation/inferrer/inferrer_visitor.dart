@@ -47,7 +47,7 @@ abstract class TypeSystem<T> {
                  Element enclosing,
                  [T elementType, int length]);
 
-  T allocateMap(T keyType, T valueType, T type);
+  T allocateMap(T type, Node node, Element element, [T keyType, T valueType]);
 
   T allocateClosure(Node node, Element element);
 

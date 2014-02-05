@@ -466,6 +466,10 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
+  bool get isMap {
+    throw new UnsupportedError("");
+  }
+
   bool get isForwarding {
     throw new UnsupportedError("");
   }

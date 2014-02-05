@@ -5,7 +5,7 @@
 part of types;
 
 /**
- * A type mask that wraps an other one, and delecate all its
+ * A type mask that wraps an other one, and delegate all its
  * implementation methods to it.
  */
 abstract class ForwardingTypeMask implements TypeMask {

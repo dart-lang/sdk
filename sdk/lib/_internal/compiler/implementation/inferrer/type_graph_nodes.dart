@@ -665,9 +665,12 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         return const TypeMask.nonNullEmpty();
       }
 
-      if (returnsElementType(typedSelector)) {
+      if (returnsListElementType(typedSelector)) {
         ContainerTypeMask mask = receiver.type;
         return mask.elementType;
+      } else if (returnsMapValueType(typedSelector)) {
+        MapTypeMask mask = receiver.type;
+        return mask.valueType.nullable();
       } else {
         TypeInformation info =
             handleIntrisifiedSelector(typedSelector, inferrer);
@@ -866,6 +869,32 @@ class NarrowTypeInformation extends TypeInformation {
 }
 
 /**
+ * An [InferredTypeInformation] is a [TypeInformation] that
+ * defaults to the dynamic type until it is marked as beeing
+ * inferred, at which point it computes its type based on
+ * its assignments.
+ */
+abstract class InferredTypeInformation extends TypeInformation {
+  /** Whether the element type in that container has been inferred. */
+  bool inferred = false;
+
+  InferredTypeInformation(parentType) {
+    if (parentType != null) addAssignment(parentType);
+  }
+
+  TypeMask refine(TypeGraphInferrerEngine inferrer) {
+    if (!inferred) {
+      return inferrer.types.dynamicType.type;
+    }
+    return inferrer.types.computeTypeMask(assignments);
+  }
+
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    return inferred && super.hasStableType(inferrer);
+  }
+}
+
+/**
  * A [ListTypeInformation] is a [TypeInformation] created
  * for each `List` instantiations.
  */
@@ -931,29 +960,13 @@ class ListTypeInformation extends TypeInformation {
  * An [ElementInContainerTypeInformation] holds the common type of the
  * elements in a [ListTypeInformation].
  */
-class ElementInContainerTypeInformation extends TypeInformation {
-  /** Whether the element type in that container has been inferred. */
-  bool inferred = false;
-
-  ElementInContainerTypeInformation(elementType) {
-    if (elementType != null) addAssignment(elementType);
-  }
-
-  TypeMask refine(TypeGraphInferrerEngine inferrer) {
-    if (!inferred) {
-      return inferrer.types.dynamicType.type;
-    }
-    return inferrer.types.computeTypeMask(assignments);
-  }
+class ElementInContainerTypeInformation extends InferredTypeInformation {
+  ElementInContainerTypeInformation(elementType) : super(elementType);
 
   String toString() => 'Element in container $type';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitElementInContainerTypeInformation(this);
-  }
-
-  bool hasStableType(TypeGraphInferrerEngine inferrer) {
-    return inferred && super.hasStableType(inferrer);
   }
 }
 
@@ -962,9 +975,17 @@ class ElementInContainerTypeInformation extends TypeInformation {
  * for maps.
  */
 class MapTypeInformation extends TypeInformation {
-  final TypeInformation keyType;
-  final TypeInformation valueType;
-  final TypeMask initialType;
+  final KeyInMapTypeInformation keyType;
+  final ValueInMapTypeInformation valueType;
+  final MapTypeMask initialType;
+
+  // The set of [TypeInformation] where values from the traced map could
+  // flow in.
+  final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
+
+  // Set to false once analysis has succeeded.
+  bool bailedOut = true;
+  bool analyzed = false;
 
   MapTypeInformation(this.keyType, this.valueType, this.initialType) {
     keyType.addUser(this);
@@ -977,10 +998,63 @@ class MapTypeInformation extends TypeInformation {
   }
 
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
-    return initialType;
+    var mask = type;
+    if (!mask.isMap
+        || mask.keyType != keyType.type
+        || mask.valueType != valueType.type) {
+      return new MapTypeMask(initialType.forwardTo,
+                             initialType.allocationNode,
+                             initialType.allocationElement,
+                             keyType.type,
+                             valueType.type);
+    }
+
+    return mask;
   }
 
-  String toString() => 'Map $type';
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    return keyType.isStable
+           && valueType.isStable
+           && super.hasStableType(inferrer);
+  }
+
+  String toString() => 'Map $type (K:$keyType, V:$valueType)';
+}
+
+/**
+ * A [KeyInMapTypeInformation] holds the common type
+ * for the keys in a [MapTypeInformation]
+ */
+class KeyInMapTypeInformation extends InferredTypeInformation {
+  KeyInMapTypeInformation(TypeInformation keyType) : super(keyType);
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitKeyInMapTypeInformation(this);
+  }
+
+  TypeMask refine(TypeGraphInferrerEngine inferrer) {
+    return super.refine(inferrer);
+  }
+
+  String toString() => 'Key in Map $type';
+}
+
+/**
+ * A [ValueInMapTypeInformation] holds the common type
+ * for the values in a [MapTypeInformation]
+ */
+class ValueInMapTypeInformation extends InferredTypeInformation {
+  ValueInMapTypeInformation(TypeInformation valueType) : super(valueType);
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitValueInMapTypeInformation(this);
+  }
+
+  TypeMask refine(TypeGraphInferrerEngine inferrer) {
+    return super.refine(inferrer);
+  }
+
+  String toString() => 'Value in Map $type';
 }
 
 /**
@@ -1031,6 +1105,8 @@ abstract class TypeInformationVisitor<T> {
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
   T visitElementInContainerTypeInformation(
       ElementInContainerTypeInformation info);
+  T visitKeyInMapTypeInformation(KeyInMapTypeInformation info);
+  T visitValueInMapTypeInformation(ValueInMapTypeInformation info);
   T visitListTypeInformation(ListTypeInformation info);
   T visitMapTypeInformation(MapTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);

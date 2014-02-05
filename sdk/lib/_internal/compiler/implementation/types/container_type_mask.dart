@@ -49,6 +49,7 @@ class ContainerTypeMask extends ForwardingTypeMask {
   }
 
   bool get isContainer => true;
+  bool get isMap => false;
   bool get isExact => true;
 
   bool equalsDisregardNull(other) {

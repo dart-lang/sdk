@@ -6,7 +6,7 @@ part of type_graph_inferrer;
 
 // A set of selectors we know do not escape the elements inside the
 // list.
-Set<String> doesNotEscapeElementSet = new Set<String>.from(
+Set<String> doesNotEscapeListSet = new Set<String>.from(
   const <String>[
     // From Object.
     '==',
@@ -46,6 +46,23 @@ Set<String> doesNotEscapeElementSet = new Set<String>.from(
     'checkGrowable',
   ]);
 
+Set<String> doesNotEscapeMapSet = new Set<String>.from(
+  const <String>[
+    // From Object.
+    '==',
+    'hashCode',
+    'toString',
+    'noSuchMethod',
+    'runtimeType',
+    // from Map.
+    'isEmpty',
+    'isNotEmpty',
+    'length',
+    'clear',
+    'containsKey',
+    'containsValue'
+  ]);
+
 abstract class TracerVisitor implements TypeInformationVisitor {
   final TypeInformation tracedType;
   final TypeGraphInferrerEngine inferrer;
@@ -61,12 +78,16 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   // contain the container.
   final List<TypeInformation> workList = <TypeInformation>[];
 
-  // Work list of containers to analyze after analyzing the users of a
-  // [TypeInformation] that may be [container]. We know [container]
-  // has been stored in these containers and we must check how
-  // [container] escapes from these containers.
-  final List<ListTypeInformation> containersToAnalyze =
+  // Work list of lists to analyze after analyzing the users of a
+  // [TypeInformation]. We know the [tracedType] has been stored in these
+  // lists and we must check how it escapes from these lists.
+  final List<ListTypeInformation> listsToAnalyze =
       <ListTypeInformation>[];
+  // Work list of maps to analyze after analyzing the users of a
+  // [TypeInformation]. We know the [tracedType] has been stored in these
+  // maps and we must check how it escapes from these maps.
+  final List<MapTypeInformation> mapsToAnalyze =
+      <MapTypeInformation>[];
 
   final Setlet<TypeInformation> flowsInto = new Setlet<TypeInformation>();
 
@@ -81,7 +102,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   void analyze() {
-    // Collect the [TypeInformation] where the container can flow in,
+    // Collect the [TypeInformation] where the list can flow in,
     // as well as the operations done on all these [TypeInformation]s.
     addNewEscapeInformation(tracedType);
     while (!workList.isEmpty) {
@@ -90,8 +111,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         analyzedElements.add(info.owner);
         info.accept(this);
       });
-      while (!containersToAnalyze.isEmpty) {
-        analyzeStoredIntoContainer(containersToAnalyze.removeLast());
+      while (!listsToAnalyze.isEmpty) {
+        analyzeStoredIntoList(listsToAnalyze.removeLast());
+      }
+      while (!mapsToAnalyze.isEmpty) {
+        analyzeStoredIntoMap(mapsToAnalyze.removeLast());
       }
       if (!continueAnalyzing) break;
       if (analyzedElements.length > MAX_ANALYSIS_COUNT) {
@@ -121,10 +145,21 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     addNewEscapeInformation(info);
   }
 
-  visitListTypeInformation(ListTypeInformation info) {
-    containersToAnalyze.add(info);
+  void visitKeyInMapTypeInformation(KeyInMapTypeInformation info) {
+    addNewEscapeInformation(info);
   }
 
+  void visitValueInMapTypeInformation(ValueInMapTypeInformation info) {
+    addNewEscapeInformation(info);
+  }
+
+  void visitListTypeInformation(ListTypeInformation info) {
+    listsToAnalyze.add(info);
+  }
+
+  void visitMapTypeInformation(MapTypeInformation info) {
+    mapsToAnalyze.add(info);
+  }
   void visitConcreteTypeInformation(ConcreteTypeInformation info) {}
 
   void visitClosureTypeInformation(ClosureTypeInformation info) {}
@@ -139,19 +174,38 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
   }
 
-  void analyzeStoredIntoContainer(ListTypeInformation container) {
-    inferrer.analyzeContainer(container);
-    if (container.bailedOut) {
-      bailout('Stored in a container that bailed out');
+  void analyzeStoredIntoList(ListTypeInformation list) {
+    inferrer.analyzeListAndEnqueue(list);
+    if (list.bailedOut) {
+      bailout('Stored in a list that bailed out');
     } else {
-      container.flowsInto.forEach((flow) {
+      list.flowsInto.forEach((flow) {
         flow.users.forEach((user) {
           if (user is !DynamicCallSiteTypeInformation) return;
           if (user.receiver != flow) return;
-          if (returnsElementTypeSet.contains(user.selector)) {
+          if (returnsListElementTypeSet.contains(user.selector)) {
             addNewEscapeInformation(user);
-          } else if (!doesNotEscapeElementSet.contains(user.selector.name)) {
-            bailout('Escape from a container');
+          } else if (!doesNotEscapeListSet.contains(user.selector.name)) {
+            bailout('Escape from a list');
+          }
+        });
+      });
+    }
+  }
+
+  void analyzeStoredIntoMap(MapTypeInformation map) {
+    inferrer.analyzeMapAndEnqueue(map);
+    if (map.bailedOut) {
+      bailout('Stored in a map that bailed out');
+    } else {
+      map.flowsInto.forEach((flow) {
+        flow.users.forEach((user) {
+          if (user is !DynamicCallSiteTypeInformation) return;
+          if (user.receiver != flow) return;
+          if (user.selector.isIndex()) {
+            addNewEscapeInformation(user);
+          } else if (!doesNotEscapeMapSet.contains(user.selector.name)) {
+            bailout('Escape from a map');
           }
         });
       });
@@ -169,19 +223,39 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         || (selectorName == 'add' && currentUser == arguments[0]);
   }
 
+  bool isValueAddedToMap(DynamicCallSiteTypeInformation info) {
+    if (info.arguments == null) return false;
+    var receiverType = info.receiver.type;
+    if (!receiverType.isMap) return false;
+    String selectorName = info.selector.name;
+    List<TypeInformation> arguments = info.arguments.positional;
+    return selectorName == '[]=' && currentUser == arguments[1];
+  }
+
   void visitDynamicCallSiteTypeInformation(
       DynamicCallSiteTypeInformation info) {
     if (isAddedToContainer(info)) {
       ContainerTypeMask mask = info.receiver.type;
       if (mask.allocationNode != null) {
-        ListTypeInformation container =
+        ListTypeInformation list =
             inferrer.types.allocatedLists[mask.allocationNode];
-        containersToAnalyze.add(container);
+        listsToAnalyze.add(list);
       } else {
         // The [ContainerTypeMask] is a union of two containers, and
         // we lose track of where these containers have been allocated
         // at this point.
         bailout('Stored in too many containers');
+      }
+    } else if (isValueAddedToMap(info)) {
+      MapTypeMask mask = info.receiver.type;
+      if (mask.allocationNode != null) {
+        MapTypeInformation map =
+            inferrer.types.allocatedMaps[mask.allocationNode];
+        mapsToAnalyze.add(map);
+      } else {
+        // The [MapTypeMask] is a union. See comment for
+        // [ContainerTypeMask] above.
+        bailout('Stored in too many maps');
       }
     }
 
