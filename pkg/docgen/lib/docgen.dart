@@ -661,6 +661,11 @@ class _Viewer {
   /// Move the generated json/yaml docs directory to the dartdoc-viewer
   /// directory, to run as a webpage.
   static void _moveDirectoryAndServe() {
+    var processResult = Process.runSync('pub', ['update'], runInShell: true,
+        workingDirectory: path.join(_dartdocViewerDir.path, 'client'));
+    print('process output: ${processResult.stdout}');
+    print('process stderr: ${processResult.stderr}');
+
     var dir = new Directory(_Generator._outputDirectory == null? 'docs' :
         _Generator._outputDirectory);
     var webDocsDir = new Directory(path.join(_dartdocViewerDir.path, 'client',
