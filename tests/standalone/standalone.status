@@ -13,6 +13,7 @@ issue14236_test: Crash, RuntimeError # Issue 14516.
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
+io/web_socket_error_test: Pass, Timeout # Issue 16544
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
