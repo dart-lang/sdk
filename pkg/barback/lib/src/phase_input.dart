@@ -88,7 +88,7 @@ class PhaseInput {
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
   PhaseInput(this._phase, AssetNode input, Iterable<Transformer> transformers,
-        this._location)
+      this._location)
       : _transformers = transformers.toSet(),
         _inputForwarder = new AssetForwarder(input) {
     _onDirtyPool.add(_onDirtyController.stream);
