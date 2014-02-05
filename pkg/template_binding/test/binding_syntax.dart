@@ -4,18 +4,18 @@
 
 library template_binding.test.binding_syntax;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
 import 'package:template_binding/template_binding.dart';
 import 'package:observe/observe.dart';
-import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import 'utils.dart';
 
 // Note: this test is executed by template_element_test.dart
 
 syntaxTests(FooBarModel fooModel([foo, bar])) {
-  observeTest('prepareBinding', () {
+  test('prepareBinding', () {
     var model = fooModel('bar');
     var testSyntax = new TestBindingSyntax();
     var div = createTestHtml(
@@ -23,23 +23,24 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
           '<template bind>{{ foo }}</template>'
         '</template>');
     recursivelySetTemplateModel(div, model, testSyntax);
-    performMicrotaskCheckpoint();
-    expect(div.nodes.length, 4);
-    expect(div.nodes.last.text, 'bar');
-    expect(div.nodes[2].tagName, 'TEMPLATE');
-    expect(testSyntax.log, [
-      ['prepare', '', 'bind', 'TEMPLATE'],
-      ['bindFn', model, 'TEMPLATE', 0],
-      ['prepare', 'foo', 'text', 'TEXT'],
-      ['prepare', '', 'bind', 'TEMPLATE'],
-      ['bindFn', model, 'TEXT', 2],
-      ['bindFn', model, 'TEMPLATE', 3],
-      ['prepare', 'foo', 'text', 'TEXT'],
-      ['bindFn', model, 'TEXT', 6],
-    ]);
+    return new Future(() {
+      expect(div.nodes.length, 4);
+      expect(div.nodes.last.text, 'bar');
+      expect(div.nodes[2].tagName, 'TEMPLATE');
+      expect(testSyntax.log, [
+        ['prepare', '', 'bind', 'TEMPLATE'],
+        ['bindFn', model, 'TEMPLATE', 0],
+        ['prepare', 'foo', 'text', 'TEXT'],
+        ['prepare', '', 'bind', 'TEMPLATE'],
+        ['bindFn', model, 'TEXT', 2],
+        ['bindFn', model, 'TEMPLATE', 3],
+        ['prepare', 'foo', 'text', 'TEXT'],
+        ['bindFn', model, 'TEXT', 6],
+      ]);
+    });
   });
 
-  observeTest('prepareInstanceModel', () {
+  test('prepareInstanceModel', () {
     var model = toObservable([fooModel(1), fooModel(2), fooModel(3)]);
 
     var testSyntax = new TestModelSyntax();
@@ -49,23 +50,24 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
 
     var template = div.nodes[0];
     recursivelySetTemplateModel(div, model, testSyntax);
-    performMicrotaskCheckpoint();
+    return new Future(() {
 
-    expect(div.nodes.length, 4);
-    expect(div.nodes[0].tagName, 'TEMPLATE');
-    expect(div.nodes[1].text, 'a');
-    expect(div.nodes[2].text, 'b');
-    expect(div.nodes[3].text, 'c');
+      expect(div.nodes.length, 4);
+      expect(div.nodes[0].tagName, 'TEMPLATE');
+      expect(div.nodes[1].text, 'a');
+      expect(div.nodes[2].text, 'b');
+      expect(div.nodes[3].text, 'c');
 
-    expect(testSyntax.log, [
-      ['prepare', template],
-      ['bindFn', model[0]],
-      ['bindFn', model[1]],
-      ['bindFn', model[2]],
-    ]);
+      expect(testSyntax.log, [
+        ['prepare', template],
+        ['bindFn', model[0]],
+        ['bindFn', model[1]],
+        ['bindFn', model[2]],
+      ]);
+    });
   });
 
-  observeTest('prepareInstanceModel - reorder instances', () {
+  test('prepareInstanceModel - reorder instances', () {
     var model = toObservable([0, 1, 2]);
 
     var div = createTestHtml('<template repeat>{{}}</template>');
@@ -73,18 +75,19 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
     var delegate = new TestInstanceModelSyntax();
 
     recursivelySetTemplateModel(div, model, delegate);
-    performMicrotaskCheckpoint();
-    expect(delegate.prepareCount, 1);
-    expect(delegate.callCount, 3);
+    return new Future(() {
+      expect(delegate.prepareCount, 1);
+      expect(delegate.callCount, 3);
 
-    // Note: intentionally mutate in place.
-    model.replaceRange(0, model.length, model.reversed.toList());
-    performMicrotaskCheckpoint();
-    expect(delegate.prepareCount, 1);
-    expect(delegate.callCount, 3);
+      // Note: intentionally mutate in place.
+      model.replaceRange(0, model.length, model.reversed.toList());
+    }).then(endOfMicrotask).then((_) {
+      expect(delegate.prepareCount, 1);
+      expect(delegate.callCount, 3);
+    });
   });
 
-  observeTest('prepareInstancePositionChanged', () {
+  test('prepareInstancePositionChanged', () {
     var model = toObservable(['a', 'b', 'c']);
 
     var div = createTestHtml('<template repeat>{{}}</template>');
@@ -92,45 +95,72 @@ syntaxTests(FooBarModel fooModel([foo, bar])) {
 
     var template = div.nodes[0];
     recursivelySetTemplateModel(div, model, delegate);
-    performMicrotaskCheckpoint();
+    return new Future(() {
 
-    expect(div.nodes.length, 4);
-    expect(div.nodes[0].tagName, 'TEMPLATE');
-    expect(div.nodes[1].text, 'a');
-    expect(div.nodes[2].text, 'b');
-    expect(div.nodes[3].text, 'c');
+      expect(div.nodes.length, 4);
+      expect(div.nodes[0].tagName, 'TEMPLATE');
+      expect(div.nodes[1].text, 'a');
+      expect(div.nodes[2].text, 'b');
+      expect(div.nodes[3].text, 'c');
 
-    expect(delegate.log, [
-      ['prepare', template],
-      ['bindFn', model[0], 0],
-      ['bindFn', model[1], 1],
-      ['bindFn', model[2], 2],
-    ]);
+      expect(delegate.log, [
+        ['prepare', template],
+        ['bindFn', model[0], 0],
+        ['bindFn', model[1], 1],
+        ['bindFn', model[2], 2],
+      ]);
 
-    delegate.log.clear();
+      delegate.log.clear();
 
-    model.removeAt(1);
-    performMicrotaskCheckpoint();
+      model.removeAt(1);
+    }).then(endOfMicrotask).then((_) {
 
-    expect(delegate.log, [['bindFn', 'c', 1]], reason: 'removed item');
+      expect(delegate.log, [['bindFn', 'c', 1]], reason: 'removed item');
 
-    expect(div.nodes.skip(1).map((n) => n.text), ['a', 'c']);
+      expect(div.nodes.skip(1).map((n) => n.text), ['a', 'c']);
+    });
   });
 
-  observeTest('Basic', () {
+
+  test('Update bindingDelegate with active template', () {
+    var model = toObservable([1, 2]);
+
+    var div = createTestHtml(
+        '<template repeat>{{ \$index }} - {{ \$ident }}</template>');
+    var template = templateBind(div.firstChild)
+      ..bindingDelegate = new UpdateBindingDelegateA()
+      ..model = model;
+
+    return new Future(() {
+      expect(div.nodes.length, 3);
+      expect(div.nodes[1].text, 'i:0 - a:1');
+      expect(div.nodes[2].text, 'i:1 - a:2');
+
+      template.bindingDelegate = new UpdateBindingDelegateB();
+      model.add(3);
+    }).then(nextMicrotask).then((_) {
+      expect(4, div.nodes.length);
+      expect(div.nodes[1].text, 'i:0 - a:1');
+      expect(div.nodes[2].text, 'i:1 - a:2');
+      expect(div.nodes[3].text, 'I:4 - A:3-narg');
+    });
+  });
+
+  test('Basic', () {
     var model = fooModel(2, 4);
     var div = createTestHtml(
         '<template bind>'
         '{{ foo }} + {{ 2x: bar }} + {{ 4x: bar }}</template>');
     recursivelySetTemplateModel(div, model, new TimesTwoSyntax());
-    performMicrotaskCheckpoint();
-    expect(div.nodes.length, 2);
-    expect(div.nodes.last.text, '2 + 8 + ');
+    return new Future(() {
+      expect(div.nodes.length, 2);
+      expect(div.nodes.last.text, '2 + 8 + ');
 
-    model.foo = 4;
-    model.bar = 8;
-    performMicrotaskCheckpoint();
-    expect(div.nodes.last.text, '4 + 16 + ');
+      model.foo = 4;
+      model.bar = 8;
+    }).then(endOfMicrotask).then((_) {
+      expect(div.nodes.last.text, '4 + 16 + ');
+    });
   });
 
   // Note: issue-141 test not included here as it's not related to the
@@ -147,9 +177,11 @@ class TestBindingSyntax extends BindingDelegate {
     int id = log.length;
     log.add(['prepare', path, name, tagName]);
     final outerNode = node;
-    return (model, node) {
+    return (model, node, oneTime) {
       var tagName = node is Element ? node.tagName : 'TEXT';
       log.add(['bindFn', model, tagName, id]);
+      return oneTime ? new PropertyPath(path).getValueFrom(model) :
+          new PathObserver(model, path);
     };
   }
 }
@@ -199,8 +231,42 @@ class TimesTwoSyntax extends BindingDelegate {
     if (!path.startsWith('2x:')) return null;
 
     path = path.substring(3);
-    return (model, _) {
-      return new PathObserver(model, path, computeValue: (x) => 2 * x);
+    return (model, _, oneTime) {
+      return new ObserverTransform(new PathObserver(model, path), (x) => 2 * x);
     };
   }
 }
+
+class UpdateBindingDelegateBase extends BindingDelegate {
+  bindingHandler(prefix, path) => (model, _, oneTime) =>
+      new ObserverTransform(new PathObserver(model, path), (x) => '$prefix:$x');
+}
+
+class UpdateBindingDelegateA extends UpdateBindingDelegateBase {
+  prepareBinding(path, name, node) {
+    if (path == '\$ident') return bindingHandler('a', 'id');
+    if (path == '\$index') return bindingHandler('i', 'index');
+  }
+
+  prepareInstanceModel(template) => (model) => toObservable({ 'id': model });
+
+  prepareInstancePositionChanged(template) => (templateInstance, index) {
+    templateInstance.model['index'] = index;
+  };
+}
+
+class UpdateBindingDelegateB extends UpdateBindingDelegateBase {
+  prepareBinding(path, name, node) {
+    if (path == '\$ident') return bindingHandler('A', 'id');
+    if (path == '\$index') return bindingHandler('I', 'index');
+  }
+
+  prepareInstanceModel(template) =>
+      (model) => toObservable({ 'id': '${model}-narg' });
+
+
+  prepareInstancePositionChanged(template) => (templateInstance, index) {
+    templateInstance.model['index'] = 2 * index;
+  };
+}
+

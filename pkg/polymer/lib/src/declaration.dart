@@ -41,23 +41,29 @@ class PolymerDeclaration extends HtmlElement {
   PolymerDeclaration _super;
   PolymerDeclaration get superDeclaration => _super;
 
+  String _extendsName;
+
   String _name;
   String get name => _name;
 
   /**
    * Map of publish properties. Can be a [VariableMirror] or a [MethodMirror]
    * representing a getter. If it is a getter, there will also be a setter.
+   *
+   * Note: technically these are always single properties, so we could use
+   * a Symbol instead of a PropertyPath. However there are lookups between
+   * this map and [_observe] so it is easier to just track paths.
    */
-  Map<Symbol, DeclarationMirror> _publish;
+  Map<PropertyPath, DeclarationMirror> _publish;
 
   /** The names of published properties for this polymer-element. */
-  Iterable<Symbol> get publishedProperties =>
-      _publish != null ? _publish.keys : const [];
+  Iterable<String> get publishedProperties =>
+      _publish != null ? _publish.keys.map((p) => '$p') : const [];
 
   /** Same as [_publish] but with lower case names. */
   Map<String, DeclarationMirror> _publishLC;
 
-  Map<Symbol, Symbol> _observe;
+  Map<PropertyPath, List<Symbol>> _observe;
 
   Map<String, Object> _instanceAttributes;
 
@@ -83,6 +89,8 @@ class PolymerDeclaration extends HtmlElement {
   PolymerDeclaration.created() : super.created() {
     // fetch the element name
     _name = attributes['name'];
+    // fetch our extendee name
+    _extendsName = attributes['extends'];
     // install element definition, if ready
     registerWhenReady();
   }
@@ -92,9 +100,7 @@ class PolymerDeclaration extends HtmlElement {
     if (waitingForType(name)) {
       return;
     }
-    // fetch our extendee name
-    var extendee = attributes['extends'];
-    if (waitingForExtendee(extendee)) {
+    if (waitingForExtendee(_extendsName)) {
       //console.warn(name + ': waitingForExtendee:' + extendee);
       return;
     }
@@ -106,7 +112,7 @@ class PolymerDeclaration extends HtmlElement {
     // finalizing elements in the main document
     // TODO(jmesserly): Polymer.dart waits for HTMLImportsLoaded, so I've
     // removed "whenImportsLoaded" for now. Restore the workaround if needed.
-    _register(extendee);
+    _register(_extendsName);
   }
 
   void _register(extendee) {
@@ -188,9 +194,12 @@ class PolymerDeclaration extends HtmlElement {
     // transcribe `attributes` declarations onto own prototype's `publish`
     publishAttributes(cls, _super);
 
-    publishProperties(type);
+    publishProperties(_type);
 
     inferObservers(cls);
+
+    // desugar compound observer syntax, e.g. @ObserveProperty('a b c')
+    explodeObservers(cls);
 
     // Skip the rest in Dart:
     // chain various meta-data objects to inherited versions
@@ -208,6 +217,8 @@ class PolymerDeclaration extends HtmlElement {
     parseHostEvents();
     // install external stylesheets as if they are inline
     installSheets();
+
+    adjustShadowElement();
 
     // TODO(sorvell): install a helper method this.resolvePath to aid in
     // setting resource paths. e.g.
@@ -228,6 +239,22 @@ class PolymerDeclaration extends HtmlElement {
         registered.isStatic &&
         registered.isRegularMethod) {
       cls.invoke(#registerCallback, [this]);
+    }
+  }
+
+  // TODO(sorvell): remove when spec addressed:
+  // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22460
+  // make <shadow></shadow> be <shadow><content></content></shadow>
+  void adjustShadowElement() {
+    // TODO(sorvell): avoid under SD polyfill until this bug is addressed:
+    // https://github.com/Polymer/ShadowDOM/issues/297
+    if (!_hasShadowDomPolyfill) {
+      final content = templateContent;
+      if (content == null) return;
+
+      for (var s in content.querySelectorAll('shadow')) {
+        if (s.nodes.isEmpty) s.append(new ContentElement());
+      }
     }
   }
 
@@ -257,16 +284,19 @@ class PolymerDeclaration extends HtmlElement {
     if (attrs != null) {
       // names='a b c' or names='a,b,c'
       // record each name for publishing
-      for (var attr in attrs.split(attrs.contains(',') ? ',' : ' ')) {
+      for (var attr in attrs.split(_ATTRIBUTES_REGEX)) {
         // remove excess ws
         attr = attr.trim();
 
         // do not override explicit entries
-        if (attr != '' && _publish != null && _publish.containsKey(attr)) {
+        if (attr == '') continue;
+
+        var property = new Symbol(attr);
+        var path = new PropertyPath([property]);
+        if (_publish != null && _publish.containsKey(path)) {
           continue;
         }
 
-        var property = new Symbol(attr);
         var mirror = _getProperty(cls, property);
         if (mirror == null) {
           window.console.warn('property for attribute $attr of polymer-element '
@@ -274,7 +304,7 @@ class PolymerDeclaration extends HtmlElement {
           continue;
         }
         if (_publish == null) _publish = {};
-        _publish[property] = mirror;
+        _publish[path] = mirror;
       }
     }
 
@@ -378,7 +408,7 @@ class PolymerDeclaration extends HtmlElement {
     var nodes = this.querySelectorAll(selector).toList();
     var content = templateContent;
     if (content != null) {
-      nodes = nodes..addAll(content.queryAll(selector));
+      nodes = nodes..addAll(content.querySelectorAll(selector));
     }
     if (matcher != null) return nodes.where(matcher).toList();
     return nodes;
@@ -408,7 +438,7 @@ class PolymerDeclaration extends HtmlElement {
     }
     // handle cached style elements
     for (var style in styles.where(matcher)) {
-      cssText..write(style.textContent)..write('\n\n');
+      cssText..write(style.text)..write('\n\n');
     }
     return cssText.toString();
   }
@@ -427,14 +457,11 @@ class PolymerDeclaration extends HtmlElement {
   }
 
   /**
-   * fetch a list of all observable properties names in our inheritance chain
-   * above Polymer.
+   * Fetch a list of all *Changed methods so we can observe the associated
+   * properties.
    */
-  // TODO(sjmiles): perf: reflection is slow, relatively speaking
-  // If an element may take 6us to create, getCustomPropertyNames might
-  // cost 1.6us more.
   void inferObservers(ClassMirror cls) {
-    if (cls == _objectType) return;
+    if (cls == _htmlElementType) return;
     inferObservers(cls.superclass);
     for (var method in cls.declarations.values) {
       if (method is! MethodMirror || method.isStatic
@@ -442,9 +469,36 @@ class PolymerDeclaration extends HtmlElement {
 
       String name = MirrorSystem.getName(method.simpleName);
       if (name.endsWith(_OBSERVE_SUFFIX) && name != 'attributeChanged') {
-        if (_observe == null) _observe = new Map();
+        // TODO(jmesserly): now that we have a better system, should we
+        // deprecate *Changed methods?
+        if (_observe == null) _observe = new HashMap();
         name = name.substring(0, name.length - 7);
-        _observe[new Symbol(name)] = method.simpleName;
+        _observe[new PropertyPath(name)] = [method.simpleName];
+      }
+    }
+  }
+
+  /**
+   * Fetch a list of all methods annotated with [ObserveProperty] so we can
+   * observe the associated properties.
+   */
+  void explodeObservers(ClassMirror cls) {
+    if (cls == _htmlElementType) return;
+
+    explodeObservers(cls.superclass);
+    for (var method in cls.declarations.values) {
+      if (method is! MethodMirror || method.isStatic
+          || !method.isRegularMethod) continue;
+
+      for (var meta in _safeGetMetadata(method)) {
+        if (meta.reflectee is! ObserveProperty) continue;
+
+        if (_observe == null) _observe = new HashMap();
+
+        for (String name in meta.reflectee.names) {
+          _observe.putIfAbsent(new PropertyPath(name), () => [])
+              .add(method.simpleName);
+        }
       }
     }
   }
@@ -454,10 +508,10 @@ class PolymerDeclaration extends HtmlElement {
     if (_publish != null) _publishLC = _lowerCaseMap(_publish);
   }
 
-  Map<String, dynamic> _lowerCaseMap(Map<Symbol, dynamic> properties) {
+  Map<String, dynamic> _lowerCaseMap(Map<PropertyPath, dynamic> properties) {
     final map = new Map<String, dynamic>();
-    properties.forEach((name, value) {
-      map[MirrorSystem.getName(name).toLowerCase()] = value;
+    properties.forEach((PropertyPath path, value) {
+      map['$path'.toLowerCase()] = value;
     });
     return map;
   }
@@ -495,10 +549,10 @@ bool _isRegistered(String name) => _declarations.containsKey(name);
 PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 
 final _objectType = reflectClass(Object);
-
+final _htmlElementType = reflectClass(HtmlElement);
 
 Map _getPublishedProperties(ClassMirror cls, Map props) {
-  if (cls == _objectType) return props;
+  if (cls == _htmlElementType) return props;
   props = _getPublishedProperties(cls.superclass, props);
   for (var member in cls.declarations.values) {
     if (member.isStatic || member.isPrivate) continue;
@@ -512,7 +566,7 @@ Map _getPublishedProperties(ClassMirror cls, Map props) {
           // it's a tad expensive.
           if (member is! MethodMirror || _hasSetter(cls, member)) {
             if (props == null) props = {};
-            props[member.simpleName] = member;
+            props[new PropertyPath([member.simpleName])] = member;
           }
           break;
         }
@@ -545,6 +599,19 @@ DeclarationMirror _getProperty(ClassMirror cls, Symbol property) {
   return null;
 }
 
+List _safeGetMetadata(MethodMirror method) {
+  // TODO(jmesserly): dart2js blows up getting metadata from methods in some
+  // cases. Why does this happen? It seems like the culprit might be named
+  // arguments. Unfortunately even calling method.parameters also
+  // triggers the bug in computeFunctionRti. For now we guard against it
+  // with this check.
+  try {
+    return method.metadata;
+  } catch (e) {
+    return [];
+  }
+}
+
 bool _hasSetter(ClassMirror cls, MethodMirror getter) {
   var setterName = new Symbol('${MirrorSystem.getName(getter.simpleName)}=');
   var mirror = cls.declarations[setterName];
@@ -565,8 +632,7 @@ String _removeEventPrefix(String name) => name.substring(_EVENT_PREFIX.length);
  */
 void _shimShadowDomStyling(DocumentFragment template, String name,
     String extendee) {
-  if (js.context == null || template == null) return;
-  if (!js.context.hasProperty('ShadowDOMPolyfill')) return;
+  if (template == null || !_hasShadowDomPolyfill) return;
 
   var platform = js.context['Platform'];
   if (platform == null) return;
@@ -574,6 +640,9 @@ void _shimShadowDomStyling(DocumentFragment template, String name,
   if (shadowCss == null) return;
   shadowCss.callMethod('shimStyling', [template, name, extendee]);
 }
+
+final bool _hasShadowDomPolyfill = js.context != null &&
+    js.context.hasProperty('ShadowDOMPolyfill');
 
 const _STYLE_SELECTOR = 'style';
 const _SHEET_SELECTOR = '[rel=stylesheet]';
@@ -627,6 +696,7 @@ final _eventTranslations = const {
 
   'domfocusout': 'DOMFocusOut',
   'domfocusin': 'DOMFocusIn',
+  'dommousescroll': 'DOMMouseScroll',
 
   // TODO(jmesserly): Dart specific renames. Reconcile with Polymer.js
   'animationend': 'webkitAnimationEnd',
@@ -657,3 +727,5 @@ String _eventNameFromType(String eventType) {
   final result = _reverseEventTranslations[eventType];
   return result != null ? result : eventType;
 }
+
+final _ATTRIBUTES_REGEX = new RegExp(r'\s|,');

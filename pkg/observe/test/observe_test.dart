@@ -9,11 +9,13 @@ import 'package:observe/src/dirty_check.dart' as dirty_check;
 import 'package:unittest/unittest.dart';
 import 'observe_test_utils.dart';
 
-void main() {
+main() => dirtyCheckZone().run(_tests);
+
+void _tests() {
   // Note: to test the basic Observable system, we use ObservableBox due to its
   // simplicity. We also test a variant that is based on dirty-checking.
 
-  observeTest('no observers at the start', () {
+  test('no observers at the start', () {
     expect(dirty_check.allObservablesCount, 0);
   });
 
@@ -73,18 +75,18 @@ void _observeTests(createModel(x)) {
 
   tearDown(() {
     for (var sub in subs) sub.cancel();
-    performMicrotaskCheckpoint();
-
-    expect(dirty_check.allObservablesCount, initialObservers,
-        reason: 'Observable object leaked');
+    return new Future(() {
+      expect(dirty_check.allObservablesCount, initialObservers,
+          reason: 'Observable object leaked');
+    });
   });
 
-  observeTest('handle future result', () {
+  test('handle future result', () {
     var callback = expectAsync0((){});
     return new Future(callback);
   });
 
-  observeTest('no observers', () {
+  test('no observers', () {
     var t = createModel(123);
     expect(t.value, 123);
     t.value = 42;
@@ -92,7 +94,7 @@ void _observeTests(createModel(x)) {
     expect(t.hasObservers, false);
   });
 
-  observeTest('listen adds an observer', () {
+  test('listen adds an observer', () {
     var t = createModel(123);
     expect(t.hasObservers, false);
 
@@ -100,7 +102,7 @@ void _observeTests(createModel(x)) {
     expect(t.hasObservers, true);
   });
 
-  observeTest('changes delived async', () {
+  test('changes delived async', () {
     var t = createModel(123);
     int called = 0;
 
@@ -114,7 +116,7 @@ void _observeTests(createModel(x)) {
     expect(called, 0);
   });
 
-  observeTest('cause changes in handler', () {
+  test('cause changes in handler', () {
     var t = createModel(123);
     int called = 0;
 
@@ -130,7 +132,7 @@ void _observeTests(createModel(x)) {
     t.value = 42;
   });
 
-  observeTest('multiple observers', () {
+  test('multiple observers', () {
     var t = createModel(123);
 
     verifyRecords(records) {
@@ -144,7 +146,7 @@ void _observeTests(createModel(x)) {
     t.value = 42;
   });
 
-  observeTest('performMicrotaskCheckpoint', () {
+  test('async processing model', () {
     var t = createModel(123);
     var records = [];
     subs.add(t.changes.listen((r) { records.addAll(r); }));
@@ -152,22 +154,23 @@ void _observeTests(createModel(x)) {
     t.value = 42;
     expectChanges(records, [], reason: 'changes delived async');
 
-    performMicrotaskCheckpoint();
-    expectPropertyChanges(records, watch ? 1 : 2);
-    records.clear();
+    return new Future(() {
+      expectPropertyChanges(records, watch ? 1 : 2);
+      records.clear();
 
-    t.value = 777;
-    expectChanges(records, [], reason: 'changes delived async');
+      t.value = 777;
+      expectChanges(records, [], reason: 'changes delived async');
 
-    performMicrotaskCheckpoint();
-    expectPropertyChanges(records, 1);
+    }).then(newMicrotask).then((_) {
+      expectPropertyChanges(records, 1);
 
-    // Has no effect if there are no changes
-    performMicrotaskCheckpoint();
-    expectPropertyChanges(records, 1);
+      // Has no effect if there are no changes
+      Observable.dirtyCheck();
+      expectPropertyChanges(records, 1);
+    });
   });
 
-  observeTest('cancel listening', () {
+  test('cancel listening', () {
     var t = createModel(123);
     var sub;
     sub = t.changes.listen(expectAsync1((records) {
@@ -179,7 +182,7 @@ void _observeTests(createModel(x)) {
     t.value = 42;
   });
 
-  observeTest('cancel and reobserve', () {
+  test('cancel and reobserve', () {
     var t = createModel(123);
     var sub;
     sub = t.changes.listen(expectAsync1((records) {
@@ -197,47 +200,50 @@ void _observeTests(createModel(x)) {
     t.value = 42;
   });
 
-  observeTest('cannot modify changes list', () {
+  test('cannot modify changes list', () {
     var t = createModel(123);
     var records = null;
     subs.add(t.changes.listen((r) { records = r; }));
     t.value = 42;
 
-    performMicrotaskCheckpoint();
-    expectPropertyChanges(records, 1);
+    return new Future(() {
+      expectPropertyChanges(records, 1);
 
-    // Verify that mutation operations on the list fail:
+      // Verify that mutation operations on the list fail:
 
-    expect(() {
-      records[0] = new PropertyChangeRecord(t, #value, 0, 1);
-    }, throwsUnsupportedError);
+      expect(() {
+        records[0] = new PropertyChangeRecord(t, #value, 0, 1);
+      }, throwsUnsupportedError);
 
-    expect(() { records.clear(); }, throwsUnsupportedError);
+      expect(() { records.clear(); }, throwsUnsupportedError);
 
-    expect(() { records.length = 0; }, throwsUnsupportedError);
+      expect(() { records.length = 0; }, throwsUnsupportedError);
+    });
   });
 
-  observeTest('notifyChange', () {
+  test('notifyChange', () {
     var t = createModel(123);
     var records = [];
     subs.add(t.changes.listen((r) { records.addAll(r); }));
     t.notifyChange(new PropertyChangeRecord(t, #value, 123, 42));
 
-    performMicrotaskCheckpoint();
-    expectPropertyChanges(records, 1);
-    expect(t.value, 123, reason: 'value did not actually change.');
+    return new Future(() {
+      expectPropertyChanges(records, 1);
+      expect(t.value, 123, reason: 'value did not actually change.');
+    });
   });
 
-  observeTest('notifyPropertyChange', () {
+  test('notifyPropertyChange', () {
     var t = createModel(123);
     var records = null;
     subs.add(t.changes.listen((r) { records = r; }));
     expect(t.notifyPropertyChange(#value, t.value, 42), 42,
         reason: 'notifyPropertyChange returns newValue');
 
-    performMicrotaskCheckpoint();
-    expectPropertyChanges(records, 1);
-    expect(t.value, 123, reason: 'value did not actually change.');
+    return new Future(() {
+      expectPropertyChanges(records, 1);
+      expect(t.value, 123, reason: 'value did not actually change.');
+    });
   });
 }
 

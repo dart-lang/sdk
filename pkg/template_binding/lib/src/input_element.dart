@@ -10,15 +10,18 @@ class _InputElementExtension extends _ElementExtension {
 
   InputElement get _node => super._node;
 
-  NodeBinding bind(String name, model, [String path]) {
+  Bindable bind(String name, value, {bool oneTime: false}) {
     if (name != 'value' && name != 'checked') {
-      return super.bind(name, model, path);
+      return super.bind(name, value, oneTime: oneTime);
+    }
+
+    _node.attributes.remove(name);
+    if (oneTime) {
+      _InputBinding._updateProperty(_node, value, name);
+      return null;
     }
 
     _self.unbind(name);
-    _node.attributes.remove(name);
-    return bindings[name] = name == 'value' ?
-        new _ValueBinding(_node, model, path) :
-        new _CheckedBinding(_node, model, path);
+    return bindings[name] = new _InputBinding(_node, value, name);
   }
 }

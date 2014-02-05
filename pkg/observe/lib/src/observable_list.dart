@@ -255,12 +255,17 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
     notifyPropertyChange(#isNotEmpty, oldValue != 0, newValue != 0);
   }
 
+  void discardListChages() {
+    // Leave _listRecords set so we don't schedule another delivery.
+    if (_listRecords != null) _listRecords = [];
+  }
+
   bool deliverListChanges() {
     if (_listRecords == null) return false;
     var records = projectListSplices(this, _listRecords);
     _listRecords = null;
 
-    if (_hasListObservers) {
+    if (_hasListObservers && !records.isEmpty) {
       _listChanges.add(new UnmodifiableListView<ListChangeRecord>(records));
       return true;
     }
@@ -284,4 +289,24 @@ class ObservableList<E> extends ListBase<E> with ChangeNotifier {
   static List<ListChangeRecord> calculateChangeRecords(
       List<Object> oldValue, List<Object> newValue) =>
       calcSplices(newValue, 0, newValue.length, oldValue, 0, oldValue.length);
+
+  /**
+   * Updates the [previous] list using the change [records]. For added items,
+   * the [current] list is used to find the current value.
+   */
+  static void applyChangeRecords(List<Object> previous, List<Object> current,
+      List<ListChangeRecord> changeRecords) {
+
+    if (identical(previous, current)) {
+      throw new ArgumentError("can't use same list for previous and current");
+    }
+
+    for (var change in changeRecords) {
+      int addEnd = change.index + change.addedCount;
+      int removeEnd = change.index + change.removed.length;
+
+      var addedItems = current.getRange(change.index, addEnd);
+      previous.replaceRange(change.index, removeEnd, addedItems);
+    }
+  }
 }

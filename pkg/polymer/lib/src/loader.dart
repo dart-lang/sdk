@@ -48,6 +48,10 @@ Zone initPolymer() {
  * mirrors.
  */
 Zone initPolymerOptimized() {
+  // TODO(jmesserly): there is some code in src/declaration/polymer-element.js,
+  // git version 37eea00e13b9f86ab21c85a955585e8e4237e3d2, right before
+  // it registers polymer-element, which uses Platform.deliverDeclarations to
+  // coordinate with HTML Imports. I don't think we need it so skipping.
   document.register(PolymerDeclaration._TAG, PolymerDeclaration);
 
   for (var initializer in _initializers) {

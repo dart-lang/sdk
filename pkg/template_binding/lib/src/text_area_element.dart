@@ -10,11 +10,16 @@ class _TextAreaElementExtension extends _ElementExtension {
 
   TextAreaElement get _node => super._node;
 
-  NodeBinding bind(String name, model, [String path]) {
-    if (name != 'value') return super.bind(name, model, path);
+  Bindable bind(String name, value, {bool oneTime: false}) {
+    if (name != 'value') return super.bind(name, value, oneTime: oneTime);
+
+    if (oneTime) {
+      _InputBinding._updateProperty(_node, value, name);
+      return null;
+    }
 
     _self.unbind(name);
     _node.attributes.remove(name);
-    return bindings[name] = new _ValueBinding(_node, model, path);
+    return bindings[name] = new _InputBinding(_node, value, name);
   }
 }

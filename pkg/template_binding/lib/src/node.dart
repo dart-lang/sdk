@@ -7,18 +7,21 @@ part of template_binding;
 /** Extensions to the [Node] API. */
 class NodeBindExtension {
   final Node _node;
-  Map<String, NodeBinding> _bindings;
+  Map<String, Bindable> _bindings;
 
   NodeBindExtension._(this._node);
 
   /**
    * Binds the attribute [name] to the [path] of the [model].
    * Path is a String of accessors such as `foo.bar.baz`.
-   * Returns the `NodeBinding` instance.
+   * Returns the `Bindable` instance.
    */
-  NodeBinding bind(String name, model, [String path]) {
+  Bindable bind(String name, value, {bool oneTime: false}) {
+    // TODO(jmesserly): in Dart we could deliver an async error, which would
+    // have a similar affect but be reported as a test failure. Should we?
     window.console.error('Unhandled binding to Node: '
-        '$this $name $model $path');
+        '$this $name $value $oneTime');
+    return null;
   }
 
   /** Unbinds the attribute [name]. */
@@ -39,8 +42,8 @@ class NodeBindExtension {
 
   // TODO(jmesserly): we should return a read-only wrapper here.
   /** Gets the data bindings that are associated with this node. */
-  Map<String, NodeBinding> get bindings {
-    if (_bindings == null) _bindings = new LinkedHashMap<String, NodeBinding>();
+  Map<String, Bindable> get bindings {
+    if (_bindings == null) _bindings = new LinkedHashMap<String, Bindable>();
     return _bindings;
   }
 
@@ -57,6 +60,9 @@ class NodeBindExtension {
   TemplateInstance get templateInstance =>
       _templateInstance != null ? _templateInstance :
       (_node.parent != null ? nodeBind(_node.parent).templateInstance : null);
+
+  _open(Bindable bindable, callback(value)) =>
+      callback(bindable.open(callback));
 }
 
 
@@ -66,17 +72,19 @@ class TemplateInstance {
   // in cases where script has modified the template instance boundary.
 
   /** The first node of this template instantiation. */
-  final Node firstNode;
+  Node get firstNode => _firstNode;
 
   /**
    * The last node of this template instantiation.
    * This could be identical to [firstNode] if the template only expanded to a
    * single node.
    */
-  final Node lastNode;
+  Node get lastNode => _lastNode;
 
   /** The model used to instantiate the template. */
   final model;
 
-  TemplateInstance(this.firstNode, this.lastNode, this.model);
+  Node _firstNode, _lastNode;
+
+  TemplateInstance(this.model);
 }

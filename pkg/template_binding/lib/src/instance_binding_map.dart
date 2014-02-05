@@ -6,66 +6,68 @@ part of template_binding;
 
 class _InstanceBindingMap {
   final List bindings;
-  final Map<int, _InstanceBindingMap> children;
-  final Node templateRef;
+  List<_InstanceBindingMap> children;
+  DocumentFragment content;
 
-  // Workaround for:
-  // https://github.com/Polymer/TemplateBinding/issues/150
-  final int numChildren;
+  bool get isTemplate => false;
 
-  _InstanceBindingMap._(this.bindings, this.children, this.templateRef,
-      this.numChildren);
+  _InstanceBindingMap(this.bindings);
+
+  _InstanceBindingMap getChild(int index) {
+    if (children == null || index >= children.length) return null;
+    return children[index];
+  }
+}
+
+class _TemplateBindingMap extends _InstanceBindingMap {
+  bool get isTemplate => true;
+
+  MustacheTokens _if, _bind, _repeat;
+
+  _TemplateBindingMap(List bindings) : super(bindings);
 }
 
 _InstanceBindingMap _createInstanceBindingMap(Node node,
     BindingDelegate delegate) {
 
-  var bindings = _getBindings(node, delegate);
-  Node templateRef = null;
+  _InstanceBindingMap map = _getBindings(node, delegate);
+  if (map == null) map = new _InstanceBindingMap([]);
 
-  if (isSemanticTemplate(node)) templateRef = node;
-
-  Map children = null;
-  int i = 0;
-  for (var c = node.firstChild; c != null; c = c.nextNode, i++) {
+  List children = null;
+  int index = 0;
+  for (var c = node.firstChild; c != null; c = c.nextNode, index++) {
     var childMap = _createInstanceBindingMap(c, delegate);
     if (childMap == null) continue;
 
-    if (children == null) children = new HashMap();
-    children[i] = childMap;
+    // TODO(jmesserly): use a sparse map instead?
+    if (children == null) children = new List(node.nodes.length);
+    children[index] = childMap;
   }
+  map.children = children;
 
-  if (bindings == null && children == null && templateRef == null) return null;
-
-  return new _InstanceBindingMap._(bindings, children, templateRef, i);
+  return map;
 }
 
-void _addMapBindings(Node node, _InstanceBindingMap map, model,
-    BindingDelegate delegate, List bound) {
-  if (map == null) return;
+Node _cloneAndBindInstance(Node node, Node parent, Document stagingDocument,
+    _InstanceBindingMap bindings, model, BindingDelegate delegate,
+    List instanceBindings, [TemplateInstance instanceRecord]) {
 
-  if (map.templateRef != null) {
-    TemplateBindExtension.decorate(node, map.templateRef);
+  var clone = parent.append(stagingDocument.importNode(node, false));
+
+  int i = 0;
+  for (var c = node.firstChild; c != null; c = c.nextNode, i++) {
+    var childMap = bindings != null ? bindings.getChild(i) : null;
+    _cloneAndBindInstance(c, clone, stagingDocument, childMap, model, delegate,
+        instanceBindings);
+  }
+
+  if (bindings.isTemplate) {
+    TemplateBindExtension.decorate(clone, node);
     if (delegate != null) {
-      templateBindFallback(node)._bindingDelegate = delegate;
+      templateBindFallback(clone).bindingDelegate = delegate;
     }
   }
 
-  if (map.bindings != null) {
-    _processBindings(map.bindings, node, model, bound);
-  }
-
-  if (map.children == null) return;
-
-  // To workaround https://github.com/Polymer/TemplateBinding/issues/150,
-  // we try and detect cases where creating a custom element resulted in extra
-  // children compared to what we expected. We assume these new children are all
-  // at the beginning, because _deepCloneIgnoreTemplateContent creates the
-  // element then appends the template content's children to the end.
-
-  int i = map.numChildren - node.nodes.length;
-  for (var c = node.firstChild; c != null; c = c.nextNode, i++) {
-    if (i < 0) continue;
-    _addMapBindings(c, map.children[i], model, delegate, bound);
-  }
+  _processBindings(clone, bindings, model, instanceBindings);
+  return clone;
 }

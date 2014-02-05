@@ -51,7 +51,12 @@ class ObservableLocationHash extends ChangeNotifier {
   }
 }
 
-/** Add or remove CSS class [className] based on the [value]. */
+/**
+ * *Deprecated* use [CssClassSet.toggle] instead.
+ *
+ * Add or remove CSS class [className] based on the [value].
+ */
+@deprecated
 void updateCssClass(Element element, String className, bool value) {
   if (value == true) {
     element.classes.add(className);
@@ -60,11 +65,21 @@ void updateCssClass(Element element, String className, bool value) {
   }
 }
 
-/** Bind a CSS class to the observable [object] and property [path]. */
+/**
+ * *Deprecated* use `class="{{ binding }}"` in your HTML instead. It will also
+ * work on a `<polymer-element>`.
+ *
+ * Bind a CSS class to the observable [object] and property [path].
+ */
+@deprecated
 PathObserver bindCssClass(Element element, String className,
     Observable object, String path) {
 
-  return new PathObserver(object, path)..bindSync((value) {
+  callback(value) {
     updateCssClass(element, className, value);
-  });
+  }
+
+  var obs = new PathObserver(object, path);
+  callback(obs.open(callback));
+  return obs;
 }

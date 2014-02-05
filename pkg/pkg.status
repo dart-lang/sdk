@@ -69,6 +69,7 @@ polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/property_change_test: Skip # uses dart:html
+polymer/test/property_observe_test: Skip #uses dart:html
 polymer/test/publish_attributes_test: Skip #uses dart:html
 polymer/test/publish_inherited_properties_test: Skip #uses dart:html
 polymer/test/register_test: Skip #uses dart:html
@@ -304,7 +305,6 @@ unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
-polymer_expressions/test/bindings_test: Fail, Pass # Issue 14445.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 docgen/test/single_library_test: StaticWarning

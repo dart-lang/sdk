@@ -381,7 +381,7 @@ List<ListChangeRecord> _createInitialSplices(List<Object> list,
  */
 List<ListChangeRecord> projectListSplices(List list,
     List<ListChangeRecord> records) {
-  if (records.length == 1) return records;
+  if (records.length <= 1) return records;
 
   var splices = [];
   for (var splice in _createInitialSplices(list, records)) {
