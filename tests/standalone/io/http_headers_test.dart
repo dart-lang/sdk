@@ -436,6 +436,13 @@ void testInvalidCookie() {
   Expect.throws(() => new _Cookie.fromSetCookieValue("xxx"));
   Expect.throws(() => new _Cookie.fromSetCookieValue(
       "xxx=yyy; expires=12 jan 2013"));
+
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.set('Cookie',
+              'DARTSESSID=d3d6fdd78d51aaaf2924c32e991f4349; undefined');
+  Expect.equals('DARTSESSID', headers._parseCookies().single.name);
+  Expect.equals('d3d6fdd78d51aaaf2924c32e991f4349',
+                headers._parseCookies().single.value);
 }
 
 void testHeaderLists() {
