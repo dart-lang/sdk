@@ -263,6 +263,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
   HANDLESCOPE(isolate);
+  isolate->set_cha_used(false);
 
   // We may reattempt compilation if the function needs to be assembled using
   // far branches on ARM and MIPS. In the else branch of the setjmp call,
@@ -540,6 +541,12 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
+        // CHA should not be used for unoptimized code.
+        ASSERT(optimized || !isolate->cha_used());
+        if (isolate->cha_used()) {
+          Class::Handle(function.Owner()).RegisterCHACode(code);
+          isolate->set_cha_used(false);
+        }
         graph_compiler.FinalizePcDescriptors(code);
         graph_compiler.FinalizeDeoptInfo(code);
         graph_compiler.FinalizeStackmaps(code);

@@ -1074,6 +1074,16 @@ class Class : public Object {
   // otherwise a new object is allocated and returned.
   static RawClass* GetClass(intptr_t class_id, bool is_signature_class);
 
+  // Register code that has used CHA for optimization.
+  // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
+  // leaf method, ...).
+  void RegisterCHACode(const Code& code);
+
+  void DisableCHAOptimizedCode();
+
+  RawArray* cha_codes() const { return raw_ptr()->cha_codes_; }
+  void set_cha_codes(const Array& value) const;
+
  private:
   enum {
     kAny = 0,

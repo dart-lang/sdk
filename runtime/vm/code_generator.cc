@@ -1512,36 +1512,6 @@ void DeoptimizeAll() {
 }
 
 
-// Returns true if the given array of cids contains the given cid.
-static bool ContainsCid(const GrowableArray<intptr_t>& cids, intptr_t cid) {
-  for (intptr_t i = 0; i < cids.length(); i++) {
-    if (cids[i] == cid) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
-// Deoptimize optimized code on stack if its class is in the 'classes' array.
-void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes) {
-  DartFrameIterator iterator;
-  StackFrame* frame = iterator.NextFrame();
-  Code& optimized_code = Code::Handle();
-  while (frame != NULL) {
-    optimized_code = frame->LookupDartCode();
-    if (optimized_code.is_optimized()) {
-      const intptr_t owner_cid = Class::Handle(Function::Handle(
-          optimized_code.function()).Owner()).id();
-      if (ContainsCid(classes, owner_cid)) {
-        DeoptimizeAt(optimized_code, frame->pc());
-      }
-    }
-    frame = iterator.NextFrame();
-  }
-}
-
-
 static void CopySavedRegisters(uword saved_registers_address,
                                fpu_register_t** fpu_registers,
                                intptr_t** cpu_registers) {

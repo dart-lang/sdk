@@ -2334,6 +2334,157 @@ void Class::Finalize() const {
 }
 
 
+// Helper class to handle an array of code weak properties. Implements
+// registration and disabling of stored code objects.
+class WeakCodeReferences : public ValueObject {
+ public:
+  explicit WeakCodeReferences(const Array& value) : array_(value) {}
+  virtual ~WeakCodeReferences() {}
+
+  void Register(const Code& value) {
+    if (!array_.IsNull()) {
+      // Try to find and reuse cleared WeakProperty to avoid allocating new one.
+      WeakProperty& weak_property = WeakProperty::Handle();
+      for (intptr_t i = 0; i < array_.Length(); i++) {
+        weak_property ^= array_.At(i);
+        if (weak_property.key() == Code::null()) {
+          // Empty property found. Reuse it.
+          weak_property.set_key(value);
+          return;
+        }
+      }
+    }
+
+    const WeakProperty& weak_property = WeakProperty::Handle(
+        WeakProperty::New(Heap::kOld));
+    weak_property.set_key(value);
+
+    intptr_t length = array_.IsNull() ? 0 : array_.Length();
+    const Array& new_array = Array::Handle(
+        Array::Grow(array_, length + 1, Heap::kOld));
+    new_array.SetAt(length, weak_property);
+    UpdateArrayTo(new_array);
+  }
+
+  virtual void UpdateArrayTo(const Array& array) = 0;
+  virtual void ReportDeoptimization(const Code& code) = 0;
+  virtual void ReportSwitchingCode(const Code& code) = 0;
+
+  static bool IsOptimizedCode(const Array& dependent_code, const Code& code) {
+    if (!code.is_optimized()) {
+      return false;
+    }
+    WeakProperty& weak_property = WeakProperty::Handle();
+    for (intptr_t i = 0; i < dependent_code.Length(); i++) {
+      weak_property ^= dependent_code.At(i);
+      if (code.raw() == weak_property.key()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void DisableCode() {
+    const Array& code_objects = Array::Handle(array_.raw());
+    if (code_objects.IsNull()) {
+      return;
+    }
+    UpdateArrayTo(Object::null_array());
+    // Disable all code on stack.
+    Code& code = Code::Handle();
+    {
+      DartFrameIterator iterator;
+      StackFrame* frame = iterator.NextFrame();
+      while (frame != NULL) {
+        code = frame->LookupDartCode();
+        if (IsOptimizedCode(code_objects, code)) {
+          ReportDeoptimization(code);
+          DeoptimizeAt(code, frame->pc());
+        }
+        frame = iterator.NextFrame();
+      }
+    }
+
+    // Switch functions that use dependent code to unoptimized code.
+    WeakProperty& weak_property = WeakProperty::Handle();
+    Function& function = Function::Handle();
+    for (intptr_t i = 0; i < code_objects.Length(); i++) {
+      weak_property ^= code_objects.At(i);
+      code ^= weak_property.key();
+      if (code.IsNull()) {
+        // Code was garbage collected already.
+        continue;
+      }
+
+      function ^= code.function();
+      // If function uses dependent code switch it to unoptimized.
+      if (function.CurrentCode() == code.raw()) {
+        ASSERT(function.HasOptimizedCode());
+        ReportSwitchingCode(code);
+        function.SwitchToUnoptimizedCode();
+      }
+    }
+  }
+
+ private:
+  const Array& array_;
+  DISALLOW_COPY_AND_ASSIGN(WeakCodeReferences);
+};
+
+
+class CHACodeArray : public WeakCodeReferences {
+ public:
+  explicit CHACodeArray(const Class& cls)
+      : WeakCodeReferences(Array::Handle(cls.cha_codes())), cls_(cls) {
+  }
+
+  virtual void UpdateArrayTo(const Array& value) {
+    cls_.set_cha_codes(value);
+  }
+
+  virtual void ReportDeoptimization(const Code& code) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+      Function& function = Function::Handle(code.function());
+      OS::PrintErr("Deoptimizing %s because CHA optimized (%s).\n",
+          function.ToFullyQualifiedCString(),
+          cls_.ToCString());
+    }
+  }
+
+  virtual void ReportSwitchingCode(const Code& code) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+      Function& function = Function::Handle(code.function());
+      OS::PrintErr("Switching %s to unoptimized code because CHA invalid"
+                   " (%s)\n",
+                   function.ToFullyQualifiedCString(),
+                   cls_.ToCString());
+    }
+  }
+
+ private:
+  const Class& cls_;
+  DISALLOW_COPY_AND_ASSIGN(CHACodeArray);
+};
+
+
+void Class::RegisterCHACode(const Code& code) {
+  ASSERT(code.is_optimized());
+  CHACodeArray a(*this);
+  a.Register(code);
+}
+
+
+void Class::DisableCHAOptimizedCode() {
+  CHACodeArray a(*this);
+  a.DisableCode();
+}
+
+
+void Class::set_cha_codes(const Array& cache) const {
+  StorePointer(&raw_ptr()->cha_codes_, cache.raw());
+}
+
+
 // Apply the members from the patch class to the original class.
 bool Class::ApplyPatch(const Class& patch, Error* error) const {
   ASSERT(error != NULL);
@@ -6393,107 +6544,55 @@ RawArray* Field::dependent_code() const {
 
 
 void Field::set_dependent_code(const Array& array) const {
-  raw_ptr()->dependent_code_ = array.raw();
+  StorePointer(&raw_ptr()->dependent_code_, array.raw());
 }
+
+
+class FieldDependentArray : public WeakCodeReferences {
+ public:
+  explicit FieldDependentArray(const Field& field)
+      : WeakCodeReferences(Array::Handle(field.dependent_code())),
+                           field_(field) {}
+
+  virtual void UpdateArrayTo(const Array& value) {
+    field_.set_dependent_code(value);
+  }
+
+  virtual void ReportDeoptimization(const Code& code) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+      Function& function = Function::Handle(code.function());
+          OS::PrintErr("Deoptimizing %s because guard on field %s failed.\n",
+          function.ToFullyQualifiedCString(),
+          field_.ToCString());
+    }
+  }
+
+  virtual void ReportSwitchingCode(const Code& code) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+      Function& function = Function::Handle(code.function());
+      OS::PrintErr("Switching %s to unoptimized code because guard"
+                   " on field %s was violated.\n",
+                   function.ToFullyQualifiedCString(),
+                   field_.ToCString());
+    }
+  }
+
+ private:
+  const Field& field_;
+  DISALLOW_COPY_AND_ASSIGN(FieldDependentArray);
+};
 
 
 void Field::RegisterDependentCode(const Code& code) const {
-  const Array& dependent = Array::Handle(dependent_code());
-
-  if (!dependent.IsNull()) {
-    // Try to find and reuse cleared WeakProperty to avoid allocating new one.
-    WeakProperty& weak_property = WeakProperty::Handle();
-    for (intptr_t i = 0; i < dependent.Length(); i++) {
-      weak_property ^= dependent.At(i);
-      if (weak_property.key() == Code::null()) {
-        // Empty property found. Reuse it.
-        weak_property.set_key(code);
-        return;
-      }
-    }
-  }
-
-  const WeakProperty& weak_property = WeakProperty::Handle(
-      WeakProperty::New(Heap::kOld));
-  weak_property.set_key(code);
-
-  intptr_t length = dependent.IsNull() ? 0 : dependent.Length();
-  const Array& new_dependent = Array::Handle(
-      Array::Grow(dependent, length + 1, Heap::kOld));
-  new_dependent.SetAt(length, weak_property);
-  set_dependent_code(new_dependent);
-}
-
-
-static bool IsDependentCode(const Array& dependent_code, const Code& code) {
-  if (!code.is_optimized()) {
-    return false;
-  }
-
-  WeakProperty& weak_property = WeakProperty::Handle();
-  for (intptr_t i = 0; i < dependent_code.Length(); i++) {
-    weak_property ^= dependent_code.At(i);
-    if (code.raw() == weak_property.key()) {
-      return true;
-    }
-  }
-
-  return false;
+  ASSERT(code.is_optimized());
+  FieldDependentArray a(*this);
+  a.Register(code);
 }
 
 
 void Field::DeoptimizeDependentCode() const {
-  const Array& code_objects = Array::Handle(dependent_code());
-
-  if (code_objects.IsNull()) {
-    return;
-  }
-  set_dependent_code(Object::null_array());
-
-  // Deoptimize all dependent code on the stack.
-  Code& code = Code::Handle();
-  {
-    DartFrameIterator iterator;
-    StackFrame* frame = iterator.NextFrame();
-    while (frame != NULL) {
-      code = frame->LookupDartCode();
-      if (IsDependentCode(code_objects, code)) {
-        if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-          Function& function = Function::Handle(code.function());
-          OS::PrintErr("Deoptimizing %s because guard on field %s failed.\n",
-              function.ToFullyQualifiedCString(),
-              ToCString());
-        }
-        DeoptimizeAt(code, frame->pc());
-      }
-      frame = iterator.NextFrame();
-    }
-  }
-
-  // Switch functions that use dependent code to unoptimized code.
-  WeakProperty& weak_property = WeakProperty::Handle();
-  Function& function = Function::Handle();
-  for (intptr_t i = 0; i < code_objects.Length(); i++) {
-    weak_property ^= code_objects.At(i);
-    code ^= weak_property.key();
-    if (code.IsNull()) {
-      // Code was garbage collected already.
-      continue;
-    }
-
-    function ^= code.function();
-    // If function uses dependent code switch it to unoptimized.
-    if (function.CurrentCode() == code.raw()) {
-      ASSERT(function.HasOptimizedCode());
-      if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-        OS::PrintErr("Switching %s to unoptimized code because guard"
-                     " on field %s was violated.\n",
-                     function.ToFullyQualifiedCString(),
-                     ToCString());
-      }
-      function.SwitchToUnoptimizedCode();
-    }
-  }
+  FieldDependentArray a(*this);
+  a.DisableCode();
 }
 
 

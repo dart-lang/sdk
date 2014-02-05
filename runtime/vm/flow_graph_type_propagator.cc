@@ -514,7 +514,7 @@ intptr_t CompileType::ToNullableCid() {
       if (FLAG_use_cha || IsKnownPrivateClass(type_class)) {
         // A known private class cannot be subclassed or implemented.
         if (!type_class.is_implemented() &&
-            !CHA::HasSubclasses(type_class.id())) {
+            !CHA::HasSubclassesSafe(type_class.id())) {
           cid_ = type_class.id();
         } else {
           cid_ = kDynamicCid;
