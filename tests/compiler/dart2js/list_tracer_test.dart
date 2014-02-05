@@ -117,7 +117,7 @@ main() {
   ((a) => a[0] = aDouble)(listPassedToClosure);
 
   listReturnedFromClosure[0] = anInt;
-  (() => listReturnedFromClosure)[0] = aDouble;
+  (() => listReturnedFromClosure)()[0] = aDouble;
 
   listInField[0] = anInt;
   new A(listInField).useField();
@@ -198,7 +198,8 @@ void main() {
 
 void doTest(String allocation, {bool nullify}) {
   Uri uri = new Uri(scheme: 'source');
-  var compiler = compilerFor(generateTest(allocation), uri);
+  var compiler = compilerFor(generateTest(allocation), uri,
+                             allowErrors: false, allowWarnings: false);
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;

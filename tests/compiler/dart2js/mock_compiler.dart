@@ -237,6 +237,8 @@ class MockCompiler extends Compiler {
   List<WarningMessage> errors;
   List<WarningMessage> hints;
   List<WarningMessage> infos;
+  final bool allowWarnings;
+  final bool allowErrors;
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
 
@@ -255,7 +257,9 @@ class MockCompiler extends Compiler {
                 bool preserveComments: false,
                 // Our unit tests check code generation output that is
                 // affected by inlining support.
-                bool disableInlining: true})
+                bool disableInlining: true,
+                bool this.allowWarnings: true,
+                bool this.allowErrors: true})
       : warnings = [], errors = [], hints = [], infos = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
@@ -297,6 +301,18 @@ class MockCompiler extends Compiler {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
+  }
+
+  Future runCompiler(Uri uri) {
+    return super.runCompiler(uri).then((result) {
+      if (!allowErrors && !errors.isEmpty) {
+        throw "unexpected error during compilation ${errors}";
+      } else if (!allowWarnings && !warnings.isEmpty) {
+        throw "unexpected warnings during compilation ${warnings}";
+      } else {
+        return result;
+      }
+    });
   }
 
   /**
