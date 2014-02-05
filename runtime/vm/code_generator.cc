@@ -1486,6 +1486,11 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
   ASSERT(lazy_deopt_jump != 0);
   CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
+  if (FLAG_trace_patching) {
+    const String& name = String::Handle(function.name());
+    OS::PrintErr("InsertCallAt: %" Px " to %" Px " for %s\n", pc,
+                 lazy_deopt_jump, name.ToCString());
+  }
   // Mark code as dead (do not GC its embedded objects).
   optimized_code.set_is_alive(false);
 }
