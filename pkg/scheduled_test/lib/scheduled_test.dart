@@ -238,17 +238,16 @@ void _test(String description, void body(), Function testFn) {
       return currentSchedule.run(() {
         if (_setUpFn != null) _setUpFn();
         body();
+      }).catchError((error, stackTrace) {
+        if (error is ScheduleError) {
+          assert(error.schedule.errors.contains(error));
+          assert(error.schedule == currentSchedule);
+          unittest.registerException(error.schedule.errorString());
+        } else {
+          unittest.registerException(error, new Chain.forTrace(stackTrace));
+        }
       }).then(completer.complete);
-    }, onError: (e, chain) {
-      if (e is ScheduleError) {
-        assert(e.schedule.errors.contains(e));
-        assert(e.schedule == currentSchedule);
-        unittest.registerException(e.schedule.errorString());
-      } else {
-        unittest.registerException(e, chain);
-      }
-      completer.complete();
-    });
+    }, onError: (error, chain) => currentSchedule.signalError(error, chain));
 
     return completer.future;
   });
