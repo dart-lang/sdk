@@ -27,7 +27,7 @@ import 'src/io.dart';
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirrors.dart'
-    as dart2js;
+    as dart2js_mirrors;
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/analyze.dart'
     as dart2js;
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
@@ -98,12 +98,6 @@ and
 [Writing API Documentation](https://code.google.com/p/dart/wiki/WritingApiDocumentation).
 """;
 
-// TODO(efortuna): The use of this field is odd (this is based on how it was
-// originally used. Try to cleanup.
-/// Index of all indexable items. This also ensures that no class is
-/// created more than once.
-Map<String, Indexable> entityMap = new Map<String, Indexable>();
-
 /// Docgen constructor initializes the link resolver for markdown parsing.
 /// Also initializes the command line arguments.
 ///
@@ -112,20 +106,38 @@ Map<String, Indexable> entityMap = new Map<String, Indexable>();
 /// also be documented.
 /// If [parseSdk] is `true`, then all Dart SDK libraries will be documented.
 /// This option is useful when only the SDK libraries are needed.
+/// If [serve] is `true`, then after generating the documents we fire up a
+/// simple server to view the documentation.
 ///
 /// Returned Future completes with true if document generation is successful.
 Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
     bool parseSdk: false, bool append: false, String introFileName: '',
     out: _DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries : const [],
-    bool includeDependentPackages: false, startPage}) {
-  return _Generator.generateDocumentation(files, packageRoot: packageRoot,
-      outputToYaml: outputToYaml, includePrivate: includePrivate,
-      includeSdk: includeSdk, parseSdk: parseSdk, append: append,
-      introFileName: introFileName, out: out,
-      excludeLibraries: excludeLibraries,
-      includeDependentPackages: includeDependentPackages,
-      startPage: startPage);
+    bool includeDependentPackages: false, bool serve: false,
+    bool noDocs: false, String startPage}) {
+  var result;
+  if (!noDocs) {
+    _Viewer.ensureMovedViewerCode();
+    result = _Generator.generateDocumentation(files, packageRoot: packageRoot,
+        outputToYaml: outputToYaml, includePrivate: includePrivate,
+        includeSdk: includeSdk, parseSdk: parseSdk, append: append,
+        introFileName: introFileName, out: out,
+        excludeLibraries: excludeLibraries,
+        includeDependentPackages: includeDependentPackages,
+        startPage: startPage);
+    _Viewer.addBackViewerCode();
+    if (serve) {
+      result.then((success) {
+        if (success) {
+          _Viewer._cloneAndServe();
+        }
+      });
+    }
+  } else if (serve) {
+    _Viewer._cloneAndServe();
+  }
+  return result;
 }
 
 /// Analyzes set of libraries by getting a mirror system and triggers the
@@ -192,13 +204,14 @@ class DummyMirror implements Indexable {
 /// Docgen representation of an item to be documented, that wraps around a
 /// dart2js mirror.
 abstract class MirrorBased {
+  /// The original dart2js mirror around which this object wraps.
   DeclarationMirror get mirror;
 
   /// Returns a list of meta annotations assocated with a mirror.
   List<Annotation> _createAnnotations(DeclarationMirror mirror,
       Library owningLibrary) {
     var annotationMirrors = mirror.metadata.where((e) =>
-        e is dart2js.Dart2JsConstructedConstantMirror);
+        e is dart2js_mirrors.Dart2JsConstructedConstantMirror);
     var annotations = [];
     annotationMirrors.forEach((annotation) {
       var docgenAnnotation = new Annotation(annotation, owningLibrary);
@@ -211,8 +224,14 @@ abstract class MirrorBased {
   }
 }
 
+/// Top level documentation traversal and generation object.
+///
+/// Yes, everything in this class is used statically so this technically doesn't
+/// need to be its own class, but it's grouped together for semantic separation
+/// from the other classes and functionality in this library.
 class _Generator {
-  static var _outputDirectory;
+  /// The directory where the output docs are generated.
+  static String _outputDirectory;
 
   /// This is set from the command line arguments flag --include-private
   static bool _includePrivate = false;
@@ -223,6 +242,7 @@ class _Generator {
   /// --exclude-lib.
   static List<String> _excluded;
 
+  /// Logger for printing out progress of documentation generation.
   static Logger logger = new Logger('Docgen');
 
   /// Docgen constructor initializes the link resolver for markdown parsing.
@@ -240,7 +260,7 @@ class _Generator {
        bool includeSdk: false, bool parseSdk: false, bool append: false,
        String introFileName: '', out: _DEFAULT_OUTPUT_DIRECTORY,
        List<String> excludeLibraries : const [],
-       bool includeDependentPackages: false, startPage}) {
+       bool includeDependentPackages: false, String startPage}) {
     _excluded = excludeLibraries;
     _includePrivate = includePrivate;
     logger.onRecord.listen((record) => print(record.message));
@@ -262,7 +282,7 @@ class _Generator {
         if (mirrorSystem.libraries.isEmpty) {
           throw new StateError('No library mirrors were created.');
         }
-        Indexable.initializeTopLevelLibraries(mirrorSystem);
+        Indexable._initializeTopLevelLibraries(mirrorSystem);
 
         var availableLibraries = mirrorSystem.libraries.values.where(
             (each) => each.uri.scheme == 'file');
@@ -308,56 +328,50 @@ class _Generator {
         mode: append ? FileMode.APPEND : FileMode.WRITE);
   }
 
+  /// Resolve all the links in the introductory comments for a given library or
+  /// package as specified by [filename].
+  static String _readIntroductionFile(String fileName, bool includeSdk) {
+    var linkResolver = (name) => Indexable.globalFixReference(name);
+    var defaultText = includeSdk ? _DEFAULT_SDK_INTRODUCTION : '';
+    var introText = defaultText;
+    if (fileName.isNotEmpty) {
+      var introFile = new File(fileName);
+      introText = introFile.existsSync() ? introFile.readAsStringSync() :
+        defaultText;
+    }
+    return markdown.markdownToHtml(introText,
+        linkResolver: linkResolver, inlineSyntaxes: _MARKDOWN_SYNTAXES);
+  }
+
   /// Creates documentation for filtered libraries.
   static void _documentLibraries(List<LibraryMirror> libs,
       {bool includeSdk: false, bool outputToYaml: true, bool append: false,
-       bool parseSdk: false, String introFileName: '', startPage}) {
+       bool parseSdk: false, String introFileName: '', String startPage}) {
     libs.forEach((lib) {
       // Files belonging to the SDK have a uri that begins with 'dart:'.
       if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
         var library = generateLibrary(lib);
-        entityMap[library.name] = library;
       }
     });
 
-    var filteredEntities = entityMap.values.where(_isFullChainVisible);
-
-    /*var filteredEntities2 = new Set<MirrorBased>();
-    for (Map<String, Set<MirrorBased>> firstLevel in mirrorToDocgen.values) {
-      for (Set<MirrorBased> items in firstLevel.values) {
-        for (MirrorBased item in items) {
+    var filteredEntities = new Set<Indexable>();
+    for (Map<String, Set<Indexable>> firstLevel in
+        Indexable._mirrorToDocgen.values) {
+      for (Set<Indexable> items in firstLevel.values) {
+        for (Indexable item in items) {
           if (_isFullChainVisible(item)) {
-            filteredEntities2.add(item);
+            if (item is! Method ||
+                (item is Method && item.methodInheritedFrom == null)) {
+              filteredEntities.add(item);
+            }
           }
         }
       }
-    }*/
-
-    /*print('THHHHHEEE DIFFERENCE IS');
-    var set1 = new Set.from(filteredEntities);
-    var set2 = new Set.from(filteredEntities2);
-    var aResult = set2.difference(set1);
-    for (MirrorBased r in aResult) {
-      print('     a result is $r and ${r.docName}');
-    }*/
-    //print(set1.difference(set2));
+    }
 
     // Outputs a JSON file with all libraries and their preview comments.
     // This will help the viewer know what libraries are available to read in.
     var libraryMap;
-    var linkResolver = (name) => Indexable.globalFixReference(name);
-
-    String readIntroductionFile(String fileName, includeSdk) {
-      var defaultText = includeSdk ? _DEFAULT_SDK_INTRODUCTION : '';
-      var introText = defaultText;
-      if (fileName.isNotEmpty) {
-        var introFile = new File(fileName);
-        introText = introFile.existsSync() ? introFile.readAsStringSync() :
-            defaultText;
-      }
-      return markdown.markdownToHtml(introText,
-          linkResolver: linkResolver, inlineSyntaxes: _MARKDOWN_SYNTAXES);
-    }
 
     if (append) {
       var docsDir = listDir(_outputDirectory);
@@ -373,17 +387,27 @@ class _Generator {
       var intro = libraryMap['introduction'];
       var spacing = intro.isEmpty ? '' : '<br/><br/>';
       libraryMap['introduction'] =
-          "$intro$spacing${readIntroductionFile(introFileName, includeSdk)}";
+          "$intro$spacing${_readIntroductionFile(introFileName, includeSdk)}";
       outputToYaml = libraryMap['filetype'] == 'yaml';
     } else {
       libraryMap = {
         'libraries' : filteredEntities.where((e) =>
             e is Library).map((e) => e.previewMap).toList(),
-        'introduction' : readIntroductionFile(introFileName, includeSdk),
+        'introduction' : _readIntroductionFile(introFileName, includeSdk),
         'filetype' : outputToYaml ? 'yaml' : 'json'
       };
     }
+    _writeOutputFiles(libraryMap, filteredEntities, outputToYaml, append,
+        startPage);
+  }
+
+  /// Output all of the libraries and classes into json or yaml files for
+  /// consumption by a viewer.
+  static void _writeOutputFiles(libraryMap,
+      Iterable<Indexable> filteredEntities, bool outputToYaml, bool append,
+      String startPage) {
     if (startPage != null) libraryMap['startPage'] = startPage;
+
     _writeToFile(JSON.encode(libraryMap), 'library_list.json');
 
     // Output libraries and classes to file after all information is generated.
@@ -408,6 +432,7 @@ class _Generator {
     _writeToFile(JSON.encode(index), 'index.json');
   }
 
+  /// Helper method to serialize the given Indexable out to a file.
   static void _writeIndexableToFile(Indexable result, bool outputToYaml) {
     var outputFile = result.fileName;
     var output;
@@ -431,7 +456,8 @@ class _Generator {
      }
   }
 
-
+  /// Helper accessor to determine the full pathname of the root of the dart
+  /// checkout.
   static String get _rootDirectory {
     var scriptDir = path.absolute(path.dirname(Platform.script.toFilePath()));
     var root = scriptDir;
@@ -476,11 +502,6 @@ class _Generator {
   static String _obtainPackageRoot(String packageRoot, bool parseSdk,
       List<String> files) {
     if (packageRoot == null && !parseSdk) {
-      // TODO(efortuna): This logic seems not very robust, but it's from the
-      // original version of the code, pre-refactor, so I'm leavingt it for now.
-      // Revisit to make more robust.
-      // TODO(efortuna): See lines 303-311 in
-      // https://codereview.chromium.org/116043013/diff/390001/pkg/docgen/lib/docgen.dart
       var type = FileSystemEntity.typeSync(files.first);
       if (type == FileSystemEntityType.DIRECTORY) {
         var files2 = listDir(files.first, recursive: true);
@@ -574,20 +595,141 @@ class _Generator {
     return sdk;
   }
 
+  /// Return true if this item and all of its owners are all visible.
   static bool _isFullChainVisible(Indexable item) {
-    // TODO: reconcile with isVisible.
-    // TODO: Also should be able to take MirrorBased items in general probably.
-    var result = _includePrivate || (!item.isPrivate && (item.owner != null ?
+    return _includePrivate || (!item.isPrivate && (item.owner != null ?
         _isFullChainVisible(item.owner) : true));
-    return result;
   }
 
   /// Currently left public for testing purposes. :-/
-  static Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
+  static Library generateLibrary(dart2js_mirrors.Dart2JsLibraryMirror library) {
     var result = new Library(library);
     result._findPackage(library);
     logger.fine('Generated library for ${result.name}');
     return result;
+  }
+}
+
+/// Convenience methods wrapped up in a class to pull down the docgen viewer for
+/// a viewable website, and start up a server for viewing.
+class _Viewer {
+  static String _dartdocViewerString = path.join(Directory.current.path,
+      'dartdoc-viewer');
+  static Directory _dartdocViewerDir = new Directory(_dartdocViewerString);
+  static Directory _topLevelTempDir;
+  static bool movedViewerCode = false;
+
+  /// If our dartdoc-viewer code is already checked out, move it to a temporary
+  /// directory outside of the package directory, so we don't try to process it
+  /// for documentation.
+  static void ensureMovedViewerCode() {
+    // TODO(efortuna): This will need to be modified to run on anyone's package
+    // outside of the checkout!
+    if (_dartdocViewerDir.existsSync()) {
+      _topLevelTempDir = new Directory(
+          _Generator._rootDirectory).createTempSync();
+      _dartdocViewerDir.renameSync(_topLevelTempDir.path);
+    }
+  }
+
+  /// Move the dartdoc-viewer code back into place for "webpage deployment."
+  static void addBackViewerCode() {
+    if (movedViewerCode) _dartdocViewerDir.renameSync(_dartdocViewerString);
+  }
+
+  /// Serve up our generated documentation for viewing in a browser.
+  static void _cloneAndServe() {
+    // If the viewer code is already there, then don't clone again.
+    if (_dartdocViewerDir.existsSync()) {
+      _moveDirectoryAndServe();
+    }
+    else {
+      var processResult = Process.runSync('git', ['clone', '-b', 'master',
+          'git://github.com/dart-lang/dartdoc-viewer.git'],
+          runInShell: true);
+
+      if (processResult.exitCode == 0) {
+        _moveDirectoryAndServe();
+      } else {
+        print('Error cloning git repository:');
+        print('process output: ${processResult.stdout}');
+        print('process stderr: ${processResult.stderr}');
+      }
+    }
+  }
+
+  /// Move the generated json/yaml docs directory to the dartdoc-viewer
+  /// directory, to run as a webpage.
+  static void _moveDirectoryAndServe() {
+    var dir = new Directory(_Generator._outputDirectory == null? 'docs' :
+        _Generator._outputDirectory);
+    var webDocsDir = new Directory(path.join(_dartdocViewerDir.path, 'client',
+        'web', 'docs'));
+    if (dir.existsSync()) {
+      // Move the docs folder to dartdoc-viewer/client/web/docs
+      dir.renameSync(webDocsDir.path);
+    }
+
+    if (webDocsDir.existsSync()) {
+      // Compile the code to JavaScript so we can run on any browser.
+      print('Compile app to JavaScript for viewing.');
+      var processResult = Process.runSync('dart', ['deploy.dart'],
+          workingDirectory : path.join(_dartdocViewerDir.path, 'client'),
+          runInShell: true);
+      print('process output: ${processResult.stdout}');
+      print('process stderr: ${processResult.stderr}');
+      _runServer();
+    }
+  }
+
+  /// A simple HTTP server. Implemented here because this is part of the SDK,
+  /// so it shouldn't have any external dependencies.
+  static void _runServer() {
+    // Launch a server to serve out of the directory dartdoc-viewer/client/web.
+    HttpServer.bind('localhost', 8080).then((HttpServer httpServer) {
+      print('Server launched. Navigate your browser to: '
+          'http://localhost:${httpServer.port}');
+      httpServer.listen((HttpRequest request) {
+        var response = request.response;
+        var basePath = path.join(_dartdocViewerDir.path, 'client', 'out',
+            'web');
+        var requestPath = path.join(basePath, request.uri.path.substring(1));
+        bool found = true;
+        var file = new File(requestPath);
+        if (file.existsSync()) {
+          // Set the correct header type.
+          if (requestPath.endsWith('.html')) {
+            response.headers.set('Content-Type', 'text/html');
+          } else if (requestPath.endsWith('.js')) {
+            response.headers.set('Content-Type', 'application/javascript');
+          } else if (requestPath.endsWith('.dart')) {
+            response.headers.set('Content-Type', 'application/dart');
+          } else if (requestPath.endsWith('.css')) {
+            response.headers.set('Content-Type', 'text/css');
+          }
+        } else {
+          if (requestPath == basePath) {
+            response.headers.set('Content-Type', 'text/html');
+            file = new File(path.join(basePath, 'index.html'));
+          } else {
+            print('Path not found: $requestPath');
+            found = false;
+            response.statusCode = HttpStatus.NOT_FOUND;
+            response.close();
+          }
+        }
+
+        if (found) {
+          // Serve up file contents.
+          file.openRead().pipe(response).catchError((e) {
+            print('HttpServer: error while closing the response stream $e');
+          });
+        }
+      },
+      onError: (e) {
+        print('HttpServer: an error occured $e');
+      });
+    });
   }
 }
 
@@ -651,7 +793,7 @@ abstract class Indexable extends MirrorBased {
     return _getOwningLibrary(indexable.owner);
   }
 
-  static initializeTopLevelLibraries(MirrorSystem mirrorSystem) {
+  static _initializeTopLevelLibraries(MirrorSystem mirrorSystem) {
     _sdkLibraries = mirrorSystem.libraries.values.where(
         (each) => each.uri.scheme == 'dart');
     _coreLibrary = new Library(_sdkLibraries.singleWhere((lib) =>
@@ -662,8 +804,6 @@ abstract class Indexable extends MirrorBased {
   /// we're using in Dartdoc, which is that library names with dots in them
   /// have them replaced with hyphens.
   String get docName;
-
-  markdown.Node fixReferenceWithScope(String name) => null;
 
   /// Converts all [foo] references in comments to <a>libraryName.foo</a>.
   markdown.Node fixReference(String name) {
@@ -680,24 +820,36 @@ abstract class Indexable extends MirrorBased {
   String findElementInScope(String name) =>
       _findElementInScope(name, packagePrefix);
 
+  /// For a given name, determine if we need to resolve it as a qualified name
+  /// or a simple name in the source mirors.
   static determineLookupFunc(name) => name.contains('.') ?
       dart2js_util.lookupQualifiedInScope :
         (mirror, name) => mirror.lookupInScope(name);
 
-  // The qualified name (for URL purposes) and the file name are the same,
-  // of the form packageName/ClassName or packageName/ClassName.methodName.
-  // This defines both the URL and the directory structure.
-  String get fileName {
-    return packagePrefix + ownerPrefix + name;
-  }
+  /// The reference to this element based on where it is printed as a
+  /// documentation file and also the unique URL to refer to this item.
+  ///
+  /// The qualified name (for URL purposes) and the file name are the same,
+  /// of the form packageName/ClassName or packageName/ClassName.methodName.
+  /// This defines both the URL and the directory structure.
+  String get fileName =>  packagePrefix + ownerPrefix + name;
 
+  /// The full docName of the owner element, appended with a '.' for this
+  /// object's name to be appended.
   String get ownerPrefix => owner.docName != '' ? owner.docName + '.' : '';
 
+  /// The prefix String to refer to the package that this item is in, for URLs
+  /// and comment resolution.
+  ///
+  /// The prefix can be prepended to a qualified name to get a fully unique
+  /// name among all packages.
   String get packagePrefix => '';
 
-  /// Documentation comment with converted markdown.
+  /// Documentation comment with converted markdown and all links resolved.
   String _comment;
 
+  /// Accessor to documentation comment with markdown converted to html and all
+  /// links resolved.
   String get comment {
     if (_comment != null) return _comment;
 
@@ -710,30 +862,19 @@ abstract class Indexable extends MirrorBased {
 
   set comment(x) => _comment = x;
 
+  /// The simple name to refer to this item.
   String get name => dart2js_util.nameOf(mirror);
 
+  /// Accessor to the parent item that owns this item.
+  ///
+  /// "Owning" is defined as the object one scope-level above which this item
+  /// is defined. Ex: The owner for a top level class, would be its enclosing
+  /// library. The owner of a local variable in a method would be the enclosing
+  /// method.
   Indexable get owner => new DummyMirror(mirror.owner);
 
   /// Generates MDN comments from database.json.
-  String _mdnComment() {
-    //Check if MDN is loaded.
-    if (_mdn == null) {
-      // Reading in MDN related json file.
-      var root = _Generator._rootDirectory;
-      var mdnPath = path.join(root, 'utils/apidoc/mdn/database.json');
-      _mdn = JSON.decode(new File(mdnPath).readAsStringSync());
-    }
-    // TODO: refactor OOP
-    if (this is Library) return '';
-    var domAnnotation = this.annotations.firstWhere(
-        (e) => dart2js_util.qualifiedNameOf(e.mirror) == 'metadata.DomName',
-        orElse: () => null);
-    if (domAnnotation == null) return '';
-    var domName = domAnnotation.parameters.single;
-    var parts = domName.split('.');
-    if (parts.length == 2) return _mdnMemberComment(parts[0], parts[1]);
-    if (parts.length == 1) return _mdnTypeComment(parts[0]);
-  }
+  String _mdnComment();
 
   /// Generates the MDN Comment for variables and method DOM elements.
   String _mdnMemberComment(String type, String member) {
@@ -744,7 +885,7 @@ abstract class Indexable extends MirrorBased {
     if (mdnMember == null) return '';
     if (mdnMember['help'] == null || mdnMember['help'] == '') return '';
     if (mdnMember['url'] == null) return '';
-    return _htmlMdn(mdnMember['help'], mdnMember['url']);
+    return _htmlifyMdn(mdnMember['help'], mdnMember['url']);
   }
 
   /// Generates the MDN Comment for class DOM elements.
@@ -753,10 +894,11 @@ abstract class Indexable extends MirrorBased {
     if (mdnType == null) return '';
     if (mdnType['summary'] == null || mdnType['summary'] == "") return '';
     if (mdnType['srcUrl'] == null) return '';
-    return _htmlMdn(mdnType['summary'], mdnType['srcUrl']);
+    return _htmlifyMdn(mdnType['summary'], mdnType['srcUrl']);
   }
 
-  String _htmlMdn(String content, String url) {
+  /// Encloses the given content in an MDN div and the original source link.
+  String _htmlifyMdn(String content, String url) {
     return '<div class="mdn">' + content.trim() + '<p class="mdn-note">'
         '<a href="' + url.trim() + '">from Mdn</a></p></div>';
   }
@@ -774,7 +916,9 @@ abstract class Indexable extends MirrorBased {
     return finalMap;
   }
 
-  String _getCommentText() {
+  /// Accessor to obtain the raw comment text for a given item, _without_ any
+  /// of the links resolved.
+  String get _commentText {
     String commentText;
     mirror.metadata.forEach((metadata) {
       if (metadata is CommentInstanceMirror) {
@@ -799,10 +943,10 @@ abstract class Indexable extends MirrorBased {
   /// links to the subclasses's version of the methods.
   String _commentToHtml([Indexable resolvingScope]) {
     if (resolvingScope == null) resolvingScope = this;
-    var commentText = _getCommentText();
+    var commentText = _commentText;
     _unresolvedComment = commentText;
 
-    var linkResolver = (name) => resolvingScope.fixReferenceWithScope(name);
+    var linkResolver = (name) => resolvingScope.fixReference(name);
     commentText = commentText == null ? '' :
         markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver,
             inlineSyntaxes: _MARKDOWN_SYNTAXES);
@@ -821,9 +965,7 @@ abstract class Indexable extends MirrorBased {
     mirrors.forEach((VariableMirror mirror) {
       if (_Generator._includePrivate || !_isHidden(mirror)) {
         var mirrorName = dart2js_util.nameOf(mirror);
-        var variable = new Variable(mirrorName, mirror, owner);
-        entityMap[variable.docName] = variable;
-        data[mirrorName] = entityMap[variable.docName];
+        data[mirrorName] = new Variable(mirrorName, mirror, owner);
       }
     });
     return data;
@@ -838,9 +980,7 @@ abstract class Indexable extends MirrorBased {
     var group = new Map<String, Method>();
     mirrors.forEach((MethodMirror mirror) {
       if (_Generator._includePrivate || !mirror.isPrivate) {
-        var method = new Method(mirror, owner);
-        entityMap[method.docName] = method;
-        group[dart2js_util.nameOf(mirror)] = method;
+        group[dart2js_util.nameOf(mirror)] = new Method(mirror, owner);
       }
     });
     return group;
@@ -860,7 +1000,7 @@ abstract class Indexable extends MirrorBased {
   /// Returns a map of [Generic] objects constructed from the class mirror.
   Map<String, Generic> _createGenerics(TypeMirror mirror) {
     return new Map.fromIterable(mirror.typeVariables,
-        key: (e) => e.toString(),
+        key: (e) => dart2js_util.nameOf(e),
         value: (e) => new Generic(e));
   }
 
@@ -868,8 +1008,7 @@ abstract class Indexable extends MirrorBased {
   String toString() => "${super.toString()}(${name.toString()})";
 
   /// Return a map representation of this type.
-  Map toMap() {}
-
+  Map toMap();
 
   /// A declaration is private if itself is private, or the owner is private.
   // Issue(12202) - A declaration is public even if it's owner is private.
@@ -890,8 +1029,9 @@ abstract class Indexable extends MirrorBased {
   ///
   /// An example that starts with _ is _js_helper.
   /// An example that contains ._ is dart._collection.dev
-  // This is because LibraryMirror.isPrivate returns `false` all the time.
   bool _isLibraryPrivate(LibraryMirror mirror) {
+    // This method is needed because LibraryMirror.isPrivate returns `false` all
+    // the time.
     var sdkLibrary = LIBRARIES[dart2js_util.nameOf(mirror)];
     if (sdkLibrary != null) {
       return !sdkLibrary.documented;
@@ -1017,16 +1157,18 @@ abstract class Indexable extends MirrorBased {
     return null;
   }
 
-  Map expandMethodMap(Map<String, Method> mapToExpand) => {
-    'setters': recurseMap(_filterMap(new Map(), mapToExpand,
+  /// Expand the method map [mapToExpand] into a more detailed map that
+  /// separates out setters, getters, constructors, operators, and methods.
+  Map _expandMethodMap(Map<String, Method> mapToExpand) => {
+    'setters': recurseMap(_filterMap(mapToExpand,
         (key, val) => val.mirror.isSetter)),
-    'getters': recurseMap(_filterMap(new Map(), mapToExpand,
+    'getters': recurseMap(_filterMap(mapToExpand,
         (key, val) => val.mirror.isGetter)),
-    'constructors': recurseMap(_filterMap(new Map(), mapToExpand,
+    'constructors': recurseMap(_filterMap(mapToExpand,
         (key, val) => val.mirror.isConstructor)),
-    'operators': recurseMap(_filterMap(new Map(), mapToExpand,
+    'operators': recurseMap(_filterMap(mapToExpand,
         (key, val) => val.mirror.isOperator)),
-    'methods': recurseMap(_filterMap(new Map(), mapToExpand,
+    'methods': recurseMap(_filterMap(mapToExpand,
         (key, val) => val.mirror.isRegularMethod && !val.mirror.isOperator))
   };
 
@@ -1043,14 +1185,16 @@ abstract class Indexable extends MirrorBased {
     return outputMap;
   }
 
-  Map _filterMap(exported, map, test) {
+  Map _filterMap(Map map, Function test) {
+    var exported = new Map();
     map.forEach((key, value) {
       if (test(key, value)) exported[key] = value;
     });
     return exported;
   }
 
-  bool get _isVisible => _Generator._includePrivate || !isPrivate;
+  /// Accessor to determine if this item and all of its owners are visible.
+  bool get _isVisible => _Generator._isFullChainVisible(this);
 
   /// Given a Dart2jsMirror, find the corresponding Docgen [MirrorBased] object.
   ///
@@ -1096,6 +1240,8 @@ abstract class Indexable extends MirrorBased {
     return new DummyMirror(mirror, owner);
   }
 
+  /// Returns true if [mirror] is the correct type of mirror that this Docgen
+  /// object wraps. (Workaround for the fact that Types are not first class.)
   bool _isValidMirror(DeclarationMirror mirror);
 }
 
@@ -1113,7 +1259,7 @@ class Library extends Indexable {
   Map<String, Class> errors = {};
 
   String packageName = '';
-  bool hasBeenCheckedForPackage = false;
+  bool _hasBeenCheckedForPackage = false;
   String packageIntro;
 
   /// Returns the [Library] for the given [mirror] if it has already been
@@ -1139,9 +1285,7 @@ class Library extends Indexable {
           // This is actually a Dart2jsTypedefMirror, and it does define value,
           // but we don't have visibility to that type.
           if (_Generator._includePrivate || !mirror.isPrivate) {
-            var aTypedef = new Typedef(mirror, this);
-            entityMap[Indexable.getDocgenObject(mirror).docName] = aTypedef;
-            typedefs[dart2js_util.nameOf(mirror)] = aTypedef;
+            typedefs[dart2js_util.nameOf(mirror)] = new Typedef(mirror, this);
           }
         } else if (mirror is ClassMirror) {
           var clazz = new Class(mirror, this);
@@ -1175,6 +1319,8 @@ class Library extends Indexable {
     return super.findElementInScope(name);
   }
 
+  String _mdnComment() => '';
+
   /// Helper that maps [mirrors] to their simple name in map.
   Map _addAll(Map map, Iterable<DeclarationMirror> mirrors) {
     for (var mirror in mirrors) {
@@ -1189,8 +1335,8 @@ class Library extends Indexable {
   /// If no package could be determined, we return an empty string.
   String _findPackage(LibraryMirror mirror) {
     if (mirror == null) return '';
-    if (hasBeenCheckedForPackage) return packageName;
-    hasBeenCheckedForPackage = true;
+    if (_hasBeenCheckedForPackage) return packageName;
+    _hasBeenCheckedForPackage = true;
     if (mirror.uri.scheme != 'file') return '';
     // We assume that we are documenting only libraries under package/lib
     packageName = _packageName(mirror);
@@ -1235,8 +1381,6 @@ class Library extends Indexable {
     return spec["name"];
   }
 
-  markdown.Node fixReferenceWithScope(String name) => fixReference(name);
-
   String get packagePrefix => packageName == null || packageName.isEmpty ?
       '' : '$packageName/';
 
@@ -1261,7 +1405,7 @@ class Library extends Indexable {
   /// values of which point to a map of exported name identifiers with values
   /// corresponding to the actual DeclarationMirror.
   Map<String, Map<String, DeclarationMirror>> _calcExportedItems(
-      LibraryMirror library) {
+      LibrarySourceMirror library) {
     var exports = {};
     exports['classes'] = {};
     exports['methods'] = {};
@@ -1321,9 +1465,8 @@ class Library extends Indexable {
   }
 
   /// Checks if the given name is a key for any of the Class Maps.
-  bool containsKey(String name) {
-    return classes.containsKey(name) || errors.containsKey(name);
-  }
+  bool containsKey(String name) =>
+      classes.containsKey(name) || errors.containsKey(name);
 
   /// Generates a map describing the [Library] object.
   Map toMap() => {
@@ -1331,7 +1474,7 @@ class Library extends Indexable {
     'qualifiedName': qualifiedName,
     'comment': comment,
     'variables': recurseMap(variables),
-    'functions': expandMethodMap(functions),
+    'functions': _expandMethodMap(functions),
     'classes': {
       'class': classes.values.where((c) => c._isVisible)
         .map((e) => e.previewMap).toList(),
@@ -1349,7 +1492,14 @@ class Library extends Indexable {
 }
 
 abstract class OwnedIndexable extends Indexable {
+  /// The object one scope-level above which this item is defined.
+  ///
+  /// Ex: The owner for a top level class, would be its enclosing library.
+  /// The owner of a local variable in a method would be the enclosing method.
   Indexable owner;
+
+  /// List of the meta annotations on this item.
+  List<Annotation> annotations;
 
   /// Returns this object's qualified name, but following the conventions
   /// we're using in Dartdoc, which is that library names with dots in them
@@ -1357,6 +1507,25 @@ abstract class OwnedIndexable extends Indexable {
   String get docName => owner.docName + '.' + dart2js_util.nameOf(mirror);
 
   OwnedIndexable(DeclarationMirror mirror, this.owner) : super(mirror);
+
+  /// Generates MDN comments from database.json.
+  String _mdnComment() {
+    //Check if MDN is loaded.
+    if (Indexable._mdn == null) {
+      // Reading in MDN related json file.
+      var root = _Generator._rootDirectory;
+      var mdnPath = path.join(root, 'utils/apidoc/mdn/database.json');
+      Indexable._mdn = JSON.decode(new File(mdnPath).readAsStringSync());
+    }
+    var domAnnotation = this.annotations.firstWhere(
+        (e) => e.mirror.qualifiedName == 'metadata.DomName',
+        orElse: () => null);
+    if (domAnnotation == null) return '';
+    var domName = domAnnotation.parameters.single;
+    var parts = domName.split('.');
+    if (parts.length == 2) return _mdnMemberComment(parts[0], parts[1]);
+    if (parts.length == 1) return _mdnTypeComment(parts[0]);
+  }
 
   String get packagePrefix => owner.packagePrefix;
 }
@@ -1387,9 +1556,6 @@ class Class extends OwnedIndexable implements Comparable {
   Class superclass;
   bool isAbstract;
 
-  /// List of the meta annotations on the class.
-  List<Annotation> annotations;
-
   /// Make sure that we don't check for inherited comments more than once.
   bool _commentsEnsured = false;
 
@@ -1399,7 +1565,6 @@ class Class extends OwnedIndexable implements Comparable {
     var clazz = Indexable.getDocgenObject(mirror, owner);
     if (clazz is DummyMirror) {
       clazz = new Class._(mirror, owner);
-      entityMap[clazz.docName] = clazz;
     }
     return clazz;
   }
@@ -1422,7 +1587,7 @@ class Class extends OwnedIndexable implements Comparable {
     }
   }
 
-  Class._(ClassMirror classMirror, Indexable owner) :
+  Class._(ClassSourceMirror classMirror, Indexable owner) :
       super(classMirror, owner) {
     inheritedVariables = {};
 
@@ -1436,19 +1601,17 @@ class Class extends OwnedIndexable implements Comparable {
     interfaces = superinterfaces.toList();
     variables = _createVariables(
         dart2js_util.variablesOf(classMirror.declarations), this);
-    methods = _createMethods(
-        dart2js_util.methodsOf(classMirror.declarations), this);
+    methods = _createMethods(classMirror.declarations.values.where(
+        (mirror) => mirror is MethodMirror), this);
     annotations = _createAnnotations(classMirror, _getOwningLibrary(owner));
     generics = _createGenerics(classMirror);
     isAbstract = classMirror.isAbstract;
     inheritedMethods = new Map<String, Method>();
 
-    // Tell all superclasses that you are a subclass, unless you are not
+    // Tell superclass that you are a subclass, unless you are not
     // visible or an intermediary mixin class.
-    if (!classMirror.isNameSynthetic && _isVisible) {
-      parentChain().forEach((parentClass) {
-          parentClass.addSubclass(this);
-      });
+    if (!classMirror.isNameSynthetic && _isVisible && superclass != null) {
+      superclass.addSubclass(this);
     }
 
     if (this.superclass != null) addInherited(superclass);
@@ -1480,16 +1643,7 @@ class Class extends OwnedIndexable implements Comparable {
     return result == null ? super.findElementInScope(name) : result;
   }
 
-  markdown.Node fixReferenceWithScope(String name) => fixReference(name);
-
   String get typeName => 'class';
-
-  /// Returns a list of all the parent classes.
-  List<Class> parentChain() {
-    // TODO(efortuna): Seems like we can get rid of this method.
-    var parent = superclass == null ? [] : [superclass];
-    return parent;
-  }
 
   /// Add all inherited variables and methods from the provided superclass.
   /// If [_includePrivate] is true, it also adds the variables and methods from
@@ -1580,10 +1734,8 @@ class Class extends OwnedIndexable implements Comparable {
   /// If a class extends a private superclass, find the closest public
   /// superclass of the private superclass.
   String validSuperclass() {
-    if (superclass == null) return 'dart.core.Object';
-    if (superclass._isVisible) {
-      return dart2js_util.qualifiedNameOf(superclass.mirror);
-    }
+    if (superclass == null) return 'dart-core.Object';
+    if (superclass._isVisible) return superclass.qualifiedName;
     return superclass.validSuperclass();
   }
 
@@ -1600,8 +1752,8 @@ class Class extends OwnedIndexable implements Comparable {
         .map((x) => x.qualifiedName).toList(),
     'variables': recurseMap(variables),
     'inheritedVariables': recurseMap(inheritedVariables),
-    'methods': expandMethodMap(methods),
-    'inheritedMethods': expandMethodMap(inheritedMethods),
+    'methods': _expandMethodMap(methods),
+    'inheritedMethods': _expandMethodMap(inheritedMethods),
     'annotations': annotations.map((a) => a.toMap()).toList(),
     'generics': recurseMap(generics)
   };
@@ -1618,9 +1770,6 @@ class Typedef extends OwnedIndexable {
 
   /// Generic information about the typedef.
   Map<String, Generic> generics;
-
-  /// List of the meta annotations on the typedef.
-  List<Annotation> annotations;
 
   /// Returns the [Library] for the given [mirror] if it has already been
   /// created, else creates it.
@@ -1650,6 +1799,8 @@ class Typedef extends OwnedIndexable {
     'generics': recurseMap(generics)
   };
 
+  markdown.Node fixReference(String name) => null;
+
   String get typeName => 'typedef';
 
   bool _isValidMirror(DeclarationMirror mirror) => mirror is TypedefMirror;
@@ -1663,9 +1814,6 @@ class Variable extends OwnedIndexable {
   bool isConst;
   Type type;
   String _variableName;
-
-  /// List of the meta annotations on the variable.
-  List<Annotation> annotations;
 
   factory Variable(String variableName, VariableMirror mirror,
       Indexable owner) {
@@ -1709,8 +1857,6 @@ class Variable extends OwnedIndexable {
     return super.comment;
   }
 
-  markdown.Node fixReferenceWithScope(String name) => fixReference(name);
-
   String findElementInScope(String name) {
     var lookupFunc = Indexable.determineLookupFunc(name);
     var result = lookupFunc(mirror, name);
@@ -1747,10 +1893,7 @@ class Method extends OwnedIndexable {
   /// Qualified name to state where the comment is inherited from.
   String commentInheritedFrom = "";
 
-  /// List of the meta annotations on the method.
-  List<Annotation> annotations;
-
-  factory Method(MethodMirror mirror, Indexable owner, // Indexable newOwner.
+  factory Method(MethodMirror mirror, Indexable owner,
       [Method methodInheritedFrom]) {
     var method = Indexable.getDocgenObject(mirror, owner);
     if (method is DummyMirror) {
@@ -1771,8 +1914,6 @@ class Method extends OwnedIndexable {
 
   Method get originallyInheritedFrom => methodInheritedFrom == null ?
       this : methodInheritedFrom.originallyInheritedFrom;
-
-  markdown.Node fixReferenceWithScope(String name) => fixReference(name);
 
   /// Look for the specified name starting with the current member, and
   /// progressively working outward to the current library scope.
@@ -1858,14 +1999,16 @@ class Method extends OwnedIndexable {
     }
     var result = super.comment;
     if (result == '' && methodInheritedFrom != null) {
-      // this should be NOT from the MIRROR, but from the COMMENT
+      // This should be NOT from the MIRROR, but from the COMMENT.
+      methodInheritedFrom.comment; // Ensure comment field has been populated.
       _unresolvedComment = methodInheritedFrom._unresolvedComment;
 
-      var linkResolver = (name) => fixReferenceWithScope(name);
+      var linkResolver = (name) => fixReference(name);
       comment = _unresolvedComment == null ? '' :
         markdown.markdownToHtml(_unresolvedComment.trim(),
             linkResolver: linkResolver, inlineSyntaxes: _MARKDOWN_SYNTAXES);
-      commentInheritedFrom = methodInheritedFrom.commentInheritedFrom;
+      commentInheritedFrom = comment != '' ?
+          methodInheritedFrom.commentInheritedFrom : '';
       result = comment;
     }
     return result;
@@ -1914,7 +2057,7 @@ class Generic extends MirrorBased {
   TypeVariableMirror mirror;
   Generic(this.mirror);
   Map toMap() => {
-    'name': mirror.toString(),
+    'name': dart2js_util.nameOf(mirror),
     'type': dart2js_util.qualifiedNameOf(mirror.upperBound)
   };
 }

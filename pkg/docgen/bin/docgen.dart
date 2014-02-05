@@ -35,6 +35,8 @@ void main(List<String> arguments) {
       out: results['out'],
       excludeLibraries: excludedLibraries,
       includeDependentPackages: results['include-dependent-packages'],
+      serve: results['serve'],
+      noDocs: results['no-docs'],
       startPage: results['startPage']);
 }
 
@@ -79,6 +81,11 @@ ArgParser _initArgParser() {
       help: 'Sets the package root of the library being analyzed.');
   parser.addFlag('append',
       help: 'Append to the docs folder, library_list.json and index.txt',
+      defaultsTo: false, negatable: false);
+  parser.addFlag('serve', help: 'Clone the documentation viewer repo locally '
+      '(if not already present) and start a simple server', defaultsTo: false,
+      negatable: false);
+  parser.addFlag('no-docs', help: 'Do not generate any new documentation',
       defaultsTo: false, negatable: false);
   parser.addOption('introduction',
       help: 'Adds the provided markdown text file as the introduction'
