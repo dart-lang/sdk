@@ -6,32 +6,45 @@ part of dart.async;
 
 typedef void _AsyncCallback();
 
-bool _callbacksAreEnqueued = false;
-Queue<_AsyncCallback> _asyncCallbacks = new Queue<_AsyncCallback>();
+class _AsyncCallbackEntry {
+  final _AsyncCallback callback;
+  _AsyncCallbackEntry next;
+  _AsyncCallbackEntry(this.callback);
+}
 
-void _asyncRunCallback() {
+_AsyncCallbackEntry _nextCallback;
+_AsyncCallbackEntry _lastCallback;
+
+void _asyncRunCallbackLoop() {
+  _AsyncCallbackEntry entry = _nextCallback;
   // As long as we are iterating over the registered callbacks we don't
-  // unset the [_callbacksAreEnqueued] boolean.
-  while (!_asyncCallbacks.isEmpty) {
-    Function callback = _asyncCallbacks.removeFirst();
-    try {
-      callback();
-    } catch (e) {
-      _AsyncRun._scheduleImmediate(_asyncRunCallback);
-      rethrow;
-    }
+  // set the [_lastCallback] entry.
+  while (entry != null) {
+    entry.callback();
+    entry = _nextCallback = entry.next;
   }
   // Any new callback must register a callback function now.
-  _callbacksAreEnqueued = false;
+  _lastCallback = null;
+}
+
+void _asyncRunCallback() {
+  try {
+    _asyncRunCallbackLoop();
+  } catch (e) {
+    _AsyncRun._scheduleImmediate(_asyncRunCallback);
+    _nextCallback = _nextCallback.next;
+    rethrow;
+  }
 }
 
 void _scheduleAsyncCallback(callback) {
   // Optimizing a group of Timer.run callbacks to be executed in the
   // same Timer callback.
-  _asyncCallbacks.add(callback);
-  if (!_callbacksAreEnqueued) {
+  if (_lastCallback == null) {
+    _nextCallback = _lastCallback = new _AsyncCallbackEntry(callback);
     _AsyncRun._scheduleImmediate(_asyncRunCallback);
-    _callbacksAreEnqueued = true;
+  } else {
+    _lastCallback = _lastCallback.next = new _AsyncCallbackEntry(callback);
   }
 }
 
