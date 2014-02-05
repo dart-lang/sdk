@@ -24,6 +24,9 @@ class PhaseInput {
   /// The phase for which this is an input.
   final Phase _phase;
 
+  /// A string describing the location of [this] in the transformer graph.
+  final String _location;
+
   /// The transformers to (potentially) run against [input].
   final Set<Transformer> _transformers;
 
@@ -84,7 +87,8 @@ class PhaseInput {
   Stream<LogEntry> get onLog => _onLogPool.stream;
   final _onLogPool = new StreamPool<LogEntry>.broadcast();
 
-  PhaseInput(this._phase, AssetNode input, Iterable<Transformer> transformers)
+  PhaseInput(this._phase, AssetNode input, Iterable<Transformer> transformers,
+        this._location)
       : _transformers = transformers.toSet(),
         _inputForwarder = new AssetForwarder(input) {
     _onDirtyPool.add(_onDirtyController.stream);
@@ -228,7 +232,8 @@ class PhaseInput {
       // results.
       return transformer.isPrimary(input.asset).then((isPrimary) {
         if (!isPrimary) return;
-        var transform = new TransformNode(_phase, transformer, input);
+        var transform = new TransformNode(
+            _phase, transformer, input, _location);
         _transforms.add(transform);
         _onDirtyPool.add(transform.onDirty);
         _onLogPool.add(transform.onLog);
@@ -312,4 +317,6 @@ class PhaseInput {
       return transform.apply();
     })).then((outputs) => unionAll(outputs));
   }
+
+  String toString() => "phase input in $_location for $input";
 }

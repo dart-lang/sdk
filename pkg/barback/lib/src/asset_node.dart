@@ -137,6 +137,8 @@ class AssetNode {
       : id = asset.id,
         _asset = asset,
         _state = AssetState.AVAILABLE;
+
+  String toString() => "$state asset $id";
 }
 
 /// The controller for an [AssetNode].
@@ -199,6 +201,8 @@ class AssetNodeController {
     node._asset = asset;
     node._stateChangeController.add(AssetState.AVAILABLE);
   }
+
+  String toString() => "controller for $node";
 }
 
 // TODO(nweiz): add an error state.

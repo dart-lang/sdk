@@ -36,6 +36,12 @@ class Phase {
   /// The cascade that owns this phase.
   final AssetCascade cascade;
 
+  /// A string describing the location of [this] in the transformer graph.
+  final String _location;
+
+  /// The index of [this] in its parent cascade or group.
+  final int _index;
+
   /// The transformers that can access [inputs].
   ///
   /// Their outputs will be available to the next phase.
@@ -111,12 +117,15 @@ class Phase {
   // TODO(nweiz): Rather than passing the cascade and the phase everywhere,
   // create an interface that just exposes [getInput]. Emit errors via
   // [AssetNode]s.
-  Phase(this.cascade, Iterable transformers)
+  Phase(AssetCascade cascade, Iterable transformers, String location)
+      : this._(cascade, transformers, location, 0);
+
+  Phase._(this.cascade, Iterable transformers, this._location, this._index)
       : _transformers = transformers.where((op) => op is Transformer).toSet() {
     _onDirtyPool.add(_onDirtyController.stream);
 
     for (var group in transformers.where((op) => op is TransformerGroup)) {
-      var runner = new GroupRunner(cascade, group);
+      var runner = new GroupRunner(cascade, group, "$_location.$_index");
       _groups[group] = runner;
       _onDirtyPool.add(runner.onDirty);
       _onLogPool.add(runner.onLog);
@@ -148,7 +157,7 @@ class Phase {
     });
 
     _inputOrigins.add(node.origin);
-    var input = new PhaseInput(this, node, _transformers);
+    var input = new PhaseInput(this, node, _transformers, "$_location.$_index");
     _inputs[node.id] = input;
     input.input.whenRemoved(() {
       _inputOrigins.remove(node.origin);
@@ -205,7 +214,7 @@ class Phase {
     }
 
     for (var added in newGroups.difference(oldGroups)) {
-      var runner = new GroupRunner(cascade, added);
+      var runner = new GroupRunner(cascade, added, "$_location.$_index");
       _groups[added] = runner;
       _onDirtyPool.add(runner.onDirty);
       _onLogPool.add(runner.onLog);
@@ -224,7 +233,7 @@ class Phase {
   /// This may only be called on a phase with no phase following it.
   Phase addPhase(Iterable transformers) {
     assert(_next == null);
-    _next = new Phase(cascade, transformers);
+    _next = new Phase._(cascade, transformers, _location, _index + 1);
     for (var output in _outputs.values.toList()) {
       // Remove [output]'s listeners because now they should get the asset from
       // [_next], rather than this phase. Any transforms consuming [output] will
@@ -305,11 +314,13 @@ class Phase {
     if (_outputs.containsKey(asset.id)) {
       _outputs[asset.id].add(asset);
     } else {
-      _outputs[asset.id] = new PhaseOutput(this, asset);
+      _outputs[asset.id] = new PhaseOutput(this, asset, "$_location.$_index");
       _outputs[asset.id].onAsset.listen((output) {
         if (_next != null) _next.addInput(output);
       }, onDone: () => _outputs.remove(asset.id));
       if (_next != null) _next.addInput(_outputs[asset.id].output);
     }
   }
+
+  String toString() => "phase $_location.$_index";
 }

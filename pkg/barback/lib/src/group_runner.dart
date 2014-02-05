@@ -13,10 +13,16 @@ import 'phase.dart';
 import 'stream_pool.dart';
 import 'transformer_group.dart';
 
-/// A class that process all of the phases in a single transformer group.
+/// A class that processes all of the phases in a single transformer group.
 ///
 /// A group takes many inputs, processes them, and emits many outputs.
 class GroupRunner {
+  /// The group this runner runs.
+  final TransformerGroup _group;
+
+  /// A string describing the location of [this] in the transformer graph.
+  final String _location;
+
   /// The phases defined by this group.
   final _phases = new List<Phase>();
 
@@ -46,10 +52,10 @@ class GroupRunner {
   /// ensure that it does so.
   final _alreadyEmittedOutputs = new Set<AssetNode>();
 
-  GroupRunner(AssetCascade cascade, TransformerGroup group) {
-    var lastPhase = new Phase(cascade, group.phases.first);
+  GroupRunner(AssetCascade cascade, this._group, this._location) {
+    var lastPhase = new Phase(cascade, _group.phases.first, _location);
     _phases.add(lastPhase);
-    for (var phase in group.phases.skip(1)) {
+    for (var phase in _group.phases.skip(1)) {
       lastPhase = lastPhase.addPhase(phase);
       _phases.add(lastPhase);
     }
@@ -91,4 +97,6 @@ class GroupRunner {
 
     return new Future.value(newOutputs);
   }
+
+  String toString() => "group in phase $_location for $_group";
 }
