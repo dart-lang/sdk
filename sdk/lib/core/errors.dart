@@ -9,6 +9,7 @@ part of dart.core;
  *
  * An `Error` object represents a program failure that the programmer
  * should have avoided.
+ *
  * Examples include calling a function with invalid arguments,
  * or even with the wrong number of arguments,
  * or calling it at a time when it is not allowed.
@@ -50,7 +51,7 @@ part of dart.core;
  * the stack trace at the throw point is recorded
  * and stored in the error object.
  * It can be retrieved using the [stackTrace] getter.
- * Errors that merely implement `Error`, and doesn't extend it,
+ * An error object that merely implements `Error`, and doesn't extend it,
  * will not store the stack trace automatically.
  *
  * Error objects are also used for system wide failures
