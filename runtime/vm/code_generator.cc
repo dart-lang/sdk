@@ -1437,8 +1437,16 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   const Code& target_code = Code::Handle(
       caller_code.GetStaticCallTargetCodeAt(frame->pc()));
   ASSERT(!target_code.IsNull());
-  // Since there was a reference to the target_code in the caller_code, it is
-  // not possible for the target_function's code to be disconnected.
+  if (!target_function.HasCode()) {
+    // If target code was unoptimized than the code must have been kept
+    // connected to the function.
+    ASSERT(target_code.is_optimized());
+    const Error& error =
+        Error::Handle(Compiler::CompileFunction(target_function));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+    }
+  }
   ASSERT(target_function.HasCode());
   ASSERT(target_function.raw() == target_code.function());
 
