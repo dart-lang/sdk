@@ -5,7 +5,7 @@
 [ $compiler == none && $runtime == drt ]
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
-[ $compiler == none && $runtime == dartium && $mode == debug && $system == windows ]
+[ $compiler == none && $runtime == dartium && $mode == debug ]
 Language/15_Types/4_Interface_Types_A11_t01: Skip # Issue 16343
 Language/15_Types/4_Interface_Types_A11_t02: Skip # Issue 16343
 
