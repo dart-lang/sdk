@@ -363,6 +363,9 @@ class SourceVisitor implements ASTVisitor {
   /// addded to the indent level).
   bool allowLineLeadingSpaces;
 
+  /// A flag to specify whether zero-length spaces should be emmitted.
+  bool emitEmptySpaces = false;
+
   /// Used for matching EOL comments
   final twoSlashes = new RegExp(r'//[^/]');
 
@@ -412,7 +415,9 @@ class SourceVisitor implements ASTVisitor {
 
   visitArgumentList(ArgumentList node) {
     token(node.leftParenthesis);
+    breakableNonSpace();
     visitCommaSeparatedNodes(node.arguments);
+    breakableNonSpace();
     token(node.rightParenthesis);
   }
 
@@ -930,7 +935,7 @@ class SourceVisitor implements ASTVisitor {
 
   visitInstanceCreationExpression(InstanceCreationExpression node) {
     token(node.keyword);
-    space();
+    nonBreakingSpace();
     visit(node.constructorName);
     visit(node.argumentList);
   }
@@ -1466,12 +1471,13 @@ class SourceVisitor implements ASTVisitor {
   }
 
   emitSpaces() {
-    if (leadingSpaces > 0) {
+    if (leadingSpaces > 0 || emitEmptySpaces) {
       if (allowLineLeadingSpaces || !writer.currentLine.isWhitespace()) {
         writer.spaces(leadingSpaces, breakWeight: currentBreakWeight);
       }
       leadingSpaces = 0;
       allowLineLeadingSpaces = false;
+      emitEmptySpaces = false;
       currentBreakWeight = DEFAULT_SPACE_WEIGHT;
     }
   }
@@ -1488,6 +1494,12 @@ class SourceVisitor implements ASTVisitor {
             preSelection.length);
       }
     }
+  }
+
+  /// Emit a breakable 'non' (zero-length) space
+  breakableNonSpace() {
+    space(n: 0);
+    emitEmptySpaces = true;
   }
 
   /// Emit a non-breakable space.

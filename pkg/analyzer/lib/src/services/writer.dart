@@ -26,9 +26,7 @@ class Line {
   }
 
   void addSpaces(int n, {breakWeight: DEFAULT_SPACE_WEIGHT}) {
-    if (n > 0) {
-      tokens.add(new SpaceToken(n, breakWeight: breakWeight));
-    }
+    tokens.add(new SpaceToken(n, breakWeight: breakWeight));
   }
 
   void addToken(LineToken token) {
