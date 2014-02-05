@@ -6,11 +6,11 @@
 browser/*: SkipByDesign  # Browser specific tests
 isolate_stress_test: Fail # Issue 12588: This should be able to pass when we have wrapper-less tests.
 
-[ $compiler == none ]
+[ $compiler == none || $compiler == dart2dart ]
 serialization_test: SkipByDesign # Tests dart2js-specific serialization code
 isolate_throws_test/01: Skip # Issue 12587
 compile_time_error_test/01: Skip # Issue 12587
-capability_test: Fail
+capability_test: Fail  # Not implemented yet
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
@@ -40,8 +40,6 @@ spawn_uri_test: Fail # Issue 12630
 
 [ $compiler == dart2js && $runtime == none ]
 serialization_test: Pass # Issue 12628
-illegal_msg_function_test: Pass # Issue 12628
-illegal_msg_mirror_test: Pass # Issue 12628
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
@@ -49,7 +47,11 @@ isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
 mandel_isolate_test: Pass, Timeout # TODO(kasperl): Please triage.
 
 [ $compiler == dart2dart ]
-*: Skip # Issue 12629
+illegal_msg_mirror_test: RuntimeError    # Issue 16548
+spawn_uri_multi_test/none: RuntimeError  # Issue 16549
+spawn_uri_nested_vm_test: RuntimeError   # Issue 16549
+spawn_uri_test: RuntimeError             # Issue 16549
+spawn_uri_vm_test: RuntimeError          # Issue 16549
 
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari || $runtime == drt || $runtime == chrome || $runtime == chromeOnAndroid) ]
 isolate_stress_test: Pass, Slow # Issue 10697
