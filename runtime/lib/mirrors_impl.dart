@@ -332,6 +332,95 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     return new _InvocationTrampoline(this, selector);
   }
 
+  // TODO(16539): Make these weak or soft.
+  static var _getFieldClosures = new HashMap();
+  static var _setFieldClosures = new HashMap();
+  static var _getFieldCallCounts = new HashMap();
+  static var _setFieldCallCounts = new HashMap();
+  static const _closureThreshold = 20;
+
+  _getFieldSlow(unwrapped) {
+    // Slow path factored out to give the fast path a better chance at being
+    // inlined.
+    var callCount = _getFieldCallCounts[unwrapped];
+    if (callCount == null) {
+      callCount = 0;
+    }
+    if (callCount == _closureThreshold) {
+      // We've seen a success getter invocation a few times: time to invest in a
+      // closure.
+      var f;
+      var atPosition = unwrapped.indexOf('@');
+      if (atPosition == -1) {
+        // Public symbol.
+        f = _eval('(x) => x.$unwrapped', null);
+      } else {
+        // Private symbol.
+        var withoutKey = unwrapped.substring(0, atPosition);
+        var privateKey = unwrapped.substring(atPosition);
+        f = _eval('(x) => x.$withoutKey', privateKey);
+      }
+      _getFieldClosures[unwrapped] = f;
+      _getFieldCallCounts.remove(unwrapped);  // We won't look for this again.
+      return reflect(f(_reflectee));
+    }
+    var result = reflect(_invokeGetter(_reflectee, unwrapped));
+    // Only update call count if we don't throw to avoid creating closures for
+    // non-existent getters.
+    _getFieldCallCounts[unwrapped] = callCount + 1;
+    return result;
+  }
+
+  InstanceMirror getField(Symbol memberName) {
+    var unwrapped = _n(memberName);
+    var f = _getFieldClosures[unwrapped];
+    return (f == null) ? _getFieldSlow(unwrapped) : reflect(f(_reflectee));
+  }
+
+  _setFieldSlow(unwrapped, arg) {
+    // Slow path factored out to give the fast path a better chance at being
+    // inlined.
+    var callCount = _setFieldCallCounts[unwrapped];
+    if (callCount == null) {
+      callCount = 0;
+    }
+    if (callCount == _closureThreshold) {
+      // We've seen a success getter invocation a few times: time to invest in a
+      // closure.
+      var f;
+      var atPosition = unwrapped.indexOf('@');
+      if (atPosition == -1) {
+        // Public symbol.
+        f = _eval('(x, v) => x.$unwrapped = v', null);
+      } else {
+        // Private symbol.
+        var withoutKey = unwrapped.substring(0, atPosition);
+        var privateKey = unwrapped.substring(atPosition);
+        f = _eval('(x, v) => x.$withoutKey = v', privateKey);
+      }
+      _setFieldClosures[unwrapped] = f;
+      _setFieldCallCounts.remove(unwrapped);
+      return reflect(f(_reflectee, arg));
+    }
+    _invokeSetter(_reflectee, unwrapped, arg);
+    var result = reflect(arg);
+    // Only update call count if we don't throw to avoid creating closures for
+    // non-existent setters.
+    _setFieldCallCounts[unwrapped] = callCount + 1;
+    return result;
+  }
+
+  InstanceMirror setField(Symbol memberName, arg) {
+    var unwrapped = _n(memberName);
+    var f = _setFieldClosures[unwrapped];
+    return (f == null)
+        ? _setFieldSlow(unwrapped, arg)
+        : reflect(f(_reflectee, arg));
+  }
+
+  static _eval(expression, privateKey)
+      native "Mirrors_evalInLibraryWithPrivateKey";
+
   // Override to include the receiver in the arguments.
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
