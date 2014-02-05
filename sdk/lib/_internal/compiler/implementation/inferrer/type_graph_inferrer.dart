@@ -26,7 +26,7 @@ part 'list_tracer.dart';
 part 'node_tracer.dart';
 part 'map_tracer.dart';
 
-bool _VERBOSE = true;
+bool _VERBOSE = false;
 
 /**
  * A set of selector names that [List] implements, that we know return
