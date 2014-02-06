@@ -884,6 +884,8 @@ class _HttpParser
   void set responseToMethod(String method) { _responseToMethod = method; }
 
   _HttpDetachedIncoming detachIncoming() {
+    // Simulate detached by marking as upgraded.
+    _state = _State.UPGRADED;
     return new _HttpDetachedIncoming(_socketSubscription,
                                      readUnparsedData());
   }
