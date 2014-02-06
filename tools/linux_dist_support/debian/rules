@@ -1,0 +1,51 @@
+#!/usr/bin/make -f
+export DH_VERBOSE = 1
+
+# Use DEB_BUILD_OPTIONS's parallel=n option (see Policy 4.9.1)
+ifneq (,$(findstring parallel,$(DEB_BUILD_OPTIONS)))
+PARALLEL_JOBS := $(shell echo $(DEB_BUILD_OPTIONS) | \
+	sed -e 's/.*parallel=\([0-9]\+\).*/\1/')
+else
+PARALLEL_JOBS := 1
+endif
+
+DEB_HOST_ARCH_CPU := $(shell dpkg-architecture -qDEB_HOST_ARCH_CPU)
+ifeq (amd64,$(DEB_HOST_ARCH_CPU))
+BUILD_TYPE += ReleaseX64
+else
+ifeq (i386,$(DEB_HOST_ARCH_CPU))
+BUILD_TYPE += ReleaseIA32
+else
+$(warning unsupported target arch $(DEB_HOST_ARCH_CPU) - continuing anyway)
+endif
+endif
+
+# Verbose?
+ifeq (1,$(DH_VERBOSE))
+BUILD_ARGS += V=1
+endif
+
+%:
+	dh $@
+
+override_dh_auto_clean:
+	echo $(DEB_BUILD_OPTIONS)
+	rm -fr dart/out dart/Makefile
+	find . -name *.tmp -execdir rm -f {} \;
+	find . -name *.pyc -execdir rm -f {} \;
+	find . -name *.mk -execdir rm -f {} \;
+	find . -name *.Makefile -execdir rm -f {} \;
+
+override_dh_auto_configure:
+	GYP_GENERATORS=make python dart/tools/gyp_dart.py all
+
+override_dh_auto_build:
+	make -C dart -j$(PARALLEL_JOBS) \
+		BUILDTYPE=$(BUILD_TYPE) $(BUILD_ARGS) create_sdk
+
+override_dh_auto_install:
+	mkdir -p debian/tmp/out
+	cp -R dart/out/$(BUILD_TYPE)/dart-sdk debian/tmp/out
+	mv debian/tmp/out/dart-sdk debian/tmp/out/dart
+	dh_install
+	dh_link
