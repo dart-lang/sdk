@@ -55,37 +55,88 @@ class FSEventsWatcher {
  public:
   class Node {
    public:
-    Node(intptr_t base_path_length, int read_fd, int write_fd, bool recursive)
-      : base_path_length_(base_path_length),
-        read_fd_(read_fd),
-        write_fd_(write_fd),
-        recursive_(recursive),
-        ref_(NULL) {}
+    Node(FSEventsWatcher* watcher, intptr_t base_path_length, int read_fd,
+         int write_fd, bool recursive)
+        : watcher_(watcher),
+          ready_(false),
+          base_path_length_(base_path_length),
+          read_fd_(read_fd),
+          write_fd_(write_fd),
+          recursive_(recursive),
+          ref_(NULL) {}
 
     ~Node() {
       close(write_fd_);
-      FSEventStreamInvalidate(ref_);
-      FSEventStreamRelease(ref_);
     }
 
     void set_ref(FSEventStreamRef ref) {
       ref_ = ref;
     }
 
+    static void StartCallback(CFRunLoopTimerRef timer, void* info) {
+      Node* node = reinterpret_cast<Node*>(info);
+      FSEventStreamScheduleWithRunLoop(
+          node->ref_,
+          node->watcher_->run_loop_,
+          kCFRunLoopDefaultMode);
+      FSEventStreamStart(node->ref_);
+      FSEventStreamFlushSync(node->ref_);
+      node->watcher_->monitor_.Enter();
+      node->ready_ = true;
+      node->watcher_->monitor_.Notify();
+      node->watcher_->monitor_.Exit();
+    }
+
     void Start() {
-      FSEventStreamStart(ref_);
+      ASSERT(!ready_);
+      CFRunLoopTimerContext context;
+      memset(&context, 0, sizeof(context));
+      context.info = this;
+      CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
+          NULL, 0, 0, 0, 0, StartCallback, &context);
+      CFRunLoopAddTimer(watcher_->run_loop_, timer, kCFRunLoopCommonModes);
+      watcher_->monitor_.Enter();
+      while (!ready_) {
+        watcher_->monitor_.Wait(Monitor::kNoTimeout);
+      }
+      watcher_->monitor_.Exit();
+    }
+
+    static void StopCallback(CFRunLoopTimerRef timer, void* info) {
+      Node* node = reinterpret_cast<Node*>(info);
+      FSEventStreamStop(node->ref_);
+      FSEventStreamInvalidate(node->ref_);
+      FSEventStreamRelease(node->ref_);
+      node->watcher_->monitor_.Enter();
+      node->ready_ = false;
+      node->watcher_->monitor_.Notify();
+      node->watcher_->monitor_.Exit();
     }
 
     void Stop() {
-      FSEventStreamStop(ref_);
+      ASSERT(ready_);
+      CFRunLoopTimerContext context;
+      memset(&context, 0, sizeof(context));
+      context.info = this;
+      CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
+          NULL, 0, 0, 0, 0, StopCallback, &context);
+      CFRunLoopAddTimer(watcher_->run_loop_, timer, kCFRunLoopCommonModes);
+      watcher_->monitor_.Enter();
+      while (ready_) {
+        watcher_->monitor_.Wait(Monitor::kNoTimeout);
+      }
+      watcher_->monitor_.Exit();
     }
 
+    bool ready() const { return ready_; }
     intptr_t base_path_length() const { return base_path_length_; }
     int read_fd() const { return read_fd_; }
     int write_fd() const { return write_fd_; }
     bool recursive() const { return recursive_; }
 
    private:
+    FSEventsWatcher* watcher_;
+    bool ready_;
     intptr_t base_path_length_;
     int read_fd_;
     int write_fd_;
@@ -143,7 +194,7 @@ class FSEventsWatcher {
     CFStringRef path_ref = CFStringCreateWithCString(
         NULL, base_path, kCFStringEncodingUTF8);
 
-    Node* node = new Node(strlen(base_path), fds[0], fds[1], recursive);
+    Node* node = new Node(this, strlen(base_path), fds[0], fds[1], recursive);
 
     FSEventStreamContext context;
     context.version = 0;
@@ -162,11 +213,6 @@ class FSEventsWatcher {
 
     node->set_ref(ref);
 
-    FSEventStreamScheduleWithRunLoop(
-        ref,
-        run_loop_,
-        kCFRunLoopDefaultMode);
-
     return node;
   }
 
@@ -178,6 +224,9 @@ class FSEventsWatcher {
                        const FSEventStreamEventFlags event_flags[],
                        const FSEventStreamEventId event_ids[]) {
     Node* node = reinterpret_cast<Node*>(client);
+    // `ready` is set on same thread as this callback is invoked, so we don't
+    // need to lock here.
+    if (!node->ready()) return;
     for (size_t i = 0; i < num_events; i++) {
       char *path = reinterpret_cast<char**>(event_paths)[i];
       FSEvent event;
@@ -207,7 +256,7 @@ intptr_t FileSystemWatcher::Init() {
   FSEventsWatcher* watcher = new FSEventsWatcher();
   watcher->monitor().Enter();
   while (!watcher->has_run_loop()) {
-    watcher->monitor().Wait(1);
+    watcher->monitor().Wait(Monitor::kNoTimeout);
   }
   watcher->monitor().Exit();
   return reinterpret_cast<intptr_t>(watcher);
