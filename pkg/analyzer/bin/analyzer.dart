@@ -52,8 +52,7 @@ void main(args) {
       print("");
       print("Time spent in instanceof = ${instanceOfTimer.elapsedMilliseconds}");
     }
-
-    exit(result.ordinal);
+    exitCode = result.ordinal;
   }
 }
 
