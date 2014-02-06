@@ -164,8 +164,7 @@ getEmptyFn(a){
 }
 <<<
 getEmptyFn(a) {
-  return () {
-  };
+  return () {};
 }
 >>> DO format constructor initialization lists with each field on its own line.
 class MyClass {

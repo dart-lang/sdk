@@ -121,3 +121,15 @@ main() {
   throw new FormatException(
       "This is a long exception message that puts this over 80 columns.");
 }
+>>> Empty method bodies may be on a single line (or more)
+void main() { }
+<<<
+void main() {}
+>>>
+void main() {
+
+}
+<<<
+void main() {
+
+}

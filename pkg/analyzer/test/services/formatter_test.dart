@@ -188,8 +188,7 @@ main() {
       expectCUFormatsTo(
           'library a; class B { }',
           'library a;\n'
-          'class B {\n'
-          '}\n'
+          'class B {}\n'
       );
     });
 
@@ -952,8 +951,7 @@ main() {
         'abstract\n'
         'class\n'
         'A{}',
-        'abstract class A {\n'
-        '}\n'
+        'abstract class A {}\n'
       );
     });
 

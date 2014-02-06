@@ -201,3 +201,15 @@ class ContactImpulse {
 
   ContactImpulse();
 }
+>>> Empty class bodies may be on one line (or more)
+class A extends B { }
+<<<
+class A extends B {}
+>>>
+class A extends B {
+
+}
+<<<
+class A extends B {
+
+}

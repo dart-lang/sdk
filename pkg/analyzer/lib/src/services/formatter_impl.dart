@@ -457,8 +457,12 @@ class SourceVisitor implements ASTVisitor {
   visitBlock(Block node) {
     token(node.leftBracket);
     indent();
-    visitNodes(node.statements, precededBy: newlines, separatedBy: newlines);
-    newlines();
+    if (!node.statements.isEmpty) {
+      visitNodes(node.statements, precededBy: newlines, separatedBy: newlines);
+      newlines();
+    } else {
+      preserveLeadingNewlines();
+    }
     token(node.rightBracket, precededBy: unindent);
   }
 
@@ -527,8 +531,12 @@ class SourceVisitor implements ASTVisitor {
     });
     token(node.leftBracket);
     indent();
-    visitNodes(node.members, precededBy: newlines, separatedBy: newlines);
-    newlines();
+    if (!node.members.isEmpty) {
+      visitNodes(node.members, precededBy: newlines, separatedBy: newlines);
+      newlines();
+    } else {
+      preserveLeadingNewlines();
+    }
     token(node.rightBracket, precededBy: unindent);
   }
 
