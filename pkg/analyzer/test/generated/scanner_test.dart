@@ -70,18 +70,18 @@ class KeywordStateTest extends JUnitTestCase {
 
 class CharSequenceReaderTest extends JUnitTestCase {
   void test_advance() {
-    CharSequenceReader reader = new CharSequenceReader(new CharSequence("x"));
+    CharSequenceReader reader = new CharSequenceReader("x");
     JUnitTestCase.assertEquals(0x78, reader.advance());
     JUnitTestCase.assertEquals(-1, reader.advance());
     JUnitTestCase.assertEquals(-1, reader.advance());
   }
 
   void test_creation() {
-    JUnitTestCase.assertNotNull(new CharSequenceReader(new CharSequence("x")));
+    JUnitTestCase.assertNotNull(new CharSequenceReader("x"));
   }
 
   void test_getOffset() {
-    CharSequenceReader reader = new CharSequenceReader(new CharSequence("x"));
+    CharSequenceReader reader = new CharSequenceReader("x");
     JUnitTestCase.assertEquals(-1, reader.offset);
     reader.advance();
     JUnitTestCase.assertEquals(0, reader.offset);
@@ -90,14 +90,14 @@ class CharSequenceReaderTest extends JUnitTestCase {
   }
 
   void test_getString() {
-    CharSequenceReader reader = new CharSequenceReader(new CharSequence("xyzzy"));
+    CharSequenceReader reader = new CharSequenceReader("xyzzy");
     reader.offset = 3;
     JUnitTestCase.assertEquals("yzz", reader.getString(1, 0));
     JUnitTestCase.assertEquals("zzy", reader.getString(2, 1));
   }
 
   void test_peek() {
-    CharSequenceReader reader = new CharSequenceReader(new CharSequence("xy"));
+    CharSequenceReader reader = new CharSequenceReader("xy");
     JUnitTestCase.assertEquals(0x78, reader.peek());
     JUnitTestCase.assertEquals(0x78, reader.peek());
     reader.advance();
@@ -109,7 +109,7 @@ class CharSequenceReaderTest extends JUnitTestCase {
   }
 
   void test_setOffset() {
-    CharSequenceReader reader = new CharSequenceReader(new CharSequence("xyz"));
+    CharSequenceReader reader = new CharSequenceReader("xyz");
     reader.offset = 2;
     JUnitTestCase.assertEquals(2, reader.offset);
   }
@@ -375,7 +375,7 @@ class ScannerTest extends JUnitTestCase {
   }
 
   void test_comment_disabled_multi() {
-    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence("/* comment */ ")), AnalysisErrorListener.NULL_LISTENER);
+    Scanner scanner = new Scanner(null, new CharSequenceReader("/* comment */ "), AnalysisErrorListener.NULL_LISTENER);
     scanner.preserveComments = false;
     Token token = scanner.tokenize();
     JUnitTestCase.assertNotNull(token);
@@ -838,7 +838,7 @@ class ScannerTest extends JUnitTestCase {
   void test_setSourceStart() {
     int offsetDelta = 42;
     GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new SubSequenceReader(new CharSequence("a"), offsetDelta), listener);
+    Scanner scanner = new Scanner(null, new SubSequenceReader("a", offsetDelta), listener);
     scanner.setSourceStart(3, 9);
     scanner.tokenize();
     List<int> lineStarts = scanner.lineStarts;
@@ -1211,7 +1211,7 @@ class ScannerTest extends JUnitTestCase {
   }
 
   Token scan2(String source, GatheringErrorListener listener) {
-    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     return result;
@@ -2250,21 +2250,21 @@ class IncrementalScannerTest extends EngineTestCase {
     // Scan the original contents.
     //
     GatheringErrorListener originalListener = new GatheringErrorListener();
-    Scanner originalScanner = new Scanner(source, new CharSequenceReader(new CharSequence(originalContents)), originalListener);
+    Scanner originalScanner = new Scanner(source, new CharSequenceReader(originalContents), originalListener);
     _originalTokens = originalScanner.tokenize();
     JUnitTestCase.assertNotNull(_originalTokens);
     //
     // Scan the modified contents.
     //
     GatheringErrorListener modifiedListener = new GatheringErrorListener();
-    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), modifiedListener);
+    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(modifiedContents), modifiedListener);
     Token modifiedTokens = modifiedScanner.tokenize();
     JUnitTestCase.assertNotNull(modifiedTokens);
     //
     // Incrementally scan the modified contents.
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
-    _incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), incrementalListener);
+    _incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(modifiedContents), incrementalListener);
     _incrementalTokens = _incrementalScanner.rescan(_originalTokens, replaceStart, removed.length, added.length);
     //
     // Validate that the results of the incremental scan are the same as the full scan of the

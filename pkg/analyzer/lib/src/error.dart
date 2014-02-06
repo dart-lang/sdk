@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'generated/error.dart';
-import 'generated/java_core.dart';
 import 'generated/source.dart';
 
 /// The maximum line length when printing extracted source code when converting
@@ -97,8 +96,6 @@ class _ContentReceiver implements Source_ContentReceiver {
 
   String get result => _buffer.toString();
 
-  void accept(CharBuffer contents, _) =>
-    _buffer.write(contents.subSequence(0, contents.length()));
-
-  void accept2(String contents, _) => _buffer.write(contents);
+  void accept(String contents, _) =>
+    _buffer.write(contents.substring(0, contents.length));
 }

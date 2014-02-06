@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as pathos;
 
-import 'src/generated/java_core.dart' show CharSequence;
 import 'src/error.dart';
 import 'src/generated/ast.dart';
 import 'src/generated/error.dart';
@@ -37,7 +36,7 @@ CompilationUnit parseDartFile(String path) {
     throw new ArgumentError("Source $source doesn't exist");
   }
 
-  var reader = new CharSequenceReader(new CharSequence(contents));
+  var reader = new CharSequenceReader(contents);
   var scanner = new Scanner(source, reader, errorCollector);
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector);
@@ -57,7 +56,7 @@ CompilationUnit parseCompilationUnit(String contents, {String name}) {
   if (name == null) name = '<unknown source>';
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();
-  var reader = new CharSequenceReader(new CharSequence(contents));
+  var reader = new CharSequenceReader(contents);
   var scanner = new Scanner(source, reader, errorCollector);
   var token = scanner.tokenize();
   var parser = new Parser(source, errorCollector);

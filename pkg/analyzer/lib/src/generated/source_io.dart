@@ -116,7 +116,7 @@ class FileBasedSource implements Source {
     //
     String contents = _contentCache.getContents(this);
     if (contents != null) {
-      receiver.accept(new CharSequence(contents), _contentCache.getModificationStamp(this));
+      receiver.accept(contents, _contentCache.getModificationStamp(this));
       return;
     }
     //
@@ -179,7 +179,7 @@ class FileBasedSource implements Source {
   void getContentsFromFile(Source_ContentReceiver receiver) {
     {
     }
-    receiver.accept(file.readAsCharSequenceSync(), file.lastModified());
+    receiver.accept(file.readAsStringSync(), file.lastModified());
   }
 
   /**

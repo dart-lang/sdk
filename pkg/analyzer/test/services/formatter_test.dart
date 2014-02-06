@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
-import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/services/formatter_impl.dart';
 import 'package:analyzer/src/services/writer.dart';
@@ -1400,7 +1399,7 @@ String formatStatement(src, {options: const FormatterOptions()}) =>
     new CodeFormatter(options).format(CodeKind.STATEMENT, src).source;
 
 Token tokenize(String str) {
-  var reader = new CharSequenceReader(new CharSequence(str));
+  var reader = new CharSequenceReader(str);
   return new Scanner(null, reader, null).tokenize();
 }
 

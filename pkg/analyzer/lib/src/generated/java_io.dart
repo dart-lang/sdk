@@ -111,7 +111,6 @@ class JavaFile {
   }
   Uri toURI() => pathos.toUri(_path);
   String readAsStringSync() => _newFile().readAsStringSync();
-  CharSequence readAsCharSequenceSync() => CharSequence.wrap(readAsStringSync());
   int lastModified() {
     if (!_newFile().existsSync()) return 0;
     return _newFile().lastModifiedSync().millisecondsSinceEpoch;

@@ -4,7 +4,6 @@
 
 library analyzer.string_source;
 
-import 'generated/java_core.dart';
 import 'generated/source.dart';
 
 /// An implementation of [Source] that's based on an in-memory Dart string.
@@ -27,7 +26,7 @@ class StringSource implements Source {
   bool exists() => true;
 
   void getContents(Source_ContentReceiver receiver) =>
-      receiver.accept(CharSequence.wrap(_contents), modificationStamp);
+      receiver.accept(_contents, modificationStamp);
 
   String get encoding => throw new UnsupportedError("StringSource doesn't support "
       "encoding.");

@@ -1009,7 +1009,7 @@ class StringScanner extends AbstractScanner {
   /**
    * The string from which characters will be read.
    */
-  CharSequence _string;
+  String _string;
 
   /**
    * The number of characters in the string.
@@ -1027,9 +1027,9 @@ class StringScanner extends AbstractScanner {
    * @param source the source being scanned
    * @param string the string from which characters will be read
    */
-  StringScanner(Source source, CharSequence string) : super(source) {
+  StringScanner(Source source, String string) : super(source) {
     this._string = string;
-    this._stringLength = string.length();
+    this._stringLength = string.length;
     this._charOffset = -1;
   }
 
@@ -1041,17 +1041,17 @@ class StringScanner extends AbstractScanner {
 
   int advance() {
     if (++_charOffset < _stringLength) {
-      return _string.charAt(_charOffset);
+      return _string.codeUnitAt(_charOffset);
     }
     _charOffset = _stringLength;
     return -1;
   }
 
-  String getString(int start, int endDelta) => _string.subSequence(start, _charOffset + 1 + endDelta).toString();
+  String getString(int start, int endDelta) => _string.substring(start, _charOffset + 1 + endDelta).toString();
 
   int peek() {
     if (_charOffset + 1 < _stringLength) {
-      return _string.charAt(_charOffset + 1);
+      return _string.codeUnitAt(_charOffset + 1);
     }
     return -1;
   }
@@ -1409,7 +1409,7 @@ class HtmlScanner implements Source_ContentReceiver {
     this._source = source;
   }
 
-  void accept(CharSequence contents, int modificationTime) {
+  void accept(String contents, int modificationTime) {
     this._modificationTime = modificationTime;
     _scanner = new StringScanner(_source, contents);
     _scanner.passThroughElements = _SCRIPT_TAG;
@@ -1981,7 +1981,7 @@ class HtmlParser extends XmlParser {
    */
   static sc.Token scanDartSource(Source source, LineInfo lineInfo, String contents, int contentOffset, AnalysisErrorListener errorListener) {
     LineInfo_Location location = lineInfo.getLocation(contentOffset);
-    sc.Scanner scanner = new sc.Scanner(source, new sc.SubSequenceReader(new CharSequence(contents), contentOffset), errorListener);
+    sc.Scanner scanner = new sc.Scanner(source, new sc.SubSequenceReader(contents, contentOffset), errorListener);
     scanner.setSourceStart(location.lineNumber, location.columnNumber);
     return scanner.tokenize();
   }
@@ -2031,7 +2031,7 @@ class HtmlParser extends XmlParser {
       String contents = tagNode.content;
       int contentOffset = attributeEnd.end;
       LineInfo_Location location = _lineInfo.getLocation(contentOffset);
-      sc.Scanner scanner = new sc.Scanner(source, new sc.SubSequenceReader(new CharSequence(contents), contentOffset), _errorListener);
+      sc.Scanner scanner = new sc.Scanner(source, new sc.SubSequenceReader(contents, contentOffset), _errorListener);
       scanner.setSourceStart(location.lineNumber, location.columnNumber);
       sc.Token firstToken = scanner.tokenize();
       Parser parser = new Parser(source, _errorListener);

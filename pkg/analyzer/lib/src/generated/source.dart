@@ -460,7 +460,7 @@ abstract class Source_ContentReceiver {
    * @param contents the contents of the source
    * @param modificationTime the time at which the contents were last set
    */
-  void accept(CharSequence contents, int modificationTime);
+  void accept(String contents, int modificationTime);
 }
 
 /**

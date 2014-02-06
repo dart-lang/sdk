@@ -7,7 +7,6 @@
 import 'dart:io';
 
 import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
 
 main(List<String> args) {
 
@@ -26,7 +25,7 @@ main(List<String> args) {
 
 _scan(File file) {
   var src = file.readAsStringSync();
-  var reader = new CharSequenceReader(new CharSequence(src));
+  var reader = new CharSequenceReader(src);
   var scanner = new Scanner(null, reader, null);
   var token = scanner.tokenize();
   while (token.type != TokenType.EOF) {

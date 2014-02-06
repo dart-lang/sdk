@@ -217,7 +217,7 @@ class SubSequenceReader extends CharSequenceReader {
    * @param offsetDelta the offset from the beginning of the file to the beginning of the source
    *          being scanned
    */
-  SubSequenceReader(CharSequence sequence, int offsetDelta) : super(sequence) {
+  SubSequenceReader(String sequence, int offsetDelta) : super(sequence) {
     this._offsetDelta = offsetDelta;
   }
 
@@ -493,7 +493,7 @@ class CharSequenceReader implements CharacterReader {
   /**
    * The sequence from which characters will be read.
    */
-  CharSequence _sequence;
+  String _sequence;
 
   /**
    * The number of characters in the string.
@@ -510,9 +510,9 @@ class CharSequenceReader implements CharacterReader {
    *
    * @param sequence the sequence from which characters will be read
    */
-  CharSequenceReader(CharSequence sequence) {
+  CharSequenceReader(String sequence) {
     this._sequence = sequence;
-    this._stringLength = sequence.length();
+    this._stringLength = sequence.length;
     this._charOffset = -1;
   }
 
@@ -520,18 +520,18 @@ class CharSequenceReader implements CharacterReader {
     if (_charOffset + 1 >= _stringLength) {
       return -1;
     }
-    return _sequence.charAt(++_charOffset);
+    return _sequence.codeUnitAt(++_charOffset);
   }
 
   int get offset => _charOffset;
 
-  String getString(int start, int endDelta) => _sequence.subSequence(start, _charOffset + 1 + endDelta).toString();
+  String getString(int start, int endDelta) => _sequence.substring(start, _charOffset + 1 + endDelta).toString();
 
   int peek() {
-    if (_charOffset + 1 >= _sequence.length()) {
+    if (_charOffset + 1 >= _sequence.length) {
       return -1;
     }
-    return _sequence.charAt(_charOffset + 1);
+    return _sequence.codeUnitAt(_charOffset + 1);
   }
 
   void set offset(int offset) {

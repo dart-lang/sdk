@@ -3499,12 +3499,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             removeFromParts(source, dartEntry);
             dartCopy.invalidateAllResolutionInformation();
             mapEntry.setValue(dartCopy);
-            WorkManagerPriority priority = WorkManagerPriority.UNKNOWN;
+            SourcePriority priority = SourcePriority.UNKNOWN;
             SourceKind kind = dartCopy.kind;
             if (identical(kind, SourceKind.LIBRARY)) {
-              priority = WorkManagerPriority.LIBRARY;
+              priority = SourcePriority.LIBRARY;
             } else if (identical(kind, SourceKind.PART)) {
-              priority = WorkManagerPriority.NORMAL_PART;
+              priority = SourcePriority.NORMAL_PART;
             }
             _workManager.add(source, priority);
           }
@@ -4313,7 +4313,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartCopy.exception = thrownException;
               _cache.put(source, dartCopy);
               if (source != librarySource) {
-                _workManager.add(source, WorkManagerPriority.PRIORITY_PART);
+                _workManager.add(source, SourcePriority.PRIORITY_PART);
               }
               if (source == unitSource) {
                 unitEntry = dartCopy;
@@ -5371,7 +5371,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         DartEntryImpl dartCopy = dartEntry.writableCopy;
         dartCopy.invalidateAllResolutionInformation();
         mapEntry.setValue(dartCopy);
-        _workManager.add(source, WorkManagerPriority.UNKNOWN);
+        _workManager.add(source, SourcePriority.UNKNOWN);
       }
     }
   }
@@ -5399,7 +5399,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       int oldTime = libraryCopy.modificationTime;
       libraryCopy.invalidateAllResolutionInformation();
       _cache.put(librarySource, libraryCopy);
-      _workManager.add(librarySource, WorkManagerPriority.LIBRARY);
+      _workManager.add(librarySource, SourcePriority.LIBRARY);
       if (writer != null) {
         writer.println("  Invalidated library source: ${debuggingString(librarySource)} (previously modified at ${oldTime})");
       }
@@ -5410,7 +5410,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           oldTime = partCopy.modificationTime;
           if (partEntry != libraryCopy) {
             partCopy.removeContainingLibrary(librarySource);
-            _workManager.add(librarySource, WorkManagerPriority.NORMAL_PART);
+            _workManager.add(librarySource, SourcePriority.NORMAL_PART);
           }
           partCopy.invalidateAllResolutionInformation();
           _cache.put(partSource, partCopy);
@@ -5517,7 +5517,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             htmlCopy.setValue(HtmlEntry.ANGULAR_COMPONENT, component);
             htmlCopy.setState(HtmlEntry.ANGULAR_ERRORS, CacheState.INVALID);
             _cache.put(templateSource, htmlCopy);
-            _workManager.add(templateSource, WorkManagerPriority.HTML);
+            _workManager.add(templateSource, SourcePriority.HTML);
           }
         }
       }
@@ -5618,7 +5618,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.invalidateAllInformation();
           dartCopy.modificationTime = sourceTime;
           _cache.removedAst(source);
-          _workManager.add(source, WorkManagerPriority.UNKNOWN);
+          _workManager.add(source, SourcePriority.UNKNOWN);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -5721,7 +5721,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartCopy.invalidateAllInformation();
               dartCopy.modificationTime = sourceTime;
               _cache.removedAst(unitSource);
-              _workManager.add(unitSource, WorkManagerPriority.UNKNOWN);
+              _workManager.add(unitSource, SourcePriority.UNKNOWN);
             } else {
               //
               // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -5799,11 +5799,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
           if (task.hasPartOfDirective() && !task.hasLibraryDirective()) {
             dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.PART);
-            _workManager.add(source, WorkManagerPriority.NORMAL_PART);
+            _workManager.add(source, SourcePriority.NORMAL_PART);
           } else {
             dartCopy.setValue(DartEntry.SOURCE_KIND, SourceKind.LIBRARY);
             dartCopy.containingLibrary = source;
-            _workManager.add(source, WorkManagerPriority.LIBRARY);
+            _workManager.add(source, SourcePriority.LIBRARY);
           }
           dartCopy.setValue(DartEntry.PARSED_UNIT, task.compilationUnit);
           dartCopy.setValue(DartEntry.PARSE_ERRORS, task.errors);
@@ -5834,7 +5834,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.invalidateAllInformation();
           dartCopy.modificationTime = sourceTime;
           _cache.removedAst(source);
-          _workManager.add(source, WorkManagerPriority.UNKNOWN);
+          _workManager.add(source, SourcePriority.UNKNOWN);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -6171,7 +6171,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.invalidateAllInformation();
           dartCopy.modificationTime = sourceTime;
           _cache.removedAst(source);
-          _workManager.add(source, WorkManagerPriority.UNKNOWN);
+          _workManager.add(source, SourcePriority.UNKNOWN);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -6251,7 +6251,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           dartCopy.invalidateAllInformation();
           dartCopy.modificationTime = sourceTime;
           _cache.removedAst(unitSource);
-          _workManager.add(unitSource, WorkManagerPriority.UNKNOWN);
+          _workManager.add(unitSource, SourcePriority.UNKNOWN);
         } else {
           //
           // We could not determine whether the sources were up-to-date or out-of-date. Mark the
@@ -6419,9 +6419,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       logInformation("Added new source: ${debuggingString(source)} (previously modified at ${oldTime})");
     }
     if (sourceEntry is HtmlEntry) {
-      _workManager.add(source, WorkManagerPriority.HTML);
+      _workManager.add(source, SourcePriority.HTML);
     } else {
-      _workManager.add(source, WorkManagerPriority.UNKNOWN);
+      _workManager.add(source, SourcePriority.UNKNOWN);
     }
     return sourceEntry is DartEntry;
   }
@@ -6450,7 +6450,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlCopy.invalidateAllInformation();
       _cache.put(source, htmlCopy);
       _cache.removedAst(source);
-      _workManager.add(source, WorkManagerPriority.HTML);
+      _workManager.add(source, SourcePriority.HTML);
       logInformation("Modified HTML source: ${debuggingString(source)} (previously modified at ${oldTime})");
     } else if (sourceEntry is DartEntry) {
       List<Source> containingLibraries = getLibrariesContaining(source);
@@ -6474,7 +6474,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       dartCopy.invalidateAllInformation();
       _cache.put(source, dartCopy);
       _cache.removedAst(source);
-      _workManager.add(source, WorkManagerPriority.UNKNOWN);
+      _workManager.add(source, SourcePriority.UNKNOWN);
       logInformation(writer.toString());
     }
   }
@@ -8177,6 +8177,44 @@ class ResolvableHtmlUnit extends TimestampedData<ht.HtmlUnit> {
 }
 
 /**
+ * The enumerated type `Priority` defines the priority levels used to return sources in an
+ * optimal order.
+ */
+class SourcePriority extends Enum<SourcePriority> {
+  /**
+   * Used for a Dart source that is known to be a part contained in a library that was recently
+   * resolved. These parts are given a higher priority because there is a high probability that
+   * their AST structure is still in the cache and therefore would not need to be re-created.
+   */
+  static final SourcePriority PRIORITY_PART = new SourcePriority('PRIORITY_PART', 0);
+
+  /**
+   * Used for a Dart source that is known to be a library.
+   */
+  static final SourcePriority LIBRARY = new SourcePriority('LIBRARY', 1);
+
+  /**
+   * Used for a Dart source that is known to be a part but whose library has not yet been
+   * resolved.
+   */
+  static final SourcePriority NORMAL_PART = new SourcePriority('NORMAL_PART', 2);
+
+  /**
+   * Used for a Dart source whose kind is unknown.
+   */
+  static final SourcePriority UNKNOWN = new SourcePriority('UNKNOWN', 3);
+
+  /**
+   * Used for an HTML source.
+   */
+  static final SourcePriority HTML = new SourcePriority('HTML', 4);
+
+  static final List<SourcePriority> values = [PRIORITY_PART, LIBRARY, NORMAL_PART, UNKNOWN, HTML];
+
+  SourcePriority(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
  * Instances of the class `TimestampedData` represent analysis data for which we have a
  * modification time.
  */
@@ -8214,7 +8252,7 @@ class WorkManager {
    * Initialize a newly created manager to have no work queued up.
    */
   WorkManager() {
-    int queueCount = WorkManagerPriority.values.length;
+    int queueCount = SourcePriority.values.length;
     _workQueues = new List<List>(queueCount);
     for (int i = 0; i < queueCount; i++) {
       _workQueues[i] = new List<Source>();
@@ -8228,7 +8266,7 @@ class WorkManager {
    * @param source the source that needs to be analyzed
    * @param priority the priority level of the source
    */
-  void add(Source source, WorkManagerPriority priority) {
+  void add(Source source, SourcePriority priority) {
     // TODO(brianwilkerson) Optimize the order of the libraries so that libraries that depend on
     // other libraries get analyzed after the other libraries.
     int queueCount = _workQueues.length;
@@ -8272,44 +8310,6 @@ class WorkManager {
       _workQueues[i].remove(source);
     }
   }
-}
-
-/**
- * The enumerated type `Priority` defines the priority levels used to return sources in an
- * optimal order.
- */
-class WorkManagerPriority extends Enum<WorkManagerPriority> {
-  /**
-   * Used for a Dart source that is known to be a part contained in a library that was recently
-   * resolved. These parts are given a higher priority because there is a high probability that
-   * their AST structure is still in the cache and therefore would not need to be re-created.
-   */
-  static final WorkManagerPriority PRIORITY_PART = new WorkManagerPriority('PRIORITY_PART', 0);
-
-  /**
-   * Used for a Dart source that is known to be a library.
-   */
-  static final WorkManagerPriority LIBRARY = new WorkManagerPriority('LIBRARY', 1);
-
-  /**
-   * Used for a Dart source that is known to be a part but whose library has not yet been
-   * resolved.
-   */
-  static final WorkManagerPriority NORMAL_PART = new WorkManagerPriority('NORMAL_PART', 2);
-
-  /**
-   * Used for a Dart source whose kind is unknown.
-   */
-  static final WorkManagerPriority UNKNOWN = new WorkManagerPriority('UNKNOWN', 3);
-
-  /**
-   * Used for an HTML source.
-   */
-  static final WorkManagerPriority HTML = new WorkManagerPriority('HTML', 4);
-
-  static final List<WorkManagerPriority> values = [PRIORITY_PART, LIBRARY, NORMAL_PART, UNKNOWN, HTML];
-
-  WorkManagerPriority(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -9906,7 +9906,7 @@ class IncrementalAnalysisTask extends AnalysisTask {
       return;
     }
     // Produce an updated token stream
-    CharacterReader reader = new CharSequenceReader(new CharSequence(cache.newContents));
+    CharacterReader reader = new CharSequenceReader(cache.newContents);
     BooleanErrorListener errorListener = new BooleanErrorListener();
     IncrementalScanner scanner = new IncrementalScanner(cache.source, reader, errorListener);
     scanner.rescan(cache.resolvedUnit.beginToken, cache.offset, cache.oldLength, cache.newLength);
@@ -10096,7 +10096,7 @@ class Source_ContentReceiver_ParseDartTask_internalPerform implements Source_Con
 
   Source_ContentReceiver_ParseDartTask_internalPerform(this.ParseDartTask_this, this.errorListener, this.token);
 
-  void accept(CharSequence contents, int modificationTime) {
+  void accept(String contents, int modificationTime) {
     ParseDartTask_this._modificationTime = modificationTime;
     TimeCounter_TimeCounterHandle timeCounterScan = PerformanceStatistics.scan.start();
     try {

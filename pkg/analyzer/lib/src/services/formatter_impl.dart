@@ -7,7 +7,6 @@ library formatter_impl;
 import 'dart:math';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -171,7 +170,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
   }
 
   Token tokenize(String source) {
-    var reader = new CharSequenceReader(new CharSequence(source));
+    var reader = new CharSequenceReader(source);
     var scanner = new Scanner(null, reader, this);
     var token = scanner.tokenize();
     lineInfo = new LineInfo(scanner.lineStarts);

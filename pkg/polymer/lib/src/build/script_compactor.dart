@@ -10,7 +10,6 @@ import 'dart:convert';
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
@@ -237,7 +236,7 @@ class ScriptCompactor extends Transformer with PolymerTransformer {
 /** Parse [code] using analyzer. */
 CompilationUnit _parseCompilationUnit(String code) {
   var errorListener = new _ErrorCollector();
-  var reader = new CharSequenceReader(new CharSequence(code));
+  var reader = new CharSequenceReader(code);
   var scanner = new Scanner(null, reader, errorListener);
   var token = scanner.tokenize();
   var parser = new Parser(null, errorListener);
