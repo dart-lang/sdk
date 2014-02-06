@@ -4909,6 +4909,8 @@ class MathUnaryInstr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   const MethodRecognizer::Kind kind_;
 

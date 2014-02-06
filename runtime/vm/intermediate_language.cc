@@ -1419,6 +1419,11 @@ Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* MathUnaryInstr::Canonicalize(FlowGraph* flow_graph) {
+  return HasUses() ? this : NULL;
+}
+
+
 Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
   if (!IsImmutableLengthLoad()) return this;

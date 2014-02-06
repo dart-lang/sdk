@@ -354,10 +354,12 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
           (other_binop->right()->definition() == right_def)) {
         (*merge_candidates)[k] = NULL;  // Clear it.
         // Append a LoadIndexed behind TRUNC_DIV and MOD.
+        ASSERT(curr_instr->HasUses());
         AppendLoadIndexedForMerged(
             curr_instr,
             MergedMathInstr::ResultIndexOf(curr_instr->op_kind()),
             kArrayCid);
+        ASSERT(other_binop->HasUses());
         AppendLoadIndexedForMerged(
             other_binop,
             MergedMathInstr::ResultIndexOf(other_binop->op_kind()),
@@ -414,10 +416,12 @@ void FlowGraphOptimizer::TryMergeMathUnary(
           (other_op->value()->definition() == def)) {
         (*merge_candidates)[k] = NULL;  // Clear it.
         // Append a LoadIndexed behind SIN and COS.
+        ASSERT(curr_instr->HasUses());
         AppendLoadIndexedForMerged(
             curr_instr,
             MergedMathInstr::ResultIndexOf(curr_instr->kind()),
             kTypedDataFloat64ArrayCid);
+        ASSERT(other_op->HasUses());
         AppendLoadIndexedForMerged(
             other_op,
             MergedMathInstr::ResultIndexOf(other_op->kind()),
@@ -467,7 +471,9 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
                                        binop->right()->definition());
         } else if ((binop->op_kind() == Token::kTRUNCDIV) ||
                    (binop->op_kind() == Token::kMOD)) {
-          div_mod_merge.Add(binop);
+          if (binop->HasUses()) {
+            div_mod_merge.Add(binop);
+          }
         }
       } else if (it.Current()->IsBinaryMintOp()) {
         BinaryMintOpInstr* mintop = it.Current()->AsBinaryMintOp();
@@ -480,7 +486,9 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
         MathUnaryInstr* math_unary = it.Current()->AsMathUnary();
         if ((math_unary->kind() == MethodRecognizer::kMathSin) ||
             (math_unary->kind() == MethodRecognizer::kMathCos)) {
-          sin_cos_merge.Add(math_unary);
+          if (math_unary->HasUses()) {
+            sin_cos_merge.Add(math_unary);
+          }
         }
       }
     }
