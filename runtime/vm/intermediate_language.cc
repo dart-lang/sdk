@@ -1419,8 +1419,11 @@ Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+// A math unary instruction has a side effect (exception
+// thrown) if the argument is not a number.
+// TODO(srdjan): eliminate if has no uses and input is guaranteed to be number.
 Definition* MathUnaryInstr::Canonicalize(FlowGraph* flow_graph) {
-  return HasUses() ? this : NULL;
+  return this;
 }
 
 
