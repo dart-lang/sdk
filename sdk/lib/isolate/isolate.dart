@@ -29,11 +29,16 @@ class IsolateSpawnException implements Exception {
 }
 
 class Isolate {
+  /**
+   * Control port used to send control messages to the isolate.
+   *
+   * This class provides helper functions that sends control messages
+   * to the control port.
+   */
+  final SendPort controlPort;
+  final Capability pauseCapability;
 
-  final SendPort _controlPort;
-
-  Isolate._fromControlPort(SendPort controlPort)
-      : this._controlPort = controlPort;
+  Isolate._fromControlPort(this.controlPort, [this.pauseCapability]);
 
   /**
    * Creates and spawns an isolate that shares the same code as the current
@@ -76,6 +81,57 @@ class Isolate {
    */
   external static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message);
+
+
+  /**
+   * Requests the isolate to pause.
+   *
+   * The isolate should stop handling events by pausing its event queue.
+   * The request will eventually make the isolate stop doing anything.
+   * It will be handled before any other messages sent to the isolate from
+   * the current isolate, but no other guarantees are provided.
+   *
+   * If [resumeCapability] is provided, it is used to identity the pause,
+   * and must be used again to end the pause using [resume].
+   * Otherwise a new capability is created and returned.
+   *
+   * If an isolate is paused more than once using the same capabilty,
+   * only one resume with that capability is needed to end the pause.
+   *
+   * If an isolate is paused using more than one capability,
+   * they must all be individully ended before the isolate resumes.
+   *
+   * Returns the capability that must be used to resume end the pause.
+   *
+   * WARNING: This method is not handled on any platform yet.
+   */
+  Capability pause([Capability resumeCapability]) {
+    if (resumeCapability == null) resumeCapability = new Capability();
+    var message = new List(3)
+        ..[0] = "pause"
+        ..[1] = pauseCapability
+        ..[2] = resumeCapability;
+    controlPort.send(message);
+    return resumeCapability;
+  }
+
+  /**
+   * Resumes a paused isolate.
+   *
+   * Sends a message to an isolate requesting that it ends a pause
+   * that was requested using the [resumeCapability].
+   *
+   * The capability must be one returned by a call to [pause] on this
+   * isolate, otherwise the resume call does nothing.
+   *
+   * WARNING: This method is not handled on any platform yet.
+   */
+  void resume(Capability resumeCapability) {
+    var message = new List(2)
+        ..[0] = "resume"
+        ..[1] = resumeCapability;
+    controlPort.send(message);
+  }
 }
 
 /**

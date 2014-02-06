@@ -11,6 +11,7 @@ serialization_test: SkipByDesign # Tests dart2js-specific serialization code
 isolate_throws_test/01: Skip # Issue 12587
 compile_time_error_test/01: Skip # Issue 12587
 capability_test: Fail  # Not implemented yet
+pause_test: Fail
 
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
@@ -20,6 +21,7 @@ isolate_stress_test: Pass, Crash # Issue 14438
 
 [ $compiler == dart2js ]
 serialization_test: RuntimeError # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
+pause_test: Fail
 
 [ $compiler == dart2js && $runtime == ie9 ]
 browser/typed_data_message_test: Fail # Issue 12624
