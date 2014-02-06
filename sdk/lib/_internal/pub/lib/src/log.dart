@@ -119,6 +119,13 @@ void write(Level level, message) {
   if (_loggers.isEmpty) showNormal();
 
   var lines = splitLines(message.toString());
+
+  // Discard a trailing newline. This is useful since StringBuffers often end
+  // up with an extra newline at the end from using [writeln].
+  if (lines.isNotEmpty && lines.last == "") {
+    lines.removeLast();
+  }
+
   var entry = new Entry(level, lines);
 
   var logFn = _loggers[level];

@@ -853,6 +853,12 @@ class ApplicationException implements Exception {
   String toString() => message;
 }
 
+/// A class for command usage exceptions.
+class UsageException extends ApplicationException {
+  UsageException(String message)
+      : super(message);
+}
+
 /// An class for exceptions where a package could not be found in a [Source].
 ///
 /// The source is responsible for wrapping its internal exceptions in this so

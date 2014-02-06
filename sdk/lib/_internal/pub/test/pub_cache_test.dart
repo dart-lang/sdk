@@ -17,30 +17,6 @@ main() {
         "pub.dartlang.org", package);
   }
 
-  integration('running pub cache displays error message', () {
-    schedulePub(args: ['cache'],
-        output: '''
-          Inspect the system cache.
-
-          Usage: pub cache list
-          -h, --help    Print usage information for this command.
-          ''',
-        error: 'The cache command expects one argument.',
-        exitCode: 64);
-  });
-
-  integration('running pub cache foo displays error message', () {
-    schedulePub(args: ['cache' ,'foo'],
-        output: '''
-          Inspect the system cache.
-
-          Usage: pub cache list
-          -h, --help    Print usage information for this command.
-          ''',
-        error: 'Unknown cache command "foo".',
-        exitCode: 64);
-  });
-
   integration('running pub cache list when there is no cache', () {
     schedulePub(args: ['cache', 'list'], output: '{"packages":{}}');
   });

@@ -27,8 +27,7 @@ final _allowedBuildDirectories = new Set<String>.from([
 
 /// Handles the `build` pub command.
 class BuildCommand extends PubCommand {
-  String get description =>
-      "Copy and compile all Dart entrypoints in the 'web' directory.";
+  String get description => "Apply transformers to build a package.";
   String get usage => "pub build [options]";
   List<String> get aliases => const ["deploy", "settle-up"];
   bool get takesArguments => true;
