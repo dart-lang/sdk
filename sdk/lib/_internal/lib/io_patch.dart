@@ -41,7 +41,7 @@ patch class _EventHandler {
 }
 
 patch class FileStat {
-  patch static List<int> _statSync(String path) {
+  patch static _statSync(String path) {
     throw new UnsupportedError("FileStat.stat");
   }
 }

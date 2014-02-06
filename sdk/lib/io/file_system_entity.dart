@@ -79,7 +79,7 @@ class FileStat {
       changed = null,  modified = null, accessed = null,
       type = FileSystemEntityType.NOT_FOUND, mode = 0, size = -1;
 
-  external static List<int> _statSync(String path);
+  external static _statSync(String path);
 
 
   /**
