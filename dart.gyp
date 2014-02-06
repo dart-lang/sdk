@@ -120,9 +120,6 @@
       'target_name': 'api_docs',
       'type': 'none',
       'dependencies': [
-        # TODO(alanknight) : Once we're fully switched over to the new
-        # viewer remove the old api_docs gyp file.
-        'utils/apidoc/apidoc.gyp:api_docs',
         'utils/apidoc/docgen.gyp:docgen',
       ],
     },
