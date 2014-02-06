@@ -223,13 +223,14 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     _tryResume();
   }
 
-  void cancel() {
-    if (_canceled) return;
+  Future cancel() {
+    if (_canceled) return null;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
+    return null;
   }
 
   bool get _canceled => _target == null;

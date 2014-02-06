@@ -32418,13 +32418,14 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     _tryResume();
   }
 
-  void cancel() {
-    if (_canceled) return;
+  Future cancel() {
+    if (_canceled) return null;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
+    return null;
   }
 
   bool get _canceled => _target == null;
@@ -34051,7 +34052,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * KeyboardEvent controller.
    */
   _KeyboardEventHandler(this._type): super(_EVENT_TYPE),
-      _stream = new _CustomKeyEventStreamImpl('event');
+      _stream = new _CustomKeyEventStreamImpl('event'), _target = null;
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes

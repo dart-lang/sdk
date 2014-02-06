@@ -2990,8 +2990,8 @@ class RenderingContext extends CanvasRenderingContext {
    *
    */
   void texSubImage2DUntyped(int targetTexture, int levelOfDetail, 
-      int internalFormat, int format, int type, data) {
-    texSubImage2D(targetTexture, levelOfDetail, internalFormat,
+      int xOffset, int yOffset, int format, int type, data) {
+    texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset,
         format, type, data);
   }
 
@@ -2999,10 +2999,10 @@ class RenderingContext extends CanvasRenderingContext {
    * Updates a sub-rectangle of the currently bound texture to [data].
    */
   void texSubImage2DTyped(int targetTexture, int levelOfDetail,
-      int internalFormat, int width, int height, int border, int format,
+      int xOffset, int yOffset, int width, int height, int format,
       int type, TypedData data) {
-    texSubImage2D(targetTexture, levelOfDetail, internalFormat,
-        width, height, border, format, type, data);
+    texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset,
+        width, height, format, type, data);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
