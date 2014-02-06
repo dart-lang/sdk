@@ -150,7 +150,7 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
   Function& function = Function::Handle();
   if (class_name.IsNull() || (class_name.Length() == 0)) {
     // Check if we are referring to a top level function.
-    const Object& object = Object::Handle(library.LookupObject(function_name));
+    const Object& object = Object::Handle(library.ResolveName(function_name));
     if (!object.IsNull() && object.IsFunction()) {
       function ^= object.raw();
       if (!function.AreValidArguments(num_arguments, argument_names, NULL)) {

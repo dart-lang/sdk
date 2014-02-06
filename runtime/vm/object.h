@@ -2599,7 +2599,6 @@ class Library : public Object {
   void AddObject(const Object& obj, const String& name) const;
   void ReplaceObject(const Object& obj, const String& name) const;
   RawObject* LookupReExport(const String& name) const;
-  RawObject* LookupObject(const String& name) const;
   RawObject* LookupObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
@@ -2614,6 +2613,15 @@ class Library : public Object {
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
   RawScript* LookupScript(const String& url) const;
   RawArray* LoadedScripts() const;
+
+  // Resolve name in the scope of this library. First check the cache
+  // of already resolved names for this library. Then look in the
+  // local dictionary for the unmangled name N, the getter name get:N
+  // and setter name set:N.
+  // If the local dictionary contains no entry for these names,
+  // look in the scopes of all libraries that are imported
+  // without a library prefix.
+  RawObject* ResolveName(const String& name) const;
 
   void AddAnonymousClass(const Class& cls) const;
 
@@ -2723,6 +2731,15 @@ class Library : public Object {
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
+
+  RawArray* resolved_names() const { return raw_ptr()->resolved_names_; }
+  void InitResolvedNamesCache(intptr_t size) const;
+  void GrowResolvedNamesCache() const;
+  bool LookupResolvedNamesCache(const String& name, Object* obj) const;
+  void AddToResolvedNamesCache(const String& name, const Object& obj) const;
+  void InvalidateResolvedName(const String& name) const;
+  void InvalidateResolvedNamesCache() const;
+
   void InitImportList() const;
   void GrowDictionary(const Array& dict, intptr_t dict_size) const;
   static RawLibrary* NewLibraryHelper(const String& url,

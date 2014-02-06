@@ -59,6 +59,8 @@ DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
 DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
     "Throw an exception when the result of an integer calculation will not "
     "fit into a javascript integer.");
+DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
+
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, error_on_bad_override);
@@ -6289,6 +6291,7 @@ void RedirectionData::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 RawString* Field::GetterName(const String& field_name) {
+  CompilerStats::make_accessor_name++;
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
@@ -6300,6 +6303,7 @@ RawString* Field::GetterSymbol(const String& field_name) {
 
 
 RawString* Field::SetterName(const String& field_name) {
+  CompilerStats::make_accessor_name++;
   return String::Concat(Symbols::SetterPrefix(), field_name);
 }
 
@@ -6311,11 +6315,13 @@ RawString* Field::SetterSymbol(const String& field_name) {
 
 
 RawString* Field::NameFromGetter(const String& getter_name) {
+  CompilerStats::make_field_name++;
   return String::SubString(getter_name, strlen(kGetterPrefix));
 }
 
 
 RawString* Field::NameFromSetter(const String& setter_name) {
+  CompilerStats::make_field_name++;
   return String::SubString(setter_name, strlen(kSetterPrefix));
 }
 
@@ -7886,6 +7892,136 @@ RawObject* Library::GetMetadata(const Object& obj) const {
 }
 
 
+RawObject* Library::ResolveName(const String& name) const {
+  Object& obj = Object::Handle();
+  if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &obj)) {
+    return obj.raw();
+  }
+  obj = LookupLocalObject(name);
+  if (!obj.IsNull()) {
+    // Names that are in this library's dictionary and are unmangled
+    // are not cached. This reduces the size of the the cache.
+    return obj.raw();
+  }
+  String& accessor_name = String::Handle(Field::GetterName(name));
+  obj = LookupLocalObject(accessor_name);
+  if (obj.IsNull()) {
+    accessor_name = Field::SetterName(name);
+    obj = LookupLocalObject(accessor_name);
+    if (obj.IsNull()) {
+      obj = LookupImportedObject(name);
+    }
+  }
+  AddToResolvedNamesCache(name, obj);
+  return obj.raw();
+}
+
+
+static intptr_t ResolvedNameCacheSize(const Array& cache) {
+  return (cache.Length() - 1) / 2;
+}
+
+
+// Returns true if the name is found in the cache, false no cache hit.
+// obj is set to the cached entry. It may be null, indicating that the
+// name does not resolve to anything in this library.
+bool Library::LookupResolvedNamesCache(const String& name,
+                                       Object* obj) const {
+  const Array& cache = Array::Handle(resolved_names());
+  const intptr_t cache_size = ResolvedNameCacheSize(cache);
+  intptr_t index = name.Hash() % cache_size;
+  String& entry_name = String::Handle();
+  entry_name ^= cache.At(index);
+  while (!entry_name.IsNull()) {
+    if (entry_name.Equals(name)) {
+      CompilerStats::num_lib_cache_hit++;
+      *obj = cache.At(index + cache_size);
+      return true;
+    }
+    index = (index + 1) % cache_size;
+    entry_name ^= cache.At(index);
+  }
+  *obj = Object::null();
+  return false;
+}
+
+
+void Library::GrowResolvedNamesCache() const {
+  const Array& old_cache = Array::Handle(resolved_names());
+  const intptr_t old_cache_size = ResolvedNameCacheSize(old_cache);
+
+  // Create empty new cache and add entries from the old cache.
+  const intptr_t new_cache_size = old_cache_size * 3 / 2;
+  InitResolvedNamesCache(new_cache_size);
+  String& name = String::Handle();
+  Object& entry = Object::Handle();
+  for (intptr_t i = 0; i < old_cache_size; i++) {
+    name ^= old_cache.At(i);
+    if (!name.IsNull()) {
+      entry = old_cache.At(i + old_cache_size);
+      AddToResolvedNamesCache(name, entry);
+    }
+  }
+}
+
+
+// Add a name to the resolved name cache. This name resolves to the
+// given object in this library scope. obj may be null, which means
+// the name does not resolve to anything in this library scope.
+void Library::AddToResolvedNamesCache(const String& name,
+                                      const Object& obj) const {
+  if (!FLAG_use_lib_cache) {
+    return;
+  }
+  const Array& cache = Array::Handle(resolved_names());
+  // let N = cache.Length();
+  // The entry cache[N-1] is used as a counter
+  // The array entries [0..N-2] are used as cache entries.
+  //   cache[i] contains the name of the entry
+  //   cache[i+(N-1)/2] contains the resolved entity, or NULL if that name
+  //   is not present in the library.
+  const intptr_t counter_index = cache.Length() - 1;
+  intptr_t cache_size = ResolvedNameCacheSize(cache);
+  intptr_t index = name.Hash() % cache_size;
+  String& entry_name = String::Handle();
+  entry_name ^= cache.At(index);
+  // An empty spot will be found because we keep the hash set at most 75% full.
+  while (!entry_name.IsNull()) {
+    index = (index + 1) % cache_size;
+    entry_name ^= cache.At(index);
+  }
+  // Insert the object at the empty slot.
+  cache.SetAt(index, name);
+  ASSERT(cache.At(index + cache_size) == Object::null());
+  cache.SetAt(index + cache_size, obj);
+
+  // One more element added.
+  intptr_t num_used = Smi::Value(Smi::RawCast(cache.At(counter_index))) + 1;
+  cache.SetAt(counter_index, Smi::Handle(Smi::New(num_used)));
+  CompilerStats::num_names_cached++;
+
+  // Rehash if symbol_table is 75% full.
+  if (num_used > ((cache_size / 4) * 3)) {
+    CompilerStats::num_names_cached -= num_used;
+    GrowResolvedNamesCache();
+  }
+}
+
+
+void Library::InvalidateResolvedName(const String& name) const {
+  Object& entry = Object::Handle();
+  if (LookupResolvedNamesCache(name, &entry)) {
+    InvalidateResolvedNamesCache();
+  }
+}
+
+
+void Library::InvalidateResolvedNamesCache() const {
+  const intptr_t kInvalidatedCacheSize = 16;
+  InitResolvedNamesCache(kInvalidatedCacheSize);
+}
+
+
 void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
   // TODO(iposva): Avoid exponential growth.
   intptr_t new_dict_size = dict_size * 2;
@@ -8018,9 +8154,11 @@ void Library::ReplaceObject(const Object& obj, const String& name) const {
 
 
 void Library::AddClass(const Class& cls) const {
-  AddObject(cls, String::Handle(cls.Name()));
+  const String& class_name = String::Handle(cls.Name());
+  AddObject(cls, class_name);
   // Link class to this library.
   cls.set_library(*this);
+  InvalidateResolvedName(class_name);
 }
 
 static void AddScriptIfUnique(const GrowableObjectArray& scripts,
@@ -8202,17 +8340,6 @@ RawObject* Library::LookupObjectAllowPrivate(const String& name) const {
 }
 
 
-RawObject* Library::LookupObject(const String& name) const {
-  // First check if name is found in the local scope of the library.
-  Object& obj = Object::Handle(LookupLocalObject(name));
-  if (!obj.IsNull()) {
-    return obj.raw();
-  }
-  // Now check if name is found in any imported libs.
-  return LookupImportedObject(name);
-}
-
-
 RawObject* Library::LookupImportedObject(const String& name) const {
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
@@ -8251,7 +8378,7 @@ RawObject* Library::LookupImportedObject(const String& name) const {
 
 
 RawClass* Library::LookupClass(const String& name) const {
-  Object& obj = Object::Handle(LookupObject(name));
+  Object& obj = Object::Handle(ResolveName(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -8390,15 +8517,24 @@ void Library::AddExport(const Namespace& ns) const {
 }
 
 
-void Library::InitClassDictionary() const {
+static RawArray* NewDictionary(intptr_t initial_size) {
+  const Array& dict = Array::Handle(Array::New(initial_size + 1, Heap::kOld));
   // The last element of the dictionary specifies the number of in use slots.
+  dict.SetAt(initial_size, Smi::Handle(Smi::New(0)));
+  return dict.raw();
+}
+
+
+void Library::InitResolvedNamesCache(intptr_t size) const {
+  // Need space for 'size' names and 'size' resolved object entries.
+  StorePointer(&raw_ptr()->resolved_names_, NewDictionary(2 * size));
+}
+
+
+void Library::InitClassDictionary() const {
   // TODO(iposva): Find reasonable initial size.
   const int kInitialElementCount = 16;
-
-  const Array& dictionary =
-      Array::Handle(Array::New(kInitialElementCount + 1, Heap::kOld));
-  dictionary.SetAt(kInitialElementCount, Smi::Handle(Smi::New(0)));
-  StorePointer(&raw_ptr()->dictionary_, dictionary.raw());
+  StorePointer(&raw_ptr()->dictionary_, NewDictionary(kInitialElementCount));
 }
 
 
@@ -8425,6 +8561,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
+  result.raw_ptr()->resolved_names_ = Object::empty_array().raw();
   result.raw_ptr()->dictionary_ = Object::empty_array().raw();
   result.StorePointer(&result.raw_ptr()->metadata_,
                       GrowableObjectArray::New(4, Heap::kOld));
@@ -8438,6 +8575,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.set_debuggable(false);
   result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
   result.raw_ptr()->index_ = -1;
+  const intptr_t kInitialNameCacheSize = 64;
+  result.InitResolvedNamesCache(kInitialNameCacheSize);
   result.InitClassDictionary();
   result.InitImportList();
   if (import_core_lib) {
@@ -8512,6 +8651,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
 }
 
 
+// Returns library with given url in current isolate, or NULL.
 RawLibrary* Library::LookupLibrary(const String &url) {
   Isolate* isolate = Isolate::Current();
   Library& lib = Library::Handle(isolate, Library::null());

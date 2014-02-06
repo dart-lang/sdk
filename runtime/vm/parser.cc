@@ -9116,43 +9116,9 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
 }
 
 
-static RawObject* LookupNameInLibrary(Isolate* isolate,
-                                      const Library& lib,
-                                      const String& name) {
-  Object& obj = Object::Handle(isolate);
-  obj = lib.LookupLocalObject(name);
-  if (!obj.IsNull()) {
-    return obj.raw();
-  }
-  String& accessor_name = String::Handle(isolate, Field::GetterName(name));
-  obj = lib.LookupLocalObject(accessor_name);
-  if (!obj.IsNull()) {
-    return obj.raw();
-  }
-  accessor_name = Field::SetterName(name);
-  obj = lib.LookupLocalObject(accessor_name);
-  return obj.raw();
-}
-
-
-// Resolve a name by checking the global scope of the current
-// library. If not found in the current library, then look in the scopes
-// of all libraries that are imported without a library prefix.
-RawObject* Parser::ResolveNameInCurrentLibraryScope(const String& name) {
-  TRACE_PARSER("ResolveNameInCurrentLibraryScope");
-  HANDLESCOPE(isolate());
-  Object& obj = Object::Handle(isolate(),
-                               LookupNameInLibrary(isolate(), library_, name));
-  if (!obj.IsNull()) {
-    return obj.raw();
-  }
-  return library_.LookupImportedObject(name);
-}
-
-
 RawClass* Parser::ResolveClassInCurrentLibraryScope(const String& name) {
-  const Object& obj =
-      Object::Handle(ResolveNameInCurrentLibraryScope(name));
+  HANDLESCOPE(isolate());
+  const Object& obj = Object::Handle(library_.ResolveName(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -9166,8 +9132,8 @@ RawClass* Parser::ResolveClassInCurrentLibraryScope(const String& name) {
 AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
                                                    const String& ident) {
   TRACE_PARSER("ResolveIdentInCurrentLibraryScope");
-  const Object& obj =
-    Object::Handle(ResolveNameInCurrentLibraryScope(ident));
+  HANDLESCOPE(isolate());
+  const Object& obj = Object::Handle(library_.ResolveName(ident));
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
@@ -9196,17 +9162,10 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
 }
 
 
-RawObject* Parser::ResolveNameInPrefixScope(const LibraryPrefix& prefix,
-                                            const String& name) {
-  HANDLESCOPE(isolate());
-  return prefix.LookupObject(name);
-}
-
-
 RawClass* Parser::ResolveClassInPrefixScope(const LibraryPrefix& prefix,
                                             const String& name) {
-  const Object& obj =
-      Object::Handle(ResolveNameInPrefixScope(prefix, name));
+  HANDLESCOPE(isolate());
+  const Object& obj = Object::Handle(prefix.LookupObject(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -9221,7 +9180,8 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const LibraryPrefix& prefix,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
-  Object& obj = Object::Handle(ResolveNameInPrefixScope(prefix, ident));
+  HANDLESCOPE(isolate());
+  Object& obj = Object::Handle(prefix.LookupObject(ident));
   if (obj.IsNull()) {
     // Unresolved prefixed primary identifier.
     String& qualified_name = String::ZoneHandle(prefix.name());
