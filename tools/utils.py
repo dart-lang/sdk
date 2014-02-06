@@ -342,7 +342,7 @@ def GetSVNRevision():
   # When building from tarball use tools/SVN_REVISION
   svn_revision_file = os.path.join(DART_DIR, 'tools', 'SVN_REVISION')
   try:
-    with open(svn_revision_file) as fd
+    with open(svn_revision_file) as fd:
       return fd.read()
   except:
     pass
