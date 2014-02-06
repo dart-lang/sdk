@@ -105,7 +105,7 @@ def CopyShellScript(src_file, dest_dir):
 
 
 def CopyDartScripts(home, sdk_root):
-  for executable in ['dart2js', 'dartanalyzer', 'dartdoc', 'docgen', 'pub']:
+  for executable in ['dart2js', 'dartanalyzer', 'docgen', 'pub']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
@@ -194,7 +194,6 @@ def Main(argv):
 
   for library in [join('_chrome', 'dart2js'), join('_chrome', 'dartium'),
                   join('_internal', 'compiler'),
-                  join('_internal', 'dartdoc'),
                   join('_internal', 'lib'),
                   'async', 'collection', 'convert', 'core',
                   'crypto', 'internal', 'io', 'isolate',
@@ -236,7 +235,7 @@ def Main(argv):
              join(RESOURCE, '7zip'),
              ignore=ignore_patterns('.svn'))
 
-  # Copy dart2js/dartdoc/pub.
+  # Copy dart2js/pub.
   CopyDartScripts(HOME, SDK_tmp)
   CopySnapshots(SNAPSHOT, SDK_tmp)
 

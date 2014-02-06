@@ -15,13 +15,6 @@ lib/indexed_db/dart2js/indexed_db_dart2js: CompileTimeError # Issue 16524
 lib/indexed_db/dartium/indexed_db_dartium: CompileTimeError # Issue 16524
 lib/_internal/compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
 lib/_internal/compiler/samples/darttags/darttags: CompileTimeError  # Issue 16524
-lib/_internal/dartdoc/bin/dartdoc: CompileTimeError # Issue 16523
-lib/_internal/dartdoc/lib/dartdoc: CompileTimeError # Issue 16523
-lib/_internal/dartdoc/lib/src/client/client-live-nav: CompileTimeError # Issue 16523
-lib/_internal/dartdoc/lib/src/client/client-shared: CompileTimeError # Issue 16523
-lib/_internal/dartdoc/lib/src/client/dropdown: CompileTimeError # Issue 16523
-lib/_internal/dartdoc/lib/src/client/search: CompileTimeError # Issue 16523
-lib/_internal/dartdoc/lib/universe_serializer: CompileTimeError # Issue 16523
 lib/js/dart2js/js_dart2js: CompileTimeError # Issue 16524
 lib/js/dartium/js_dartium: CompileTimeError # Issue 16524
 lib/svg/dart2js/svg_dart2js: CompileTimeError # Issue 16524
@@ -37,7 +30,6 @@ lib/web_sql/dartium/web_sql_dartium: CompileTimeError # Issue 16524
 lib/_internal/compiler/samples/jsonify/jsonify: CompileTimeError # issue 16466
 lib/_internal/compiler/implementation/mirrors/analyze: CompileTimeError # issue 16466
 lib/_internal/compiler/implementation/mirrors/dart2js_mirrors: CompileTimeError # issue 16466
-lib/_internal/dartdoc/lib/src/dart2js_mirrors: CompileTimeError # issue 16466
 
 # Pass necessary, since CompileTimeError is valid for everything in that
 # directory (not only for src/command.dart)
