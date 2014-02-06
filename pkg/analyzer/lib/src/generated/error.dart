@@ -143,7 +143,7 @@ class BooleanErrorListener implements AnalysisErrorListener {
 class AngularCode extends Enum<AngularCode> implements ErrorCode {
   static final AngularCode CANNOT_PARSE_SELECTOR = new AngularCode.con1('CANNOT_PARSE_SELECTOR', 0, "The selector '%s' cannot be parsed");
 
-  static final AngularCode INVALID_PROPERTY_KIND = new AngularCode.con1('INVALID_PROPERTY_KIND', 1, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'");
+  static final AngularCode INVALID_PROPERTY_KIND = new AngularCode.con2('INVALID_PROPERTY_KIND', 1, "Unknown property binding kind '%s', use one of the '@', '=>', '=>!' or '<=>'", ErrorSeverity.ERROR);
 
   static final AngularCode INVALID_PROPERTY_FIELD = new AngularCode.con1('INVALID_PROPERTY_FIELD', 2, "Unknown property field '%s'");
 
@@ -157,21 +157,17 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
 
   static final AngularCode INVALID_REPEAT_ITEM_SYNTAX = new AngularCode.con1('INVALID_REPEAT_ITEM_SYNTAX', 7, "Item must by identifier or in '(_key_, _value_)' pair.");
 
-  static final AngularCode INVALID_URI = new AngularCode.con1('INVALID_URI', 8, "Invalid URI syntax: '%s'");
+  static final AngularCode INVALID_URI = new AngularCode.con2('INVALID_URI', 8, "Invalid URI syntax: '%s'", ErrorSeverity.ERROR);
 
-  static final AngularCode MISSING_CSS_URL = new AngularCode.con1('MISSING_CSS_URL', 9, "Argument 'cssUrl' must be provided");
+  static final AngularCode MISSING_FILTER_COLON = new AngularCode.con1('MISSING_FILTER_COLON', 9, "Missing ':' before filter argument");
 
-  static final AngularCode MISSING_FILTER_COLON = new AngularCode.con1('MISSING_FILTER_COLON', 10, "Missing ':' before filter argument");
+  static final AngularCode MISSING_NAME = new AngularCode.con1('MISSING_NAME', 10, "Argument 'name' must be provided");
 
-  static final AngularCode MISSING_NAME = new AngularCode.con1('MISSING_NAME', 11, "Argument 'name' must be provided");
+  static final AngularCode MISSING_PUBLISH_AS = new AngularCode.con1('MISSING_PUBLISH_AS', 11, "Argument 'publishAs' must be provided");
 
-  static final AngularCode MISSING_PUBLISH_AS = new AngularCode.con1('MISSING_PUBLISH_AS', 12, "Argument 'publishAs' must be provided");
+  static final AngularCode MISSING_SELECTOR = new AngularCode.con1('MISSING_SELECTOR', 12, "Argument 'selector' must be provided");
 
-  static final AngularCode MISSING_TEMPLATE_URL = new AngularCode.con1('MISSING_TEMPLATE_URL', 13, "Argument 'templateUrl' must be provided");
-
-  static final AngularCode MISSING_SELECTOR = new AngularCode.con1('MISSING_SELECTOR', 14, "Argument 'selector' must be provided");
-
-  static final AngularCode URI_DOES_NOT_EXIST = new AngularCode.con1('URI_DOES_NOT_EXIST', 15, "Target of URI does not exist: '%s'");
+  static final AngularCode URI_DOES_NOT_EXIST = new AngularCode.con1('URI_DOES_NOT_EXIST', 13, "Target of URI does not exist: '%s'");
 
   static final List<AngularCode> values = [
       CANNOT_PARSE_SELECTOR,
@@ -183,11 +179,9 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
       INVALID_REPEAT_SYNTAX,
       INVALID_REPEAT_ITEM_SYNTAX,
       INVALID_URI,
-      MISSING_CSS_URL,
       MISSING_FILTER_COLON,
       MISSING_NAME,
       MISSING_PUBLISH_AS,
-      MISSING_TEMPLATE_URL,
       MISSING_SELECTOR,
       URI_DOES_NOT_EXIST];
 
@@ -221,11 +215,11 @@ class AngularCode extends Enum<AngularCode> implements ErrorCode {
 
   String get correction => null;
 
-  ErrorSeverity get errorSeverity => _severity;
+  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
 
   String get message => _message;
 
-  ErrorType get type => ErrorType.TOOLKIT;
+  ErrorType get type => ErrorType.ANGULAR;
 }
 
 /**
@@ -756,6 +750,14 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
    */
   static final HintCode UNUSED_IMPORT = new HintCode.con1('UNUSED_IMPORT', 22, "Unused import");
 
+  /**
+   * Hint for cases where the source expects a method or function to return a non-void result, but
+   * the method or function signature returns void.
+   *
+   * @param name the name of the method or function that returns void
+   */
+  static final HintCode USE_OF_VOID_RESULT = new HintCode.con1('USE_OF_VOID_RESULT', 23, "The result of '%s' is being used, even though it is declared to be 'void'");
+
   static final List<HintCode> values = [
       DEAD_CODE,
       DEAD_CODE_CATCH_FOLLOWING_CATCH,
@@ -779,7 +781,8 @@ class HintCode extends Enum<HintCode> implements ErrorCode {
       UNNECESSARY_CAST,
       UNNECESSARY_TYPE_CHECK_FALSE,
       UNNECESSARY_TYPE_CHECK_TRUE,
-      UNUSED_IMPORT];
+      UNUSED_IMPORT,
+      USE_OF_VOID_RESULT];
 
   /**
    * The template used to create the message to be displayed for this error.
@@ -906,9 +909,9 @@ class ErrorType extends Enum<ErrorType> {
   static final ErrorType SYNTACTIC_ERROR = new ErrorType('SYNTACTIC_ERROR', 6, ErrorSeverity.ERROR);
 
   /**
-   * Toolkit specific semantic problems.
+   * Angular specific semantic problems.
    */
-  static final ErrorType TOOLKIT = new ErrorType('TOOLKIT', 7, ErrorSeverity.INFO);
+  static final ErrorType ANGULAR = new ErrorType('ANGULAR', 7, ErrorSeverity.INFO);
 
   static final List<ErrorType> values = [
       TODO,
@@ -918,7 +921,7 @@ class ErrorType extends Enum<ErrorType> {
       STATIC_WARNING,
       STATIC_TYPE_WARNING,
       SYNTACTIC_ERROR,
-      TOOLKIT];
+      ANGULAR];
 
   /**
    * The severity of this type of error.

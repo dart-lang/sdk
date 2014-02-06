@@ -108,7 +108,7 @@ class FileBasedSource implements Source {
 
   bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == (object as FileBasedSource)._file;
 
-  bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
+  bool exists() => _contentCache.getContents(this) != null || _file.isFile();
 
   void getContents(Source_ContentReceiver receiver) {
     //
@@ -116,7 +116,7 @@ class FileBasedSource implements Source {
     //
     String contents = _contentCache.getContents(this);
     if (contents != null) {
-      receiver.accept2(contents, _contentCache.getModificationStamp(this));
+      receiver.accept(new CharSequence(contents), _contentCache.getModificationStamp(this));
       return;
     }
     //
@@ -179,7 +179,7 @@ class FileBasedSource implements Source {
   void getContentsFromFile(Source_ContentReceiver receiver) {
     {
     }
-    receiver.accept2(file.readAsStringSync(), file.lastModified());
+    receiver.accept(file.readAsCharSequenceSync(), file.lastModified());
   }
 
   /**

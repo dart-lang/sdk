@@ -455,20 +455,12 @@ abstract class Source {
  */
 abstract class Source_ContentReceiver {
   /**
-   * Accept the contents of a source represented as a character buffer.
+   * Accept the contents of a source.
    *
    * @param contents the contents of the source
    * @param modificationTime the time at which the contents were last set
    */
-  void accept(CharBuffer contents, int modificationTime);
-
-  /**
-   * Accept the contents of a source represented as a string.
-   *
-   * @param contents the contents of the source
-   * @param modificationTime the time at which the contents were last set
-   */
-  void accept2(String contents, int modificationTime);
+  void accept(CharSequence contents, int modificationTime);
 }
 
 /**

@@ -24,7 +24,7 @@ assignable_expression_test/22: Fail # Issue 15471
 assignable_expression_test/32: Fail # Issue 15471
 assignable_expression_test/42: Fail # Issue 15471
 
-#unicode_bom_test: Fail # Issue 16314
+unicode_bom_test: Fail # Issue 16314
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.

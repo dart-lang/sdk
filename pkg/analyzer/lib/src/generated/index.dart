@@ -15,7 +15,7 @@ import 'scanner.dart' show Token;
 import 'ast.dart';
 import 'element.dart';
 import 'resolver.dart' show Namespace, NamespaceBuilder;
-import 'engine.dart' show AnalysisEngine, AnalysisContext, InstrumentedAnalysisContextImpl, AngularHtmlUnitResolver;
+import 'engine.dart';
 import 'html.dart' as ht;
 
 /**
@@ -121,7 +121,13 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
    */
   static Source getLibrarySourceOrNull(Element element) {
     LibraryElement library = element.library;
-    return library != null ? library.source : null;
+    if (library == null) {
+      return null;
+    }
+    if (library.isAngularHtml) {
+      return null;
+    }
+    return library.source;
   }
 
   /**
@@ -216,17 +222,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
       libraryToUnits[library] = newParts;
     }
     // remember libraries in which unit is used
-    Map<Source, Set<Source>> unitToLibraries = _contextToUnitToLibraries[context];
-    if (unitToLibraries == null) {
-      unitToLibraries = {};
-      _contextToUnitToLibraries[context] = unitToLibraries;
-    }
-    Set<Source> libraries = unitToLibraries[unit];
-    if (libraries == null) {
-      libraries = new Set();
-      unitToLibraries[unit] = libraries;
-    }
-    libraries.add(library);
+    recordUnitInLibrary(context, library, unit);
     // remove locations
     removeLocations(context, library, unit);
     // remove keys
@@ -234,29 +230,38 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
       Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
       if (sourceToKeys != null) {
         MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(library, unit);
-        sourceToKeys.remove(source2);
+        bool hadSource = sourceToKeys.remove(source2) != null;
+        if (hadSource) {
+          _sourceCount--;
+        }
       }
     }
     // OK, we can index
     return true;
   }
 
-  bool aboutToIndex2(AnalysisContext context, Source source) {
+  bool aboutToIndex2(AnalysisContext context, HtmlElement htmlElement) {
     context = unwrapContext(context);
     // may be already removed in other thread
     if (isRemovedContext(context)) {
       return false;
     }
     // remove locations
-    removeLocations(context, source, source);
+    Source source = htmlElement.source;
+    removeLocations(context, null, source);
     // remove keys
     {
       Map<MemoryIndexStoreImpl_Source2, Set<MemoryIndexStoreImpl_ElementRelationKey>> sourceToKeys = _contextToSourceToKeys[context];
       if (sourceToKeys != null) {
-        MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(source, source);
-        sourceToKeys.remove(source2);
+        MemoryIndexStoreImpl_Source2 source2 = new MemoryIndexStoreImpl_Source2(null, source);
+        bool hadSource = sourceToKeys.remove(source2) != null;
+        if (hadSource) {
+          _sourceCount--;
+        }
       }
     }
+    // remember libraries in which unit is used
+    recordUnitInLibrary(context, null, source);
     // OK, we can index
     return true;
   }
@@ -315,6 +320,7 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (element is Member) {
       element = (element as Member).baseElement;
     }
+    //    System.out.println(element + " " + relationship + " " + location);
     // prepare information
     AnalysisContext elementContext = element.context;
     AnalysisContext locationContext = location.element.context;
@@ -503,6 +509,20 @@ class MemoryIndexStoreImpl implements MemoryIndexStore {
     _removedContexts[context] = true;
   }
 
+  void recordUnitInLibrary(AnalysisContext context, Source library, Source unit) {
+    Map<Source, Set<Source>> unitToLibraries = _contextToUnitToLibraries[context];
+    if (unitToLibraries == null) {
+      unitToLibraries = {};
+      _contextToUnitToLibraries[context] = unitToLibraries;
+    }
+    Set<Source> libraries = unitToLibraries[unit];
+    if (libraries == null) {
+      libraries = new Set();
+      unitToLibraries[unit] = libraries;
+    }
+    libraries.add(library);
+  }
+
   /**
    * Removes locations recorded in the given library/unit pair.
    */
@@ -678,12 +698,21 @@ abstract class ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
   }
 
   /**
-   * Visits [Expression]s of the given [EmbeddedExpression]s.
+   * Visits [Expression]s of the given [XmlExpression]s.
    */
-  void visitExpressions(List<ht.EmbeddedExpression> expressions) {
-    for (ht.EmbeddedExpression embeddedExpression in expressions) {
-      Expression expression = embeddedExpression.expression;
-      visitExpression(expression);
+  void visitExpressions(List<ht.XmlExpression> expressions) {
+    for (ht.XmlExpression xmlExpression in expressions) {
+      if (xmlExpression is AngularXmlExpression) {
+        AngularXmlExpression angularXmlExpression = xmlExpression;
+        List<Expression> dartExpressions = angularXmlExpression.expression.expressions;
+        for (Expression dartExpression in dartExpressions) {
+          visitExpression(dartExpression);
+        }
+      }
+      if (xmlExpression is ht.RawXmlExpression) {
+        ht.RawXmlExpression rawXmlExpression = xmlExpression;
+        visitExpression(rawXmlExpression.expression);
+      }
     }
   }
 }
@@ -777,7 +806,7 @@ class IndexImpl implements Index {
     if (unit.element == null) {
       return;
     }
-    if (unit.compilationUnitElement == null) {
+    if (unit.element.angularCompilationUnit == null) {
       return;
     }
     _queue.enqueue(new IndexHtmlUnitOperation(_store, context, unit));
@@ -1229,7 +1258,7 @@ class AngularHtmlIndexContributor extends ExpressionVisitor {
 
   Object visitHtmlUnit(ht.HtmlUnit node) {
     _htmlUnitElement = node.element;
-    CompilationUnitElement dartUnitElement = node.compilationUnitElement;
+    CompilationUnitElement dartUnitElement = _htmlUnitElement.angularCompilationUnit;
     _indexContributor.enterScope(dartUnitElement);
     return super.visitHtmlUnit(node);
   }
@@ -1392,18 +1421,14 @@ abstract class IndexStore {
   bool aboutToIndex(AnalysisContext context, CompilationUnitElement unitElement);
 
   /**
-   * Notifies the index store that we are going to index the given [Source].
-   *
-   * This method should be used only for a [Source] that cannot be a part of multiple
-   * libraries. Otherwise [aboutToIndex] should be
-   * used.
+   * Notifies the index store that we are going to index the given [HtmlElement].
    *
    * @param the [AnalysisContext] in which unit being indexed
-   * @param source the [Source] being indexed
+   * @param htmlElement the [HtmlElement] being indexed
    * @return `true` the given [AnalysisContext] is active, or `false` if it was
    *         removed before, so no any unit may be indexed with it
    */
-  bool aboutToIndex2(AnalysisContext context, Source source);
+  bool aboutToIndex2(AnalysisContext context, HtmlElement htmlElement);
 
   /**
    * Return the locations of the elements that have the given relationship with the given element.
@@ -2656,7 +2681,7 @@ class IndexHtmlUnitOperation implements IndexOperation {
   void performOperation() {
     {
       try {
-        bool mayIndex = _indexStore.aboutToIndex2(_context, _source);
+        bool mayIndex = _indexStore.aboutToIndex2(_context, _htmlElement);
         if (!mayIndex) {
           return;
         }

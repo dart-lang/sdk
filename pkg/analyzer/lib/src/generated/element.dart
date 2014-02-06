@@ -1154,6 +1154,12 @@ abstract class HideElementCombinator implements NamespaceCombinator {
  */
 abstract class HtmlElement implements Element {
   /**
+   * Return the [CompilationUnitElement] associated with this Angular HTML file, maybe
+   * `null` if not an Angular file.
+   */
+  CompilationUnitElement get angularCompilationUnit;
+
+  /**
    * Return an array containing all of the script elements contained in the HTML file. This includes
    * scripts with libraries that are defined by the content of a script tag as well as libraries
    * that are referenced in the {@core source} attribute of a script tag.
@@ -1340,6 +1346,13 @@ abstract class LibraryElement implements Element {
    * import directive whose URI uses the "dart-ext" scheme.
    */
   bool hasExtUri();
+
+  /**
+   * Return `true` if this library is created for Angular analysis.
+   *
+   * @return `true` if this library is created for Angular analysis
+   */
+  bool get isAngularHtml;
 
   /**
    * Answer `true` if this library is an application that can be run in the browser.
@@ -4177,37 +4190,39 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   }
 
   void appendTo(JavaStringBuilder builder) {
-    builder.append("(");
-    String closing = null;
-    ParameterKind kind = ParameterKind.REQUIRED;
-    int parameterCount = _parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        builder.append(", ");
-      }
-      ParameterElementImpl parameter = _parameters[i] as ParameterElementImpl;
-      ParameterKind parameterKind = parameter.parameterKind;
-      if (parameterKind != kind) {
-        if (closing != null) {
-          builder.append(closing);
+    if (this.kind != ElementKind.GETTER) {
+      builder.append("(");
+      String closing = null;
+      ParameterKind kind = ParameterKind.REQUIRED;
+      int parameterCount = _parameters.length;
+      for (int i = 0; i < parameterCount; i++) {
+        if (i > 0) {
+          builder.append(", ");
         }
-        if (identical(parameterKind, ParameterKind.POSITIONAL)) {
-          builder.append("[");
-          closing = "]";
-        } else if (identical(parameterKind, ParameterKind.NAMED)) {
-          builder.append("{");
-          closing = "}";
-        } else {
-          closing = null;
+        ParameterElementImpl parameter = _parameters[i] as ParameterElementImpl;
+        ParameterKind parameterKind = parameter.parameterKind;
+        if (parameterKind != kind) {
+          if (closing != null) {
+            builder.append(closing);
+          }
+          if (identical(parameterKind, ParameterKind.POSITIONAL)) {
+            builder.append("[");
+            closing = "]";
+          } else if (identical(parameterKind, ParameterKind.NAMED)) {
+            builder.append("{");
+            closing = "}";
+          } else {
+            closing = null;
+          }
         }
+        kind = parameterKind;
+        parameter.appendToWithoutDelimiters(builder);
       }
-      kind = parameterKind;
-      parameter.appendToWithoutDelimiters(builder);
+      if (closing != null) {
+        builder.append(closing);
+      }
+      builder.append(")");
     }
-    if (closing != null) {
-      builder.append(closing);
-    }
-    builder.append(")");
     if (type != null) {
       builder.append(Element.RIGHT_ARROW);
       builder.append(type.returnType);
@@ -4626,6 +4641,12 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   Source source;
 
   /**
+   * The element associated with Dart pieces in this HTML unit or `null` if the receiver is
+   * not resolved.
+   */
+  CompilationUnitElement angularCompilationUnit;
+
+  /**
    * Initialize a newly created HTML element to have the given name.
    *
    * @param context the analysis context in which the HTML file is defined
@@ -4899,6 +4920,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   List<CompilationUnitElement> _parts = CompilationUnitElementImpl.EMPTY_ARRAY;
 
   /**
+   * Is `true` if this library is created for Angular analysis.
+   */
+  bool _isAngularHtml2 = false;
+
+  /**
    * Initialize a newly created library element to have the given name.
    *
    * @param context the analysis context in which the library is defined
@@ -5015,6 +5041,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   int get hashCode => _definingCompilationUnit.hashCode;
 
+  bool get isAngularHtml => _isAngularHtml2;
+
   bool get isBrowserApplication => entryPoint != null && isOrImportsBrowserLibrary;
 
   bool get isDartCore => name == "dart.core";
@@ -5024,6 +5052,13 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   bool isUpToDate2(int timeStamp) {
     Set<LibraryElement> visitedLibraries = new Set();
     return isUpToDate(this, timeStamp, visitedLibraries);
+  }
+
+  /**
+   * Specifies if this library is created for Angular analysis.
+   */
+  void set angularHtml(bool isAngularHtml) {
+    this._isAngularHtml2 = isAngularHtml;
   }
 
   /**
@@ -6244,6 +6279,11 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
  */
 class AngularComponentElementImpl extends AngularHasSelectorElementImpl implements AngularComponentElement {
   /**
+   * The offset of the defining <code>NgComponent</code> annotation.
+   */
+  int _annotationOffset = 0;
+
+  /**
    * The array containing all of the properties declared by this component.
    */
   List<AngularPropertyElement> _properties = AngularPropertyElement.EMPTY_ARRAY;
@@ -6280,7 +6320,9 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
    * @param nameOffset the offset of the name of this element in the file that contains the
    *          declaration of this element
    */
-  AngularComponentElementImpl(String name, int nameOffset) : super(name, nameOffset);
+  AngularComponentElementImpl(String name, int nameOffset, int annotationOffset) : super(name, nameOffset) {
+    this._annotationOffset = annotationOffset;
+  }
 
   accept(ElementVisitor visitor) => visitor.visitAngularComponentElement(this);
 
@@ -6304,6 +6346,8 @@ class AngularComponentElementImpl extends AngularHasSelectorElementImpl implemen
     safelyVisitChildren(_properties, visitor);
     super.visitChildren(visitor);
   }
+
+  String get identifier => "AngularComponent@${_annotationOffset}";
 }
 
 /**

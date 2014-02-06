@@ -1,7 +1,7 @@
 library java.io;
 
 import "dart:io";
-import 'java_core.dart' show JavaIOException;
+import 'java_core.dart' show JavaIOException, CharSequence;
 import 'package:path/path.dart' as pathos;
 
 class JavaSystemIO {
@@ -103,11 +103,15 @@ class JavaFile {
     }
     return false;
   }
+  bool isFile() {
+    return _newFile().existsSync();
+  }
   bool isDirectory() {
     return _newDirectory().existsSync();
   }
   Uri toURI() => pathos.toUri(_path);
   String readAsStringSync() => _newFile().readAsStringSync();
+  CharSequence readAsCharSequenceSync() => CharSequence.wrap(readAsStringSync());
   int lastModified() {
     if (!_newFile().existsSync()) return 0;
     return _newFile().lastModifiedSync().millisecondsSinceEpoch;

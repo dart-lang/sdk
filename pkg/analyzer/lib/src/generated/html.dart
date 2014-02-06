@@ -16,7 +16,7 @@ import 'scanner.dart' as sc show Scanner, SubSequenceReader, Token;
 import 'parser.dart' show Parser;
 import 'ast.dart';
 import 'element.dart';
-import 'engine.dart' show AnalysisEngine, AngularHtmlUnitResolver;
+import 'engine.dart' show AnalysisEngine, AngularHtmlUnitResolver, ExpressionVisitor;
 
 /**
  * Instances of the class `Token` represent a token that was scanned from the input. Each
@@ -141,38 +141,28 @@ class Token {
 }
 
 /**
- * Instances of the class `EmbeddedExpression` represent an expression enclosed between
- * <code>{{</code> and <code>}}</code> delimiters.
+ * Implementation of [XmlExpression] for an [Expression] embedded without any wrapping
+ * characters.
  */
-class EmbeddedExpression {
-  /**
-   * The offset of the first character of the opening delimiter.
-   */
-  final int openingOffset;
-
-  /**
-   * The expression that is enclosed between the delimiters.
-   */
+class RawXmlExpression extends XmlExpression {
   final Expression expression;
 
-  /**
-   * The offset of the first character of the closing delimiter.
-   */
-  final int closingOffset;
+  RawXmlExpression(this.expression);
 
-  /**
-   * An empty array of embedded expressions.
-   */
-  static List<EmbeddedExpression> EMPTY_ARRAY = new List<EmbeddedExpression>(0);
+  int get end => expression.end;
 
-  /**
-   * Initialize a newly created embedded expression to represent the given expression.
-   *
-   * @param openingOffset the offset of the first character of the opening delimiter
-   * @param expression the expression that is enclosed between the delimiters
-   * @param closingOffset the offset of the first character of the closing delimiter
-   */
-  EmbeddedExpression(this.openingOffset, this.expression, this.closingOffset);
+  int get length => expression.length;
+
+  int get offset => expression.offset;
+
+  XmlExpression_Reference getReference(int offset) {
+    ASTNode node = new NodeLocator.con1(offset).searchWithin(expression);
+    if (node != null) {
+      Element element = ElementLocator.locate(node);
+      return new XmlExpression_Reference(element, node.offset, node.length);
+    }
+    return null;
+  }
 }
 
 /**
@@ -296,7 +286,8 @@ class HtmlUnitUtils {
     }
     List<Expression> result = [null];
     try {
-      htmlUnit.accept(new RecursiveXmlVisitor_HtmlUnitUtils_getExpression(offset, result));
+      // TODO(scheglov) this code is very Angular specific
+      htmlUnit.accept(new ExpressionVisitor_HtmlUnitUtils_getExpression(offset, result));
     } on HtmlUnitUtils_FoundExpressionError catch (e) {
       return result[0];
     }
@@ -361,31 +352,18 @@ class RecursiveXmlVisitor_HtmlUnitUtils_getAttributeNode extends RecursiveXmlVis
   }
 }
 
-class RecursiveXmlVisitor_HtmlUnitUtils_getExpression extends RecursiveXmlVisitor<Object> {
+class ExpressionVisitor_HtmlUnitUtils_getExpression extends ExpressionVisitor {
   int offset = 0;
 
   List<Expression> result;
 
-  RecursiveXmlVisitor_HtmlUnitUtils_getExpression(this.offset, this.result) : super();
+  ExpressionVisitor_HtmlUnitUtils_getExpression(this.offset, this.result) : super();
 
-  Object visitXmlAttributeNode(XmlAttributeNode node) {
-    findExpression(offset, result, node.expressions);
-    return super.visitXmlAttributeNode(node);
-  }
-
-  Object visitXmlTagNode(XmlTagNode node) {
-    findExpression(offset, result, node.expressions);
-    return super.visitXmlTagNode(node);
-  }
-
-  void findExpression(int offset, List<Expression> result, List<EmbeddedExpression> expressions) {
-    for (EmbeddedExpression embeddedExpression in expressions) {
-      Expression expression = embeddedExpression.expression;
-      Expression at = HtmlUnitUtils.getExpressionAt(expression, offset);
-      if (at != null) {
-        result[0] = at;
-        throw new HtmlUnitUtils_FoundExpressionError();
-      }
+  void visitExpression(Expression expression) {
+    Expression at = HtmlUnitUtils.getExpressionAt(expression, offset);
+    if (at != null) {
+      result[0] = at;
+      throw new HtmlUnitUtils_FoundExpressionError();
     }
   }
 }
@@ -651,7 +629,7 @@ abstract class XmlNode {
     XmlNode current = newParent;
     while (current != null) {
       if (identical(current, this)) {
-        AnalysisEngine.instance.logger.logError3(new IllegalArgumentException(buildRecursiveStructureMessage(newParent)));
+        AnalysisEngine.instance.logger.logError2("Circular structure while setting an XML node's parent", new IllegalArgumentException(buildRecursiveStructureMessage(newParent)));
         return;
       }
       current = current.parent;
@@ -1031,7 +1009,7 @@ class StringScanner extends AbstractScanner {
   /**
    * The string from which characters will be read.
    */
-  String _string;
+  CharSequence _string;
 
   /**
    * The number of characters in the string.
@@ -1049,9 +1027,9 @@ class StringScanner extends AbstractScanner {
    * @param source the source being scanned
    * @param string the string from which characters will be read
    */
-  StringScanner(Source source, String string) : super(source) {
+  StringScanner(Source source, CharSequence string) : super(source) {
     this._string = string;
-    this._stringLength = string.length;
+    this._stringLength = string.length();
     this._charOffset = -1;
   }
 
@@ -1063,71 +1041,17 @@ class StringScanner extends AbstractScanner {
 
   int advance() {
     if (++_charOffset < _stringLength) {
-      return _string.codeUnitAt(_charOffset);
+      return _string.charAt(_charOffset);
     }
     _charOffset = _stringLength;
     return -1;
   }
 
-  String getString(int start, int endDelta) => _string.substring(start, _charOffset + 1 + endDelta);
+  String getString(int start, int endDelta) => _string.subSequence(start, _charOffset + 1 + endDelta).toString();
 
   int peek() {
     if (_charOffset + 1 < _stringLength) {
-      return _string.codeUnitAt(_charOffset + 1);
-    }
-    return -1;
-  }
-}
-
-/**
- * Instances of the class `CharBufferScanner` implement a scanner that reads from a character
- * buffer. The scanning logic is in the superclass.
- *
- * @coverage dart.engine.html
- */
-class CharBufferScanner extends AbstractScanner {
-  /**
-   * The buffer from which characters will be read.
-   */
-  CharSequence _buffer;
-
-  /**
-   * The number of characters in the buffer.
-   */
-  int _bufferLength = 0;
-
-  /**
-   * The index of the last character that was read.
-   */
-  int _charOffset = 0;
-
-  /**
-   * Initialize a newly created scanner to scan the characters in the given character buffer.
-   *
-   * @param source the source being scanned
-   * @param buffer the buffer from which characters will be read
-   */
-  CharBufferScanner(Source source, CharSequence buffer) : super(source) {
-    this._buffer = buffer;
-    this._bufferLength = buffer.length();
-    this._charOffset = -1;
-  }
-
-  int get offset => _charOffset;
-
-  int advance() {
-    if (++_charOffset < _bufferLength) {
-      return _buffer.charAt(_charOffset);
-    }
-    _charOffset = _bufferLength;
-    return -1;
-  }
-
-  String getString(int start, int endDelta) => _buffer.subSequence(start, _charOffset + 1 + endDelta).toString();
-
-  int peek() {
-    if (_charOffset + 1 < _bufferLength) {
-      return _buffer.charAt(_charOffset + 1);
+      return _string.charAt(_charOffset + 1);
     }
     return -1;
   }
@@ -1288,7 +1212,7 @@ class XmlAttributeNode extends XmlNode {
 
   Token _value;
 
-  List<EmbeddedExpression> expressions = EmbeddedExpression.EMPTY_ARRAY;
+  List<XmlExpression> expressions = XmlExpression.EMPTY_ARRAY;
 
   /**
    * Construct a new instance representing an XML attribute.
@@ -1367,57 +1291,6 @@ class XmlAttributeNode extends XmlNode {
 }
 
 /**
- * Instances of the class `EmbeddedDartVisitor` implement a recursive visitor for HTML files
- * that will invoke another visitor on all embedded dart scripts and expressions.
- */
-class EmbeddedDartVisitor<R> implements XmlVisitor<R> {
-  /**
-   * The visitor used to visit embedded Dart code.
-   */
-  ASTVisitor<R> _dartVisitor;
-
-  /**
-   * Initialize a newly created visitor to visit all of the nodes in an HTML structure and to use
-   * the given visitor to visit all of the nodes representing any embedded scripts or expressions.
-   *
-   * @param dartVisitor the visitor used to visit embedded Dart code
-   */
-  EmbeddedDartVisitor(ASTVisitor<R> dartVisitor) {
-    this._dartVisitor = dartVisitor;
-  }
-
-  R visitHtmlScriptTagNode(HtmlScriptTagNode node) {
-    node.visitChildren(this);
-    CompilationUnit script = node.script;
-    if (script != null) {
-      script.accept(_dartVisitor);
-    }
-    return null;
-  }
-
-  R visitHtmlUnit(HtmlUnit node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  R visitXmlAttributeNode(XmlAttributeNode node) {
-    node.visitChildren(this);
-    for (EmbeddedExpression expression in node.expressions) {
-      expression.expression.accept(_dartVisitor);
-    }
-    return null;
-  }
-
-  R visitXmlTagNode(XmlTagNode node) {
-    node.visitChildren(this);
-    for (EmbeddedExpression expression in node.expressions) {
-      expression.expression.accept(_dartVisitor);
-    }
-    return null;
-  }
-}
-
-/**
  * The interface `XmlVisitor` defines the behavior of objects that can be used to visit an
  * [XmlNode] structure.
  *
@@ -1431,6 +1304,65 @@ abstract class XmlVisitor<R> {
   R visitXmlAttributeNode(XmlAttributeNode xmlAttributeNode);
 
   R visitXmlTagNode(XmlTagNode xmlTagNode);
+}
+
+/**
+ * Instances of the class `XmlExpression` represent an abstract expression embedded into
+ * [XmlNode].
+ */
+abstract class XmlExpression {
+  /**
+   * An empty array of expressions.
+   */
+  static List<XmlExpression> EMPTY_ARRAY = new List<XmlExpression>(0);
+
+  /**
+   * Check if the given offset belongs to the expression's source range.
+   */
+  bool contains(int offset) => this.offset <= offset && offset < end;
+
+  /**
+   * Return the offset of the character immediately following the last character of this
+   * expression's source range. This is equivalent to `getOffset() + getLength()`.
+   *
+   * @return the offset of the character just past the expression's source range
+   */
+  int get end;
+
+  /**
+   * Return the number of characters in the expression's source range.
+   */
+  int get length;
+
+  /**
+   * Return the offset of the first character in the expression's source range.
+   */
+  int get offset;
+
+  /**
+   * Return the [Reference] at the given offset.
+   *
+   * @param offset the offset from the beginning of the file
+   * @return the [Reference] at the given offset, maybe `null`
+   */
+  XmlExpression_Reference getReference(int offset);
+}
+
+/**
+ * The reference to the [Element].
+ */
+class XmlExpression_Reference {
+  Element element;
+
+  int offset = 0;
+
+  int length = 0;
+
+  XmlExpression_Reference(Element element, int offset, int length) {
+    this.element = element;
+    this.offset = offset;
+    this.length = length;
+  }
 }
 
 /**
@@ -1477,14 +1409,7 @@ class HtmlScanner implements Source_ContentReceiver {
     this._source = source;
   }
 
-  void accept(CharBuffer contents, int modificationTime) {
-    this._modificationTime = modificationTime;
-    _scanner = new CharBufferScanner(_source, contents);
-    _scanner.passThroughElements = _SCRIPT_TAG;
-    _token = _scanner.tokenize();
-  }
-
-  void accept2(String contents, int modificationTime) {
+  void accept(CharSequence contents, int modificationTime) {
     this._modificationTime = modificationTime;
     _scanner = new StringScanner(_source, contents);
     _scanner.passThroughElements = _SCRIPT_TAG;
@@ -1838,7 +1763,7 @@ class XmlTagNode extends XmlNode {
   /**
    * The expressions that are embedded in the tag's content.
    */
-  List<EmbeddedExpression> expressions = EmbeddedExpression.EMPTY_ARRAY;
+  List<XmlExpression> expressions = XmlExpression.EMPTY_ARRAY;
 
   /**
    * Construct a new instance representing an XML or HTML element
@@ -2166,12 +2091,6 @@ class HtmlUnit extends XmlNode {
    * The tag nodes contained in the receiver (not `null`, contains no `null`s).
    */
   List<XmlTagNode> _tagNodes;
-
-  /**
-   * The element associated with Dart pieces in this HTML unit or `null` if the receiver is
-   * not resolved.
-   */
-  CompilationUnitElement compilationUnitElement;
 
   /**
    * Construct a new instance representing the content of an HTML file.
