@@ -439,11 +439,6 @@ RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
 
 
 bool MethodRecognizer::AlwaysInline(const Function& function) {
-  if (function.IsImplicitGetterFunction() || function.IsGetterFunction() ||
-      function.IsImplicitSetterFunction() || function.IsSetterFunction()) {
-    return true;
-  }
-
   const Class& function_class = Class::Handle(function.Owner());
   const Library& lib = Library::Handle(function_class.library());
   if (!IsRecognizedLibrary(lib)) {

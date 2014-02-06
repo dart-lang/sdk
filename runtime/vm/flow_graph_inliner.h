@@ -11,6 +11,7 @@ namespace dart {
 
 class Field;
 class FlowGraph;
+class Function;
 template <typename T> class GrowableArray;
 
 class FlowGraphInliner : ValueObject {
@@ -21,6 +22,8 @@ class FlowGraphInliner : ValueObject {
   void Inline();
 
   static void CollectGraphInfo(FlowGraph* flow_graph);
+
+  static bool AlwaysInline(const Function& function);
 
  private:
   FlowGraph* flow_graph_;
