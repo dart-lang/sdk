@@ -42,7 +42,12 @@ DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
   if (obj.IsType() || obj.IsClass()) {
     const Class& cls = (obj.IsType()) ?
         Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
-    return Dart_NewStringFromCString(cls.ToCString());
+    const char* str = cls.ToCString();
+    if (str == NULL) {
+      RETURN_NULL_ERROR(str);
+    }
+    CHECK_CALLBACK_STATE(isolate);
+    return Api::NewHandle(isolate, String::New(str));
   } else {
     RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
