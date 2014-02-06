@@ -55,7 +55,7 @@ class Request {
    * Return a request parsed from the given [data], or `null` if the [data] is
    * not a valid json representation of a request. The [data] is expected to
    * have the following format:
-   * 
+   *
    *   {
    *     'id': String,
    *     'method': methodName,
@@ -63,7 +63,7 @@ class Request {
    *       paramter_name: value
    *     }
    *   }
-   * 
+   *
    * where the parameters are optional and can contain any number of name/value
    * pairs.
    */
@@ -115,7 +115,7 @@ class Request {
   /**
    * Convert the given [value] to a boolean, or throw a [RequestFailure]
    * exception if the [value] could not be converted.
-   * 
+   *
    * The value is typically the result of invoking either [getParameter] or
    * [getRequiredParameter].
    */
@@ -131,7 +131,7 @@ class Request {
   /**
    * Convert the given [value] to an integer, or throw a [RequestFailure]
    * exception if the [value] could not be converted.
-   * 
+   *
    * The value is typically the result of invoking either [getParameter] or
    * [getRequiredParameter].
    */
@@ -177,7 +177,7 @@ class Response {
    * The error that was caused by attempting to handle the request, or `null` if
    * there was no error.
    */
-  final Object error;
+  final RequestError error;
 
   /**
    * A table mapping the names of result fields to their values. The table
@@ -197,7 +197,7 @@ class Response {
    * by a [request] referencing a context that does not exist.
    */
   Response.contextDoesNotExist(Request request)
-    : this(request.id, 'Context does not exist');
+    : this(request.id, new RequestError(-1, 'Context does not exist'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -205,7 +205,7 @@ class Response {
    * passed a non-boolean value.
    */
   Response.expectedBoolean(Request request, String value)
-    : this(request.id, 'Expected a boolean value, but found "$value"');
+    : this(request.id, new RequestError(-2, 'Expected a boolean value, but found "$value"'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -213,21 +213,21 @@ class Response {
    * passed a non-integer value.
    */
   Response.expectedInteger(Request request, String value)
-    : this(request.id, 'Expected an integer value, but found "$value"');
+    : this(request.id, new RequestError(-3, 'Expected an integer value, but found "$value"'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a malformed request.
    */
   Response.invalidRequestFormat()
-    : this('', 'Invalid request');
+    : this('', new RequestError(-4, 'Invalid request'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that does not have a required parameter.
    */
   Response.missingRequiredParameter(Request request, String parameterName)
-    : this(request.id, 'Missing required parameter: $parameterName');
+    : this(request.id, new RequestError(-5, 'Missing required parameter: $parameterName'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -235,14 +235,14 @@ class Response {
    * unknown analysis option was provided.
    */
   Response.unknownAnalysisOption(Request request, String optionName)
-    : this(request.id, 'Unknown analysis option: "$optionName"');
+    : this(request.id, new RequestError(-6, 'Unknown analysis option: "$optionName"'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that cannot be handled by any known handlers.
    */
   Response.unknownRequest(Request request)
-    : this(request.id, 'Unknown request');
+    : this(request.id, new RequestError(-7, 'Unknown request'));
 
   /**
    * Return the value of the result field with the given [name].
@@ -265,9 +265,142 @@ class Response {
   Map<String, Object> toJson() {
     Map jsonObject = new Map();
     jsonObject[ID] = id;
-    jsonObject[ERROR] = error;
+    jsonObject[ERROR] = error.toJson();
     if (!result.isEmpty) {
       jsonObject[RESULT] = result;
+    }
+    return jsonObject;
+  }
+}
+
+/**
+ * Instances of the class [RequestError] represent information about an error that
+ * occurred while attempting to respond to a [Request].
+ */
+class RequestError {
+  /**
+   * The name of the JSON attribute containing the code that uniquely identifies
+   * the error that occurred.
+   */
+  static const String CODE = 'code';
+
+  /**
+   * The name of the JSON attribute containing an object with additional data
+   * related to the error.
+   */
+  static const String DATA = 'data';
+
+  /**
+   * The name of the JSON attribute containing a short description of the error.
+   */
+  static const String MESSAGE = 'message';
+
+  /**
+   * An error code indicating a parse error. Invalid JSON was received by the
+   * server. An error occurred on the server while parsing the JSON text.
+   */
+  static const int CODE_PARSE_ERROR = -32700;
+
+  /**
+   * An error code indicating an invalid request. The JSON sent is not a valid
+   * [Request] object.
+   */
+  static const int CODE_INVALID_REQUEST = -32600;
+
+  /**
+   * An error code indicating a method not found. The method does not exist or
+   * is not currently available.
+   */
+  static const int CODE_METHOD_NOT_FOUND = -32601;
+
+  /**
+   * An error code indicating one or more invalid parameters.
+   */
+  static const int CODE_INVALID_PARAMS = -32602;
+
+  /**
+   * An error code indicating an internal error.
+   */
+  static const int CODE_INTERNAL_ERROR = -32603;
+
+  /*
+   * In addition, codes -32000 to -32099 indicate a server error. They are
+   * reserved for implementation-defined server-errors.
+   */
+
+  /**
+   * The code that uniquely identifies the error that occurred.
+   */
+  final int code;
+
+  /**
+   * A short description of the error.
+   */
+  final String message;
+
+  /**
+   * A table mapping the names of notification parameters to their values.
+   */
+  final Map<String, Object> data = new Map<String, Object>();
+
+  /**
+   * Initialize a newly created [Error] to have the given [code] and [message].
+   */
+  RequestError(this.code, this.message);
+
+  /**
+   * Initialize a newly created [Error] to indicate a parse error. Invalid JSON
+   * was received by the server. An error occurred on the server while parsing
+   * the JSON text.
+   */
+  RequestError.parseError() : this(CODE_PARSE_ERROR, "Parse error");
+
+  /**
+   * Initialize a newly created [Error] to indicate an invalid request. The
+   * JSON sent is not a valid [Request] object.
+   */
+  RequestError.invalidRequest() : this(CODE_INVALID_REQUEST, "Invalid request");
+
+  /**
+   * Initialize a newly created [Error] to indicate that a method was not found.
+   * Either the method does not exist or is not currently available.
+   */
+  RequestError.methodNotFound() : this(CODE_METHOD_NOT_FOUND, "Method not found");
+
+  /**
+   * Initialize a newly created [Error] to indicate one or more invalid
+   * parameters.
+   */
+  RequestError.invalidParameters() : this(CODE_INVALID_PARAMS, "Invalid parameters");
+
+  /**
+   * Initialize a newly created [Error] to indicate an internal error.
+   */
+  RequestError.internalError() : this(CODE_INTERNAL_ERROR, "Internal error");
+
+  /**
+   * Return the value of the data with the given [name], or `null` if there is
+   * no such data associated with this error.
+   */
+  Object getData(String name) => data[name];
+
+  /**
+   * Set the value of the data with the given [name] to the given [value].
+   */
+  void setData(String name, Object value) {
+    data[name] = value;
+  }
+
+  /**
+   * Return a table representing the structure of the Json object that will be
+   * sent to the client to represent this response.
+   */
+  Map<String, Object> toJson() {
+    Map jsonObject = new Map();
+    jsonObject[CODE] = code;
+    jsonObject[MESSAGE] = message;
+    if (!data.isEmpty) {
+      jsonObject[DATA] = data;
     }
     return jsonObject;
   }
