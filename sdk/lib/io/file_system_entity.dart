@@ -35,6 +35,8 @@ class FileStat {
   static const _MODE = 4;
   static const _SIZE = 5;
 
+  static const _notFound = const FileStat._internalNotFound();
+
   /**
    * The time of the last change to the data or metadata of the file system
    * object.  On Windows platforms, this is instead the file creation time.
@@ -73,6 +75,10 @@ class FileStat {
                      this.mode,
                      this.size);
 
+  const FileStat._internalNotFound() :
+      changed = null,  modified = null, accessed = null,
+      type = FileSystemEntityType.NOT_FOUND, mode = 0, size = -1;
+
   external static List<int> _statSync(String path);
 
 
@@ -88,7 +94,7 @@ class FileStat {
       path = FileSystemEntity._trimTrailingPathSeparators(path);
     }
     var data = _statSync(path);
-    if (data is OSError) throw data;
+    if (data is OSError) return FileStat._notFound;
     return new FileStat._internal(
         new DateTime.fromMillisecondsSinceEpoch(data[_CHANGED_TIME] * 1000),
         new DateTime.fromMillisecondsSinceEpoch(data[_MODIFIED_TIME] * 1000),
@@ -112,9 +118,7 @@ class FileStat {
     }
     return _IOService.dispatch(_FILE_STAT, [path]).then((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-                                     "Error getting stat",
-                                     path);
+        return FileStat._notFound;
       }
       // Unwrap the real list from the "I'm not an error" wrapper.
       List data = response[1];
