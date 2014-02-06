@@ -239,17 +239,17 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
   bool get isConst => false;
 
   InstanceMirror get defaultValue {
-    Constant constant = mirrorSystem.compiler.constantHandler
-        .getConstantForVariable(_variableElement);
-    if (constant != null) {
+    if (hasDefaultValue) {
+      Constant constant = mirrorSystem.compiler.constantHandler
+          .getConstantForVariable(_variableElement);
+      assert(constant != null);
       return _convertConstantToInstanceMirror(mirrorSystem, constant);
     }
     return null;
   }
 
   bool get hasDefaultValue {
-    return mirrorSystem.compiler.constantHandler
-        .getConstantForVariable(_variableElement) != null;
+    return _variableElement.cachedNode.asSendSet() != null;
   }
 
   bool get isInitializingFormal => false;
