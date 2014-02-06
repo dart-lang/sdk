@@ -265,7 +265,11 @@ class Response {
   Map<String, Object> toJson() {
     Map jsonObject = new Map();
     jsonObject[ID] = id;
-    jsonObject[ERROR] = error.toJson();
+    if (error == null) {
+      jsonObject[ERROR] = null;
+    } else {
+      jsonObject[ERROR] = error.toJson();
+    }
     if (!result.isEmpty) {
       jsonObject[RESULT] = result;
     }
