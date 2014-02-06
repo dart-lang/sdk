@@ -6,6 +6,8 @@ library analyzer_impl;
 
 import 'dart:io';
 
+import 'package:path/path.dart' as pathos;
+
 import 'generated/java_io.dart';
 import 'generated/engine.dart';
 import 'generated/error.dart';
@@ -128,10 +130,9 @@ class AnalyzerImpl {
 
   void addLibrarySources(LibraryElement library, Set<LibraryElement> libraries,
       Set<CompilationUnitElement> units) {
-    if (library == null || libraries.contains(library)) {
+    if (library == null || !libraries.add(library) ) {
       return;
     }
-    libraries.add(library);
     // may be skip library
     {
       UriKind uriKind = library.source.uriKind;
@@ -192,9 +193,14 @@ class AnalyzerImpl {
     // may be file in SDK
     if (sdk is DirectoryBasedDartSdk) {
       DirectoryBasedDartSdk directoryBasedSdk = sdk;
-      String sdkLibPath = directoryBasedSdk.libraryDirectory.getPath() + JavaFile.separator;
-      if (file.getPath().startsWith(sdkLibPath)) {
-        return UriKind.DART_URI;
+      var libraryDirectory = directoryBasedSdk.libraryDirectory.getAbsolutePath();
+      var sdkLibPath = libraryDirectory + pathos.separator;
+      var filePath = file.getPath();
+      if (filePath.startsWith(sdkLibPath)) {
+        var internalPath = pathos.join(libraryDirectory, '_internal') + pathos.separator;
+        if (!filePath.startsWith(internalPath)) {
+          return UriKind.DART_URI;
+        }
       }
     }
     // some generic file

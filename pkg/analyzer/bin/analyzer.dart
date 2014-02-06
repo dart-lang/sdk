@@ -47,7 +47,7 @@ void main(args) {
       print("angular:$angularTime");
       print("other:${totalTime
         - (scanTime + parseTime + resolveTime + errorsTime + hintsTime
-           + angularTime)}}");
+           + angularTime)}");
       print("total:$totalTime");
       print("");
       print("Time spent in instanceof = ${instanceOfTimer.elapsedMilliseconds}");
