@@ -83,10 +83,11 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
                       Compiler cachedCompiler,
                       bool showDiagnostics: true,
                       Uri packageRoot}) {
-  Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri script = Uri.base.resolveUri(Platform.script);
+  Uri script = currentDirectory.resolveUri(Platform.script);
+  Uri libraryRoot = script.resolve('../../../sdk/');
   if (packageRoot == null) {
-    packageRoot = Uri.base.resolve('${Platform.packageRoot}/');
+    packageRoot = currentDirectory.resolve(
+        appendSlash(nativeToUriPath(Platform.packageRoot)));
   }
 
   MemorySourceFileProvider provider;
@@ -157,9 +158,9 @@ Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
                                      {DiagnosticHandler diagnosticHandler,
                                       List<String> options: const [],
                                       bool showDiagnostics: true}) {
-  Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolve('${Platform.packageRoot}/');
-  Uri script = Uri.base.resolveUri(Platform.script);
+  Uri script = currentDirectory.resolveUri(Platform.script);
+  Uri libraryRoot = script.resolve('../../../sdk/');
+  Uri packageRoot = script.resolve('./packages/');
 
   var provider = new MemorySourceFileProvider(memorySourceFiles);
   var handler =
