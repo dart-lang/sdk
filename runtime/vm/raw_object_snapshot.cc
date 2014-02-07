@@ -449,6 +449,8 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &type_arguments, kIsDeserialized);
 
   // Now set all the object fields.
+  *reader->ArrayHandle() ^= reader->ReadObjectImpl();
+  type_arguments.set_instantiations(*reader->ArrayHandle());
   for (intptr_t i = 0; i < len; i++) {
     *reader->TypeHandle() ^= reader->ReadObjectImpl();
     type_arguments.SetTypeAt(i, *reader->TypeHandle());
@@ -492,6 +494,9 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
 
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
+
+  // Write out the instantiations field.
+  writer->WriteObjectImpl(ptr()->instantiations_);
 
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);

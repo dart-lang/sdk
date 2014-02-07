@@ -221,6 +221,7 @@ class SnapshotReader : public BaseReader {
   ObjectStore* object_store() const { return isolate_->object_store(); }
   ClassTable* class_table() const { return isolate_->class_table(); }
   Object* ObjectHandle() { return &obj_; }
+  Array* ArrayHandle() { return &array_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
