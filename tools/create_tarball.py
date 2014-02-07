@@ -13,8 +13,8 @@
 # directory. This makes it easy to build Debian packages from the
 # tarball.
 #
-# For building a Debian package renaming the tarball to follow the
-# Debian is needed.
+# For building a Debian package one need to the tarball to follow the
+# Debian naming rules upstream tar files.
 #
 #  $ mv dart-XXX.tar.gz dart_XXX.orig.tar.gz
 #  $ tar xf dart_XXX.orig.tar.gz
@@ -25,13 +25,13 @@ import datetime
 import optparse
 import sys
 import tarfile
-import tempfile
 import utils
 
-from os import listdir, makedirs, remove, rmdir
-from os.path import basename, dirname, join, realpath, exists, isdir, split
+from os import listdir, makedirs
+from os.path import join, exists, split, dirname, abspath
 
 HOST_OS = utils.GuessOS()
+DART_DIR = abspath(join(__file__, '..', '..'))
 
 # TODO (16582): Remove this when the LICENSE file becomes part of
 # all checkouts.
@@ -96,7 +96,7 @@ verbose = False
 versiondir = ''
 
 # Ignore Git/SVN files, checked-in binaries, backup files, etc..
-ignoredPaths = ['out', 'tools/testing/bin'
+ignoredPaths = ['tools/testing/bin'
                 'third_party/7zip', 'third_party/android_tools',
                 'third_party/clang', 'third_party/d8',
                 'third_party/firefox_jsshell']
@@ -111,21 +111,24 @@ def BuildOptions():
   return result
 
 def Filter(tar_info):
-  _, tail = split(tar_info.name)
+  # Get the name of the file relative to the dart directory. Note the
+  # name from the TarInfo does not include a leading slash.
+  assert tar_info.name.startswith(DART_DIR[1:])
+  original_name = tar_info.name[len(DART_DIR):]
+  _, tail = split(original_name)
   if tail in ignoredDirs:
     return None
   for path in ignoredPaths:
-    if tar_info.name.startswith(path):
+    if original_name.startswith(path):
       return None
   for ending in ignoredEndings:
-    if tar_info.name.endswith(ending):
+    if original_name.endswith(ending):
       return None
-  # Add the dart directory name with version.
-  original_name = tar_info.name
-  # Place the debian directory one level over the rest which are
-  # placed in the directory 'dart'. This enables building the Debian
-  # packages out-of-the-box.
-  tar_info.name = join(versiondir, 'dart', tar_info.name)
+  # Add the dart directory name with version. Place the debian
+  # directory one level over the rest which are placed in the
+  # directory 'dart'. This enables building the Debian packages
+  # out-of-the-box.
+  tar_info.name = join(versiondir, 'dart', original_name)
   if verbose:
     print 'Adding %s as %s' % (original_name, tar_info.name)
   return tar_info
@@ -133,57 +136,56 @@ def Filter(tar_info):
 def GenerateCopyright(filename):
   license_lines = license
   try:
-    # Currently the LICENSE file is part of a svn-root checkout.
-    lf = open('../LICENSE', 'r')
-    license_lines = lf.read().splitlines()
-    print license_lines
-    lf.close()
+    # TODO (16582): The LICENSE file is currently not in a normal the
+    # dart checkout.
+    with open(join(DART_DIR, 'LICENSE')) as lf:
+      license_lines = lf.read().splitlines()
   except:
     pass
 
-  f = open(filename, 'w')
-  f.write('Name: dart\n')
-  f.write('Maintainer: Dart Team <misc@dartlang.org>\n')
-  f.write('Source: https://code.google.com/p/dart/\n')
-  f.write('License:\n')
-  for line in license_lines:
-    f.write(' %s\n' % line)
-  f.close()
+  with open(filename, 'w') as f:
+    f.write('Name: dart\n')
+    f.write('Maintainer: Dart Team <misc@dartlang.org>\n')
+    f.write('Source: https://code.google.com/p/dart/\n')
+    f.write('License:\n')
+    for line in license_lines:
+      f.write(' %s\n' % line)
 
 def GenerateChangeLog(filename, version):
-  f = open(filename, 'w')
-  f.write('dart (%s-1) UNRELEASED; urgency=low\n' % version)
-  f.write('\n')
-  f.write('  * Generated file.\n')
-  f.write('\n')
-  f.write(' -- Dart Team <misc@dartlang.org>  %s\n' %
-          datetime.datetime.utcnow().strftime('%a, %d %b %Y %X +0000'))
-  f.close()
+  with open(filename, 'w') as f:
+    f.write('dart (%s-1) UNRELEASED; urgency=low\n' % version)
+    f.write('\n')
+    f.write('  * Generated file.\n')
+    f.write('\n')
+    f.write(' -- Dart Team <misc@dartlang.org>  %s\n' %
+            datetime.datetime.utcnow().strftime('%a, %d %b %Y %X +0000'))
 
 def GenerateSvnRevision(filename, svn_revision):
-  f = open(filename, 'w')
-  f.write(svn_revision)
-  f.close()
+  with open(filename, 'w') as f:
+    f.write(svn_revision)
 
 
 def CreateTarball():
+  global ignoredPaths  # Used for adding the output directory.
   # Generate the name of the tarfile
   version = utils.GetVersion()
   global versiondir
   versiondir = 'dart-%s' % version
   tarname = '%s.tar.gz' % versiondir
   debian_dir = 'tools/linux_dist_support/debian'
-  # Create the tar file in the out directory.
-  tardir = utils.GetBuildDir(HOST_OS, HOST_OS)
+  # Create the tar file in the build directory.
+  tardir = join(DART_DIR, utils.GetBuildDir(HOST_OS, HOST_OS))
+  # Don't include the build directory in the tarball.
+  ignoredPaths.append(tardir)
   if not exists(tardir):
     makedirs(tardir)
   tarfilename = join(tardir, tarname)
-  print 'Creating tarball: %s' % (tarfilename)
+  print 'Creating tarball: %s' % tarfilename
   with tarfile.open(tarfilename, mode='w:gz') as tar:
-    for f in listdir('.'):
-      tar.add(f, filter=Filter)
-    for f in listdir(debian_dir):
-      tar.add(join(debian_dir, f),
+    for f in listdir(DART_DIR):
+      tar.add(join(DART_DIR, f), filter=Filter)
+    for f in listdir(join(DART_DIR, debian_dir)):
+      tar.add(join(DART_DIR, debian_dir, f),
               arcname='%s/debian/%s' % (versiondir, f))
 
     with utils.TempDir() as temp_dir:
