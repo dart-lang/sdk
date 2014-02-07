@@ -213,3 +213,37 @@ class A extends B {
 class A extends B {
 
 }
+>>> Single initializers can be on one line
+class Foo extends Bar {
+  final int b;
+  Foo(int a, this.b): super(a);
+}
+<<<
+class Foo extends Bar {
+  final int b;
+  Foo(int a, this.b): super(a);
+}
+>>> (or not)
+class Foo extends Bar {
+  final int b;
+  Foo(int a, this.b)
+      : super(a);
+}
+<<<
+class Foo extends Bar {
+  final int b;
+  Foo(int a, this.b)
+      : super(a);
+}
+>>> Multiple initializers are one per line
+class Foo extends Bar {
+  final int b;
+  Foo(int a, int b) : super(a), this.b = b == null ? 0 : b;
+}
+<<<
+class Foo extends Bar {
+  final int b;
+  Foo(int a, int b)
+      : super(a),
+        this.b = b == null ? 0 : b;
+}

@@ -632,7 +632,11 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitConstructorInitializers(ConstructorDeclaration node) {
-    newlines();
+    if (node.initializers.length > 1) {
+      newlines();
+    } else {
+      preserveLeadingNewlines();
+    }
     indent(2);
     token(node.separator /* : */);
     space();

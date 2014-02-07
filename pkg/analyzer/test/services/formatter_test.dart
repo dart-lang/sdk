@@ -653,20 +653,6 @@ main() {
         );
     });
 
-    test('CU - constructor initializers', () {
-      expectCUFormatsTo(
-          'class A {\n'
-          '  int _a;\n'
-          '  A(a) : _a = a;\n'
-          '}\n',
-          'class A {\n'
-          '  int _a;\n'
-          '  A(a)\n'
-          '      : _a = a;\n'
-          '}\n'
-        );
-    });
-
     test('CU - constructor auto field inits', () {
       expectCUFormatsTo(
           'class A {\n'
