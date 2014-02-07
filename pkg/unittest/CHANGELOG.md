@@ -2,7 +2,7 @@
 
 ##0.10.0-dev
 
-* Each test is run in a seperate `Zone`. This ensures that any exceptions that
+* Each test is run in a separate `Zone`. This ensures that any exceptions that
 occur is async operations are reported back to the source test case.
 * **DEPRECATED** `guardAsync`, `protectAsync0`, `protectAsync1`,
 and `protectAsync2`
