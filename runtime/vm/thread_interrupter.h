@@ -30,9 +30,19 @@ struct InterruptedThreadState {
 typedef void (*ThreadInterruptCallback)(const InterruptedThreadState& state,
                                         void* data);
 
+// State stored per registered thread.
+class InterruptableThreadState {
+ public:
+  ThreadId id;
+  ThreadInterruptCallback callback;
+  void* data;
+};
+
 class ThreadInterrupter : public AllStatic {
  public:
   static void InitOnce();
+
+  static void Startup();
   static void Shutdown();
 
   // Delay between interrupts.
@@ -40,14 +50,16 @@ class ThreadInterrupter : public AllStatic {
 
   // Register the currently running thread for interrupts. If the current thread
   // is already registered, callback and data will be updated.
-  static void Register(ThreadInterruptCallback callback, void* data);
+  static InterruptableThreadState* Register(ThreadInterruptCallback callback,
+                                            void* data);
   // Unregister the currently running thread for interrupts.
   static void Unregister();
 
-  // Enable interrupts for this thread. Does not alter callback.
-  static void Enable();
-  // Disable interrupts for this thread. Does not alter callback.
-  static void Disable();
+  // Get the current thread state. Will create a thread state if one hasn't
+  // been allocated.
+  static InterruptableThreadState* GetCurrentThreadState();
+  // Get the current thread state. Will not create one if one doesn't exist.
+  static InterruptableThreadState* CurrentThreadState();
 
  private:
   static const intptr_t kMaxThreads = 4096;
@@ -58,38 +70,18 @@ class ThreadInterrupter : public AllStatic {
   static Monitor* monitor_;
   static intptr_t interrupt_period_;
   static ThreadLocalKey thread_state_key_;
-  // State stored per registered thread.
-  struct ThreadState {
-    ThreadId id;
-    ThreadInterruptCallback callback;
-    void* data;
-  };
 
+  static InterruptableThreadState* _EnsureThreadStateCreated();
   static void UpdateStateObject(ThreadInterruptCallback callback, void* data);
-  static ThreadState* CurrentThreadState();
-  static void SetCurrentThreadState(ThreadState* state);
 
-  // Registered thread table.
-  static ThreadState** threads_;
-  static intptr_t threads_capacity_;
-  static intptr_t threads_size_;
-  static void _EnsureThreadStateCreated();
-  static void _Enable();
-  static void _Disable();
-  static void ResizeThreads(intptr_t new_capacity);
-  static void AddThread(ThreadId id);
-  static intptr_t FindThreadIndex(ThreadId id);
-  static ThreadState* RemoveThread(intptr_t i);
+  static void SetCurrentThreadState(InterruptableThreadState* state);
 
-  friend class ThreadInterrupterAndroid;
-  friend class ThreadInterrupterMacOS;
-  friend class ThreadInterrupterLinux;
-  friend class ThreadInterrupterWin;
-
-  static void InterruptThreads(int64_t current_time);
+  static void InterruptThread(InterruptableThreadState* thread_state);
   static void ThreadMain(uword parameters);
 
   static void InstallSignalHandler();
+
+  friend class ThreadInterrupterVisitIsolates;
 };
 
 void ThreadInterruptNoOp(const InterruptedThreadState& state, void* data);

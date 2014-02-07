@@ -50,6 +50,7 @@ void Profiler::InitOnce() {
   } else if (FLAG_profile_depth > kMaximumDepth) {
     FLAG_profile_depth = kMaximumDepth;
   }
+  // We must always initialize the Sample, even when the profiler is disabled.
   Sample::InitOnce();
   if (!FLAG_profile) {
     return;
@@ -57,8 +58,8 @@ void Profiler::InitOnce() {
   ASSERT(!initialized_);
   sample_buffer_ = new SampleBuffer();
   NativeSymbolResolver::InitOnce();
-  ThreadInterrupter::InitOnce();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
+  ThreadInterrupter::Startup();
   initialized_ = true;
 }
 

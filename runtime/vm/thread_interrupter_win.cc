@@ -38,7 +38,7 @@ class ThreadInterrupterWin : public AllStatic {
   }
 
 
-  static void Interrupt(ThreadInterrupter::ThreadState* state) {
+  static void Interrupt(InterruptableThreadState* state) {
     ASSERT(GetCurrentThread() != state->id);
     DWORD result = SuspendThread(state->id);
     if (result == kThreadError) {
@@ -70,19 +70,15 @@ class ThreadInterrupterWin : public AllStatic {
 };
 
 
-void ThreadInterrupter::InterruptThreads(int64_t current_time) {
-  for (intptr_t i = 0; i < threads_size_; i++) {
-    ThreadState* state = threads_[i];
-    ASSERT(state->id != Thread::kInvalidThreadId);
-    if (FLAG_trace_thread_interrupter) {
-      OS::Print("ThreadInterrupter suspending %p\n",
-                reinterpret_cast<void*>(state->id));
-    }
-    ThreadInterrupterWin::Interrupt(state);
-    if (FLAG_trace_thread_interrupter) {
-      OS::Print("ThreadInterrupter resuming %p\n",
-                reinterpret_cast<void*>(state->id));
-    }
+void ThreadInterrupter::InterruptThread(InterruptableThreadState* state) {
+  if (FLAG_trace_thread_interrupter) {
+    OS::Print("ThreadInterrupter suspending %p\n",
+              reinterpret_cast<void*>(state->id));
+  }
+  ThreadInterrupterWin::Interrupt(state);
+  if (FLAG_trace_thread_interrupter) {
+    OS::Print("ThreadInterrupter resuming %p\n",
+              reinterpret_cast<void*>(state->id));
   }
 }
 
