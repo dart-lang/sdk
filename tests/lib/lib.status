@@ -234,6 +234,9 @@ mirrors/mirrors_reader_test: Slow, Pass
 [ $compiler == none && $checked ]
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16588
 
+[ $compiler == none && $runtime == dartium ]
+mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16626
+
 [ $compiler == none && ( $runtime == drt || $runtime == dartium ) ]
 async/schedule_microtask6_test: Fail # Issue 10910
 mirrors/immutable_collections_test: Pass, Slow # Dartium debug uses -O0

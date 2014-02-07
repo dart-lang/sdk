@@ -44,7 +44,7 @@ class RuntimeMirrorsReader extends MirrorsReader {
   }
 }
 
-void main(List<String> arguments) {
+void main([List<String> arguments = const <String>[]]) {
   MirrorSystem mirrors = currentMirrorSystem();
   MirrorsReader reader = new RuntimeMirrorsReader(mirrors,
       verbose: arguments.contains('-v'),
