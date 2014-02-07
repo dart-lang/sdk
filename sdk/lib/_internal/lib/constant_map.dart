@@ -5,6 +5,8 @@
 part of _js_helper;
 
 abstract class ConstantMap<K, V> implements Map<K, V> {
+  const ConstantMap._();
+
   bool get isEmpty => length == 0;
 
   bool get isNotEmpty => !isEmpty;
@@ -21,10 +23,13 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
   void addAll(Map<K, V> other) => _throwUnmodifiable();
 }
 
-// This class has no constructor. This is on purpose since the instantiation
-// is shortcut by the compiler.
 class ConstantStringMap<K, V> extends ConstantMap<K, V>
                               implements _symbol_dev.EfficientLength {
+
+  // This constructor is not used.  The instantiation is shortcut by the
+  // compiler. It is here to make the uninitialized final fields legal.
+  const ConstantStringMap._(this.length, this._jsObject, _keys) : super._();
+
   final int length;
   // A constant map is backed by a JavaScript object.
   final _jsObject;
@@ -62,6 +67,10 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V>
 // This class has no constructor. This is on purpose since the instantiation
 // is shortcut by the compiler.
 class ConstantProtoMap<K, V> extends ConstantStringMap<K, V> {
+  // This constructor is not used.  The instantiation is shortcut by the
+  // compiler. It is here to make the uninitialized final fields legal.
+  ConstantProtoMap._(length, jsObject, keys) : super._(length, jsObject, keys);
+
   final V _protoValue;
 
   bool containsKey(Object key) {
@@ -82,9 +91,11 @@ class _ConstantMapKeyIterable<K> extends IterableBase<K> {
   Iterator<K> get iterator => _map._keys.iterator;
 }
 
-// This class has no constructor. This is on purpose since the instantiation
-// is shortcut by the compiler.
 class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
+  // This constructor is not used.  The instantiation is shortcut by the
+  // compiler. It is here to make the uninitialized final fields legal.
+  GeneralConstantMap(this._jsData) : super._();
+
   // [_jsData] holds a key-value pair list.
   final _jsData;
 
