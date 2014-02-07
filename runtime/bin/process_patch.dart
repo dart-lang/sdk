@@ -130,6 +130,7 @@ patch class _ProcessUtils {
   /* patch */ static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
     if (signal != ProcessSignal.SIGHUP &&
         signal != ProcessSignal.SIGINT &&
+        signal != ProcessSignal.SIGTERM &&
         (Platform.isWindows ||
          (signal != ProcessSignal.SIGUSR1 &&
           signal != ProcessSignal.SIGUSR2 &&

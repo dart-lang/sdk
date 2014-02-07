@@ -635,13 +635,14 @@ intptr_t Process::CurrentProcessId() {
 
 static Mutex* signal_mutex = new Mutex();
 static SignalInfo* signal_handlers = NULL;
-static const int kSignalsCount = 5;
+static const int kSignalsCount = 6;
 static const int kSignals[kSignalsCount] = {
+  SIGHUP,
   SIGINT,
-  SIGWINCH,
   SIGTERM,
   SIGUSR1,
-  SIGUSR2
+  SIGUSR2,
+  SIGWINCH
 };
 
 
