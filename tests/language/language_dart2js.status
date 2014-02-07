@@ -75,6 +75,7 @@ compile_time_constant_checked3_test/03: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/04: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/05: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/06: MissingCompileTimeError, OK
+type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
 malformed2_test/01: MissingCompileTimeError, OK
 generic_test: RuntimeError, OK
 named_parameters_type_test/01: MissingRuntimeError, OK
