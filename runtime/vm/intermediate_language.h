@@ -632,7 +632,6 @@ class EmbeddedArray<T, 0> {
   M(CreateArray)                                                               \
   M(CreateClosure)                                                             \
   M(AllocateObject)                                                            \
-  M(AllocateObjectWithBoundsCheck)                                             \
   M(LoadField)                                                                 \
   M(StoreVMField)                                                              \
   M(LoadUntagged)                                                              \
@@ -4063,34 +4062,6 @@ class MaterializeObjectInstr : public Definition {
 };
 
 
-class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<0> {
- public:
-  explicit AllocateObjectWithBoundsCheckInstr(ConstructorCallNode* node)
-      : ast_node_(*node) {
-  }
-
-  DECLARE_INSTRUCTION(AllocateObjectWithBoundsCheck)
-
-  virtual intptr_t ArgumentCount() const { return 4; }
-
-  const Function& constructor() const { return ast_node_.constructor(); }
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const ConstructorCallNode& ast_node_;
-
-  DISALLOW_COPY_AND_ASSIGN(AllocateObjectWithBoundsCheckInstr);
-};
-
-
 class CreateArrayInstr : public TemplateDefinition<2> {
  public:
   CreateArrayInstr(intptr_t token_pos,
@@ -4390,7 +4361,7 @@ class InstantiateTypeInstr : public TemplateDefinition<1> {
 class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
  public:
   InstantiateTypeArgumentsInstr(intptr_t token_pos,
-                                const AbstractTypeArguments& type_arguments,
+                                const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
                                 Value* instantiator)
       : token_pos_(token_pos),
@@ -4403,7 +4374,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(InstantiateTypeArguments)
 
   Value* instantiator() const { return inputs_[0]; }
-  const AbstractTypeArguments& type_arguments() const {
+  const TypeArguments& type_arguments() const {
     return type_arguments_;
   }
   const Class& instantiator_class() const { return instantiator_class_; }
@@ -4419,7 +4390,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
 
  private:
   const intptr_t token_pos_;
-  const AbstractTypeArguments& type_arguments_;
+  const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
@@ -4430,7 +4401,7 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
  public:
   ExtractConstructorTypeArgumentsInstr(
       intptr_t token_pos,
-      const AbstractTypeArguments& type_arguments,
+      const TypeArguments& type_arguments,
       const Class& instantiator_class,
       Value* instantiator)
       : token_pos_(token_pos),
@@ -4442,7 +4413,7 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(ExtractConstructorTypeArguments)
 
   Value* instantiator() const { return inputs_[0]; }
-  const AbstractTypeArguments& type_arguments() const {
+  const TypeArguments& type_arguments() const {
     return type_arguments_;
   }
   const Class& instantiator_class() const { return instantiator_class_; }
@@ -4458,7 +4429,7 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
 
  private:
   const intptr_t token_pos_;
-  const AbstractTypeArguments& type_arguments_;
+  const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsInstr);
@@ -4477,7 +4448,7 @@ class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(ExtractConstructorInstantiator)
 
   Value* instantiator() const { return inputs_[0]; }
-  const AbstractTypeArguments& type_arguments() const {
+  const TypeArguments& type_arguments() const {
     return ast_node_.type_arguments();
   }
   const Function& constructor() const { return ast_node_.constructor(); }

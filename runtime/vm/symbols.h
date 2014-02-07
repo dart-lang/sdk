@@ -80,7 +80,6 @@ class ObjectPointerVisitor;
   V(BoundedType, "_BoundedType")                                               \
   V(MixinAppType, "_MixinAppType")                                             \
   V(TypeArguments, "TypeArguments")                                            \
-  V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
   V(FunctionImpl, "_FunctionImpl")                                             \

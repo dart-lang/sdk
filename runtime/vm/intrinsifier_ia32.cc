@@ -205,9 +205,6 @@ void Intrinsifier::Array_setIndexed(Assembler* assembler) {
     __ cmpl(EBX, raw_null);
     __ j(EQUAL, &checked_ok, Assembler::kNearJump);
     // Check if it's dynamic.
-    // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
-    __ CompareClassId(EBX, kTypeArgumentsCid, EAX);
-    __ j(NOT_EQUAL, &fall_through);
     // Get type at index 0.
     __ movl(EAX, FieldAddress(EBX, TypeArguments::type_at_offset(0)));
     __ CompareObject(EAX, Type::ZoneHandle(Type::DynamicType()));

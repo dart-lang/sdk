@@ -250,8 +250,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const intptr_t num_type_args = type_class.NumTypeArguments();
   const intptr_t num_type_params = type_class.NumTypeParameters();
   const intptr_t from_index = num_type_args - num_type_params;
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::ZoneHandle(type.arguments());
+  const TypeArguments& type_arguments =
+      TypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
       type_arguments.IsRaw(from_index, num_type_params);
   // Signature class is an instantiated parameterized type.
@@ -423,24 +423,16 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Load instantiator (or null) and instantiator type arguments on stack.
     __ ldr(R1, Address(SP, 0));  // Get instantiator type arguments.
     // R1: instantiator type arguments.
-    // Check if type argument is dynamic.
+    // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
     __ b(is_instance_lbl, EQ);
-    // Can handle only type arguments that are instances of TypeArguments.
-    // (runtime checks canonicalize type arguments).
-    Label fall_through;
-    __ CompareClassId(R1, kTypeArgumentsCid, R2);
-    __ b(&fall_through, NE);
     __ ldr(R2,
         FieldAddress(R1, TypeArguments::type_at_offset(type_param.index())));
     // R2: concrete type of type.
     // Check if type argument is dynamic.
     __ CompareObject(R2, Type::ZoneHandle(Type::DynamicType()));
     __ b(is_instance_lbl, EQ);
-    __ CompareImmediate(R2, reinterpret_cast<intptr_t>(Object::null()));
-    __ b(is_instance_lbl, EQ);
-    const Type& object_type = Type::ZoneHandle(Type::ObjectType());
-    __ CompareObject(R2, object_type);
+    __ CompareObject(R2, Type::ZoneHandle(Type::ObjectType()));
     __ b(is_instance_lbl, EQ);
 
     // For Smi check quickly against int and num interfaces.
@@ -452,6 +444,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ CompareObject(R2, Type::ZoneHandle(Type::Number()));
     __ b(is_instance_lbl, EQ);
     // Smi must be handled in runtime.
+    Label fall_through;
     __ b(&fall_through);
 
     __ Bind(&not_smi);

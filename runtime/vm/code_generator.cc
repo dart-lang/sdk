@@ -91,14 +91,23 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   const Smi& length = Smi::CheckedHandle(arguments.ArgAt(0));
   const Array& array = Array::Handle(Array::New(length.Value()));
   arguments.SetReturn(array);
-  AbstractTypeArguments& element_type =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
+  TypeArguments& element_type =
+      TypeArguments::CheckedHandle(arguments.ArgAt(1));
   // An Array is raw or takes one type argument. However, its type argument
   // vector may be longer than 1 due to a type optimization reusing the type
   // argument vector of the instantiator.
   ASSERT(element_type.IsNull() ||
          ((element_type.Length() >= 1) && element_type.IsInstantiated()));
   array.SetTypeArguments(element_type);  // May be null.
+}
+
+
+// Helper returning the token position of the Dart caller.
+static intptr_t GetCallerLocation() {
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+  return caller_frame->GetTokenPos();
 }
 
 
@@ -116,8 +125,8 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
     ASSERT(Instance::CheckedHandle(arguments.ArgAt(1)).IsNull());
     return;
   }
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
+  TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(arguments.ArgAt(1));
   // If no instantiator is provided, set the type arguments and return.
   if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
     ASSERT(Smi::CheckedHandle(arguments.ArgAt(2)).Value() ==
@@ -134,61 +143,17 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
   // A still uninstantiated type argument vector must have the correct length.
   ASSERT(!type_arguments.IsInstantiated() &&
          (type_arguments.Length() == cls.NumTypeArguments()));
-  const AbstractTypeArguments& instantiator =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
+  const TypeArguments& instantiator =
+      TypeArguments::CheckedHandle(arguments.ArgAt(2));
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
   ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-  type_arguments = InstantiatedTypeArguments::New(type_arguments, instantiator);
-  instance.SetTypeArguments(type_arguments);
-}
-
-
-// Helper returning the token position of the Dart caller.
-static intptr_t GetCallerLocation() {
-  DartFrameIterator iterator;
-  StackFrame* caller_frame = iterator.NextFrame();
-  ASSERT(caller_frame != NULL);
-  return caller_frame->GetTokenPos();
-}
-
-
-// Allocate a new object of a generic type and check that the instantiated type
-// arguments are within the declared bounds or throw a dynamic type error.
-// Arg0: class of the object that needs to be allocated.
-// Arg1: type arguments of the object that needs to be allocated.
-// Arg2: type arguments of the instantiator or kNoInstantiator.
-// Return value: newly allocated object.
-DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
-  ASSERT(FLAG_enable_type_checks);
-  const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
-  const Instance& instance = Instance::Handle(Instance::New(cls));
-  arguments.SetReturn(instance);
-  ASSERT(cls.NumTypeArguments() > 0);
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
-  if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
-    ASSERT(Smi::CheckedHandle(arguments.ArgAt(2)).Value() ==
-           StubCode::kNoInstantiator);
-    // Unless null (for a raw type), the type argument vector may be longer than
-    // necessary due to a type optimization reusing the type argument vector of
-    // the instantiator.
-    ASSERT(type_arguments.IsNull() ||
-           (type_arguments.IsInstantiated() &&
-            (type_arguments.Length() >= cls.NumTypeArguments())));
-  } else {
-    // A still uninstantiated type argument vector must have the correct length.
-    ASSERT(!type_arguments.IsInstantiated() &&
-           (type_arguments.Length() == cls.NumTypeArguments()));
-    const AbstractTypeArguments& instantiator =
-        AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
-    ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
+  if (FLAG_enable_type_checks) {
     Error& bound_error = Error::Handle();
-    // Code inlined in the caller should have optimized the case where the
-    // instantiator can be reused as type argument vector.
-  ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-    type_arguments = type_arguments.InstantiateFrom(instantiator, &bound_error);
+    type_arguments =
+        type_arguments.InstantiateAndCanonicalizeFrom(instantiator,
+                                                      &bound_error);
     if (!bound_error.IsNull()) {
       // Throw a dynamic type error.
       const intptr_t location = GetCallerLocation();
@@ -199,6 +164,9 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
           Symbols::Empty(), bound_error_message);
       UNREACHABLE();
     }
+  } else {
+    type_arguments =
+        type_arguments.InstantiateAndCanonicalizeFrom(instantiator, NULL);
   }
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   instance.SetTypeArguments(type_arguments);
@@ -211,8 +179,8 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
 // Return value: instantiated type.
 DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
   AbstractType& type = AbstractType::CheckedHandle(arguments.ArgAt(0));
-  const AbstractTypeArguments& instantiator =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
+  const TypeArguments& instantiator =
+      TypeArguments::CheckedHandle(arguments.ArgAt(1));
   ASSERT(!type.IsNull() && !type.IsInstantiated());
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   Error& bound_error = Error::Handle();
@@ -242,16 +210,17 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
 // Arg1: instantiator type arguments.
 // Return value: instantiated type arguments.
 DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(0));
-  const AbstractTypeArguments& instantiator =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
+  TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(arguments.ArgAt(0));
+  const TypeArguments& instantiator =
+      TypeArguments::CheckedHandle(arguments.ArgAt(1));
   ASSERT(!type_arguments.IsNull() && !type_arguments.IsInstantiated());
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
   ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-  type_arguments = InstantiatedTypeArguments::New(type_arguments, instantiator);
+  type_arguments =
+      type_arguments.InstantiateAndCanonicalizeFrom(instantiator, NULL);
   ASSERT(type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);
 }
@@ -268,8 +237,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
 DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
+  const TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(arguments.ArgAt(1));
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   // The current context was saved in the Isolate structure when entering the
   // runtime.
@@ -290,8 +259,8 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(function.IsImplicitInstanceClosureFunction());
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(1));
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
+  const TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(arguments.ArgAt(2));
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   Context& context = Context::Handle();
   context = Context::New(1);
@@ -331,7 +300,7 @@ static void PrintTypeCheck(
     const char* message,
     const Instance& instance,
     const AbstractType& type,
-    const AbstractTypeArguments& instantiator_type_arguments,
+    const TypeArguments& instantiator_type_arguments,
     const Bool& result) {
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
@@ -370,51 +339,6 @@ static void PrintTypeCheck(
 }
 
 
-// Converts InstantiatedTypeArguments to TypeArguments and stores it
-// into the instance. The assembly code can handle only type arguments of
-// class TypeArguments. Because of the overhead, do it only when needed.
-// Return true if type arguments have been replaced, false otherwise.
-static bool OptimizeTypeArguments(const Instance& instance) {
-  const Class& type_class = Class::ZoneHandle(instance.clazz());
-  if (type_class.NumTypeArguments() == 0) {
-    return false;
-  }
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(instance.GetTypeArguments());
-  if (type_arguments.IsNull()) {
-    return false;
-  }
-  bool replaced = false;
-  if (type_arguments.IsInstantiatedTypeArguments()) {
-    AbstractTypeArguments& uninstantiated = AbstractTypeArguments::Handle();
-    AbstractTypeArguments& instantiator = AbstractTypeArguments::Handle();
-    do {
-      const InstantiatedTypeArguments& instantiated_type_arguments =
-          InstantiatedTypeArguments::Cast(type_arguments);
-      uninstantiated =
-          instantiated_type_arguments.uninstantiated_type_arguments();
-      instantiator = instantiated_type_arguments.instantiator_type_arguments();
-      Error& bound_error = Error::Handle();
-      type_arguments = uninstantiated.InstantiateFrom(instantiator,
-                                                      &bound_error);
-      ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
-    } while (type_arguments.IsInstantiatedTypeArguments());
-    AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
-    new_type_arguments = type_arguments.Canonicalize();
-    instance.SetTypeArguments(new_type_arguments);
-    replaced = true;
-  } else if (!type_arguments.IsCanonical()) {
-    AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
-    new_type_arguments = type_arguments.Canonicalize();
-    instance.SetTypeArguments(new_type_arguments);
-    replaced = true;
-  }
-  ASSERT(AbstractTypeArguments::Handle(
-      instance.GetTypeArguments()).IsTypeArguments());
-  return replaced;
-}
-
-
 // This updates the type test cache, an array containing 4-value elements
 // (instance class, instance type arguments, instantiator type arguments and
 // test_result). It can be applied to classes with type arguments in which
@@ -426,7 +350,7 @@ static void UpdateTypeTestCache(
     const Instance& instance,
     const AbstractType& type,
     const Instance& instantiator,
-    const AbstractTypeArguments& incoming_instantiator_type_arguments,
+    const TypeArguments& instantiator_type_arguments,
     const Bool& result,
     const SubtypeTestCache& new_cache) {
   // Since the test is expensive, don't do it unless necessary.
@@ -438,37 +362,35 @@ static void UpdateTypeTestCache(
     }
     return;
   }
-  // Instantiator type arguments may be canonicalized later.
-  AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::Handle(incoming_instantiator_type_arguments.raw());
-  AbstractTypeArguments& instance_type_arguments =
-      AbstractTypeArguments::Handle();
+  if (instance.IsSmi()) {
+    if (FLAG_trace_type_checks) {
+      OS::Print("UpdateTypeTestCache: instance is Smi\n");
+    }
+    return;
+  }
+  TypeArguments& instance_type_arguments =
+      TypeArguments::Handle();
   const Class& instance_class = Class::Handle(instance.clazz());
 
-  // Canonicalize type arguments.
-  bool type_arguments_replaced = false;
   if (instance_class.NumTypeArguments() > 0) {
-    // Canonicalize type arguments.
-    type_arguments_replaced = OptimizeTypeArguments(instance);
     instance_type_arguments = instance.GetTypeArguments();
   }
-  if (!instantiator.IsNull()) {
-    if (OptimizeTypeArguments(instantiator)) {
-      type_arguments_replaced = true;
-    }
-    instantiator_type_arguments = instantiator.GetTypeArguments();
-  }
 
-  intptr_t last_instance_class_id = -1;
-  AbstractTypeArguments& last_instance_type_arguments =
-      AbstractTypeArguments::Handle();
-  AbstractTypeArguments& last_instantiator_type_arguments =
-      AbstractTypeArguments::Handle();
-  Bool& last_result = Bool::Handle();
   const intptr_t len = new_cache.NumberOfChecks();
   if (len >= FLAG_max_subtype_cache_entries) {
     return;
   }
+#if defined(DEBUG)
+  ASSERT(instance_type_arguments.IsNull() ||
+         instance_type_arguments.IsCanonical());
+  ASSERT(instantiator_type_arguments.IsNull() ||
+         instantiator_type_arguments.IsCanonical());
+  intptr_t last_instance_class_id = -1;
+  TypeArguments& last_instance_type_arguments =
+      TypeArguments::Handle();
+  TypeArguments& last_instantiator_type_arguments =
+      TypeArguments::Handle();
+  Bool& last_result = Bool::Handle();
   for (intptr_t i = 0; i < len; ++i) {
     new_cache.GetCheck(
         i,
@@ -480,28 +402,18 @@ static void UpdateTypeTestCache(
         (last_instance_type_arguments.raw() == instance_type_arguments.raw()) &&
         (last_instantiator_type_arguments.raw() ==
          instantiator_type_arguments.raw())) {
-      if (FLAG_trace_type_checks) {
-        OS::PrintErr("%" Pd " ", i);
-        if (type_arguments_replaced) {
-          PrintTypeCheck("Duplicate cache entry (canonical.)", instance, type,
-              instantiator_type_arguments, result);
-        } else {
-          PrintTypeCheck("WARNING Duplicate cache entry", instance, type,
-              instantiator_type_arguments, result);
-        }
-      }
-      // Can occur if we have canonicalized arguments.
-      // TODO(srdjan): Investigate why this assert can fail.
-      // ASSERT(type_arguments_replaced);
+      OS::PrintErr("  Error in test cache %p ix: %" Pd ",", new_cache.raw(), i);
+      PrintTypeCheck(" duplicate cache entry", instance, type,
+          instantiator_type_arguments, result);
+      UNREACHABLE();
       return;
     }
   }
-  if (!instantiator_type_arguments.IsInstantiatedTypeArguments()) {
-    new_cache.AddCheck(instance_class.id(),
-                       instance_type_arguments,
-                       instantiator_type_arguments,
-                       result);
-  }
+#endif
+  new_cache.AddCheck(instance_class.id(),
+                     instance_type_arguments,
+                     instantiator_type_arguments,
+                     result);
   if (FLAG_trace_type_checks) {
     AbstractType& test_type = AbstractType::Handle(type.raw());
     if (!test_type.IsInstantiated()) {
@@ -550,8 +462,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
   const AbstractType& type = AbstractType::CheckedHandle(arguments.ArgAt(1));
   const Instance& instantiator = Instance::CheckedHandle(arguments.ArgAt(2));
-  const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(3));
+  const TypeArguments& instantiator_type_arguments =
+      TypeArguments::CheckedHandle(arguments.ArgAt(3));
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(arguments.ArgAt(4));
   ASSERT(type.IsFinalized());
@@ -598,8 +510,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
       AbstractType::CheckedHandle(arguments.ArgAt(1));
   const Instance& dst_instantiator =
       Instance::CheckedHandle(arguments.ArgAt(2));
-  const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.ArgAt(3));
+  const TypeArguments& instantiator_type_arguments =
+      TypeArguments::CheckedHandle(arguments.ArgAt(3));
   const String& dst_name = String::CheckedHandle(arguments.ArgAt(4));
   const SubtypeTestCache& cache =
       SubtypeTestCache::CheckedHandle(arguments.ArgAt(5));

@@ -856,8 +856,8 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   ASSERT(instantiator.IsFinalized());
   ASSERT(!instantiator.IsMalformed());
 
-  const AbstractTypeArguments& type_args =
-      AbstractTypeArguments::Handle(instantiator.arguments());
+  const TypeArguments& type_args =
+      TypeArguments::Handle(instantiator.arguments());
   Error& bound_error = Error::Handle();
   AbstractType& result =
       AbstractType::Handle(type.InstantiateFrom(type_args, &bound_error));
@@ -1258,8 +1258,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   const Array& result = Array::Handle(Array::New(num_params));
   AbstractType& arg_type = AbstractType::Handle();
   Instance& type_mirror = Instance::Handle();
-  const AbstractTypeArguments& args =
-      AbstractTypeArguments::Handle(type.arguments());
+  const TypeArguments& args = TypeArguments::Handle(type.arguments());
 
   // Handle argument lists that have been optimized away, because either no
   // arguments have been provided, or all arguments are dynamic. Return a list
@@ -1750,8 +1749,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   }
 
   ASSERT(!type.IsNull());
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(type.arguments());
+  TypeArguments& type_arguments = TypeArguments::Handle(type.arguments());
   if (!type.IsInstantiated()) {
     // Must have been a declaration type.
     AbstractType& rare_type = AbstractType::Handle(klass.RareType());
@@ -1775,6 +1773,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
         ThrowInvokeError(bound_error);
         UNREACHABLE();
       }
+      redirect_type ^= redirect_type.Canonicalize();
     }
 
     type = redirect_type.raw();

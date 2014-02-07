@@ -24,8 +24,7 @@ static void ThrowMaskRangeException(int64_t m) {
 
 
 DEFINE_NATIVE_ENTRY(Float32x4_fromDoubles, 5) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, y, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, z, arguments->NativeArgAt(3));
@@ -39,8 +38,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_fromDoubles, 5) {
 
 
 DEFINE_NATIVE_ENTRY(Float32x4_splat, 2) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Double, v, arguments->NativeArgAt(1));
   float _v = v.value();
   return Float32x4::New(_v, _v, _v, _v);
@@ -48,8 +46,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_splat, 2) {
 
 
 DEFINE_NATIVE_ENTRY(Float32x4_zero, 1) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   return Float32x4::New(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
@@ -408,8 +405,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_reciprocalSqrt, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 5) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, x, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, y, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, z, arguments->NativeArgAt(3));
@@ -423,8 +419,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 5) {
 
 
 DEFINE_NATIVE_ENTRY(Int32x4_fromBools, 5) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, x, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, y, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, z, arguments->NativeArgAt(3));
@@ -717,8 +712,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_select, 3) {
 
 
 DEFINE_NATIVE_ENTRY(Float64x2_fromDoubles, 3) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, y, arguments->NativeArgAt(2));
   return Float64x2::New(x.value(), y.value());
@@ -726,23 +720,20 @@ DEFINE_NATIVE_ENTRY(Float64x2_fromDoubles, 3) {
 
 
 DEFINE_NATIVE_ENTRY(Float64x2_splat, 2) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Double, v, arguments->NativeArgAt(1));
   return Float64x2::New(v.value(), v.value());
 }
 
 
 DEFINE_NATIVE_ENTRY(Float64x2_zero, 1) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   return Float64x2::New(0.0, 0.0);
 }
 
 
 DEFINE_NATIVE_ENTRY(Float64x2_fromFloat32x4, 2) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(1));
   double _x = v.x();
   double _y = v.y();

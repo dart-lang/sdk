@@ -11,17 +11,17 @@
 namespace dart {
 
 class AbstractType;
-class MixinAppType;
-class AbstractTypeArguments;
 class Class;
 class Error;
 class Function;
 class GrowableObjectArray;
+class MixinAppType;
 class RawAbstractType;
 class RawClass;
 class RawType;
 class Script;
 class Type;
+class TypeArguments;
 class UnresolvedClass;
 
 // Traverses all pending, unfinalized classes, validates and marks them as
@@ -141,13 +141,13 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeTypeParameters(const Class& cls,
                                      GrowableObjectArray* pending_types = NULL);
   static void FinalizeTypeArguments(const Class& cls,
-                                    const AbstractTypeArguments& arguments,
+                                    const TypeArguments& arguments,
                                     intptr_t num_uninitialized_arguments,
                                     Error* bound_error,
                                     GrowableObjectArray* pending_types);
   static void CheckTypeBounds(const Class& cls, const Type& type);
   static void CheckTypeArgumentBounds(const Class& cls,
-                                      const AbstractTypeArguments& arguments,
+                                      const TypeArguments& arguments,
                                       Error* bound_error);
   static void ResolveUpperBounds(const Class& cls);
   static void FinalizeUpperBounds(const Class& cls);

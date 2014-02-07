@@ -259,8 +259,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const intptr_t num_type_args = type_class.NumTypeArguments();
   const intptr_t num_type_params = type_class.NumTypeParameters();
   const intptr_t from_index = num_type_args - num_type_params;
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::ZoneHandle(type.arguments());
+  const TypeArguments& type_arguments =
+      TypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
       type_arguments.IsRaw(from_index, num_type_params);
   // Signature class is an instantiated parameterized type.
@@ -436,24 +436,16 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Load instantiator (or null) and instantiator type arguments on stack.
     __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
     // EDX: instantiator type arguments.
-    // Check if type argument is dynamic.
+    // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ cmpl(EDX, raw_null);
     __ j(EQUAL, is_instance_lbl);
-    // Can handle only type arguments that are instances of TypeArguments.
-    // (runtime checks canonicalize type arguments).
-    Label fall_through;
-    __ CompareClassId(EDX, kTypeArgumentsCid, EDI);
-    __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
     __ movl(EDI,
         FieldAddress(EDX, TypeArguments::type_at_offset(type_param.index())));
     // EDI: concrete type of type.
     // Check if type argument is dynamic.
     __ CompareObject(EDI, Type::ZoneHandle(Type::DynamicType()));
     __ j(EQUAL,  is_instance_lbl);
-    __ cmpl(EDI, raw_null);
-    __ j(EQUAL,  is_instance_lbl);
-    const Type& object_type = Type::ZoneHandle(Type::ObjectType());
-    __ CompareObject(EDI, object_type);
+    __ CompareObject(EDI, Type::ZoneHandle(Type::ObjectType()));
     __ j(EQUAL,  is_instance_lbl);
 
     // For Smi check quickly against int and num interfaces.
@@ -465,6 +457,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ CompareObject(EDI, Type::ZoneHandle(Type::Number()));
     __ j(EQUAL,  is_instance_lbl);
     // Smi must be handled in runtime.
+    Label fall_through;
     __ jmp(&fall_through);
 
     __ Bind(&not_smi);

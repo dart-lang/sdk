@@ -479,16 +479,6 @@ void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void AllocateObjectWithBoundsCheckInstr::PrintOperandsTo(
-    BufferFormatter* f) const {
-  f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
-  for (intptr_t i = 0; i < InputCount(); i++) {
-    f->Print(", ");
-    InputAt(i)->PrintTo(f);
-  }
-}
-
-
 void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls_.Name()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {

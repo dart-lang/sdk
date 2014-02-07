@@ -2838,7 +2838,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     ASSERT(current_class().raw() == func.Owner());
     params.AddReceiver(ReceiverType(current_class()), func.token_pos());
   } else if (func.IsFactory()) {
-    // The first parameter of a factory is the AbstractTypeArguments vector of
+    // The first parameter of a factory is the TypeArguments vector of
     // the type of the instance to be allocated.
     params.AddFinalParameter(
         TokenPos(),
@@ -3106,7 +3106,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   const intptr_t formal_param_pos = TokenPos();
   method->params.Clear();
   // Static functions do not have a receiver.
-  // The first parameter of a factory is the AbstractTypeArguments vector of
+  // The first parameter of a factory is the TypeArguments vector of
   // the type of the instance to be allocated.
   if (!method->has_static || method->IsConstructor()) {
     method->params.AddReceiver(ReceiverType(current_class()), formal_param_pos);
@@ -4447,7 +4447,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
 }
 
 
-RawAbstractTypeArguments* Parser::ParseTypeArguments(
+RawTypeArguments* Parser::ParseTypeArguments(
     ClassFinalizer::FinalizationKind finalization) {
   TRACE_PARSER("ParseTypeArguments");
   if (CurrentToken() == Token::kLT) {
@@ -5726,8 +5726,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // Since the signature type is cached by the signature class, it may have
   // been finalized already.
   Type& signature_type = Type::Handle(signature_class.SignatureType());
-  AbstractTypeArguments& signature_type_arguments =
-      AbstractTypeArguments::Handle(signature_type.arguments());
+  TypeArguments& signature_type_arguments =
+      TypeArguments::Handle(signature_type.arguments());
 
   if (!signature_type.IsFinalized()) {
     signature_type ^= ClassFinalizer::FinalizeType(
@@ -5841,7 +5841,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
   // of int, double, String, or bool, then preset the field with the value and
   // perform the type check (in checked mode only) at finalization time.
   if (type.IsTypeParameter() ||
-      (type.arguments() != AbstractTypeArguments::null())) {
+      (type.arguments() != TypeArguments::null())) {
     // Type parameters are always resolved eagerly by the parser and never
     // resolved later by the class finalizer. Therefore, we know here that if
     // 'type' is not a type parameter (an unresolved type will not get resolved
@@ -8702,7 +8702,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           }
           // A type parameter cannot be parameterized, so make the type
           // malformed if type arguments have previously been parsed.
-          if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
+          if (!TypeArguments::Handle(type->arguments()).IsNull()) {
             *type = ClassFinalizer::NewFinalizedMalformedType(
                 Error::Handle(),  // No previous error.
                 script_,
@@ -8745,8 +8745,8 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
     }
   }
   // Resolve type arguments, if any.
-  const AbstractTypeArguments& arguments =
-      AbstractTypeArguments::Handle(type->arguments());
+  const TypeArguments& arguments = TypeArguments::Handle(type->arguments());
+      TypeArguments::Handle(type->arguments());
   if (!arguments.IsNull()) {
     const intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
@@ -8924,7 +8924,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field,
 
 RawObject* Parser::EvaluateConstConstructorCall(
     const Class& type_class,
-    const AbstractTypeArguments& type_arguments,
+    const TypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
   // Factories have one extra argument: the type arguments.
@@ -8940,7 +8940,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
         ErrorMsg("type must be constant in const constructor");
       }
       instance.SetTypeArguments(
-          AbstractTypeArguments::Handle(type_arguments.Canonicalize()));
+          TypeArguments::Handle(type_arguments.Canonicalize()));
     }
     arg_values.SetAt(0, instance);
     arg_values.SetAt(1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
@@ -9334,7 +9334,7 @@ RawAbstractType* Parser::ParseType(
                                       *type_name.ident,
                                       type_name.ident_pos);
   }
-  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle(
+  TypeArguments& type_arguments = TypeArguments::Handle(
       isolate(), ParseTypeArguments(finalization));
   if (finalization == ClassFinalizer::kIgnore) {
     return Type::DynamicType();
@@ -9353,11 +9353,12 @@ RawAbstractType* Parser::ParseType(
 
 void Parser::CheckConstructorCallTypeArguments(
     intptr_t pos, Function& constructor,
-    const AbstractTypeArguments& type_arguments) {
+    const TypeArguments& type_arguments) {
   if (!type_arguments.IsNull()) {
     const Class& constructor_class = Class::Handle(constructor.Owner());
     ASSERT(!constructor_class.IsNull());
     ASSERT(constructor_class.is_finalized());
+    ASSERT(type_arguments.IsCanonical());
     // Do not report the expected vs. actual number of type arguments, because
     // the type argument vector is flattened and raw types are allowed.
     if (type_arguments.Length() != constructor_class.NumTypeArguments()) {
@@ -9373,7 +9374,7 @@ void Parser::CheckConstructorCallTypeArguments(
 // as one token of type Token::kINDEX.
 AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                                   bool is_const,
-                                  const AbstractTypeArguments& type_arguments) {
+                                  const TypeArguments& type_arguments) {
   TRACE_PARSER("ParseListLiteral");
   ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACK || CurrentToken() == Token::kINDEX);
@@ -9382,8 +9383,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   ConsumeToken();
 
   AbstractType& element_type = Type::ZoneHandle(Type::DynamicType());
-  AbstractTypeArguments& list_type_arguments =
-      AbstractTypeArguments::ZoneHandle(type_arguments.raw());
+  TypeArguments& list_type_arguments =
+      TypeArguments::ZoneHandle(type_arguments.raw());
   // If no type argument vector is provided, leave it as null, which is
   // equivalent to using dynamic as the type argument for the element type.
   if (!list_type_arguments.IsNull()) {
@@ -9394,7 +9395,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       ASSERT(!element_type.IsMalformed());  // Would be mapped to dynamic.
       ASSERT(!element_type.IsMalbounded());  // No declared bound in List.
       if (element_type.IsDynamicType()) {
-        list_type_arguments = AbstractTypeArguments::null();
+        list_type_arguments = TypeArguments::null();
       } else if (is_const && !element_type.IsInstantiated()) {
         ErrorMsg(type_pos,
                  "the type argument of a constant list literal cannot include "
@@ -9407,7 +9408,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                  "the element type");
       }
       // Ignore type arguments.
-      list_type_arguments = AbstractTypeArguments::null();
+      list_type_arguments = TypeArguments::null();
     }
   }
   ASSERT(list_type_arguments.IsNull() || (list_type_arguments.Length() == 1));
@@ -9449,7 +9450,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     Array& const_list =
         Array::ZoneHandle(Array::New(element_list.length(), Heap::kOld));
     const_list.SetTypeArguments(
-        AbstractTypeArguments::Handle(list_type_arguments.Canonicalize()));
+        TypeArguments::Handle(list_type_arguments.Canonicalize()));
     Error& malformed_error = Error::Handle();
     for (int i = 0; i < element_list.length(); i++) {
       AstNode* elem = element_list[i];
@@ -9492,8 +9493,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
-    AbstractTypeArguments& factory_type_args =
-        AbstractTypeArguments::ZoneHandle(list_type_arguments.raw());
+    TypeArguments& factory_type_args =
+        TypeArguments::ZoneHandle(list_type_arguments.raw());
     // If the factory class extends other parameterized classes, adjust the
     // type argument vector.
     if (!factory_type_args.IsNull() && (factory_class.NumTypeArguments() > 1)) {
@@ -9527,7 +9528,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
 
 ConstructorCallNode* Parser::CreateConstructorCallNode(
     intptr_t token_pos,
-    const AbstractTypeArguments& type_arguments,
+    const TypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
   if (!type_arguments.IsNull() && !type_arguments.IsInstantiated()) {
@@ -9567,7 +9568,7 @@ static void AddKeyValuePair(GrowableArray<AstNode*>* pairs,
 
 AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                  bool is_const,
-                                 const AbstractTypeArguments& type_arguments) {
+                                 const TypeArguments& type_arguments) {
   TRACE_PARSER("ParseMapLiteral");
   ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACE);
@@ -9576,8 +9577,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
 
   AbstractType& key_type = Type::ZoneHandle(Type::DynamicType());
   AbstractType& value_type = Type::ZoneHandle(Type::DynamicType());
-  AbstractTypeArguments& map_type_arguments =
-      AbstractTypeArguments::ZoneHandle(type_arguments.raw());
+  TypeArguments& map_type_arguments =
+      TypeArguments::ZoneHandle(type_arguments.raw());
   // If no type argument vector is provided, leave it as null, which is
   // equivalent to using dynamic as the type argument for the both key and value
   // types.
@@ -9592,7 +9593,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       // No declared bounds in Map.
       ASSERT(!key_type.IsMalbounded() && !value_type.IsMalbounded());
       if (key_type.IsDynamicType() && value_type.IsDynamicType()) {
-        map_type_arguments = AbstractTypeArguments::null();
+        map_type_arguments = TypeArguments::null();
       } else if (is_const && !type_arguments.IsInstantiated()) {
         ErrorMsg(type_pos,
                  "the type arguments of a constant map literal cannot include "
@@ -9605,7 +9606,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                  "the key type and the value type");
       }
       // Ignore type arguments.
-      map_type_arguments = AbstractTypeArguments::null();
+      map_type_arguments = TypeArguments::null();
     }
   }
   ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
@@ -9688,7 +9689,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
             (!arg->AsLiteralNode()->literal().IsNull() &&
              !arg->AsLiteralNode()->literal().IsInstanceOf(
                  arg_type,
-                 Object::null_abstract_type_arguments(),
+                 Object::null_type_arguments(),
                  &malformed_error))) {
           // If the failure is due to a malformed type error, display it.
           if (!malformed_error.IsNull()) {
@@ -9750,8 +9751,8 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       // Make sure that the instantiator is captured.
       CaptureInstantiator();
     }
-    AbstractTypeArguments& factory_type_args =
-        AbstractTypeArguments::ZoneHandle(map_type_arguments.raw());
+    TypeArguments& factory_type_args =
+        TypeArguments::ZoneHandle(map_type_arguments.raw());
     // If the factory class extends other parameterized classes, adjust the
     // type argument vector.
     if (!factory_type_args.IsNull() && (factory_class.NumTypeArguments() > 2)) {
@@ -9790,7 +9791,7 @@ AstNode* Parser::ParseCompoundLiteral() {
     ConsumeToken();
   }
   const intptr_t type_pos = TokenPos();
-  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle(
+  TypeArguments& type_arguments = TypeArguments::Handle(
       ParseTypeArguments(ClassFinalizer::kCanonicalize));
   // Malformed type arguments are mapped to dynamic, so we will not encounter
   // them here.
@@ -9923,8 +9924,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   // Resolve the type and optional identifier to a constructor or factory.
   Class& type_class = Class::Handle(type.type_class());
   String& type_class_name = String::Handle(type_class.Name());
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::ZoneHandle(type.arguments());
+  TypeArguments& type_arguments =
+      TypeArguments::ZoneHandle(type.arguments());
 
   // A constructor has an implicit 'this' parameter (instance to construct)
   // and a factory has an implicit 'this' parameter (type_arguments).

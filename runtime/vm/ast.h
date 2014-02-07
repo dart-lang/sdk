@@ -299,8 +299,8 @@ class ArrayNode : public AstNode {
     ASSERT(!type_.IsNull());
     ASSERT(type_.IsFinalized());
     // Type may be uninstantiated when creating a generic list literal.
-    ASSERT((type_.arguments() == AbstractTypeArguments::null()) ||
-           ((AbstractTypeArguments::Handle(type_.arguments()).Length() == 1)));
+    ASSERT((type_.arguments() == TypeArguments::null()) ||
+           ((TypeArguments::Handle(type_.arguments()).Length() == 1)));
   }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ArrayNode);
@@ -1551,7 +1551,7 @@ class ClosureCallNode : public AstNode {
 class ConstructorCallNode : public AstNode {
  public:
   ConstructorCallNode(intptr_t token_pos,
-                      const AbstractTypeArguments& type_arguments,
+                      const TypeArguments& type_arguments,
                       const Function& constructor,
                       ArgumentListNode* arguments)
       : AstNode(token_pos),
@@ -1563,7 +1563,7 @@ class ConstructorCallNode : public AstNode {
     ASSERT(arguments_ != NULL);
   }
 
-  const AbstractTypeArguments& type_arguments() const {
+  const TypeArguments& type_arguments() const {
     return type_arguments_;
   }
   const Function& constructor() const { return constructor_; }
@@ -1576,7 +1576,7 @@ class ConstructorCallNode : public AstNode {
   DECLARE_COMMON_NODE_FUNCTIONS(ConstructorCallNode);
 
  private:
-  const AbstractTypeArguments& type_arguments_;
+  const TypeArguments& type_arguments_;
   const Function& constructor_;
   ArgumentListNode* arguments_;
 

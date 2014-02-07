@@ -249,8 +249,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const intptr_t num_type_args = type_class.NumTypeArguments();
   const intptr_t num_type_params = type_class.NumTypeParameters();
   const intptr_t from_index = num_type_args - num_type_params;
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::ZoneHandle(type.arguments());
+  const TypeArguments& type_arguments =
+      TypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
       type_arguments.IsRaw(from_index, num_type_params);
   // Signature class is an instantiated parameterized type.
@@ -422,22 +422,15 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Load instantiator (or null) and instantiator type arguments on stack.
     __ lw(A1, Address(SP, 0));  // Get instantiator type arguments.
     // A1: instantiator type arguments.
-    // Check if type argument is dynamic.
+    // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
     __ beq(A1, T7, is_instance_lbl);
-    // Can handle only type arguments that are instances of TypeArguments.
-    // (runtime checks canonicalize type arguments).
-    Label fall_through;
-    __ LoadClassId(T2, A1);
-    __ BranchNotEqual(T2, kTypeArgumentsCid, &fall_through);
     __ lw(T2,
         FieldAddress(A1, TypeArguments::type_at_offset(type_param.index())));
     // R2: concrete type of type.
     // Check if type argument is dynamic.
     __ BranchEqual(T2, Type::ZoneHandle(Type::DynamicType()), is_instance_lbl);
-    __ beq(T2, T7, is_instance_lbl);
-    const Type& object_type = Type::ZoneHandle(Type::ObjectType());
-    __ BranchEqual(T2, object_type, is_instance_lbl);
+    __ BranchEqual(T2, Type::ZoneHandle(Type::ObjectType()), is_instance_lbl);
 
     // For Smi check quickly against int and num interfaces.
     Label not_smi;
@@ -445,8 +438,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ bne(CMPRES1, ZR, &not_smi);  // Value is Smi?
     __ BranchEqual(T2, Type::ZoneHandle(Type::IntType()), is_instance_lbl);
     __ BranchEqual(T2, Type::ZoneHandle(Type::Number()), is_instance_lbl);
-
     // Smi must be handled in runtime.
+    Label fall_through;
     __ b(&fall_through);
 
     __ Bind(&not_smi);

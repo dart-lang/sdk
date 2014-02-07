@@ -2747,8 +2747,8 @@ TEST_CASE(SubtypeTestCache) {
   cache.AddCheck(empty_class.id(), targ_0, targ_1, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   intptr_t test_class_id = -1;
-  AbstractTypeArguments& test_targ_0 = AbstractTypeArguments::Handle();
-  AbstractTypeArguments& test_targ_1 = AbstractTypeArguments::Handle();
+  TypeArguments& test_targ_0 = TypeArguments::Handle();
+  TypeArguments& test_targ_1 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
   cache.GetCheck(0, &test_class_id, &test_targ_0, &test_targ_1, &test_result);
   EXPECT_EQ(empty_class.id(), test_class_id);

@@ -284,10 +284,9 @@ class Parser : public ValueObject {
   void SkipQualIdent();
   void SkipFunctionPreamble();
 
-  void CheckConstructorCallTypeArguments(
-    intptr_t pos,
-    Function& constructor,
-    const AbstractTypeArguments& type_arguments);
+  void CheckConstructorCallTypeArguments(intptr_t pos,
+                                         Function& constructor,
+                                         const TypeArguments& type_arguments);
 
   // A null script means no source and a negative token_pos means no position.
   static RawString* FormatMessage(const Script& script,
@@ -320,11 +319,10 @@ class Parser : public ValueObject {
   const Instance& EvaluateConstExpr(intptr_t expr_pos, AstNode* expr);
   AstNode* RunStaticFieldInitializer(const Field& field,
                                      intptr_t field_ref_pos);
-  RawObject* EvaluateConstConstructorCall(
-      const Class& type_class,
-      const AbstractTypeArguments& type_arguments,
-      const Function& constructor,
-      ArgumentListNode* arguments);
+  RawObject* EvaluateConstConstructorCall(const Class& type_class,
+                                          const TypeArguments& type_arguments,
+                                          const Function& constructor,
+                                          ArgumentListNode* arguments);
   AstNode* FoldConstExpr(intptr_t expr_pos, AstNode* expr);
 
   // Support for parsing of scripts.
@@ -360,7 +358,7 @@ class Parser : public ValueObject {
                             AbstractType* type);
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization);
   void ParseTypeParameters(const Class& cls);
-  RawAbstractTypeArguments* ParseTypeArguments(
+  RawTypeArguments* ParseTypeArguments(
       ClassFinalizer::FinalizationKind finalization);
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
@@ -552,10 +550,10 @@ class Parser : public ValueObject {
   AstNode* ParseSymbolLiteral();
   AstNode* ParseListLiteral(intptr_t type_pos,
                             bool is_const,
-                            const AbstractTypeArguments& type_arguments);
+                            const TypeArguments& type_arguments);
   AstNode* ParseMapLiteral(intptr_t type_pos,
                            bool is_const,
-                           const AbstractTypeArguments& type_arguments);
+                           const TypeArguments& type_arguments);
   AstNode* ParseNewOperator(Token::Kind op_kind);
 
   // An implicit argument, if non-null, is prepended to the returned list.
@@ -644,7 +642,7 @@ class Parser : public ValueObject {
 
   ConstructorCallNode* CreateConstructorCallNode(
       intptr_t token_pos,
-      const AbstractTypeArguments& type_arguments,
+      const TypeArguments& type_arguments,
       const Function& constructor,
       ArgumentListNode* arguments);
 

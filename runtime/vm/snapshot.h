@@ -19,7 +19,6 @@ namespace dart {
 
 // Forward declarations.
 class AbstractType;
-class AbstractTypeArguments;
 class Array;
 class Class;
 class ClassTable;
@@ -30,7 +29,6 @@ class LanguageError;
 class Library;
 class Object;
 class ObjectStore;
-class RawAbstractTypeArguments;
 class RawApiError;
 class RawArray;
 class RawBigint;
@@ -69,6 +67,7 @@ class RawTwoByteString;
 class RawUnresolvedClass;
 class String;
 class TokenStream;
+class TypeArguments;
 class UnhandledException;
 
 // Serialized object header encoding is as follows:
@@ -224,7 +223,7 @@ class SnapshotReader : public BaseReader {
   Object* ObjectHandle() { return &obj_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
-  AbstractTypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
+  TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
   Array* TokensHandle() { return &tokens_; }
   TokenStream* StreamHandle() { return &stream_; }
   ExternalTypedData* DataHandle() { return &data_; }
@@ -330,7 +329,7 @@ class SnapshotReader : public BaseReader {
   String& str_;  // Temporary String handle.
   Library& library_;  // Temporary library handle.
   AbstractType& type_;  // Temporary type handle.
-  AbstractTypeArguments& type_arguments_;  // Temporary type argument handle.
+  TypeArguments& type_arguments_;  // Temporary type argument handle.
   Array& tokens_;  // Temporary tokens handle.
   TokenStream& stream_;  // Temporary token stream handle.
   ExternalTypedData& data_;  // Temporary stream data handle.
@@ -350,7 +349,6 @@ class SnapshotReader : public BaseReader {
   friend class Function;
   friend class GrowableObjectArray;
   friend class ImmutableArray;
-  friend class InstantiatedTypeArguments;
   friend class JSRegExp;
   friend class LanguageError;
   friend class Library;
@@ -510,7 +508,7 @@ class SnapshotWriter : public BaseWriter {
                     intptr_t array_kind,
                     intptr_t tags,
                     RawSmi* length,
-                    RawAbstractTypeArguments* type_arguments,
+                    RawTypeArguments* type_arguments,
                     RawObject* data[]);
   void CheckIfSerializable(RawClass* cls);
   void SetWriteException(Exceptions::ExceptionType type, const char* msg);

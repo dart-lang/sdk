@@ -3357,8 +3357,8 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(const ICData& ic_data,
     // arguments.
     const intptr_t num_type_params = type_class.NumTypeParameters();
     const intptr_t from_index = num_type_args - num_type_params;
-    const AbstractTypeArguments& type_arguments =
-        AbstractTypeArguments::Handle(type.arguments());
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(type.arguments());
     const bool is_raw_type = type_arguments.IsNull() ||
         type_arguments.IsRaw(from_index, num_type_params);
     if (!is_raw_type) {
@@ -7112,12 +7112,6 @@ void ConstantPropagator::VisitCreateClosure(CreateClosureInstr* instr) {
 
 
 void ConstantPropagator::VisitAllocateObject(AllocateObjectInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitAllocateObjectWithBoundsCheck(
-    AllocateObjectWithBoundsCheckInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

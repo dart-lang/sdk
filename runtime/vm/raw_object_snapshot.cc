@@ -435,23 +435,6 @@ void RawMixinAppType::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawAbstractTypeArguments* AbstractTypeArguments::ReadFrom(
-    SnapshotReader* reader,
-    intptr_t object_id,
-    intptr_t tags,
-    Snapshot::Kind kind) {
-  UNREACHABLE();  // AbstractTypeArguments is an abstract class.
-  return TypeArguments::null();
-}
-
-
-void RawAbstractTypeArguments::WriteTo(SnapshotWriter* writer,
-                                       intptr_t object_id,
-                                       Snapshot::Kind kind) {
-  UNREACHABLE();  // AbstractTypeArguments is an abstract class.
-}
-
-
 RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
@@ -515,57 +498,6 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   for (intptr_t i = 0; i < len; i++) {
     writer->WriteObjectImpl(ptr()->types_[i]);
   }
-}
-
-
-RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
-    SnapshotReader* reader,
-    intptr_t object_id,
-    intptr_t tags,
-    Snapshot::Kind kind) {
-  ASSERT(reader != NULL);
-  ASSERT(kind == Snapshot::kMessage);
-
-  // Allocate instantiated types object.
-  InstantiatedTypeArguments& instantiated_type_arguments =
-      InstantiatedTypeArguments::ZoneHandle(reader->isolate(),
-                                            InstantiatedTypeArguments::New());
-  reader->AddBackRef(object_id, &instantiated_type_arguments, kIsDeserialized);
-
-  // Set the object tags.
-  instantiated_type_arguments.set_tags(tags);
-
-  // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (instantiated_type_arguments.raw()->to() -
-                       instantiated_type_arguments.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectRef();
-    instantiated_type_arguments.StorePointer(
-        (instantiated_type_arguments.raw()->from() + i),
-        reader->ObjectHandle()->raw());
-  }
-  return instantiated_type_arguments.raw();
-}
-
-
-void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
-                                           intptr_t object_id,
-                                           Snapshot::Kind kind) {
-  ASSERT(writer != NULL);
-  ASSERT(kind == Snapshot::kMessage);
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteVMIsolateObject(kInstantiatedTypeArgumentsCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
-
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer);
-  visitor.VisitPointers(from(), to());
 }
 
 
@@ -2181,8 +2113,8 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
   Array& contents = Array::Handle();
   contents ^= reader->ReadObjectImpl();
   array.SetData(contents);
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(contents.GetTypeArguments());
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(contents.GetTypeArguments());
   array.SetTypeArguments(type_arguments);
   return array.raw();
 }

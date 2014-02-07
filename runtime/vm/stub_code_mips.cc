@@ -23,8 +23,8 @@ namespace dart {
 DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 
 // Input parameters:
@@ -1302,74 +1302,66 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const int kInlineInstanceSize = 12;
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  const intptr_t type_args_size = InstantiatedTypeArguments::InstanceSize();
-  if (FLAG_inline_alloc &&
-      Heap::IsAllocatableInNewSpace(instance_size + type_args_size)) {
-    Label slow_case;
+  Label slow_case_with_type_arguments;
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+    Label slow_case_reload_type_arguments;
+    if (is_cls_parameterized) {
+      // Instantiation of the type arguments vector is only required if an
+      // instantiator is provided (not kNoInstantiator, but may be null).
+      __ lw(T1, Address(SP, 1 * kWordSize));
+      __ lw(T0, Address(SP, 0 * kWordSize));
+      // R1: type arguments, instantiated or not.
+      // R0: instantiator type arguments or kNoInstantiator.
+      Label type_arguments_ready;
+      __ BranchEqual(T0, Smi::RawValue(StubCode::kNoInstantiator),
+                     &type_arguments_ready);
+      // Lookup instantiator EDI in instantiations array of type arguments EDX
+      // and, if found, use cached instantiated type arguments.
+      __ lw(T2, FieldAddress(T1, TypeArguments::instantiations_offset()));
+      __ lw(T3, FieldAddress(T2, Array::length_offset()));
+      __ AddImmediate(T2, Array::data_offset() - kHeapObjectTag);
+      __ sll(TMP, T3, 1);  // T3 is Smi.
+      __ addu(T3, T2, TMP);
+      Label loop, found;
+      __ Bind(&loop);
+      __ BranchUnsignedGreaterEqual(T2, T3, &slow_case_reload_type_arguments);
+      __ lw(T1, Address(T2, 0 * kWordSize));  // Cached instantiator.
+      __ beq(T1, T0, &found);
+      __ BranchEqual(T1, Smi::RawValue(StubCode::kNoInstantiator),
+                     &slow_case_reload_type_arguments);
+      __ b(&loop);
+      __ delay_slot()->addiu(T2, T2, Immediate(2 * kWordSize));
+      __ Bind(&found);
+      __ lw(T1, Address(T2, 1 * kWordSize));  // Cached instantiated args.
+      __ LoadImmediate(T0, Smi::RawValue(StubCode::kNoInstantiator));
+      __ Bind(&type_arguments_ready);
+      // T0: instantiated type arguments.
+      // T1: kNoInstantiator.
+    }
+    // Allocate the object and update top to point to
+    // next object start and initialize the allocated object.
+    // T0: instantiated type arguments (if is_cls_parameterized).
+    // T1: kNoInstantiator (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
     __ LoadImmediate(T5, heap->TopAddress());
     __ lw(T2, Address(T5));
     __ LoadImmediate(T4, instance_size);
     __ addu(T3, T2, T4);
-    if (is_cls_parameterized) {
-      Label no_instantiator;
-      __ lw(T1, Address(SP, 1 * kWordSize));
-      __ lw(T0, Address(SP, 0 * kWordSize));
-      // A new InstantiatedTypeArguments object only needs to be allocated if
-      // the instantiator is provided (not kNoInstantiator, but may be null).
-      __ BranchEqual(T0, Smi::RawValue(StubCode::kNoInstantiator),
-                     &no_instantiator);
-      __ delay_slot()->mov(T4, T3);
-      __ AddImmediate(T3, type_args_size);
-      __ Bind(&no_instantiator);
-      // T4: potential new object end and, if T4 != T3, potential new
-      // InstantiatedTypeArguments object start.
-    }
     // Check if the allocation fits into the remaining space.
     // T2: potential new object start.
     // T3: potential next object start.
     __ LoadImmediate(TMP, heap->EndAddress());
     __ lw(CMPRES1, Address(TMP));
     if (FLAG_use_slow_path) {
-      __ b(&slow_case);
+      __ b(&slow_case_with_type_arguments);
     } else {
-      __ BranchUnsignedGreaterEqual(T3, CMPRES1, &slow_case);
+      __ BranchUnsignedGreaterEqual(T3, CMPRES1,
+                                    &slow_case_with_type_arguments);
     }
-
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
     __ sw(T3, Address(T5));
-
-    if (is_cls_parameterized) {
-      // Initialize the type arguments field in the object.
-      // T2: new object start.
-      // T4: potential new object end and, if T4 != T3, potential new
-      // InstantiatedTypeArguments object start.
-      // T3: next object start.
-      Label type_arguments_ready;
-      __ beq(T4, T3, &type_arguments_ready);
-      // Initialize InstantiatedTypeArguments object at T4.
-      __ sw(T1, Address(T4,
-          InstantiatedTypeArguments::uninstantiated_type_arguments_offset()));
-      __ sw(T0, Address(T4,
-          InstantiatedTypeArguments::instantiator_type_arguments_offset()));
-      const Class& ita_cls =
-          Class::ZoneHandle(Object::instantiated_type_arguments_class());
-      // Set the tags.
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(type_args_size, tags);
-      tags = RawObject::ClassIdTag::update(ita_cls.id(), tags);
-      __ LoadImmediate(T0, tags);
-      __ sw(T0, Address(T4, Instance::tags_offset()));
-      // Set the new InstantiatedTypeArguments object (T4) as the type
-      // arguments (T1) of the new object (T2).
-      __ addiu(T1, T4, Immediate(kHeapObjectTag));
-      // Set T3 to new object end.
-      __ mov(T3, T4);
-      __ Bind(&type_arguments_ready);
-      // T2: new object.
-      // T1: new object type arguments.
-    }
+    __ UpdateAllocationStats(cls.id(), T5);
 
     // T2: new object start.
     // T3: next object start.
@@ -1417,18 +1409,21 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // Set the type arguments in the new object.
       __ sw(T1, Address(T2, cls.type_arguments_field_offset()));
     }
-    __ UpdateAllocationStats(cls.id(), T5);
     // Done allocating and initializing the instance.
     // T2: new object still missing its heap tag.
     __ Ret();
     __ delay_slot()->addiu(V0, T2, Immediate(kHeapObjectTag));
 
-    __ Bind(&slow_case);
+    __ Bind(&slow_case_reload_type_arguments);
   }
   if (is_cls_parameterized) {
     __ lw(T1, Address(SP, 1 * kWordSize));
     __ lw(T0, Address(SP, 0 * kWordSize));
   }
+  __ Bind(&slow_case_with_type_arguments);
+  // If is_cls_parameterized:
+  // T1: new object type arguments (instantiated or not).
+  // T0: instantiator type arguments or kNoInstantiator.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
@@ -2145,8 +2140,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   if (n > 1) {
     // Get instance type arguments.
     __ LoadClass(T0, A0);
-    // Compute instance type arguments into R4.
+    // Compute instance type arguments into T1.
     Label has_no_type_arguments;
+    __ LoadImmediate(T1, reinterpret_cast<intptr_t>(Object::null()));
     __ lw(T2, FieldAddress(T0,
         Class::type_arguments_field_offset_in_words_offset()));
     __ BranchEqual(T2, Class::kNoTypeArguments, &has_no_type_arguments);

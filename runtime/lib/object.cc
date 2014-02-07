@@ -114,8 +114,8 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
   // Instantiator at position 1 is not used. It is passed along so that the call
   // can be easily converted to an optimized implementation. Instantiator is
   // used to populate the subtype cache.
-  const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments->NativeArgAt(2));
+  const TypeArguments& instantiator_type_arguments =
+      TypeArguments::CheckedHandle(arguments->NativeArgAt(2));
   const AbstractType& type =
       AbstractType::CheckedHandle(arguments->NativeArgAt(3));
   const Bool& negate = Bool::CheckedHandle(arguments->NativeArgAt(4));
@@ -159,8 +159,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
   // Instantiator at position 1 is not used. It is passed along so that the call
   // can be easily converted to an optimized implementation. Instantiator is
   // used to populate the subtype cache.
-  const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments->NativeArgAt(2));
+  const TypeArguments& instantiator_type_arguments =
+      TypeArguments::CheckedHandle(arguments->NativeArgAt(2));
   const AbstractType& type =
       AbstractType::CheckedHandle(arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());

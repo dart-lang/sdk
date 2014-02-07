@@ -61,8 +61,7 @@ static RawObject* ReceivePortCreate(Dart_Port port_id) {
 
 
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   Dart_Port port_id =
       PortMap::CreatePort(arguments->isolate()->message_handler());
   const Object& port = Object::Handle(ReceivePortCreate(port_id));

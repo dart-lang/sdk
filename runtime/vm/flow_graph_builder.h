@@ -16,7 +16,6 @@
 namespace dart {
 
 class AbstractType;
-class AbstractTypeArguments;
 class Array;
 class Class;
 class Field;
@@ -24,6 +23,7 @@ class FlowGraph;
 class LocalVariable;
 class ParsedFunction;
 class String;
+class TypeArguments;
 
 class NestedStatement;
 class TestGraphVisitor;
@@ -334,7 +334,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // May be called only if allocating an object of a parameterized class.
   Value* BuildInstantiatedTypeArguments(
       intptr_t token_pos,
-      const AbstractTypeArguments& type_arguments);
+      const TypeArguments& type_arguments);
 
   // Creates a possibly uninstantiated type argument vector and the type
   // argument vector of the instantiator used in

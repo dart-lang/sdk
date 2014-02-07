@@ -13,8 +13,7 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(
       Instance, handle_multi_line, arguments->NativeArgAt(2));

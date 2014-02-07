@@ -1954,25 +1954,6 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary*
-AllocateObjectWithBoundsCheckInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
-}
-
-
-void AllocateObjectWithBoundsCheckInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  compiler->GenerateRuntimeCall(token_pos(),
-                                deopt_id(),
-                                kAllocateObjectWithBoundsCheckRuntimeEntry,
-                                3,
-                                locs());
-  __ Drop(3);
-  ASSERT(locs()->out().reg() == V0);
-  __ Pop(V0);  // Pop new instance.
-}
-
-
 class BoxDoubleSlowPath : public SlowPathCode {
  public:
   explicit BoxDoubleSlowPath(Instruction* instruction)
@@ -2118,8 +2099,7 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
 
-  // 'instantiator_reg' is the instantiator AbstractTypeArguments object
-  // (or null).
+  // 'instantiator_reg' is the instantiator TypeArguments object (or null).
   // A runtime call to instantiate the type is required.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ LoadObject(TMP, Object::ZoneHandle());
@@ -2160,8 +2140,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
 
-  // 'instantiator_reg' is the instantiator AbstractTypeArguments object
-  // (or null).
+  // 'instantiator_reg' is the instantiator TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
          !type_arguments().CanShareInstantiatorTypeArguments(
              instantiator_class()));
@@ -2216,8 +2195,8 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
   Register result_reg = locs()->out().reg();
   ASSERT(instantiator_reg == result_reg);
 
-  // instantiator_reg is the instantiator type argument vector, i.e. an
-  // AbstractTypeArguments object (or null).
+  // instantiator_reg is the instantiator type argument vector,
+  // i.e. a TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
          !type_arguments().CanShareInstantiatorTypeArguments(
              instantiator_class()));
@@ -2256,8 +2235,7 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
   Register instantiator_reg = locs()->in(0).reg();
   ASSERT(locs()->out().reg() == instantiator_reg);
 
-  // instantiator_reg is the instantiator AbstractTypeArguments object
-  // (or null).
+  // instantiator_reg is the instantiator TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
          !type_arguments().CanShareInstantiatorTypeArguments(
              instantiator_class()));

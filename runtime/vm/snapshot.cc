@@ -155,7 +155,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       str_(String::Handle()),
       library_(Library::Handle()),
       type_(AbstractType::Handle()),
-      type_arguments_(AbstractTypeArguments::Handle()),
+      type_arguments_(TypeArguments::Handle()),
       tokens_(Array::Handle()),
       stream_(TokenStream::Handle()),
       data_(ExternalTypedData::Handle()),
@@ -1361,7 +1361,7 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
                                   intptr_t array_kind,
                                   intptr_t tags,
                                   RawSmi* length,
-                                  RawAbstractTypeArguments* type_arguments,
+                                  RawTypeArguments* type_arguments,
                                   RawObject* data[]) {
   intptr_t len = Smi::Value(length);
 

@@ -358,9 +358,9 @@ class Object {
     ASSERT(null_instance_ != NULL);
     return *null_instance_;
   }
-  static const AbstractTypeArguments& null_abstract_type_arguments() {
-    ASSERT(null_abstract_type_arguments_ != NULL);
-    return *null_abstract_type_arguments_;
+  static const TypeArguments& null_type_arguments() {
+    ASSERT(null_type_arguments_ != NULL);
+    return *null_type_arguments_;
   }
 
   static const Array& empty_array() {
@@ -427,9 +427,6 @@ class Object {
   static RawType* void_type() { return void_type_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
-  static RawClass* instantiated_type_arguments_class() {
-      return instantiated_type_arguments_class_;
-  }
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
   static RawClass* closure_data_class() { return closure_data_class_; }
@@ -580,9 +577,7 @@ class Object {
   static RawType* dynamic_type_;  // Class of the 'dynamic' type.
   static RawType* void_type_;  // Class of the 'void' type.
   static RawClass* unresolved_class_class_;  // Class of UnresolvedClass.
-  // Class of the TypeArguments vm object.
-  static RawClass* type_arguments_class_;
-  static RawClass* instantiated_type_arguments_class_;  // Class of Inst..ments.
+  static RawClass* type_arguments_class_;  // Class of TypeArguments vm object.
   static RawClass* patch_class_class_;  // Class of the PatchClass vm object.
   static RawClass* function_class_;  // Class of the Function vm object.
   static RawClass* closure_data_class_;  // Class of ClosureData vm obj.
@@ -617,7 +612,7 @@ class Object {
   static Array* null_array_;
   static String* null_string_;
   static Instance* null_instance_;
-  static AbstractTypeArguments* null_abstract_type_arguments_;
+  static TypeArguments* null_type_arguments_;
   static Array* empty_array_;
   static PcDescriptors* empty_descriptors_;
   static Instance* sentinel_;
@@ -857,9 +852,9 @@ class Class : public Object {
   bool IsCanonicalSignatureClass() const;
 
   // Check the subtype relationship.
-  bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
+  bool IsSubtypeOf(const TypeArguments& type_arguments,
                    const Class& other,
-                   const AbstractTypeArguments& other_type_arguments,
+                   const TypeArguments& other_type_arguments,
                    Error* bound_error) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
@@ -869,9 +864,9 @@ class Class : public Object {
   }
 
   // Check the 'more specific' relationship.
-  bool IsMoreSpecificThan(const AbstractTypeArguments& type_arguments,
+  bool IsMoreSpecificThan(const TypeArguments& type_arguments,
                           const Class& other,
-                          const AbstractTypeArguments& other_type_arguments,
+                          const TypeArguments& other_type_arguments,
                           Error* bound_error) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
@@ -1171,17 +1166,17 @@ class Class : public Object {
 
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
-                const AbstractTypeArguments& type_arguments,
+                const TypeArguments& type_arguments,
                 const Class& other,
-                const AbstractTypeArguments& other_type_arguments,
+                const TypeArguments& other_type_arguments,
                 Error* bound_error) const;
 
   static bool TypeTestNonRecursive(
       const Class& cls,
       TypeTestKind test_kind,
-      const AbstractTypeArguments& type_arguments,
+      const TypeArguments& type_arguments,
       const Class& other,
-      const AbstractTypeArguments& other_type_arguments,
+      const TypeArguments& other_type_arguments,
       Error* bound_error);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
@@ -1224,44 +1219,24 @@ class UnresolvedClass : public Object {
 };
 
 
-// AbstractTypeArguments is an abstract superclass.
-// Subclasses of AbstractTypeArguments are TypeArguments and
-// InstantiatedTypeArguments.
-class AbstractTypeArguments : public Object {
+// A TypeArguments is an array of AbstractType.
+class TypeArguments : public Object {
  public:
-  // Returns true if all types of this vector are finalized.
-  virtual bool IsFinalized() const { return true; }
-
-  // Return 'this' if this type argument vector is instantiated, i.e. if it does
-  // not refer to type parameters. Otherwise, return a new type argument vector
-  // where each reference to a type parameter is replaced with the corresponding
-  // type of the instantiator type argument vector.
-  // If bound_error is not NULL, it may be set to reflect a bound error.
-  virtual RawAbstractTypeArguments* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      Error* bound_error,
-      GrowableObjectArray* trail = NULL) const;
-
-  // Do not clone InstantiatedTypeArguments or null vectors, since they are
-  // considered finalized.
-  virtual RawAbstractTypeArguments* CloneUnfinalized() const {
-    return this->raw();
+  intptr_t Length() const;
+  RawAbstractType* TypeAt(intptr_t index) const;
+  static intptr_t type_at_offset(intptr_t index) {
+    return OFFSET_OF(RawTypeArguments, types_) + index * kWordSize;
   }
-
-  // Null vectors are canonical.
-  virtual RawAbstractTypeArguments* Canonicalize(
-      GrowableObjectArray* trail = NULL) const {
-    return this->raw();
-  }
+  void SetTypeAt(intptr_t index, const AbstractType& value) const;
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
-  virtual RawString* Name() const {
+  RawString* Name() const {
     return SubvectorName(0, Length(), kInternalName);
   }
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
   // Names of internal classes are mapped to their public interfaces.
-  virtual RawString* UserVisibleName() const {
+  RawString* UserVisibleName() const {
     return SubvectorName(0, Length(), kUserVisibleName);
   }
 
@@ -1281,7 +1256,7 @@ class AbstractTypeArguments : public Object {
 
   // Check the subtype relationship, considering only a subvector of length
   // 'len' starting at 'from_index'.
-  bool IsSubtypeOf(const AbstractTypeArguments& other,
+  bool IsSubtypeOf(const TypeArguments& other,
                    intptr_t from_index,
                    intptr_t len,
                    Error* bound_error) const {
@@ -1290,7 +1265,7 @@ class AbstractTypeArguments : public Object {
 
   // Check the 'more specific' relationship, considering only a subvector of
   // length 'len' starting at 'from_index'.
-  bool IsMoreSpecificThan(const AbstractTypeArguments& other,
+  bool IsMoreSpecificThan(const TypeArguments& other,
                           intptr_t from_index,
                           intptr_t len,
                           Error* bound_error) const {
@@ -1298,81 +1273,48 @@ class AbstractTypeArguments : public Object {
   }
 
   // Check if the vectors are equal.
-  bool Equals(const AbstractTypeArguments& other) const {
+  bool Equals(const TypeArguments& other) const {
     return IsEquivalent(other);
   }
 
-  bool IsEquivalent(const AbstractTypeArguments& other,
+  bool IsEquivalent(const TypeArguments& other,
                     GrowableObjectArray* trail = NULL) const;
 
-  // UNREACHABLEs as AbstractTypeArguments is an abstract class.
-  virtual intptr_t Length() const;
-  virtual RawAbstractType* TypeAt(intptr_t index) const;
-  virtual void SetTypeAt(intptr_t index, const AbstractType& value) const;
-  virtual bool IsResolved() const;
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
-  virtual bool IsUninstantiatedIdentity() const;
-  virtual bool CanShareInstantiatorTypeArguments(
-      const Class& instantiator_class) const;
-  virtual bool IsBounded() const;
+  bool IsResolved() const;
+  bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
+  bool IsUninstantiatedIdentity() const;
+  bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
 
-  virtual intptr_t Hash() const;
+  // Returns true if all types of this vector are finalized.
+  bool IsFinalized() const;
+  bool IsBounded() const;
 
- private:
-  // Check if the subvector of length 'len' starting at 'from_index' of this
-  // type argument vector consists solely of DynamicType.
-  // If raw_instantiated is true, consider each type parameter to be first
-  // instantiated from a vector of dynamic types.
-  bool IsDynamicTypes(bool raw_instantiated,
-                      intptr_t from_index,
-                      intptr_t len) const;
+  // Clone this type argument vector and clone all unfinalized type arguments.
+  // Finalized type arguments are shared.
+  RawTypeArguments* CloneUnfinalized() const;
 
-  // Check the subtype or 'more specific' relationship, considering only a
-  // subvector of length 'len' starting at 'from_index'.
-  bool TypeTest(TypeTestKind test_kind,
-                const AbstractTypeArguments& other,
-                intptr_t from_index,
-                intptr_t len,
-                Error* bound_error) const;
-
-  // Return the internal or public name of a subvector of this type argument
-  // vector, e.g. "<T, dynamic, List<T>, int>".
-  RawString* SubvectorName(intptr_t from_index,
-                           intptr_t len,
-                           NameVisibility name_visibility) const;
-
- protected:
-  HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments, Object);
-  friend class AbstractType;
-  friend class Class;
-};
-
-
-// A TypeArguments is an array of AbstractType.
-class TypeArguments : public AbstractTypeArguments {
- public:
-  virtual intptr_t Length() const;
-  virtual RawAbstractType* TypeAt(intptr_t index) const;
-  static intptr_t type_at_offset(intptr_t index) {
-    return OFFSET_OF(RawTypeArguments, types_) + index * kWordSize;
-  }
-  virtual void SetTypeAt(intptr_t index, const AbstractType& value) const;
-  virtual bool IsResolved() const;
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
-  virtual bool IsUninstantiatedIdentity() const;
-  virtual bool CanShareInstantiatorTypeArguments(
-      const Class& instantiator_class) const;
-  virtual bool IsFinalized() const;
-  virtual bool IsBounded() const;
-  virtual RawAbstractTypeArguments* CloneUnfinalized() const;
   // Canonicalize only if instantiated, otherwise returns 'this'.
-  virtual RawAbstractTypeArguments* Canonicalize(
-      GrowableObjectArray* trail = NULL) const;
+  RawTypeArguments* Canonicalize(GrowableObjectArray* trail = NULL) const;
 
-  virtual RawAbstractTypeArguments* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
+  // Return 'this' if this type argument vector is instantiated, i.e. if it does
+  // not refer to type parameters. Otherwise, return a new type argument vector
+  // where each reference to a type parameter is replaced with the corresponding
+  // type of the instantiator type argument vector.
+  // If bound_error is not NULL, it may be set to reflect a bound error.
+  RawTypeArguments* InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
+
+  // Runtime instantiation with canonicalization. Not to be used during type
+  // finalization at compile time.
+  RawTypeArguments* InstantiateAndCanonicalizeFrom(
+      const TypeArguments& instantiator_type_arguments,
+      Error* bound_error) const;
+
+  static intptr_t instantiations_offset() {
+    return OFFSET_OF(RawTypeArguments, instantiations_);
+  }
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
@@ -1387,90 +1329,48 @@ class TypeArguments : public AbstractTypeArguments {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    // Ensure that the types_ is not adding to the object length.
-    ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (1 * kWordSize)));
+    // Ensure that the types_ is not adding to the object size, which includes
+    // 2 fields: instantiations_ and length_.
+    ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (2 * kWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(
         sizeof(RawTypeArguments) + (len * kBytesPerElement));
   }
 
+  intptr_t Hash() const;
+
   static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
 
  private:
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType.
+  // If raw_instantiated is true, consider each type parameter to be first
+  // instantiated from a vector of dynamic types.
+  bool IsDynamicTypes(bool raw_instantiated,
+                      intptr_t from_index,
+                      intptr_t len) const;
+
+  // Check the subtype or 'more specific' relationship, considering only a
+  // subvector of length 'len' starting at 'from_index'.
+  bool TypeTest(TypeTestKind test_kind,
+                const TypeArguments& other,
+                intptr_t from_index,
+                intptr_t len,
+                Error* bound_error) const;
+
+  // Return the internal or public name of a subvector of this type argument
+  // vector, e.g. "<T, dynamic, List<T>, int>".
+  RawString* SubvectorName(intptr_t from_index,
+                           intptr_t len,
+                           NameVisibility name_visibility) const;
+
+  RawArray* instantiations() const;
+  void set_instantiations(const Array& value) const;
   RawAbstractType** TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, AbstractTypeArguments);
-  friend class Class;
-};
-
-
-// An instance of InstantiatedTypeArguments is never encountered at compile
-// time, but only at run time, when type parameters can be matched to actual
-// types.
-// An instance of InstantiatedTypeArguments consists of a pair of
-// AbstractTypeArguments objects. The first type argument vector is
-// uninstantiated, because it contains type expressions referring to at least
-// one TypeParameter object, i.e. to a type that is not known at compile time.
-// The second type argument vector is the instantiator, because each type
-// parameter with index i in the first vector can be substituted (or
-// "instantiated") with the type at index i in the second type argument vector.
-class InstantiatedTypeArguments : public AbstractTypeArguments {
- public:
-  virtual intptr_t Length() const;
-  virtual RawAbstractType* TypeAt(intptr_t index) const;
-  virtual void SetTypeAt(intptr_t index, const AbstractType& value) const;
-  virtual bool IsResolved() const { return true; }
-  virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const {
-    return true;
-  }
-  virtual bool IsUninstantiatedIdentity() const {
-    UNREACHABLE();
-    return false;
-  }
-  virtual bool CanShareInstantiatorTypeArguments(
-      const Class& instantiator_class) const {
-    UNREACHABLE();
-    return false;
-  }
-  virtual bool IsBounded() const { return false; }  // Bounds were checked.
-  virtual RawAbstractTypeArguments* Canonicalize(
-      GrowableObjectArray* trail = NULL) const;
-
-  RawAbstractTypeArguments* uninstantiated_type_arguments() const {
-    return raw_ptr()->uninstantiated_type_arguments_;
-  }
-  static intptr_t uninstantiated_type_arguments_offset() {
-    return OFFSET_OF(RawInstantiatedTypeArguments,
-                     uninstantiated_type_arguments_);
-  }
-
-  RawAbstractTypeArguments* instantiator_type_arguments() const {
-    return raw_ptr()->instantiator_type_arguments_;
-  }
-  static intptr_t instantiator_type_arguments_offset() {
-    return OFFSET_OF(RawInstantiatedTypeArguments,
-                     instantiator_type_arguments_);
-  }
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawInstantiatedTypeArguments));
-  }
-
-  static RawInstantiatedTypeArguments* New(
-      const AbstractTypeArguments& uninstantiated_type_arguments,
-      const AbstractTypeArguments& instantiator_type_arguments);
-
- private:
-  void set_uninstantiated_type_arguments(
-      const AbstractTypeArguments& value) const;
-  void set_instantiator_type_arguments(
-      const AbstractTypeArguments& value) const;
-
-  static RawInstantiatedTypeArguments* New();
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(InstantiatedTypeArguments,
-                                   AbstractTypeArguments);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Object);
+  friend class AbstractType;
   friend class Class;
 };
 
@@ -1531,9 +1431,8 @@ class Function : public Object {
   // signature of the given function, where all generic types (e.g. '<T, R>' in
   // 'C<T, R>(T, {b: B, c: C}) => R') are instantiated using the given
   // instantiator type argument vector of a C instance (e.g. '<A, D>').
-  RawString* InstantiatedSignatureFrom(
-      const AbstractTypeArguments& instantiator,
-      NameVisibility name_visibility) const {
+  RawString* InstantiatedSignatureFrom(const TypeArguments& instantiator,
+                                       NameVisibility name_visibility) const {
     const bool instantiate = true;
     return BuildSignature(instantiate, name_visibility, instantiator);
   }
@@ -1852,9 +1751,9 @@ class Function : public Object {
 
   // Returns true if the type of this function is a subtype of the type of
   // the other function.
-  bool IsSubtypeOf(const AbstractTypeArguments& type_arguments,
+  bool IsSubtypeOf(const TypeArguments& type_arguments,
                    const Function& other,
-                   const AbstractTypeArguments& other_type_arguments,
+                   const TypeArguments& other_type_arguments,
                    Error* bound_error) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
@@ -1865,9 +1764,9 @@ class Function : public Object {
 
   // Returns true if the type of this function is more specific than the type of
   // the other function.
-  bool IsMoreSpecificThan(const AbstractTypeArguments& type_arguments,
+  bool IsMoreSpecificThan(const TypeArguments& type_arguments,
                           const Function& other,
-                          const AbstractTypeArguments& other_type_arguments,
+                          const TypeArguments& other_type_arguments,
                           Error* bound_error) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
@@ -2031,17 +1930,17 @@ class Function : public Object {
 
   void BuildSignatureParameters(bool instantiate,
                                 NameVisibility name_visibility,
-                                const AbstractTypeArguments& instantiator,
+                                const TypeArguments& instantiator,
                                 const GrowableObjectArray& pieces) const;
   RawString* BuildSignature(bool instantiate,
                             NameVisibility name_visibility,
-                            const AbstractTypeArguments& instantiator) const;
+                            const TypeArguments& instantiator) const;
 
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
-                const AbstractTypeArguments& type_arguments,
+                const TypeArguments& type_arguments,
                 const Function& other,
-                const AbstractTypeArguments& other_type_arguments,
+                const TypeArguments& other_type_arguments,
                 Error* bound_error) const;
 
   // Checks the type of the formal parameter at the given position for
@@ -2050,9 +1949,9 @@ class Function : public Object {
   bool TestParameterType(TypeTestKind test_kind,
                          intptr_t parameter_position,
                          intptr_t other_parameter_position,
-                         const AbstractTypeArguments& type_arguments,
+                         const TypeArguments& type_arguments,
                          const Function& other,
-                         const AbstractTypeArguments& other_type_arguments,
+                         const TypeArguments& other_type_arguments,
                          Error* bound_error) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
@@ -3834,13 +3733,13 @@ class SubtypeTestCache : public Object {
 
   intptr_t NumberOfChecks() const;
   void AddCheck(intptr_t class_id,
-                const AbstractTypeArguments& instance_type_arguments,
-                const AbstractTypeArguments& instantiator_type_arguments,
+                const TypeArguments& instance_type_arguments,
+                const TypeArguments& instantiator_type_arguments,
                 const Bool& test_result) const;
   void GetCheck(intptr_t ix,
                 intptr_t* class_id,
-                AbstractTypeArguments* instance_type_arguments,
-                AbstractTypeArguments* instantiator_type_arguments,
+                TypeArguments* instance_type_arguments,
+                TypeArguments* instantiator_type_arguments,
                 Bool* test_result) const;
 
   static RawSubtypeTestCache* New();
@@ -4043,12 +3942,12 @@ class Instance : public Object {
 
   RawType* GetType() const;
 
-  virtual RawAbstractTypeArguments* GetTypeArguments() const;
-  virtual void SetTypeArguments(const AbstractTypeArguments& value) const;
+  virtual RawTypeArguments* GetTypeArguments() const;
+  virtual void SetTypeArguments(const TypeArguments& value) const;
 
   // Check if the type of this instance is a subtype of the given type.
   bool IsInstanceOf(const AbstractType& type,
-                    const AbstractTypeArguments& type_instantiator,
+                    const TypeArguments& type_instantiator,
                     Error* bound_error) const;
 
   // Check whether this instance is identical to the argument according to the
@@ -4135,7 +4034,7 @@ class AbstractType : public Instance {
   virtual bool HasResolvedTypeClass() const;
   virtual RawClass* type_class() const;
   virtual RawUnresolvedClass* unresolved_class() const;
-  virtual RawAbstractTypeArguments* arguments() const;
+  virtual RawTypeArguments* arguments() const;
   virtual intptr_t token_pos() const;
   virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   virtual bool Equals(const Instance& other) const {
@@ -4148,7 +4047,7 @@ class AbstractType : public Instance {
   // Return a new type, or return 'this' if it is already instantiated.
   // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
+      const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
 
@@ -4247,9 +4146,9 @@ class AbstractType : public Instance {
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Instance);
-  friend class AbstractTypeArguments;
   friend class Class;
   friend class Function;
+  friend class TypeArguments;
 };
 
 
@@ -4286,14 +4185,14 @@ class Type : public AbstractType {
   virtual RawClass* type_class() const;
   void set_type_class(const Object& value) const;
   virtual RawUnresolvedClass* unresolved_class() const;
-  virtual RawAbstractTypeArguments* arguments() const;
-  void set_arguments(const AbstractTypeArguments& value) const;
+  virtual RawTypeArguments* arguments() const;
+  void set_arguments(const TypeArguments& value) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(GrowableObjectArray* trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
+      const TypeArguments& instantiator_type_arguments,
       Error* malformed_error,
       GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
@@ -4355,7 +4254,7 @@ class Type : public AbstractType {
   static RawType* NewNonParameterizedType(const Class& type_class);
 
   static RawType* New(const Object& clazz,
-                      const AbstractTypeArguments& arguments,
+                      const TypeArguments& arguments,
                       intptr_t token_pos,
                       Heap::Space space = Heap::kOld);
 
@@ -4367,6 +4266,7 @@ class Type : public AbstractType {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
   friend class Class;
+  friend class TypeArguments;
 };
 
 
@@ -4397,7 +4297,7 @@ class TypeRef : public AbstractType {
   virtual RawClass* type_class() const {
     return AbstractType::Handle(type()).type_class();
   }
-  virtual RawAbstractTypeArguments* arguments() const {
+  virtual RawTypeArguments* arguments() const {
     return AbstractType::Handle(type()).arguments();
   }
   virtual intptr_t token_pos() const {
@@ -4407,7 +4307,7 @@ class TypeRef : public AbstractType {
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
+      const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* Canonicalize(
@@ -4495,7 +4395,7 @@ class TypeParameter : public AbstractType {
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
+      const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
@@ -4557,7 +4457,7 @@ class BoundedType : public AbstractType {
   virtual RawUnresolvedClass* unresolved_class() const {
     return AbstractType::Handle(type()).unresolved_class();
   }
-  virtual RawAbstractTypeArguments* arguments() const {
+  virtual RawTypeArguments* arguments() const {
     return AbstractType::Handle(type()).arguments();
   }
   RawAbstractType* type() const { return raw_ptr()->type_; }
@@ -4578,7 +4478,7 @@ class BoundedType : public AbstractType {
   virtual bool IsEquivalent(const Instance& other,
                             GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
+      const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
       GrowableObjectArray* trail = NULL) const;
   virtual RawAbstractType* CloneUnfinalized() const;
@@ -5665,10 +5565,10 @@ class Array : public Instance {
     return raw()->GetClassId() == kImmutableArrayCid;
   }
 
-  virtual RawAbstractTypeArguments* GetTypeArguments() const {
+  virtual RawTypeArguments* GetTypeArguments() const {
     return raw_ptr()->type_arguments_;
   }
-  virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
+  virtual void SetTypeArguments(const TypeArguments& value) const {
     // An Array is raw or takes one type argument. However, its type argument
     // vector may be longer than 1 due to a type optimization reusing the type
     // argument vector of the instantiator.
@@ -5823,10 +5723,10 @@ class GrowableObjectArray : public Instance {
   void Grow(intptr_t new_capacity, Heap::Space space = Heap::kNew) const;
   RawObject* RemoveLast() const;
 
-  virtual RawAbstractTypeArguments* GetTypeArguments() const {
+  virtual RawTypeArguments* GetTypeArguments() const {
     return raw_ptr()->type_arguments_;
   }
-  virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
+  virtual void SetTypeArguments(const TypeArguments& value) const {
     // A GrowableObjectArray is raw or takes one type argument. However, its
     // type argument vector may be longer than 1 due to a type optimization
     // reusing the type argument vector of the instantiator.
@@ -6321,11 +6221,11 @@ class Closure : public AllStatic {
     return static_cast<intptr_t>(kContextOffset * kWordSize);
   }
 
-  static RawAbstractTypeArguments* GetTypeArguments(const Instance& closure) {
+  static RawTypeArguments* GetTypeArguments(const Instance& closure) {
     return *TypeArgumentsAddr(closure);
   }
   static void SetTypeArguments(const Instance& closure,
-                               const AbstractTypeArguments& value) {
+                               const TypeArguments& value) {
     closure.StorePointer(TypeArgumentsAddr(closure), value.raw());
   }
   static intptr_t type_arguments_offset() {
@@ -6350,9 +6250,9 @@ class Closure : public AllStatic {
   static const int kContextOffset = 3;
   static const int kNumFields = 3;
 
-  static RawAbstractTypeArguments** TypeArgumentsAddr(const Instance& obj) {
+  static RawTypeArguments** TypeArgumentsAddr(const Instance& obj) {
     ASSERT(obj.IsClosure());
-    return reinterpret_cast<RawAbstractTypeArguments**>(
+    return reinterpret_cast<RawTypeArguments**>(
         reinterpret_cast<intptr_t>(obj.raw_ptr()) + type_arguments_offset());
   }
   static RawFunction** FunctionAddr(const Instance& obj) {

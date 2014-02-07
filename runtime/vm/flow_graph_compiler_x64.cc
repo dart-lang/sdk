@@ -251,8 +251,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const intptr_t num_type_args = type_class.NumTypeArguments();
   const intptr_t num_type_params = type_class.NumTypeParameters();
   const intptr_t from_index = num_type_args - num_type_params;
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::ZoneHandle(type.arguments());
+  const TypeArguments& type_arguments =
+      TypeArguments::ZoneHandle(type.arguments());
   const bool is_raw_type = type_arguments.IsNull() ||
       type_arguments.IsRaw(from_index, num_type_params);
   // Signature class is an instantiated parameterized type.
@@ -424,21 +424,14 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Load instantiator (or null) and instantiator type arguments on stack.
     __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
     // RDX: instantiator type arguments.
-    // Check if type argument is dynamic.
+    // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareObject(RDX, Object::null_object(), PP);
     __ j(EQUAL, is_instance_lbl);
-    // Can handle only type arguments that are instances of TypeArguments.
-    // (runtime checks canonicalize type arguments).
-    Label fall_through;
-    __ CompareClassId(RDX, kTypeArgumentsCid);
-    __ j(NOT_EQUAL, &fall_through);
     __ movq(RDI,
         FieldAddress(RDX, TypeArguments::type_at_offset(type_param.index())));
     // RDI: Concrete type of type.
     // Check if type argument is dynamic.
     __ CompareObject(RDI, Type::ZoneHandle(Type::DynamicType()), PP);
-    __ j(EQUAL,  is_instance_lbl);
-    __ CompareObject(RDI, Object::null_object(), PP);
     __ j(EQUAL,  is_instance_lbl);
     const Type& object_type = Type::ZoneHandle(Type::ObjectType());
     __ CompareObject(RDI, object_type, PP);
@@ -453,6 +446,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ CompareObject(RDI, Type::ZoneHandle(Type::Number()), PP);
     __ j(EQUAL,  is_instance_lbl);
     // Smi must be handled in runtime.
+    Label fall_through;
     __ jmp(&fall_through);
 
     __ Bind(&not_smi);

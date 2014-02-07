@@ -13,8 +13,8 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(List_allocate, 2) {
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(isolate, arguments->NativeArgAt(0));
+  const TypeArguments& type_arguments =
+      TypeArguments::CheckedHandle(isolate, arguments->NativeArgAt(0));
   const Instance& length = Instance::CheckedHandle(
       isolate, arguments->NativeArgAt(1));
   if (!length.IsSmi()) {
