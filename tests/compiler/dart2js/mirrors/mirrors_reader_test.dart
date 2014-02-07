@@ -12,9 +12,26 @@ import "package:async_helper/async_helper.dart";
 
 import "mirrors_test_helper.dart";
 import "../../../lib/mirrors/mirrors_reader.dart";
+import "../../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
+import "../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirrors.dart";
 import "../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart";
 
 class SourceMirrorsReader extends MirrorsReader {
+  final Dart2JsMirrorSystem mirrorSystem;
+
+  SourceMirrorsReader(this.mirrorSystem,
+                      {bool verbose: false, bool includeStackTrace: false})
+      : super(verbose: verbose, includeStackTrace: includeStackTrace);
+
+  evaluate(f()) {
+    try {
+      return f();
+    } on SpannableAssertionFailure catch (e) {
+      mirrorSystem.compiler.reportAssertionFailure(e);
+      rethrow;
+    }
+  }
+
   visitMirror(Mirror mirror) {
     if (mirror is CombinatorMirror) {
       visitCombinatorMirror(mirror);
@@ -113,10 +130,12 @@ class SourceMirrorsReader extends MirrorsReader {
   }
 }
 
-main() {
+main(List<String> arguments) {
   asyncTest(() => analyzeUri(Uri.parse('dart:core')).
       then((MirrorSystem mirrors) {
-    MirrorsReader reader = new SourceMirrorsReader();
-    readMirrorSystem(reader, mirrors);
+    MirrorsReader reader = new SourceMirrorsReader(mirrors,
+        verbose: arguments.contains('-v'),
+        includeStackTrace: arguments.contains('-s'));
+    reader.checkMirrorSystem(mirrors);
   }));
 }

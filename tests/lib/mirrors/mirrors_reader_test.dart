@@ -12,8 +12,10 @@ import 'mirrors_reader.dart';
 class RuntimeMirrorsReader extends MirrorsReader {
   final String mirrorSystemType;
 
-  RuntimeMirrorsReader(MirrorSystem mirrorSystem)
-      : this.mirrorSystemType = '${mirrorSystem.runtimeType}';
+  RuntimeMirrorsReader(MirrorSystem mirrorSystem,
+                      {bool verbose: false, bool includeStackTrace: false})
+      : this.mirrorSystemType = '${mirrorSystem.runtimeType}',
+        super(verbose: verbose, includeStackTrace: includeStackTrace);
 
   bool allowUnsupported(var receiver, String tag, UnsupportedError exception) {
     if (mirrorSystemType == '_LocalMirrorSystem') {
@@ -42,8 +44,10 @@ class RuntimeMirrorsReader extends MirrorsReader {
   }
 }
 
-void main() {
+void main(List<String> arguments) {
   MirrorSystem mirrors = currentMirrorSystem();
-  MirrorsReader reader = new RuntimeMirrorsReader(mirrors);
-  readMirrorSystem(reader, mirrors);
+  MirrorsReader reader = new RuntimeMirrorsReader(mirrors,
+      verbose: arguments.contains('-v'),
+      includeStackTrace: arguments.contains('-s'));
+  reader.checkMirrorSystem(mirrors);
 }

@@ -499,10 +499,7 @@ abstract class Compiler implements DiagnosticListener {
       return f();
     } on SpannableAssertionFailure catch (ex) {
       if (!hasCrashed) {
-        String message = (ex.message != null) ? tryToString(ex.message)
-                                              : tryToString(ex);
-        SourceSpan span = spanFromSpannable(ex.node);
-        reportError(ex.node, MessageKind.GENERIC, {'text': message});
+        reportAssertionFailure(ex);
         pleaseReportCrash();
       }
       hasCrashed = true;
@@ -1396,6 +1393,13 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind);
+
+  void reportAssertionFailure(SpannableAssertionFailure ex) {
+    String message = (ex.message != null) ? tryToString(ex.message)
+                                          : tryToString(ex);
+    SourceSpan span = spanFromSpannable(ex.node);
+    reportError(ex.node, MessageKind.GENERIC, {'text': message});
+  }
 
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
     if (begin == null || end == null) {

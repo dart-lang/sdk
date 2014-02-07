@@ -7,29 +7,6 @@ library mirrors.reader;
 import 'dart:mirrors';
 import 'mirrors_visitor.dart';
 
-/// Produce verbose output.
-bool VERBOSE = false;
-/// Include stack trace in the error report.
-bool INCLUDE_STACK_TRACE = false;
-
-void readMirrorSystem(MirrorsReader reader,
-                      MirrorSystem mirrorSystem) {
-  reader.visitMirrorSystem(mirrorSystem);
-  if (!reader.errors.isEmpty) {
-    Set<String> errors = new Set<String>();
-    for (ReadError error in reader.errors) {
-      String text = 'Mirrors read error: ${error.tag}=${error.exception}';
-      if (INCLUDE_STACK_TRACE) {
-        text = '$text\n${error.stackTrace}';
-      }
-      if (errors.add(text)) {
-        print(text);
-      }
-    }
-    throw 'Unexpected errors occurred reading mirrors.';
-  }
-}
-
 class ReadError {
   final String tag;
   final exception;
@@ -39,12 +16,36 @@ class ReadError {
 }
 
 class MirrorsReader extends MirrorsVisitor {
+  /// Produce verbose output.
+  final bool verbose;
+  /// Include stack trace in the error report.
+  final bool includeStackTrace;
+
   bool fatalError = false;
   Set<Mirror> visited = new Set<Mirror>();
   Set<TypeMirror> declarations = new Set<TypeMirror>();
   Set<TypeMirror> instantiations = new Set<TypeMirror>();
   List<ReadError> errors = <ReadError>[];
   List<Mirror> queue = <Mirror>[];
+
+  MirrorsReader({this.verbose: false, this.includeStackTrace: false});
+
+  void checkMirrorSystem(MirrorSystem mirrorSystem) {
+    visitMirrorSystem(mirrorSystem);
+    if (!errors.isEmpty) {
+      Set<String> errorMessages = new Set<String>();
+      for (ReadError error in errors) {
+        String text = 'Mirrors read error: ${error.tag}=${error.exception}';
+        if (includeStackTrace) {
+          text = '$text\n${error.stackTrace}';
+        }
+        if (errorMessages.add(text)) {
+          print(text);
+        }
+      }
+      throw 'Unexpected errors occurred reading mirrors.';
+    }
+  }
 
   // Skip mirrors so that each mirror is only visited once.
   bool skipMirror(Mirror mirror) {
@@ -69,7 +70,7 @@ class MirrorsReader extends MirrorsVisitor {
   visitUnsupported(var receiver, String tag,
                    UnsupportedError exception,
                    StackTrace stackTrace) {
-    if (VERBOSE) print('visitUnsupported:$receiver.$tag:$exception');
+    if (verbose) print('visitUnsupported:$receiver.$tag:$exception');
     if (!expectUnsupported(receiver, tag, exception) &&
         !allowUnsupported(receiver, tag, exception)) {
       reportError(receiver, tag, exception, stackTrace);
@@ -84,10 +85,14 @@ class MirrorsReader extends MirrorsVisitor {
   bool allowUnsupported(var receiver, String tag,
                         UnsupportedError exception) => false;
 
+  /// Evaluates the function [f]. Subclasses can override this to handle
+  /// specific exceptions.
+  evaluate(f()) => f();
+
   visit(var receiver, String tag, var value) {
     if (value is Function) {
       try {
-        var result = value();
+        var result = evaluate(value);
         if (expectUnsupported(receiver, tag, null)) {
           reportError(receiver, tag, 'Expected UnsupportedError.', null);
         }
@@ -106,7 +111,7 @@ class MirrorsReader extends MirrorsVisitor {
     } else {
       if (value is Mirror) {
         if (!skipMirror(value)) {
-          if (VERBOSE) print('visit:$receiver.$tag=$value');
+          if (verbose) print('visit:$receiver.$tag=$value');
           bool drain = queue.isEmpty;
           queue.add(value);
           if (drain) {
@@ -120,6 +125,7 @@ class MirrorsReader extends MirrorsVisitor {
       } else if (value is SourceLocation) {
         visitSourceLocation(value);
       } else if (value is Iterable) {
+        // TODO(johnniwinther): Merge with `immutable_collections_test.dart`.
         value.forEach((e) {
           visit(receiver, tag, e);
         });
