@@ -876,10 +876,18 @@ DART_EXPORT void Dart_ShutdownIsolate();
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate();
 
 /**
- * Returns the callback data which was passed to the isolate when it
- * was created.
+ * Returns the callback data associated with the current Isolate. This data was
+ * passed to the isolate when it was created.
  */
 DART_EXPORT void* Dart_CurrentIsolateData();
+
+/**
+ * Returns the callback data associated with the specified Isolate. This data
+ * was passed to the isolate when it was created.
+ * The embedder is responsible for ensuring the consistency of this data
+ * with respect to the lifecycle of an Isolate.
+ */
+DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate);
 
 /**
  * Returns the debugging name for the current isolate.

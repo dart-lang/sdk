@@ -3059,6 +3059,7 @@ UNIT_TEST_CASE(CurrentIsolateData) {
                          &err);
   EXPECT(isolate != NULL);
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
+  EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_IsolateData(isolate)));
   Dart_ShutdownIsolate();
 }
 

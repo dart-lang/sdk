@@ -920,6 +920,17 @@ DART_EXPORT void* Dart_CurrentIsolateData() {
 }
 
 
+DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
+  TRACE_API_CALL(CURRENT_FUNC);
+  if (isolate == NULL) {
+    FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
+  }
+  // TODO(16615): Validate isolate parameter.
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  return iso->init_callback_data();
+}
+
+
 DART_EXPORT Dart_Handle Dart_DebugName() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -928,10 +939,11 @@ DART_EXPORT Dart_Handle Dart_DebugName() {
 
 
 
-DART_EXPORT void Dart_EnterIsolate(Dart_Isolate dart_isolate) {
+DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
-  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
-  Isolate::SetCurrent(isolate);
+  // TODO(16615): Validate isolate parameter.
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  Isolate::SetCurrent(iso);
 }
 
 
@@ -1007,6 +1019,7 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
   if (isolate == NULL) {
     FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
+  // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   iso->ScheduleInterrupts(Isolate::kApiInterrupt);
 }
@@ -1017,6 +1030,7 @@ DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   if (isolate == NULL) {
     FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
+  // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   return iso->MakeRunnable();
 }
