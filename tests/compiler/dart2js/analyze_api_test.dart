@@ -25,9 +25,6 @@ const Map<String, List<String>> WHITE_LIST = const {
       "is not assignable to the type 'HtmlCollection'", // Issue 16105.
       "is not a subtype of the overridden method type", // Issue 16105.
   ],
-  'html_common/lists.dart': const [
-      "has no implementation" // Issue 16105.
-  ],
 };
 
 void main() {
