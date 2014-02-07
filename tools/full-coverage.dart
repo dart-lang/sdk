@@ -271,7 +271,7 @@ worker(WorkMessage msg) {
 
   if (env["verbose"]) {
     final end = new DateTime.now().millisecondsSinceEpoch;
-    print("${msg.workerName}: Finished processing files. "
+    print("${msg.workerName}: Finished processing ${files.length} files. "
           "Took ${end - start} ms.");
   }
 
@@ -295,17 +295,16 @@ class ResultMessage {
 final env = new Environment();
 
 List<List> split(List list, int nBuckets) {
-  // Leftover goes in the last bucket.
-  // TODO(16505): Do a fair split.
   var buckets = new List(nBuckets);
   var bucketSize = list.length ~/ nBuckets;
+  var leftover = list.length % nBuckets;
   var taken = 0;
+  var start = 0;
   for (int i = 0; i < nBuckets; i++) {
-    bool lastBucket = i + 1 == nBuckets;
-    var start = i * bucketSize;
-    var end = lastBucket ? list.length : start + bucketSize ;
+    var end = (i < leftover) ? (start + bucketSize + 1) : (start + bucketSize);
     buckets[i] = list.sublist(start, end);
     taken += buckets[i].length;
+    start = end;
   }
   if (taken != list.length) throw "Error splitting";
   return buckets;
