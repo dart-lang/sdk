@@ -95,7 +95,7 @@ class BatchRunner {
    * Run the tool in 'batch' mode, receiving command lines through stdin and returning pass/fail
    * status through stdout. This feature is intended for use in unit testing.
    */
-  static ErrorSeverity runAsBatch(List<String> sharedArgs, BatchRunnerHandler handler) {
+  static void runAsBatch(List<String> sharedArgs, BatchRunnerHandler handler) {
     stdout.writeln('>>> BATCH START');
     Stopwatch stopwatch = new Stopwatch();
     stopwatch.start();
@@ -111,7 +111,7 @@ class BatchRunner {
       if (line.isEmpty) {
         var time = stopwatch.elapsedMilliseconds;
         stdout.writeln('>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${time}ms');
-        exit(batchResult.ordinal);
+        exitCode = batchResult.ordinal;
       }
       // prepare aruments
       var args;
