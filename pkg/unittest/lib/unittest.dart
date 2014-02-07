@@ -313,7 +313,7 @@ void solo_test(String spec, TestFunction body) {
  * Indicate that [callback] is expected to be called a [count] number of times
  * (by default 1). The unittest framework will wait for the callback to run the
  * specified [count] times before it continues with the following test.  Using
- * [expectAsync0] will also ensure that errors that occur within [callback] are
+ * [expectAsync] will also ensure that errors that occur within [callback] are
  * tracked and reported. [callback] should take 0 positional arguments (named
  * arguments are not supported). [id] can be used to provide more
  * descriptive error messages if the callback is called more often than
@@ -324,56 +324,107 @@ void solo_test(String spec, TestFunction body) {
  * called exactly [count] times. A value of -1 for [max] will mean no upper
  * bound.
  */
-// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function expectAsync(Function callback,
+                     {int count: 1, int max: 0, String id}) {
+  var minArgs = _minArgs(callback);
+
+  switch(minArgs) {
+    case 0:
+      return new _SpreadArgsHelper(callback, count, max, null, id).invoke0;
+    case 1:
+      return new _SpreadArgsHelper(callback, count, max, null, id).invoke1;
+    case 2:
+      return new _SpreadArgsHelper(callback, count, max, null, id).invoke2;
+    default:
+      // _minArgs throws an argument exception if the arg count is > 2.
+      // this is just for paranoia
+      throw new StateError('Should never get here');
+  }
+}
+
+/**
+ * *Deprecated*
+ *
+ * Use [expectAsync] instead.
+ */
+@deprecated
 Function expectAsync0(Function callback,
-                     {int count: 1, int max: 0, String id}) {
-  return new _SpreadArgsHelper(callback, count, max, null, id).invoke0;
-}
+                     {int count: 1, int max: 0, String id}) =>
+    expectAsync(callback, count: count, max: max, id: id);
 
-/** Like [expectAsync0] but [callback] should take 1 positional argument. */
-// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+/**
+ * *Deprecated*
+ *
+ * Use [expectAsync] instead.
+ */
+@deprecated
 Function expectAsync1(Function callback,
-                     {int count: 1, int max: 0, String id}) {
-  return new _SpreadArgsHelper(callback, count, max, null, id).invoke1;
-}
+                     {int count: 1, int max: 0, String id}) =>
+    expectAsync(callback, count: count, max: max, id: id);
 
-/** Like [expectAsync0] but [callback] should take 2 positional arguments. */
-// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+/**
+ * *Deprecated*
+ *
+ * Use [expectAsync] instead.
+ */
+@deprecated
 Function expectAsync2(Function callback,
-                     {int count: 1, int max: 0, String id}) {
-  return new _SpreadArgsHelper(callback, count, max, null, id).invoke2;
-}
+                     {int count: 1, int max: 0, String id}) =>
+    expectAsync(callback, count: count, max: max, id: id);
 
 /**
  * Indicate that [callback] is expected to be called until [isDone] returns
  * true. The unittest framework check [isDone] after each callback and only
  * when it returns true will it continue with the following test. Using
- * [expectAsyncUntil0] will also ensure that errors that occur within
+ * [expectAsyncUntil] will also ensure that errors that occur within
  * [callback] are tracked and reported. [callback] should take 0 positional
  * arguments (named arguments are not supported). [id] can be used to
  * identify the callback in error messages (for example if it is called
  * after the test case is complete).
  */
-// TODO(sigmund): deprecate this API when issue 2706 is fixed.
-Function expectAsyncUntil0(Function callback, Function isDone, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke0;
+Function expectAsyncUntil(Function callback, Function isDone, {String id}) {
+  var minArgs = _minArgs(callback);
+
+  switch(minArgs) {
+    case 0:
+      return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke0;
+    case 1:
+      return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke1;
+    case 2:
+      return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke2;
+    default:
+      // _minArgs throws an argument exception if the arg count is > 2.
+      // this is just for paranoia
+      throw new StateError('Should never get here');
+  }
 }
 
 /**
- * Like [expectAsyncUntil0] but [callback] should take 1 positional argument.
+ * *Deprecated*
+ *
+ * Use [expectAsyncUntil] instead.
  */
-// TODO(sigmund): deprecate this API when issue 2706 is fixed.
-Function expectAsyncUntil1(Function callback, Function isDone, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke1;
-}
+@deprecated
+Function expectAsyncUntil0(Function callback, Function isDone, {String id}) =>
+    expectAsyncUntil(callback, isDone, id: id);
 
 /**
- * Like [expectAsyncUntil0] but [callback] should take 2 positional arguments.
+ * *Deprecated*
+ *
+ * Use [expectAsyncUntil] instead.
  */
-// TODO(sigmund): deprecate this API when issue 2706 is fixed.
-Function expectAsyncUntil2(Function callback, Function isDone, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke2;
-}
+@deprecated
+Function expectAsyncUntil1(Function callback, Function isDone, {String id}) =>
+    expectAsyncUntil(callback, isDone, id: id);
+
+/**
+ * *Deprecated*
+ *
+ * Use [expectAsyncUntil] instead.
+ */
+@deprecated
+Function expectAsyncUntil2(Function callback, Function isDone, {String id}) =>
+    expectAsyncUntil(callback, isDone, id: id);
 
 /**
  * *Deprecated*
@@ -634,7 +685,7 @@ void _ensureInitialized(bool configAutoStart) {
   }
   _initialized = true;
   // Hook our async guard into the matcher library.
-  wrapAsync = (f, [id]) => expectAsync1(f, id: id);
+  wrapAsync = (f, [id]) => expectAsync(f, id: id);
 
   _uncaughtErrorMessage = null;
 
@@ -718,4 +769,19 @@ Trace _getTrace(stack) {
   return new Trace(trace.frames.takeWhile((frame) {
     return frame.package != 'unittest' || frame.member != 'TestCase._runTest';
   })).terse.foldFrames((frame) => frame.package == 'unittest' || frame.isCore);
+}
+
+typedef _Func0();
+typedef _Func1(a);
+typedef _Func2(a, b);
+
+/**
+ * Throws an [ArgumentError] if the callback has more than 2 required arguments.
+ */
+int _minArgs(Function callback) {
+  if (callback is _Func0) return 0;
+  if (callback is _Func1) return 1;
+  if (callback is _Func2) return 2;
+  throw new ArgumentError(
+      'The callback argument has more than 2 required arguments.');
 }
