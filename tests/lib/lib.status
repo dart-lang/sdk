@@ -199,6 +199,7 @@ convert/streamed_conversion_utf8_decode_test: Pass, Timeout # http://dartbug.com
 convert/utf85_test: Skip # Issue 12029.
 async/timer_isolate_test: Pass, Fail # Issue 14734
 convert/json_util_test: Fail # Issue 16109
+mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 
 [ $compiler == dart2js ]
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
