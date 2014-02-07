@@ -410,6 +410,14 @@ class PrettyPrinter implements Visitor {
     visitNodeWithChildren(node, "While");
   }
 
+  visitMetadata(Metadata node) {
+    openNode(node, "Metadata", {
+      "token": node.token
+    });
+    visitChildNode(node.expression, "expression");
+    closeNode();
+  }
+
   visitNode(Node node) {
     unimplemented('visitNode', node: node);
   }

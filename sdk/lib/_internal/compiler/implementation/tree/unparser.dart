@@ -359,6 +359,10 @@ class Unparser implements Visitor {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
+    if (node.metadata != null) {
+      visit(node.metadata);
+      sb.write(' ');
+    }
     visit(node.modifiers);
     if (!node.modifiers.nodes.isEmpty) {
       sb.write(' ');
@@ -571,6 +575,11 @@ class Unparser implements Visitor {
   visitCombinator(Combinator node) {
     addToken(node.keywordToken);
     visit(node.identifiers);
+  }
+
+  visitMetadata(Metadata node) {
+    addToken(node.token);
+    visit(node.expression);
   }
 
   visitNode(Node node) {

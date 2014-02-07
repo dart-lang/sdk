@@ -4,7 +4,6 @@
 
 import 'dart:io';
 import 'dart:async';
-import 'dart:mirrors';
 
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/analyze.dart' as source_mirrors;

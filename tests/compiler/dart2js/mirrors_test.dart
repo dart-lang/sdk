@@ -153,7 +153,15 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
 
   var fooClassMembers = fooClass.declarations;
   Expect.isNotNull(fooClassMembers, "Declared members map is null");
-  Expect.isTrue(fooClassMembers.isEmpty, "Declared members map is unempty");
+  Expect.equals(1, fooClassMembers.length);
+
+  var fooM = fooClassMembers[#m];
+  Expect.isNotNull(fooM);
+  Expect.isTrue(fooM is MethodMirror);
+  Expect.equals(1, fooM.parameters.length);
+  var fooMa = fooM.parameters[0];
+  Expect.isNotNull(fooMa);
+  Expect.isTrue(fooMa is ParameterMirror);
 
   //////////////////////////////////////////////////////////////////////////////
   // Metadata tests
@@ -337,7 +345,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNull(mapData.getValue('bar'));
 
   // @metadata
-  metadata = metadataList[metadataListIndex++];
+  var metadataRef = metadata = metadataList[metadataListIndex++];
   Expect.isTrue(metadata is InstanceMirror);
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
@@ -375,6 +383,10 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
 
   Expect.equals(metadataList.length, metadataListIndex);
 
+  Expect.isNotNull(fooMa.metadata);
+  Expect.equals(1, fooMa.metadata.length);
+  Expect.equals(metadataRef, fooMa.metadata[0]);
+
   //////////////////////////////////////////////////////////////////////////////
   // Location test
   //////////////////////////////////////////////////////////////////////////////
@@ -385,7 +397,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   // leading comment.
   Expect.equals(376, fooClassLocation.offset, "Unexpected offset");
   // Expect the location to end with the class body.
-  Expect.equals(332, fooClassLocation.length, "Unexpected length");
+  Expect.equals(351, fooClassLocation.length, "Unexpected length");
   Expect.equals(18, fooClassLocation.line, "Unexpected line");
   Expect.equals(1, fooClassLocation.column, "Unexpected column");
 

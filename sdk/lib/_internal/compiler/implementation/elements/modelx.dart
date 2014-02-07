@@ -1140,6 +1140,12 @@ class VariableElementX extends ElementX implements VariableElement {
         variables = null,
         super(name, kind, enclosing);
 
+  void addMetadata(MetadataAnnotation metadata) {
+    variables.addMetadata(metadata);
+  }
+
+  Link<MetadataAnnotation> get metadata => variables.metadata;
+
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     VariableDefinitions definitions = variables.parseNode(listener);
@@ -2475,7 +2481,7 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
    * The compile-time constant which this annotation resolves to.
    * In the mirror system, this would be an object mirror.
    */
-  Constant get value;
+  Constant value;
   Element annotatedElement;
   int resolutionState;
 
@@ -2493,5 +2499,20 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
     return this;
   }
 
+  Node parseNode(DiagnosticListener listener);
+
   String toString() => 'MetadataAnnotation($value, $resolutionState)';
+}
+
+/// Metadata annotation on a parameter.
+class ParameterMetadataAnnotation extends MetadataAnnotationX {
+  final Metadata metadata;
+
+  ParameterMetadataAnnotation(Metadata this.metadata);
+
+  Node parseNode(DiagnosticListener listener) => metadata.expression;
+
+  Token get beginToken => metadata.getBeginToken();
+
+  Token get endToken => metadata.getEndToken();
 }

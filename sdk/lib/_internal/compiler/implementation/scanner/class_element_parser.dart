@@ -43,7 +43,8 @@ class PartialClassElement extends ClassElementX {
         Token token = parser.parseTopLevelDeclaration(beginToken);
         assert(identical(token, endToken.next));
         cachedNode = listener.popNode();
-        assert(listener.nodes.isEmpty);
+        assert(invariant(beginToken, listener.nodes.isEmpty,
+            message: "Non-empty listener stack: ${listener.nodes}"));
       });
       compiler.patchParser.measure(() {
         if (isPatched) {

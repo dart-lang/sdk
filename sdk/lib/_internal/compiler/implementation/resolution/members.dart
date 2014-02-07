@@ -328,10 +328,16 @@ class ResolverTask extends CompilerTask {
     while (!originParameters.isEmpty) {
       VariableElementX originParameter = originParameters.head;
       VariableElementX patchParameter = patchParameters.head;
+      // TODO(johnniwinther): Remove the case for reassignment of
+      // [patch]/[origin] when resolution is ensure to be done only once.
       assert(invariant(originParameter, originParameter.origin == null));
-      assert(invariant(originParameter, originParameter.patch == null));
+      assert(invariant(originParameter,
+          originParameter.patch == null ||
+          originParameter.patch == patchParameter));
       originParameter.patch = patchParameter;
-      assert(invariant(patchParameter, patchParameter.origin == null));
+      assert(invariant(patchParameter,
+          patchParameter.origin == null ||
+          patchParameter.origin == originParameter));
       assert(invariant(patchParameter, patchParameter.patch == null));
       patchParameter.origin = originParameter;
       // Hack: Use unparser to test parameter equality. This only works because
@@ -1202,7 +1208,7 @@ class ResolverTask extends CompilerTask {
         namedParameterTypes);
   }
 
-  void resolveMetadataAnnotation(PartialMetadataAnnotation annotation) {
+  void resolveMetadataAnnotation(MetadataAnnotationX annotation) {
     compiler.withCurrentElement(annotation.annotatedElement, () => measure(() {
       assert(annotation.resolutionState == STATE_NOT_STARTED);
       annotation.resolutionState = STATE_STARTED;
@@ -2965,14 +2971,15 @@ class ResolverVisitor extends MappingVisitor<Element> {
     VariableDefinitionsVisitor visitor =
         new VariableDefinitionsVisitor(compiler, node, this,
                                        ElementKind.VARIABLE);
+    VariableListElement variables = visitor.variables;
     // Ensure that we set the type of the [VariableListElement] since it depends
     // on the current scope. If the current scope is a [MethodScope] or
     // [BlockScope] it will not be available for the
     // [VariableListElement.computeType] method.
     if (node.type != null) {
-      visitor.variables.type = resolveTypeAnnotation(node.type);
+      variables.type = resolveTypeAnnotation(node.type);
     } else {
-      visitor.variables.type = compiler.types.dynamicType;
+      variables.type = compiler.types.dynamicType;
     }
 
     Modifiers modifiers = node.modifiers;
@@ -3002,6 +3009,17 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       if (modifiers.isStatic()) {
         reportExtraModifier('static');
+      }
+    }
+    if (node.metadata != null) {
+      // TODO(johnniwinther): Unify handling of metadata on locals/formals.
+      for (Link<Node> link = node.metadata.nodes;
+           !link.isEmpty;
+           link = link.tail) {
+        ParameterMetadataAnnotation metadata =
+            new ParameterMetadataAnnotation(link.head);
+        variables.addMetadata(metadata);
+        metadata.ensureResolved(compiler);
       }
     }
     visitor.visit(node.definitions);

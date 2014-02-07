@@ -81,6 +81,13 @@ class Dart2JsConstantMirror extends Object
     return mirrorSystem._getTypeDeclarationMirror(
         _constant.computeType(mirrorSystem.compiler).element);
   }
+
+  int get hashCode => 13 * _constant.hashCode;
+
+  bool operator ==(var other) {
+    if (other is! Dart2JsConstantMirror) return false;
+    return _constant == other._constant;
+  }
 }
 
 class Dart2JsNullConstantMirror extends Dart2JsConstantMirror {

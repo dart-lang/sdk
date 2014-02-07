@@ -117,6 +117,9 @@ class CloningVisitor implements Visitor<Node> {
   visitLiteralString(LiteralString node) => new LiteralString(
       node.token, node.dartString);
 
+  visitMetadata(Metadata node) => new Metadata(
+      node.token, visit(node.expression));
+
   visitMixinApplication(MixinApplication node) => new MixinApplication(
       visit(node.superclass), visit(node.mixins));
 
@@ -213,8 +216,10 @@ class CloningVisitor implements Visitor<Node> {
   visitTypeVariable(TypeVariable node) => new TypeVariable(
       visit(node.name), visit(node.bound));
 
-  visitVariableDefinitions(VariableDefinitions node) => new VariableDefinitions(
-      visit(node.type), visit(node.modifiers), visit(node.definitions));
+  visitVariableDefinitions(VariableDefinitions node) =>
+      new VariableDefinitions.forParameter(
+          visit(node.metadata), visit(node.type),
+          visit(node.modifiers), visit(node.definitions));
 
   visitWhile(While node) => new While(
       visit(node.condition), visit(node.body), node.whileKeyword);

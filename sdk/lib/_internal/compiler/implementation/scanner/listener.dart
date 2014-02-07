@@ -252,6 +252,12 @@ class Listener {
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
   }
 
+  void beginMetadataStar(Token token) {
+  }
+
+  void endMetadataStar(int count, bool forParameter) {
+  }
+
   void beginMetadata(Token token) {
   }
 
@@ -1264,8 +1270,9 @@ class NodeListener extends ElementListener {
     }
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
-    pushNode(
-        new VariableDefinitions(type, modifiers, new NodeList.singleton(name)));
+    NodeList metadata = popNode();
+    pushNode(new VariableDefinitions.forParameter(
+        metadata, type, modifiers, new NodeList.singleton(name)));
   }
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {
@@ -1812,6 +1819,17 @@ class NodeListener extends ElementListener {
                                 beginToken, inKeyword));
   }
 
+  void endMetadataStar(int count, bool forParameter) {
+    // TODO(johnniwinther): Handle metadata for all node kinds.
+    if (forParameter) {
+      if (0 == count) {
+        pushNode(null);
+      } else {
+        pushNode(makeNodeList(count, null, null, ' '));
+      }
+    }
+  }
+
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     NodeList arguments = popNode();
     if (arguments == null) {
@@ -1839,13 +1857,14 @@ class NodeListener extends ElementListener {
       if (name != null) {
         send = new Send(receiver, name);
       }
-      pushNode(send);
+      pushNode(new Metadata(beginToken, send));
     } else {
       // This is a const constructor call.
       endConstructorReference(beginToken, periodBeforeName, endToken);
       Node constructor = popNode();
-      pushNode(new NewExpression(beginToken,
-                                 new Send(null, constructor, arguments)));
+      pushNode(new Metadata(beginToken,
+          new NewExpression(null,
+              new Send(null, constructor, arguments))));
     }
   }
 
@@ -1993,7 +2012,6 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
   final Token beginToken;
   final Token tokenAfterEndToken;
   Expression cachedNode;
-  Constant value;
 
   PartialMetadataAnnotation(this.beginToken, this.tokenAfterEndToken);
 
@@ -2007,9 +2025,10 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    cachedNode = parse(listener,
-                       annotatedElement.getCompilationUnit(),
-                       (p) => p.parseMetadata(beginToken));
+    Metadata metadata = parse(listener,
+                              annotatedElement.getCompilationUnit(),
+                              (p) => p.parseMetadata(beginToken));
+    cachedNode = metadata.expression;
     return cachedNode;
   }
 }
