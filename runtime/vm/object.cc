@@ -26,6 +26,7 @@
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
 #include "vm/intermediate_language.h"
@@ -6456,9 +6457,11 @@ void Field::set_guarded_list_length(intptr_t list_length) const {
 
 
 bool Field::IsUnboxedField() const {
-  // TODO(johnmccutchan): Add kFloat32x4Cid here.
+  bool valid_class = (guarded_cid() == kDoubleCid) ||
+                     (FlowGraphCompiler::SupportsUnboxedFloat32x4() &&
+                      (guarded_cid() == kFloat32x4Cid));
   return is_unboxing_candidate() && !is_final() && !is_nullable() &&
-         ((guarded_cid() == kDoubleCid));
+         valid_class;
 }
 
 

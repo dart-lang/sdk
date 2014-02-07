@@ -42,6 +42,11 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
+bool FlowGraphCompiler::SupportsUnboxedFloat32x4() {
+  return false;
+}
+
+
 bool FlowGraphCompiler::SupportsSinCos() {
   return false;
 }

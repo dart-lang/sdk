@@ -31,7 +31,8 @@ DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_osr);
-
+DEFINE_FLAG(bool, enable_simd_inline, true,
+    "Enable inlining of SIMD related method calls.");
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -455,10 +456,25 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
 // and FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
   if (is_optimizing()) {
+    RegisterSet* registers = locs->live_registers();
+    ASSERT(registers != NULL);
+    const intptr_t kFpuRegisterSpillFactor =
+            kFpuRegisterSize / kWordSize;
+    const intptr_t live_registers_size = registers->CpuRegisterCount() +
+        (registers->FpuRegisterCount() * kFpuRegisterSpillFactor);
     BitmapBuilder* bitmap = locs->stack_bitmap();
     ASSERT(bitmap != NULL);
-    ASSERT(bitmap->Length() <= StackSize());
-    // Pad the bitmap out to describe all the spill slots.
+    // An instruction may have two safepoints in deferred code. The
+    // call to RecordSafepoint has the side-effect of appending the live
+    // registers to the bitmap. This is why the second call to RecordSafepoint
+    // with the same instruction (and same location summary) sees a bitmap that
+    // is larger that StackSize(). It will never be larger than StackSize() +
+    // live_registers_size.
+    ASSERT(bitmap->Length() <= (StackSize() + live_registers_size));
+    // The first safepoint will grow the bitmap to be the size of StackSize()
+    // but the second safepoint will truncate the bitmap and append the
+    // live registers to it again. The bitmap produced by both calls will
+    // be the same.
     bitmap->SetLength(StackSize());
 
     // Mark the bits in the stack map in the same order we push registers in
@@ -475,8 +491,6 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
         //
         // FPU registers have the highest register number at the highest
         // address (i.e., first in the stackmap).
-        const intptr_t kFpuRegisterSpillFactor =
-            kFpuRegisterSize / kWordSize;
         for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
           FpuRegister reg = static_cast<FpuRegister>(i);
           if (regs->ContainsFpuRegister(reg)) {

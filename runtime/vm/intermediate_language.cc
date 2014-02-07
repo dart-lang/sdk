@@ -26,7 +26,8 @@ namespace dart {
 
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
-DEFINE_FLAG(bool, unbox_double_fields, true, "Support unboxed double fields.");
+DEFINE_FLAG(bool, unbox_numeric_fields, true,
+    "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
@@ -138,14 +139,14 @@ bool CheckClassInstr::IsNullCheck() const {
 
 
 bool LoadFieldInstr::IsUnboxedLoad() const {
-  return FLAG_unbox_double_fields
+  return FLAG_unbox_numeric_fields
       && (field() != NULL)
       && field()->IsUnboxedField();
 }
 
 
 bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
-  return FLAG_unbox_double_fields
+  return FLAG_unbox_numeric_fields
       && (field() != NULL)
       && field()->IsPotentialUnboxedField();
 }
@@ -157,7 +158,8 @@ Representation LoadFieldInstr::representation() const {
     switch (cid) {
       case kDoubleCid:
         return kUnboxedDouble;
-      // TODO(johnmccutchan): Add kFloat32x4Cid here.
+      case kFloat32x4Cid:
+        return kUnboxedFloat32x4;
       default:
         UNREACHABLE();
     }
@@ -167,12 +169,12 @@ Representation LoadFieldInstr::representation() const {
 
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
-  return FLAG_unbox_double_fields && field().IsUnboxedField();
+  return FLAG_unbox_numeric_fields && field().IsUnboxedField();
 }
 
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
-  return FLAG_unbox_double_fields && field().IsPotentialUnboxedField();
+  return FLAG_unbox_numeric_fields && field().IsPotentialUnboxedField();
 }
 
 
@@ -184,6 +186,8 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     switch (cid) {
       case kDoubleCid:
         return kUnboxedDouble;
+      case kFloat32x4Cid:
+        return kUnboxedFloat32x4;
       default:
         UNREACHABLE();
     }

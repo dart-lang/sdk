@@ -28,6 +28,7 @@ DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+DECLARE_FLAG(bool, enable_simd_inline);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -43,6 +44,11 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   // Support unboxed mints when SSE 4.1 is available.
   return FLAG_unbox_mints && CPUFeatures::sse4_1_supported();
+}
+
+
+bool FlowGraphCompiler::SupportsUnboxedFloat32x4() {
+  return FLAG_enable_simd_inline;
 }
 
 

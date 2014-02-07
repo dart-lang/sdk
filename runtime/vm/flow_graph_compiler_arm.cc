@@ -26,6 +26,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
+DECLARE_FLAG(bool, enable_simd_inline);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -39,6 +40,11 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   return false;
+}
+
+
+bool FlowGraphCompiler::SupportsUnboxedFloat32x4() {
+  return CPUFeatures::neon_supported() && FLAG_enable_simd_inline;
 }
 
 

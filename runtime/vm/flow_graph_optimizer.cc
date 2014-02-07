@@ -39,8 +39,6 @@ DEFINE_FLAG(bool, truncating_left_shift, true,
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 DEFINE_FLAG(bool, trace_load_optimization, false,
     "Print live sets for load optimization pass.");
-DEFINE_FLAG(bool, enable_simd_inline, true,
-    "Enable inlining of SIMD related method calls.");
 DEFINE_FLAG(int, getter_setter_ratio, 13,
     "Ratio of getter/setter usage used for double field unboxing heuristics");
 DECLARE_FLAG(bool, eliminate_type_checks);
@@ -49,12 +47,7 @@ DECLARE_FLAG(bool, trace_type_check_elimination);
 
 
 static bool ShouldInlineSimd() {
-#if defined(TARGET_ARCH_MIPS)
-  return false;
-#elif defined(TARGET_ARCH_ARM)
-  return CPUFeatures::neon_supported() && FLAG_enable_simd_inline;
-#endif
-  return FLAG_enable_simd_inline;
+  return FlowGraphCompiler::SupportsUnboxedFloat32x4();
 }
 
 
