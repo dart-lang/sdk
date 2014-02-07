@@ -100,9 +100,9 @@ Selection _parseSelection(selectionOption) {
         return new Selection(offset, length);
       }
     }
-    throw new FormatterException('Selections are specified as integer pairs '
-                                 '(e.g., "(offset, length)".');
   }
+  throw new FormatterException('Selections are specified as integer pairs '
+                               '(e.g., "(offset, length)".');
 }
 
 int _toInt(str) => int.parse(str, onError: (_) => null);
