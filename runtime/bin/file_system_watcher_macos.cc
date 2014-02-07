@@ -97,9 +97,7 @@ class FSEventsWatcher {
 
     static void StartCallback(CFRunLoopTimerRef timer, void* info) {
       Node* node = reinterpret_cast<Node*>(info);
-#ifdef DEBUG
       ASSERT(node->watcher_->threadId_ == Thread::GetCurrentThreadId());
-#endif
       FSEventStreamContext context;
       memset(&context, 0, sizeof(context));
       context.info = reinterpret_cast<void*>(node);
@@ -150,9 +148,7 @@ class FSEventsWatcher {
 
     static void StopCallback(CFRunLoopTimerRef timer, void* info) {
       Node* node = reinterpret_cast<Node*>(info);
-#ifdef DEBUG
       ASSERT(node->watcher_->threadId_ == Thread::GetCurrentThreadId());
-#endif
       FSEventStreamStop(node->ref_);
       FSEventStreamInvalidate(node->ref_);
       FSEventStreamRelease(node->ref_);
@@ -196,9 +192,8 @@ class FSEventsWatcher {
 
   static void Run(uword arg) {
     FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(arg);
-#ifdef DEBUG
+    // Only checked in debug mode.
     watcher->threadId_ = Thread::GetCurrentThreadId();
-#endif
     watcher->run_loop_ = CFRunLoopGetCurrent();
     CFRetain(watcher->run_loop_);
 
@@ -245,9 +240,7 @@ class FSEventsWatcher {
 
   static void StopCallback(CFRunLoopTimerRef timer, void* info) {
     FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(info);
-#ifdef DEBUG
     ASSERT(watcher->threadId_ == Thread::GetCurrentThreadId());
-#endif
     CFRunLoopStop(watcher->run_loop_);
   }
 
@@ -283,9 +276,7 @@ class FSEventsWatcher {
                        const FSEventStreamEventFlags event_flags[],
                        const FSEventStreamEventId event_ids[]) {
     Node* node = reinterpret_cast<Node*>(client);
-#ifdef DEBUG
     ASSERT(node->watcher()->threadId_ == Thread::GetCurrentThreadId());
-#endif
     // `ready` is set on same thread as this callback is invoked, so we don't
     // need to lock here.
     if (!node->ready()) return;
@@ -305,9 +296,7 @@ class FSEventsWatcher {
 
   Monitor monitor_;
   CFRunLoopRef run_loop_;
-#ifdef DEBUG
   ThreadId threadId_;
-#endif
 };
 
 
