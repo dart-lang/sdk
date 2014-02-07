@@ -405,6 +405,8 @@ class Dart2JsVoidMirror extends Dart2JsTypeMirror {
    */
   LibraryMirror get library => null;
 
+  List<InstanceMirror> get metadata => const <InstanceMirror>[];
+
   bool get isVoid => true;
 
   bool operator ==(other) {

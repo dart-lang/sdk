@@ -92,6 +92,7 @@ mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 mirrors/variable_is_const_test/01: MissingCompileTimeError # Issue 5519
 mirrors/list_constructor_test/01: RuntimeError # Issue 13523
 mirrors/raw_type_test/01: RuntimeError # http://dartbug.com/6490
+mirrors/mirrors_reader_test: RuntimeError # Issue 16589
 
 [ $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -226,6 +227,9 @@ mirrors/synthetic_accessor_properties_test/none: RuntimeError # Issue 14632
 mirrors/toplevel_members_test/01: RuntimeError # Issue 14632
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
+
+[ $compiler == none && $checked ]
+mirrors/mirrors_reader_test: RuntimeError # Issue 16588
 
 [ $compiler == none && ( $runtime == drt || $runtime == dartium ) ]
 async/schedule_microtask6_test: Fail # Issue 10910

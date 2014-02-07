@@ -6,11 +6,11 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:mirrors';
 
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart' as source_mirrors;
+import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/analyze.dart' as source_mirrors;
 import '../../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
 
-TypeMirror createInstantiation(source_mirrors.TypeMirror type,
+TypeMirror createInstantiation(TypeSourceMirror type,
                                List<TypeMirror> typeArguments) {
   return type.createInstantiation(typeArguments);
 }
@@ -18,6 +18,12 @@ TypeMirror createInstantiation(source_mirrors.TypeMirror type,
 Future<MirrorSystem> analyze(String test) {
   Uri repository = Platform.script.resolve('../../../../');
   Uri testUri = repository.resolve('tests/lib/mirrors/$test');
+  return analyzeUri(testUri);
+}
+
+
+Future<MirrorSystem> analyzeUri(Uri testUri) {
+  Uri repository = Platform.script.resolve('../../../../');
   Uri libraryRoot = repository.resolve('sdk/');
   Uri packageRoot = Uri.base.resolve('${Platform.packageRoot}/');
   var provider = new CompilerSourceFileProvider();

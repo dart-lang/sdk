@@ -326,8 +326,14 @@ class ResolverTask extends CompilerTask {
                                     Link<Element> originParameters,
                                     Link<Element> patchParameters) {
     while (!originParameters.isEmpty) {
-      Element originParameter = originParameters.head;
-      Element patchParameter = patchParameters.head;
+      VariableElementX originParameter = originParameters.head;
+      VariableElementX patchParameter = patchParameters.head;
+      assert(invariant(originParameter, originParameter.origin == null));
+      assert(invariant(originParameter, originParameter.patch == null));
+      originParameter.patch = patchParameter;
+      assert(invariant(patchParameter, patchParameter.origin == null));
+      assert(invariant(patchParameter, patchParameter.patch == null));
+      patchParameter.origin = originParameter;
       // Hack: Use unparser to test parameter equality. This only works because
       // we are restricting patch uses and the approach cannot be used
       // elsewhere.

@@ -1169,6 +1169,20 @@ class VariableElementX extends ElementX implements VariableElement {
   Token position() => findMyName(variables.position());
 
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
+
+  // TODO(johnniwinther): Move the patch/origin implementation to a parameter
+  // specific element when added.
+
+  /**
+   * A function declaration that should be parsed instead of the current one.
+   * The patch should be parsed as if it was in the current scope. Its
+   * signature must match this function's signature.
+   */
+  VariableElementX patch = null;
+  VariableElementX origin = null;
+
+  bool get isPatch => origin != null;
+  bool get isPatched => patch != null;
 }
 
 class FieldElementX extends VariableElementX implements FieldElement {
