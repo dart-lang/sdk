@@ -406,7 +406,7 @@ class _Utils {
     // TODO(vsm): Move these checks into native code.
     ClassMirror cls = reflectClass(type);
     if (_isBuiltinType(cls)) {
-      throw new UnsupportedError("Invalid custom element from $libName.");
+      throw new UnsupportedError("Invalid custom element from ${cls.owner.uri}.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
     var createdConstructor = cls.declarations[new Symbol('$className.created')];
@@ -513,6 +513,9 @@ class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, Stri
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);
   bool get isNotEmpty => Maps.isNotEmpty(this);
+  void addAll(Map<String, String> other) {
+    other.forEach((key, value) => this[key] = value);
+  }
 }
 
 final _printClosure = window.console.log;

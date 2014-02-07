@@ -48,7 +48,7 @@ def PubSteps(build_info):
     common_args.append('--builder-tag=%s' % build_info.builder_tag)
                  
   bot.RunTest('pub', build_info,
-              common_args + ['pub', 'pkg', 'dartdoc', 'docs'])
+              common_args + ['pub', 'pkg', 'docs'])
 
   pkgbuild_build_info = bot.BuildInfo('none', 'vm', 'release',
       build_info.system, checked=False)

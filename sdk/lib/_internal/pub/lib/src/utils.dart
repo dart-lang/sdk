@@ -144,7 +144,14 @@ Future captureErrors(Future callback(), {bool captureStackChains: false}) {
   var wrappedCallback = () {
     new Future.sync(callback).then(completer.complete)
         .catchError((e, stackTrace) {
-      completer.completeError(e, new Chain.forTrace(stackTrace));
+      // [stackTrace] can be null if we're running without [captureStackChains],
+      // since dart:io will often throw errors without stack traces.
+      if (stackTrace != null) {
+        stackTrace = new Chain.forTrace(stackTrace);
+      } else {
+        stackTrace = new Chain([]);
+      }
+      completer.completeError(e, stackTrace);
     });
   };
 
@@ -152,7 +159,12 @@ Future captureErrors(Future callback(), {bool captureStackChains: false}) {
     Chain.capture(wrappedCallback, onError: completer.completeError);
   } else {
     runZoned(wrappedCallback, onError: (e, stackTrace) {
-      completer.completeError(e, new Chain([new Trace.from(stackTrace)]));
+      if (stackTrace == null) {
+        stackTrace = new Chain([new Trace.from(stackTrace)]);
+      } else {
+        stackTrace = new Chain([]);
+      }
+      completer.completeError(e, stackTrace);
     });
   }
 
@@ -839,6 +851,12 @@ class ApplicationException implements Exception {
       : innerTrace = innerTrace == null ? null : new Trace.from(innerTrace);
 
   String toString() => message;
+}
+
+/// A class for command usage exceptions.
+class UsageException extends ApplicationException {
+  UsageException(String message)
+      : super(message);
 }
 
 /// An class for exceptions where a package could not be found in a [Source].

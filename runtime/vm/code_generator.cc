@@ -1437,8 +1437,16 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   const Code& target_code = Code::Handle(
       caller_code.GetStaticCallTargetCodeAt(frame->pc()));
   ASSERT(!target_code.IsNull());
-  // Since there was a reference to the target_code in the caller_code, it is
-  // not possible for the target_function's code to be disconnected.
+  if (!target_function.HasCode()) {
+    // If target code was unoptimized than the code must have been kept
+    // connected to the function.
+    ASSERT(target_code.is_optimized());
+    const Error& error =
+        Error::Handle(Compiler::CompileFunction(target_function));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+    }
+  }
   ASSERT(target_function.HasCode());
   ASSERT(target_function.raw() == target_code.function());
 
@@ -1486,6 +1494,11 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
   ASSERT(lazy_deopt_jump != 0);
   CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
+  if (FLAG_trace_patching) {
+    const String& name = String::Handle(function.name());
+    OS::PrintErr("InsertCallAt: %" Px " to %" Px " for %s\n", pc,
+                 lazy_deopt_jump, name.ToCString());
+  }
   // Mark code as dead (do not GC its embedded objects).
   optimized_code.set_is_alive(false);
 }
@@ -1501,36 +1514,6 @@ void DeoptimizeAll() {
     optimized_code = frame->LookupDartCode();
     if (optimized_code.is_optimized()) {
       DeoptimizeAt(optimized_code, frame->pc());
-    }
-    frame = iterator.NextFrame();
-  }
-}
-
-
-// Returns true if the given array of cids contains the given cid.
-static bool ContainsCid(const GrowableArray<intptr_t>& cids, intptr_t cid) {
-  for (intptr_t i = 0; i < cids.length(); i++) {
-    if (cids[i] == cid) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
-// Deoptimize optimized code on stack if its class is in the 'classes' array.
-void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes) {
-  DartFrameIterator iterator;
-  StackFrame* frame = iterator.NextFrame();
-  Code& optimized_code = Code::Handle();
-  while (frame != NULL) {
-    optimized_code = frame->LookupDartCode();
-    if (optimized_code.is_optimized()) {
-      const intptr_t owner_cid = Class::Handle(Function::Handle(
-          optimized_code.function()).Owner()).id();
-      if (ContainsCid(classes, owner_cid)) {
-        DeoptimizeAt(optimized_code, frame->pc());
-      }
     }
     frame = iterator.NextFrame();
   }

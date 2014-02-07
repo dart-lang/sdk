@@ -490,7 +490,6 @@ LibTest/typed_data/Float32List/Float32List.view_A05_t03: RuntimeError # co19-rol
 LibTest/typed_data/Float32List/fold_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/join_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/join_A01_t02: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Float32x4List/Float32x4List.view_A02_t01: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A05_t01: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A05_t02: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A05_t03: RuntimeError # co19-roll r559: Please triage this failure
@@ -574,7 +573,6 @@ LibTest/async/Stream/first_A02_t02: fail # co19-roll r546: Please triage this fa
 LibTest/async/Stream/Stream.periodic_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Timer/cancel_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/async/Timer/Timer_A01_t01: fail # co19-roll r546: Please triage this failure
-LibTest/typed_data/Float32x4List/Float32x4List.view_A01_t02: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # co19-roll r607: Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # co19-roll r607: Please triage this failure

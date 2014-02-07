@@ -4494,7 +4494,7 @@ class SimpleParserTest extends ParserTestCase {
     //
     // Scan the source.
     //
-    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     Token tokenStream = scanner.tokenize();
     //
     // Parse the source.
@@ -4544,7 +4544,7 @@ class SimpleParserTest extends ParserTestCase {
     //
     // Scan the source.
     //
-    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     Token tokenStream = scanner.tokenize();
     //
     // Parse the source.
@@ -7403,7 +7403,7 @@ class ParserTestCase extends EngineTestCase {
    */
   static CompilationUnit parseCompilationUnit(String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -7424,7 +7424,7 @@ class ParserTestCase extends EngineTestCase {
    */
   static Expression parseExpression(String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -7445,7 +7445,7 @@ class ParserTestCase extends EngineTestCase {
    */
   static Statement parseStatement(String source, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -7468,7 +7468,7 @@ class ParserTestCase extends EngineTestCase {
    */
   static List<Statement> parseStatements(String source, int expectedCount, List<ErrorCode> errorCodes) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
@@ -7498,7 +7498,7 @@ class ParserTestCase extends EngineTestCase {
     //
     // Scan the source.
     //
-    Scanner scanner = new Scanner(null, new CharSequenceReader(new CharSequence(source)), listener);
+    Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     Token tokenStream = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     //
@@ -9431,7 +9431,7 @@ class IncrementalParserTest extends EngineTestCase {
     // Parse the original contents.
     //
     GatheringErrorListener originalListener = new GatheringErrorListener();
-    Scanner originalScanner = new Scanner(source, new CharSequenceReader(new CharSequence(originalContents)), originalListener);
+    Scanner originalScanner = new Scanner(source, new CharSequenceReader(originalContents), originalListener);
     Token originalTokens = originalScanner.tokenize();
     JUnitTestCase.assertNotNull(originalTokens);
     Parser originalParser = new Parser(source, originalListener);
@@ -9441,7 +9441,7 @@ class IncrementalParserTest extends EngineTestCase {
     // Parse the modified contents.
     //
     GatheringErrorListener modifiedListener = new GatheringErrorListener();
-    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), modifiedListener);
+    Scanner modifiedScanner = new Scanner(source, new CharSequenceReader(modifiedContents), modifiedListener);
     Token modifiedTokens = modifiedScanner.tokenize();
     JUnitTestCase.assertNotNull(modifiedTokens);
     Parser modifiedParser = new Parser(source, modifiedListener);
@@ -9451,7 +9451,7 @@ class IncrementalParserTest extends EngineTestCase {
     // Incrementally parse the modified contents.
     //
     GatheringErrorListener incrementalListener = new GatheringErrorListener();
-    IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(new CharSequence(modifiedContents)), incrementalListener);
+    IncrementalScanner incrementalScanner = new IncrementalScanner(source, new CharSequenceReader(modifiedContents), incrementalListener);
     Token incrementalTokens = incrementalScanner.rescan(originalTokens, replaceStart, removed.length, added.length);
     JUnitTestCase.assertNotNull(incrementalTokens);
     IncrementalParser incrementalParser = new IncrementalParser(source, incrementalScanner.tokenMap, incrementalListener);
@@ -11645,7 +11645,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseCompilationUnit_0': new MethodTrampoline(0, (Parser target) => target.parseCompilationUnit2()),
   'parseConditionalExpression_0': new MethodTrampoline(0, (Parser target) => target.parseConditionalExpression()),
   'parseConstructorName_0': new MethodTrampoline(0, (Parser target) => target.parseConstructorName()),
-  'parseExpression_0': new MethodTrampoline(0, (Parser target) => target.parseExpression4()),
+  'parseExpression_0': new MethodTrampoline(0, (Parser target) => target.parseExpression2()),
   'parseExpressionWithoutCascade_0': new MethodTrampoline(0, (Parser target) => target.parseExpressionWithoutCascade()),
   'parseExtendsClause_0': new MethodTrampoline(0, (Parser target) => target.parseExtendsClause()),
   'parseFormalParameterList_0': new MethodTrampoline(0, (Parser target) => target.parseFormalParameterList()),
@@ -11782,8 +11782,8 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'peek_0': new MethodTrampoline(0, (Parser target) => target.peek()),
   'peek_1': new MethodTrampoline(1, (Parser target, arg0) => target.peek2(arg0)),
   'reportError_1': new MethodTrampoline(1, (Parser target, arg0) => target.reportError(arg0)),
-  'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError11(arg0, arg1, arg2)),
-  'reportError_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportError12(arg0, arg1)),
+  'reportError_3': new MethodTrampoline(3, (Parser target, arg0, arg1, arg2) => target.reportError12(arg0, arg1, arg2)),
+  'reportError_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.reportError13(arg0, arg1)),
   'skipBlock_0': new MethodTrampoline(0, (Parser target) => target.skipBlock()),
   'skipFinalConstVarOrType_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFinalConstVarOrType(arg0)),
   'skipFormalParameterList_1': new MethodTrampoline(1, (Parser target, arg0) => target.skipFormalParameterList(arg0)),

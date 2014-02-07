@@ -10,14 +10,21 @@ class _SelectElementExtension extends _ElementExtension {
 
   SelectElement get _node => super._node;
 
-  NodeBinding bind(String name, model, [String path]) {
+  Bindable bind(String name, value, {bool oneTime: false}) {
     if (name == 'selectedindex') name = 'selectedIndex';
     if (name != 'selectedIndex' && name != 'value') {
-      return super.bind(name, model, path);
+      return super.bind(name, value, oneTime: oneTime);
+    }
+
+    // TODO(jmesserly): merge logic here with InputElement, it's the same except
+    // for the addition of selectedIndex as a valid property name.
+    _node.attributes.remove(name);
+    if (oneTime) {
+      _InputBinding._updateProperty(_node, value, name);
+      return null;
     }
 
     _self.unbind(name);
-    _node.attributes.remove(name);
-    return bindings[name] = new _SelectBinding(_node, name, model, path);
+    return bindings[name] = new _InputBinding(_node, value, name);
   }
 }

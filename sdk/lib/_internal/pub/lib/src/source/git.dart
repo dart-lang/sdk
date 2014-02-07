@@ -130,8 +130,9 @@ class GitSource extends Source {
 
   /// Returns a future that completes to the revision hash of [id].
   Future<String> _revisionAt(PackageId id) {
-    return git.run(["rev-parse", _getEffectiveRef(id)],
-        workingDir: _repoCachePath(id)).then((result) => result[0]);
+    return _ensureRepoCache(id).then((_) =>
+        git.run(["rev-parse", _getEffectiveRef(id)],
+            workingDir: _repoCachePath(id)).then((result) => result[0]));
   }
 
   /// Clones the repo at the URI [from] to the path [to] on the local

@@ -80,23 +80,81 @@ class _Random implements Random {
   static const int _MASK32 = 0xFFFFFFFF;
 
   // State comprised of two unsigned 32 bit integers.
-  int _lo;
-  int _hi;
+  int _lo = 0;
+  int _hi = 0;
 
   // Implements:
+  //   uint64_t hash = 0;
   //   do {
-  //     seed = (seed + 0x5A17) & _Random._MASK_64;
-  //   } while (seed == 0);
-  //   _lo = seed & _MASK_32;
-  //   _hi = seed >> 32;
+  //      hash = hash * 1037 ^ mix64((uint64_t)seed);
+  //      seed >>= 64;
+  //   } while (seed != 0 && seed != -1);  // Limits for pos/neg seed.
+  //   if (hash == 0) {
+  //     hash = 0x5A17;
+  //   }
+  //   _lo = hash & _MASK_32;
+  //   _hi = hash >> 32;
   // and then does four _nextState calls to shuffle bits around.
   _Random(int seed) {
-    // Works the same as the VM version for positive integers up to 2^53.
-    // For bigints, the VM always uses zero as seed. That is really a bug, and
-    // we don't simulate that.
-    seed += 0x5A17;
-    _lo = seed & _MASK32;
-    _hi = (seed - _lo) ~/ _POW2_32;
+    int empty_seed = 0;
+    if (seed < 0) {
+      empty_seed = -1;
+    }
+    do {
+      int low = seed & _MASK32;
+      seed = (seed - low) ~/ _POW2_32;
+      int high = seed & _MASK32;
+      seed = (seed - high) ~/ _POW2_32;
+
+      // Thomas Wang's 64-bit mix function.
+      // http://www.concentric.net/~Ttwang/tech/inthash.htm
+      // via. http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
+
+      // key = ~key + (key << 21);
+      int tmplow = low << 21;
+      int tmphigh = (high << 21) | (low >> 11);
+      tmplow = (~low & _MASK32) + tmplow;
+      low = tmplow & _MASK32;
+      high = (~high + tmphigh + ((tmplow - low) ~/ 0x100000000)) & _MASK32;
+      // key = key ^ (key >> 24).
+      tmphigh = high >> 24;
+      tmplow = (low >> 24) | (high << 8);
+      low ^= tmplow;
+      high ^= tmphigh;
+      // key = key * 265
+      tmplow = low * 265;
+      low = tmplow & _MASK32;
+      high = (high * 265 + (tmplow - low) ~/ 0x100000000) & _MASK32;
+      // key = key ^ (key >> 14);
+      tmphigh = high >> 14;
+      tmplow = (low >> 14) | (high << 18);
+      low ^= tmplow;
+      high ^= tmphigh;
+      // key = key * 21
+      tmplow = low * 21;
+      low = tmplow & _MASK32;
+      high = (high * 21 + (tmplow - low) ~/ 0x100000000) & _MASK32;
+      // key = key ^ (key >> 28).
+      tmphigh = high >> 28;
+      tmplow = (low >> 28) | (high << 4);
+      low ^= tmplow;
+      high ^= tmphigh;
+      // key = key + (key << 31);
+      tmplow = low << 31;
+      tmphigh = (high << 31) | (low >> 1);
+      tmplow += low;
+      low = tmplow & _MASK32;
+      high = (high + tmphigh + (tmplow - low) ~/ 0x100000000) & _MASK32;
+      // Mix end.
+
+      // seed = seed * 1037 ^ key;
+      tmplow = _lo * 1037;
+      _lo = tmplow & _MASK32;
+      _hi = (_hi * 1037 + (tmplow - _lo) ~/ 0x100000000) & _MASK32;
+      _lo ^= low;
+      _hi ^= high;
+    } while (seed != empty_seed);
+
     if (_hi == 0 && _lo == 0) {
       _lo = 0x5A17;
     }

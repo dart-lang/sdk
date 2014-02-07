@@ -471,6 +471,13 @@ bool _defineProperty(o, String name, value) {
   return false;
 }
 
+Object _getOwnProperty(o, String name) {
+  if (JS('bool', 'Object.prototype.hasOwnProperty.call(#, #)', o, name)) {
+    return JS('', '#[#]', o, name);
+  }
+  return null;
+}
+
 bool _isLocalObject(o) => JS('bool', '# instanceof Object', o);
 
 dynamic _convertToJS(dynamic o) {
@@ -498,7 +505,7 @@ dynamic _convertToJS(dynamic o) {
 }
 
 Object _getJsProxy(o, String propertyName, createProxy(o)) {
-  var jsProxy = JS('', '#[#]', o, propertyName);
+  var jsProxy = _getOwnProperty(o, propertyName);
   if (jsProxy == null) {
     jsProxy = createProxy(o);
     _defineProperty(o, propertyName, jsProxy);
@@ -543,7 +550,7 @@ JsObject _wrapToDart(o) {
 }
 
 Object _getDartProxy(o, String propertyName, createProxy(o)) {
-  var dartProxy = JS('', '#[#]', o, propertyName);
+  var dartProxy = _getOwnProperty(o, propertyName);
   // Temporary fix for dartbug.com/15193
   // In some cases it's possible to see a JavaScript object that
   // came from a different context and was previously proxied to

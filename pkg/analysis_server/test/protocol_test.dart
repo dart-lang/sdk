@@ -61,7 +61,7 @@ class ResponseTest {
     expect(response.error, isNotNull);
     expect(response.toJson(), equals({
       Response.ID: '0',
-      Response.ERROR: 'Context does not exist'
+      Response.ERROR: {'code': -1, 'message': 'Context does not exist'}
     }));
   }
 
@@ -71,7 +71,7 @@ class ResponseTest {
     expect(response.error, isNotNull);
     expect(response.toJson(), equals({
       Response.ID: '',
-      Response.ERROR: 'Invalid request'
+      Response.ERROR: {'code': -4, 'message': 'Invalid request'}
     }));
   }
 
@@ -81,7 +81,7 @@ class ResponseTest {
     expect(response.error, isNotNull);
     expect(response.toJson(), equals({
       Response.ID: '0',
-      Response.ERROR: 'Missing required parameter: x'
+      Response.ERROR: {'code': -5, 'message': 'Missing required parameter: x'}
     }));
   }
 
@@ -91,7 +91,7 @@ class ResponseTest {
     expect(response.error, isNotNull);
     expect(response.toJson(), equals({
       Response.ID: '0',
-      Response.ERROR: 'Unknown request'
+      Response.ERROR: {'code': -7, 'message': 'Unknown request'}
     }));
   }
 

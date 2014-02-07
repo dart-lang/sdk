@@ -69,9 +69,7 @@ void writeSymbols(locale, symbols) {
 
 void writePatterns(locale, patterns) {
   var file = new File(path.join(dataDirectory, 'patterns', '${locale}.json'));
-  var output = file.openWrite();
-  output.write(JSON.encode(patterns));
-  output.close();
+  file.openWrite()..write(JSON.encode(patterns))..close();
 }
 
 void writeToJSON(dynamic data, IOSink out) {

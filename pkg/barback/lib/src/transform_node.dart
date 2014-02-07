@@ -33,6 +33,9 @@ class TransformNode {
   /// The node for the primary asset this transform depends on.
   final AssetNode primary;
 
+  /// A string describing the location of [this] in the transformer graph.
+  final String _location;
+
   /// The subscription to [primary]'s [AssetNode.onStateChange] stream.
   StreamSubscription _primarySubscription;
 
@@ -64,7 +67,7 @@ class TransformNode {
   Stream<LogEntry> get onLog => _onLogController.stream;
   final _onLogController = new StreamController<LogEntry>.broadcast(sync: true);
 
-  TransformNode(this.phase, this.transformer, this.primary) {
+  TransformNode(this.phase, this.transformer, this.primary, this._location) {
     _primarySubscription = primary.onStateChange.listen((state) {
       if (state.isRemoved) {
         remove();
@@ -219,4 +222,7 @@ class TransformNode {
     var entry = new LogEntry(info, asset, level, message, span);
     _onLogController.add(entry);
   }
+
+  String toString() =>
+    "transform node in $_location for $transformer on $primary";
 }

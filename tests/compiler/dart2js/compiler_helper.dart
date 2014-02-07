@@ -83,16 +83,21 @@ String compile(String code, {String entry: 'main',
   return backend.assembleCode(element);
 }
 
+// TODO(herhut): Disallow warnings and errors during compilation by default.
 MockCompiler compilerFor(String code, Uri uri,
                          {bool analyzeAll: false,
                           bool analyzeOnly: false,
                           String coreSource: DEFAULT_CORELIB,
-                          bool disableInlining: true}) {
+                          bool disableInlining: true,
+                          bool allowErrors: true,
+                          bool allowWarnings: true}) {
   MockCompiler compiler = new MockCompiler(
       analyzeAll: analyzeAll,
       analyzeOnly: analyzeOnly,
       coreSource: coreSource,
-      disableInlining: disableInlining);
+      disableInlining: disableInlining,
+      allowErrors: allowErrors,
+      allowWarnings: allowWarnings);
   compiler.sourceFiles[uri.toString()] =
       new StringSourceFile(uri.toString(), code);
   return compiler;
@@ -100,10 +105,13 @@ MockCompiler compilerFor(String code, Uri uri,
 
 Future<String> compileAll(String code,
                           {String coreSource: DEFAULT_CORELIB,
-                          bool disableInlining: true}) {
+                          bool disableInlining: true,
+                          bool allowErrors: true,
+                          bool allowWarnings: true}) {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(
-      code, uri, coreSource: coreSource, disableInlining: disableInlining);
+      code, uri, coreSource: coreSource, disableInlining: disableInlining,
+      allowErrors: allowErrors, allowWarnings: allowWarnings);
   return compiler.runCompiler(uri).then((_) {
     Expect.isFalse(compiler.compilationFailed,
                    'Unexpected compilation error');
@@ -113,9 +121,12 @@ Future<String> compileAll(String code,
 
 Future compileAndCheck(String code,
                        String name,
-                       check(MockCompiler compiler, lego.Element element)) {
+                       check(MockCompiler compiler, lego.Element element),
+                       {bool allowErrors: true, bool allowWarnings: true}) {
   Uri uri = new Uri(scheme: 'source');
-  MockCompiler compiler = compilerFor(code, uri);
+  MockCompiler compiler = compilerFor(code, uri,
+                                      allowErrors: allowErrors,
+                                      allowWarnings: allowWarnings);
   return compiler.runCompiler(uri).then((_) {
     lego.Element element = findElement(compiler, name);
     return check(compiler, element);

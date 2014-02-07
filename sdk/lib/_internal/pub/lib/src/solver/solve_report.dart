@@ -39,12 +39,6 @@ class _SolveReport {
 
   final _output = new StringBuffer();
 
-  /// To avoid emitting trailing newlines, we track if any are needed and only
-  /// emit then when text on the next line is about to be written.
-  // TODO(rnystrom): Move this into a separate class that wraps any StringSink
-  // with this logic.
-  int _pendingLines = 0;
-
   _SolveReport(this._sources, this._root, this._previousLockFile,
       this._result) {
     // Fill the map so we can use it later.
@@ -99,13 +93,13 @@ class _SolveReport {
     var removed = _previousLockFile.packages.keys.toSet();
     removed.removeAll(names);
     if (removed.isNotEmpty) {
-      _writeln("These packages are no longer being depended on:");
+      _output.writeln("These packages are no longer being depended on:");
       removed = removed.toList();
       removed.sort();
       removed.forEach(_reportPackage);
     }
 
-    log.message(_output.toString());
+    log.message(_output);
   }
 
   /// Displays a warning about the overrides currently in effect.
@@ -113,14 +107,14 @@ class _SolveReport {
     _output.clear();
 
     if (_result.overrides.isNotEmpty) {
-      _writeln("Warning: You are using these overridden dependencies:");
+      _output.writeln("Warning: You are using these overridden dependencies:");
       var overrides = _result.overrides.map((dep) => dep.name).toList();
       overrides.sort((a, b) => a.compareTo(b));
 
       overrides.forEach(
           (name) => _reportPackage(name, highlightOverride: false));
 
-      log.warning(_output.toString());
+      log.warning(_output);
     }
   }
 
@@ -149,39 +143,39 @@ class _SolveReport {
     //     < The package was downgraded from a higher version.
     //     * Any other change between the old and new package.
     if (isOverridden) {
-      _write(log.magenta("! "));
+      _output.write(log.magenta("! "));
     } else if (newId == null) {
-      _write(log.red("- "));
+      _output.write(log.red("- "));
     } else if (oldId == null) {
-      _write(log.green("+ "));
+      _output.write(log.green("+ "));
     } else if (!_descriptionsEqual(oldId, newId)) {
-      _write(log.cyan("* "));
+      _output.write(log.cyan("* "));
       changed = true;
     } else if (oldId.version < newId.version) {
-      _write(log.green("> "));
+      _output.write(log.green("> "));
       changed = true;
     } else if (oldId.version > newId.version) {
-      _write(log.cyan("< "));
+      _output.write(log.cyan("< "));
       changed = true;
     } else {
       // Unchanged.
-      _write("  ");
+      _output.write("  ");
     }
 
-    _write(log.bold(id.name));
-    _write(" ");
+    _output.write(log.bold(id.name));
+    _output.write(" ");
     _writeId(id);
 
     // If the package was upgraded, show what it was upgraded from.
     if (changed) {
-      _write(" (was ");
+      _output.write(" (was ");
       _writeId(oldId);
-      _write(")");
+      _output.write(")");
     }
 
     // Highlight overridden packages.
     if (isOverridden && highlightOverride) {
-      _write(" ${log.magenta('(overridden)')}");
+      _output.write(" ${log.magenta('(overridden)')}");
     }
 
     // See if there are any newer versions of the package that we were
@@ -211,10 +205,10 @@ class _SolveReport {
             "${pluralize('version', newerUnstable)} available)";
       }
 
-      if (message != null) _write(" ${log.cyan(message)}");
+      if (message != null) _output.write(" ${log.cyan(message)}");
     }
 
-    _writeln();
+    _output.writeln();
   }
 
   /// Returns `true` if [a] and [b] are from the same source and have the same
@@ -233,7 +227,7 @@ class _SolveReport {
 
   /// Writes a terse description of [id] (not including its name) to the output.
   void _writeId(PackageId id) {
-    _write(id.version);
+    _output.write(id.version);
 
     var source = null;
     if (_sources.contains(id.source)) {
@@ -242,26 +236,7 @@ class _SolveReport {
 
     if (source != null && source != _sources.defaultSource) {
       var description = source.formatDescription(_root.dir, id.description);
-      _write(" from ${id.source} $description");
+      _output.write(" from ${id.source} $description");
     }
-  }
-
-  /// Writes [obj] to the output.
-  void _write(Object obj) {
-    while (_pendingLines > 0) {
-      _output.writeln();
-      _pendingLines--;
-    }
-    _output.write(obj);
-  }
-
-  /// Writes [obj] (if not null) followed by a newline to the output.
-  ///
-  /// Doesn't actually immediately write a newline. Instead, it waits until
-  /// output is written on the next line. That way, trailing newlines aren't
-  /// displayed.
-  void _writeln([Object obj]) {
-    if (obj != null) _write(obj);
-    _pendingLines++;
   }
 }

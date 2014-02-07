@@ -5,7 +5,7 @@
 [ $compiler == none && $runtime == drt ]
 *: Skip # running co19 tests on content_shell would make our dartium cycle-times very long
 
-[ $compiler == none && $runtime == dartium && $mode == debug && $system == windows ]
+[ $compiler == none && $runtime == dartium && $mode == debug ]
 Language/15_Types/4_Interface_Types_A11_t01: Skip # Issue 16343
 Language/15_Types/4_Interface_Types_A11_t02: Skip # Issue 16343
 
@@ -38,6 +38,8 @@ LibTest/isolate/Isolate/spawn_A01_t02: RuntimeError # co19-roll r667: Please tri
 LibTest/isolate/Isolate/spawn_A01_t03: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/isolate/Isolate/spawn_A01_t04: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/isolate/Isolate/spawn_A01_t05: RuntimeError # co19-roll r667: Please triage this failure
+
+LibTest/async/Timer/Timer_A01_t01: RuntimeError, Pass # Issue 16475
 
 [ $compiler == none && $runtime == dartium && $checked ]
 LibTest/core/List/removeAt_A02_t01: Fail # co19-roll r641: Please triage this failure

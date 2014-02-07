@@ -648,6 +648,18 @@ RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
 }
 
 
+RawFloat64x2* SnapshotReader::NewFloat64x2(double v0, double v1) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  cls_ = object_store()->float64x2_class();
+  RawFloat64x2* obj = reinterpret_cast<RawFloat64x2*>(
+      AllocateUninitialized(cls_, Float64x2::InstanceSize()));
+  obj->ptr()->value_[0] = v0;
+  obj->ptr()->value_[1] = v1;
+  return obj;
+}
+
+
 RawApiError* SnapshotReader::NewApiError() {
   ALLOC_NEW_OBJECT(ApiError, Object::api_error_class());
 }

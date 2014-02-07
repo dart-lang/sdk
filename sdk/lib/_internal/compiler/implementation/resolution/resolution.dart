@@ -24,9 +24,10 @@ import '../elements/modelx.dart'
          MixinApplicationElementX,
          TypeVariableElementX,
          TypedefElementX,
-         SynthesizedConstructorElementX;
+         SynthesizedConstructorElementX,
+         MetadataAnnotationX,
+         ParameterMetadataAnnotation;
 import '../util/util.dart';
-import '../scanner/scannerlib.dart' show PartialMetadataAnnotation;
 
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;

@@ -9,7 +9,7 @@ import 'package:canonicalization/c.dart';
 import 'd.dart';
 
 int b = 0;
-@initMethod _init() {
+@initMethod initB() {
   b++;
   c++;
   d++;

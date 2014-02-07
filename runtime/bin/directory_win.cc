@@ -16,11 +16,13 @@
 
 #undef DeleteFile
 
+#define MAX_LONG_PATH 32767
+
 namespace dart {
 namespace bin {
 
 PathBuffer::PathBuffer() : length_(0) {
-  data_ = calloc(MAX_PATH + 1,  sizeof(wchar_t));  // NOLINT
+  data_ = calloc(MAX_LONG_PATH + 1,  sizeof(wchar_t));  // NOLINT
 }
 
 char* PathBuffer::AsString() const {
@@ -41,13 +43,13 @@ bool PathBuffer::Add(const char* name) {
 bool PathBuffer::AddW(const wchar_t* name) {
   wchar_t* data = AsStringW();
   int written = _snwprintf(data + length_,
-                           MAX_PATH - length_,
+                           MAX_LONG_PATH - length_,
                            L"%s",
                            name);
-  data[MAX_PATH] = L'\0';
-  if (written <= MAX_PATH - length_ &&
+  data[MAX_LONG_PATH] = L'\0';
+  if (written <= MAX_LONG_PATH - length_ &&
       written >= 0 &&
-      static_cast<size_t>(written) == wcsnlen(name, MAX_PATH + 1)) {
+      static_cast<size_t>(written) == wcsnlen(name, MAX_LONG_PATH + 1)) {
     length_ += written;
     return true;
   } else {
@@ -390,7 +392,8 @@ bool Directory::Create(const char* dir_name) {
 
 char* Directory::SystemTemp() {
   PathBuffer path;
-  path.Reset(GetTempPathW(MAX_PATH, path.AsStringW()) - 1);  // Remove \ at end.
+  // Remove \ at end.
+  path.Reset(GetTempPathW(MAX_LONG_PATH, path.AsStringW()) - 1);
   return path.AsString();
 }
 
@@ -407,7 +410,7 @@ char* Directory::CreateTemp(const char* prefix) {
   free(const_cast<wchar_t*>(system_prefix));
 
   // Length of xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 36.
-  if (path.length() > MAX_PATH - 36) {
+  if (path.length() > MAX_LONG_PATH - 36) {
     return NULL;
   }
 

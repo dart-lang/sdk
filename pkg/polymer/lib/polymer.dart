@@ -40,7 +40,7 @@
 library polymer;
 
 import 'dart:async';
-import 'dart:collection' show HashMap;
+import 'dart:collection' show HashMap, HashSet;
 import 'dart:html';
 import 'dart:js' as js;
 

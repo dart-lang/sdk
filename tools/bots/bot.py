@@ -151,7 +151,8 @@ def RunBot(parse_name, custom_steps, build_step=BuildSDK):
 
   try:
     Clobber()
-    build_step(build_info)
+    if build_step: 
+      build_step(build_info)
 
     custom_steps(build_info)
   except OSError as e:

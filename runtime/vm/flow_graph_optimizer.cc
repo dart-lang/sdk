@@ -354,10 +354,12 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
           (other_binop->right()->definition() == right_def)) {
         (*merge_candidates)[k] = NULL;  // Clear it.
         // Append a LoadIndexed behind TRUNC_DIV and MOD.
+        ASSERT(curr_instr->HasUses());
         AppendLoadIndexedForMerged(
             curr_instr,
             MergedMathInstr::ResultIndexOf(curr_instr->op_kind()),
             kArrayCid);
+        ASSERT(other_binop->HasUses());
         AppendLoadIndexedForMerged(
             other_binop,
             MergedMathInstr::ResultIndexOf(other_binop->op_kind()),
@@ -414,10 +416,12 @@ void FlowGraphOptimizer::TryMergeMathUnary(
           (other_op->value()->definition() == def)) {
         (*merge_candidates)[k] = NULL;  // Clear it.
         // Append a LoadIndexed behind SIN and COS.
+        ASSERT(curr_instr->HasUses());
         AppendLoadIndexedForMerged(
             curr_instr,
             MergedMathInstr::ResultIndexOf(curr_instr->kind()),
             kTypedDataFloat64ArrayCid);
+        ASSERT(other_op->HasUses());
         AppendLoadIndexedForMerged(
             other_op,
             MergedMathInstr::ResultIndexOf(other_op->kind()),
@@ -467,7 +471,9 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
                                        binop->right()->definition());
         } else if ((binop->op_kind() == Token::kTRUNCDIV) ||
                    (binop->op_kind() == Token::kMOD)) {
-          div_mod_merge.Add(binop);
+          if (binop->HasUses()) {
+            div_mod_merge.Add(binop);
+          }
         }
       } else if (it.Current()->IsBinaryMintOp()) {
         BinaryMintOpInstr* mintop = it.Current()->AsBinaryMintOp();
@@ -480,7 +486,9 @@ void FlowGraphOptimizer::TryOptimizePatterns() {
         MathUnaryInstr* math_unary = it.Current()->AsMathUnary();
         if ((math_unary->kind() == MethodRecognizer::kMathSin) ||
             (math_unary->kind() == MethodRecognizer::kMathCos)) {
-          sin_cos_merge.Add(math_unary);
+          if (math_unary->HasUses()) {
+            sin_cos_merge.Add(math_unary);
+          }
         }
       }
     }
@@ -3679,6 +3687,31 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
            (cid == kImmutableArrayCid) || (cid == kArrayCid));
     ConstantInstr* cid_instr = new ConstantInstr(Smi::Handle(Smi::New(cid)));
     ReplaceCall(call, cid_instr);
+  }
+
+  if (call->function().IsFactory()) {
+    const Class& function_class = Class::Handle(call->function().Owner());
+    if ((function_class.library() == Library::CoreLibrary()) ||
+        (function_class.library() == Library::TypedDataLibrary())) {
+      intptr_t cid = FactoryRecognizer::ResultCid(call->function());
+      switch (cid) {
+        case kArrayCid: {
+          Value* type = new Value(call->ArgumentAt(0));
+          Value* num_elements = new Value(call->ArgumentAt(1));
+          if (num_elements->BindsToConstant() &&
+              num_elements->BoundConstant().IsSmi()) {
+            intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
+            if (length >= 0 && length <= Array::kMaxElements) {
+              CreateArrayInstr* create_array =
+                  new CreateArrayInstr(call->token_pos(), type, num_elements);
+              ReplaceCall(call, create_array);
+            }
+          }
+        }
+        default:
+          break;
+      }
+    }
   }
 }
 
@@ -7119,11 +7152,15 @@ void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
 void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
   if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
       (instr->instance()->definition()->IsCreateArray())) {
-    const intptr_t length =
+    Value* num_elements =
         instr->instance()->definition()->AsCreateArray()->num_elements();
-    const Object& result = Smi::ZoneHandle(Smi::New(length));
-    SetValue(instr, result);
-    return;
+    if (num_elements->BindsToConstant() &&
+        num_elements->BoundConstant().IsSmi()) {
+      intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
+      const Object& result = Smi::ZoneHandle(Smi::New(length));
+      SetValue(instr, result);
+      return;
+    }
   }
 
   if (instr->IsImmutableLengthLoad()) {

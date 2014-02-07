@@ -7,7 +7,9 @@ import 'package:observe/observe.dart';
 import 'package:unittest/unittest.dart';
 import 'observe_test_utils.dart';
 
-main() {
+main() => dirtyCheckZone().run(_runTests);
+
+_runTests() {
   // TODO(jmesserly): need all standard Map API tests.
 
   StreamSubscription sub;
@@ -33,50 +35,56 @@ main() {
 
     tearDown(sharedTearDown);
 
-    observeTest('add item changes length', () {
+    test('add item changes length', () {
       map['d'] = 4;
       expect(map, {'a': 1, 'b': 2, 'c': 3, 'd': 4});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange(map, 3, 4)]);
+      return new Future(() {
+        expectChanges(changes, [_lengthChange(map, 3, 4)]);
+      });
     });
 
-    observeTest('putIfAbsent changes length', () {
+    test('putIfAbsent changes length', () {
       map.putIfAbsent('d', () => 4);
       expect(map, {'a': 1, 'b': 2, 'c': 3, 'd': 4});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange(map, 3, 4)]);
+      return new Future(() {
+        expectChanges(changes, [_lengthChange(map, 3, 4)]);
+      });
     });
 
-    observeTest('remove changes length', () {
+    test('remove changes length', () {
       map.remove('c');
       map.remove('a');
       expect(map, {'b': 2});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, [
-        _lengthChange(map, 3, 2),
-        _lengthChange(map, 2, 1)
-      ]);
+      return new Future(() {
+        expectChanges(changes, [
+          _lengthChange(map, 3, 2),
+          _lengthChange(map, 2, 1)
+        ]);
+      });
     });
 
-    observeTest('remove non-existent item does not change length', () {
+    test('remove non-existent item does not change length', () {
       map.remove('d');
       expect(map, {'a': 1, 'b': 2, 'c': 3});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, null);
+      return new Future(() {
+        expectChanges(changes, null);
+      });
     });
 
-    observeTest('set existing item does not change length', () {
+    test('set existing item does not change length', () {
       map['c'] = 9000;
       expect(map, {'a': 1, 'b': 2, 'c': 9000});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, []);
+      return new Future(() {
+        expectChanges(changes, []);
+      });
     });
 
-    observeTest('clear changes length', () {
+    test('clear changes length', () {
       map.clear();
       expect(map, {});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, [_lengthChange(map, 3, 0)]);
+      return new Future(() {
+        expectChanges(changes, [_lengthChange(map, 3, 0)]);
+      });
     });
   });
 
@@ -96,77 +104,86 @@ main() {
 
     tearDown(sharedTearDown);
 
-    observeTest('putIfAbsent new item does not change existing item', () {
+    test('putIfAbsent new item does not change existing item', () {
       map.putIfAbsent('d', () => 4);
       expect(map, {'a': 1, 'b': 2, 'c': 3, 'd': 4});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, []);
+      return new Future(() {
+        expectChanges(changes, []);
+      });
     });
 
-    observeTest('set item to null', () {
+    test('set item to null', () {
       map['b'] = null;
       expect(map, {'a': 1, 'b': null, 'c': 3});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, [_changeKey('b', 2, null)]);
+      return new Future(() {
+        expectChanges(changes, [_changeKey('b', 2, null)]);
+      });
     });
 
-    observeTest('set item to value', () {
+    test('set item to value', () {
       map['b'] = 777;
       expect(map, {'a': 1, 'b': 777, 'c': 3});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, [_changeKey('b', 2, 777)]);
+      return new Future(() {
+        expectChanges(changes, [_changeKey('b', 2, 777)]);
+      });
     });
 
-    observeTest('putIfAbsent does not change if already there', () {
+    test('putIfAbsent does not change if already there', () {
       map.putIfAbsent('b', () => 1234);
       expect(map, {'a': 1, 'b': 2, 'c': 3});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, null);
+      return new Future(() {
+        expectChanges(changes, null);
+      });
     });
 
-    observeTest('change a different item', () {
+    test('change a different item', () {
       map['c'] = 9000;
       expect(map, {'a': 1, 'b': 2, 'c': 9000});
-      performMicrotaskCheckpoint();
+      return new Future(() {
       expectChanges(changes, []);
+      });
     });
 
-    observeTest('change the item', () {
+    test('change the item', () {
       map['b'] = 9001;
       map['b'] = 42;
       expect(map, {'a': 1, 'b': 42, 'c': 3});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, [
-        _changeKey('b', 2, 9001),
-        _changeKey('b', 9001, 42)
-      ]);
+      return new Future(() {
+        expectChanges(changes, [
+          _changeKey('b', 2, 9001),
+          _changeKey('b', 9001, 42)
+        ]);
+      });
     });
 
-    observeTest('remove other items', () {
+    test('remove other items', () {
       map.remove('a');
       expect(map, {'b': 2, 'c': 3});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, []);
+      return new Future(() {
+        expectChanges(changes, []);
+      });
     });
 
-    observeTest('remove the item', () {
+    test('remove the item', () {
       map.remove('b');
       expect(map, {'a': 1, 'c': 3});
-      performMicrotaskCheckpoint();
-      expectChanges(changes, [_removeKey('b', 2)]);
+      return new Future(() {
+        expectChanges(changes, [_removeKey('b', 2)]);
+      });
     });
 
-    observeTest('remove and add back', () {
+    test('remove and add back', () {
       map.remove('b');
       map['b'] = 2;
       expect(map, {'a': 1, 'b': 2, 'c': 3});
-      performMicrotaskCheckpoint();
-      expectChanges(changes,
-          [_removeKey('b', 2), _insertKey('b', 2)]);
+      return new Future(() {
+        expectChanges(changes,
+            [_removeKey('b', 2), _insertKey('b', 2)]);
+      });
     });
   });
 
-  observeTest('toString', () {
+  test('toString', () {
     var map = toObservable({'a': 1, 'b': 2});
     expect(map.toString(), '{a: 1, b: 2}');
   });
@@ -183,7 +200,7 @@ main() {
 
     tearDown(sharedTearDown);
 
-    observeTest('read operations', () {
+    test('read operations', () {
       expect(map.length, 2);
       expect(map.isEmpty, false);
       expect(map['a'], 1);
@@ -195,65 +212,69 @@ main() {
       var copy = {};
       map.forEach((k, v) { copy[k] = v; });
       expect(copy, {'a': 1, 'b': 2});
-      performMicrotaskCheckpoint();
+      return new Future(() {
+        // no change from read-only operators
+        expect(records, null);
 
-      // no change from read-only operators
-      expect(records, null);
-
-      // Make a change so the subscription gets unregistered.
-      map.clear();
+        // Make a change so the subscription gets unregistered.
+        map.clear();
+      });
     });
 
-    observeTest('putIfAbsent', () {
+    test('putIfAbsent', () {
       map.putIfAbsent('a', () => 42);
       expect(map, {'a': 1, 'b': 2});
 
       map.putIfAbsent('c', () => 3);
       expect(map, {'a': 1, 'b': 2, 'c': 3});
 
-      performMicrotaskCheckpoint();
-      expectChanges(records, [
-        _lengthChange(map, 2, 3),
-        _insertKey('c', 3),
-      ]);
+      return new Future(() {
+        expectChanges(records, [
+          _lengthChange(map, 2, 3),
+          _insertKey('c', 3),
+        ]);
+      });
     });
 
-    observeTest('[]=', () {
+    test('[]=', () {
       map['a'] = 42;
       expect(map, {'a': 42, 'b': 2});
 
       map['c'] = 3;
       expect(map, {'a': 42, 'b': 2, 'c': 3});
 
-      performMicrotaskCheckpoint();
-      expectChanges(records, [
-        _changeKey('a', 1, 42),
-        _lengthChange(map, 2, 3),
-        _insertKey('c', 3)
-      ]);
+      return new Future(() {
+        expectChanges(records, [
+          _changeKey('a', 1, 42),
+          _lengthChange(map, 2, 3),
+          _insertKey('c', 3)
+        ]);
+      });
     });
 
-    observeTest('remove', () {
+    test('remove', () {
       map.remove('b');
       expect(map, {'a': 1});
 
-      performMicrotaskCheckpoint();
-      expectChanges(records, [
-        _removeKey('b', 2),
-        _lengthChange(map, 2, 1),
-      ]);
+      return new Future(() {
+        expectChanges(records, [
+          _removeKey('b', 2),
+          _lengthChange(map, 2, 1),
+        ]);
+      });
     });
 
-    observeTest('clear', () {
+    test('clear', () {
       map.clear();
       expect(map, {});
 
-      performMicrotaskCheckpoint();
-      expectChanges(records, [
-        _removeKey('a', 1),
-        _removeKey('b', 2),
-        _lengthChange(map, 2, 0),
-      ]);
+      return new Future(() {
+        expectChanges(records, [
+          _removeKey('a', 1),
+          _removeKey('b', 2),
+          _lengthChange(map, 2, 0),
+        ]);
+      });
     });
   });
 }

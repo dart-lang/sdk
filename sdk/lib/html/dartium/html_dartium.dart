@@ -35098,13 +35098,14 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     _tryResume();
   }
 
-  void cancel() {
-    if (_canceled) return;
+  Future cancel() {
+    if (_canceled) return null;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
+    return null;
   }
 
   bool get _canceled => _target == null;
@@ -36731,7 +36732,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * KeyboardEvent controller.
    */
   _KeyboardEventHandler(this._type): super(_EVENT_TYPE),
-      _stream = new _CustomKeyEventStreamImpl('event');
+      _stream = new _CustomKeyEventStreamImpl('event'), _target = null;
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
@@ -38053,14 +38054,16 @@ class Platform {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_wrapZone(callback) {
+_wrapZone(callback(arg)) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
+  if (callback == null) return null;
   return Zone.current.bindUnaryCallback(callback, runGuarded: true);
 }
 
-_wrapBinaryZone(callback) {
+_wrapBinaryZone(callback(arg1, arg2)) {
   if (Zone.current == Zone.ROOT) return callback;
+  if (callback == null) return null;
   return Zone.current.bindBinaryCallback(callback, runGuarded: true);
 }
 
@@ -38522,7 +38525,7 @@ class _Utils {
     // TODO(vsm): Move these checks into native code.
     ClassMirror cls = reflectClass(type);
     if (_isBuiltinType(cls)) {
-      throw new UnsupportedError("Invalid custom element from $libName.");
+      throw new UnsupportedError("Invalid custom element from ${cls.owner.uri}.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
     var createdConstructor = cls.declarations[new Symbol('$className.created')];
@@ -38629,6 +38632,9 @@ class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, Stri
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);
   bool get isNotEmpty => Maps.isNotEmpty(this);
+  void addAll(Map<String, String> other) {
+    other.forEach((key, value) => this[key] = value);
+  }
 }
 
 final _printClosure = window.console.log;

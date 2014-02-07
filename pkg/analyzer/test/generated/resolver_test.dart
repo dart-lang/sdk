@@ -6798,6 +6798,16 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  void test_undefinedGetter_void() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class T {",
+        "  void m() {}",
+        "}",
+        "f(T e) { return e.m().f; }"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
   void test_undefinedMethod() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  void m() {", "    n();", "  }", "}"]));
     resolve(source);
@@ -6890,6 +6900,16 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
 
   void test_undefinedSetter_static() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "f() { A.B = 0;}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+  }
+
+  void test_undefinedSetter_void() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class T {",
+        "  void m() {}",
+        "}",
+        "f(T e) { e.m().f = 0; }"]));
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
@@ -7317,6 +7337,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedGetter_static);
       });
+      _ut.test('test_undefinedGetter_void', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedGetter_void);
+      });
       _ut.test('test_undefinedMethod', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedMethod);
@@ -7364,6 +7388,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
       _ut.test('test_undefinedSetter_static', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedSetter_static);
+      });
+      _ut.test('test_undefinedSetter_void', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedSetter_void);
       });
       _ut.test('test_undefinedSuperMethod', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -7413,20 +7441,6 @@ class HintCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["var v = 1 is! int;"]));
     resolve(source);
     assertErrors(source, [HintCode.IS_NOT_INT]);
-    verify([source]);
-  }
-
-  void fail_missingReturn_function() {
-    Source source = addSource(EngineTestCase.createSource(["int f() {}"]));
-    resolve(source);
-    assertErrors(source, [HintCode.MISSING_RETURN]);
-    verify([source]);
-  }
-
-  void fail_missingReturn_method() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  int m() {}", "}"]));
-    resolve(source);
-    assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
   }
 
@@ -7989,6 +8003,20 @@ class HintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_missingReturn_function() {
+    Source source = addSource(EngineTestCase.createSource(["int f() {}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  void test_missingReturn_method() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  int m() {}", "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
   void test_typeCheck_type_is_Null() {
     Source source = addSource(EngineTestCase.createSource(["m(i) {", "  bool b = i is Null;", "}"]));
     resolve(source);
@@ -8235,6 +8263,86 @@ class HintCodeTest extends ResolverTestCase {
     verify([source, source2]);
   }
 
+  void test_useOfVoidResult_assignmentExpression_function() {
+    Source source = addSource(EngineTestCase.createSource([
+        "void f() {}",
+        "class A {",
+        "  n() {",
+        "    var a;",
+        "    a = f();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    verify([source]);
+  }
+
+  void test_useOfVoidResult_assignmentExpression_method() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  void m() {}",
+        "  n() {",
+        "    var a;",
+        "    a = m();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    verify([source]);
+  }
+
+  void test_useOfVoidResult_inForLoop() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  void m() {}",
+        "  n() {",
+        "    for(var a = m();;) {}",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    verify([source]);
+  }
+
+  void test_useOfVoidResult_variableDeclaration_function() {
+    Source source = addSource(EngineTestCase.createSource([
+        "void f() {}",
+        "class A {",
+        "  n() {",
+        "    var a = f();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    verify([source]);
+  }
+
+  void test_useOfVoidResult_variableDeclaration_method() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  void m() {}",
+        "  n() {",
+        "    var a = m();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT]);
+    verify([source]);
+  }
+
+  void test_useOfVoidResult_variableDeclaration_method2() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  void m() {}",
+        "  n() {",
+        "    var a = m(), b = m();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [HintCode.USE_OF_VOID_RESULT, HintCode.USE_OF_VOID_RESULT]);
+    verify([source]);
+  }
+
   static dartSuite() {
     _ut.group('HintCodeTest', () {
       _ut.test('test_deadCode_deadBlock_conditionalElse', () {
@@ -8425,6 +8533,14 @@ class HintCodeTest extends ResolverTestCase {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_isNotDouble);
       });
+      _ut.test('test_missingReturn_function', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_missingReturn_function);
+      });
+      _ut.test('test_missingReturn_method', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_missingReturn_method);
+      });
       _ut.test('test_typeCheck_type_is_Null', () {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_typeCheck_type_is_Null);
@@ -8528,6 +8644,30 @@ class HintCodeTest extends ResolverTestCase {
       _ut.test('test_unusedImport_show', () {
         final __test = new HintCodeTest();
         runJUnitTest(__test, __test.test_unusedImport_show);
+      });
+      _ut.test('test_useOfVoidResult_assignmentExpression_function', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_useOfVoidResult_assignmentExpression_function);
+      });
+      _ut.test('test_useOfVoidResult_assignmentExpression_method', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_useOfVoidResult_assignmentExpression_method);
+      });
+      _ut.test('test_useOfVoidResult_inForLoop', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_useOfVoidResult_inForLoop);
+      });
+      _ut.test('test_useOfVoidResult_variableDeclaration_function', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_useOfVoidResult_variableDeclaration_function);
+      });
+      _ut.test('test_useOfVoidResult_variableDeclaration_method', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_useOfVoidResult_variableDeclaration_method);
+      });
+      _ut.test('test_useOfVoidResult_variableDeclaration_method2', () {
+        final __test = new HintCodeTest();
+        runJUnitTest(__test, __test.test_useOfVoidResult_variableDeclaration_method2);
       });
     });
   }
@@ -21694,6 +21834,26 @@ class NonHintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_useOfVoidResult_implicitReturnValue() {
+    Source source = addSource(EngineTestCase.createSource([
+        "f() {}",
+        "class A {",
+        "  n() {",
+        "    var a = f();",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_useOfVoidResult_nonVoidReturnValue() {
+    Source source = addSource(EngineTestCase.createSource(["int f() => 1;", "g() {", "  var a = f();", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   static dartSuite() {
     _ut.group('NonHintCodeTest', () {
       _ut.test('test_deadCode_deadBlock_conditionalElse_debugConst', () {
@@ -21875,6 +22035,14 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_unusedImport_prefix_topLevelFunction', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_unusedImport_prefix_topLevelFunction);
+      });
+      _ut.test('test_useOfVoidResult_implicitReturnValue', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_useOfVoidResult_implicitReturnValue);
+      });
+      _ut.test('test_useOfVoidResult_nonVoidReturnValue', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_useOfVoidResult_nonVoidReturnValue);
       });
     });
   }

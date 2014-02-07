@@ -237,18 +237,14 @@ class DateFormat {
    * something has happened or how long in the future something will happen
    * given a [reference] DateTime relative to the current time.
    */
-  String formatDuration(DateTime reference) {
-    return '';
-  }
+  String formatDuration(DateTime reference) => '';
 
   /**
    * Formats a string indicating how long ago (negative [duration]) or how far
    * in the future (positive [duration]) some time is with respect to a
    * reference [date].
    */
-  String formatDurationFrom(Duration duration, DateTime date) {
-    return '';
-  }
+  String formatDurationFrom(Duration duration, DateTime date) => '';
 
   /**
    * Given user input, attempt to parse the [inputString] into the anticipated
@@ -259,10 +255,9 @@ class DateFormat {
     // TODO(alanknight): The Closure code refers to special parsing of numeric
     // values with no delimiters, which we currently don't do. Should we?
     var dateFields = new _DateBuilder();
-    if (utc) dateFields.utc=true;
+    if (utc) dateFields.utc = true;
     var stream = new _Stream(inputString);
-    _formatFields.forEach(
-        (each) => each.parse(stream, dateFields));
+    _formatFields.forEach((f) => f.parse(stream, dateFields));
     return dateFields.asDate();
   }
 
@@ -270,9 +265,7 @@ class DateFormat {
    * Given user input, attempt to parse the [inputString] into the anticipated
    * format, treating it as being in UTC.
    */
-  DateTime parseUTC(String inputString) {
-    return parse(inputString, true);
-  }
+  DateTime parseUTC(String inputString) => parse(inputString, true);
 
   /**
    * Return the locale code in which we operate, e.g. 'en_US' or 'pt'.
@@ -497,11 +490,9 @@ class DateFormat {
    * space to separate the two.
    */
   _appendPattern(String inputPattern, [String separator = ' ']) {
-    if (_pattern == null) {
-      _pattern = inputPattern;
-    } else {
-      _pattern = "$_pattern$separator$inputPattern";
-    }
+    _pattern = _pattern == null ?
+      inputPattern :
+      "$_pattern$separator$inputPattern";
   }
 
   /**
@@ -530,9 +521,7 @@ class DateFormat {
   get pattern => _pattern;
 
   /** Return the skeletons for our current locale. */
-  Map get _availableSkeletons {
-    return dateTimePatterns[locale];
-  }
+  Map get _availableSkeletons => dateTimePatterns[locale];
 
   /**
    * Return the [DateSymbol] information for the locale. This can be useful
@@ -582,7 +571,7 @@ class DateFormat {
     if (matched == null) return [];
 
     var parsed = _parsePatternHelper(
-                      pattern.substring(matched.fullPattern().length));
+        pattern.substring(matched.fullPattern().length));
     parsed.add(matched);
     return parsed;
   }

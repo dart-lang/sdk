@@ -81,7 +81,7 @@ class XBar extends PolymerElement {
   }
 }
 
-@initMethod _init() {
+@initMethod init() {
   useHtmlConfiguration();
   // TODO(sigmund): switch back to use @CustomTag. We seem to be running into a
   // problem where using @CustomTag doesn't guarantee that we register the tags

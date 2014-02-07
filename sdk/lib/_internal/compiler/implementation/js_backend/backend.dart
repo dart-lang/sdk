@@ -1738,10 +1738,12 @@ class JavaScriptBackend extends Backend {
   }
 
   bool couldBeTypedArray(TypeMask mask) {
-    TypeMask indexing = new TypeMask.subtype(jsIndexingBehaviorInterface);
-    // Checking if [mask] contains [indexing] means that we want to
-    // know if [mask] is not a more specific type than [indexing].
-    return isTypedArray(mask) || mask.containsMask(indexing, compiler);
+    bool intersects(TypeMask type1, TypeMask type2) =>
+        !type1.intersection(type2, compiler).isEmpty;
+
+    return compiler.typedDataClass != null
+        && intersects(mask, new TypeMask.subtype(compiler.typedDataClass))
+        && intersects(mask, new TypeMask.subtype(jsIndexingBehaviorInterface));
   }
 
   /// Returns all static fields that are referenced through [targetsUsed].

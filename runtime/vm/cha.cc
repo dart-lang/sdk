@@ -13,16 +13,27 @@
 namespace dart {
 
 bool CHA::HasSubclasses(intptr_t cid) {
+  Isolate* isolate = Isolate::Current();
+  const bool has_subclasses = HasSubclassesSafe(cid);
+  if (!has_subclasses) {
+    isolate->set_cha_used(true);
+  }
+  return has_subclasses;
+}
+
+
+bool CHA::HasSubclassesSafe(intptr_t cid) {
   ASSERT(cid >= kInstanceCid);
-  const ClassTable& class_table = *Isolate::Current()->class_table();
-  const Class& cls = Class::Handle(class_table.At(cid));
+  Isolate* isolate = Isolate::Current();
+  const ClassTable& class_table = *isolate->class_table();
+  const Class& cls = Class::Handle(isolate, class_table.At(cid));
   ASSERT(!cls.IsNull());
   if (cls.IsObjectClass()) {
     // Class Object has subclasses, although we do not keep track of them.
     return true;
   }
   const GrowableObjectArray& cls_direct_subclasses =
-      GrowableObjectArray::Handle(cls.direct_subclasses());
+      GrowableObjectArray::Handle(isolate, cls.direct_subclasses());
   return
       !cls_direct_subclasses.IsNull() && (cls_direct_subclasses.Length() > 0);
 }
@@ -61,26 +72,32 @@ static void CollectSubclassIds(ZoneGrowableArray<intptr_t>* cids,
 
 ZoneGrowableArray<intptr_t>* CHA::GetSubclassIdsOf(intptr_t cid) {
   ASSERT(cid > kInstanceCid);
-  const ClassTable& class_table = *Isolate::Current()->class_table();
-  const Class& cls = Class::Handle(class_table.At(cid));
+  Isolate* isolate = Isolate::Current();
+  const ClassTable& class_table = *isolate->class_table();
+  const Class& cls = Class::Handle(isolate, class_table.At(cid));
   ASSERT(!cls.IsNull());
   ZoneGrowableArray<intptr_t>* ids = new ZoneGrowableArray<intptr_t>();
   CollectSubclassIds(ids, cls);
+  isolate->set_cha_used(true);
   return ids;
 }
 
 
 bool CHA::HasOverride(const Class& cls, const String& function_name) {
+  Isolate* isolate = Isolate::Current();
   const GrowableObjectArray& cls_direct_subclasses =
-      GrowableObjectArray::Handle(cls.direct_subclasses());
+      GrowableObjectArray::Handle(isolate, cls.direct_subclasses());
   // Subclasses of Object are not tracked by CHA. Safely assume that overrides
   // exist.
-  if (cls.IsObjectClass()) return true;
+  if (cls.IsObjectClass()) {
+    return true;
+  }
 
   if (cls_direct_subclasses.IsNull()) {
+    isolate->set_cha_used(true);
     return false;
   }
-  Class& direct_subclass = Class::Handle();
+  Class& direct_subclass = Class::Handle(isolate);
   for (intptr_t i = 0; i < cls_direct_subclasses.Length(); i++) {
     direct_subclass ^= cls_direct_subclasses.At(i);
     // Unfinalized classes are treated as non-existent for CHA purposes,
@@ -94,6 +111,7 @@ bool CHA::HasOverride(const Class& cls, const String& function_name) {
       return true;
     }
   }
+  isolate->set_cha_used(true);
   return false;
 }
 
@@ -101,20 +119,22 @@ bool CHA::HasOverride(const Class& cls, const String& function_name) {
 ZoneGrowableArray<Function*>* CHA::GetNamedInstanceFunctionsOf(
     const ZoneGrowableArray<intptr_t>& cids,
     const String& function_name) {
+  Isolate* isolate = Isolate::Current();
   ASSERT(!function_name.IsNull());
-  const ClassTable& class_table = *Isolate::Current()->class_table();
+  const ClassTable& class_table = *isolate->class_table();
   ZoneGrowableArray<Function*>* functions = new ZoneGrowableArray<Function*>();
-  Class& cls = Class::Handle();
-  Function& cls_function = Function::Handle();
+  Class& cls = Class::Handle(isolate);
+  Function& cls_function = Function::Handle(isolate);
   for (intptr_t i = 0; i < cids.length(); i++) {
     const intptr_t cid = cids[i];
     ASSERT(cid > kInstanceCid);
     cls = class_table.At(cid);
     cls_function = cls.LookupDynamicFunction(function_name);
     if (!cls_function.IsNull()) {
-      functions->Add(&Function::ZoneHandle(cls_function.raw()));
+      functions->Add(&Function::ZoneHandle(isolate, cls_function.raw()));
     }
   }
+  isolate->set_cha_used(true);
   return functions;
 }
 
@@ -122,10 +142,12 @@ ZoneGrowableArray<Function*>* CHA::GetNamedInstanceFunctionsOf(
 ZoneGrowableArray<Function*>* CHA::GetOverridesOf(const Function& function) {
   ASSERT(!function.IsNull());
   ASSERT(function.IsDynamicFunction());
-  const Class& function_owner = Class::Handle(function.Owner());
-  const String& function_name = String::Handle(function.name());
+  Isolate* isolate = Isolate::Current();
+  const Class& function_owner = Class::Handle(isolate, function.Owner());
+  const String& function_name = String::Handle(isolate, function.name());
   ZoneGrowableArray<intptr_t>* cids = new ZoneGrowableArray<intptr_t>();
   CollectSubclassIds(cids, function_owner);
+  isolate->set_cha_used(true);
   return GetNamedInstanceFunctionsOf(*cids, function_name);
 }
 

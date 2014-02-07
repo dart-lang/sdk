@@ -4,12 +4,16 @@
 
 library observe.test.observe_test_utils;
 
+import 'dart:async';
 import 'package:observe/observe.dart';
-
 import 'package:unittest/unittest.dart';
+export 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 
-import 'package:observe/src/microtask.dart';
-export 'package:observe/src/microtask.dart';
+/// A small method to help readability. Used to cause the next "then" in a chain
+/// to happen in the next microtask:
+///
+///     future.then(newMicrotask).then(...)
+newMicrotask(_) => new Future.value();
 
 // TODO(jmesserly): use matchers when we have a way to compare ChangeRecords.
 // For now just use the toString.
@@ -21,13 +25,3 @@ List getListChangeRecords(List changes, int index) => changes
 
 List getPropertyChangeRecords(List changes, Symbol property) => changes
     .where((c) => c is PropertyChangeRecord && c.name == property).toList();
-
-/**
- * This is a special kind of unit [test], that supports
- * calling [performMicrotaskCheckpoint] during the test to pump events
- * that original from observable objects.
- */
-observeTest(name, testCase) => test(name, wrapMicrotask(testCase));
-
-/** The [solo_test] version of [observeTest]. */
-solo_observeTest(name, testCase) => solo_test(name, wrapMicrotask(testCase));

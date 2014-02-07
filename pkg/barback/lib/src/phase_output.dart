@@ -28,6 +28,9 @@ class PhaseOutput {
   /// The phase for which this is an output.
   final Phase _phase;
 
+  /// A string describing the location of [this] in the transformer graph.
+  final String _location;
+
   /// The asset node for this output.
   AssetNode get output => _outputForwarder.node;
   AssetForwarder _outputForwarder;
@@ -53,7 +56,7 @@ class PhaseOutput {
         output.id);
   }
 
-  PhaseOutput(this._phase, AssetNode output)
+  PhaseOutput(this._phase, AssetNode output, this._location)
       : _outputForwarder = new AssetForwarder(output) {
     assert(!output.state.isRemoved);
     add(output);
@@ -109,4 +112,6 @@ class PhaseOutput {
       }
     });
   }
+
+  String toString() => "phase output in $_location for $output";
 }

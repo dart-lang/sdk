@@ -18,6 +18,6 @@ class MessageLookup extends MessageLookupByLibrary {
   get localeName => 'th_TH';
 
   final messages = {
-    "runAt" : (time, day) => Intl.message('วิ่ง $time on $day.')
+    "runAt": (time, day) => Intl.message('วิ่ง $time on $day.')
   };
 }

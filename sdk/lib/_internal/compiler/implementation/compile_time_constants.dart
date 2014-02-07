@@ -17,6 +17,8 @@ class ConstantHandler extends CompilerTask {
    * Contains the initial value of fields. Must contain all static and global
    * initializations of const fields. May contain eagerly compiled values for
    * statics and instance fields.
+   *
+   * Invariant: The keys in this map are declarations.
    */
   final Map<VariableElement, Constant> initialVariableValues;
 
@@ -44,7 +46,7 @@ class ConstantHandler extends CompilerTask {
   }
 
   Constant getConstantForVariable(VariableElement element) {
-    return initialVariableValues[element];
+    return initialVariableValues[element.declaration];
   }
 
   /**
@@ -61,8 +63,8 @@ class ConstantHandler extends CompilerTask {
    */
   Constant compileVariable(VariableElement element, {bool isConst: false}) {
     return measure(() {
-      if (initialVariableValues.containsKey(element)) {
-        Constant result = initialVariableValues[element];
+      if (initialVariableValues.containsKey(element.declaration)) {
+        Constant result = initialVariableValues[element.declaration];
         return result;
       }
       Element currentElement = element;
@@ -145,7 +147,7 @@ class ConstantHandler extends CompilerTask {
         }
       }
       if (value != null) {
-        initialVariableValues[element] = value;
+        initialVariableValues[element.declaration] = value;
       } else {
         assert(!isConst);
         lazyStatics.add(element);
@@ -223,7 +225,7 @@ class ConstantHandler extends CompilerTask {
   }
 
   Constant getInitialValueFor(VariableElement element) {
-    Constant initialValue = initialVariableValues[element];
+    Constant initialValue = initialVariableValues[element.declaration];
     if (initialValue == null) {
       compiler.internalError("No initial value for given element",
                              element: element);

@@ -66,10 +66,10 @@ abstract class TranslatedMessage {
    * but it can be any identifier that this program and the output of the
    * translation can agree on as identifying a message.
    */
-  String id;
+  final String id;
 
   /** Our translated version of [originalMessage]. */
-  Message translated;
+  final Message translated;
 
   /** The original message that we are a translation of. */
   MainMessage originalMessage;
@@ -106,20 +106,21 @@ void generateIndividualMessageFile(String locale,
   usableTranslations.sort((a, b) =>
       a.originalMessage.name.compareTo(b.originalMessage.name));
   for (var translation in usableTranslations) {
-    result.write("  ");
-    result.write(translation.originalMessage.toCodeForLocale(locale));
-    result.write("\n\n");
+    result
+        .write("  ")
+        ..write(translation.originalMessage.toCodeForLocale(locale))
+        ..write("\n\n");
   }
   result.write("\n  final messages = const {\n");
   var entries = usableTranslations
       .map((translation) => translation.originalMessage.name)
       .map((name) => "    \"$name\" : $name");
-  result.write(entries.join(",\n"));
-  result.write("\n  };\n}");
+  result
+      ..write(entries.join(",\n"))
+      ..write("\n  };\n}");
 
-  var output = new File(path.join(targetDir,
-      "${generatedFilePrefix}messages_$locale.dart"));
-  output.writeAsStringSync(result.toString());
+  new File(path.join(targetDir,"${generatedFilePrefix}messages_$locale.dart"))
+      ..writeAsStringSync(result.toString());
 }
 
 /**

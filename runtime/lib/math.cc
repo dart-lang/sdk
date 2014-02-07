@@ -111,38 +111,67 @@ DEFINE_NATIVE_ENTRY(Random_nextState, 1) {
 }
 
 
+uint64_t mix64(uint64_t n) {
+  // Thomas Wang 64-bit mix.
+  // http://www.concentric.net/~Ttwang/tech/inthash.htm
+  // via. http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
+  n = (~n) + (n << 21);           // n = (n << 21) - n - 1;
+  n = n ^ (n >> 24);
+  n = n * 265;                    // n = (n + (n << 3)) + (n << 8);
+  n = n ^ (n >> 14);
+  n = n * 21;                     // n = (n + (n << 2)) + (n << 4);
+  n = n ^ (n >> 28);
+  n = n + (n << 31);
+  return n;
+}
+
+
 // Implements:
+//   uint64_t hash = 0;
 //   do {
-//     seed = (seed + 0x5A17) & _Random._MASK_64;
-//   } while (seed == 0);
-//   _state[kSTATE_LO] = seed & _MASK_32;
-//   _state[kSTATE_HI] = seed >> 32;
+//      hash = hash * 1037 ^ mix64((uint64_t)seed);
+//      seed >>= 64;
+//   } while (seed != 0 && seed != -1);  // Limits if seed positive or negative.
+//   if (hash == 0) {
+//     hash = 0x5A17;
+//   }
+//   _state[kSTATE_LO] = hash & _MASK_32;
+//   _state[kSTATE_HI] = hash >> 32;
 DEFINE_NATIVE_ENTRY(Random_setupSeed, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, receiver, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, seed_int, arguments->NativeArgAt(1));
   const TypedData& array = TypedData::Handle(GetRandomStateArray(receiver));
   ASSERT(!seed_int.IsNull());
   ASSERT(!array.IsNull());
-  int64_t seed = 0;
+  uint64_t seed = 0;
   if (seed_int.IsBigint()) {
     const Bigint& mask64 = Bigint::Handle(
         BigintOperations::NewFromUint64(0xffffffffffffffffLL));
     Bigint& big_seed = Bigint::Handle();
     big_seed ^= seed_int.raw();
+    uint64_t negate_mask = 0;
+    if (big_seed.IsNegative()) {
+      // Negate bits to make seed positive.
+      // Negate bits again (by xor with negate_mask) when extracted below,
+      // to get original bits.
+      negate_mask = 0xffffffffffffffffLL;
+      big_seed ^= BigintOperations::BitNot(big_seed);
+    }
     Bigint& low64 = Bigint::Handle();
-    while (!big_seed.IsZero()) {
+    do {
       low64 = BigintOperations::BitAnd(big_seed, mask64);
       ASSERT(BigintOperations::FitsIntoUint64(low64));
-      seed ^= BigintOperations::ToUint64(low64);
+      uint64_t chunk = BigintOperations::ToUint64(low64) ^ negate_mask;
+      seed = (seed * 1037) ^ mix64(chunk);
       big_seed = BigintOperations::ShiftRight(big_seed, 64);
-    }
+    } while (!big_seed.IsZero());
   } else {
-    seed = seed_int.AsInt64Value();
+    seed = mix64(static_cast<uint64_t>(seed_int.AsInt64Value()));
   }
 
-  do {
-    seed = seed + 0x5A17;
-  } while (seed == 0);
+  if (seed == 0) {
+    seed = 0x5a17;
+  }
   array.SetUint32(0, static_cast<uint32_t>(seed));
   array.SetUint32(array.ElementSizeInBytes(),
       static_cast<uint32_t>(seed >> 32));

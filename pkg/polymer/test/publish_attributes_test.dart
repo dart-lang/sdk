@@ -62,10 +62,10 @@ main() {
     published(tag) => (query('polymer-element[name=$tag]')
         as PolymerDeclaration).publishedProperties;
 
-    expect(published('x-foo'), [#Foo, #baz]);
-    expect(published('x-bar'), [#Foo, #baz, #Bar]);
-    expect(published('x-zot'), [#Foo, #baz, #Bar, #zot]);
-    expect(published('x-squid'), [#Foo, #baz, #Bar, #zot, #squid]);
-    expect(published('x-qux'), [#qux]);
+    expect(published('x-foo'), ['Foo', 'baz']);
+    expect(published('x-bar'), ['Foo', 'baz', 'Bar']);
+    expect(published('x-zot'), ['Foo', 'baz', 'Bar', 'zot']);
+    expect(published('x-squid'), ['Foo', 'baz', 'Bar', 'zot', 'squid']);
+    expect(published('x-qux'), ['qux']);
   });
 }

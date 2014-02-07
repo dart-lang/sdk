@@ -17,7 +17,7 @@ main() {
     Intl.systemLocale = "xx_YY";
     var callback = expectAsync1(verifyLocale);
     findSystemLocale().then(callback);
-    });
+  });
 }
 
 verifyLocale(_) {

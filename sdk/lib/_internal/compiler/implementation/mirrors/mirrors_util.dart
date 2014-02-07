@@ -6,13 +6,20 @@ library mirrors_util;
 
 import 'dart:collection' show Queue, IterableBase;
 
-// TODO(rnystrom): Use "package:" URL (#4968).
-import 'mirrors.dart';
+import 'source_mirrors.dart';
 
 //------------------------------------------------------------------------------
 // Utility functions for using the Mirror API
 //------------------------------------------------------------------------------
 
+String nameOf(DeclarationMirror mirror) =>
+    MirrorSystem.getName(mirror.simpleName);
+
+String qualifiedNameOf(DeclarationMirror mirror) =>
+    MirrorSystem.getName(mirror.qualifiedName);
+
+// TODO(johnniwinther): Handle private names.
+Symbol symbolOf(String name, [LibraryMirror library]) => new Symbol(name);
 
 /**
  * Return the display name for [mirror].
@@ -32,15 +39,14 @@ String displayName(DeclarationMirror mirror) {
       return library.uri.toString();
     }
   } else if (mirror is MethodMirror) {
-    MethodMirror methodMirror = mirror;
-    String simpleName = methodMirror.simpleName;
-    if (methodMirror.isSetter) {
+    String simpleName = nameOf(mirror);
+    if (mirror.isSetter) {
       // Remove trailing '='.
       return simpleName.substring(0, simpleName.length-1);
-    } else if (methodMirror.isOperator) {
-      return 'operator ${operatorName(methodMirror)}';
-    } else if (methodMirror.isConstructor) {
-      String className = displayName(methodMirror.owner);
+    } else if (mirror.isOperator) {
+      return 'operator ${operatorName(mirror)}';
+    } else if (mirror.isConstructor) {
+      String className = displayName(mirror.owner);
       if (simpleName == '') {
         return className;
       } else {
@@ -48,7 +54,7 @@ String displayName(DeclarationMirror mirror) {
       }
     }
   }
-  return mirror.simpleName;
+  return MirrorSystem.getName(mirror.simpleName);
 }
 
 /**
@@ -57,12 +63,11 @@ String displayName(DeclarationMirror mirror) {
  * operator. Return [:null:] if [methodMirror] is not an operator method.
  */
 String operatorName(MethodMirror methodMirror) {
-  String simpleName = methodMirror.simpleName;
   if (methodMirror.isOperator) {
-    if (simpleName == Mirror.UNARY_MINUS) {
+    if (methodMirror.simpleName == const Symbol('unary-')) {
       return '-';
     } else {
-      return simpleName;
+      return nameOf(methodMirror);
     }
   }
   return null;
@@ -70,45 +75,33 @@ String operatorName(MethodMirror methodMirror) {
 
 /**
  * Returns an iterable over the type declarations directly inheriting from
- * the declaration of this type.
+ * the declaration of [type] within [mirrors].
  */
-Iterable<ClassMirror> computeSubdeclarations(ClassMirror type) {
+Iterable<ClassMirror> computeSubdeclarations(MirrorSystem mirrors,
+                                             ClassMirror type) {
   type = type.originalDeclaration;
   var subtypes = <ClassMirror>[];
-  type.mirrors.libraries.forEach((_, library) {
-    for (ClassMirror otherType in library.classes.values) {
+  mirrors.libraries.forEach((_, library) {
+    library.declarations.values
+        .where((mirror) => mirror is ClassMirror)
+        .forEach((ClassMirror otherType) {
       var superClass = otherType.superclass;
       if (superClass != null) {
         superClass = superClass.originalDeclaration;
-        if (type.library == superClass.library) {
-          if (superClass == type) {
-             subtypes.add(otherType);
-          }
+        if (superClass == type) {
+          subtypes.add(otherType);
         }
       }
       final superInterfaces = otherType.superinterfaces;
       for (ClassMirror superInterface in superInterfaces) {
         superInterface = superInterface.originalDeclaration;
-        if (type.library == superInterface.library) {
-          if (superInterface == type) {
-            subtypes.add(otherType);
-          }
+        if (superInterface == type) {
+          subtypes.add(otherType);
         }
       }
-    }
+    });
   });
   return subtypes;
-}
-
-LibraryMirror findLibrary(MemberMirror member) {
-  DeclarationMirror owner = member.owner;
-  if (owner is LibraryMirror) {
-    return owner;
-  } else if (owner is TypeMirror) {
-    TypeMirror mirror = owner;
-    return mirror.library;
-  }
-  throw new Exception('Unexpected owner: ${owner}');
 }
 
 class HierarchyIterable extends IterableBase<ClassMirror> {
@@ -146,7 +139,7 @@ class HierarchyIterator implements Iterator<ClassMirror> {
 
   ClassMirror push(ClassMirror type) {
     if (type.superclass != null) {
-      if (type.superclass.isObject) {
+      if (isObject(type.superclass)) {
         object = type.superclass;
       } else {
         queue.addFirst(type.superclass);
@@ -172,10 +165,67 @@ class HierarchyIterator implements Iterator<ClassMirror> {
   }
 }
 
+LibraryMirror getLibrary(DeclarationMirror declaration) {
+  while (declaration != null && declaration is! LibraryMirror) {
+    declaration = declaration.owner;
+  }
+  return declaration;
+}
+
+Iterable<DeclarationMirror> membersOf(
+    Map<Symbol, DeclarationMirror> declarations) {
+  return declarations.values.where(
+      (mirror) => mirror is MethodMirror || mirror is VariableMirror);
+}
+
+Iterable<TypeMirror> classesOf(
+    Map<Symbol, DeclarationMirror> declarations) {
+  return declarations.values.where((mirror) => mirror is ClassMirror);
+}
+
+Iterable<TypeMirror> typesOf(
+    Map<Symbol, DeclarationMirror> declarations) {
+  return declarations.values.where((mirror) => mirror is TypeMirror);
+}
+
+Iterable<MethodMirror> methodsOf(
+    Map<Symbol, DeclarationMirror> declarations) {
+  return declarations.values.where(
+      (mirror) => mirror is MethodMirror && mirror.isRegularMethod);
+}
+
+Iterable<MethodMirror> constructorsOf(
+    Map<Symbol, DeclarationMirror> declarations) {
+  return declarations.values.where(
+      (mirror) => mirror is MethodMirror && mirror.isConstructor);
+}
+
+Iterable<MethodMirror> settersOf(
+    Map<Symbol, DeclarationMirror> declarations) {
+  return declarations.values.where(
+      (mirror) => mirror is MethodMirror && mirror.isSetter);
+}
+
+Iterable<MethodMirror> gettersOf(
+    Map<Symbol, DeclarationMirror> declarations) {
+  return declarations.values.where(
+      (mirror) => mirror is MethodMirror && mirror.isGetter);
+}
+
+Iterable<VariableMirror> variablesOf(
+    Map<Symbol, DeclarationMirror> declarations) {
+  return declarations.values.where((mirror) => mirror is VariableMirror);
+}
+
+
+
+bool isObject(TypeMirror mirror) =>
+    mirror is ClassMirror && mirror.superclass == null;
+
 /// Returns `true` if [cls] is declared in a private dart library.
 bool isFromPrivateDartLibrary(ClassMirror cls) {
   if (isMixinApplication(cls)) cls = cls.mixin;
-  var uri = cls.library.uri;
+  var uri = getLibrary(cls).uri;
   return uri.scheme == 'dart' && uri.path.startsWith('_');
 }
 
@@ -196,8 +246,8 @@ bool isMixinApplication(Mirror mirror) {
  *     class A = B with C1, C2;
  *     abstract class A = B with C1, C2 implements D1, D2;
  */
-ClassMirror getSuperclass(ClassMirror cls) {
-  ClassMirror superclass = cls.superclass;
+ClassSourceMirror getSuperclass(ClassSourceMirror cls) {
+  ClassSourceMirror superclass = cls.superclass;
   while (isMixinApplication(superclass) && superclass.isNameSynthetic) {
     superclass = superclass.superclass;
   }
@@ -215,15 +265,15 @@ ClassMirror getSuperclass(ClassMirror cls) {
  *     class A = B with C1, C2;
  *     abstract class A = B with C1, C2 implements D1, D2;
  */
-Iterable<ClassMirror> getAppliedMixins(ClassMirror cls) {
-  List<ClassMirror> mixins = <ClassMirror>[];
-  ClassMirror superclass = cls.superclass;
+Iterable<ClassSourceMirror> getAppliedMixins(ClassSourceMirror cls) {
+  List<ClassSourceMirror> mixins = <ClassSourceMirror>[];
+  ClassSourceMirror superclass = cls.superclass;
   while (isMixinApplication(superclass) && superclass.isNameSynthetic) {
     mixins.add(superclass.mixin);
     superclass = superclass.superclass;
   }
   if (mixins.length > 1) {
-    mixins = new List<ClassMirror>.from(mixins.reversed);
+    mixins = new List<ClassSourceMirror>.from(mixins.reversed);
   }
   if (isMixinApplication(cls)) {
     mixins.add(cls.mixin);
@@ -314,7 +364,7 @@ String stripComment(String comment) {
  * variable of [:Iterable:] and 'col.Iterable.contains.element' finds the
  * [:element:] parameter of the [:contains:] method on [:Iterable:].
  */
-DeclarationMirror lookupQualifiedInScope(DeclarationMirror declaration,
+DeclarationMirror lookupQualifiedInScope(DeclarationSourceMirror declaration,
                                          String name) {
   // TODO(11653): Support lookup of constructors using the [:new Foo:]
   // syntax.
@@ -327,28 +377,27 @@ DeclarationMirror lookupQualifiedInScope(DeclarationMirror declaration,
     offset = 2;
   }
   if (result == null) return null;
+  LibraryMirror library = getLibrary(result);
   while (result != null && offset < parts.length) {
-    result = _lookupLocal(result, parts[offset++]);
+    result = _lookupLocal(result, symbolOf(parts[offset++], library));
   }
   return result;
 }
 
-DeclarationMirror _lookupLocal(Mirror mirror, String id) {
+DeclarationMirror _lookupLocal(Mirror mirror, Symbol id) {
   DeclarationMirror result;
-  if (mirror is ContainerMirror) {
-    ContainerMirror containerMirror = mirror;
+  if (mirror is LibraryMirror) {
     // Try member lookup.
-    result = containerMirror.members[id];
-  }
-  if (result != null) return result;
-  if (mirror is ClassMirror) {
-    ClassMirror classMirror = mirror;
+    result = mirror.declarations[id];
+  } else if (mirror is ClassMirror) {
+    // Try member lookup.
+    result = mirror.declarations[id];
+    if (result != null) return result;
     // Try type variables.
-    result = classMirror.typeVariables.firstWhere(
+    result = mirror.typeVariables.firstWhere(
         (TypeVariableMirror v) => v.simpleName == id, orElse: () => null);
   } else if (mirror is MethodMirror) {
-    MethodMirror methodMirror = mirror;
-    result = methodMirror.parameters.firstWhere(
+    result = mirror.parameters.firstWhere(
         (ParameterMirror p) => p.simpleName == id, orElse: () => null);
   }
   return result;

@@ -108,11 +108,11 @@ class BidiFormatter {
       if (directionChange) {
         spanDirection = ' dir=${direction.spanText}';
       }
-      result= '<span$spanDirection>$text</span>';
+      result = '<span$spanDirection>$text</span>';
     } else {
       result = text;
     }
-    return result + (resetDir? _resetDir(text, direction, isHtml) : '');
+    return result + (resetDir ? _resetDir(text, direction, isHtml) : '');
   }
 
   /**
@@ -143,7 +143,7 @@ class BidiFormatter {
       result = "${marker}$text${Bidi.PDF}";
 
     }
-    return result + (resetDir? _resetDir(text, direction, isHtml) : '');
+    return result + (resetDir ? _resetDir(text, direction, isHtml) : '');
   }
 
   /**
@@ -172,11 +172,7 @@ class BidiFormatter {
         (contextDirection == TextDirection.RTL &&
           (direction == TextDirection.LTR ||
            Bidi.endsWithLtr(text, isHtml)))) {
-      if (contextDirection == TextDirection.LTR) {
-        return Bidi.LRM;
-      } else {
-        return Bidi.RLM;
-      }
+      return contextDirection == TextDirection.LTR ? Bidi.LRM : Bidi.RLM;
     } else {
       return '';
     }

@@ -36,30 +36,18 @@ bool ClassFinalizer::AllClassesFinalized() {
 // optimizations may have become invalid.
 // Only methods which owner classes where subclasses can be invalid.
 // TODO(srdjan): Be even more precise by recording the exact CHA optimization.
-static void RemoveOptimizedCode(
+static void RemoveCHAOptimizedCode(
     const GrowableArray<intptr_t>& added_subclass_to_cids) {
   ASSERT(FLAG_use_cha);
   if (added_subclass_to_cids.is_empty()) return;
-  // Deoptimize all live frames.
-  DeoptimizeIfOwner(added_subclass_to_cids);
   // Switch all functions' code to unoptimized.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   Class& cls = Class::Handle();
-  Array& array = Array::Handle();
-  Function& function = Function::Handle();
   for (intptr_t i = 0; i < added_subclass_to_cids.length(); i++) {
     intptr_t cid = added_subclass_to_cids[i];
     cls = class_table.At(cid);
     ASSERT(!cls.IsNull());
-    array = cls.functions();
-    const intptr_t num_functions = array.IsNull() ? 0 : array.Length();
-    for (intptr_t f = 0; f < num_functions; f++) {
-      function ^= array.At(f);
-      ASSERT(!function.IsNull());
-      if (function.HasOptimizedCode()) {
-        function.SwitchToUnoptimizedCode();
-      }
-    }
+    cls.DisableCHAOptimizedCode();
   }
 }
 
@@ -2195,7 +2183,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     CheckForLegalConstClass(cls);
   }
   if (FLAG_use_cha) {
-    RemoveOptimizedCode(added_subclass_to_cids);
+    RemoveCHAOptimizedCode(added_subclass_to_cids);
   }
 }
 

@@ -4,21 +4,79 @@
 
 part of template_binding;
 
-abstract class _InputBinding extends NodeBinding {
-  StreamSubscription _eventSub;
 
-  _InputBinding(node, name, model, path): super(node, name, model, path) {
-    _eventSub = _getStreamForInputType(node).listen(nodeValueChanged);
+// Note: the JavaScript version monkeypatches(!!) the close method of the passed
+// in Bindable. We use a wrapper instead.
+class _InputBinding extends Bindable {
+  // Note: node can be an InputElement or TextAreaElement. Both have "value".
+  var _node;
+  StreamSubscription _eventSub;
+  Bindable _bindable;
+  String _propertyName;
+
+  _InputBinding(this._node, this._bindable, this._propertyName) {
+    _eventSub = _getStreamForInputType(_node).listen(_nodeChanged);
+    _updateNode(open(_updateNode));
   }
 
-  void valueChanged(newValue);
+  void _updateNode(newValue) => _updateProperty(_node, newValue, _propertyName);
 
-  void nodeValueChanged(e);
+  static void _updateProperty(node, newValue, String propertyName) {
+    switch (propertyName) {
+      case 'checked':
+        node.checked = _toBoolean(newValue);
+        return;
+      case 'selectedIndex':
+        node.selectedIndex = _toInt(newValue);
+        return;
+      case 'value':
+        node.value = _sanitizeValue(newValue);
+        return;
+    }
+  }
+
+  void _nodeChanged(e) {
+    switch (_propertyName) {
+      case 'value':
+        value = _node.value;
+        break;
+      case 'checked':
+        value = _node.checked;
+
+        // Only the radio button that is getting checked gets an event. We
+        // therefore find all the associated radio buttons and update their
+        // checked binding manually.
+        if (_node is InputElement && _node.type == 'radio') {
+          for (var r in _getAssociatedRadioButtons(_node)) {
+            var checkedBinding = nodeBind(r).bindings['checked'];
+            if (checkedBinding != null) {
+              // Set the value directly to avoid an infinite call stack.
+              checkedBinding.value = false;
+            }
+          }
+        }
+        break;
+      case 'selectedIndex':
+        value = _node.selectedIndex;
+        break;
+    }
+
+    Observable.dirtyCheck();
+  }
+
+  open(callback(value)) => _bindable.open(callback);
+  get value => _bindable.value;
+  set value(newValue) => _bindable.value = newValue;
 
   void close() {
-    if (closed) return;
-    _eventSub.cancel();
-    super.close();
+    if (_eventSub != null) {
+      _eventSub.cancel();
+      _eventSub = null;
+    }
+    if (_bindable != null) {
+      _bindable.close();
+      _bindable = null;
+    }
   }
 
   static EventStreamProvider<Event> _checkboxEventType = () {
@@ -53,51 +111,6 @@ abstract class _InputBinding extends NodeBinding {
         return element.onInput;
     }
   }
-}
-
-class _ValueBinding extends _InputBinding {
-  _ValueBinding(node, model, path) : super(node, 'value', model, path);
-
-  get node => super.node;
-
-  void valueChanged(newValue) {
-    // Note: node can be an InputElement or TextAreaElement. Both have "value".
-    node.value = sanitizeBoundValue(newValue);
-  }
-
-  void nodeValueChanged(e) {
-    value = node.value;
-    Observable.dirtyCheck();
-  }
-}
-
-class _CheckedBinding extends _InputBinding {
-  _CheckedBinding(node, model, path) : super(node, 'checked', model, path);
-
-  InputElement get node => super.node;
-
-  void valueChanged(newValue) {
-    node.checked = _toBoolean(newValue);
-  }
-
-  void nodeValueChanged(e) {
-    value = node.checked;
-
-    // Only the radio button that is getting checked gets an event. We
-    // therefore find all the associated radio buttons and update their
-    // CheckedBinding manually.
-    if (node is InputElement && node.type == 'radio') {
-      for (var r in _getAssociatedRadioButtons(node)) {
-        var checkedBinding = nodeBind(r).bindings['checked'];
-        if (checkedBinding != null) {
-          // Set the value directly to avoid an infinite call stack.
-          checkedBinding.value = false;
-        }
-      }
-    }
-
-    Observable.dirtyCheck();
-  }
 
   // |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
   // Returns an array containing all radio buttons other than |element| that
@@ -123,63 +136,6 @@ class _CheckedBinding extends _InputBinding {
       var radios = treeScope.querySelectorAll(
           'input[type="radio"][name="${element.name}"]');
       return radios.where((el) => el != element && el.form == null);
-    }
-  }
-}
-
-class _SelectBinding extends _InputBinding {
-  MutationObserver _onMutation;
-
-  _SelectBinding(node, property, model, path)
-      : super(node, property, model, path);
-
-  SelectElement get node => super.node;
-
-  void valueChanged(newValue) {
-    _cancelMutationObserver();
-
-    if (_tryUpdateValue(newValue)) return;
-
-    // It could be that a template will expand an <option> child (or grandchild,
-    // if we have an <optgroup> in between). Since selected index cannot be set
-    // if the children aren't created yet, we need to wait for them to be
-    // created do this with a MutationObserver.
-    // Dart note: unlike JS we use mutation observers to avoid:
-    // https://github.com/Polymer/NodeBind/issues/5
-
-    // Note: it doesn't matter when the children get added; even if they get
-    // added much later, presumably we want the selected index data binding to
-    // still take effect.
-    _onMutation = new MutationObserver((x, y) {
-      if (_tryUpdateValue(value)) _cancelMutationObserver();
-    })..observe(node, childList: true, subtree: true);
-  }
-
-  bool _tryUpdateValue(newValue) {
-    if (property == 'selectedIndex') {
-      var intValue = _toInt(newValue);
-      node.selectedIndex = intValue;
-      return node.selectedIndex == intValue;
-    } else if (property == 'value') {
-      node.value = sanitizeBoundValue(newValue);
-      return node.value == newValue;
-    }
-  }
-
-  void _cancelMutationObserver() {
-    if (_onMutation != null) {
-      _onMutation.disconnect();
-      _onMutation = null;
-    }
-  }
-
-  void nodeValueChanged(e) {
-    _cancelMutationObserver();
-
-    if (property == 'selectedIndex') {
-      value = node.selectedIndex;
-    } else if (property == 'value') {
-      value = node.value;
     }
   }
 

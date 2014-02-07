@@ -19,6 +19,10 @@ class CHA : public AllStatic {
   // Returns true if the class given by its cid has subclasses.
   static bool HasSubclasses(intptr_t cid);
 
+  // Use only on known private classes that can never be subclassed by lazy
+  // class finalization. Does not affect Isolate::use_cha flag.
+  static bool HasSubclassesSafe(intptr_t cid);
+
   // Returns an array containing the cids of the direct and indirect subclasses
   // of the class given by its cid.
   // Must not be called for kInstanceCid.

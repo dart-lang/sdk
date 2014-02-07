@@ -61,6 +61,11 @@ intptr_t CompilerStats::num_token_checks = 0;
 intptr_t CompilerStats::num_tokens_rewind = 0;
 intptr_t CompilerStats::num_tokens_lookahead = 0;
 
+intptr_t CompilerStats::num_lib_cache_hit = 0;
+intptr_t CompilerStats::num_names_cached = 0;
+intptr_t CompilerStats::make_accessor_name = 0;
+intptr_t CompilerStats::make_field_name = 0;
+
 void CompilerStats::Print() {
   if (!FLAG_compiler_stats) {
     return;
@@ -79,6 +84,12 @@ void CompilerStats::Print() {
   OS::Print("Token lookahead:    %" Pd " (%" Pd "%% of tokens checked)\n",
             num_tokens_lookahead,
             (100 * num_tokens_lookahead) / num_token_checks);
+
+  OS::Print("Lib names cached:   %" Pd "\n", num_names_cached);
+  OS::Print("Lib name cache hit: %" Pd "\n", num_lib_cache_hit);
+  OS::Print("Accessor mangling:  %" Pd " field->acc  %" Pd " acc->field\n",
+            make_accessor_name, make_field_name);
+
   OS::Print("Source length:      %" Pd " characters\n", src_length);
   int64_t scan_usecs = scanner_timer.TotalElapsedTime();
   OS::Print("Scanner time:       %" Pd64 " msecs\n",

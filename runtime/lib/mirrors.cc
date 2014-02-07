@@ -1301,6 +1301,33 @@ DEFINE_NATIVE_ENTRY(TypeVariableMirror_upper_bound, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Mirrors_evalInLibraryWithPrivateKey, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, expression, arguments->NativeArgAt(0));
+  GET_NATIVE_ARGUMENT(String, private_key, arguments->NativeArgAt(1));
+
+  const GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  const int num_libraries = libraries.Length();
+  Library& each_library = Library::Handle();
+  Library& ctxt_library = Library::Handle();
+  String& library_key = String::Handle();
+
+  if (library_key.IsNull()) {
+    ctxt_library = Library::CoreLibrary();
+  } else {
+    for (int i = 0; i < num_libraries; i++) {
+      each_library ^= libraries.At(i);
+      library_key = each_library.private_key();
+      if (library_key.Equals(private_key)) {
+        ctxt_library = each_library.raw();
+        break;
+      }
+    }
+  }
+  ASSERT(!ctxt_library.IsNull());
+  return ctxt_library.Evaluate(expression);
+}
+
 DEFINE_NATIVE_ENTRY(TypedefMirror_declaration, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(0));
   const Class& cls = Class::Handle(type.type_class());

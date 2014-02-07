@@ -21,10 +21,10 @@ main(List<String> args) {
   }
 
   var dir = new Directory(args[0]);
-  dir.list(recursive: true).listen(
+  dir.list(recursive: true, followLinks: false).listen(
       (entity) {
         if (entity is File) {
-          var file = entity.name;
+          var file = entity.path;
           if (path.extension(file) != '.dart') return;
           fixFile(file);
         }
@@ -33,10 +33,10 @@ main(List<String> args) {
 
 void fixFile(String path) {
   var file = new File(path);
-  file.readAsLines().transform(fixContents).chain((fixed) {
+  file.readAsLines().then(fixContents).then((fixed) {
     return new File(path).writeAsString(fixed);
   }).then((file) {
-    print(file.name);
+    print(file.path);
   });
 }
 
@@ -54,14 +54,24 @@ String fixContents(List<String> lines) {
         line = null;
       } else {
         var match = blockLine.firstMatch(line);
-        line = '$indent/// ${match[1]}';
+        var comment = match[1];
+        if (comment != '') {
+          line = '$indent/// $comment';
+        } else {
+          line = '$indent///';
+        }
       }
     } else {
       // See if it's a one-line block comment like: /** Blah. */
       var match = oneLineBlock.firstMatch(line);
       if (match != null) {
-        if (match[2] != '') {
-          line = '${match[1]}/// ${match[2]}';
+        var comment = match[2];
+        if (comment != '') {
+          // Remove the extra space before the `*/`
+          if (comment.endsWith(' ')) {
+            comment = comment.substring(0, comment.length - 1);
+          }
+          line = '${match[1]}/// $comment';
         } else {
           line = '${match[1]}///';
         }

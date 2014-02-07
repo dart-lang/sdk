@@ -4281,6 +4281,11 @@ class ExportDirective extends NamespaceDirective {
  */
 abstract class Expression extends ASTNode {
   /**
+   * An empty array of expressions.
+   */
+  static List<Expression> EMPTY_ARRAY = new List<Expression>(0);
+
+  /**
    * The static type of this expression, or `null` if the AST structure has not been resolved.
    */
   Type2 staticType;

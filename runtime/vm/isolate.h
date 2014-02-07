@@ -113,6 +113,9 @@ class Isolate : public BaseIsolate {
 
   ObjectHistogram* object_histogram() { return object_histogram_; }
 
+  bool cha_used() const { return cha_used_; }
+  void set_cha_used(bool value) { cha_used_ = value; }
+
   MegamorphicCacheTable* megamorphic_cache_table() {
     return &megamorphic_cache_table_;
   }
@@ -456,6 +459,8 @@ class Isolate : public BaseIsolate {
   char* stacktrace_;
   intptr_t stack_frame_index_;
   ObjectHistogram* object_histogram_;
+
+  bool cha_used_;
 
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_;

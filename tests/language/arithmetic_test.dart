@@ -449,6 +449,14 @@ class ArithmeticTest {
     Expect.approxEquals(1.0, sinCosSub(3.14159265 / 2.0));
   }
 
+  // Test fix for issue 16592.
+  static void testSinCosNoUse() {
+    for (var i = 0; i < 20; i++) {
+      sin(i);
+      cos(i);
+    }
+  }
+    
   static mySqrt(var x) => sqrt(x);
 
   static testSqrtDeopt() {
@@ -477,6 +485,7 @@ class ArithmeticTest {
       testSqrtDeopt();
       testDoubleEquality();
       testSinCos();
+      testSinCosNoUse();
     }
   }
 }

@@ -2209,9 +2209,9 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
 
 
 RawFloat32x4* Float32x4::ReadFrom(SnapshotReader* reader,
-                                            intptr_t object_id,
-                                            intptr_t tags,
-                                            Snapshot::Kind kind) {
+                                  intptr_t object_id,
+                                  intptr_t tags,
+                                  Snapshot::Kind kind) {
   ASSERT(reader != NULL);
   // Read the values.
   float value0 = reader->Read<float>();
@@ -2235,8 +2235,8 @@ RawFloat32x4* Float32x4::ReadFrom(SnapshotReader* reader,
 
 
 void RawFloat32x4::WriteTo(SnapshotWriter* writer,
-                                intptr_t object_id,
-                                Snapshot::Kind kind) {
+                           intptr_t object_id,
+                           Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
@@ -2255,9 +2255,9 @@ void RawFloat32x4::WriteTo(SnapshotWriter* writer,
 
 
 RawInt32x4* Int32x4::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind) {
+                              intptr_t object_id,
+                              intptr_t tags,
+                              Snapshot::Kind kind) {
   ASSERT(reader != NULL);
   // Read the values.
   uint32_t value0 = reader->Read<uint32_t>();
@@ -2281,8 +2281,8 @@ RawInt32x4* Int32x4::ReadFrom(SnapshotReader* reader,
 
 
 void RawInt32x4::WriteTo(SnapshotWriter* writer,
-                             intptr_t object_id,
-                             Snapshot::Kind kind) {
+                         intptr_t object_id,
+                         Snapshot::Kind kind) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
@@ -2297,6 +2297,48 @@ void RawInt32x4::WriteTo(SnapshotWriter* writer,
   writer->Write<uint32_t>(ptr()->value_[1]);
   writer->Write<uint32_t>(ptr()->value_[2]);
   writer->Write<uint32_t>(ptr()->value_[3]);
+}
+
+
+RawFloat64x2* Float64x2::ReadFrom(SnapshotReader* reader,
+                                  intptr_t object_id,
+                                  intptr_t tags,
+                                  Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  // Read the values.
+  double value0 = reader->Read<double>();
+  double value1 = reader->Read<double>();
+
+  // Create a Float64x2 object.
+  Float64x2& simd = Float64x2::ZoneHandle(reader->isolate(),
+                                          Float64x2::null());
+  if (kind == Snapshot::kFull) {
+    simd = reader->NewFloat64x2(value0, value1);
+  } else {
+    simd = Float64x2::New(value0, value1, HEAP_SPACE(kind));
+  }
+  reader->AddBackRef(object_id, &simd, kIsDeserialized);
+  // Set the object tags.
+  simd.set_tags(tags);
+  return simd.raw();
+}
+
+
+void RawFloat64x2::WriteTo(SnapshotWriter* writer,
+                           intptr_t object_id,
+                           Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kFloat64x2Cid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out the float values.
+  writer->Write<double>(ptr()->value_[0]);
+  writer->Write<double>(ptr()->value_[1]);
 }
 
 

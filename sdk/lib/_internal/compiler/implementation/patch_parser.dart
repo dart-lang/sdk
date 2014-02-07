@@ -385,6 +385,8 @@ class PatchMetadataAnnotation extends MetadataAnnotationX {
 
   PatchMetadataAnnotation() : super(STATE_DONE);
 
+  tree.Node parseNode(leg.DiagnosticListener listener) => null;
+
   Token get beginToken => null;
   Token get endToken => null;
 }

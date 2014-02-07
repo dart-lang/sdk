@@ -8,76 +8,63 @@ part of template_binding;
 class _ElementExtension extends NodeBindExtension {
   _ElementExtension(Element node) : super._(node);
 
-  NodeBinding bind(String name, model, [String path]) {
+  bind(String name, value, {bool oneTime: false}) {
     _self.unbind(name);
 
-    var binding;
-    if (_node is OptionElement && name == 'value') {
+    Element node = _node;
+
+    if (node is OptionElement && name == 'value') {
       // Note: because <option> can be a semantic template, <option> will be
       // a TemplateBindExtension sometimes. So we need to handle it here.
-      (_node as OptionElement).attributes.remove(name);
-      binding = new _OptionValueBinding(_node, model, path);
-    } else {
-      binding = new _AttributeBinding(_node, name, model, path);
-    }
-    return bindings[name] = binding;
-  }
-}
-
-class _AttributeBinding extends NodeBinding {
-  final bool conditional;
-
-  _AttributeBinding._(node, name, model, path, this.conditional)
-      : super(node, name, model, path);
-
-  factory _AttributeBinding(Element node, name, model, path) {
-    bool conditional = name.endsWith('?');
-    if (conditional) {
       node.attributes.remove(name);
-      name = name.substring(0, name.length - 1);
-    }
-    return new _AttributeBinding._(node, name, model, path, conditional);
-  }
 
-  Element get node => super.node;
-
-  void valueChanged(value) {
-    if (conditional) {
-      if (_toBoolean(value)) {
-        node.attributes[property] = '';
-      } else {
-        node.attributes.remove(property);
-      }
+      if (oneTime) return _updateOption(value);
+      _open(value, _updateOption);
     } else {
-      // TODO(jmesserly): escape value if needed to protect against XSS.
-      // See https://github.com/polymer-project/mdv/issues/58
-      node.attributes[property] = sanitizeBoundValue(value);
+      bool conditional = name.endsWith('?');
+      if (conditional) {
+        node.attributes.remove(name);
+        name = name.substring(0, name.length - 1);
+      }
+
+      if (oneTime) return _updateAttribute(_node, name, conditional, value);
+
+      _open(value, (x) => _updateAttribute(_node, name, conditional, x));
     }
+    return bindings[name] = value;
   }
-}
 
-class _OptionValueBinding extends _ValueBinding {
-  _OptionValueBinding(node, model, path) : super(node, model, path);
-
-  OptionElement get node => super.node;
-
-  void valueChanged(newValue) {
+  void _updateOption(newValue) {
+    OptionElement node = _node;
     var oldValue = null;
     var selectBinding = null;
-    var select = node.parent;
+    var select = node.parentNode;
     if (select is SelectElement) {
       var valueBinding = nodeBind(select).bindings['value'];
-      if (valueBinding is _SelectBinding) {
+      if (valueBinding is _InputBinding) {
         selectBinding = valueBinding;
         oldValue = select.value;
       }
     }
 
-    super.valueChanged(newValue);
+    node.value = _sanitizeValue(newValue);
 
-    if (selectBinding != null && !selectBinding.closed &&
-        select.value != oldValue) {
-      selectBinding.nodeValueChanged(null);
+    if (selectBinding != null && select.value != oldValue) {
+      selectBinding.value = select.value;
     }
+  }
+}
+
+void _updateAttribute(Element node, String name, bool conditional, value) {
+  if (conditional) {
+    if (_toBoolean(value)) {
+      node.attributes[name] = '';
+    } else {
+      node.attributes.remove(name);
+    }
+  } else {
+    // TODO(jmesserly): escape value if needed to protect against XSS.
+    // See https://github.com/polymer-project/mdv/issues/58
+    node.attributes[name] = _sanitizeValue(value);
   }
 }

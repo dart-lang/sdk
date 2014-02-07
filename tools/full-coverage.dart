@@ -6,7 +6,6 @@ import "dart:async";
 import "dart:convert";
 import "dart:io";
 import "dart:isolate";
-import "dart:mirrors";
 
 import "package:args/args.dart";
 import "package:path/path.dart";
@@ -189,7 +188,7 @@ Map createHitmap(String rawJson, Resolver resolver) {
     hitMap[source][line] += count;
   }
 
-  JSON.decode(rawJson).forEach((Map e) {
+  JSON.decode(rawJson)['coverage'].forEach((Map e) {
     String source = resolver.resolve(e["source"]);
     if (source == null) {
       // Couldnt resolve import, so skip this entry.
@@ -255,58 +254,78 @@ List filesToProcess(String absPath) {
   return [new File(absPath)];
 }
 
-worker() {
+worker(WorkMessage msg) {
   final start = new DateTime.now().millisecondsSinceEpoch;
-  String me = currentMirrorSystem().isolate.debugName;
 
-  port.receive((Message message, reply) {
-    if (message.type == Message.SHUTDOWN) {
-      port.close();
+  var env = msg.environment;
+  List files = msg.files;
+  Resolver resolver = new Resolver(env);
+  var workerHitmap = {};
+  files.forEach((File fileEntry) {
+    // Read file sync, as it only contains 1 object.
+    String contents = fileEntry.readAsStringSync();
+    if (contents.length > 0) {
+      mergeHitmaps(createHitmap(contents, resolver), workerHitmap);
     }
-
-    if (message.type == Message.WORK) {
-      var env = message.payload[0];
-      List files = message.payload[1];
-      Resolver resolver = new Resolver(env);
-      var workerHitmap = {};
-      files.forEach((File fileEntry) {
-        // Read file sync, as it only contains 1 object.
-        String contents = fileEntry.readAsStringSync();
-        if (contents.length > 0) {
-          mergeHitmaps(createHitmap(contents, resolver), workerHitmap);
-        }
-      });
-      if (env["verbose"]) {
-        final end = new DateTime.now().millisecondsSinceEpoch;
-        print("worker[${me}]: Finished processing files. "
-              "Took ${end - start} ms.");
-      }
-      reply.send(new Message(Message.RESULT, [workerHitmap, resolver.failed]));
-    }
-
   });
+
+  if (env["verbose"]) {
+    final end = new DateTime.now().millisecondsSinceEpoch;
+    print("${msg.workerName}: Finished processing ${files.length} files. "
+          "Took ${end - start} ms.");
+  }
+
+  msg.replyPort.send(new ResultMessage(workerHitmap, resolver.failed));
 }
 
-class Message {
-  static const int SHUTDOWN = 1;
-  static const int RESULT = 2;
-  static const int WORK = 3;
+class WorkMessage {
+  final String workerName;
+  final Map environment;
+  final List files;
+  final SendPort replyPort;
+  WorkMessage(this.workerName, this.environment, this.files, this.replyPort);
+}
 
-  final int type;
-  final payload;
-
-  Message(this.type, this.payload);
+class ResultMessage {
+  final hitmap;
+  final failedResolves;
+  ResultMessage(this.hitmap, this.failedResolves);
 }
 
 final env = new Environment();
+
+List<List> split(List list, int nBuckets) {
+  var buckets = new List(nBuckets);
+  var bucketSize = list.length ~/ nBuckets;
+  var leftover = list.length % nBuckets;
+  var taken = 0;
+  var start = 0;
+  for (int i = 0; i < nBuckets; i++) {
+    var end = (i < leftover) ? (start + bucketSize + 1) : (start + bucketSize);
+    buckets[i] = list.sublist(start, end);
+    taken += buckets[i].length;
+    start = end;
+  }
+  if (taken != list.length) throw "Error splitting";
+  return buckets;
+}
+
+Future<ResultMessage> spawnWorker(name, environment, files) {
+  RawReceivePort port = new RawReceivePort();
+  var completer = new Completer();
+  port.handler = ((ResultMessage msg) {
+    completer.complete(msg);
+    port.close();
+  });
+  var msg = new WorkMessage(name, environment, files, port.sendPort);
+  Isolate.spawn(worker, msg);
+  return completer.future;
+}
 
 main(List<String> arguments) {
   parseArgs(arguments);
 
   List files = filesToProcess(env.input);
-  int filesPerWorker = files.length ~/ env.workers;
-  List workerPorts = [];
-  int doneCnt = 0;
 
   List failedResolves = [];
   List failedLoads = [];
@@ -321,57 +340,6 @@ main(List<String> arguments) {
     print("  package-root: ${env.pkgRoot}");
   }
 
-  port.receive((Message message, reply) {
-    if (message.type == Message.RESULT) {
-      mergeHitmaps(message.payload[0], globalHitmap);
-      failedResolves.addAll(message.payload[1]);
-      doneCnt++;
-    }
-
-    // All workers are done. Process the data.
-    if (doneCnt == env.workers) {
-      workerPorts.forEach((p) => p.send(new Message(Message.SHUTDOWN, null)));
-      if (env.verbose) {
-        final end = new DateTime.now().millisecondsSinceEpoch;
-        print("Done creating a global hitmap. Took ${end - start} ms.");
-      }
-
-      Future out;
-      if (env.prettyPrint) {
-        out = prettyPrint(globalHitmap, failedLoads);
-      }
-      if (env.lcov) {
-        out = lcov(globalHitmap);
-      }
-
-      out.then((_) {
-        env.output.close().then((_) {
-          if (env.verbose) {
-            final end = new DateTime.now().millisecondsSinceEpoch;
-            print("Done flushing output. Took ${end - start} ms.");
-          }
-        });
-        port.close();
-
-        if (env.verbose) {
-          if (failedResolves.length > 0) {
-            print("Failed to resolve:");
-            failedResolves.toSet().forEach((e) {
-              print("  ${e}");
-            });
-          }
-          if (failedLoads.length > 0) {
-            print("Failed to load:");
-            failedLoads.toSet().forEach((e) {
-              print("  ${e}");
-            });
-          }
-        }
-
-      });
-    }
-  });
-
   Map sharedEnv = {
     "sdkRoot": env.sdkRoot,
     "pkgRoot": env.pkgRoot,
@@ -379,22 +347,54 @@ main(List<String> arguments) {
   };
 
   // Create workers.
-  for (var i = 1; i < env.workers; i++) {
-    var p = spawnFunction(worker);
-    workerPorts.add(p);
-    var start = files.length - filesPerWorker;
-    var end = files.length;
-    var workerFiles = files.getRange(start, end).toList();
-    files.removeRange(start, end);
-    p.send(new Message(Message.WORK, [sharedEnv, workerFiles]), port);
-  }
-  // Let the last worker deal with the rest of the files (which should be only
-  // off by at max (#workers - 1).
-  var p = spawnFunction(worker);
-  workerPorts.add(p);
-  p.send(new Message(Message.WORK, [sharedEnv, files]), port.toSendPort());
+  int workerId = 0;
+  var results = split(files, env.workers).map((workerFiles) {
+    var result = spawnWorker("Worker ${workerId++}", sharedEnv, workerFiles);
+    return result.then((ResultMessage message) {
+      mergeHitmaps(message.hitmap, globalHitmap);
+      failedResolves.addAll(message.failedResolves);
+    });
+  });
 
-  return 0;
+  Future.wait(results).then((ignore) {
+    // All workers are done. Process the data.
+    if (env.verbose) {
+      final end = new DateTime.now().millisecondsSinceEpoch;
+      print("Done creating a global hitmap. Took ${end - start} ms.");
+    }
+
+    Future out;
+    if (env.prettyPrint) {
+      out = prettyPrint(globalHitmap, failedLoads);
+    }
+    if (env.lcov) {
+      out = lcov(globalHitmap);
+    }
+
+    out.then((_) {
+      env.output.close().then((_) {
+        if (env.verbose) {
+          final end = new DateTime.now().millisecondsSinceEpoch;
+          print("Done flushing output. Took ${end - start} ms.");
+        }
+      });
+
+      if (env.verbose) {
+        if (failedResolves.length > 0) {
+          print("Failed to resolve:");
+          failedResolves.toSet().forEach((e) {
+            print("  ${e}");
+          });
+        }
+        if (failedLoads.length > 0) {
+          print("Failed to load:");
+          failedLoads.toSet().forEach((e) {
+            print("  ${e}");
+          });
+        }
+      }
+    });
+  });
 }
 
 /// Checks the validity of the provided arguments. Does not initialize actual

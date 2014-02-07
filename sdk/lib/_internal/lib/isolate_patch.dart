@@ -4,11 +4,12 @@
 
 // Patch file for the dart:isolate library.
 
-import 'dart:_isolate_helper' show IsolateNatives,
-                                   ReceivePortImpl,
-                                   RawReceivePortImpl,
+import 'dart:_isolate_helper' show CapabilityImpl,
                                    CloseToken,
-                                   JsIsolateSink;
+                                   IsolateNatives,
+                                   JsIsolateSink,
+                                   ReceivePortImpl,
+                                   RawReceivePortImpl;
 
 patch class Isolate {
   patch static Future<Isolate> spawn(void entryPoint(message), var message) {
@@ -53,4 +54,8 @@ patch class RawReceivePort {
   patch factory RawReceivePort([void handler(event)]) {
     return new RawReceivePortImpl(handler);
   }
+}
+
+patch class Capability {
+  patch factory Capability() = CapabilityImpl;
 }

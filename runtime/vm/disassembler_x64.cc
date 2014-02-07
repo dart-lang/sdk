@@ -1287,6 +1287,22 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
           mnemonic = "paddd";
         } else if (opcode == 0xFA) {
           mnemonic = "psubd";
+        } else if (opcode == 0x58) {
+          mnemonic = "addpd";
+        } else if (opcode == 0x5C) {
+          mnemonic = "subpd";
+        } else if (opcode == 0x59) {
+          mnemonic = "mulpd";
+        } else if (opcode == 0x5E) {
+          mnemonic = "divpd";
+        } else if (opcode == 0x5D) {
+          mnemonic = "minpd";
+        } else if (opcode == 0x5F) {
+          mnemonic = "maxpd";
+        } else if (opcode == 0x51) {
+          mnemonic = "sqrtpd";
+        } else if (opcode == 0x5A) {
+          mnemonic = "cvtpd2ps";
         } else {
           UnimplementedInstruction();
         }
@@ -1378,6 +1394,11 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       int mod, regop, rm;
       get_modrm(*current, &mod, &regop, &rm);
       AppendToBuffer("movq %s, ", NameOfXMMRegister(regop));
+      current += PrintRightXMMOperand(current);
+    } else if (opcode == 0x58) {
+      int mod, regop, rm;
+      get_modrm(*current, &mod, &regop, &rm);
+      AppendToBuffer("addss %s,", NameOfXMMRegister(regop));
       current += PrintRightXMMOperand(current);
     } else {
       UnimplementedInstruction();
@@ -1552,6 +1573,10 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
       return "movsxb";
     case 0xBF:
       return "movsxw";
+    case 0x12:
+      return "movhlps";
+    case 0x16:
+      return "movlhps";
     default:
       return NULL;
   }

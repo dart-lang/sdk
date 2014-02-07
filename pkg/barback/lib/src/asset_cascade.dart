@@ -117,7 +117,7 @@ class AssetCascade {
   /// It loads source assets within [package] using [provider].
   AssetCascade(this.graph, this.package) {
     _onDirtyPool.add(_onDirtyController.stream);
-    _addPhase(new Phase(this, []));
+    _addPhase(new Phase(this, [], package));
 
     // Keep track of logged errors so we can know that the build failed.
     onLog.listen((entry) {
@@ -308,4 +308,6 @@ class AssetCascade {
       return future.then((_) => _process());
     });
   }
+
+  String toString() => "cascade for $package";
 }

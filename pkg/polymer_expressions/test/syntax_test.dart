@@ -9,11 +9,11 @@ import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
 import 'package:polymer_expressions/polymer_expressions.dart';
 import 'package:template_binding/template_binding.dart';
-import 'package:unittest/html_enhanced_config.dart';
+import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
-  useHtmlEnhancedConfiguration();
+  useHtmlConfiguration();
 
   group('PolymerExpressions', () {
     var testDiv;
@@ -67,7 +67,9 @@ main() {
       var logFuture = logger.onRecord.toList();
       testDiv.nodes.add(new Element.html('''
           <template id="test" bind>{{ foo }}</template>'''));
-      templateBind(query('#test')).bindingDelegate = new PolymerExpressions();
+      templateBind(query('#test'))
+          ..bindingDelegate = new PolymerExpressions()
+          ..model = [];
       return new Future(() {
         logger.clearListeners();
         return logFuture.then((records) {

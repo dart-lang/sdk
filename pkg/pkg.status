@@ -41,6 +41,9 @@ crypto/test/base64_test: Timeout # Issue 12486
 collection/test/priority_queue_test: Pass, Slow # Issue 16426
 serialization/test/serialization_test: Skip
 
+[ $runtime == jsshell ]
+analyzer/test/generated/element_test: Pass, Slow # Issue 16473
+
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
@@ -66,6 +69,7 @@ polymer/test/noscript_test: Skip #uses dart:html
 polymer/test/prop_attr_bind_reflection_test: Skip #uses dart:html
 polymer/test/prop_attr_reflection_test: Skip #uses dart:html
 polymer/test/property_change_test: Skip # uses dart:html
+polymer/test/property_observe_test: Skip #uses dart:html
 polymer/test/publish_attributes_test: Skip #uses dart:html
 polymer/test/publish_inherited_properties_test: Skip #uses dart:html
 polymer/test/register_test: Skip #uses dart:html
@@ -96,7 +100,7 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 typed_data/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
 polymer/test/instance_attrs_test: Pass, Fail # Issue 14167
-polymer/test/bind_mdv_test: Pass, Fail # Issue 16441
+polymer/test/bind_mdv_test: Slow, Pass
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
@@ -106,7 +110,7 @@ typed_data/test/typed_buffers_test: RuntimeError
 
 [ $runtime == ie9 || $runtime == ie10 ]
 polymer/test/bind_mdv_test: RuntimeError # Issue 14412, 13260
-polymer/test/noscript_test: RuntimeError # Issue 13260
+polymer/test/noscript_test: RuntimeError, Pass # Issue 13260
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
@@ -115,7 +119,6 @@ intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
 [ $runtime == vm && $system == windows ]
-docgen/test/single_library_test: Fail # Issue 11985
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 
 [ $compiler == dartanalyzer ]
@@ -256,9 +259,12 @@ unittest/test/unittest_completion_test: Fail # 13921
 unittest/test/unittest_correct_callback_test: Fail # 13921
 unittest/test/unittest_exception_test: Fail # 13921
 unittest/test/unittest_excess_callback_test: Fail # 13921
+unittest/test/unittest_group_name_test: Fail # 13921
+unittest/test/unittest_invalid_ops_test: Fail # 13921
 unittest/test/unittest_late_exception_test: Fail # 13921
 unittest/test/unittest_middle_exception_test: Fail # 13921
 unittest/test/unittest_nested_groups_setup_teardown_test: Fail # 13921
+unittest/test/unittest_protect_async_test: Fail # 13921
 unittest/test/unittest_runtests_without_tests_test: Fail # 13921
 unittest/test/unittest_setup_and_teardown_test: Fail # 13921
 unittest/test/unittest_setup_test: Fail # 13921
@@ -269,7 +275,6 @@ unittest/test/unittest_teardown_test: Fail # 13921
 unittest/test/unittest_test_returning_future_test: Fail # 13921
 unittest/test/unittest_test_returning_future_using_runasync_test: Fail # 13921
 unittest/test/unittest_testcases_immutable_test: Fail # 13921
-unittest/test/unitttest_group_name_test: Fail # 13921
 polymer/test/custom_event_test: Pass, Crash # 14360
 polymer/example/canonicalization/test/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/deploy2_test: Fail, OK # tests deploy only behavior
@@ -290,6 +295,9 @@ polymer_expressions/test/globals_test: Skip
 polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 
+[ $runtime == safari || $runtime == ie9 || $runtime == ie10 ]
+polymer_expressions/test/globals_test: Fail # Issue 16568
+
 [ $runtime == safari || $runtime == chrome || $runtime == ie9 || $runtime == ff || $runtime == dartium || $runtime == drt ]
 docgen/test/single_library_test: Skip # Uses dart:io
 docgen/test/multi_library_test: Skip # Uses dart:io
@@ -301,7 +309,6 @@ unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
-polymer_expressions/test/bindings_test: Fail, Pass # Issue 14445.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 docgen/test/single_library_test: StaticWarning

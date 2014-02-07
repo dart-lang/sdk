@@ -113,8 +113,7 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     if (!validNames.contains(node.methodName.name)) return false;
     if (!(node.target is SimpleIdentifier)) return false;
     SimpleIdentifier target = node.target;
-    if (target.token.toString() != "Intl") return false;
-    return true;
+    return target.token.toString() == "Intl";
   }
 
   Message _expectedInstance(String type) {
@@ -175,7 +174,7 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
    */
   void visitMethodInvocation(MethodInvocation node) {
     if (!addIntlMessage(node)) {
-      return super.visitMethodInvocation(node);
+      super.visitMethodInvocation(node);
     }
   }
 
@@ -190,10 +189,9 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
     var reason = checkValidity(node);
     if (reason != null) {
       if (!suppressWarnings) {
-        var err = new StringBuffer();
-        err.write("Skipping invalid Intl.message invocation\n    <$node>\n");
-        err.write("    reason: $reason\n");
-        err.write(_reportErrorLocation(node));
+        var err = new StringBuffer()
+            ..write("Skipping invalid Intl.message invocation\n    <$node>\n")
+            ..writeAll(["    reason: $reason\n", _reportErrorLocation(node)]);
         warnings.add(err.toString());
         print(err);
       }
@@ -252,10 +250,9 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
         message.messagePieces.addAll(interpolation.pieces);
       } on IntlMessageExtractionException catch (e) {
         message = null;
-        var err = new StringBuffer();
-        err.write("Error $e\n");
-        err.write("Processing <$node>\n");
-        err.write(_reportErrorLocation(node));
+        var err = new StringBuffer()
+            ..writeAll(["Error ", e, "\nProcessing <", node, ">\n"])
+            ..write(_reportErrorLocation(node));
         print(err);
         warnings.add(err);
       }
@@ -304,7 +301,7 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
  * special-purpose visitor.
  */
 class InterpolationVisitor extends SimpleASTVisitor {
-  Message message;
+  final Message message;
 
   InterpolationVisitor(this.message);
 
@@ -373,7 +370,7 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
    * A plural or gender always exists in the context of a parent message,
    * which could in turn also be a plural or gender.
    */
-  ComplexMessage parent;
+  final ComplexMessage parent;
 
   /**
    * The pieces of the message. We are given an initial version of this
@@ -381,10 +378,10 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
    */
   List pieces;
 
-  PluralAndGenderVisitor(this.pieces, this.parent) : super() {}
-
   /** This will be set to true if we find a plural or gender. */
   bool foundPluralOrGender = false;
+
+  PluralAndGenderVisitor(this.pieces, this.parent) : super();
 
   visitInterpolationExpression(InterpolationExpression node) {
     // TODO(alanknight): Provide better errors for malformed expressions.
@@ -409,8 +406,7 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
     }
     if (!(node.target is SimpleIdentifier)) return false;
     SimpleIdentifier target = node.target;
-    if (target.token.toString() != "Intl") return false;
-    return true;
+    return target.token.toString() == "Intl";
   }
 
   /**
@@ -423,7 +419,7 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
 
   /**
    * Create a MainMessage from [node] using the name and
-   * parameters of the last function/method declaration we encountered
+   * parameters of the last function/method declaration we encountered            e
    * and the parameters to the Intl.message call.
    */
   Message messageFromMethodInvocation(MethodInvocation node) {
@@ -445,10 +441,9 @@ class PluralAndGenderVisitor extends SimpleASTVisitor {
         message[key] = interpolation.pieces;
       } on IntlMessageExtractionException catch (e) {
         message = null;
-        var err = new StringBuffer();
-        err.write("Error $e");
-        err.write("Processing <$node>");
-        err.write(_reportErrorLocation(node));
+        var err = new StringBuffer()
+            ..writeAll(["Error ", e, "\nProcessing <", node, ">"])
+            ..write(_reportErrorLocation(node));
         print(err);
         warnings.add(err);
       }

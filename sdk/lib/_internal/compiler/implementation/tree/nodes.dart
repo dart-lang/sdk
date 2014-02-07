@@ -48,6 +48,7 @@ abstract class Visitor<R> {
   R visitLiteralString(LiteralString node) => visitStringNode(node);
   R visitStringJuxtaposition(StringJuxtaposition node) => visitStringNode(node);
   R visitLoop(Loop node) => visitStatement(node);
+  R visitMetadata(Metadata node) => visitNode(node);
   R visitMixinApplication(MixinApplication node) => visitNode(node);
   R visitModifiers(Modifiers node) => visitNode(node);
   R visitNamedArgument(NamedArgument node) => visitExpression(node);
@@ -173,6 +174,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   LiteralNull asLiteralNull() => null;
   LiteralString asLiteralString() => null;
   LiteralSymbol asLiteralSymbol() => null;
+  Metadata asMetadata() => null;
   MixinApplication asMixinApplication() => null;
   Modifiers asModifiers() => null;
   NamedArgument asNamedArgument() => null;
@@ -479,7 +481,7 @@ class SendSet extends Send {
 }
 
 class NewExpression extends Expression {
-  /** The token NEW or CONST */
+  /** The token NEW or CONST or `null` for metadata */
   final Token newToken;
 
   // Note: we expect that send.receiver is null.
@@ -496,11 +498,10 @@ class NewExpression extends Expression {
   }
 
   bool isConst() {
-    return identical(newToken.stringValue, 'const')
-        || identical(newToken.stringValue, '@');
+    return newToken == null || identical(newToken.stringValue, 'const');
   }
 
-  Token getBeginToken() => newToken;
+  Token getBeginToken() => newToken != null ? newToken : send.getBeginToken();
 
   Token getEndToken() => send.getEndToken();
 }
@@ -1136,10 +1137,23 @@ class TypeVariable extends Node {
 }
 
 class VariableDefinitions extends Statement {
+  final NodeList metadata;
   final TypeAnnotation type;
   final Modifiers modifiers;
   final NodeList definitions;
-  VariableDefinitions(this.type, this.modifiers, this.definitions) {
+
+  VariableDefinitions(this.type,
+                      this.modifiers,
+                      this.definitions)
+      : this.metadata = null {
+    assert(modifiers != null);
+  }
+
+  // TODO(johnniwinther): Make this its own node type.
+  VariableDefinitions.forParameter(this.metadata,
+                                   this.type,
+                                   this.modifiers,
+                                   this.definitions) {
     assert(modifiers != null);
   }
 
@@ -2046,6 +2060,25 @@ class CatchBlock extends Node {
   Token getBeginToken() => onKeyword != null ? onKeyword : catchKeyword;
 
   Token getEndToken() => block.getEndToken();
+}
+
+class Metadata extends Node {
+  final Token token;
+  final Expression expression;
+
+  Metadata(this.token, this.expression);
+
+  Metadata asMetadata() => this;
+
+  accept(Visitor visitor) => visitor.visitMetadata(this);
+
+  visitChildren(Visitor visitor) {
+    expression.accept(visitor);
+  }
+
+  Token getBeginToken() => token;
+
+  Token getEndToken() => expression.getEndToken();
 }
 
 class Initializers {

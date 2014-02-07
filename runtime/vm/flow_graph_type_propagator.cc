@@ -96,7 +96,9 @@ void FlowGraphTypePropagator::Propagate() {
         BranchInstr* branch = instr->AsBranch();
         if (branch != NULL) {
           ConstrainedCompileType* constrained_type = branch->constrained_type();
-          if (constrained_type != NULL) constrained_type->Update();
+          if (constrained_type != NULL) {
+            constrained_type->Update();
+          }
         }
       }
     }
@@ -225,7 +227,7 @@ void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
 ConstrainedCompileType* FlowGraphTypePropagator::MarkNonNullable(
     Definition* def) {
   CompileType* current = TypeOf(def);
-  if (current->is_nullable()) {
+  if (current->is_nullable() && (current->ToCid() != kNullCid)) {
     ConstrainedCompileType* constrained_type =
         new NotNullConstrainedCompileType(current);
     SetTypeOf(def, constrained_type->ToCompileType());
@@ -512,7 +514,7 @@ intptr_t CompileType::ToNullableCid() {
       if (FLAG_use_cha || IsKnownPrivateClass(type_class)) {
         // A known private class cannot be subclassed or implemented.
         if (!type_class.is_implemented() &&
-            !CHA::HasSubclasses(type_class.id())) {
+            !CHA::HasSubclassesSafe(type_class.id())) {
           cid_ = type_class.id();
         } else {
           cid_ = kDynamicCid;
@@ -922,7 +924,8 @@ CompileType* StoreStaticFieldInstr::ComputeInitialType() const {
 
 
 CompileType CreateArrayInstr::ComputeType() const {
-  return CompileType::FromAbstractType(type(), CompileType::kNonNullable);
+  // TODO(fschneider): Add abstract type and type arguments to the compile type.
+  return CompileType::FromCid(kArrayCid);
 }
 
 

@@ -15,7 +15,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, compiler_stats);
 
-
 class CompilerStats : AllStatic {
  public:
   static intptr_t num_tokens_total;
@@ -25,6 +24,11 @@ class CompilerStats : AllStatic {
   static intptr_t num_token_checks;
   static intptr_t num_tokens_rewind;
   static intptr_t num_tokens_lookahead;
+
+  static intptr_t num_lib_cache_hit;
+  static intptr_t num_names_cached;
+  static intptr_t make_accessor_name;
+  static intptr_t make_field_name;
 
   static intptr_t src_length;        // Total number of characters in source.
   static intptr_t code_allocated;    // Bytes allocated for generated code.

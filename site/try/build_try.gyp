@@ -26,7 +26,7 @@
           '../../third_party/font-awesome/font-awesome-4.0.3/'
           'fonts/fontawesome-webfont.woff',
 
-          '../../sdk/lib/_internal/dartdoc/static/favicon.ico',
+          'favicon.ico',
 
           '<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',
           '<(SHARED_INTERMEDIATE_DIR)/sdk.json',

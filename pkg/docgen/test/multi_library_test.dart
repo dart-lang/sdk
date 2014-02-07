@@ -6,6 +6,8 @@ import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
 import '../lib/docgen.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart'
+    as dart2js_util;
 
 const String DART_LIBRARY_1 = '''
   library testLib;
@@ -104,8 +106,9 @@ List writeLibFiles() {
   var fileName3 = path.join(TEMP_DIRNAME.path, 'temp3.dart');
   file = new File(fileName3);
   file.writeAsStringSync(DART_LIBRARY_3);
-  return [new Uri.file(fileName), new Uri.file(fileName3),
-      new Uri.file(fileName3)];
+  return [new Uri.file(fileName, windows: Platform.isWindows),
+          new Uri.file(fileName2, windows: Platform.isWindows),
+          new Uri.file(fileName3, windows: Platform.isWindows)];
 }
 
 main() {
@@ -126,8 +129,10 @@ main() {
           // Test for linking to parameter [c]
           var importedLib = libraryMirror.libraryDependencies.firstWhere(
             (dep) => dep.isImport).targetLibrary;
-          var aClassMirror = importedLib.classes.values.first;
-          expect(aClassMirror.qualifiedName, 'testLib2.foo.B');
+          var aClassMirror =
+              dart2js_util.classesOf(importedLib.declarations).first;
+          expect(dart2js_util.qualifiedNameOf(aClassMirror),
+                 'testLib2.foo.B');
           var exportedClass = Indexable.getDocgenObject(aClassMirror, library);
           expect(exportedClass is Class, isTrue);
 
@@ -152,10 +157,12 @@ main() {
           // Test a third library referencing another exported library in a
           // separate file.
           importedLib = libraryMirror.libraryDependencies.firstWhere(
-            (dep) => dep.isImport && dep.targetLibrary.qualifiedName ==
+            (dep) => dep.isImport &&
+                     dart2js_util.qualifiedNameOf(dep.targetLibrary) ==
             'testLib.bar').targetLibrary;
-          aClassMirror = importedLib.classes.values.first;
-          expect(aClassMirror.qualifiedName, 'testLib.bar.C');
+          aClassMirror = dart2js_util.classesOf(importedLib.declarations).first;
+          expect(dart2js_util.qualifiedNameOf(aClassMirror),
+                 'testLib.bar.C');
           exportedClass = Indexable.getDocgenObject(aClassMirror, library);
           expect(exportedClass is Class, isTrue);
           expect(exportedClass.docName, 'testLib.C');

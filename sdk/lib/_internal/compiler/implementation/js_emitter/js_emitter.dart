@@ -4,8 +4,6 @@
 
 library dart2js.js_emitter;
 
-import 'dart:collection' show Queue;
-
 import '../common.dart';
 
 import '../js/js.dart' as jsAst;
@@ -58,8 +56,6 @@ import '../util/characters.dart' show
 
 import '../util/uri_extras.dart' show
     relativize;
-
-import '../dump_info.dart' as dumpInfo;
 
 import '../deferred_load.dart' show
     OutputUnit;

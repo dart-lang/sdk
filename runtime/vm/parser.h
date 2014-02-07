@@ -597,12 +597,6 @@ class Parser : public ValueObject {
   RawClass* ResolveClassInPrefixScope(const LibraryPrefix& prefix,
                                       const String& name);
 
-  // Find name in the library or prefix scope and return the corresponding
-  // object (field, class, function etc).
-  RawObject* ResolveNameInCurrentLibraryScope(const String& ident);
-  RawObject* ResolveNameInPrefixScope(const LibraryPrefix& prefix,
-                                      const String& name);
-
   AstNode* ResolveIdent(intptr_t ident_pos,
                         const String& ident,
                         bool allow_closure_names);

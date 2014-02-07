@@ -45,6 +45,7 @@ class RawRedirectionData;
 class RawFunction;
 class RawGrowableObjectArray;
 class RawFloat32x4;
+class RawFloat64x2;
 class RawInt32x4;
 class RawImmutableArray;
 class RawLanguageError;
@@ -275,6 +276,7 @@ class SnapshotReader : public BaseReader {
   RawGrowableObjectArray* NewGrowableObjectArray();
   RawFloat32x4* NewFloat32x4(float v0, float v1, float v2, float v3);
   RawInt32x4* NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3);
+  RawFloat64x2* NewFloat64x2(double v0, double v1);
   RawApiError* NewApiError();
   RawLanguageError* NewLanguageError();
   RawObject* NewInteger(int64_t value);

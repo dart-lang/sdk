@@ -407,7 +407,7 @@ class ReflectionInfo {
               FIRST_DEFAULT_ARGUMENT, parameter, requiredParameterCount);
   }
 
-  @NoInline
+  @NoInline()
   computeFunctionRti(jsConstructor) {
     if (JS('bool', 'typeof # == "number"', functionType)) {
       return getMetadata(functionType);
@@ -2173,12 +2173,12 @@ class BoundClosure extends TearOffClosure {
     return receiverHashCode ^ Primitives.objectHashCode(_target);
   }
 
-  @NoInline
+  @NoInline()
   static selfOf(BoundClosure closure) => closure._self;
 
   static targetOf(BoundClosure closure) => closure._target;
 
-  @NoInline
+  @NoInline()
   static receiverOf(BoundClosure closure) => closure._receiver;
 
   static nameOf(BoundClosure closure) => closure._name;
@@ -2695,7 +2695,7 @@ class RuntimeFunctionType extends RuntimeType {
 
   @NoInline() @NoSideEffects()
   _assertCheck(expression) {
-    if (inAssert) return;
+    if (inAssert) return null;
     inAssert = true; // Don't try to check this library itself.
     try {
       // Type inferrer don't think this is called with dynamic arguments.
@@ -3037,4 +3037,16 @@ class UnimplementedNoSuchMethodError extends Error
   UnimplementedNoSuchMethodError(this._message);
 
   String toString() => "Unsupported operation: $_message";
+}
+
+/**
+ * Creates a random number with 64 bits of randomness.
+ *
+ * This will be truncated to the 53 bits available in a double.
+ */
+int random64() {
+  // TODO(lrn): Use a secure random source.
+  int int32a = JS("int", "(Math.random() * 0x100000000) >>> 0");
+  int int32b = JS("int", "(Math.random() * 0x100000000) >>> 0");
+  return int32a + int32b * 0x100000000;
 }

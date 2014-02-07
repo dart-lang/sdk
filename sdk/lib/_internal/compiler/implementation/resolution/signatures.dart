@@ -63,6 +63,17 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     }
     currentDefinitions = node;
     Element element = definition.accept(this);
+    if (currentDefinitions.metadata != null) {
+      // TODO(johnniwinther): Unify handling of metadata on locals/formals.
+      for (Link<Node> link = currentDefinitions.metadata.nodes;
+           !link.isEmpty;
+           link = link.tail) {
+        ParameterMetadataAnnotation metadata =
+            new ParameterMetadataAnnotation(link.head);
+        element.addMetadata(metadata);
+        metadata.ensureResolved(compiler);
+      }
+    }
     currentDefinitions = null;
     return element;
   }

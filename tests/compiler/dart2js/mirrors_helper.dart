@@ -29,7 +29,7 @@ main() {
 @metadata
 /** Multiline doc comment. */
 /* Multiline comment. */ class Foo {
-
+  m(@metadata a) {}
 }
 
 

@@ -88,7 +88,7 @@ class _DateFormatQuotedField extends _DateFormatField {
   }
 
   void patchQuotes() {
-     if (pattern == "''") {
+    if (pattern == "''") {
       pattern = "'";
     } else {
       pattern = pattern.substring(1, pattern.length - 1);
@@ -109,7 +109,7 @@ class _DateFormatPatternField extends _DateFormatField {
 
   /** Format date according to our specification and return the result. */
   String format(DateTime date) {
-      return formatField(date);
+    return formatField(date);
   }
 
   /**
@@ -418,7 +418,7 @@ class _DateFormatPatternField extends _DateFormatField {
     throw new UnimplementedError();
   }
 
- /**
+  /**
   * Return a string representation of the object padded to the left with
   * zeros. Primarily useful for numbers.
   */
@@ -428,7 +428,7 @@ class _DateFormatPatternField extends _DateFormatField {
     var buffer = new StringBuffer();
     for (var i = 0; i < width - basicString.length; i++) {
       buffer.write('0');
-     }
+    }
     buffer.write(basicString);
     return buffer.toString();
   }

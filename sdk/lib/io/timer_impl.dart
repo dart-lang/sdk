@@ -128,6 +128,7 @@ class _Timer implements Timer {
   static int _idCount = 0;
 
   static RawReceivePort _receivePort;
+  static SendPort _sendPort;
   static bool _handlingCallbacks = false;
 
   Function _callback;
@@ -241,10 +242,13 @@ class _Timer implements Timer {
         // events.
         _createTimerHandler();
       }
-      _EventHandler._sendData(null,
-                              _receivePort,
-                              _firstZeroTimer != null ?
-                                  0 : _heap.first._wakeupTime);
+      if (_firstZeroTimer != null) {
+        _sendPort.send(null);
+      } else {
+        _EventHandler._sendData(null,
+                                _receivePort,
+                                _heap.first._wakeupTime);
+      }
     }
   }
 
@@ -300,6 +304,7 @@ class _Timer implements Timer {
   static void _createTimerHandler() {
     if(_receivePort == null) {
       _receivePort = new RawReceivePort(_handleTimeout);
+      _sendPort = _receivePort.sendPort;
     }
   }
 

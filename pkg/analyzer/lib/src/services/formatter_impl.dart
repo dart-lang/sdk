@@ -7,7 +7,6 @@ library formatter_impl;
 import 'dart:math';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -171,7 +170,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
   }
 
   Token tokenize(String source) {
-    var reader = new CharSequenceReader(new CharSequence(source));
+    var reader = new CharSequenceReader(source);
     var scanner = new Scanner(null, reader, this);
     var token = scanner.tokenize();
     lineInfo = new LineInfo(scanner.lineStarts);
@@ -363,6 +362,9 @@ class SourceVisitor implements ASTVisitor {
   /// addded to the indent level).
   bool allowLineLeadingSpaces;
 
+  /// A flag to specify whether zero-length spaces should be emmitted.
+  bool emitEmptySpaces = false;
+
   /// Used for matching EOL comments
   final twoSlashes = new RegExp(r'//[^/]');
 
@@ -412,7 +414,9 @@ class SourceVisitor implements ASTVisitor {
 
   visitArgumentList(ArgumentList node) {
     token(node.leftParenthesis);
+    breakableNonSpace();
     visitCommaSeparatedNodes(node.arguments);
+    breakableNonSpace();
     token(node.rightParenthesis);
   }
 
@@ -453,10 +457,13 @@ class SourceVisitor implements ASTVisitor {
   visitBlock(Block node) {
     token(node.leftBracket);
     indent();
-    visitNodes(node.statements, precededBy: newlines, separatedBy: newlines);
-    unindent();
-    newlines();
-    token(node.rightBracket);
+    if (!node.statements.isEmpty) {
+      visitNodes(node.statements, precededBy: newlines, separatedBy: newlines);
+      newlines();
+    } else {
+      preserveLeadingNewlines();
+    }
+    token(node.rightBracket, precededBy: unindent);
   }
 
   visitBlockFunctionBody(BlockFunctionBody node) {
@@ -524,10 +531,13 @@ class SourceVisitor implements ASTVisitor {
     });
     token(node.leftBracket);
     indent();
-    visitNodes(node.members, precededBy: newlines, separatedBy: newlines);
-    unindent();
-    newlines();
-    token(node.rightBracket);
+    if (!node.members.isEmpty) {
+      visitNodes(node.members, precededBy: newlines, separatedBy: newlines);
+      newlines();
+    } else {
+      preserveLeadingNewlines();
+    }
+    token(node.rightBracket, precededBy: unindent);
   }
 
   visitClassTypeAlias(ClassTypeAlias node) {
@@ -622,7 +632,11 @@ class SourceVisitor implements ASTVisitor {
   }
 
   visitConstructorInitializers(ConstructorDeclaration node) {
-    newlines();
+    if (node.initializers.length > 1) {
+      newlines();
+    } else {
+      preserveLeadingNewlines();
+    }
     indent(2);
     token(node.separator /* : */);
     space();
@@ -932,7 +946,7 @@ class SourceVisitor implements ASTVisitor {
 
   visitInstanceCreationExpression(InstanceCreationExpression node) {
     token(node.keyword);
-    space();
+    nonBreakingSpace();
     visit(node.constructorName);
     visit(node.argumentList);
   }
@@ -994,8 +1008,7 @@ class SourceVisitor implements ASTVisitor {
     indent();
     visitCommaSeparatedNodes(node.elements /*, followedBy: breakableSpace*/);
     optionalTrailingComma(node.rightBracket);
-    unindent();
-    token(node.rightBracket);
+    token(node.rightBracket, precededBy: unindent);
   }
 
   visitMapLiteral(MapLiteral node) {
@@ -1218,8 +1231,8 @@ class SourceVisitor implements ASTVisitor {
     indent();
     newlines();
     visitNodes(node.members, separatedBy: newlines, followedBy: newlines);
-    unindent();
-    token(node.rightBracket);
+    token(node.rightBracket, precededBy: unindent);
+
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
@@ -1442,8 +1455,8 @@ class SourceVisitor implements ASTVisitor {
     preserveNewlines = true;
   }
 
-  token(Token token, {precededBy(), followedBy(),
-      printToken(tok), int minNewlines: 0}) {
+  token(Token token, {precededBy(), followedBy(), printToken(tok),
+      int minNewlines: 0}) {
     if (token != null) {
       if (needsNewline) {
         minNewlines = max(1, minNewlines);
@@ -1469,12 +1482,13 @@ class SourceVisitor implements ASTVisitor {
   }
 
   emitSpaces() {
-    if (leadingSpaces > 0) {
+    if (leadingSpaces > 0 || emitEmptySpaces) {
       if (allowLineLeadingSpaces || !writer.currentLine.isWhitespace()) {
         writer.spaces(leadingSpaces, breakWeight: currentBreakWeight);
       }
       leadingSpaces = 0;
       allowLineLeadingSpaces = false;
+      emitEmptySpaces = false;
       currentBreakWeight = DEFAULT_SPACE_WEIGHT;
     }
   }
@@ -1491,6 +1505,12 @@ class SourceVisitor implements ASTVisitor {
             preSelection.length);
       }
     }
+  }
+
+  /// Emit a breakable 'non' (zero-length) space
+  breakableNonSpace() {
+    space(n: 0);
+    emitEmptySpaces = true;
   }
 
   /// Emit a non-breakable space.
@@ -1512,7 +1532,7 @@ class SourceVisitor implements ASTVisitor {
   append(String string) {
     if (string != null && !string.isEmpty) {
       emitSpaces();
-      writer.print(string);
+      writer.write(string);
     }
   }
 
@@ -1538,8 +1558,7 @@ class SourceVisitor implements ASTVisitor {
       newlines();
       visit(statement);
       newlines();
-      unindent();
-      token(CLOSE_CURLY);
+      token(CLOSE_CURLY, precededBy: unindent);
     } else {
       visit(statement);
     }
@@ -1566,6 +1585,7 @@ class SourceVisitor implements ASTVisitor {
       lines = max(min, countNewlinesBetween(previousToken, currentToken));
       preserveNewlines = false;
     }
+
     emitNewlines(lines);
 
     previousToken =

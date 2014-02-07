@@ -107,7 +107,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return new ContainerTypeMask(type, node, enclosing, elementType, length);
   }
 
-  TypeMask allocateMap(TypeMask keys, TypeMask values, TypeMask type) {
+  TypeMask allocateMap(TypeMask type, Node node, Element element,
+                       [TypeMask keys, TypeMask values]) {
     return type;
   }
 
@@ -629,27 +630,35 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitLiteralMap(LiteralMap node) {
-    NodeList entries = node.entries;
-    T keyType;
-    T valueType;
-    if (entries.isEmpty) {
-      keyType = types.nonNullEmpty();
-      valueType = types.nonNullEmpty();
-    } else {
-      for (LiteralMapEntry entry in entries) {
-        T key = visit(entry.key);
-        keyType = keyType == null
-            ? types.allocatePhi(null, null, key)
-            : types.addPhiInput(null, keyType, key);
+    return inferrer.concreteTypes.putIfAbsent(node, () {
+      NodeList entries = node.entries;
+      T keyType;
+      T valueType;
+      if (entries.isEmpty) {
+        keyType = types.nonNullEmpty();
+        valueType = types.nonNullEmpty();
+      } else {
+        for (LiteralMapEntry entry in entries) {
+          T key = visit(entry.key);
+          keyType = keyType == null
+              ? types.allocatePhi(null, null, key)
+              : types.addPhiInput(null, keyType, key);
 
-        T value = visit(entry.value);
-        valueType = valueType == null
-            ? types.allocatePhi(null, null, value)
-            : types.addPhiInput(null, valueType, value);
+          T value = visit(entry.value);
+          valueType = valueType == null
+              ? types.allocatePhi(null, null, value)
+              : types.addPhiInput(null, valueType, value);
+        }
+        keyType = types.simplifyPhi(null, null, keyType);
+        valueType = types.simplifyPhi(null, null, valueType);
       }
-    }
-    T type = node.isConst() ? types.constMapType : types.mapType;
-    return types.allocateMap(keyType, valueType, type);
+      T type = node.isConst() ? types.constMapType : types.mapType;
+      return types.allocateMap(type,
+                               node,
+                               outermostElement,
+                               keyType,
+                               valueType);
+    });
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();

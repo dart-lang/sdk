@@ -1,7 +1,7 @@
 library java.io;
 
 import "dart:io";
-import 'java_core.dart' show JavaIOException;
+import 'java_core.dart' show JavaIOException, CharSequence;
 import 'package:path/path.dart' as pathos;
 
 class JavaSystemIO {
@@ -56,7 +56,7 @@ class JavaFile {
   static final int separatorChar = Platform.pathSeparator.codeUnitAt(0);
   String _path;
   JavaFile(String path) {
-    _path = pathos.normalize(path);
+    _path = pathos.absolute(path);
   }
   JavaFile.relative(JavaFile base, String child) {
     if (child.isEmpty) {
@@ -102,6 +102,9 @@ class JavaFile {
       return true;
     }
     return false;
+  }
+  bool isFile() {
+    return _newFile().existsSync();
   }
   bool isDirectory() {
     return _newDirectory().existsSync();

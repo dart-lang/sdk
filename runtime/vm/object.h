@@ -992,6 +992,11 @@ class Class : public Object {
   }
   void set_is_mixin_type_applied() const;
 
+  bool is_fields_marked_nullable() const {
+    return FieldsMarkedNullableBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_fields_marked_nullable() const;
+
   uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
@@ -1069,6 +1074,16 @@ class Class : public Object {
   // otherwise a new object is allocated and returned.
   static RawClass* GetClass(intptr_t class_id, bool is_signature_class);
 
+  // Register code that has used CHA for optimization.
+  // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
+  // leaf method, ...).
+  void RegisterCHACode(const Code& code);
+
+  void DisableCHAOptimizedCode();
+
+  RawArray* cha_codes() const { return raw_ptr()->cha_codes_; }
+  void set_cha_codes(const Array& value) const;
+
  private:
   enum {
     kAny = 0,
@@ -1089,6 +1104,7 @@ class Class : public Object {
     kMarkedForParsingBit = 8,
     kMixinAppAliasBit = 9,
     kMixinTypeAppliedBit = 10,
+    kFieldsMarkedNullableBit = 11,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1101,6 +1117,8 @@ class Class : public Object {
   class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
   class MixinAppAliasBit : public BitField<bool, kMixinAppAliasBit, 1> {};
   class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
+  class FieldsMarkedNullableBit : public BitField<bool,
+      kFieldsMarkedNullableBit, 1> {};  // NOLINT
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -2187,17 +2205,14 @@ class Field : public Object {
     return r;
   }
 
-  bool IsUnboxedField() const {
-    return is_unboxing_candidate()
-        && !is_final()
-        && (guarded_cid() == kDoubleCid && !is_nullable());
+  intptr_t UnboxedFieldCid() const {
+    ASSERT(IsUnboxedField());
+    return guarded_cid();
   }
 
-  bool IsPotentialUnboxedField() const {
-    return is_unboxing_candidate()
-        && (IsUnboxedField() ||
-            (!is_final() && (guarded_cid() == kIllegalCid)));
-  }
+  bool IsUnboxedField() const;
+
+  bool IsPotentialUnboxedField() const;
 
   bool is_unboxing_candidate() const {
     return UnboxingCandidateBit::decode(raw_ptr()->kind_bits_);
@@ -2584,7 +2599,6 @@ class Library : public Object {
   void AddObject(const Object& obj, const String& name) const;
   void ReplaceObject(const Object& obj, const String& name) const;
   RawObject* LookupReExport(const String& name) const;
-  RawObject* LookupObject(const String& name) const;
   RawObject* LookupObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
@@ -2599,6 +2613,15 @@ class Library : public Object {
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
   RawScript* LookupScript(const String& url) const;
   RawArray* LoadedScripts() const;
+
+  // Resolve name in the scope of this library. First check the cache
+  // of already resolved names for this library. Then look in the
+  // local dictionary for the unmangled name N, the getter name get:N
+  // and setter name set:N.
+  // If the local dictionary contains no entry for these names,
+  // look in the scopes of all libraries that are imported
+  // without a library prefix.
+  RawObject* ResolveName(const String& name) const;
 
   void AddAnonymousClass(const Class& cls) const;
 
@@ -2708,6 +2731,15 @@ class Library : public Object {
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
+
+  RawArray* resolved_names() const { return raw_ptr()->resolved_names_; }
+  void InitResolvedNamesCache(intptr_t size) const;
+  void GrowResolvedNamesCache() const;
+  bool LookupResolvedNamesCache(const String& name, Object* obj) const;
+  void AddToResolvedNamesCache(const String& name, const Object& obj) const;
+  void InvalidateResolvedName(const String& name) const;
+  void InvalidateResolvedNamesCache() const;
+
   void InitImportList() const;
   void GrowDictionary(const Array& dict, intptr_t dict_size) const;
   static RawLibrary* NewLibraryHelper(const String& url,
@@ -5939,6 +5971,36 @@ class Int32x4 : public Instance {
 };
 
 
+class Float64x2 : public Instance {
+ public:
+  static RawFloat64x2* New(double value0, double value1,
+                           Heap::Space space = Heap::kNew);
+  static RawFloat64x2* New(simd128_value_t value,
+                           Heap::Space space = Heap::kNew);
+
+  double x() const;
+  double y() const;
+
+  void set_x(double x) const;
+  void set_y(double y) const;
+
+  simd128_value_t value() const;
+  void set_value(simd128_value_t value) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawFloat64x2));
+  }
+
+  static intptr_t value_offset() {
+    return OFFSET_OF(RawFloat64x2, value_);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64x2, Instance);
+  friend class Class;
+};
+
+
 class TypedData : public Instance {
  public:
   intptr_t Length() const {
@@ -5987,6 +6049,7 @@ class TypedData : public Instance {
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
   TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
+  TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
 
 #undef TYPED_GETTER_SETTER
 
@@ -6116,7 +6179,8 @@ class ExternalTypedData : public Instance {
   TYPED_GETTER_SETTER(Float32, float)
   TYPED_GETTER_SETTER(Float64, double)
   TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Int32x4, simd128_value_t);
+  TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
+  TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
 
 #undef TYPED_GETTER_SETTER
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class FileStat {
-  /* patch */ static List<int> _statSync(String path) native "File_Stat";
+  /* patch */ static _statSync(String path) native "File_Stat";
 }
 
 

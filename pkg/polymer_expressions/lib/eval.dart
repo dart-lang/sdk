@@ -249,6 +249,8 @@ abstract class ExpressionObserver<E extends Expression> implements Expression {
 
   ExpressionObserver(this._expr);
 
+  Expression get expression => _expr;
+
   Object get currentValue => _value;
 
   update(Scope scope) => _updateSelf(scope);

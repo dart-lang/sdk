@@ -14,7 +14,16 @@ main() {
 
   integration('--force cannot be combined with --dry-run', () {
     schedulePub(args: ['lish', '--force', '--dry-run'],
-        error: "Cannot use both --force and --dry-run.",
+        error: """
+          Cannot use both --force and --dry-run.
+          
+          Usage: pub publish [options]
+          -h, --help       Print usage information for this command.
+          -n, --dry-run    Validate but do not publish the package.
+          -f, --force      Publish without confirmation if there are no errors.
+              --server     The package server to which to upload this package.
+                           (defaults to "https://pub.dartlang.org")
+          """,
         exitCode: exit_codes.USAGE);
   });
 }

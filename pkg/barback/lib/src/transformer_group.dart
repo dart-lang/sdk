@@ -25,4 +25,6 @@ class TransformerGroup {
 
   TransformerGroup(Iterable<Iterable> phases)
       : this.phases = phases.map((phase) => phase.toList()).toList();
+
+  String toString() => "group of $phases";
 }

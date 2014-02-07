@@ -920,6 +920,17 @@ DART_EXPORT void* Dart_CurrentIsolateData() {
 }
 
 
+DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
+  TRACE_API_CALL(CURRENT_FUNC);
+  if (isolate == NULL) {
+    FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
+  }
+  // TODO(16615): Validate isolate parameter.
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  return iso->init_callback_data();
+}
+
+
 DART_EXPORT Dart_Handle Dart_DebugName() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -928,10 +939,11 @@ DART_EXPORT Dart_Handle Dart_DebugName() {
 
 
 
-DART_EXPORT void Dart_EnterIsolate(Dart_Isolate dart_isolate) {
+DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
-  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
-  Isolate::SetCurrent(isolate);
+  // TODO(16615): Validate isolate parameter.
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  Isolate::SetCurrent(iso);
 }
 
 
@@ -1007,6 +1019,7 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
   if (isolate == NULL) {
     FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
+  // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   iso->ScheduleInterrupts(Isolate::kApiInterrupt);
 }
@@ -1017,6 +1030,7 @@ DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
   if (isolate == NULL) {
     FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
   }
+  // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   return iso->MakeRunnable();
 }
@@ -3059,21 +3073,25 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
   }
   const Class& cls = Class::Handle(isolate, type_obj.type_class());
 
-  // Mark all fields as nullable.
-  Class& iterate_cls = Class::Handle(isolate, cls.raw());
-  Field& field = Field::Handle(isolate);
-  Array& fields = Array::Handle(isolate);
-  while (!iterate_cls.IsNull()) {
-    fields = iterate_cls.fields();
-    iterate_cls = iterate_cls.SuperClass();
-    for (int field_num = 0; field_num < fields.Length(); field_num++) {
-      field ^= fields.At(field_num);
-      if (field.is_static()) {
-        continue;
+  if (!cls.is_fields_marked_nullable()) {
+    // Mark all fields as nullable.
+    Class& iterate_cls = Class::Handle(isolate, cls.raw());
+    Field& field = Field::Handle(isolate);
+    Array& fields = Array::Handle(isolate);
+    while (!iterate_cls.IsNull()) {
+      iterate_cls.set_is_fields_marked_nullable();
+      fields = iterate_cls.fields();
+      iterate_cls = iterate_cls.SuperClass();
+      for (int field_num = 0; field_num < fields.Length(); field_num++) {
+        field ^= fields.At(field_num);
+        if (field.is_static()) {
+          continue;
+        }
+        field.UpdateGuardedCidAndLength(Object::null_object());
       }
-      field.UpdateGuardedCidAndLength(Object::null_object());
     }
   }
+
   // Allocate an object for the given class.
   return Api::NewHandle(isolate, Instance::New(cls));
 }

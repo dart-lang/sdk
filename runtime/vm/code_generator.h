@@ -96,7 +96,6 @@ RawCode* ResolveCompileInstanceCallTarget(const Instance& receiver,
 
 void DeoptimizeAt(const Code& optimized_code, uword pc);
 void DeoptimizeAll();
-void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes);
 
 double DartModulo(double a, double b);
 void SinCos(double arg, double* sin_res, double* cos_res);

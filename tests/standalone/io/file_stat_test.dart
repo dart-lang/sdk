@@ -14,8 +14,10 @@ import "package:path/path.dart";
 void testStat() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_stat');
   File file = new File(join(directory.path, "file"));
-  Expect.throws(file.statSync);
-  Expect.throws(() => FileStat.statSync(file.path));
+  FileStat fileStat = FileStat.statSync(file.path);
+  FileStat fileStatDirect = file.statSync();
+  Expect.equals(FileSystemEntityType.NOT_FOUND, fileStat.type);
+  Expect.equals(FileSystemEntityType.NOT_FOUND, fileStatDirect.type);
   file.writeAsStringSync("Dart IO library test of FileStat");
   new Timer(const Duration(seconds: 2), () {
     file.readAsStringSync();
@@ -52,11 +54,11 @@ Future testStatAsync() {
   .then((directory) {
     File file = new File(join(directory.path, "file"));
     return FileStat.stat(file.path)
-    .then((_) => Expect.fail("FileStat.stat should throw an exception."))
-    .catchError((e) => null)
+    .then((fileStat) => Expect.equals(FileSystemEntityType.NOT_FOUND,
+                                      fileStat.type))
     .then((_) => file.stat())
-    .then((_) => Expect.fail("File.stat should throw an exception."))
-    .catchError((e) => null)
+    .then((fileStat) => Expect.equals(FileSystemEntityType.NOT_FOUND,
+                                      fileStat.type))
     .then((_) => file.writeAsString("Dart IO library test of FileStat"))
     .then((_) => new Future.delayed(const Duration(seconds: 2)))
     .then((_) => file.readAsString())

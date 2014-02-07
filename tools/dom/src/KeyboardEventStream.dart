@@ -76,7 +76,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * KeyboardEvent controller.
    */
   _KeyboardEventHandler(this._type): super(_EVENT_TYPE),
-      _stream = new _CustomKeyEventStreamImpl('event');
+      _stream = new _CustomKeyEventStreamImpl('event'), _target = null;
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes

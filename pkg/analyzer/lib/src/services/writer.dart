@@ -8,16 +8,16 @@ library source_writer;
 
 class Line {
 
-  final tokens = <LineToken>[];
+  final List<LineToken> tokens = <LineToken>[];
   final bool useTabs;
   final int spacesPerIndent;
-  final int indent;
+  final int indentLevel;
   final LinePrinter printer;
 
-  Line({this.indent: 0, this.useTabs: false, this.spacesPerIndent: 2,
+  Line({this.indentLevel: 0, this.useTabs: false, this.spacesPerIndent: 2,
       this.printer: const SimpleLinePrinter()}) {
-    if (indent > 0) {
-      _indent(indent);
+    if (indentLevel > 0) {
+      indent(indentLevel);
     }
   }
 
@@ -26,19 +26,20 @@ class Line {
   }
 
   void addSpaces(int n, {breakWeight: DEFAULT_SPACE_WEIGHT}) {
-    if (n > 0) {
-      tokens.add(new SpaceToken(n, breakWeight: breakWeight));
-    }
+    tokens.add(new SpaceToken(n, breakWeight: breakWeight));
   }
 
   void addToken(LineToken token) {
     tokens.add(token);
   }
 
+  bool isEmpty() => tokens.isEmpty;
+
   bool isWhitespace() => tokens.every((tok) => tok is SpaceToken);
 
-  void _indent(int n) {
-    tokens.add(useTabs ? new TabToken(n) : new SpaceToken(n * spacesPerIndent));
+  void indent(int n) {
+    tokens.insert(0,
+        useTabs ? new TabToken(n) : new SpaceToken(n * spacesPerIndent));
   }
 
   String toString() => printer.printLine(this);
@@ -79,7 +80,7 @@ class SimpleLineBreaker extends LinePrinter {
     var chunks = breakLine(line);
     for (var i = 0; i < chunks.length; ++i) {
       if (i > 0) {
-        buf.write(indent(chunks[i], line.indent));
+        buf.write(indent(chunks[i], line.indentLevel));
       } else {
         buf.write(chunks[i]);
       }
@@ -309,7 +310,7 @@ class SourceWriter {
     } else {
       linePrinter = new SimpleLinePrinter();
     }
-    currentLine = new Line(indent: indentCount, printer: linePrinter);
+    currentLine = newLine();
   }
 
   LineToken get lastToken => _lastToken;
@@ -321,6 +322,10 @@ class SourceWriter {
 
   void indent() {
     ++indentCount;
+    // Rather than fiddle with deletions/insertions just start fresh
+    if (currentLine.isWhitespace()) {
+      currentLine = newLine();
+    }
   }
 
   void newline() {
@@ -329,7 +334,7 @@ class SourceWriter {
     }
     _addToken(new NewlineToken(this.lineSeparator));
     buffer.write(currentLine.toString());
-    currentLine = new Line(indent: indentCount, printer: linePrinter);
+    currentLine = newLine();
   }
 
   void newlines(int num) {
@@ -338,12 +343,12 @@ class SourceWriter {
     }
   }
 
-  void print(x) {
+  void write(x) {
     _addToken(new LineToken(x));
   }
 
-  void println(String s) {
-    print(s);
+  void writeln(String s) {
+    write(s);
     newline();
   }
 
@@ -357,7 +362,13 @@ class SourceWriter {
 
   void unindent() {
     --indentCount;
+    // Rather than fiddle with deletions/insertions just start fresh
+    if (currentLine.isWhitespace()) {
+      currentLine = newLine();
+    }
   }
+
+  Line newLine() => new Line(indentLevel: indentCount, printer: linePrinter);
 
   String toString() {
     var source = new StringBuffer(buffer.toString());

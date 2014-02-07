@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
-import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/services/formatter_impl.dart';
 import 'package:analyzer/src/services/writer.dart';
@@ -189,8 +188,7 @@ main() {
       expectCUFormatsTo(
           'library a; class B { }',
           'library a;\n'
-          'class B {\n'
-          '}\n'
+          'class B {}\n'
       );
     });
 
@@ -655,20 +653,6 @@ main() {
         );
     });
 
-    test('CU - constructor initializers', () {
-      expectCUFormatsTo(
-          'class A {\n'
-          '  int _a;\n'
-          '  A(a) : _a = a;\n'
-          '}\n',
-          'class A {\n'
-          '  int _a;\n'
-          '  A(a)\n'
-          '      : _a = a;\n'
-          '}\n'
-        );
-    });
-
     test('CU - constructor auto field inits', () {
       expectCUFormatsTo(
           'class A {\n'
@@ -953,8 +937,7 @@ main() {
         'abstract\n'
         'class\n'
         'A{}',
-        'abstract class A {\n'
-        '}\n'
+        'abstract class A {}\n'
       );
     });
 
@@ -1143,18 +1126,18 @@ main() {
   group('line', () {
 
     test('space', () {
-      var line = new Line(indent: 0);
+      var line = new Line(indentLevel: 0);
       line.addSpaces(2);
       expect(line.toString(), equals('  '));
     });
 
     test('initial indent', () {
-      var line = new Line(indent: 2);
+      var line = new Line(indentLevel: 2);
       expect(line.toString(), equals('    '));
     });
 
     test('initial indent (tabbed)', () {
-      var line = new Line(indent:1, useTabs: true);
+      var line = new Line(indentLevel:1, useTabs: true);
       expect(line.toString(), equals('\t'));
     });
 
@@ -1165,13 +1148,13 @@ main() {
     });
 
     test('addToken (2)', () {
-      var line = new Line(indent: 1);
+      var line = new Line(indentLevel: 1);
       line.addToken(new LineToken('foo'));
       expect(line.toString(), equals('  foo'));
     });
 
     test('isWhitespace', () {
-      var line = new Line(indent: 1);
+      var line = new Line(indentLevel: 1);
       expect(line.isWhitespace(), isTrue);
     });
 
@@ -1182,15 +1165,15 @@ main() {
 
     test('basic print', () {
       var writer = new SourceWriter();
-      writer.print('foo');
-      writer.print(' ');
-      writer.print('bar');
+      writer.write('foo');
+      writer.write(' ');
+      writer.write('bar');
       expect(writer.toString(), equals('foo bar'));
     });
 
     test('newline', () {
       var writer = new SourceWriter();
-      writer.print('foo');
+      writer.write('foo');
       writer.newline();
       expect(writer.toString(), equals('foo\n'));
     });
@@ -1203,13 +1186,13 @@ main() {
 
     test('basic print (with indents)', () {
       var writer = new SourceWriter();
-      writer.print('foo');
+      writer.write('foo');
       writer.indent();
       writer.newline();
-      writer.print('bar');
+      writer.write('bar');
       writer.unindent();
       writer.newline();
-      writer.print('baz');
+      writer.write('baz');
       expect(writer.toString(), equals('foo\n  bar\nbaz'));
     });
 
@@ -1400,7 +1383,7 @@ String formatStatement(src, {options: const FormatterOptions()}) =>
     new CodeFormatter(options).format(CodeKind.STATEMENT, src).source;
 
 Token tokenize(String str) {
-  var reader = new CharSequenceReader(new CharSequence(str));
+  var reader = new CharSequenceReader(str);
   return new Scanner(null, reader, null).tokenize();
 }
 

@@ -21,7 +21,6 @@
         '../../utils/compiler/compiler.gyp:dart2js',
         '../../runtime/dart-runtime.gyp:dart',
         '../../pkg/pkg.gyp:pkg_packages',
-        'apidoc.gyp:api_docs',
       ],
       'includes': [
         '../../sdk/lib/core/corelib_sources.gypi',
@@ -66,9 +65,6 @@
             '../../sdk/bin/docgen',
             '../../sdk/bin/docgen.bat',
             '../../tools/only_in_release_mode.py',
-            # We sit inside the api_docs directory, so make sure it has run
-            # before we do. Otherwise it might run later and delete us.
-            '<(PRODUCT_DIR)/api_docs/index.html',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/docgen/index.json',
@@ -78,7 +74,9 @@
             '../../tools/only_in_release_mode.py',
             '<@(_outputs)',
             '--',
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart-sdk/bin/docgen<(script_suffix)',
+            '../../sdk/bin/dart',
+            '--package-root=<(PRODUCT_DIR)/packages',
+            '../../pkg/docgen/bin/docgen.dart',
             '--out=<(PRODUCT_DIR)/api_docs/docgen',
             '--json',
             '--include-sdk',

@@ -59,6 +59,8 @@ DEFINE_FLAG(bool, trace_disabling_optimized_code, false,
 DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
     "Throw an exception when the result of an integer calculation will not "
     "fit into a javascript integer.");
+DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
+
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, error_on_bad_override);
@@ -1189,6 +1191,9 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Int32x4>();
   object_store->set_int32x4_class(cls);
   RegisterPrivateClass(cls, Symbols::_Int32x4(), lib);
+  cls = Class::New<Float64x2>();
+  object_store->set_float64x2_class(cls);
+  RegisterPrivateClass(cls, Symbols::_Float64x2(), lib);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
@@ -1207,6 +1212,15 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int32x4_type(type);
+
+  cls = Class::New<Instance>(kIllegalCid);
+  RegisterClass(cls, Symbols::Float64x2(), lib);
+  cls.set_num_type_arguments(0);
+  cls.set_num_own_type_arguments(0);
+  cls.set_is_prefinalized();
+  pending_classes.Add(cls);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_float64x2_type(type);
 
   object_store->set_typed_data_classes(typed_data_classes);
 
@@ -1347,6 +1361,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<Int32x4>();
   object_store->set_int32x4_class(cls);
+
+  cls = Class::New<Float64x2>();
+  object_store->set_float64x2_class(cls);
 
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
@@ -2319,6 +2336,157 @@ void Class::Finalize() const {
 }
 
 
+// Helper class to handle an array of code weak properties. Implements
+// registration and disabling of stored code objects.
+class WeakCodeReferences : public ValueObject {
+ public:
+  explicit WeakCodeReferences(const Array& value) : array_(value) {}
+  virtual ~WeakCodeReferences() {}
+
+  void Register(const Code& value) {
+    if (!array_.IsNull()) {
+      // Try to find and reuse cleared WeakProperty to avoid allocating new one.
+      WeakProperty& weak_property = WeakProperty::Handle();
+      for (intptr_t i = 0; i < array_.Length(); i++) {
+        weak_property ^= array_.At(i);
+        if (weak_property.key() == Code::null()) {
+          // Empty property found. Reuse it.
+          weak_property.set_key(value);
+          return;
+        }
+      }
+    }
+
+    const WeakProperty& weak_property = WeakProperty::Handle(
+        WeakProperty::New(Heap::kOld));
+    weak_property.set_key(value);
+
+    intptr_t length = array_.IsNull() ? 0 : array_.Length();
+    const Array& new_array = Array::Handle(
+        Array::Grow(array_, length + 1, Heap::kOld));
+    new_array.SetAt(length, weak_property);
+    UpdateArrayTo(new_array);
+  }
+
+  virtual void UpdateArrayTo(const Array& array) = 0;
+  virtual void ReportDeoptimization(const Code& code) = 0;
+  virtual void ReportSwitchingCode(const Code& code) = 0;
+
+  static bool IsOptimizedCode(const Array& dependent_code, const Code& code) {
+    if (!code.is_optimized()) {
+      return false;
+    }
+    WeakProperty& weak_property = WeakProperty::Handle();
+    for (intptr_t i = 0; i < dependent_code.Length(); i++) {
+      weak_property ^= dependent_code.At(i);
+      if (code.raw() == weak_property.key()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void DisableCode() {
+    const Array& code_objects = Array::Handle(array_.raw());
+    if (code_objects.IsNull()) {
+      return;
+    }
+    UpdateArrayTo(Object::null_array());
+    // Disable all code on stack.
+    Code& code = Code::Handle();
+    {
+      DartFrameIterator iterator;
+      StackFrame* frame = iterator.NextFrame();
+      while (frame != NULL) {
+        code = frame->LookupDartCode();
+        if (IsOptimizedCode(code_objects, code)) {
+          ReportDeoptimization(code);
+          DeoptimizeAt(code, frame->pc());
+        }
+        frame = iterator.NextFrame();
+      }
+    }
+
+    // Switch functions that use dependent code to unoptimized code.
+    WeakProperty& weak_property = WeakProperty::Handle();
+    Function& function = Function::Handle();
+    for (intptr_t i = 0; i < code_objects.Length(); i++) {
+      weak_property ^= code_objects.At(i);
+      code ^= weak_property.key();
+      if (code.IsNull()) {
+        // Code was garbage collected already.
+        continue;
+      }
+
+      function ^= code.function();
+      // If function uses dependent code switch it to unoptimized.
+      if (function.CurrentCode() == code.raw()) {
+        ASSERT(function.HasOptimizedCode());
+        ReportSwitchingCode(code);
+        function.SwitchToUnoptimizedCode();
+      }
+    }
+  }
+
+ private:
+  const Array& array_;
+  DISALLOW_COPY_AND_ASSIGN(WeakCodeReferences);
+};
+
+
+class CHACodeArray : public WeakCodeReferences {
+ public:
+  explicit CHACodeArray(const Class& cls)
+      : WeakCodeReferences(Array::Handle(cls.cha_codes())), cls_(cls) {
+  }
+
+  virtual void UpdateArrayTo(const Array& value) {
+    cls_.set_cha_codes(value);
+  }
+
+  virtual void ReportDeoptimization(const Code& code) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+      Function& function = Function::Handle(code.function());
+      OS::PrintErr("Deoptimizing %s because CHA optimized (%s).\n",
+          function.ToFullyQualifiedCString(),
+          cls_.ToCString());
+    }
+  }
+
+  virtual void ReportSwitchingCode(const Code& code) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+      Function& function = Function::Handle(code.function());
+      OS::PrintErr("Switching %s to unoptimized code because CHA invalid"
+                   " (%s)\n",
+                   function.ToFullyQualifiedCString(),
+                   cls_.ToCString());
+    }
+  }
+
+ private:
+  const Class& cls_;
+  DISALLOW_COPY_AND_ASSIGN(CHACodeArray);
+};
+
+
+void Class::RegisterCHACode(const Code& code) {
+  ASSERT(code.is_optimized());
+  CHACodeArray a(*this);
+  a.Register(code);
+}
+
+
+void Class::DisableCHAOptimizedCode() {
+  CHACodeArray a(*this);
+  a.DisableCode();
+}
+
+
+void Class::set_cha_codes(const Array& cache) const {
+  StorePointer(&raw_ptr()->cha_codes_, cache.raw());
+}
+
+
 // Apply the members from the patch class to the original class.
 bool Class::ApplyPatch(const Class& patch, Error* error) const {
   ASSERT(error != NULL);
@@ -2945,6 +3113,11 @@ void Class::set_is_mixin_app_alias() const {
 
 void Class::set_is_mixin_type_applied() const {
   set_state_bits(MixinTypeAppliedBit::update(true, raw_ptr()->state_bits_));
+}
+
+
+void Class::set_is_fields_marked_nullable() const {
+  set_state_bits(FieldsMarkedNullableBit::update(true, raw_ptr()->state_bits_));
 }
 
 
@@ -6118,6 +6291,7 @@ void RedirectionData::PrintToJSONStream(JSONStream* stream, bool ref) const {
 
 
 RawString* Field::GetterName(const String& field_name) {
+  CompilerStats::make_accessor_name++;
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
@@ -6129,6 +6303,7 @@ RawString* Field::GetterSymbol(const String& field_name) {
 
 
 RawString* Field::SetterName(const String& field_name) {
+  CompilerStats::make_accessor_name++;
   return String::Concat(Symbols::SetterPrefix(), field_name);
 }
 
@@ -6140,11 +6315,13 @@ RawString* Field::SetterSymbol(const String& field_name) {
 
 
 RawString* Field::NameFromGetter(const String& getter_name) {
+  CompilerStats::make_field_name++;
   return String::SubString(getter_name, strlen(kGetterPrefix));
 }
 
 
 RawString* Field::NameFromSetter(const String& setter_name) {
+  CompilerStats::make_field_name++;
   return String::SubString(setter_name, strlen(kSetterPrefix));
 }
 
@@ -6278,6 +6455,19 @@ void Field::set_guarded_list_length(intptr_t list_length) const {
 }
 
 
+bool Field::IsUnboxedField() const {
+  // TODO(johnmccutchan): Add kFloat32x4Cid here.
+  return is_unboxing_candidate() && !is_final() && !is_nullable() &&
+         ((guarded_cid() == kDoubleCid));
+}
+
+
+bool Field::IsPotentialUnboxedField() const {
+  return is_unboxing_candidate() &&
+         (IsUnboxedField() || (!is_final() && (guarded_cid() == kIllegalCid)));
+}
+
+
 const char* Field::ToCString() const {
   if (IsNull()) {
     return "Field::null";
@@ -6360,107 +6550,55 @@ RawArray* Field::dependent_code() const {
 
 
 void Field::set_dependent_code(const Array& array) const {
-  raw_ptr()->dependent_code_ = array.raw();
+  StorePointer(&raw_ptr()->dependent_code_, array.raw());
 }
+
+
+class FieldDependentArray : public WeakCodeReferences {
+ public:
+  explicit FieldDependentArray(const Field& field)
+      : WeakCodeReferences(Array::Handle(field.dependent_code())),
+                           field_(field) {}
+
+  virtual void UpdateArrayTo(const Array& value) {
+    field_.set_dependent_code(value);
+  }
+
+  virtual void ReportDeoptimization(const Code& code) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+      Function& function = Function::Handle(code.function());
+          OS::PrintErr("Deoptimizing %s because guard on field %s failed.\n",
+          function.ToFullyQualifiedCString(),
+          field_.ToCString());
+    }
+  }
+
+  virtual void ReportSwitchingCode(const Code& code) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
+      Function& function = Function::Handle(code.function());
+      OS::PrintErr("Switching %s to unoptimized code because guard"
+                   " on field %s was violated.\n",
+                   function.ToFullyQualifiedCString(),
+                   field_.ToCString());
+    }
+  }
+
+ private:
+  const Field& field_;
+  DISALLOW_COPY_AND_ASSIGN(FieldDependentArray);
+};
 
 
 void Field::RegisterDependentCode(const Code& code) const {
-  const Array& dependent = Array::Handle(dependent_code());
-
-  if (!dependent.IsNull()) {
-    // Try to find and reuse cleared WeakProperty to avoid allocating new one.
-    WeakProperty& weak_property = WeakProperty::Handle();
-    for (intptr_t i = 0; i < dependent.Length(); i++) {
-      weak_property ^= dependent.At(i);
-      if (weak_property.key() == Code::null()) {
-        // Empty property found. Reuse it.
-        weak_property.set_key(code);
-        return;
-      }
-    }
-  }
-
-  const WeakProperty& weak_property = WeakProperty::Handle(
-      WeakProperty::New(Heap::kOld));
-  weak_property.set_key(code);
-
-  intptr_t length = dependent.IsNull() ? 0 : dependent.Length();
-  const Array& new_dependent = Array::Handle(
-      Array::Grow(dependent, length + 1, Heap::kOld));
-  new_dependent.SetAt(length, weak_property);
-  set_dependent_code(new_dependent);
-}
-
-
-static bool IsDependentCode(const Array& dependent_code, const Code& code) {
-  if (!code.is_optimized()) {
-    return false;
-  }
-
-  WeakProperty& weak_property = WeakProperty::Handle();
-  for (intptr_t i = 0; i < dependent_code.Length(); i++) {
-    weak_property ^= dependent_code.At(i);
-    if (code.raw() == weak_property.key()) {
-      return true;
-    }
-  }
-
-  return false;
+  ASSERT(code.is_optimized());
+  FieldDependentArray a(*this);
+  a.Register(code);
 }
 
 
 void Field::DeoptimizeDependentCode() const {
-  const Array& code_objects = Array::Handle(dependent_code());
-
-  if (code_objects.IsNull()) {
-    return;
-  }
-  set_dependent_code(Object::null_array());
-
-  // Deoptimize all dependent code on the stack.
-  Code& code = Code::Handle();
-  {
-    DartFrameIterator iterator;
-    StackFrame* frame = iterator.NextFrame();
-    while (frame != NULL) {
-      code = frame->LookupDartCode();
-      if (IsDependentCode(code_objects, code)) {
-        if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-          Function& function = Function::Handle(code.function());
-          OS::PrintErr("Deoptimizing %s because guard on field %s failed.\n",
-              function.ToFullyQualifiedCString(),
-              ToCString());
-        }
-        DeoptimizeAt(code, frame->pc());
-      }
-      frame = iterator.NextFrame();
-    }
-  }
-
-  // Switch functions that use dependent code to unoptimized code.
-  WeakProperty& weak_property = WeakProperty::Handle();
-  Function& function = Function::Handle();
-  for (intptr_t i = 0; i < code_objects.Length(); i++) {
-    weak_property ^= code_objects.At(i);
-    code ^= weak_property.key();
-    if (code.IsNull()) {
-      // Code was garbage collected already.
-      continue;
-    }
-
-    function ^= code.function();
-    // If function uses dependent code switch it to unoptimized.
-    if (function.CurrentCode() == code.raw()) {
-      ASSERT(function.HasOptimizedCode());
-      if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-        OS::PrintErr("Switching %s to unoptimized code because guard"
-                     " on field %s was violated.\n",
-                     function.ToFullyQualifiedCString(),
-                     ToCString());
-      }
-      function.SwitchToUnoptimizedCode();
-    }
-  }
+  FieldDependentArray a(*this);
+  a.DisableCode();
 }
 
 
@@ -7405,38 +7543,36 @@ RawString* Script::GetSnippet(intptr_t from_line,
   intptr_t length = src.Length();
   intptr_t line = 1 + line_offset();
   intptr_t column = 1;
-  intptr_t lookahead = 0;
+  intptr_t scan_position = 0;
   intptr_t snippet_start = -1;
   intptr_t snippet_end = -1;
   if (from_line - line_offset() == 1) {
     column += col_offset();
   }
-  char c = src.CharAt(lookahead);
-  while (lookahead != length) {
-    if (snippet_start == -1) {
-      if ((line == from_line) && (column == from_column)) {
-        snippet_start = lookahead;
-      }
-    } else if ((line == to_line) && (column == to_column)) {
-      snippet_end = lookahead;
-      break;
-    }
+
+  while (scan_position != length) {
+    char c = src.CharAt(scan_position);
     if (c == '\n') {
       line++;
       column = 0;
-    }
-    column++;
-    lookahead++;
-    if (lookahead != length) {
-      // Replace '\r' with '\n' and a sequence of '\r' '\n' with a single '\n'.
-      if (src.CharAt(lookahead) == '\r') {
-        c = '\n';
-        if (lookahead + 1 != length && src.CharAt(lookahead) == '\n') {
-          lookahead++;
-        }
-      } else {
-        c = src.CharAt(lookahead);
+    } else if (c == '\r') {
+      line++;
+      column = 0;
+      if ((scan_position + 1 != length) &&
+          (src.CharAt(scan_position + 1) == '\n')) {
+        scan_position++;
       }
+    }
+    scan_position++;
+    column++;
+
+    if (snippet_start == -1) {
+      if ((line == from_line) && (column == from_column)) {
+        snippet_start = scan_position;
+      }
+    } else if ((line == to_line) && (column == to_column)) {
+      snippet_end = scan_position;
+      break;
     }
   }
   String& snippet = String::Handle();
@@ -7756,6 +7892,136 @@ RawObject* Library::GetMetadata(const Object& obj) const {
 }
 
 
+RawObject* Library::ResolveName(const String& name) const {
+  Object& obj = Object::Handle();
+  if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &obj)) {
+    return obj.raw();
+  }
+  obj = LookupLocalObject(name);
+  if (!obj.IsNull()) {
+    // Names that are in this library's dictionary and are unmangled
+    // are not cached. This reduces the size of the the cache.
+    return obj.raw();
+  }
+  String& accessor_name = String::Handle(Field::GetterName(name));
+  obj = LookupLocalObject(accessor_name);
+  if (obj.IsNull()) {
+    accessor_name = Field::SetterName(name);
+    obj = LookupLocalObject(accessor_name);
+    if (obj.IsNull()) {
+      obj = LookupImportedObject(name);
+    }
+  }
+  AddToResolvedNamesCache(name, obj);
+  return obj.raw();
+}
+
+
+static intptr_t ResolvedNameCacheSize(const Array& cache) {
+  return (cache.Length() - 1) / 2;
+}
+
+
+// Returns true if the name is found in the cache, false no cache hit.
+// obj is set to the cached entry. It may be null, indicating that the
+// name does not resolve to anything in this library.
+bool Library::LookupResolvedNamesCache(const String& name,
+                                       Object* obj) const {
+  const Array& cache = Array::Handle(resolved_names());
+  const intptr_t cache_size = ResolvedNameCacheSize(cache);
+  intptr_t index = name.Hash() % cache_size;
+  String& entry_name = String::Handle();
+  entry_name ^= cache.At(index);
+  while (!entry_name.IsNull()) {
+    if (entry_name.Equals(name)) {
+      CompilerStats::num_lib_cache_hit++;
+      *obj = cache.At(index + cache_size);
+      return true;
+    }
+    index = (index + 1) % cache_size;
+    entry_name ^= cache.At(index);
+  }
+  *obj = Object::null();
+  return false;
+}
+
+
+void Library::GrowResolvedNamesCache() const {
+  const Array& old_cache = Array::Handle(resolved_names());
+  const intptr_t old_cache_size = ResolvedNameCacheSize(old_cache);
+
+  // Create empty new cache and add entries from the old cache.
+  const intptr_t new_cache_size = old_cache_size * 3 / 2;
+  InitResolvedNamesCache(new_cache_size);
+  String& name = String::Handle();
+  Object& entry = Object::Handle();
+  for (intptr_t i = 0; i < old_cache_size; i++) {
+    name ^= old_cache.At(i);
+    if (!name.IsNull()) {
+      entry = old_cache.At(i + old_cache_size);
+      AddToResolvedNamesCache(name, entry);
+    }
+  }
+}
+
+
+// Add a name to the resolved name cache. This name resolves to the
+// given object in this library scope. obj may be null, which means
+// the name does not resolve to anything in this library scope.
+void Library::AddToResolvedNamesCache(const String& name,
+                                      const Object& obj) const {
+  if (!FLAG_use_lib_cache) {
+    return;
+  }
+  const Array& cache = Array::Handle(resolved_names());
+  // let N = cache.Length();
+  // The entry cache[N-1] is used as a counter
+  // The array entries [0..N-2] are used as cache entries.
+  //   cache[i] contains the name of the entry
+  //   cache[i+(N-1)/2] contains the resolved entity, or NULL if that name
+  //   is not present in the library.
+  const intptr_t counter_index = cache.Length() - 1;
+  intptr_t cache_size = ResolvedNameCacheSize(cache);
+  intptr_t index = name.Hash() % cache_size;
+  String& entry_name = String::Handle();
+  entry_name ^= cache.At(index);
+  // An empty spot will be found because we keep the hash set at most 75% full.
+  while (!entry_name.IsNull()) {
+    index = (index + 1) % cache_size;
+    entry_name ^= cache.At(index);
+  }
+  // Insert the object at the empty slot.
+  cache.SetAt(index, name);
+  ASSERT(cache.At(index + cache_size) == Object::null());
+  cache.SetAt(index + cache_size, obj);
+
+  // One more element added.
+  intptr_t num_used = Smi::Value(Smi::RawCast(cache.At(counter_index))) + 1;
+  cache.SetAt(counter_index, Smi::Handle(Smi::New(num_used)));
+  CompilerStats::num_names_cached++;
+
+  // Rehash if symbol_table is 75% full.
+  if (num_used > ((cache_size / 4) * 3)) {
+    CompilerStats::num_names_cached -= num_used;
+    GrowResolvedNamesCache();
+  }
+}
+
+
+void Library::InvalidateResolvedName(const String& name) const {
+  Object& entry = Object::Handle();
+  if (LookupResolvedNamesCache(name, &entry)) {
+    InvalidateResolvedNamesCache();
+  }
+}
+
+
+void Library::InvalidateResolvedNamesCache() const {
+  const intptr_t kInvalidatedCacheSize = 16;
+  InitResolvedNamesCache(kInvalidatedCacheSize);
+}
+
+
 void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
   // TODO(iposva): Avoid exponential growth.
   intptr_t new_dict_size = dict_size * 2;
@@ -7888,9 +8154,11 @@ void Library::ReplaceObject(const Object& obj, const String& name) const {
 
 
 void Library::AddClass(const Class& cls) const {
-  AddObject(cls, String::Handle(cls.Name()));
+  const String& class_name = String::Handle(cls.Name());
+  AddObject(cls, class_name);
   // Link class to this library.
   cls.set_library(*this);
+  InvalidateResolvedName(class_name);
 }
 
 static void AddScriptIfUnique(const GrowableObjectArray& scripts,
@@ -8072,17 +8340,6 @@ RawObject* Library::LookupObjectAllowPrivate(const String& name) const {
 }
 
 
-RawObject* Library::LookupObject(const String& name) const {
-  // First check if name is found in the local scope of the library.
-  Object& obj = Object::Handle(LookupLocalObject(name));
-  if (!obj.IsNull()) {
-    return obj.raw();
-  }
-  // Now check if name is found in any imported libs.
-  return LookupImportedObject(name);
-}
-
-
 RawObject* Library::LookupImportedObject(const String& name) const {
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
@@ -8121,7 +8378,7 @@ RawObject* Library::LookupImportedObject(const String& name) const {
 
 
 RawClass* Library::LookupClass(const String& name) const {
-  Object& obj = Object::Handle(LookupObject(name));
+  Object& obj = Object::Handle(ResolveName(name));
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -8260,15 +8517,24 @@ void Library::AddExport(const Namespace& ns) const {
 }
 
 
-void Library::InitClassDictionary() const {
+static RawArray* NewDictionary(intptr_t initial_size) {
+  const Array& dict = Array::Handle(Array::New(initial_size + 1, Heap::kOld));
   // The last element of the dictionary specifies the number of in use slots.
+  dict.SetAt(initial_size, Smi::Handle(Smi::New(0)));
+  return dict.raw();
+}
+
+
+void Library::InitResolvedNamesCache(intptr_t size) const {
+  // Need space for 'size' names and 'size' resolved object entries.
+  StorePointer(&raw_ptr()->resolved_names_, NewDictionary(2 * size));
+}
+
+
+void Library::InitClassDictionary() const {
   // TODO(iposva): Find reasonable initial size.
   const int kInitialElementCount = 16;
-
-  const Array& dictionary =
-      Array::Handle(Array::New(kInitialElementCount + 1, Heap::kOld));
-  dictionary.SetAt(kInitialElementCount, Smi::Handle(Smi::New(0)));
-  StorePointer(&raw_ptr()->dictionary_, dictionary.raw());
+  StorePointer(&raw_ptr()->dictionary_, NewDictionary(kInitialElementCount));
 }
 
 
@@ -8295,6 +8561,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
+  result.raw_ptr()->resolved_names_ = Object::empty_array().raw();
   result.raw_ptr()->dictionary_ = Object::empty_array().raw();
   result.StorePointer(&result.raw_ptr()->metadata_,
                       GrowableObjectArray::New(4, Heap::kOld));
@@ -8308,6 +8575,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.set_debuggable(false);
   result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
   result.raw_ptr()->index_ = -1;
+  const intptr_t kInitialNameCacheSize = 64;
+  result.InitResolvedNamesCache(kInitialNameCacheSize);
   result.InitClassDictionary();
   result.InitImportList();
   if (import_core_lib) {
@@ -8382,6 +8651,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
 }
 
 
+// Returns library with given url in current isolate, or NULL.
 RawLibrary* Library::LookupLibrary(const String &url) {
   Isolate* isolate = Isolate::Current();
   Library& lib = Library::Handle(isolate, Library::null());
@@ -10172,8 +10442,11 @@ void Code::PrintToJSONStream(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("is_alive", is_alive());
   jsobj.AddProperty("function", Object::Handle(function()));
   JSONArray jsarr(&jsobj, "disassembly");
-  DisassembleToJSONStream formatter(jsarr);
-  Disassemble(&formatter);
+  if (is_alive()) {
+    // Only disassemble alive code objects.
+    DisassembleToJSONStream formatter(jsarr);
+    Disassemble(&formatter);
+  }
 }
 
 
@@ -16366,7 +16639,7 @@ RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
 
 
 RawFloat32x4* Float32x4::New(simd128_value_t value, Heap::Space space) {
-ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
+  ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
          Class::null());
   Float32x4& result = Float32x4::Handle();
   {
@@ -16555,6 +16828,86 @@ void Int32x4::PrintToJSONStream(JSONStream* stream, bool ref) const {
 }
 
 
+RawFloat64x2* Float64x2::New(double value0, double value1, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float64x2_class() !=
+         Class::null());
+  Float64x2& result = Float64x2::Handle();
+  {
+    RawObject* raw = Object::Allocate(Float64x2::kClassId,
+                                      Float64x2::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_x(value0);
+  result.set_y(value1);
+  return result.raw();
+}
+
+
+RawFloat64x2* Float64x2::New(simd128_value_t value, Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->float64x2_class() !=
+         Class::null());
+  Float64x2& result = Float64x2::Handle();
+  {
+    RawObject* raw = Object::Allocate(Float64x2::kClassId,
+                                      Float64x2::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_value(value);
+  return result.raw();
+}
+
+
+double Float64x2::x() const {
+  return raw_ptr()->value_[0];
+}
+
+
+double Float64x2::y() const {
+  return raw_ptr()->value_[1];
+}
+
+
+void Float64x2::set_x(double x) const {
+  raw_ptr()->value_[0] = x;
+}
+
+
+void Float64x2::set_y(double y) const {
+  raw_ptr()->value_[1] = y;
+}
+
+
+simd128_value_t Float64x2::value() const {
+  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
+}
+
+
+void Float64x2::set_value(simd128_value_t value) const {
+  value.writeTo(&raw_ptr()->value_[0]);
+}
+
+
+const char* Float64x2::ToCString() const {
+  const char* kFormat = "[%f, %f]";
+  double _x = x();
+  double _y = y();
+  // Calculate the size of the string.
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, _x, _y) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, _x, _y);
+  return chars;
+}
+
+
+void Float64x2::PrintToJSONStream(JSONStream* stream, bool ref) const {
+  Instance::PrintToJSONStream(stream, ref);
+}
+
+
 const intptr_t TypedData::element_size[] = {
   1,   // kTypedDataInt8ArrayCid.
   1,   // kTypedDataUint8ArrayCid.
@@ -16569,6 +16922,7 @@ const intptr_t TypedData::element_size[] = {
   8,   // kTypedDataFloat64ArrayCid.
   16,  // kTypedDataFloat32x4ArrayCid.
   16,  // kTypedDataInt32x4ArrayCid.
+  16,  // kTypedDataFloat64x2ArrayCid,
 };
 
 

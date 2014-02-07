@@ -251,6 +251,7 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0x57: return "xorps";
     case 0x58: return "addps";
     case 0x59: return "mulps";
+    case 0x5A: return "cvtps2pd";
     case 0x5C: return "subps";
     case 0x5D: return "minps";
     case 0x5E: return "divps";
@@ -262,6 +263,23 @@ static const char* F0Mnem(uint8_t f0byte) {
   }
 }
 
+static const char* PackedDoubleMnemonic(uint8_t data) {
+  const char* mnemonic = NULL;
+  if (data == 0xFE) mnemonic = "paddd ";
+  if (data == 0xFA) mnemonic = "psubd ";
+  if (data == 0x2F) mnemonic = "comisd ";
+  if (data == 0x58) mnemonic = "addpd ";
+  if (data == 0x5C) mnemonic = "subpd ";
+  if (data == 0x59) mnemonic = "mulpd ";
+  if (data == 0x5E) mnemonic = "divpd ";
+  if (data == 0x5D) mnemonic = "minpd ";
+  if (data == 0x5F) mnemonic = "maxpd ";
+  if (data == 0x51) mnemonic = "sqrtpd ";
+  if (data == 0x5A) mnemonic = "cvtpd2ps ";
+  ASSERT(mnemonic != NULL);
+  return mnemonic;
+}
+
 
 static bool IsTwoXmmRegInstruction(uint8_t f0byte) {
   return f0byte == 0x28 || f0byte == 0x11 || f0byte == 0x12 ||
@@ -269,7 +287,7 @@ static bool IsTwoXmmRegInstruction(uint8_t f0byte) {
          f0byte == 0x51 || f0byte == 0x52 || f0byte == 0x53 ||
          f0byte == 0x54 || f0byte == 0x56 || f0byte == 0x58 ||
          f0byte == 0x59 || f0byte == 0x5C || f0byte == 0x5D ||
-         f0byte == 0x5E || f0byte == 0x5F;
+         f0byte == 0x5E || f0byte == 0x5F || f0byte == 0x5A;
 }
 
 
@@ -1602,11 +1620,11 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             PrintXmmRegister(rm);
             data += 2;
-          } else if ((*data == 0xFE) || (*data == 0xFA) || (*data == 0x2F)) {
-            const char* mnemonic = NULL;
-            if (*data == 0xFE) mnemonic = "paddd ";
-            if (*data == 0xFA) mnemonic = "psubd ";
-            if (*data == 0x2F) mnemonic = "comisd ";
+          } else if ((*data == 0xFE) || (*data == 0xFA) || (*data == 0x2F) ||
+                     (*data == 0x58) || (*data == 0x5C) || (*data == 0x59) ||
+                     (*data == 0x5E) || (*data == 0x5D) || (*data == 0x5F) ||
+                     (*data == 0x51) || (*data == 0x5A)) {
+            const char* mnemonic = PackedDoubleMnemonic(*data);
             int mod, regop, rm;
             GetModRm(*(data+1), &mod, &regop, &rm);
             Print(mnemonic);

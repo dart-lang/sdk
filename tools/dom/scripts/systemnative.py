@@ -971,7 +971,6 @@ class DartiumBackend(HtmlDartGenerator):
 
     if requires_stack_info:
       self._cpp_impl_includes.add('"ScriptArguments.h"')
-      self._cpp_impl_includes.add('"ScriptCallStack.h"')
       body_emitter.Emit(
           '\n'
           '        ScriptState* currentState = DartUtilities::currentScriptState();\n'
@@ -984,10 +983,7 @@ class DartiumBackend(HtmlDartGenerator):
           '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
           '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
           '        if (!scriptArguments)\n'
-          '            goto fail;\n'
-          '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
-          '        if (!scriptCallStack->size())\n'
-          '            return;\n',
+          '            goto fail;\n',
           INDEX=len(arguments) + 1)
 
     if requires_script_arguments:

@@ -6,7 +6,6 @@ library test_utils;
 
 import 'package:unittest/unittest.dart';
 
-import 'package:analyzer/src/generated/java_core.dart' show CharSequence;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -198,7 +197,7 @@ class _UnsupportedOperationException implements Exception {
 Statement parseStatement(String source, [List<ErrorCode> expectedErrorCodes]) {
 
   var listener = new _GatheringErrorListener();
-  var reader = new CharSequenceReader(new CharSequence(source));
+  var reader = new CharSequenceReader(source);
   var scanner = new Scanner(null, reader, listener);
   listener.setLineInfo(new _TestSource(), scanner.lineStarts);
 

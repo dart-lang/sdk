@@ -4,13 +4,23 @@
 
 library template_binding.test.utils;
 
+import 'dart:async';
 import 'dart:html';
 import 'package:observe/observe.dart';
 import 'package:template_binding/template_binding.dart';
-import 'package:unittest/unittest.dart';
+export 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 
-import 'package:observe/src/microtask.dart';
-export 'package:observe/src/microtask.dart';
+/// A small method to help readability. Used to cause the next "then" in a chain
+/// to happen in the next microtask:
+///
+///     future.then(newMicrotask).then(...)
+endOfMicrotask(_) => new Future.value();
+
+/// A small method to help readability. Used to cause the next "then" in a chain
+/// to happen in the next microtask, after a timer:
+///
+///     future.then(nextMicrotask).then(...)
+nextMicrotask(_) => new Future(() {});
 
 final bool parserHasNativeTemplate = () {
   var div = new DivElement()..innerHtml = '<table><template>';
@@ -57,10 +67,6 @@ class FooBarNotifyModel extends ChangeNotifier implements FooBarModel {
   }
 }
 
-observeTest(name, testCase) => test(name, wrapMicrotask(testCase));
-
-solo_observeTest(name, testCase) => solo_test(name, wrapMicrotask(testCase));
-
 DivElement testDiv;
 
 createTestHtml(s) {
@@ -68,7 +74,7 @@ createTestHtml(s) {
   div.setInnerHtml(s, treeSanitizer: new NullTreeSanitizer());
   testDiv.append(div);
 
-  for (var node in div.queryAll('*')) {
+  for (var node in div.querySelectorAll('*')) {
     if (isSemanticTemplate(node)) TemplateBindExtension.decorate(node);
   }
 

@@ -31,7 +31,7 @@ BSD-style license that can be found in the LICENSE file.
           'collect': collect,
         };
 
-        templateBind(query('#test'))
+        templateBind(querySelector('#test'))
             ..bindingDelegate = new PolymerExpressions(globals: globals)
             ..model = null;
       }

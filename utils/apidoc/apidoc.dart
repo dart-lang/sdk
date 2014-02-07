@@ -21,7 +21,7 @@ import 'dart:io';
 import 'html_diff.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../sdk/lib/_internal/compiler/implementation/mirrors/source_mirrors.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
@@ -305,7 +305,7 @@ class Apidoc extends Dartdoc {
         includeMdnTypeComment(type), super.getTypeComment(type));
   }
 
-  DocComment getMemberComment(MemberMirror member) {
+  DocComment getMemberComment(DeclarationMirror member) {
     return _mergeDocs(
         includeMdnMemberComment(member), super.getMemberComment(member));
   }
@@ -360,7 +360,7 @@ class Apidoc extends Dartdoc {
   MdnComment lookupMdnComment(Mirror mirror) {
     if (mirror is TypeMirror) {
       return includeMdnTypeComment(mirror);
-    } else if (mirror is MemberMirror) {
+    } else if (mirror is MethodMirror || mirror is VariableMirror) {
       return includeMdnMemberComment(mirror);
     } else {
       return null;
@@ -377,7 +377,7 @@ class Apidoc extends Dartdoc {
     }
 
     var typeString = '';
-    if (HTML_LIBRARY_URIS.contains(type.library.uri)) {
+    if (HTML_LIBRARY_URIS.contains(getLibrary(type).uri)) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
       final domTypes = _diff.htmlTypesToDom[type.qualifiedName];
@@ -411,8 +411,8 @@ class Apidoc extends Dartdoc {
    * Gets the MDN-scraped docs for [member], or `null` if this type isn't
    * scraped from MDN.
    */
-  MdnComment includeMdnMemberComment(MemberMirror member) {
-    var library = findLibrary(member);
+  MdnComment includeMdnMemberComment(DeclarationMirror member) {
+    var library = getLibrary(member);
     var memberString = '';
     if (HTML_LIBRARY_URIS.contains(library.uri)) {
       // If it's an HTML type, try to map it to a DOM type name so we can find
@@ -464,7 +464,7 @@ class Apidoc extends Dartdoc {
    * Returns a link to [member], relative to a type page that may be in a
    * different library than [member].
    */
-  String _linkMember(MemberMirror member) {
+  String _linkMember(DeclarationMirror member) {
     final typeName = member.owner.simpleName;
     var memberName = '$typeName.${member.simpleName}';
     if (member is MethodMirror && member.isConstructor) {

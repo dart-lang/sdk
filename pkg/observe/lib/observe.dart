@@ -76,25 +76,16 @@
  * form into the second form automatically, to get the best of both worlds.
  */
 library observe;
-import 'src/bind_property.dart';
-import 'src/change_notifier.dart';
-import 'src/change_record.dart';
-import 'src/compound_path_observer.dart';
-import 'src/list_path_observer.dart';
-import 'src/list_diff.dart';
-import 'src/metadata.dart';
-import 'src/observable.dart';
-import 'src/observable_box.dart';
-import 'src/observable_list.dart';
-import 'src/observable_map.dart';
-import 'src/path_observer.dart';
-import 'src/to_observable.dart';
 
+// This library contains code ported from observe-js:
+// https://github.com/Polymer/observe-js/blob/0152d542350239563d0f2cad39d22d3254bd6c2a/src/observe.js
+// We port what is needed for data bindings. Most of the functionality is
+// ported, except where differences are needed for Dart's Observable type.
 
+export 'src/bindable.dart';
 export 'src/bind_property.dart';
 export 'src/change_notifier.dart';
 export 'src/change_record.dart';
-export 'src/compound_path_observer.dart';
 export 'src/list_path_observer.dart';
 export 'src/list_diff.dart' show ListChangeRecord;
 export 'src/metadata.dart';
@@ -102,5 +93,6 @@ export 'src/observable.dart' hide notifyPropertyChangeHelper, objectType;
 export 'src/observable_box.dart';
 export 'src/observable_list.dart';
 export 'src/observable_map.dart';
+export 'src/observer_transform.dart';
 export 'src/path_observer.dart';
 export 'src/to_observable.dart';

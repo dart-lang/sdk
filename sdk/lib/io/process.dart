@@ -346,6 +346,20 @@ class ProcessSignal {
 
   String toString() => _name;
 
+  /**
+   * Watch for process signals.
+   *
+   * The following [ProcessSignal]s can be listened to:
+   *
+   *   * [ProcessSignal.SIGHUP].
+   *   * [ProcessSignal.SIGINT].
+   *   * [ProcessSignal.SIGTERM]. Not available on Windows.
+   *   * [ProcessSignal.SIGUSR1]. Not available on Windows.
+   *   * [ProcessSignal.SIGUSR2]. Not available on Windows.
+   *   * [ProcessSignal.SIGWINCH]. Not available on Windows.
+   *
+   * Other signals are disallowed, as they may be used by the VM.
+   */
   Stream<ProcessSignal> watch() => _ProcessUtils._watchSignal(this);
 }
 

@@ -151,6 +151,21 @@ bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
 }
 
 
+Representation LoadFieldInstr::representation() const {
+  if (IsUnboxedLoad()) {
+    const intptr_t cid = field()->UnboxedFieldCid();
+    switch (cid) {
+      case kDoubleCid:
+        return kUnboxedDouble;
+      // TODO(johnmccutchan): Add kFloat32x4Cid here.
+      default:
+        UNREACHABLE();
+    }
+  }
+  return kTagged;
+}
+
+
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
   return FLAG_unbox_double_fields && field().IsUnboxedField();
 }
@@ -158,6 +173,22 @@ bool StoreInstanceFieldInstr::IsUnboxedStore() const {
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
   return FLAG_unbox_double_fields && field().IsPotentialUnboxedField();
+}
+
+
+Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
+  intptr_t index) const {
+  ASSERT((index == 0) || (index == 1));
+  if ((index == 1) && IsUnboxedStore()) {
+    const intptr_t cid = field().UnboxedFieldCid();
+    switch (cid) {
+      case kDoubleCid:
+        return kUnboxedDouble;
+      default:
+        UNREACHABLE();
+    }
+  }
+  return kTagged;
 }
 
 
@@ -408,11 +439,6 @@ RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
 
 
 bool MethodRecognizer::AlwaysInline(const Function& function) {
-  if (function.IsImplicitGetterFunction() || function.IsGetterFunction() ||
-      function.IsImplicitSetterFunction() || function.IsSetterFunction()) {
-    return true;
-  }
-
   const Class& function_class = Class::Handle(function.Owner());
   const Library& lib = Library::Handle(function_class.library());
   if (!IsRecognizedLibrary(lib)) {
@@ -1385,6 +1411,14 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
 
 Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : NULL;
+}
+
+
+// A math unary instruction has a side effect (exception
+// thrown) if the argument is not a number.
+// TODO(srdjan): eliminate if has no uses and input is guaranteed to be number.
+Definition* MathUnaryInstr::Canonicalize(FlowGraph* flow_graph) {
+  return this;
 }
 
 
@@ -2917,8 +2951,14 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   CreateArrayInstr* create_array = value()->definition()->AsCreateArray();
   ASSERT(create_array != NULL);
   // Check if the string interpolation has only constant inputs.
-  GrowableArray<ConstantInstr*> constants(create_array->num_elements());
-  for (intptr_t i = 0; i < create_array->num_elements(); i++) {
+  Value* num_elements = create_array->num_elements();
+  if (!num_elements->BindsToConstant() ||
+      !num_elements->BoundConstant().IsSmi()) {
+    return this;
+  }
+  intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
+  GrowableArray<ConstantInstr*> constants(length);
+  for (intptr_t i = 0; i < length; i++) {
     constants.Add(NULL);
   }
   for (Value::Iterator it(create_array->input_use_list());
@@ -2944,7 +2984,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   }
   // Interpolate string at compile time.
   const Array& array_argument =
-      Array::Handle(Array::New(create_array->num_elements()));
+      Array::Handle(Array::New(length));
   for (intptr_t i = 0; i < constants.length(); i++) {
     array_argument.SetAt(i, constants[i]->value());
   }

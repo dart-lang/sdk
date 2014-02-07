@@ -88,6 +88,7 @@ void useNode(tree.Node node) {
     ..asLiteralMapEntry()
     ..asLiteralNull()
     ..asLiteralSymbol()
+    ..asMetadata()
     ..asModifiers()
     ..asPart()
     ..asPartOf()

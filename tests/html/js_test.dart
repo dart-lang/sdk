@@ -186,6 +186,10 @@ function identical(o1, o2) {
   return o1 === o2;
 }
 
+var someProto = { role: "proto" };
+var someObject = Object.create(someProto);
+someObject.role = "object";
+
 """;
   document.body.append(script);
 }
@@ -284,6 +288,17 @@ main() {
       context['obj'] = obj;
       expect(context['obj'], same(obj));
       context.deleteProperty('obj');
+    });
+
+    group('caching', () {
+      test('JS->Dart', () {
+        // Test that we are not pulling cached proxy from the prototype
+        // when asking for a proxy for the object.
+        final proto = context['someProto'];
+        expect(proto['role'], equals('proto'));
+        final obj = context['someObject'];
+        expect(obj['role'], equals('object'));
+      });
     });
 
   });
@@ -995,4 +1010,5 @@ main() {
 
     });
   });
+
 }

@@ -35,5 +35,6 @@ main() {
 
   setUp(() => Polymer.onReady);
 
-  test('ready called', () => (query('my-test') as MyTest)._testDone.future);
+  test('ready called',
+      () => (querySelector('my-test') as MyTest)._testDone.future);
 }

@@ -88,9 +88,8 @@ class NumberFormat {
    * Create a number format that prints using [newPattern] as it applies in
    * [locale].
    */
-  factory NumberFormat([String newPattern, String locale]) {
-    return new NumberFormat._forPattern(locale, (x) => newPattern);
-  }
+  factory NumberFormat([String newPattern, String locale]) =>
+      new NumberFormat._forPattern(locale, (x) => newPattern);
 
   /** Create a number format that prints as DECIMAL_PATTERN. */
   NumberFormat.decimalPattern([String locale]) :
@@ -136,9 +135,7 @@ class NumberFormat {
    * Return the symbols which are used in our locale. Cache them to avoid
    * repeated lookup.
    */
-  NumberSymbols get symbols {
-    return _symbols;
-  }
+  NumberSymbols get symbols => _symbols;
 
   /**
    * Format [number] according to our pattern and return the formatted string.
@@ -307,9 +304,8 @@ class NumberFormat {
    * because we have digits left of the decimal point, or because there are
    * a minimum number of printable digits greater than 1.
    */
-  bool _hasPrintableIntegerPart(int intValue) {
-    return intValue > 0 || minimumIntegerDigits > 0;
-  }
+  bool _hasPrintableIntegerPart(int intValue) =>
+      intValue > 0 || minimumIntegerDigits > 0;
 
   /**
    * Create a new empty buffer. See comment on [_buffer] variable for why
@@ -364,17 +360,13 @@ class NumberFormat {
    * Returns the prefix for [x] based on whether it's positive or negative.
    * In en_US this would be '' and '-' respectively.
    */
-  String _signPrefix(num x) {
-    return x.isNegative ? _negativePrefix : _positivePrefix;
-  }
+  String _signPrefix(num x) => x.isNegative ? _negativePrefix : _positivePrefix;
 
   /**
    * Returns the suffix for [x] based on wether it's positive or negative.
    * In en_US there are no suffixes for positive or negative.
    */
-  String _signSuffix(num x) {
-    return x.isNegative ? _negativeSuffix : _positiveSuffix;
-  }
+  String _signSuffix(num x) => x.isNegative ? _negativeSuffix : _positiveSuffix;
 
   void _setPattern(String newPattern) {
     if (newPattern == null) return;
@@ -466,10 +458,7 @@ class _NumberFormatParser {
   String _parseAffix() {
     var affix = new StringBuffer();
     inQuote = false;
-    var loop = true;
-    while (loop) {
-      loop = parseCharacterAffix(affix) && pattern.moveNext();
-    }
+    while (parseCharacterAffix(affix) && pattern.moveNext());
     return affix.toString();
   }
 
@@ -482,8 +471,7 @@ class _NumberFormatParser {
     var ch = pattern.current;
     if (ch == null) return false;
     if (ch == _QUOTE) {
-      var nextChar = pattern.peek;
-      if (nextChar == _QUOTE) {
+      if (pattern.peek == _QUOTE) {
         pattern.moveNext();
         affix.write(_QUOTE); // 'don''t'
       } else {
@@ -554,10 +542,8 @@ class _NumberFormatParser {
 
     if (zeroDigitCount == 0 && digitLeftCount > 0 && decimalPos >= 0) {
       // Handle '###.###' and '###.' and '.###'
-      var n = decimalPos;
-      if (n == 0) { // Handle '.###'
-        n++;
-      }
+      // Handle '.###'
+      var n = decimalPos == 0 ? 1 : decimalPos;
       digitRightCount = digitLeftCount - n;
       digitLeftCount = n - 1;
       zeroDigitCount = 1;
@@ -702,8 +688,7 @@ Iterator _iterator(String s) => new _StringIterator(s);
 class _StringIterable extends IterableBase<String> {
   final Iterator<String> iterator;
 
-  _StringIterable(String s)
-      : iterator = _iterator(s);
+  _StringIterable(String s) : iterator = _iterator(s);
 }
 
 /**
@@ -711,8 +696,8 @@ class _StringIterable extends IterableBase<String> {
  * gives us a lookahead of one via the [peek] method.
  */
 class _StringIterator implements Iterator<String> {
-  String input;
-  var index = -1;
+  final String input;
+  int index = -1;
   inBounds(i) => i >= 0 && i < input.length;
   _StringIterator(this.input);
   String get current => inBounds(index) ? input[index] : null;

@@ -8,14 +8,14 @@ import 'dart:async';
 import 'dart:html';
 import 'package:custom_element/polyfill.dart';
 import 'package:template_binding/template_binding.dart';
-import 'package:observe/observe.dart' show toObservable;
+import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
 import 'utils.dart';
 
 Future _registered;
 
-main() {
+main() => dirtyCheckZone().run(() {
   useHtmlConfiguration();
 
   _registered = loadCustomElementPolyfill().then((_) {
@@ -24,7 +24,7 @@ main() {
   });
 
   group('Custom Element Bindings', customElementBindingsTest);
-}
+});
 
 customElementBindingsTest() {
   setUp(() {
@@ -37,13 +37,13 @@ customElementBindingsTest() {
     testDiv = null;
   });
 
-  observeTest('override bind/unbind/unbindAll', () {
+  test('override bind/unbind/unbindAll', () {
     var element = new MyCustomElement();
     var model = toObservable({'a': new Point(123, 444), 'b': new Monster(100)});
 
     nodeBind(element)
-        ..bind('my-point', model, 'a')
-        ..bind('scary-monster', model, 'b');
+        ..bind('my-point', new PathObserver(model, 'a'))
+        ..bind('scary-monster', new PathObserver(model, 'b'));
 
     expect(element.attributes, isNot(contains('my-point')));
     expect(element.attributes, isNot(contains('scary-monster')));
@@ -52,65 +52,67 @@ customElementBindingsTest() {
     expect(element.scaryMonster, model['b']);
 
     model['a'] = null;
-    performMicrotaskCheckpoint();
-    expect(element.myPoint, null);
-    nodeBind(element).unbind('my-point');
+    return new Future(() {
+      expect(element.myPoint, null);
+      nodeBind(element).unbind('my-point');
 
-    model['a'] = new Point(1, 2);
-    model['b'] = new Monster(200);
-    performMicrotaskCheckpoint();
-    expect(element.scaryMonster, model['b']);
-    expect(element.myPoint, null, reason: 'a was unbound');
+      model['a'] = new Point(1, 2);
+      model['b'] = new Monster(200);
+    }).then(endOfMicrotask).then((_) {
+      expect(element.scaryMonster, model['b']);
+      expect(element.myPoint, null, reason: 'a was unbound');
 
-    nodeBind(element).unbindAll();
-    model['b'] = null;
-    performMicrotaskCheckpoint();
-    expect(element.scaryMonster.health, 200);
+      nodeBind(element).unbindAll();
+      model['b'] = null;
+    }).then(endOfMicrotask).then((_) {
+      expect(element.scaryMonster.health, 200);
+    });
   });
 
-  observeTest('override attribute setter', () {
+  test('override attribute setter', () {
     var element = new WithAttrsCustomElement();
     var model = toObservable({'a': 1, 'b': 2});
-    nodeBind(element).bind('hidden?', model, 'a');
-    nodeBind(element).bind('id', model, 'b');
+    nodeBind(element).bind('hidden?', new PathObserver(model, 'a'));
+    nodeBind(element).bind('id', new PathObserver(model, 'b'));
 
     expect(element.attributes, contains('hidden'));
     expect(element.attributes['hidden'], '');
     expect(element.id, '2');
 
     model['a'] = null;
-    performMicrotaskCheckpoint();
-    expect(element.attributes, isNot(contains('hidden')),
-        reason: 'null is false-y');
+    return new Future(() {
+      expect(element.attributes, isNot(contains('hidden')),
+          reason: 'null is false-y');
 
-    model['a'] = false;
-    performMicrotaskCheckpoint();
-    expect(element.attributes, isNot(contains('hidden')));
+      model['a'] = false;
+    }).then(endOfMicrotask).then((_) {
+      expect(element.attributes, isNot(contains('hidden')));
 
-    model['a'] = 'foo';
-    // TODO(jmesserly): this is here to force an ordering between the two
-    // changes. Otherwise the order depends on what order StreamController
-    // chooses to fire the two listeners in.
-    performMicrotaskCheckpoint();
+      model['a'] = 'foo';
+      // TODO(jmesserly): this is here to force an ordering between the two
+      // changes. Otherwise the order depends on what order StreamController
+      // chooses to fire the two listeners in.
+    }).then(endOfMicrotask).then((_) {
 
-    model['b'] = 'x';
-    performMicrotaskCheckpoint();
-    expect(element.attributes, contains('hidden'));
-    expect(element.attributes['hidden'], '');
-    expect(element.id, 'x');
+      model['b'] = 'x';
+    }).then(endOfMicrotask).then((_) {
+      expect(element.attributes, contains('hidden'));
+      expect(element.attributes['hidden'], '');
+      expect(element.id, 'x');
 
-    expect(element.attributes.log, [
-      ['remove', 'hidden?'],
-      ['[]=', 'hidden', ''],
-      ['[]=', 'id', '2'],
-      ['remove', 'hidden'],
-      ['remove', 'hidden'],
-      ['[]=', 'hidden', ''],
-      ['[]=', 'id', 'x'],
-    ]);
+      expect(element.attributes.log, [
+        ['remove', 'hidden?'],
+        ['[]=', 'hidden', ''],
+        ['[]=', 'id', '2'],
+        ['remove', 'hidden'],
+        ['remove', 'hidden'],
+        ['[]=', 'hidden', ''],
+        ['[]=', 'id', 'x'],
+      ]);
+    });
   });
 
-  observeTest('template bind uses overridden custom element bind', () {
+  test('template bind uses overridden custom element bind', () {
 
     var model = toObservable({'a': new Point(123, 444), 'b': new Monster(100)});
     var div = createTestHtml('<template bind>'
@@ -119,34 +121,36 @@ customElementBindingsTest() {
         '</template>');
 
     templateBind(div.query('template')).model = model;
-    performMicrotaskCheckpoint();
+    var element;
+    return new Future(() {
+      print('!!! running future');
+      element = div.nodes[1];
 
-    var element = div.nodes[1];
+      expect(element is MyCustomElement, true,
+          reason: '$element should be a MyCustomElement');
 
-    expect(element is MyCustomElement, true,
-        reason: '$element should be a MyCustomElement');
+      expect(element.myPoint, model['a']);
+      expect(element.scaryMonster, model['b']);
 
-    expect(element.myPoint, model['a']);
-    expect(element.scaryMonster, model['b']);
+      expect(element.attributes, isNot(contains('my-point')));
+      expect(element.attributes, isNot(contains('scary-monster')));
 
-    expect(element.attributes, isNot(contains('my-point')));
-    expect(element.attributes, isNot(contains('scary-monster')));
+      model['a'] = null;
+    }).then(endOfMicrotask).then((_) {
+      expect(element.myPoint, null);
 
-    model['a'] = null;
-    performMicrotaskCheckpoint();
-    expect(element.myPoint, null);
+      templateBind(div.query('template')).model = null;
+    }).then(endOfMicrotask).then((_) {
 
-    templateBind(div.query('template')).model = null;
-    performMicrotaskCheckpoint();
+      expect(element.parentNode, null, reason: 'element was detached');
 
-    expect(element.parentNode, null, reason: 'element was detached');
+      model['a'] = new Point(1, 2);
+      model['b'] = new Monster(200);
+    }).then(endOfMicrotask).then((_) {
 
-    model['a'] = new Point(1, 2);
-    model['b'] = new Monster(200);
-    performMicrotaskCheckpoint();
-
-    expect(element.myPoint, null, reason: 'model was unbound');
-    expect(element.scaryMonster.health, 100, reason: 'model was unbound');
+      expect(element.myPoint, null, reason: 'model was unbound');
+      expect(element.scaryMonster.health, 100, reason: 'model was unbound');
+    });
   });
 
 }
@@ -165,35 +169,30 @@ class MyCustomElement extends HtmlElement implements NodeBindExtension {
 
   MyCustomElement.created() : super.created();
 
-  NodeBinding bind(String name, model, [String path]) {
+  Bindable bind(String name, value, {oneTime: false}) {
     switch (name) {
       case 'my-point':
       case 'scary-monster':
         attributes.remove(name);
+        if (oneTime) {
+          _setProperty(name, value);
+          return null;
+        }
         unbind(name);
-        return bindings[name] = new _MyCustomBinding(this, name, model, path);
+        _setProperty(name, value.open((x) => _setProperty(name, x)));
+        return bindings[name] = value;
     }
-    return nodeBindFallback(this).bind(name, model, path);
+    return nodeBindFallback(this).bind(name, value, oneTime: oneTime);
   }
 
   unbind(name) => nodeBindFallback(this).unbind(name);
   unbindAll() => nodeBindFallback(this).unbindAll();
   get bindings => nodeBindFallback(this).bindings;
   get templateInstance => nodeBindFallback(this).templateInstance;
-}
 
-class _MyCustomBinding extends NodeBinding {
-  _MyCustomBinding(MyCustomElement node, property, model, path)
-      : super(node, property, model, path) {
-
-    node.attributes.remove(property);
-  }
-
-  MyCustomElement get node => super.node;
-
-  void valueChanged(newValue) {
-    if (property == 'my-point') node.myPoint = newValue;
-    if (property == 'scary-monster') node.scaryMonster = newValue;
+  void _setProperty(String property, newValue) {
+    if (property == 'my-point') myPoint = newValue;
+    if (property == 'scary-monster') scaryMonster = newValue;
   }
 }
 

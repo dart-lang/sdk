@@ -48,7 +48,8 @@ void deleteGeneratedFiles() {
   var files = [dir('intl_messages.json'), dir('translation_fr.json'),
       dir('translation_de_DE.json')];
   files.map((name) => new File(name)).forEach((x) {
-    if (x.existsSync()) x.deleteSync();});
+    if (x.existsSync()) x.deleteSync();
+  });
 }
 
 /**

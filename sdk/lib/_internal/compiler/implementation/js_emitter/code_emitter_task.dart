@@ -1381,16 +1381,15 @@ mainBuffer.add(r'''
         emitFinishClassesInvocationIfNecessary(mainBuffer);
         classesCollector = oldClassesCollector;
       }
-
-      typeTestEmitter.emitRuntimeTypeSupport(mainBuffer);
+      OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+      typeTestEmitter.emitRuntimeTypeSupport(mainBuffer, mainOutputUnit);
       interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
       interceptorEmitter.emitOneShotInterceptors(mainBuffer);
       // Constants in checked mode call into RTI code to set type information
       // which may need getInterceptor (and one-shot interceptor) methods, so
       // we have to make sure that [emitGetInterceptorMethods] and
       // [emitOneShotInterceptors] have been called.
-      emitCompileTimeConstants(
-          mainBuffer, compiler.deferredLoadTask.mainOutputUnit);
+      emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
       // We write a javascript mapping from DeferredLibrary elements
       // (really their String argument) to the js hunk to load.
@@ -1568,6 +1567,8 @@ if (typeof $printHelperName === "function") {
           '${namer.currentIsolate}$_=${_}old${namer.currentIsolate}$N');
 
       classesCollector = oldClassesCollector;
+
+      typeTestEmitter.emitRuntimeTypeSupport(buffer, outputUnit);
 
       emitCompileTimeConstants(buffer, outputUnit);
 

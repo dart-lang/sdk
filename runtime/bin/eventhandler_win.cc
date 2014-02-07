@@ -988,7 +988,9 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 
       Handle::ScopedLock lock(handle);
 
-      if (!handle->IsError()) {
+      if (handle->IsError()) {
+        DartUtils::PostInt32(msg->dart_port, 1 << kErrorEvent);
+      } else {
         if ((msg->data & ((1 << kInEvent) | (1 << kOutEvent))) != 0) {
           // Only set mask if we turned on kInEvent or kOutEvent.
           handle->SetPortAndMask(msg->dart_port, msg->data);

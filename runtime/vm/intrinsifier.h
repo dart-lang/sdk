@@ -117,6 +117,7 @@ namespace dart {
   V(_Float64Array, _new, TypedData_Float64Array_new, 311965335)                \
   V(_Float32x4Array, _new, TypedData_Float32x4Array_new, 775330800)            \
   V(_Int32x4Array, _new, TypedData_Int32x4Array_new, 2074077580)               \
+  V(_Float64x2Array, _new, TypedData_Float64x2Array_new, 1540328543)           \
   V(_Int8Array, ., TypedData_Int8Array_factory, 545976988)                     \
   V(_Uint8Array, ., TypedData_Uint8Array_factory, 981297074)                   \
   V(_Uint8ClampedArray, ., TypedData_Uint8ClampedArray_factory, 1617830104)    \
@@ -130,6 +131,7 @@ namespace dart {
   V(_Float64Array, ., TypedData_Float64Array_factory, 1599078532)              \
   V(_Float32x4Array, ., TypedData_Float32x4Array_factory, 879975401)           \
   V(_Int32x4Array, ., TypedData_Int32x4Array_factory, 924582681)               \
+  V(_Float64x2Array, ., TypedData_Float64x2Array_factory, 1654170890)          \
 
 
 // TODO(srdjan): Implement _FixedSizeArrayIterator, get:current and

@@ -444,7 +444,7 @@ class _HttpHeaders implements HttpHeaders {
     void parseCookieString(String s) {
       int index = 0;
 
-      bool done() => index == s.length;
+      bool done() => index == -1 || index == s.length;
 
       void skipWS() {
         while (!done()) {
@@ -471,14 +471,11 @@ class _HttpHeaders implements HttpHeaders {
         return s.substring(start, index);
       }
 
-      void expect(String expected) {
-        if (done()) {
-          throw new HttpException("Failed to parse header value [$s]");
-        }
-        if (s[index] != expected) {
-          throw new HttpException("Failed to parse header value [$s]");
-        }
+      bool expect(String expected) {
+        if (done()) return false;
+        if (s[index] != expected) return false;
         index++;
+        return true;
       }
 
       while (!done()) {
@@ -486,13 +483,19 @@ class _HttpHeaders implements HttpHeaders {
         if (done()) return;
         String name = parseName();
         skipWS();
-        expect("=");
+        if (!expect("=")) {
+          index = s.indexOf(';', index);
+          continue;
+        }
         skipWS();
         String value = parseValue();
         cookies.add(new _Cookie(name, value));
         skipWS();
         if (done()) return;
-        expect(";");
+        if (!expect(";")) {
+          index = s.indexOf(';', index);
+          continue;
+        }
       }
     }
     List<String> values = _headers[HttpHeaders.COOKIE];

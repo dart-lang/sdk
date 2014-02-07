@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library util;
+library dart2js.mirrors.util;
+
+import 'dart:collection' show Maps;
 
 /**
  * An abstract map implementation. This class can be used as a superclass for
@@ -24,7 +26,7 @@ abstract class AbstractMap<K, V> implements Map<K, V> {
   void clear() {
     throw new UnsupportedError('clear() is not supported');
   }
-  
+
   void addAll(Map<K, V> other) {
     throw new UnsupportedError('addAll() is not supported');
   }
@@ -75,6 +77,8 @@ abstract class AbstractMap<K, V> implements Map<K, V> {
   V remove(K key) {
     throw new UnsupportedError('V remove(K key) is not supported');
   }
+
+  String toString() => Maps.mapToString(this);
 }
 
 /**

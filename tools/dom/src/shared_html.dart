@@ -4,14 +4,16 @@
 
 part of dart.dom.html;
 
-_wrapZone(callback) {
+_wrapZone(callback(arg)) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
+  if (callback == null) return null;
   return Zone.current.bindUnaryCallback(callback, runGuarded: true);
 }
 
-_wrapBinaryZone(callback) {
+_wrapBinaryZone(callback(arg1, arg2)) {
   if (Zone.current == Zone.ROOT) return callback;
+  if (callback == null) return null;
   return Zone.current.bindBinaryCallback(callback, runGuarded: true);
 }
 

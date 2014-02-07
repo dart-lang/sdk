@@ -337,6 +337,8 @@ testParameters() {
        //"int this.baz(a)", // Commented out due to Issue 7852
        //"int this.boz(int a,int b)=null" // Commented out due to Issue 7852
        ]);
+  testUnparseParameters(
+      ["@a foo", "@b @c bar=0", "@D(0) int baz", "@E([f],{g:h}) int boz=0"]);
 }
 
 testSymbolLiterals() {

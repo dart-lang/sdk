@@ -26,7 +26,7 @@ class StringSource implements Source {
   bool exists() => true;
 
   void getContents(Source_ContentReceiver receiver) =>
-      receiver.accept2(_contents, modificationStamp);
+      receiver.accept(_contents, modificationStamp);
 
   String get encoding => throw new UnsupportedError("StringSource doesn't support "
       "encoding.");

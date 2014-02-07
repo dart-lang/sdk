@@ -792,6 +792,13 @@ intptr_t RawInt32x4::VisitInt32x4Pointers(
 }
 
 
+intptr_t RawFloat64x2::VisitFloat64x2Pointers(
+    RawFloat64x2* raw_obj,
+    ObjectPointerVisitor* visitor) {
+    ASSERT(raw_obj->IsHeapObject());
+    return Float64x2::InstanceSize();
+}
+
 intptr_t RawTypedData::VisitTypedDataPointers(
     RawTypedData* raw_obj, ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.

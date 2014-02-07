@@ -70,6 +70,7 @@ namespace dart {
     V(MirrorReference)                                                         \
     V(Float32x4)                                                               \
     V(Int32x4)                                                                 \
+    V(Float64x2)                                                               \
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \
@@ -96,6 +97,7 @@ namespace dart {
   V(Float64Array)                                                              \
   V(Float32x4Array)                                                            \
   V(Int32x4Array)                                                              \
+  V(Float64x2Array)                                                            \
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
@@ -494,7 +496,8 @@ class RawClass : public RawObject {
   RawArray* constants_;  // Canonicalized values of this class.
   RawObject* canonical_types_;  // An array of canonicalized types of this class
                                 // or the canonical type.
-  RawArray* invocation_dispatcher_cache_;   // Cache for dispatcher functions.
+  RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
+  RawArray* cha_codes_;  // CHA optimized codes.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
@@ -778,6 +781,7 @@ class RawLibrary : public RawObject {
   RawScript* script_;
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
+  RawArray* resolved_names_;     // Cache of resolved names in library scope.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
   RawArray* imports_;            // List of Namespaces imported without prefix.
@@ -1452,6 +1456,18 @@ class RawInt32x4 : public RawInstance {
 };
 
 
+class RawFloat64x2 : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Float64x2);
+
+  double value_[2];
+
+  friend class SnapshotReader;
+ public:
+  double x() const { return value_[0]; }
+  double y() const { return value_[1]; }
+};
+
+
 // Define an aliases for intptr_t.
 #if defined(ARCH_IS_32_BIT)
 #define kIntPtrCid kTypedDataInt32ArrayCid
@@ -1677,9 +1693,10 @@ inline bool RawObject::IsTypedDataClassId(intptr_t index) {
          kTypedDataFloat64ArrayCid == kTypedDataInt8ArrayCid + 10 &&
          kTypedDataFloat32x4ArrayCid == kTypedDataInt8ArrayCid + 11 &&
          kTypedDataInt32x4ArrayCid == kTypedDataInt8ArrayCid + 12 &&
-         kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 13);
+         kTypedDataFloat64x2ArrayCid == kTypedDataInt8ArrayCid + 13 &&
+         kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
   return (index >= kTypedDataInt8ArrayCid &&
-          index <= kTypedDataInt32x4ArrayCid);
+          index <= kTypedDataFloat64x2ArrayCid);
 }
 
 
@@ -1697,8 +1714,9 @@ inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
          kTypedDataFloat64ArrayViewCid == kTypedDataInt8ArrayViewCid + 10 &&
          kTypedDataFloat32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 11 &&
          kTypedDataInt32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 12 &&
-         kByteDataViewCid == kTypedDataInt8ArrayViewCid + 13 &&
-         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 14);
+         kTypedDataFloat64x2ArrayViewCid == kTypedDataInt8ArrayViewCid + 13 &&
+         kByteDataViewCid == kTypedDataInt8ArrayViewCid + 14 &&
+         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 15);
   return (index >= kTypedDataInt8ArrayViewCid &&
           index <= kByteDataViewCid);
 }
@@ -1730,9 +1748,11 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
           kExternalTypedDataInt8ArrayCid + 11) &&
          (kExternalTypedDataInt32x4ArrayCid ==
           kExternalTypedDataInt8ArrayCid + 12) &&
-         (kNullCid == kExternalTypedDataInt8ArrayCid + 13));
+         (kExternalTypedDataFloat64x2ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 13) &&
+         (kNullCid == kExternalTypedDataInt8ArrayCid + 14));
   return (index >= kExternalTypedDataInt8ArrayCid &&
-          index <= kExternalTypedDataInt32x4ArrayCid);
+          index <= kExternalTypedDataFloat64x2ArrayCid);
 }
 
 
@@ -1767,9 +1787,9 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
 
 inline intptr_t RawObject::NumberOfTypedDataClasses() {
   // Make sure this is updated when new TypedData types are added.
-  ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 13);
-  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 14);
-  ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 13);
+  ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
+  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 15);
+  ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 14);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
 

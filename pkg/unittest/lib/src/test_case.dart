@@ -17,13 +17,13 @@ class TestCase {
   final String description;
 
   /** The setup function to call before the test, if any. */
-  Function setUp;
+  final Function _setUp;
 
   /** The teardown function to call after the test, if any. */
-  Function tearDown;
+  final Function _tearDown;
 
   /** The body of the test case. */
-  TestFunction testFunction;
+  final TestFunction _testFunction;
 
   /**
    * Remaining number of callbacks functions that must reach a 'done' state
@@ -57,16 +57,18 @@ class TestCase {
   Duration _runningTime;
   Duration get runningTime => _runningTime;
 
-  bool enabled = true;
+  bool _enabled = true;
+
+  bool get enabled => _enabled;
 
   bool _doneTeardown = false;
 
   Completer _testComplete;
 
-  TestCase._internal(this.id, this.description, this.testFunction)
+  TestCase._internal(this.id, this.description, this._testFunction)
       : currentGroup = _currentContext.fullName,
-        setUp = _currentContext.testSetup,
-        tearDown = _currentContext.testTeardown;
+        _setUp = _currentContext.testSetup,
+        _tearDown = _currentContext.testTeardown;
 
   bool get isComplete => !enabled || result != null;
 
@@ -76,9 +78,9 @@ class TestCase {
     }
     if (result == null || result == PASS) {
       if (e is TestFailure) {
-        fail("$e", stack);
+        _fail("$e", stack);
       } else {
-        error("$stage failed: Caught $e", stack);
+        _error("$stage failed: Caught $e", stack);
       }
     }
   };
@@ -97,7 +99,7 @@ class TestCase {
 
     // Avoid calling [new Future] to avoid issue 11911.
     return new Future.value().then((_) {
-      if (setUp != null) return setUp();
+      if (_setUp != null) return _setUp();
     }).catchError(_errorHandler('Setup'))
         .then((_) {
           // Skip the test if setup failed.
@@ -106,7 +108,7 @@ class TestCase {
           _startTime = new DateTime.now();
           _runningTime = null;
           ++_callbackFunctionsOutstanding;
-          return testFunction();
+          return _testFunction();
         })
         .catchError(_errorHandler('Test'))
         .then((_) {
@@ -115,12 +117,12 @@ class TestCase {
             // Outstanding callbacks exist; we need to return a Future.
             _testComplete = new Completer();
             return _testComplete.future.whenComplete(() {
-              if (tearDown != null) {
-                return tearDown();
+              if (_tearDown != null) {
+                return _tearDown();
               }
             }).catchError(_errorHandler('Teardown'));
-          } else if (tearDown != null) {
-            return tearDown();
+          } else if (_tearDown != null) {
+            return _tearDown();
           }
         })
         .catchError(_errorHandler('Teardown'));
@@ -160,11 +162,11 @@ class TestCase {
     }
   }
 
-  void pass() {
+  void _pass() {
     _complete(PASS);
   }
 
-  void fail(String messageText, [StackTrace stack]) {
+  void _fail(String messageText, [StackTrace stack]) {
     if (result != null) {
       String newMessage = (result == PASS)
           ? 'Test failed after initially passing: $messageText'
@@ -176,13 +178,13 @@ class TestCase {
     }
   }
 
-  void error(String messageText, [StackTrace stack]) {
+  void _error(String messageText, [StackTrace stack]) {
     _complete(ERROR, messageText, stack);
   }
 
   void _markCallbackComplete() {
     if (--_callbackFunctionsOutstanding == 0 && !isComplete) {
-      pass();
+      _pass();
     }
   }
 

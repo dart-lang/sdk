@@ -8,6 +8,10 @@ _callConstructor(constructor, interceptor) {
   return (receiver) {
     setNativeSubclassDispatchRecord(receiver, interceptor);
 
+    // Mirrors uses the constructor property to cache lookups, so we need it to
+    // be set correctly, including on IE where it is not automatically picked
+    // up from the __proto__.
+    JS('', '#.constructor = #.__proto__.constructor', receiver, receiver);
     return JS('', '#(#)', constructor, receiver);
   };
 }

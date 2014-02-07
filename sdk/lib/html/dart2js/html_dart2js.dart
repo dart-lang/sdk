@@ -32418,13 +32418,14 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     _tryResume();
   }
 
-  void cancel() {
-    if (_canceled) return;
+  Future cancel() {
+    if (_canceled) return null;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
+    return null;
   }
 
   bool get _canceled => _target == null;
@@ -34051,7 +34052,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * KeyboardEvent controller.
    */
   _KeyboardEventHandler(this._type): super(_EVENT_TYPE),
-      _stream = new _CustomKeyEventStreamImpl('event');
+      _stream = new _CustomKeyEventStreamImpl('event'), _target = null;
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
@@ -35114,6 +35115,10 @@ _callConstructor(constructor, interceptor) {
   return (receiver) {
     setNativeSubclassDispatchRecord(receiver, interceptor);
 
+    // Mirrors uses the constructor property to cache lookups, so we need it to
+    // be set correctly, including on IE where it is not automatically picked
+    // up from the __proto__.
+    JS('', '#.constructor = #.__proto__.constructor', receiver, receiver);
     return JS('', '#(#)', constructor, receiver);
   };
 }
@@ -35656,14 +35661,16 @@ class Platform {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_wrapZone(callback) {
+_wrapZone(callback(arg)) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
+  if (callback == null) return null;
   return Zone.current.bindUnaryCallback(callback, runGuarded: true);
 }
 
-_wrapBinaryZone(callback) {
+_wrapBinaryZone(callback(arg1, arg2)) {
   if (Zone.current == Zone.ROOT) return callback;
+  if (callback == null) return null;
   return Zone.current.bindBinaryCallback(callback, runGuarded: true);
 }
 

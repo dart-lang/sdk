@@ -10,10 +10,7 @@ import 'observe_test_utils.dart';
 // This file contains code ported from:
 // https://github.com/rafaelw/ChangeSummary/blob/master/tests/test.js
 
-main() {
-  // TODO(jmesserly): rename this? Is summarizeListChanges coming back?
-  group('summarizeListChanges', listChangeTests);
-}
+main() => dirtyCheckZone().run(listChangeTests);
 
 // TODO(jmesserly): port or write array fuzzer tests
 listChangeTests() {
@@ -27,7 +24,7 @@ listChangeTests() {
 
   _delta(i, r, a) => new ListChangeRecord(model, i, removed: r, addedCount: a);
 
-  observeTest('sequential adds', () {
+  test('sequential adds', () {
     model = toObservable([]);
     model.add(0);
 
@@ -38,12 +35,10 @@ listChangeTests() {
     model.add(2);
 
     expect(summary, null);
-    performMicrotaskCheckpoint();
-
-    expectChanges(summary, [_delta(1, [], 2)]);
+    return new Future(() => expectChanges(summary, [_delta(1, [], 2)]));
   });
 
-  observeTest('List Splice Truncate And Expand With Length', () {
+  test('List Splice Truncate And Expand With Length', () {
     model = toObservable(['a', 'b', 'c', 'd', 'e']);
 
     var summary;
@@ -51,28 +46,20 @@ listChangeTests() {
 
     model.length = 2;
 
-    performMicrotaskCheckpoint();
-    expectChanges(summary, [_delta(2, ['c', 'd', 'e'], 0)]);
-    summary = null;
+    return new Future(() {
+      expectChanges(summary, [_delta(2, ['c', 'd', 'e'], 0)]);
+      summary = null;
+      model.length = 5;
 
-    model.length = 5;
+    }).then(newMicrotask).then((_) {
 
-    performMicrotaskCheckpoint();
-    expectChanges(summary, [_delta(2, [], 3)]);
+      expectChanges(summary, [_delta(2, [], 3)]);
+    });
   });
 
   group('List deltas can be applied', () {
 
-    var summary = null;
-
-    observeArray(model) {
-      sub = model.listChanges.listen((r) { summary = r; });
-    }
-
-    applyAndCheckDeltas(model, copy) {
-      summary = null;
-      performMicrotaskCheckpoint();
-
+    applyAndCheckDeltas(model, copy, changes) => changes.then((summary) {
       // apply deltas to the copy
       for (var delta in summary) {
         copy.removeRange(delta.index, delta.index + delta.removed.length);
@@ -83,75 +70,75 @@ listChangeTests() {
 
       // Note: compare strings for easier debugging.
       expect('$copy', '$model', reason: 'summary $summary');
-    }
+    });
 
-    observeTest('Contained', () {
+    test('Contained', () {
       var model = toObservable(['a', 'b']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeAt(1);
       model.insertAll(0, ['c', 'd', 'e']);
       model.removeRange(1, 3);
       model.insert(1, 'f');
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Delete Empty', () {
+    test('Delete Empty', () {
       var model = toObservable([1]);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeAt(0);
       model.insertAll(0, ['a', 'b', 'c']);
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Right Non Overlap', () {
+    test('Right Non Overlap', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeRange(0, 1);
       model.insert(0, 'e');
       model.removeRange(2, 3);
       model.insertAll(2, ['f', 'g']);
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Left Non Overlap', () {
+    test('Left Non Overlap', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeRange(3, 4);
       model.insertAll(3, ['f', 'g']);
       model.removeRange(0, 1);
       model.insert(0, 'e');
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Right Adjacent', () {
+    test('Right Adjacent', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeRange(1, 2);
       model.insert(3, 'e');
       model.removeRange(2, 3);
       model.insertAll(0, ['f', 'g']);
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Left Adjacent', () {
+    test('Left Adjacent', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeRange(2, 4);
       model.insert(2, 'e');
@@ -159,26 +146,26 @@ listChangeTests() {
       model.removeAt(1);
       model.insertAll(1, ['f', 'g']);
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Right Overlap', () {
+    test('Right Overlap', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeAt(1);
       model.insert(1, 'e');
       model.removeAt(1);
       model.insertAll(1, ['f', 'g']);
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Left Overlap', () {
+    test('Left Overlap', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeAt(2);
       model.insertAll(2, ['e', 'f', 'g']);
@@ -187,105 +174,95 @@ listChangeTests() {
       model.insertAll(1, ['h', 'i', 'j']);
       // a [h i j] f g d
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Prefix And Suffix One In', () {
+    test('Prefix And Suffix One In', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.insert(0, 'z');
       model.add('z');
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Remove First', () {
+    test('Remove First', () {
       var model = toObservable([16, 15, 15]);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeAt(0);
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Update Remove', () {
+    test('Update Remove', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeAt(2);
       model.insertAll(2, ['e', 'f', 'g']);  // a b [e f g] d
       model[0] = 'h';
       model.removeAt(1);
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
 
-    observeTest('Remove Mid List', () {
+    test('Remove Mid List', () {
       var model = toObservable(['a', 'b', 'c', 'd']);
       var copy = model.toList();
-      observeArray(model);
+      var changes = model.listChanges.first;
 
       model.removeAt(2);
 
-      applyAndCheckDeltas(model, copy);
+      return applyAndCheckDeltas(model, copy, changes);
     });
   });
 
   group('edit distance', () {
-    var summary = null;
 
-    observeArray(model) {
-      sub = model.listChanges.listen((r) { summary = r; });
-    }
-
-    assertEditDistance(orig, expectDistance) {
-      summary = null;
-      performMicrotaskCheckpoint();
+    assertEditDistance(orig, changes, expectedDist) => changes.then((summary) {
       var actualDistance = 0;
-
-      if (summary != null) {
-        for (var delta in summary) {
-          actualDistance += delta.addedCount + delta.removed.length;
-        }
+      for (var delta in summary) {
+        actualDistance += delta.addedCount + delta.removed.length;
       }
 
-      expect(actualDistance, expectDistance);
-    }
-
-    observeTest('add items', () {
-      var model = toObservable([]);
-      observeArray(model);
-      model.addAll([1, 2, 3]);
-      assertEditDistance(model, 3);
+      expect(actualDistance, expectedDist);
     });
 
-    observeTest('trunacte and add, sharing a contiguous block', () {
+    test('add items', () {
+      var model = toObservable([]);
+      var changes = model.listChanges.first;
+      model.addAll([1, 2, 3]);
+      return assertEditDistance(model, changes, 3);
+    });
+
+    test('trunacte and add, sharing a contiguous block', () {
       var model = toObservable(['x', 'x', 'x', 'x', '1', '2', '3']);
-      observeArray(model);
+      var changes = model.listChanges.first;
       model.length = 0;
       model.addAll(['1', '2', '3', 'y', 'y', 'y', 'y']);
-      assertEditDistance(model, 8);
+      return assertEditDistance(model, changes, 8);
     });
 
-    observeTest('truncate and add, sharing a discontiguous block', () {
+    test('truncate and add, sharing a discontiguous block', () {
       var model = toObservable(['1', '2', '3', '4', '5']);
-      observeArray(model);
+      var changes = model.listChanges.first;
       model.length = 0;
       model.addAll(['a', '2', 'y', 'y', '4', '5', 'z', 'z']);
-      assertEditDistance(model, 7);
+      return assertEditDistance(model, changes, 7);
     });
 
-    observeTest('insert at beginning and end', () {
+    test('insert at beginning and end', () {
       var model = toObservable([2, 3, 4]);
-      observeArray(model);
+      var changes = model.listChanges.first;
       model.insert(0, 5);
       model[2] = 6;
       model.add(7);
-      assertEditDistance(model, 4);
+      return assertEditDistance(model, changes, 4);
     });
   });
 }

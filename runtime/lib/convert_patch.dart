@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:typed_data";
+
 // JSON conversion.
 
 patch _parseJson(String json, reviver(var key, var value)) {
@@ -553,4 +555,10 @@ class _JsonParser {
     }
     throw new FormatException("Unexpected character at $position: $slice");
   }
+}
+
+// UTF-8 conversion.
+
+patch class _Utf8Encoder {
+  /* patch */ static List<int> _createBuffer(int size) => new Uint8List(size);
 }

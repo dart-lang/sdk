@@ -66,7 +66,7 @@ abstract class BindingDelegate {
       Element template) => null;
 }
 
-typedef PrepareBindingFunction(model, Node node);
+typedef PrepareBindingFunction(model, Node node, bool oneTime);
 
 typedef PrepareInstanceModelFunction(model);
 

@@ -3158,14 +3158,14 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
    */
   @JSName('texSubImage2D')
   void texSubImage2DUntyped(int targetTexture, int levelOfDetail,
-      int internalFormat, int format, int type, data) native;
+      int xOffset, int yOffset, int format, int type, data) native;
 
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    */
   @JSName('texSubImage2D')
   void texSubImage2DTyped(int targetTexture, int levelOfDetail,
-      int internalFormat, int width, int height, int border, int format,
+      int xOffset, int yOffset, int width, int height, int border, int format,
       int type, TypedData data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

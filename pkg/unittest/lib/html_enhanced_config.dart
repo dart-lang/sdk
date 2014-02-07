@@ -67,7 +67,7 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
     //initialize and load CSS
     final String _CSSID = '_unittestcss_';
 
-    var cssElement = document.head.query('#${_CSSID}');
+    var cssElement = document.head.querySelector('#${_CSSID}');
     if (cssElement == null) {
       cssElement = new StyleElement();
       cssElement.id = _CSSID;
@@ -134,9 +134,9 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
        """));
 
       // handle the click event for the collapse all button
-      te.query('#btnCollapseAll').onClick.listen((_){
+      te.querySelector('#btnCollapseAll').onClick.listen((_){
         document
-          .queryAll('.unittest-row')
+          .querySelectorAll('.unittest-row')
           .forEach((el) => el.attributes['class'] = el.attributes['class']
               .replaceAll('unittest-row ', 'unittest-row-hidden '));
       });
@@ -207,16 +207,17 @@ class HtmlEnhancedConfiguration extends SimpleConfiguration {
             </div>"""));
 
           // 'safeGroup' could be empty
-          var grp = (safeGroup == '') ? null : te.query('#${safeGroup}');
+          var grp = (safeGroup == '') ?
+              null : te.querySelector('#${safeGroup}');
           if (grp != null) {
             grp.onClick.listen((_) {
-              var row = document.query('.unittest-row-${safeGroup}');
+              var row = document.querySelector('.unittest-row-${safeGroup}');
               if (row.attributes['class'].contains('unittest-row ')){
-                document.queryAll('.unittest-row-${safeGroup}').forEach(
+                document.querySelectorAll('.unittest-row-${safeGroup}').forEach(
                     (e) => e.attributes['class'] =  e.attributes['class']
                         .replaceAll('unittest-row ', 'unittest-row-hidden '));
               }else{
-                document.queryAll('.unittest-row-${safeGroup}').forEach(
+                document.querySelectorAll('.unittest-row-${safeGroup}').forEach(
                     (e) => e.attributes['class'] = e.attributes['class']
                         .replaceAll('unittest-row-hidden', 'unittest-row'));
               }

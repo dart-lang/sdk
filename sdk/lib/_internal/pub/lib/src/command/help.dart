@@ -7,9 +7,6 @@ library pub.command.help;
 import 'dart:async';
 
 import '../command.dart';
-import '../exit_codes.dart' as exit_codes;
-import '../io.dart';
-import '../log.dart' as log;
 
 /// Handles the `help` pub command.
 class HelpCommand extends PubCommand {
@@ -19,18 +16,39 @@ class HelpCommand extends PubCommand {
   bool get takesArguments => true;
 
   Future onRun() {
+    // Show the default help if no command was specified.
     if (commandOptions.rest.isEmpty) {
       PubCommand.printGlobalUsage();
-    } else {
-      var name = commandOptions.rest[0];
-      var command = PubCommand.commands[name];
-      if (command == null) {
-        log.error('Could not find a command named "$name".');
-        log.error('Run "pub help" to see available commands.');
-        return flushThenExit(exit_codes.USAGE);
+      return null;
+    }
+
+    // Walk the command tree to show help for the selected command or
+    // subcommand.
+    var commands = PubCommand.mainCommands;
+    var command = null;
+    var commandString = "pub";
+
+    for (var name in commandOptions.rest) {
+      if (commands.isEmpty) {
+        command.usageError(
+            'Command "$commandString" does not expect a subcommand.');
       }
 
-      command.printUsage();
+      if (commands[name] == null) {
+        if (command == null) {
+          PubCommand.usageErrorWithCommands(commands,
+              'Could not find a command named "$name".');
+        }
+
+        command.usageError(
+            'Could not find a subcommand named "$name" for "$commandString".');
+      }
+
+      command = commands[name];
+      commands = command.subcommands;
+      commandString += " $name";
     }
+
+    command.printUsage();
   }
 }

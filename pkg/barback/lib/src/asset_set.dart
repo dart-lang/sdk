@@ -68,4 +68,6 @@ class AssetSet extends IterableBase<Asset> {
   void clear() {
     _assets.clear();
   }
+
+  String toString() => _assets.toString();
 }

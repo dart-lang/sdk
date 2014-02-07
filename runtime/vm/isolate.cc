@@ -312,6 +312,7 @@ Isolate::Isolate()
       stacktrace_(NULL),
       stack_frame_index_(-1),
       object_histogram_(NULL),
+      cha_used_(false),
       object_id_ring_(NULL),
       profiler_data_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)

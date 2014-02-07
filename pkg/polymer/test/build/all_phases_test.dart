@@ -49,7 +49,6 @@ void main() {
 
           void main() {
             configureForDeployment([
-                'a.dart',
               ]);
             i0.main();
           }
@@ -77,7 +76,6 @@ void main() {
 
           void main() {
             configureForDeployment([
-                'test.html.0.dart',
               ]);
             i0.main();
           }
@@ -119,7 +117,6 @@ void main() {
 
           void main() {
             configureForDeployment([
-                'a.dart',
               ]);
             i0.main();
           }
@@ -158,8 +155,6 @@ void main() {
 
           void main() {
             configureForDeployment([
-                'test2.html.0.dart',
-                'b.dart',
               ]);
             i1.main();
           }

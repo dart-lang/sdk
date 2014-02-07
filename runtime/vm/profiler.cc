@@ -21,7 +21,7 @@ namespace dart {
 
 
 #if defined(USING_SIMULATOR) || defined(TARGET_OS_WINDOWS) || \
-    defined(TARGET_OS_MACOS) || defined(TARGET_OS_ANDROID)
+    defined(TARGET_OS_ANDROID)
   DEFINE_FLAG(bool, profile, false, "Enable Sampling Profiler");
 #else
   DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");

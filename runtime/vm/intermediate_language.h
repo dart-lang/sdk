@@ -3509,11 +3509,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   bool IsPotentialUnboxedStore() const;
 
-  virtual Representation RequiredInputRepresentation(intptr_t index) const {
-    ASSERT((index == 0) || (index == 1));
-    if ((index == 1) && IsUnboxedStore()) return kUnboxedDouble;
-    return kTagged;
-  }
+  virtual Representation RequiredInputRepresentation(intptr_t index) const;
 
  private:
   friend class FlowGraphOptimizer;  // For ASSERT(initialization_).
@@ -4095,29 +4091,28 @@ class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<0> {
 };
 
 
-class CreateArrayInstr : public TemplateDefinition<1> {
+class CreateArrayInstr : public TemplateDefinition<2> {
  public:
   CreateArrayInstr(intptr_t token_pos,
-                   intptr_t num_elements,
-                   const AbstractType& type,
-                   Value* element_type)
-      : token_pos_(token_pos),
-        num_elements_(num_elements),
-        type_(type) {
-    ASSERT(type_.IsZoneHandle());
-    ASSERT(!type_.IsNull());
-    ASSERT(type_.IsFinalized());
-    SetInputAt(0, element_type);
+                   Value* element_type,
+                   Value* num_elements)
+      : token_pos_(token_pos) {
+    SetInputAt(kElementTypePos, element_type);
+    SetInputAt(kLengthPos, num_elements);
   }
+
+  enum {
+    kElementTypePos = 0,
+    kLengthPos = 1
+  };
 
   DECLARE_INSTRUCTION(CreateArray)
   virtual CompileType ComputeType() const;
 
-  intptr_t num_elements() const { return num_elements_; }
 
   intptr_t token_pos() const { return token_pos_; }
-  const AbstractType& type() const { return type_; }
-  Value* element_type() const { return inputs_[0]; }
+  Value* element_type() const { return inputs_[kElementTypePos]; }
+  Value* num_elements() const { return inputs_[kLengthPos]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -4129,8 +4124,6 @@ class CreateArrayInstr : public TemplateDefinition<1> {
 
  private:
   const intptr_t token_pos_;
-  const intptr_t num_elements_;
-  const AbstractType& type_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
@@ -4263,9 +4256,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const Field* field() const { return field_; }
   void set_field(const Field* field) { field_ = field; }
 
-  virtual Representation representation() const {
-    return IsUnboxedLoad() ? kUnboxedDouble : kTagged;
-  }
+  virtual Representation representation() const;
 
   bool IsUnboxedLoad() const;
 
@@ -4917,6 +4908,8 @@ class MathUnaryInstr : public TemplateDefinition<1> {
   }
 
   virtual bool MayThrow() const { return false; }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   const MethodRecognizer::Kind kind_;
