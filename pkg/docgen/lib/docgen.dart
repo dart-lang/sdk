@@ -147,8 +147,13 @@ Future<MirrorSystem> getMirrorSystem(List<Uri> libraries,
   if (libraries.isEmpty) throw new StateError('No Libraries.');
 
   // Finds the root of SDK library based off the location of docgen.
+  // We have two different places to look, depending if we're in a development
+  // repo or in a built SDK, either sdk or dart-sdk respectively
   var root = _Generator._rootDirectory;
   var sdkRoot = path.normalize(path.absolute(path.join(root, 'sdk')));
+  if (!new Directory(sdkRoot).existsSync()) {
+    sdkRoot = path.normalize(path.absolute(path.join(root, 'dart-sdk')));
+  }
   _Generator.logger.info('SDK Root: ${sdkRoot}');
   return _Generator._analyzeLibraries(libraries, sdkRoot,
       packageRoot: packageRoot);
@@ -457,14 +462,28 @@ class _Generator {
   }
 
   /// Helper accessor to determine the full pathname of the root of the dart
-  /// checkout.
+  /// checkout. We can be in one of three situations:
+  /// 1) Running from pkg/docgen/bin/docgen.dart
+  /// 2) Running from a snapshot in a build,
+  ///   e.g. xcodebuild/ReleaseIA32/dart-sdk/bin
+  /// 3) Running from a built distribution,
+  ///   e.g. ...somename/dart-sdk/bin/snapshots
   static String get _rootDirectory {
     var scriptDir = path.absolute(path.dirname(Platform.script.toFilePath()));
     var root = scriptDir;
-    while(path.basename(root) != 'dart') {
+    var base = path.basename(root);
+    // When we find dart-sdk or sdk we are one level below the root.
+    while (base != 'dart-sdk' && base != 'sdk' && base != 'pkg') {
       root = path.dirname(root);
+      base = path.basename(root);
+      if (root == base) {
+        // We have reached the root of the filesystem without finding anything.
+        throw new FileSystemException(
+            "Cannot find SDK directory starting from ",
+            scriptDir);
+        }
     }
-    return root;
+    return path.dirname(root);
   }
 
   /// Analyzes set of libraries and provides a mirror system which can be used
@@ -1520,7 +1539,13 @@ abstract class OwnedIndexable extends Indexable {
       // Reading in MDN related json file.
       var root = _Generator._rootDirectory;
       var mdnPath = path.join(root, 'utils/apidoc/mdn/database.json');
-      Indexable._mdn = JSON.decode(new File(mdnPath).readAsStringSync());
+      var mdnFile = new File(mdnPath);
+      if (mdnFile.existsSync()) {
+        Indexable._mdn = JSON.decode(mdnFile.readAsStringSync());
+      } else {
+        _Generator.logger.warning("Cannot find MDN docs expected at $mdnPath");
+        Indexable._mdn = {};
+      }
     }
     var domAnnotation = this.annotations.firstWhere(
         (e) => e.mirror.qualifiedName == 'metadata.DomName',
