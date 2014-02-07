@@ -83,9 +83,9 @@
  * that callback is run. A count argument can be provided to specify the number
  * of times the callback should be called (the default is 1).
  *
+ *     import 'dart:async';
  *     import 'package:unittest/unittest.dart';
- *     import 'dart:isolate';
- *     main() {
+ *     void main() {
  *       test('callback is executed once', () {
  *         // wrap the callback of an asynchronous call with [expectAsync0] if
  *         // the callback takes 0 arguments...
@@ -105,13 +105,12 @@
  *       });
  *     }
  *
- * expectAsyncX() will wrap the callback code in a try/catch handler to handle
- * exceptions (treated as test failures). There may be times when the number of
- * times a callback should be called is non-deterministic. In this case a dummy
- * callback can be created with expectAsync0((){}) and this can be called from
- * the real callback when it is finally complete. In this case the body of the
- * callback should be protected within a call to guardAsync(); this will ensure
- * that exceptions are properly handled.
+ * expectAsyncX() will wrap the callback code and block the completion of the
+ * test until the wrapped callback has been called the specified number of times
+ * -- the default is 1. There may be times when the number of times a callback
+ * should be called is non-deterministic. In this case a dummy callback can be
+ * created with expectAsync0((){}) and this can be called from the real callback
+ * when it is finally complete.
  *
  * A variation on this is expectAsyncUntilX(), which takes a callback as the
  * first parameter and a predicate function as the second parameter; after each
@@ -121,10 +120,21 @@
  * Test functions can return [Future]s, which provide another way of doing
  * asynchronous tests. The test framework will handle exceptions thrown by
  * the Future, and will advance to the next test when the Future is complete.
- * It is still important to use expectAsync/guardAsync with any parts of the
- * test that may be invoked from a top level context (for example, with
- * Timer.run()], as the Future exception handler may not capture exceptions
- * in such code.
+ *
+ *     import 'dart:async';
+ *     import 'package:unittest/unittest.dart';
+ *     void main() {
+ *       test('test that time has passed', () {
+ *         var duration = const Duration(milliseconds: 200);
+ *         var time = new DateTime.now();
+ *
+ *         return new Future.delayed(duration).then((_) {
+ *           var delta = new DateTime.now().difference(time);
+ *
+ *           expect(delta, greaterThanOrEqualTo(duration));
+ *         });
+ *       });
+ *     }
  *
  * Note: Due to some language limitations we have to use different functions
  * depending on the number of positional arguments of the callback. In the
