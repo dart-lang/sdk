@@ -35661,14 +35661,16 @@ class Platform {
 // BSD-style license that can be found in the LICENSE file.
 
 
-_wrapZone(callback) {
+_wrapZone(callback(arg)) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
+  if (callback == null) return null;
   return Zone.current.bindUnaryCallback(callback, runGuarded: true);
 }
 
-_wrapBinaryZone(callback) {
+_wrapBinaryZone(callback(arg1, arg2)) {
   if (Zone.current == Zone.ROOT) return callback;
+  if (callback == null) return null;
   return Zone.current.bindBinaryCallback(callback, runGuarded: true);
 }
 

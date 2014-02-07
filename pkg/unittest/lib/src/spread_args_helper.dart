@@ -119,4 +119,15 @@ class _SpreadArgsHelper {
         },
         after, testCase);
   }
+
+  _guardAsync(Function tryBody, Function finallyBody, TestCase testCase) {
+    assert(testCase != null);
+    try {
+      return tryBody();
+    } catch (e, trace) {
+      _registerException(testCase, e, trace);
+    } finally {
+      if (finallyBody != null) finallyBody();
+    }
+  }
 }

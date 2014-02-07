@@ -71,7 +71,16 @@ main() {
     provider.forTarget(element).listen(handler);
     invocationCounter = 0;
     element.dispatchEvent(event);
-    expect(invocationCounter, 1);
+
+    // NOTE: when run in a custom zone, the handler is wrapped
+    // The logic for html events which ensures identical handlers are added only
+    // once is therefor muted by the wrapped handlers.
+    // Hence, we get different behavior depending on the current zone.
+    if(Zone.current == Zone.ROOT) {
+      expect(invocationCounter, 1);
+    } else {
+      expect(invocationCounter, 2);
+    }
   });
 
   test('InitMouseEvent', () {
