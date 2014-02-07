@@ -46,7 +46,7 @@ compile_time_constant_checked3_test/03: Fail, OK
 compile_time_constant_checked3_test/04: Fail, OK
 compile_time_constant_checked3_test/05: Fail, OK
 compile_time_constant_checked3_test/06: Fail, OK
-type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
+type_check_const_function_typedef2_test/00: Fail, OK
 malformed2_test/01: Fail, OK
 
 [ $runtime == vm || (($runtime == drt || $runtime == dartium) && $compiler == none) ]
