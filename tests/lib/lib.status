@@ -234,9 +234,6 @@ async/timer_not_available_test: SkipByDesign # only meant to test when there is 
 [ $compiler == none ]
 mirrors/mirrors_reader_test: Slow, Pass
 
-[ $compiler == none && $checked ]
-mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16588
-
 [ $compiler == none && $runtime == dartium ]
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16626
 

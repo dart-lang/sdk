@@ -1359,7 +1359,6 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   String get source {
     if (_source == null) {
       _source = _MethodMirror_source(_reflectee);
-      assert(_source != null);
     }
     return _source;
   }

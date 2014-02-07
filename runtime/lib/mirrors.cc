@@ -2036,6 +2036,13 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
 DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
+  if (func.IsImplicitConstructor() || func.IsSignatureFunction()) {
+    // We may need to handle more cases when the restrictions on mixins are
+    // relaxed. In particular we might start associating some source with the
+    // forwarding constructors when it becomes possible to specify a particular
+    // constructor from the mixin to use.
+    return Instance::null();
+  }
   const Script& script = Script::Handle(func.script());
   const TokenStream& stream = TokenStream::Handle(script.tokens());
   const TokenStream::Iterator tkit(stream, func.end_token_pos());
@@ -2058,7 +2065,10 @@ DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
        String::Handle(func.name()).Equals("<anonymous closure>"))) {  // Case 3.
     last_tok_len = 0;
   }
-  return script.GetSnippet(from_line, from_col, to_line, to_col + last_tok_len);
+  const Instance& result = Instance::Handle(
+      script.GetSnippet(from_line, from_col, to_line, to_col + last_tok_len));
+  ASSERT(!result.IsNull());
+  return result.raw();
 }
 
 
