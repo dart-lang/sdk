@@ -31536,15 +31536,6 @@ class _BeforeUnloadEventStreamProvider implements
   String getEventType(EventTarget target) {
     return _eventType;
   }
-
-  ElementStream<BeforeUnloadEvent> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventType, useCapture);
-  }
-
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
-      {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33869,10 +33860,6 @@ abstract class _XMLHttpRequestProgressEvent extends ProgressEvent {
  */
 class _WrappedEvent implements Event {
   final Event wrapped;
-
-  /** The CSS selector involved with event delegation. */
-  String _selector;
-
   _WrappedEvent(this.wrapped);
 
   bool get bubbles => wrapped.bubbles;
@@ -33910,39 +33897,6 @@ class _WrappedEvent implements Event {
   void stopPropagation() {
     wrapped.stopPropagation();
   }
-
-  /**
-   * A pointer to the element whose CSS selector matched within which an event
-   * was fired. If this Event was not associated with any Event delegation,
-   * accessing this value will throw an [UnsupportedError].
-   */
-  Element get matchingTarget {
-    if (_selector == null) {
-      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
-          ' not arise as a result of event delegation.');
-    }
-    var currentTarget = this.currentTarget;
-    var target = this.target;
-    var matchedTarget;
-    do {
-      if (target.matches(_selector)) return target;
-      target = target.parent;
-    } while (target != null && target != currentTarget.parent);
-    throw new StateError('No selector matched for populating matchedTarget.');
-  }
-
-  /**
-   * This event's path, taking into account shadow DOM.
-   *
-   * ## Other resources
-   *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
-   */
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
-  @Experimental()
-  List<Node> get path => wrapped.path;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34276,7 +34230,7 @@ abstract class CanvasImageSource {}
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
-abstract class WindowBase {
+abstract class WindowBase implements EventTarget {
   // Fields.
 
   /**
@@ -38571,7 +38525,7 @@ class _Utils {
     // TODO(vsm): Move these checks into native code.
     ClassMirror cls = reflectClass(type);
     if (_isBuiltinType(cls)) {
-      throw new UnsupportedError("Invalid custom element from ${(cls.owner as LibraryMirror).uri}.");
+      throw new UnsupportedError("Invalid custom element from ${cls.owner.uri}.");
     }
     var className = MirrorSystem.getName(cls.simpleName);
     var createdConstructor = cls.declarations[new Symbol('$className.created')];

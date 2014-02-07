@@ -394,13 +394,4 @@ $endif
   String getEventType(EventTarget target) {
     return _eventType;
   }
-
-  ElementStream<BeforeUnloadEvent> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventType, useCapture);
-  }
-
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
-      {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
-  }
 }
