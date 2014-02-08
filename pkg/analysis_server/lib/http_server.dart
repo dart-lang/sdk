@@ -6,13 +6,12 @@ library http.server;
 
 import 'dart:io';
 
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/domain_context.dart';
+import 'package:analysis_server/src/domain_server.dart';
+import 'package:analysis_server/src/get_handler.dart';
 import 'package:args/args.dart';
-
-import 'src/analysis_server.dart';
-import 'src/channel.dart';
-import 'src/domain_context.dart';
-import 'src/domain_server.dart';
-import 'src/get_handler.dart';
 
 /**
  * Instances of the class [HttpServer] implement a simple HTTP server. The

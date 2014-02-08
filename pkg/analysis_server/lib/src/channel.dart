@@ -4,11 +4,10 @@
 
 library channel;
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'protocol.dart';
+import 'package:analysis_server/src/protocol.dart';
 
 /**
  * The abstract class [CommunicationChannel] defines the behavior of objects

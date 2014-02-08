@@ -6,11 +6,10 @@ library analysis.server;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/analysis_logger.dart';
+import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
-
-import 'analysis_logger.dart';
-import 'channel.dart';
-import 'protocol.dart';
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
