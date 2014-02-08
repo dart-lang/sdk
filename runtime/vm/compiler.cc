@@ -48,8 +48,6 @@ DEFINE_FLAG(bool, allocation_sinking, true,
     "Attempt to sink temporary allocations to side exits");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
     "How many times we allow deoptimization before we disallow optimization.");
-DEFINE_FLAG(int, deoptimization_counter_licm_threshold, 8,
-    "How many times we allow deoptimization before we disable LICM.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, print_flow_graph_optimized, false,
             "Print the IR flow graph when optimizing.");
@@ -442,9 +440,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         optimizer.TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        if (FLAG_loop_invariant_code_motion &&
-            (function.deoptimization_counter() <
-             FLAG_deoptimization_counter_licm_threshold)) {
+        if (FLAG_loop_invariant_code_motion) {
           LICM licm(flow_graph);
           licm.Optimize();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());

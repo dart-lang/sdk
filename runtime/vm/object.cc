@@ -5007,8 +5007,15 @@ void Function::SetIsNativeAutoSetupScope(bool value) const {
   set_is_optimizable(value);
 }
 
+
 void Function::set_is_optimizable(bool value) const {
   set_kind_tag(OptimizableBit::update(value, raw_ptr()->kind_tag_));
+}
+
+
+void Function::set_allows_hoisting_check_class(bool value) const {
+  set_kind_tag(
+      AllowsHoistingCheckClassBit::update(value, raw_ptr()->kind_tag_));
 }
 
 
@@ -5525,6 +5532,7 @@ RawFunction* Function::New(const String& name,
   result.set_optimized_call_site_count(0);
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
+  result.set_allows_hoisting_check_class(true);
   if (kind == RawFunction::kClosureFunction) {
     const ClosureData& data = ClosureData::Handle(ClosureData::New());
     result.set_data(data);

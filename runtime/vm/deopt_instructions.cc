@@ -584,6 +584,9 @@ class DeoptRetAddressInstr : public DeoptInstr {
       if (!ic_data.IsNull()) {
         ic_data.set_deopt_reason(deopt_context->deopt_reason());
       }
+    } else if (deopt_context->deopt_reason() == kDeoptHoistedCheckClass) {
+      // Prevent excessive deoptimization.
+      Function::Handle(code.function()).set_allows_hoisting_check_class(false);
     }
   }
 

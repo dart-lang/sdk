@@ -4518,9 +4518,10 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(bool opt) const {
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const DeoptReasonId deopt_reason =
+      licm_hoisted_ ? kDeoptHoistedCheckClass : kDeoptCheckClass;
   if (IsNullCheck()) {
-    Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                          kDeoptCheckClass);
+    Label* deopt = compiler->AddDeoptStub(deopt_id(), deopt_reason);
     const Immediate& raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ cmpl(locs()->in(0).reg(), raw_null);
@@ -4532,8 +4533,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
          (unary_checks().NumberOfChecks() > 1));
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        kDeoptCheckClass);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), deopt_reason);
   Label is_ok;
   intptr_t cix = 0;
   if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {

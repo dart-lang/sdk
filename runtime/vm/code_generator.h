@@ -71,6 +71,7 @@ DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
   V(UnaryOp)                                                                   \
   V(UnboxInteger)                                                              \
   V(CheckClass)                                                                \
+  V(HoistedCheckClass)                                                         \
   V(CheckSmi)                                                                  \
   V(CheckArrayBound)                                                           \
   V(AtCall)                                                                    \

@@ -23,6 +23,8 @@ namespace dart {
 
 DEFINE_FLAG(bool, array_bounds_check_elimination, true,
     "Eliminate redundant bounds checks.");
+DEFINE_FLAG(int, getter_setter_ratio, 13,
+    "Ratio of getter/setter usage used for double field unboxing heuristics");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
@@ -32,15 +34,13 @@ DEFINE_FLAG(int, max_equality_polymorphic_checks, 32,
 DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
     "Print constant propagation and useless code elimination.");
+DEFINE_FLAG(bool, trace_load_optimization, false,
+    "Print live sets for load optimization pass.");
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, truncating_left_shift, true,
     "Optimize left shift to truncate if possible");
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
-DEFINE_FLAG(bool, trace_load_optimization, false,
-    "Print live sets for load optimization pass.");
-DEFINE_FLAG(int, getter_setter_ratio, 13,
-    "Ratio of getter/setter usage used for double field unboxing heuristics");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_check_elimination);
@@ -4493,6 +4493,9 @@ LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
+  if (current->IsCheckClass()) {
+    current->AsCheckClass()->set_licm_hoisted(true);
+  }
   // TODO(fschneider): Avoid repeated deoptimization when
   // speculatively hoisting checks.
   if (FLAG_trace_optimization) {
@@ -4580,6 +4583,12 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
 
 
 void LICM::Optimize() {
+  if (!flow_graph()->parsed_function().function().
+          allows_hoisting_check_class()) {
+    // Do not hoist any.
+    return;
+  }
+
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
       flow_graph()->loop_headers();
 

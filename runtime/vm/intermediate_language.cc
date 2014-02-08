@@ -85,7 +85,7 @@ bool Value::Equals(Value* other) const {
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks)
-    : unary_checks_(unary_checks) {
+    : unary_checks_(unary_checks), licm_hoisted_(false) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());

@@ -1722,6 +1722,11 @@ class Function : public Object {
   }
   void set_is_redirecting(bool value) const;
 
+  bool allows_hoisting_check_class() const {
+    return AllowsHoistingCheckClassBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_allows_hoisting_check_class(bool value) const;
+
   bool HasOptimizedCode() const;
 
   // Returns true if the argument counts are valid for calling this function.
@@ -1892,6 +1897,7 @@ class Function : public Object {
     kNativeBit = 12,
     kRedirectingBit = 13,
     kExternalBit = 14,
+    kAllowsHoistingCheckClassBit = 15,
   };
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
@@ -1906,6 +1912,8 @@ class Function : public Object {
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
   class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
+  class AllowsHoistingCheckClassBit :
+      public BitField<bool, kAllowsHoistingCheckClassBit, 1> {};  // NOLINT
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;

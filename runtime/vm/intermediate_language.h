@@ -6793,8 +6793,11 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
+
  private:
   const ICData& unary_checks_;
+  bool licm_hoisted_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };
