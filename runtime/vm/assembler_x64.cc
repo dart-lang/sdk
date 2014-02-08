@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/assembler.h"
+#include "vm/cpu.h"
 #include "vm/heap.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
@@ -15,54 +16,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
-DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
 DECLARE_FLAG(bool, inline_alloc);
-
-
-bool CPUFeatures::sse4_1_supported_ = false;
-#ifdef DEBUG
-bool CPUFeatures::initialized_ = false;
-#endif
-
-bool CPUFeatures::sse4_1_supported() {
-  DEBUG_ASSERT(initialized_);
-  return sse4_1_supported_ && FLAG_use_sse41;
-}
-
-
-#define __ assembler.
-
-void CPUFeatures::InitOnce() {
-  Assembler assembler;
-  __ pushq(RBP);
-  __ pushq(RBX);
-  __ movq(RBP, RSP);
-  // Get feature information in ECX:EDX and return it in RAX.
-  // Note that cpuid operates the same in 64-bit and 32-bit mode.
-  __ movq(RAX, Immediate(1));
-  __ cpuid();
-  __ movl(RAX, RCX);  // Zero extended.
-  __ shlq(RAX, Immediate(32));
-  __ movl(RCX, RDX);  // Zero extended.
-  __ orq(RAX, RCX);
-  __ movq(RSP, RBP);
-  __ popq(RBX);
-  __ popq(RBP);
-  __ ret();
-
-  const Code& code =
-      Code::Handle(Code::FinalizeCode("DetectCPUFeatures", &assembler));
-  Instructions& instructions = Instructions::Handle(code.instructions());
-  typedef uint64_t (*DetectCPUFeatures)();
-  uint64_t features =
-      reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
-  sse4_1_supported_ = (features & kSSE4_1BitMask) != 0;
-#ifdef DEBUG
-  initialized_ = true;
-#endif
-}
-
-#undef __
 
 
 Assembler::Assembler(bool use_far_branches)

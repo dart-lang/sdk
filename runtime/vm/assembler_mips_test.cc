@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_MIPS)
 
 #include "vm/assembler.h"
+#include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"

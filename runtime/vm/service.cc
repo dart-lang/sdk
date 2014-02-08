@@ -1057,6 +1057,15 @@ static bool HandleDebug(Isolate* isolate, JSONStream* js) {
 }
 
 
+static bool HandleCpu(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "CPU");
+  jsobj.AddProperty("targetCPU", CPU::Id());
+  jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
+  return true;
+}
+
+
 static bool HandleCode(Isolate* isolate, JSONStream* js) {
   REQUIRE_COLLECTION_ID("code");
   uintptr_t pc;
@@ -1098,6 +1107,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "classes", HandleClasses },
   { "code", HandleCode },
   { "coverage", HandleCoverage },
+  { "cpu", HandleCpu },
   { "debug", HandleDebug },
   { "libraries", HandleLibraries },
   { "objecthistogram", HandleObjectHistogram},

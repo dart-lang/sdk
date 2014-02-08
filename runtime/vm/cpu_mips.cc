@@ -6,13 +6,15 @@
 
 #if defined(TARGET_ARCH_MIPS)
 
+#include "vm/cpu.h"
+#include "vm/cpuinfo.h"
+#include "vm/simulator.h"
+
 #if defined(HOST_ARCH_MIPS)
 #include <asm/cachectl.h> /* NOLINT */
 #include <sys/syscall.h>  /* NOLINT */
 #include <unistd.h>  /* NOLINT */
 #endif
-
-#include "vm/cpu.h"
 
 namespace dart {
 
@@ -36,6 +38,35 @@ const char* CPU::Id() {
 #endif  // !defined(HOST_ARCH_MIPS)
   "mips";
 }
+
+
+char* HostCPUFeatures::hardware_ = NULL;
+#if defined(DEBUG)
+bool HostCPUFeatures::initialized_ = false;
+#endif
+
+
+#if defined(HOST_ARCH_MIPS)
+void HostCPUFeatures::InitOnce() {
+  CpuInfo::InitOnce();
+  hardware_ = CpuInfo::GetCpuModel();
+  // Has a floating point unit.
+  ASSERT(CpuInfo::FieldContainsById(CpuInfo::kCpuInfoModel, "FPU"));
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+
+#else
+
+void HostCPUFeatures::InitOnce() {
+  CpuInfo::InitOnce();
+  hardware_ = CpuInfo::GetCpuModel();
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+#endif  // defined(HOST_ARCH_MIPS)
 
 }  // namespace dart
 

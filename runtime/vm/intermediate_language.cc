@@ -6,6 +6,7 @@
 
 #include "vm/bigint_operations.h"
 #include "vm/bit_vector.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
@@ -3029,7 +3030,7 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     case MethodRecognizer::kDoubleTruncate:
     case MethodRecognizer::kDoubleFloor:
     case MethodRecognizer::kDoubleCeil: {
-      ASSERT(!CPUFeatures::double_truncate_round_supported());
+      ASSERT(!TargetCPUFeatures::double_truncate_round_supported());
       return 1;
     }
     case MethodRecognizer::kDoubleRound:

@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_IA32)
 
 #include "vm/assembler.h"
+#include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
@@ -2808,7 +2809,7 @@ ASSEMBLER_TEST_RUN(Orpd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Pextrd0, assembler) {
-  if (CPUFeatures::sse4_1_supported()) {
+  if (TargetCPUFeatures::sse4_1_supported()) {
     __ movsd(XMM0, Address(ESP, kWordSize));
     __ pextrd(EAX, XMM0, Immediate(0));
   }
@@ -2817,7 +2818,7 @@ ASSEMBLER_TEST_GENERATE(Pextrd0, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Pextrd0, test) {
-  if (CPUFeatures::sse4_1_supported()) {
+  if (TargetCPUFeatures::sse4_1_supported()) {
     typedef int32_t (*PextrdCode0)(double d);
     int32_t res = reinterpret_cast<PextrdCode0>(test->entry())(123456789);
     EXPECT_EQ(0x54000000, res);
@@ -2826,7 +2827,7 @@ ASSEMBLER_TEST_RUN(Pextrd0, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Pextrd1, assembler) {
-  if (CPUFeatures::sse4_1_supported()) {
+  if (TargetCPUFeatures::sse4_1_supported()) {
     __ movsd(XMM0, Address(ESP, kWordSize));
     __ pextrd(EAX, XMM0, Immediate(1));
   }
@@ -2835,7 +2836,7 @@ ASSEMBLER_TEST_GENERATE(Pextrd1, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Pextrd1, test) {
-  if (CPUFeatures::sse4_1_supported()) {
+  if (TargetCPUFeatures::sse4_1_supported()) {
     typedef int32_t (*PextrdCode1)(double d);
     int32_t res = reinterpret_cast<PextrdCode1>(test->entry())(123456789);
     EXPECT_EQ(0x419d6f34, res);
@@ -2844,7 +2845,7 @@ ASSEMBLER_TEST_RUN(Pextrd1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Pmovsxdq, assembler) {
-  if (CPUFeatures::sse4_1_supported()) {
+  if (TargetCPUFeatures::sse4_1_supported()) {
     __ movsd(XMM0, Address(ESP, kWordSize));
     __ pmovsxdq(XMM0, XMM0);
     __ pextrd(EAX, XMM0, Immediate(1));
@@ -2854,7 +2855,7 @@ ASSEMBLER_TEST_GENERATE(Pmovsxdq, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Pmovsxdq, test) {
-  if (CPUFeatures::sse4_1_supported()) {
+  if (TargetCPUFeatures::sse4_1_supported()) {
     typedef int32_t (*PmovsxdqCode)(double d);
     int32_t res = reinterpret_cast<PmovsxdqCode>(test->entry())(123456789);
     EXPECT_EQ(0, res);
@@ -2863,7 +2864,7 @@ ASSEMBLER_TEST_RUN(Pmovsxdq, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Pcmpeqq, assembler) {
-  if (CPUFeatures::sse4_1_supported()) {
+  if (TargetCPUFeatures::sse4_1_supported()) {
     __ movsd(XMM0, Address(ESP, kWordSize));
     __ xorpd(XMM1, XMM1);
     __ pcmpeqq(XMM0, XMM1);
@@ -2874,7 +2875,7 @@ ASSEMBLER_TEST_GENERATE(Pcmpeqq, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Pcmpeqq, test) {
-  if (CPUFeatures::sse4_1_supported()) {
+  if (TargetCPUFeatures::sse4_1_supported()) {
     typedef int32_t (*PcmpeqqCode)(double d);
     int32_t res = reinterpret_cast<PcmpeqqCode>(test->entry())(0);
     EXPECT_EQ(-1, res);
