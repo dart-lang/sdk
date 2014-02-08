@@ -2274,6 +2274,7 @@ class TokenStream : public Object {
   void SetStream(const ExternalTypedData& stream) const;
 
   RawString* GenerateSource() const;
+  RawString* GenerateSource(intptr_t start, intptr_t end) const;
   intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
 
   RawString* PrivateKey() const;

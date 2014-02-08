@@ -6669,9 +6669,13 @@ void TokenStream::SetPrivateKey(const String& value) const {
   StorePointer(&raw_ptr()->private_key_, value.raw());
 }
 
-
 RawString* TokenStream::GenerateSource() const {
-  Iterator iterator(*this, 0, Iterator::kAllTokens);
+  return GenerateSource(0, kMaxElements);
+}
+
+RawString* TokenStream::GenerateSource(intptr_t start_pos,
+                                       intptr_t end_pos) const {
+  Iterator iterator(*this, start_pos, Iterator::kAllTokens);
   const ExternalTypedData& data = ExternalTypedData::Handle(GetStream());
   const GrowableObjectArray& literals =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data.Length()));
@@ -6686,7 +6690,7 @@ RawString* TokenStream::GenerateSource() const {
   // Current indentation level.
   int indent = 0;
 
-  while (curr != Token::kEOS) {
+  while ((curr != Token::kEOS) && (iterator.CurrentPosition() < end_pos)) {
     // Remember current values for this token.
     obj = iterator.CurrentToken();
     literal = iterator.MakeLiteralToken(obj);

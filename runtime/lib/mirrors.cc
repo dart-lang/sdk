@@ -2045,6 +2045,12 @@ DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
   }
   const Script& script = Script::Handle(func.script());
   const TokenStream& stream = TokenStream::Handle(script.tokens());
+  if (!script.HasSource()) {
+    // When source is not available, avoid printing the whole token stream and
+    // doing expensive position calculations.
+    return stream.GenerateSource(func.token_pos(), func.end_token_pos() + 1);
+  }
+
   const TokenStream::Iterator tkit(stream, func.end_token_pos());
   intptr_t from_line;
   intptr_t from_col;
