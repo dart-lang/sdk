@@ -231,9 +231,6 @@ mirrors/toplevel_members_test/01: RuntimeError # Issue 14632
 
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
-[ $compiler == none && $runtime == dartium ]
-mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16626
-
 [ $compiler == none && ( $runtime == drt || $runtime == dartium ) ]
 async/schedule_microtask6_test: Fail # Issue 10910
 mirrors/immutable_collections_test: Pass, Slow # Dartium debug uses -O0
