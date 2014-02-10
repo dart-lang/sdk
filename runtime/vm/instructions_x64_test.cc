@@ -44,6 +44,13 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
 
 ASSEMBLER_TEST_RUN(Jump, test) {
   ASSERT(prologue_code_size != -1);
+  const Code& code = test->code();
+  const Instructions& instrs = Instructions::Handle(code.instructions());
+  bool status =
+      VirtualMemory::Protect(reinterpret_cast<void*>(instrs.EntryPoint()),
+                             instrs.size(),
+                             VirtualMemory::kReadWrite);
+  EXPECT(status);
   JumpPattern jump1(test->entry() + prologue_code_size, test->code());
   jump1.IsValid();
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),

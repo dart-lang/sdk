@@ -49,23 +49,28 @@ uword CodeBreakpoint::OrigStubAddress() const {
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
-  switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall:
-    case PcDescriptors::kUnoptStaticCall:
-    case PcDescriptors::kRuntimeCall:
-    case PcDescriptors::kClosureCall:
-    case PcDescriptors::kReturn: {
-      int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
-      ASSERT((offset > 0) && ((offset % 8) == 7));
-      saved_value_ = static_cast<uword>(offset);
-      const uint32_t stub_offset =
-          InstructionPattern::OffsetFromPPIndex(
-              Assembler::kBreakpointRuntimeCPIndex);
-      CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
-      break;
+  const Code& code = Code::Handle(code_);
+  const Instructions& instrs = Instructions::Handle(code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    switch (breakpoint_kind_) {
+      case PcDescriptors::kIcCall:
+      case PcDescriptors::kUnoptStaticCall:
+      case PcDescriptors::kRuntimeCall:
+      case PcDescriptors::kClosureCall:
+      case PcDescriptors::kReturn: {
+        int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
+        ASSERT((offset > 0) && ((offset % 8) == 7));
+        saved_value_ = static_cast<uword>(offset);
+        const uint32_t stub_offset =
+            InstructionPattern::OffsetFromPPIndex(
+                Assembler::kBreakpointRuntimeCPIndex);
+        CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
+        break;
+      }
+      default:
+        UNREACHABLE();
     }
-    default:
-      UNREACHABLE();
   }
   is_enabled_ = true;
 }
@@ -73,17 +78,22 @@ void CodeBreakpoint::PatchCode() {
 
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
-  switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall:
-    case PcDescriptors::kUnoptStaticCall:
-    case PcDescriptors::kClosureCall:
-    case PcDescriptors::kRuntimeCall:
-    case PcDescriptors::kReturn: {
-      CodePatcher::SetPoolOffsetAt(pc_, static_cast<int32_t>(saved_value_));
-      break;
+  const Code& code = Code::Handle(code_);
+  const Instructions& instrs = Instructions::Handle(code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    switch (breakpoint_kind_) {
+      case PcDescriptors::kIcCall:
+      case PcDescriptors::kUnoptStaticCall:
+      case PcDescriptors::kClosureCall:
+      case PcDescriptors::kRuntimeCall:
+      case PcDescriptors::kReturn: {
+        CodePatcher::SetPoolOffsetAt(pc_, static_cast<int32_t>(saved_value_));
+        break;
+      }
+      default:
+        UNREACHABLE();
     }
-    default:
-      UNREACHABLE();
   }
   is_enabled_ = false;
 }

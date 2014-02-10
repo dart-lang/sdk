@@ -7,8 +7,10 @@
 
 #include "vm/assembler.h"
 #include "vm/instructions.h"
+#include "vm/object.h"
 #include "vm/stub_code.h"
 #include "vm/unit_test.h"
+#include "vm/virtual_memory.h"
 
 namespace dart {
 
@@ -35,6 +37,13 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Jump, test) {
+  const Code& code = test->code();
+  const Instructions& instrs = Instructions::Handle(code.instructions());
+  bool status =
+      VirtualMemory::Protect(reinterpret_cast<void*>(instrs.EntryPoint()),
+                             instrs.size(),
+                             VirtualMemory::kReadWrite);
+  EXPECT(status);
   JumpPattern jump1(test->entry(), test->code());
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             jump1.TargetAddress());

@@ -15,6 +15,8 @@ namespace dart {
 
 
 FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
+  // Precondition: the (page containing the) header of the element is
+  // writable.
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
@@ -29,8 +31,9 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
     *result->SizeAddress() = size;
   }
   result->set_next(NULL);
-
   return result;
+  // Postcondition: the (page containing the) header of the element is
+  // writable.
 }
 
 
@@ -50,10 +53,22 @@ FreeList::~FreeList() {
 }
 
 
-uword FreeList::TryAllocate(intptr_t size) {
+uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
+  // Precondition: is_protected is false or else all free list elements are
+  // in non-writable pages.
+
+  // Postcondition: if allocation succeeds, the allocated block is writable.
   int index = IndexForSize(size);
   if ((index != kNumLists) && free_map_.Test(index)) {
-    return reinterpret_cast<uword>(DequeueElement(index));
+    FreeListElement* element = DequeueElement(index);
+    if (is_protected) {
+      bool status =
+          VirtualMemory::Protect(reinterpret_cast<void*>(element),
+                                 size,
+                                 VirtualMemory::kReadWrite /*Execute*/);
+      ASSERT(status);
+    }
+    return reinterpret_cast<uword>(element);
   }
 
   if ((index + 1) < kNumLists) {
@@ -62,7 +77,22 @@ uword FreeList::TryAllocate(intptr_t size) {
       // Dequeue an element from the list, split and enqueue the remainder in
       // the appropriate list.
       FreeListElement* element = DequeueElement(next_index);
-      SplitElementAfterAndEnqueue(element, size);
+      if (is_protected) {
+        // Make the allocated block and the header of the remainder element
+        // writable.  The remainder will be non-writable if necessary after
+        // the call to SplitElementAfterAndEnqueue.
+        // If the remainder size is zero, only the element itself needs to
+        // be made writable.
+        intptr_t remainder_size = element->Size() - size;
+        intptr_t region_size = size +
+            ((remainder_size > 0) ? FreeListElement::kHeaderSize : 0);
+        bool status =
+            VirtualMemory::Protect(reinterpret_cast<void*>(element),
+                                   region_size,
+                                   VirtualMemory::kReadWrite /*Execute*/);
+        ASSERT(status);
+      }
+      SplitElementAfterAndEnqueue(element, size, is_protected);
       return reinterpret_cast<uword>(element);
     }
   }
@@ -73,12 +103,53 @@ uword FreeList::TryAllocate(intptr_t size) {
     if (current->Size() >= size) {
       // Found an element large enough to hold the requested size. Dequeue,
       // split and enqueue the remainder.
+      if (is_protected) {
+        // Make the allocated block and the header of the remainder element
+        // writable.  The remainder will be non-writable if necessary after
+        // the call to SplitElementAfterAndEnqueue.
+        intptr_t remainder_size = current->Size() - size;
+        intptr_t region_size = size +
+            ((remainder_size > 0) ? FreeListElement::kHeaderSize : 0);
+        bool status =
+            VirtualMemory::Protect(reinterpret_cast<void*>(current),
+                                   region_size,
+                                   VirtualMemory::kReadWrite /*Execute*/);
+        ASSERT(status);
+      }
       if (previous == NULL) {
         free_lists_[kNumLists] = current->next();
       } else {
+        // If the previous free list element's next field is protected, it
+        // needs to be unprotected before storing to it and reprotected
+        // after.
+        bool target_is_protected = false;
+        uword target_address = NULL;
+        if (is_protected) {
+          uword writable_start = reinterpret_cast<uword>(current);
+          uword writable_end =
+              writable_start + size + FreeListElement::kHeaderSize - 1;
+          target_address = previous->next_address();
+          target_is_protected =
+              !VirtualMemory::InSamePage(target_address, writable_start) &&
+              !VirtualMemory::InSamePage(target_address, writable_end);
+        }
+        if (target_is_protected) {
+          bool status =
+              VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
+                                     kWordSize,
+                                     VirtualMemory::kReadWrite /*Execute*/);
+          ASSERT(status);
+        }
         previous->set_next(current->next());
+        if (target_is_protected) {
+          bool status =
+              VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
+                                     kWordSize,
+                                     VirtualMemory::kReadExecute);
+          ASSERT(status);
+        }
       }
-      SplitElementAfterAndEnqueue(current, size);
+      SplitElementAfterAndEnqueue(current, size, is_protected);
       return reinterpret_cast<uword>(current);
     }
     previous = current;
@@ -89,9 +160,15 @@ uword FreeList::TryAllocate(intptr_t size) {
 
 
 void FreeList::Free(uword addr, intptr_t size) {
+  // Precondition required by AsElement and EnqueueElement: the (page
+  // containing the) header of the freed block should be writable.  This is
+  // the case when called for newly allocated pages because they are
+  // allocated as writable.  It is the case when called during GC sweeping
+  // because the entire heap is writable.
   intptr_t index = IndexForSize(size);
   FreeListElement* element = FreeListElement::AsElement(addr, size);
   EnqueueElement(element, index);
+  // Postcondition: the (page containing the) header is left writable.
 }
 
 
@@ -213,14 +290,31 @@ void FreeList::Print() const {
 
 
 void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
-                                           intptr_t size) {
+                                           intptr_t size,
+                                           bool is_protected) {
+  // Precondition required by AsElement and EnqueueElement: either
+  // element->Size() == size, or else the (page containing the) header of
+  // the remainder element starting at element + size is writable.
   intptr_t remainder_size = element->Size() - size;
   if (remainder_size == 0) return;
 
-  element = FreeListElement::AsElement(reinterpret_cast<uword>(element) + size,
-                                       remainder_size);
+  uword remainder_address = reinterpret_cast<uword>(element) + size;
+  element = FreeListElement::AsElement(remainder_address, remainder_size);
   intptr_t remainder_index = IndexForSize(remainder_size);
   EnqueueElement(element, remainder_index);
+
+  // Postcondition: when allocating in a protected page, the remainder
+  // element is no longer writable unless it is in the same page as the
+  // allocated element.  (The allocated element is still writable, and the
+  // remainder element will be protected when the allocated one is).
+  if (is_protected &&
+      !VirtualMemory::InSamePage(remainder_address - 1, remainder_address)) {
+    bool status =
+        VirtualMemory::Protect(reinterpret_cast<void*>(remainder_address),
+                               remainder_size,
+                               VirtualMemory::kReadExecute);
+    ASSERT(status);
+  }
 }
 
 }  // namespace dart

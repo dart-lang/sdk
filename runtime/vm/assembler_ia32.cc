@@ -28,6 +28,8 @@ class DirectCallRelocation : public AssemblerFixup {
     int32_t delta = region.start() + position + sizeof(int32_t);
     region.Store<int32_t>(position, pointer - delta);
   }
+
+  virtual bool IsPointerOffset() const { return false; }
 };
 
 

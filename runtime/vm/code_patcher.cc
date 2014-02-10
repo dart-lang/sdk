@@ -6,8 +6,36 @@
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
+#include "vm/virtual_memory.h"
 
 namespace dart {
+
+DEFINE_FLAG(bool, write_protect_code, true, "Write protect jitted code");
+
+
+WritableInstructionsScope::WritableInstructionsScope(uword address,
+                                                     intptr_t size)
+    : address_(address), size_(size) {
+  if (FLAG_write_protect_code) {
+    bool status =
+        VirtualMemory::Protect(reinterpret_cast<void*>(address),
+                               size,
+                               VirtualMemory::kReadWrite);
+    ASSERT(status);
+  }
+}
+
+
+WritableInstructionsScope::~WritableInstructionsScope() {
+  if (FLAG_write_protect_code) {
+    bool status =
+        VirtualMemory::Protect(reinterpret_cast<void*>(address_),
+                               size_,
+                               VirtualMemory::kReadExecute);
+    ASSERT(status);
+  }
+}
+
 
 static void SwapCode(intptr_t num_bytes, char* code, char* buffer) {
   uword code_address = reinterpret_cast<uword>(code);
@@ -36,10 +64,15 @@ void CodePatcher::PatchEntry(const Code& code) {
   JumpPattern jmp_patch(patch_buffer, code);
   ASSERT(jmp_patch.IsValid());
   const uword jump_target = jmp_patch.TargetAddress();
-  SwapCode(jmp_patch.pattern_length_in_bytes(),
-           reinterpret_cast<char*>(patch_addr),
-           reinterpret_cast<char*>(patch_buffer));
-  jmp_entry.SetTargetAddress(jump_target);
+  intptr_t length = jmp_patch.pattern_length_in_bytes();
+  {
+    WritableInstructionsScope writable_code(patch_addr, length);
+    WritableInstructionsScope writable_buffer(patch_buffer, length);
+    SwapCode(jmp_patch.pattern_length_in_bytes(),
+             reinterpret_cast<char*>(patch_addr),
+             reinterpret_cast<char*>(patch_buffer));
+    jmp_entry.SetTargetAddress(jump_target);
+  }
 }
 
 
@@ -57,11 +90,16 @@ void CodePatcher::RestoreEntry(const Code& code) {
   // 'patch_buffer' contains original entry code.
   JumpPattern jmp_patch(patch_buffer, code);
   ASSERT(!jmp_patch.IsValid());
-  SwapCode(jmp_patch.pattern_length_in_bytes(),
-           reinterpret_cast<char*>(patch_addr),
-           reinterpret_cast<char*>(patch_buffer));
-  ASSERT(jmp_patch.IsValid());
-  jmp_patch.SetTargetAddress(jump_target);
+  intptr_t length = jmp_patch.pattern_length_in_bytes();
+  {
+    WritableInstructionsScope writable_code(patch_addr, length);
+    WritableInstructionsScope writable_buffer(patch_buffer, length);
+    SwapCode(jmp_patch.pattern_length_in_bytes(),
+             reinterpret_cast<char*>(patch_addr),
+             reinterpret_cast<char*>(patch_buffer));
+    ASSERT(jmp_patch.IsValid());
+    jmp_patch.SetTargetAddress(jump_target);
+  }
 }
 
 

@@ -132,6 +132,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     }
 #endif
     PremarkingVisitor premarker(vm_isolate_);
+    vm_isolate_->heap()->WriteProtect(false);
     vm_isolate_->heap()->IterateOldObjects(&premarker);
     vm_isolate_->heap()->WriteProtect(true);
   }

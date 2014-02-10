@@ -149,10 +149,23 @@ class PatchCodeWithHandle : public AssemblerFixup {
     pointer_offsets_->Add(position);
   }
 
+  virtual bool IsPointerOffset() const { return true; }
+
  private:
   ZoneGrowableArray<intptr_t>* pointer_offsets_;
   const Object& object_;
 };
+
+
+intptr_t AssemblerBuffer::CountPointerOffsets() const {
+  intptr_t count = 0;
+  AssemblerFixup* current = fixup_;
+  while (current != NULL) {
+    if (current->IsPointerOffset()) ++count;
+    current = current->previous_;
+  }
+  return count;
+}
 
 
 void AssemblerBuffer::EmitObject(const Object& object) {

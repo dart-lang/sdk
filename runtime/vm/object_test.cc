@@ -2464,6 +2464,31 @@ TEST_CASE(Code) {
 }
 
 
+// Test for immutability of generated instructions. The test crashes with a
+// segmentation fault when writing into it.
+TEST_CASE(CodeImmutability) {
+  extern void GenerateIncrement(Assembler* assembler);
+  Assembler _assembler_;
+  GenerateIncrement(&_assembler_);
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_Code"), &_assembler_));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  uword entry_point = instructions.EntryPoint();
+  // Try writing into the generated code, expected to crash.
+  *(reinterpret_cast<char*>(entry_point) + 1) = 1;
+  intptr_t retval = 0;
+#if defined(USING_SIMULATOR)
+  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
+      static_cast<int32_t>(entry_point), 0, 0, 0, 0));
+#else
+  typedef intptr_t (*IncrementCode)();
+  retval = reinterpret_cast<IncrementCode>(entry_point)();
+#endif
+  EXPECT_EQ(3, retval);
+  EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+}
+
+
 // Test for Embedded String object in the instructions.
 TEST_CASE(EmbedStringInCode) {
   extern void GenerateEmbedStringInCode(Assembler* assembler, const char* str);

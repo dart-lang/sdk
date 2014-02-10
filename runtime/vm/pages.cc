@@ -31,6 +31,7 @@ DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
+DECLARE_FLAG(bool, write_protect_code);
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(memory->size() > VirtualMemory::PageSize());
@@ -109,13 +110,10 @@ void HeapPage::WriteProtect(bool read_only) {
       prot = VirtualMemory::kReadOnly;
     }
   } else {
-    if (executable_) {
-      prot = VirtualMemory::kReadWriteExecute;
-    } else {
-      prot = VirtualMemory::kReadWrite;
-    }
+    prot = VirtualMemory::kReadWrite;
   }
-  memory_->Protect(prot);
+  bool status = memory_->Protect(prot);
+  ASSERT(status);
 }
 
 
@@ -155,7 +153,15 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   if (pages_ == NULL) {
     pages_ = page;
   } else {
+    const bool is_protected = (pages_tail_->type() == HeapPage::kExecutable)
+        && FLAG_write_protect_code;
+    if (is_protected) {
+      pages_tail_->WriteProtect(false);
+    }
     pages_tail_->set_next(page);
+    if (is_protected) {
+      pages_tail_->WriteProtect(true);
+    }
   }
   pages_tail_ = page;
   capacity_in_words_ += kPageSizeInWords;
@@ -221,7 +227,9 @@ uword PageSpace::TryAllocate(intptr_t size,
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
   if (size < kAllocatablePageSize) {
-    result = freelist_[type].TryAllocate(size);
+    const bool is_protected = (type == HeapPage::kExecutable)
+        && FLAG_write_protect_code;
+    result = freelist_[type].TryAllocate(size, is_protected);
     if ((result == 0) &&
         (page_space_controller_.CanGrowPageSpace(size) ||
          growth_policy == kForceGrowth) &&
@@ -447,6 +455,24 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 
   const int64_t start = OS::GetCurrentTimeMicros();
 
+  if (FLAG_write_protect_code) {
+    // Make code pages writable.
+    HeapPage* current_page = pages_;
+    while (current_page != NULL) {
+      if (current_page->type() == HeapPage::kExecutable) {
+        current_page->WriteProtect(false);
+      }
+      current_page = current_page->next();
+    }
+    current_page = large_pages_;
+    while (current_page != NULL) {
+      if (current_page->type() == HeapPage::kExecutable) {
+        current_page->WriteProtect(false);
+      }
+      current_page = current_page->next();
+    }
+  }
+
   // Mark all reachable old-gen objects.
   bool collect_code = FLAG_collect_code && ShouldCollectCode();
   GCMarker marker(heap_);
@@ -494,6 +520,24 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     }
     // Advance to the next page.
     page = next_page;
+  }
+
+  if (FLAG_write_protect_code) {
+    // Make code pages read-only.
+    HeapPage* current_page = pages_;
+    while (current_page != NULL) {
+      if (current_page->type() == HeapPage::kExecutable) {
+        current_page->WriteProtect(true);
+      }
+      current_page = current_page->next();
+    }
+    current_page = large_pages_;
+    while (current_page != NULL) {
+      if (current_page->type() == HeapPage::kExecutable) {
+        current_page->WriteProtect(true);
+      }
+      current_page = current_page->next();
+    }
   }
 
   // Record data and print if requested.

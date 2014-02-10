@@ -666,9 +666,14 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   // target.
   ASSERT(target_code.EntryPoint() !=
          CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code));
-  CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
-                                 target_code.EntryPoint());
-  caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
+  const Instructions& instrs =
+      Instructions::Handle(caller_code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
+                                   target_code.EntryPoint());
+    caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
+  }
   if (FLAG_trace_patching) {
     OS::PrintErr("PatchStaticCall: patching from %#" Px " to '%s' %#" Px "\n",
         caller_frame->pc(),
@@ -1363,9 +1368,13 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(target_function.raw() == target_code.function());
 
   const Code& current_target_code = Code::Handle(target_function.CurrentCode());
-  CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
-                                 current_target_code.EntryPoint());
-  caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
+  const Instructions& instrs = Instructions::Handle(caller_code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
+                                   current_target_code.EntryPoint());
+    caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
+  }
   if (FLAG_trace_patching) {
     OS::PrintErr("FixCallersTarget: patching from %#" Px " to '%s' %#" Px "\n",
         frame->pc(),
@@ -1405,7 +1414,12 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   // is not a performance issue).
   uword lazy_deopt_jump = optimized_code.GetLazyDeoptPc();
   ASSERT(lazy_deopt_jump != 0);
-  CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
+  const Instructions& instrs =
+      Instructions::Handle(optimized_code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
+  }
   if (FLAG_trace_patching) {
     const String& name = String::Handle(function.name());
     OS::PrintErr("InsertCallAt: %" Px " to %" Px " for %s\n", pc,

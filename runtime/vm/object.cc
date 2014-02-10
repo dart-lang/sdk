@@ -10140,7 +10140,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
-    result.set_is_alive(true);
+    result.set_is_alive(false);
     result.set_comments(Comments::New(0));
     result.set_pc_descriptors(Object::empty_descriptors());
   }
@@ -10153,7 +10153,11 @@ RawCode* Code::FinalizeCode(const char* name,
                             bool optimized) {
   ASSERT(assembler != NULL);
 
-  // Allocate the Instructions object.
+  // Allocate the Code and Instructions objects.  Code is allocated first
+  // because a GC during allocation of the code will leave the instruction
+  // pages read-only.
+  intptr_t pointer_offset_count = assembler->CountPointerOffsets();
+  Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
   Instructions& instrs =
       Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
 
@@ -10170,17 +10174,15 @@ RawCode* Code::FinalizeCode(const char* name,
                            instrs.size(),
                            optimized);
 
-  const ZoneGrowableArray<intptr_t>& pointer_offsets =
-      assembler->GetPointerOffsets();
-
-  // Allocate the code object.
-  Code& code = Code::ZoneHandle(Code::New(pointer_offsets.length()));
   {
     NoGCScope no_gc;
+    const ZoneGrowableArray<intptr_t>& pointer_offsets =
+        assembler->GetPointerOffsets();
+    ASSERT(pointer_offsets.length() == pointer_offset_count);
+    ASSERT(code.pointer_offsets_length() == pointer_offsets.length());
 
     // Set pointer offsets list in Code object and resolve all handles in
     // the instruction stream to raw objects.
-    ASSERT(code.pointer_offsets_length() == pointer_offsets.length());
     for (intptr_t i = 0; i < pointer_offsets.length(); i++) {
       intptr_t offset_in_instrs = pointer_offsets[i];
       code.SetPointerOffsetAt(i, offset_in_instrs);
@@ -10191,6 +10193,7 @@ RawCode* Code::FinalizeCode(const char* name,
     // Hook up Code and Instructions objects.
     instrs.set_code(code.raw());
     code.set_instructions(instrs.raw());
+    code.set_is_alive(true);
 
     // Set object pool in Instructions object.
     const GrowableObjectArray& object_pool = assembler->object_pool();
@@ -10202,6 +10205,11 @@ RawCode* Code::FinalizeCode(const char* name,
       // GrowableObjectArray in new space.
       instrs.set_object_pool(Array::MakeArray(object_pool));
     }
+    bool status =
+        VirtualMemory::Protect(reinterpret_cast<void*>(instrs.raw_ptr()),
+                               instrs.raw()->Size(),
+                               VirtualMemory::kReadExecute);
+    ASSERT(status);
   }
   return code.raw();
 }

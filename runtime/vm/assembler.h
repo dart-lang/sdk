@@ -53,6 +53,8 @@ class AssemblerFixup : public ZoneAllocated {
  public:
   virtual void Process(const MemoryRegion& region, intptr_t position) = 0;
 
+  virtual bool IsPointerOffset() const = 0;
+
   // It would be ideal if the destructor method could be made private,
   // but the g++ compiler complains when this is subclassed.
   virtual ~AssemblerFixup() { UNREACHABLE(); }
@@ -117,6 +119,10 @@ class AssemblerBuffer : public ValueObject {
     fixup->set_position(Size());
     fixup_ = fixup;
   }
+
+  // Count the fixups that produce a pointer offset, without processing
+  // the fixups.
+  intptr_t CountPointerOffsets() const;
 
   // Get the size of the emitted code.
   intptr_t Size() const { return cursor_ - contents_; }
