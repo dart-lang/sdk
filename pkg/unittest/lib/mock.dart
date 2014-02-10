@@ -188,6 +188,8 @@ class Action {
   const Action._(this.name);
 
   final String name;
+
+  String toString() => 'Action: $name';
 }
 
 /**
@@ -198,8 +200,8 @@ class Action {
  * depending on the value of [count (1, greater than 1, or 0 respectively).
  */
 class Responder {
-  var value;
-  Action action;
+  final Object value;
+  final Action action;
   int count;
   Responder(this.value, [this.count = 1, this.action = Action.RETURN]);
 }
@@ -1250,16 +1252,16 @@ class Mock {
   final String name;
 
   /** The set of [Behavior]s supported. */
-  LinkedHashMap<String,Behavior> _behaviors;
-
-  /** The [log] of calls made. Only used if [name] is null. */
-  LogEntryList log;
+  final LinkedHashMap<String,Behavior> _behaviors;
 
   /** How to handle unknown method calls - swallow or throw. */
   final bool _throwIfNoBehavior;
 
   /** For spys, the real object that we are spying on. */
-  Object _realObject;
+  final Object _realObject;
+
+  /** The [log] of calls made. Only used if [name] is null. */
+  LogEntryList log;
 
   /** Whether to create an audit log or not. */
   bool _logging;
@@ -1276,9 +1278,10 @@ class Mock {
    * Default constructor. Unknown method calls are allowed and logged,
    * the mock has no name, and has its own log.
    */
-  Mock() : _throwIfNoBehavior = false, log = null, name = null {
+  Mock() :
+    _throwIfNoBehavior = false, log = null, name = null, _realObject = null,
+    _behaviors = new LinkedHashMap<String,Behavior>() {
     logging = true;
-    _behaviors = new LinkedHashMap<String,Behavior>();
   }
 
   /**
@@ -1292,12 +1295,13 @@ class Mock {
   Mock.custom({this.name,
                this.log,
                throwIfNoBehavior: false,
-               enableLogging: true}) : _throwIfNoBehavior = throwIfNoBehavior {
+               enableLogging: true})
+      : _throwIfNoBehavior = throwIfNoBehavior, _realObject = null,
+        _behaviors = new LinkedHashMap<String,Behavior>() {
     if (log != null && name == null) {
       throw new Exception("Mocks with shared logs must have a name.");
     }
     logging = enableLogging;
-    _behaviors = new LinkedHashMap<String,Behavior>();
   }
 
   /**
