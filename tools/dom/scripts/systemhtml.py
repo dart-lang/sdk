@@ -61,6 +61,8 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Element.webkitMatchesSelector',
     'ElementEvents.mouseWheel',
     'ElementEvents.transitionEnd',
+    'Document.createNodeIterator',
+    'Document.createTreeWalker',
     'DOMException.name',
     'HTMLTableElement.createTBody',
     'IDBCursor.next',

@@ -8233,7 +8233,7 @@ class Document extends Node
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
 
-  /** 
+  /**
    * Alias for [querySelector]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -8242,7 +8242,7 @@ class Document extends Node
   @DomName('Document.querySelector')
   Element query(String relativeSelectors) => querySelector(relativeSelectors);
 
-  /** 
+  /**
    * Alias for [querySelectorAll]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -8266,6 +8266,7 @@ class Document extends Node
       return _Utils.createElement(this, tagName);
     }
   }
+
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
