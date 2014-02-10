@@ -595,15 +595,15 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     # all requests.  Read requests like IDBDataStore.getObject need
     # conversion, but other requests like opening a database return
     # something that does not need conversion.
-    'IDBAny get IDBRequest.result':
+    '* get IDBRequest.result':
       Conversion('_convertNativeToDart_IDBAny', 'dynamic', 'dynamic'),
 
     # "source: On getting, returns the IDBObjectStore or IDBIndex that the
     # cursor is iterating. ...".  So we should not try to convert it.
-    'IDBAny get IDBCursor.source': None,
+    '* get IDBCursor.source': None,
 
     # Should be either a DOMString, an Array of DOMStrings or null.
-    'IDBAny get IDBObjectStore.keyPath': None,
+    '* get IDBObjectStore.keyPath': None,
 
     '* get XMLHttpRequest.response':
       Conversion('_convertNativeToDart_XHR_Response',

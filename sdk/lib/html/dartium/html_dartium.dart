@@ -148,6 +148,31 @@ class AesCbcParams extends Algorithm {
 
 
 @DocsEditable()
+@DomName('AesCtrParams')
+@Experimental() // untriaged
+class AesCtrParams extends Algorithm {
+  // To suppress missing implicit constructor warnings.
+  factory AesCtrParams._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('AesCtrParams.counter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Uint8List get counter native "AesCtrParams_counter_Getter";
+
+  @DomName('AesCtrParams.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get length native "AesCtrParams_length_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('AesKeyGenParams')
 @Experimental() // untriaged
 class AesKeyGenParams extends Algorithm {
@@ -1670,11 +1695,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
-  dynamic get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
+  Object get fillStyle native "CanvasRenderingContext2D_fillStyle_Getter";
 
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
-  void set fillStyle(dynamic value) native "CanvasRenderingContext2D_fillStyle_Setter";
+  void set fillStyle(Object value) native "CanvasRenderingContext2D_fillStyle_Setter";
 
   @DomName('CanvasRenderingContext2D.font')
   @DocsEditable()
@@ -1804,11 +1829,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
-  dynamic get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
+  Object get strokeStyle native "CanvasRenderingContext2D_strokeStyle_Getter";
 
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
-  void set strokeStyle(dynamic value) native "CanvasRenderingContext2D_strokeStyle_Setter";
+  void set strokeStyle(Object value) native "CanvasRenderingContext2D_strokeStyle_Setter";
 
   @DomName('CanvasRenderingContext2D.textAlign')
   @DocsEditable()
@@ -3013,35 +3038,6 @@ class CssFontFaceRule extends CssRule {
 
 
 @DocsEditable()
-@DomName('CSSHostRule')
-@SupportedBrowser(SupportedBrowser.CHROME, '26')
-@Experimental()
-// https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#css-host-rule-interface
-class CssHostRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory CssHostRule._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('CSSHostRule.cssRules')
-  @DocsEditable()
-  List<CssRule> get cssRules native "CSSHostRule_cssRules_Getter";
-
-  @DomName('CSSHostRule.deleteRule')
-  @DocsEditable()
-  void deleteRule(int index) native "CSSHostRule_deleteRule_Callback";
-
-  @DomName('CSSHostRule.insertRule')
-  @DocsEditable()
-  int insertRule(String rule, int index) native "CSSHostRule_insertRule_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('CSSImportRule')
 class CssImportRule extends CssRule {
   // To suppress missing implicit constructor warnings.
@@ -3238,12 +3234,6 @@ class CssRule extends NativeFieldWrapperClass2 {
   @DomName('CSSRule.FONT_FACE_RULE')
   @DocsEditable()
   static const int FONT_FACE_RULE = 5;
-
-  @DomName('CSSRule.HOST_RULE')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-css-rule-host-rule
-  @Experimental()
-  static const int HOST_RULE = 1001;
 
   @DomName('CSSRule.IMPORT_RULE')
   @DocsEditable()
@@ -7647,6 +7637,11 @@ class Document extends Node
   @DocsEditable()
   HeadElement get _head native "Document_head_Getter";
 
+  @DomName('Document.hidden')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get hidden native "Document_hidden_Getter";
+
   @DomName('Document.implementation')
   @DocsEditable()
   DomImplementation get implementation native "Document_implementation_Getter";
@@ -7693,6 +7688,11 @@ class Document extends Node
   @DocsEditable()
   void set _title(String value) native "Document_title_Setter";
 
+  @DomName('Document.visibilityState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get visibilityState native "Document_visibilityState_Getter";
+
   @DomName('Document.webkitFullscreenElement')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -7735,7 +7735,7 @@ class Document extends Node
 
   @DomName('Document.adoptNode')
   @DocsEditable()
-  Node adoptNode(Node source) native "Document_adoptNode_Callback";
+  Node adoptNode(Node node) native "Document_adoptNode_Callback";
 
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable()
@@ -7759,26 +7759,21 @@ class Document extends Node
   @DocsEditable()
   Event _createEvent(String eventType) native "Document_createEvent_Callback";
 
-  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
-    if (expandEntityReferences != null) {
-      return _createNodeIterator_1(root, whatToShow, filter, expandEntityReferences);
-    }
+  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter]) {
     if (filter != null) {
-      return _createNodeIterator_2(root, whatToShow, filter);
+      return _createNodeIterator_1(root, whatToShow, filter);
     }
     if (whatToShow != null) {
-      return _createNodeIterator_3(root, whatToShow);
+      return _createNodeIterator_2(root, whatToShow);
     }
-    return _createNodeIterator_4(root);
+    return _createNodeIterator_3(root);
   }
 
-  NodeIterator _createNodeIterator_1(root, whatToShow, filter, expandEntityReferences) native "Document__createNodeIterator_1_Callback";
+  NodeIterator _createNodeIterator_1(root, whatToShow, filter) native "Document__createNodeIterator_1_Callback";
 
-  NodeIterator _createNodeIterator_2(root, whatToShow, filter) native "Document__createNodeIterator_2_Callback";
+  NodeIterator _createNodeIterator_2(root, whatToShow) native "Document__createNodeIterator_2_Callback";
 
-  NodeIterator _createNodeIterator_3(root, whatToShow) native "Document__createNodeIterator_3_Callback";
-
-  NodeIterator _createNodeIterator_4(root) native "Document__createNodeIterator_4_Callback";
+  NodeIterator _createNodeIterator_3(root) native "Document__createNodeIterator_3_Callback";
 
   @DomName('Document.createRange')
   @DocsEditable()
@@ -7794,26 +7789,21 @@ class Document extends Node
   @Experimental()
   Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
-  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter, bool expandEntityReferences]) {
-    if (expandEntityReferences != null) {
-      return _createTreeWalker_1(root, whatToShow, filter, expandEntityReferences);
-    }
+  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter]) {
     if (filter != null) {
-      return _createTreeWalker_2(root, whatToShow, filter);
+      return _createTreeWalker_1(root, whatToShow, filter);
     }
     if (whatToShow != null) {
-      return _createTreeWalker_3(root, whatToShow);
+      return _createTreeWalker_2(root, whatToShow);
     }
-    return _createTreeWalker_4(root);
+    return _createTreeWalker_3(root);
   }
 
-  TreeWalker _createTreeWalker_1(root, whatToShow, filter, expandEntityReferences) native "Document__createTreeWalker_1_Callback";
+  TreeWalker _createTreeWalker_1(root, whatToShow, filter) native "Document__createTreeWalker_1_Callback";
 
-  TreeWalker _createTreeWalker_2(root, whatToShow, filter) native "Document__createTreeWalker_2_Callback";
+  TreeWalker _createTreeWalker_2(root, whatToShow) native "Document__createTreeWalker_2_Callback";
 
-  TreeWalker _createTreeWalker_3(root, whatToShow) native "Document__createTreeWalker_3_Callback";
-
-  TreeWalker _createTreeWalker_4(root) native "Document__createTreeWalker_4_Callback";
+  TreeWalker _createTreeWalker_3(root) native "Document__createTreeWalker_3_Callback";
 
   @DomName('Document.elementFromPoint')
   @DocsEditable()
@@ -7835,7 +7825,7 @@ class Document extends Node
 
   @DomName('Document.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String tagname) native "Document_getElementsByClassName_Callback";
+  List<Node> getElementsByClassName(String classNames) native "Document_getElementsByClassName_Callback";
 
   @DomName('Document.getElementsByName')
   @DocsEditable()
@@ -7843,18 +7833,18 @@ class Document extends Node
 
   @DomName('Document.getElementsByTagName')
   @DocsEditable()
-  List<Node> getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
+  List<Node> getElementsByTagName(String localName) native "Document_getElementsByTagName_Callback";
 
-  Node importNode(Node importedNode, [bool deep]) {
+  Node importNode(Node node, [bool deep]) {
     if (deep != null) {
-      return _importNode_1(importedNode, deep);
+      return _importNode_1(node, deep);
     }
-    return _importNode_2(importedNode);
+    return _importNode_2(node);
   }
 
-  Node _importNode_1(importedNode, deep) native "Document__importNode_1_Callback";
+  Node _importNode_1(node, deep) native "Document__importNode_1_Callback";
 
-  Node _importNode_2(importedNode) native "Document__importNode_2_Callback";
+  Node _importNode_2(node) native "Document__importNode_2_Callback";
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable()
@@ -8683,17 +8673,49 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('DOMStringMap.__delete__')
-  @DocsEditable()
-  bool __delete__(String name) native "DOMStringMap___delete___Callback";
+  bool __delete__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return ___delete___1(index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return ___delete___2(index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  @DomName('DOMStringMap.__getter__')
-  @DocsEditable()
-  String __getter__(String name) native "DOMStringMap___getter___Callback";
+  bool ___delete___1(index_OR_name) native "DOMStringMap____delete___1_Callback";
 
-  @DomName('DOMStringMap.__setter__')
-  @DocsEditable()
-  void __setter__(String name, String value) native "DOMStringMap___setter___Callback";
+  bool ___delete___2(index_OR_name) native "DOMStringMap____delete___2_Callback";
+
+  String __getter__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return ___getter___1(index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return ___getter___2(index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  String ___getter___1(index_OR_name) native "DOMStringMap____getter___1_Callback";
+
+  String ___getter___2(index_OR_name) native "DOMStringMap____getter___2_Callback";
+
+  void __setter__(index_OR_name, String value) {
+    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
+      ___setter___1(index_OR_name, value);
+      return;
+    }
+    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
+      ___setter___2(index_OR_name, value);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void ___setter___1(index_OR_name, value) native "DOMStringMap____setter___1_Callback";
+
+  void ___setter___2(index_OR_name, value) native "DOMStringMap____setter___2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11183,8 +11205,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   Element insertAdjacentElement(String where, Element element);
 
-  void insertAdjacentHtml(String where, String html);
-
   void insertAdjacentText(String where, String text);
 
   @DomName('Element.attributes')
@@ -11363,6 +11383,19 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   // http://dev.w3.org/csswg/css-regions/#dom-region-regionoverset
   String get regionOverset native "Element_webkitRegionOverset_Getter";
 
+  void animate(List<Map> keyframes, [num duration]) {
+    if (duration != null) {
+      _animate_1(keyframes, duration);
+      return;
+    }
+    _animate_2(keyframes);
+    return;
+  }
+
+  void _animate_1(keyframes, duration) native "Element__animate_1_Callback";
+
+  void _animate_2(keyframes) native "Element__animate_2_Callback";
+
   @DomName('Element.blur')
   @DocsEditable()
   void blur() native "Element_blur_Callback";
@@ -11450,7 +11483,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String name) native "Element_getElementsByClassName_Callback";
+  List<Node> getElementsByClassName(String classNames) native "Element_getElementsByClassName_Callback";
 
   @DomName('Element.getElementsByTagName')
   @DocsEditable()
@@ -11463,6 +11496,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.hasAttributeNS')
   @DocsEditable()
   bool _hasAttributeNS(String namespaceURI, String localName) native "Element_hasAttributeNS_Callback";
+
+  @DomName('Element.insertAdjacentHTML')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void insertAdjacentHtml(String where, String html) native "Element_insertAdjacentHTML_Callback";
 
   /**
    * Finds the first descendant element of this element that matches the
@@ -12806,6 +12844,11 @@ class File extends Blob {
   // To suppress missing implicit constructor warnings.
   factory File._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('File.lastModified')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get lastModified native "File_lastModified_Getter";
+
   @DomName('File.lastModifiedDate')
   @DocsEditable()
   DateTime get lastModifiedDate native "File_lastModifiedDate_Getter";
@@ -13530,6 +13573,11 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DocsEditable()
   @Experimental() // untriaged
   void set weight(String value) native "FontFace_weight_Setter";
+
+  @DomName('FontFace.load')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void load() native "FontFace_load_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14301,6 +14349,16 @@ class HRElement extends HtmlElement {
    * This can only be called by subclasses from their created constructor.
    */
   HRElement.created() : super.created();
+
+  @DomName('HTMLHRElement.color')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get color native "HTMLHRElement_color_Getter";
+
+  @DomName('HTMLHRElement.color')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set color(String value) native "HTMLHRElement_color_Setter";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -15262,10 +15320,6 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   @Experimental() // non-standard
   Element insertAdjacentElement(String where, Element element) native "HTMLElement_insertAdjacentElement_Callback";
-
-  @DomName('HTMLElement.insertAdjacentHTML')
-  @DocsEditable()
-  void insertAdjacentHtml(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
 
   @DomName('HTMLElement.insertAdjacentText')
   @DocsEditable()
@@ -17757,6 +17811,16 @@ class InputMethodContext extends EventTarget {
   @DocsEditable()
   Composition get composition native "InputMethodContext_composition_Getter";
 
+  @DomName('InputMethodContext.compositionEndOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get compositionEndOffset native "InputMethodContext_compositionEndOffset_Getter";
+
+  @DomName('InputMethodContext.compositionStartOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get compositionStartOffset native "InputMethodContext_compositionStartOffset_Getter";
+
   @DomName('InputMethodContext.locale')
   @DocsEditable()
   String get locale native "InputMethodContext_locale_Getter";
@@ -17769,10 +17833,6 @@ class InputMethodContext extends EventTarget {
   @DomName('InputMethodContext.confirmComposition')
   @DocsEditable()
   void confirmComposition() native "InputMethodContext_confirmComposition_Callback";
-
-  @DomName('InputMethodContext.setCaretRectangle')
-  @DocsEditable()
-  void setCaretRectangle(Node anchor, int x, int y, int w, int h) native "InputMethodContext_setCaretRectangle_Callback";
 
   @DomName('InputMethodContext.addEventListener')
   @DocsEditable()
@@ -18832,6 +18892,16 @@ class MediaElement extends HtmlElement {
   @DocsEditable()
   void set controls(bool value) native "HTMLMediaElement_controls_Setter";
 
+  @DomName('HTMLMediaElement.crossOrigin')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get crossOrigin native "HTMLMediaElement_crossOrigin_Getter";
+
+  @DomName('HTMLMediaElement.crossOrigin')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set crossOrigin(String value) native "HTMLMediaElement_crossOrigin_Setter";
+
   @DomName('HTMLMediaElement.currentSrc')
   @DocsEditable()
   String get currentSrc native "HTMLMediaElement_currentSrc_Getter";
@@ -19562,33 +19632,6 @@ class MediaQueryList extends NativeFieldWrapperClass2 {
   @DomName('MediaQueryList.media')
   @DocsEditable()
   String get media native "MediaQueryList_media_Getter";
-
-  @DomName('MediaQueryList.addListener')
-  @DocsEditable()
-  void addListener(MediaQueryListListener listener) native "MediaQueryList_addListener_Callback";
-
-  @DomName('MediaQueryList.removeListener')
-  @DocsEditable()
-  void removeListener(MediaQueryListListener listener) native "MediaQueryList_removeListener_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('MediaQueryListListener')
-@Unstable()
-abstract class MediaQueryListListener extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory MediaQueryListListener._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('MediaQueryListListener.queryChanged')
-  @DocsEditable()
-  void queryChanged(MediaQueryList list) native "MediaQueryListListener_queryChanged_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22088,7 +22131,7 @@ class NodeFilter extends NativeFieldWrapperClass2 {
 @Unstable()
 class NodeIterator extends NativeFieldWrapperClass2 {
   factory NodeIterator(Node root, int whatToShow) {
-    return document._createNodeIterator(root, whatToShow, null, false);
+    return document._createNodeIterator(root, whatToShow, null);
   }
   // To suppress missing implicit constructor warnings.
   factory NodeIterator._() { throw new UnsupportedError("Not supported"); }
@@ -22235,17 +22278,6 @@ class Notification extends EventTarget {
   static const EventStreamProvider<Event> closeEvent = const EventStreamProvider<Event>('close');
 
   /**
-   * Static factory designed to expose `display` events to event
-   * handlers that are not necessarily instances of [Notification].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('Notification.displayEvent')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  static const EventStreamProvider<Event> displayEvent = const EventStreamProvider<Event>('display');
-
-  /**
    * Static factory designed to expose `error` events to event
    * handlers that are not necessarily instances of [Notification].
    *
@@ -22274,44 +22306,39 @@ class Notification extends EventTarget {
   @DocsEditable()
   static Notification _create_1(title, options) native "Notification__create_1constructorCallback";
 
+  @DomName('Notification.body')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get body native "Notification_body_Getter";
+
   @DomName('Notification.dir')
   @DocsEditable()
   @Experimental() // nonstandard
   String get dir native "Notification_dir_Getter";
 
-  @DomName('Notification.dir')
+  @DomName('Notification.icon')
   @DocsEditable()
-  @Experimental() // nonstandard
-  void set dir(String value) native "Notification_dir_Setter";
+  @Experimental() // untriaged
+  String get icon native "Notification_icon_Getter";
+
+  @DomName('Notification.lang')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get lang native "Notification_lang_Getter";
 
   @DomName('Notification.permission')
   @DocsEditable()
   String get permission native "Notification_permission_Getter";
-
-  @DomName('Notification.replaceId')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  String get replaceId native "Notification_replaceId_Getter";
-
-  @DomName('Notification.replaceId')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void set replaceId(String value) native "Notification_replaceId_Setter";
 
   @DomName('Notification.tag')
   @DocsEditable()
   @Experimental() // nonstandard
   String get tag native "Notification_tag_Getter";
 
-  @DomName('Notification.tag')
+  @DomName('Notification.title')
   @DocsEditable()
-  @Experimental() // nonstandard
-  void set tag(String value) native "Notification_tag_Setter";
-
-  @DomName('Notification.cancel')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void cancel() native "Notification_cancel_Callback";
+  @Experimental() // untriaged
+  String get title native "Notification_title_Getter";
 
   @DomName('Notification.close')
   @DocsEditable()
@@ -22327,11 +22354,6 @@ class Notification extends EventTarget {
         (value) { completer.complete(value); });
     return completer.future;
   }
-
-  @DomName('Notification.show')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void show() native "Notification_show_Callback";
 
   @DomName('Notification.addEventListener')
   @DocsEditable()
@@ -22354,12 +22376,6 @@ class Notification extends EventTarget {
   @DomName('Notification.onclose')
   @DocsEditable()
   Stream<Event> get onClose => closeEvent.forTarget(this);
-
-  /// Stream of `display` events handled by this [Notification].
-  @DomName('Notification.ondisplay')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  Stream<Event> get onDisplay => displayEvent.forTarget(this);
 
   /// Stream of `error` events handled by this [Notification].
   @DomName('Notification.onerror')
@@ -25396,6 +25412,21 @@ class ServiceWorker extends NativeFieldWrapperClass2 {
 
 
 @DocsEditable()
+@DomName('ServiceWorkerGlobalScope')
+@Experimental() // untriaged
+class ServiceWorkerGlobalScope extends WorkerGlobalScope {
+  // To suppress missing implicit constructor warnings.
+  factory ServiceWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental()
@@ -27898,6 +27929,11 @@ class TextTrack extends EventTarget {
   @DocsEditable()
   TextTrackCueList get cues native "TextTrack_cues_Getter";
 
+  @DomName('TextTrack.id')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get id native "TextTrack_id_Getter";
+
   @DomName('TextTrack.kind')
   @DocsEditable()
   String get kind native "TextTrack_kind_Getter";
@@ -27994,25 +28030,6 @@ class TextTrackCue extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
-  @DomName('TextTrackCue.TextTrackCue')
-  @DocsEditable()
-  factory TextTrackCue(num startTime, num endTime, String text) {
-    return TextTrackCue._create_1(startTime, endTime, text);
-  }
-
-  @DocsEditable()
-  static TextTrackCue _create_1(startTime, endTime, text) native "TextTrackCue__create_1constructorCallback";
-
-  @DomName('TextTrackCue.align')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  String get align native "TextTrackCue_align_Getter";
-
-  @DomName('TextTrackCue.align')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void set align(String value) native "TextTrackCue_align_Setter";
-
   @DomName('TextTrackCue.endTime')
   @DocsEditable()
   num get endTime native "TextTrackCue_endTime_Getter";
@@ -28029,16 +28046,6 @@ class TextTrackCue extends EventTarget {
   @DocsEditable()
   void set id(String value) native "TextTrackCue_id_Setter";
 
-  @DomName('TextTrackCue.line')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  int get line native "TextTrackCue_line_Getter";
-
-  @DomName('TextTrackCue.line')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void set line(int value) native "TextTrackCue_line_Setter";
-
   @DomName('TextTrackCue.pauseOnExit')
   @DocsEditable()
   bool get pauseOnExit native "TextTrackCue_pauseOnExit_Getter";
@@ -28046,46 +28053,6 @@ class TextTrackCue extends EventTarget {
   @DomName('TextTrackCue.pauseOnExit')
   @DocsEditable()
   void set pauseOnExit(bool value) native "TextTrackCue_pauseOnExit_Setter";
-
-  @DomName('TextTrackCue.position')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  int get position native "TextTrackCue_position_Getter";
-
-  @DomName('TextTrackCue.position')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void set position(int value) native "TextTrackCue_position_Setter";
-
-  @DomName('TextTrackCue.regionId')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get regionId native "TextTrackCue_regionId_Getter";
-
-  @DomName('TextTrackCue.regionId')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void set regionId(String value) native "TextTrackCue_regionId_Setter";
-
-  @DomName('TextTrackCue.size')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  int get size native "TextTrackCue_size_Getter";
-
-  @DomName('TextTrackCue.size')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void set size(int value) native "TextTrackCue_size_Setter";
-
-  @DomName('TextTrackCue.snapToLines')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  bool get snapToLines native "TextTrackCue_snapToLines_Getter";
-
-  @DomName('TextTrackCue.snapToLines')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void set snapToLines(bool value) native "TextTrackCue_snapToLines_Setter";
 
   @DomName('TextTrackCue.startTime')
   @DocsEditable()
@@ -28095,34 +28062,9 @@ class TextTrackCue extends EventTarget {
   @DocsEditable()
   void set startTime(num value) native "TextTrackCue_startTime_Setter";
 
-  @DomName('TextTrackCue.text')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  String get text native "TextTrackCue_text_Getter";
-
-  @DomName('TextTrackCue.text')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void set text(String value) native "TextTrackCue_text_Setter";
-
   @DomName('TextTrackCue.track')
   @DocsEditable()
   TextTrack get track native "TextTrackCue_track_Getter";
-
-  @DomName('TextTrackCue.vertical')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  String get vertical native "TextTrackCue_vertical_Getter";
-
-  @DomName('TextTrackCue.vertical')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  void set vertical(String value) native "TextTrackCue_vertical_Setter";
-
-  @DomName('TextTrackCue.getCueAsHTML')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  DocumentFragment getCueAsHtml() native "TextTrackCue_getCueAsHTML_Callback";
 
   @DomName('TextTrackCue.addEventListener')
   @DocsEditable()
@@ -28245,6 +28187,11 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DocsEditable()
   static const EventStreamProvider<TrackEvent> addTrackEvent = const EventStreamProvider<TrackEvent>('addtrack');
 
+  @DomName('TextTrackList.changeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
   @DomName('TextTrackList.length')
   @DocsEditable()
   int get length native "TextTrackList_length_Getter";
@@ -28294,6 +28241,11 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   TextTrack elementAt(int index) => this[index];
   // -- end List<TextTrack> mixins.
 
+  @DomName('TextTrackList.getTrackById')
+  @DocsEditable()
+  @Experimental() // untriaged
+  TextTrack getTrackById(String id) native "TextTrackList_getTrackById_Callback";
+
   @DomName('TextTrackList.item')
   @DocsEditable()
   TextTrack item(int index) native "TextTrackList_item_Callback";
@@ -28314,6 +28266,11 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DomName('TextTrackList.onaddtrack')
   @DocsEditable()
   Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
+
+  @DomName('TextTrackList.onchange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onChange => changeEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28756,7 +28713,7 @@ class TransitionEvent extends Event {
 @Unstable()
 class TreeWalker extends NativeFieldWrapperClass2 {
   factory TreeWalker(Node root, int whatToShow) {
-    return document._createTreeWalker(root, whatToShow, null, false);
+    return document._createTreeWalker(root, whatToShow, null);
   }
   // To suppress missing implicit constructor warnings.
   factory TreeWalker._() { throw new UnsupportedError("Not supported"); }
@@ -28964,13 +28921,13 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -29484,6 +29441,115 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
 // http://www.w3.org/TR/file-system-api/#the-voidcallback-interface
 @Experimental()
 typedef void VoidCallback();
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('VTTCue')
+@Experimental() // untriaged
+class VttCue extends TextTrackCue {
+  // To suppress missing implicit constructor warnings.
+  factory VttCue._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('VTTCue.VTTCue')
+  @DocsEditable()
+  factory VttCue(num startTime, num endTime, String text) {
+    return VttCue._create_1(startTime, endTime, text);
+  }
+
+  @DocsEditable()
+  static VttCue _create_1(startTime, endTime, text) native "VTTCue__create_1constructorCallback";
+
+  @DomName('VTTCue.align')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get align native "VTTCue_align_Getter";
+
+  @DomName('VTTCue.align')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set align(String value) native "VTTCue_align_Setter";
+
+  @DomName('VTTCue.line')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get line native "VTTCue_line_Getter";
+
+  @DomName('VTTCue.line')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set line(int value) native "VTTCue_line_Setter";
+
+  @DomName('VTTCue.position')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get position native "VTTCue_position_Getter";
+
+  @DomName('VTTCue.position')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set position(int value) native "VTTCue_position_Setter";
+
+  @DomName('VTTCue.regionId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get regionId native "VTTCue_regionId_Getter";
+
+  @DomName('VTTCue.regionId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set regionId(String value) native "VTTCue_regionId_Setter";
+
+  @DomName('VTTCue.size')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get size native "VTTCue_size_Getter";
+
+  @DomName('VTTCue.size')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set size(int value) native "VTTCue_size_Setter";
+
+  @DomName('VTTCue.snapToLines')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get snapToLines native "VTTCue_snapToLines_Getter";
+
+  @DomName('VTTCue.snapToLines')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set snapToLines(bool value) native "VTTCue_snapToLines_Setter";
+
+  @DomName('VTTCue.text')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get text native "VTTCue_text_Getter";
+
+  @DomName('VTTCue.text')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set text(String value) native "VTTCue_text_Setter";
+
+  @DomName('VTTCue.vertical')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get vertical native "VTTCue_vertical_Getter";
+
+  @DomName('VTTCue.vertical')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set vertical(String value) native "VTTCue_vertical_Setter";
+
+  @DomName('VTTCue.getCueAsHTML')
+  @DocsEditable()
+  @Experimental() // untriaged
+  DocumentFragment getCueAsHtml() native "VTTCue_getCueAsHTML_Callback";
+
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -33042,28 +33108,6 @@ abstract class _HTMLAppletElement extends HtmlElement {
 
 
 @DocsEditable()
-@DomName('HTMLBaseFontElement')
-// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#basefont
-@deprecated // deprecated
-abstract class _HTMLBaseFontElement extends HtmlElement {
-  // To suppress missing implicit constructor warnings.
-  factory _HTMLBaseFontElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _HTMLBaseFontElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('HTMLDirectoryElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dir
 @deprecated // deprecated
@@ -33731,6 +33775,21 @@ abstract class _WebKitMediaSource extends EventTarget {
 
   @DocsEditable()
   static _WebKitMediaSource _create_1() native "WebKitMediaSource__create_1constructorCallback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebKitNotification')
+@Experimental() // untriaged
+abstract class _WebKitNotification extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitNotification._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

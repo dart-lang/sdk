@@ -76,11 +76,16 @@ class Cursor extends NativeFieldWrapperClass2 {
 
   @DomName('IDBCursor.source')
   @DocsEditable()
-  dynamic get source native "IDBCursor_source_Getter";
+  Object get source native "IDBCursor_source_Getter";
 
   @DomName('IDBCursor.advance')
   @DocsEditable()
   void advance(int count) native "IDBCursor_advance_Callback";
+
+  @DomName('IDBCursor.continuePrimaryKey')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void continuePrimaryKey(Object key, Object primaryKey) native "IDBCursor_continuePrimaryKey_Callback";
 
   @DomName('IDBCursor.delete')
   @DocsEditable()
@@ -203,7 +208,7 @@ class Database extends EventTarget {
 
   @DomName('IDBDatabase.version')
   @DocsEditable()
-  dynamic get version native "IDBDatabase_version_Getter";
+  Object get version native "IDBDatabase_version_Getter";
 
   @DomName('IDBDatabase.close')
   @DocsEditable()
@@ -514,7 +519,7 @@ class Index extends NativeFieldWrapperClass2 {
 
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
-  dynamic get keyPath native "IDBIndex_keyPath_Getter";
+  Object get keyPath native "IDBIndex_keyPath_Getter";
 
   @DomName('IDBIndex.multiEntry')
   @DocsEditable()
@@ -767,7 +772,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
 
   @DomName('IDBObjectStore.keyPath')
   @DocsEditable()
-  dynamic get keyPath native "IDBObjectStore_keyPath_Getter";
+  Object get keyPath native "IDBObjectStore_keyPath_Getter";
 
   @DomName('IDBObjectStore.name')
   @DocsEditable()
@@ -949,11 +954,11 @@ class Request extends EventTarget {
 
   @DomName('IDBRequest.result')
   @DocsEditable()
-  dynamic get result native "IDBRequest_result_Getter";
+  Object get result native "IDBRequest_result_Getter";
 
   @DomName('IDBRequest.source')
   @DocsEditable()
-  dynamic get source native "IDBRequest_source_Getter";
+  Object get source native "IDBRequest_source_Getter";
 
   @DomName('IDBRequest.transaction')
   @DocsEditable()
@@ -1126,25 +1131,10 @@ class VersionChangeEvent extends Event {
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable()
-  dynamic get newVersion native "IDBVersionChangeEvent_newVersion_Getter";
+  Object get newVersion native "IDBVersionChangeEvent_newVersion_Getter";
 
   @DomName('IDBVersionChangeEvent.oldVersion')
   @DocsEditable()
-  dynamic get oldVersion native "IDBVersionChangeEvent_oldVersion_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('IDBAny')
-@deprecated // nonstandard
-abstract class _IDBAny extends NativeFieldWrapperClass2 {
-  // To suppress missing implicit constructor warnings.
-  factory _IDBAny._() { throw new UnsupportedError("Not supported"); }
+  Object get oldVersion native "IDBVersionChangeEvent_oldVersion_Getter";
 
 }

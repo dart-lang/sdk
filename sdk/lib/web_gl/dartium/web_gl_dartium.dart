@@ -544,6 +544,16 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   @DocsEditable()
   void set depth(bool value) native "WebGLContextAttributes_depth_Setter";
 
+  @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get failIfMajorPerformanceCaveat native "WebGLContextAttributes_failIfMajorPerformanceCaveat_Getter";
+
+  @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set failIfMajorPerformanceCaveat(bool value) native "WebGLContextAttributes_failIfMajorPerformanceCaveat_Setter";
+
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   @DocsEditable()
   bool get premultipliedAlpha native "WebGLContextAttributes_premultipliedAlpha_Getter";

@@ -660,7 +660,7 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
 @DocsEditable()
 @DomName('SVGCircleElement')
 @Unstable()
-class CircleElement extends GraphicsElement implements ExternalResourcesRequired {
+class CircleElement extends GeometryElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory CircleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1488,7 +1488,7 @@ class ElementInstance extends EventTarget {
 @DocsEditable()
 @DomName('SVGEllipseElement')
 @Unstable()
-class EllipseElement extends GraphicsElement implements ExternalResourcesRequired {
+class EllipseElement extends GeometryElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory EllipseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3285,6 +3285,37 @@ class GElement extends GraphicsElement implements ExternalResourcesRequired {
 
 
 @DocsEditable()
+@DomName('SVGGeometryElement')
+@Experimental() // untriaged
+class GeometryElement extends GraphicsElement {
+  // To suppress missing implicit constructor warnings.
+  factory GeometryElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  GeometryElement.created() : super.created();
+
+  @DomName('SVGGeometryElement.isPointInFill')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isPointInFill(Point point) native "SVGGeometryElement_isPointInFill_Callback";
+
+  @DomName('SVGGeometryElement.isPointInStroke')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isPointInStroke(Point point) native "SVGGeometryElement_isPointInStroke_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('SVGGraphicsElement')
 @Experimental() // untriaged
 class GraphicsElement extends SvgElement implements Tests {
@@ -3609,7 +3640,7 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
 @DocsEditable()
 @DomName('SVGLineElement')
 @Unstable()
-class LineElement extends GraphicsElement implements ExternalResourcesRequired {
+class LineElement extends GeometryElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory LineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4105,7 +4136,7 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
 @DocsEditable()
 @DomName('SVGPathElement')
 @Unstable()
-class PathElement extends GraphicsElement implements ExternalResourcesRequired {
+class PathElement extends GeometryElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory PathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5354,7 +5385,7 @@ class PointList extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGPolygonElement')
 @Unstable()
-class PolygonElement extends GraphicsElement implements ExternalResourcesRequired {
+class PolygonElement extends GeometryElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory PolygonElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5391,7 +5422,7 @@ class PolygonElement extends GraphicsElement implements ExternalResourcesRequire
 @DocsEditable()
 @DomName('SVGPolylineElement')
 @Unstable()
-class PolylineElement extends GraphicsElement implements ExternalResourcesRequired {
+class PolylineElement extends GeometryElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory PolylineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5611,7 +5642,7 @@ class Rect extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGRectElement')
 @Unstable()
-class RectElement extends GraphicsElement implements ExternalResourcesRequired {
+class RectElement extends GeometryElement implements ExternalResourcesRequired {
   // To suppress missing implicit constructor warnings.
   factory RectElement._() { throw new UnsupportedError("Not supported"); }
 

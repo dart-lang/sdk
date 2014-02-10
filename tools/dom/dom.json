@@ -34,6 +34,17 @@
     },
     "support_level": "untriaged"
   },
+  "AesCtrParams": {
+    "members": {
+      "counter": {
+        "support_level": "untriaged"
+      },
+      "length": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "AesKeyGenParams": {
     "members": {
       "length": {
@@ -1771,6 +1782,9 @@
         "dart_action": "unstable"
       },
       "head": {},
+      "hidden": {
+        "support_level": "untriaged"
+      },
       "images": {
         "dart_action": "suppress"
       },
@@ -1972,6 +1986,9 @@
       },
       "styleSheets": {},
       "title": {},
+      "visibilityState": {
+        "support_level": "untriaged"
+      },
       "webkitCancelFullScreen": {
         "comment": "https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html",
         "dart_action": "suppress",
@@ -2126,6 +2143,9 @@
         "comment": "https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "animate": {
+        "support_level": "untriaged"
       },
       "attributes": {},
       "blur": {},
@@ -2826,6 +2846,9 @@
   "File": {
     "comment": "http://www.w3.org/TR/FileAPI/#dfn-file",
     "members": {
+      "lastModified": {
+        "support_level": "untriaged"
+      },
       "lastModifiedDate": {},
       "name": {},
       "webkitRelativePath": {
@@ -3033,6 +3056,9 @@
         "support_level": "untriaged"
       },
       "featureSettings": {
+        "support_level": "untriaged"
+      },
+      "load": {
         "support_level": "untriaged"
       },
       "status": {
@@ -4103,6 +4129,9 @@
         "dart_action": "suppress",
         "support_level": "deprecated"
       },
+      "color": {
+        "support_level": "untriaged"
+      },
       "noShade": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLHRElement-partial",
         "dart_action": "suppress",
@@ -4522,6 +4551,9 @@
       },
       "controller": {},
       "controls": {},
+      "crossOrigin": {
+        "support_level": "untriaged"
+      },
       "currentSrc": {},
       "currentTime": {},
       "defaultMuted": {},
@@ -5501,6 +5533,9 @@
     "members": {
       "advance": {},
       "continue": {},
+      "continuePrimaryKey": {
+        "support_level": "untriaged"
+      },
       "delete": {},
       "direction": {},
       "key": {},
@@ -5726,6 +5761,12 @@
         "support_level": "untriaged"
       },
       "composition": {},
+      "compositionEndOffset": {
+        "support_level": "untriaged"
+      },
+      "compositionStartOffset": {
+        "support_level": "untriaged"
+      },
       "confirmComposition": {},
       "dispatchEvent": {
         "support_level": "untriaged"
@@ -6758,6 +6799,9 @@
     "members": {
       "Notification": {},
       "addEventListener": {},
+      "body": {
+        "support_level": "untriaged"
+      },
       "cancel": {
         "dart_action": "experimental",
         "support_level": "nonstandard"
@@ -6768,6 +6812,12 @@
         "support_level": "nonstandard"
       },
       "dispatchEvent": {},
+      "icon": {
+        "support_level": "untriaged"
+      },
+      "lang": {
+        "support_level": "untriaged"
+      },
       "onclick": {},
       "onclose": {},
       "ondisplay": {
@@ -6790,6 +6840,9 @@
       "tag": {
         "dart_action": "experimental",
         "support_level": "nonstandard"
+      },
+      "title": {
+        "support_level": "untriaged"
       }
     },
     "support_level": "experimental"
@@ -9368,6 +9421,17 @@
     },
     "support_level": "stable"
   },
+  "SVGGeometryElement": {
+    "members": {
+      "isPointInFill": {
+        "support_level": "untriaged"
+      },
+      "isPointInStroke": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "SVGGlyphElement": {
     "comment": "http://www.w3.org/TR/SVG/fonts.html#InterfaceSVGGlyphElement",
     "dart_action": "unstable",
@@ -11140,6 +11204,10 @@
     "members": {},
     "support_level": "untriaged"
   },
+  "ServiceWorkerGlobalScope": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "ShadowRoot": {
     "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-root",
     "members": {
@@ -11648,6 +11716,9 @@
       },
       "cues": {},
       "dispatchEvent": {},
+      "id": {
+        "support_level": "untriaged"
+      },
       "kind": {},
       "label": {},
       "language": {},
@@ -11730,9 +11801,15 @@
     "members": {
       "addEventListener": {},
       "dispatchEvent": {},
+      "getTrackById": {
+        "support_level": "untriaged"
+      },
       "item": {},
       "length": {},
       "onaddtrack": {},
+      "onchange": {
+        "support_level": "untriaged"
+      },
       "removeEventListener": {}
     },
     "support_level": "experimental"
@@ -12051,6 +12128,39 @@
     },
     "support_level": "stable"
   },
+  "VTTCue": {
+    "members": {
+      "VTTCue": {},
+      "align": {
+        "support_level": "untriaged"
+      },
+      "getCueAsHTML": {
+        "support_level": "untriaged"
+      },
+      "line": {
+        "support_level": "untriaged"
+      },
+      "position": {
+        "support_level": "untriaged"
+      },
+      "regionId": {
+        "support_level": "untriaged"
+      },
+      "size": {
+        "support_level": "untriaged"
+      },
+      "snapToLines": {
+        "support_level": "untriaged"
+      },
+      "text": {
+        "support_level": "untriaged"
+      },
+      "vertical": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "VTTRegion": {
     "members": {
       "VTTRegion": {},
@@ -12205,6 +12315,9 @@
       "alpha": {},
       "antialias": {},
       "depth": {},
+      "failIfMajorPerformanceCaveat": {
+        "support_level": "untriaged"
+      },
       "premultipliedAlpha": {},
       "preserveDrawingBuffer": {},
       "stencil": {}
@@ -12976,6 +13089,10 @@
       "namedItem": {}
     },
     "support_level": "experimental"
+  },
+  "WebKitNotification": {
+    "members": {},
+    "support_level": "untriaged"
   },
   "WebKitPoint": {
     "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
