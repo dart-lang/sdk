@@ -453,7 +453,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   type_arguments.set_instantiations(*reader->ArrayHandle());
   for (intptr_t i = 0; i < len; i++) {
     *reader->TypeHandle() ^= reader->ReadObjectImpl();
-    type_arguments.SetTypeAt(i, *reader->TypeHandle());
+    type_arguments.set_type_at(i, *reader->TypeHandle());
   }
 
   // If object needs to be a canonical object, Canonicalize it.

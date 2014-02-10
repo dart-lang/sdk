@@ -723,6 +723,15 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
     ErrorHandle()->set_exception(exception);
     Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
   }
+#if defined(DEBUG)
+  // Zap the uninitialized memory area.
+  uword current = address;
+  uword end = address + size;
+  while (current < end) {
+    *reinterpret_cast<intptr_t*>(current) = kZapUninitializedWord;
+    current += kWordSize;
+  }
+#endif  // defined(DBEUG)
   // Make sure to initialize the last word, as this can be left untouched in
   // case the object deserialized has an alignment tail.
   *reinterpret_cast<RawObject**>(address + size - kWordSize) = Object::null();

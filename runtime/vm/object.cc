@@ -3993,6 +3993,12 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 }
 
 
+void TypeArguments::set_type_at(intptr_t index,
+                                const AbstractType& value) const {
+  StorePointer(TypeAddr(index), value.raw());
+}
+
+
 void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
   const AbstractType& type_arg = AbstractType::Handle(TypeAt(index));
   if (type_arg.IsTypeRef()) {
@@ -4000,7 +4006,7 @@ void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
       TypeRef::Cast(type_arg).set_type(value);
     }
   } else {
-    StorePointer(TypeAddr(index), value.raw());
+    set_type_at(index, value);
   }
 }
 
@@ -4206,7 +4212,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
          instantiator_type_arguments.IsCanonical());
   // Lookup instantiator and, if found, return paired instantiated result.
   Array& prior_instantiations = Array::Handle(instantiations());
-  ASSERT(!prior_instantiations.IsNull());
+  ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
   intptr_t length = prior_instantiations.Length();
   intptr_t index = 0;
   while (index < length) {
