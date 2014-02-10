@@ -40,6 +40,7 @@
         'runtime/dart-runtime.gyp:dart',
         'utils/compiler/compiler.gyp:dart2js',
         'utils/pub/pub.gyp:pub',
+        'dartfmt',
         'analyzer',
       ],
       'actions': [
@@ -54,6 +55,7 @@
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '<(PRODUCT_DIR)/dartanalyzer/dartanalyzer.jar',
+            '<(SHARED_INTERMEDIATE_DIR)/dartfmt.dart.snapshot',
             'tools/VERSION'
           ],
           'outputs': [
@@ -81,6 +83,13 @@
       'type': 'none',
       'dependencies': [
         'editor/analyzer.gyp:analyzer',
+      ],
+    },
+    {
+      'target_name': 'dartfmt',
+      'type': 'none',
+      'dependencies': [
+        'utils/dartfmt/dartfmt.gyp:dartfmt',
       ],
     },
     {
