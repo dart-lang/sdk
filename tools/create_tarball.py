@@ -112,9 +112,11 @@ def CreateTarball():
   tarname = '%s.tar.gz' % versiondir
   debian_dir = 'tools/linux_dist_support/debian'
   # Create the tar file in the build directory.
-  tardir = join(DART_DIR, utils.GetBuildDir(HOST_OS, HOST_OS))
-  # Don't include the build directory in the tarball.
-  ignoredPaths.append(tardir)
+  builddir = utils.GetBuildDir(HOST_OS, HOST_OS)
+  tardir = join(DART_DIR, builddir)
+  # Don't include the build directory in the tarball (ignored paths
+  # are relative to DART_DIR).
+  ignoredPaths.append(builddir)
   if not exists(tardir):
     makedirs(tardir)
   tarfilename = join(tardir, tarname)
