@@ -494,8 +494,7 @@ class ContainerBuilder extends CodeEmitterHelper {
         String reflectionNameString = task.getReflectionName(member, name);
         reflectionName =
             new jsAst.LiteralString(
-                '"new ${Elements.reconstructConstructorName(member)}"'
-                ' /* $reflectionNameString */');
+                '"new ${Elements.reconstructConstructorName(member)}"');
       } else {
         reflectionName = js.string(member.name);
       }
