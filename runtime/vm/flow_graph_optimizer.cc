@@ -7233,12 +7233,32 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
 
 void ConstantPropagator::VisitExtractConstructorTypeArguments(
     ExtractConstructorTypeArgumentsInstr* instr) {
+  CompileType* type = instr->instantiator()->Type();
+  if (type->HasDecidableNullability()) {
+    if (!type->is_nullable()) {
+      SetValue(instr, instr->type_arguments());
+      return;
+    }
+    ASSERT(type->IsNull());
+    SetValue(instr, instr->instantiator()->definition()->constant_value());
+    return;
+  }
   SetValue(instr, non_constant_);
 }
 
 
 void ConstantPropagator::VisitExtractConstructorInstantiator(
     ExtractConstructorInstantiatorInstr* instr) {
+  CompileType* type = instr->instantiator()->Type();
+  if (type->HasDecidableNullability()) {
+    if (type->IsNull()) {
+      SetValue(instr, Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator)));
+      return;
+    }
+    ASSERT(!type->is_nullable());
+    SetValue(instr, instr->instantiator()->definition()->constant_value());
+    return;
+  }
   SetValue(instr, non_constant_);
 }
 
