@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 identity_test: Fail # Issue 6638
-constant_folding_string_test: Fail
 boolified_operator_test: Fail # Issue 8001
 
 # simple_function_subtype_test is temporarily(?) disabled due to new method for
