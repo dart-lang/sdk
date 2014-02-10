@@ -58,35 +58,64 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
  */
 const JsonCodec JSON = const JsonCodec();
 
+typedef _Reviver(var key, var value);
+typedef _ToEncodable(var o);
+
+
 /**
  * A [JsonCodec] encodes JSON objects to strings and decodes strings to
  * JSON objects.
  */
 class JsonCodec extends Codec<Object, String> {
-  const JsonCodec();
+  final _Reviver _reviver;
+  final _ToEncodable _toEncodable;
+
+  /**
+   * Creates a `JsonCodec` with the given reviver and encoding function.
+   *
+   * The [reviver] function is called during decoding. It is invoked
+   * once for each object or list property that has been parsed.
+   * The `key` argument is either the
+   * integer list index for a list property, the string map key for object
+   * properties, or `null` for the final result.
+   *
+   * If [reviver] is omitted, it defaults to returning the value argument.
+   *
+   * The [toEncodable] function is used during encoding. It is invoked for
+   * values that are not directly encodable to a JSON
+   * string (a value that is not a number, boolean, string, null, list or a map
+   * with string keys). The function must return an object that is directly
+   * encodable.
+   *
+   * If [toEncodable] is omitted, it defaults to a function that returns the
+   * result of calling `.toJson()` on the unencodable object.
+   */
+  const JsonCodec({reviver(var key, var value), toEncodable(var object)})
+      : _reviver = reviver,
+        _toEncodable = toEncodable;
 
   /**
    * Creates a `JsonCodec` with the given reviver.
    *
    * The [reviver] function is called once for each object or list property
    * that has been parsed during decoding. The `key` argument is either the
-   * integer list index for a list property, the map string for object
+   * integer list index for a list property, the string map key for object
    * properties, or `null` for the final result.
    */
-  factory JsonCodec.withReviver(reviver(var key, var value)) =
-      _ReviverJsonCodec;
+  JsonCodec.withReviver(reviver(var key, var value)) : this(reviver: reviver);
 
   /**
    * Parses the string and returns the resulting Json object.
    *
    * The optional [reviver] function is called once for each object or list
    * property that has been parsed during decoding. The `key` argument is either
-   * the integer list index for a list property, the map string for object
+   * the integer list index for a list property, the string map key for object
    * properties, or `null` for the final result.
    *
    * The default [reviver] (when not provided) is the identity function.
    */
   dynamic decode(String source, {reviver(var key, var value)}) {
+    if (reviver == null) reviver = _reviver;
     if (reviver == null) return decoder.convert(source);
     return new JsonDecoder(reviver).convert(source);
   }
@@ -99,30 +128,24 @@ class JsonCodec extends Codec<Object, String> {
    * with string keys), the [toEncodable] function is used to convert it to an
    * object that must be directly encodable.
    *
-   * If [toEncodable] is omitted, it defaults to calling `.toJson()` on the
-   * unencodable object.
+   * If [toEncodable] is omitted, it defaults to a function that returns the
+   * result of calling `.toJson()` on the unencodable object.
    */
   String encode(Object value, {toEncodable(var object)}) {
+    if (toEncodable == null) toEncodable = _toEncodable;
     if (toEncodable == null) return encoder.convert(value);
     return new JsonEncoder(toEncodable).convert(value);
   }
 
-  JsonEncoder get encoder => const JsonEncoder();
-  JsonDecoder get decoder => const JsonDecoder(null);
-}
-
-typedef _Reviver(var key, var value);
-
-class _ReviverJsonCodec extends JsonCodec {
-  final _Reviver _reviver;
-  _ReviverJsonCodec(this._reviver);
-
-  dynamic decode(String source, {reviver(var key, var value)}) {
-    if (reviver == null) reviver = _reviver;
-    return new JsonDecoder(reviver).convert(source);
+  JsonEncoder get encoder {
+    if (_toEncodable == null) return const JsonEncoder();
+    return new JsonEncoder(_toEncodable);
   }
 
-  JsonDecoder get decoder => new JsonDecoder(_reviver);
+  JsonDecoder get decoder {
+    if (_reviver == null) return const JsonDecoder();
+    return new JsonDecoder(_reviver);
+  }
 }
 
 /**
@@ -239,7 +262,7 @@ class JsonDecoder extends Converter<String, Object> {
    *
    * The [reviver] may be `null`.
    */
-  const JsonDecoder(reviver(var key, var value)) : this._reviver = reviver;
+  const JsonDecoder([reviver(var key, var value)]) : this._reviver = reviver;
 
   /**
    * Converts the given JSON-string [input] to its corresponding object.
