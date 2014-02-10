@@ -1325,7 +1325,8 @@ class Library extends Indexable {
         }
     });
     this.functions = _createMethods(_addAll(exported['methods'],
-        dart2js_util.methodsOf(libraryMirror.declarations)).values, this);
+        libraryMirror.declarations.values.where(
+            (mirror) => mirror is MethodMirror)).values, this);
     this.variables = _createVariables(_addAll(exported['variables'],
         dart2js_util.variablesOf(libraryMirror.declarations)).values, this);
   }
@@ -1444,7 +1445,8 @@ class Library extends Indexable {
         _addAll(exports['classes'],
             dart2js_util.typesOf(export.targetLibrary.declarations));
         _addAll(exports['methods'],
-            dart2js_util.methodsOf(export.targetLibrary.declarations));
+            export.targetLibrary.declarations.values.where(
+                (mirror) => mirror is MethodMirror));
         _addAll(exports['variables'],
             dart2js_util.variablesOf(export.targetLibrary.declarations));
       }
@@ -1548,7 +1550,7 @@ abstract class OwnedIndexable extends Indexable {
       }
     }
     var domAnnotation = this.annotations.firstWhere(
-        (e) => e.mirror.qualifiedName == 'metadata.DomName',
+        (e) => e.mirror.qualifiedName == #metadata.DomName,
         orElse: () => null);
     if (domAnnotation == null) return '';
     var domName = domAnnotation.parameters.single;
