@@ -8,5 +8,5 @@
 import 'dart:_isolate_helper';
 
 void main() {
-  print(controlPort);
+  print(startRootIsolate);
 }
