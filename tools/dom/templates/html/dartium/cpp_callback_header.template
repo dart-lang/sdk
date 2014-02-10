@@ -16,31 +16,31 @@ namespace WebCore {
 
 class Dart$(INTERFACE) : public $(INTERFACE), public ActiveDOMCallback {
 public:
-    typedef $(INTERFACE) NativeType;
+    typedef Dart$(INTERFACE) NativeType;
 
-    static PassRefPtr<NativeType> create(Dart_Handle object, Dart_Handle& exception)
+    static PassOwnPtr<NativeType> create(Dart_Handle object, Dart_Handle& exception)
     {
-        return adoptRef(new Dart$(INTERFACE)(object, exception, DartUtilities::scriptExecutionContext()));
+        return adoptPtr(new Dart$(INTERFACE)(object, exception, DartUtilities::scriptExecutionContext()));
     }
 
-    static PassRefPtr<NativeType> createWithNullCheck(Dart_Handle object, Dart_Handle& exception)
+    static PassOwnPtr<NativeType> createWithNullCheck(Dart_Handle object, Dart_Handle& exception)
     {
         if (Dart_IsNull(object))
-            return 0;
+            return PassOwnPtr<NativeType>();
         return create(object, exception);
     }
 
-    static PassRefPtr<NativeType> create(Dart_NativeArguments args, int idx, Dart_Handle& exception)
+    static PassOwnPtr<NativeType> create(Dart_NativeArguments args, int idx, Dart_Handle& exception)
     {
         Dart_Handle object = Dart_GetNativeArgument(args, idx);
         return create(object, exception);
     }
 
-    static PassRefPtr<NativeType> createWithNullCheck(Dart_NativeArguments args, int idx, Dart_Handle& exception)
+    static PassOwnPtr<NativeType> createWithNullCheck(Dart_NativeArguments args, int idx, Dart_Handle& exception)
     {
         Dart_Handle object = Dart_GetNativeArgument(args, idx);
         if (Dart_IsNull(object))
-            return 0;
+            return PassOwnPtr<NativeType>();
         return create(object, exception);
     }
 

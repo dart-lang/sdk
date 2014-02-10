@@ -5,6 +5,7 @@
 event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
+custom/template_wrappers_test: Pass, Fail # Issue 16656 (Chrome 33 regression)
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
@@ -35,6 +36,10 @@ xhr_test/json: Fail # Issue 13069
 async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
+node_test/iterating : RuntimeError # Issue 16657 (Chrome 33 regression)
+indexeddb_5_test: RuntimeError # Issue 16657 Chrome 33 regression)
+fileapi_test/fileEntry: RuntimeError # Issue 16657 (Chrome 33 regression)
+audiocontext_test/functional: RuntimeError # Issue 16657 (Chrome 33 regression)
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.

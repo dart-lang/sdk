@@ -666,7 +666,7 @@ class IDLTypeInfo(object):
     cls = self.bindings_class()
 
     if 'Callback' in idl_node.ext_attrs:
-      return '%s', 'RefPtr<%s>' % self.native_type(), cls, 'create'
+      return '%s.release()', 'OwnPtr<%s>' % self.native_type(), cls, 'create'
 
     if self.custom_to_native():
       type = 'RefPtr<%s>' % self.native_type()
