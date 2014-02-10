@@ -263,10 +263,11 @@ abstract class RawSecureSocket implements RawSocket {
    * connection is prepared for TLS handshake.
    *
    * If the [socket] already has a subscription, pass the existing
-   * subscription in the [subscription] parameter. The secure socket
-   * will take over the subscription and process any subsequent
-   * events. In most cases calling `pause` on this subscription before
-   * starting TLS handshake is the right thing to do.
+   * subscription in the [subscription] parameter. The [secure]
+   * operation will take over the subscription by replacing the
+   * handlers with it own secure processing. The caller must not touch
+   * this subscription anymore. Passing a paused subscription is an
+   * error.
    *
    * If the [host] argument is passed it will be used as the host name
    * for the TLS handshake. If [host] is not passed the host name from
@@ -310,9 +311,11 @@ abstract class RawSecureSocket implements RawSocket {
    * connection is going to start the TLS handshake.
    *
    * If the [socket] already has a subscription, pass the existing
-   * subscription in the [subscription] parameter. The secure socket
-   * will take over the subscription and process any subsequent
-   * events.
+   * subscription in the [subscription] parameter. The [secureServer]
+   * operation will take over the subscription by replacing the
+   * handlers with it own secure processing. The caller must not touch
+   * this subscription anymore. Passing a paused subscription is an
+   * error.
    *
    * If some of the data of the TLS handshake has already been read
    * from the socket this data can be passed in the [bufferedData]
@@ -535,6 +538,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                                              onError: _reportError,
                                              onDone: _doneHandler);
       } else {
+        if (_socketSubscription.isPaused) {
+          throw new StateError("Subscription passed to TLS upgrade is paused");
+        }
         _socketSubscription
             ..onData(_eventDispatcher)
             ..onError(_reportError)
