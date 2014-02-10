@@ -46,15 +46,6 @@ import 'mirrors_used.dart' show
     MirrorUsageAnalyzerTask,
     MirrorUsage;
 
-import "dart_types.dart" show
-   DartType,
-   VoidType,
-   InterfaceType,
-   FunctionType,
-   TypeVariableType,
-   MalformedType,
-   TypedefType;
-
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
 ///
@@ -140,9 +131,6 @@ class DeferredLoadTask extends CompilerTask {
   // be loaded.
   Map<Import, Set<Element>> _importedDeferredBy = null;
   Map<Import, Set<Constant>> _constantsDeferredBy = null;
-
-  // The types we have visited in [addNestedTypes].
-  Set<DartType> _visitedTypes;
 
   Set<Element> _mainElements = new Set<Element>();
 
@@ -300,41 +288,8 @@ class DeferredLoadTask extends CompilerTask {
           _collectDependencies(e.implementation, elements, constants);
         });
       }
-      // Adds, recursively, to [elements] any types the [type] depends on in its
-      // type arguments.
-      void addNestedTypes(DartType type) {
-        if (_visitedTypes.contains(type)) return;
-        _visitedTypes.add(type);
-        // Gives a FunctionType from a TypedefType.
-        type = type.unalias(compiler);
-        // Only add concrete types.
-        if (type is VoidType) return;
-        if (type is TypeVariableType) return;
-        if (type is MalformedType) return;
-        if (type is FunctionType) {
-          FunctionType functionType = type;
-          addNestedTypes(functionType.returnType);
-          for (DartType parameterType in functionType.parameterTypes) {
-            addNestedTypes(parameterType);
-          }
-          for (DartType parameterType in functionType.optionalParameterTypes) {
-            addNestedTypes(parameterType);
-          }
-          for (DartType parameterType in functionType.namedParameterTypes) {
-            addNestedTypes(parameterType);
-          }
-          return;
-        }
-        assert(invariant(type.element, type is InterfaceType,
-                         message: "Unrecognized type: $type"));
-        InterfaceType interfaceType = type;
-        for (DartType typeArgument in interfaceType.typeArguments) {
-          addNestedTypes(typeArgument);
-        }
+      for (var type in cls.implementation.allSupertypes) {
         elements.add(type.element.implementation);
-      }
-      for (DartType supertype in cls.implementation.allSupertypes) {
-        addNestedTypes(supertype);
       }
       elements.add(cls.implementation);
     } else if (Elements.isStaticOrTopLevel(element) ||
@@ -602,7 +557,6 @@ class DeferredLoadTask extends CompilerTask {
     _importedDeferredBy = new Map<Import, Set<Element>>();
     _constantsDeferredBy = new Map<Import, Set<Constant>>();
     _importedDeferredBy[_fakeMainImport] = _mainElements;
-    _visitedTypes = new Set<DartType>();
 
     measureElement(mainLibrary, () {
 
@@ -638,7 +592,6 @@ class DeferredLoadTask extends CompilerTask {
       // Release maps;
       _importedDeferredBy = null;
       _constantsDeferredBy = null;
-      _visitedTypes = null;
 
       _adjustConstantsOutputUnit(allConstants);
 
