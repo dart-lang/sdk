@@ -603,6 +603,8 @@ class RuntimeTypes {
          index++, variables = variables.tail) {
       if (variables.head.element == variable) return index;
     }
+    throw invariant(variable, false,
+                    message: "Couldn't find type-variable index");
   }
 
   /// Return all classes that are referenced in the type of the function, i.e.,

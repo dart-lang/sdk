@@ -25,105 +25,107 @@ class CloningVisitor implements Visitor<Node> {
     return clone;
   }
 
-  visitBlock(Block node) => new Block(visit(node.statements));
+  Node visitBlock(Block node) => new Block(visit(node.statements));
 
-  visitBreakStatement(BreakStatement node) => new BreakStatement(
+  Node visitBreakStatement(BreakStatement node) => new BreakStatement(
       visit(node.target), node.keywordToken, node.semicolonToken);
 
-  visitCascade(Cascade node) => new Cascade(visit(node.expression));
+  Node visitCascade(Cascade node) => new Cascade(visit(node.expression));
 
-  visitCascadeReceiver(CascadeReceiver node) => new CascadeReceiver(
+  Node visitCascadeReceiver(CascadeReceiver node) => new CascadeReceiver(
       visit(node.expression), node.cascadeOperator);
 
-  visitCaseMatch(CaseMatch node) => new CaseMatch(
+  Node visitCaseMatch(CaseMatch node) => new CaseMatch(
       node.caseKeyword, visit(node.expression), node.colonToken);
 
-  visitCatchBlock(CatchBlock node) => new CatchBlock(
+  Node visitCatchBlock(CatchBlock node) => new CatchBlock(
       visit(node.type), visit(node.formals), visit(node.block),
       node.onKeyword, node.catchKeyword);
 
-  visitClassNode(ClassNode node) => new ClassNode(
+  Node visitClassNode(ClassNode node) => new ClassNode(
       visit(node.modifiers), visit(node.name), visit(node.typeParameters),
       visit(node.superclass), visit(node.interfaces),
       node.beginToken, node.extendsKeyword, visit(node.body), node.endToken);
 
-  visitConditional(Conditional node) => new Conditional(
+  Node visitConditional(Conditional node) => new Conditional(
       visit(node.condition), visit(node.thenExpression),
       visit(node.elseExpression), node.questionToken, node.colonToken);
 
-  visitContinueStatement(ContinueStatement node) => new ContinueStatement(
+  Node visitContinueStatement(ContinueStatement node) => new ContinueStatement(
       visit(node.target), node.keywordToken, node.semicolonToken);
 
-  visitDoWhile(DoWhile node) => new DoWhile(
+  Node visitDoWhile(DoWhile node) => new DoWhile(
       visit(node.body), visit(node.condition),
       node.doKeyword, node.whileKeyword, node.endToken);
 
-  visitEmptyStatement(EmptyStatement node) => new EmptyStatement(
+  Node visitEmptyStatement(EmptyStatement node) => new EmptyStatement(
       node.semicolonToken);
 
-  visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(
+  Node visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(
       visit(node.expression), node.endToken);
 
-  visitFor(For node) => new For(
+  Node visitFor(For node) => new For(
       visit(node.initializer), visit(node.conditionStatement),
       visit(node.update), visit(node.body), node.forToken);
 
-  visitForIn(ForIn node) => new ForIn(
+  Node visitForIn(ForIn node) => new ForIn(
       visit(node.declaredIdentifier), visit(node.expression), visit(node.body),
       node.forToken, node.inToken);
 
-  visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(
+  Node visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration(
       visit(node.function));
 
-  rewriteFunctionExpression(FunctionExpression node, Statement body) =>
+  Node rewriteFunctionExpression(FunctionExpression node, Statement body) =>
       new FunctionExpression(
           visit(node.name), visit(node.parameters), body,
           visit(node.returnType), visit(node.modifiers),
           visit(node.initializers), node.getOrSet);
 
-  visitFunctionExpression(FunctionExpression node) =>
+  Node visitFunctionExpression(FunctionExpression node) =>
       rewriteFunctionExpression(node, visit(node.body));
 
-  visitIdentifier(Identifier node) => new Identifier(node.token);
+  Node visitIdentifier(Identifier node) => new Identifier(node.token);
 
-  visitIf(If node) => new If(
+  Node visitIf(If node) => new If(
       visit(node.condition), visit(node.thenPart), visit(node.elsePart),
       node.ifToken, node.elseToken);
 
-  visitLabel(Label node) => new Label(visit(node.identifier), node.colonToken);
+  Node visitLabel(Label node) =>
+      new Label(visit(node.identifier), node.colonToken);
 
-  visitLabeledStatement(LabeledStatement node) => new LabeledStatement(
+  Node visitLabeledStatement(LabeledStatement node) => new LabeledStatement(
       visit(node.labels), visit(node.statement));
 
-  visitLiteralBool(LiteralBool node) => new LiteralBool(
+  Node visitLiteralBool(LiteralBool node) => new LiteralBool(
       node.token, node.handler);
 
-  visitLiteralDouble(LiteralDouble node) => new LiteralDouble(
+  Node visitLiteralDouble(LiteralDouble node) => new LiteralDouble(
       node.token, node.handler);
 
-  visitLiteralInt(LiteralInt node) => new LiteralInt(node.token, node.handler);
+  Node visitLiteralInt(LiteralInt node) =>
+      new LiteralInt(node.token, node.handler);
 
-  visitLiteralList(LiteralList node) => new LiteralList(
+  Node visitLiteralList(LiteralList node) => new LiteralList(
       visit(node.typeArguments), visit(node.elements), node.constKeyword);
 
-  visitLiteralMap(LiteralMap node) => new LiteralMap(
+  Node visitLiteralMap(LiteralMap node) => new LiteralMap(
       visit(node.typeArguments), visit(node.entries), node.constKeyword);
 
-  visitLiteralMapEntry(LiteralMapEntry node) => new LiteralMapEntry(
+  Node visitLiteralMapEntry(LiteralMapEntry node) => new LiteralMapEntry(
       visit(node.key), node.colonToken, visit(node.value));
 
-  visitLiteralNull(LiteralNull node) => new LiteralNull(node.token);
+  Node visitLiteralNull(LiteralNull node) => new LiteralNull(node.token);
 
-  visitLiteralString(LiteralString node) => new LiteralString(
+  Node visitLiteralString(LiteralString node) => new LiteralString(
       node.token, node.dartString);
 
-  visitMetadata(Metadata node) => new Metadata(
+  Node visitMetadata(Metadata node) => new Metadata(
       node.token, visit(node.expression));
 
-  visitMixinApplication(MixinApplication node) => new MixinApplication(
+  Node visitMixinApplication(MixinApplication node) => new MixinApplication(
       visit(node.superclass), visit(node.mixins));
 
-  visitNamedMixinApplication(NamedMixinApplication node) =>
+  Node visitNamedMixinApplication(NamedMixinApplication node) =>
       new NamedMixinApplication(visit(node.name),
                                 visit(node.typeParameters),
                                 visit(node.modifiers),
@@ -132,18 +134,18 @@ class CloningVisitor implements Visitor<Node> {
                                 node.classKeyword,
                                 node.endToken);
 
-  visitModifiers(Modifiers node) => new Modifiers(visit(node.nodes));
+  Node visitModifiers(Modifiers node) => new Modifiers(visit(node.nodes));
 
-  visitNamedArgument(NamedArgument node) => new NamedArgument(
+  Node visitNamedArgument(NamedArgument node) => new NamedArgument(
       visit(node.name), node.colonToken, visit(node.expression));
 
-  visitNewExpression(NewExpression node) => new NewExpression(
+  Node visitNewExpression(NewExpression node) => new NewExpression(
       node.newToken, visit(node.send));
 
-  rewriteNodeList(NodeList node, Link link) =>
+  Node rewriteNodeList(NodeList node, Link link) =>
       new NodeList(node.beginToken, link, node.endToken, node.delimiter);
 
-  visitNodeList(NodeList node) {
+  Node visitNodeList(NodeList node) {
     // Special case for classes which exist in hierarchy, but not
     // in the visitor.
     if (node is Prefix) {
@@ -161,135 +163,152 @@ class CloningVisitor implements Visitor<Node> {
     return rewriteNodeList(node, builder.toLink());
   }
 
-  visitOperator(Operator node) => new Operator(node.token);
+  Node visitOperator(Operator node) => new Operator(node.token);
 
-  visitParenthesizedExpression(ParenthesizedExpression node) =>
+  Node visitParenthesizedExpression(ParenthesizedExpression node) =>
       new ParenthesizedExpression(visit(node.expression), node.beginToken);
 
-  visitRethrow(Rethrow node) => new Rethrow(
+  Node visitRethrow(Rethrow node) => new Rethrow(
       node.throwToken, node.endToken);
 
-  visitReturn(Return node) => new Return(
+  Node visitReturn(Return node) => new Return(
       node.beginToken, node.endToken, visit(node.expression));
 
-  visitSend(Send node) => new Send(
+  Node visitSend(Send node) => new Send(
       visit(node.receiver), visit(node.selector), visit(node.argumentsNode));
 
-  visitSendSet(SendSet node) => new SendSet(
+  Node visitSendSet(SendSet node) => new SendSet(
       visit(node.receiver), visit(node.selector),
       visit(node.assignmentOperator), visit(node.argumentsNode));
 
-  visitStringInterpolation(StringInterpolation node) =>
+  Node visitStringInterpolation(StringInterpolation node) =>
       new StringInterpolation(visit(node.string), visit(node.parts));
 
-  visitStringInterpolationPart(StringInterpolationPart node) =>
+  Node visitStringInterpolationPart(StringInterpolationPart node) =>
       new StringInterpolationPart(visit(node.expression), visit(node.string));
 
-  visitStringJuxtaposition(StringJuxtaposition node) =>
+  Node visitStringJuxtaposition(StringJuxtaposition node) =>
       new StringJuxtaposition(visit(node.first), visit(node.second));
 
-  visitSwitchCase(SwitchCase node) => new SwitchCase(
+  Node visitSwitchCase(SwitchCase node) => new SwitchCase(
       visit(node.labelsAndCases), node.defaultKeyword, visit(node.statements),
       node.startToken);
 
-  visitSwitchStatement(SwitchStatement node) => new SwitchStatement(
+  Node visitSwitchStatement(SwitchStatement node) => new SwitchStatement(
       visit(node.parenthesizedExpression), visit(node.cases),
       node.switchKeyword);
 
-  visitLiteralSymbol(LiteralSymbol node) => new LiteralSymbol(
+  Node visitLiteralSymbol(LiteralSymbol node) => new LiteralSymbol(
       node.hashToken, visit(node.identifiers));
 
-  visitThrow(Throw node) => new Throw(
+  Node visitThrow(Throw node) => new Throw(
       visit(node.expression), node.throwToken, node.endToken);
 
-  visitTryStatement(TryStatement node) => new TryStatement(
+  Node visitTryStatement(TryStatement node) => new TryStatement(
       visit(node.tryBlock), visit(node.catchBlocks), visit(node.finallyBlock),
       node.tryKeyword, node.finallyKeyword);
 
-  visitTypeAnnotation(TypeAnnotation node) => new TypeAnnotation(
+  Node visitTypeAnnotation(TypeAnnotation node) => new TypeAnnotation(
       visit(node.typeName), visit(node.typeArguments));
 
-  visitTypedef(Typedef node) => new Typedef(
+  Node visitTypedef(Typedef node) => new Typedef(
       visit(node.returnType), visit(node.name), visit(node.typeParameters),
       visit(node.formals), node.typedefKeyword, node.endToken);
 
-  visitTypeVariable(TypeVariable node) => new TypeVariable(
+  Node visitTypeVariable(TypeVariable node) => new TypeVariable(
       visit(node.name), visit(node.bound));
 
-  visitVariableDefinitions(VariableDefinitions node) =>
+  Node visitVariableDefinitions(VariableDefinitions node) =>
       new VariableDefinitions.forParameter(
           visit(node.metadata), visit(node.type),
           visit(node.modifiers), visit(node.definitions));
 
-  visitWhile(While node) => new While(
+  Node visitWhile(While node) => new While(
       visit(node.condition), visit(node.body), node.whileKeyword);
 
   Node visitNode(Node node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitCombinator(Combinator node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitExport(Export node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitExpression(Expression node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitGotoStatement(GotoStatement node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitImport(Import node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitLibraryDependency(LibraryTag node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitLibraryName(LibraryName node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitLibraryTag(LibraryTag node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitLiteral(Literal node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitLoop(Loop node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitPart(Part node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitPartOf(PartOf node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitPostfix(Postfix node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitPrefix(Prefix node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitStatement(Statement node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   Node visitStringNode(StringNode node) {
     unimplemented('visitNode', node: node);
+    return null;
   }
 
   unimplemented(String message, {Node node}) {

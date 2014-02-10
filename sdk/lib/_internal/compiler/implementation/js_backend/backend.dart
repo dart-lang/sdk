@@ -637,8 +637,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  Constant registerCompileTimeConstant(Constant constant,
-                                       TreeElements elements) {
+  void registerCompileTimeConstant(Constant constant, TreeElements elements) {
     registerCompileTimeConstantInternal(constant, elements);
     for (Constant dependency in constant.getDependencies()) {
       registerCompileTimeConstant(dependency, elements);

@@ -1546,8 +1546,9 @@ class Types {
         return intersection.first;
       }
     }
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, false,
-        message: 'No least upper bound computed for $a and $b.'));
+    invariant(CURRENT_ELEMENT_SPANNABLE, false,
+        message: 'No least upper bound computed for $a and $b.');
+    return null;
   }
 
   /// Computes the least upper bound of the types in the longest prefix of [a]

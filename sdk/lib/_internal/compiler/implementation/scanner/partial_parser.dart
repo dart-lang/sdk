@@ -32,8 +32,9 @@ class PartialParser extends Parser {
       if ((identical(kind, EOF_TOKEN)) ||
           (identical(value, ';')) ||
           (identical(value, ',')) ||
-          (identical(value, ']')))
-        return token;
+          (identical(value, ']'))) {
+        break;
+      }
       if (identical(value, '=') ||
           identical(value, '?') ||
           identical(value, ':')) {
@@ -72,13 +73,16 @@ class PartialParser extends Parser {
           continue;
         }
       }
-      if (!mayParseFunctionExpressions && identical(value, '{')) return token;
+      if (!mayParseFunctionExpressions && identical(value, '{')) {
+        break;
+      }
       if (token is BeginGroupToken) {
         BeginGroupToken begin = token;
         token = (begin.endGroup != null) ? begin.endGroup : token;
       }
       token = token.next;
     }
+    return token;
   }
 
   Token skipClassBody(Token token) {

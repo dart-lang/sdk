@@ -4,7 +4,7 @@
 
 part of dart_backend;
 
-String emitCode(
+void emitCode(
       Unparser unparser,
       Map<LibraryElement, String> imports,
       Iterable<Node> topLevelNodes,

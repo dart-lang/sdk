@@ -68,6 +68,7 @@ class Unpickler {
       return UTF8.decode(bytes);
     } else {
       compiler.internalError("Unexpected string tag: $tag");
+      return null;
     }
   }
 
@@ -110,6 +111,7 @@ class Unpickler {
       return readReturnNode();
     } else {
       compiler.internalError("Unexpected entry tag: $tag");
+      return null;
     }
   }
 
@@ -213,6 +215,7 @@ class Unpickler {
         return constantSystem.createNull();
       default:
         compiler.internalError("Unexpected constant tag: $tag");
+        return null;
     }
   }
 
@@ -229,6 +232,7 @@ class Unpickler {
             readDartString(readByte()), readDartString(readByte()));
       default:
         compiler.internalError("Unexpected dart string tag: $tag");
+        return null;
     }
   }
 }

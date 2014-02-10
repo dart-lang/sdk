@@ -974,6 +974,7 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
   bool visitNode(Statement node) {
     compiler.internalError("Forgot node: $node");
+    return null;
   }
 
   bool visitBlock(Block node) => false;

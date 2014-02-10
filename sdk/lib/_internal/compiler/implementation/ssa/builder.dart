@@ -3938,6 +3938,7 @@ abstract class SsaFromAstMixin
       // exception at runtime.
       compiler.cancel('Unimplemented unresolved type variable',
                       element: type.element);
+      return null;
     }
   }
 

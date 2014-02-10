@@ -27,9 +27,9 @@ abstract class TreeElements {
   Selector getIteratorSelector(ForIn node);
   Selector getMoveNextSelector(ForIn node);
   Selector getCurrentSelector(ForIn node);
-  Selector setIteratorSelector(ForIn node, Selector selector);
-  Selector setMoveNextSelector(ForIn node, Selector selector);
-  Selector setCurrentSelector(ForIn node, Selector selector);
+  void setIteratorSelector(ForIn node, Selector selector);
+  void setMoveNextSelector(ForIn node, Selector selector);
+  void setCurrentSelector(ForIn node, Selector selector);
   void setConstant(Node node, Constant constant);
   Constant getConstant(Node node);
 
@@ -147,7 +147,7 @@ class TreeElementMapping implements TreeElements {
   // we're using three selectors, we need to use children of the node,
   // and we arbitrarily choose which ones.
 
-  Selector setIteratorSelector(ForIn node, Selector selector) {
+  void setIteratorSelector(ForIn node, Selector selector) {
     selectors[node] = selector;
   }
 
@@ -155,7 +155,7 @@ class TreeElementMapping implements TreeElements {
     return selectors[node];
   }
 
-  Selector setMoveNextSelector(ForIn node, Selector selector) {
+  void setMoveNextSelector(ForIn node, Selector selector) {
     selectors[node.forToken] = selector;
   }
 
@@ -163,7 +163,7 @@ class TreeElementMapping implements TreeElements {
     return selectors[node.forToken];
   }
 
-  Selector setCurrentSelector(ForIn node, Selector selector) {
+  void setCurrentSelector(ForIn node, Selector selector) {
     selectors[node.inToken] = selector;
   }
 
@@ -1531,6 +1531,7 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   R visitNode(Node node) {
     cancel(node,
            'internal error: Unhandled node: ${node.getObjectDescription()}');
+    return null;
   }
 
   R visitEmptyStatement(Node node) => null;
@@ -2238,7 +2239,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     visit(node.expression);
   }
 
-  Element visitClassNode(ClassNode node) {
+  visitClassNode(ClassNode node) {
     cancel(node, "shouldn't be called");
   }
 

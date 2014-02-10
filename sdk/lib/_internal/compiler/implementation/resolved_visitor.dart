@@ -52,6 +52,7 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
         return visitStaticSend(node);
       } else {
         internalError("Cannot generate code for send", node: node);
+        return null;
       }
     }
   }
@@ -69,5 +70,6 @@ abstract class ResolvedVisitor<R> extends Visitor<R> {
 
   R visitNode(Node node) {
     internalError("Unhandled node", node: node);
+    return null;
   }
 }

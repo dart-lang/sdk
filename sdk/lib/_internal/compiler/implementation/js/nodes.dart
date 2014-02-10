@@ -114,9 +114,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitAssignment(Assignment node) => visitExpression(node);
   T visitVariableInitialization(VariableInitialization node) {
     if (node.value != null) {
-      visitAssignment(node);
+      return visitAssignment(node);
     } else {
-      visitExpression(node);
+      return visitExpression(node);
     }
   }
   T visitConditional(Conditional node) => visitExpression(node);
@@ -154,7 +154,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitJSExpression(JSExpression node) => visitExpression(node);
 
   // Ignore comments by default.
-  T visitComment(Comment node) {}
+  T visitComment(Comment node) => null;
 }
 
 abstract class Node {

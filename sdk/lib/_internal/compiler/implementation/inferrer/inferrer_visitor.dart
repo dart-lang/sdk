@@ -633,7 +633,7 @@ abstract class InferrerVisitor
   }
 
   T visitNode(Node node) {
-    node.visitChildren(this);
+    return node.visitChildren(this);
   }
 
   T visitNewExpression(NewExpression node) {
@@ -745,6 +745,7 @@ abstract class InferrerVisitor
       if (Elements.isLocal(element)) {
         return locals.use(element);
       }
+      return null;
     }
   }
 
@@ -902,6 +903,7 @@ abstract class InferrerVisitor
         visit(definition);
       }
     }
+    return null;
   }
 
   bool handleCondition(Node node, List<Send> tests) {
@@ -932,6 +934,7 @@ abstract class InferrerVisitor
     visit(node.elsePart);
     saved.mergeDiamondFlow(thenLocals, locals);
     locals = saved;
+    return null;
   }
 
   void setupBreaksAndContinues(TargetElement element) {
@@ -980,6 +983,7 @@ abstract class InferrerVisitor
         getBreaks(target), keepOwnLocals: keepOwnLocals);
     locals = saved;
     clearBreaksAndContinues(target);
+    return null;
   }
 
   T visitWhile(While node) {
@@ -1026,6 +1030,7 @@ abstract class InferrerVisitor
       locals = saved;
     }
     visit(node.finallyBlock);
+    return null;
   }
 
   T visitThrow(Throw node) {
@@ -1048,6 +1053,7 @@ abstract class InferrerVisitor
       locals.update(elements[trace], types.dynamicType, node);
     }
     visit(node.block);
+    return null;
   }
 
   T visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -1061,6 +1067,7 @@ abstract class InferrerVisitor
         if (locals.aborts) break;
       }
     }
+    return null;
   }
 
   T visitLabeledStatement(LabeledStatement node) {
@@ -1077,6 +1084,7 @@ abstract class InferrerVisitor
       locals.mergeAfterBreaks(getBreaks(targetElement));
       clearBreaksAndContinues(targetElement);
     }
+    return null;
   }
 
   T visitBreakStatement(BreakStatement node) {
@@ -1085,6 +1093,7 @@ abstract class InferrerVisitor
     // Do a deep-copy of the locals, because the code following the
     // break will change them.
     breaksFor[target].add(new LocalsHandler<T>.deepCopyOf(locals));
+    return null;
   }
 
   T visitContinueStatement(ContinueStatement node) {
@@ -1093,6 +1102,7 @@ abstract class InferrerVisitor
     // Do a deep-copy of the locals, because the code following the
     // continue will change them.
     continuesFor[target].add(new LocalsHandler<T>.deepCopyOf(locals));
+    return null;
   }
 
   void internalError(String reason, {Node node}) {
@@ -1157,6 +1167,7 @@ abstract class InferrerVisitor
       locals = saved;
     }
     clearBreaksAndContinues(elements[node]);
+    return null;
   }
 
   T visitCascadeReceiver(CascadeReceiver node) {

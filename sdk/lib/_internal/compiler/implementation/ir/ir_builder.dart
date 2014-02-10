@@ -268,6 +268,7 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
       n.accept(this);
       if (blockReturns) return null;
     }
+    return null;
   }
 
   IrNode visitReturn(Return node) {
@@ -282,6 +283,7 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
     }
     builder.addStatement(new IrReturn(nodePosition(node), value));
     builder.block.hasReturn = true;
+    return null;
   }
 
   IrConstant visitLiteralBool(LiteralBool node) {
@@ -313,22 +315,27 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
 
   IrNode visitAssert(Send node) {
     giveup();
+    return null;
   }
 
   IrNode visitClosureSend(Send node) {
     giveup();
+    return null;
   }
 
   IrNode visitDynamicSend(Send node) {
     giveup();
+    return null;
   }
 
   IrNode visitGetterSend(Send node) {
     giveup();
+    return null;
   }
 
   IrNode visitOperatorSend(Send node) {
     giveup();
+    return null;
   }
 
   IrNode visitStaticSend(Send node) {
@@ -365,10 +372,12 @@ class IrNodeBuilderVisitor extends ResolvedVisitor<IrNode> {
 
   IrNode visitSuperSend(Send node) {
     giveup();
+    return null;
   }
 
   IrNode visitTypeReferenceSend(Send node) {
     giveup();
+    return null;
   }
 
   static final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";

@@ -59,6 +59,7 @@ InstanceMirror _convertConstantToInstanceMirror(
     return new Dart2JsConstructedConstantMirror(mirrorSystem, constant);
   }
   mirrorSystem.compiler.internalError("Unexpected constant $constant");
+  return null;
 }
 
 
@@ -280,6 +281,6 @@ class Dart2JsCommentInstanceMirror extends Object
       return new Dart2JsStringConstantMirror.fromString(mirrorSystem,
                                                         trimmedText);
     }
-    super.getField(fieldName);
+    return super.getField(fieldName);
   }
 }

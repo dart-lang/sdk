@@ -1335,8 +1335,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
     TreeElements elements =
         compiler.enqueuer.resolution.resolvedElements[element.declaration];
     assert(elements != null);
-    ConcreteType specialResult = handleSpecialMethod(element, environment);
-    if (specialResult != null) return specialResult;
+    handleSpecialMethod(element, environment);
     FunctionExpression tree = element.parseNode(compiler);
     if (tree.hasBody()) {
       Visitor visitor =
@@ -1442,7 +1441,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
    * Hook that performs side effects on some special method calls (like
    * [:List(length):]) and possibly returns a concrete type.
    */
-  ConcreteType handleSpecialMethod(FunctionElement element,
+  void handleSpecialMethod(FunctionElement element,
                                    ConcreteTypesEnvironment environment) {
     // When List([length]) is called with some length, we must augment
     // listElementType with {null}.
@@ -1689,14 +1688,17 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitCascade(Cascade node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitCascadeReceiver(CascadeReceiver node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitClassNode(ClassNode node) {
     inferrer.fail(node, 'not implemented');
+    return null;
   }
 
   ConcreteType visitDoWhile(DoWhile node) {
@@ -1798,6 +1800,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitLoop(Loop node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType analyzeSetElement(Selector selector,
@@ -1998,6 +2001,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitOperator(Operator node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitReturn(Return node) {
@@ -2014,10 +2018,12 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitTypeAnnotation(TypeAnnotation node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitTypeVariable(TypeVariable node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitVariableDefinitions(VariableDefinitions node) {
@@ -2053,6 +2059,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitModifiers(Modifiers node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitStringInterpolation(StringInterpolation node) {
@@ -2112,6 +2119,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitLabel(Label node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitLabeledStatement(LabeledStatement node) {
@@ -2131,34 +2139,42 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
   ConcreteType visitNamedArgument(NamedArgument node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitSwitchStatement(SwitchStatement node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitSwitchCase(SwitchCase node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitCaseMatch(CaseMatch node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitTryStatement(TryStatement node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitCatchBlock(CatchBlock node) {
     inferrer.fail(node, 'not yet implemented');
+    return null;
   }
 
   ConcreteType visitTypedef(Typedef node) {
     inferrer.fail(node, 'not implemented');
+    return null;
   }
 
   ConcreteType visitSuperSend(Send node) {
     inferrer.fail(node, 'not implemented');
+    return null;
   }
 
   ConcreteType visitOperatorSend(Send node) {

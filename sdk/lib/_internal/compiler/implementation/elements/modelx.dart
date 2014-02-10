@@ -50,10 +50,12 @@ abstract class ElementX implements Element {
 
   Node parseNode(DiagnosticListener listener) {
     listener.internalErrorOnElement(this, 'not implemented');
+    return null;
   }
 
   DartType computeType(Compiler compiler) {
     compiler.internalError("$this.computeType.", token: position());
+    return null;
   }
 
   void addMetadata(MetadataAnnotation annotation) {
@@ -1162,6 +1164,7 @@ class VariableElementX extends ElementX implements VariableElement {
       }
     }
     listener.cancel('internal error: could not find $name', node: variables);
+    return null;
   }
 
   DartType computeType(Compiler compiler) {
@@ -1651,6 +1654,7 @@ class ConstructorBodyElementX extends FunctionElementX
 
   FunctionType computeType(Compiler compiler) {
     compiler.internalErrorOnElement(this, '$this.computeType.');
+    return null;
   }
 
   Node parseNode(DiagnosticListener listener) {
@@ -1911,6 +1915,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         return element;
       }
     }
+    return null;
   }
   /**
    * Lookup super members for the class. This will ignore constructors.

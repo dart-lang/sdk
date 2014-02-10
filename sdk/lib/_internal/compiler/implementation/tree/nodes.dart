@@ -820,6 +820,7 @@ class LiteralBool extends Literal<bool> {
     if (identical(token.stringValue, 'true')) return true;
     if (identical(token.stringValue, 'false')) return false;
     (this.handler)(token, "not a bool ${token.value}");
+    throw false;
   }
 
   accept(Visitor visitor) => visitor.visitLiteralBool(this);

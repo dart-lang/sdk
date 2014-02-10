@@ -241,13 +241,12 @@ class AddOperation implements BinaryOperation {
 abstract class RelationalNumOperation implements BinaryOperation {
   const RelationalNumOperation();
   Constant fold(Constant left, Constant right) {
-    if (left.isNum() && right.isNum()) {
-      NumConstant leftNum = left;
-      NumConstant rightNum = right;
-      bool foldedValue = foldNums(leftNum.value, rightNum.value);
-      assert(foldedValue != null);
-      return DART_CONSTANT_SYSTEM.createBool(foldedValue);
-    }
+    if (!left.isNum() || !right.isNum()) return null;
+    NumConstant leftNum = left;
+    NumConstant rightNum = right;
+    bool foldedValue = foldNums(leftNum.value, rightNum.value);
+    assert(foldedValue != null);
+    return DART_CONSTANT_SYSTEM.createBool(foldedValue);
   }
 
   bool foldNums(num left, num right);

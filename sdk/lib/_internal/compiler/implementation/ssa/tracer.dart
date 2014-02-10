@@ -293,7 +293,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitGreater(HGreater node) => handleInvokeBinary(node, '>');
   String visitGreaterEqual(HGreaterEqual node) {
-    handleInvokeBinary(node, '>=');
+    return handleInvokeBinary(node, '>=');
   }
   String visitIdentity(HIdentity node) => handleInvokeBinary(node, '===');
 
