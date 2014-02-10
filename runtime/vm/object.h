@@ -2589,7 +2589,6 @@ class Library : public Object {
 
   static RawLibrary* LookupLibrary(const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
-  static bool IsKeyUsed(intptr_t key);
 
   static void InitCoreLibrary(Isolate* isolate);
   static void InitNativeWrappersLibrary(Isolate* isolate);
@@ -2624,6 +2623,13 @@ class Library : public Object {
                                   const char* class_name,
                                   const char* function_name);
 
+  // Character used to indicate a private identifier.
+  static const char kPrivateIdentifierStart  = '_';
+
+  // Character used to separate private identifiers from
+  // the library-specific key.
+  static const char kPrivateKeySeparator = '@';
+
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
@@ -2654,6 +2660,9 @@ class Library : public Object {
   static RawLibrary* NewLibraryHelper(const String& url,
                                       bool import_core_lib);
   RawObject* LookupEntry(const String& name, intptr_t *index) const;
+
+  static bool IsKeyUsed(intptr_t key);
+  void AllocatePrivateKey() const;
 
   RawString* MakeMetadataName(const Object& obj) const;
   RawField* GetMetadataField(const String& metaname) const;

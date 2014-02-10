@@ -312,7 +312,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   current_token_.kind = Token::kIDENT;
   String& literal =
       String::ZoneHandle(Symbols::New(source_, ident_pos, ident_length));
-  if (ident_char0 == kPrivateIdentifierStart) {
+  if (ident_char0 == Library::kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per library basis.
     literal = String::Concat(literal, private_key_);
     literal = Symbols::New(literal);
@@ -929,20 +929,6 @@ void Scanner::PrintTokens(const GrowableTokenStream& ts) {
     OS::Print("%s ", Token::Name(td.kind));
   }
   OS::Print("\n");
-}
-
-
-RawString* Scanner::AllocatePrivateKey(const Library& library) {
-  const String& url = String::Handle(library.url());
-  intptr_t key_value = url.Hash();
-  while (Library::IsKeyUsed(key_value)) {
-    key_value++;
-  }
-  char private_key[32];
-  OS::SNPrint(private_key, sizeof(private_key),
-              "%c%#" Px "", kPrivateKeySeparator, key_value);
-  const String& result = String::Handle(String::New(private_key, Heap::kOld));
-  return result.raw();
 }
 
 

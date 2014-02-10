@@ -6726,12 +6726,12 @@ RawString* TokenStream::GenerateSource(intptr_t start_pos,
       }
     } else if (curr == Token::kINTERPOL_VAR) {
       literals.Add(Symbols::Dollar());
-      if (literal.CharAt(0) == Scanner::kPrivateIdentifierStart) {
+      if (literal.CharAt(0) == Library::kPrivateIdentifierStart) {
         literal = String::SubString(literal, 0, literal.Length() - private_len);
       }
       literals.Add(literal);
     } else if (curr == Token::kIDENT) {
-      if (literal.CharAt(0) == Scanner::kPrivateIdentifierStart) {
+      if (literal.CharAt(0) == Library::kPrivateIdentifierStart) {
         literal = String::SubString(literal, 0, literal.Length() - private_len);
       }
       literals.Add(literal);
@@ -7854,6 +7854,7 @@ void Library::AddToResolvedNamesCache(const String& name,
   if (!FLAG_use_lib_cache) {
     return;
   }
+  ASSERT(!Field::IsGetterName(name) && !Field::IsSetterName(name));
   const Array& cache = Array::Handle(resolved_names());
   // let N = cache.Length();
   // The entry cache[N-1] is used as a counter
@@ -8441,7 +8442,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   const Library& result = Library::Handle(Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
-  result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
   result.raw_ptr()->resolved_names_ = Object::empty_array().raw();
   result.raw_ptr()->dictionary_ = Object::empty_array().raw();
   result.StorePointer(&result.raw_ptr()->metadata_,
@@ -8460,6 +8460,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.InitResolvedNamesCache(kInitialNameCacheSize);
   result.InitClassDictionary();
   result.InitImportList();
+  result.AllocatePrivateKey();
   if (import_core_lib) {
     const Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
@@ -8556,6 +8557,20 @@ RawError* Library::Patch(const Script& script) const {
 }
 
 
+bool Library::IsPrivate(const String& name) {
+  if (ShouldBePrivate(name)) return true;
+  // Factory names: List._fromLiteral.
+  for (intptr_t i = 1; i < name.Length() - 1; i++) {
+    if (name.CharAt(i) == '.') {
+      if (name.CharAt(i + 1) == '_') {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
 bool Library::IsKeyUsed(intptr_t key) {
   intptr_t lib_key;
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
@@ -8574,17 +8589,16 @@ bool Library::IsKeyUsed(intptr_t key) {
 }
 
 
-bool Library::IsPrivate(const String& name) {
-  if (ShouldBePrivate(name)) return true;
-  // Factory names: List._fromLiteral.
-  for (intptr_t i = 1; i < name.Length() - 1; i++) {
-    if (name.CharAt(i) == '.') {
-      if (name.CharAt(i + 1) == '_') {
-        return true;
-      }
-    }
+void Library::AllocatePrivateKey() const {
+  const String& url = String::Handle(this->url());
+  intptr_t key_value = url.Hash();
+  while (Library::IsKeyUsed(key_value)) {
+    key_value++;
   }
-  return false;
+  char private_key[32];
+  OS::SNPrint(private_key, sizeof(private_key),
+              "%c%#" Px "", kPrivateKeySeparator, key_value);
+  StorePointer(&raw_ptr()->private_key_, String::New(private_key, Heap::kOld));
 }
 
 
@@ -8598,7 +8612,7 @@ const String& Library::PrivateCoreLibName(const String& member) {
 RawClass* Library::LookupCoreClass(const String& class_name) {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   String& name = String::Handle(class_name.raw());
-  if (class_name.CharAt(0) == Scanner::kPrivateIdentifierStart) {
+  if (class_name.CharAt(0) == kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per library basis.
     name = String::Concat(name, String::Handle(core_lib.private_key()));
     name = Symbols::New(name);
@@ -15499,7 +15513,7 @@ static bool EqualsIgnoringPrivateKey(const String& str1,
     int32_t ch = T1::CharAt(str1, pos);
     pos++;
 
-    if (ch == Scanner::kPrivateKeySeparator) {
+    if (ch == Library::kPrivateKeySeparator) {
       // Consume a private key separator.
       while ((pos < len) && (T1::CharAt(str1, pos) != '.')) {
         pos++;
