@@ -33,62 +33,6 @@ from os.path import join, exists, split, dirname, abspath
 HOST_OS = utils.GuessOS()
 DART_DIR = abspath(join(__file__, '..', '..'))
 
-# TODO (16582): Remove this when the LICENSE file becomes part of
-# all checkouts.
-license = [
-  'This license applies to all parts of Dart that are not externally',
-  'maintained libraries. The external maintained libraries used by',
-  'Dart are:',
-  '',
-  '7-Zip - in third_party/7zip',
-  'JSCRE - in runtime/third_party/jscre',
-  'Ant - in third_party/apache_ant',
-  'args4j - in third_party/args4j',
-  'bzip2 - in third_party/bzip2',
-  'Commons IO - in third_party/commons-io',
-  'Commons Lang in third_party/commons-lang',
-  'dromaeo - in samples/third_party/dromaeo',
-  'Eclipse - in third_party/eclipse',
-  'gsutil - in third_party/gsutil',
-  'Guava - in third_party/guava',
-  'hamcrest - in third_party/hamcrest',
-  'Httplib2 - in samples/third_party/httplib2',
-  'JSON - in third_party/json',
-  'JUnit - in third_party/junit',
-  'Oauth - in samples/third_party/oauth2client',
-  'weberknecht - in third_party/weberknecht',
-  'fest - in third_party/fest',
-  'mockito - in third_party/mockito',
-  '',
-  'The libraries may have their own licenses; we recommend you read them,',
-  'as their terms may differ from the terms below.',
-  '',
-  'Copyright 2012, the Dart project authors. All rights reserved.',
-  'Redistribution and use in source and binary forms, with or without',
-  'modification, are permitted provided that the following conditions are',
-  'met:',
-  '    * Redistributions of source code must retain the above copyright',
-  '      notice, this list of conditions and the following disclaimer.',
-  '    * Redistributions in binary form must reproduce the above',
-  '      copyright notice, this list of conditions and the following',
-  '      disclaimer in the documentation and/or other materials provided',
-  '      with the distribution.',
-  '    * Neither the name of Google Inc. nor the names of its',
-  '      contributors may be used to endorse or promote products derived',
-  '      from this software without specific prior written permission.',
-  'THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS',
-  '"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT',
-  'LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR',
-  'A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT',
-  'OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,',
-  'SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT',
-  'LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,',
-  'DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY',
-  'THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT',
-  '(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE',
-  'OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.'
-]
-
 # Flags.
 verbose = False
 
@@ -134,14 +78,8 @@ def Filter(tar_info):
   return tar_info
 
 def GenerateCopyright(filename):
-  license_lines = license
-  try:
-    # TODO (16582): The LICENSE file is currently not in a normal the
-    # dart checkout.
-    with open(join(DART_DIR, 'LICENSE')) as lf:
-      license_lines = lf.read().splitlines()
-  except:
-    pass
+  with open(join(DART_DIR, 'LICENSE')) as lf:
+    license_lines = lf.readlines()
 
   with open(filename, 'w') as f:
     f.write('Name: dart\n')
@@ -149,7 +87,7 @@ def GenerateCopyright(filename):
     f.write('Source: https://code.google.com/p/dart/\n')
     f.write('License:\n')
     for line in license_lines:
-      f.write(' %s\n' % line)
+      f.write(' %s' % line)  # Line already contains trailing \n.
 
 def GenerateChangeLog(filename, version):
   with open(filename, 'w') as f:
