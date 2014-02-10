@@ -448,9 +448,16 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
       reader->isolate(), NEW_OBJECT_WITH_LEN_SPACE(TypeArguments, len, kind));
   reader->AddBackRef(object_id, &type_arguments, kIsDeserialized);
 
-  // Now set all the object fields.
-  *reader->ArrayHandle() ^= reader->ReadObjectImpl();
-  type_arguments.set_instantiations(*reader->ArrayHandle());
+  // Set the instantiations field, which is only read from a full snapshot.
+  if (kind == Snapshot::kFull) {
+    *reader->ArrayHandle() ^= reader->ReadObjectImpl();
+    type_arguments.set_instantiations(*reader->ArrayHandle());
+  } else {
+    // TODO(regis): Change to Object::zero_array() once supported.
+    type_arguments.set_instantiations(Object::empty_array());
+  }
+
+  // Now set all the type fields.
   for (intptr_t i = 0; i < len; i++) {
     *reader->TypeHandle() ^= reader->ReadObjectImpl();
     type_arguments.set_type_at(i, *reader->TypeHandle());
@@ -495,8 +502,10 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
 
-  // Write out the instantiations field.
-  writer->WriteObjectImpl(ptr()->instantiations_);
+  // Write out the instantiations field, but only in a full snapshot.
+  if (kind == Snapshot::kFull) {
+    writer->WriteObjectImpl(ptr()->instantiations_);
+  }
 
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);

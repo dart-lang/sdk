@@ -487,7 +487,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       AddBackRef(object_id, value, kIsDeserialized);
       Dart_CObject* length = ReadObjectImpl();
       ASSERT(length->type == Dart_CObject_kInt32);
-      ReadObjectImpl();  // Read and skip instantiations_ field.
+      // The instantiations_ field is only written to a full snapshot.
       for (int i = 0; i < length->value.as_int32; i++) {
         Dart_CObject* type = ReadObjectImpl();
         if (type != &dynamic_type_marker) {
