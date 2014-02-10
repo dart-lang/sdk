@@ -304,9 +304,11 @@ class _TypedContextAttributes implements gl.ContextAttributes {
   bool premultipliedAlpha;
   bool preserveDrawingBuffer;
   bool stencil;
+  bool failIfMajorPerformanceCaveat;
 
   _TypedContextAttributes(this.alpha, this.antialias, this.depth,
-      this.premultipliedAlpha, this.preserveDrawingBuffer, this.stencil);
+      this.failIfMajorPerformanceCaveat, this.premultipliedAlpha,
+      this.preserveDrawingBuffer, this.stencil);
 }
 
 gl.ContextAttributes convertNativeToDart_ContextAttributes(
@@ -322,6 +324,7 @@ gl.ContextAttributes convertNativeToDart_ContextAttributes(
       JS('var', '#.alpha', nativeContextAttributes),
       JS('var', '#.antialias', nativeContextAttributes),
       JS('var', '#.depth', nativeContextAttributes),
+      JS('var', '#.failIfMajorPerformanceCaveat', nativeContextAttributes),
       JS('var', '#.premultipliedAlpha', nativeContextAttributes),
       JS('var', '#.preserveDrawingBuffer', nativeContextAttributes),
       JS('var', '#.stencil', nativeContextAttributes));
