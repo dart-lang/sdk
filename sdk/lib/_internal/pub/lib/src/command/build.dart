@@ -223,7 +223,7 @@ class BuildCommand extends PubCommand {
   /// Returns the number of files it copied.
   int _copyBrowserJsFiles(Iterable<AssetId> entrypoints) {
     // Must depend on the browser package.
-    if (!entrypoint.root.dependencies.any(
+    if (!entrypoint.root.immediateDependencies.any(
         (dep) => dep.name == 'browser' && dep.source == 'hosted')) {
       return 0;
     }
