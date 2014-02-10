@@ -90,15 +90,15 @@ int _parseLineLength(String lengthOption) {
 }
 
 
-Selection _parseSelection(selectionOption) {
-  if (selectionOption != null) {
-    var units = selectionOption.split(',');
-    if (units.length == 2) {
-      var offset = _toInt(units[0]);
-      var length = _toInt(units[1]);
-      if (offset != null && length != null) {
-        return new Selection(offset, length);
-      }
+Selection _parseSelection(String selectionOption) {
+  if(selectionOption == null) return null;
+
+  var units = selectionOption.split(',');
+  if (units.length == 2) {
+    var offset = _toInt(units[0]);
+    var length = _toInt(units[1]);
+    if (offset != null && length != null) {
+      return new Selection(offset, length);
     }
   }
   throw new FormatterException('Selections are specified as integer pairs '
