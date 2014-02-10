@@ -3,7 +3,6 @@ library dom_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:html5lib/parser.dart';
-import 'package:html5lib/dom.dart';
 
 main() {
   group('Node.query type selectors', () {

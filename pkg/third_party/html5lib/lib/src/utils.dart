@@ -1,7 +1,6 @@
 /** Misc things that were useful when porting the code from Python. */
 library utils;
 
-import 'dart:collection';
 import 'constants.dart';
 
 typedef bool Predicate();

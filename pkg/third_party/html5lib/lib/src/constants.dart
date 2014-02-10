@@ -1,7 +1,6 @@
 library constants;
 
 import 'utils.dart';
-import 'token.dart';
 
 // TODO(jmesserly): fix up the const lists. For the bigger ones, we need faster
 // lookup than linear search "contains". In the Python code they were
@@ -22,7 +21,7 @@ class ReparseException implements Exception {
  * string formatting, as implemented by [formatStr]. That function only supports
  * the subset of format functionality used here.
  */
-final Map<String, String> errorMessages = const {
+const Map<String, String> errorMessages = const {
   "null-character":
      "Null character in input stream, replaced with U+FFFD.",
   "invalid-codepoint":
@@ -324,7 +323,7 @@ class Namespaces {
   }
 }
 
-final List scopingElements = const [
+const List scopingElements = const [
   const Pair(Namespaces.html, "applet"),
   const Pair(Namespaces.html, "caption"),
   const Pair(Namespaces.html, "html"),
@@ -345,7 +344,7 @@ final List scopingElements = const [
 ];
 
 
-final formattingElements = const [
+const formattingElements = const [
   const Pair(Namespaces.html, "a"),
   const Pair(Namespaces.html, "b"),
   const Pair(Namespaces.html, "big"),
@@ -362,7 +361,7 @@ final formattingElements = const [
   const Pair(Namespaces.html, "")
 ];
 
-final specialElements = const [
+const specialElements = const [
   const Pair(Namespaces.html, "address"),
   const Pair(Namespaces.html, "applet"),
   const Pair(Namespaces.html, "area"),
@@ -445,14 +444,14 @@ final specialElements = const [
   const Pair(Namespaces.svg, "foreignObject")
 ];
 
-final htmlIntegrationPointElements = const [
+const htmlIntegrationPointElements = const [
   const Pair(Namespaces.mathml, "annotaion-xml"),
   const Pair(Namespaces.svg, "foreignObject"),
   const Pair(Namespaces.svg, "desc"),
   const Pair(Namespaces.svg, "title")
 ];
 
-final mathmlTextIntegrationPointElements = const [
+const mathmlTextIntegrationPointElements = const [
   const Pair(Namespaces.mathml, "mi"),
   const Pair(Namespaces.mathml, "mo"),
   const Pair(Namespaces.mathml, "mn"),
@@ -460,7 +459,7 @@ final mathmlTextIntegrationPointElements = const [
   const Pair(Namespaces.mathml, "mtext")
 ];
 
-final spaceCharacters = " \n\r\t\u000C";
+const spaceCharacters = " \n\r\t\u000C";
 
 const int NEWLINE = 10;
 const int RETURN = 13;
@@ -482,7 +481,7 @@ bool isWhitespaceCC(int charCode) {
   return false;
 }
 
-final List<String> tableInsertModeElements = const [
+const List<String> tableInsertModeElements = const [
   "table",
   "tbody",
   "tfoot",
@@ -491,13 +490,13 @@ final List<String> tableInsertModeElements = const [
 ];
 
 // TODO(jmesserly): remove these in favor of the test functions
-final asciiLetters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const asciiLetters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-final ZERO = 48;
-final LOWER_A = 97;
-final LOWER_Z = 122;
-final UPPER_A = 65;
-final UPPER_Z = 90;
+const ZERO = 48;
+const LOWER_A = 97;
+const LOWER_Z = 122;
+const UPPER_A = 65;
+const UPPER_Z = 90;
 
 bool isLetterOrDigit(String char) => isLetter(char) || isDigit(char);
 
@@ -542,7 +541,7 @@ String asciiUpper2Lower(String text) {
 }
 
 // Heading elements need to be ordered
-final headingElements = const [
+const headingElements = const [
   "h1",
   "h2",
   "h3",
@@ -551,9 +550,9 @@ final headingElements = const [
   "h6"
 ];
 
-final cdataElements = const ['title', 'textarea'];
+const cdataElements = const ['title', 'textarea'];
 
-final rcdataElements = const [
+const rcdataElements = const [
   'style',
   'script',
   'xmp',
@@ -563,7 +562,7 @@ final rcdataElements = const [
   'noscript'
 ];
 
-final Map<String, List<String>> booleanAttributes = const {
+const Map<String, List<String>> booleanAttributes = const {
   "": const ["irrelevant",],
   "style": const ["scoped",],
   "img": const ["ismap",],
@@ -586,7 +585,7 @@ final Map<String, List<String>> booleanAttributes = const {
 
 // entitiesWindows1252 has to be _ordered_ and needs to have an index. It
 // therefore can't be a frozenset.
-final List<int> entitiesWindows1252 = const [
+const List<int> entitiesWindows1252 = const [
   8364,  // 0x80  0x20AC  EURO SIGN
   65533, // 0x81          UNDEFINED
   8218,  // 0x82  0x201A  SINGLE LOW-9 QUOTATION MARK
@@ -621,9 +620,9 @@ final List<int> entitiesWindows1252 = const [
   376    // 0x9F  0x0178  LATIN CAPITAL LETTER Y WITH DIAERESIS
 ];
 
-final xmlEntities = const ['lt;', 'gt;', 'amp;', 'apos;', 'quot;'];
+const xmlEntities = const ['lt;', 'gt;', 'amp;', 'apos;', 'quot;'];
 
-final Map<String, String> entities = const {
+const Map<String, String> entities = const {
   "AElig": "\xc6",
   "AElig;": "\xc6",
   "AMP": "&",
@@ -2857,48 +2856,44 @@ final Map<String, String> entities = const {
   "zwnj;": "\u200c",
 };
 
-Map<int, String> replacementCharacters = (() {
-  // TODO(jmesserly): fix this when Dart has literal maps with int keys.
-  var r = new Map<int, String>();
-  r[0x00] = "\uFFFD";
-  r[0x0d] = "\u000D";
-  r[0x80] = "\u20AC";
-  r[0x81] = "\u0081";
-  r[0x81] = "\u0081";
-  r[0x82] = "\u201A";
-  r[0x83] = "\u0192";
-  r[0x84] = "\u201E";
-  r[0x85] = "\u2026";
-  r[0x86] = "\u2020";
-  r[0x87] = "\u2021";
-  r[0x88] = "\u02C6";
-  r[0x89] = "\u2030";
-  r[0x8A] = "\u0160";
-  r[0x8B] = "\u2039";
-  r[0x8C] = "\u0152";
-  r[0x8D] = "\u008D";
-  r[0x8E] = "\u017D";
-  r[0x8F] = "\u008F";
-  r[0x90] = "\u0090";
-  r[0x91] = "\u2018";
-  r[0x92] = "\u2019";
-  r[0x93] = "\u201C";
-  r[0x94] = "\u201D";
-  r[0x95] = "\u2022";
-  r[0x96] = "\u2013";
-  r[0x97] = "\u2014";
-  r[0x98] = "\u02DC";
-  r[0x99] = "\u2122";
-  r[0x9A] = "\u0161";
-  r[0x9B] = "\u203A";
-  r[0x9C] = "\u0153";
-  r[0x9D] = "\u009D";
-  r[0x9E] = "\u017E";
-  r[0x9F] = "\u0178";
-  return r;
-})();
+const Map<int, String> replacementCharacters = const {
+  0x00: "\uFFFD",
+  0x0d: "\u000D",
+  0x80: "\u20AC",
+  0x81: "\u0081",
+  0x82: "\u201A",
+  0x83: "\u0192",
+  0x84: "\u201E",
+  0x85: "\u2026",
+  0x86: "\u2020",
+  0x87: "\u2021",
+  0x88: "\u02C6",
+  0x89: "\u2030",
+  0x8A: "\u0160",
+  0x8B: "\u2039",
+  0x8C: "\u0152",
+  0x8D: "\u008D",
+  0x8E: "\u017D",
+  0x8F: "\u008F",
+  0x90: "\u0090",
+  0x91: "\u2018",
+  0x92: "\u2019",
+  0x93: "\u201C",
+  0x94: "\u201D",
+  0x95: "\u2022",
+  0x96: "\u2013",
+  0x97: "\u2014",
+  0x98: "\u02DC",
+  0x99: "\u2122",
+  0x9A: "\u0161",
+  0x9B: "\u203A",
+  0x9C: "\u0153",
+  0x9D: "\u009D",
+  0x9E: "\u017E",
+  0x9F: "\u0178"
+};
 
-final Map<String, String> encodings = const {
+const Map<String, String> encodings = const {
   '437': 'cp437',
   '850': 'cp850',
   '852': 'cp852',

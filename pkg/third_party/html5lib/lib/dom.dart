@@ -11,7 +11,6 @@ import 'src/constants.dart';
 import 'src/list_proxy.dart';
 import 'src/token.dart';
 import 'src/tokenizer.dart';
-import 'src/treebuilder.dart';
 import 'src/utils.dart';
 import 'dom_parsing.dart';
 import 'parser.dart';

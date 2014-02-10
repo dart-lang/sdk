@@ -1,7 +1,6 @@
 /** Support code for the tests in this directory. */
 library support;
 
-import 'dart:async';
 import 'dart:io';
 import 'dart:collection';
 import 'package:path/path.dart' as path;

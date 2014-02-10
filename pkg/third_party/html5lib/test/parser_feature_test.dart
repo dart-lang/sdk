@@ -3,10 +3,8 @@ library parser_feature_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:html5lib/dom.dart';
-import 'package:html5lib/dom_parsing.dart';
 import 'package:html5lib/parser.dart';
 import 'package:html5lib/src/constants.dart';
-import 'package:html5lib/src/tokenizer.dart';
 import 'package:html5lib/src/treebuilder.dart';
 
 main() {
