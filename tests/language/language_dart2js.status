@@ -75,7 +75,6 @@ compile_time_constant_checked3_test/03: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/04: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/05: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/06: MissingCompileTimeError, OK
-type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
 malformed2_test/01: MissingCompileTimeError, OK
 generic_test: RuntimeError, OK
 named_parameters_type_test/01: MissingRuntimeError, OK
@@ -150,6 +149,9 @@ null_test/none: RuntimeError  # Issue 12482
 
 [ ($compiler == dart2js || $compiler == dart2dart) && $checked ]
 cyclic_typedef_test/07: Crash # Issue 15237
+
+[ ($compiler == dart2js || $compiler == dart2dart) && $unchecked ]
+type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
