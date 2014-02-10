@@ -151,9 +151,9 @@ class AssetCascade {
       // If the requested asset is available, we can just return it.
       if (node != null && node.state.isAvailable) return node;
 
-      // If there's a build running, that build might generate the asset, so we
-      // wait for it to complete and then try again.
       if (_processDone != null) {
+        // If there's a build running, that build might generate the asset, so
+        // we wait for it to complete and then try again.
         return _processDone.then((_) => getAssetNode(id));
       }
 
@@ -230,6 +230,14 @@ class AssetCascade {
     } else if (transformers.length < _phases.length) {
       _phases[transformers.length - 1].removeFollowing();
       _phases.removeRange(transformers.length, _phases.length);
+    }
+  }
+
+  /// Force all [LazyTransformer]s' transforms in this cascade to begin
+  /// producing concrete assets.
+  void forceAllTransforms() {
+    for (var phase in _phases) {
+      phase.forceAllTransforms();
     }
   }
 

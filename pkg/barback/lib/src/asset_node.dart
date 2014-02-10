@@ -50,6 +50,14 @@ class AssetNode {
   Asset get asset => _asset;
   Asset _asset;
 
+  /// The callback to be called to notify this asset node's creator that the
+  /// concrete asset should be generated.
+  ///
+  /// This is null for non-lazy asset nodes (see [AssetNodeController.lazy]).
+  /// Once this is called, it's set to null and [this] is no longer considered
+  /// lazy.
+  Function _lazyCallback;
+
   /// A broadcast stream that emits an event whenever the node changes state.
   ///
   /// This stream is synchronous to ensure that when a source asset is modified
@@ -138,7 +146,24 @@ class AssetNode {
         _asset = asset,
         _state = AssetState.AVAILABLE;
 
-  String toString() => "$state asset $id";
+  AssetNode._lazy(this.id, this._transform, this._origin, this._lazyCallback)
+      : _state = AssetState.DIRTY;
+
+  /// If [this] is lazy, force it to generate a concrete asset; otherwise, do
+  /// nothing.
+  ///
+  /// See [AssetNodeController.lazy].
+  void force() {
+    if (_origin != null) {
+      _origin.force();
+    } else if (_lazyCallback != null) {
+      _lazyCallback();
+      _lazyCallback = null;
+    }
+  }
+
+  String toString() =>
+    "$state${_lazyCallback == null ? '' : ' lazy'} asset $id";
 }
 
 /// The controller for an [AssetNode].
@@ -156,11 +181,26 @@ class AssetNodeController {
   AssetNodeController.available(Asset asset, [TransformNode transform])
       : node = new AssetNode._available(asset, transform, null);
 
+  /// Creates a controller for a lazy node.
+  ///
+  /// For the most part, this node works like any other dirty node. However, the
+  /// owner of its controller isn't expected to do the work to make it available
+  /// as soon as possible like they would for a non-lazy node. Instead, when its
+  /// value is needed, [callback] will fire to indicate that it should be made
+  /// available as soon as possible.
+  ///
+  /// [callback] is guaranteed to only fire once.
+  AssetNodeController.lazy(AssetId id, void callback(),
+          [TransformNode transform])
+      : node = new AssetNode._lazy(id, transform, null, callback);
+
   /// Creates a controller for a node whose initial state matches the current
   /// state of [node].
   ///
   /// [AssetNode.origin] of the returned node will automatically be set to
   /// `node.origin`.
+  ///
+  /// If [node] is lazy, the returned node will also be lazy.
   AssetNodeController.from(AssetNode node)
       : node = new AssetNode._(node.id, node.transform, node.origin) {
     if (node.state.isAvailable) {
@@ -175,6 +215,7 @@ class AssetNodeController {
     assert(node._state != AssetState.REMOVED);
     node._state = AssetState.DIRTY;
     node._asset = null;
+    node._lazyCallback = null;
     node._stateChangeController.add(AssetState.DIRTY);
   }
 
@@ -186,6 +227,7 @@ class AssetNodeController {
     assert(node._state != AssetState.REMOVED);
     node._state = AssetState.REMOVED;
     node._asset = null;
+    node._lazyCallback = null;
     node._stateChangeController.add(AssetState.REMOVED);
   }
 
@@ -199,7 +241,23 @@ class AssetNodeController {
     assert(node._state != AssetState.AVAILABLE);
     node._state = AssetState.AVAILABLE;
     node._asset = asset;
+    node._lazyCallback = null;
     node._stateChangeController.add(AssetState.AVAILABLE);
+  }
+
+  /// Marks the node as [AssetState.DIRTY] and lazy.
+  ///
+  /// Lazy nodes aren't expected to have their values generated until needed.
+  /// Once it's necessary, [callback] will be called. [callback] is guaranteed
+  /// to be called only once.
+  ///
+  /// See also [AssetNodeController.lazy].
+  void setLazy(void callback()) {
+    assert(node._state != AssetState.REMOVED);
+    node._state = AssetState.DIRTY;
+    node._asset = null;
+    node._lazyCallback = callback;
+    node._stateChangeController.add(AssetState.DIRTY);
   }
 
   String toString() => "controller for $node";

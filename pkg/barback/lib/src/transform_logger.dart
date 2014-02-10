@@ -8,7 +8,9 @@ import 'package:source_maps/span.dart';
 
 import 'asset_id.dart';
 import 'log.dart';
-import 'transform.dart';
+
+typedef void LogFunction(AssetId asset, LogLevel level, String message,
+                         Span span);
 
 /// Object used to report warnings and errors encountered while running a
 /// transformer.

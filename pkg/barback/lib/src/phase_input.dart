@@ -150,6 +150,14 @@ class PhaseInput {
     if (_adjustTransformersFuture == null) _adjustTransformers();
   }
 
+  /// Force all [LazyTransformer]s' transforms in this input to begin producing
+  /// concrete assets.
+  void forceAllTransforms() {
+    for (var transform in _transforms) {
+      transform.force();
+    }
+  }
+
   /// Asynchronously determines which transformers can consume [input] as a
   /// primary input and creates transforms for them.
   ///

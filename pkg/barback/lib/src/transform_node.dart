@@ -12,11 +12,14 @@ import 'asset.dart';
 import 'asset_id.dart';
 import 'asset_node.dart';
 import 'asset_set.dart';
+import 'declaring_transform.dart';
 import 'errors.dart';
+import 'lazy_transformer.dart';
 import 'log.dart';
 import 'phase.dart';
 import 'transform.dart';
 import 'transformer.dart';
+import 'utils.dart';
 
 /// Describes a transform on a set of assets and its relationship to the build
 /// dependency graph.
@@ -44,6 +47,9 @@ class TransformNode {
   bool get isDirty => _isDirty;
   var _isDirty = true;
 
+  /// Whether [transformer] is lazy and this transform has yet to be forced.
+  bool _isLazy;
+
   /// The subscriptions to each input's [AssetNode.onStateChange] stream.
   var _inputSubscriptions = new Map<AssetId, StreamSubscription>();
 
@@ -67,7 +73,10 @@ class TransformNode {
   Stream<LogEntry> get onLog => _onLogController.stream;
   final _onLogController = new StreamController<LogEntry>.broadcast(sync: true);
 
-  TransformNode(this.phase, this.transformer, this.primary, this._location) {
+  TransformNode(this.phase, Transformer transformer, this.primary,
+      this._location)
+      : transformer = transformer,
+        _isLazy = transformer is LazyTransformer {
     _primarySubscription = primary.onStateChange.listen((state) {
       if (state.isRemoved) {
         remove();
@@ -101,6 +110,16 @@ class TransformNode {
     }
   }
 
+  /// If [transformer] is lazy, ensures that its concrete outputs will be
+  /// generated.
+  void force() {
+    // TODO(nweiz): we might want to have a timeout after which, if the
+    // transform's outputs have gone unused, we switch it back to lazy mode.
+    if (!_isLazy) return;
+    _isLazy = false;
+    _dirty();
+  }
+
   /// Marks this transform as dirty.
   ///
   /// This causes all of the transform's outputs to be marked as dirty as well.
@@ -119,9 +138,6 @@ class TransformNode {
   Future<Set<AssetNode>> apply() {
     assert(!_onDirtyController.isClosed);
 
-    var newOutputs = new AssetSet();
-    var transform = createTransform(this, newOutputs, _log);
-
     // Clear all the old input subscriptions. If an input is re-used, we'll
     // re-subscribe.
     for (var subscription in _inputSubscriptions.values) {
@@ -131,25 +147,26 @@ class TransformNode {
 
     _isDirty = false;
 
-    return transformer.apply(transform).catchError((error, stack) {
+    return syncFuture(() {
+      // TODO(nweiz): If [transformer] is a [DeclaringTransformer] but not a
+      // [LazyTransformer], we can get some mileage out of doing a declarative
+      // first so we know how to hook up the assets.
+      if (_isLazy) return _declareLazy();
+      return _applyImmediate();
+    }).catchError((error, stackTrace) {
       // If the transform became dirty while processing, ignore any errors from
       // it.
-      if (_isDirty) return;
-
-      if (error is! MissingInputException) {
-        error = new TransformerException(info, error, stack);
-      }
-
-      // Catch all transformer errors and pipe them to the results stream.
-      // This is so a broken transformer doesn't take down the whole graph.
-      phase.cascade.reportError(error);
-
-      // Don't allow partial results from a failed transform.
-      newOutputs.clear();
-    }).then((_) {
       if (_isDirty) return new Set();
 
-      return _adjustOutputs(newOutputs);
+      if (error is! MissingInputException) {
+        error = new TransformerException(info, error, stackTrace);
+      }
+
+      // Catch all transformer errors and pipe them to the results stream. This
+      // is so a broken transformer doesn't take down the whole graph.
+      phase.cascade.reportError(error);
+
+      return new Set();
     });
   }
 
@@ -180,40 +197,88 @@ class TransformNode {
     });
   }
 
-  /// Adjusts the outputs of the transform to reflect the outputs emitted on its
-  /// most recent run.
-  Set<AssetNode> _adjustOutputs(AssetSet newOutputs) {
-    // Any ids that are for a different package are invalid.
-    var invalidIds = newOutputs
-        .map((asset) => asset.id)
-        .where((id) => id.package != phase.cascade.package)
-        .toSet();
-    for (var id in invalidIds) {
-      newOutputs.removeId(id);
-      // TODO(nweiz): report this as a warning rather than a failing error.
-      phase.cascade.reportError(new InvalidOutputException(info, id));
-    }
+  /// Applies the transform so that it produces concrete (as opposed to lazy)
+  /// outputs.
+  Future<Set<AssetNode>> _applyImmediate() {
+    var newOutputs = new AssetSet();
+    var transform = new Transform(this, newOutputs, _log);
 
-    // Remove outputs that used to exist but don't anymore.
-    for (var id in _outputControllers.keys.toList()) {
-      if (newOutputs.containsId(id)) continue;
-      _outputControllers.remove(id).setRemoved();
-    }
+    return syncFuture(() => transformer.apply(transform)).then((_) {
+      if (_isDirty) return new Set();
 
-    var brandNewOutputs = new Set<AssetNode>();
-    // Store any new outputs or new contents for existing outputs.
-    for (var asset in newOutputs) {
-      var controller = _outputControllers[asset.id];
-      if (controller != null) {
-        controller.setAvailable(asset);
-      } else {
-        var controller = new AssetNodeController.available(asset, this);
-        _outputControllers[asset.id] = controller;
-        brandNewOutputs.add(controller.node);
+      // Any ids that are for a different package are invalid.
+      var invalidIds = newOutputs
+          .map((asset) => asset.id)
+          .where((id) => id.package != phase.cascade.package)
+          .toSet();
+      for (var id in invalidIds) {
+        newOutputs.removeId(id);
+        // TODO(nweiz): report this as a warning rather than a failing error.
+        phase.cascade.reportError(new InvalidOutputException(info, id));
       }
-    }
 
-    return brandNewOutputs;
+      // Remove outputs that used to exist but don't anymore.
+      for (var id in _outputControllers.keys.toList()) {
+        if (newOutputs.containsId(id)) continue;
+        _outputControllers.remove(id).setRemoved();
+      }
+
+      var brandNewOutputs = new Set<AssetNode>();
+      // Store any new outputs or new contents for existing outputs.
+      for (var asset in newOutputs) {
+        var controller = _outputControllers[asset.id];
+        if (controller != null) {
+          controller.setAvailable(asset);
+        } else {
+          var controller = new AssetNodeController.available(asset, this);
+          _outputControllers[asset.id] = controller;
+          brandNewOutputs.add(controller.node);
+        }
+      }
+
+      return brandNewOutputs;
+    });
+  }
+
+  /// Applies the transform in declarative mode so that it produces lazy
+  /// outputs.
+  Future<Set<AssetNode>> _declareLazy() {
+    var newIds = new Set();
+    var transform = new DeclaringTransform(this, newIds, _log);
+
+    return syncFuture(() {
+      return (transformer as LazyTransformer).declareOutputs(transform);
+    }).then((_) {
+      if (_isDirty) return new Set();
+
+      var invalidIds =
+          newIds.where((id) => id.package != phase.cascade.package).toSet();
+      for (var id in invalidIds) {
+        newIds.remove(id);
+        // TODO(nweiz): report this as a warning rather than a failing error.
+        phase.cascade.reportError(new InvalidOutputException(info, id));
+      }
+
+      // Remove outputs that used to exist but don't anymore.
+      for (var id in _outputControllers.keys.toList()) {
+        if (newIds.contains(id)) continue;
+        _outputControllers.remove(id).setRemoved();
+      }
+
+      var brandNewOutputs = new Set<AssetNode>();
+      for (var id in newIds) {
+        var controller = _outputControllers[id];
+        if (controller != null) {
+          controller.setLazy(force);
+        } else {
+          var controller = new AssetNodeController.lazy(id, force, this);
+          _outputControllers[id] = controller;
+          brandNewOutputs.add(controller.node);
+        }
+      }
+
+      return brandNewOutputs;
+    });
   }
 
   void _log(AssetId asset, LogLevel level, String message, Span span) {
