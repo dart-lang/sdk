@@ -43,6 +43,9 @@ override_dh_auto_build:
 	make -C dart -j$(PARALLEL_JOBS) \
 		BUILDTYPE=$(BUILD_TYPE) $(BUILD_ARGS) create_sdk
 
+# Building the Dart SDK will already strip all binaries.
+override_dh_strip:
+
 override_dh_auto_install:
 	mkdir -p debian/tmp/out
 	cp -R dart/out/$(BUILD_TYPE)/dart-sdk debian/tmp/out
