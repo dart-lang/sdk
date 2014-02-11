@@ -411,7 +411,7 @@ class _Generator {
   static void _writeOutputFiles(libraryMap,
       Iterable<Indexable> filteredEntities, bool outputToYaml, bool append,
       String startPage) {
-    if (startPage != null) libraryMap['startPage'] = startPage;
+    if (startPage != null) libraryMap['start-page'] = startPage;
 
     _writeToFile(JSON.encode(libraryMap), 'library_list.json');
 
@@ -591,7 +591,10 @@ class _Generator {
   }
 
   /// All of the directories for our dependent packages
+  /// If this is not a package, return an empty list.
   static List<String> _allDependentPackageDirs(String packageDirectory) {
+    var packageName = Library.packageNameFor(packageDirectory);
+    if (packageName == '') return [];
     var dependentsJson = Process.runSync('pub', ['list-package-dirs'],
         workingDirectory: packageDirectory, runInShell: true);
     if (dependentsJson.exitCode != 0) {
@@ -1394,11 +1397,16 @@ class Library extends Indexable {
   static String _getRootdir(LibraryMirror mirror) =>
       path.dirname(path.dirname(mirror.uri.toFilePath()));
 
-  /// Read a pubspec and return the library name.
+  /// Read a pubspec and return the library name given a [LibraryMirror].
   static String _packageName(LibraryMirror mirror) {
     if (mirror.uri.scheme != 'file') return '';
     var rootdir = _getRootdir(mirror);
-    var pubspecName = path.join(rootdir, 'pubspec.yaml');
+    return packageNameFor(rootdir);
+  }
+
+  /// Read a pubspec and return the library name, given a directory
+  static String packageNameFor(String directoryName) {
+    var pubspecName = path.join(directoryName, 'pubspec.yaml');
     File pubspec = new File(pubspecName);
     if (!pubspec.existsSync()) return '';
     var contents = pubspec.readAsStringSync();
