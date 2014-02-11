@@ -123,7 +123,7 @@ uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
         // needs to be unprotected before storing to it and reprotected
         // after.
         bool target_is_protected = false;
-        uword target_address = NULL;
+        uword target_address = 0L;
         if (is_protected) {
           uword writable_start = reinterpret_cast<uword>(current);
           uword writable_end =
