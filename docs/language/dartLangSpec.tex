@@ -199,7 +199,7 @@ Now consider the opposite scenario. We start with a version of \code{S} that con
 
 These considerations become even more important if one introduces constructs such as nested classes, which might be considered in future versions of the language.
 
-Good tooling should of course endeavor to inform programmers of such situations (discretely). For example, an identifier that is both inherited and lexically visible could be highlighted (via underlining or colorization). Better yet, tight integration of source control with language aware tools would detect such changes when they occur. 
+Good tooling should of course endeavor to inform programmers of such situations (discreetly). For example, an identifier that is both inherited and lexically visible could be highlighted (via underlining or colorization). Better yet, tight integration of source control with language aware tools would detect such changes when they occur. 
  
 }
 
@@ -4832,7 +4832,7 @@ It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Fu
 
 A Dart program consists of one or more libraries, and may be built out of one or more {\em compilation units}. A compilation unit may be a library or a part (\ref{parts}). 
 
-A library consists of (a possibly empty) set of imports, asset of exports,  and a set of top-level declarations. A top-level declaration is either a class (\ref{classes}), a type alias declaration (\ref{typedef}), a function (\ref{functions}) or a variable declaration (\ref{variables}). The members of a library $L$ are those top level declarations given within a $L$.
+A library consists of (a possibly empty) set of imports, a set of exports, and a set of top-level declarations. A top-level declaration is either a class (\ref{classes}), a type alias declaration (\ref{typedef}), a function (\ref{functions}) or a variable declaration (\ref{variables}). The members of a library $L$ are those top level declarations given within a $L$.
 
  \begin{grammar}
 {\bf topLevelDefinition:}classDefinition;
