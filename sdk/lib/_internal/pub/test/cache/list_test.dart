@@ -6,8 +6,8 @@ library pub_cache_test;
 
 import 'package:path/path.dart' as path;
 
-import 'descriptor.dart' as d;
-import 'test_pub.dart';
+import '../descriptor.dart' as d;
+import '../test_pub.dart';
 
 main() {
   initConfig();

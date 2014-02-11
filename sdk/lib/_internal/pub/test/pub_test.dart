@@ -29,6 +29,7 @@ final USAGE_STRING = """
 
     Available commands:
       build      Apply transformers to build a package.
+      cache      Work with the system cache.
       get        Get the current package's dependencies.
       help       Display help information for Pub.
       publish    Publish the current package to pub.dartlang.org.
@@ -91,7 +92,7 @@ main() {
           -h, --help    Print usage information for this command.
           
           Available subcommands:
-            list   List packages in the system cache.
+            add   Install a package.
      ''');
   });
 
@@ -107,6 +108,7 @@ main() {
    
         Available commands:
           build      Apply transformers to build a package.
+          cache      Work with the system cache.
           get        Get the current package's dependencies.
           help       Display help information for Pub.
           publish    Publish the current package to pub.dartlang.org.
@@ -125,9 +127,9 @@ main() {
    
         Usage: pub cache <subcommand>
         -h, --help    Print usage information for this command.
-        
+
         Available subcommands:
-          list   List packages in the system cache.
+          add   Install a package.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -172,7 +174,7 @@ main() {
         -h, --help    Print usage information for this command.
 
         Available subcommands:
-          list   List packages in the system cache.
+          add   Install a package.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -221,9 +223,10 @@ main() {
       schedulePub(args: ['help', 'quylthulg'],
           error: '''
             Could not find a command named "quylthulg".
-       
+
             Available commands:
               build      Apply transformers to build a package.
+              cache      Work with the system cache.
               get        Get the current package's dependencies.
               help       Display help information for Pub.
               publish    Publish the current package to pub.dartlang.org.
@@ -239,12 +242,12 @@ main() {
       schedulePub(args: ['help', 'cache', 'quylthulg'],
           error: '''
             Could not find a subcommand named "quylthulg" for "pub cache".
-       
+
             Usage: pub cache <subcommand>
             -h, --help    Print usage information for this command.
-
+    
             Available subcommands:
-              list   List packages in the system cache.
+              add   Install a package.
             ''',
             exitCode: exit_codes.USAGE);
     });
@@ -253,7 +256,7 @@ main() {
       schedulePub(args: ['help', 'version', 'badsubcommand'],
           error: '''
             Command "pub version" does not expect a subcommand.
-            
+
             Usage: pub version
             -h, --help    Print usage information for this command.
             ''',

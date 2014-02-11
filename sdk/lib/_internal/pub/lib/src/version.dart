@@ -33,6 +33,27 @@ class Version implements Comparable<Version>, VersionConstraint {
   /// No released version: i.e. "0.0.0".
   static Version get none => new Version(0, 0, 0);
 
+  /// Compares [a] and [b] to see which takes priority over the other.
+  ///
+  /// Returns `1` if [a] takes priority over [b] and `-1` if vice versa. If
+  /// [a] and [b] are equivalent, returns `0`.
+  ///
+  /// Unlike [compareTo], which *orders* versions, this determines which
+  /// version a user is likely to prefer. In particular, it prioritizes
+  /// pre-release versions lower than stable versions, regardless of their
+  /// version numbers.
+  ///
+  /// When used to sort a list, orders in ascending priority so that the
+  /// highest priority version is *last* in the result.
+  static int prioritize(Version a, Version b) {
+    // Sort all prerelease versions after all normal versions. This way
+    // the solver will prefer stable packages over unstable ones.
+    if (a.isPreRelease && !b.isPreRelease) return -1;
+    if (!a.isPreRelease && b.isPreRelease) return 1;
+
+    return a.compareTo(b);
+  }
+
   /// The major version number: "1" in "1.2.3".
   final int major;
 
