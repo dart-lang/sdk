@@ -18,6 +18,9 @@ mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 [ $csp ]
 mirrors/delegate_test: RuntimeError # Issue 13864
 
+[ $compiler == dart2js && $checked && $runtime == drt ]
+async/stream_transform_test: RuntimeError # Issue 16719
+
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
 

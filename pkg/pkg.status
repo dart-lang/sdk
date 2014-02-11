@@ -44,6 +44,9 @@ serialization/test/serialization_test: Skip
 [ $runtime == jsshell ]
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
 
+[ $compiler == dart2js && $checked && $runtime == drt ]
+async/test/stream_zip_test: RuntimeError # Issue 16719
+
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_nested_groups_setup_teardown_test: RuntimeError # http://dartbug.com/10109
 stack_trace/test/vm_test: RuntimeError, OK # VM-specific traces
