@@ -11,8 +11,7 @@ custom/template_wrappers_test: Pass, Fail # Issue 16656 (Chrome 33 regression)
 custom/js_custom_test: Fail # Issue 14643
 
 [ $compiler == dart2js && $browser ]
-element_offset_test/offset: Pass, Fail # Issue 13296
-custom/template_wrappers_test: Pass, Fail # Test is for Dartium GC issues
+custom/template_wrappers_test: RuntimeError # Test is for Dartium GC issues
 
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
@@ -68,7 +67,6 @@ xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 
 
 [ $compiler == dart2js && $runtime == ie10 ]
-async_test: Pass, Fail # timers test fails on ie10.
 indexeddb_5_test: Fail # Issue 12893
 js_test: Fail # Issue 14246
 
@@ -76,9 +74,6 @@ js_test: Fail # Issue 14246
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
 [ $runtime == chrome ]
-canvasrenderingcontext2d_test/drawImage_video_element: Pass,Fail # Issue 11836
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11836
-
 xhr_test: Pass, Fail # Issue 11884
 xhr_cross_origin_test: Pass, Fail # Issue 11884
 
@@ -101,10 +96,7 @@ audiobuffersourcenode_test: Pass, Fail
 
 [$runtime == ie10 ]
 element_test/click: Fail                # IE does not support firing this event.
-history_test/history: Pass, Fail # issue 8183
-native_gc_test: Fail, Pass # BUG(7774): Untriaged.
 serialized_script_value_test: Fail
-storage_test: Fail, Pass
 transferables_test: Fail # Issue 9846
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
@@ -265,7 +257,6 @@ xsltprocessor_test/supported: Fail
 [ $runtime == safari ]
 worker_test: Skip # Issue 13221
 worker_api_test: Skip # Issue 13221
-element_types_test/supported_track: Pass, Fail
 input_element_test/supported_month: RuntimeError
 input_element_test/supported_time: RuntimeError
 input_element_test/supported_week: RuntimeError
@@ -363,7 +354,6 @@ input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
 input_element_test/supported_number: Fail
-input_element_test/supported_range: Fail, Pass # FF 23 is introducing support.
 input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail

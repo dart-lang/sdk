@@ -279,9 +279,6 @@ cyclic_type2_test: Fail # Issue 12605.
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
-many_overridden_no_such_method_test: Pass, Fail # Issue 13078
-overridden_no_such_method_test: Pass, Fail # Issue 13078
-no_such_method_test: Pass, Fail # Issue 13078
 type_variable_typedef_test: Fail # Issue 11467
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 

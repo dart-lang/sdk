@@ -53,11 +53,6 @@ LibTest/isolate/SendPort/send_A02_t03: SKIP # co19 issue 495 (not fixed in r672)
 [ $runtime == dartium || $compiler == dart2js ]
 LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
-[ $runtime == vm || $compiler == dart2js ]
-LibTest/math/exp_A01_t01: PASS, FAIL, OK # co19 issue 44
-LibTest/math/sin_A01_t01: PASS, FAIL, OK # co19 issue 44
-
-
 [ $runtime == vm || $compiler == none || $compiler == dart2js ]
 LibTest/isolate/IsolateStream/any_A01_t01: Fail # Co19 issue 639 (Fixed in r674)
 LibTest/isolate/IsolateStream/asBroadcastStream_A01_t01: Fail # Co19 issue 639
@@ -82,7 +77,6 @@ LibTest/isolate/ReceivePort/toSendPort_A01_t03: Fail # Co19 issue 639
 LibTest/isolate/SendPort/call_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/hashCode_A01_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/operator_equality_A01_t01: Fail # Co19 issue 639
-LibTest/isolate/SendPort/send_A01_t01: Pass
 LibTest/isolate/SendPort/send_A02_t01: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A02_t04: Fail # Co19 issue 639
 LibTest/isolate/SendPort/send_A02_t05: Fail # Co19 issue 639

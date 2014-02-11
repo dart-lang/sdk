@@ -9,8 +9,6 @@ boolified_operator_test: Fail # Issue 8001
 # building function type tests.
 simple_function_subtype_test: Fail
 
-mirror_final_field_inferrer2_test: Crash, Pass # dartbug.com/15581
-
 simple_inferrer_const_closure_test: Fail # Issue 16507
 simple_inferrer_const_closure2_test: Fail # Issue 16507
 simple_inferrer_global_field_closure_test: Fail # Issue 16507

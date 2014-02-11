@@ -12,7 +12,6 @@ Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with s
 
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 
-LibTest/async/Stream/Stream.periodic_A01_t01: Pass, Fail # Issue 12562.
 LibTest/core/Symbol/Symbol_A01_t02: CompileTimeError # co19-roll r607: Please triage this failure
 
 Language/12_Expressions/12_Instance_Creation/1_New_A04_t02: RuntimeError # co19-roll r607: Please triage this failure
@@ -59,8 +58,6 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
 LibTest/isolate/SendPort/send_A02_t01: CompileTimeError # Issue 13683
-LibTest/math/exp_A01_t01: Fail # Issue co19 - 44
-LibTest/math/sin_A01_t01: Fail # Inherited from VM.
 LibTest/math/tan_A01_t01: Fail # Issue co19 - 44
 LibTest/typed_data/Float32x4/equal_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/notEqual_A01_t01: Skip # co19 issue 656
@@ -123,7 +120,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Plea
 Language/14_Libraries_and_Scripts/1_Imports_A03_t28: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t29: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t30: fail # co19-roll r546: Please triage this failure
-Language/14_Libraries_and_Scripts/1_Imports_A03_t65: pass, fail, ok # co19 issue 560
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t01: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/5_URIs_A01_t01: fail # co19-roll r546: Please triage this failure
@@ -134,11 +130,8 @@ Language/15_Types/4_Interface_Types_A11_t02: crash # co19-roll r546: Please tria
 Language/15_Types/5_Function_Types_A06_t01: fail # co19-roll r546: Please triage this failure
 Language/16_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail # co19-roll r546: Please triage this failure
 Language/16_Reference/1_Lexical_Rules_A02_t06: fail # co19-roll r546: Please triage this failure
-LibTest/async/Stream/Stream.periodic_A03_t01: fail, pass # co19-roll r546: Please triage this failure
-LibTest/async/Timer/Timer.periodic_A02_t01: fail, pass # co19-roll r546: Please triage this failure
 LibTest/core/DateTime/parse_A03_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A02_t02: timeout # co19-roll r546: Please triage this failure
 LibTest/isolate/SendPort/send_A02_t03: timeout # co19-roll r546: Please triage this failure
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t09: RuntimeError # co19-roll r623: Please triage this failure

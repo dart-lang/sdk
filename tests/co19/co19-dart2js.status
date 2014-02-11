@@ -162,7 +162,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK 
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: fail # co19 issue 648
 Language/03_Overview/2_Privacy_A01_t09: RuntimeError, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 Language/06_Functions/4_External_Functions_A01_t01: CompileTimeError, OK # http://dartbug.com/5021
@@ -483,7 +482,6 @@ LibTest/core/Match/pattern_A01_t01: fail # co19-roll r559: Please triage this fa
 LibTest/core/RegExp/allMatches_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/isolate/IsolateStream/any_A02_t01: fail # co19-roll r546: Please triage this failure
 LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19-roll r546: Please triage this failure
-LibTest/isolate/SendPort/send_A01_t01: fail # co19-roll r546: Please triage this failure
 LibTest/typed_data/Float32List/Float32List.view_A05_t01: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/Float32List.view_A05_t02: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Float32List/Float32List.view_A05_t03: RuntimeError # co19-roll r559: Please triage this failure
@@ -549,7 +547,7 @@ LibTest/typed_data/Int16List/toList_A01_t01: timeout # co19-roll r559: Please tr
 LibTest/typed_data/Int32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int32List/Int32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Int32List/toList_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Int32List/toList_A01_t01: pass, timeout # co19-roll r559: Please triage this failure
+LibTest/typed_data/Int32List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int8List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Int8List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
@@ -557,7 +555,7 @@ LibTest/typed_data/Uint16List/toList_A01_t01: fail # co19-roll r559: Please tria
 LibTest/typed_data/Uint16List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint16List/Uint16List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Uint32List/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
-LibTest/typed_data/Uint32List/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
+LibTest/typed_data/Uint32List/toList_A01_t01: timeout # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint32List/Uint32List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/hashCode_A01_t01: fail # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8ClampedList/toList_A01_t01: fail, timeout # co19-roll r559: Please triage this failure
@@ -654,7 +652,6 @@ LibTest/isolate/Isolate/spawnUri_A01_t05: Fail # co19-roll r672: Please triage t
 [ $compiler == dart2js ]
 LibTest/core/List/List_class_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 Language/03_Overview/2_Privacy_A01_t02: RuntimeError # co19-roll r667: Please triage this failure
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Pass # co19-roll r667: Please triage this failure
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t16: RuntimeError # co19-roll r667: Please triage this failure
 Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t17: RuntimeError # co19-roll r667: Please triage this failure
 LibTest/convert/JsonDecoder/fuse_A01_t01: RuntimeError # co19-roll r667: Please triage this failure

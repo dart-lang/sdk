@@ -17,9 +17,6 @@ pause_test: Fail       # Not implemented yet
 browser/*: SkipByDesign  # Browser specific tests
 pause_test: Fail  # non-zero timer not supported.
 
-[ $compiler == dart2js && $runtime == drt ]
-isolate_stress_test: Pass, Crash # Issue 14438
-
 [ $compiler == dart2js ]
 serialization_test: RuntimeError # Issue 1882, tries to access class TestingOnly declared in isolate_patch.dart
 
