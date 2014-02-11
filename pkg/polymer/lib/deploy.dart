@@ -117,9 +117,8 @@ ArgResults _parseArgs(arguments) {
           'leaves "packages/browser/dart.js" to do the replacement at runtime.',
           defaultsTo: true)
       ..addFlag('debug', help:
-          'run in debug mode. For example, use the debug versions of the \n'
-          'polyfills (shadow_dom.debug.js and custom-elements.debug.js) \n'
-          'instead of the minified versions.',
+          'run in debug mode. For example, use the debug polyfill \n'
+          'web_components/platform.concat.js instead of the minified one.\n',
           defaultsTo: false)
       ..addFlag('csp', help:
           'replaces *.dart with *.dart.precompiled.js to comply with \n'

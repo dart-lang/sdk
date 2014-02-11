@@ -37,8 +37,7 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
           '<script src="test.html_bootstrap.dart.js"></script>'
           '</head><body></body></html>',
@@ -64,8 +63,7 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
           '<script src="test.html_bootstrap.dart.js"></script>'
           '</head><body></body></html>',
@@ -103,8 +101,7 @@ void main() {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
           '<script src="test.html_bootstrap.dart.js"></script>'
           '</head><body>'
@@ -142,8 +139,7 @@ void main() {
     }, {
       'a|web/index.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
           '</head><body><polymer-element>1</polymer-element>'
           '<script src="index.html_bootstrap.dart.js"></script>'

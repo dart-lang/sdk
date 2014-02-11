@@ -62,7 +62,7 @@ main() {
 
   var registered = false;
   setUp(() {
-    return loadPolyfills().then((_) {
+    return customElementsReady.then((_) {
       if (!registered) {
         registered = true;
         document.register(B.tag, B);

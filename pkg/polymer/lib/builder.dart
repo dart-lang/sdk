@@ -237,7 +237,7 @@ class CommandLineOptions {
 
   /**
    * Run transformers in release mode. For instance, uses the minified versions
-   * of shadow_dom and custom-elements polyfills.
+   * of the web_components polyfill.
    */
   final bool releaseMode;
 
@@ -301,9 +301,8 @@ CommandLineOptions parseOptions([List<String> args]) {
         'replaces *.dart with *.dart.precompiled.js to comply with \n'
         'Content Security Policy restrictions.')
     ..addFlag('debug', help:
-        'run in debug mode. For example, use the debug versions of the \n'
-        'polyfills (shadow_dom.debug.js and custom-elements.debug.js) \n'
-        'instead of the minified versions.',
+        'run in debug mode. For example, use the debug polyfill \n'
+        'web_components/platform.concat.js instead of the minified one.\n',
         defaultsTo: false)
     ..addFlag('help', abbr: 'h',
         negatable: false, help: 'Displays this help and exit.');

@@ -101,7 +101,7 @@ main() {
     document.register(CustomCustomDiv.tag, CustomCustomDiv, extendsTag: 'div');
   }
 
-  setUp(loadPolyfills);
+  setUp(() => customElementsReady);
 
   group('registration', () {
     setUp(registerTypes);

@@ -6,11 +6,11 @@ library template_binding.test.custom_element_bindings_test;
 
 import 'dart:async';
 import 'dart:html';
-import 'package:custom_element/polyfill.dart';
 import 'package:template_binding/template_binding.dart';
 import 'package:observe/observe.dart';
 import 'package:unittest/html_config.dart';
 import 'package:unittest/unittest.dart';
+import 'package:web_components/polyfill.dart';
 import 'utils.dart';
 
 Future _registered;
@@ -18,7 +18,7 @@ Future _registered;
 main() => dirtyCheckZone().run(() {
   useHtmlConfiguration();
 
-  _registered = loadCustomElementPolyfill().then((_) {
+  _registered = customElementsReady.then((_) {
     document.register('my-custom-element', MyCustomElement);
     document.register('with-attrs-custom-element', WithAttrsCustomElement);
   });

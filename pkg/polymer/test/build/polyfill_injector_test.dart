@@ -51,7 +51,7 @@ void runTests({bool js: true, bool csp: false}) {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG$CUSTOM_ELEMENT_TAG$INTEROP_TAG'
+          '$WEB_COMPONENTS_TAG$INTEROP_TAG'
           '</head><body>'
           '<script ${type}src="a.dart$ext"></script>'
           '$dartJsTag'
@@ -61,8 +61,7 @@ void runTests({bool js: true, bool csp: false}) {
   testPhases('interop/shadow dom already present', phases, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
           '</head><body>'
           '<script type="application/dart" src="a.dart"></script>'
@@ -70,8 +69,7 @@ void runTests({bool js: true, bool csp: false}) {
     }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head>'
-          '$SHADOW_DOM_TAG'
-          '$CUSTOM_ELEMENT_TAG'
+          '$WEB_COMPONENTS_TAG'
           '$INTEROP_TAG'
           '</head><body>'
           '<script ${type}src="a.dart$ext"></script>'

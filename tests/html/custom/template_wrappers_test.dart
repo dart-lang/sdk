@@ -22,17 +22,10 @@ class CustomElement extends HtmlElement {
   }
 }
 
-// Pump custom events polyfill events.
-void customElementsTakeRecords() {
-  if (js.context != null && js.context.hasProperty('CustomElements')) {
-    js.context['CustomElements'].callMethod('takeRecords');
-  }
-}
-
 main() {
   useHtmlConfiguration();
 
-  setUp(loadPolyfills);
+  setUp(customElementsReady);
 
   test('element is upgraded once', () {
 

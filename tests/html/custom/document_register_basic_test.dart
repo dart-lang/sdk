@@ -45,7 +45,7 @@ main() {
 
   // Adapted from Blink's fast/dom/custom/document-register-basic test.
 
-  setUp(loadPolyfills);
+  setUp(() => customElementsReady);
 
   test('Testing document.register() basic behaviors', () {
     document.register(Foo.tag, Foo);

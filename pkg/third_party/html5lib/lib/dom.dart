@@ -240,19 +240,29 @@ abstract class Node {
     nodes.clear();
   }
 
+  /** *Deprecated* use [querySelector] instead. */
+  @deprecated
+  Element query(String selectors) => querySelector(selectors);
+
+  /** *Deprecated* use [querySelectorAll] instead. */
+  @deprecated
+  List<Element> queryAll(String selectors) => querySelectorAll(selectors);
+
   /**
    * Seaches for the first descendant node matching the given selectors, using a
    * preorder traversal. NOTE: right now, this supports only a single type
    * selectors, e.g. `node.query('div')`.
    */
-  Element query(String selectors) => _queryType(_typeSelector(selectors));
+
+  Element querySelector(String selectors) =>
+      _queryType(_typeSelector(selectors));
 
   /**
    * Returns all descendant nodes matching the given selectors, using a
    * preorder traversal. NOTE: right now, this supports only a single type
    * selectors, e.g. `node.queryAll('div')`.
    */
-  List<Element> queryAll(String selectors) {
+  List<Element> querySelectorAll(String selectors) {
     var results = new List<Element>();
     _queryAllType(_typeSelector(selectors), results);
     return results;
@@ -366,8 +376,9 @@ class Document extends Node {
   int get nodeType => Node.DOCUMENT_NODE;
 
   // TODO(jmesserly): optmize this if needed
-  Element get head => query('html').query('head');
-  Element get body => query('html').query('body');
+  Element get documentElement => querySelector('html');
+  Element get head => documentElement.querySelector('head');
+  Element get body => documentElement.querySelector('body');
 
   String toString() => "#document";
 

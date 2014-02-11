@@ -131,13 +131,10 @@ testPhases(String testName, List<List<Transformer>> phases,
   });
 }
 
-// TODO(jmesserly): this is .debug to workaround issue 14720.
-const SHADOW_DOM_TAG =
-    '<script src="packages/shadow_dom/shadow_dom.debug.js"></script>\n';
+const WEB_COMPONENTS_TAG =
+    '<script src="packages/web_components/platform.js"></script>\n'
+    '<script src="packages/web_components/dart_support.js"></script>\n';
 
 const INTEROP_TAG = '<script src="packages/browser/interop.js"></script>\n';
 const DART_JS_TAG = '<script src="packages/browser/dart.js"></script>';
 
-const CUSTOM_ELEMENT_TAG =
-    '<script src="packages/custom_element/custom-elements.debug.js">'
-    '</script>\n';

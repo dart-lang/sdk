@@ -91,7 +91,7 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
   test('attribute spans', () {
     var text = '<element name="x-foo" extends="x-bar" constructor="Foo">';
     var doc = parse(text, generateSpans: true);
-    var elem = doc.query('element');
+    var elem = doc.querySelector('element');
     expect(elem.sourceSpan.start.offset, 0);
     expect(elem.sourceSpan.end.offset, text.length);
     expect(elem.sourceSpan.text, text);
@@ -106,7 +106,7 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
   test('attribute value spans', () {
     var text = '<element name="x-foo" extends="x-bar" constructor="Foo">';
     var doc = parse(text, generateSpans: true);
-    var elem = doc.query('element');
+    var elem = doc.querySelector('element');
 
     expect(elem.attributeValueSpans['quux'], null);
 
@@ -118,7 +118,7 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
   test('attribute spans if no attributes', () {
     var text = '<element>';
     var doc = parse(text, generateSpans: true);
-    var elem = doc.query('element');
+    var elem = doc.querySelector('element');
 
     expect(elem.attributeSpans['quux'], null);
     expect(elem.attributeValueSpans['quux'], null);
@@ -127,7 +127,7 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
   test('attribute spans if no attribute value', () {
     var text = '<foo template>';
     var doc = parse(text, generateSpans: true);
-    var elem = doc.query('foo');
+    var elem = doc.querySelector('foo');
 
     expect(elem.attributeSpans['template'].start.offset,
         text.indexOf('template'));
@@ -137,7 +137,7 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
   test('attribute spans null if code parsed without spans', () {
     var text = '<element name="x-foo" extends="x-bar" constructor="Foo">';
     var doc = parse(text);
-    var elem = doc.query('element');
+    var elem = doc.querySelector('element');
     expect(elem.sourceSpan, null);
     expect(elem.attributeSpans['quux'], null);
     expect(elem.attributeSpans['extends'], null);
@@ -172,9 +172,9 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
       // However, we preserve the input order via LinkedHashMap
       var doc = parseFragment('<foo d=1 a=2 c=3 b=4>');
       expect(doc.outerHtml, '<foo d="1" a="2" c="3" b="4"></foo>');
-      expect(doc.query('foo').attributes.remove('a'), '2');
+      expect(doc.querySelector('foo').attributes.remove('a'), '2');
       expect(doc.outerHtml, '<foo d="1" c="3" b="4"></foo>');
-      doc.query('foo').attributes['a'] = '0';
+      doc.querySelector('foo').attributes['a'] = '0';
       expect(doc.outerHtml, '<foo d="1" c="3" b="4" a="0"></foo>');
     });
 
@@ -204,11 +204,11 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
 
     test('Newline after <pre>', () {
       var doc = parseFragment('<pre>\n\nsome text</span>');
-      expect(doc.query('pre').nodes[0].value, '\nsome text');
+      expect(doc.querySelector('pre').nodes[0].value, '\nsome text');
       expect(doc.outerHtml, '<pre>\n\nsome text</pre>');
 
       doc = parseFragment('<pre>\nsome text</span>');
-      expect(doc.query('pre').nodes[0].value, 'some text');
+      expect(doc.querySelector('pre').nodes[0].value, 'some text');
       expect(doc.outerHtml, '<pre>some text</pre>');
     });
 
@@ -222,7 +222,7 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
               xlink:href="http://example.com/logo.png"
               xlink:show="new"></desc>
       ''');
-      var n = doc.query('desc');
+      var n = doc.querySelector('desc');
       var keys = n.attributes.keys.toList();
       expect(keys[0], new isInstanceOf<AttributeName>());
       expect(keys[0].prefix, 'xlink');
