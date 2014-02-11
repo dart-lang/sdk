@@ -70,6 +70,7 @@ DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, verbose_stacktrace);
 DECLARE_FLAG(charp, coverage_dir);
+DECLARE_FLAG(bool, write_protect_code);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -10228,7 +10229,9 @@ RawCode* Code::FinalizeCode(const char* name,
     bool status =
         VirtualMemory::Protect(reinterpret_cast<void*>(instrs.raw_ptr()),
                                instrs.raw()->Size(),
-                               VirtualMemory::kReadExecute);
+                               FLAG_write_protect_code
+                                   ? VirtualMemory::kReadExecute
+                                   : VirtualMemory::kReadWriteExecute);
     ASSERT(status);
   }
   return code.raw();

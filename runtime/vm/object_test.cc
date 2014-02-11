@@ -17,6 +17,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, write_protect_code);
+
 static RawLibrary* CreateDummyLibrary(const String& library_name) {
   return Library::New(library_name);
 }
@@ -2486,6 +2488,11 @@ TEST_CASE(CodeImmutability) {
 #endif
   EXPECT_EQ(3, retval);
   EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+  if (!FLAG_write_protect_code) {
+    // Since this test is expected to crash, crash if write protection of code
+    // is switched off.
+    OS::DebugBreak();
+  }
 }
 
 

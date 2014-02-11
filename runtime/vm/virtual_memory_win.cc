@@ -82,6 +82,9 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
     case kReadExecute:
       prot = PAGE_EXECUTE_READ;
       break;
+    case kReadWriteExecute:
+      prot = PAGE_EXECUTE_READWRITE;
+      break;
   }
   DWORD old_prot = 0;
   bool result = VirtualProtect(reinterpret_cast<void*>(page_address),

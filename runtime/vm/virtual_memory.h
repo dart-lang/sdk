@@ -13,12 +13,12 @@ namespace dart {
 
 class VirtualMemory {
  public:
-  // Read-write-execute is not available because it is never used.
   enum Protection {
     kNoAccess,
     kReadOnly,
     kReadWrite,
     kReadExecute,
+    kReadWriteExecute
   };
 
   // The reserved memory is unmapped on destruction.
