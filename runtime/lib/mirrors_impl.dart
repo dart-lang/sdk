@@ -109,6 +109,12 @@ String _makeSignatureString(TypeMirror returnType,
 List _metadata(reflectee)
     native 'DeclarationMirror_metadata';
 
+bool _subtypeTest(Type a, Type b)
+    native 'TypeMirror_subtypeTest';
+
+bool _moreSpecificTest(Type a, Type b)
+    native 'TypeMirror_moreSpecificTest';
+
 class _LocalMirrorSystem extends MirrorSystem {
   final Map<Uri, LibraryMirror> libraries;
   final IsolateMirror isolate;
@@ -851,6 +857,31 @@ class _LocalClassMirror extends _LocalObjectMirror
 
   int get hashCode => simpleName.hashCode;
 
+  bool isSubtypeOf(TypeMirror other) {
+    if (other == currentMirrorSystem().dynamicType) return true;
+    if (other == currentMirrorSystem().voidType) return false;
+    return _subtypeTest(_reflectedType, other._reflectedType);
+  }
+
+  bool isAssignableTo(TypeMirror other) {
+    if (other == currentMirrorSystem().dynamicType) return true;
+    if (other == currentMirrorSystem().voidType) return false;
+    return _moreSpecificTest(_reflectedType, other._reflectedType)
+        || _moreSpecificTest(other._reflectedType, _reflectedType);
+  }
+
+  bool isSubclassOf(ClassMirror other) {
+    if (other is! ClassMirror) throw new ArgumentError(other);
+    ClassMirror otherDeclaration = other.originalDeclaration;
+    ClassMirror c = this;
+    while (c != null) {
+      c = c.originalDeclaration;
+      if (c == otherDeclaration) return true;
+      c = c.superclass;
+    }
+    return false;
+  }
+
   static _library(reflectee)
       native "ClassMirror_library";
 
@@ -1023,7 +1054,8 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
   }
 
   bool get hasReflectedType => false;
-  Type get reflectedType => throw new UnsupportedError() ;
+  Type get reflectedType => throw new UnsupportedError();
+  Type get _reflectedType => _reflectee;
 
   List<TypeVariableMirror> get typeVariables => emptyList;
   List<TypeMirror> get typeArguments => emptyList;
@@ -1039,6 +1071,19 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
         && owner == other.owner;
   }
   int get hashCode => simpleName.hashCode;
+
+  bool isSubtypeOf(TypeMirror other) {
+    if (other == currentMirrorSystem().dynamicType) return true;
+    if (other == currentMirrorSystem().voidType) return false;
+    return _subtypeTest(_reflectedType, other._reflectedType);
+  }
+
+  bool isAssignableTo(TypeMirror other) {
+    if (other == currentMirrorSystem().dynamicType) return true;
+    if (other == currentMirrorSystem().voidType) return false;
+    return _moreSpecificTest(_reflectedType, other._reflectedType)
+        || _moreSpecificTest(other._reflectedType, _reflectedType);
+  }
 
   static DeclarationMirror _TypeVariableMirror_owner(reflectee)
       native "TypeVariableMirror_owner";
@@ -1126,6 +1171,19 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
   }
 
   String toString() => "TypedefMirror on '${_n(simpleName)}'";
+
+  bool isSubtypeOf(TypeMirror other) {
+    if (other == currentMirrorSystem().dynamicType) return true;
+    if (other == currentMirrorSystem().voidType) return false;
+    return _subtypeTest(_reflectedType, other._reflectedType);
+  }
+
+  bool isAssignableTo(TypeMirror other) {
+    if (other == currentMirrorSystem().dynamicType) return true;
+    if (other == currentMirrorSystem().voidType) return false;
+    return _moreSpecificTest(_reflectedType, other._reflectedType)
+        || _moreSpecificTest(other._reflectedType, _reflectedType);
+  }
 
   static _nativeReferent(reflectedType)
       native "TypedefMirror_referent";
@@ -1531,6 +1589,14 @@ class _SpecialTypeMirror extends _LocalMirror
   int get hashCode => simpleName.hashCode;
 
   String toString() => "TypeMirror on '${_n(simpleName)}'";
+
+  bool isSubtypeOf(TypeMirror other) {
+    return simpleName == #dynamic || other is _SpecialTypeMirror;
+  }
+
+  bool isAssignableTo(TypeMirror other) {
+    return simpleName == #dynamic || other is _SpecialTypeMirror;
+  }
 }
 
 class _Mirrors {

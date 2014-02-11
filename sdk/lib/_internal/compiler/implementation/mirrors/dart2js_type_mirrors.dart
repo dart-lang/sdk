@@ -54,6 +54,14 @@ abstract class Dart2JsTypeMirror
 
   bool get isDynamic => false;
 
+  bool isSubtypeOf(TypeMirror other) {
+    return mirrorSystem.compiler.types.isSubtype(this._type, other._type);
+  }
+
+  bool isAssignableTo(TypeMirror other) {
+    return mirrorSystem.compiler.types.isAssignable(this._type, other._type);
+  }
+
   String toString() => _type.toString();
 }
 
@@ -225,6 +233,18 @@ class Dart2JsClassDeclarationMirror
   Dart2JsClassDeclarationMirror(Dart2JsMirrorSystem system,
                                 InterfaceType type)
       : super(system, type);
+
+  bool isSubclassOf(ClassMirror other) {
+    if (other is! ClassMirror) throw new ArgumentError(other);
+    ClassMirror otherDeclaration = other.originalDeclaration;
+    ClassMirror c = this;
+    while (c != null) {
+      c = c.originalDeclaration;
+      if (c == otherDeclaration) return true;
+      c = c.superclass;
+    }
+    return false;
+  }
 
   String toString() => 'Mirror on class ${_type.name}';
 }
