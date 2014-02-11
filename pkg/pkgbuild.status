@@ -12,9 +12,8 @@ pkg/docgen: Pass, Slow
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
 pkg/args: PubGetError
-pkg/async: PubGetError
-pkg/collection: PubGetError
 pkg/stack_trace: PubGetError
+pkg/unittest: PubGetError
 
 [ $use_public_packages ]
 pkg/watcher: PubGetError # Issue 16026
