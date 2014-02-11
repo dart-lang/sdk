@@ -5,7 +5,6 @@
 #include "vm/dart.h"
 
 #include "vm/code_observers.h"
-#include "vm/cpu.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
@@ -124,10 +123,10 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     Symbols::InitOnce(vm_isolate_);
     Scanner::InitOnce();
     Object::CreateInternalMetaData();
-    TargetCPUFeatures::InitOnce();
+    CPUFeatures::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
-    if (!TargetCPUFeatures::sse2_supported()) {
+    if (!CPUFeatures::sse2_supported()) {
       return "SSE2 is required.";
     }
 #endif

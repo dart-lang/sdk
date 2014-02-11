@@ -9,7 +9,6 @@
 
 #include "vm/ast_printer.h"
 #include "vm/compiler.h"
-#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
@@ -45,7 +44,7 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 
 
 bool FlowGraphCompiler::SupportsUnboxedFloat32x4() {
-  return TargetCPUFeatures::neon_supported() && FLAG_enable_simd_inline;
+  return CPUFeatures::neon_supported() && FLAG_enable_simd_inline;
 }
 
 
@@ -719,9 +718,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
-  if (is_optimizing()) {
-    return;
-  }
+  if (is_optimizing()) return;
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->is_used()) {
     __ Push(defn->locs()->out().reg());

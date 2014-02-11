@@ -16,7 +16,6 @@
 
 #include "vm/assembler.h"
 #include "vm/constants_arm.h"
-#include "vm/cpu.h"
 #include "vm/disassembler.h"
 #include "vm/native_arguments.h"
 #include "vm/stack_frame.h"
@@ -2304,7 +2303,7 @@ void Simulator::DecodeType2(Instr* instr) {
 
 
 void Simulator::DoDivision(Instr* instr) {
-  ASSERT(TargetCPUFeatures::integer_division_supported());
+  ASSERT(CPUFeatures::integer_division_supported());
   Register rd = instr->DivRdField();
   Register rn = instr->DivRnField();
   Register rm = instr->DivRmField();

@@ -6,7 +6,6 @@
 
 #include "vm/bit_vector.h"
 #include "vm/cha.h"
-#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
@@ -2565,7 +2564,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       case MethodRecognizer::kDoubleTruncate:
       case MethodRecognizer::kDoubleFloor:
       case MethodRecognizer::kDoubleCeil:
-        if (!TargetCPUFeatures::double_truncate_round_supported()) {
+        if (!CPUFeatures::double_truncate_round_supported()) {
           ReplaceWithMathCFunction(call, recognized_kind);
         } else {
           AddReceiverCheck(call);

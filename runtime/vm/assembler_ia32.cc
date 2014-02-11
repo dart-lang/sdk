@@ -7,7 +7,6 @@
 
 #include "vm/assembler.h"
 #include "vm/code_generator.h"
-#include "vm/cpu.h"
 #include "vm/heap.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
@@ -17,7 +16,60 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
 DECLARE_FLAG(bool, inline_alloc);
+
+
+bool CPUFeatures::sse2_supported_ = false;
+bool CPUFeatures::sse4_1_supported_ = false;
+#ifdef DEBUG
+bool CPUFeatures::initialized_ = false;
+#endif
+
+
+bool CPUFeatures::sse2_supported() {
+  DEBUG_ASSERT(initialized_);
+  return sse2_supported_;
+}
+
+
+bool CPUFeatures::sse4_1_supported() {
+  DEBUG_ASSERT(initialized_);
+  return sse4_1_supported_ && FLAG_use_sse41;
+}
+
+
+#define __ assembler.
+
+void CPUFeatures::InitOnce() {
+  Assembler assembler;
+  __ pushl(EBP);
+  __ pushl(EBX);
+  __ movl(EBP, ESP);
+  // Get feature information in ECX:EDX and return it in EDX:EAX.
+  __ movl(EAX, Immediate(1));
+  __ cpuid();
+  __ movl(EAX, EDX);
+  __ movl(EDX, ECX);
+  __ movl(ESP, EBP);
+  __ popl(EBX);
+  __ popl(EBP);
+  __ ret();
+
+  const Code& code =
+      Code::Handle(Code::FinalizeCode("DetectCPUFeatures", &assembler));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  typedef uint64_t (*DetectCPUFeatures)();
+  uint64_t features =
+      reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
+  sse2_supported_ = (features & kSSE2BitMask) != 0;
+  sse4_1_supported_ = (features & kSSE4_1BitMask) != 0;
+#ifdef DEBUG
+  initialized_ = true;
+#endif
+}
+
+#undef __
 
 
 class DirectCallRelocation : public AssemblerFixup {
@@ -1170,7 +1222,7 @@ void Assembler::andpd(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::pextrd(Register dst, XmmRegister src, const Immediate& imm) {
-  ASSERT(TargetCPUFeatures::sse4_1_supported());
+  ASSERT(CPUFeatures::sse4_1_supported());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);
@@ -1183,7 +1235,7 @@ void Assembler::pextrd(Register dst, XmmRegister src, const Immediate& imm) {
 
 
 void Assembler::pmovsxdq(XmmRegister dst, XmmRegister src) {
-  ASSERT(TargetCPUFeatures::sse4_1_supported());
+  ASSERT(CPUFeatures::sse4_1_supported());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);
@@ -1194,7 +1246,7 @@ void Assembler::pmovsxdq(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::pcmpeqq(XmmRegister dst, XmmRegister src) {
-  ASSERT(TargetCPUFeatures::sse4_1_supported());
+  ASSERT(CPUFeatures::sse4_1_supported());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);
@@ -1214,7 +1266,7 @@ void Assembler::pxor(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
-  ASSERT(TargetCPUFeatures::sse4_1_supported());
+  ASSERT(CPUFeatures::sse4_1_supported());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x66);
   EmitUint8(0x0F);

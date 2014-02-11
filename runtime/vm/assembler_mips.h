@@ -135,6 +135,15 @@ class Label : public ValueObject {
 };
 
 
+class CPUFeatures : public AllStatic {
+ public:
+  static void InitOnce() { }
+  static bool double_truncate_round_supported() {
+    return false;
+  }
+};
+
+
 class Assembler : public ValueObject {
  public:
   explicit Assembler(bool use_far_branches = false)
