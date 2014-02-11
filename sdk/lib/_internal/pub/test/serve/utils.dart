@@ -169,10 +169,12 @@ void endPubServe() {
 /// verifies that it responds with a body that matches [expectation].
 ///
 /// [expectation] may either be a [Matcher] or a string to match an exact body.
-void requestShouldSucceed(String urlPath, expectation) {
+/// [headers] may be either a [Matcher] or a map to match an exact headers map.
+void requestShouldSucceed(String urlPath, expectation, {headers}) {
   schedule(() {
     return http.get("http://127.0.0.1:$_port/$urlPath").then((response) {
-      expect(response.body, expectation);
+      if (expectation != null) expect(response.body, expectation);
+      if (headers != null) expect(response.headers, headers);
     });
   }, "request $urlPath");
 }
