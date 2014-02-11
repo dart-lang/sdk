@@ -120,8 +120,8 @@ final Set<String> _polymerPackageDependencies = [
     'analyzer', 'args', 'barback', 'browser', 'html5lib',
     'js', 'logging', 'mutation_observer', 'observe', 'path'
     'polymer_expressions', 'serialization', 'source_maps',
-    'stack_trace', 'template_binding', 'unittest', 'unmodifiable_collection',
-    'web_components', 'yaml'].toSet();
+    'stack_trace', 'template_binding', 'unittest', 'web_components',
+    'yaml'].toSet();
 
 /** Return the relative path of each file under [subDir] in [package]. */
 Iterable<String> _listPackageDir(String package, String subDir,
