@@ -288,6 +288,7 @@ polymer/test/custom_event_test: Skip # http://dartbug.com/15517
 
 # Skip tests on the VM if the package depends on dart:html
 [ $runtime == vm ]
+custom_element: Skip
 template_binding: Skip
 mutation_observer: Skip
 polymer_expressions/test/syntax_test: Skip
