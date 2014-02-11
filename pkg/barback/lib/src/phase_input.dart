@@ -207,7 +207,7 @@ class PhaseInput {
         if (!transformers.contains(transform.transformer)) return false;
 
         // TODO(rnystrom): Catch all errors from isPrimary() and redirect to
-        // results.
+        // results (issue 16162).
         return transform.transformer.isPrimary(asset);
       }).then((isPrimary) {
         if (isPrimary) return;
