@@ -253,7 +253,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   bool isClosing = false;
   bool isClosedRead = false;
   bool isClosedWrite = false;
-  Completer closeCompleter = new Completer();
+  Completer closeCompleter = new Completer.sync();
 
   // Handlers and receive port for socket events from the event handler.
   int eventMask = 0;
@@ -571,7 +571,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
         if (i == DESTROYED_EVENT) {
           assert(!isClosed);
           isClosed = true;
-          closeCompleter.complete(this);
+          closeCompleter.complete();
           disconnectFromEventHandler();
           if (handler != null) handler();
           continue;
@@ -625,7 +625,6 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     activateHandlers();
   }
 
-  Future<_NativeSocket> get closeFuture => closeCompleter.future;
 
   void activateHandlers() {
     if (canActivateEvents && !isClosing && !isClosed) {
@@ -643,12 +642,12 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     }
   }
 
-  Future<_NativeSocket> close() {
+  Future close() {
     if (!isClosing && !isClosed) {
       sendToEventHandler(1 << CLOSE_COMMAND);
       isClosing = true;
     }
-    return closeFuture;
+    return closeCompleter.future;
   }
 
   void shutdown(SocketDirection direction) {
@@ -867,7 +866,6 @@ class _RawServerSocket extends Stream<RawSocket>
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
-    _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
       read: zone.bindCallback(() {
         var socket = _socket.accept();
@@ -876,7 +874,8 @@ class _RawServerSocket extends Stream<RawSocket>
       error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
         _controller.close();
-      })
+      }),
+      destroyed: _controller.close
     );
   }
 
@@ -909,7 +908,7 @@ class _RawServerSocket extends Stream<RawSocket>
     if (_controller.hasListener) {
       _resume();
     } else {
-      close();
+      _socket.close();
     }
   }
 
@@ -945,7 +944,6 @@ class _RawSocket extends Stream<RawSocketEvent>
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
-    _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
       read: () => _controller.add(RawSocketEvent.READ),
       write: () {
@@ -955,10 +953,13 @@ class _RawSocket extends Stream<RawSocketEvent>
         _controller.add(RawSocketEvent.WRITE);
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
-      destroyed: () => _controller.add(RawSocketEvent.CLOSED),
+      destroyed: () {
+        _controller.add(RawSocketEvent.CLOSED);
+        _controller.close();
+      },
       error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
-        close();
+        _socket.close();
       })
     );
   }
@@ -1064,7 +1065,7 @@ class _RawSocket extends Stream<RawSocketEvent>
     if (_controller.hasListener) {
       _resume();
     } else {
-      close();
+      _socket.close();
     }
   }
 }
@@ -1427,7 +1428,6 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange);
-    _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
       read: () => _controller.add(RawSocketEvent.READ),
       write: () {
@@ -1437,10 +1437,13 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
         _controller.add(RawSocketEvent.WRITE);
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
-      destroyed: () => _controller.add(RawSocketEvent.CLOSED),
+      destroyed: () {
+        _controller.add(RawSocketEvent.CLOSED);
+        _controller.close();
+      },
       error: zone.bindUnaryCallback((e) {
         _controller.addError(e);
-        close();
+        _socket.close();
       })
     );
   }
@@ -1541,7 +1544,7 @@ class _RawDatagramSocket extends Stream implements RawDatagramSocket {
     if (_controller.hasListener) {
       _resume();
     } else {
-      close();
+      _socket.close();
     }
   }
 }
