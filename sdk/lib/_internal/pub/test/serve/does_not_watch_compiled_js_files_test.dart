@@ -26,12 +26,16 @@ main() {
       d.dir("web", [
         d.file('file.dart', 'void main() => print("hello");'),
         d.file("other.dart.js", "should be ignored"),
+        d.file("other.dart.js.map", "should be ignored"),
+        d.file("other.dart.precompiled.js", "should be ignored")
       ])
     ]).create();
 
     waitForBuildSuccess();
     requestShouldSucceed("file.dart", 'void main() => print("hello");');
     requestShould404("other.dart.js");
+    requestShould404("other.dart.js.map");
+    requestShould404("other.dart.precompiled.js");
     endPubServe();
   });
 }
