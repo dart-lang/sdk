@@ -358,3 +358,5 @@ stack_trace/test/frame_test: PubGetError
 stack_trace/test/trace_test: PubGetError
 stack_trace/test/vm_test: PubGetError
 
+[ $runtime == ie9 ]
+polymer: Pass, Fail, Timeout: # Issue 16717
