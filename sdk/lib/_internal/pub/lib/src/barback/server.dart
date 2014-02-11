@@ -115,7 +115,10 @@ class BarbackServer {
       return validateStream(asset.read()).then((stream) {
         _resultsController.add(
             new BarbackServerResult._success(request.uri, id));
-        request.response.headers.add('content-type', lookupMimeType(id.path));
+        var mimeType = lookupMimeType(id.path);
+        if (mimeType != null) {
+          request.response.headers.add('content-type', mimeType);
+        }
         // TODO(rnystrom): Set content-type based on asset type.
         return Chain.track(request.response.addStream(stream)).then((_) {
           // Log successful requests both so we can provide debugging
