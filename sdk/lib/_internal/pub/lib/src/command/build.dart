@@ -177,14 +177,6 @@ class BuildCommand extends PubCommand {
       return new Future.value();
     }
 
-    // If the asset is from a package's "lib" directory, we make it available
-    // as an input for transformers, but don't want it in the final output.
-    // (Any Dart code in there should be imported and compiled to JS, anything
-    // else we want to omit.)
-    if (asset.id.path.startsWith("lib/")) {
-      return new Future.value();
-    }
-
     // Figure out the output directory for the asset, which is the same as the
     // path pub serve would use to serve it.
     var relativeUrl = barback.idtoUrlPath(entrypoint.root.name, asset.id,
@@ -193,9 +185,10 @@ class BuildCommand extends PubCommand {
     // Remove the leading "/".
     relativeUrl = relativeUrl.substring(1);
 
-    // If the asset is from the shared "assets" directory, copy it into all of
-    // the top-level build directories.
-    if (relativeUrl.startsWith("assets/")) {
+    // If the asset is from a public directory, copy it into all of the
+    // top-level build directories.
+    if (relativeUrl.startsWith("assets/") ||
+        relativeUrl.startsWith("packages/")) {
       builtFiles += buildDirectories.length;
       return Future.wait(buildDirectories.map(
           (buildDir) => _writeOutputFile(asset,
@@ -228,10 +221,14 @@ class BuildCommand extends PubCommand {
       return 0;
     }
 
-    // Get all of the directories that contain Dart entrypoints.
+    // Get all of the subdirectories that contain Dart entrypoints.
     var entrypointDirs = entrypoints
-        .map((id) => path.url.split(id.path))
-        .map((relative) => path.dirname(path.joinAll(relative)))
+        // Convert the asset path to a native-separated one and get the
+        // directory containing the entrypoint.
+        .map((id) => path.dirname(path.joinAll(path.url.split(id.path))))
+        // Don't copy files to the top levels of the build directories since
+        // the normal lib asset copying will take care of that.
+        .where((dir) => dir.contains(path.separator))
         .toSet();
 
     for (var dir in entrypointDirs) {
