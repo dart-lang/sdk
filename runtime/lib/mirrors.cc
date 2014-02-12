@@ -1311,7 +1311,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_evalInLibraryWithPrivateKey, 2) {
   Library& ctxt_library = Library::Handle();
   String& library_key = String::Handle();
 
-  if (library_key.IsNull()) {
+  if (private_key.IsNull()) {
     ctxt_library = Library::CoreLibrary();
   } else {
     for (int i = 0; i < num_libraries; i++) {
