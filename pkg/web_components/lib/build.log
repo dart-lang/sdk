@@ -1,6 +1,6 @@
 BUILD LOG
 ---------
-Build Time: 2014-02-06T13:38:19
+Build Time: 2014-02-11T11:39:54
 
 NODEJS INFORMATION
 ==================
@@ -31,18 +31,18 @@ requirejs: 2.1.10
 
 REPO REVISIONS
 ==============
-CustomElements: be729c3ecf62684034a7f813cd2bb25571638f86
+CustomElements: 6236589963ca20d49e2575e671e4a11e3df3fbec
 HTMLImports: 0461b94029d8c858441ddcf816397c5b1234b025
 NodeBind: f7cc76749e509e06fa7cbc9ba970f87f5fe33b5c
-PointerEvents: a8f7de39520baaa6e743152800cdbb935cd591d8
+PointerEvents: e9234722f7da7b981241b3c122decf1a15fd23ce
 PointerGestures: 0cded24896294ebecdfdad47583468f714a0a34e
 ShadowDOM: 308a7c2e67032f746b5e52f4e27320ffe3a57ecd
-TemplateBinding: a07d1c64cab82a51fa464f77f3e5cb5989aa5c1a
+TemplateBinding: 279934127f6777bdfb9f752e98eb0da172fbca1b
 WeakMap: a0947a9a0f58f5733f464755c3b86de624b00a5d
 observe-js: 3ba9aeec73f7864d519fb13c6f38cb10923cdfd9
 platform: e959e3f63d51e9d5089ccb91d67171919c313862
-polymer-expressions: f80687017d2634ce1deeba97c455e3d932010fcc
+polymer-expressions: 470cced7cf167bd164f0b924ceb088dd7a8240b9
 
 BUILD HASHES
 ============
-build/platform.js: 7277c1eb8cfc6dc0eba16e1ca28597e795557f39
+build/platform.js: 24f5bac99f338ca6dfc791d5ff1288f74805df2b

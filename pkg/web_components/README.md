@@ -64,14 +64,6 @@ for more information.
 
 ## Hacking on this package
 
-*NOTE*: Currently we use
-[a patched version of CustomElements](https://github.com/dart-lang/CustomElements/tree/blink_tests).
-This is to get polyfilled behavior closer to native.
-See [this pull request](https://github.com/Polymer/CustomElements/pull/97) for
-more information. It is not required to use these changes; platform.js from
-https://polymer-project.org will work just as well, but it will have less error
-checking.
-
 To rebuild platform.js:
 
 ```bash

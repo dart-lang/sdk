@@ -6907,10 +6907,10 @@ window.ShadowDOMPolyfill = {};
 /*
   This is a limited shim for ShadowDOM css styling.
   https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#styles
-
-  The intention here is to support only the styling features which can be
-  relatively simply implemented. The goal is to allow users to avoid the
-  most obvious pitfalls and do so without compromising performance significantly.
+  
+  The intention here is to support only the styling features which can be 
+  relatively simply implemented. The goal is to allow users to avoid the 
+  most obvious pitfalls and do so without compromising performance significantly. 
   For ShadowDOM styling that's not covered here, a set of best practices
   can be provided that should allow users to accomplish more complex styling.
 
@@ -6920,56 +6920,56 @@ window.ShadowDOMPolyfill = {};
   Shimmed features:
 
   * :host, :ancestor: ShadowDOM allows styling of the shadowRoot's host
-  element using the :host rule. To shim this feature, the :host styles are
-  reformatted and prefixed with a given scope name and promoted to a
+  element using the :host rule. To shim this feature, the :host styles are 
+  reformatted and prefixed with a given scope name and promoted to a 
   document level stylesheet.
   For example, given a scope name of .foo, a rule like this:
-
+  
     :host {
         background: red;
       }
     }
-
+  
   becomes:
-
+  
     .foo {
       background: red;
     }
-
-  * encapsultion: Styles defined within ShadowDOM, apply only to
+  
+  * encapsultion: Styles defined within ShadowDOM, apply only to 
   dom inside the ShadowDOM. Polymer uses one of two techniques to imlement
   this feature.
-
-  By default, rules are prefixed with the host element tag name
+  
+  By default, rules are prefixed with the host element tag name 
   as a descendant selector. This ensures styling does not leak out of the 'top'
   of the element's ShadowDOM. For example,
 
   div {
       font-weight: bold;
     }
-
+  
   becomes:
 
   x-foo div {
       font-weight: bold;
     }
-
+  
   becomes:
 
 
-  Alternatively, if Platform.ShadowCSS.strictStyling is set to true then
+  Alternatively, if Platform.ShadowCSS.strictStyling is set to true then 
   selectors are scoped by adding an attribute selector suffix to each
-  simple selector that contains the host element tag name. Each element
-  in the element's ShadowDOM template is also given the scope attribute.
+  simple selector that contains the host element tag name. Each element 
+  in the element's ShadowDOM template is also given the scope attribute. 
   Thus, these rules match only elements that have the scope attribute.
   For example, given a scope name of x-foo, a rule like this:
-
+  
     div {
       font-weight: bold;
     }
-
+  
   becomes:
-
+  
     div[x-foo] {
       font-weight: bold;
     }
@@ -6981,31 +6981,31 @@ window.ShadowDOMPolyfill = {};
   shadowRoot should not cross the ShadowDOM boundary and should not apply
   inside a shadowRoot.
 
-  This styling behavior is not emulated. Some possible ways to do this that
+  This styling behavior is not emulated. Some possible ways to do this that 
   were rejected due to complexity and/or performance concerns include: (1) reset
   every possible property for every possible selector for a given scope name;
   (2) re-implement css in javascript.
-
+  
   As an alternative, users should make sure to use selectors
   specific to the scope in which they are working.
-
+  
   * ::distributed: This behavior is not emulated. It's often not necessary
   to style the contents of a specific insertion point and instead, descendants
-  of the host element can be styled selectively. Users can also create an
+  of the host element can be styled selectively. Users can also create an 
   extra node around an insertion point and style that node's contents
   via descendent selectors. For example, with a shadowRoot like this:
-
+  
     <style>
       ::content(div) {
         background: red;
       }
     </style>
     <content></content>
-
+  
   could become:
-
+  
     <style>
-      / *@polyfill .content-container div * /
+      / *@polyfill .content-container div * / 
       ::content(div) {
         background: red;
       }
@@ -7013,9 +7013,9 @@ window.ShadowDOMPolyfill = {};
     <div class="content-container">
       <content></content>
     </div>
-
+  
   Note the use of @polyfill in the comment above a ShadowDOM specific style
-  declaration. This is a directive to the styling shim to use the selector
+  declaration. This is a directive to the styling shim to use the selector 
   in comments in lieu of the next selector when running under polyfill.
 */
 (function(scope) {
@@ -7045,7 +7045,7 @@ var ShadowCSS = {
       root.shimmedStyle = def.shimmedStyle;
     }
     // remove existing style elements
-    for (var i=0, l=def.rootStyles.length, s; (i<l) && (s=def.rootStyles[i]);
+    for (var i=0, l=def.rootStyles.length, s; (i<l) && (s=def.rootStyles[i]); 
         i++) {
       s.parentNode.removeChild(s);
     }
@@ -7063,7 +7063,7 @@ var ShadowCSS = {
     var cssText = this.shimScoping(scopeStyles, name, typeExtension);
     // note: we only need to do rootStyles since these are unscoped.
     cssText += this.extractPolyfillUnscopedRules(rootStyles);
-    return cssText;
+    return cssText.trim();
   },
   registerDefinition: function(root, name, extendsName) {
     var def = this.registry[name] = {
@@ -7102,14 +7102,14 @@ var ShadowCSS = {
   /*
    * Process styles to convert native ShadowDOM rules that will trip
    * up the css parser; we rely on decorating the stylesheet with comments.
-   *
+   * 
    * For example, we convert this rule:
-   *
+   * 
    * (comment start) @polyfill :host menu-item (comment end)
    * shadow::-webkit-distributed(menu-item) {
-   *
+   * 
    * to this:
-   *
+   * 
    * scopeName menu-item {
    *
   **/
@@ -7128,14 +7128,14 @@ var ShadowCSS = {
   },
   /*
    * Process styles to add rules which will only apply under the polyfill
-   *
+   * 
    * For example, we convert this rule:
-   *
-   * (comment start) @polyfill-rule :host menu-item {
+   * 
+   * (comment start) @polyfill-rule :host menu-item { 
    * ... } (comment end)
-   *
+   * 
    * to this:
-   *
+   * 
    * scopeName menu-item {...}
    *
   **/
@@ -7154,15 +7154,15 @@ var ShadowCSS = {
   },
   /*
    * Process styles to add rules which will only apply under the polyfill
-   * and do not process via CSSOM. (CSSOM is destructive to rules on rare
+   * and do not process via CSSOM. (CSSOM is destructive to rules on rare 
    * occasions, e.g. -webkit-calc on Safari.)
    * For example, we convert this rule:
-   *
-   * (comment start) @polyfill-unscoped-rule menu-item {
+   * 
+   * (comment start) @polyfill-unscoped-rule menu-item { 
    * ... } (comment end)
-   *
+   * 
    * to this:
-   *
+   * 
    * menu-item {...}
    *
   **/
@@ -7184,11 +7184,11 @@ var ShadowCSS = {
     return r;
   },
   /* Ensure styles are scoped. Pseudo-scoping takes a rule like:
-   *
-   *  .foo {... }
-   *
+   * 
+   *  .foo {... } 
+   *  
    *  and converts this to
-   *
+   *  
    *  scopeName .foo { ... }
   */
   shimScoping: function(styles, name, typeExtension) {
@@ -7202,8 +7202,8 @@ var ShadowCSS = {
     cssText = this.convertColonHost(cssText);
     cssText = this.convertColonAncestor(cssText);
     cssText = this.convertCombinators(cssText);
-    var rules = cssToRules(cssText);
     if (name) {
+      var rules = cssToRules(cssText);
       cssText = this.scopeRules(rules, name, typeExtension);
     }
     return cssText;
@@ -7225,13 +7225,13 @@ var ShadowCSS = {
    * to
    *
    * scopeName.foo > .bar, .foo scopeName > .bar { }
-   *
+   * 
    * and
    *
    * :ancestor(.foo:host) .bar { ... }
-   *
+   * 
    * to
-   *
+   * 
    * scopeName.foo .bar { ... }
   */
   convertColonAncestor: function(cssText) {
@@ -7275,7 +7275,7 @@ var ShadowCSS = {
     var cssText = '';
     Array.prototype.forEach.call(cssRules, function(rule) {
       if (rule.selectorText && (rule.style && rule.style.cssText)) {
-        cssText += this.scopeSelector(rule.selectorText, name, typeExtension,
+        cssText += this.scopeSelector(rule.selectorText, name, typeExtension, 
           this.strictStyling) + ' {\n\t';
         cssText += this.propertiesFromRule(rule) + '\n}\n\n';
       } else if (rule.media) {
@@ -7293,7 +7293,7 @@ var ShadowCSS = {
     parts.forEach(function(p) {
       p = p.trim();
       if (this.selectorNeedsScoping(p, name, typeExtension)) {
-        p = (strict && !p.match(polyfillHostNoCombinator)) ?
+        p = (strict && !p.match(polyfillHostNoCombinator)) ? 
             this.applyStrictSelectorScope(p, name) :
             this.applySimpleSelectorScope(p, name, typeExtension);
       }
@@ -7346,7 +7346,7 @@ var ShadowCSS = {
     // TODO(sorvell): Safari cssom incorrectly removes quotes from the content
     // property. (https://bugs.webkit.org/show_bug.cgi?id=118045)
     if (rule.style.content && !rule.style.content.match(/['"]+/)) {
-      return rule.style.cssText.replace(/content:[^;]*;/g, 'content: \'' +
+      return rule.style.cssText.replace(/content:[^;]*;/g, 'content: \'' + 
           rule.style.content + '\';');
     }
     return rule.style.cssText;
@@ -7441,7 +7441,7 @@ if (window.ShadowDOMPolyfill) {
   // consider a better solution.
   document.addEventListener('DOMContentLoaded', function() {
     var urlResolver = scope.urlResolver;
-
+    
     if (window.HTMLImports && !HTMLImports.useNative) {
       var SHIM_SHEET_SELECTOR = 'link[rel=stylesheet]' +
           '[' + SHIM_ATTRIBUTE + ']';
@@ -7454,18 +7454,24 @@ if (window.ShadowDOMPolyfill) {
         SHIM_SHEET_SELECTOR,
         SHIM_STYLE_SELECTOR
       ].join(',');
+  
+      var originalParseGeneric = HTMLImports.parser.parseGeneric;
 
       HTMLImports.parser.parseGeneric = function(elt) {
         if (elt[SHIMMED_ATTRIBUTE]) {
           return;
         }
         var style = elt.__importElement || elt;
+        if (!style.hasAttribute(SHIM_ATTRIBUTE)) {
+          originalParseGeneric.call(this, elt);
+          return;
+        }
         if (elt.__resource) {
           style = elt.ownerDocument.createElement('style');
           style.textContent = urlResolver.resolveCssText(
               elt.__resource, elt.href);
         } else {
-          urlResolver.resolveStyles(style);
+          urlResolver.resolveStyle(style);  
         }
         var styles = [style];
         style.textContent = ShadowCSS.stylesToShimmedCssText(styles, styles);
@@ -7481,7 +7487,7 @@ if (window.ShadowDOMPolyfill) {
             head.appendChild(style);
           }
         }
-        style.__importParsed = true
+        style.__importParsed = true;
         this.markParsingComplete(elt);
       }
 
@@ -8293,7 +8299,7 @@ scope.mixin = mixin;
   var base = document.createElement('base');
   base.href = document.baseURI;
   template.content.ownerDocument.appendChild(base);
-
+  
 
   // utility
 
@@ -8334,7 +8340,7 @@ scope.mixin = mixin;
     if (window.Polymer === polymerStub) {
       window.Polymer = function() {
         console.error('You tried to use polymer without loading it first. To ' +
-          'load polymer, <link rel="import" href="' +
+          'load polymer, <link rel="import" href="' + 
           'components/polymer/polymer.html">');
       };
     }
@@ -8356,9 +8362,9 @@ window.templateContent = window.templateContent || function(inTemplate) {
   return inTemplate.content;
 };
 (function(scope) {
-
+  
   scope = scope || (window.Inspector = {});
-
+  
   var inspector;
 
   window.sinspect = function(inNode, inProxy) {
@@ -8409,7 +8415,7 @@ window.templateContent = window.templateContent || function(inTemplate) {
     '  </body>',
     '</html>'
   ].join('\n');
-
+  
   var crumbs = [];
 
   var displayCrumbs = function() {
@@ -8537,11 +8543,11 @@ window.templateContent = window.templateContent || function(inTemplate) {
       console.dir(this);
     }
   };
-
+  
   // export
-
+  
   scope.output = output;
-
+  
 })(window.Inspector);
 
 
@@ -8553,20 +8559,20 @@ window.templateContent = window.templateContent || function(inTemplate) {
  */
 (function(scope) {
 
-  // TODO(sorvell): It's desireable to provide a default stylesheet
+  // TODO(sorvell): It's desireable to provide a default stylesheet 
   // that's convenient for styling unresolved elements, but
   // it's cumbersome to have to include this manually in every page.
-  // It would make sense to put inside some HTMLImport but
-  // the HTMLImports polyfill does not allow loading of stylesheets
+  // It would make sense to put inside some HTMLImport but 
+  // the HTMLImports polyfill does not allow loading of stylesheets 
   // that block rendering. Therefore this injection is tolerated here.
 
   var style = document.createElement('style');
   style.textContent = ''
       + 'body {'
-      + 'transition: opacity ease-in 0.2s;'
+      + 'transition: opacity ease-in 0.2s;' 
       + ' } \n'
       + 'body[unresolved] {'
-      + 'opacity: 0; display: block; overflow: hidden;'
+      + 'opacity: 0; display: block; overflow: hidden;' 
       + ' } \n'
       ;
   var head = document.querySelector('head');
@@ -9483,7 +9489,7 @@ var IMPORT_LINK_TYPE = 'import';
 var flags = scope.flags;
 var isIe = /Trident/.test(navigator.userAgent);
 // TODO(sorvell): SD polyfill intrusion
-var mainDoc = window.ShadowDOMPolyfill ?
+var mainDoc = window.ShadowDOMPolyfill ? 
     window.ShadowDOMPolyfill.wrapIfNeeded(document) : document;
 
 // importParser
@@ -9554,7 +9560,7 @@ var importParser = {
     }
     // fire load event
     if (elt.__resource) {
-      elt.dispatchEvent(new CustomEvent('load', {bubbles: false}));
+      elt.dispatchEvent(new CustomEvent('load', {bubbles: false}));    
     } else {
       elt.dispatchEvent(new CustomEvent('error', {bubbles: false}));
     }
@@ -9636,7 +9642,7 @@ var importParser = {
         moniker = scriptElt.ownerDocument.baseURI;
         // there could be more than one script this url
         var tag = '[' + Math.floor((Math.random()+1)*1000) + ']';
-        // TODO(sjmiles): Polymer hack, should be pluggable if we need to allow
+        // TODO(sjmiles): Polymer hack, should be pluggable if we need to allow 
         // this sort of thing
         var matches = code.match(/Polymer\(['"]([^'"]*)/);
         tag = matches && matches[1] || tag;
@@ -9704,7 +9710,7 @@ function cloneStyle(style) {
   return clone;
 }
 
-// path fixup: style elements in imports must be made relative to the main
+// path fixup: style elements in imports must be made relative to the main 
 // document. We fixup url's in url() and @import.
 var CSS_URL_REGEXP = /(url\()([^)]*)(\))/g;
 var CSS_IMPORT_REGEXP = /(@import[\s]+(?!url\())([^;]*)(;)/g;
@@ -9714,7 +9720,7 @@ var path = {
     var doc = style.ownerDocument;
     var resolver = doc.createElement('a');
     style.textContent = this.resolveUrlsInCssText(style.textContent, resolver);
-    return style;
+    return style;  
   },
   resolveUrlsInCssText: function(cssText, urlObj) {
     var r = this.replaceUrls(cssText, urlObj, CSS_URL_REGEXP);
@@ -9727,7 +9733,7 @@ var path = {
       urlObj.href = urlPath;
       urlPath = urlObj.href;
       return pre + '\'' + urlPath + '\'' + post;
-    });
+    });    
   }
 }
 
@@ -9752,7 +9758,7 @@ var flags = scope.flags;
 var IMPORT_LINK_TYPE = 'import';
 
 // TODO(sorvell): SD polyfill intrusion
-var mainDoc = window.ShadowDOMPolyfill ?
+var mainDoc = window.ShadowDOMPolyfill ? 
     ShadowDOMPolyfill.wrapIfNeeded(document) : document;
 
 if (!useNative) {
@@ -9835,7 +9841,7 @@ if (!useNative) {
   };
 
   // loader singleton
-  var importLoader = new Loader(importer.loaded.bind(importer),
+  var importLoader = new Loader(importer.loaded.bind(importer), 
       importer.loadedAll.bind(importer));
 
   function isDocumentLink(elt) {
@@ -9916,7 +9922,7 @@ if (!document.baseURI) {
 
 // call a callback when all HTMLImports in the document at call (or at least
 //  document ready) time have loaded.
-// 1. ensure the document is in a ready state (has dom), then
+// 1. ensure the document is in a ready state (has dom), then 
 // 2. watch for loading of imports and call callback when done
 function whenImportsReady(callback, doc) {
   doc = doc || mainDoc;
@@ -9938,7 +9944,7 @@ function isDocumentReady(doc) {
 function whenDocumentReady(callback, doc) {
   if (!isDocumentReady(doc)) {
     var checkReady = function() {
-      if (doc.readyState === 'complete' ||
+      if (doc.readyState === 'complete' || 
           doc.readyState === requiredReadyState) {
         doc.removeEventListener(READY_EVENT, checkReady);
         whenDocumentReady(callback, doc);
@@ -9954,7 +9960,7 @@ function whenDocumentReady(callback, doc) {
 function watchImportsLoad(callback, doc) {
   var imports = doc.querySelectorAll('link[rel=import]');
   var loaded = 0, l = imports.length;
-  function checkDone(d) {
+  function checkDone(d) { 
     if (loaded == l) {
       // go async to ensure parser isn't stuck on a script tag
       requestAnimationFrame(callback);
@@ -10033,8 +10039,8 @@ function shouldLoadNode(node) {
 }
 
 // x-plat matches
-var matches = HTMLElement.prototype.matches ||
-    HTMLElement.prototype.matchesSelector ||
+var matches = HTMLElement.prototype.matches || 
+    HTMLElement.prototype.matchesSelector || 
     HTMLElement.prototype.webkitMatchesSelector ||
     HTMLElement.prototype.mozMatchesSelector ||
     HTMLElement.prototype.msMatchesSelector;
@@ -10075,11 +10081,11 @@ if (typeof window.CustomEvent !== 'function') {
 }
 
 // TODO(sorvell): SD polyfill intrusion
-var doc = window.ShadowDOMPolyfill ?
+var doc = window.ShadowDOMPolyfill ? 
     window.ShadowDOMPolyfill.wrapIfNeeded(document) : document;
 
-// Fire the 'HTMLImportsLoaded' event when imports in document at load time
-// have loaded. This event is required to simulate the script blocking
+// Fire the 'HTMLImportsLoaded' event when imports in document at load time 
+// have loaded. This event is required to simulate the script blocking 
 // behavior of native imports. A main document script that needs to be sure
 // imports have loaded should wait for this event.
 HTMLImports.whenImportsReady(function() {
@@ -10096,9 +10102,9 @@ if (!HTMLImports.useNative) {
   function bootstrap() {
     HTMLImports.importer.bootDocument(doc);
   }
-
+    
   // TODO(sorvell): SD polyfill does *not* generate mutations for nodes added
-  // by the parser. For this reason, we must wait until the dom exists to
+  // by the parser. For this reason, we must wait until the dom exists to 
   // bootstrap.
   if (document.readyState === 'complete' ||
       (document.readyState === 'interactive' && !window.attachEvent)) {
@@ -10215,7 +10221,6 @@ function insertedNode(node) {
     });
   }
 }
-
 
 // TODO(sorvell): on platforms without MutationObserver, mutations may not be
 // reliable and therefore attached/detached are not reliable.
@@ -10453,6 +10458,7 @@ scope.watchShadow = watchShadow;
 scope.upgradeDocumentTree = upgradeDocumentTree;
 scope.upgradeAll = addedNode;
 scope.upgradeSubtree = addedSubtree;
+scope.insertedNode = insertedNode;
 
 scope.observeDocument = observeDocument;
 scope.upgradeDocument = upgradeDocument;
@@ -10689,8 +10695,9 @@ if (useNative) {
     element.__upgraded__ = true;
     // lifecycle management
     created(element);
+    // attachedCallback fires in tree order, call before recursing
+    scope.insertedNode(element);
     // there should never be a shadow root on element at this point
-    // we require child nodes be upgraded before `created`
     scope.upgradeSubtree(element);
     // OUTPUT
     return element;
@@ -10783,9 +10790,6 @@ if (useNative) {
   }
 
   function registerDefinition(name, definition) {
-    if (registry[name]) {
-      throw new Error('a type with that name is already registered.');
-    }
     registry[name] = definition;
   }
 
@@ -10960,11 +10964,11 @@ function bootstrap() {
   // one more pass before register is 'live'
   CustomElements.upgradeDocument(document);
   // choose async
-  var async = window.Platform && Platform.endOfMicrotask ?
+  var async = window.Platform && Platform.endOfMicrotask ? 
     Platform.endOfMicrotask :
     setTimeout;
   async(function() {
-    // set internal 'ready' flag, now document.registerElement will trigger
+    // set internal 'ready' flag, now document.registerElement will trigger 
     // synchronous upgrades
     CustomElements.ready = true;
     // capture blunt profiling data
@@ -11005,7 +11009,7 @@ if (document.readyState === 'complete' || scope.flags.eager) {
 } else if (document.readyState === 'interactive' && !window.attachEvent &&
     (!window.HTMLImports || window.HTMLImports.ready)) {
   bootstrap();
-// When loading at other readyStates, wait for the appropriate DOM event to
+// When loading at other readyStates, wait for the appropriate DOM event to 
 // bootstrap.
 } else {
   var loadEvent = window.HTMLImports && !HTMLImports.ready ?
@@ -11110,8 +11114,8 @@ function createStyleElement(cssText, scope) {
 }
 
 // TODO(sorvell): use a common loader shared with HTMLImports polyfill
-// currently, this just loads the first @import per style element
-// and does not recurse into loaded elements; we'll address this with a
+// currently, this just loads the first @import per style element 
+// and does not recurse into loaded elements; we'll address this with a 
 // generalized loader that's built out of the one in the HTMLImports polyfill.
 // polyfill the loading of a style element's @import via xhr
 function xhrLoadStyle(style, callback) {
@@ -12078,7 +12082,7 @@ scope.loader = loader;
   // handler registration mechanism.  Rather than try to predict how exactly to opt-in to
   // that we'll just leave this disabled until there is a build of Chrome to test.
   var HAS_TOUCH_ACTION_DELAY = false;
-
+  
   // handler block for native touch events
   var touchEvents = {
     scrollType: new WeakMap(),
@@ -14390,6 +14394,15 @@ PointerGestureEvent.prototype.preventTap = function() {
     }
   }
 
+  var templateObserver;
+  if (typeof MutationObserver == 'function') {
+    templateObserver = new MutationObserver(function(records) {
+      for (var i = 0; i < records.length; i++) {
+        records[i].target.refChanged_();
+      }
+    });
+  }
+
   /**
    * Ensures proper API and content model for template elements.
    * @param {HTMLTemplateElement} opt_instanceRef The template element which
@@ -14493,6 +14506,25 @@ PointerGestureEvent.prototype.preventTap = function() {
   }
 
   mixin(HTMLTemplateElement.prototype, {
+    bind: function(name, value, oneTime) {
+      if (name != 'ref')
+        return Element.prototype.bind.call(this, name, value, oneTime);
+
+      var self = this;
+      var ref = oneTime ? value : value.open(function(ref) {
+        self.setAttribute('ref', ref);
+        self.refChanged_();
+      });
+
+      this.setAttribute('ref', ref);
+      this.refChanged_();
+      if (oneTime)
+        return;
+
+      this.unbind('ref');
+      return this.bindings.ref = value;
+    },
+
     processBindingDirectives_: function(directives) {
       if (this.iterator_)
         this.iterator_.closeDeps();
@@ -14514,6 +14546,12 @@ PointerGestureEvent.prototype.preventTap = function() {
       }
 
       this.iterator_.updateDependencies(directives, this.model_);
+
+      if (templateObserver) {
+        templateObserver.observe(this, { attributes: true,
+                                         attributeFilter: ['ref'] });
+      }
+
       return this.iterator_;
     },
 
@@ -14522,7 +14560,9 @@ PointerGestureEvent.prototype.preventTap = function() {
       if (bindingDelegate)
         delegate_ = this.newDelegate_(bindingDelegate);
 
-      var content = this.ref.content;
+      if (!this.refContent_)
+        this.refContent_ = this.ref_.content;
+      var content = this.refContent_;
       var map = this.bindingMap_;
       if (!map || map.content !== content) {
         // TODO(rafaelw): Setup a MutationObserver on content to detect
@@ -14574,6 +14614,27 @@ PointerGestureEvent.prototype.preventTap = function() {
       return this.delegate_ && this.delegate_.raw;
     },
 
+    refChanged_: function() {
+      if (!this.iterator_ || this.refContent_ === this.ref_.content)
+        return;
+
+      this.refContent_ = undefined;
+      this.iterator_.valueChanged();
+      this.iterator_.updateIteratedValue();
+    },
+
+    clear: function() {
+      this.model_ = undefined;
+      this.delegate_ = undefined;
+      this.bindings_ = undefined;
+      this.refContent_ = undefined;
+      if (!this.iterator_)
+        return;
+      this.iterator_.valueChanged();
+      this.iterator_.close()
+      this.iterator_ = undefined;
+    },
+
     setDelegate_: function(delegate) {
       this.delegate_ = delegate;
       this.bindingMap_ = undefined;
@@ -14610,10 +14671,15 @@ PointerGestureEvent.prototype.preventTap = function() {
     // make sense to issue a warning or even throw if the template is already
     // "activated", since this would be a strange thing to do.
     set bindingDelegate(bindingDelegate) {
+      if (this.delegate_) {
+        throw Error('Template must be cleared before a new bindingDelegate ' +
+                    'can be assigned');
+      }
+
       this.setDelegate_(this.newDelegate_(bindingDelegate));
     },
 
-    get ref() {
+    get ref_() {
       var ref = searchRefId(this, this.getAttribute('ref'));
       if (!ref)
         ref = this.instanceRef_;
@@ -14621,7 +14687,7 @@ PointerGestureEvent.prototype.preventTap = function() {
       if (!ref)
         return this;
 
-      var nextRef = ref.ref;
+      var nextRef = ref.ref_;
       return nextRef ? nextRef : ref;
     }
   });
@@ -16357,6 +16423,9 @@ PointerGestureEvent.prototype.preventTap = function() {
     },
 
     setValue: function(model, newValue) {
+      if (this.path.length == 1);
+        model = findScope(model, this.path[0]);
+
       return this.path.setValueFrom(model, newValue);
     }
   };
@@ -16750,21 +16819,58 @@ PointerGestureEvent.prototype.preventTap = function() {
     mixedCaseEventTypes[e.toLowerCase()] = e;
   });
 
-  function prepareEventBinding(path, name) {
+  var parentScopeName = '@' + Math.random().toString(36).slice(2);
+
+  // Single ident paths must bind directly to the appropriate scope object.
+  // I.e. Pushed values in two-bindings need to be assigned to the actual model
+  // object.
+  function findScope(model, prop) {
+    while (model[parentScopeName] &&
+           !Object.prototype.hasOwnProperty.call(model, prop)) {
+      model = model[parentScopeName];
+    }
+
+    return model;
+  }
+
+  function resolveEventReceiver(model, path, node) {
+    if (path.length == 0)
+      return undefined;
+
+    if (path.length == 1)
+      return findScope(model, path[0]);
+
+    for (var i = 0; model != null && i < path.length - 1; i++) {
+      model = model[path[i]];
+    }
+
+    return model;
+  }
+
+  function prepareEventBinding(path, name, polymerExpressions) {
     var eventType = name.substring(3);
     eventType = mixedCaseEventTypes[eventType] || eventType;
 
     return function(model, node, oneTime) {
-      var fn = path.getValueFrom(model);
+      var fn, receiver, handler;
+      if (typeof polymerExpressions.resolveEventHandler == 'function') {
+        handler = function(e) {
+          fn = fn || polymerExpressions.resolveEventHandler(model, path, node);
+          fn(e, e.detail, e.currentTarget);
 
-      function handler(e) {
-        if (!oneTime)
-          fn = path.getValueFrom(model);
+          if (Platform && typeof Platform.flush == 'function')
+            Platform.flush();
+        };
+      } else {
+        handler = function(e) {
+          fn = fn || path.getValueFrom(model);
+          receiver = receiver || resolveEventReceiver(model, path, node);
 
-        fn.apply(model, [e, e.detail, e.currentTarget]);
+          fn.apply(receiver, [e, e.detail, e.currentTarget]);
 
-        if (Platform && typeof Platform.flush == 'function')
-          Platform.flush();
+          if (Platform && typeof Platform.flush == 'function')
+            Platform.flush();
+        };
       }
 
       node.addEventListener(eventType, handler);
@@ -16819,18 +16925,29 @@ PointerGestureEvent.prototype.preventTap = function() {
     },
 
     prepareBinding: function(pathString, name, node) {
+      var path = Path.get(pathString);
       if (isEventHandler(name)) {
-        var path = Path.get(pathString);
         if (!path.valid) {
           console.error('on-* bindings must be simple path expressions');
           return;
         }
 
-        return prepareEventBinding(path, name);
+        return prepareEventBinding(path, name, this);
       }
 
-      if (Path.get(pathString).valid)
+      if (path.valid) {
+        if (path.length == 1) {
+          return function(model, node, oneTime) {
+            if (oneTime)
+              return path.getValueFrom(model);
+
+            var scope = findScope(model, path[0]);
+            return new PathObserver(scope, path);
+          }
+        }
+
         return; // bail out early if pathString is simple path.
+      }
 
       return prepareBinding(pathString, name, node, this);
     },
@@ -16844,9 +16961,13 @@ PointerGestureEvent.prototype.preventTap = function() {
           template.templateInstance.model :
           template.model;
 
+      var indexName = template.polymerExpressionIndexIdent_;
+
       return function(model) {
         var scope = Object.create(parentScope);
         scope[scopeName] = model;
+        scope[indexName] = undefined;
+        scope[parentScopeName] = parentScope;
         return scope;
       };
     }
