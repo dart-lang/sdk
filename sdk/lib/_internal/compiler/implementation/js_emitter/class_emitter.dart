@@ -342,7 +342,7 @@ class ClassEmitter extends CodeEmitterHelper {
       if (!backend.isNeededForReflection(classElement)) {
         enclosingBuilder.addProperty("+$reflectionName", js.number(0));
       } else {
-        List<int> types = new List<int>();
+        List<int> types = <int>[];
         if (classElement.supertype != null) {
           types.add(task.metadataEmitter.reifyType(classElement.supertype));
         }
@@ -350,8 +350,7 @@ class ClassEmitter extends CodeEmitterHelper {
           types.add(task.metadataEmitter.reifyType(interface));
         }
         enclosingBuilder.addProperty("+$reflectionName",
-            new jsAst.ArrayInitializer.from(types.map((typeNumber) =>
-                js.number(typeNumber))));
+            new jsAst.ArrayInitializer.from(types.map(js.number)));
       }
     }
   }

@@ -355,11 +355,8 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       throw new NoSuchMethodError(
           this, memberName, positionalArguments, namedArguments);
     }
-    if (mirror is JsMethodMirror) {
-      JsMethodMirror method = mirror;
-      if (!method.canInvokeReflectively()) {
-        throwInvalidReflectionError(n(memberName));
-      }
+    if (mirror is JsMethodMirror && !mirror.canInvokeReflectively()) {
+      throwInvalidReflectionError(n(memberName));
     }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
@@ -1537,6 +1534,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       // reflection with metadata.
       if (simpleName == null) continue;
       var function = JS('', '#[#]', prototype, key);
+      if (isNoSuchMethodStub(function)) continue;
       var mirror =
           new JsMethodMirror.fromUnmangledName(
               simpleName, function, false, false);
@@ -2553,7 +2551,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
       representation = runtimeTypeToString(type);
     }
   } else {
-    getTypeArgument(int index) {
+    TypeMirror getTypeArgument(int index) {
       TypeVariable typeVariable = getMetadata(index);
       int variableIndex =
           findTypeVariableIndex(ownerClass.typeVariables, typeVariable.name);
@@ -2569,8 +2567,9 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
     }
     String substituteTypeVariable(int index) {
       var typeArgument = getTypeArgument(index);
-      if (typeArgument is JsTypeVariableMirror)
+      if (typeArgument is JsTypeVariableMirror) {
         return '${typeArgument._metadataIndex}';
+      }
       if (typeArgument is! JsClassMirror &&
           typeArgument is! JsTypeBoundClassMirror) {
         if (typeArgument == JsMirrorSystem._dynamicType) {
@@ -2688,6 +2687,10 @@ bool isReflectiveDataInPrototype(String key) {
   if (key == '' || key == METHODS_WITH_OPTIONAL_ARGUMENTS) return true;
   String firstChar = key[0];
   return firstChar == '*' || firstChar == '+';
+}
+
+bool isNoSuchMethodStub(var jsFunction) {
+  return JS('bool', r'#.$reflectable == 2', jsFunction);
 }
 
 class NoSuchStaticMethodError extends Error implements NoSuchMethodError {
