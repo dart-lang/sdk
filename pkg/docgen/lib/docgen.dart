@@ -115,7 +115,8 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     bool parseSdk: false, bool append: false, String introFileName: '',
     out: _DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries : const [],
     bool includeDependentPackages: false, bool serve: false,
-    bool noDocs: false, String startPage}) {
+    bool noDocs: false, String startPage, 
+    String pubScript, String dartBinary}) {
   var result;
   if (!noDocs) {
     _Viewer.ensureMovedViewerCode();
@@ -125,7 +126,7 @@ Future<bool> docgen(List<String> files, {String packageRoot,
         introFileName: introFileName, out: out,
         excludeLibraries: excludeLibraries,
         includeDependentPackages: includeDependentPackages,
-        startPage: startPage);
+        startPage: startPage, pubScript: pubScript, dartBinary: dartBinary);
     _Viewer.addBackViewerCode();
     if (serve) {
       result.then((success) {
@@ -247,6 +248,12 @@ class _Generator {
   /// --exclude-lib.
   static List<String> _excluded;
 
+  /// The path of the pub script.
+  static String _pubScript;
+
+  /// The path of Dart binary.
+  static String _dartBinary;
+
   /// Logger for printing out progress of documentation generation.
   static Logger logger = new Logger('Docgen');
 
@@ -265,9 +272,13 @@ class _Generator {
        bool includeSdk: false, bool parseSdk: false, bool append: false,
        String introFileName: '', out: _DEFAULT_OUTPUT_DIRECTORY,
        List<String> excludeLibraries : const [],
-       bool includeDependentPackages: false, String startPage}) {
+       bool includeDependentPackages: false, String startPage,
+       String dartBinary, String pubScript}) {
     _excluded = excludeLibraries;
     _includePrivate = includePrivate;
+    _pubScript = pubScript;
+    _dartBinary = dartBinary;
+
     logger.onRecord.listen((record) => print(record.message));
 
     _ensureOutputDirectory(out, append);
@@ -595,7 +606,7 @@ class _Generator {
   static List<String> _allDependentPackageDirs(String packageDirectory) {
     var packageName = Library.packageNameFor(packageDirectory);
     if (packageName == '') return [];
-    var dependentsJson = Process.runSync('pub', ['list-package-dirs'],
+    var dependentsJson = Process.runSync(_pubScript, ['list-package-dirs'],
         workingDirectory: packageDirectory, runInShell: true);
     if (dependentsJson.exitCode != 0) {
       print(dependentsJson.stderr);
@@ -683,8 +694,9 @@ class _Viewer {
   /// Move the generated json/yaml docs directory to the dartdoc-viewer
   /// directory, to run as a webpage.
   static void _moveDirectoryAndServe() {
-    var processResult = Process.runSync('pub', ['update'], runInShell: true,
-        workingDirectory: path.join(_dartdocViewerDir.path, 'client'));
+    var processResult = Process.runSync(_Generator._pubScript, ['upgrade'], 
+        runInShell: true, workingDirectory: path.join(_dartdocViewerDir.path,
+        'client'));
     print('process output: ${processResult.stdout}');
     print('process stderr: ${processResult.stderr}');
 
@@ -700,9 +712,9 @@ class _Viewer {
     if (webDocsDir.existsSync()) {
       // Compile the code to JavaScript so we can run on any browser.
       print('Compile app to JavaScript for viewing.');
-      var processResult = Process.runSync('dart', ['deploy.dart'],
-          workingDirectory : path.join(_dartdocViewerDir.path, 'client'),
-          runInShell: true);
+      var processResult = Process.runSync(_Generator._dartBinary,
+          ['deploy.dart'], workingDirectory : path.join(_dartdocViewerDir.path,
+          'client'), runInShell: true);
       print('process output: ${processResult.stdout}');
       print('process stderr: ${processResult.stderr}');
       _runServer();
