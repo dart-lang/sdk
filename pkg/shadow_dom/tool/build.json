@@ -1,9 +1,0 @@
-[
-  "build/if-poly.js",
-  "../lib/src/platform/patches-shadowdom-polyfill-before.js",
-  "../../../third_party/polymer/ShadowDOM/build.json",
-  "../lib/src/platform/patches-shadowdom-polyfill.js",
-  "../lib/src/platform/platform-init.js",
-  "../../../third_party/polymer/platform-dev/src/ShadowCSS.js",
-  "build/end-if.js"
-]

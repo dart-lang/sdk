@@ -13,5 +13,6 @@ import 'package:analysis_server/src/channel.dart';
 class MockChannel implements CommunicationChannel {
   dynamic noSuchMethod(Invocation invocation) {
     // Do nothing
+    return null;
   }
 }

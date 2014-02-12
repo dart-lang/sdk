@@ -20,8 +20,6 @@ import '../../../../compiler/implementation/source_file.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
 import '../io.dart';
-import '../package.dart';
-import '../package_graph.dart';
 import '../utils.dart';
 import 'build_environment.dart';
 
@@ -33,7 +31,7 @@ final _validOptions = new Set<String>.from([
 
 /// A [Transformer] that uses dart2js's library API to transform Dart
 /// entrypoints in "web" to JavaScript.
-class Dart2JSTransformer extends Transformer {
+class Dart2JSTransformer extends Transformer implements LazyTransformer {
   final BuildEnvironment _environment;
   final BarbackSettings _settings;
 
@@ -137,6 +135,14 @@ class Dart2JSTransformer extends Transformer {
       completer.complete();
       _running = null;
     });
+  }
+
+  Future declareOutputs(DeclaringTransform transform) {
+    var primaryId = transform.primaryInput.id;
+    transform.declareOutput(primaryId.addExtension(".js"));
+    transform.declareOutput(primaryId.addExtension(".js.map"));
+    transform.declareOutput(primaryId.addExtension(".precompiled.js"));
+    return new Future.value();
   }
 
   /// Parses and returns the "commandLineOptions" configuration option.

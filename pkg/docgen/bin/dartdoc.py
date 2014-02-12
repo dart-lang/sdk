@@ -25,8 +25,7 @@ PUB = join(DART_DIR, 'sdk/bin/pub')
 DART2JS = join(DART_DIR, 'sdk/bin/dart2js')
 PACKAGE_ROOT = join(dirname(dirname(dirname(DART_EXECUTABLE[:-(len('dart'))]))),
     'packages/')
-EXCLUDED_PACKAGES = ['browser', 'html_import', 'mutation_observer',
-    'pkg.xcodeproj', 'shadow_dom']
+EXCLUDED_PACKAGES = ['browser', 'mutation_observer', 'pkg.xcodeproj']
 APPSERVER_EXECUTABLE = 'dev_appserver.py'
 
 
@@ -87,7 +86,7 @@ def GenerateAllDocs(docgen_options):
 # from the SDK and includes only the ones from pkg. So right now our only option
 # is to do everything in one pass.
   doc_dir = join(DART_DIR, 'pkg')
-  cmd_lst = [DART_EXECUTABLE, 
+  cmd_lst = [DART_EXECUTABLE,
       '--package-root=%s' % PACKAGE_ROOT, 'docgen.dart', '--include-sdk' ]
   cmd_str = ' '.join(AddUserDocgenOptions(cmd_lst, docgen_options, True))
   # Try to run all pkg docs together at once as it's fastest.

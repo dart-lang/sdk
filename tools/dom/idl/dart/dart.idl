@@ -299,7 +299,7 @@ interface WebSocket {
   [Custom] void send(ArrayBufferView data);
 };
 
-[Supplemental]
+[Supplemental, Constructor]
 interface XMLHttpRequest {
    [Custom] void send();
    [Custom] void send(ArrayBuffer data); // FIXME: this should be eventually deprecated.

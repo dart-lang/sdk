@@ -300,7 +300,7 @@ class _StringEqualsMatcher extends Matcher {
   static String _escape(String s) =>
       s.replaceAll('\n', '\\n').replaceAll('\r', '\\r').replaceAll('\t', '\\t');
 
-  static String _writeLeading(StringBuffer buff, String s, int start) {
+  static void _writeLeading(StringBuffer buff, String s, int start) {
     if (start > 10) {
       buff.write('... ');
       buff.write(s.substring(start - 10, start));
@@ -309,7 +309,7 @@ class _StringEqualsMatcher extends Matcher {
     }
   }
 
-  static String _writeTrailing(StringBuffer buff, String s, int start) {
+  static void _writeTrailing(StringBuffer buff, String s, int start) {
     if (start + 10 > s.length) {
       buff.write(s.substring(start));
     } else {

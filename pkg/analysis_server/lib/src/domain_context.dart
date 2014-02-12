@@ -4,11 +4,10 @@
 
 library domain.context;
 
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-import 'analysis_server.dart';
-import 'protocol.dart';
 
 /**
  * Instances of the class [ContextDomainHandler] implement a [RequestHandler]
@@ -118,6 +117,8 @@ class ContextDomainHandler implements RequestHandler {
     ChangeSet changeSet = createChangeSet(changesData);
 
     context.applyChanges(changeSet);
+    Response response = new Response(request.id);
+    return response;
   }
 
   /**
@@ -136,6 +137,8 @@ class ContextDomainHandler implements RequestHandler {
     AnalysisContext context = getAnalysisContext(request);
 
     context.analysisOptions = createAnalysisOptions(request);
+    Response response = new Response(request.id);
+    return response;
   }
 
   /**
@@ -175,6 +178,8 @@ class ContextDomainHandler implements RequestHandler {
     List<Source> sources = convertToSources(context.sourceFactory, sourcesData);
 
     context.analysisPriorityOrder = sources;
+    Response response = new Response(request.id);
+    return response;
   }
 
   /**

@@ -1338,7 +1338,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
   CHECK_CALLBACK_STATE(isolate);
   Error& malformed_type_error = Error::Handle(isolate);
   *value = instance.IsInstanceOf(type_obj,
-                                 Object::null_abstract_type_arguments(),
+                                 Object::null_type_arguments(),
                                  &malformed_type_error);
   ASSERT(malformed_type_error.IsNull());  // Type was created from a class.
   return Api::Success();
@@ -2945,8 +2945,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   Type& type_obj = Type::Handle();
   type_obj ^= unchecked_type.raw();
   Class& cls = Class::Handle(isolate, type_obj.type_class());
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(isolate, type_obj.arguments());
+  TypeArguments& type_arguments =
+      TypeArguments::Handle(isolate, type_obj.arguments());
 
   const String& base_constructor_name = String::Handle(isolate, cls.Name());
 
@@ -2999,6 +2999,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       if (!bound_error.IsNull()) {
         return Api::NewHandle(isolate, bound_error.raw());
       }
+      redirect_type ^= redirect_type.Canonicalize();
     }
 
     type_obj = redirect_type.raw();
@@ -3160,8 +3161,8 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
   strings.SetAt(1, Symbols::Dot());
   strings.SetAt(2, constructor_name);
   const String& dot_name = String::Handle(isolate, String::ConcatAll(strings));
-  const AbstractTypeArguments& type_arguments =
-    AbstractTypeArguments::Handle(isolate, type_obj.arguments());
+  const TypeArguments& type_arguments =
+    TypeArguments::Handle(isolate, type_obj.arguments());
   const Function& constructor =
     Function::Handle(isolate, cls.LookupFunctionAllowPrivate(dot_name));
   const int extra_args = 2;

@@ -113,6 +113,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       } else {
         cancel(node,
             'internal error: unimplemented receiver on parameter send');
+        return null;
       }
     }
   }

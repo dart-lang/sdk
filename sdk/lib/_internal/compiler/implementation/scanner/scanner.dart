@@ -605,6 +605,7 @@ abstract class AbstractScanner implements Scanner {
         return next;
       }
     }
+    return null;
   }
 
   int tokenizeHexOrNumber(int next) {
@@ -633,6 +634,7 @@ abstract class AbstractScanner implements Scanner {
         return next;
       }
     }
+    return null;
   }
 
   int tokenizeDotsOrNumber(int next) {
@@ -697,6 +699,7 @@ abstract class AbstractScanner implements Scanner {
       }
       next = advance();
     }
+    return null;
   }
 
   int tokenizeSlashOrComment(int next) {
@@ -728,6 +731,7 @@ abstract class AbstractScanner implements Scanner {
         return next;
       }
     }
+    return null;
   }
 
 
@@ -741,7 +745,7 @@ abstract class AbstractScanner implements Scanner {
       if (identical($EOF, next)) {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
         appendStringToken(BAD_INPUT_INFO, "unterminated multi-line comment");
-        return next;
+        break;
       } else if (identical($STAR, next)) {
         next = advance();
         if (identical($SLASH, next)) {
@@ -750,7 +754,7 @@ abstract class AbstractScanner implements Scanner {
             if (!asciiOnlyLines) handleUnicode(unicodeStart);
             next = advance();
             appendComment(start, asciiOnlyComment);
-            return next;
+            break;
           } else {
             next = advance();
           }
@@ -778,6 +782,7 @@ abstract class AbstractScanner implements Scanner {
         next = advance();
       }
     }
+    return next;
   }
 
   int tokenizeRawStringKeywordOrIdentifier(int next) {
@@ -831,9 +836,10 @@ abstract class AbstractScanner implements Scanner {
         } else {
           appendSubstringToken(IDENTIFIER_INFO, start, true);
         }
-        return next;
+        break;
       }
     }
+    return next;
   }
 
   int tokenizeAt(int next) {

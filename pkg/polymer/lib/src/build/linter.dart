@@ -414,7 +414,7 @@ class _LinterVisitor extends TreeVisitor {
           span: node.attributeSpans[name]);
     }
 
-    if (value.contains('.') || value.contains('(')) {
+    if (value.contains('(')) {
       _logger.warning('Invalid event handler body "$value". Declare a method '
           'in your custom element "void handlerName(event, detail, target)" '
           'and use the form $name="handlerName".',

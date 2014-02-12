@@ -930,6 +930,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else {
       compiler.internalErrorOnElement(
           element, 'unexpected element kind ${element.kind}');
+      return null;
     }
   }
 

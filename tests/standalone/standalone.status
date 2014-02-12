@@ -9,7 +9,7 @@
 
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 
-issue14236_test: Crash, RuntimeError # Issue 14516.
+issue14236_test: Crash # Issue 14516.
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
@@ -81,7 +81,6 @@ javascript_int_overflow_literal_test: Skip
 oom_error_stacktrace_test: RuntimeError, OK # (OOM on JS may produce a stacktrace).
 vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 issue14236_test: Skip # dart2js does not deal with Script snapshots.
-io/platform_test: Pass, CompileTimeError # Issue 14603
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.

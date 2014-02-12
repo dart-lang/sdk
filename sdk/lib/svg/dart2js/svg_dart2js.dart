@@ -582,7 +582,7 @@ class AnimationElement extends SvgElement implements ExternalResourcesRequired, 
 @DocsEditable()
 @DomName('SVGCircleElement')
 @Unstable()
-class CircleElement extends GraphicsElement implements ExternalResourcesRequired native "SVGCircleElement" {
+class CircleElement extends GeometryElement implements ExternalResourcesRequired native "SVGCircleElement" {
   // To suppress missing implicit constructor warnings.
   factory CircleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1388,7 +1388,7 @@ class ElementInstance extends EventTarget native "SVGElementInstance" {
 @DocsEditable()
 @DomName('SVGEllipseElement')
 @Unstable()
-class EllipseElement extends GraphicsElement implements ExternalResourcesRequired native "SVGEllipseElement" {
+class EllipseElement extends GeometryElement implements ExternalResourcesRequired native "SVGEllipseElement" {
   // To suppress missing implicit constructor warnings.
   factory EllipseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3122,6 +3122,34 @@ class GElement extends GraphicsElement implements ExternalResourcesRequired nati
 
 
 @DocsEditable()
+@DomName('SVGGeometryElement')
+@Experimental() // untriaged
+class GeometryElement extends GraphicsElement native "SVGGeometryElement" {
+  // To suppress missing implicit constructor warnings.
+  factory GeometryElement._() { throw new UnsupportedError("Not supported"); }
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  GeometryElement.created() : super.created();
+
+  @DomName('SVGGeometryElement.isPointInFill')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isPointInFill(Point point) native;
+
+  @DomName('SVGGeometryElement.isPointInStroke')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isPointInStroke(Point point) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('SVGGraphicsElement')
 @Experimental() // untriaged
 class GraphicsElement extends SvgElement implements Tests native "SVGGraphicsElement" {
@@ -3430,7 +3458,7 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
 @DocsEditable()
 @DomName('SVGLineElement')
 @Unstable()
-class LineElement extends GraphicsElement implements ExternalResourcesRequired native "SVGLineElement" {
+class LineElement extends GeometryElement implements ExternalResourcesRequired native "SVGLineElement" {
   // To suppress missing implicit constructor warnings.
   factory LineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3884,7 +3912,7 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
 @DocsEditable()
 @DomName('SVGPathElement')
 @Unstable()
-class PathElement extends GraphicsElement implements ExternalResourcesRequired native "SVGPathElement" {
+class PathElement extends GeometryElement implements ExternalResourcesRequired native "SVGPathElement" {
   // To suppress missing implicit constructor warnings.
   factory PathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4847,7 +4875,7 @@ class PointList extends Interceptor native "SVGPointList" {
 @DocsEditable()
 @DomName('SVGPolygonElement')
 @Unstable()
-class PolygonElement extends GraphicsElement implements ExternalResourcesRequired native "SVGPolygonElement" {
+class PolygonElement extends GeometryElement implements ExternalResourcesRequired native "SVGPolygonElement" {
   // To suppress missing implicit constructor warnings.
   factory PolygonElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4883,7 +4911,7 @@ class PolygonElement extends GraphicsElement implements ExternalResourcesRequire
 @DocsEditable()
 @DomName('SVGPolylineElement')
 @Unstable()
-class PolylineElement extends GraphicsElement implements ExternalResourcesRequired native "SVGPolylineElement" {
+class PolylineElement extends GeometryElement implements ExternalResourcesRequired native "SVGPolylineElement" {
   // To suppress missing implicit constructor warnings.
   factory PolylineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5069,7 +5097,7 @@ class Rect extends Interceptor native "SVGRect" {
 @DocsEditable()
 @DomName('SVGRectElement')
 @Unstable()
-class RectElement extends GraphicsElement implements ExternalResourcesRequired native "SVGRectElement" {
+class RectElement extends GeometryElement implements ExternalResourcesRequired native "SVGRectElement" {
   // To suppress missing implicit constructor warnings.
   factory RectElement._() { throw new UnsupportedError("Not supported"); }
 

@@ -76,7 +76,10 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
 }
 
 
-bool VirtualMemory::Protect(Protection mode) {
+bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+  uword start_address = reinterpret_cast<uword>(address);
+  uword end_address = start_address + size;
+  uword page_address = Utils::RoundDown(start_address, PageSize());
   int prot = 0;
   switch (mode) {
     case kNoAccess:
@@ -95,7 +98,9 @@ bool VirtualMemory::Protect(Protection mode) {
       prot = PROT_READ | PROT_WRITE | PROT_EXEC;
       break;
   }
-  return (mprotect(address(), size(), prot) == 0);
+  return (mprotect(reinterpret_cast<void*>(page_address),
+                   end_address - page_address,
+                   prot) == 0);
 }
 
 }  // namespace dart

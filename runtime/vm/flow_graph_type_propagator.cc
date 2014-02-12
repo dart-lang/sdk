@@ -751,7 +751,8 @@ CompileType ConstantInstr::ComputeType() const {
         value().GetClassId(),
         AbstractType::ZoneHandle(Instance::Cast(value()).GetType()));
   } else {
-    return CompileType::Dynamic();
+    // Type info for non-instance objects.
+    return CompileType::FromCid(value().GetClassId());
   }
 }
 

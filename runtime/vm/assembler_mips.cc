@@ -106,6 +106,8 @@ class PatchFarJump : public AssemblerFixup {
     // the far branch with a near one, and so these instructions should be NOPs.
     ASSERT((high == Instr::kNopInstruction) && (low == Instr::kNopInstruction));
   }
+
+  virtual bool IsPointerOffset() const { return false; }
 };
 
 

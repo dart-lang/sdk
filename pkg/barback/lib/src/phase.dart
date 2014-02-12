@@ -145,6 +145,8 @@ class Phase {
   void addInput(AssetNode node) {
     if (_inputs.containsKey(node.id)) _inputs[node.id].remove();
 
+    node.force();
+
     // Each group is one channel along which an asset may be forwarded. Then
     // there's one additional channel for the non-grouped transformers.
     var forwarder = new PhaseForwarder(_groups.length + 1);
@@ -191,7 +193,9 @@ class Phase {
     return newFuture(() {
       if (id.package != cascade.package) return cascade.graph.getAssetNode(id);
       if (!_outputs.containsKey(id)) return null;
-      return _outputs[id].output;
+      var output = _outputs[id].output;
+      output.force();
+      return output;
     });
   }
 
@@ -225,6 +229,18 @@ class Phase {
 
     for (var forwarder in _forwarders.values) {
       forwarder.numChannels = _groups.length + 1;
+    }
+  }
+
+  /// Force all [LazyTransformer]s' transforms in this phase to begin producing
+  /// concrete assets.
+  void forceAllTransforms() {
+    for (var group in _groups.values) {
+      group.forceAllTransforms();
+    }
+
+    for (var input in _inputs.values) {
+      input.forceAllTransforms();
     }
   }
 

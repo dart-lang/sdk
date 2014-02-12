@@ -1,7 +1,6 @@
 library tokenizer;
 
 import 'dart:collection';
-import 'dart:math';
 import 'package:html5lib/parser.dart' show HtmlParser;
 import 'package:source_maps/span.dart' show Span, FileSpan;
 import 'constants.dart';

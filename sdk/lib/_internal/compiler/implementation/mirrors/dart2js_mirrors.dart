@@ -133,6 +133,7 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
     }
     mirrorSystem.compiler.internalError(
         "Unexpected member type $element ${element.kind}");
+    return null;
   }
 
 }
@@ -348,6 +349,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
       }
     }
     compiler.internalError("Unexpected type $type of kind ${type.kind}");
+    return null;
   }
 
   DeclarationMirror _getTypeDeclarationMirror(Element element) {
@@ -358,6 +360,8 @@ class Dart2JsMirrorSystem extends MirrorSystem {
       return new Dart2JsTypedefDeclarationMirror(this,
           element.computeType(compiler));
     }
+    compiler.internalError("Unexpected element $element");
+    return null;
   }
 }
 

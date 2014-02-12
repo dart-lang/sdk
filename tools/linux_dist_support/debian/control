@@ -4,9 +4,7 @@ Section: misc
 Priority: optional
 Standards-Version: 3.9.2
 Build-Depends: debhelper (>= 9),
-	subversion,
 	python,
-	g++-4.6,
 	openjdk-6-jdk
 
 Package: dart

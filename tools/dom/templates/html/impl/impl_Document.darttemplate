@@ -29,7 +29,7 @@ $!MEMBERS
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
 
-  /** 
+  /**
    * Alias for [querySelector]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -38,7 +38,7 @@ $!MEMBERS
   @DomName('Document.querySelector')
   Element query(String relativeSelectors) => querySelector(relativeSelectors);
 
-  /** 
+  /**
    * Alias for [querySelectorAll]. Note this function is deprecated because its
    * semantics will be changing in the future.
    */
@@ -70,4 +70,18 @@ $else
     }
 $endif
   }
+
+$if DART2JS
+  @DomName('Document.createNodeIterator')
+  NodeIterator _createNodeIterator(Node root,
+      [int whatToShow, NodeFilter filter])
+      => JS('NodeIterator', '#.createNodeIterator(#, #, #, false)',
+          this, root, whatToShow, filter);
+
+  @DomName('Document.createTreeWalker')
+  TreeWalker _createTreeWalker(Node root,
+      [int whatToShow, NodeFilter filter])
+      => JS('TreeWalker', '#.createTreeWalker(#, #, #, false)',
+          this, root, whatToShow, filter);
+$endif
 }

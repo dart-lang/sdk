@@ -66,6 +66,14 @@ class GroupRunner {
     }
   }
 
+  /// Force all [LazyTransformer]s' transforms in this group to begin producing
+  /// concrete assets.
+  void forceAllTransforms() {
+    for (var phase in _phases) {
+      phase.forceAllTransforms();
+    }
+  }
+
   /// Adds a new asset as an input for this group.
   void addInput(AssetNode node) {
     _phases.first.addInput(node);

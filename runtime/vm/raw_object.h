@@ -16,9 +16,7 @@ namespace dart {
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
   V(Class)                                                                     \
   V(UnresolvedClass)                                                           \
-  V(AbstractTypeArguments)                                                     \
-    V(TypeArguments)                                                           \
-    V(InstantiatedTypeArguments)                                               \
+  V(TypeArguments)                                                             \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(ClosureData)                                                               \
@@ -537,19 +535,18 @@ class RawUnresolvedClass : public RawObject {
 };
 
 
-class RawAbstractTypeArguments : public RawObject {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments);
-};
-
-
-class RawTypeArguments : public RawAbstractTypeArguments {
+class RawTypeArguments : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArguments);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->length_);
+    return reinterpret_cast<RawObject**>(&ptr()->instantiations_);
   }
+  // The instantiations_ array remains empty for instantiated type arguments.
+  RawArray* instantiations_;  // Array of paired canonical vectors:
+                              // Even index: instantiator.
+                              // Odd index: instantiated (without bound error).
+  // Instantiations leading to bound errors do not get cached.
   RawSmi* length_;
 
   // Variable length data follows here.
@@ -559,22 +556,6 @@ class RawTypeArguments : public RawAbstractTypeArguments {
   }
 
   friend class SnapshotReader;
-};
-
-
-class RawInstantiatedTypeArguments : public RawAbstractTypeArguments {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(InstantiatedTypeArguments);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(
-        &ptr()->uninstantiated_type_arguments_);
-  }
-  RawAbstractTypeArguments* uninstantiated_type_arguments_;
-  RawAbstractTypeArguments* instantiator_type_arguments_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->instantiator_type_arguments_);
-  }
 };
 
 
@@ -1174,7 +1155,7 @@ class RawType : public RawAbstractType {
     return reinterpret_cast<RawObject**>(&ptr()->type_class_);
   }
   RawObject* type_class_;  // Either resolved class or unresolved class.
-  RawAbstractTypeArguments* arguments_;
+  RawTypeArguments* arguments_;
   RawLanguageError* error_;  // Error object if type is malformed or malbounded.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->error_);
@@ -1385,7 +1366,7 @@ class RawArray : public RawInstance {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
   }
-  RawAbstractTypeArguments* type_arguments_;
+  RawTypeArguments* type_arguments_;
   RawSmi* length_;
   // Variable length data follows here.
   RawObject** data() {
@@ -1417,7 +1398,7 @@ class RawGrowableObjectArray : public RawInstance {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
   }
-  RawAbstractTypeArguments* type_arguments_;
+  RawTypeArguments* type_arguments_;
   RawSmi* length_;
   RawArray* data_;
   RawObject** to() {

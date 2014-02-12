@@ -52,19 +52,21 @@ Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 ThreadLocalKey ThreadInterrupter::thread_state_key_ =
     Thread::kUnsetThreadLocalKey;
-ThreadInterrupter::ThreadState** ThreadInterrupter::threads_ = NULL;
-intptr_t ThreadInterrupter::threads_capacity_ = 0;
-intptr_t ThreadInterrupter::threads_size_ = 0;
 
 
 void ThreadInterrupter::InitOnce() {
   ASSERT(!initialized_);
-  initialized_ = true;
   ASSERT(thread_state_key_ == Thread::kUnsetThreadLocalKey);
   thread_state_key_ = Thread::CreateThreadLocal();
   ASSERT(thread_state_key_ != Thread::kUnsetThreadLocalKey);
   monitor_ = new Monitor();
-  ResizeThreads(16);
+  ASSERT(monitor_ != NULL);
+  initialized_ = true;
+}
+
+
+void ThreadInterrupter::Startup() {
+  ASSERT(initialized_);
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter starting up.\n");
   }
@@ -92,15 +94,9 @@ void ThreadInterrupter::Shutdown() {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter shutting down.\n");
   }
-  intptr_t size_at_shutdown = 0;
   {
     MonitorLocker ml(monitor_);
     shutdown_ = true;
-    size_at_shutdown = threads_size_;
-    threads_size_ = 0;
-    threads_capacity_ = 0;
-    free(threads_);
-    threads_ = NULL;
   }
   {
     MonitorLocker shutdown_ml(monitor_);
@@ -110,7 +106,7 @@ void ThreadInterrupter::Shutdown() {
   }
   interrupter_thread_id_ = Thread::kInvalidThreadId;
   if (FLAG_trace_thread_interrupter) {
-    OS::Print("ThreadInterrupter shut down (%" Pd ").\n", size_at_shutdown);
+    OS::Print("ThreadInterrupter shut down.\n");
   }
 }
 
@@ -121,27 +117,22 @@ void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
   }
   ASSERT(initialized_);
   ASSERT(period > 0);
-  {
-    MonitorLocker ml(monitor_);
-    interrupt_period_ = period;
-  }
+  interrupt_period_ = period;
 }
 
 
 // Register the currently running thread for interrupts. If the current thread
 // is already registered, callback and data will be updated.
-void ThreadInterrupter::Register(ThreadInterruptCallback callback, void* data) {
+InterruptableThreadState* ThreadInterrupter::Register(
+    ThreadInterruptCallback callback, void* data) {
   if (shutdown_) {
-    return;
+    return NULL;
   }
   ASSERT(initialized_);
-  {
-    MonitorLocker ml(monitor_);
-    _EnsureThreadStateCreated();
-    // Set callback and data.
-    UpdateStateObject(callback, data);
-    _Enable();
-  }
+  InterruptableThreadState* state = _EnsureThreadStateCreated();
+  // Set callback and data.
+  UpdateStateObject(callback, data);
+  return state;
 }
 
 
@@ -151,44 +142,14 @@ void ThreadInterrupter::Unregister() {
     return;
   }
   ASSERT(initialized_);
-  {
-    MonitorLocker ml(monitor_);
-    _EnsureThreadStateCreated();
-    // Clear callback and data.
-    UpdateStateObject(NULL, NULL);
-    _Disable();
-  }
+  _EnsureThreadStateCreated();
+  // Clear callback and data.
+  UpdateStateObject(NULL, NULL);
 }
 
 
-void ThreadInterrupter::Enable() {
-  if (shutdown_) {
-    return;
-  }
-  ASSERT(initialized_);
-  {
-    MonitorLocker ml(monitor_);
-    _EnsureThreadStateCreated();
-    _Enable();
-  }
-}
-
-
-void ThreadInterrupter::Disable() {
-  if (shutdown_) {
-    return;
-  }
-  ASSERT(initialized_);
-  {
-    MonitorLocker ml(monitor_);
-    _EnsureThreadStateCreated();
-    _Disable();
-  }
-}
-
-
-void ThreadInterrupter::_EnsureThreadStateCreated() {
-  ThreadState* state = CurrentThreadState();
+InterruptableThreadState* ThreadInterrupter::_EnsureThreadStateCreated() {
+  InterruptableThreadState* state = CurrentThreadState();
   if (state == NULL) {
     // Create thread state object lazily.
     ThreadId current_thread = Thread::GetCurrentThreadId();
@@ -197,56 +158,21 @@ void ThreadInterrupter::_EnsureThreadStateCreated() {
       OS::Print("ThreadInterrupter Tracking %p\n",
                 reinterpret_cast<void*>(tid));
     }
-    state = new ThreadState();
+    // Note: We currently do not free a thread's InterruptableThreadState.
+    state = new InterruptableThreadState();
+    ASSERT(state != NULL);
     state->callback = NULL;
     state->data = NULL;
     state->id = current_thread;
     SetCurrentThreadState(state);
   }
+  return state;
 }
 
-
-void ThreadInterrupter::_Enable() {
-  // Must be called with monitor_ locked.
-  ThreadId current_thread = Thread::GetCurrentThreadId();
-  if (Thread::Compare(current_thread, interrupter_thread_id_)) {
-    return;
-  }
-  intptr_t i = FindThreadIndex(current_thread);
-  if (i >= 0) {
-    return;
-  }
-  AddThread(current_thread);
-  if (FLAG_trace_thread_interrupter) {
-    intptr_t tid = Thread::ThreadIdToIntPtr(current_thread);
-    OS::Print("ThreadInterrupter Added %p\n", reinterpret_cast<void*>(tid));
-  }
-}
-
-void ThreadInterrupter::_Disable() {
-  // Must be called with monitor_ locked.
-  ThreadId current_thread = Thread::GetCurrentThreadId();
-  if (Thread::Compare(current_thread, interrupter_thread_id_)) {
-    return;
-  }
-  intptr_t index = FindThreadIndex(current_thread);
-  if (index < 0) {
-    // Not registered.
-    return;
-  }
-  ThreadState* state = RemoveThread(index);
-  ASSERT(state != NULL);
-  ASSERT(state == ThreadInterrupter::CurrentThreadState());
-  if (FLAG_trace_thread_interrupter) {
-    intptr_t tid = Thread::ThreadIdToIntPtr(current_thread);
-    OS::Print("ThreadInterrupter Removed %p\n", reinterpret_cast<void*>(tid));
-  }
-}
 
 void ThreadInterrupter::UpdateStateObject(ThreadInterruptCallback callback,
                                           void* data) {
-  // Must be called with monitor_ locked.
-  ThreadState* state = CurrentThreadState();
+  InterruptableThreadState* state = CurrentThreadState();
   ThreadId current_thread = Thread::GetCurrentThreadId();
   ASSERT(state != NULL);
   ASSERT(Thread::Compare(state->id, Thread::GetCurrentThreadId()));
@@ -267,90 +193,41 @@ void ThreadInterrupter::UpdateStateObject(ThreadInterruptCallback callback,
 }
 
 
-ThreadInterrupter::ThreadState* ThreadInterrupter::CurrentThreadState() {
-  ThreadState* state = reinterpret_cast<ThreadState*>(
+InterruptableThreadState* ThreadInterrupter::GetCurrentThreadState() {
+  return _EnsureThreadStateCreated();
+}
+
+
+InterruptableThreadState* ThreadInterrupter::CurrentThreadState() {
+  InterruptableThreadState* state = reinterpret_cast<InterruptableThreadState*>(
       Thread::GetThreadLocal(thread_state_key_));
   return state;
 }
 
 
-void ThreadInterrupter::SetCurrentThreadState(ThreadState* state) {
+void ThreadInterrupter::SetCurrentThreadState(InterruptableThreadState* state) {
   Thread::SetThreadLocal(thread_state_key_, reinterpret_cast<uword>(state));
-}
-
-
-void ThreadInterrupter::ResizeThreads(intptr_t new_capacity) {
-  // Must be called with monitor_ locked.
-  ASSERT(new_capacity < kMaxThreads);
-  ASSERT(new_capacity > threads_capacity_);
-  ThreadState* state = NULL;
-  threads_ = reinterpret_cast<ThreadState**>(
-      realloc(threads_, sizeof(state) * new_capacity));
-  for (intptr_t i = threads_capacity_; i < new_capacity; i++) {
-    threads_[i] = NULL;
-  }
-  threads_capacity_ = new_capacity;
-}
-
-
-void ThreadInterrupter::AddThread(ThreadId id) {
-  // Must be called with monitor_ locked.
-  if (threads_ == NULL) {
-    // We are shutting down.
-    return;
-  }
-  ThreadState* state = CurrentThreadState();
-  if (state->callback == NULL) {
-    // No callback.
-    return;
-  }
-  if (threads_size_ == threads_capacity_) {
-    ResizeThreads(threads_capacity_ == 0 ? 16 : threads_capacity_ * 2);
-  }
-  threads_[threads_size_] = state;
-  threads_size_++;
-}
-
-
-intptr_t ThreadInterrupter::FindThreadIndex(ThreadId id) {
-  // Must be called with monitor_ locked.
-  if (threads_ == NULL) {
-    // We are shutting down.
-    return -1;
-  }
-  for (intptr_t i = 0; i < threads_size_; i++) {
-    if (threads_[i]->id == id) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-
-ThreadInterrupter::ThreadState* ThreadInterrupter::RemoveThread(intptr_t i) {
-  // Must be called with monitor_ locked.
-  if (threads_ == NULL) {
-    // We are shutting down.
-    return NULL;
-  }
-  ASSERT(i < threads_size_);
-  ThreadState* state = threads_[i];
-  ASSERT(state != NULL);
-  intptr_t last = threads_size_ - 1;
-  if (i != last) {
-    threads_[i] = threads_[last];
-  }
-  // Mark last as NULL.
-  threads_[last] = NULL;
-  // Pop.
-  threads_size_--;
-  return state;
 }
 
 
 void ThreadInterruptNoOp(const InterruptedThreadState& state, void* data) {
   // NoOp.
 }
+
+
+class ThreadInterrupterVisitIsolates : public IsolateVisitor {
+ public:
+  ThreadInterrupterVisitIsolates() { }
+  void VisitIsolate(Isolate* isolate) {
+    ASSERT(isolate != NULL);
+    InterruptableThreadState* state = isolate->thread_state();
+    if (state == NULL) {
+      return;
+    }
+    ASSERT(state->id != Thread::kInvalidThreadId);
+    ThreadInterrupter::InterruptThread(state);
+  }
+};
 
 
 void ThreadInterrupter::ThreadMain(uword parameters) {
@@ -367,11 +244,11 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
     startup_ml.Notify();
   }
   {
-    MonitorLocker ml(monitor_);
+    MonitorLocker wait_ml(monitor_);
+    ThreadInterrupterVisitIsolates visitor;
     while (!shutdown_) {
-      int64_t current_time = OS::GetCurrentTimeMicros();
-      InterruptThreads(current_time);
-      ml.WaitMicros(interrupt_period_);
+      Isolate::VisitIsolates(&visitor);
+      wait_ml.WaitMicros(interrupt_period_);
     }
   }
   if (FLAG_trace_thread_interrupter) {

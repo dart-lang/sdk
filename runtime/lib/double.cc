@@ -19,8 +19,7 @@ namespace dart {
 DECLARE_FLAG(bool, trace_intrinsified_natives);
 
 DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 2) {
-  ASSERT(AbstractTypeArguments::CheckedHandle(
-      arguments->NativeArgAt(0)).IsNull());
+  ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   const Integer& value = Integer::CheckedHandle(arguments->NativeArgAt(1));
   if (FLAG_trace_intrinsified_natives) {
     OS::Print("Double_doubleFromInteger %s\n", value.ToCString());

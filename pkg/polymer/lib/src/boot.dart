@@ -24,9 +24,7 @@ _preventFlashOfUnstyledContent() {
   _veilElements();
 
   // hookup auto-unveiling
-  Polymer.onReady.then((_) {
-    Polymer.unveilElements();
-  });
+  Polymer.onReady.then((_) => Polymer.unveilElements());
 }
 
 // add polymer styles

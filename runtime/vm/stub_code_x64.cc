@@ -25,8 +25,8 @@ namespace dart {
 DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 
 // Input parameters:
@@ -1114,84 +1114,67 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   const int kInlineInstanceSize = 12;  // In words.
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  const intptr_t type_args_size = InstantiatedTypeArguments::InstanceSize();
   __ LoadObject(R12, Object::null_object(), PP);
-  if (FLAG_inline_alloc &&
-      Heap::IsAllocatableInNewSpace(instance_size + type_args_size)) {
-    Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
-    __ movq(RAX, Immediate(heap->TopAddress()));
-    __ movq(RAX, Address(RAX, 0));
-    __ leaq(RBX, Address(RAX, instance_size));
+  Label slow_case_with_type_arguments;
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+    Label slow_case_reload_type_arguments;
     if (is_cls_parameterized) {
-      __ movq(RCX, RBX);
-      // A new InstantiatedTypeArguments object only needs to be allocated if
-      // the instantiator is provided (not kNoInstantiator, but may be null).
-      Label no_instantiator;
-      __ cmpq(Address(RSP, kInstantiatorTypeArgumentsOffset),
-              Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &no_instantiator, Assembler::kNearJump);
-      __ addq(RBX, Immediate(type_args_size));
-      __ Bind(&no_instantiator);
-      // RCX: potential new object end and, if RCX != RBX, potential new
-      // InstantiatedTypeArguments object start.
+      // Instantiation of the type arguments vector is only required if an
+      // instantiator is provided (not kNoInstantiator, but may be null).
+      __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
+      __ movq(RDI, Address(RSP, kInstantiatorTypeArgumentsOffset));
+      Label type_arguments_ready;
+      __ cmpq(RDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ j(EQUAL, &type_arguments_ready, Assembler::kNearJump);
+      // Lookup instantiator RDI in instantiations array of type arguments RDX
+      // and, if found, use cached instantiated type arguments.
+      __ movq(RAX, FieldAddress(RDX, TypeArguments::instantiations_offset()));
+      __ movq(RBX, FieldAddress(RAX, Array::length_offset()));
+      __ leaq(RAX, FieldAddress(RAX, Array::data_offset()));
+      __ leaq(RBX, Address(RAX, RBX, TIMES_4, 0));  // RBX is smi.
+      Label loop, found;
+      __ Bind(&loop);
+      __ cmpq(RAX, RBX);
+      __ j(ABOVE_EQUAL, &slow_case_reload_type_arguments);
+      __ movq(RDX, Address(RAX, 0 * kWordSize));  // Cached instantiator.
+      __ cmpq(RDX, RDI);
+      __ j(EQUAL, &found, Assembler::kNearJump);
+      __ cmpq(RDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ j(EQUAL, &slow_case_reload_type_arguments);
+      __ addq(RAX, Immediate(2 * kWordSize));
+      __ jmp(&loop, Assembler::kNearJump);
+      __ Bind(&found);
+      __ movq(RDX, Address(RAX, 1 * kWordSize));  // Cached instantiated args.
+      __ movq(RDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ Bind(&type_arguments_ready);
+      // RDX: instantiated type arguments.
+      // RDI: kNoInstantiator.
     }
+    // Allocate the object and update top to point to
+    // next object start and initialize the allocated object.
+    // RDX: instantiated type arguments (if is_cls_parameterized).
+    // RDI: kNoInstantiator (if is_cls_parameterized).
+    Heap* heap = Isolate::Current()->heap();
+    __ movq(RCX, Immediate(heap->TopAddress()));
+    __ movq(RAX, Address(RCX, 0));
+    __ leaq(RBX, Address(RAX, instance_size));
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object start.
     // RBX: potential next object start.
-    __ movq(RDI, Immediate(heap->EndAddress()));
-    __ cmpq(RBX, Address(RDI, 0));
+    // RCX: heap top address.
+    __ movq(R13, Immediate(heap->EndAddress()));
+    __ cmpq(RBX, Address(R13, 0));
     if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
+      __ jmp(&slow_case_with_type_arguments);
     } else {
-      __ j(ABOVE_EQUAL, &slow_case);
+      __ j(ABOVE_EQUAL, &slow_case_with_type_arguments);
     }
-
-    // Successfully allocated the object(s), now update top to point to
-    // next object start and initialize the object.
-    __ movq(RDI, Immediate(heap->TopAddress()));
-    __ movq(Address(RDI, 0), RBX);
+    __ movq(Address(RCX, 0), RBX);
     __ UpdateAllocationStats(cls.id());
-
-    if (is_cls_parameterized) {
-      // Initialize the type arguments field in the object.
-      // RAX: new object start.
-      // RCX: potential new object end and, if RCX != RBX, potential new
-      // InstantiatedTypeArguments object start.
-      // RBX: next object start.
-      Label type_arguments_ready;
-      __ movq(RDI, Address(RSP, kObjectTypeArgumentsOffset));
-      __ cmpq(RCX, RBX);
-      __ j(EQUAL, &type_arguments_ready, Assembler::kNearJump);
-      // Initialize InstantiatedTypeArguments object at RCX.
-      __ movq(Address(RCX,
-          InstantiatedTypeArguments::uninstantiated_type_arguments_offset()),
-              RDI);
-      __ movq(RDX, Address(RSP, kInstantiatorTypeArgumentsOffset));
-      __ movq(Address(RCX,
-          InstantiatedTypeArguments::instantiator_type_arguments_offset()),
-              RDX);
-      const Class& ita_cls =
-          Class::ZoneHandle(Object::instantiated_type_arguments_class());
-      // Set the tags.
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(type_args_size, tags);
-      tags = RawObject::ClassIdTag::update(ita_cls.id(), tags);
-      __ movq(Address(RCX, Instance::tags_offset()), Immediate(tags));
-      // Set the new InstantiatedTypeArguments object (RCX) as the type
-      // arguments (RDI) of the new object (RAX).
-      __ movq(RDI, RCX);
-      __ addq(RDI, Immediate(kHeapObjectTag));
-      // Set RBX to new object end.
-      __ movq(RBX, RCX);
-      __ Bind(&type_arguments_ready);
-      // RAX: new object.
-      // RDI: new object type arguments.
-    }
 
     // RAX: new object start.
     // RBX: next object start.
-    // RDI: new object type arguments (if is_cls_parameterized).
+    // RDX: new object type arguments (if is_cls_parameterized).
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1202,7 +1185,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Initialize the remaining words of the object.
     // RAX: new object start.
     // RBX: next object start.
-    // RDI: new object type arguments (if is_cls_parameterized).
+    // RDX: new object type arguments (if is_cls_parameterized).
+    // R12: raw null.
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
       // Check if the object contains any non-header fields.
@@ -1218,7 +1202,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // RAX: new object.
       // RBX: next object start.
       // RCX: next word to be initialized.
-      // RDI: new object type arguments (if is_cls_parameterized).
+      // RDX: new object type arguments (if is_cls_parameterized).
       Label init_loop;
       Label done;
       __ Bind(&init_loop);
@@ -1230,28 +1214,32 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ Bind(&done);
     }
     if (is_cls_parameterized) {
-      // RDI: new object type arguments.
+      // RDX: new object type arguments.
       // Set the type arguments in the new object.
-      __ movq(Address(RAX, cls.type_arguments_field_offset()), RDI);
+      __ movq(Address(RAX, cls.type_arguments_field_offset()), RDX);
     }
     // Done allocating and initializing the instance.
     // RAX: new object.
     __ addq(RAX, Immediate(kHeapObjectTag));
     __ ret();
 
-    __ Bind(&slow_case);
+    __ Bind(&slow_case_reload_type_arguments);
   }
   if (is_cls_parameterized) {
-    __ movq(RAX, Address(RSP, kObjectTypeArgumentsOffset));
-    __ movq(RDX, Address(RSP, kInstantiatorTypeArgumentsOffset));
+    __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
+    __ movq(RDI, Address(RSP, kInstantiatorTypeArgumentsOffset));
   }
+  __ Bind(&slow_case_with_type_arguments);
+  // If is_cls_parameterized:
+  // RDX: new object type arguments (instantiated or not).
+  // RDI: instantiator type arguments or kNoInstantiator.
   // Create a stub frame.
   __ EnterStubFrame(true);  // Uses PP to access class object.
   __ pushq(R12);  // Setup space on stack for return value.
   __ PushObject(cls, PP);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
-    __ pushq(RAX);  // Push type arguments of object to be allocated.
-    __ pushq(RDX);  // Push type arguments of instantiator.
+    __ pushq(RDX);  // Push type arguments of object to be allocated.
+    __ pushq(RDI);  // Push type arguments of instantiator.
   } else {
     __ pushq(R12);  // Push null type arguments.
     __ pushq(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
@@ -1634,7 +1622,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   Label is_compiled;
   __ movq(RCX, FieldAddress(RAX, Function::code_offset()));
   if (FLAG_collect_code) {
-    // If code might be GC'd, then EBX might be null. If it is, recompile.
+    // If code might be GC'd, then RBX might be null. If it is, recompile.
     __ CompareObject(RCX, Object::null_object(), PP);
     __ j(NOT_EQUAL, &is_compiled, Assembler::kNearJump);
     __ EnterStubFrame();

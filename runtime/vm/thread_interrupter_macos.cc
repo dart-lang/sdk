@@ -20,14 +20,12 @@ class ThreadInterrupterMacOS : public AllStatic {
     if (signal != SIGPROF) {
       return;
     }
-    ThreadInterrupter::ThreadState* state =
-        ThreadInterrupter::CurrentThreadState();
+    InterruptableThreadState* state = ThreadInterrupter::CurrentThreadState();
     if ((state == NULL) || (state->callback == NULL)) {
       // No interrupter state or callback.
       return;
     }
     ASSERT(Thread::Compare(state->id, Thread::GetCurrentThreadId()));
-
     // Extract thread state.
     ucontext_t* context = reinterpret_cast<ucontext_t*>(context_);
     mcontext_t mcontext = context->uc_mcontext;
@@ -41,15 +39,11 @@ class ThreadInterrupterMacOS : public AllStatic {
 };
 
 
-void ThreadInterrupter::InterruptThreads(int64_t current_time) {
-  for (intptr_t i = 0; i < threads_size_; i++) {
-    ThreadState* state = threads_[i];
-    ASSERT(state->id != Thread::kInvalidThreadId);
-    if (FLAG_trace_thread_interrupter) {
-      OS::Print("ThreadInterrupter interrupting %p\n", state->id);
-    }
-    pthread_kill(state->id, SIGPROF);
+void ThreadInterrupter::InterruptThread(InterruptableThreadState* state) {
+  if (FLAG_trace_thread_interrupter) {
+    OS::Print("ThreadInterrupter interrupting %p\n", state->id);
   }
+  pthread_kill(state->id, SIGPROF);
 }
 
 

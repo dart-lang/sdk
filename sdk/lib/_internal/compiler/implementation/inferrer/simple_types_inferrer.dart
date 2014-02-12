@@ -1224,6 +1224,7 @@ class SimpleTypeInferrerVisitor<T>
           : expression.accept(this));
     }
     locals.seenReturnOrThrow = true;
+    return null;
   }
 
   T visitForIn(ForIn node) {

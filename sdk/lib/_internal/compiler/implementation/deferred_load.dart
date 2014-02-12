@@ -498,6 +498,7 @@ class DeferredLoadTask extends CompilerTask {
       if (import == _fakeMainImport) return "main";
       Link<MetadataAnnotation> metadatas = import.metadata;
       assert(metadatas != null);
+      String result;
       for (MetadataAnnotation metadata in metadatas) {
         metadata.ensureResolved(compiler);
         Element element = metadata.value.computeType(compiler).element;
@@ -505,12 +506,13 @@ class DeferredLoadTask extends CompilerTask {
             deferredLibraryClass) {
           ConstructedConstant constant = metadata.value;
           StringConstant s = constant.fields[0];
-          String result = s.value.slowToString();
-          deferNameCache[import] = result;
-          return result;
+          result = s.value.slowToString();
+          break;
         }
       }
-      assert(false);
+      assert(result != null);
+      deferNameCache[import] = result;
+      return result;
     }
 
     Set<String> usedNames = new Set<String>();

@@ -147,8 +147,13 @@ Future<MirrorSystem> getMirrorSystem(List<Uri> libraries,
   if (libraries.isEmpty) throw new StateError('No Libraries.');
 
   // Finds the root of SDK library based off the location of docgen.
+  // We have two different places to look, depending if we're in a development
+  // repo or in a built SDK, either sdk or dart-sdk respectively
   var root = _Generator._rootDirectory;
   var sdkRoot = path.normalize(path.absolute(path.join(root, 'sdk')));
+  if (!new Directory(sdkRoot).existsSync()) {
+    sdkRoot = path.normalize(path.absolute(path.join(root, 'dart-sdk')));
+  }
   _Generator.logger.info('SDK Root: ${sdkRoot}');
   return _Generator._analyzeLibraries(libraries, sdkRoot,
       packageRoot: packageRoot);
@@ -406,7 +411,7 @@ class _Generator {
   static void _writeOutputFiles(libraryMap,
       Iterable<Indexable> filteredEntities, bool outputToYaml, bool append,
       String startPage) {
-    if (startPage != null) libraryMap['startPage'] = startPage;
+    if (startPage != null) libraryMap['start-page'] = startPage;
 
     _writeToFile(JSON.encode(libraryMap), 'library_list.json');
 
@@ -457,14 +462,28 @@ class _Generator {
   }
 
   /// Helper accessor to determine the full pathname of the root of the dart
-  /// checkout.
+  /// checkout. We can be in one of three situations:
+  /// 1) Running from pkg/docgen/bin/docgen.dart
+  /// 2) Running from a snapshot in a build,
+  ///   e.g. xcodebuild/ReleaseIA32/dart-sdk/bin
+  /// 3) Running from a built distribution,
+  ///   e.g. ...somename/dart-sdk/bin/snapshots
   static String get _rootDirectory {
     var scriptDir = path.absolute(path.dirname(Platform.script.toFilePath()));
     var root = scriptDir;
-    while(path.basename(root) != 'dart') {
+    var base = path.basename(root);
+    // When we find dart-sdk or sdk we are one level below the root.
+    while (base != 'dart-sdk' && base != 'sdk' && base != 'pkg') {
       root = path.dirname(root);
+      base = path.basename(root);
+      if (root == base) {
+        // We have reached the root of the filesystem without finding anything.
+        throw new FileSystemException(
+            "Cannot find SDK directory starting from ",
+            scriptDir);
+        }
     }
-    return root;
+    return path.dirname(root);
   }
 
   /// Analyzes set of libraries and provides a mirror system which can be used
@@ -572,7 +591,10 @@ class _Generator {
   }
 
   /// All of the directories for our dependent packages
+  /// If this is not a package, return an empty list.
   static List<String> _allDependentPackageDirs(String packageDirectory) {
+    var packageName = Library.packageNameFor(packageDirectory);
+    if (packageName == '') return [];
     var dependentsJson = Process.runSync('pub', ['list-package-dirs'],
         workingDirectory: packageDirectory, runInShell: true);
     if (dependentsJson.exitCode != 0) {
@@ -1306,7 +1328,8 @@ class Library extends Indexable {
         }
     });
     this.functions = _createMethods(_addAll(exported['methods'],
-        dart2js_util.methodsOf(libraryMirror.declarations)).values, this);
+        libraryMirror.declarations.values.where(
+            (mirror) => mirror is MethodMirror)).values, this);
     this.variables = _createVariables(_addAll(exported['variables'],
         dart2js_util.variablesOf(libraryMirror.declarations)).values, this);
   }
@@ -1374,11 +1397,16 @@ class Library extends Indexable {
   static String _getRootdir(LibraryMirror mirror) =>
       path.dirname(path.dirname(mirror.uri.toFilePath()));
 
-  /// Read a pubspec and return the library name.
+  /// Read a pubspec and return the library name given a [LibraryMirror].
   static String _packageName(LibraryMirror mirror) {
     if (mirror.uri.scheme != 'file') return '';
     var rootdir = _getRootdir(mirror);
-    var pubspecName = path.join(rootdir, 'pubspec.yaml');
+    return packageNameFor(rootdir);
+  }
+
+  /// Read a pubspec and return the library name, given a directory
+  static String packageNameFor(String directoryName) {
+    var pubspecName = path.join(directoryName, 'pubspec.yaml');
     File pubspec = new File(pubspecName);
     if (!pubspec.existsSync()) return '';
     var contents = pubspec.readAsStringSync();
@@ -1425,7 +1453,8 @@ class Library extends Indexable {
         _addAll(exports['classes'],
             dart2js_util.typesOf(export.targetLibrary.declarations));
         _addAll(exports['methods'],
-            dart2js_util.methodsOf(export.targetLibrary.declarations));
+            export.targetLibrary.declarations.values.where(
+                (mirror) => mirror is MethodMirror));
         _addAll(exports['variables'],
             dart2js_util.variablesOf(export.targetLibrary.declarations));
       }
@@ -1520,10 +1549,16 @@ abstract class OwnedIndexable extends Indexable {
       // Reading in MDN related json file.
       var root = _Generator._rootDirectory;
       var mdnPath = path.join(root, 'utils/apidoc/mdn/database.json');
-      Indexable._mdn = JSON.decode(new File(mdnPath).readAsStringSync());
+      var mdnFile = new File(mdnPath);
+      if (mdnFile.existsSync()) {
+        Indexable._mdn = JSON.decode(mdnFile.readAsStringSync());
+      } else {
+        _Generator.logger.warning("Cannot find MDN docs expected at $mdnPath");
+        Indexable._mdn = {};
+      }
     }
     var domAnnotation = this.annotations.firstWhere(
-        (e) => e.mirror.qualifiedName == 'metadata.DomName',
+        (e) => e.mirror.qualifiedName == #metadata.DomName,
         orElse: () => null);
     if (domAnnotation == null) return '';
     var domName = domAnnotation.parameters.single;

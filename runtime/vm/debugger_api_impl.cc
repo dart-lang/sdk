@@ -608,8 +608,8 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
   const Class& super_cls = Class::Handle(cls.SuperClass());
   intptr_t num_expected_type_arguments = super_cls.NumTypeArguments();
   TypeArguments& super_type_args_array = TypeArguments::Handle();
-  const AbstractTypeArguments& type_args_array =
-      AbstractTypeArguments::Handle(type.arguments());
+  const TypeArguments& type_args_array =
+      TypeArguments::Handle(type.arguments());
   if (!type_args_array.IsNull() && (num_expected_type_arguments > 0)) {
     super_type_args_array = TypeArguments::New(num_expected_type_arguments);
     AbstractType& type_arg = AbstractType::Handle();

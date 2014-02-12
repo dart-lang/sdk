@@ -2018,9 +2018,11 @@ class PartialMetadataAnnotation extends MetadataAnnotationX {
   Token get endToken {
     Token token = beginToken;
     while (token.kind != EOF_TOKEN) {
-      if (identical(token.next, tokenAfterEndToken)) return token;
+      if (identical(token.next, tokenAfterEndToken)) break;
       token = token.next;
     }
+    assert(token != null);
+    return token;
   }
 
   Node parseNode(DiagnosticListener listener) {

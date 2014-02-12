@@ -26,7 +26,6 @@ import 'src/token.dart';
 import 'src/tokenizer.dart';
 import 'src/utils.dart';
 import 'dom.dart';
-import 'dom_parsing.dart';
 
 /**
  * Parse the [input] html5 document into a tree. The [input] can be

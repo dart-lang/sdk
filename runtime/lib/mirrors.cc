@@ -856,8 +856,8 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   ASSERT(instantiator.IsFinalized());
   ASSERT(!instantiator.IsMalformed());
 
-  const AbstractTypeArguments& type_args =
-      AbstractTypeArguments::Handle(instantiator.arguments());
+  const TypeArguments& type_args =
+      TypeArguments::Handle(instantiator.arguments());
   Error& bound_error = Error::Handle();
   AbstractType& result =
       AbstractType::Handle(type.InstantiateFrom(type_args, &bound_error));
@@ -1258,8 +1258,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   const Array& result = Array::Handle(Array::New(num_params));
   AbstractType& arg_type = AbstractType::Handle();
   Instance& type_mirror = Instance::Handle();
-  const AbstractTypeArguments& args =
-      AbstractTypeArguments::Handle(type.arguments());
+  const TypeArguments& args = TypeArguments::Handle(type.arguments());
 
   // Handle argument lists that have been optimized away, because either no
   // arguments have been provided, or all arguments are dynamic. Return a list
@@ -1750,8 +1749,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   }
 
   ASSERT(!type.IsNull());
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(type.arguments());
+  TypeArguments& type_arguments = TypeArguments::Handle(type.arguments());
   if (!type.IsInstantiated()) {
     // Must have been a declaration type.
     AbstractType& rare_type = AbstractType::Handle(klass.RareType());
@@ -1775,6 +1773,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
         ThrowInvokeError(bound_error);
         UNREACHABLE();
       }
+      redirect_type ^= redirect_type.Canonicalize();
     }
 
     type = redirect_type.raw();
@@ -2037,8 +2036,21 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 2) {
 DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Function& func = Function::Handle(ref.GetFunctionReferent());
+  if (func.IsImplicitConstructor() || func.IsSignatureFunction()) {
+    // We may need to handle more cases when the restrictions on mixins are
+    // relaxed. In particular we might start associating some source with the
+    // forwarding constructors when it becomes possible to specify a particular
+    // constructor from the mixin to use.
+    return Instance::null();
+  }
   const Script& script = Script::Handle(func.script());
   const TokenStream& stream = TokenStream::Handle(script.tokens());
+  if (!script.HasSource()) {
+    // When source is not available, avoid printing the whole token stream and
+    // doing expensive position calculations.
+    return stream.GenerateSource(func.token_pos(), func.end_token_pos() + 1);
+  }
+
   const TokenStream::Iterator tkit(stream, func.end_token_pos());
   intptr_t from_line;
   intptr_t from_col;
@@ -2059,7 +2071,10 @@ DEFINE_NATIVE_ENTRY(MethodMirror_source, 1) {
        String::Handle(func.name()).Equals("<anonymous closure>"))) {  // Case 3.
     last_tok_len = 0;
   }
-  return script.GetSnippet(from_line, from_col, to_line, to_col + last_tok_len);
+  const Instance& result = Instance::Handle(
+      script.GetSnippet(from_line, from_col, to_line, to_col + last_tok_len));
+  ASSERT(!result.IsNull());
+  return result.raw();
 }
 
 
@@ -2094,5 +2109,18 @@ DEFINE_NATIVE_ENTRY(VariableMirror_type, 2) {
   const AbstractType& type = AbstractType::Handle(field.type());
   return InstantiateType(type, instantiator);
 }
+
+DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, a, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, b, arguments->NativeArgAt(1));
+  return Bool::Get(a.IsSubtypeOf(b, NULL)).raw();
+}
+
+DEFINE_NATIVE_ENTRY(TypeMirror_moreSpecificTest, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, a, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, b, arguments->NativeArgAt(1));
+  return Bool::Get(a.IsMoreSpecificThan(b, NULL)).raw();
+}
+
 
 }  // namespace dart

@@ -315,6 +315,8 @@ Isolate::Isolate()
       cha_used_(false),
       object_id_ring_(NULL),
       profiler_data_(NULL),
+      thread_state_(NULL),
+      next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       reusable_handles_() {
   if (FLAG_print_object_histogram && (Dart::vm_isolate() != NULL)) {
@@ -343,12 +345,23 @@ Isolate::~Isolate() {
   delete spawn_state_;
 }
 
+
 void Isolate::SetCurrent(Isolate* current) {
   Isolate* old_current = Current();
-  if (old_current != current) {
+  if (old_current != NULL) {
+    old_current->set_thread_state(NULL);
     Profiler::EndExecution(old_current);
-    Thread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
+  }
+  Thread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
+  if (current != NULL) {
+    ASSERT(current->thread_state() == NULL);
+    InterruptableThreadState* thread_state =
+        ThreadInterrupter::GetCurrentThreadState();
+#if defined(DEBUG)
+    CheckForDuplicateThreadState(thread_state);
+#endif
     Profiler::BeginExecution(current);
+    current->set_thread_state(thread_state);
   }
 }
 
@@ -365,6 +378,8 @@ void Isolate::InitOnce() {
   isolate_key = Thread::CreateThreadLocal();
   ASSERT(isolate_key != Thread::kUnsetThreadLocalKey);
   create_callback_ = NULL;
+  isolates_list_monitor_ = new Monitor();
+  ASSERT(isolates_list_monitor_ != NULL);
 }
 
 
@@ -374,6 +389,9 @@ Isolate* Isolate::Init(const char* name_prefix) {
 
   // Setup for profiling.
   Profiler::InitProfilingForIsolate(result);
+
+  // Add to isolate list.
+  AddIsolateTolist(result);
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
@@ -749,6 +767,7 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
+  RemoveIsolateFromList(this);
   Profiler::ShutdownProfilingForIsolate(this);
 }
 
@@ -765,6 +784,10 @@ Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
 Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
 Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
 Dart_ServiceIsolateCreateCalback Isolate::service_create_callback_ = NULL;
+
+Monitor* Isolate::isolates_list_monitor_ = NULL;
+Isolate* Isolate::isolates_list_head_ = NULL;
+
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   bool visit_prologue_weak_handles,
@@ -864,6 +887,63 @@ void Isolate::PrintToJSONStream(JSONStream* stream) {
 
   timer_list().PrintTimersToJSONProperty(&jsobj);
 }
+
+
+void Isolate::VisitIsolates(IsolateVisitor* visitor) {
+  if (visitor == NULL) {
+    return;
+  }
+  MonitorLocker ml(isolates_list_monitor_);
+  Isolate* current = isolates_list_head_;
+  while (current) {
+    visitor->VisitIsolate(current);
+    current = current->next_;
+  }
+}
+
+
+void Isolate::AddIsolateTolist(Isolate* isolate) {
+  MonitorLocker ml(isolates_list_monitor_);
+  ASSERT(isolate != NULL);
+  ASSERT(isolate->next_ == NULL);
+  isolate->next_ = isolates_list_head_;
+  isolates_list_head_ = isolate;
+}
+
+
+void Isolate::RemoveIsolateFromList(Isolate* isolate) {
+  MonitorLocker ml(isolates_list_monitor_);
+  ASSERT(isolate != NULL);
+  if (isolate == isolates_list_head_) {
+    isolates_list_head_ = isolate->next_;
+    return;
+  }
+  Isolate* previous = NULL;
+  Isolate* current = isolates_list_head_;
+  while (current) {
+    if (current == isolate) {
+      ASSERT(previous != NULL);
+      previous->next_ = current->next_;
+      return;
+    }
+    previous = current;
+    current = current->next_;
+  }
+  UNREACHABLE();
+}
+
+
+#if defined(DEBUG)
+void Isolate::CheckForDuplicateThreadState(InterruptableThreadState* state) {
+  MonitorLocker ml(isolates_list_monitor_);
+  ASSERT(state != NULL);
+  Isolate* current = isolates_list_head_;
+  while (current) {
+    ASSERT(current->thread_state() != state);
+    current = current->next_;
+  }
+}
+#endif
 
 
 template<class T>

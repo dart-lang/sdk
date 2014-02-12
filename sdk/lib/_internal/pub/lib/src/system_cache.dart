@@ -66,6 +66,17 @@ class SystemCache {
     sources.register(source);
   }
 
+  /// Determines if the system cache contains the package identified by [id].
+  Future<bool> contains(PackageId id) {
+    var source = sources[id.source];
+
+    if (!source.shouldCache) {
+      throw new ArgumentError("Package $id is not cacheable.");
+    }
+
+    return source.isInSystemCache(id);
+  }
+
   /// Ensures that the package identified by [id] is downloaded to the cache,
   /// loads it, and returns it.
   ///

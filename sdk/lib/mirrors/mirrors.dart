@@ -674,6 +674,20 @@ abstract class TypeMirror implements DeclarationMirror {
    * variables.
    */
   TypeMirror get originalDeclaration;
+
+
+  /**
+   * Checks the subtype relationship, denoted by [:<::] in the language
+   * specification. This is the type relationship used in [:is:] test checks.
+   */
+  bool isSubtypeOf(TypeMirror other);
+
+  /**
+   * Checks the assignability relationship, denoted by [:<=>:] in the language
+   * specification. This is the type relationship tested on assignment in
+   * checked mode.
+   */
+  bool isAssignableTo(TypeMirror other);
 }
 
 /**
@@ -829,6 +843,14 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * [ArgumentError] is thrown.
    */
   Function operator [](Symbol name);
+
+  /**
+   * Returns whether the class denoted by the receiver is a subclass of the
+   * class denoted by the argument.
+   *
+   * Note that the subclass relationship is reflexive.
+   */
+  bool isSubclassOf(ClassMirror other);
 }
 
 /**

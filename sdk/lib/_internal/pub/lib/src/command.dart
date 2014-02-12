@@ -181,6 +181,8 @@ abstract class PubCommand {
   }
 
   /// Displays usage information for this command.
+  ///
+  /// If [description] is omitted, defaults to the command's description.
   void printUsage([String description]) {
     if (description == null) description = this.description;
     log.message('$description\n\n${_getUsage()}');

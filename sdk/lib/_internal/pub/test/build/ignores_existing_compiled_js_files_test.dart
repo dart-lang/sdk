@@ -20,9 +20,13 @@ main() {
       d.dir('web', [
         d.file('file.dart', 'void main() => print("hello");'),
         d.file('file.dart.js', 'some js code'),
+        d.file('file.dart.js.map', 'source map'),
+        d.file('file.dart.precompiled.js', 'some js code'),
         d.dir('subdir', [
           d.file('subfile.dart', 'void main() => print("ping");'),
-          d.file('subfile.dart.js', 'some js code')
+          d.file('subfile.dart.js', 'some js code'),
+          d.file('subfile.dart.js.map', 'source map'),
+          d.file('subfile.dart.precompiled.js', 'some js code')
         ])
       ])
     ]).create();
@@ -34,8 +38,14 @@ main() {
       d.dir('build', [
         d.dir('web', [
           d.matcherFile('file.dart.js', isNot(equals('some js code'))),
+          d.matcherFile('file.dart.js.map', isNot(equals('source map'))),
+          d.matcherFile('file.dart.precompiled.js',
+                        isNot(equals('some js code'))),
           d.dir('subdir', [
-            d.matcherFile('subfile.dart.js', isNot(equals('some js code')))
+            d.matcherFile('subfile.dart.js', isNot(equals('some js code'))),
+            d.matcherFile('subfile.dart.js.map', isNot(equals('source map'))),
+            d.matcherFile('subfile.dart.precompiled.js',
+                          isNot(equals('some js code')))
           ])
         ])
       ])

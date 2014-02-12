@@ -768,9 +768,11 @@ class Namer implements ClosureNamer {
         compiler.internalError(
             'use instanceFieldPropertyName or instanceFieldAccessorName',
             node: element.parseNode(compiler));
+        return null;
       } else {
         compiler.internalError('getName for bad kind: ${element.kind}',
                                node: element.parseNode(compiler));
+        return null;
       }
     } else {
       // Use declaration element to ensure invariant on [globals].
@@ -807,6 +809,7 @@ class Namer implements ClosureNamer {
       }
       compiler.internalError('getName for unknown kind: ${element.kind}',
                               node: element.parseNode(compiler));
+      return null;
     }
   }
 

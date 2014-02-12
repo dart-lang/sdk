@@ -8,6 +8,7 @@
 #include "vm/virtual_memory.h"
 
 #include "platform/assert.h"
+#include "vm/os.h"
 
 namespace dart {
 
@@ -63,7 +64,10 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
 }
 
 
-bool VirtualMemory::Protect(Protection mode) {
+bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+  uword start_address = reinterpret_cast<uword>(address);
+  uword end_address = start_address + size;
+  uword page_address = Utils::RoundDown(start_address, PageSize());
   DWORD prot = 0;
   switch (mode) {
     case kNoAccess:
@@ -83,7 +87,11 @@ bool VirtualMemory::Protect(Protection mode) {
       break;
   }
   DWORD old_prot = 0;
-  return VirtualProtect(address(), size(), prot, &old_prot);
+  bool result = VirtualProtect(reinterpret_cast<void*>(page_address),
+                        end_address - page_address,
+                        prot,
+                        &old_prot);
+  return result;
 }
 
 }  // namespace dart

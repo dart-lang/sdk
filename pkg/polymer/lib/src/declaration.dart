@@ -658,12 +658,16 @@ String _cssTextFromSheet(LinkElement sheet) {
   var href = sheet.href;
   if (href == '') href = sheet.attributes["href"];
 
+  // TODO(jmesserly): our build is not doing the right thing for
+  // link rel=stylesheet, see http://dartbug.com/16648
   if (js.context != null && js.context.hasProperty('HTMLImports')) {
     var jsSheet = new js.JsObject.fromBrowserObject(sheet);
     var resource = jsSheet['__resource'];
     if (resource != null) return resource;
-    _sheetLog.fine('failed to get stylesheet text href="$href"');
-    return '';
+    // TODO(jmesserly): figure out why HTMLImports is failing to load these.
+    // Falling back to sync XHR is no good.
+    // _sheetLog.fine('failed to get stylesheet text href="$href"');
+    // return '';
   }
   // TODO(jmesserly): it seems like polymer-js is always polyfilling
   // HTMLImports, because their code depends on "__resource" to work.

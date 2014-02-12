@@ -28,7 +28,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V>
 
   // This constructor is not used.  The instantiation is shortcut by the
   // compiler. It is here to make the uninitialized final fields legal.
-  const ConstantStringMap._(this.length, this._jsObject, _keys) : super._();
+  const ConstantStringMap._(this.length, this._jsObject, this._keys) : super._();
 
   final int length;
   // A constant map is backed by a JavaScript object.
@@ -69,7 +69,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V>
 class ConstantProtoMap<K, V> extends ConstantStringMap<K, V> {
   // This constructor is not used.  The instantiation is shortcut by the
   // compiler. It is here to make the uninitialized final fields legal.
-  ConstantProtoMap._(length, jsObject, keys) : super._(length, jsObject, keys);
+  ConstantProtoMap._(length, jsObject, keys, this._protoValue) : super._(length, jsObject, keys);
 
   final V _protoValue;
 

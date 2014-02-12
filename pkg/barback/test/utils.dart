@@ -20,6 +20,9 @@ export 'transformer/bad.dart';
 export 'transformer/check_content.dart';
 export 'transformer/check_content_and_rename.dart';
 export 'transformer/create_asset.dart';
+export 'transformer/lazy_bad.dart';
+export 'transformer/lazy_many_to_one.dart';
+export 'transformer/lazy_rewrite.dart';
 export 'transformer/many_to_one.dart';
 export 'transformer/mock.dart';
 export 'transformer/one_to_many.dart';
@@ -283,22 +286,41 @@ void expectNoAsset(String name) {
 /// Schedules an expectation that the graph will output all of the given
 /// assets, and no others.
 ///
-/// [assets] is a list of strings that can be parsed to [AssetID]s.
-void expectAllAssets(Iterable<String> assets) {
-  var expected = assets.map((asset) => new AssetId.parse(asset));
+/// [assets] may be an iterable of asset id strings, in which case this asserts
+/// that the graph outputs exactly the assets with those ids. It may also be a
+/// map from asset id strings to asset contents, in which case the contents must
+/// also match.
+void expectAllAssets(assets) {
+  var expected;
+  var expectedString;
+  if (assets is Map) {
+    expected = mapMapKeys(assets, (key, _) => new AssetId.parse(key));
+    expectedString = expected.toString();
+  } else {
+    expected = assets.map((asset) => new AssetId.parse(asset));
+    expectedString = expected.join(', ');
+  }
 
   schedule(() {
     return _barback.getAllAssets().then((actualAssets) {
       var actualIds = actualAssets.map((asset) => asset.id).toSet();
 
-      for (var id in expected) {
-        expect(actualIds, contains(id));
-        actualIds.remove(id);
+      if (expected is Map) {
+        expected.forEach((id, contents) {
+          expect(actualIds, contains(id));
+          actualIds.remove(id);
+          expect(actualAssets[id].readAsString(), completion(equals(contents)));
+        });
+      } else {
+        for (var id in expected) {
+          expect(actualIds, contains(id));
+          actualIds.remove(id);
+        }
       }
 
       expect(actualIds, isEmpty);
     });
-  }, "get all assets, expecting ${expected.join(', ')}");
+  }, "get all assets, expecting $expectedString");
 }
 
 /// Schedules an expectation that [Barback.getAllAssets] will return a [Future]

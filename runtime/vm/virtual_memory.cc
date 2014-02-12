@@ -9,6 +9,12 @@
 
 namespace dart {
 
+bool VirtualMemory::InSamePage(uword address0, uword address1) {
+  return (Utils::RoundDown(address0, PageSize()) ==
+          Utils::RoundDown(address1, PageSize()));
+}
+
+
 VirtualMemory* VirtualMemory::ReserveAligned(intptr_t size,
                                              intptr_t alignment) {
   ASSERT((size & (PageSize() - 1)) == 0);

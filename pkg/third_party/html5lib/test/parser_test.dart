@@ -7,10 +7,7 @@ import 'package:unittest/unittest.dart';
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/parser.dart';
 import 'package:html5lib/parser_console.dart' as parser_console;
-import 'package:html5lib/src/constants.dart';
 import 'package:html5lib/src/inputstream.dart' as inputstream;
-import 'package:html5lib/src/tokenizer.dart';
-import 'package:html5lib/src/utils.dart';
 import 'support.dart';
 
 // Run the parse error checks

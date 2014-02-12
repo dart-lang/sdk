@@ -473,7 +473,6 @@ TEST_CASE(SerializeSingletons) {
   MessageWriter writer(&buffer, &malloc_allocator);
   writer.WriteObject(Object::class_class());
   writer.WriteObject(Object::type_arguments_class());
-  writer.WriteObject(Object::instantiated_type_arguments_class());
   writer.WriteObject(Object::function_class());
   writer.WriteObject(Object::field_class());
   writer.WriteObject(Object::token_stream_class());
@@ -492,7 +491,6 @@ TEST_CASE(SerializeSingletons) {
                         Isolate::Current());
   EXPECT(Object::class_class() == reader.ReadObject());
   EXPECT(Object::type_arguments_class() == reader.ReadObject());
-  EXPECT(Object::instantiated_type_arguments_class() == reader.ReadObject());
   EXPECT(Object::function_class() == reader.ReadObject());
   EXPECT(Object::field_class() == reader.ReadObject());
   EXPECT(Object::token_stream_class() == reader.ReadObject());

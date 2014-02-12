@@ -39,6 +39,7 @@ _cpp_callback_map = {
   ('DOMWindow', 'clearTimeout'): 'DOMWindowTimers',
   ('DOMWindow', 'clearInterval'): 'DOMWindowTimers',
   ('DOMWindow', 'createImageBitmap'): 'ImageBitmapFactories',
+  ('Element', 'animate'): 'ElementAnimation',
   ('HTMLInputElement', 'webkitEntries'): 'HTMLInputElementFileSystem',
   ('HTMLVideoElement', 'getVideoPlaybackQuality'): 'HTMLVideoElementMediaSource',
   ('Navigator', 'doNotTrack'): 'NavigatorDoNotTrack',
@@ -199,6 +200,7 @@ class DartiumBackend(HtmlDartGenerator):
     class_name = 'Dart%s' % self._interface.id
     for operation in self._interface.operations:
       function_name = operation.id
+      return_type = self.SecureOutputType(operation.type.id)
       parameters = []
       arguments = []
       if operation.ext_attrs.get('CallWith') == 'ThisValue':
@@ -212,20 +214,28 @@ class DartiumBackend(HtmlDartGenerator):
         conversion_includes.extend(argument_type_info.conversion_includes())
 
       # FIXME(vsm): Handle ThisValue attribute.
+      if (return_type == 'void'):
+        ret = ''
+      else:
+        ret = '        return 0;\n'
+
       if operation.ext_attrs.get('CallWith') == 'ThisValue':
         cpp_header_handlers_emitter.Emit(
             '\n'
-            '    virtual bool $FUNCTION($PARAMETERS) {\n'
+            '    virtual $RETURN_TYPE $FUNCTION($PARAMETERS) {\n'
             '        DART_UNIMPLEMENTED();\n'
-            '        return false;\n'
+            '$RET'
             '    }\n',
+            RETURN_TYPE=return_type,
+            RET=ret,
             FUNCTION=function_name,
             PARAMETERS=', '.join(parameters))
         continue
 
       cpp_header_handlers_emitter.Emit(
           '\n'
-          '    virtual bool $FUNCTION($PARAMETERS);\n',
+          '    virtual $RETURN_TYPE $FUNCTION($PARAMETERS);\n',
+          RETURN_TYPE=return_type,
           FUNCTION=function_name,
           PARAMETERS=', '.join(parameters))
 
@@ -236,17 +246,26 @@ class DartiumBackend(HtmlDartGenerator):
       arguments_declaration = 'Dart_Handle arguments[] = { %s }' % ', '.join(arguments)
       if not len(arguments):
         arguments_declaration = 'Dart_Handle* arguments = 0'
+      if (return_type == 'void'):
+        ret1 = 'return'
+        ret2 = ''
+      else:
+        ret1 = 'return 0'
+        ret2 = ' return'
       cpp_impl_handlers_emitter.Emit(
           '\n'
-          'bool $CLASS_NAME::$FUNCTION($PARAMETERS)\n'
+          '$RETURN_TYPE $CLASS_NAME::$FUNCTION($PARAMETERS)\n'
           '{\n'
           '    if (!m_callback.isIsolateAlive())\n'
-          '        return false;\n'
+          '        $RET1;\n'
           '    DartIsolateScope scope(m_callback.isolate());\n'
           '    DartApiScope apiScope;\n'
           '    $ARGUMENTS_DECLARATION;\n'
-          '    return m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
+          '   $RET2 m_callback.handleEvent($ARGUMENT_COUNT, arguments);\n'
           '}\n',
+          RETURN_TYPE=return_type,
+          RET1=ret1,
+          RET2=ret2,
           CLASS_NAME=class_name,
           FUNCTION=function_name,
           PARAMETERS=', '.join(parameters),
@@ -508,6 +527,8 @@ class DartiumBackend(HtmlDartGenerator):
         'PureInterface' in ext_attrs or
         'CPPPureInterface' in ext_attrs or
         'SpecialWrapFor' in ext_attrs or
+        ('Custom' in ext_attrs and ext_attrs['Custom'] == 'Wrap') or
+        ('Custom' in ext_attrs and ext_attrs['Custom'] == 'ToV8') or
         self._interface_type_info.custom_to_dart()):
       to_dart_emitter.Emit(
           '    static Dart_Handle createWrapper(DartDOMData* domData, NativeType* value);\n')
@@ -586,6 +607,8 @@ class DartiumBackend(HtmlDartGenerator):
         webcore_function_name = self._ToWebKitName(attr.id)
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
+    raises = ('RaisesException' in attr.ext_attrs and
+              attr.ext_attrs['RaisesException'] != 'Setter')
     self._GenerateNativeCallback(
         cpp_callback_name,
         True,
@@ -594,7 +617,7 @@ class DartiumBackend(HtmlDartGenerator):
         [],
         attr.type.id,
         attr.type.nullable,
-        'GetterRaisesException' in attr.ext_attrs or 'RaisesException' in attr.ext_attrs,
+        raises,
         auto_scope_setup)
 
   def _AddSetter(self, attr, html_name):
@@ -611,12 +634,18 @@ class DartiumBackend(HtmlDartGenerator):
     if 'Reflect' in attr.ext_attrs:
       webcore_function_name = self._TypeInfo(attr.type.id).webcore_setter_name()
     else:
+      if 'ImplementedAs' in attr.ext_attrs:
+        attr_name = attr.ext_attrs['ImplementedAs']
+      else:
+        attr_name = attr.id
       webcore_function_name = re.sub(r'^(xml|css|(?=[A-Z])|\w)',
                                      lambda s: s.group(1).upper(),
-                                     attr.id)
+                                     attr_name)
       webcore_function_name = 'set%s' % webcore_function_name
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
+    raises = ('RaisesException' in attr.ext_attrs and
+              attr.ext_attrs['RaisesException'] != 'Getter')
     self._GenerateNativeCallback(
         cpp_callback_name,
         True,
@@ -625,7 +654,7 @@ class DartiumBackend(HtmlDartGenerator):
         [attr],
         'void',
         False,
-        'SetterRaisesException' in attr.ext_attrs,
+        raises,
         auto_scope_setup,
         generate_custom_element_scope_if_needed=True)
 
@@ -1082,7 +1111,7 @@ class DartiumBackend(HtmlDartGenerator):
       # In this case, the getter is mapped to a static method.
       if (not function_expression.startswith('receiver->') and
           not function_expression.startswith(interface_name + '::')):
-        if interface_name == 'DOMWindow' or interface_name == 'Navigator' or interface_name == 'WorkerGlobalScope':
+        if interface_name in ['DOMWindow', 'Element', 'Navigator', 'WorkerGlobalScope']:
           cpp_arguments.insert(0, 'receiver')
         else:
           cpp_arguments.append('receiver')
@@ -1104,7 +1133,7 @@ class DartiumBackend(HtmlDartGenerator):
           '        $NATIVE_TYPE result = $FUNCTION_CALL;\n'
           '        if (isNull)\n'
           '            return;\n',
-          NATIVE_TYPE=return_type_info.native_type(),
+          NATIVE_TYPE=return_type_info.parameter_type(),
           FUNCTION_CALL=function_call)
         value_expression = 'result'
       else:

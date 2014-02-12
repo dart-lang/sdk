@@ -81,7 +81,7 @@ abstract class ListMixin<E> implements List<E> {
 
   bool contains(Object element) {
     int length = this.length;
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < this.length; i++) {
       if (this[i] == element) return true;
       if (length != this.length) {
         throw new ConcurrentModificationError(this);
@@ -160,32 +160,9 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   String join([String separator = ""]) {
-    int length = this.length;
-    if (!separator.isEmpty) {
-      if (length == 0) return "";
-      String first = "${this[0]}";
-      if (length != this.length) {
-        throw new ConcurrentModificationError(this);
-      }
-      StringBuffer buffer = new StringBuffer(first);
-      for (int i = 1; i < length; i++) {
-        buffer.write(separator);
-        buffer.write(this[i]);
-        if (length != this.length) {
-          throw new ConcurrentModificationError(this);
-        }
-      }
-      return buffer.toString();
-    } else {
-      StringBuffer buffer = new StringBuffer();
-      for (int i = 0; i < length; i++) {
-        buffer.write(this[i]);
-        if (length != this.length) {
-          throw new ConcurrentModificationError(this);
-        }
-      }
-      return buffer.toString();
-    }
+    if (length == 0) return "";
+    StringBuffer buffer = new StringBuffer()..writeAll(this, separator);
+    return buffer.toString();
   }
 
   Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);

@@ -36,6 +36,7 @@ class ICData;
 class Instance;
 class IsolateProfilerData;
 class IsolateSpawnState;
+class InterruptableThreadState;
 class LongJumpScope;
 class MessageHandler;
 class Mutex;
@@ -74,6 +75,19 @@ class ObjectIdRing;
   V(AbstractType)                                                              \
   V(TypeParameter)                                                             \
   V(TypeArguments)                                                             \
+
+
+class IsolateVisitor {
+ public:
+  IsolateVisitor() {}
+  virtual ~IsolateVisitor() {}
+
+  virtual void VisitIsolate(Isolate* isolate) = 0;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
+};
+
 
 class Isolate : public BaseIsolate {
  public:
@@ -405,11 +419,22 @@ class Isolate : public BaseIsolate {
     profiler_data_ = profiler_data;
   }
 
-  IsolateProfilerData* profiler_data() {
+  IsolateProfilerData* profiler_data() const {
     return profiler_data_;
   }
 
   void PrintToJSONStream(JSONStream* stream);
+
+  void set_thread_state(InterruptableThreadState* state) {
+    ASSERT((thread_state_ == NULL) || (state == NULL));
+    thread_state_ = state;
+  }
+
+  InterruptableThreadState* thread_state() const {
+    return thread_state_;
+  }
+
+  static void VisitIsolates(IsolateVisitor* visitor);
 
  private:
   Isolate();
@@ -467,6 +492,10 @@ class Isolate : public BaseIsolate {
 
   IsolateProfilerData* profiler_data_;
   Mutex profiler_data_mutex_;
+  InterruptableThreadState* thread_state_;
+
+  // Isolate list next pointer.
+  Isolate* next_;
 
   // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object)                                         \
@@ -488,8 +517,16 @@ class Isolate : public BaseIsolate {
   static Dart_IsolateInterruptCallback vmstats_callback_;
   static Dart_ServiceIsolateCreateCalback service_create_callback_;
 
+  // Manage list of existing isolates.
+  static void AddIsolateTolist(Isolate* isolate);
+  static void RemoveIsolateFromList(Isolate* isolate);
+  static void CheckForDuplicateThreadState(InterruptableThreadState* state);
+  static Monitor* isolates_list_monitor_;
+  static Isolate* isolates_list_head_;
+
   friend class ReusableHandleScope;
   friend class ReusableObjectHandleScope;
+
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
 

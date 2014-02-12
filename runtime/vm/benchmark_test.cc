@@ -482,4 +482,24 @@ BENCHMARK(CreateMirrorSystem) {
   benchmark->set_score(elapsed_time);
 }
 
+
+BENCHMARK(EnterExitIsolate) {
+  const char* kScriptChars =
+      "import 'dart:core';\n"
+      "\n";
+  const intptr_t kLoopCount = 1000000;
+  TestCase::LoadTestScript(kScriptChars, NULL);
+  Api::CheckIsolateState(Isolate::Current());
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  Timer timer(true, "Enter and Exit isolate");
+  timer.Start();
+  for (intptr_t i = 0; i < kLoopCount; i++) {
+    Dart_ExitIsolate();
+    Dart_EnterIsolate(isolate);
+  }
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+}
+
 }  // namespace dart

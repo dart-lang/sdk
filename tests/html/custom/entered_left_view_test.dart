@@ -31,13 +31,6 @@ class Foo extends HtmlElement {
   }
 }
 
-// Pump custom events polyfill events.
-void customElementsTakeRecords() {
-  if (js.context.hasProperty('CustomElements')) {
-    js.context['CustomElements'].callMethod('takeRecords');
-  }
-}
-
 main() {
   useHtmlIndividualConfiguration();
 
@@ -50,15 +43,11 @@ main() {
   var nullSanitizer = new NullTreeSanitizer();
 
   var registeredTypes = false;
-  setUp(() {
-    return loadPolyfills().then((_) {
-      if (registeredTypes) {
-        return;
-      }
-      registeredTypes = true;
-      document.register('x-a', Foo);
-    });
-  });
+  setUp(() => customElementsReady.then((_) {
+    if (registeredTypes) return;
+    registeredTypes = true;
+    document.register('x-a', Foo);
+  }));
 
   group('standard_events', () {
     var a;

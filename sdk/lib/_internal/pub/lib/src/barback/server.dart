@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:barback/barback.dart';
+import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import 'package:stack_trace/stack_trace.dart';
 
@@ -114,6 +115,10 @@ class BarbackServer {
       return validateStream(asset.read()).then((stream) {
         _resultsController.add(
             new BarbackServerResult._success(request.uri, id));
+        var mimeType = lookupMimeType(id.path);
+        if (mimeType != null) {
+          request.response.headers.add('content-type', mimeType);
+        }
         // TODO(rnystrom): Set content-type based on asset type.
         return Chain.track(request.response.addStream(stream)).then((_) {
           // Log successful requests both so we can provide debugging

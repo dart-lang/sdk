@@ -16,8 +16,7 @@ import 'common.dart';
 /**
  * Ensures that any scripts and polyfills needed to run a polymer application
  * are included. For example, this transformer will ensure that there is a
- * script tag that loads the shadow_dom polyfill and interop.js (used for the
- * css shimming).
+ * script tag that loads the polyfills and interop.js (used for css shimming).
  *
  * This step also replaces "packages/browser/dart.js" and the Dart script tag
  * with a script tag that loads the dart2js compiled code directly.
@@ -33,22 +32,19 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
 
   Future apply(Transform transform) {
     return readPrimaryAsHtml(transform).then((document) {
-      bool shadowDomFound = false;
+      bool webComponentsFound = false;
       bool jsInteropFound = false;
-      bool customElementFound = false;
       Element dartJs;
       final dartScripts = <Element>[];
 
-      for (var tag in document.queryAll('script')) {
+      for (var tag in document.querySelectorAll('script')) {
         var src = tag.attributes['src'];
         if (src != null) {
           var last = src.split('/').last;
           if (last == 'interop.js') {
             jsInteropFound = true;
-          } else if (_shadowDomJS.hasMatch(last)) {
-            shadowDomFound = true;
-          } else if (_customElementJS.hasMatch(last)) {
-            customElementFound = true;
+          } else if (_webComponentsJS.hasMatch(last)) {
+            webComponentsFound = true;
           } else if (last == 'dart.js') {
             dartJs = tag;
           }
@@ -89,24 +85,21 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
               '<script src="packages/browser/dart.js"></script>'));
       }
 
-      _addScript(urlSegment) {
+      _addScriptFirst(urlSegment) {
         document.head.nodes.insert(0, parseFragment(
               '<script src="packages/$urlSegment"></script>\n'));
       }
 
       // JS interop code is required for Polymer CSS shimming.
-      if (!jsInteropFound) _addScript('browser/interop.js');
+      if (!jsInteropFound) _addScriptFirst('browser/interop.js');
 
-      // TODO(sigmund): enable using .min.js. This currently fails in checked
-      // mode because of bugs in dart2js mirrors (dartbug.com/14720).
-      // var suffix = options.releaseMode ? '.min.js' : '.debug.js';
-      var suffix = '.debug.js';
-      if (!customElementFound) {
-        _addScript('custom_element/custom-elements$suffix');
+      var suffix = options.releaseMode ? '.js' : '.concat.js';
+      if (!webComponentsFound) {
+        _addScriptFirst('web_components/dart_support.js');
+
+        // platform.js should come before all other scripts.
+        _addScriptFirst('web_components/platform$suffix');
       }
-
-      // This polyfill needs to be the first one on the head
-      if (!shadowDomFound) _addScript('shadow_dom/shadow_dom$suffix');
 
       transform.addOutput(
           new Asset.fromString(transform.primaryInput.id, document.outerHtml));
@@ -114,6 +107,5 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
   }
 }
 
-final _shadowDomJS = new RegExp(r'shadow_dom\..*\.js', caseSensitive: false);
-final _customElementJS = new RegExp(r'custom-elements\..*\.js',
+final _webComponentsJS = new RegExp(r'platform.*\.js',
     caseSensitive: false);

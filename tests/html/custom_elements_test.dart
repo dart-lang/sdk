@@ -41,7 +41,7 @@ class NotAnElement {}
 main() {
   useHtmlIndividualConfiguration();
 
-  setUp(loadPolyfills);
+  setUp(() => customElementsReady);
 
   group('register', () {
     test('register', () {

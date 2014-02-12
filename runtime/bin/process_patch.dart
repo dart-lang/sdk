@@ -114,7 +114,7 @@ class _SignalController {
     }
   }
 
-  /* patch */ static int _setSignalHandler(int signal)
+  /* patch */ static _setSignalHandler(int signal)
       native "Process_SetSignalHandler";
   /* patch */ static int _clearSignalHandler(int signal)
       native "Process_ClearSignalHandler";

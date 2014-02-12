@@ -131,10 +131,11 @@ class Parser {
         token = parseShow(token);
       } else {
         listener.endCombinators(count);
-        return token;
+        break;
       }
       count++;
     }
+    return token;
   }
 
   /// hide identifierList
@@ -1851,6 +1852,7 @@ class Parser {
       return token.next;
     } else {
       listener.unexpected(token);
+      return null;
     }
   }
 

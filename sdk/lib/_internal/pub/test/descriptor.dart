@@ -137,6 +137,12 @@ Descriptor cacheDir(Map packages, {bool includePubspecs: false}) {
     }
   });
 
+  return hostedCache(contents);
+}
+
+/// Describes the main cache directory containing cached hosted packages
+/// downloaded from the mock package server.
+Descriptor hostedCache(Iterable<Descriptor> contents) {
   return dir(cachePath, [
     dir('hosted', [
       async(port.then((p) => dir('127.0.0.1%58$p', contents)))

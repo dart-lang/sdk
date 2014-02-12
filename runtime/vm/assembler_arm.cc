@@ -1798,6 +1798,8 @@ class PatchFarBranch : public AssemblerFixup {
     ASSERT((movt == Instr::kNopInstruction) &&
            (bx == Instr::kNopInstruction));
   }
+
+  virtual bool IsPointerOffset() const { return false; }
 };
 
 

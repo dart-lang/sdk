@@ -246,6 +246,7 @@ class FlowGraphCompiler : public ValueObject {
 
   static bool SupportsUnboxedMints();
   static bool SupportsSinCos();
+  static bool SupportsUnboxedFloat32x4();
 
   // Accessors.
   Assembler* assembler() const { return assembler_; }

@@ -472,6 +472,67 @@ void testSimpleReadWrite({bool listenSecure,
   }
 }
 
+testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
+  bool expectFail = pausedServer || pausedClient;
+
+  asyncStart();
+  var clientComplete = new Completer();
+  RawServerSocket.bind(HOST_NAME, 0).then((server) {
+    server.listen((client) {
+      var subscription;
+      subscription = client.listen((_) {
+        if (pausedServer) {
+          subscription.pause();
+        }
+        RawSecureSocket.secureServer(
+            client, CERTIFICATE, subscription: subscription).then((client) {
+          if (expectFail) {
+            Expect.fail("secureServer succeeded with paused subscription");
+          }
+        }).catchError((e) {
+          if (!expectFail) {
+            Expect.fail("secureServer failed with non-paused subscriptions");
+          }
+          if (pausedServer) {
+            Expect.isTrue(e is StateError);
+          }
+        }).whenComplete(() {
+          server.close();
+          clientComplete.future.then((_) {
+            client.close();
+            asyncEnd();
+          });
+        });
+      });
+    });
+
+    RawSocket.connect(HOST_NAME, server.port).then((socket) {
+      var subscription;
+      subscription = socket.listen((_) {
+        if (pausedClient) {
+          subscription.pause();
+        }
+        RawSecureSocket.secure(
+            socket, subscription: subscription).then((socket) {
+          if (expectFail) {
+            Expect.fail("secure succeeded with paused subscription");
+          }
+          socket.close();
+        }).catchError((e) {
+          if (!expectFail) {
+            Expect.fail("secure failed with non-paused subscriptions ($e)");
+          }
+          if (pausedClient) {
+            Expect.isTrue(e is StateError);
+          }
+        }).whenComplete(() {
+          clientComplete.complete(null);
+        });
+      });
+    });
+  });
+}
+
 main() {
   var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
   SecureSocket.initialize(database: certificateDatabase,
@@ -526,4 +587,8 @@ main() {
                       handshakeBeforeSecure: true,
                       postponeSecure: true,
                       dropReads: true);
+  testPausedSecuringSubscription(false, false);
+  testPausedSecuringSubscription(true, false);
+  testPausedSecuringSubscription(false, true);
+  testPausedSecuringSubscription(true, true);
 }

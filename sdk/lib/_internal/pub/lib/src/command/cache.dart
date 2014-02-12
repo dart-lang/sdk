@@ -5,6 +5,7 @@
 library pub.command.cache;
 
 import '../command.dart';
+import 'cache_add.dart';
 import 'cache_list.dart';
 
 /// Handles the `cache` pub command.
@@ -13,6 +14,7 @@ class CacheCommand extends PubCommand {
   String get usage => "pub cache <subcommand>";
 
   final subcommands = {
+    "add": new CacheAddCommand(),
     "list": new CacheListCommand()
   };
 }

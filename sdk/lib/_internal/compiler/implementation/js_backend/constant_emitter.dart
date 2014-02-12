@@ -181,6 +181,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression visitFunction(FunctionConstant constant) {
     compiler.internalError(
         "The function constant does not need specific JS code");
+    return null;
   }
 
   jsAst.Expression visitNull(NullConstant constant) {

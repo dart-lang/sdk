@@ -148,18 +148,18 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
     : BaseReader(buffer, size),
       kind_(kind),
       isolate_(isolate),
-      cls_(Class::Handle()),
-      obj_(Object::Handle()),
-      array_(Array::Handle()),
-      field_(Field::Handle()),
-      str_(String::Handle()),
-      library_(Library::Handle()),
-      type_(AbstractType::Handle()),
-      type_arguments_(AbstractTypeArguments::Handle()),
-      tokens_(Array::Handle()),
-      stream_(TokenStream::Handle()),
-      data_(ExternalTypedData::Handle()),
-      error_(UnhandledException::Handle()),
+      cls_(Class::Handle(isolate)),
+      obj_(Object::Handle(isolate)),
+      array_(Array::Handle(isolate)),
+      field_(Field::Handle(isolate)),
+      str_(String::Handle(isolate)),
+      library_(Library::Handle(isolate)),
+      type_(AbstractType::Handle(isolate)),
+      type_arguments_(TypeArguments::Handle(isolate)),
+      tokens_(Array::Handle(isolate)),
+      stream_(TokenStream::Handle(isolate)),
+      data_(ExternalTypedData::Handle(isolate)),
+      error_(UnhandledException::Handle(isolate)),
       backward_references_((kind == Snapshot::kFull) ?
                            kNumInitialReferencesInFullSnapshot :
                            kNumInitialReferences) {
@@ -723,6 +723,15 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
     ErrorHandle()->set_exception(exception);
     Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
   }
+#if defined(DEBUG)
+  // Zap the uninitialized memory area.
+  uword current = address;
+  uword end = address + size;
+  while (current < end) {
+    *reinterpret_cast<intptr_t*>(current) = kZapUninitializedWord;
+    current += kWordSize;
+  }
+#endif  // defined(DBEUG)
   // Make sure to initialize the last word, as this can be left untouched in
   // case the object deserialized has an alignment tail.
   *reinterpret_cast<RawObject**>(address + size - kWordSize) = Object::null();
@@ -1361,7 +1370,7 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
                                   intptr_t array_kind,
                                   intptr_t tags,
                                   RawSmi* length,
-                                  RawAbstractTypeArguments* type_arguments,
+                                  RawTypeArguments* type_arguments,
                                   RawObject* data[]) {
   intptr_t len = Smi::Value(length);
 

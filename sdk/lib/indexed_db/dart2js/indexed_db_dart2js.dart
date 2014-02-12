@@ -264,11 +264,16 @@ class Cursor extends Interceptor native "IDBCursor" {
   @DocsEditable()
   @Creates('Null')
   @Returns('ObjectStore|Index|Null')
-  final dynamic source;
+  final Object source;
 
   @DomName('IDBCursor.advance')
   @DocsEditable()
   void advance(int count) native;
+
+  @DomName('IDBCursor.continuePrimaryKey')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void continuePrimaryKey(Object key, Object primaryKey) native;
 
   @JSName('delete')
   @DomName('IDBCursor.delete')
@@ -442,7 +447,7 @@ class Database extends EventTarget native "IDBDatabase" {
   @DocsEditable()
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final dynamic version;
+  final Object version;
 
   @DomName('IDBDatabase.close')
   @DocsEditable()
@@ -731,7 +736,7 @@ class Index extends Interceptor native "IDBIndex" {
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
   @annotation_Creates_SerializedScriptValue
-  final dynamic keyPath;
+  final Object keyPath;
 
   @DomName('IDBIndex.multiEntry')
   @DocsEditable()
@@ -1007,7 +1012,7 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
   @DomName('IDBObjectStore.keyPath')
   @DocsEditable()
   @annotation_Creates_SerializedScriptValue
-  final dynamic keyPath;
+  final Object keyPath;
 
   @DomName('IDBObjectStore.name')
   @DocsEditable()
@@ -1279,7 +1284,7 @@ class Request extends EventTarget native "IDBRequest" {
   @DomName('IDBRequest.source')
   @DocsEditable()
   @Creates('Null')
-  final dynamic source;
+  final Object source;
 
   @DomName('IDBRequest.transaction')
   @DocsEditable()
@@ -1427,23 +1432,11 @@ class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
   @DocsEditable()
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final dynamic newVersion;
+  final Object newVersion;
 
   @DomName('IDBVersionChangeEvent.oldVersion')
   @DocsEditable()
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final dynamic oldVersion;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('IDBAny')
-@deprecated // nonstandard
-abstract class _IDBAny extends Interceptor native "IDBAny" {
-  // To suppress missing implicit constructor warnings.
-  factory _IDBAny._() { throw new UnsupportedError("Not supported"); }
+  final Object oldVersion;
 }

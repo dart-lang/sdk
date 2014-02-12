@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:analyzer/src/generated/engine.dart';
 
-import 'analysis_server.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 
 /**
  * Instances of the class [GetHandler] handle GET requests

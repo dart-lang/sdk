@@ -21,7 +21,6 @@ DECLARE_RUNTIME_ENTRY(AllocateClosure);
 DECLARE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure);
 DECLARE_RUNTIME_ENTRY(AllocateContext);
 DECLARE_RUNTIME_ENTRY(AllocateObject);
-DECLARE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck);
 DECLARE_RUNTIME_ENTRY(BreakpointRuntimeHandler);
 DECLARE_RUNTIME_ENTRY(SingleStepHandler);
 DECLARE_RUNTIME_ENTRY(CloneContext);
@@ -72,6 +71,7 @@ DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
   V(UnaryOp)                                                                   \
   V(UnboxInteger)                                                              \
   V(CheckClass)                                                                \
+  V(HoistedCheckClass)                                                         \
   V(CheckSmi)                                                                  \
   V(CheckArrayBound)                                                           \
   V(AtCall)                                                                    \

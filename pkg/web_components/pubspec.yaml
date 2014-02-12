@@ -1,0 +1,11 @@
+name: web_components
+version: 0.3.0
+author: Polymer.dart Authors <web-ui-dev@dartlang.org>
+homepage: https://www.dartlang.org/polymer-dart/
+description: >
+  Custom Elements let authors define their own elements. Authors associate code
+  with custom tag names, and then use those custom tag names as they would any
+  standard tag. Shadow DOM is designed to provide encapsulation for custom
+  elements, by hiding DOM subtrees under shadow roots.
+environment:
+  sdk: ">=1.2.0-dev.4.0 <2.0.0"

@@ -12,7 +12,7 @@ import 'utils.dart';
 // The scope markers are inserted when entering object elements,
 // marquees, table cells, and table captions, and are used to prevent formatting
 // from "leaking" into tables, object elements, and marquees.
-final Node Marker = null;
+const Node Marker = null;
 
 // TODO(jmesserly): this should extend ListBase<Node>, but my simple attempt
 // didn't work.
@@ -130,7 +130,8 @@ class TreeBuilder {
                                  const Pair(Namespaces.html, "option")];
           invert = true;
           break;
-        default: assert(false); break;
+        default:
+          throw new StateError('We should never reach this point');
       }
     }
 
@@ -145,7 +146,7 @@ class TreeBuilder {
       }
     }
 
-    assert(false); // We should never reach this point
+    throw new StateError('We should never reach this point');
   }
 
   void reconstructActiveFormattingElements() {

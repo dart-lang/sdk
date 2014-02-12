@@ -22,6 +22,22 @@ class RawICData;
 class RawObject;
 class String;
 
+
+// Stack-allocated class to create a scope where the specified region
+// [address, addresss + size] has write access enabled. This is used
+// when patching generated code. Access is reset to read-execute in
+// the destructor of this scope.
+class WritableInstructionsScope : public ValueObject {
+ public:
+  WritableInstructionsScope(uword address, intptr_t size);
+  ~WritableInstructionsScope();
+
+ private:
+  const uword address_;
+  const intptr_t size_;
+};
+
+
 class CodePatcher : public AllStatic {
  public:
   // Dart static calls have a distinct, machine-dependent code pattern.

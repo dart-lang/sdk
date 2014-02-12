@@ -1740,9 +1740,11 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         default:
           UNREACHABLE();
       }
+
       StoreInstanceFieldSlowPath* slow_path =
           new StoreInstanceFieldSlowPath(this, *cls);
       compiler->AddSlowPathCode(slow_path);
+
       __ TryAllocate(*cls,
                      slow_path->entry_label(),
                      temp,
@@ -1772,7 +1774,6 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     DRegister fpu_temp = locs()->temp(2).fpu_reg();
 
     Label store_pointer;
-    Label copy_double;
     Label store_double;
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()));
@@ -1790,37 +1791,42 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Fall through.
     __ b(&store_pointer);
 
-    __ Bind(&store_double);
-
-    __ lw(temp, FieldAddress(instance_reg, field().Offset()));
-    __ BranchNotEqual(temp, reinterpret_cast<int32_t>(Object::null()),
-                      &copy_double);
-
-    StoreInstanceFieldSlowPath* slow_path =
-        new StoreInstanceFieldSlowPath(this, compiler->double_class());
-    compiler->AddSlowPathCode(slow_path);
-
     if (!compiler->is_optimizing()) {
       locs()->live_registers()->Add(locs()->in(0));
       locs()->live_registers()->Add(locs()->in(1));
     }
 
-    __ TryAllocate(compiler->double_class(),
-                   slow_path->entry_label(),
-                   temp,
-                   temp2);
-    __ Bind(slow_path->exit_label());
-    __ mov(temp2, temp);
-    __ StoreIntoObject(instance_reg,
-                       FieldAddress(instance_reg, field().Offset()),
-                       temp2);
+    {
+      __ Bind(&store_double);
+      Label copy_double;
 
-    __ Bind(&copy_double);
-    __ LoadDFromOffset(fpu_temp,
-                       value_reg,
-                       Double::value_offset() - kHeapObjectTag);
-    __ StoreDToOffset(fpu_temp, temp, Double::value_offset() - kHeapObjectTag);
-    __ b(&skip_store);
+      __ lw(temp, FieldAddress(instance_reg, field().Offset()));
+      __ BranchNotEqual(temp, reinterpret_cast<int32_t>(Object::null()),
+                        &copy_double);
+
+      StoreInstanceFieldSlowPath* slow_path =
+          new StoreInstanceFieldSlowPath(this, compiler->double_class());
+      compiler->AddSlowPathCode(slow_path);
+
+      __ TryAllocate(compiler->double_class(),
+                     slow_path->entry_label(),
+                     temp,
+                     temp2);
+      __ Bind(slow_path->exit_label());
+      __ mov(temp2, temp);
+      __ StoreIntoObject(instance_reg,
+                         FieldAddress(instance_reg, field().Offset()),
+                         temp2);
+
+      __ Bind(&copy_double);
+      __ LoadDFromOffset(fpu_temp,
+                         value_reg,
+                         Double::value_offset() - kHeapObjectTag);
+      __ StoreDToOffset(fpu_temp, temp,
+                        Double::value_offset() - kHeapObjectTag);
+      __ b(&skip_store);
+    }
+
     __ Bind(&store_pointer);
   }
 
@@ -1948,25 +1954,6 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary*
-AllocateObjectWithBoundsCheckInstr::MakeLocationSummary(bool opt) const {
-  return MakeCallSummary();
-}
-
-
-void AllocateObjectWithBoundsCheckInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  compiler->GenerateRuntimeCall(token_pos(),
-                                deopt_id(),
-                                kAllocateObjectWithBoundsCheckRuntimeEntry,
-                                3,
-                                locs());
-  __ Drop(3);
-  ASSERT(locs()->out().reg() == V0);
-  __ Pop(V0);  // Pop new instance.
-}
-
-
 class BoxDoubleSlowPath : public SlowPathCode {
  public:
   explicit BoxDoubleSlowPath(Instruction* instruction)
@@ -2067,26 +2054,28 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Fall through.
     __ b(&load_pointer);
 
-    __ Bind(&load_double);
-
-    BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
-    compiler->AddSlowPathCode(slow_path);
-
     if (!compiler->is_optimizing()) {
       locs()->live_registers()->Add(locs()->in(0));
     }
 
-    __ TryAllocate(compiler->double_class(),
-                   slow_path->entry_label(),
-                   result_reg,
-                   temp);
-    __ Bind(slow_path->exit_label());
-    __ lw(temp, FieldAddress(instance_reg, offset_in_bytes()));
-    __ LoadDFromOffset(value, temp, Double::value_offset() - kHeapObjectTag);
-    __ StoreDToOffset(value,
-                      result_reg,
-                      Double::value_offset() - kHeapObjectTag);
-    __ b(&done);
+    {
+      __ Bind(&load_double);
+      BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
+      compiler->AddSlowPathCode(slow_path);
+
+      __ TryAllocate(compiler->double_class(),
+                     slow_path->entry_label(),
+                     result_reg,
+                     temp);
+      __ Bind(slow_path->exit_label());
+      __ lw(temp, FieldAddress(instance_reg, offset_in_bytes()));
+      __ LoadDFromOffset(value, temp, Double::value_offset() - kHeapObjectTag);
+      __ StoreDToOffset(value,
+                        result_reg,
+                        Double::value_offset() - kHeapObjectTag);
+      __ b(&done);
+    }
+
     __ Bind(&load_pointer);
   }
   __ lw(result_reg, Address(instance_reg, offset_in_bytes() - kHeapObjectTag));
@@ -2110,8 +2099,7 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
 
-  // 'instantiator_reg' is the instantiator AbstractTypeArguments object
-  // (or null).
+  // 'instantiator_reg' is the instantiator TypeArguments object (or null).
   // A runtime call to instantiate the type is required.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ LoadObject(TMP, Object::ZoneHandle());
@@ -2152,8 +2140,7 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
 
-  // 'instantiator_reg' is the instantiator AbstractTypeArguments object
-  // (or null).
+  // 'instantiator_reg' is the instantiator TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
          !type_arguments().CanShareInstantiatorTypeArguments(
              instantiator_class()));
@@ -2208,8 +2195,8 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
   Register result_reg = locs()->out().reg();
   ASSERT(instantiator_reg == result_reg);
 
-  // instantiator_reg is the instantiator type argument vector, i.e. an
-  // AbstractTypeArguments object (or null).
+  // instantiator_reg is the instantiator type argument vector,
+  // i.e. a TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
          !type_arguments().CanShareInstantiatorTypeArguments(
              instantiator_class()));
@@ -2248,8 +2235,7 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
   Register instantiator_reg = locs()->in(0).reg();
   ASSERT(locs()->out().reg() == instantiator_reg);
 
-  // instantiator_reg is the instantiator AbstractTypeArguments object
-  // (or null).
+  // instantiator_reg is the instantiator TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
          !type_arguments().CanShareInstantiatorTypeArguments(
              instantiator_class()));
@@ -3820,9 +3806,10 @@ LocationSummary* CheckClassInstr::MakeLocationSummary(bool opt) const {
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const DeoptReasonId deopt_reason =
+      licm_hoisted_ ? kDeoptHoistedCheckClass : kDeoptCheckClass;
   if (IsNullCheck()) {
-    Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                          kDeoptCheckClass);
+    Label* deopt = compiler->AddDeoptStub(deopt_id(), deopt_reason);
     __ BranchEqual(locs()->in(0).reg(),
         reinterpret_cast<int32_t>(Object::null()), deopt);
     return;
@@ -3832,8 +3819,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
          (unary_checks().NumberOfChecks() > 1));
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        kDeoptCheckClass);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), deopt_reason);
   Label is_ok;
   intptr_t cix = 0;
   if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {

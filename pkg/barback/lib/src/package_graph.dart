@@ -14,7 +14,6 @@ import 'build_result.dart';
 import 'errors.dart';
 import 'log.dart';
 import 'package_provider.dart';
-import 'pool.dart';
 import 'transformer.dart';
 import 'utils.dart';
 
@@ -139,7 +138,14 @@ class PackageGraph {
   /// If a build is currently in progress, waits until it completes. The
   /// returned future will complete with an error if the build is not
   /// successful.
+  ///
+  /// Any transforms using [LazyTransformer]s will be forced to generate
+  /// concrete outputs, and those outputs will be returned.
   Future<AssetSet> getAllAssets() {
+    for (var cascade in _cascades.values) {
+      cascade.forceAllTransforms();
+    }
+
     if (_cascadeResults.values.contains(null)) {
       // A build is still ongoing, so wait for it to complete and try again.
       return results.first.then((_) => getAllAssets());

@@ -19,8 +19,14 @@ namespace dart {
 // the element at the address following the next_ field.
 class FreeListElement {
  public:
+  // Maximum header size is three words (tags, next, and size).
+  static const intptr_t kHeaderSize = 3 * kWordSize;
+
   FreeListElement* next() const {
     return next_;
+  }
+  uword next_address() const {
+    return reinterpret_cast<uword>(&next_);
   }
 
   void set_next(FreeListElement* next) {
@@ -75,7 +81,7 @@ class FreeList {
   FreeList();
   ~FreeList();
 
-  uword TryAllocate(intptr_t size);
+  uword TryAllocate(intptr_t size, bool is_protected);
   void Free(uword addr, intptr_t size);
 
   void Reset();
@@ -92,7 +98,9 @@ class FreeList {
   void EnqueueElement(FreeListElement* element, intptr_t index);
   FreeListElement* DequeueElement(intptr_t index);
 
-  void SplitElementAfterAndEnqueue(FreeListElement* element, intptr_t size);
+  void SplitElementAfterAndEnqueue(FreeListElement* element,
+                                   intptr_t size,
+                                   bool is_protected);
 
   void PrintSmall() const;
   void PrintLarge() const;

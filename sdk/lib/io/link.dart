@@ -8,7 +8,7 @@ part of dart.io;
  * [Link] objects are references to filesystem links.
  *
  */
-abstract class Link implements FileSystemEntity {
+abstract class Link extends FileSystemEntity {
   /**
    * Creates a Link object.
    */

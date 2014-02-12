@@ -17,6 +17,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, write_protect_code);
+
 static RawLibrary* CreateDummyLibrary(const String& library_name) {
   return Library::New(library_name);
 }
@@ -2464,6 +2466,36 @@ TEST_CASE(Code) {
 }
 
 
+// Test for immutability of generated instructions. The test crashes with a
+// segmentation fault when writing into it.
+TEST_CASE(CodeImmutability) {
+  extern void GenerateIncrement(Assembler* assembler);
+  Assembler _assembler_;
+  GenerateIncrement(&_assembler_);
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_Code"), &_assembler_));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  uword entry_point = instructions.EntryPoint();
+  // Try writing into the generated code, expected to crash.
+  *(reinterpret_cast<char*>(entry_point) + 1) = 1;
+  intptr_t retval = 0;
+#if defined(USING_SIMULATOR)
+  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
+      static_cast<int32_t>(entry_point), 0, 0, 0, 0));
+#else
+  typedef intptr_t (*IncrementCode)();
+  retval = reinterpret_cast<IncrementCode>(entry_point)();
+#endif
+  EXPECT_EQ(3, retval);
+  EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
+  if (!FLAG_write_protect_code) {
+    // Since this test is expected to crash, crash if write protection of code
+    // is switched off.
+    OS::DebugBreak();
+  }
+}
+
+
 // Test for Embedded String object in the instructions.
 TEST_CASE(EmbedStringInCode) {
   extern void GenerateEmbedStringInCode(Assembler* assembler, const char* str);
@@ -2747,8 +2779,8 @@ TEST_CASE(SubtypeTestCache) {
   cache.AddCheck(empty_class.id(), targ_0, targ_1, Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   intptr_t test_class_id = -1;
-  AbstractTypeArguments& test_targ_0 = AbstractTypeArguments::Handle();
-  AbstractTypeArguments& test_targ_1 = AbstractTypeArguments::Handle();
+  TypeArguments& test_targ_0 = TypeArguments::Handle();
+  TypeArguments& test_targ_1 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
   cache.GetCheck(0, &test_class_id, &test_targ_0, &test_targ_1, &test_result);
   EXPECT_EQ(empty_class.id(), test_class_id);

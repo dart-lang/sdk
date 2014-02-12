@@ -227,6 +227,9 @@ class JsTypeVariableMirror extends JsTypeMirror implements TypeVariableMirror {
         owner, getMetadata(_typeVariable.bound));
   }
 
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
+
   _asRuntimeType() => _metadataIndex;
 }
 
@@ -254,6 +257,9 @@ class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
+
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 
   _asRuntimeType() {
     if (this == JsMirrorSystem._dynamicType) return null;
@@ -791,6 +797,10 @@ class JsMixinApplication extends JsTypeMirror with JsObjectMirror
   Function operator [](Symbol name) => throw new UnimplementedError();
 
   bool get isAbstract => throw new UnimplementedError();
+
+  bool isSubclassOf(ClassMirror other) => throw new UnimplementedError();
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
 abstract class JsObjectMirror implements ObjectMirror {
@@ -1364,6 +1374,8 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
 
   bool get isAbstract => _class.isAbstract;
 
+  bool isSubclassOf(ClassMirror other) => _class.isSubclassOf(other);
+
   SourceLocation get location => _class.location;
 
   MirrorSystem get mirrors => _class.mirrors;
@@ -1381,6 +1393,9 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
 
   // TODO(ahe): Implement this.
   Function operator [](Symbol name) => throw new UnimplementedError();
+
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
 class JsSyntheticAccessor implements MethodMirror {
@@ -1887,6 +1902,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   Function operator [](Symbol name) => throw new UnimplementedError();
 
   bool get isAbstract => throw new UnimplementedError();
+
+  bool isSubclassOf(ClassMirror other) => throw new UnimplementedError();
 }
 
 class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
@@ -2332,6 +2349,9 @@ class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
 
   // TODO(ahe): Implement this method.
   List<InstanceMirror> get metadata => throw new UnimplementedError();
+
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 }
 
 // TODO(ahe): Remove this class when API is updated.
@@ -2472,6 +2492,10 @@ class JsFunctionTypeMirror extends BrokenClassMirror
     }
     return _cachedToString = "$s'";
   }
+
+  bool isSubclassOf(ClassMirror other) => throw new UnimplementedError();
+  bool isSubtypeOf(TypeMirror other) => throw new UnimplementedError();
+  bool isAssignableTo(TypeMirror other) => throw new UnimplementedError();
 
   // TODO(ahe): Implement this method.
   MethodMirror get callMethod => throw new UnimplementedError();

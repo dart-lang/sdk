@@ -25,8 +25,9 @@ namespace dart {
 DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
+DECLARE_FLAG(int, optimization_counter_threshold);
+
 
 // Input parameters:
 //   ESP : points to return address.
@@ -1118,83 +1119,66 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
   // straight line code.
-  const int kInlineInstanceSize = 12;
+  const int kInlineInstanceSize = 12;  // In words.
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  const intptr_t type_args_size = InstantiatedTypeArguments::InstanceSize();
-  if (FLAG_inline_alloc &&
-      Heap::IsAllocatableInNewSpace(instance_size + type_args_size)) {
-    Label slow_case;
+  Label slow_case_with_type_arguments;
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+    Label slow_case_reload_type_arguments;
+    if (is_cls_parameterized) {
+      // Instantiation of the type arguments vector is only required if an
+      // instantiator is provided (not kNoInstantiator, but may be null).
+      __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
+      __ movl(EDI, Address(ESP, kInstantiatorTypeArgumentsOffset));
+      Label type_arguments_ready;
+      __ cmpl(EDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ j(EQUAL, &type_arguments_ready, Assembler::kNearJump);
+      // Lookup instantiator EDI in instantiations array of type arguments EDX
+      // and, if found, use cached instantiated type arguments.
+      __ movl(EAX, FieldAddress(EDX, TypeArguments::instantiations_offset()));
+      __ movl(EBX, FieldAddress(EAX, Array::length_offset()));
+      __ leal(EAX, FieldAddress(EAX, Array::data_offset()));
+      __ leal(EBX, Address(EAX, EBX, TIMES_2, 0));  // EBX is smi.
+      Label loop, found;
+      __ Bind(&loop);
+      __ cmpl(EAX, EBX);
+      __ j(ABOVE_EQUAL, &slow_case_reload_type_arguments);
+      __ movl(EDX, Address(EAX, 0 * kWordSize));  // Cached instantiator.
+      __ cmpl(EDX, EDI);
+      __ j(EQUAL, &found, Assembler::kNearJump);
+      __ cmpl(EDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ j(EQUAL, &slow_case_reload_type_arguments);
+      __ addl(EAX, Immediate(2 * kWordSize));
+      __ jmp(&loop, Assembler::kNearJump);
+      __ Bind(&found);
+      __ movl(EDX, Address(EAX, 1 * kWordSize));  // Cached instantiated args.
+      __ movl(EDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ Bind(&type_arguments_ready);
+      // EDX: instantiated type arguments.
+      // EDI: kNoInstantiator.
+    }
+    // Allocate the object and update top to point to
+    // next object start and initialize the allocated object.
+    // EDX: instantiated type arguments (if is_cls_parameterized).
+    // EDI: kNoInstantiator (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
     __ movl(EAX, Address::Absolute(heap->TopAddress()));
     __ leal(EBX, Address(EAX, instance_size));
-    if (is_cls_parameterized) {
-      __ movl(ECX, EBX);
-      // A new InstantiatedTypeArguments object only needs to be allocated if
-      // the instantiator is provided (not kNoInstantiator, but may be null).
-      Label no_instantiator;
-      __ cmpl(Address(ESP, kInstantiatorTypeArgumentsOffset),
-              Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &no_instantiator, Assembler::kNearJump);
-      __ addl(EBX, Immediate(type_args_size));
-      __ Bind(&no_instantiator);
-      // ECX: potential new object end and, if ECX != EBX, potential new
-      // InstantiatedTypeArguments object start.
-    }
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object start.
     // EBX: potential next object start.
     __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
     if (FLAG_use_slow_path) {
-      __ jmp(&slow_case);
+      __ jmp(&slow_case_with_type_arguments);
     } else {
-      __ j(ABOVE_EQUAL, &slow_case);
+      __ j(ABOVE_EQUAL, &slow_case_with_type_arguments);
     }
-
-    // Successfully allocated the object(s), now update top to point to
-    // next object start and initialize the object.
     __ movl(Address::Absolute(heap->TopAddress()), EBX);
-    __ UpdateAllocationStats(cls.id(), EDI);
-
-    if (is_cls_parameterized) {
-      // Initialize the type arguments field in the object.
-      // EAX: new object start.
-      // ECX: potential new object end and, if ECX != EBX, potential new
-      // InstantiatedTypeArguments object start.
-      // EBX: next object start.
-      Label type_arguments_ready;
-      __ movl(EDI, Address(ESP, kObjectTypeArgumentsOffset));
-      __ cmpl(ECX, EBX);
-      __ j(EQUAL, &type_arguments_ready, Assembler::kNearJump);
-      // Initialize InstantiatedTypeArguments object at ECX.
-      __ movl(Address(ECX,
-          InstantiatedTypeArguments::uninstantiated_type_arguments_offset()),
-              EDI);
-      __ movl(EDX, Address(ESP, kInstantiatorTypeArgumentsOffset));
-      __ movl(Address(ECX,
-          InstantiatedTypeArguments::instantiator_type_arguments_offset()),
-              EDX);
-      const Class& ita_cls =
-          Class::ZoneHandle(Object::instantiated_type_arguments_class());
-      // Set the tags.
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(type_args_size, tags);
-      tags = RawObject::ClassIdTag::update(ita_cls.id(), tags);
-      __ movl(Address(ECX, Instance::tags_offset()), Immediate(tags));
-      // Set the new InstantiatedTypeArguments object (ECX) as the type
-      // arguments (EDI) of the new object (EAX).
-      __ movl(EDI, ECX);
-      __ addl(EDI, Immediate(kHeapObjectTag));
-      // Set EBX to new object end.
-      __ movl(EBX, ECX);
-      __ Bind(&type_arguments_ready);
-      // EAX: new object.
-      // EDI: new object type arguments.
-    }
+    __ UpdateAllocationStats(cls.id(), ECX);
 
     // EAX: new object start.
     // EBX: next object start.
-    // EDI: new object type arguments (if is_cls_parameterized).
+    // EDX: new object type arguments (if is_cls_parameterized).
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1208,7 +1192,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
     // EAX: new object start.
     // EBX: next object start.
-    // EDI: new object type arguments (if is_cls_parameterized).
+    // EDX: new object type arguments (if is_cls_parameterized).
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
       // Check if the object contains any non-header fields.
@@ -1224,7 +1208,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // EAX: new object.
       // EBX: next object start.
       // ECX: next word to be initialized.
-      // EDI: new object type arguments (if is_cls_parameterized).
+      // EDX: new object type arguments (if is_cls_parameterized).
       Label init_loop;
       Label done;
       __ Bind(&init_loop);
@@ -1236,29 +1220,33 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ Bind(&done);
     }
     if (is_cls_parameterized) {
-      // EDI: new object type arguments.
+      // EDX: new object type arguments.
       // Set the type arguments in the new object.
-      __ movl(Address(EAX, cls.type_arguments_field_offset()), EDI);
+      __ movl(Address(EAX, cls.type_arguments_field_offset()), EDX);
     }
     // Done allocating and initializing the instance.
     // EAX: new object.
     __ addl(EAX, Immediate(kHeapObjectTag));
     __ ret();
 
-    __ Bind(&slow_case);
+    __ Bind(&slow_case_reload_type_arguments);
   }
   if (is_cls_parameterized) {
-    __ movl(EAX, Address(ESP, kObjectTypeArgumentsOffset));
-    __ movl(EDX, Address(ESP, kInstantiatorTypeArgumentsOffset));
+    __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
+    __ movl(EDI, Address(ESP, kInstantiatorTypeArgumentsOffset));
   }
+  __ Bind(&slow_case_with_type_arguments);
+  // If is_cls_parameterized:
+  // EDX: new object type arguments (instantiated or not).
+  // EDI: instantiator type arguments or kNoInstantiator.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(raw_null);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
-    __ pushl(EAX);  // Push type arguments of object to be allocated.
-    __ pushl(EDX);  // Push type arguments of instantiator.
+    __ pushl(EDX);  // Push type arguments of object to be allocated.
+    __ pushl(EDI);  // Push type arguments of instantiator.
   } else {
     __ pushl(raw_null);  // Push null type arguments.
     __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));

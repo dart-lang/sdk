@@ -41,7 +41,10 @@ class VirtualMemory {
   }
 
   // Changes the protection of the virtual memory area.
-  bool Protect(Protection mode);
+  static bool Protect(void* address, intptr_t size, Protection mode);
+  bool Protect(Protection mode) {
+    return Protect(address(), size(), mode);
+  }
 
   // Reserves a virtual memory segment with size. If a segment of the requested
   // size cannot be allocated NULL is returned.
@@ -56,6 +59,8 @@ class VirtualMemory {
     ASSERT(Utils::IsPowerOfTwo(page_size_));
     return page_size_;
   }
+
+  static bool InSamePage(uword address0, uword address1);
 
  private:
   // Truncate this virtual memory segment.

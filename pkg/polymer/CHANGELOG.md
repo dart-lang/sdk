@@ -6,6 +6,12 @@ impact polymer: custom_element, html_import, observe, shadow_dom,
 and template_binding.
 
 #### Pub version 0.10.0-dev
+  * Polymer polyfills are now consolidated in package:web_components, which is
+    identical to platform.js from http://polymer-project.org. This enables
+    interop with elements built in polymer.js.
+  * New feature: `@ObserveProperty('foo bar.baz') myMethod() {...}` will cause
+    myMethod to be called when "foo" or "bar.baz" changes.
+  * Updated for 0.10.0-dev package:observe and package:template_binding changes.
   * Deploy step removes use of mirrors to initialize polymer elements. Mirrors
     are still used for @published and for polymer-expressions.
     **breaking change**: @initMethod and @CustomTag are only supported on

@@ -5,7 +5,6 @@
 
 library test.run_all;
 
-import 'dart:io' show Options;
 import 'package:unittest/compact_vm_config.dart';
 import 'package:unittest/unittest.dart';
 

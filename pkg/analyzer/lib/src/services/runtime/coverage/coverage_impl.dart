@@ -119,7 +119,7 @@ abstract class RewriteServer {
   }
 
   Future sendFile(HttpRequest request, File file) {
-    file.resolveSymbolicLinks().then((fullPath) {
+    return file.resolveSymbolicLinks().then((fullPath) {
       return file.openRead().pipe(request.response);
     });
   }

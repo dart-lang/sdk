@@ -2169,8 +2169,8 @@ void ValueGraphVisitor::VisitLetNode(LetNode* node) {
 
 
 void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
-  const AbstractTypeArguments& type_args =
-      AbstractTypeArguments::ZoneHandle(node->type().arguments());
+  const TypeArguments& type_args =
+      TypeArguments::ZoneHandle(node->type().arguments());
   Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
                                                        type_args);
   Value* num_elements =
@@ -2489,46 +2489,21 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 }
 
 
-Value* EffectGraphVisitor::BuildObjectAllocation(
-    ConstructorCallNode* node) {
+Value* EffectGraphVisitor::BuildObjectAllocation(ConstructorCallNode* node) {
   const Class& cls = Class::ZoneHandle(node->constructor().Owner());
   const bool requires_type_arguments = cls.NumTypeArguments() > 0;
 
-  // In checked mode, if the type arguments are uninstantiated, they may need to
-  // be checked against declared bounds at run time.
-  Definition* allocation = NULL;
-  if (FLAG_enable_type_checks &&
-      requires_type_arguments &&
-      !node->type_arguments().IsNull() &&
-      !node->type_arguments().IsInstantiated() &&
-      node->type_arguments().IsBounded()) {
-    ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
-        new ZoneGrowableArray<PushArgumentInstr*>(4);
-    // Argument 1: Empty argument slot for return value.
-    Value* null_val = Bind(new ConstantInstr(Object::ZoneHandle()));
-    allocate_arguments->Add(PushArgument(null_val));
-    // Argument 2: Class.
-    Value* cls_val =
-        Bind(new ConstantInstr(Class::ZoneHandle(node->constructor().Owner())));
-    allocate_arguments->Add(PushArgument(cls_val));
-    // Build arguments 3 and 4.
+  ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>();
+  if (requires_type_arguments) {
     BuildConstructorTypeArguments(node, allocate_arguments);
-
-    // The uninstantiated type arguments cannot be verified to be within their
-    // bounds at compile time, so verify them at runtime.
-    allocation = new AllocateObjectWithBoundsCheckInstr(node);
-  } else {
-    ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
-        new ZoneGrowableArray<PushArgumentInstr*>();
-    if (requires_type_arguments) {
-      BuildConstructorTypeArguments(node, allocate_arguments);
-    }
-
-    allocation = new AllocateObjectInstr(
-        node->token_pos(),
-        Class::ZoneHandle(node->constructor().Owner()),
-        allocate_arguments);
   }
+
+  Definition* allocation = new AllocateObjectInstr(
+      node->token_pos(),
+      Class::ZoneHandle(node->constructor().Owner()),
+      allocate_arguments);
+
   return Bind(allocation);
 }
 
@@ -2649,7 +2624,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     Value* instantiator) {
   if (instantiator_class.NumTypeParameters() == 0) {
     // The type arguments are compile time constants.
-    AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
+    TypeArguments& type_arguments = TypeArguments::ZoneHandle();
     // Type is temporary. Only its type arguments are preserved.
     Type& type = Type::Handle(
         Type::New(instantiator_class, type_arguments, token_pos, Heap::kNew));
@@ -2678,9 +2653,9 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     instantiator = BuildInstantiator();
   }
   // The instantiator is the receiver of the caller, which is not a factory.
-  // The receiver cannot be null; extract its AbstractTypeArguments object.
+  // The receiver cannot be null; extract its TypeArguments object.
   // Note that in the factory case, the instantiator is the first parameter
-  // of the factory, i.e. already an AbstractTypeArguments object.
+  // of the factory, i.e. already a TypeArguments object.
   intptr_t type_arguments_field_offset =
       instantiator_class.type_arguments_field_offset();
   ASSERT(type_arguments_field_offset != Class::kNoTypeArguments);
@@ -2694,7 +2669,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
 
 Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
     intptr_t token_pos,
-    const AbstractTypeArguments& type_arguments) {
+    const TypeArguments& type_arguments) {
   if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
     return Bind(new ConstantInstr(type_arguments));
   }

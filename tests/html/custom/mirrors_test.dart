@@ -19,7 +19,7 @@ main() {
   useHtmlConfiguration();
 
   var registered = false;
-  setUp(() => loadPolyfills().then((_) {
+  setUp(() => customElementsReady.then((_) {
     if (!registered) {
       registered = true;
       document.register(A.tag, A);

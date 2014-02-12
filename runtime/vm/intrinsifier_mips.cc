@@ -209,10 +209,6 @@ void Intrinsifier::Array_setIndexed(Assembler* assembler) {
     __ beq(T1, T7, &checked_ok);
 
     // Check if it's dynamic.
-    // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
-    __ LoadClassId(CMPRES1, T1);
-    __ BranchNotEqual(CMPRES1, kTypeArgumentsCid, &fall_through);
-
     // Get type at index 0.
     __ lw(T0, FieldAddress(T1, TypeArguments::type_at_offset(0)));
     __ BranchEqual(T0, Type::ZoneHandle(Type::DynamicType()), &checked_ok);

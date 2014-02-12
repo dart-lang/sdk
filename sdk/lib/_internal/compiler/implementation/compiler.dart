@@ -1471,6 +1471,7 @@ abstract class Compiler implements DiagnosticListener {
   Uri translateResolvedUri(LibraryElement importingLibrary,
                            Uri resolvedUri, Node node) {
     unimplemented('Compiler.translateResolvedUri');
+    return null;
   }
 
   /**
@@ -1480,10 +1481,12 @@ abstract class Compiler implements DiagnosticListener {
    */
   Future<Script> readScript(Uri readableUri, [Element element, Node node]) {
     unimplemented('Compiler.readScript');
+    return null;
   }
 
   String get legDirectory {
     unimplemented('Compiler.legDirectory');
+    return null;
   }
 
   // TODO(karlklose): split into findHelperFunction and findHelperClass and

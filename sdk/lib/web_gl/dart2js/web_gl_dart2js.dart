@@ -521,6 +521,11 @@ class ContextAttributes extends Interceptor native "WebGLContextAttributes" {
   @DocsEditable()
   bool depth;
 
+  @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool failIfMajorPerformanceCaveat;
+
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   @DocsEditable()
   bool premultipliedAlpha;

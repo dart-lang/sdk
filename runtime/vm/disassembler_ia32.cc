@@ -356,6 +356,7 @@ class X86Decoder : public ValueObject {
   uint8_t* F3Instruction(uint8_t* data);
   int F7Instruction(uint8_t* data);
   int FPUInstruction(uint8_t* data);
+  uint8_t* SSEInstruction(uint8_t prefix, uint8_t primary, uint8_t* data);
   int BitwisePDInstruction(uint8_t* data);
   int Packed660F38Instruction(uint8_t* data);
   int DecodeEnter(uint8_t* data);
@@ -1128,6 +1129,37 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
 }
 
 
+uint8_t* X86Decoder::SSEInstruction(uint8_t prefix, uint8_t primary,
+                                    uint8_t* data) {
+  ASSERT(prefix == 0x0F);
+  int mod, regop, rm;
+  if (primary == 0x10) {
+    GetModRm(*data, &mod, &regop, &rm);
+    Print("movups ");
+    PrintXmmRegister(regop);
+    Print(",");
+    data += PrintRightOperand(data);
+  } else if (primary == 0x11) {
+    int mod, regop, rm;
+    GetModRm(*data, &mod, &regop, &rm);
+    Print("movups ");
+    data += PrintRightXmmOperand(data);
+    Print(",");
+    PrintXmmRegister(regop);
+  } else if (IsTwoXmmRegInstruction(primary)) {
+    const char* f0mnem = F0Mnem(primary);
+    int mod, regop, rm;
+    GetModRm(*data, &mod, &regop, &rm);
+    Print(f0mnem);
+    Print(" ");
+    PrintXmmRegister(regop);
+    Print(",");
+    data += PrintRightXmmOperand(data);
+  }
+  return data;
+}
+
+
 int X86Decoder::BitwisePDInstruction(uint8_t* data) {
   const char* mnem = (*data == 0x57)
       ? "xorpd"
@@ -1396,21 +1428,9 @@ int X86Decoder::InstructionDecode(uword pc) {
               PrintCPURegister(regop);
               Print(",cl");
             }
-          } else if (f0byte == 0x10) {
-            int mod, regop, rm;
-            GetModRm(*data, &mod, &regop, &rm);
-            Print("movups ");
-            PrintXmmRegister(regop);
-            Print(",");
-            data += PrintRightOperand(data);
-          } else if (IsTwoXmmRegInstruction(f0byte)) {
-            int mod, regop, rm;
-            GetModRm(*data, &mod, &regop, &rm);
-            Print(f0mnem);
-            Print(" ");
-            PrintXmmRegister(regop);
-            Print(",");
-            data += PrintRightXmmOperand(data);
+          } else if ((f0byte == 0x10) || (f0byte == 0x11) ||
+                     IsTwoXmmRegInstruction(f0byte)) {
+            data = SSEInstruction(0x0F, f0byte, data);
           } else if (f0byte == 0x50) {
             Print("movmskps ");
             int mod, regop, rm;

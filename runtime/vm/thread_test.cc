@@ -35,7 +35,8 @@ UNIT_TEST_CASE(Mutex) {
 UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
   Isolate* isolate = Isolate::Init(NULL);
-  // Profiler interrupts interfere with this test.
+  // Thread interrupter interferes with this test, disable interrupts.
+  isolate->set_thread_state(NULL);
   Profiler::EndExecution(isolate);
   Monitor* monitor = new Monitor();
   monitor->Enter();

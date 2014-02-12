@@ -637,8 +637,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  Constant registerCompileTimeConstant(Constant constant,
-                                       TreeElements elements) {
+  void registerCompileTimeConstant(Constant constant, TreeElements elements) {
     registerCompileTimeConstantInternal(constant, elements);
     for (Constant dependency in constant.getDependencies()) {
       registerCompileTimeConstant(dependency, elements);
@@ -666,7 +665,9 @@ class JavaScriptBackend extends Backend {
 
   void registerInstantiatedConstantType(DartType type, TreeElements elements) {
     Enqueuer enqueuer = compiler.enqueuer.codegen;
-    enqueuer.registerInstantiatedType(type, elements);
+    DartType instantiatedType =
+        type.kind == TypeKind.FUNCTION ? compiler.functionClass.rawType : type;
+    enqueuer.registerInstantiatedType(instantiatedType, elements);
     if (type is InterfaceType && !type.treatAsRaw &&
         classNeedsRti(type.element)) {
       enqueuer.registerStaticUse(getSetRuntimeTypeInfo());

@@ -5,6 +5,7 @@ import 'dart:html';
 import 'dart:js' as js;
 import 'dart:typed_data';
 import 'package:unittest/unittest.dart';
+export 'package:web_components/polyfill.dart';
 
 /**
  * Verifies that [actual] has the same graph structure as [expected].
@@ -159,20 +160,6 @@ void validateNodeTree(Node a, Node b, [String path = '']) {
   for (var i = 0; i < a.nodes.length; ++i) {
     validateNodeTree(a.nodes[i], b.nodes[i], '$path[$i].');
   }
-}
-
-Future loadCustomElementPolyfill() {
-  if (!document.supportsRegister) {
-    var script = new ScriptElement()
-        ..src = '/packages/custom_element/custom-elements.debug.js';
-    document.head.append(script);
-    return document.on['WebComponentsReady'].first;
-  }
-  return new Future.value();
-}
-
-Future loadPolyfills() {
-  return loadCustomElementPolyfill();
 }
 
 /**

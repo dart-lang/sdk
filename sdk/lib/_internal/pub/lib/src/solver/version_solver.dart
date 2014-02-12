@@ -181,17 +181,11 @@ class PubspecCache {
     var source = _sources[package.source];
     return source.getVersions(package.name, package.description)
         .then((versions) {
-      // Sort by descending version so we try newer versions first.
-      versions.sort((a, b) {
-        // Sort all prerelease versions after all normal versions. This way
-        // the solver will prefer stable packages over unstable ones.
-        if (a.isPreRelease && !b.isPreRelease) return 1;
-        if (!a.isPreRelease && b.isPreRelease) return -1;
+      // Sort by priority so we try preferred versions first.
+      versions.sort(Version.prioritize);
 
-        return b.compareTo(a);
-      });
-
-      var ids = versions.map((version) => package.atVersion(version)).toList();
+      var ids = versions.reversed.map(
+          (version) => package.atVersion(version)).toList();
       _versions[package] = ids;
       return ids;
     });

@@ -49,15 +49,13 @@ main() {
   // Adapted from Blink's fast/dom/custom/attribute-changed-callback test.
 
   var registered = false;
-  setUp(() {
-    return loadPolyfills().then((_) {
-      if (!registered) {
-        registered = true;
-        document.register(A.tag, A);
-        document.register(B.tag, B);
-      }
-    });
-  });
+  setUp(() => customElementsReady.then((_) {
+    if (!registered) {
+      registered = true;
+      document.register(A.tag, A);
+      document.register(B.tag, B);
+    }
+  }));
 
   group('fully_supported', () {
     test('transfer attribute changed callback', () {

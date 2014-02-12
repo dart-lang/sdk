@@ -75,6 +75,7 @@ compile_time_constant_checked3_test/03: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/04: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/05: MissingCompileTimeError, OK
 compile_time_constant_checked3_test/06: MissingCompileTimeError, OK
+type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
 malformed2_test/01: MissingCompileTimeError, OK
 generic_test: RuntimeError, OK
 named_parameters_type_test/01: MissingRuntimeError, OK
@@ -149,6 +150,9 @@ null_test/none: RuntimeError  # Issue 12482
 
 [ ($compiler == dart2js || $compiler == dart2dart) && $checked ]
 cyclic_typedef_test/07: Crash # Issue 15237
+
+[ ($compiler == dart2js || $compiler == dart2dart) && $unchecked ]
+type_check_const_function_typedef2_test/00: MissingCompileTimeError, OK
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -275,9 +279,6 @@ cyclic_type2_test: Fail # Issue 12605.
 super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
-many_overridden_no_such_method_test: Pass, Fail # Issue 13078
-overridden_no_such_method_test: Pass, Fail # Issue 13078
-no_such_method_test: Pass, Fail # Issue 13078
 type_variable_typedef_test: Fail # Issue 11467
 type_variable_conflict2_test/01: RuntimeError # Issue 16180
 

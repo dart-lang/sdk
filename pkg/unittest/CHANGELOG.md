@@ -2,11 +2,15 @@
 
 ##0.10.0-dev
 
-* Each test is run in a seperate `Zone`. This ensures that any exceptions that
+* Each test is run in a separate `Zone`. This ensures that any exceptions that
 occur is async operations are reported back to the source test case.
 * **DEPRECATED** `guardAsync`, `protectAsync0`, `protectAsync1`,
 and `protectAsync2`
     * Running each test in a `Zone` addresses the need for these methods.
+* **NEW!** `expectAsync` replaces the now deprecated `expectAsync0`,
+    `expectAsync1` and `expectAsync2`
+* **NEW!** `expectAsyncUntil` replaces the now deprecated `expectAsyncUntil0`,
+    `expectAsyncUntil1` and `expectAsyncUntil2`
 * `TestCase`:
     * Removed properties: `setUp`, `tearDown`, `testFunction`
     * `enabled` is now get-only

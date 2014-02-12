@@ -12,6 +12,8 @@ const REQUIRED_PARAMETER_INDEX = 3;
 const OPTIONAL_PARAMETER_INDEX = 4;
 const DEFAULT_ARGUMENTS_INDEX = 5;
 
+const bool VALIDATE_DATA = false;
+
 // TODO(ahe): This code should be integrated in CodeEmitterTask.finishClasses.
 String getReflectionDataParser(String classesCollector,
                                JavaScriptBackend backend) {
@@ -336,6 +338,7 @@ String readFunctionType(String array, String index) {
 }
 
 String readChecked(String array, String index, String check, String type) {
+  if (!VALIDATE_DATA) return '$array[$index]';
   return '''
 (function() {
   var result = $array[$index];

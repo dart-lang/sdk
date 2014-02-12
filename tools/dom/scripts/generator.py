@@ -595,15 +595,15 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     # all requests.  Read requests like IDBDataStore.getObject need
     # conversion, but other requests like opening a database return
     # something that does not need conversion.
-    'IDBAny get IDBRequest.result':
+    '* get IDBRequest.result':
       Conversion('_convertNativeToDart_IDBAny', 'dynamic', 'dynamic'),
 
     # "source: On getting, returns the IDBObjectStore or IDBIndex that the
     # cursor is iterating. ...".  So we should not try to convert it.
-    'IDBAny get IDBCursor.source': None,
+    '* get IDBCursor.source': None,
 
     # Should be either a DOMString, an Array of DOMStrings or null.
-    'IDBAny get IDBObjectStore.keyPath': None,
+    '* get IDBObjectStore.keyPath': None,
 
     '* get XMLHttpRequest.response':
       Conversion('_convertNativeToDart_XHR_Response',
@@ -666,7 +666,7 @@ class IDLTypeInfo(object):
     cls = self.bindings_class()
 
     if 'Callback' in idl_node.ext_attrs:
-      return '%s', 'RefPtr<%s>' % self.native_type(), cls, 'create'
+      return '%s.release()', 'OwnPtr<%s>' % self.native_type(), cls, 'create'
 
     if self.custom_to_native():
       type = 'RefPtr<%s>' % self.native_type()

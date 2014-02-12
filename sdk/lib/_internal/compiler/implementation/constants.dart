@@ -75,9 +75,8 @@ class FunctionConstant extends Constant {
     return new DartString.literal(element.name);
   }
 
-  DartType computeType(Compiler compiler) {
-    return compiler.functionClass.computeType(compiler);
-  }
+  // TODO(johnniwinther): remove computeType.
+  DartType computeType(Compiler compiler) => element.computeType(compiler);
 
   ti.TypeMask computeMask(Compiler compiler) {
     return compiler.typesTask.functionType;

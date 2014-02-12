@@ -36,6 +36,9 @@ def SrcSteps(build_info):
     args = [sys.executable, './tools/create_tarball.py']
     print 'Building src tarball'
     bot.RunProcess(args)
+    print 'Building Debian packages'
+    args = [sys.executable, './tools/create_debian_packages.py']
+    bot.RunProcess(args)
 
 if __name__ == '__main__':
   # We pass in None for build_step to avoid building the sdk.

@@ -7,7 +7,7 @@ part of dart.io;
 /**
  * A reference to a directory (or _folder_) on the file system.
  */
-abstract class Directory implements FileSystemEntity {
+abstract class Directory extends FileSystemEntity {
   /**
    * Gets the path of this directory.
    */

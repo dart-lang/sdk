@@ -40,20 +40,24 @@ uword CodeBreakpoint::OrigStubAddress() const {
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
-  switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall:
-    case PcDescriptors::kUnoptStaticCall:
-    case PcDescriptors::kRuntimeCall:
-    case PcDescriptors::kClosureCall:
-    case PcDescriptors::kReturn: {
-      const Code& code = Code::Handle(code_);
-      saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-      CodePatcher::PatchStaticCallAt(pc_, code,
-                                     StubCode::BreakpointRuntimeEntryPoint());
-      break;
+  const Code& code = Code::Handle(code_);
+  const Instructions& instrs = Instructions::Handle(code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    switch (breakpoint_kind_) {
+      case PcDescriptors::kIcCall:
+      case PcDescriptors::kUnoptStaticCall:
+      case PcDescriptors::kRuntimeCall:
+      case PcDescriptors::kClosureCall:
+      case PcDescriptors::kReturn: {
+        saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
+        CodePatcher::PatchStaticCallAt(pc_, code,
+                                       StubCode::BreakpointRuntimeEntryPoint());
+        break;
+      }
+      default:
+        UNREACHABLE();
     }
-    default:
-      UNREACHABLE();
   }
   is_enabled_ = true;
 }
@@ -61,18 +65,22 @@ void CodeBreakpoint::PatchCode() {
 
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
-  switch (breakpoint_kind_) {
-    case PcDescriptors::kIcCall:
-    case PcDescriptors::kUnoptStaticCall:
-    case PcDescriptors::kClosureCall:
-    case PcDescriptors::kRuntimeCall:
-    case PcDescriptors::kReturn: {
-      const Code& code = Code::Handle(code_);
-      CodePatcher::PatchStaticCallAt(pc_, code, saved_value_);
-      break;
+  const Code& code = Code::Handle(code_);
+  const Instructions& instrs = Instructions::Handle(code.instructions());
+  {
+    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
+    switch (breakpoint_kind_) {
+      case PcDescriptors::kIcCall:
+      case PcDescriptors::kUnoptStaticCall:
+      case PcDescriptors::kClosureCall:
+      case PcDescriptors::kRuntimeCall:
+      case PcDescriptors::kReturn: {
+        CodePatcher::PatchStaticCallAt(pc_, code, saved_value_);
+        break;
+      }
+      default:
+        UNREACHABLE();
     }
-    default:
-      UNREACHABLE();
   }
   is_enabled_ = false;
 }

@@ -443,6 +443,9 @@ class CustomElement implements Element {
 
   List<Range> getRegionFlowRanges() => host.getRegionFlowRanges();
 
+  void animate(List<Map> keyframes, [num duration]) =>
+      host.animate(keyframes, duration);
+
   // TODO(jmesserly): rename "created" to "onCreated".
   void onCreated() => created();
 

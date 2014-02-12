@@ -3,18 +3,19 @@
 # BSD-style license that can be found in the LICENSE file.
 
 identity_test: Fail # Issue 6638
-constant_folding_string_test: Fail
 boolified_operator_test: Fail # Issue 8001
 
 # simple_function_subtype_test is temporarily(?) disabled due to new method for
 # building function type tests.
 simple_function_subtype_test: Fail
 
-mirror_final_field_inferrer2_test: Crash, Pass # dartbug.com/15581
-
 simple_inferrer_const_closure_test: Fail # Issue 16507
 simple_inferrer_const_closure2_test: Fail # Issue 16507
 simple_inferrer_global_field_closure_test: Fail # Issue 16507
+
+mirrors/relation_subtype_test: Fail # Issue 16736
+mirrors/relation_assignable_test: Fail # Issue 16736
+mirrors/relation_subclass_test: Fail # Issue 16737
 
 [ $mode == debug ]
 mirror_final_field_inferrer2_test: Crash, Pass, Slow # dartbug.com/15581

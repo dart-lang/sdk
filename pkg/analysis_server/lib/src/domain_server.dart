@@ -4,14 +4,13 @@
 
 library domain.server;
 
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-
-import 'analysis_server.dart';
-import 'protocol.dart';
 
 /**
  * Instances of the class [ServerDomainHandler] implement a [RequestHandler]
@@ -116,7 +115,7 @@ class ServerDomainHandler implements RequestHandler {
       // new PackageUriResolver(),
     ]);
     server.contextMap[contextId] = context;
-    
+
     Response response = new Response(request.id);
     response.setResult(CONTEXT_ID_RESULT, contextId);
     return response;

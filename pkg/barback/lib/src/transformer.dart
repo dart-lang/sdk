@@ -15,6 +15,9 @@ import 'transform.dart';
 /// Dart2js, a SASS->CSS processor, a CSS spriter, and a tool to concatenate
 /// files are all examples of transformers. To define your own transformation
 /// step, extend (or implement) this class.
+///
+/// If possible, transformers should implement [DeclaringTransformer] as well to
+/// help barback optimize the package graph.
 abstract class Transformer {
   /// Override this to return a space-separated list of file extensions
   /// (with leading `.`) that are allowed for the primary inputs to this
