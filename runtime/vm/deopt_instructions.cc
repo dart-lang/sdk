@@ -364,7 +364,10 @@ RawArray* DeoptContext::DestFrameAsArray() {
   Object& obj = Object::Handle();
   for (intptr_t i = 0; i < dest_frame_size_; i++) {
     obj = reinterpret_cast<RawObject*>(dest_frame_[i]);
-    ASSERT(obj.IsNull() || obj.IsInstance() || obj.IsContext());
+    ASSERT(obj.IsNull() ||
+           obj.IsInstance() ||
+           obj.IsContext() ||
+           obj.IsTypeArguments());
     dest_array.SetAt(i, obj);
   }
   return dest_array.raw();
