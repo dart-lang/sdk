@@ -421,43 +421,55 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
 }
 
 
+void ClassFinalizer::ResolveTypeClass(const Class& cls,
+                                      const AbstractType& type) {
+  if (type.IsFinalized() || type.HasResolvedTypeClass()) {
+    return;
+  }
+  if (FLAG_trace_type_finalization) {
+    OS::Print("Resolve type class of '%s'\n",
+              String::Handle(type.Name()).ToCString());
+  }
+
+  // Type parameters are always resolved in the parser in the correct
+  // non-static scope or factory scope. That resolution scope is unknown here.
+  // Being able to resolve a type parameter from class cls here would indicate
+  // that the type parameter appeared in a static scope. Leaving the type as
+  // unresolved is the correct thing to do.
+
+  // Lookup the type class.
+  const UnresolvedClass& unresolved_class =
+      UnresolvedClass::Handle(type.unresolved_class());
+  const Class& type_class =
+      Class::Handle(ResolveClass(cls, unresolved_class));
+
+  // Replace unresolved class with resolved type class.
+  const Type& parameterized_type = Type::Cast(type);
+  if (type_class.IsNull()) {
+    // The type class could not be resolved. The type is malformed.
+    FinalizeMalformedType(
+        Error::Handle(),  // No previous error.
+        Script::Handle(cls.script()),
+        parameterized_type,
+        "cannot resolve class '%s' from '%s'",
+        String::Handle(unresolved_class.Name()).ToCString(),
+        String::Handle(cls.Name()).ToCString());
+    return;
+  }
+  parameterized_type.set_type_class(type_class);
+}
+
+
 void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
-  if (type.IsResolved() || type.IsFinalized()) {
+  // TODO(regis): Add a kResolved bit in type_state_ for efficiency.
+  if (type.IsFinalized() || type.IsResolved()) {
     return;
   }
   if (FLAG_trace_type_finalization) {
     OS::Print("Resolve type '%s'\n", String::Handle(type.Name()).ToCString());
   }
 
-  // Resolve the type class.
-  if (!type.HasResolvedTypeClass()) {
-    // Type parameters are always resolved in the parser in the correct
-    // non-static scope or factory scope. That resolution scope is unknown here.
-    // Being able to resolve a type parameter from class cls here would indicate
-    // that the type parameter appeared in a static scope. Leaving the type as
-    // unresolved is the correct thing to do.
-
-    // Lookup the type class.
-    const UnresolvedClass& unresolved_class =
-        UnresolvedClass::Handle(type.unresolved_class());
-    const Class& type_class =
-        Class::Handle(ResolveClass(cls, unresolved_class));
-
-    // Replace unresolved class with resolved type class.
-    const Type& parameterized_type = Type::Cast(type);
-    if (type_class.IsNull()) {
-      // The type class could not be resolved. The type is malformed.
-      FinalizeMalformedType(
-          Error::Handle(),  // No previous error.
-          Script::Handle(cls.script()),
-          parameterized_type,
-          "cannot resolve class '%s' from '%s'",
-          String::Handle(unresolved_class.Name()).ToCString(),
-          String::Handle(cls.Name()).ToCString());
-      return;
-    }
-    parameterized_type.set_type_class(type_class);
-  }
+  ResolveTypeClass(cls, type);
 
   // Resolve type arguments, if any.
   const TypeArguments& arguments = TypeArguments::Handle(type.arguments());
