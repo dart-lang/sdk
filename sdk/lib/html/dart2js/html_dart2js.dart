@@ -16772,7 +16772,7 @@ class LegendElement extends HtmlElement native "HTMLLegendElement" {
   @DocsEditable()
   final FormElement form;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16830,6 +16830,12 @@ class LinkElement extends HtmlElement native "HTMLLinkElement" {
   @DomName('HTMLLinkElement.type')
   @DocsEditable()
   String type;
+
+
+    /// Checks if HTML imports are supported on the current platform.
+  bool get supportsImport {
+    return JS('bool', '("import" in #)', this);
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
