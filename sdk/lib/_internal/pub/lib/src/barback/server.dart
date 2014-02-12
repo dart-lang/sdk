@@ -111,41 +111,19 @@ class BarbackServer {
     }
 
     _logRequest(request, "Loading $id");
-    barback.getAssetById(id).then((asset) {
-      return validateStream(asset.read()).then((stream) {
-        _resultsController.add(
-            new BarbackServerResult._success(request.uri, id));
-        var mimeType = lookupMimeType(id.path);
-        if (mimeType != null) {
-          request.response.headers.add('content-type', mimeType);
-        }
-        // TODO(rnystrom): Set content-type based on asset type.
-        return Chain.track(request.response.addStream(stream)).then((_) {
-          // Log successful requests both so we can provide debugging
-          // information and so scheduled_test knows we haven't timed out while
-          // loading transformers.
-          _logRequest(request, "Served $id");
-          request.response.close();
-        });
-      }).catchError((error, trace) {
-        _resultsController.add(
-            new BarbackServerResult._failure(request.uri, id, error));
+    barback.getAssetById(id)
+        .then((asset) => _serveAsset(request, asset))
+        .catchError((error, trace) {
+      if (error is! AssetNotFoundException) throw error;
+      return barback.getAssetById(id.addExtension("/index.html")).then((asset) {
+        if (request.uri.path.endsWith('/')) return _serveAsset(request, asset);
 
-        // If we couldn't read the asset, handle the error gracefully.
-        if (error is FileSystemException) {
-          // Assume this means the asset was a file-backed source asset
-          // and we couldn't read it, so treat it like a missing asset.
-          _notFound(request, error);
-          return;
-        }
-
-        trace = new Chain.forTrace(trace);
-        _logRequest(request, "$error\n$trace");
-
-        // Otherwise, it's some internal error.
-        request.response.statusCode = 500;
-        request.response.reasonPhrase = "Internal Error";
-        request.response.write(error);
+        // We only want to serve index.html if the URL explicitly ends in a
+        // slash. For other URLs, we redirect to one with the slash added to
+        // implicitly support that too. This follows Apache's behavior.
+        _logRequest(request, "302 Redirect to ${request.uri}/");
+        request.response.statusCode = 302;
+        request.response.headers.add('location', '${request.uri}/');
         request.response.close();
       });
     }).catchError((error, trace) {
@@ -161,6 +139,49 @@ class BarbackServer {
       _resultsController.add(
           new BarbackServerResult._failure(request.uri, id, error));
       _notFound(request, error);
+    });
+  }
+
+  /// Serves the body of [asset] on [request]'s response stream.
+  ///
+  /// Returns a future that completes when the response has been succesfully
+  /// written.
+  Future _serveAsset(HttpRequest request, Asset asset) {
+    return validateStream(asset.read()).then((stream) {
+      _resultsController.add(
+          new BarbackServerResult._success(request.uri, asset.id));
+      var mimeType = lookupMimeType(asset.id.path);
+      if (mimeType != null) {
+        request.response.headers.add('content-type', mimeType);
+      }
+      // TODO(rnystrom): Set content-type based on asset type.
+      return Chain.track(request.response.addStream(stream)).then((_) {
+        // Log successful requests both so we can provide debugging
+        // information and so scheduled_test knows we haven't timed out while
+        // loading transformers.
+        _logRequest(request, "Served ${asset.id}");
+        request.response.close();
+      });
+    }).catchError((error, trace) {
+      _resultsController.add(
+          new BarbackServerResult._failure(request.uri, asset.id, error));
+
+      // If we couldn't read the asset, handle the error gracefully.
+      if (error is FileSystemException) {
+        // Assume this means the asset was a file-backed source asset
+        // and we couldn't read it, so treat it like a missing asset.
+        _notFound(request, error);
+        return;
+      }
+
+      trace = new Chain.forTrace(trace);
+      _logRequest(request, "$error\n$trace");
+
+      // Otherwise, it's some internal error.
+      request.response.statusCode = 500;
+      request.response.reasonPhrase = "Internal Error";
+      request.response.write(error);
+      request.response.close();
     });
   }
 

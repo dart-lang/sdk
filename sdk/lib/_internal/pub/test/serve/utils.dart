@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 
@@ -185,6 +186,24 @@ void requestShould404(String urlPath) {
   schedule(() {
     return http.get("http://127.0.0.1:$_port/$urlPath").then((response) {
       expect(response.statusCode, equals(404));
+    });
+  }, "request $urlPath");
+}
+
+/// Schedules an HTTP request to the running pub server with [urlPath] and
+/// verifies that it responds with a redirect to the given [redirectTarget].
+///
+/// [redirectTarget] may be either a [Matcher] or a string to match an exact
+/// URL.
+void requestShouldRedirect(String urlPath, redirectTarget) {
+  schedule(() {
+    var request = new http.Request("GET",
+        Uri.parse("http://127.0.0.1:$_port/$urlPath"));
+    request.followRedirects = false;
+    return request.send().then((response) {
+      expect(response.statusCode ~/ 100, equals(3));
+
+      expect(response.headers, containsPair('location', redirectTarget));
     });
   }, "request $urlPath");
 }
