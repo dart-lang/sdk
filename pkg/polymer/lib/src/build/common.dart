@@ -12,6 +12,7 @@ import 'package:barback/barback.dart';
 import 'package:html5lib/dom.dart' show Document;
 import 'package:html5lib/parser.dart' show HtmlParser;
 import 'package:path/path.dart' as path;
+import 'package:observe/transformer.dart' show ObservableTransformer;
 import 'package:source_maps/span.dart' show Span;
 
 /**
@@ -117,6 +118,10 @@ abstract class PolymerTransformer {
   String toString() => 'polymer ($runtimeType)';
 }
 
+/** Transformer phases which should be applied to the Polymer package. */
+List<List<Transformer>> get phasesForPolymer =>
+    [[new ObservableTransformer(['lib/src/instance.dart'])]];
+
 /**
  * Create an [AssetId] for a [url] seen in the [source] asset. By default this
  * is used to resolve relative urls that occur in HTML assets, including
@@ -135,7 +140,7 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
         return new AssetId(uri.path.substring(0, index),
             'lib${uri.path.substring(index)}');
       }
-    } 
+    }
 
     logger.error('absolute paths not allowed: "$url"', span: span);
     return null;

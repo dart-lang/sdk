@@ -191,10 +191,11 @@ Future deploy({List<String> entryPoints, CommandLineOptions options,
       contentSecurityPolicy: options.contentSecurityPolicy,
       releaseMode: options.releaseMode);
 
+  var phases = new PolymerTransformerGroup(transformOptions).phases;
   var barbackOptions = new BarbackOptions(
-      new PolymerTransformerGroup(transformOptions).phases,
-      options.outDir, currentPackage: currentPackage,
-      packageDirs: packageDirs, machineFormat: options.machineFormat);
+      phases, options.outDir, currentPackage: currentPackage,
+      packageDirs: packageDirs, machineFormat: options.machineFormat,
+      packagePhases: {'polymer' : phasesForPolymer});
   return runBarback(barbackOptions)
       .then((_) => print('Done! All files written to "${options.outDir}"'));
 }

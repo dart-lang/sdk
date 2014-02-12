@@ -20,11 +20,17 @@ import 'package:yaml/yaml.dart';
 
 /** Collects different parameters needed to configure and run barback. */
 class BarbackOptions {
-  /** Phases of transformers to run. */
+  /**
+   * Phases of transformers to run for the current package.
+   * Use packagePhases to specify phases for other packages.
+   */
   final List<List<Transformer>> phases;
 
   /** Package to treat as the current package in barback. */
   final String currentPackage;
+
+  /** Directory root for the current package. */
+  final String packageHome;
 
   /**
    * Mapping between package names and the path in the file system where
@@ -34,9 +40,6 @@ class BarbackOptions {
 
   /** Whether to run transformers on the test folder. */
   final bool transformTests;
-
-  /** Whether to apply transformers on polymer dependencies. */
-  final bool transformPolymerDependencies;
 
   /** Directory where to generate code, if any. */
   final String outDir;
@@ -54,13 +57,21 @@ class BarbackOptions {
    */
   final bool followLinks;
 
-  BarbackOptions(this.phases, this.outDir, {currentPackage, packageDirs,
-      this.transformTests: false, this.transformPolymerDependencies: false,
-      this.machineFormat: false, this.followLinks: false})
+  /**
+   * Phases of transformers to apply to packages other than the current
+   * package, keyed by the package name.
+   */
+  final Map<String, List<List<Transformer>>> packagePhases;
+
+  BarbackOptions(this.phases, this.outDir, {currentPackage, String packageHome,
+      packageDirs, this.transformTests: false, this.machineFormat: false,
+      this.followLinks: false,
+      this.packagePhases: const {}})
       : currentPackage = (currentPackage != null
           ? currentPackage : readCurrentPackageFromPubspec()),
+        packageHome = packageHome,
         packageDirs = (packageDirs != null
-          ? packageDirs : _readPackageDirsFromPub(currentPackage));
+          ? packageDirs : readPackageDirsFromPub(packageHome, currentPackage));
 
 }
 
@@ -70,7 +81,7 @@ class BarbackOptions {
  * completion.
  */
 Future<AssetSet> runBarback(BarbackOptions options) {
-  var barback = new Barback(new _PolymerPackageProvider(options.packageDirs));
+  var barback = new Barback(new _PackageProvider(options.packageDirs));
   _initBarback(barback, options);
   _attachListeners(barback, options);
   if (options.outDir == null) return barback.getAllAssets();
@@ -95,7 +106,15 @@ String readCurrentPackageFromPubspec([String dir]) {
  * current package and everything it depends on (extracted via `pub
  * list-package-dirs`).
  */
-Map<String, String> _readPackageDirsFromPub(String currentPackage) {
+Map<String, String> readPackageDirsFromPub(
+    [String packageHome, String currentPackage]) {
+  var cachedDir = Directory.current;
+  if (packageHome != null) {
+    Directory.current = new Directory(packageHome);
+  } else {
+    packageHome = cachedDir.path;
+  }
+
   var dartExec = Platform.executable;
   // If dartExec == dart, then dart and pub are in standard PATH.
   var sdkDir = dartExec == 'dart' ? '' : path.dirname(dartExec);
@@ -108,20 +127,16 @@ Map<String, String> _readPackageDirsFromPub(String currentPackage) {
     exit(result.exitCode);
   }
   var map = JSON.decode(result.stdout)["packages"];
-  map.forEach((k, v) { map[k] = path.dirname(v); });
-  map[currentPackage] = '.';
+  map.forEach((k, v) { map[k] = path.absolute(packageHome, path.dirname(v)); });
+
+  if (currentPackage == null) {
+    currentPackage = readCurrentPackageFromPubspec(packageHome);
+  }
+  map[currentPackage] = packageHome;
+
+  Directory.current = cachedDir;
   return map;
 }
-
-/** Internal packages used by polymer. */
-// TODO(sigmund): consider computing this list by recursively parsing
-// pubspec.yaml files in the `Options.packageDirs`.
-final Set<String> _polymerPackageDependencies = [
-    'analyzer', 'args', 'barback', 'browser', 'html5lib',
-    'js', 'logging', 'mutation_observer', 'observe', 'path'
-    'polymer_expressions', 'serialization', 'source_maps',
-    'stack_trace', 'template_binding', 'unittest', 'web_components',
-    'yaml'].toSet();
 
 /** Return the relative path of each file under [subDir] in [package]. */
 Iterable<String> _listPackageDir(String package, String subDir,
@@ -136,11 +151,11 @@ Iterable<String> _listPackageDir(String package, String subDir,
 }
 
 /** A simple provider that reads files directly from the pub cache. */
-class _PolymerPackageProvider implements PackageProvider {
+class _PackageProvider implements PackageProvider {
   Map<String, String> packageDirs;
   Iterable<String> get packages => packageDirs.keys;
 
-  _PolymerPackageProvider(this.packageDirs);
+  _PackageProvider(this.packageDirs);
 
   Future<Asset> getAsset(AssetId id) => new Future.value(
       new Asset.fromPath(id, path.join(packageDirs[id.package],
@@ -163,22 +178,22 @@ void _initBarback(Barback barback, BarbackOptions options) {
   }
 
   for (var package in options.packageDirs.keys) {
-    // There is nothing to do in the polymer package dependencies.
-    // However: in Polymer package *itself*, we need to replace Observable
-    // with ChangeNotifier.
-    if (!options.transformPolymerDependencies &&
-        _polymerPackageDependencies.contains(package)) continue;
-    barback.updateTransformers(package, options.phases);
-
     // Notify barback to process anything under 'lib' and 'asset'.
     addAssets(package, 'lib');
     addAssets(package, 'asset');
+
+    if (options.packagePhases.containsKey(package)) {
+      barback.updateTransformers(package, options.packagePhases[package]);
+    }
   }
+  barback.updateTransformers(options.currentPackage, options.phases);
 
   // In case of the current package, include also 'web'.
   addAssets(options.currentPackage, 'web');
   if (options.transformTests) addAssets(options.currentPackage, 'test');
 
+  // Add the sources after the transformers so all transformers are present
+  // when barback starts processing the assets.
   barback.updateSources(assets);
 }
 
@@ -213,7 +228,7 @@ void _attachListeners(Barback barback, BarbackOptions options) {
 
 /**
  * Emits all outputs of [barback] and copies files that we didn't process (like
- * polymer's libraries).
+ * dependent package's libraries).
  */
 Future _emitAllFiles(Barback barback, BarbackOptions options) {
   return barback.getAllAssets().then((assets) {
@@ -289,14 +304,13 @@ Future _addPackagesSymlinks(AssetSet assets, BarbackOptions options) {
  * of every file that was not transformed by barback.
  */
 Future _emitPackagesDir(BarbackOptions options) {
-  if (options.transformPolymerDependencies) return new Future.value(null);
   var outPackages = path.join(options.outDir, 'packages');
   _ensureDir(outPackages);
 
   // Copy all the files we didn't process
   var dirs = options.packageDirs;
 
-  return Future.forEach(_polymerPackageDependencies, (package) {
+  return Future.forEach(dirs.keys, (package) {
     return Future.forEach(_listPackageDir(package, 'lib', options), (relpath) {
       var inpath = path.join(dirs[package], relpath);
       var outpath = path.join(outPackages, package, relpath.substring(4));

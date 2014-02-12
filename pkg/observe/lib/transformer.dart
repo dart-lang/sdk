@@ -28,7 +28,7 @@ import 'package:source_maps/span.dart' show SourceFile;
 class ObservableTransformer extends Transformer {
 
   final List<String> _files;
-  ObservableTransformer() : _files = null;
+  ObservableTransformer([List<String> files]) : _files = files;
   ObservableTransformer.asPlugin(BarbackSettings settings)
       : _files = _readFiles(settings.configuration['files']);
 

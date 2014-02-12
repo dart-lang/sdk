@@ -27,7 +27,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
-import 'src/build/common.dart' show TransformOptions;
+import 'src/build/common.dart' show TransformOptions, phasesForPolymer;
 import 'src/build/runner.dart';
 import 'transformer.dart';
 
@@ -44,7 +44,9 @@ main(List<String> arguments) {
         directlyIncludeJS: args['js'],
         contentSecurityPolicy: args['csp'],
         releaseMode: !args['debug']);
-    options = new BarbackOptions(createDeployPhases(transformOps), outDir);
+    var phases = createDeployPhases(transformOps);
+    options = new BarbackOptions(phases, outDir,
+        packagePhases: {'polymer': phasesForPolymer});
   } else {
     options = _createTestOptions(
         test, outDir, args['js'], args['csp'], !args['debug']);
@@ -84,6 +86,7 @@ BarbackOptions _createTestOptions(String testFile, String outDir,
   return new BarbackOptions(phases, outDir,
       currentPackage: packageName,
       packageDirs: {packageName : pubspecDir},
+      packagePhases: {'polymer': phasesForPolymer},
       transformTests: true);
 }
 
