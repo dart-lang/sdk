@@ -25,12 +25,15 @@ class CustomElement extends HtmlElement {
 main() {
   useHtmlConfiguration();
 
-  setUp(customElementsReady);
+  setUp(() => customElementsReady);
 
   test('element is upgraded once', () {
 
     expect(createdCount, 0);
     document.register('x-custom', CustomElement);
+    expect(createdCount, 0);
+
+    var element = document.createElement('x-custom');
     expect(createdCount, 1);
 
     forceGC();
@@ -40,7 +43,7 @@ main() {
 
       var fragment = t.content;
 
-      fragment.querySelector('x-custom').checkCreated();
+      fragment.querySelector('x-custom').attributes['foo'] = 'true';
       expect(createdCount, 1);
     });
   });

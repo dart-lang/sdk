@@ -6,12 +6,11 @@ event_test: Skip  # Issue 1996
 interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
 custom/template_wrappers_test: Pass, Fail # Issue 16656 (Chrome 33 regression)
+[ $runtime == drt || $runtime == dartium ]
+custom/template_wrappers_test: Pass # Issue 16656 Override others
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
-
-[ $compiler == dart2js && $browser ]
-custom/template_wrappers_test: RuntimeError # Test is for Dartium GC issues
 
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
