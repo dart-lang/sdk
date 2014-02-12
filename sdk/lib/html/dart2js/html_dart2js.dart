@@ -111,7 +111,7 @@ abstract class _EntryArray implements List<Entry> native "EntryArray" {}
 
 @DocsEditable()
 @DomName('AbstractWorker')
-abstract class AbstractWorker extends Interceptor implements EventTarget native "AbstractWorker" {
+class AbstractWorker extends Interceptor implements EventTarget native "AbstractWorker" {
   // To suppress missing implicit constructor warnings.
   factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
 
@@ -265,12 +265,6 @@ class AnchorElement extends HtmlElement implements UrlUtils native "HTMLAnchorEl
   @DomName('HTMLAnchorElement.href')
   @DocsEditable()
   String href;
-
-  @DomName('HTMLAnchorElement.origin')
-  @DocsEditable()
-  // WebKit only
-  @Experimental() // non-standard
-  final String origin;
 
   @DomName('HTMLAnchorElement.password')
   @DocsEditable()
@@ -7849,19 +7843,16 @@ class DocumentFragment extends Node implements ParentNode native "DocumentFragme
         validator: validator, treeSanitizer: treeSanitizer);
   }
 
-  HtmlCollection get _children => throw new UnimplementedError(
-      'Use _docChildren instead');
-
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
   @Creates('Null')
-  List<Element> _docChildren;
+  List<Element> _children;
 
   List<Element> get children {
-    if (_docChildren == null) {
-      _docChildren = new FilteredElementList(this);
+    if (_children == null) {
+      _children = new FilteredElementList(this);
     }
-    return _docChildren;
+    return _children;
   }
 
   void set children(List<Element> value) {
@@ -10909,6 +10900,19 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.hidden')
   @DocsEditable()
   bool hidden;
+
+  /**
+   * The current state of IME composition.
+   *
+   * ## Other resources
+   *
+   * * [Input method editor specification]
+   * (http://www.w3.org/TR/ime-api/) from W3C.
+   */
+  @DomName('Element.inputMethodContext')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final InputMethodContext inputMethodContext;
 
   @DomName('Element.isContentEditable')
   @DocsEditable()
@@ -14508,6 +14512,10 @@ class HtmlDocument extends Document native "HTMLDocument" {
 class HtmlFormControlsCollection extends HtmlCollection native "HTMLFormControlsCollection" {
   // To suppress missing implicit constructor warnings.
   factory HtmlFormControlsCollection._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('HTMLFormControlsCollection.__getter__')
+  @DocsEditable()
+  Node __getter__(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14604,6 +14612,17 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    *
    * This is similar to [request] but specialized for HTTP GET requests which
    * return text content.
+   * 
+   * To add query parameters, append them to the [url] following a `?`,
+   * joining each key to its value with `=` and separating key-value pairs with
+   * `&`.
+   * 
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.getString('users.json?name=$name&id=$id')
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
    *
    * See also:
    *
@@ -14621,6 +14640,20 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    * This is roughly the POST equivalent of getString. This method is similar
    * to sending a FormData object with broader browser support but limited to
    * String values.
+   *
+   * If [data] is supplied, the key/value pairs are URI encoded with
+   * [Uri.encodeQueryComponent] and converted into an HTTP query string.
+   * 
+   * Unless otherwise specified, this method appends the following header:
+   *
+   *     Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+   * 
+   * Here's an example of using this method:
+   * 
+   *     var data = { 'firstName' : 'John', 'lastName' : 'Doe' };
+   *     HttpRequest.postFormData('/send', data).then((HttpRequest resp) {
+   *       // Do something with the response.
+   *     });
    *
    * See also:
    *
@@ -14672,6 +14705,25 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
+   *
+   * 
+   * The following is equivalent to the [getString] sample above:
+   *
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.request('users.json?name=$name&id=$id')
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
+   *
+   * Here's an example of submitting an entire form with [FormData].
+   *
+   *     var myForm = querySelector('form#myForm');
+   *     var data = new FormData(myForm);
+   *     HttpRequest.request('/submit', method: 'POST', sendData: data)
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
    *
    * Note that requests for file:// URIs are only supported by Chrome extensions
    * with appropriate permissions in their manifest. Requests to file:// URIs
@@ -29175,15 +29227,6 @@ class _BeforeUnloadEventStreamProvider implements
   String getEventType(EventTarget target) {
     return _eventType;
   }
-
-  ElementStream<BeforeUnloadEvent> forElement(Element e, {bool useCapture: false}) {
-    return new _ElementEventStreamImpl(e, _eventType, useCapture);
-  }
-
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
-      {bool useCapture: false}) {
-    return new _ElementListEventStreamImpl(e, _eventType, useCapture);
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29212,6 +29255,11 @@ abstract class WindowBase64 extends Interceptor {
 abstract class WindowEventHandlers extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory WindowEventHandlers._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('WindowEventHandlers.beforeunloadEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
 
   @DomName('WindowEventHandlers.hashchangeEvent')
   @DocsEditable()
@@ -29252,6 +29300,11 @@ abstract class WindowEventHandlers extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
+
+  @DomName('WindowEventHandlers.onbeforeunload')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
   @DomName('WindowEventHandlers.onhashchange')
   @DocsEditable()
@@ -31580,7 +31633,7 @@ abstract class CanvasImageSource {}
  * * [DOM Window](https://developer.mozilla.org/en-US/docs/DOM/window) from MDN.
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
-abstract class WindowBase {
+abstract class WindowBase implements EventTarget {
   // Fields.
 
   /**
@@ -32653,9 +32706,6 @@ class _CustomEventStreamProvider<T extends Event>
   String getEventType(EventTarget target) {
     return _eventTypeGetter(target);
   }
-
-  String get _eventType =>
-      throw new UnsupportedError('Access type through getEventType method.');
 }
 // DO NOT EDIT- this file is generated from running tool/generator.sh.
 
@@ -34890,10 +34940,6 @@ abstract class ReadyState {
  */
 class _WrappedEvent implements Event {
   final Event wrapped;
-
-  /** The CSS selector involved with event delegation. */
-  String _selector;
-
   _WrappedEvent(this.wrapped);
 
   bool get bubbles => wrapped.bubbles;
@@ -34931,43 +34977,6 @@ class _WrappedEvent implements Event {
   void stopPropagation() {
     wrapped.stopPropagation();
   }
-
-  /**
-   * A pointer to the element whose CSS selector matched within which an event
-   * was fired. If this Event was not associated with any Event delegation,
-   * accessing this value will throw an [UnsupportedError].
-   */
-  Element get matchingTarget {
-    if (_selector == null) {
-      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
-          ' not arise as a result of event delegation.');
-    }
-    var currentTarget = this.currentTarget;
-    var target = this.target;
-    var matchedTarget;
-    do {
-      if (target.matches(_selector)) return target;
-      target = target.parent;
-    } while (target != null && target != currentTarget.parent);
-    throw new StateError('No selector matched for populating matchedTarget.');
-  }
-
-  /**
-   * This event's path, taking into account shadow DOM.
-   *
-   * ## Other resources
-   *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
-   */
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
-  @Experimental()
-  List<Node> get path => wrapped.path;
-
-  dynamic get _get_currentTarget => wrapped._get_currentTarget;
-
-  dynamic get _get_target => wrapped._get_target;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35621,17 +35630,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
-  int get _layerX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _layerY => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageY => throw new UnsupportedError('Not applicable to KeyEvent');
-  @Experimental() // untriaged
-  bool getModifierState(String keyArgument) => throw new UnimplementedError();
-  @Experimental() // untriaged
-  int get location => throw new UnimplementedError();
-  @Experimental() // untriaged
-  bool get repeat => throw new UnimplementedError();
-  dynamic get _get_view => throw new UnimplementedError();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -70,6 +70,6 @@ class Lists {
 /**
  * For accessing underlying node lists, for dart:js interop.
  */
-abstract class NodeListWrapper {
+class NodeListWrapper {
   List<Node> get rawList;
 }
