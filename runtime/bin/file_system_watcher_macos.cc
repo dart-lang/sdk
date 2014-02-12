@@ -242,7 +242,7 @@ class FSEventsWatcher {
 
   static void StopCallback(CFRunLoopTimerRef timer, void* info) {
     FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(info);
-    ASSERT(Thread::Compare(node->watcher_->threadId_,
+    ASSERT(Thread::Compare(watcher->threadId_,
                            Thread::GetCurrentThreadId()));
     CFRunLoopStop(watcher->run_loop_);
   }
@@ -279,7 +279,7 @@ class FSEventsWatcher {
                        const FSEventStreamEventFlags event_flags[],
                        const FSEventStreamEventId event_ids[]) {
     Node* node = reinterpret_cast<Node*>(client);
-    ASSERT(Thread::Compare(node->watcher_->threadId_,
+    ASSERT(Thread::Compare(node->watcher()->threadId_,
                            Thread::GetCurrentThreadId()));
     // `ready` is set on same thread as this callback is invoked, so we don't
     // need to lock here.
