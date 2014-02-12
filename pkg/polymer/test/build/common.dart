@@ -66,6 +66,8 @@ class TestHelper implements PackageProvider {
     });
 
     logSubscription = barback.log.listen((entry) {
+      // Ignore info messages.
+      if (entry.level == LogLevel.INFO) return;
       if (entry.level == LogLevel.ERROR) errorSeen = true;
       // We only check messages when an expectation is provided.
       if (messages == null) return;
@@ -109,11 +111,14 @@ class TestHelper implements PackageProvider {
   }
 
   Future checkAll(Map<String, String> files) {
-    var futures = [];
-    files.forEach((k, v) {
-      futures.add(check(k, v));
-    });
-    return Future.wait(futures).then((_) {
+    return barback.results.first.then((_) {
+      if (files == null) return null;
+      var futures = [];
+      files.forEach((k, v) {
+        futures.add(check(k, v));
+      });
+      return Future.wait(futures);
+    }).then((_) {
       // We only check messages when an expectation is provided.
       if (messages == null) return;
       expect(messages.length, messagesSeen,
