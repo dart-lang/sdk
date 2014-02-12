@@ -628,7 +628,6 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLDivElement.align',
     'HTMLFontElement.*',
     'HTMLFormControlsCollection.__getter__',
-    'HTMLFormControlsCollection.get:Node',
     'HTMLFormElement.get:elements',
     'HTMLFrameElement.*',
     'HTMLFrameSetElement.*',
