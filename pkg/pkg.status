@@ -44,7 +44,7 @@ serialization/test/serialization_test: Skip
 [ $runtime == jsshell ]
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
 
-[ $compiler == dart2js && $checked && $runtime == drt ]
+[ $compiler == dart2js && $checked && $runtime == drt && $nocsp ]
 async/test/stream_zip_test: RuntimeError # Issue 16719
 
 [ $runtime == d8 || $runtime == jsshell ]
