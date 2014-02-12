@@ -2184,13 +2184,15 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
         bool isNamed = info.areOptionalParametersNamed;
         for (JsParameterMirror parameter in type.parameters) {
           var name = info.parameterName(i);
+          List<int> annotations = info.parameterMetadataAnnotations(i);
           var p;
           if (i < info.requiredParameterCount) {
-            p = new JsParameterMirror(name, this, parameter._type);
+            p = new JsParameterMirror(name, this, parameter._type,
+                metadataList: annotations);
           } else {
             var defaultValue = info.defaultValue(i);
             p = new JsParameterMirror(
-                name, this, parameter._type,
+                name, this, parameter._type, metadataList: annotations,
                 isOptional: true, isNamed: isNamed, defaultValue: defaultValue);
           }
           formals[i++] = p;
@@ -2285,10 +2287,13 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
 
   final int _defaultValue;
 
+  final List<int> metadataList;
+
   JsParameterMirror(String unmangledName,
                     this.owner,
                     this._type,
-                    {this.isOptional: false,
+                     {this.metadataList: const <int>[],
+                     this.isOptional: false,
                      this.isNamed: false,
                      defaultValue})
       : _defaultValue = defaultValue,
@@ -2315,8 +2320,10 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
     return hasDefaultValue ? reflect(getMetadata(_defaultValue)) : null;
   }
 
-  // TODO(ahe): Implement this.
-  List<InstanceMirror> get metadata => throw new UnimplementedError();
+  List<InstanceMirror> get metadata {
+    preserveMetadata();
+    return metadataList.map((int i) => reflect(getMetadata(i))).toList();
+  }
 }
 
 class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
@@ -2369,7 +2376,7 @@ class BrokenClassMirror {
   InstanceMirror newInstance(
       Symbol constructorName,
       List positionalArguments,
-      [Map<Symbol,dynamic> namedArguments]) => throw new UnimplementedError();
+      [Map<Symbol, dynamic> namedArguments]) => throw new UnimplementedError();
   Function operator [](Symbol name) => throw new UnimplementedError();
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,

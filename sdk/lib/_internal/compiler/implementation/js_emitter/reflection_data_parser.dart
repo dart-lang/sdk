@@ -98,7 +98,8 @@ String getReflectionDataParser(String classesCollector,
        ''' requiredParameterCount + optionalParameterCount != funcs[0].length;
     var functionTypeIndex = ${readFunctionType("array", "2")};
     var isReflectable =''' // Break long line.
-    ''' array.length > requiredParameterCount + optionalParameterCount + 3;
+    ''' array.length > 3 * optionalParameterCount + ''' // Break
+    '''2 * requiredParameterCount + 3
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
 '''
@@ -119,7 +120,7 @@ String getReflectionDataParser(String classesCollector,
     }
     if (isReflectable) {
       var unmangledNameIndex =''' // Break long line.
-      ''' optionalParameterCount * 2 + requiredParameterCount + 3;
+      ''' 3 * optionalParameterCount + 2 * requiredParameterCount + 3;
       var unmangledName = ${readString("array", "unmangledNameIndex")};
       var reflectionName =''' // Break long line.
       ''' unmangledName + ":" + requiredParameterCount +''' // Break long line.

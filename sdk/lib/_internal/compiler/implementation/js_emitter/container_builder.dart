@@ -486,6 +486,15 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (canBeReflected || canBeApplied) {
       parameters.orderedForEachParameter((Element parameter) {
         expressions.add(task.metadataEmitter.reifyName(parameter.name));
+        List<MetadataAnnotation> annotations = parameter.metadata.toList();
+        Iterable<int> metadataIndices = annotations.map((MetadataAnnotation a) {
+          compiler.constantHandler.addCompileTimeConstantForEmission(a.value);
+          return task.metadataEmitter.reifyMetadata(a);
+        });
+        // TODO(karlklose): store metadata on elements in correct source order.
+        metadataIndices = metadataIndices.toList().reversed.toList();
+        expressions.add(metadataIndices.isNotEmpty ? metadataIndices
+                                                   : js('[]'));
       });
     }
     if (canBeReflected) {
