@@ -15707,6 +15707,17 @@ class HttpRequest extends HttpRequestEventTarget {
    * This is similar to [request] but specialized for HTTP GET requests which
    * return text content.
    *
+   * To add query parameters, append them to the [url] following a `?`,
+   * joining each key to its value with `=` and separating key-value pairs with
+   * `&`.
+   *
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.getString('users.json?name=$name&id=$id')
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
+   *
    * See also:
    *
    * * [request]
@@ -15723,6 +15734,20 @@ class HttpRequest extends HttpRequestEventTarget {
    * This is roughly the POST equivalent of getString. This method is similar
    * to sending a FormData object with broader browser support but limited to
    * String values.
+   *
+   * If [data] is supplied, the key/value pairs are URI encoded with
+   * [Uri.encodeQueryComponent] and converted into an HTTP query string.
+   *
+   * Unless otherwise specified, this method appends the following header:
+   *
+   *     Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+   *
+   * Here's an example of using this method:
+   *
+   *     var data = { 'firstName' : 'John', 'lastName' : 'Doe' };
+   *     HttpRequest.postFormData('/send', data).then((HttpRequest resp) {
+   *       // Do something with the response.
+   *     });
    *
    * See also:
    *
@@ -15774,6 +15799,24 @@ class HttpRequest extends HttpRequestEventTarget {
    * * The `Access-Control-Allow-Origin` header of `url` cannot contain a wildcard (*).
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
+   *
+   * The following is equivalent to the [getString] sample above:
+   *
+   *     var name = Uri.encodeQueryComponent('John');
+   *     var id = Uri.encodeQueryComponent('42');
+   *     HttpRequest.request('users.json?name=$name&id=$id')
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
+   *
+   * Here's an example of submitting an entire form with [FormData].
+   *
+   *     var myForm = querySelector('form#myForm');
+   *     var data = new FormData(myForm);
+   *     HttpRequest.request('/submit', method: 'POST', sendData: data)
+   *       .then((HttpRequest resp) {
+   *         // Do something with the response.
+   *     });
    *
    * Note that requests for file:// URIs are only supported by Chrome extensions
    * with appropriate permissions in their manifest. Requests to file:// URIs
@@ -28925,13 +28968,13 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_2(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_3(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is _WebKitMediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _createObjectURL_4(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");

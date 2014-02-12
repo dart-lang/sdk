@@ -14612,11 +14612,11 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    *
    * This is similar to [request] but specialized for HTTP GET requests which
    * return text content.
-   * 
+   *
    * To add query parameters, append them to the [url] following a `?`,
    * joining each key to its value with `=` and separating key-value pairs with
    * `&`.
-   * 
+   *
    *     var name = Uri.encodeQueryComponent('John');
    *     var id = Uri.encodeQueryComponent('42');
    *     HttpRequest.getString('users.json?name=$name&id=$id')
@@ -14643,13 +14643,13 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    *
    * If [data] is supplied, the key/value pairs are URI encoded with
    * [Uri.encodeQueryComponent] and converted into an HTTP query string.
-   * 
+   *
    * Unless otherwise specified, this method appends the following header:
    *
    *     Content-Type: application/x-www-form-urlencoded; charset=UTF-8
-   * 
+   *
    * Here's an example of using this method:
-   * 
+   *
    *     var data = { 'firstName' : 'John', 'lastName' : 'Doe' };
    *     HttpRequest.postFormData('/send', data).then((HttpRequest resp) {
    *       // Do something with the response.
@@ -14706,7 +14706,6 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    * * The `Access-Control-Allow-Credentials` header of `url` must be set to true.
    * * If `Access-Control-Expose-Headers` has not been set to true, only a subset of all the response headers will be returned when calling [getAllRequestHeaders].
    *
-   * 
    * The following is equivalent to the [getString] sample above:
    *
    *     var name = Uri.encodeQueryComponent('John');
