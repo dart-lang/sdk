@@ -2241,6 +2241,8 @@
         "support_level": "nonstandard"
       },
       "inputMethodContext": {
+        "comment": "http://www.w3.org/TR/ime-api/#the-inputmethodcontext-property Per the spec is only on HTMLElement.",
+        "dart_action": "suppress",
         "support_level": "untriaged"
       },
       "insertAdjacentElement": {
@@ -3380,7 +3382,6 @@
       },
       "origin": {
         "comment": "WebKit only",
-        "dart_action": "suppress",
         "support_level": "nonstandard"
       },
       "password": {

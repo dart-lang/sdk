@@ -1382,6 +1382,7 @@ class CPPLibraryEmitter():
     is_node_test = lambda interface: interface.id == 'Node'
     is_active_test = lambda interface: 'ActiveDOMObject' in interface.ext_attrs
     is_event_target_test = lambda interface: 'EventTarget' in interface.ext_attrs
+
     def TypeCheckHelper(test):
       return 'true' if any(map(test, database.Hierarchy(interface))) else 'false'
     for interface in database.GetInterfaces():

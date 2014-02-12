@@ -21,18 +21,21 @@ $(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
         validator: validator, treeSanitizer: treeSanitizer);
   }
 
+  HtmlCollection get _children => throw new UnimplementedError(
+      'Use _docChildren instead');
+
 $if DART2JS
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
   @Creates('Null')
 $endif
-  List<Element> _children;
+  List<Element> _docChildren;
 
   List<Element> get children {
-    if (_children == null) {
-      _children = new FilteredElementList(this);
+    if (_docChildren == null) {
+      _docChildren = new FilteredElementList(this);
     }
-    return _children;
+    return _docChildren;
   }
 
   void set children(List<Element> value) {

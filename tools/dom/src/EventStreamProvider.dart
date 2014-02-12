@@ -428,4 +428,7 @@ class _CustomEventStreamProvider<T extends Event>
   String getEventType(EventTarget target) {
     return _eventTypeGetter(target);
   }
+
+  String get _eventType =>
+      throw new UnsupportedError('Access type through getEventType method.');
 }
