@@ -20,6 +20,9 @@ import "package:async_helper/async_helper.dart";
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String, List<String>> WHITE_LIST = const {
+  'html_dart2js.dart': const [
+      "doesn't implement", // Issue 16105.
+  ],
 };
 
 void main() {

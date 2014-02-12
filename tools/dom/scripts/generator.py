@@ -18,7 +18,6 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     # TODO(sra): DOMStringMap should be a class implementing Map<String,String>.
     'DOMStringMap',
     'ChildNode',
-    'DocumentType',
     'EventListener',
     'GlobalEventHandlers',
     'MediaQueryListListener',

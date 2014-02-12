@@ -7997,7 +7997,7 @@ class DocumentFragment extends Node implements ParentNode native "DocumentFragme
 @DomName('DocumentType')
 // http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-412266927
 @deprecated // stable
-abstract class DocumentType extends Node implements ChildNode {
+class DocumentType extends Node implements ChildNode native "DocumentType" {
   // To suppress missing implicit constructor warnings.
   factory DocumentType._() { throw new UnsupportedError("Not supported"); }
 
