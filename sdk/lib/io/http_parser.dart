@@ -286,7 +286,6 @@ class _HttpParser
     _controller = new StreamController<_HttpIncoming>(
         sync: true,
         onListen: () {
-          _socketSubscription.resume();
           _paused = false;
         },
         onPause: () {
@@ -329,7 +328,6 @@ class _HttpParser
         onDone: () {
           completer.complete(this);
         });
-    _socketSubscription.pause();
     return completer.future;
   }
 
