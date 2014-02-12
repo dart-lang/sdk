@@ -283,7 +283,6 @@ polymer/example/canonicalization/test/deploy2_test: Fail, OK # tests deploy only
 polymer/example/canonicalization/test/deploy3_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/dir/deploy_test: Fail, OK # tests deploy only behavior
 polymer/example/canonicalization/test/dir/deploy2_test: Fail, OK # tests deploy only behavior
-mutation_observer/test/mutation_observer_test: Skip # 16679 - Crashes or times out after 33 roll.
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) && $checked ]
 polymer/test/custom_event_test: Skip # http://dartbug.com/15517
