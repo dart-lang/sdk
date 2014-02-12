@@ -974,18 +974,34 @@ class CodeEmitterTask extends CompilerTask {
 
   jsAst.Expression generateDispatchPropertyInitialization() {
     return js('!#', js.fun([], [
-        js('var objectProto = Object.prototype'),
+
+        // On V8, the 'intern' function converts a string to a symbol, which
+        // makes property access much faster.
+        new jsAst.FunctionDeclaration(new jsAst.VariableDeclaration('intern'),
+            js.fun(['s'], [
+                js('var o = {}'),
+                js('o[s] = 1'),
+                js.return_(js('Object.keys(convertToFastObject(o))[0]'))])),
+
+        // To ensure that different programs loaded into the same context (page)
+        // use distinct dispatch properies, we place an object on `Object` to
+        // contain the names already in use.
+        js('var tableProperty = "___dart_dispatch_property_names_"'),
+        js('var usedProperties = Object[tableProperty] ||'
+            '(Object[tableProperty] = Object.create(null))'),
+
+        js('var rootProperty = "${generateDispatchPropertyName()}"'),
         js.for_('var i = 0', null, 'i++', [
-            js('var property = "${generateDispatchPropertyName(0)}"'),
-            js.if_('i > 0', js('property = rootProperty + "_" + i')),
-            js.if_('!(property in  objectProto)',
-                   js.return_(
-                       js('init.dispatchPropertyName = property')))])])());
+            js('property = intern(rootProperty + "_" + i + "_")'),
+            js.if_('!(property in usedProperties)', [
+                js('usedProperties[property] = 1'),
+                js.return_(
+                    js('init.dispatchPropertyName = property'))])])])());
   }
 
-  String generateDispatchPropertyName(int seed) {
+  String generateDispatchPropertyName() {
     // TODO(sra): MD5 of contributing source code or URIs?
-    return '___dart_dispatch_record_ZxYxX_${seed}_';
+    return '___dart_dispatch_record_ZxYxX_';
   }
 
   emitMain(CodeBuffer buffer) {
