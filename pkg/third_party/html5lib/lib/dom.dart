@@ -154,6 +154,12 @@ abstract class Node {
 
   int get nodeType;
 
+  /** *Deprecated* use [text], [Text.data] or [Comment.data]. */
+  @deprecated String get value => null;
+
+  /** *Deprecated* use [nodeType]. */
+  @deprecated int get $dom_nodeType => nodeType;
+
   String get outerHtml {
     var str = new StringBuffer();
     _addOuterHtml(str);
@@ -432,6 +438,10 @@ class Text extends Node {
   String data;
 
   Text(this.data) : super(null);
+
+  /** *Deprecated* use [data]. */
+  @deprecated String get value => data;
+  @deprecated set value(String x) { data = x; }
 
   int get nodeType => Node.TEXT_NODE;
 
