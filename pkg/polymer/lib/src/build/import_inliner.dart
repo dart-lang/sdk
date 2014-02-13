@@ -13,7 +13,7 @@ import 'package:path/path.dart' as path;
 import 'package:html5lib/dom.dart' show
     Document, DocumentFragment, Element, Node;
 import 'package:html5lib/dom_parsing.dart' show TreeVisitor;
-import 'package:source_maps/span.dart' show Span;
+import 'package:source_maps/span.dart';
 
 import 'code_extractor.dart'; // import just for documentation.
 import 'common.dart';
@@ -55,26 +55,37 @@ class _HtmlInliner extends PolymerTransformer {
   }
 
   /**
-   * Visits imports in [document] and add the imported documents to [documents].
+   * Visits imports in [document] and add the imported documents to documents.
    * Documents are added in the order they appear, transitive imports are added
    * first.
+   *
+   * Returns `true` if and only if the document was changed and should be
+   * written out.
    */
   Future<bool> _visitImports(Document document, AssetId sourceId) {
-    bool hasImports = false;
+    bool changed = false;
 
     // Note: we need to preserve the import order in the generated output.
     return Future.forEach(document.querySelectorAll('link'), (Element tag) {
-      if (tag.attributes['rel'] != 'import') return null;
+      var rel = tag.attributes['rel'];
+      if (rel != 'import' && rel != 'stylesheet') return null;
+
       var href = tag.attributes['href'];
-      var id = resolve(sourceId, href, transform.logger, tag.sourceSpan);
-      hasImports = true;
+      var id = resolve(sourceId, href, transform.logger, tag.sourceSpan,
+          allowAbsolute: rel == 'stylesheet');
 
-      tag.remove();
-      if (id == null || !seen.add(id) ||
-         (id.package == 'polymer' && id.path == 'lib/init.html')) return null;
+      if (rel == 'import') {
+        changed = true;
+        tag.remove();
+        if (id == null || !seen.add(id)) return null;
+        return _inlineImport(id);
 
-      return _inlineImport(id);
-    }).then((_) => hasImports);
+      } else if (rel == 'stylesheet') {
+        if (id == null) return null;
+        changed = true;
+        return _inlineStylesheet(id, tag);
+      }
+    }).then((_) => changed);
   }
 
   // Loads an asset identified by [id], visits its imports and collects its
@@ -87,10 +98,16 @@ class _HtmlInliner extends PolymerTransformer {
 
     // TODO(jmesserly): figure out how this is working in vulcanizer.
     // Do they produce a <body> tag with a <head> and <body> inside?
-    imported.nodes
-        ..addAll(doc.head.nodes)
-        ..addAll(doc.body.nodes);
+    imported.nodes..addAll(doc.head.nodes)..addAll(doc.body.nodes);
   }));
+
+  Future _inlineStylesheet(AssetId id, Element link) {
+    return transform.readInputAsString(id).then((css) {
+      var url = spanUrlFor(id, transform);
+      css = new _UrlNormalizer(transform, id).visitCss(css, url);
+      link.replaceWith(new Element.tag('style')..text = css);
+    });
+  }
 
   /**
    * Split Dart script tags from all the other elements. Now that Dartium
@@ -170,6 +187,25 @@ class _UrlNormalizer extends TreeVisitor {
       }
     }
     super.visitElement(node);
+  }
+
+  static final _URL = new RegExp(r'url\(([^)]*)\)', multiLine: true);
+  static final _QUOTE = new RegExp('["\']', multiLine: true);
+
+  /** Visit the CSS text and replace any relative URLs so we can inline it. */
+  // Ported from:
+  // https://github.com/Polymer/vulcanize/blob/c14f63696797cda18dc3d372b78aa3378acc691f/lib/vulcan.js#L149
+  // TODO(jmesserly): use csslib here instead? Parsing with RegEx is sadness.
+  // Maybe it's reliable enough for finding URLs in CSS? I'm not sure.
+  String visitCss(String cssText, String url) {
+    var src = new SourceFile.text(url, cssText);
+    return cssText.replaceAllMapped(_URL, (match) {
+      // Extract the URL, without any surrounding quotes.
+      var span = src.span(match.start, match.end);
+      var href = match[1].replaceAll(_QUOTE, '');
+      href = _newUrl(href, span);
+      return 'url($href)';
+    });
   }
 
   _newUrl(String href, Span span) {

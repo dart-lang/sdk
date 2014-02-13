@@ -52,7 +52,7 @@ class InlineCodeExtractor extends Transformer with PolymerTransformer {
         // TODO(sigmund): ensure this filename is unique (dartbug.com/12618).
         tag.attributes['src'] = '$filename.$count.dart';
         var textContent = tag.nodes.first;
-        var code = textContent.value;
+        var code = textContent.text;
         var newId = id.addExtension('.$count.dart');
         if (!_hasLibraryDirective(code)) {
           var libname = path.withoutExtension(newId.path)

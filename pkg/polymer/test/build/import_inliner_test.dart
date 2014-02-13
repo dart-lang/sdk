@@ -11,9 +11,15 @@ import 'package:unittest/unittest.dart';
 
 import 'common.dart';
 
+final phases = [[new ImportInliner(new TransformOptions())]];
+
 void main() {
   useCompactVMConfiguration();
-  var phases = [[new ImportInliner(new TransformOptions())]];
+  group('rel=import', importTests);
+  group('rel=stylesheet', stylesheetTests);
+}
+
+void importTests() {
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {
@@ -500,5 +506,109 @@ void main() {
           '<!DOCTYPE html><html><head>'
           '</head><body>'
           '<polymer-element>3</polymer-element></body></html>',
+    });
+}
+
+void stylesheetTests() {
+
+  testPhases('empty stylesheet', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="">' // empty href
+          '</head></html>',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet">'         // no href
+          '</head></html>',
+    }, {
+      'a|web/test.html':
+        '<!DOCTYPE html><html><head>'
+        '<link rel="stylesheet" href="">' // empty href
+        '</head></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.html':
+        '<!DOCTYPE html><html><head>'
+        '<link rel="stylesheet">'         // no href
+        '</head></html>',
+      'a|web/test2.html.scriptUrls': '[]',
+    });
+
+  testPhases('absolute uri', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="/foo.css">'
+          '</head></html>',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="http://example.com/bar.css">'
+          '</head></html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="/foo.css">'
+          '</head></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="http://example.com/bar.css">'
+          '</head></html>',
+      'a|web/test2.html.scriptUrls': '[]',
+    });
+
+  testPhases('shallow, inlines css', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="test2.css">'
+          '</head></html>',
+      'a|web/test2.css':
+          'h1 { font-size: 70px; }',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<style>h1 { font-size: 70px; }</style>'
+          '</head><body></body></html>',
+      'a|web/test.html.scriptUrls': '[]',
+      'a|web/test2.css':
+          'h1 { font-size: 70px; }',
+    });
+
+  testPhases('deep, inlines css', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="test2.html">'
+          '</head></html>',
+      'a|web/test2.html':
+          '<polymer-element>2'
+          '<link rel="stylesheet" href="assets/b/test3.css">'
+          '</polymer-element>',
+      'b|asset/test3.css':
+          'body {\n  background: #eaeaea url("assets/b/test4.png");\n}\n'
+          '.foo {\n  background: url("../../packages/c/test5.png");\n}',
+      'b|asset/test4.png': 'PNG',
+      'c|lib/test5.png': 'PNG',
+    }, {
+      'a|web/test.html':
+        '<!DOCTYPE html><html><head></head><body>'
+        '<polymer-element>2'
+        '<style>'
+        'body {\n  background: #eaeaea url(assets/b/test4.png);\n}\n'
+        '.foo {\n  background: url(packages/c/test5.png);\n}'
+        '</style>'
+        '</polymer-element>'
+        '</body></html>',
+      'a|web/test2.html':
+          '<html><head></head><body>'
+          '<polymer-element>2'
+          '<style>'
+          'body {\n  background: #eaeaea url(assets/b/test4.png);\n}\n'
+          '.foo {\n  background: url(packages/c/test5.png);\n}'
+          '</style>'
+          '</polymer-element>'
+          '</body></html>',
+      'b|asset/test3.css':
+          'body {\n  background: #eaeaea url("assets/b/test4.png");\n}\n'
+          '.foo {\n  background: url("../../packages/c/test5.png");\n}',
+      'b|asset/test4.png': 'PNG',
+      'c|lib/test5.png': 'PNG',
     });
 }

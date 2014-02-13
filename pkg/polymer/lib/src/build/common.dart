@@ -104,12 +104,29 @@ abstract class PolymerTransformer {
   Future<Document> readAsHtml(AssetId id, Transform transform) {
     var primaryId = transform.primaryInput.id;
     bool samePackage = id.package == primaryId.package;
-    var url = samePackage ? id.path
-        : assetUrlFor(id, primaryId, transform.logger, allowAssetUrl: true);
+    var url = spanUrlFor(id, transform);
     return transform.readInputAsString(id).then((content) {
       return _parseHtml(content, url, transform.logger,
         checkDocType: samePackage && options.isHtmlEntryPoint(id));
     });
+  }
+
+  /**
+   * Gets the appropriate URL to use in a [Span] to produce messages
+   * (e.g. warnings) for users. This will attempt to format the URL in the most
+   * useful way:
+   *
+   * - If the asset is within the primary package, then use the [id.path],
+   *   the user will know it is a file from their own code.
+   * - If the asset is from another package, then use [assetUrlFor], this will
+   *   likely be a "package:" url to the file in the other package, which is
+   *   enough for users to identify where the error is.
+   */
+  String spanUrlFor(AssetId id, Transform transform) {
+    var primaryId = transform.primaryInput.id;
+    bool samePackage = id.package == primaryId.package;
+    return samePackage ? id.path
+        : assetUrlFor(id, primaryId, transform.logger, allowAssetUrl: true);
   }
 
   Future<bool> assetExists(AssetId id, Transform transform) =>
@@ -129,7 +146,8 @@ List<List<Transformer>> get phasesForPolymer =>
  * urls are not resolved unless [source] is Dart file (has a .dart extension).
  */
 // TODO(sigmund): delete once this is part of barback (dartbug.com/12610)
-AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
+AssetId resolve(AssetId source, String url, TransformLogger logger, Span span,
+    {bool allowAbsolute: false}) {
   if (url == null || url == '') return null;
   var uri = Uri.parse(url);
   var urlBuilder = path.url;
@@ -142,7 +160,9 @@ AssetId resolve(AssetId source, String url, TransformLogger logger, Span span) {
       }
     }
 
-    logger.error('absolute paths not allowed: "$url"', span: span);
+    if (!allowAbsolute) {
+      logger.error('absolute paths not allowed: "$url"', span: span);
+    }
     return null;
   }
 

@@ -324,7 +324,7 @@ class TreeBuilder {
     if (refNode == null) {
       if (nodes.length > 0 && nodes.last is Text) {
         Text last = nodes.last;
-        last.value = '${last.value}$data';
+        last.data = '${last.data}$data';
 
         if (span != null) {
           last.sourceSpan = span.file.span(last.sourceSpan.start.offset,
@@ -337,7 +337,7 @@ class TreeBuilder {
       int index = nodes.indexOf(refNode);
       if (index > 0 && nodes[index - 1] is Text) {
         Text last = nodes[index - 1];
-        last.value = '${last.value}$data';
+        last.data = '${last.data}$data';
       } else {
         nodes.insert(index, new Text(data)..sourceSpan = span);
       }

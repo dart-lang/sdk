@@ -592,18 +592,22 @@ class Phase {
     // For most phases the following is correct. Where it's not it will be
     // overridden.
     tree.insertComment(token, tree.openElements.last);
+    return null;
   }
 
   Token processDoctype(DoctypeToken token) {
     parser.parseError(token.span, "unexpected-doctype");
+    return null;
   }
 
   Token processCharacters(CharactersToken token) {
     tree.insertText(token.data, token.span);
+    return null;
   }
 
   Token processSpaceCharacters(SpaceCharactersToken token) {
     tree.insertText(token.data, token.span);
+    return null;
   }
 
   Token processStartTag(StartTagToken token) {
@@ -620,6 +624,7 @@ class Phase {
       tree.openElements[0].attributes.putIfAbsent(attr, () => value);
     });
     parser.firstStartTag = false;
+    return null;
   }
 
   Token processEndTag(EndTagToken token) {
@@ -639,10 +644,12 @@ class InitialPhase extends Phase {
   InitialPhase(parser) : super(parser);
 
   Token processSpaceCharacters(SpaceCharactersToken token) {
+    return null;
   }
 
   Token processComment(CommentToken token) {
     tree.insertComment(token, tree.document);
+    return null;
   }
 
   Token processDoctype(DoctypeToken token) {
@@ -743,6 +750,7 @@ class InitialPhase extends Phase {
       parser.compatMode = "limited quirks";
     }
     parser.phase = parser._beforeHtmlPhase;
+    return null;
   }
 
   void anythingElse() {
@@ -795,9 +803,11 @@ class BeforeHtmlPhase extends Phase {
 
   Token processComment(CommentToken token) {
     tree.insertComment(token, tree.document);
+    return null;
   }
 
   Token processSpaceCharacters(SpaceCharactersToken token) {
+    return null;
   }
 
   Token processCharacters(CharactersToken token) {
@@ -852,6 +862,7 @@ class BeforeHeadPhase extends Phase {
   }
 
   Token processSpaceCharacters(SpaceCharactersToken token) {
+    return null;
   }
 
   Token processCharacters(CharactersToken token) {
@@ -1444,6 +1455,7 @@ class InBodyPhase extends Phase {
       tree.insertElement(token);
       parser.framesetOK = false;
     }
+    return null;
   }
 
   void startTagAppletMarqueeObject(StartTagToken token) {
@@ -1640,6 +1652,7 @@ class InBodyPhase extends Phase {
   Token startTagOther(StartTagToken token) {
     tree.reconstructActiveFormattingElements();
     tree.insertElement(token);
+    return null;
   }
 
   void endTagP(EndTagToken token) {
@@ -1683,6 +1696,7 @@ class InBodyPhase extends Phase {
       endTagBody(new EndTagToken("body"));
       return token;
     }
+    return null;
   }
 
   void endTagBlock(EndTagToken token) {
@@ -1956,6 +1970,7 @@ class TextPhase extends Phase {
 
   Token processCharacters(CharactersToken token) {
     tree.insertText(token.data, token.span);
+    return null;
   }
 
   bool processEOF() {
@@ -2040,6 +2055,7 @@ class InTablePhase extends Phase {
     parser.phase = parser._inTableTextPhase;
     parser._inTableTextPhase.originalPhase = originalPhase;
     parser.phase.processSpaceCharacters(token);
+    return null;
   }
 
   Token processCharacters(CharactersToken token) {
@@ -2047,6 +2063,7 @@ class InTablePhase extends Phase {
     parser.phase = parser._inTableTextPhase;
     parser._inTableTextPhase.originalPhase = originalPhase;
     parser.phase.processCharacters(token);
+    return null;
   }
 
   void insertText(CharactersToken token) {
@@ -2093,6 +2110,7 @@ class InTablePhase extends Phase {
     if (!parser.innerHTMLMode) {
       return token;
     }
+    return null;
   }
 
   Token startTagStyleScript(StartTagToken token) {
@@ -2208,12 +2226,14 @@ class InTableTextPhase extends Phase {
       return null;
     }
     characterTokens.add(token);
+    return null;
   }
 
   Token processSpaceCharacters(SpaceCharactersToken token) {
     //pretty sure we should never reach here
     characterTokens.add(token);
     // XXX assert(false);
+    return null;
   }
 
   Token processStartTag(StartTagToken token) {
@@ -2683,6 +2703,7 @@ class InCellPhase extends Phase {
       // innerHTML case
       assert(parser.innerHTMLMode);
       parser.parseError(token.span, "undefined-error");
+      return null;
     }
   }
 
@@ -2719,6 +2740,7 @@ class InCellPhase extends Phase {
       // sometimes innerHTML case
       parser.parseError(token.span, "undefined-error");
     }
+    return null;
   }
 
   Token endTagOther(EndTagToken token) {
@@ -2767,6 +2789,7 @@ class InSelectPhase extends Phase {
       return null;
     }
     tree.insertText(token.data, token.span);
+    return null;
   }
 
   void startTagOption(StartTagToken token) {
@@ -2800,6 +2823,7 @@ class InSelectPhase extends Phase {
     } else {
       assert(parser.innerHTMLMode);
     }
+    return null;
   }
 
   Token startTagScript(StartTagToken token) {
@@ -2809,6 +2833,7 @@ class InSelectPhase extends Phase {
   Token startTagOther(StartTagToken token) {
     parser.parseError(token.span, "unexpected-start-tag-in-select",
         {"name": token.name});
+    return null;
   }
 
   void endTagOption(EndTagToken token) {
@@ -2904,6 +2929,7 @@ class InSelectInTablePhase extends Phase {
       endTagOther(new EndTagToken("select"));
       return token;
     }
+    return null;
   }
 
   Token endTagOther(EndTagToken token) {
@@ -2976,7 +3002,7 @@ class InForeignContentPhase extends Phase {
     } else if (parser.framesetOK && !allWhitespace(token.data)) {
       parser.framesetOK = false;
     }
-    super.processCharacters(token);
+    return super.processCharacters(token);
   }
 
   Token processStartTag(StartTagToken token) {
@@ -3011,6 +3037,7 @@ class InForeignContentPhase extends Phase {
         tree.openElements.removeLast();
         token.selfClosingAcknowledged = true;
       }
+      return null;
     }
   }
 
@@ -3071,6 +3098,7 @@ class AfterBodyPhase extends Phase {
     // This is needed because data is to be appended to the <html> element
     // here and not to whatever is currently open.
     tree.insertComment(token, tree.openElements[0]);
+    return null;
   }
 
   Token processCharacters(CharactersToken token) {
@@ -3139,6 +3167,7 @@ class InFramesetPhase extends Phase {
 
   Token processCharacters(CharactersToken token) {
     parser.parseError(token.span, "unexpected-char-in-frameset");
+    return null;
   }
 
   void startTagFrameset(StartTagToken token) {
@@ -3157,6 +3186,7 @@ class InFramesetPhase extends Phase {
   Token startTagOther(StartTagToken token) {
     parser.parseError(token.span, "unexpected-start-tag-in-frameset",
         {"name": token.name});
+    return null;
   }
 
   void endTagFrameset(EndTagToken token) {
@@ -3205,6 +3235,7 @@ class AfterFramesetPhase extends Phase {
 
   Token processCharacters(CharactersToken token) {
     parser.parseError(token.span, "unexpected-char-after-frameset");
+    return null;
   }
 
   Token startTagNoframes(StartTagToken token) {
@@ -3239,6 +3270,7 @@ class AfterAfterBodyPhase extends Phase {
 
   Token processComment(CommentToken token) {
     tree.insertComment(token, tree.document);
+    return null;
   }
 
   Token processSpaceCharacters(SpaceCharactersToken token) {
@@ -3285,6 +3317,7 @@ class AfterAfterFramesetPhase extends Phase {
 
   Token processComment(CommentToken token) {
     tree.insertComment(token, tree.document);
+    return null;
   }
 
   Token processSpaceCharacters(SpaceCharactersToken token) {
@@ -3293,6 +3326,7 @@ class AfterAfterFramesetPhase extends Phase {
 
   Token processCharacters(CharactersToken token) {
     parser.parseError(token.span, "expected-eof-but-got-char");
+    return null;
   }
 
   Token startTagHtml(StartTagToken token) {
@@ -3311,6 +3345,7 @@ class AfterAfterFramesetPhase extends Phase {
   Token processEndTag(EndTagToken token) {
     parser.parseError(token.span, "expected-eof-but-got-end-tag",
         {"name": token.name});
+    return null;
   }
 }
 

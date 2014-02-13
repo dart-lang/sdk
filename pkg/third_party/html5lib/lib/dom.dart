@@ -152,13 +152,6 @@ abstract class Node {
 
   String get namespace => null;
 
-  // TODO(jmesserly): do we need this here?
-  /** The value of the current node (applies to text nodes and comments). */
-  String get value => null;
-
-  // TODO(jmesserly): this is a workaround for http://dartbug.com/4754
-  int get $dom_nodeType => nodeType;
-
   int get nodeType;
 
   String get outerHtml {
@@ -179,6 +172,12 @@ abstract class Node {
     // fragment directly.
     nodes.addAll(parseFragment(value, container: tagName).nodes);
   }
+
+  // Implemented per: http://dom.spec.whatwg.org/#dom-node-textcontent
+  String get text => null;
+  set text(String value) {}
+
+  void append(Node node) => nodes.add(node);
 
   Node get firstChild => nodes.isNotEmpty ? nodes[0] : null;
 
@@ -396,6 +395,9 @@ class DocumentFragment extends Document {
   String toString() => "#document-fragment";
 
   DocumentFragment clone() => new DocumentFragment();
+
+  String get text => _getText(this);
+  set text(String value) => _setText(this, value);
 }
 
 class DocumentType extends Node {
@@ -427,26 +429,28 @@ class DocumentType extends Node {
 }
 
 class Text extends Node {
-  // TODO(jmesserly): this should be text?
-  String value;
+  String data;
 
-  Text(this.value) : super(null);
+  Text(this.data) : super(null);
 
   int get nodeType => Node.TEXT_NODE;
 
-  String toString() => '"$value"';
+  String toString() => '"$data"';
 
   void _addOuterHtml(StringBuffer str) {
     // Don't escape text for certain elements, notably <script>.
     if (rcdataElements.contains(parent.tagName) ||
         parent.tagName == 'plaintext') {
-      str.write(value);
+      str.write(data);
     } else {
-      str.write(htmlSerializeEscape(value));
+      str.write(htmlSerializeEscape(data));
     }
   }
 
-  Text clone() => new Text(value);
+  Text clone() => new Text(data);
+
+  String get text => data;
+  set text(String value) { data = value; }
 }
 
 class Element extends Node {
@@ -518,6 +522,9 @@ class Element extends Node {
     return "<${Namespaces.getPrefix(namespace)} $tagName>";
   }
 
+  String get text => _getText(this);
+  set text(String value) => _setText(this, value);
+
   void _addOuterHtml(StringBuffer str) {
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#serializing-html-fragments
     // Element is the most complicated one.
@@ -544,7 +551,8 @@ class Element extends Node {
 
     if (nodes.length > 0) {
       if (tagName == 'pre' || tagName == 'textarea' || tagName == 'listing') {
-        if (nodes[0] is Text && nodes[0].value.startsWith('\n')) {
+        final first = nodes[0];
+        if (first is Text && first.data.startsWith('\n')) {
           // These nodes will remove a leading \n at parse time, so if we still
           // have one, it means we started with two. Add it back.
           str.write('\n');
@@ -577,7 +585,7 @@ class Element extends Node {
 }
 
 class Comment extends Node {
-  final String data;
+  String data;
 
   Comment(this.data) : super(null);
 
@@ -590,6 +598,11 @@ class Comment extends Node {
   }
 
   Comment clone() => new Comment(data);
+
+  String get text => data;
+  set text(String value) {
+    this.data = value;
+  }
 }
 
 
@@ -880,4 +893,24 @@ class FilteredElementList extends IterableBase<Element> with ListMixin<Element>
   Element get last => _filtered.last;
 
   Element get single => _filtered.single;
+}
+
+// http://dom.spec.whatwg.org/#dom-node-textcontent
+// For Element and DocumentFragment
+String _getText(Node node) =>
+    (new _ConcatTextVisitor()..visit(node)).toString();
+
+void _setText(Node node, String value) {
+  node.nodes.clear();
+  node.append(new Text(value));
+}
+
+class _ConcatTextVisitor extends TreeVisitor {
+  final _str = new StringBuffer();
+
+  String toString() => _str.toString();
+
+  visitText(Text node) {
+    _str.write(node.data);
+  }
 }

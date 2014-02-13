@@ -81,9 +81,9 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
     var textContent = '\n  hello {{name}}';
     var html = '<body><div>$textContent</div>';
     var doc = parse(html, generateSpans: true);
-    var text = doc.body.nodes[0].nodes[0];
+    Text text = doc.body.nodes[0].nodes[0];
     expect(text, new isInstanceOf<Text>());
-    expect(text.value, textContent);
+    expect(text.data, textContent);
     expect(text.sourceSpan.start.offset, html.indexOf(textContent));
     expect(text.sourceSpan.length, textContent.length);
   });
@@ -204,11 +204,11 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
 
     test('Newline after <pre>', () {
       var doc = parseFragment('<pre>\n\nsome text</span>');
-      expect(doc.querySelector('pre').nodes[0].value, '\nsome text');
+      expect(doc.querySelector('pre').nodes[0].data, '\nsome text');
       expect(doc.outerHtml, '<pre>\n\nsome text</pre>');
 
       doc = parseFragment('<pre>\nsome text</span>');
-      expect(doc.querySelector('pre').nodes[0].value, 'some text');
+      expect(doc.querySelector('pre').nodes[0].data, 'some text');
       expect(doc.outerHtml, '<pre>some text</pre>');
     });
 
@@ -245,5 +245,46 @@ ParseError:4:3: Unexpected DOCTYPE. Ignored.
     expect(parser.errors[0].toString(),
         'ParserError:1:4: Unexpected non-space characters. '
         'Expected DOCTYPE.');
+  });
+
+  test('Element.text', () {
+    var doc = parseFragment('<div>foo<div>bar</div>baz</div>');
+    var e = doc.firstChild;
+    var text = e.firstChild;
+    expect((text as Text).data, 'foo');
+    expect(e.text, 'foobarbaz');
+
+    e.text = 'FOO';
+    expect(e.nodes.length, 1);
+    expect(e.firstChild, isNot(text), reason: 'should create a new tree');
+    expect((e.firstChild as Text).data, 'FOO');
+    expect(e.text, 'FOO');
+  });
+
+  test('Text.text', () {
+    var doc = parseFragment('<div>foo<div>bar</div>baz</div>');
+    var e = doc.firstChild;
+    Text text = e.firstChild;
+    expect(text.data, 'foo');
+    expect(text.text, 'foo');
+
+    text.text = 'FOO';
+    expect(text.data, 'FOO');
+    expect(e.text, 'FOObarbaz');
+    expect(text.text, 'FOO');
+  });
+
+  test('Comment.text', () {
+    var doc = parseFragment('<div><!--foo-->bar</div>');
+    var e = doc.firstChild;
+    var c = e.firstChild;
+    expect((c as Comment).data, 'foo');
+    expect(c.text, 'foo');
+    expect(e.text, 'bar');
+
+    c.text = 'qux';
+    expect(c.data, 'qux');
+    expect(c.text, 'qux');
+    expect(e.text, 'bar');
   });
 }

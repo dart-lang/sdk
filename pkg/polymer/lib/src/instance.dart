@@ -822,6 +822,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       if (member is MethodMirror) return member;
       type = type.superclass;
     } while (type != null);
+    return null; // unreachable
   }
 
   /**

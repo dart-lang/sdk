@@ -654,33 +654,26 @@ const _STYLE_CONTROLLER_SCOPE = 'controller';
 String _cssTextFromSheet(LinkElement sheet) {
   if (sheet == null) return '';
 
+  // In deploy mode we should never do a sync XHR; link rel=stylesheet will
+  // be inlined into a <style> tag by ImportInliner.
+  if (_deployMode) return '';
+
   // TODO(jmesserly): sometimes the href property is wrong after deployment.
   var href = sheet.href;
   if (href == '') href = sheet.attributes["href"];
 
-  // TODO(jmesserly): our build is not doing the right thing for
-  // link rel=stylesheet, see http://dartbug.com/16648
-  if (js.context != null && js.context.hasProperty('HTMLImports')) {
-    var jsSheet = new js.JsObject.fromBrowserObject(sheet);
-    var resource = jsSheet['__resource'];
-    if (resource != null) return resource;
-    // TODO(jmesserly): figure out why HTMLImports is failing to load these.
-    // Falling back to sync XHR is no good.
-    // _sheetLog.fine('failed to get stylesheet text href="$href"');
-    // return '';
-  }
   // TODO(jmesserly): it seems like polymer-js is always polyfilling
-  // HTMLImports, because their code depends on "__resource" to work.
-  // We work around this by using a sync XHR to get the stylesheet text.
-  // Right now this code is only used in Dartium, but if it's going to stick
-  // around we will need to find a different approach.
+  // HTMLImports, because their code depends on "__resource" to work, so I
+  // don't see how it can work with native HTML Imports. We use a sync-XHR
+  // under the assumption that the file is likely to have been already
+  // downloaded and cached by HTML Imports.
   try {
     return (new HttpRequest()
         ..open('GET', href, async: false)
         ..send())
         .responseText;
   } on DomException catch (e, t) {
-    _sheetLog.fine('failed to get stylesheet text href="$href" error: '
+    _sheetLog.fine('failed to XHR stylesheet text href="$href" error: '
         '$e, trace: $t');
     return '';
   }

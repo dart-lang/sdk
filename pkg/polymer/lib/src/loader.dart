@@ -33,7 +33,9 @@ Zone initPolymer() {
   // TODO(sigmund): fix polymer's transformers so they can replace initPolymer
   // by initPolymerOptimized.
   if (_initializers == null) _initializers = _discoverInitializers();
-  if (_useDirtyChecking) {
+
+  // In deployment mode, we rely on change notifiers instead of dirty checking.
+  if (!_deployMode) {
     return dirtyCheckZone()..run(initPolymerOptimized);
   }
 
@@ -74,7 +76,7 @@ Zone initPolymerOptimized() {
  */
 void configureForDeployment(List<Function> initializers) {
   _initializers = initializers;
-  _useDirtyChecking = false;
+  _deployMode = true;
 }
 
 /**
@@ -88,7 +90,8 @@ void configureForDeployment(List<Function> initializers) {
  */
 List<Function> _initializers;
 
-bool _useDirtyChecking = true;
+/** True if we're in deployment mode. */
+bool _deployMode = false;
 
 List<Function> _discoverInitializers() {
   var initializers = [];
