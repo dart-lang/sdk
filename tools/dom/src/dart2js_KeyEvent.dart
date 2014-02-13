@@ -210,4 +210,15 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
+  int get _layerX => throw new UnsupportedError('Not applicable to KeyEvent');
+  int get _layerY => throw new UnsupportedError('Not applicable to KeyEvent');
+  int get _pageX => throw new UnsupportedError('Not applicable to KeyEvent');
+  int get _pageY => throw new UnsupportedError('Not applicable to KeyEvent');
+  @Experimental() // untriaged
+  bool getModifierState(String keyArgument) => throw new UnimplementedError();
+  @Experimental() // untriaged
+  int get location => throw new UnimplementedError();
+  @Experimental() // untriaged
+  bool get repeat => throw new UnimplementedError();
+  dynamic get _get_view => throw new UnimplementedError();
 }

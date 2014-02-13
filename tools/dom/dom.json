@@ -2098,10 +2098,16 @@
         "support_level": "deprecated"
       },
       "name": {},
+      "nextElementSibling": {
+        "support_level": "untriaged"
+      },
       "notations": {
         "comment": "http://dom.spec.whatwg.org/#dom-documenttype-notations",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "previousElementSibling": {
+        "support_level": "untriaged"
       },
       "publicId": {},
       "remove": {
@@ -2241,6 +2247,8 @@
         "support_level": "nonstandard"
       },
       "inputMethodContext": {
+        "comment": "http://www.w3.org/TR/ime-api/#the-inputmethodcontext-property Per the spec is only on HTMLElement.",
+        "dart_action": "suppress",
         "support_level": "untriaged"
       },
       "insertAdjacentElement": {
@@ -3380,7 +3388,6 @@
       },
       "origin": {
         "comment": "WebKit only",
-        "dart_action": "suppress",
         "support_level": "nonstandard"
       },
       "password": {
