@@ -992,6 +992,11 @@ class Class : public Object {
   }
   void set_is_fields_marked_nullable() const;
 
+  bool is_cycle_free() const {
+    return CycleFreeBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_cycle_free() const;
+
   uint16_t num_native_fields() const {
     return raw_ptr()->num_native_fields_;
   }
@@ -1100,6 +1105,7 @@ class Class : public Object {
     kMixinAppAliasBit = 9,
     kMixinTypeAppliedBit = 10,
     kFieldsMarkedNullableBit = 11,
+    kCycleFreeBit = 12,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1114,6 +1120,7 @@ class Class : public Object {
   class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
   class FieldsMarkedNullableBit : public BitField<bool,
       kFieldsMarkedNullableBit, 1> {};  // NOLINT
+  class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;

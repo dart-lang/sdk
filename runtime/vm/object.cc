@@ -3115,6 +3115,12 @@ void Class::set_is_fields_marked_nullable() const {
 }
 
 
+void Class::set_is_cycle_free() const {
+  ASSERT(!is_cycle_free());
+  set_state_bits(CycleFreeBit::update(true, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(RawClass::kFinalized,
@@ -3140,7 +3146,6 @@ void Class::reset_is_marked_for_parsing() const {
 
 
 void Class::set_interfaces(const Array& value) const {
-  // Verification and resolving of interfaces occurs in finalizer.
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->interfaces_, value.raw());
 }

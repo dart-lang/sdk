@@ -1407,12 +1407,12 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
   // The mixin class cannot be Object and this was checked earlier.
   ASSERT(!mixin_class.IsObjectClass());
 
-  // Add the mixin type to the interfaces that the mixin application
-  // class implements. This is necessary so that type tests work.
-  const Array& interfaces = Array::Handle(isolate, Array::New(1));
-  interfaces.SetAt(0, mixin_type);
-  ASSERT(mixin_app_class.interfaces() == Object::empty_array().raw());
-  mixin_app_class.set_interfaces(interfaces);
+  // The mixin type (in raw form) should have been added to the interfaces
+  // implemented by the mixin application class. This is necessary so that cycle
+  // check works at compile time (type arguments are ignored) and so that
+  // type tests work at runtime (by then, type arguments will have been set, see
+  // below).
+  ASSERT(mixin_app_class.interfaces() != Object::empty_array().raw());
 
   // If both the super type and the mixin type are non generic, the mixin
   // application class is non generic as well and we can skip type parameter
@@ -1675,7 +1675,16 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
                   Object::null_type_arguments(),
                   aliased_mixin_type.token_pos()));
     inserted_class.set_mixin(generic_mixin_type);
-    // The interface will be set in CloneMixinAppTypeParameters.
+    // Add the mixin type to the list of interfaces that the mixin application
+    // class implements. This is necessary so that cycle check work at
+    // compile time (type arguments are ignored by that check).
+    const Array& interfaces = Array::Handle(Array::New(1));
+    interfaces.SetAt(0, generic_mixin_type);
+    ASSERT(inserted_class.interfaces() == Object::empty_array().raw());
+    inserted_class.set_interfaces(interfaces);
+    // The type arguments of the interface, if any, will be set in
+    // CloneMixinAppTypeParameters, which is called indirectly from
+    // FinalizeTypesInClass below.
   }
 
   // Finalize the types and call CloneMixinAppTypeParameters.
@@ -2453,6 +2462,13 @@ RawType* ClassFinalizer::ResolveMixinAppType(
                                      Object::null_type_arguments(),
                                      mixin_type.token_pos());
       mixin_app_class.set_mixin(generic_mixin_type);
+      // Add the mixin type to the list of interfaces that the mixin application
+      // class implements. This is necessary so that cycle check work at
+      // compile time (type arguments are ignored by that check).
+      const Array& interfaces = Array::Handle(Array::New(1));
+      interfaces.SetAt(0, generic_mixin_type);
+      ASSERT(mixin_app_class.interfaces() == Object::empty_array().raw());
+      mixin_app_class.set_interfaces(interfaces);
       mixin_app_class.set_is_synthesized_class();
       library.AddClass(mixin_app_class);
 
@@ -2501,6 +2517,9 @@ RawType* ClassFinalizer::ResolveMixinAppType(
 // we found a loop.
 void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     const Class& cls, GrowableArray<intptr_t>* visited) {
+  if (cls.is_cycle_free()) {
+    return;
+  }
   ASSERT(visited != NULL);
   if (FLAG_trace_class_finalization) {
     OS::Print("Resolving super and interfaces: %s\n", cls.ToCString());
@@ -2524,10 +2543,15 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
   Array& super_interfaces = Array::Handle(cls.interfaces());
   if ((super_type.IsNull() || super_type.IsObjectType()) &&
       (super_interfaces.Length() == 0)) {
+    cls.set_is_cycle_free();
     return;
   }
 
   if (super_type.IsMixinAppType()) {
+    // For the cycle check below to work, ResolveMixinAppType needs to set
+    // the mixin interfaces in the super classes, even if only in raw form.
+    // It is indeed too early to set the correct type arguments, which is not
+    // a problem since they are ignored in the cycle check.
     const MixinAppType& mixin_app_type = MixinAppType::Cast(super_type);
     super_type = ResolveMixinAppType(cls, mixin_app_type);
     cls.set_super_type(super_type);
@@ -2671,6 +2695,7 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
     ResolveSuperTypeAndInterfaces(interface_class, visited);
   }
   visited->RemoveLast();
+  cls.set_is_cycle_free();
 }
 
 
