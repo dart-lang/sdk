@@ -52,6 +52,7 @@ void main(List<String> arguments) {
       out: options['out'],
       excludeLibraries: excludedLibraries,
       includeDependentPackages: options['include-dependent-packages'],
+      compile: options['compile'],
       serve: options['serve'],
       dartBinary: dartBinary,
       pubScript: pubScript,
@@ -124,9 +125,13 @@ ArgParser _initArgParser() {
   parser.addFlag('append',
       help: 'Append to the docs folder, library_list.json and index.txt',
       defaultsTo: false, negatable: false);
-  parser.addFlag('serve', help: 'Clone the documentation viewer repo locally '
-      '(if not already present) and start a simple server', defaultsTo: false,
+  parser.addFlag('compile', help: 'Clone the documentation viewer repo locally '
+      '(if not already present) and compile with dart2js', defaultsTo: false,
       negatable: false);
+  parser.addFlag('serve', help: 'Clone the documentation viewer repo locally '
+      '(if not already present), compile with dart2js, '
+      'and start a simple server',
+      defaultsTo: false, negatable: false);
   parser.addFlag('no-docs', help: 'Do not generate any new documentation',
       defaultsTo: false, negatable: false);
   parser.addOption('introduction',
