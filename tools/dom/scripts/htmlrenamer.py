@@ -78,6 +78,7 @@ _removed_html_interfaces = [
   'DataView', # Typed arrays
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
+  'DocumentType',
   'EntrySync', # Workers
   'FileEntrySync', # Workers
   'FileReaderSync', # Workers
@@ -627,6 +628,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLDirectoryElement.*',
     'HTMLDivElement.align',
     'HTMLFontElement.*',
+    'HTMLFormControlsCollection.__getter__',
     'HTMLFormElement.get:elements',
     'HTMLFrameElement.*',
     'HTMLFrameSetElement.*',
@@ -753,6 +755,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'SVGElementInstance.on:wheel',
     'WheelEvent.wheelDelta',
     'Window.on:wheel',
+    'WindowEventHandlers.on:beforeUnload',
     'WorkerGlobalScope.webkitIndexedDB',
 # TODO(jacobr): should these be removed?
     'Document.close',
