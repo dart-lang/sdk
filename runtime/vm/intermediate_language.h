@@ -193,6 +193,16 @@ class Range;
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1356392173)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 1239681356)          \
   V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 163795162)               \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 1793798234)                    \
+  V(_TypedList, _setUint8, ByteArrayBaseSetInt8, 67253374)                     \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 10467750)                    \
+  V(_TypedList, _setUint16, ByteArrayBaseSetInt16, 1596986894)                 \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 868037529)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 1776345006)                \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1807927533)              \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 399659907)               \
+  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1612092224)          \
+  V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 74799321)                \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable

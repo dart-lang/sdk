@@ -131,6 +131,15 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                TargetEntryInstr** entry,
                                Definition** last);
 
+  bool InlineByteArrayViewStore(const Function& target,
+                                Instruction* call,
+                                Definition* receiver,
+                                intptr_t array_cid,
+                                intptr_t view_cid,
+                                const ICData& ic_data,
+                                TargetEntryInstr** entry,
+                                Definition** last);
+
   intptr_t PrepareInlineByteArrayViewOp(Instruction* call,
                                         intptr_t array_cid,
                                         intptr_t view_cid,
