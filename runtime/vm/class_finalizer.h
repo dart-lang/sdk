@@ -97,6 +97,9 @@ class ClassFinalizer : public AllStatic {
   // needed during bootstrapping where the classes have been preloaded.
   static void VerifyBootstrapClasses();
 
+  // Resolve the class of the type, but not the type's type arguments.
+  static void ResolveTypeClass(const Class& cls, const AbstractType& type);
+
   // Resolve the class of the type and the class of the type's type arguments.
   static void ResolveType(const Class& cls, const AbstractType& type);
 

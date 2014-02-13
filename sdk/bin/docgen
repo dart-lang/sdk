@@ -18,17 +18,18 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 # Handle the case where dart-sdk/bin has been symlinked to.
 BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
+
 unset SNAPSHOT
 
 SNAPSHOT="$BIN_DIR/snapshots/utils_wrapper.dart.snapshot"
 
 if test -f $SNAPSHOT; then
-  # TODO(ahe): Remove the following line when we are relatively sure it works.
-  echo Using snapshot $SNAPSHOT 1>&2
   exec "$BIN_DIR"/dart \
-      "--package-root=$BIN_DIR/../packages/" $SNAPSHOT docgen "$@"
+      "--package-root=$BIN_DIR/../packages/" $SNAPSHOT \
+      docgen "--sdk=$SDK_DIR" "$@"
 else
   exec "$BIN_DIR"/dart \
       "--package-root=$BIN_DIR/../packages/" \
-      "$BIN_DIR/../pkg/docgen/bin/docgen.dart" "$@"
+      "$BIN_DIR/../../pkg/docgen/bin/docgen.dart" "--sdk=$SDK_DIR" "$@"
 fi

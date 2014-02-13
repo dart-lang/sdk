@@ -106,6 +106,8 @@ and
 /// also be documented.
 /// If [parseSdk] is `true`, then all Dart SDK libraries will be documented.
 /// This option is useful when only the SDK libraries are needed.
+/// If [compile] is `true`, then after generating the documents, compile the
+/// viewer with dart2js.
 /// If [serve] is `true`, then after generating the documents we fire up a
 /// simple server to view the documentation.
 ///
@@ -114,8 +116,9 @@ Future<bool> docgen(List<String> files, {String packageRoot,
     bool outputToYaml: true, bool includePrivate: false, bool includeSdk: false,
     bool parseSdk: false, bool append: false, String introFileName: '',
     out: _DEFAULT_OUTPUT_DIRECTORY, List<String> excludeLibraries : const [],
-    bool includeDependentPackages: false, bool serve: false,
-    bool noDocs: false, String startPage}) {
+    bool includeDependentPackages: false, bool compile: false, bool serve: false,
+    bool noDocs: false, String startPage, 
+    String pubScript, String dartBinary}) {
   var result;
   if (!noDocs) {
     _Viewer.ensureMovedViewerCode();
@@ -125,20 +128,28 @@ Future<bool> docgen(List<String> files, {String packageRoot,
         introFileName: introFileName, out: out,
         excludeLibraries: excludeLibraries,
         includeDependentPackages: includeDependentPackages,
-        startPage: startPage);
+        startPage: startPage, pubScript: pubScript, dartBinary: dartBinary);
     _Viewer.addBackViewerCode();
-    if (serve) {
+    if (compile || serve) {
       result.then((success) {
         if (success) {
-          _Viewer._cloneAndServe();
+          _createViewer(serve);
         }
       });
-    }
-  } else if (serve) {
-    _Viewer._cloneAndServe();
+    } 
+  } else if (compile || serve) {
+    _createViewer(serve);
   }
   return result;
 }
+
+void _createViewer(bool serve) {
+  _Viewer._clone();
+  _Viewer._compile();
+  if (serve) {
+     _Viewer._runServer();
+   }
+} 
 
 /// Analyzes set of libraries by getting a mirror system and triggers the
 /// documentation of the libraries.
@@ -247,6 +258,12 @@ class _Generator {
   /// --exclude-lib.
   static List<String> _excluded;
 
+  /// The path of the pub script.
+  static String _pubScript;
+
+  /// The path of Dart binary.
+  static String _dartBinary;
+
   /// Logger for printing out progress of documentation generation.
   static Logger logger = new Logger('Docgen');
 
@@ -265,9 +282,13 @@ class _Generator {
        bool includeSdk: false, bool parseSdk: false, bool append: false,
        String introFileName: '', out: _DEFAULT_OUTPUT_DIRECTORY,
        List<String> excludeLibraries : const [],
-       bool includeDependentPackages: false, String startPage}) {
+       bool includeDependentPackages: false, String startPage,
+       String dartBinary, String pubScript}) {
     _excluded = excludeLibraries;
     _includePrivate = includePrivate;
+    _pubScript = pubScript;
+    _dartBinary = dartBinary;
+
     logger.onRecord.listen((record) => print(record.message));
 
     _ensureOutputDirectory(out, append);
@@ -595,7 +616,7 @@ class _Generator {
   static List<String> _allDependentPackageDirs(String packageDirectory) {
     var packageName = Library.packageNameFor(packageDirectory);
     if (packageName == '') return [];
-    var dependentsJson = Process.runSync('pub', ['list-package-dirs'],
+    var dependentsJson = Process.runSync(_pubScript, ['list-package-dirs'],
         workingDirectory: packageDirectory, runInShell: true);
     if (dependentsJson.exitCode != 0) {
       print(dependentsJson.stderr);
@@ -639,6 +660,7 @@ class _Viewer {
       'dartdoc-viewer');
   static Directory _dartdocViewerDir = new Directory(_dartdocViewerString);
   static Directory _topLevelTempDir;
+  static Directory _webDocsDir;
   static bool movedViewerCode = false;
 
   /// If our dartdoc-viewer code is already checked out, move it to a temporary
@@ -660,7 +682,7 @@ class _Viewer {
   }
 
   /// Serve up our generated documentation for viewing in a browser.
-  static void _cloneAndServe() {
+  static void _clone() {
     // If the viewer code is already there, then don't clone again.
     if (_dartdocViewerDir.existsSync()) {
       _moveDirectoryAndServe();
@@ -671,7 +693,22 @@ class _Viewer {
           runInShell: true);
 
       if (processResult.exitCode == 0) {
-        _moveDirectoryAndServe();
+        /// Move the generated json/yaml docs directory to the dartdoc-viewer
+        /// directory, to run as a webpage.
+        var processResult = Process.runSync(_Generator._pubScript,
+            ['upgrade'], runInShell: true, 
+            workingDirectory: path.join(_dartdocViewerDir.path, 'client'));
+        print('process output: ${processResult.stdout}');
+        print('process stderr: ${processResult.stderr}');
+
+        var dir = new Directory(_Generator._outputDirectory == null? 'docs' :
+            _Generator._outputDirectory);
+        _webDocsDir = new Directory(path.join(_dartdocViewerDir.path, 'client',
+            'web', 'docs'));
+        if (dir.existsSync()) {
+          // Move the docs folder to dartdoc-viewer/client/web/docs
+          dir.renameSync(_webDocsDir.path);
+        }
       } else {
         print('Error cloning git repository:');
         print('process output: ${processResult.stdout}');
@@ -680,32 +717,17 @@ class _Viewer {
     }
   }
 
-  /// Move the generated json/yaml docs directory to the dartdoc-viewer
-  /// directory, to run as a webpage.
-  static void _moveDirectoryAndServe() {
-    var processResult = Process.runSync('pub', ['update'], runInShell: true,
-        workingDirectory: path.join(_dartdocViewerDir.path, 'client'));
-    print('process output: ${processResult.stdout}');
-    print('process stderr: ${processResult.stderr}');
-
-    var dir = new Directory(_Generator._outputDirectory == null? 'docs' :
-        _Generator._outputDirectory);
-    var webDocsDir = new Directory(path.join(_dartdocViewerDir.path, 'client',
-        'web', 'docs'));
-    if (dir.existsSync()) {
-      // Move the docs folder to dartdoc-viewer/client/web/docs
-      dir.renameSync(webDocsDir.path);
-    }
-
-    if (webDocsDir.existsSync()) {
+  static void _compile() {
+    if (_webDocsDir.existsSync()) {
       // Compile the code to JavaScript so we can run on any browser.
       print('Compile app to JavaScript for viewing.');
-      var processResult = Process.runSync('dart', ['deploy.dart'],
-          workingDirectory : path.join(_dartdocViewerDir.path, 'client'),
-          runInShell: true);
+      var processResult = Process.runSync(_Generator._dartBinary,
+          ['deploy.dart'], workingDirectory : path.join(_dartdocViewerDir.path,
+          'client'), runInShell: true);
       print('process output: ${processResult.stdout}');
       print('process stderr: ${processResult.stderr}');
-      _runServer();
+      var outputDir = path.join(_dartdocViewerDir.path, 'client', 'out', 'web');
+      print('Docs are available at $outputDir');
     }
   }
 

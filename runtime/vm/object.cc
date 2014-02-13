@@ -2116,7 +2116,7 @@ intptr_t Class::NumTypeArguments() const {
       break;
     }
     sup_type = cls.super_type();
-    ClassFinalizer::ResolveType(cls, sup_type);
+    ClassFinalizer::ResolveTypeClass(cls, sup_type);
     cls = sup_type.type_class();
   } while (true);
   set_num_type_arguments(num_type_args);

@@ -35,6 +35,12 @@ void main(List<String> arguments) {
   var scriptDir = path.dirname(Platform.script.toFilePath());
   var introduction = includeSdk ? '' : options['introduction'];
 
+  var pubScript = options['sdk'] != null ? 
+      path.join(options['sdk'], 'bin', 'pub') : 'pub';
+
+  var dartBinary = options['sdk'] != null ? 
+      path.join(options['sdk'], 'bin', 'dart') : 'dart';
+
   docgen(_files,
       packageRoot: options['package-root'],
       outputToYaml: !options['json'],
@@ -46,7 +52,10 @@ void main(List<String> arguments) {
       out: options['out'],
       excludeLibraries: excludedLibraries,
       includeDependentPackages: options['include-dependent-packages'],
+      compile: options['compile'],
       serve: options['serve'],
+      dartBinary: dartBinary,
+      pubScript: pubScript,
       noDocs: options['no-docs'],
       startPage: startPage);
 }
@@ -116,9 +125,13 @@ ArgParser _initArgParser() {
   parser.addFlag('append',
       help: 'Append to the docs folder, library_list.json and index.txt',
       defaultsTo: false, negatable: false);
-  parser.addFlag('serve', help: 'Clone the documentation viewer repo locally '
-      '(if not already present) and start a simple server', defaultsTo: false,
+  parser.addFlag('compile', help: 'Clone the documentation viewer repo locally '
+      '(if not already present) and compile with dart2js', defaultsTo: false,
       negatable: false);
+  parser.addFlag('serve', help: 'Clone the documentation viewer repo locally '
+      '(if not already present), compile with dart2js, '
+      'and start a simple server',
+      defaultsTo: false, negatable: false);
   parser.addFlag('no-docs', help: 'Do not generate any new documentation',
       defaultsTo: false, negatable: false);
   parser.addOption('introduction',
@@ -136,6 +149,9 @@ ArgParser _initArgParser() {
         'in the directory with its pubspec. Includes documentation for all '
         'of its dependent packages.',
       defaultsTo: true, negatable: true);
+  parser.addOption('sdk',
+      help: 'SDK directory',
+      defaultsTo: null);
   parser.addOption('start-page',
       help: 'By default the viewer will start at the SDK introduction page.'
         'To start at some other page, e.g. for a package, provide the name '
