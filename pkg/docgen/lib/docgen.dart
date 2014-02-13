@@ -960,7 +960,9 @@ abstract class Indexable extends MirrorBased {
     var finalMap = { 'name' : name, 'qualifiedName' : qualifiedName };
     if (comment != '') {
       var index = comment.indexOf('</p>');
-      finalMap['preview'] = '${comment.substring(0, index)}</p>';
+      finalMap['preview'] = index > 0 ?
+          '${comment.substring(0, index)}</p>' :
+          '<p><i>Comment preview not available</i></p>';
     }
     return finalMap;
   }
