@@ -1378,10 +1378,12 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                       kTypedDataUint16ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetInt32:
+      if (!CanUnboxInt32()) return false;
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataInt32ArrayCid,
                                       ic_data, entry, last);
     case MethodRecognizer::kByteArrayBaseSetUint32:
+      if (!CanUnboxInt32()) return false;
       return InlineByteArrayViewStore(target, call, receiver, receiver_cid,
                                       kTypedDataUint32ArrayCid,
                                       ic_data, entry, last);
