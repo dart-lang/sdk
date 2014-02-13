@@ -37,7 +37,10 @@ class Generic2<T, S> {
 // at compile time. If the result is computed at compile time, the dynamic code
 // will not be tested.
 confuse(x) {
-  try { throw [x]; } on dynamic catch (e) { return e[0]; }
+  try {
+    if (new DateTime.now().millisecondsSinceEpoch == 42) x = 42;
+    throw [x];
+  } on dynamic catch (e) { return e[0]; }
   return 42;
 }
 
