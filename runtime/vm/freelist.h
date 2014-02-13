@@ -19,9 +19,6 @@ namespace dart {
 // the element at the address following the next_ field.
 class FreeListElement {
  public:
-  // Maximum header size is three words (tags, next, and size).
-  static const intptr_t kHeaderSize = 3 * kWordSize;
-
   FreeListElement* next() const {
     return next_;
   }
@@ -42,6 +39,8 @@ class FreeListElement {
   static FreeListElement* AsElement(uword addr, intptr_t size);
 
   static void InitOnce();
+
+  static intptr_t HeaderSizeFor(intptr_t size);
 
   // Used to allocate class for free list elements in Object::InitOnce.
   class FakeInstance {
