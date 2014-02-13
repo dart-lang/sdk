@@ -739,8 +739,6 @@ class Namer implements ClosureNamer {
       return 'String';
     } else if (cls == backend.jsArrayClass) {
       return 'List';
-    } else if (cls == backend.jsNullClass) {
-      return 'Null';
     } else {
       return null;
     }

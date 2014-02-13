@@ -878,11 +878,10 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   /// reflective information to know how to to invoke a specific member.
   get _classInvocationCache {
     String cacheName = Primitives.mirrorInvokeCacheName;
-    var cacheHolder = (reflectee == null) ? getInterceptor(null) : reflectee;
-    var cache = JS('', r'#.constructor[#]', cacheHolder, cacheName);
+    var cache = JS('', r'#.constructor[#]', reflectee, cacheName);
     if (cache == null) {
       cache = JsCache.allocate();
-      JS('void', r'#.constructor[#] = #', cacheHolder, cacheName, cache);
+      JS('void', r'#.constructor[#] = #', reflectee, cacheName, cache);
     }
     return cache;
   }
@@ -1071,7 +1070,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // interceptor between multiple different instances of [InstanceMirror].
     var interceptor = getInterceptor(object);
     if (!useEval) return _newInterceptGetterNoEvalFn(name, interceptor);
-    String className = JS('String', '#.constructor.name', interceptor);
+    String className = JS('String', '#.constructor.name', object);
     var body = "(function $className\$$name(o){return i.$name(o)})";
     return JS('', '(function(b,i){return eval(b)})(#,#)', body, interceptor);
   }
