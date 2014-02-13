@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
+import "dart:convert";
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
@@ -42,6 +43,32 @@ void testSignals(int usr1Expect,
     });
 }
 
+void testSignal(ProcessSignal signal) {
+  asyncStart();
+  Process.start(Platform.executable,
+      [Platform.script.resolve('signal_test_script.dart').toFilePath(),
+       signal.toString()])
+    .then((process) {
+      process.stdin.close();
+      process.stderr.drain();
+
+      var output = "";
+      process.stdout.transform(UTF8.decoder)
+        .listen((str) {
+          output += str;
+          if (output == 'ready\n') {
+            process.kill(signal);
+          }
+        }, onDone: () {
+          Expect.equals('ready\ngot signal\n', output);
+        });
+      process.exitCode.then((exitCode) {
+        Expect.equals(0, exitCode);
+        asyncEnd();
+      });
+    });
+}
+
 
 void testListenCancel() {
   for (int i = 0; i < 10; i++) {
@@ -61,4 +88,11 @@ void main() {
   testSignals(1, 10);
   testSignals(1, 0, 0, 1, true);
   testSignals(0, 1, 1, 0, true);
+
+  testSignal(ProcessSignal.SIGHUP);
+  testSignal(ProcessSignal.SIGINT);
+  testSignal(ProcessSignal.SIGTERM);
+  testSignal(ProcessSignal.SIGUSR1);
+  testSignal(ProcessSignal.SIGUSR2);
+  testSignal(ProcessSignal.SIGWINCH);
 }
