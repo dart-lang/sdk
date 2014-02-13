@@ -98,7 +98,8 @@ String getReflectionDataParser(String classesCollector,
        ''' requiredParameterCount + optionalParameterCount != funcs[0].length;
     var functionTypeIndex = ${readFunctionType("array", "2")};
     var isReflectable =''' // Break long line.
-    ''' array.length > requiredParameterCount + optionalParameterCount + 3;
+    ''' array.length > 3 * optionalParameterCount + ''' // Break
+    '''2 * requiredParameterCount + 3
     if (getterStubName) {
       f = tearOff(funcs, array, isStatic, name, isIntercepted);
 '''
@@ -119,7 +120,7 @@ String getReflectionDataParser(String classesCollector,
     }
     if (isReflectable) {
       var unmangledNameIndex =''' // Break long line.
-      ''' optionalParameterCount * 2 + requiredParameterCount + 3;
+      ''' 3 * optionalParameterCount + 2 * requiredParameterCount + 3;
       var unmangledName = ${readString("array", "unmangledNameIndex")};
       var reflectionName =''' // Break long line.
       ''' unmangledName + ":" + requiredParameterCount +''' // Break long line.
@@ -238,8 +239,9 @@ String getReflectionDataParser(String classesCollector,
         var previousProperty;
         if (firstChar === "+") {
           mangledGlobalNames[previousProperty] = property.substring(1);
-          if (descriptor[property] == 1) ''' // Break long line.
-         '''descriptor[previousProperty].$reflectableField = 1;
+          var flag = descriptor[property];
+          if (flag > 0) ''' // Break long line.
+         '''descriptor[previousProperty].$reflectableField = flag;
           if (element && element.length) ''' // Break long line.
          '''init.typeInformation[previousProperty] = element;
         } else if (firstChar === "@") {
@@ -270,8 +272,9 @@ String getReflectionDataParser(String classesCollector,
               processStatics(init.statics[property] = element[prop]);
             } else if (firstChar === "+") {
               mangledNames[previousProp] = prop.substring(1);
-              if (element[prop] == 1) ''' // Break long line.
-             '''element[previousProp].$reflectableField = 1;
+              var flag = element[prop];
+              if (flag > 0) ''' // Break long line.
+             '''element[previousProp].$reflectableField = flag;
             } else if (firstChar === "@" && prop !== "@") {
               newDesc[prop.substring(1)][$metadataField] = element[prop];
             } else if (firstChar === "*") {

@@ -555,6 +555,7 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
     if (_head == _tail) throw new StateError("No elements");
     _modificationCount++;
     E result = _table[_head];
+    _table[_head] = null;
     _head = (_head + 1) & (_table.length - 1);
     return result;
   }
@@ -563,7 +564,9 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
     if (_head == _tail) throw new StateError("No elements");
     _modificationCount++;
     _tail = (_tail - 1) & (_table.length - 1);
-    return _table[_tail];
+    E result = _table[_tail];
+    _table[_tail] = null;
+    return result;
   }
 
   // Internal helper functions.

@@ -355,11 +355,8 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
       throw new NoSuchMethodError(
           this, memberName, positionalArguments, namedArguments);
     }
-    if (mirror is JsMethodMirror) {
-      JsMethodMirror method = mirror;
-      if (!method.canInvokeReflectively()) {
-        throwInvalidReflectionError(n(memberName));
-      }
+    if (mirror is JsMethodMirror && !mirror.canInvokeReflectively()) {
+      throwInvalidReflectionError(n(memberName));
     }
     return reflect(mirror._invoke(positionalArguments, namedArguments));
   }
@@ -1537,6 +1534,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       // reflection with metadata.
       if (simpleName == null) continue;
       var function = JS('', '#[#]', prototype, key);
+      if (isNoSuchMethodStub(function)) continue;
       var mirror =
           new JsMethodMirror.fromUnmangledName(
               simpleName, function, false, false);
@@ -2184,13 +2182,15 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
         bool isNamed = info.areOptionalParametersNamed;
         for (JsParameterMirror parameter in type.parameters) {
           var name = info.parameterName(i);
+          List<int> annotations = info.parameterMetadataAnnotations(i);
           var p;
           if (i < info.requiredParameterCount) {
-            p = new JsParameterMirror(name, this, parameter._type);
+            p = new JsParameterMirror(name, this, parameter._type,
+                metadataList: annotations);
           } else {
             var defaultValue = info.defaultValue(i);
             p = new JsParameterMirror(
-                name, this, parameter._type,
+                name, this, parameter._type, metadataList: annotations,
                 isOptional: true, isNamed: isNamed, defaultValue: defaultValue);
           }
           formals[i++] = p;
@@ -2285,10 +2285,13 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
 
   final int _defaultValue;
 
+  final List<int> metadataList;
+
   JsParameterMirror(String unmangledName,
                     this.owner,
                     this._type,
-                    {this.isOptional: false,
+                     {this.metadataList: const <int>[],
+                     this.isOptional: false,
                      this.isNamed: false,
                      defaultValue})
       : _defaultValue = defaultValue,
@@ -2315,8 +2318,10 @@ class JsParameterMirror extends JsDeclarationMirror implements ParameterMirror {
     return hasDefaultValue ? reflect(getMetadata(_defaultValue)) : null;
   }
 
-  // TODO(ahe): Implement this.
-  List<InstanceMirror> get metadata => throw new UnimplementedError();
+  List<InstanceMirror> get metadata {
+    preserveMetadata();
+    return metadataList.map((int i) => reflect(getMetadata(i))).toList();
+  }
 }
 
 class JsTypedefMirror extends JsDeclarationMirror implements TypedefMirror {
@@ -2369,7 +2374,7 @@ class BrokenClassMirror {
   InstanceMirror newInstance(
       Symbol constructorName,
       List positionalArguments,
-      [Map<Symbol,dynamic> namedArguments]) => throw new UnimplementedError();
+      [Map<Symbol, dynamic> namedArguments]) => throw new UnimplementedError();
   Function operator [](Symbol name) => throw new UnimplementedError();
   InstanceMirror invoke(Symbol memberName,
                         List positionalArguments,
@@ -2546,7 +2551,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
       representation = runtimeTypeToString(type);
     }
   } else {
-    getTypeArgument(int index) {
+    TypeMirror getTypeArgument(int index) {
       TypeVariable typeVariable = getMetadata(index);
       int variableIndex =
           findTypeVariableIndex(ownerClass.typeVariables, typeVariable.name);
@@ -2562,8 +2567,9 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
     }
     String substituteTypeVariable(int index) {
       var typeArgument = getTypeArgument(index);
-      if (typeArgument is JsTypeVariableMirror)
+      if (typeArgument is JsTypeVariableMirror) {
         return '${typeArgument._metadataIndex}';
+      }
       if (typeArgument is! JsClassMirror &&
           typeArgument is! JsTypeBoundClassMirror) {
         if (typeArgument == JsMirrorSystem._dynamicType) {
@@ -2681,6 +2687,10 @@ bool isReflectiveDataInPrototype(String key) {
   if (key == '' || key == METHODS_WITH_OPTIONAL_ARGUMENTS) return true;
   String firstChar = key[0];
   return firstChar == '*' || firstChar == '+';
+}
+
+bool isNoSuchMethodStub(var jsFunction) {
+  return JS('bool', r'#.$reflectable == 2', jsFunction);
 }
 
 class NoSuchStaticMethodError extends Error implements NoSuchMethodError {

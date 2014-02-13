@@ -126,16 +126,12 @@ class JsBuilder {
       }
       return new ObjectInitializer([]);
     } else if (expression is List) {
-      var values = new List<ArrayElement>(expression.length);
-      int index = 0;
-      for (var entry in expression) {
-        values[index] = new ArrayElement(index, toExpression(entry));
-        index++;
-      }
+      var values = new List<ArrayElement>.generate(expression.length,
+          (index) => new ArrayElement(index, toExpression(expression[index])));
       return new ArrayInitializer(values.length, values);
     } else {
       throw new ArgumentError('expression should be an Expression, '
-                              'a String, a num, a bool, or a Map');
+                              'a String, a num, a bool, a Map, or a List;');
     }
   }
 

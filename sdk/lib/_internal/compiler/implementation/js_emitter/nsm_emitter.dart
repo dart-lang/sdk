@@ -32,7 +32,7 @@ class NsmEmitter extends CodeEmitterHelper {
     void addNoSuchMethodHandlers(String ignore, Set<Selector> selectors) {
       // Cache the object class and type.
       ClassElement objectClass = compiler.objectClass;
-      DartType objectType = objectClass.computeType(compiler);
+      DartType objectType = objectClass.rawType;
 
       for (Selector selector in selectors) {
         TypeMask mask = selector.mask;
@@ -64,7 +64,6 @@ class NsmEmitter extends CodeEmitterHelper {
       // Values match JSInvocationMirror in js-helper library.
       int type = selector.invocationMirrorKind;
       List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-      CodeBuffer args = new CodeBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
         parameters.add(new jsAst.Parameter('\$$i'));
       }
@@ -109,7 +108,7 @@ class NsmEmitter extends CodeEmitterHelper {
         if (reflectionName != null) {
           bool accessible = compiler.world.allFunctions.filter(selector).any(
               (Element e) => backend.isAccessibleByReflection(e));
-          addProperty('+$reflectionName', js(accessible ? '1' : '0'));
+          addProperty('+$reflectionName', js(accessible ? '2' : '0'));
         }
       }
     }

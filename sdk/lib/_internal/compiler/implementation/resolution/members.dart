@@ -3879,8 +3879,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     calculateAllSupertypes(element);
 
     if (!element.hasConstructor) {
-      Element superMember =
-          element.superclass.localLookup('');
+      Element superMember = element.superclass.localLookup('');
       if (superMember == null || !superMember.isGenerativeConstructor()) {
         DualKind kind = MessageKind.CANNOT_FIND_CONSTRUCTOR;
         Map arguments = {'constructorName': ''};
@@ -3890,6 +3889,13 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         superMember = new ErroneousElementX(
             kind.error, arguments, '', element);
         compiler.backend.registerThrowNoSuchMethod(mapping);
+      } else {
+        Selector callToMatch = new Selector.call("", element.getLibrary(), 0);
+        if (!callToMatch.applies(superMember, compiler)) {
+          MessageKind kind = MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT;
+          compiler.reportError(node, kind);
+          superMember = new ErroneousElementX(kind, {}, '', element);
+        }
       }
       FunctionElement constructor =
           new SynthesizedConstructorElementX.forDefault(superMember, element);

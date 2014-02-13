@@ -396,9 +396,14 @@ class ReflectionInfo {
   }
 
   String parameterName(int parameter) {
-    int metadataIndex = JS('int', '#[# + # + #]', data, parameter,
-                           optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
+    int metadataIndex = JS('int', '#[2 * # + # + #]', data, parameter,
+        optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
     return JS('String', 'init.metadata[#]', metadataIndex);
+  }
+
+  List<int> parameterMetadataAnnotations(int parameter) {
+    return JS('', '#[2 * # + # + # + 1]', data, parameter,
+        optionalParameterCount, FIRST_DEFAULT_ARGUMENT);
   }
 
   int defaultValue(int parameter) {
