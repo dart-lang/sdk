@@ -1178,20 +1178,6 @@ class VariableElementX extends ElementX implements VariableElement {
   Token position() => findMyName(variables.position());
 
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
-
-  // TODO(johnniwinther): Move the patch/origin implementation to a parameter
-  // specific element when added.
-
-  /**
-   * A function declaration that should be parsed instead of the current one.
-   * The patch should be parsed as if it was in the current scope. Its
-   * signature must match this function's signature.
-   */
-  VariableElementX patch = null;
-  VariableElementX origin = null;
-
-  bool get isPatch => origin != null;
-  bool get isPatched => patch != null;
 }
 
 class FieldElementX extends VariableElementX implements FieldElement {
@@ -1209,18 +1195,19 @@ class FieldElementX extends VariableElementX implements FieldElement {
  * Parameters in constructors that directly initialize fields. For example:
  * [:A(this.field):].
  */
-class FieldParameterElementX extends VariableElementX
+class FieldParameterElementX extends ParameterElementX
     implements FieldParameterElement {
   VariableElement fieldElement;
 
   FieldParameterElementX(String name,
-                         this.fieldElement,
-                         VariableListElement variables,
-                         Node node)
-      : super(name, variables, ElementKind.FIELD_PARAMETER, node);
+                         Element enclosingElement,
+                         VariableDefinitions variables,
+                         Expression node,
+                         this.fieldElement)
+      : super(name, enclosingElement, ElementKind.FIELD_PARAMETER,
+          variables, node);
 
   DartType computeType(Compiler compiler) {
-    VariableDefinitions definitions = variables.parseNode(compiler);
     if (definitions.type == null) {
       return fieldElement.computeType(compiler);
     }
@@ -1239,12 +1226,7 @@ class VariableListElementX extends ElementX implements VariableListElement {
   DartType type;
   final Modifiers modifiers;
 
-  /**
-   * Function signature for a variable with a function type. The signature is
-   * kept to provide full information about parameter names through the mirror
-   * system.
-   */
-  FunctionSignature functionSignature;
+  FunctionSignature get functionSignature => null;
 
   VariableListElementX(ElementKind kind,
                        Modifiers this.modifiers,
@@ -1271,22 +1253,7 @@ class VariableListElementX extends ElementX implements VariableListElement {
       if (node.type != null) {
         type = compiler.resolveTypeAnnotation(this, node.type);
       } else {
-        // Is node.definitions exactly one FunctionExpression?
-        Link<Node> link = node.definitions.nodes;
-        if (!link.isEmpty &&
-            link.head.asFunctionExpression() != null &&
-            link.tail.isEmpty) {
-          FunctionExpression functionExpression = link.head;
-          // We found exactly one FunctionExpression
-          functionSignature =
-              compiler.resolveFunctionExpression(this, functionExpression);
-          // TODO(johnniwinther): Use the parameter's [VariableElement] instead
-          // of [functionClass].
-          type = compiler.computeFunctionType(compiler.functionClass,
-                                              functionSignature);
-        } else {
-          type = compiler.types.dynamicType;
-        }
+        type = compiler.types.dynamicType;
       }
     });
     assert(type != null);
@@ -1300,6 +1267,59 @@ class VariableListElementX extends ElementX implements VariableListElement {
   }
 
   accept(ElementVisitor visitor) => visitor.visitVariableListElement(this);
+}
+
+/// [Element] for a formal parameter.
+///
+/// A [ParameterElementX] can be patched. A parameter of an external method is
+/// patched with the corresponding parameter of the patch method. This is done
+/// to ensure that default values on parameters are computed once (on the
+/// origin parameter) but can be found through both the origin and the patch.
+class ParameterElementX extends ElementX
+    implements VariableElement, VariableListElement {
+  VariableDefinitions definitions;
+  Expression cachedNode;
+  DartType type;
+
+  /**
+   * Function signature for a variable with a function type. The signature is
+   * kept to provide full information about parameter names through the mirror
+   * system.
+   */
+  FunctionSignature functionSignature;
+
+  ParameterElementX(String name,
+                    Element enclosingElement,
+                    ElementKind elementKind,
+                    VariableDefinitions definitions,
+                    Expression node)
+      : this.definitions = definitions,
+        this.cachedNode = node,
+        super(name, elementKind, enclosingElement);
+
+  VariableListElement get variables => this;
+
+  Modifiers get modifiers => definitions.modifiers;
+
+  Token position() => cachedNode.getBeginToken();
+
+  Node parseNode(DiagnosticListener listener) => cachedNode;
+
+  DartType computeType(Compiler compiler) {
+    assert(invariant(this, type != null,
+        message: "Parameter type has not been set for $this."));
+    return type;
+  }
+
+  FunctionType get functionType => type;
+
+  accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
+
+  ParameterElementX patch = null;
+  ParameterElementX origin = null;
+
+  bool get isPatch => origin != null;
+  bool get isPatched => patch != null;
 }
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {

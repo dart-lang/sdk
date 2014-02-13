@@ -314,13 +314,15 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   LibraryElement get currentLibrary => elements.currentElement.getLibrary();
 
-  reportTypeWarning(Node node, MessageKind kind, [Map arguments = const {}]) {
+  reportTypeWarning(Spannable spannable, MessageKind kind,
+                    [Map arguments = const {}]) {
     compiler.reportWarning(
-        node, new TypeWarning(kind, arguments, compiler.terseDiagnostics));
+        spannable, new TypeWarning(kind, arguments, compiler.terseDiagnostics));
   }
 
-  reportTypeInfo(Spannable node, MessageKind kind, [Map arguments = const {}]) {
-    compiler.reportInfo(node, kind, arguments);
+  reportTypeInfo(Spannable spannable, MessageKind kind,
+                 [Map arguments = const {}]) {
+    compiler.reportInfo(spannable, kind, arguments);
   }
 
   reportTypePromotionHint(TypePromotion typePromotion) {
@@ -466,14 +468,14 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    * return value of type [to].  If `isConst == true`, an error is emitted in
    * checked mode, otherwise a warning is issued.
    */
-  bool checkAssignable(Node node, DartType from, DartType to,
+  bool checkAssignable(Spannable spannable, DartType from, DartType to,
                        {bool isConst: false}) {
     if (!types.isAssignable(from, to)) {
       if (compiler.enableTypeAssertions && isConst) {
-        compiler.reportError(node, MessageKind.NOT_ASSIGNABLE.error,
+        compiler.reportError(spannable, MessageKind.NOT_ASSIGNABLE.error,
                              {'fromType': from, 'toType': to});
       } else {
-        reportTypeWarning(node, MessageKind.NOT_ASSIGNABLE.warning,
+        reportTypeWarning(spannable, MessageKind.NOT_ASSIGNABLE.warning,
                           {'fromType': from, 'toType': to});
       }
       return false;
@@ -561,7 +563,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       element.functionSignature.forEachParameter((Element parameter) {
         if (parameter.isFieldParameter()) {
           FieldParameterElement fieldParameter = parameter;
-          checkAssignable(parameter.parseNode(compiler),
+          checkAssignable(parameter,
               parameter.computeType(compiler),
               fieldParameter.fieldElement.computeType(compiler));
         }

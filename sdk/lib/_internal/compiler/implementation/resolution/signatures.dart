@@ -7,8 +7,9 @@ part of resolution;
 /**
  * [SignatureResolver] resolves function signatures.
  */
-class SignatureResolver extends CommonResolverVisitor<Element> {
+class SignatureResolver extends MappingVisitor<Element> {
   final Element enclosingElement;
+  final Scope scope;
   final MessageKind defaultValuesError;
   Link<Element> optionalParameters = const Link<Element>();
   int optionalParameterCount = 0;
@@ -17,9 +18,12 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   VariableDefinitions currentDefinitions;
 
   SignatureResolver(Compiler compiler,
-                    this.enclosingElement,
+                    Element enclosingElement,
+                    TreeElementMapping treeElements,
                     {this.defaultValuesError})
-      : super(compiler);
+      : this.enclosingElement = enclosingElement,
+        this.scope = enclosingElement.buildScope(),
+        super(compiler, treeElements);
 
   bool get defaultValuesAllowed => defaultValuesError == null;
 
@@ -87,29 +91,45 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     }
   }
 
-  Element visitIdentifier(Identifier node) {
-    validateName(node);
-    Element variables = new VariableListElementX.node(currentDefinitions,
-        ElementKind.VARIABLE_LIST, enclosingElement);
-    // Ensure a parameter is not typed 'void'.
-    variables.computeType(compiler);
-    return new VariableElementX(node.source, variables,
-        ElementKind.PARAMETER, node);
+  void computeParameterType(ParameterElementX element) {
+    if (currentDefinitions.type != null) {
+      element.type = compiler.resolver.resolveTypeAnnotation(element,
+          currentDefinitions.type);
+    } else {
+      // Is node.definitions exactly one FunctionExpression?
+      Link<Node> link = currentDefinitions.definitions.nodes;
+      if (!link.isEmpty &&
+          link.head.asFunctionExpression() != null &&
+          link.tail.isEmpty) {
+        FunctionExpression functionExpression = link.head;
+        // We found exactly one FunctionExpression
+        element.functionSignature = SignatureResolver.analyze(
+            compiler, functionExpression.parameters,
+            functionExpression.returnType, element, mapping,
+            defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
+        element.type =
+            compiler.computeFunctionType(element, element.functionSignature);
+      } else {
+        element.type = compiler.types.dynamicType;
+      }
+    }
   }
 
-  String getParameterName(Send node) {
+  Element visitIdentifier(Identifier node) {
+    return createParameter(node, node);
+  }
+
+  Identifier getParameterName(Send node) {
     var identifier = node.selector.asIdentifier();
     if (identifier != null) {
       // Normal parameter: [:Type name:].
-      validateName(identifier);
-      return identifier.source;
+      return identifier;
     } else {
       // Function type parameter: [:void name(DartType arg):].
       var functionExpression = node.selector.asFunctionExpression();
       if (functionExpression != null &&
           functionExpression.name.asIdentifier() != null) {
-        validateName(functionExpression.name);
-        return functionExpression.name.asIdentifier().source;
+        return functionExpression.name.asIdentifier();
       } else {
         cancel(node,
             'internal error: unimplemented receiver on parameter send');
@@ -120,8 +140,21 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
 
   // The only valid [Send] can be in constructors and must be of the form
   // [:this.x:] (where [:x:] represents an instance field).
-  FieldParameterElement visitSend(Send node) {
-    FieldParameterElement element;
+  FieldParameterElementX visitSend(Send node) {
+    return createFieldParameter(node);
+  }
+
+  ParameterElementX createParameter(Node node, Identifier name) {
+    validateName(name);
+    ParameterElementX parameter = new ParameterElementX(
+        name.source,
+        enclosingElement, ElementKind.PARAMETER, currentDefinitions, node);
+    computeParameterType(parameter);
+    return parameter;
+  }
+
+  FieldParameterElementX createFieldParameter(Send node) {
+    FieldParameterElementX element;
     if (node.receiver.asIdentifier() == null ||
         !node.receiver.asIdentifier().isThis()) {
       error(node, MessageKind.INVALID_PARAMETER);
@@ -129,37 +162,30 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                           ElementKind.GENERATIVE_CONSTRUCTOR)) {
       error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
     } else {
-      String name = getParameterName(node);
-      Element fieldElement = currentClass.lookupLocalMember(name);
+      Identifier name = getParameterName(node);
+      validateName(name);
+      Element fieldElement = currentClass.lookupLocalMember(name.source);
       if (fieldElement == null ||
           !identical(fieldElement.kind, ElementKind.FIELD)) {
         error(node, MessageKind.NOT_A_FIELD, {'fieldName': name});
       } else if (!fieldElement.isInstanceMember()) {
         error(node, MessageKind.NOT_INSTANCE_FIELD, {'fieldName': name});
       }
-      Element variables = new VariableListElementX.node(currentDefinitions,
-          ElementKind.VARIABLE_LIST, enclosingElement);
-      element = new FieldParameterElementX(name, fieldElement, variables, node);
+      element = new FieldParameterElementX(name.source,
+          enclosingElement, currentDefinitions, node, fieldElement);
+      computeParameterType(element);
     }
     return element;
   }
 
   /// A [SendSet] node is an optional parameter with a default value.
   Element visitSendSet(SendSet node) {
-    Element element;
+    ParameterElementX element;
     if (node.receiver != null) {
-      element = visitSend(node);
+      element = createFieldParameter(node);
     } else if (node.selector.asIdentifier() != null ||
                node.selector.asFunctionExpression() != null) {
-      Element variables = new VariableListElementX.node(currentDefinitions,
-          ElementKind.VARIABLE_LIST, enclosingElement);
-      Identifier identifier = node.selector.asIdentifier() != null ?
-          node.selector.asIdentifier() :
-          node.selector.asFunctionExpression().name.asIdentifier();
-      validateName(identifier);
-      String source = identifier.source;
-      element = new VariableElementX(source, variables,
-          ElementKind.PARAMETER, node);
+      element = createParameter(node, getParameterName(node));
     }
     Node defaultValue = node.arguments.head;
     if (!defaultValuesAllowed) {
@@ -182,13 +208,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       compiler.reportError(modifiers, MessageKind.VAR_FUNCTION_TYPE_PARAMETER);
     }
 
-    Element variable = visit(node.name);
-    SignatureResolver.analyze(compiler, node.parameters, node.returnType,
-        variable,
-        defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
-    // TODO(ahe): Resolve and record the function type in the correct
-    // [TreeElements].
-    return variable;
+    return createParameter(node, node.name);
   }
 
   LinkBuilder<Element> analyzeNodes(Link<Node> link) {
@@ -209,15 +229,17 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   }
 
   /**
-   * Resolves formal parameters and return type to a [FunctionSignature].
+   * Resolves formal parameters and return type of a [FunctionExpression]
+   * to a [FunctionSignature].
    */
   static FunctionSignature analyze(Compiler compiler,
                                    NodeList formalParameters,
                                    Node returnNode,
                                    Element element,
+                                   TreeElementMapping mapping,
                                    {MessageKind defaultValuesError}) {
     SignatureResolver visitor = new SignatureResolver(compiler, element,
-        defaultValuesError: defaultValuesError);
+        mapping, defaultValuesError: defaultValuesError);
     Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
     if (formalParameters == null) {
@@ -248,7 +270,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
             returnType, new TreeElementMapping(element));
       }
     } else {
-      returnType = compiler.resolveReturnType(element, returnNode);
+      returnType = compiler.resolver.resolveReturnType(element, returnNode);
     }
 
     if (element.isSetter() && (requiredParameterCount != 1 ||
@@ -270,8 +292,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   // TODO(ahe): This is temporary.
   void resolveExpression(Node node) {
     if (node == null) return;
-    node.accept(new ResolverVisitor(compiler, enclosingElement,
-                                    new TreeElementMapping(enclosingElement)));
+    node.accept(new ResolverVisitor(compiler, enclosingElement, mapping));
   }
 
   // TODO(ahe): This is temporary.

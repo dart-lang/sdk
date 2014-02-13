@@ -269,18 +269,6 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
 
   FieldParameterElement get _fieldParameterElement => _element;
 
-  TypeMirror get type {
-    VariableListElement variables = _fieldParameterElement.variables;
-    VariableDefinitions node = variables.parseNode(mirrorSystem.compiler);
-    if (node.type != null) {
-      return super.type;
-    }
-    // Use the field type for initializing formals with no type annotation.
-    return owner._getTypeMirror(
-      _fieldParameterElement.fieldElement.computeType(mirrorSystem.compiler),
-      _fieldParameterElement.fieldElement.variables.functionSignature);
-  }
-
   bool get isInitializingFormal => true;
 
   VariableMirror get initializedField => new Dart2JsFieldMirror(
