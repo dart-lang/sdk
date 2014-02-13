@@ -249,6 +249,8 @@ class CustomElement implements Element {
     host.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
 
+  InputMethodContext get inputMethodContext => host.inputMethodContext;
+
   bool get isContentEditable => host.isContentEditable;
 
   String get lang => host.lang;
