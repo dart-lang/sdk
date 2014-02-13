@@ -512,10 +512,10 @@ class HtmlDartInterfaceGenerator(object):
 
     for info in infos:
       constructors.append(info.ConstructorInfo(self._interface.id))
-      if factory_provider:
-        assert factory_provider == info.factory_provider_name
-      else:
-        factory_provider = info.factory_provider_name
+      if factory_provider and factory_provider != info.factory_provider_name:
+        _logger.warn('Conflicting factory provider names: %s != %s' %
+          (factory_provider, info.factory_provider_name))
+      factory_provider = info.factory_provider_name
 
     implementation_emitter = self._ImplementationEmitter()
 
