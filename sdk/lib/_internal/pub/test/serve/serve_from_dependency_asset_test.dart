@@ -31,9 +31,9 @@ main() {
     requestShouldSucceed("assets/foo/foo.txt", "foo");
     requestShouldSucceed("assets/foo/sub/bar.txt", "bar");
 
-    // "assets" can be in a subpath of the URL:
-    requestShouldSucceed("foo/assets/foo/foo.txt", "foo");
-    requestShouldSucceed("a/b/assets/foo/sub/bar.txt", "bar");
+    // "assets" cannot be in a subpath of the URL:
+    requestShould404("foo/assets/foo/foo.txt");
+    requestShould404("a/b/assets/foo/sub/bar.txt");
     endPubServe();
   });
 }

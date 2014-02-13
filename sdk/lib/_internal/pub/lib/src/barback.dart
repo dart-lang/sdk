@@ -126,39 +126,55 @@ Uri idToPackageUri(AssetId id) {
   return new Uri(scheme: 'package', path: id.path.replaceFirst('lib/', ''));
 }
 
-/// Converts [uri] into an [AssetId] if it has a path containing "packages" or
+/// Converts [uri] into an [AssetId] if its path is within "packages" or
 /// "assets".
 ///
-/// If the URI doesn't contain one of those special directories, returns null.
-/// If it does contain a special directory, but lacks a following package name,
+/// While "packages" can appear anywhere in the path, "assets" is only allowed
+/// as the top-level directory. (This throws a [FormatException] if "assets"
+/// appears anywhere else.)
+///
+/// If the URL contains a special directory, but lacks a following package name,
 /// throws a [FormatException].
+///
+/// If the URI doesn't contain one of those special directories, returns null.
 AssetId specialUrlToId(Uri url) {
   var parts = path.url.split(url.path);
 
-  for (var pair in [["packages", "lib"], ["assets", "asset"]]) {
-    var partName = pair.first;
-    var dirName = pair.last;
+  // Strip the leading "/" from the URL.
+  if (parts.isNotEmpty && parts.first == "/") parts = parts.skip(1).toList();
 
-    // Find the package name and the relative path in the package.
-    var index = parts.indexOf(partName);
-    if (index == -1) continue;
+  if (parts.isEmpty) return null;
 
-    // If we got here, the path *did* contain the special directory, which
-    // means we should not interpret it as a regular path. If it's missing the
-    // package name after the special directory, it's invalid.
-    if (index + 1 >= parts.length) {
+  // Check for "assets" at the beginning of the URL.
+  if (parts.first == "assets") {
+    if (parts.length <= 1) {
       throw new FormatException(
-          'Invalid package path "${path.url.joinAll(parts)}". '
-          'Expected package name after "$partName".');
+          'Invalid URL path "${url.path}". Expected package name after '
+          '"assets".');
     }
 
-    var package = parts[index + 1];
-    var assetPath = path.url.join(dirName,
-        path.url.joinAll(parts.skip(index + 2)));
+    var package = parts[1];
+    var assetPath = path.url.join("asset", path.url.joinAll(parts.skip(2)));
     return new AssetId(package, assetPath);
   }
 
-  return null;
+  // Check for "packages" anywhere in the URL.
+  // TODO(rnystrom): If we rewrite "package:" imports to relative imports that
+  // point to a canonical "packages" directory, we can limit "packages" to the
+  // root of the URL as well. See: #16649.
+  var index = parts.indexOf("packages");
+  if (index == -1) return null;
+
+  // There should be a package name after "packages".
+  if (parts.length <= index + 1) {
+    throw new FormatException(
+        'Invalid URL path "${url.path}". Expected package name '
+        'after "packages".');
+  }
+
+  var package = parts[index + 1];
+  var assetPath = path.url.join("lib", path.url.joinAll(parts.skip(index + 2)));
+  return new AssetId(package, assetPath);
 }
 
 /// Converts [id] to a "servable path" for that asset.
