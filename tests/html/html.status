@@ -35,8 +35,6 @@ async_test: Fail # Background timers not implemented.
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 indexeddb_5_test: RuntimeError # Issue 16657 Chrome 33 regression)
-fileapi_test/fileEntry: RuntimeError # Issue 16657 (Chrome 33 regression)
-audiocontext_test/functional: RuntimeError # Issue 16657 (Chrome 33 regression)
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
