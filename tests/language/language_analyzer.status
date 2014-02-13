@@ -174,9 +174,6 @@ least_upper_bound_expansive_test/12: MissingStaticWarning # Issue 15060
 proxy_test/05: StaticWarning # Issue 15467
 proxy_test/06: StaticWarning # Issue 15467
 
-# test issue 15714
-typevariable_substitution2_test/01: StaticWarning # Issue 15714
-
 # analyzer does not handle @proxy and noSuchMethod correctly
 override_inheritance_no_such_method_test/03: StaticWarning # Issue 16132
 override_inheritance_no_such_method_test/04: StaticWarning # Issue 16132
@@ -357,14 +354,11 @@ method_override6_test: StaticWarning
 method_override_test: StaticWarning
 mixin_illegal_static_access_test: StaticWarning
 mixin_illegal_syntax_test/13: CompileTimeError
-mixin_typedef_constructor_test: StaticWarning
-mixin_type_parameter2_test: StaticWarning
 mixin_type_parameters_mixin_extends_test: StaticWarning
 mixin_type_parameters_mixin_test: StaticWarning
 mixin_type_parameters_super_extends_test: StaticWarning
 mixin_type_parameters_super_test: StaticWarning
 mixin_with_two_implicit_constructors_test: StaticWarning
-mixin_bound_test: StaticWarning
 mixin_invalid_bound_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 mixin_invalid_bound2_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 named_constructor_test/01: StaticWarning
