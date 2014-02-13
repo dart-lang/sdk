@@ -32,6 +32,10 @@ main() {
     // Once we request the output, it should start compiling and fail.
     requestShould404("syntax-error.dart.js");
     expect(server.nextLine(),
+        completion(equals("[Info from Dart2JS]:")));
+    expect(server.nextLine(),
+        completion(equals("Compiling myapp|web/syntax-error.dart...")));
+    expect(server.nextLine(),
         completion(equals("Build completed with 1 errors.")));
     endPubServe();
   });

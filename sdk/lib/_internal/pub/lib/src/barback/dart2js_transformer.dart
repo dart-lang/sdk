@@ -70,6 +70,8 @@ class Dart2JSTransformer extends Transformer implements LazyTransformer {
   }
 
   Future apply(Transform transform) {
+    transform.logger.info("Compiling ${transform.primaryInput.id}...");
+
     // Wait for any ongoing apply to finish first.
     // TODO(rnystrom): If there are multiple simultaneous compiles, this will
     // resume and pause them repeatedly. It still serializes them correctly,
