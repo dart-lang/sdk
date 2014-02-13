@@ -78,6 +78,7 @@ mirrors/method_mirror_source_line_ending_test : RuntimeError # Issue 6490
 mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this.
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test/none: RuntimeError # Issue 12464
+mirrors/null_test : RuntimeError # Issue 12129
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_metadata_test: RuntimeError # Issue 10905
 mirrors/private_symbol_test: CompileTimeError # Issue 13597
@@ -174,8 +175,7 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
                                          # implement timer (currently only in d8)
 
 [ $compiler == dart2js && $minified ]
-mirrors/intercepted_superclass_test: RuntimeError # Issue 16804
-mirrors/null_test/00: RuntimeError # Issue 16804. Please remove the multi-test comments when this test starts succeeding.
+mirrors/intercepted_superclass_test: RuntimeError # Issue 16389
 
 [ $compiler == dart2dart ]
 mirrors/*: Skip # http://dartbug.com/11511
