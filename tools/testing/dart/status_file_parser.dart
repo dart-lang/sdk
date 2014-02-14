@@ -7,7 +7,9 @@ library status_file_parser;
 import "dart:async";
 import "dart:convert" show LineSplitter, UTF8;
 import "dart:io";
+
 import "status_expression.dart";
+import "utils.dart" show Path;
 
 class Expectation {
   // Possible outcomes of running a test.
@@ -110,14 +112,25 @@ final RegExp RulePattern = new RegExp(r"\s*([^: ]*)\s*:(.*)");
 final RegExp IssueNumberPattern =
     new RegExp("Issue ([0-9]+)|dartbug.com/([0-9]+)", caseSensitive: false);
 
+class StatusFile {
+  final Path location;
+
+  StatusFile(this.location);
+}
+
 // TODO(whesse): Implement configuration_info library that contains data
 // structures for test configuration, including Section.
 class Section {
-  BooleanExpression condition;
-  List<TestRule> testRules;
+  final StatusFile statusFile;
 
-  Section.always() : condition = null, testRules = new List<TestRule>();
-  Section(this.condition) : testRules = new List<TestRule>();
+  final BooleanExpression condition;
+  final List<TestRule> testRules;
+  final int lineNumber;
+
+  Section.always(this.statusFile, this.lineNumber)
+      : condition = null, testRules = new List<TestRule>();
+  Section(this.statusFile, this.condition, this.lineNumber)
+      : testRules = new List<TestRule>();
 
   bool isEnabled(environment) =>
       condition == null || condition.evaluate(environment);
@@ -153,24 +166,28 @@ Future ReadTestExpectationsInto(TestExpectations expectations,
     completer.complete();
   }
 
-  ReadConfigurationInto(statusFilePath, sections, sectionsRead);
+  ReadConfigurationInto(new Path(statusFilePath), sections, sectionsRead);
   return completer.future;
 }
 
-void ReadConfigurationInto(path, sections, onDone) {
-  File file = new File(path);
+void ReadConfigurationInto(Path path, sections, onDone) {
+  StatusFile statusFile = new StatusFile(path);
+  File file = new File(path.toNativePath());
   if (!file.existsSync()) {
     throw new Exception('Cannot find test status file $path');
   }
+  int lineNumber = 0;
   Stream<String> lines =
       file.openRead()
           .transform(UTF8.decoder)
           .transform(new LineSplitter());
 
-  Section current = new Section.always();
-  sections.add(current);
+  Section currentSection = new Section.always(statusFile, -1);
+  sections.add(currentSection);
+
 
   lines.listen((String line) {
+    lineNumber++;
     Match match = SplitComment.firstMatch(line);
     line = (match == null) ? "" : match[1];
     line = line.trim();
@@ -184,8 +201,9 @@ void ReadConfigurationInto(path, sections, onDone) {
       String condition_string = match[1].trim();
       List<String> tokens = new Tokenizer(condition_string).tokenize();
       ExpressionParser parser = new ExpressionParser(new Scanner(tokens));
-      current = new Section(parser.parseBooleanExpression());
-      sections.add(current);
+      currentSection =
+          new Section(statusFile, parser.parseBooleanExpression(), lineNumber);
+      sections.add(currentSection);
       return;
     }
 
@@ -206,7 +224,8 @@ void ReadConfigurationInto(path, sections, onDone) {
         if (issueString == null) issueString = match[2];
       }
       int issue = issueString != null ? int.parse(issueString) : null;
-      current.testRules.add(new TestRule(name, expression, issue));
+      currentSection.testRules.add(
+          new TestRule(name, expression, issue, lineNumber));
       return;
     }
 
@@ -220,8 +239,12 @@ class TestRule {
   String name;
   SetExpression expression;
   int issue;
+  int lineNumber;
 
-  TestRule(this.name, this.expression, this.issue);
+  TestRule(this.name,
+           this.expression,
+           this.issue,
+           this.lineNumber);
 
   bool get hasIssue => issue != null;
 

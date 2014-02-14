@@ -26,6 +26,10 @@ import "http_server.dart" show PREFIX_BUILDDIR, PREFIX_DARTDIR;
 part "browser_test.dart";
 
 
+RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");
+RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration()");
+RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
+
 /**
  * A simple function that tests [arg] and returns `true` or `false`.
  */
@@ -634,8 +638,6 @@ class StandardTestSuite extends TestSuite {
   Predicate<String> isTestFilePredicate;
   final bool listRecursively;
   final extraVmOptions;
-
-  static final RegExp multiTestRegExp = new RegExp(r"/// [0-9][0-9]:(.*)");
 
   StandardTestSuite(Map configuration,
                     String suiteName,
@@ -1606,8 +1608,6 @@ class StandardTestSuite extends TestSuite {
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
-    RegExp multiHtmlTestRegExp =
-        new RegExp(r"useHtmlIndividualConfiguration()");
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
     // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
@@ -1673,15 +1673,9 @@ class StandardTestSuite extends TestSuite {
     String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
     bool containsDomImport = domImportRegExp.hasMatch(contents);
 
-    // Note: This is brittle. It's the age-old problem of having a context free
-    // language but the means to easily identify the construct is a regular
-    // expression, aka impossible. Therefore we just make an approximation of
-    // the number of top-level "group(...)" occurrences. This assumes you import
-    // unittest with no prefix and always directly call "group(". It only uses
-    // top-level "groups" so tests running nested groups will be no-ops.
-    RegExp numTests = new RegExp(r"\s*[^/]\s*group\('[^,']*");
     List<String> subtestNames = [];
-    Iterator matchesIter = numTests.allMatches(contents).iterator;
+    Iterator matchesIter =
+        multiHtmlTestGroupRegExp.allMatches(contents).iterator;
     while(matchesIter.moveNext() && isMultiHtmlTest) {
       String fullMatch = matchesIter.current.group(0);
       subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
