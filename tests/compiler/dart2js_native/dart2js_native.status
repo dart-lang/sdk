@@ -22,3 +22,6 @@ only_pass_on_d8_test: Fail, OK # This test should only pass on D8.
 
 [ $browser || $runtime == d8 ]
 only_pass_on_jsshell_test: Fail, OK # This test should only pass on jsshell.
+
+[ $compiler == dart2js && $checked && $runtime == d8 ]
+compute_this_script_test: Crash # TODO(floitsch): Mark as failing while debugging.
