@@ -94,8 +94,7 @@ import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 import 'dart:_interceptors' show JavaScriptObject, UnknownJavaScriptObject;
-import 'dart:_js_helper' show Primitives, convertDartClosureToJS,
-    getIsolateAffinityTag;
+import 'dart:_js_helper' show Primitives, convertDartClosureToJS;
 
 final JsObject context = _wrapToDart(Primitives.computeGlobalThis());
 
@@ -452,10 +451,8 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 }
 
 // property added to a Dart object referencing its JS-side DartObject proxy
-final String _DART_OBJECT_PROPERTY_NAME =
-    getIsolateAffinityTag(r'_$dart_dartObject');
-final String _DART_CLOSURE_PROPERTY_NAME =
-    getIsolateAffinityTag(r'_$dart_dartClosure');
+const _DART_OBJECT_PROPERTY_NAME = r'_$dart_dartObject';
+const _DART_CLOSURE_PROPERTY_NAME = r'_$dart_dartClosure';
 
 // property added to a JS object referencing its Dart-side JsObject proxy
 const _JS_OBJECT_PROPERTY_NAME = r'_$dart_jsObject';
