@@ -13,12 +13,12 @@ class A extends C {
 
 class C {
   foo() {
-    print(a); /// 01: static type warning
-    return a; /// 01: continued
+    print(a); /// static type warning
+    return a; /// static type warning
   }
   bar() {
-    print(b.a); /// 02: static type warning
-    return b.a; /// 02: continued
+    print(b.a); /// static type warning
+    return b.a; /// static type warning
   }
 }
 
@@ -26,6 +26,6 @@ main() {
   var a = new A();
   a.a = 1;
   a.b = a;
-  Expect.equals(1, a.foo()); /// 01: continued
-  Expect.equals(1, a.bar()); /// 02: continued
+  Expect.equals(1, a.foo());
+  Expect.equals(1, a.bar());
 }

@@ -6,17 +6,16 @@
 import "package:expect/expect.dart";
 
 main() {
-  var v = 0.0;
-  Expect.throws(() => v.toStringAsFixed(-1),
+  Expect.throws(() => 0.0.toStringAsFixed(-1),
                 (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsFixed(21),
+  Expect.throws(() => 0.0.toStringAsFixed(21),
                 (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsFixed(null),
+  Expect.throws(() => 0.0.toStringAsFixed(null),
                 (e) => e is ArgumentError);
-  Expect.throws(() => v.toStringAsFixed(1.5),
+  Expect.throws(() => 0.0.toStringAsFixed(1.5),
                 (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsFixed("string"),
+  Expect.throws(() => 0.0.toStringAsFixed("string"),
                 (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsFixed("3"),
+  Expect.throws(() => 0.0.toStringAsFixed("3"),
                 (e) => e is ArgumentError || e is TypeError);
 }

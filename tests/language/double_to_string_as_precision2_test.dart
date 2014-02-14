@@ -6,18 +6,17 @@
 import "package:expect/expect.dart";
 
 main() {
-  var v = 0.0;
-  Expect.throws(() => v.toStringAsPrecision(0),
+  Expect.throws(() => 0.0.toStringAsPrecision(0),
                 (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsPrecision(22),
+  Expect.throws(() => 0.0.toStringAsPrecision(22),
                 (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsPrecision(null),
+  Expect.throws(() => 0.0.toStringAsPrecision(null),
                 (e) => e is ArgumentError);
-  Expect.throws(() => v.toStringAsPrecision(1.5),
+  Expect.throws(() => 0.0.toStringAsPrecision(1.5),
                 (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsPrecision("string"),
+  Expect.throws(() => 0.0.toStringAsPrecision("string"),
                 (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsPrecision("3"),
+  Expect.throws(() => 0.0.toStringAsPrecision("3"),
                 (e) => e is ArgumentError || e is TypeError);
 
 }

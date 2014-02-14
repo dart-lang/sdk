@@ -6,15 +6,14 @@
 import "package:expect/expect.dart";
 
 main() {
-  var v = 1.0;
-  Expect.throws(() => v.toStringAsExponential(-1),
+  Expect.throws(() => (1.0).toStringAsExponential(-1),
                 (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsExponential(21),
+  Expect.throws(() => (1.0).toStringAsExponential(21),
                 (e) => e is RangeError);
-  Expect.throws(() => v.toStringAsExponential(1.5),
+  Expect.throws(() => (1.0).toStringAsExponential(1.5),
                 (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsExponential("string"),
+  Expect.throws(() => (1.0).toStringAsExponential("string"),
                 (e) => e is ArgumentError || e is TypeError);
-  Expect.throws(() => v.toStringAsExponential("3"),
+  Expect.throws(() => (1.0).toStringAsExponential("3"),
                 (e) => e is ArgumentError || e is TypeError);
 }
