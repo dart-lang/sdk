@@ -32,9 +32,17 @@ main() {
     var throwsPubspecException =
       throwsA(new isInstanceOf<PubspecException>('PubspecException'));
 
-    expectPubspecException(String contents, fn(Pubspec pubspec)) {
+    expectPubspecException(String contents, fn(Pubspec pubspec),
+        [String expectedContains]) {
+      var expectation = throwsPubspecException;
+      if (expectedContains != null) {
+        expectation = throwsA(allOf(
+            new isInstanceOf<PubspecException>('PubspecException'),
+            predicate((error) => error.message.contains(expectedContains))));
+      }
+
       var pubspec = new Pubspec.parse(contents, sources);
-      expect(() => fn(pubspec), throwsPubspecException);
+      expect(() => fn(pubspec), expectation);
     }
 
     test("doesn't eagerly throw an error for an invalid field", () {
@@ -215,28 +223,88 @@ dependencies:
           (pubspec) => pubspec.version);
     });
 
+    test("throws if transformers isn't a list", () {
+      expectPubspecException('transformers: "not list"',
+          (pubspec) => pubspec.transformers,
+          '"transformers" field must be a list');
+    });
+
     test("throws if a transformer isn't a string or map", () {
-      expectPubspecException('transformers: 12',
-          (pubspec) => pubspec.transformers);
       expectPubspecException('transformers: [12]',
-          (pubspec) => pubspec.transformers);
+          (pubspec) => pubspec.transformers,
+          '"transformers" field must be a string or map');
     });
 
     test("throws if a transformer's configuration isn't a map", () {
-      expectPubspecException('transformers: {pkg: 12}',
-          (pubspec) => pubspec.transformers);
+      expectPubspecException('transformers: [{pkg: 12}]',
+          (pubspec) => pubspec.transformers,
+          '"transformers.pkg" field must be a map');
     });
 
     test("throws if a transformer's configuration contains a top-level key "
         "beginning with a dollar sign", () {
-      expectPubspecException('transformers: {pkg: {\$key: value}}',
-          (pubspec) => pubspec.transformers);
+      expectPubspecException('''
+name: pkg
+transformers: [{pkg: {\$key: "value"}}]''',
+          (pubspec) => pubspec.transformers,
+          '"transformers.pkg" field cannot contain reserved field "\$key"');
     });
 
     test("doesn't throw if a transformer's configuration contains a "
         "non-top-level key beginning with a dollar sign", () {
-      expectPubspecException('transformers: {pkg: {\$key: value}}',
-          (pubspec) => pubspec.transformers);
+      var pubspec = new Pubspec.parse('''
+name: pkg
+transformers:
+- pkg: {outer: {\$inner: value}}
+''', sources);
+
+      var pkg = pubspec.transformers[0].single;
+      expect(pkg.configuration["outer"]["\$inner"], equals("value"));
+    });
+
+    test("throws if a transformer is not from a dependency", () {
+      expectPubspecException('''
+name: pkg
+transformers: [foo]
+''',
+          (pubspec) => pubspec.transformers,
+          '"transformers.foo" refers to a package that\'s not a dependency.');
+    });
+
+    test("allows a transformer from a normal dependency", () {
+      var pubspec = new Pubspec.parse('''
+name: pkg
+dependencies:
+  foo:
+    mock: ok
+transformers:
+- foo''', sources);
+
+      expect(pubspec.transformers[0].single.package, equals("foo"));
+    });
+
+    test("allows a transformer from a dev dependency", () {
+      var pubspec = new Pubspec.parse('''
+name: pkg
+dev_dependencies:
+  foo:
+    mock: ok
+transformers:
+- foo''', sources);
+
+      expect(pubspec.transformers[0].single.package, equals("foo"));
+    });
+
+    test("allows a transformer from a dependency override", () {
+      var pubspec = new Pubspec.parse('''
+name: pkg
+dependency_overrides:
+  foo:
+    mock: ok
+transformers:
+- foo''', sources);
+
+      expect(pubspec.transformers[0].single.package, equals("foo"));
     });
 
     test("allows comment-only files", () {

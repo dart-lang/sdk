@@ -177,15 +177,19 @@ class Pubspec {
             "$field.$library",
             () => new TransformerId.parse(library, configuration));
 
-        if (id.package != name && !id.isBuiltInTransformer &&
-            !dependencies.any((ref) => ref.name == id.package)) {
-          _error('"$field.$library" refers to a package that\'s not listed in '
-              '"dependencies".');
+        if (id.package != name &&
+            !id.isBuiltInTransformer &&
+            !dependencies.any((ref) => ref.name == id.package) &&
+            !devDependencies.any((ref) => ref.name == id.package) &&
+            !dependencyOverrides.any((ref) => ref.name == id.package)) {
+          _error('"$field.$library" refers to a package that\'s not a '
+              'dependency.');
         }
 
         return id;
       }).toSet();
     }).toList();
+
     return _transformers;
   }
   List<Set<TransformerId>> _transformers;
