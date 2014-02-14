@@ -1097,13 +1097,11 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 
 // Called for inline allocation of objects.
 // Input parameters:
-//   RSP + 16 : type arguments object (only if class is parameterized).
-//   RSP + 8 : type arguments of instantiator (only if class is parameterized).
+//   RSP + 8 : type arguments object (only if class is parameterized).
 //   RSP : points to return address.
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
-  const intptr_t kObjectTypeArgumentsOffset = 2 * kWordSize;
-  const intptr_t kInstantiatorTypeArgumentsOffset = 1 * kWordSize;
+  const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   ASSERT(!is_cls_parameterized ||
@@ -1119,41 +1117,12 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     Label slow_case_reload_type_arguments;
     if (is_cls_parameterized) {
-      // Instantiation of the type arguments vector is only required if an
-      // instantiator is provided (not kNoInstantiator, but may be null).
       __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
-      __ movq(RDI, Address(RSP, kInstantiatorTypeArgumentsOffset));
-      Label type_arguments_ready;
-      __ cmpq(RDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &type_arguments_ready, Assembler::kNearJump);
-      // Lookup instantiator RDI in instantiations array of type arguments RDX
-      // and, if found, use cached instantiated type arguments.
-      __ movq(RAX, FieldAddress(RDX, TypeArguments::instantiations_offset()));
-      __ movq(RBX, FieldAddress(RAX, Array::length_offset()));
-      __ leaq(RAX, FieldAddress(RAX, Array::data_offset()));
-      __ leaq(RBX, Address(RAX, RBX, TIMES_4, 0));  // RBX is smi.
-      Label loop, found;
-      __ Bind(&loop);
-      __ cmpq(RAX, RBX);
-      __ j(ABOVE_EQUAL, &slow_case_reload_type_arguments);
-      __ movq(RDX, Address(RAX, 0 * kWordSize));  // Cached instantiator.
-      __ cmpq(RDX, RDI);
-      __ j(EQUAL, &found, Assembler::kNearJump);
-      __ cmpq(RDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &slow_case_reload_type_arguments);
-      __ addq(RAX, Immediate(2 * kWordSize));
-      __ jmp(&loop, Assembler::kNearJump);
-      __ Bind(&found);
-      __ movq(RDX, Address(RAX, 1 * kWordSize));  // Cached instantiated args.
-      __ movq(RDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ Bind(&type_arguments_ready);
       // RDX: instantiated type arguments.
-      // RDI: kNoInstantiator.
     }
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
-    // RDI: kNoInstantiator (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
     __ movq(RCX, Immediate(heap->TopAddress()));
     __ movq(RAX, Address(RCX, 0));
@@ -1227,25 +1196,20 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   }
   if (is_cls_parameterized) {
     __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
-    __ movq(RDI, Address(RSP, kInstantiatorTypeArgumentsOffset));
   }
   __ Bind(&slow_case_with_type_arguments);
   // If is_cls_parameterized:
-  // RDX: new object type arguments (instantiated or not).
-  // RDI: instantiator type arguments or kNoInstantiator.
+  // RDX: new object type arguments.
   // Create a stub frame.
   __ EnterStubFrame(true);  // Uses PP to access class object.
   __ pushq(R12);  // Setup space on stack for return value.
   __ PushObject(cls, PP);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushq(RDX);  // Push type arguments of object to be allocated.
-    __ pushq(RDI);  // Push type arguments of instantiator.
   } else {
     __ pushq(R12);  // Push null type arguments.
-    __ pushq(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
-  __ CallRuntime(kAllocateObjectRuntimeEntry, 3);  // Allocate object.
-  __ popq(RAX);  // Pop argument (instantiator).
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
   __ popq(RAX);  // Pop argument (type arguments of object).
   __ popq(RAX);  // Pop argument (class of object).
   __ popq(RAX);  // Pop result (newly allocated object).

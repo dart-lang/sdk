@@ -2273,10 +2273,6 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
                                                       instantiator_class,
                                                       NULL);
       arguments->Add(PushArgument(type_arguments));
-
-      Value* instantiator_val = Bind(new ConstantInstr(
-          Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
-      arguments->Add(PushArgument(instantiator_val));
     }
     AllocateObjectInstr* alloc = new AllocateObjectInstr(node->token_pos(),
                                                          cls,
@@ -2491,12 +2487,14 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 
 Value* EffectGraphVisitor::BuildObjectAllocation(ConstructorCallNode* node) {
   const Class& cls = Class::ZoneHandle(node->constructor().Owner());
-  const bool requires_type_arguments = cls.NumTypeArguments() > 0;
+  const bool cls_is_parameterized = cls.NumTypeArguments() > 0;
 
   ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
-      new ZoneGrowableArray<PushArgumentInstr*>();
-  if (requires_type_arguments) {
-    BuildConstructorTypeArguments(node, allocate_arguments);
+      new ZoneGrowableArray<PushArgumentInstr*>(cls_is_parameterized ? 1 : 0);
+  if (cls_is_parameterized) {
+    Value* type_args = BuildInstantiatedTypeArguments(node->token_pos(),
+                                                      node->type_arguments());
+    allocate_arguments->Add(PushArgument(type_args));
   }
 
   Definition* allocation = new AllocateObjectInstr(
@@ -2681,79 +2679,14 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
   const bool use_instantiator_type_args =
       type_arguments.IsUninstantiatedIdentity() ||
       type_arguments.CanShareInstantiatorTypeArguments(instantiator_class);
-  return use_instantiator_type_args
-      ? instantiator_value
-      : Bind(new InstantiateTypeArgumentsInstr(token_pos,
-                                               type_arguments,
-                                               instantiator_class,
-                                               instantiator_value));
-}
-
-
-void EffectGraphVisitor::BuildConstructorTypeArguments(
-    ConstructorCallNode* node,
-    ZoneGrowableArray<PushArgumentInstr*>* call_arguments) {
-  const Class& cls = Class::ZoneHandle(node->constructor().Owner());
-  ASSERT((cls.NumTypeArguments() > 0) && !node->constructor().IsFactory());
-  if (node->type_arguments().IsNull() ||
-      node->type_arguments().IsInstantiated()) {
-    Value* type_arguments_val = Bind(new ConstantInstr(node->type_arguments()));
-    call_arguments->Add(PushArgument(type_arguments_val));
-
-    // No instantiator required.
-    Value* instantiator_val = Bind(new ConstantInstr(
-        Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
-    call_arguments->Add(PushArgument(instantiator_val));
-    return;
-  }
-
-  // The type arguments are uninstantiated. We use expression_temp_var to save
-  // the instantiator type arguments because they have two uses.
-  ASSERT(owner()->parsed_function()->expression_temp_var() != NULL);
-  const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function()->function().Owner());
-  Value* type_arguments_val = BuildInstantiatorTypeArguments(
-      node->token_pos(), instantiator_class, NULL);
-
-  const bool use_instantiator_type_args =
-      node->type_arguments().IsUninstantiatedIdentity() ||
-      node->type_arguments().CanShareInstantiatorTypeArguments(
-          instantiator_class);
-
-  if (!use_instantiator_type_args) {
-    const intptr_t len = node->type_arguments().Length();
-    if (node->type_arguments().IsRawInstantiatedRaw(len)) {
-      type_arguments_val =
-          Bind(BuildStoreExprTemp(type_arguments_val));
-      type_arguments_val = Bind(
-          new ExtractConstructorTypeArgumentsInstr(
-              node->token_pos(),
-              node->type_arguments(),
-              instantiator_class,
-              type_arguments_val));
-    } else {
-      Do(BuildStoreExprTemp(type_arguments_val));
-      type_arguments_val = Bind(new ConstantInstr(node->type_arguments()));
-    }
-  }
-  call_arguments->Add(PushArgument(type_arguments_val));
-
-  Value* instantiator_val = NULL;
-  if (!use_instantiator_type_args) {
-    instantiator_val = Bind(BuildLoadExprTemp());
-    const intptr_t len = node->type_arguments().Length();
-    if (node->type_arguments().IsRawInstantiatedRaw(len)) {
-      instantiator_val =
-          Bind(new ExtractConstructorInstantiatorInstr(node,
-                                                       instantiator_class,
-                                                       instantiator_val));
-    }
+  if (use_instantiator_type_args) {
+    return instantiator_value;
   } else {
-    // No instantiator required.
-    instantiator_val = Bind(new ConstantInstr(
-        Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
+    return Bind(new InstantiateTypeArgumentsInstr(token_pos,
+                                                  type_arguments,
+                                                  instantiator_class,
+                                                  instantiator_value));
   }
-  call_arguments->Add(PushArgument(instantiator_val));
 }
 
 

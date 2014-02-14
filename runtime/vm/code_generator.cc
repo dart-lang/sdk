@@ -114,9 +114,8 @@ static intptr_t GetCallerLocation() {
 // Allocate a new object.
 // Arg0: class of the object that needs to be allocated.
 // Arg1: type arguments of the object that needs to be allocated.
-// Arg2: type arguments of the instantiator or kNoInstantiator.
 // Return value: newly allocated object.
-DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
+DEFINE_RUNTIME_ENTRY(AllocateObject, 2) {
   const Class& cls = Class::CheckedHandle(arguments.ArgAt(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
@@ -127,48 +126,12 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
   }
   TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(arguments.ArgAt(1));
-  // If no instantiator is provided, set the type arguments and return.
-  if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
-    ASSERT(Smi::CheckedHandle(arguments.ArgAt(2)).Value() ==
-           StubCode::kNoInstantiator);
-    // Unless null (for a raw type), the type argument vector may be longer than
-    // necessary due to a type optimization reusing the type argument vector of
-    // the instantiator.
-    ASSERT(type_arguments.IsNull() ||
-           (type_arguments.IsInstantiated() &&
-            (type_arguments.Length() >= cls.NumTypeArguments())));
-    instance.SetTypeArguments(type_arguments);  // May be null.
-    return;
-  }
-  // A still uninstantiated type argument vector must have the correct length.
-  ASSERT(!type_arguments.IsInstantiated() &&
-         (type_arguments.Length() == cls.NumTypeArguments()));
-  const TypeArguments& instantiator =
-      TypeArguments::CheckedHandle(arguments.ArgAt(2));
-  ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
-  // Code inlined in the caller should have optimized the case where the
-  // instantiator can be reused as type argument vector.
-  ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-  if (FLAG_enable_type_checks) {
-    Error& bound_error = Error::Handle();
-    type_arguments =
-        type_arguments.InstantiateAndCanonicalizeFrom(instantiator,
-                                                      &bound_error);
-    if (!bound_error.IsNull()) {
-      // Throw a dynamic type error.
-      const intptr_t location = GetCallerLocation();
-      String& bound_error_message =  String::Handle(
-          String::New(bound_error.ToErrorCString()));
-      Exceptions::CreateAndThrowTypeError(
-          location, Symbols::Empty(), Symbols::Empty(),
-          Symbols::Empty(), bound_error_message);
-      UNREACHABLE();
-    }
-  } else {
-    type_arguments =
-        type_arguments.InstantiateAndCanonicalizeFrom(instantiator, NULL);
-  }
-  ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
+  // Unless null (for a raw type), the type argument vector may be longer than
+  // necessary due to a type optimization reusing the type argument vector of
+  // the instantiator.
+  ASSERT(type_arguments.IsNull() ||
+         (type_arguments.IsInstantiated() &&
+          (type_arguments.Length() >= cls.NumTypeArguments())));
   instance.SetTypeArguments(type_arguments);
 }
 
@@ -219,8 +182,25 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
   ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-  type_arguments =
-      type_arguments.InstantiateAndCanonicalizeFrom(instantiator, NULL);
+  if (FLAG_enable_type_checks) {
+    Error& bound_error = Error::Handle();
+    type_arguments =
+        type_arguments.InstantiateAndCanonicalizeFrom(instantiator,
+                                                      &bound_error);
+    if (!bound_error.IsNull()) {
+      // Throw a dynamic type error.
+      const intptr_t location = GetCallerLocation();
+      String& bound_error_message =  String::Handle(
+          String::New(bound_error.ToErrorCString()));
+      Exceptions::CreateAndThrowTypeError(
+          location, Symbols::Empty(), Symbols::Empty(),
+          Symbols::Empty(), bound_error_message);
+      UNREACHABLE();
+    }
+  } else {
+    type_arguments =
+        type_arguments.InstantiateAndCanonicalizeFrom(instantiator, NULL);
+  }
   ASSERT(type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);
 }

@@ -5664,18 +5664,6 @@ static AliasedSet* NumberPlaces(
 }
 
 
-static bool HasSimpleTypeArguments(AllocateObjectInstr* alloc) {
-  if (alloc->ArgumentCount() == 0) return true;
-  ASSERT(alloc->ArgumentCount() == 2);
-  Value* arg1 = alloc->PushArgumentAt(1)->value();
-  if (!arg1->BindsToConstant()) return false;
-
-  const Object& obj = arg1->BoundConstant();
-  return obj.IsSmi()
-      && (Smi::Cast(obj).Value() == StubCode::kNoInstantiator);
-}
-
-
 class LoadOptimizer : public ValueObject {
  public:
   LoadOptimizer(FlowGraph* graph,
@@ -5838,9 +5826,7 @@ class LoadOptimizer : public ValueObject {
         // TODO(vegorov): record null-values at least for not final fields of
         // escaping object.
         AllocateObjectInstr* alloc = instr->AsAllocateObject();
-        if ((alloc != NULL) &&
-            !AliasedSet::CanBeAliased(alloc) &&
-            HasSimpleTypeArguments(alloc)) {
+        if ((alloc != NULL) && !AliasedSet::CanBeAliased(alloc)) {
           for (Value* use = alloc->input_use_list();
                use != NULL;
                use = use->next_use()) {
@@ -5857,7 +5843,7 @@ class LoadOptimizer : public ValueObject {
               if (out_values == NULL) out_values = CreateBlockOutValues();
 
               if (alloc->ArgumentCount() > 0) {
-                ASSERT(alloc->ArgumentCount() == 2);
+                ASSERT(alloc->ArgumentCount() == 1);
                 intptr_t type_args_offset =
                     alloc->cls().type_arguments_field_offset();
                 if (load->offset_in_bytes() == type_args_offset) {
@@ -7346,38 +7332,6 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
 }
 
 
-void ConstantPropagator::VisitExtractConstructorTypeArguments(
-    ExtractConstructorTypeArgumentsInstr* instr) {
-  CompileType* type = instr->instantiator()->Type();
-  if (type->HasDecidableNullability()) {
-    if (!type->is_nullable()) {
-      SetValue(instr, instr->type_arguments());
-      return;
-    }
-    ASSERT(type->IsNull());
-    SetValue(instr, instr->instantiator()->definition()->constant_value());
-    return;
-  }
-  SetValue(instr, non_constant_);
-}
-
-
-void ConstantPropagator::VisitExtractConstructorInstantiator(
-    ExtractConstructorInstantiatorInstr* instr) {
-  CompileType* type = instr->instantiator()->Type();
-  if (type->HasDecidableNullability()) {
-    if (type->IsNull()) {
-      SetValue(instr, Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator)));
-      return;
-    }
-    ASSERT(!type->is_nullable());
-    SetValue(instr, instr->instantiator()->definition()->constant_value());
-    return;
-  }
-  SetValue(instr, non_constant_);
-}
-
-
 void ConstantPropagator::VisitAllocateContext(AllocateContextInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -8375,8 +8329,6 @@ void FlowGraphOptimizer::EliminateEnvironments() {
 // instructions that write into fields of the allocated object.
 // We do not support materialization of the object that has type arguments.
 static bool IsAllocationSinkingCandidate(AllocateObjectInstr* alloc) {
-  if (!HasSimpleTypeArguments(alloc)) return false;
-
   for (Value* use = alloc->input_use_list();
        use != NULL;
        use = use->next_use()) {
@@ -8414,7 +8366,7 @@ static void EliminateAllocation(AllocateObjectInstr* alloc) {
   ASSERT(alloc->input_use_list() == NULL);
   alloc->RemoveFromGraph();
   if (alloc->ArgumentCount() > 0) {
-    ASSERT(alloc->ArgumentCount() == 2);
+    ASSERT(alloc->ArgumentCount() == 1);
     for (intptr_t i = 0; i < alloc->ArgumentCount(); ++i) {
       alloc->PushArgumentAt(i)->RemoveFromGraph();
     }
@@ -8589,7 +8541,7 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
   }
 
   if (alloc->ArgumentCount() > 0) {
-    ASSERT(alloc->ArgumentCount() == 2);
+    ASSERT(alloc->ArgumentCount() == 1);
     const String& name = String::Handle(Symbols::New(":type_args"));
     const Field& type_args_field =
         Field::ZoneHandle(Field::New(

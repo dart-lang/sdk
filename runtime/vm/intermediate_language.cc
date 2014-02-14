@@ -33,6 +33,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+DECLARE_FLAG(bool, enable_type_checks);
 
 Definition::Definition()
     : range_(NULL),
@@ -1495,6 +1496,11 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     instantiator_type_arguments()->BindTo(null_constant);
   }
   return this;
+}
+
+
+Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
+  return (FLAG_enable_type_checks || HasUses()) ? this : NULL;
 }
 
 

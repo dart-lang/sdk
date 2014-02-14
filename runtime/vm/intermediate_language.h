@@ -648,8 +648,6 @@ class EmbeddedArray<T, 0> {
   M(LoadClassId)                                                               \
   M(InstantiateType)                                                           \
   M(InstantiateTypeArguments)                                                  \
-  M(ExtractConstructorTypeArguments)                                           \
-  M(ExtractConstructorInstantiator)                                            \
   M(AllocateContext)                                                           \
   M(CloneContext)                                                              \
   M(BinarySmiOp)                                                               \
@@ -3949,7 +3947,7 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
         closure_function_(Function::ZoneHandle()),
         context_field_(Field::ZoneHandle()) {
     // Either no arguments or one type-argument and one instantiator.
-    ASSERT(arguments->is_empty() || (arguments->length() == 2));
+    ASSERT(arguments->is_empty() || (arguments->length() == 1));
   }
 
   DECLARE_INSTRUCTION(AllocateObject)
@@ -4398,84 +4396,14 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return true; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   const intptr_t token_pos_;
   const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
-};
-
-
-class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
- public:
-  ExtractConstructorTypeArgumentsInstr(
-      intptr_t token_pos,
-      const TypeArguments& type_arguments,
-      const Class& instantiator_class,
-      Value* instantiator)
-      : token_pos_(token_pos),
-        type_arguments_(type_arguments),
-        instantiator_class_(instantiator_class) {
-    SetInputAt(0, instantiator);
-  }
-
-  DECLARE_INSTRUCTION(ExtractConstructorTypeArguments)
-
-  Value* instantiator() const { return inputs_[0]; }
-  const TypeArguments& type_arguments() const {
-    return type_arguments_;
-  }
-  const Class& instantiator_class() const { return instantiator_class_; }
-  intptr_t token_pos() const { return token_pos_; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const intptr_t token_pos_;
-  const TypeArguments& type_arguments_;
-  const Class& instantiator_class_;
-
-  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsInstr);
-};
-
-
-class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
- public:
-  ExtractConstructorInstantiatorInstr(ConstructorCallNode* ast_node,
-                                      const Class& instantiator_class,
-                                      Value* instantiator)
-      : ast_node_(*ast_node), instantiator_class_(instantiator_class) {
-    SetInputAt(0, instantiator);
-  }
-
-  DECLARE_INSTRUCTION(ExtractConstructorInstantiator)
-
-  Value* instantiator() const { return inputs_[0]; }
-  const TypeArguments& type_arguments() const {
-    return ast_node_.type_arguments();
-  }
-  const Function& constructor() const { return ast_node_.constructor(); }
-  const Class& instantiator_class() const { return instantiator_class_; }
-  intptr_t token_pos() const { return ast_node_.token_pos(); }
-
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  const ConstructorCallNode& ast_node_;
-  const Class& instantiator_class_;
-
-  DISALLOW_COPY_AND_ASSIGN(ExtractConstructorInstantiatorInstr);
 };
 
 

@@ -2051,6 +2051,8 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
+  ASSERT(instantiator_reg == RAX);
+  ASSERT(instantiator_reg == result_reg);
 
   // 'instantiator_reg' is the instantiator TypeArguments object (or null).
   ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
@@ -2065,6 +2067,31 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ CompareObject(instantiator_reg, Object::null_object(), PP);
     __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   }
+
+  // Lookup cache before calling runtime.
+  // TODO(fschneider): Consider moving this into a shared stub to reduce
+  // generated code size.
+  __ LoadObject(RDI, type_arguments(), PP);
+  __ movq(RDI, FieldAddress(RDI, TypeArguments::instantiations_offset()));
+  __ movq(RBX, FieldAddress(RDI, Array::length_offset()));
+  __ leaq(RDI, FieldAddress(RDI, Array::data_offset()));
+  __ leaq(RBX, Address(RDI, RBX, TIMES_2, 0));  // RBX is smi.
+  Label loop, found, slow_case;
+  __ Bind(&loop);
+  __ cmpq(RDI, RBX);
+  __ j(ABOVE_EQUAL, &slow_case);
+  __ movq(RDX, Address(RDI, 0 * kWordSize));  // Cached instantiator.
+  __ cmpq(RDX, RAX);
+  __ j(EQUAL, &found, Assembler::kNearJump);
+  __ cmpq(RDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+  __ j(EQUAL, &slow_case);
+  __ addq(RDI, Immediate(2 * kWordSize));
+  __ jmp(&loop, Assembler::kNearJump);
+  __ Bind(&found);
+  __ movq(RAX, Address(RDI, 1 * kWordSize));  // Cached instantiated args.
+  __ jmp(&type_arguments_instantiated);
+
+  __ Bind(&slow_case);
   // Instantiate non-null type arguments.
   // A runtime call to instantiate the type arguments is required.
   __ PushObject(Object::ZoneHandle(), PP);  // Make room for the result.
@@ -2079,87 +2106,6 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ popq(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
-}
-
-
-LocationSummary*
-ExtractConstructorTypeArgumentsInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  Register instantiator_reg = locs()->in(0).reg();
-  Register result_reg = locs()->out().reg();
-  ASSERT(instantiator_reg == result_reg);
-
-  // instantiator_reg is the instantiator type argument vector,
-  // i.e. a TypeArguments object (or null).
-  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
-         !type_arguments().CanShareInstantiatorTypeArguments(
-             instantiator_class()));
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
-
-  __ CompareObject(instantiator_reg, Object::null_object(), PP);
-  __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-  // Instantiate non-null type arguments.
-  // In the non-factory case, we rely on the allocation stub to
-  // instantiate the type arguments.
-  __ LoadObject(result_reg, type_arguments(), PP);
-  // result_reg: uninstantiated type arguments.
-
-  __ Bind(&type_arguments_instantiated);
-  // result_reg: uninstantiated or instantiated type arguments.
-}
-
-
-LocationSummary*
-ExtractConstructorInstantiatorInstr::MakeLocationSummary(bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
-  return locs;
-}
-
-
-void ExtractConstructorInstantiatorInstr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
-  Register instantiator_reg = locs()->in(0).reg();
-  ASSERT(locs()->out().reg() == instantiator_reg);
-
-  // instantiator_reg is the instantiator TypeArguments object (or null).
-  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
-         !type_arguments().CanShareInstantiatorTypeArguments(
-             instantiator_class()));
-
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments and do not pass the instantiator.
-  ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
-
-  Label instantiator_not_null;
-  __ CompareObject(instantiator_reg, Object::null_object(), PP);
-  __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
-  // Null was used in VisitExtractConstructorTypeArguments as the
-  // instantiated type arguments, no proper instantiator needed.
-  __ LoadImmediate(instantiator_reg,
-          Immediate(Smi::RawValue(StubCode::kNoInstantiator)), PP);
-  __ Bind(&instantiator_not_null);
-  // instantiator_reg: instantiator or kNoInstantiator.
 }
 
 

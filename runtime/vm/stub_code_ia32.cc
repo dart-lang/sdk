@@ -1102,14 +1102,12 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 
 // Called for inline allocation of objects.
 // Input parameters:
-//   ESP + 8 : type arguments object (only if class is parameterized).
-//   ESP + 4 : type arguments of instantiator (only if class is parameterized).
+//   ESP + 4 : type arguments object (only if class is parameterized).
 //   ESP : points to return address.
 // Uses EAX, EBX, ECX, EDX, EDI as temporary registers.
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
-  const intptr_t kObjectTypeArgumentsOffset = 2 * kWordSize;
-  const intptr_t kInstantiatorTypeArgumentsOffset = 1 * kWordSize;
+  const intptr_t kObjectTypeArgumentsOffset = 1 * kWordSize;
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // The generated code is different if the class is parameterized.
@@ -1126,41 +1124,12 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     Label slow_case_reload_type_arguments;
     if (is_cls_parameterized) {
-      // Instantiation of the type arguments vector is only required if an
-      // instantiator is provided (not kNoInstantiator, but may be null).
       __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
-      __ movl(EDI, Address(ESP, kInstantiatorTypeArgumentsOffset));
-      Label type_arguments_ready;
-      __ cmpl(EDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &type_arguments_ready, Assembler::kNearJump);
-      // Lookup instantiator EDI in instantiations array of type arguments EDX
-      // and, if found, use cached instantiated type arguments.
-      __ movl(EAX, FieldAddress(EDX, TypeArguments::instantiations_offset()));
-      __ movl(EBX, FieldAddress(EAX, Array::length_offset()));
-      __ leal(EAX, FieldAddress(EAX, Array::data_offset()));
-      __ leal(EBX, Address(EAX, EBX, TIMES_2, 0));  // EBX is smi.
-      Label loop, found;
-      __ Bind(&loop);
-      __ cmpl(EAX, EBX);
-      __ j(ABOVE_EQUAL, &slow_case_reload_type_arguments);
-      __ movl(EDX, Address(EAX, 0 * kWordSize));  // Cached instantiator.
-      __ cmpl(EDX, EDI);
-      __ j(EQUAL, &found, Assembler::kNearJump);
-      __ cmpl(EDX, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ j(EQUAL, &slow_case_reload_type_arguments);
-      __ addl(EAX, Immediate(2 * kWordSize));
-      __ jmp(&loop, Assembler::kNearJump);
-      __ Bind(&found);
-      __ movl(EDX, Address(EAX, 1 * kWordSize));  // Cached instantiated args.
-      __ movl(EDI, Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-      __ Bind(&type_arguments_ready);
       // EDX: instantiated type arguments.
-      // EDI: kNoInstantiator.
     }
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     // EDX: instantiated type arguments (if is_cls_parameterized).
-    // EDI: kNoInstantiator (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
     __ movl(EAX, Address::Absolute(heap->TopAddress()));
     __ leal(EBX, Address(EAX, instance_size));
@@ -1233,12 +1202,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   }
   if (is_cls_parameterized) {
     __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
-    __ movl(EDI, Address(ESP, kInstantiatorTypeArgumentsOffset));
   }
   __ Bind(&slow_case_with_type_arguments);
   // If is_cls_parameterized:
-  // EDX: new object type arguments (instantiated or not).
-  // EDI: instantiator type arguments or kNoInstantiator.
+  // EDX: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
@@ -1246,13 +1213,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushl(EDX);  // Push type arguments of object to be allocated.
-    __ pushl(EDI);  // Push type arguments of instantiator.
   } else {
     __ pushl(raw_null);  // Push null type arguments.
-    __ pushl(Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
   }
-  __ CallRuntime(kAllocateObjectRuntimeEntry, 3);  // Allocate object.
-  __ popl(EAX);  // Pop argument (instantiator).
+  __ CallRuntime(kAllocateObjectRuntimeEntry, 2);  // Allocate object.
   __ popl(EAX);  // Pop argument (type arguments of object).
   __ popl(EAX);  // Pop argument (class of object).
   __ popl(EAX);  // Pop result (newly allocated object).
