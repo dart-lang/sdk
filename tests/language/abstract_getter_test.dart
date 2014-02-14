@@ -7,7 +7,8 @@ import "package:expect/expect.dart";
 // Test to ensure that an abstract getter is not mistaken for a field.
 
 class Foo {
-  get i;  // Abstract.
+  // Intentionally abstract:
+  get i;  /// 01: static type warning
 }
 
 class Bar {
@@ -16,9 +17,9 @@ class Bar {
 noMethod(e) => e is NoSuchMethodError;
 
 checkIt(f) {
-  Expect.throws(() { f.i = 'hi'; }, noMethod);
-  Expect.throws(() { print(f.i); }, noMethod);
-  Expect.throws(() { print(f.i()); }, noMethod);
+  Expect.throws(() { f.i = 'hi'; }, noMethod);  /// 01: continued
+  Expect.throws(() { print(f.i); }, noMethod);  /// 01: continued
+  Expect.throws(() { print(f.i()); }, noMethod);  /// 01: continued
 }
 
 main() {
