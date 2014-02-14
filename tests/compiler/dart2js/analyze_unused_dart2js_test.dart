@@ -10,9 +10,17 @@ import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 
 import 'analyze_helper.dart';
 
+const String SIMPLIFY_NEVER_CALLED = "The method 'simplify' is never called";
+
+// The simplify method isn't used in dart2js anymore but is used by many tests.
+const Map<String, List<String>> WHITE_LIST = const {
+  "type_mask.dart": const [SIMPLIFY_NEVER_CALLED],
+  "concrete_types_inferrer.dart": const [SIMPLIFY_NEVER_CALLED],
+};
+
 void main() {
   var uri = currentDirectory.resolve(
       'sdk/lib/_internal/compiler/implementation/use_unused_api.dart');
   asyncTest(
-      () => analyze([uri], {}, analyzeAll: false));
+      () => analyze([uri], WHITE_LIST, analyzeAll: false));
 }

@@ -523,7 +523,7 @@ class TypeGraphInferrerEngine
       // Force the creation of the [ElementTypeInformation] to ensure it is
       // in the graph.
       types.getInferredTypeOf(element);
-      analyze(element);
+      analyze(element, null);
     });
     compiler.log('Added $addedInGraph elements in inferencing graph.');
 
@@ -587,7 +587,7 @@ class TypeGraphInferrerEngine
     processLoopInformation();
   }
 
-  void analyze(Element element) {
+  void analyze(Element element, ArgumentsTypes arguments) {
     element = element.implementation;
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
@@ -993,6 +993,10 @@ class TypeGraphInferrerEngine
       return returnTypeOfElement(element);
     }
   }
+
+  void recordCapturedLocalRead(Element local) {}
+
+  void recordLocalUpdate(Element local, TypeInformation type) {}
 }
 
 class TypeGraphInferrer implements TypesInferrer {

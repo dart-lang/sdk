@@ -7,10 +7,11 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/types/concrete_types_inferrer.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/inferrer/concrete_types_inferrer.dart';
 
 import "parser_helper.dart";
 import "compiler_helper.dart";
+import 'dart:mirrors';
 
 /**
  * Finds the node corresponding to the last occurence of the substring
@@ -110,7 +111,7 @@ class AnalysisResult {
    * made of [baseTypes].
    */
   void checkNodeHasType(String variable, List<BaseType> baseTypes) {
-    return Expect.equals(
+    Expect.equals(
         concreteFrom(baseTypes),
         inferrer.inferredTypes[findNode(variable)]);
   }
@@ -120,7 +121,7 @@ class AnalysisResult {
    * occurence of [: variable; :] in the program is the unknown concrete type.
    */
   void checkNodeHasUnknownType(String variable) {
-    return Expect.isTrue(inferrer.inferredTypes[findNode(variable)].isUnknown());
+    Expect.isTrue(inferrer.inferredTypes[findNode(variable)].isUnknown());
   }
 
   /**
@@ -129,7 +130,7 @@ class AnalysisResult {
    */
   void checkFieldHasType(String className, String fieldName,
                          List<BaseType> baseTypes) {
-    return Expect.equals(
+    Expect.equals(
         concreteFrom(baseTypes),
         inferrer.inferredFieldTypes[findField(className, fieldName)]);
   }
@@ -139,11 +140,18 @@ class AnalysisResult {
    * concrete type.
    */
   void checkFieldHasUknownType(String className, String fieldName) {
-    return Expect.isTrue(
+    Expect.isTrue(
         inferrer.inferredFieldTypes[findField(className, fieldName)]
                 .isUnknown());
   }
+
+  /** Checks that the inferred type for [selector] is [mask]. */
+  void checkSelectorHasType(Selector selector, TypeMask mask) {
+    Expect.equals(mask, inferrer.getTypeOfSelector(selector));
+  }
 }
+
+const String DYNAMIC = '"__dynamic_for_test"';
 
 const String CORELIB = r'''
   print(var obj) {}
@@ -192,9 +200,9 @@ Future<AnalysisResult> analyze(String code, {int maxConcreteTypeSize: 1000}) {
 }
 
 testDynamicBackDoor() {
-  final String source = r"""
+  final String source = """
     main () {
-      var x = "__dynamic_for_test";
+      var x = $DYNAMIC;
       x;
     }
     """;
@@ -222,7 +230,7 @@ testLiterals() {
   final String source = r"""
       main() {
         var v1 = 42;
-        var v2 = 42.0;
+        var v2 = 42.1;
         var v3 = 'abc';
         var v4 = true;
         var v5 = null;
@@ -300,7 +308,8 @@ testWhile() {
         'foo',
         [result.base('A'), result.base('B'), result.base('C')]);
     // Check that the condition is evaluated.
-    result.checkNodeHasType('bar', [result.int]);
+    // TODO(polux): bar's type could be inferred to be {int} here.
+    result.checkNodeHasType('bar', [result.int, result.nullType]);
   });
 }
 
@@ -363,7 +372,8 @@ testFor2() {
   return analyze(source).then((result) {
     result.checkNodeHasType('foo', [result.base('A'), result.base('B')]);
     // Check that the condition is evaluated.
-    result.checkNodeHasType('bar', [result.int]);
+    // TODO(polux): bar's type could be inferred to be {int} here.
+    result.checkNodeHasType('bar', [result.int, result.nullType]);
   });
 }
 
@@ -439,9 +449,43 @@ testToplevelVariable() {
   });
 }
 
+testToplevelVariable2() {
+  final String source = r"""
+      class A {
+        var x;
+      }
+      final top = new A().x;
+
+      main() {
+        var a = new A();
+        a.x = 42;
+        a.x = "abc";
+        var foo = top;
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.nullType, result.int,
+                                    result.string]);
+  });
+}
+
 testNonRecusiveFunction() {
   final String source = r"""
       f(x, y) => true ? x : y;
+      main() { var foo = f(42, "abc"); foo; }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int, result.string]);
+  });
+}
+
+testMultipleReturns() {
+  final String source = r"""
+      f(x, y) {
+        if (true) return x;
+        else return y;
+      }
       main() { var foo = f(42, "abc"); foo; }
       """;
   return analyze(source).then((result) {
@@ -474,7 +518,7 @@ testMutuallyRecusiveFunction() {
 }
 
 testSimpleSend() {
-  final String source = r"""
+  final String source = """
       class A {
         f(x) => x;
       }
@@ -491,30 +535,13 @@ testSimpleSend() {
       main() {
         new B(); new D(42); // we instantiate B and D but not C
         var foo = new A().f(42);
-        var bar = "__dynamic_for_test".f(42);
+        var bar = $DYNAMIC.f(42);
         foo; bar;
       }
       """;
   return analyze(source).then((result) {
     result.checkNodeHasType('foo', [result.int]);
     result.checkNodeHasType('bar', [result.int, result.string]);
-  });
-}
-
-testSendToClosureField() {
-  final String source = r"""
-      f(x) => x;
-      class A {
-        var g;
-        A(this.g);
-      }
-      main() {
-        var foo = new A(f).g(42);
-        foo;
-      }
-      """;
-  return analyze(source).then((result) {
-    result.checkNodeHasType('foo', [result.int]);
   });
 }
 
@@ -572,6 +599,26 @@ testSendToThis3() {
   });
 }
 
+testSendToThis4() {
+  final String source = """
+      class A {
+        bar() => 42;
+        foo() => bar();
+      }
+      class B extends A {
+        bar() => "abc";
+      }
+      main() {
+        new A(); new B();  // make A and B seen
+        var x = $DYNAMIC.foo();
+        x;
+      }
+      """;
+  return analyze(source).then((AnalysisResult result) {
+    result.checkNodeHasType('x', [result.int, result.string]);
+  });
+}
+
 testConstructor() {
   final String source = r"""
       class A {
@@ -586,13 +633,12 @@ testConstructor() {
   return analyze(source).then((result) {
     result.checkFieldHasType('A', 'x', [result.int, result.bool]);
     result.checkFieldHasType('A', 'y', [result.string, result.nullType]);
-    // TODO(polux): we can be smarter and infer {string} for z
-    result.checkFieldHasType('A', 'z', [result.string, result.nullType]);
+    result.checkFieldHasType('A', 'z', [result.string]);
   });
 }
 
 testGetters() {
-  final String source = r"""
+  final String source = """
       class A {
         var x;
         A(this.x);
@@ -610,7 +656,7 @@ testGetters() {
         var bar = a.y;
         var baz = a.z;
         var qux = null.x;
-        var quux = "__dynamic_for_test".x;
+        var quux = $DYNAMIC.x;
         foo; bar; baz; qux; quux;
       }
       """;
@@ -623,8 +669,28 @@ testGetters() {
   });
 }
 
+testDynamicGetters() {
+  final String source = """
+      class A {
+        get x => f();
+        f() => 42;
+      }
+      class B extends A {
+        f() => "abc";
+      }
+      main() {
+        new A(); new B();  // make A and B seen
+        var x = $DYNAMIC.x;
+        x;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('x', [result.int, result.string]);
+  });
+}
+
 testSetters() {
-  final String source = r"""
+  final String source = """
       class A {
         var x;
         var w;
@@ -642,8 +708,8 @@ testSetters() {
         a.x = 'abc';
         a.y = true;
         null.x = 42;  // should be ignored
-        "__dynamic_for_test".x = null;
-        "__dynamic_for_test".y = 3.14;
+        $DYNAMIC.x = null;
+        $DYNAMIC.y = 3.14;
       }
       """;
   return analyze(source).then((result) {
@@ -659,7 +725,7 @@ testSetters() {
     result.checkFieldHasType('A', 'w',
                              [result.int,       // new A(..., 42)
                               result.bool,      // a.y = true
-                              result.double]);  // dynamic.y = double
+                              result.double]);  // dynamic.y = 3.14
   });
 }
 
@@ -710,9 +776,9 @@ testOptionalNamedParameters() {
         var test = new Test(foo, foo, foo, foo, foo, foo, foo, foo);
 
         new A(42);
-        new A('abc', w: true, z: 42.0);
+        new A('abc', w: true, z: 42.1);
         test.f1(42);
-        test.f1('abc', w: true, z: 42.0);
+        test.f1('abc', w: true, z: 42.1);
 
         new B('abc', y: true);
         new B(1, 2);  // too many positional arguments
@@ -788,9 +854,9 @@ testOptionalPositionalParameters() {
       var test = new Test(foo, foo, foo, foo, foo, foo);
 
       new A(42);
-      new A('abc', true, 42.0);
+      new A('abc', true, 42.1);
       test.f1(42);
-      test.f1('abc', true, 42.0);
+      test.f1('abc', true, 42.1);
 
       new B('a', true);
       new B(1, 2, 3);  // too many arguments
@@ -894,17 +960,17 @@ testArithmeticOperators() {
     return """
         main() {
           var a = 1 $op 2;
-          var b = 1 $op 2.0;
-          var c = 1.0 $op 2;
-          var d = 1.0 $op 2.0;
-          var e = (1 $op 2.0) $op 1;
-          var f = 1 $op (1 $op 2.0);
-          var g = (1 $op 2.0) $op 1.0;
-          var h = 1.0 $op (1 $op 2);
+          var b = 1 $op 2.1;
+          var c = 1.1 $op 2;
+          var d = 1.1 $op 2.1;
+          var e = (1 $op 2.1) $op 1;
+          var f = 1 $op (1 $op 2.1);
+          var g = (1 $op 2.1) $op 1.1;
+          var h = 1.1 $op (1 $op 2);
           var i = (1 $op 2) $op 1;
           var j = 1 $op (1 $op 2);
-          var k = (1.0 $op 2.0) $op 1.0;
-          var l = 1.0 $op (1.0 $op 2.0);
+          var k = (1.1 $op 2.1) $op 1.1;
+          var l = 1.1 $op (1.1 $op 2.1);
           a; b; c; d; e; f; g; h; i; j; k; l;
         }""";
   }
@@ -1076,15 +1142,16 @@ testInequality() {
       }
       main() {
         var foo = 1 != 2;
-        var bar = new A() != 2;
-        var baz = new B() != 2;
+        var bar = (new A() != 2);
+        var baz = (new B() != 2);
         foo; bar; baz;
       }
       """;
   return analyze(source).then((result) {
     result.checkNodeHasType('foo', [result.bool]);
     result.checkNodeHasType('bar', [result.bool]);
-    result.checkNodeHasType('baz', []);
+    // TODO(polux): could be even better: empty
+    result.checkNodeHasType('baz', [result.bool]);
     result.checkFieldHasType('A', 'witness', [result.string, result.nullType]);
   });
 }
@@ -1099,7 +1166,9 @@ testFieldInitialization1() {
       var z = "foo";
     }
     main () {
-      new B();
+      // we need to access y and z once to trigger their analysis
+      new B().y;
+      new B().z;
     }
     """;
   return analyze(source).then((result) {
@@ -1116,7 +1185,8 @@ testFieldInitialization2() {
       var x = top;
     }
     main () {
-      new A();
+      // we need to access X once to trigger its analysis
+      new A().x;
     }
     """;
   return analyze(source).then((result) {
@@ -1154,7 +1224,7 @@ testFieldInitialization3() {
 }
 
 testLists() {
-  final String source = r"""
+  final String source = """
     class A {}
     class B {}
     class C {}
@@ -1171,7 +1241,7 @@ testLists() {
       l1.add(new D());
       l1.insert('a', new E());  // raises an error, so E should not be recorded
       l1.insert(1, new F());
-      "__dynamic_for_test"[1] = new G();
+      $DYNAMIC[1] = new G();
       var x1 = l1[1];
       var x2 = l2[1];
       var x3 = l1['foo'];  // raises an error, should return empty
@@ -1232,8 +1302,12 @@ testSendWithWrongArity() {
     }
     """;
   return analyze(source).then((result) {
-    result.checkNodeHasType('x', []);
-    result.checkNodeHasType('y', []);
+    // TODO(polux): It would be better if x and y also had the empty type. This
+    // requires a change in SimpleTypeInferrerVisitor.visitStaticSend which
+    // would impact the default type inference and possibly break dart2js.
+    // Keeping this change for a later CL.
+    result.checkNodeHasUnknownType('x');
+    result.checkNodeHasUnknownType('y');
     result.checkNodeHasType('z', []);
     result.checkNodeHasType('w', []);
   });
@@ -1275,11 +1349,11 @@ testBigTypesWidening2() {
 }
 
 testDynamicIsAbsorbing() {
-  final String source = r"""
+  final String source = """
     main () {
       var x = 1;
       if (true) {
-        x = "__dynamic_for_test";
+        x = $DYNAMIC;
       } else {
         x = 42;
       }
@@ -1327,14 +1401,14 @@ testJsCall() {
       var hNull = JS('bool|Null', '1');
       var i = JS('AbstractA', '1');
       var iNull = JS('AbstractA|Null', '1');
-      var j = JS('X', '1');
 
       a; b; c; cNull; d; dNull; e; eNull; f; fNull; g; gNull; h; hNull; i;
-      iNull; j;
+      iNull;
     }
     """;
-  return analyze(source).then((result) {
+  return analyze(source, maxConcreteTypeSize: 6).then((result) {
     List maybe(List types) => new List.from(types)..add(result.nullType);
+    // a and b have all the types seen by the resolver, which are more than 6
     result.checkNodeHasUnknownType('a');
     result.checkNodeHasUnknownType('b');
     final expectedCType = [result.growableList];
@@ -1360,14 +1434,13 @@ testJsCall() {
                            result.base('D')];
     result.checkNodeHasType('i', expectedIType);
     result.checkNodeHasType('iNull', maybe(expectedIType));
-    result.checkNodeHasType('j', []);
   });
 }
 
 testJsCallAugmentsSeenClasses() {
-  final String source1 = r"""
+  final String source1 = """
     main () {
-      var x = "__dynamic_for_test".truncate();
+      var x = $DYNAMIC.truncate();
       x;
     }
     """;
@@ -1375,11 +1448,11 @@ testJsCallAugmentsSeenClasses() {
     result.checkNodeHasType('x', []);
   }).whenComplete(() {
 
-    final String source2 = r"""
+    final String source2 = """
       import 'dart:foreign';
 
       main () {
-        var x = "__dynamic_for_test".truncate();
+        var x = $DYNAMIC.truncate();
         JS('double', 'foo');
         x;
       }
@@ -1403,12 +1476,12 @@ testIsCheck() {
 }
 
 testSeenClasses() {
-  final String source = r"""
+  final String source = """
       class A {
         witness() => 42;
       }
       class B {
-        witness() => "abc";
+        witness() => "string";
       }
       class AFactory {
         onlyCalledInAFactory() => new A();
@@ -1421,7 +1494,7 @@ testSeenClasses() {
         new AFactory().onlyCalledInAFactory();
         new BFactory();
         // should be of type {int} and not {int, String} since B is unreachable
-        var foo = "__dynamic_for_test".witness();
+        var foo = $DYNAMIC.witness();
         foo;
       }
       """;
@@ -1434,8 +1507,8 @@ testIntDoubleNum() {
   final String source = r"""
       main() {
         var a = 1;
-        var b = 1.0;
-        var c = true ? 1 : 1.0;
+        var b = 1.1;
+        var c = true ? 1 : 1.1;
         a; b; c;
       }
       """;
@@ -1461,10 +1534,10 @@ testConcreteTypeToTypeMask() {
       """;
   return analyze(source).then((result) {
 
-    convert(ConcreteType type) {
-      return result.compiler.typesTask.concreteTypesInferrer
-          .concreteTypeToTypeMask(type);
-    }
+  convert(ConcreteType type) {
+    return result.compiler.typesTask.concreteTypesInferrer
+        .types.concreteTypeToTypeMask(type);
+  }
 
     final nullSingleton =
         result.compiler.typesTask.concreteTypesInferrer.singletonConcreteType(
@@ -1528,13 +1601,8 @@ testSelectors() {
       """;
   return analyze(source).then((result) {
 
-    inferredType(Selector selector) {
-      return result.compiler.typesTask.concreteTypesInferrer
-          .getTypeOfSelector(selector);
-    }
 
-    ClassElement abc = findElement(result.compiler, 'ABC');
-    ClassElement bc = findElement(result.compiler, 'BC');
+
     ClassElement a = findElement(result.compiler, 'A');
     ClassElement b = findElement(result.compiler, 'B');
     ClassElement c = findElement(result.compiler, 'C');
@@ -1545,26 +1613,38 @@ testSelectors() {
 
     Selector foo = new Selector.call("foo", null, 0);
 
-    Expect.equals(
-        inferredType(foo).simplify(result.compiler),
-        new TypeMask.nonNullSubclass(abc));
-    Expect.equals(
-        inferredType(new TypedSelector.subclass(x, foo)),
+    result.checkSelectorHasType(
+        foo,
+        new TypeMask.unionOf([a, b, c]
+            .map((cls) => new TypeMask.nonNullExact(cls)), result.compiler));
+    result.checkSelectorHasType(
+        new TypedSelector.subclass(x, foo),
         new TypeMask.nonNullExact(b));
-    Expect.equals(
-        inferredType(new TypedSelector.subclass(y, foo)),
+    result.checkSelectorHasType(
+        new TypedSelector.subclass(y, foo),
         new TypeMask.nonNullExact(c));
-    Expect.equals(
-        inferredType(new TypedSelector.subclass(z, foo)),
+    result.checkSelectorHasType(
+        new TypedSelector.subclass(z, foo),
         new TypeMask.nonNullExact(a));
-    Expect.equals(
-        inferredType(new TypedSelector.subclass(
-            xy, foo)).simplify(result.compiler),
-        new TypeMask.nonNullSubclass(bc));
+    result.checkSelectorHasType(
+        new TypedSelector.subclass(xy, foo),
+        new TypeMask.unionOf([b, c].map((cls) =>
+            new TypeMask.nonNullExact(cls)), result.compiler));
 
-    Selector bar = new Selector.call("bar", null, 0);
+    result.checkSelectorHasType(new Selector.call("bar", null, 0), null);
+  });
+}
 
-    Expect.isNull(inferredType(bar));
+testEqualsNullSelector() {
+  final String source = r"""
+      main() {
+        1 == null;
+      }
+      """;
+  return analyze(source).then((result) {
+    ClassElement bool = result.compiler.backend.boolImplementation;
+    result.checkSelectorHasType(new Selector.binaryOperator('=='),
+                                new TypeMask.nonNullExact(bool));
   });
 }
 
@@ -1595,7 +1675,7 @@ testMixins() {
   });
 }
 
-testClosures() {
+testClosures1() {
   final String source = r"""
       class A {
         final foo = 42;
@@ -1603,25 +1683,29 @@ testClosures() {
       class B {
         final foo = "abc";
       }
+      class C {
+        final foo = true;
+      }
       main() {
-        new A(); new B();
-
         var a;
         var f = (x) {
           a = x.foo;
         };
-        var b = f(42);
-        a; b; f;
+        // We make sure that x doesn't have type dynamic by adding C to the
+        // set of seen classes and by checking that a's type doesn't contain
+        // bool.
+        new C();
+        f(new A());
+        f(new B());
+        a;
       }
       """;
   return analyze(source).then((AnalysisResult result) {
-    result.checkNodeHasType('a', [result.int, result.string]);
-    result.checkNodeHasType('f', [result.functionType]);
-    result.checkNodeHasUnknownType('b');
+    result.checkNodeHasType('a', [result.nullType, result.int, result.string]);
   });
 }
 
-testNestedFunctions() {
+testClosures2() {
   final String source = r"""
       class A {
         final foo = 42;
@@ -1629,21 +1713,312 @@ testNestedFunctions() {
       class B {
         final foo = "abc";
       }
+      class C {
+        final foo = true;
+      }
       main() {
-        new A(); new B();
+        // We make sure that x doesn't have type dynamic by adding C to the
+        // set of seen classes and by checking that a's type doesn't contain
+        // bool. 
+        new C();
 
         var a;
         f(x) {
           a = x.foo;
         }
-        var b = f(42);
-        a; b; f;
+        f(new A());
+        f(new B());
+        a; f;
       }
       """;
   return analyze(source).then((AnalysisResult result) {
-    result.checkNodeHasType('a', [result.int, result.string]);
+    result.checkNodeHasType('a', [result.nullType, result.int, result.string]);
     result.checkNodeHasType('f', [result.functionType]);
-    result.checkNodeHasUnknownType('b');
+  });
+}
+
+testClosures3() {
+  final String source = r"""
+      class A {
+        var g;
+        A(this.g);
+      }
+      main() {
+        var foo = new A((x) => x).g(42);
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
+}
+
+testClosures4() {
+  final String source = """
+      class A {
+        var f = $DYNAMIC;
+      }
+      main() {
+        var f = (x) => x;
+        var g = (x) => "a";
+        var h = (x, y) => true;
+
+        var foo = $DYNAMIC(42);
+        var bar = new A().f(1.2);
+        var baz = $DYNAMIC.f(null);
+
+        foo; bar; baz;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int, result.string]);
+    result.checkNodeHasType('bar', [result.double, result.string]);
+    result.checkNodeHasType('baz', [result.nullType, result.string]);
+  });
+}
+
+testClosures5() {
+  final String source = r"""
+      f(x) => x;
+      class A {
+        var g;
+        A(this.g);
+      }
+      main() {
+        var foo = new A(f).g(42);
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
+}
+
+testClosures6() {
+  final String source = r"""
+      class A {
+        var g;
+        A(this.g);
+      }
+      class B {
+        f(x) => x;
+      }
+      main() {
+        var foo = new A(new B().f).g(42);
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
+}
+
+testClosures7() {
+  final String source = r"""
+      class A {
+        final x = 42;
+        f() => () => x;
+      }
+      main() {
+        var foo = new A().f()();
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
+}
+
+testClosures8() {
+  final String source = r"""
+      class A {
+        final x = 42;
+        f() => () => x;
+      }
+      class B extends A {
+        get x => "a";
+      }
+      main() {
+        var foo = new B().f()();
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.string]);
+  });
+}
+
+testClosures9() {
+  final String source = r"""
+      class A {
+        g() => 42;
+        f() => () => g();
+      }
+      class B extends A {
+        g() => "a";
+      }
+      main() {
+        var foo = new B().f()();
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.string]);
+  });
+}
+
+testClosures10() {
+  final String source = r"""
+      class A {
+        f() => 42;
+      }
+      main() {
+        var a = new A();
+        g() => a.f();
+        var foo = g();
+        foo; a;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
+}
+
+testClosures11() {
+  final String source = r"""
+      class A {
+        var x;
+        f() => x;
+      }
+      main() {
+        var a = new A();
+        f() => a.f();
+        a.x = 42;
+        var foo = f();
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.nullType, result.int]);
+  });
+}
+
+testClosures12() {
+  final String source = r"""
+      var f = (x) => x;
+      main() {
+        var foo = f(1);
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
+}
+
+testRefinement() {
+  final String source = """
+      class A {
+        f() => null;
+        g() => 42;
+      }
+      class B {
+        g() => "aa";
+      }
+      main() {
+        var x = $DYNAMIC ? new A() : new B();
+        x.f();
+        var foo = x.g();
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('foo', [result.int]);
+  });
+}
+
+testDefaultArguments() {
+  final String source = r"""
+      f1([x = 42]) => x;
+      g1([x]) => x;
+
+      f2({x: 42}) => x;
+      g2({x}) => x;
+
+      main() {
+        var xf1 = f1();
+        var xg1 = g1();
+        var xf2 = f2();
+        var xg2 = g2();
+        xf1; xg1; xf2; xg2;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkNodeHasType('xf1', [result.int]);
+    result.checkNodeHasType('xg1', [result.nullType]);
+    result.checkNodeHasType('xf2', [result.int]);
+    result.checkNodeHasType('xg2', [result.nullType]);
+  });
+}
+
+testSuperConstructorCall() {
+  final String source = r"""
+      class A {
+        final x;
+        A(this.x);
+      }
+
+      class B extends A {
+        B(x) : super(x);
+      }
+      main() {
+        var b = new B(42);
+        var foo = b.x;
+        foo;
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkFieldHasType('A', 'x', [result.int]);
+    result.checkNodeHasType('foo', [result.int]);
+  });
+}
+
+testSuperConstructorCall2() {
+  final String source = r"""
+      class A {
+        var x;
+        A() {
+          x = 42;
+        }
+      }
+      class B extends A {
+      }
+      main() {
+        new B();
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkFieldHasType('A', 'x', [result.int]);
+  });
+}
+
+testSuperConstructorCall3() {
+  final String source = r"""
+      class A {
+        var x;
+        A() {
+          x = 42;
+        }
+      }
+      class B extends A {
+        B(unused) {}
+      }
+      main() {
+        new B("abc");
+      }
+      """;
+  return analyze(source).then((result) {
+    result.checkFieldHasType('A', 'x', [result.int]);
   });
 }
 
@@ -1662,23 +2037,26 @@ void main() {
     testFor3,
     testForIn,
     testToplevelVariable,
+    testToplevelVariable2,
     testNonRecusiveFunction,
+    testMultipleReturns,
     testRecusiveFunction,
     testMutuallyRecusiveFunction,
     testSimpleSend,
-    // testSendToClosureField,  // closures are not yet supported
     testSendToThis1,
     testSendToThis2,
     testSendToThis3,
+    testSendToThis4,
     testConstructor,
     testGetters,
+    testDynamicGetters,
     testSetters,
     testOptionalNamedParameters,
     testOptionalPositionalParameters,
     testListLiterals,
     testMapLiterals,
     testReturn,
-    // testNoReturn, // right now we infer the empty type instead of null
+    testNoReturn,
     testArithmeticOperators,
     testBooleanOperators,
     testBooleanOperatorsShortCirtcuit,
@@ -1704,8 +2082,25 @@ void main() {
     testIntDoubleNum,
     testConcreteTypeToTypeMask,
     testSelectors,
+    // TODO(polux): this test is failing, see http://dartbug.com/16825.
+    //testEqualsNullSelector,
     testMixins,
-    testClosures,
-    testNestedFunctions,
+    testClosures1,
+    testClosures2,
+    testClosures3,
+    testClosures4,
+    testClosures5,
+    testClosures6,
+    testClosures7,
+    testClosures8,
+    testClosures9,
+    testClosures10,
+    testClosures11,
+    testClosures12,
+    testRefinement,
+    testDefaultArguments,
+    testSuperConstructorCall,
+    testSuperConstructorCall2,
+    testSuperConstructorCall3,
   ], (f) => f()));
 }

@@ -390,7 +390,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         && element.isField();
   }
 
-  void analyze(Element element);
+  void analyze(Element element, ArgumentsTypes arguments);
 
   bool checkIfExposesThis(Element element) {
     element = element.implementation;
@@ -422,21 +422,20 @@ class SimpleTypeInferrerVisitor<T>
                                      compiler,
                                      locals)
     : super(analyzedElement, inferrer, inferrer.types, compiler, locals),
-      this.inferrer = inferrer;
-
-  factory SimpleTypeInferrerVisitor(Element element,
-                                    Compiler compiler,
-                                    InferrerEngine<T, TypeSystem<T>> inferrer,
-                                    [LocalsHandler<T> handler]) {
-    Element outermostElement =
-        element.getOutermostEnclosingMemberOrTopLevel().implementation;
+      this.inferrer = inferrer {
     assert(outermostElement != null);
-    return new SimpleTypeInferrerVisitor<T>.internal(
-        element, outermostElement, inferrer, compiler, handler);
   }
 
-  void analyzeSuperConstructorCall(Element target) {
-    inferrer.analyze(target);
+  SimpleTypeInferrerVisitor(Element element,
+                            Compiler compiler,
+                            InferrerEngine<T, TypeSystem<T>> inferrer,
+                            [LocalsHandler<T> handler])
+    : this.internal(element,
+        element.getOutermostEnclosingMemberOrTopLevel().implementation,
+        inferrer, compiler, handler);
+
+  void analyzeSuperConstructorCall(Element target, ArgumentsTypes arguments) {
+    inferrer.analyze(target, arguments);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
@@ -454,6 +453,9 @@ class SimpleTypeInferrerVisitor<T>
     ClosureClassMap closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             analyzedElement, node, elements);
+    closureData.forEachCapturedVariable((variable, field) {
+      locals.setCaptured(variable, field);
+    });
     closureData.forEachBoxedVariable((variable, field) {
       locals.setCapturedAndBoxed(variable, field);
     });
@@ -515,7 +517,7 @@ class SimpleTypeInferrerVisitor<T>
           Selector selector =
               new Selector.callDefaultConstructor(analyzedElement.getLibrary());
           FunctionElement target = cls.superclass.lookupConstructor(selector);
-          analyzeSuperConstructorCall(target);
+          analyzeSuperConstructorCall(target, new ArgumentsTypes([], {}));
           synthesizeForwardingCall(analyzedElement, target);
         }
         visit(node.body);
@@ -899,17 +901,17 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitSuperSend(Send node) {
     Element element = elements[node];
+    ArgumentsTypes arguments = node.isPropertyAccess
+        ? null
+        : analyzeArguments(node.arguments);
     if (visitingInitializers) {
       seenSuperConstructorCall = true;
-      analyzeSuperConstructorCall(element);
+      analyzeSuperConstructorCall(element, arguments);
     }
     Selector selector = elements.getSelector(node);
     // TODO(ngeoffray): We could do better here if we knew what we
     // are calling does not expose this.
     isThisExposed = true;
-    ArgumentsTypes arguments = node.isPropertyAccess
-        ? null
-        : analyzeArguments(node.arguments);
     if (Elements.isUnresolved(element)
         || !selector.applies(element, compiler)) {
       // Ensure we create a node, to make explicit the call to the
@@ -948,21 +950,22 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitStaticSend(Send node) {
     Element element = elements[node];
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (visitingInitializers) {
       if (Initializers.isConstructorRedirect(node)) {
         isConstructorRedirect = true;
       } else if (Initializers.isSuperConstructorCall(node)) {
         seenSuperConstructorCall = true;
-        analyzeSuperConstructorCall(element);
+        analyzeSuperConstructorCall(element, arguments);
       }
     }
     if (element.isForeign(compiler)) {
       return handleForeignSend(node);
     }
     Selector selector = elements.getSelector(node);
-    ArgumentsTypes arguments = analyzeArguments(node.arguments);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
+    // TODO(polux): return nonNullEmpty and check it doesn't break anything
     if (!selector.applies(element, compiler)) return types.dynamicType;
 
     T returnType = handleStaticSend(node, selector, element, arguments);
